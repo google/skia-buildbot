@@ -1,0 +1,30 @@
+{
+    "TRACESERVER_MEMORY":      "500Mi",
+    "TRACESERVER_CPU":         "500m",
+    "GERRIT_URL":              "https://chromium-review.googlesource.com",
+    "GITREPO_URL":             "https://chromium.googlesource.com/chromium/src",
+    "N_COMMITS":               50,
+    "SPARSE":                  true,
+
+    "GIT_BT_INSTANCE":         "production",
+    "GIT_BT_TABLE":            "git-repos",
+
+    // Settings for the main ingester.
+    "ING_RUN_EVERY":           "5m",
+    "ING_N_COMMITS":           75,
+    "ING_MIN_DAYS":            20,
+
+    // Settings for the Tryjob ingester.
+    "ING_TRY_ENABLED":         true,
+    "ING_TRY_RUN_EVERY":       "5m",
+    "ING_TRY_MIN_DAYS":        5,
+    "ING_TRY_N_COMMITS":       10,
+    "ING_TRY_BUILDBUCKET_URL": "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
+    "ING_TRY_BUILDBUCKET":     "chromium/try",
+    "ING_TRY_BB_INTERVAL":     "10s",
+    "ING_TRY_BB_WINDOW":       "5h",
+    "ING_TRY_BUILDER_REGEX":   "linux_optional_gpu_tests_rel",
+
+    "SKCORR_TITLE":          "Chrome GPU Gold",
+    "SKCORR_DEFAULT_CORPUS": "chrome-gpu",
+}

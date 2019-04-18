@@ -214,9 +214,10 @@ func (t *Tryjob) newer(r interface{}) bool {
 // TryjobResult stores results. It is stored in the database as a child of
 // a Tryjob entity.
 type TryjobResult struct {
-	TestName string              `datastore:"TestName,noindex"`
-	Digest   string              `datastore:"Digest,noindex"`
-	Params   paramtools.ParamSet `datastore:"-"`
+	BuildBucketID int64               `datastore:"BuildBucketID"`
+	TestName      string              `datastore:"TestName,noindex"`
+	Digest        string              `datastore:"Digest,noindex"`
+	Params        paramtools.ParamSet `datastore:"-"`
 }
 
 const (

@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/diff"
-	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/tryjobs"
@@ -45,7 +44,6 @@ type Storage struct {
 	IgnoreStore          ignore.IgnoreStore
 	TraceDB              tracedb.DB
 	MasterTileBuilder    tracedb.MasterTileBuilder
-	DigestStore          digeststore.DigestStore
 	EventBus             eventbus.EventBus
 	TryjobStore          tryjobstore.TryjobStore
 	TryjobMonitor        *tryjobs.TryjobMonitor
@@ -258,33 +256,6 @@ func FilterIgnored(inputTile *tiling.Tile, ignoreStore ignore.IgnoreStore) (*til
 		ignoreRules[idx] = paramtools.ParamSet(q)
 	}
 	return ret, ignoreRules, nil
-}
-
-// GetOrUpdateDigestInfo is a helper function that retrieves the DigestInfo for
-// the given test name/digest pair or updates the underlying info if it is not
-// in the digest store yet.
-func (s *Storage) GetOrUpdateDigestInfo(testName, digest string, commit *tiling.Commit) (*digeststore.DigestInfo, error) {
-	digestInfo, ok, err := s.DigestStore.Get(testName, digest)
-	if err != nil {
-		sklog.Warningf("Error retrieving digest info: %s", err)
-		return &digeststore.DigestInfo{Exception: err.Error()}, nil
-	}
-
-	if ok {
-		return digestInfo, nil
-	}
-	digestInfo = &digeststore.DigestInfo{
-		TestName: testName,
-		Digest:   digest,
-		First:    commit.CommitTime,
-		Last:     commit.CommitTime,
-	}
-	err = s.DigestStore.Update([]*digeststore.DigestInfo{digestInfo})
-	if err != nil {
-		return nil, err
-	}
-
-	return digestInfo, nil
 }
 
 func (s *Storage) GetExpectationsForCommit(parentCommit string) (types.Expectations, error) {

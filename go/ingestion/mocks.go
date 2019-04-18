@@ -36,6 +36,7 @@ func MockVCS(commits []*vcsinfo.LongCommit, depsContentMap map[string]string, pa
 	}
 }
 
+func (m MockVCSImpl) GetBranch() string                                        { return "" }
 func (m MockVCSImpl) Update(ctx context.Context, pull, allBranches bool) error { return nil }
 func (m MockVCSImpl) LastNIndex(N int) []*vcsinfo.IndexCommit                  { return nil }
 func (m MockVCSImpl) Range(begin, end time.Time) []*vcsinfo.IndexCommit        { return nil }

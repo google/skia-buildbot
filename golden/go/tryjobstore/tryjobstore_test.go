@@ -137,8 +137,9 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 			digestStr := fmt.Sprintf("%010d", digestStart+int64(i))
 			testName := fmt.Sprintf("test-%d", i%5)
 			results = append(results, &TryjobResult{
-				Digest:   "digest-" + digestStr,
-				TestName: testName,
+				BuildBucketID: tj.BuildBucketID,
+				Digest:        "digest-" + digestStr,
+				TestName:      testName,
 				Params: map[string][]string{
 					"name":    {testName},
 					"param-1": {"value-1-1-" + digestStr, "value-1-2-" + digestStr},
@@ -146,7 +147,7 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 				},
 			})
 		}
-		assert.NoError(t, store.UpdateTryjobResult(tj, results))
+		assert.NoError(t, store.UpdateTryjobResult(results))
 		tryjobResults[idx] = results
 	}
 

@@ -399,49 +399,13 @@ func TestBranchInfo(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	branches, err := r.GetBranches(ctx)
+	allBranches, err := r.GetBranches(ctx)
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(branches))
-
-	// Make sure commits across all branches show up.
-	commits := []string{
-		"7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
-		"8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
-		"3f5a807d432ac232a952bbf223bc6952e4b49b2c",
+	branches := []string{}
+	for _, b := range allBranches {
+		branches = append(branches, b.Name)
 	}
-	found := r.From(time.Unix(1406721641, 0))
-	assert.Equal(t, commits, found)
-
-	// The timestamps of the three commits commits in the entire repository start
-	// at timestamp 1406721642.
-	testCases := []struct {
-		commitHash string
-		branchName string
-		nBranches  int
-	}{
-		{
-			commitHash: "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
-			branchName: "master",
-			nBranches:  2,
-		},
-		{
-			commitHash: "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
-			branchName: "master",
-			nBranches:  2,
-		},
-		{
-			commitHash: "3f5a807d432ac232a952bbf223bc6952e4b49b2c",
-			branchName: "test-branch-1",
-			nBranches:  1,
-		},
-	}
-
-	for _, tc := range testCases {
-		details, err := r.Details(ctx, tc.commitHash, true)
-		assert.NoError(t, err)
-		assert.True(t, details.Branches[tc.branchName])
-		assert.Equal(t, tc.nBranches, len(details.Branches))
-	}
+	vcstu.TestBranchInfo(t, r, branches)
 }
 
 func TestSetBranch(t *testing.T) {

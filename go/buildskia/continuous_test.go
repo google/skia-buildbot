@@ -71,6 +71,7 @@ type mockVcs struct {
 	commits map[string]*vcsinfo.LongCommit
 }
 
+func (m *mockVcs) GetBranch() string                                               { return "master" }
 func (m *mockVcs) LastNIndex(N int) []*vcsinfo.IndexCommit                         { return nil }
 func (m *mockVcs) Update(ctx context.Context, pull, allBranches bool) error        { return nil }
 func (m *mockVcs) From(start time.Time) []string                                   { return nil }

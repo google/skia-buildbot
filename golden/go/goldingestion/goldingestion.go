@@ -122,7 +122,8 @@ func (g *goldProcessor) getCanonicalCommitHash(ctx context.Context, targetHash s
 		}
 
 		if foundCommit == "" {
-			return "", fmt.Errorf("Unable to resolve commit %s in secondary repo.", targetHash)
+			sklog.Warningf("Unable to resolve commit %s in secondary repo.", targetHash)
+			return "", ingestion.IgnoreResultsFileErr
 		}
 
 		// Check if the found commit is actually in the primary repository.

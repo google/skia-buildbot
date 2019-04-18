@@ -103,9 +103,17 @@ func (s *srTimestampCommits) Add(shard uint32, row bigtable.Row) error {
 		hash := strings.TrimPrefix(col.Column, prefix)
 		timeStamp := col.Timestamp
 
+		// Parse the index
+		idxStr := string(col.Value)
+		idx := parseIndex(idxStr)
+		if idx < 0 {
+			return skerr.Fmt("Unable to parse index key %q. Invalid index", idxStr)
+		}
+
 		s.results[shard] = append(s.results[shard], &vcsinfo.IndexCommit{
 			Hash:      hash,
 			Timestamp: timeStamp.Time().UTC(),
+			Index:     idx,
 		})
 	}
 	return nil

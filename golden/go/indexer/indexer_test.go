@@ -78,31 +78,30 @@ func TestIndexer(t *testing.T) {
 	storages := &storage.Storage{
 		ExpectationsStore: expStore,
 		MasterTileBuilder: tileBuilder,
-		DigestStore: &mocks.MockDigestStore{
-			FirstSeen: time.Now().Unix(),
-			OkValue:   true,
-		},
-		DiffStore:      mocks.NewMockDiffStore(),
-		EventBus:       eventBus,
-		GStorageClient: gsClient,
+		DiffStore:         mocks.NewMockDiffStore(),
+		EventBus:          eventBus,
+		GStorageClient:    gsClient,
 	}
 
-	assert.NoError(t, storages.InitBaseliner())
-
-	ixr, err := New(storages, time.Minute)
-	assert.NoError(t, err)
-
-	idxOne := ixr.GetIndex()
-
-	// Set up a waitgroup so we can block until the index is updated.
+	// Set up a waitgroup that waits for index updates throughout the test.
 	var wg sync.WaitGroup
 	eventBus.SubscribeAsync(EV_INDEX_UPDATED, func(ignore interface{}) {
 		wg.Done()
 	})
+
+	assert.NoError(t, storages.InitBaseliner())
+
 	wg.Add(1)
+	ixr, err := New(storages, time.Minute)
+	assert.NoError(t, err)
+	wg.Wait()
+
+	idxOne := ixr.GetIndex()
 
 	// Change the classifications and wait for the indexing to propagate.
 	changes := getChanges(t, idxOne.cpxTile.GetTile(false))
+	assert.NotEqual(t, 0, len(changes))
+	wg.Add(1)
 	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
 	wg.Wait()
 
@@ -189,7 +188,6 @@ func setupStorages(t testutils.TestingT, ctx context.Context) (*storage.Storage,
 		DiffStore:         diffStore,
 		ExpectationsStore: expstorage.NewMemExpectationsStore(evt),
 		MasterTileBuilder: masterTileBuilder,
-		DigestStore:       &mocks.MockDigestStore{IssueIDs: []int{}, OkValue: true},
 		NCommits:          N_COMMITS,
 		EventBus:          evt,
 	}

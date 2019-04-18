@@ -154,7 +154,6 @@ func (b *Blamer) Calculate(tile *tiling.Tile) error {
 
 	// blameRange stores the candidate ranges for a testName/digest pair.
 	blameRange := map[string]map[string][][]int{}
-	firstCommit := tile.Commits[0]
 	tileLen := tile.LastCommitIndex() + 1
 	ret := map[string]map[string]*BlameDistribution{}
 
@@ -186,14 +185,8 @@ func (b *Blamer) Calculate(tile *tiling.Tile) error {
 					startIdx = lastIdx + 1
 				}
 
-				// Get the info about this digest.
-				digestInfo, err := b.storages.GetOrUpdateDigestInfo(testName, digest, tile.Commits[idx])
-				if err != nil {
-					return err
-				}
-
 				// Check if the digest was first seen outside the current tile.
-				isOld := digestInfo.First < firstCommit.CommitTime
+				isOld := false
 				commitRange := []int{startIdx, endIdx}
 				if blameStartFound, ok := blameStart[testName]; !ok {
 					blameStart[testName] = map[string]int{digest: startIdx}

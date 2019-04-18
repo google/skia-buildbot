@@ -146,7 +146,6 @@ func TestCalcSummaries(t *testing.T) {
 		MasterTileBuilder: mocks.NewMockTileBuilderFromTile(t, tile),
 		NCommits:          50,
 		EventBus:          eventBus,
-		DigestStore:       &mocks.MockDigestStore{FirstSeen: time.Now().Unix() + 1000, OkValue: true},
 	}
 
 	assert.NoError(t, storages.ExpectationsStore.AddChange(types.TestExp{

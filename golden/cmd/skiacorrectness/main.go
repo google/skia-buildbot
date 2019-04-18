@@ -41,7 +41,6 @@ import (
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
-	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
@@ -103,7 +102,7 @@ func main() {
 		resourcesDir        = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
 		gerritURL           = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
 		siteURL             = flag.String("site_url", "https://gold.skia.org", "URL where this app is hosted.")
-		storageDir          = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
+		storageDir          = flag.String("storage_dir", "", "Directory to store reproducible application data. [DEPRECATED]")
 		gitBTInstanceID     = flag.String("git_bt_instance", "", "ID of the BigTable instance that contains Git metadata")
 		gitBTTableID        = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
 		gitRepoDir          = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
@@ -255,9 +254,18 @@ func main() {
 			}
 			sklog.Infof("DiffStore: MemDiffStore initiated.")
 		}
-		digestStore, err := digeststore.New(*storageDir)
-		if err != nil {
-			sklog.Fatal(err)
+
+		// Set up the event bus which can either be in-process or distributed
+		// depending whether an PubSub topic was defined.
+		var evt eventbus.EventBus = nil
+		if *eventTopic != "" {
+			evt, err = gevent.New(*projectID, *eventTopic, nodeName, option.WithTokenSource(tokenSource))
+			if err != nil {
+				sklog.Fatalf("Unable to create global event client. Got error: %s", err)
+			}
+			sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created.", *eventTopic, nodeName)
+		} else {
+			evt = eventbus.New()
 		}
 
 		var vcs vcsinfo.VCS
@@ -280,25 +288,19 @@ func main() {
 				sklog.Fatalf("Error instantiating gitstore: %s", err)
 			}
 			gitilesRepo := gitiles.NewRepo("", "", nil)
-			vcs, err = gitstore.NewVCS(gitStore, "master", gitilesRepo)
+
+			trackNCommits := *nCommits
+			if *sparseInput {
+				// If the input is sparse we watch a magnitude more commits to make sure we don't miss any
+				// commit.
+				trackNCommits *= 10
+			}
+			vcs, err = gitstore.NewVCS(gitStore, "master", gitilesRepo, evt, trackNCommits)
 		} else {
 			vcs, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
 		}
 		if err != nil {
 			sklog.Fatalf("Error creating VCS instance: %s", err)
-		}
-
-		// Set up the event bus which can either be in-process or distributed
-		// depending whether an PubSub topic was defined.
-		var evt eventbus.EventBus = nil
-		if *eventTopic != "" {
-			evt, err = gevent.New(*projectID, *eventTopic, nodeName, option.WithTokenSource(tokenSource))
-			if err != nil {
-				sklog.Fatalf("Unable to create global event client. Got error: %s", err)
-			}
-			sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created.", *eventTopic, nodeName)
-		} else {
-			evt = eventbus.New()
 		}
 
 		// If this is an authoritative instance we need an authenticated Gerrit client
@@ -324,7 +326,16 @@ func main() {
 			sklog.Fatalf("Failed to connect to tracedb: %s", err)
 		}
 
-		masterTileBuilder, err := tracedb.NewMasterTileBuilder(ctx, db, vcs, *nCommits, evt, filepath.Join(*storageDir, "cached-last-tile"))
+		// TODO(stephana): All dependencies on storageDir should be removed once we have landed
+		// all instances in K8s.
+
+		// If a storage directory was provided we can use it to cache tiles.
+		mtbCache := ""
+		if *storageDir != "" {
+			mtbCache = filepath.Join(*storageDir, "cached-last-tile")
+		}
+
+		masterTileBuilder, err := tracedb.NewMasterTileBuilder(ctx, db, vcs, *nCommits, evt, mtbCache)
 		if err != nil {
 			sklog.Fatalf("Failed to build trace/db.DB: %s", err)
 		}
@@ -388,7 +399,6 @@ func main() {
 			IssueExpStoreFactory: issueExpStoreFactory,
 			TraceDB:              db,
 			MasterTileBuilder:    masterTileBuilder,
-			DigestStore:          digestStore,
 			NCommits:             *nCommits,
 			EventBus:             evt,
 			TryjobStore:          tryjobStore,

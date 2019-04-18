@@ -1,12 +1,17 @@
 package storage
 
 import (
+	"context"
+	"math"
 	"sync"
+	"time"
 
 	lru "github.com/hashicorp/golang-lru"
+	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -81,25 +86,49 @@ func (b *Baseliner) CanWriteBaseline() bool {
 }
 
 // PushMasterBaselines writes the baselines for the master branch to GCS.
-func (b *Baseliner) PushMasterBaselines(cpxTile *types.ComplexTile) error {
+// If cpxTile is nil the tile of the last call to PushMasterBaselines is used. If the function
+// was never called before and cpxTile is nil, an error is returned.
+// If targetHash != "" we also return the baseline for corresponding commit as the first return
+// value. Otherwise the first return value is nil.
+// It is assumed that the target commit is one of the commits that are written as part of this call.
+func (b *Baseliner) PushMasterBaselines(cpxTile *types.ComplexTile, targetHash string) (*baseline.CommitableBaseLine, error) {
+	defer timer.New("PushmasterBaselines").Stop()
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	if cpxTile == nil {
+		cpxTile = b.currCpxTile
+	}
+	if cpxTile == nil {
+		return nil, skerr.Fmt("Received nil tile and no previous tile defined")
+	}
+
 	if !b.CanWriteBaseline() {
-		return skerr.Fmt("Trying to write baseline while GCS path is not configured.")
+		return nil, skerr.Fmt("Trying to write baseline while GCS path is not configured.")
 	}
 
 	// Calculate the baselines for the master tile.
 	exps, err := b.expectationsStore.Get()
 	if err != nil {
-		return skerr.Fmt("Unable to retrieve expectations: %s", err)
+		return nil, skerr.Fmt("Unable to retrieve expectations: %s", err)
 	}
-	perCommitBaselines, err := baseline.GetBaselinesPerCommit(exps, cpxTile)
+
+	// Make sure we have all commits, not just the ones that are in the tile. Currently a tile is
+	// fetched in intervals. New commits might have arrived since the last tile was read. Below we
+	// extrapolate the baselines of the new commits to be identical to the last commit in the tile.
+	// As new data arrive in the next tile, we update the baselines for these commits.
+	tileCommits := cpxTile.AllCommits()
+	extraCommits, err := b.getCommitsSince(tileCommits[len(tileCommits)-1])
 	if err != nil {
-		return skerr.Fmt("Error getting master baseline: %s", err)
+		return nil, err
+	}
+
+	perCommitBaselines, err := baseline.GetBaselinesPerCommit(exps, cpxTile, extraCommits)
+	if err != nil {
+		return nil, skerr.Fmt("Error getting master baseline: %s", err)
 	}
 
 	// Get the current list of files that have been written.
-	b.mutex.Lock()
 	lastWritten := b.lastWrittenBaselines
-	b.mutex.Unlock()
 
 	// Write the ones to disk that have not been written
 	written := make(map[string]string, len(perCommitBaselines))
@@ -131,13 +160,21 @@ func (b *Baseliner) PushMasterBaselines(cpxTile *types.ComplexTile) error {
 		}(commit, bLine)
 	}
 
+	// If a specific baseline was also requested we find it now
+	var ret *baseline.CommitableBaseLine
+	if targetHash != "" {
+		var ok bool
+		ret, ok = perCommitBaselines[targetHash]
+		if !ok {
+			return nil, skerr.Fmt("Unable to find requested commit %s", targetHash)
+		}
+	}
+
 	// Swap out the baseline cache and the list of last written files.
-	b.mutex.Lock()
 	b.currCpxTile = cpxTile
 	b.baselineCache = perCommitBaselines
 	b.lastWrittenBaselines = written
-	b.mutex.Unlock()
-	return nil
+	return ret, nil
 }
 
 // PushIssueBaseline writes the baseline for a Gerrit issue to GCS.
@@ -177,7 +214,9 @@ func (b *Baseliner) PushIssueBaseline(issueID int64, cpxTile *types.ComplexTile,
 // FetchBaseline fetches the complete baseline for the given Gerrit issue by
 // loading the master baseline and the issue baseline from GCS and combining
 // them. If either of them doesn't exist an empty baseline is assumed.
-func (b *Baseliner) FetchBaseline(commitHash string, issueID int64, patchsetID int64) (*baseline.CommitableBaseLine, error) {
+// If issueOnly is true and issueID > 0 then only the expectations attached to the issue are
+// returned (omitting the baselines of the master branch). This is primarily used for debugging.
+func (b *Baseliner) FetchBaseline(commitHash string, issueID int64, patchsetID int64, issueOnly bool) (*baseline.CommitableBaseLine, error) {
 	isIssue := issueID > 0
 
 	var masterBaseline *baseline.CommitableBaseLine
@@ -219,10 +258,70 @@ func (b *Baseliner) FetchBaseline(commitHash string, issueID int64, patchsetID i
 	}
 
 	if isIssue {
-		masterBaseline.Baseline.Update(issueBaseline.Baseline)
-		masterBaseline.Issue = issueID
+		if issueOnly {
+			// Only return the portion of the baseline that would be contributed by the issue
+			issueBaseline.Issue = issueID
+			masterBaseline = issueBaseline
+		} else {
+			// Clone the retrieved baseline before we inject the issue information.
+			masterBaseline.Baseline.Update(issueBaseline.Baseline)
+			masterBaseline.Issue = issueID
+		}
 	}
 	return masterBaseline, nil
+}
+
+// getCommitSince returns all the commits have been added to the repo since the given commit.
+// The returned instances of tiling.Commit do not contain a valid Author field.
+func (b *Baseliner) getCommitsSince(firstCommit *tiling.Commit) ([]*tiling.Commit, error) {
+	defer timer.New("getCommitsSince").Stop()
+
+	// If there is an underlying gitstore retrieve it, otherwise this function becomes a no-op.
+	gitStoreBased, ok := b.vcs.(gitstore.GitStoreBased)
+	if !ok {
+		return []*tiling.Commit{}, nil
+	}
+
+	gitStore := gitStoreBased.GetGitStore()
+	ctx := context.TODO()
+	startTime := time.Unix(firstCommit.CommitTime, 0)
+	endTime := startTime.Add(time.Second)
+	branch := b.vcs.GetBranch()
+	commits, err := gitStore.RangeByTime(ctx, startTime, endTime, branch)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(commits) == 0 {
+		return nil, skerr.Fmt("No commits found while querying for commit %s", firstCommit.Hash)
+	}
+
+	var target *vcsinfo.IndexCommit
+	for _, c := range commits {
+		if c.Hash == firstCommit.Hash {
+			target = c
+		}
+	}
+
+	if target == nil {
+		return nil, skerr.Fmt("Commit %s not found in gitstore", firstCommit.Hash)
+	}
+
+	// Fetch all commits after the first one which we already have.
+	if commits, err = gitStore.RangeN(ctx, target.Index, int(math.MaxInt32), branch); err != nil {
+		return nil, err
+	}
+
+	ret := make([]*tiling.Commit, len(commits))
+	for idx, c := range commits {
+		// Note: For the task at hand we don't need to populate the Author field of tiling.Commit.
+		ret[idx] = &tiling.Commit{
+			Hash:       c.Hash,
+			CommitTime: c.Timestamp.Unix(),
+		}
+	}
+
+	return ret[1:], nil
 }
 
 func (b *Baseliner) getMasterExpectations(commitHash string) (*baseline.CommitableBaseLine, error) {
@@ -243,6 +342,7 @@ func (b *Baseliner) getMasterExpectations(commitHash string) (*baseline.Commitab
 	}
 
 	if bLine, ok := cache[commitHash]; ok {
+		bLine = bLine.DeepCopyBaseline()
 		return bLine, nil
 	}
 
@@ -254,10 +354,22 @@ func (b *Baseliner) getMasterExpectations(commitHash string) (*baseline.Commitab
 
 	// Look up the commit to see if it's valid.
 	if ret == nil {
-		// TODO(stephana): This should verify that the given commit is valid, i.e. check it against
-		// a git commit.
-		sklog.Infof("Commit %s not found", commitHash)
-		ret = baseline.EmptyBaseline(nil, nil)
+		// Load the commit and determine if it's on the current branch.
+		details, err := b.vcs.Details(context.TODO(), commitHash, true)
+		if err != nil {
+			return nil, err
+		}
+
+		// Get the branch we are tracking and make sure that the commit is in that branch.
+		branch := b.vcs.GetBranch()
+		if !details.Branches[branch] {
+			return nil, skerr.Fmt("Commit %s is not in branch %s", commitHash, branch)
+		}
+
+		// Make sure all expecations are up to date.
+		if ret, err = b.PushMasterBaselines(nil, commitHash); err != nil {
+			return nil, err
+		}
 	}
 	return ret, nil
 }

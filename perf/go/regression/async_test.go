@@ -88,6 +88,7 @@ func TestCalcCidsNotSparse(t *testing.T) {
 
 type mockVcs struct{}
 
+func (m *mockVcs) GetBranch() string { return "master" }
 func (m *mockVcs) LastNIndex(N int) []*vcsinfo.IndexCommit {
 	return []*vcsinfo.IndexCommit{{Index: 2005}}
 }

@@ -301,6 +301,8 @@ type mockVCS struct {
 	ret []*vcsinfo.IndexCommit
 }
 
+func (m *mockVCS) GetBranch() string { return "master" }
+
 func (m *mockVCS) LastNIndex(N int) []*vcsinfo.IndexCommit {
 	if N > len(m.ret)-1 {
 		return m.ret

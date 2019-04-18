@@ -71,11 +71,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to auth: %s", err)
 	}
-	_, err = tokenSrc.Token()
-	if err != nil {
-		sklog.Fatalf("Error retrieving token: %s", err)
-	}
-	client := httputils.DefaultClientConfig().WithTokenSource(tokenSrc).With2xxOnly().Client()
+	client := httputils.DefaultClientConfig().WithTokenSource(tokenSrc).With2xxOnly().WithDialTimeout(time.Second * 10).Client()
 
 	// Make sure we have a namespace.
 	if *namespace == "" {
