@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "920c420c_295eec06",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 476,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-18T12:28:16Z",
+      "side": 1,
+      "message": "No. Maybe eventually, but for big instances (like skia) the startup procedure to set up all \nparts of the system takes too long. So we set up a temporary web server that only serves the\nhealth check endpoint.",
+      "parentUuid": "a15fe6d7_db746c2f",
+      "range": {
+        "startLine": 476,
+        "startChar": 24,
+        "endLine": 476,
+        "endChar": 34
+      },
+      "revId": "f034908b92a572833e77aff9d9e0fc1f0bdc7d26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d1030830_5ed830ef",
         "filename": "golden/cmd/skiacorrectness/main.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "f034908b92a572833e77aff9d9e0fc1f0bdc7d26",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "525a14f5_46483f46",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 644,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-18T12:28:16Z",
+      "side": 1,
+      "message": "Done\nRemoved, since this was residue from an earlier version of this CL.",
+      "parentUuid": "d1030830_5ed830ef",
+      "range": {
+        "startLine": 644,
+        "startChar": 49,
+        "endLine": 644,
+        "endChar": 58
+      },
+      "revId": "f034908b92a572833e77aff9d9e0fc1f0bdc7d26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
