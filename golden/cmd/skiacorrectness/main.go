@@ -500,32 +500,35 @@ func main() {
 		sklog.Fatalf("Error shutting down ready server: %s", err)
 	}
 
-	// Set up the endpoints of the app.
-	router := mux.NewRouter()
+	// loggedRouter contains all the endpoints that are logged. See the call below to
+	// LoggingGzipRequestResponse.
+	loggedRouter := mux.NewRouter()
 
 	// Set up the resource to serve the image files.
 	imgHandler, err := handlers.Storages.DiffStore.ImageHandler(IMAGE_URL_PREFIX)
 	if err != nil {
 		sklog.Fatalf("Unable to get image handler: %s", err)
 	}
-	router.PathPrefix(IMAGE_URL_PREFIX).Handler(imgHandler)
+	loggedRouter.PathPrefix(IMAGE_URL_PREFIX).Handler(imgHandler)
 
 	// New Polymer based UI endpoints.
-	router.PathPrefix("/res/").HandlerFunc(web.MakeResourceHandler(*resourcesDir))
-	router.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
+	loggedRouter.PathPrefix("/res/").HandlerFunc(web.MakeResourceHandler(*resourcesDir))
+	loggedRouter.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 
 	// TODO(stephana): remove "/_/hashes" in favor of "/json/hashes" once all clients have switched.
 
 	// /_/hashes is used by the bots to find hashes it does not need to upload.
-	router.HandleFunc(shared.LEGACY_KNOWN_HASHES_ROUTE, handlers.TextKnownHashesProxy).Methods("GET")
-	router.HandleFunc("/json/version", skiaversion.JsonHandler)
-	router.HandleFunc("/loginstatus/", login.StatusHandler)
-	router.HandleFunc("/logout/", login.LogoutHandler)
+	loggedRouter.HandleFunc(shared.LEGACY_KNOWN_HASHES_ROUTE, handlers.TextKnownHashesProxy).Methods("GET")
+	loggedRouter.HandleFunc("/json/version", skiaversion.JsonHandler)
+	loggedRouter.HandleFunc("/loginstatus/", login.StatusHandler)
+	loggedRouter.HandleFunc("/logout/", login.LogoutHandler)
 
 	// Set up a subrouter for the '/json' routes which make up the Gold API.
 	// This makes routing faster, but also returns a failure when an /json route is
-	// requested that doesn't exit.
-	jsonRouter := router.PathPrefix("/json").Subrouter()
+	// requested that doesn't exit. If we did this differently a call to a non-existing endpoint
+	// would be handled by the route that handles the returning the index template and make debugging
+	// confusing.
+	jsonRouter := loggedRouter.PathPrefix("/json").Subrouter()
 	trim := func(r string) string { return strings.TrimPrefix(r, "/json") }
 
 	jsonRouter.HandleFunc(trim(shared.KNOWN_HASHES_ROUTE), handlers.TextKnownHashesProxy).Methods("GET")
@@ -569,7 +572,7 @@ func main() {
 
 	// Make sure we return a 404 for anything that starts with /json and could not be found.
 	jsonRouter.HandleFunc("/{ignore:.*}", http.NotFound)
-	router.HandleFunc("/json", http.NotFound)
+	loggedRouter.HandleFunc("/json", http.NotFound)
 
 	// For everything else serve the same markup.
 	indexFile := *resourcesDir + "/index.html"
@@ -592,7 +595,7 @@ func main() {
 		IsPublic:           !openSite,
 	}
 
-	router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	loggedRouter.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 
 		// Reload the template if we are running locally.
@@ -605,24 +608,34 @@ func main() {
 		}
 	})
 
-	// set up a router that logs for all URLs except the status and the health endpoints.
+	// set up the app router that might be authenticated and logs everything except for the status
+	// endpoint which is polled a lot.
 	appRouter := mux.NewRouter()
 	appRouter.HandleFunc("/json/trstatus", handlers.JsonStatusHandler)
-	appRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(loggedRouter))
 
-	// Wrap all other routes in in logging middleware.
-	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(router))
-
-	// Set up the external handler to enforce authentication if necessary.
-	externalHandler := http.Handler(appRouter)
+	// Use the appRouter as a handler and wrap it into middleware that enforces authentication if
+	// necessary it was requested via the force_login flag.
+	appHandler := http.Handler(appRouter)
 	if *forceLogin {
-		externalHandler = login.ForceAuth(appRouter, OAUTH2_CALLBACK_PATH)
+		appHandler = login.ForceAuth(appRouter, OAUTH2_CALLBACK_PATH)
 	}
+
+	// The appHandler contains all application specific routes that are have logging and
+	// authentication configured. Now we wrap it into the router that is exposed to the host
+	// (aka the K8s container) which requires that some routes are never logged or authenticated.
+	rootRouter := mux.NewRouter()
+	rootRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+	rootRouter.PathPrefix("/").Handler(appHandler)
 
 	// Start the internal server on the internal port if requested.
 	if *internalPort != "" {
 		// Add the profiling endpoints to the internal router.
 		internalRouter := mux.NewRouter()
+
+		// Set up the health check endpoint.
+		internalRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+
 		// Register pprof handlers
 		internalRouter.HandleFunc("/debug/pprof/", netpprof.Index)
 		internalRouter.HandleFunc("/debug/pprof/cmdline", netpprof.Cmdline)
@@ -630,7 +643,7 @@ func main() {
 		internalRouter.HandleFunc("/debug/pprof/symbol", netpprof.Symbol)
 		internalRouter.HandleFunc("/debug/pprof/trace", netpprof.Trace)
 
-		// Add the rest of the application.
+		// Add the rest of the application without any authentication that was configured.
 		internalRouter.PathPrefix("/").Handler(appRouter)
 
 		go func() {
@@ -641,5 +654,5 @@ func main() {
 
 	// Start the server
 	sklog.Infof("Serving on http://127.0.0.1" + *port)
-	sklog.Fatal(http.ListenAndServe(*port, externalHandler))
+	sklog.Fatal(http.ListenAndServe(*port, rootRouter))
 }
