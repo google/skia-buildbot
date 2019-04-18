@@ -23,6 +23,7 @@ type imgTestEnv struct {
 	flagPassFailStep bool
 	flagFailureFile  string
 	flagURL          string
+	flagUploadOnly   bool
 
 	// Flags used by imgtest:add
 	flagTestName string
@@ -104,6 +105,7 @@ func (i *imgTestEnv) addCommonFlags(cmd *cobra.Command, optional bool) {
 	cmd.Flags().StringVarP(&i.flagInstanceID, "instance", "", "", "ID of the Gold instance.")
 	cmd.Flags().StringVarP(&i.flagWorkDir, fstrWorkDir, "", "", "Work directory for intermediate results")
 	cmd.Flags().BoolVarP(&i.flagPassFailStep, "passfail", "", false, "Whether the 'add' call returns a pass/fail for each test.")
+	cmd.Flags().BoolVarP(&i.flagUploadOnly, "upload-only", "", false, "Skip reading expectations from the server. Incompatible with passfail=true.")
 
 	cmd.Flags().StringVarP(&i.flagCommit, "commit", "", "", "Git commit hash")
 	cmd.Flags().StringVarP(&i.flagKeysFile, "keys-file", "", "", "JSON file containing key/value pairs commmon to all tests")
@@ -121,10 +123,14 @@ func (i *imgTestEnv) addCommonFlags(cmd *cobra.Command, optional bool) {
 	}
 }
 
-// TODO(kjlubick): Implement these stubbed out sub-commands.
+// TODO(kjlubick): Implement this stubbed out command
 func (i *imgTestEnv) runImgTestPassFailCmd(cmd *cobra.Command, args []string) { notImplemented(cmd) }
 
 func (i *imgTestEnv) runImgTestInitCmd(cmd *cobra.Command, args []string) {
+	if i.flagUploadOnly && i.flagPassFailStep {
+		logErrf(cmd, "Cannot have --upload-only and --passfail both be true.")
+		exitProcess(cmd, 1)
+	}
 	auth, err := goldclient.LoadAuthOpt(i.flagWorkDir)
 	ifErrLogExit(cmd, err)
 
@@ -149,6 +155,7 @@ func (i *imgTestEnv) runImgTestInitCmd(cmd *cobra.Command, args []string) {
 		WorkDir:         i.flagWorkDir,
 		PassFailStep:    i.flagPassFailStep,
 		OverrideGoldURL: i.flagURL,
+		UploadOnly:      i.flagUploadOnly,
 	}
 	goldClient, err := goldclient.NewCloudClient(auth, config)
 	ifErrLogExit(cmd, err)
@@ -171,6 +178,10 @@ func (i *imgTestEnv) runImgTestInitCmd(cmd *cobra.Command, args []string) {
 
 // runImgTestCommand processes and uploads test results to Gold.
 func (i *imgTestEnv) runImgTestAddCmd(cmd *cobra.Command, args []string) {
+	if i.flagUploadOnly && i.flagPassFailStep {
+		logErrf(cmd, "Cannot have --upload-only and --passfail both be true.")
+		exitProcess(cmd, 1)
+	}
 	auth, err := goldclient.LoadAuthOpt(i.flagWorkDir)
 	ifErrLogExit(cmd, err)
 
@@ -209,6 +220,7 @@ func (i *imgTestEnv) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 			WorkDir:         i.flagWorkDir,
 			PassFailStep:    i.flagPassFailStep,
 			OverrideGoldURL: i.flagURL,
+			UploadOnly:      i.flagUploadOnly,
 		}
 		goldClient, err = goldclient.NewCloudClient(auth, config)
 		ifErrLogExit(cmd, err)
