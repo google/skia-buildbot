@@ -3,6 +3,7 @@ package main
 // goldctl is a CLI for working with the Gold service.
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -35,6 +36,10 @@ It can be used directly or in a scripted environment. `,
 	rootCmd.AddCommand(getValidateCmd())
 	rootCmd.AddCommand(getAuthCmd())
 	rootCmd.AddCommand(getImgTestCmd())
+
+	// Make sklog/glog happy.  Otherwise, we see errors like
+	// 2019/04/18 14:30:52 Output from goldctl imgtest init: ERROR: logging before flag.Parse: I0418 14:30:51.866226  123404 auth.go:363] auth.go:363 Read from file
+	flag.Parse()
 
 	// Execute the root command.
 	if cmd, err := rootCmd.ExecuteC(); err != nil {
