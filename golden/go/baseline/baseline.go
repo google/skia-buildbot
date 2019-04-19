@@ -79,30 +79,27 @@ func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile, 
 		denseBaseLines[commit.Hash] = make(types.TestExp, len(denseTile.Traces))
 	}
 
-	// keep track of results as we move across the tile. So if a digest is missing
-	// it will be replaced with result of a previous run.
-	currDigests := make(map[string]string, len(denseTile.Traces))
-
 	// Sweep the tile and calculate the baselines.
-	for traceID, trace := range denseTile.Traces {
+	// For each trace we keep a running tally of triaged digests and for each
+	// commit on the trace we add that tally to the baseline.
+	for _, trace := range denseTile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
+		currDigests := map[string]types.Label{}
 		testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
 		for idx := 0; idx < len(denseCommits); idx++ {
 			digest := gTrace.Values[idx]
-			if digest == types.MISSING_DIGEST {
-				if prevDigest, ok := currDigests[traceID]; ok {
-					digest = prevDigest
+
+			// If the digest is not missing then add the digest to the running list of digests.
+			if digest != types.MISSING_DIGEST {
+				if _, ok := currDigests[digest]; !ok {
+					if cl := exps.Classification(testName, digest); cl == types.POSITIVE {
+						currDigests[digest] = cl
+					}
 				}
-			} else {
-				currDigests[traceID] = digest
 			}
 
-			// If we have a digest either from this commit or its ancestors we add to the baseline.
-			if digest != types.MISSING_DIGEST {
-				// If this is positive then include it into baseline.
-				if cl := exps.Classification(testName, digest); cl == types.POSITIVE {
-					denseBaseLines[denseCommits[idx].Hash].AddDigest(testName, digest, cl)
-				}
+			if len(currDigests) > 0 {
+				denseBaseLines[denseCommits[idx].Hash].AddDigests(testName, currDigests)
 			}
 		}
 	}
