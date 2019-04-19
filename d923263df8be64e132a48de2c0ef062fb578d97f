@@ -22,6 +22,30 @@
       "revId": "d923263df8be64e132a48de2c0ef062fb578d97f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dede3426_7a3532fc",
+        "filename": "gold-client/cmd/goldctl/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-19T14:09:45Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "81bafdde_cd341951",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 0
+      },
+      "revId": "d923263df8be64e132a48de2c0ef062fb578d97f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
