@@ -34,13 +34,13 @@ Currently only service accounts are supported. `,
 	}
 
 	// add the service-account flag.
-	cmd.Flags().StringVarP(&env.flagServiceAccount, fstrServiceAccount, "", "", "Service account file to be used to authenticate against GCP and Gold")
+	cmd.Flags().StringVar(&env.flagServiceAccount, fstrServiceAccount, "", "Service account file to be used to authenticate against GCP and Gold")
 
 	// add the luci flag to use the LUCI_CONTEXT for authentication.
-	cmd.Flags().BoolVarP(&env.flagUseLUCIContext, fstrLUCI, "", false, "Use the LUCI context to retrieve an oauth token.")
+	cmd.Flags().BoolVar(&env.flagUseLUCIContext, fstrLUCI, false, "Use the LUCI context to retrieve an oauth token.")
 
 	// add the workdir flag and make it required
-	cmd.Flags().StringVarP(&env.flagWorkDir, fstrWorkDir, "", "", "Work directory for intermediate results")
+	cmd.Flags().StringVar(&env.flagWorkDir, fstrWorkDir, "", "Work directory for intermediate results")
 	Must(cmd.MarkFlagRequired(fstrWorkDir))
 
 	return cmd

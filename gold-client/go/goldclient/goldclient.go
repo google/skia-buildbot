@@ -43,7 +43,7 @@ const (
 	stateFile = "result-state.json"
 
 	// jsonTempFile is the temporary file that is created to upload results via gsutil.
-	jsonTempFile = "gsutil_dm.json"
+	jsonTempFile = "dm.json"
 
 	// goldHostTemplate constructs the URL of the Gold instance from the instance id
 	goldHostTemplate = "https://%s-gold.skia.org"
@@ -67,9 +67,12 @@ type GoldClient interface {
 	// comparison with the expectations (this involves uploading JSON to the server).
 	// This will upload the image if the hash of the pixels has not been seen before -
 	// using auth.SetDryRun(true) can prevent that.
+	// additionalKeys is an optional set of key:value pairs that apply to only this test.
+	// This is typically a small amount of data (and can be nil). If there are many keys,
+	// they are likely shared between tests and should be added in SetSharedConfig.
 	//
 	// An error is only returned if there was a technical problem in processing the test.
-	Test(name string, imgFileName string) (bool, error)
+	Test(name string, imgFileName string, additionalKeys map[string]string) (bool, error)
 
 	// Upload the JSON file for all Test() calls previously seen.
 	// A no-op if configured for PASS/FAIL mode, since the JSON would have been uploaded
@@ -227,13 +230,17 @@ func (c *cloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults) error {
 }
 
 // Test implements the GoldClient interface.
-func (c *cloudClient) Test(name string, imgFileName string) (bool, error) {
-	return c.addTest(name, imgFileName)
+func (c *cloudClient) Test(name string, imgFileName string, additionalKeys map[string]string) (bool, error) {
+	if res, err := c.addTest(name, imgFileName, additionalKeys); err != nil {
+		return false, err
+	} else {
+		return res, saveJSONFile(c.getResultStatePath(), c.resultState)
+	}
 }
 
 // addTest adds a test to results. If perTestPassFail is true it will also upload the result.
 // Returns true if the test was added (and maybe uploaded) successfully.
-func (c *cloudClient) addTest(name string, imgFileName string) (bool, error) {
+func (c *cloudClient) addTest(name string, imgFileName string, additionalKeys map[string]string) (bool, error) {
 	if err := c.isReady(); err != nil {
 		return false, skerr.Fmt("Unable to process test result. Cloud Gold Client not ready: %s", err)
 	}
@@ -267,7 +274,7 @@ func (c *cloudClient) addTest(name string, imgFileName string) (bool, error) {
 	}
 
 	// Add the result of this test.
-	c.addResult(name, imgHash)
+	c.addResult(name, imgHash, additionalKeys)
 
 	// At this point the result should be correct for uploading.
 	if _, err := c.resultState.SharedConfig.Validate(false); err != nil {
@@ -290,6 +297,7 @@ func (c *cloudClient) addTest(name string, imgFileName string) (bool, error) {
 	return ret, nil
 }
 
+// Finalize implements the GoldClient interface.
 func (c *cloudClient) Finalize() error {
 	if err := c.isReady(); err != nil {
 		return skerr.Fmt("Cannot finalize - client not ready: %s", err)
@@ -301,6 +309,8 @@ func (c *cloudClient) Finalize() error {
 	return c.uploadResultJSON(uploader)
 }
 
+// uploadResultJSON uploads the results (which live in SharedConfig, specifically
+// SharedConfig.Results), to GCS.
 func (c *cloudClient) uploadResultJSON(uploader GoldUploader) error {
 	localFileName := filepath.Join(c.workDir, jsonTempFile)
 	resultFilePath := c.resultState.getResultFilePath(c.now())
@@ -364,7 +374,7 @@ func (c *cloudClient) getResultStatePath() string {
 }
 
 // addResult adds the given test to the overall results.
-func (c *cloudClient) addResult(name, imgHash string) {
+func (c *cloudClient) addResult(name, imgHash string, additionalKeys map[string]string) {
 	newResult := &jsonio.Result{
 		Digest: imgHash,
 		Key:    map[string]string{types.PRIMARY_KEY_FIELD: name},
@@ -372,8 +382,12 @@ func (c *cloudClient) addResult(name, imgHash string) {
 		// TODO(stephana): check if the backend still relies on this.
 		Options: map[string]string{"ext": "png"},
 	}
+	for k, v := range additionalKeys {
+		newResult.Key[k] = v
+	}
 
-	// TODO(kjlubick): Maybe make the corpus field an option.
+	// Set the CORPUS_FIELD (e.g. source_type) to the default value of the instanceID
+	// if it is not set. Many clients will not need to set this.
 	if _, ok := c.resultState.SharedConfig.Key[types.CORPUS_FIELD]; !ok {
 		newResult.Key[types.CORPUS_FIELD] = c.resultState.InstanceID
 	}

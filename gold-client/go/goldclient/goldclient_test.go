@@ -37,7 +37,7 @@ func TestLoadKnownHashes(t *testing.T) {
 	expectations := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations/commit/abcd1234?issue=867").Return(expectations, nil)
 
-	goldClient, err := makeGoldClient(auth, false, wd)
+	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
 	err = goldClient.SetSharedConfig(testSharedConfig)
 	assert.NoError(t, err)
@@ -70,7 +70,7 @@ func TestLoadBaseline(t *testing.T) {
 	expectations := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations/commit/abcd1234?issue=867").Return(expectations, nil)
 
-	goldClient, err := makeGoldClient(auth, false, wd)
+	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
 	err = goldClient.SetSharedConfig(testSharedConfig)
 	assert.NoError(t, err)
@@ -109,7 +109,7 @@ func TestInit(t *testing.T) {
 
 	// no uploader calls
 
-	goldClient, err := makeGoldClient(auth, true /*=passFail*/, wd)
+	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
 	err = goldClient.SetSharedConfig(testSharedConfig)
 	assert.NoError(t, err)
@@ -197,7 +197,7 @@ func TestNewReportNormal(t *testing.T) {
 
 	// Notice the JSON is not uploaded if we are not in passfail mode - a client
 	// would need to call finalize first.
-	goldClient, err := makeGoldClient(auth, false /*=passFail*/, wd)
+	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
 	err = goldClient.SetSharedConfig(testSharedConfig)
 	assert.NoError(t, err)
@@ -207,7 +207,7 @@ func TestNewReportNormal(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Test("first-test", testImgPath)
+	pass, err := goldClient.Test("first-test", testImgPath, nil)
 	assert.NoError(t, err)
 	// true is always returned if we are not on passFail mode.
 	assert.True(t, pass)
@@ -252,8 +252,9 @@ func TestFinalizeNormal(t *testing.T) {
 				},
 				{
 					Key: map[string]string{
-						"name":        "second-test",
-						"source_type": "default",
+						"name":         "second-test",
+						"optional_key": "frobulator",
+						"source_type":  "default",
 					},
 					Options: map[string]string{
 						"ext": "png",
@@ -282,6 +283,112 @@ func TestFinalizeNormal(t *testing.T) {
 
 	// We don't need to call SetSharedConfig because the state should be
 	// loaded from disk
+
+	err = goldClient.Finalize()
+	assert.NoError(t, err)
+}
+
+// "End to End" test of the non-pass-fail mode
+// We init the setup, write a test, re-load the client from disk, write a test, re-load
+// the client from disk and then finalize.
+//
+// This is essentially a test for
+//   goldctl imgtest init
+//   goldctl imgtest add
+//   goldctl imgtest add
+//   goldctl imgtest finalize
+func TestInitAddFinalize(t *testing.T) {
+	// We read and write to disk a little
+	testutils.MediumTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	imgData := []byte("some bytes")
+	firstHash := "9d0568469d206c1aedf1b71f12f474bc"
+	secondHash := "29d0568469d206c1aedf1b71f12f474b"
+
+	auth, httpClient, uploader := makeMocks()
+	defer auth.AssertExpectations(t)
+	defer httpClient.AssertExpectations(t)
+	defer uploader.AssertExpectations(t)
+
+	expectedUploadPath := "gs://skia-gold-testing/dm-images-v1/" + firstHash + ".png"
+	uploader.On("UploadBytes", imgData, testImgPath, expectedUploadPath).Return(nil).Once()
+	expectedUploadPath = "gs://skia-gold-testing/dm-images-v1/" + secondHash + ".png"
+	uploader.On("UploadBytes", imgData, testImgPath, expectedUploadPath).Return(nil).Once()
+
+	// Notice the JSON is not uploaded if we are not in passfail mode - a client
+	// would need to call finalize first.
+	goldClient, err := makeGoldClient(auth, false /*=passFail*/, true /*=uploadOnly*/, wd)
+	assert.NoError(t, err)
+	err = goldClient.SetSharedConfig(testSharedConfig)
+	assert.NoError(t, err)
+
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, string, error) {
+		assert.Equal(t, testImgPath, path)
+		return imgData, firstHash, nil
+	})
+
+	pass, err := goldClient.Test("first-test", testImgPath, map[string]string{
+		"config": "canvas",
+	})
+	assert.NoError(t, err)
+	// true is always returned if we are not on passFail mode.
+	assert.True(t, pass)
+
+	// Check that the goldClient's in-memory representation is good
+	results := goldClient.resultState.SharedConfig.Results
+	assert.Len(t, results, 1)
+	r := results[0]
+	assert.Equal(t, "first-test", r.Key["name"])
+	assert.Equal(t, "canvas", r.Key["config"])
+	assert.Equal(t, "testing", r.Key[types.CORPUS_FIELD])
+	assert.Equal(t, firstHash, r.Digest)
+
+	// Now read the state from disk to make sure results are still there
+	goldClient, err = loadGoldClient(auth, wd)
+	assert.NoError(t, err)
+
+	results = goldClient.resultState.SharedConfig.Results
+	assert.Len(t, results, 1)
+	r = results[0]
+	assert.Equal(t, "first-test", r.Key["name"])
+	assert.Equal(t, firstHash, r.Digest)
+
+	// Add a second test with the same hash
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, string, error) {
+		assert.Equal(t, testImgPath, path)
+		return imgData, secondHash, nil
+	})
+	pass, err = goldClient.Test("second-test", testImgPath, map[string]string{
+		"config": "svg",
+	})
+	assert.NoError(t, err)
+	// true is always returned if we are not on passFail mode.
+	assert.True(t, pass)
+
+	// Now read the state again from disk to make sure results are still there
+	goldClient, err = loadGoldClient(auth, wd)
+	assert.NoError(t, err)
+
+	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
+	c := uploader.On("UploadJSON", mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath)
+	c.Run(func(args mock.Arguments) {
+		uploaded := args.Get(0).(*jsonio.GoldResults)
+		results := uploaded.Results
+		assert.Len(t, results, 2)
+		r := results[0]
+		assert.Equal(t, "first-test", r.Key["name"])
+		assert.Equal(t, firstHash, r.Digest)
+		assert.Equal(t, "canvas", r.Key["config"])
+		assert.Equal(t, "testing", r.Key[types.CORPUS_FIELD])
+		r = results[1]
+		assert.Equal(t, "second-test", r.Key["name"])
+		assert.Equal(t, secondHash, r.Digest)
+		assert.Equal(t, "svg", r.Key["config"])
+		assert.Equal(t, "testing", r.Key[types.CORPUS_FIELD])
+	}).Return(nil)
 
 	err = goldClient.Finalize()
 	assert.NoError(t, err)
@@ -332,7 +439,7 @@ func TestNewReportPassFail(t *testing.T) {
 		assert.Equal(t, "png", r.Options["ext"])
 	}).Return(nil)
 
-	goldClient, err := makeGoldClient(auth, true /*=passFail*/, wd)
+	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
 	err = goldClient.SetSharedConfig(testSharedConfig)
 	assert.NoError(t, err)
@@ -342,7 +449,7 @@ func TestNewReportPassFail(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Test(testName, testImgPath)
+	pass, err := goldClient.Test(testName, testImgPath, nil)
 	assert.NoError(t, err)
 	// Returns false because the test name has never been seen before
 	// (and the digest is brand new)
@@ -376,7 +483,7 @@ func TestNegativePassFail(t *testing.T) {
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
 	uploader.On("UploadJSON", mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
-	goldClient, err := makeGoldClient(auth, true /*=passFail*/, wd)
+	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
 	err = goldClient.SetSharedConfig(testSharedConfig)
 	assert.NoError(t, err)
@@ -386,7 +493,7 @@ func TestNegativePassFail(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Test(testName, testImgPath)
+	pass, err := goldClient.Test(testName, testImgPath, nil)
 	assert.NoError(t, err)
 	// Returns false because the test is negative
 	assert.False(t, pass)
@@ -419,7 +526,7 @@ func TestPositivePassFail(t *testing.T) {
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
 	uploader.On("UploadJSON", mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
-	goldClient, err := makeGoldClient(auth, true /*=passFail*/, wd)
+	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
 	err = goldClient.SetSharedConfig(testSharedConfig)
 	assert.NoError(t, err)
@@ -429,7 +536,7 @@ func TestPositivePassFail(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Test(testName, testImgPath)
+	pass, err := goldClient.Test(testName, testImgPath, nil)
 	assert.NoError(t, err)
 	// Returns true because this test has been seen before and the digest was
 	// previously triaged positive.
@@ -536,11 +643,12 @@ func loadGoldClient(auth AuthOpt, workDir string) (*cloudClient, error) {
 
 // makeGoldClient will create new cloud client from scratch (using a
 // set configuration), stub out time handling and return it.
-func makeGoldClient(auth AuthOpt, passFail bool, workDir string) (*cloudClient, error) {
+func makeGoldClient(auth AuthOpt, passFail bool, uploadOnly bool, workDir string) (*cloudClient, error) {
 	config := GoldClientConfig{
 		InstanceID:   testInstanceID,
 		WorkDir:      workDir,
 		PassFailStep: passFail,
+		UploadOnly:   uploadOnly,
 	}
 
 	c, err := NewCloudClient(auth, config)
