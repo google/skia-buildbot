@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "81bafdde_cd341951",
+        "filename": "gold-client/cmd/goldctl/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-19T13:59:42Z",
+      "side": 1,
+      "message": "I have intentionally avoided doing this and left all flag handling to cobra. \nThese error are a reminder that we are pulling way too many dependencies in, including glog.\nThe long term solution is to factor infra/go/* into a library with minimal dependencies and \na framework that gives you everything with a few imports. \n\nA short term fix could be to replace glog in sklog with klog. \nklog has the same interface as glog, but the client needs to make an explicit call \nto inject the flags. \nSee https://godoc.org/k8s.io/klog#InitFlags",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 0
+      },
+      "revId": "d923263df8be64e132a48de2c0ef062fb578d97f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
