@@ -118,4 +118,5 @@ func TestRollRev(t *testing.T) {
 	test("Roll AFDO from 66.0.3336.3_rc-r1 to 66.0.3337.3_rc-r1", "66.0.3336.3_rc-r1", "66.0.3337.3_rc-r1")
 	test("[manifest] Roll skia 1f1bb9c0b..4150eea6c (1 commits)", "1f1bb9c0b", "4150eea6c")
 	test("Roll Fuchsia SDK from abc123 to def456", "abc123", "def456")
+	test("RESTRICT AUTOMERGE: Roll external/skia fc6e072bd..057939b4d (1 commits)", "fc6e072bd", "057939b4d")
 }
