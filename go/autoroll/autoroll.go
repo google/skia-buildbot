@@ -45,7 +45,8 @@ const (
 )
 
 var (
-	ROLL_REV_REGEX = regexp.MustCompile(`^(?:\[\S+\] )?Roll \S+(?:\s+\S+)* (?:from )?(\S+)(?:(?:\.\.)|(?: to ))(\S+)(?: \(\d+ commit.*\))?\.?`)
+	// "RESTRICT AUTOMERGE: " is from skbug.com/8998
+	ROLL_REV_REGEX = regexp.MustCompile(`^(?:(?:\[\S+\] )|(?:RESTRICT AUTOMERGE: ))?Roll \S+(?:\s+\S+)* (?:from )?(\S+)(?:(?:\.\.)|(?: to ))(\S+)(?: \(\d+ commit.*\))?\.?`)
 
 	OPEN_ROLL_VALID_RESULTS = []string{
 		ROLL_RESULT_DRY_RUN_FAILURE,
