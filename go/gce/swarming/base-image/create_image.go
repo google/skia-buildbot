@@ -54,8 +54,8 @@ func main() {
 	project := gce.PROJECT_ID_SWARMING
 	serviceAccount := gce.SERVICE_ACCOUNT_CHROMIUM_SWARM
 	if *internal {
-		project = gce.PROJECT_ID_SERVER
-		serviceAccount = gce.SERVICE_ACCOUNT_DEFAULT
+		project = gce.PROJECT_ID_INTERNAL_SWARMING
+		serviceAccount = gce.SERVICE_ACCOUNT_CHROME_SWARMING
 	}
 	g, err := gce.NewLocalGCloud(project, gce.ZONE_DEFAULT)
 	if err != nil {
