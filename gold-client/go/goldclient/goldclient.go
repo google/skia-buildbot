@@ -379,7 +379,8 @@ func (c *cloudClient) addResult(name, imgHash string, additionalKeys map[string]
 		Digest: imgHash,
 		Key:    map[string]string{types.PRIMARY_KEY_FIELD: name},
 
-		// TODO(stephana): check if the backend still relies on this.
+		// We need to specify this is a png, otherwise the backend will refuse
+		// to ingest it.
 		Options: map[string]string{"ext": "png"},
 	}
 	for k, v := range additionalKeys {
