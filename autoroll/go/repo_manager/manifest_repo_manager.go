@@ -92,11 +92,17 @@ func (mr *manifestRepoManager) Update(ctx context.Context) error {
 		return err
 	}
 
+	// Get the list of not-yet-rolled revisions.
+	notRolledRevs := make([]string, 0, len(notRolled))
+	for _, rev := range notRolled {
+		notRolledRevs = append(notRolledRevs, rev.Hash)
+	}
+
 	mr.infoMtx.Lock()
 	defer mr.infoMtx.Unlock()
 	mr.lastRollRev = lastRollRev
 	mr.nextRollRev = nextRollRev
-	mr.commitsNotRolled = len(notRolled)
+	mr.notRolledRevs = notRolledRevs
 	return nil
 }
 

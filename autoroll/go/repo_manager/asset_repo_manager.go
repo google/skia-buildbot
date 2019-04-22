@@ -191,8 +191,7 @@ func (rm *assetRepoManager) Update(ctx context.Context) error {
 	}
 	nextRollRev = strings.TrimSpace(nextRollRev)
 
-	// Subtract the last-rolled version number from the next version number
-	// to obtain commitsNotRolled.
+	// Obtain the list of not-yet-rolled revisions.
 	lastInt, err := strconv.Atoi(lastRollRev)
 	if err != nil {
 		return err
@@ -201,13 +200,16 @@ func (rm *assetRepoManager) Update(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	commitsNotRolled := nextInt - lastInt
+	notRolledRevs := make([]string, 0, nextInt-lastInt)
+	for rev := lastInt + 1; rev <= nextInt; rev++ {
+		notRolledRevs = append(notRolledRevs, strconv.Itoa(rev))
+	}
 
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
 	rm.lastRollRev = lastRollRev
 	rm.nextRollRev = nextRollRev
-	rm.commitsNotRolled = commitsNotRolled
+	rm.notRolledRevs = notRolledRevs
 	return nil
 }
 

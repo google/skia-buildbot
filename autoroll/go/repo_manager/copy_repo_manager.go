@@ -130,11 +130,17 @@ func (rm *copyRepoManager) Update(ctx context.Context) error {
 		return err
 	}
 
+	// Get the list of not-yet-rolled revisions.
+	notRolledRevs := make([]string, 0, len(notRolled))
+	for _, rev := range notRolled {
+		notRolledRevs = append(notRolledRevs, rev.Hash)
+	}
+
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
 	rm.lastRollRev = lastRollRev
 	rm.nextRollRev = nextRollRev
-	rm.commitsNotRolled = len(notRolled)
+	rm.notRolledRevs = notRolledRevs
 	return nil
 }
 

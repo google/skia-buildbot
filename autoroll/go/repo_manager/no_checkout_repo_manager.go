@@ -52,10 +52,10 @@ type noCheckoutRepoManager struct {
 }
 
 // noCheckoutUpdateHelperFunc is a function called by noCheckoutRepoManager.Update()
-// which returns the last roll revision, next roll revision, number of not-yet-rolled
+// which returns the last roll revision, next roll revision, not-yet-rolled
 // revisions, and a map of file names to contents indicating what should be changed
 // in the next roll. The parameters are the parent repo and its base commit.
-type noCheckoutUpdateHelperFunc func(context.Context, strategy.NextRollStrategy, *gitiles.Repo, string) (string, string, int, map[string]string, error)
+type noCheckoutUpdateHelperFunc func(context.Context, strategy.NextRollStrategy, *gitiles.Repo, string) (string, string, []string, map[string]string, error)
 
 // noCheckoutBuildCommitMessageFunc is a function called by
 // noCheckoutRepoManager.CreateNewRoll() which returns the commit message for
@@ -147,7 +147,7 @@ func (rm *noCheckoutRepoManager) Update(ctx context.Context) error {
 	// and next rolls.
 	rm.strategyMtx.RLock()
 	defer rm.strategyMtx.RUnlock()
-	lastRollRev, nextRollRev, commitsNotRolled, nextRollChanges, err := rm.updateHelper(ctx, rm.strategy, rm.parentRepo, baseCommit.Hash)
+	lastRollRev, nextRollRev, notRolledRevs, nextRollChanges, err := rm.updateHelper(ctx, rm.strategy, rm.parentRepo, baseCommit.Hash)
 	if err != nil {
 		return err
 	}
@@ -157,7 +157,7 @@ func (rm *noCheckoutRepoManager) Update(ctx context.Context) error {
 	rm.baseCommit = baseCommit.Hash
 	rm.lastRollRev = lastRollRev
 	rm.nextRollRev = nextRollRev
-	rm.commitsNotRolled = commitsNotRolled
+	rm.notRolledRevs = notRolledRevs
 	rm.nextRollChanges = nextRollChanges
 	return nil
 }

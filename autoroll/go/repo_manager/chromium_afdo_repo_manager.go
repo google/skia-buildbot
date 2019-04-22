@@ -94,11 +94,11 @@ func (rm *afdoRepoManager) buildCommitMessage(from, to, serverURL, cqExtraTrybot
 }
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, int, map[string]string, error) {
+func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []string, map[string]string, error) {
 	// Read the version file to determine the last roll rev.
 	buf := bytes.NewBuffer([]byte{})
 	if err := parentRepo.ReadFileAtRef(rm.afdoVersionFile, baseCommit, buf); err != nil {
-		return "", "", 0, nil, err
+		return "", "", nil, nil, err
 	}
 	lastRollRev := strings.TrimSpace(buf.String())
 
@@ -106,7 +106,7 @@ func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.Next
 	// and next rolls.
 	nextRollRev, err := strat.GetNextRollRev(ctx, nil)
 	if err != nil {
-		return "", "", 0, nil, err
+		return "", "", nil, nil, err
 	}
 	if nextRollRev == "" {
 		nextRollRev = lastRollRev
@@ -129,13 +129,16 @@ func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.Next
 	if nextIdx == -1 {
 		sklog.Errorf("Next roll rev %q not found in available versions. Not-rolled count will be wrong.", nextRollRev)
 	}
-	// This seems backwards, but the versions are in descending order.
-	commitsNotRolled := lastIdx - nextIdx
-
+	// Get the list of not-yet-rolled revisions. The versions are in
+	// descending order.
+	notRolledRevs := make([]string, 0, lastIdx-nextIdx)
+	for idx := lastIdx - 1; idx >= nextIdx; idx-- {
+		notRolledRevs = append(notRolledRevs, versions[idx])
+	}
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
 	rm.versions = versions
-	return lastRollRev, nextRollRev, commitsNotRolled, map[string]string{AFDO_VERSION_FILE_PATH: nextRollRev}, nil
+	return lastRollRev, nextRollRev, notRolledRevs, map[string]string{AFDO_VERSION_FILE_PATH: nextRollRev}, nil
 }
 
 // See documentation for RepoManager interface.

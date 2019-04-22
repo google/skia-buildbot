@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -188,7 +189,7 @@ func TestAFDORepoManager(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, rolledPast)
 	assert.Empty(t, rm.PreUploadSteps())
-	assert.Equal(t, 0, rm.CommitsNotRolled())
+	assert.Equal(t, 0, len(rm.NotRolledRevisions()))
 
 	// There's a new version.
 	mockParent.MockGetCommit(ctx, "master")
@@ -211,7 +212,7 @@ func TestAFDORepoManager(t *testing.T) {
 	rolledPast, err = rm.RolledPast(ctx, afdoRevNext)
 	assert.NoError(t, err)
 	assert.False(t, rolledPast)
-	assert.Equal(t, 1, rm.CommitsNotRolled())
+	deepequal.AssertDeepEqual(t, []string{afdoRevNext}, rm.NotRolledRevisions())
 
 	// Upload a CL.
 

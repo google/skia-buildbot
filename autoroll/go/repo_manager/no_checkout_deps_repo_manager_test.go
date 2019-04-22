@@ -116,7 +116,7 @@ func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, rm.LastRollRev(), childCommits[0])
 	assert.Equal(t, rm.NextRollRev(), nextRollRev)
-	assert.Equal(t, rm.CommitsNotRolled(), len(childCommits)-1)
+	assert.Equal(t, len(rm.NotRolledRevisions()), len(childCommits)-1)
 }
 
 func TestNoCheckoutDEPSRepoManagerStrategies(t *testing.T) {
@@ -224,7 +224,7 @@ If the roll is causing failures, please contact the current sheriff, who should
 be CC'd on the roll, and stop the roller if necessary.
 
 
-TBR=me@google.com`, childPath, lastRollRev[:12], nextRollRev[:12], rm.CommitsNotRolled(), childRepo.RepoUrl(), lastRollRev[:12], nextRollRev[:12], lastRollRev[:12], nextRollRev[:12], logStr, childPath, nextRollRev[:12], "fake.server.com")
+TBR=me@google.com`, childPath, lastRollRev[:12], nextRollRev[:12], len(rm.NotRolledRevisions()), childRepo.RepoUrl(), lastRollRev[:12], nextRollRev[:12], lastRollRev[:12], nextRollRev[:12], logStr, childPath, nextRollRev[:12], "fake.server.com")
 	subject := strings.Split(commitMsg, "\n")[0]
 	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*noCheckoutDEPSRepoManager).gerritConfig.Project, subject, cfg.ParentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{

@@ -26,20 +26,21 @@ var (
 // the AutoRoll Bot.
 type AutoRollStatus struct {
 	AutoRollMiniStatus
-	ChildHead       string                    `json:"childHead"`
-	ChildName       string                    `json:"childName"`
-	CurrentRoll     *autoroll.AutoRollIssue   `json:"currentRoll"`
-	Error           string                    `json:"error"`
-	FullHistoryUrl  string                    `json:"fullHistoryUrl"`
-	IssueUrlBase    string                    `json:"issueUrlBase"`
-	LastRoll        *autoroll.AutoRollIssue   `json:"lastRoll"`
-	LastRollRev     string                    `json:"lastRollRev"`
-	ParentName      string                    `json:"parentName"`
-	Recent          []*autoroll.AutoRollIssue `json:"recent"`
-	Status          string                    `json:"status"`
-	ThrottledUntil  int64                     `json:"throttledUntil"`
-	ValidModes      []string                  `json:"validModes"`
-	ValidStrategies []string                  `json:"validStrategies"`
+	ChildHead          string                    `json:"childHead"`
+	ChildName          string                    `json:"childName"`
+	CurrentRoll        *autoroll.AutoRollIssue   `json:"currentRoll"`
+	Error              string                    `json:"error"`
+	FullHistoryUrl     string                    `json:"fullHistoryUrl"`
+	IssueUrlBase       string                    `json:"issueUrlBase"`
+	LastRoll           *autoroll.AutoRollIssue   `json:"lastRoll"`
+	LastRollRev        string                    `json:"lastRollRev"`
+	NotRolledRevisions []string                  `json:"notRolledRevs"`
+	ParentName         string                    `json:"parentName"`
+	Recent             []*autoroll.AutoRollIssue `json:"recent"`
+	Status             string                    `json:"status"`
+	ThrottledUntil     int64                     `json:"throttledUntil"`
+	ValidModes         []string                  `json:"validModes"`
+	ValidStrategies    []string                  `json:"validStrategies"`
 }
 
 // AutoRollMiniStatus is a struct which provides a minimal amount of status
@@ -195,18 +196,19 @@ func (s *AutoRollStatus) Copy() *AutoRollStatus {
 			NumFailedRolls:      s.NumFailedRolls,
 			NumNotRolledCommits: s.NumNotRolledCommits,
 		},
-		ChildHead:       s.ChildHead,
-		ChildName:       s.ChildName,
-		Error:           s.Error,
-		FullHistoryUrl:  s.FullHistoryUrl,
-		IssueUrlBase:    s.IssueUrlBase,
-		LastRollRev:     s.LastRollRev,
-		ParentName:      s.ParentName,
-		Recent:          recent,
-		Status:          s.Status,
-		ThrottledUntil:  s.ThrottledUntil,
-		ValidModes:      util.CopyStringSlice(s.ValidModes),
-		ValidStrategies: util.CopyStringSlice(s.ValidStrategies),
+		ChildHead:          s.ChildHead,
+		ChildName:          s.ChildName,
+		Error:              s.Error,
+		FullHistoryUrl:     s.FullHistoryUrl,
+		IssueUrlBase:       s.IssueUrlBase,
+		LastRollRev:        s.LastRollRev,
+		NotRolledRevisions: util.CopyStringSlice(s.NotRolledRevisions),
+		ParentName:         s.ParentName,
+		Recent:             recent,
+		Status:             s.Status,
+		ThrottledUntil:     s.ThrottledUntil,
+		ValidModes:         util.CopyStringSlice(s.ValidModes),
+		ValidStrategies:    util.CopyStringSlice(s.ValidStrategies),
 	}
 	if s.CurrentRoll != nil {
 		rv.CurrentRoll = s.CurrentRoll.Copy()
