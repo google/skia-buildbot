@@ -198,6 +198,31 @@
             <span>[[strategyChangeBy]]</span><template is="dom-if" if="{{strategyChangeMsg}}"><span>: [[strategyChangeMsg]]</span></template>
           </div>
         </div>
+        <template is="dom-if" if="{{manualRequests}}">
+          <div class="tr">
+            <div class="td nowrap">Manual Rolls</div>
+            <div class="td nowrap">
+              <template is="dom-repeat" items="{{manualRequests}}">
+                <div class="tr">
+                  <div class="td">
+                    <a href="{{_childRepoRevURL(item.revision)}}" target="_blank">[[item.revision]]</a>
+                  </div>
+                  <div class="td">
+                    {{item.requester}}
+                  </div>
+                  <div class="td">
+                    <template is="dom-if" if="{{_isStarted(item.status)}}">
+                      <a href="{{item.url}}" target="_blank">[[item.status]]</a>
+                    </template>
+                    <template is="dom-if" if="{{!_isStarted(item.status)}}">
+                      {{item.status}}
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
     <!-- Warning for future travelers: paper-dialog doesn't like to be inside of

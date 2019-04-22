@@ -188,7 +188,7 @@ func TestAFDORepoManager(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, rolledPast)
 	assert.Empty(t, rm.PreUploadSteps())
-	assert.Equal(t, 0, rm.CommitsNotRolled())
+	assert.Equal(t, 0, len(rm.NotRolledRevisions()))
 
 	// There's a new version.
 	mockParent.MockGetCommit(ctx, "master")
@@ -211,7 +211,7 @@ func TestAFDORepoManager(t *testing.T) {
 	rolledPast, err = rm.RolledPast(ctx, afdoRevNext)
 	assert.NoError(t, err)
 	assert.False(t, rolledPast)
-	assert.Equal(t, 1, rm.CommitsNotRolled())
+	assert.Equal(t, 1, len(rm.NotRolledRevisions()))
 
 	// Upload a CL.
 

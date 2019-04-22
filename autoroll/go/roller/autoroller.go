@@ -452,32 +452,34 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 		throttledUntil = successThrottledUntil
 	}
 
-	sklog.Infof("Updating status (%d)", r.rm.CommitsNotRolled())
+	sklog.Infof("Updating status (%d)", len(r.rm.NotRolledRevisions()))
 	currentRollRev := ""
 	currentRoll := r.recent.CurrentRoll()
 	if currentRoll != nil {
 		currentRollRev = currentRoll.RollingTo
 	}
+	notRolledRevs := r.rm.NotRolledRevisions()
 	if err := status.Set(ctx, r.roller, &status.AutoRollStatus{
 		AutoRollMiniStatus: status.AutoRollMiniStatus{
 			CurrentRollRev:      currentRollRev,
 			LastRollRev:         r.rm.LastRollRev(),
 			Mode:                r.GetMode(),
 			NumFailedRolls:      numFailures,
-			NumNotRolledCommits: r.rm.CommitsNotRolled(),
+			NumNotRolledCommits: len(notRolledRevs),
 		},
-		ChildName:       r.childName,
-		CurrentRoll:     r.recent.CurrentRoll(),
-		Error:           lastError,
-		FullHistoryUrl:  r.codereview.GetFullHistoryUrl(),
-		IssueUrlBase:    r.codereview.GetIssueUrlBase(),
-		LastRoll:        r.recent.LastRoll(),
-		LastRollRev:     r.rm.LastRollRev(),
-		Recent:          recent,
-		Status:          string(r.sm.Current()),
-		ThrottledUntil:  throttledUntil,
-		ValidModes:      modes.VALID_MODES,
-		ValidStrategies: r.rm.ValidStrategies(),
+		ChildName:          r.childName,
+		CurrentRoll:        r.recent.CurrentRoll(),
+		Error:              lastError,
+		FullHistoryUrl:     r.codereview.GetFullHistoryUrl(),
+		IssueUrlBase:       r.codereview.GetIssueUrlBase(),
+		LastRoll:           r.recent.LastRoll(),
+		LastRollRev:        r.rm.LastRollRev(),
+		NotRolledRevisions: notRolledRevs,
+		Recent:             recent,
+		Status:             string(r.sm.Current()),
+		ThrottledUntil:     throttledUntil,
+		ValidModes:         modes.VALID_MODES,
+		ValidStrategies:    r.rm.ValidStrategies(),
 	}); err != nil {
 		return err
 	}

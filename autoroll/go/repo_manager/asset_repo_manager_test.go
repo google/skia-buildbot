@@ -171,7 +171,7 @@ func TestAssetRepoManager(t *testing.T) {
 	rolledPast, err = rm.RolledPast(ctx, assetVersionNext)
 	assert.NoError(t, err)
 	assert.False(t, rolledPast)
-	assert.Equal(t, 1, rm.CommitsNotRolled())
+	assert.Equal(t, 1, len(rm.NotRolledRevisions()))
 
 	// Upload a CL.
 	ci := gerrit.ChangeInfo{
