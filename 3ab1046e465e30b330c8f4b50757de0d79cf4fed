@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c66deac9_6c4d7d5f",
+        "filename": "alerts_checker/Dockerfile",
+        "patchSetId": 18
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-22T16:59:36Z",
+      "side": 1,
+      "message": "Yes, I meant to remove this. Done.\nYes, I meant to remove jq, realized that I do not use it anywhere.",
+      "parentUuid": "a1541312_571eef05",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 41
+      },
+      "revId": "3ab1046e465e30b330c8f4b50757de0d79cf4fed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "019ace77_62b488be",
         "filename": "alerts_checker/go/alerts_checker/main.go",
         "patchSetId": 18
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "a9834970_ee29b4e5",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-22T16:59:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "019ace77_62b488be",
+      "range": {
+        "startLine": 173,
+        "startChar": 24,
+        "endLine": 173,
+        "endChar": 26
+      },
+      "revId": "3ab1046e465e30b330c8f4b50757de0d79cf4fed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c5653cfc_e963e834",
         "filename": "alerts_checker/go/alerts_checker/main.go",
         "patchSetId": 18
@@ -62,6 +110,24 @@
       "revId": "3ab1046e465e30b330c8f4b50757de0d79cf4fed",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91b1637a_0914526d",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-22T16:59:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c5653cfc_e963e834",
+      "revId": "3ab1046e465e30b330c8f4b50757de0d79cf4fed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

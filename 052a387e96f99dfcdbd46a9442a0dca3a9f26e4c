@@ -254,6 +254,24 @@
     },
     {
       "key": {
+        "uuid": "6ce52f4e_a06dc622",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-22T16:59:36Z",
+      "side": 1,
+      "message": "Changing to k8s_checker so we can keep k8s checking stuff here.",
+      "parentUuid": "a8c0bdf0_707e31d2",
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e4ac8c7e_1b0c350f",
         "filename": "alerts_checker/go/alerts_checker/main.go",
         "patchSetId": 16
