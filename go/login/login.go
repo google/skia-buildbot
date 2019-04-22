@@ -311,16 +311,12 @@ func LoggedInAs(r *http.Request) string {
 		email = e
 	}
 	if inWhitelist(email) {
-		// TODO(stephana): Uncomment the following line when Debugf is different from Infof.
-		// sklog.Debugf("User %s is on the whitelist", email)
+		sklog.Debugf("User %s is on the whitelist", email)
 		return email
 	}
-
-	// TODO(stephana): Uncomment the following when Debugf is different from Infof.
-	// 	if email != "" {
-	// 	sklog.Debugf("User %s is not on whitelist", email)
-	// }
-
+	if email != "" {
+		sklog.Debugf("User %s is not on whitelist", email)
+	}
 	return ""
 }
 
