@@ -103,6 +103,7 @@ type K8sConfig struct {
 // * Dirty images checked into K8s config files.
 // * Dirty configs running in K8s.
 func checkForDirtyConfigs(ctx context.Context) error {
+	sklog.Info("\n\n---------- New round of checking k8 dirty configs ----------\n\n")
 
 	// Get mapping from live apps to their containers and images.
 	liveAppContainerToImages, err := getLiveAppContainersToImages(ctx)
@@ -150,14 +151,14 @@ func checkForDirtyConfigs(ctx context.Context) error {
 			for _, c := range config.Spec.Template.TemplateSpec.Containers {
 				container := c.Name
 				committedImage := c.Image
-				metricTags := map[string]string{
-					"container": container,
-					"yaml":      f.Name(),
-					"repo":      *k8sYamlRepo,
-				}
 
 				// Check if the image in the config is dirty.
-				dirtyCommittedMetric := metrics2.GetInt64Metric(DIRTY_COMMITTED_IMAGE_METRIC, metricTags)
+				dirtyCommittedMetricTags := map[string]string{
+					"yaml":           f.Name(),
+					"repo":           *k8sYamlRepo,
+					"committedImage": committedImage,
+				}
+				dirtyCommittedMetric := metrics2.GetInt64Metric(DIRTY_COMMITTED_IMAGE_METRIC, dirtyCommittedMetricTags)
 				if strings.HasSuffix(committedImage, IMAGE_DIRTY_SUFFIX) {
 					sklog.Infof("%s has a dirty committed image: %s\n\n", f.Name(), committedImage)
 					dirtyCommittedMetric.Update(1)
@@ -166,9 +167,17 @@ func checkForDirtyConfigs(ctx context.Context) error {
 				}
 
 				// Check if the image running in k8s matches the checked in image.
-				dirtyConfigMetric := metrics2.GetInt64Metric(DIRTY_CONFIG_METRIC, metricTags)
 				if liveContainersToImages, ok := liveAppContainerToImages[app]; ok {
 					if liveImage, ok := liveContainersToImages[container]; ok {
+						dirtyConfigMetricTags := map[string]string{
+							"app":            app,
+							"container":      container,
+							"yaml":           f.Name(),
+							"repo":           *k8sYamlRepo,
+							"committedImage": committedImage,
+							"liveImage":      liveImage,
+						}
+						dirtyConfigMetric := metrics2.GetInt64Metric(DIRTY_CONFIG_METRIC, dirtyConfigMetricTags)
 						if liveImage != committedImage {
 							dirtyConfigMetric.Update(1)
 							sklog.Infof("For app %s and container %s the running image differs from the image in config: %s != %s\n\n", app, container, liveImage, committedImage)
@@ -177,11 +186,9 @@ func checkForDirtyConfigs(ctx context.Context) error {
 						}
 					} else {
 						sklog.Infof("There is no running container %s for the config file %s\n\n", container, f.Name())
-						dirtyConfigMetric.Update(0)
 					}
 				} else {
 					sklog.Infof("There is no running app %s for the config file %s\n\n", app, f.Name())
-					dirtyConfigMetric.Update(0)
 				}
 			}
 		}
