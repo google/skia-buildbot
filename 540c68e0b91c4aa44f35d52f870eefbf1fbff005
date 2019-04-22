@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7d361822_9cd09227",
+        "filename": "go/gce/swarming/instance_types/instance_types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-22T16:38:21Z",
+      "side": 1,
+      "message": "Is this independent of moving to new project?",
+      "revId": "540c68e0b91c4aa44f35d52f870eefbf1fbff005",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41f2537b_a7af48ec",
+        "filename": "go/gce/swarming/setup-script-linux.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-22T16:38:21Z",
+      "side": 1,
+      "message": "Assuming this works with the older images too.",
+      "revId": "540c68e0b91c4aa44f35d52f870eefbf1fbff005",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
