@@ -345,3 +345,33 @@ groups:
       severity: warning
     annotations:
       description: 'Windows Skolo bots OS version has diverged. https://goto.google.com/skolo-maintenance'
+
+# K8s Checker
+
+  - alert: K8sCheckerLiveness
+    expr: liveness_k8s_checker_s > 300
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+      owner: rmistry@google.com
+    annotations:
+      description: 'k8s_checker has failed to run in the last 5 minutes.'
+
+  - alert: DirtyCommittedK8sImage
+    expr: dirty_committed_image_metric == 1
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.yaml }}'
+      description: 'There is a dirty committed image {{ $labels.committedImage }} in {{ $labels.repo }}/+/refs/heads/master/{{ $labels.yaml }}'
+
+  - alert: DirtyRunningK8sConfig
+    expr: dirty_config_metric == 1
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.container }}'
+      description: 'For app {{ $labels.app }} and container {{ $labels.container }} the running image differs from the image in {{ $labels.repo }}/+/refs/heads/master/{{ $labels.yaml }} : {{ $labels.liveImage }} != {{ $labels.committedImage }}'
