@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "d6e2f9ac_ce99e229",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-22T18:52:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "667c38cc_b6951cb0",
+      "revId": "958e57b9f3196f3a5c43eeb4828c6aaa2db59257",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5877fd6f_24fd72ed",
         "filename": "autoroll/go/repo_manager/asset_repo_manager_test.go",
         "patchSetId": 1
@@ -33,6 +51,24 @@
       "revId": "958e57b9f3196f3a5c43eeb4828c6aaa2db59257",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d146333_404924ee",
+        "filename": "autoroll/go/repo_manager/asset_repo_manager_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-22T18:52:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5877fd6f_24fd72ed",
+      "revId": "958e57b9f3196f3a5c43eeb4828c6aaa2db59257",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "69a502d8_2f1af2ad",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_repo_manager_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-22T18:52:13Z",
+      "side": 1,
+      "message": "See comment on https://skia-review.googlesource.com/c/buildbot/+/209527/1/autoroll/go/repo_manager/fuchsia_sdk_repo_manager.go#206\nRather than giving a giant list of all the revisions (which would not be accurate anyway) we just always return an empty list.",
+      "parentUuid": "3472e5a2_811f9f55",
+      "revId": "958e57b9f3196f3a5c43eeb4828c6aaa2db59257",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6e228e4e_5272827e",
         "filename": "autoroll/res/imp/arb-status-sk.html",
         "patchSetId": 1
@@ -67,6 +121,24 @@
       "revId": "958e57b9f3196f3a5c43eeb4828c6aaa2db59257",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c86fcd8c_28c73b77",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-22T18:52:13Z",
+      "side": 1,
+      "message": "Err, nope, this leaked through from a different CL.",
+      "parentUuid": "6e228e4e_5272827e",
+      "revId": "958e57b9f3196f3a5c43eeb4828c6aaa2db59257",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
