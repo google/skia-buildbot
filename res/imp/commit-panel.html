@@ -127,6 +127,12 @@
           value: "https://skia.googlesource.com/skia",
           notify: true
         },
+
+        origin: {
+          type: Boolean,
+          value: false
+        },
+
         commitinfo: {
           type: Array,
           value: null,
@@ -150,6 +156,7 @@
       },
 
       setCommitInfo: function(commitinfo) {
+        // console.log("commit info called");
         if (commitinfo) {
           this._commitinfo = commitinfo;
           this._processCommitInfo();
@@ -194,16 +201,22 @@
           var lastHash = this._commitinfo[0].hash;
           this._firstHash = this._commitinfo[this._commitinfo.length - 1].hash;
           if (!this._commitinfo[0].message) {
-            var url = this.repo + '/+log/' + this._firstHash + '~' + 1 + '..' + lastHash + '?format=json';
+            var url = this._getCommitRangeURL(this._firstHash, lastHash);
+            console.log("URL: "+url);
             // The git hashes are in time order, but not contiguous, so request
             // the log range and them populate messages by matching git hashes.
             sk.get(url).then(this._removeSecurityHeader).then(JSON.parse).then(function (json) {
+              // console.log("commit infor: " + this._commitinfo.length);
               var len = this._commitinfo.length;
+              console.log("JSON:\n" + JSON.stringify(json));
               for (var i = 0; i < json.log.length; i++) {
                 var commit = json.log[i].commit;
+                console.log("CCCCC: " + len + " ---  " +json.log[i].message);
                 // The git hash of this log meesage.
                 for (var j = 0; j < len; j++) {
+                  console.log("MMM: "+ commit + "     " + this._commitinfo[j].hash);
                   if (this._commitinfo[j].hash == commit) {
+                    console.log("MMM: "+json.log[i].message);
                     this.set('_commitinfo.'+j+'.message', json.log[i].message.slice(0, 60));
                     break;
                   }
@@ -236,11 +249,22 @@
         }
       },
 
+      // _getCommitRangeURL returns the URL to retreive a commit range.
+      _getCommitRangeURL: function(startHash, endHash) {
+        if (sk.origin) {
+          return '/json/commit/' + startHash + '~' + 1 + '..' + endHash;
+        }
+        return this._repo + '/+log/' + startHash + '~' + 1 + '..' + endHash + '?format=json';
+      },
+
       // _removeSecurityHeader strips the first 4 chars from the input. Needed
       // since googlesource.com prefixes all JSON responses with )]}' as an
       // XSS defense.
       _removeSecurityHeader: function (s) {
-        return s.slice(4, s.length);
+        if (s.startsWith(")]}'")) {
+          return s.slice(4, s.length);
+        }
+        return s;
       },
 
       _commitPercent: function (p) {

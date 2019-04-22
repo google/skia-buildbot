@@ -9,6 +9,49 @@
   <link rel=import href="/res/imp/bower_components/polymer/polymer.html">
   <link rel=import href="commit-panel.html">
   <link rel=import href="error-toast-sk.html">
+  <script src="/res/common.js"></script>
+  <script src="bower_components/sinonjs/sinon.js"></script>
+
+  <script>
+    var remoteCommitInfo = {
+      log: [
+        {
+          commit_time: 1439649751,
+          author: "reed (reed@chromium.org)",
+          commit: "bb886749feb444edfd8fbf053a9ea815e3605f8a",
+          message: "First remote commit message",
+        },
+        {
+          author: "reed (reed@chromium.org)",
+          commit_time: 1439648914,
+          commit: "e02716908fe82c7c4ae9b415793277620a22bcd6",
+          message: "Second remote commit message",
+        }
+      ]
+    };
+
+    var server = sinon.fakeServer.create();
+
+    sinon.FakeXMLHttpRequest.useFilters = true;
+    sinon.FakeXMLHttpRequest.addFilter(function(method, url, async, username, password) {
+      var fake = url.startsWith("http");
+      console.log("Fake: " + url + "  " + fake);
+      return fake;
+    });
+
+
+    server.autoRespond = true;
+    server.autoRespondAfter = 1000;
+
+    server.respondWith("GET", /\/json\/commit.*/, function(request) {
+      console.log("Called  " + JSON.stringify(request));
+      request.respond(200, {"Content-Type":"application/json"},
+        JSON.stringify(remoteCommitInfo));
+    });
+
+  </script>
+
+
   <style type="text/css" media="screen">
     body {
       font-family:Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
@@ -35,6 +78,10 @@
   <h2>Allow selections</h2>
   <commits-panel-sk mailbox=foo selection id=panel3></commits-panel-sk>
 
+  <br>
+  <h2>Origin repo</h2>
+  <commits-panel-sk commits=foo id=panel4 origin></commits-panel-sk>
+
   <script type="text/javascript" charset="utf-8">
     var commitinfo = [
       {
@@ -52,6 +99,8 @@
     ]
     sk.Mailbox.send("commits", commitinfo);
     $$$('#panel2').setCommitInfo(commitinfo);
+
+    $$$('#panel4').setCommitInfo(commitinfo);
   </script>
 
   <error-toast-sk></error-toast-sk>
