@@ -163,11 +163,17 @@ func (r *androidRepoManager) Update(ctx context.Context) error {
 		return err
 	}
 
+	// Get the list of not-yet-rolled revisions.
+	notRolledRevs := make([]string, 0, len(notRolled))
+	for _, rev := range notRolled {
+		notRolledRevs = append(notRolledRevs, rev.Hash)
+	}
+
 	r.infoMtx.Lock()
 	defer r.infoMtx.Unlock()
 	r.lastRollRev = lastRollRev
 	r.nextRollRev = nextRollRev
-	r.commitsNotRolled = len(notRolled)
+	r.notRolledRevs = notRolledRevs
 	return nil
 }
 

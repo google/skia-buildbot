@@ -44,8 +44,8 @@ be CC'd on the roll, and stop the roller if necessary.
 // RepoManager is the interface used by different Autoroller implementations
 // to manage checkouts.
 type RepoManager interface {
-	// Return the number of commits which have not yet been rolled.
-	CommitsNotRolled() int
+	// Return the revisions which have not yet been rolled.
+	NotRolledRevisions() []string
 
 	// Create a new roll attempt.
 	CreateNewRoll(context.Context, string, string, []string, string, bool) (int64, error)
@@ -143,26 +143,26 @@ func (c *CommonRepoManagerConfig) Validate() error {
 // commonRepoManager is a struct used by the AutoRoller implementations for
 // managing checkouts.
 type commonRepoManager struct {
-	childBranch      string
-	childDir         string
-	childPath        string
-	childRepo        *git.Checkout
-	childSubdir      string
-	codereview       codereview.CodeReview
-	commitsNotRolled int
-	g                gerrit.GerritInterface
-	httpClient       *http.Client
-	infoMtx          sync.RWMutex
-	lastRollRev      string
-	local            bool
-	nextRollRev      string
-	parentBranch     string
-	preUploadSteps   []PreUploadStep
-	repoMtx          sync.RWMutex
-	serverURL        string
-	strategy         strategy.NextRollStrategy
-	strategyMtx      sync.RWMutex
-	workdir          string
+	childBranch    string
+	childDir       string
+	childPath      string
+	childRepo      *git.Checkout
+	childSubdir    string
+	codereview     codereview.CodeReview
+	g              gerrit.GerritInterface
+	httpClient     *http.Client
+	infoMtx        sync.RWMutex
+	lastRollRev    string
+	local          bool
+	nextRollRev    string
+	notRolledRevs  []string
+	parentBranch   string
+	preUploadSteps []PreUploadStep
+	repoMtx        sync.RWMutex
+	serverURL      string
+	strategy       strategy.NextRollStrategy
+	strategyMtx    sync.RWMutex
+	workdir        string
 }
 
 // Returns a commonRepoManager instance.
@@ -233,8 +233,8 @@ func (r *commonRepoManager) PreUploadSteps() []PreUploadStep {
 }
 
 // See documentation for RepoManager interface.
-func (r *commonRepoManager) CommitsNotRolled() int {
-	return r.commitsNotRolled
+func (r *commonRepoManager) NotRolledRevisions() []string {
+	return r.notRolledRevs
 }
 
 // See documentation for RepoManger interface.

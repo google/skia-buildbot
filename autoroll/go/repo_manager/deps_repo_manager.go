@@ -130,11 +130,17 @@ func (dr *depsRepoManager) Update(ctx context.Context) error {
 		return err
 	}
 
+	// Get the list of not-yet-rolled revisions.
+	notRolledRevs := make([]string, 0, len(notRolled))
+	for _, rev := range notRolled {
+		notRolledRevs = append(notRolledRevs, rev.Hash)
+	}
+
 	dr.infoMtx.Lock()
 	defer dr.infoMtx.Unlock()
 	dr.lastRollRev = lastRollRev
 	dr.nextRollRev = nextRollRev
-	dr.commitsNotRolled = len(notRolled)
+	dr.notRolledRevs = notRolledRevs
 	return nil
 }
 

@@ -13,6 +13,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -171,7 +172,7 @@ func TestAssetRepoManager(t *testing.T) {
 	rolledPast, err = rm.RolledPast(ctx, assetVersionNext)
 	assert.NoError(t, err)
 	assert.False(t, rolledPast)
-	assert.Equal(t, 1, rm.CommitsNotRolled())
+	deepequal.AssertDeepEqual(t, []string{assetVersionNext}, rm.NotRolledRevisions())
 
 	// Upload a CL.
 	ci := gerrit.ChangeInfo{
