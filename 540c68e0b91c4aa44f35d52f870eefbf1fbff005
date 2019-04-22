@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "6724f78c_8934d45b",
+        "filename": "go/gce/swarming/instance_types/instance_types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-22T16:43:35Z",
+      "side": 1,
+      "message": "Oh right, need new image for the new project.",
+      "parentUuid": "57c84abe_f06fbd7c",
+      "revId": "540c68e0b91c4aa44f35d52f870eefbf1fbff005",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "41f2537b_a7af48ec",
         "filename": "go/gce/swarming/setup-script-linux.sh",
         "patchSetId": 2
