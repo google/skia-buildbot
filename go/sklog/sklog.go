@@ -39,6 +39,14 @@ const (
 
 	// b/120145392
 	KUBERNETES_FILE_LINE_NUMBER_WORKAROUND = true
+
+	// With these settings, running a program as ./service -v 2 will show only info and higher logs
+	// ./service -v 3 will show debug and higher (i.e. all) logs.
+	// There's also the option to run a service with ./service -v 2 -vmodule login=3 to default to
+	// info verbosity, but for files matching login*.go, use debug verbosity.
+	// https://godoc.org/github.com/golang/glog
+	infoVerbosity  = 2
+	debugVerbosity = 3
 )
 
 type MetricsCallback func(severity string)
@@ -293,9 +301,13 @@ func logToGlog(depth int, severity string, msg string) {
 	}
 	switch severity {
 	case DEBUG:
-		glog.InfoDepth(depth, msg)
+		if glog.V(debugVerbosity) {
+			glog.InfoDepth(depth, msg)
+		}
 	case INFO:
-		glog.InfoDepth(depth, msg)
+		if glog.V(infoVerbosity) {
+			glog.InfoDepth(depth, msg)
+		}
 	case WARNING:
 		glog.WarningDepth(depth, msg)
 	case ERROR:
