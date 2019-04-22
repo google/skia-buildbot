@@ -150,6 +150,7 @@
       },
 
       setCommitInfo: function(commitinfo) {
+        console.log("commit info called");
         if (commitinfo) {
           this._commitinfo = commitinfo;
           this._processCommitInfo();
@@ -194,7 +195,16 @@
           var lastHash = this._commitinfo[0].hash;
           this._firstHash = this._commitinfo[this._commitinfo.length - 1].hash;
           if (!this._commitinfo[0].message) {
-            var url = this.repo + '/+log/' + this._firstHash + '~' + 1 + '..' + lastHash + '?format=json';
+            var url;
+            console.log("REPO: '" + this.repo + "'");
+            if (this.repo === "") {
+              url = this.repo + '/json/commit/' + this._firstHash + '~' + 1 + '..' + lastHash;
+            } else {
+              url = this.repo + '/+log/' + this._firstHash + '~' + 1 + '..' + lastHash + '?format=json';
+            }
+            console.log("URL: "+ url);
+
+
             // The git hashes are in time order, but not contiguous, so request
             // the log range and them populate messages by matching git hashes.
             sk.get(url).then(this._removeSecurityHeader).then(JSON.parse).then(function (json) {

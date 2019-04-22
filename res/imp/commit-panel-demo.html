@@ -9,6 +9,24 @@
   <link rel=import href="/res/imp/bower_components/polymer/polymer.html">
   <link rel=import href="commit-panel.html">
   <link rel=import href="error-toast-sk.html">
+  <script src="bower_components/sinonjs/sinon.js"></script>
+
+  <script>
+    console.log("WHATEVER !");
+    var server = sinon.fakeServer.create();
+    server.autoRespond = true;
+    server.autoRespondAfter = 1000;
+
+    server.respondWith("GET", /\/json\/commits.*/, function(request) {
+      console.log("Called " + request);
+      request.respond(200, {"Content-Type":"application/json"},
+        JSON.stringify(testdata.trybotListResults));
+    });
+    console.log("WHATEVER 2 !");
+
+  </script>
+
+
   <style type="text/css" media="screen">
     body {
       font-family:Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
@@ -35,6 +53,9 @@
   <h2>Allow selections</h2>
   <commits-panel-sk mailbox=foo selection id=panel3></commits-panel-sk>
 
+  <h2>Diffferent repo</h2>
+  <commits-panel-sk commits=foo id=panel4 repo=""></commits-panel-sk>
+
   <script type="text/javascript" charset="utf-8">
     var commitinfo = [
       {
@@ -52,6 +73,8 @@
     ]
     sk.Mailbox.send("commits", commitinfo);
     $$$('#panel2').setCommitInfo(commitinfo);
+
+    $$$('#panel4').setCommitInfo(commitinfo);
   </script>
 
   <error-toast-sk></error-toast-sk>
