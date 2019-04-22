@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "667c38cc_b6951cb0",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-22T18:26:33Z",
+      "side": 1,
+      "message": "Nit: Add comment (like the other blocks in this method above). Same in other places.",
+      "revId": "958e57b9f3196f3a5c43eeb4828c6aaa2db59257",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5877fd6f_24fd72ed",
+        "filename": "autoroll/go/repo_manager/asset_repo_manager_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-22T18:26:33Z",
+      "side": 1,
+      "message": "nit: Could also assert the rev # if you know what it is (same in other tests).",
+      "revId": "958e57b9f3196f3a5c43eeb4828c6aaa2db59257",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3472e5a2_811f9f55",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_repo_manager_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-22T18:26:33Z",
+      "side": 1,
+      "message": "Why is this 0 when it was 1 before?",
+      "revId": "958e57b9f3196f3a5c43eeb4828c6aaa2db59257",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e228e4e_5272827e",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-22T18:26:33Z",
+      "side": 1,
+      "message": "Is this supposed to be part of this change? (where is manualRequests set?)",
+      "revId": "958e57b9f3196f3a5c43eeb4828c6aaa2db59257",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
