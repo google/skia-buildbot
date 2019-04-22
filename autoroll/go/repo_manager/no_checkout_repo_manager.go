@@ -43,28 +43,28 @@ func (c *NoCheckoutRepoManagerConfig) Validate() error {
 // local checkout.
 type noCheckoutRepoManager struct {
 	*commonRepoManager
-	baseCommit         string
-	buildCommitMessage noCheckoutBuildCommitMessageFunc
-	gerritConfig       *codereview.GerritConfig
-	nextRollChanges    map[string]string
-	parentRepo         *gitiles.Repo
-	updateHelper       noCheckoutUpdateHelperFunc
+	baseCommit   string
+	createRoll   noCheckoutCreateRollHelperFunc
+	gerritConfig *codereview.GerritConfig
+	parentRepo   *gitiles.Repo
+	updateHelper noCheckoutUpdateHelperFunc
 }
 
 // noCheckoutUpdateHelperFunc is a function called by noCheckoutRepoManager.Update()
-// which returns the last roll revision, next roll revision, not-yet-rolled
-// revisions, and a map of file names to contents indicating what should be changed
-// in the next roll. The parameters are the parent repo and its base commit.
-type noCheckoutUpdateHelperFunc func(context.Context, strategy.NextRollStrategy, *gitiles.Repo, string) (string, string, []string, map[string]string, error)
+// which returns the last roll revision, next roll revision, and a list of
+// not-yet-rolled revisions. The parameters are the parent repo and its base
+// commit.
+type noCheckoutUpdateHelperFunc func(context.Context, strategy.NextRollStrategy, *gitiles.Repo, string) (string, string, []string, error)
 
-// noCheckoutBuildCommitMessageFunc is a function called by
-// noCheckoutRepoManager.CreateNewRoll() which returns the commit message for
-// a given roll given the previous roll revision, next roll revision, URL of the
-// server, extra trybots for the CQ, and TBR emails.
-type noCheckoutBuildCommitMessageFunc func(string, string, string, string, []string) (string, error)
+// noCheckoutCreateRollHelperFunc is a function called by
+// noCheckoutRepoManager.CreateNewRoll() which returns a commit message for
+// a given roll, plus a map of file names to new contents, given the previous
+// roll revision, next roll revision, URL of the server, extra trybots for the
+// CQ, and TBR emails.
+type noCheckoutCreateRollHelperFunc func(context.Context, string, string, string, string, []string) (string, map[string]string, error)
 
 // Return a noCheckoutRepoManager instance.
-func newNoCheckoutRepoManager(ctx context.Context, c NoCheckoutRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, gitcookiesPath string, client *http.Client, cr codereview.CodeReview, buildCommitMessage noCheckoutBuildCommitMessageFunc, updateHelper noCheckoutUpdateHelperFunc, local bool) (*noCheckoutRepoManager, error) {
+func newNoCheckoutRepoManager(ctx context.Context, c NoCheckoutRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, gitcookiesPath string, client *http.Client, cr codereview.CodeReview, createRoll noCheckoutCreateRollHelperFunc, updateHelper noCheckoutUpdateHelperFunc, local bool) (*noCheckoutRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -73,19 +73,19 @@ func newNoCheckoutRepoManager(ctx context.Context, c NoCheckoutRepoManagerConfig
 		return nil, err
 	}
 	rv := &noCheckoutRepoManager{
-		commonRepoManager:  crm,
-		buildCommitMessage: buildCommitMessage,
-		gerritConfig:       cr.Config().(*codereview.GerritConfig),
-		parentRepo:         gitiles.NewRepo(c.ParentRepo, gitcookiesPath, client),
-		updateHelper:       updateHelper,
+		commonRepoManager: crm,
+		createRoll:        createRoll,
+		gerritConfig:      cr.Config().(*codereview.GerritConfig),
+		parentRepo:        gitiles.NewRepo(c.ParentRepo, gitcookiesPath, client),
+		updateHelper:      updateHelper,
 	}
 	return rv, nil
 }
 
 // See documentation for RepoManager interface.
 func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
-	// Build the commit message.
-	commitMsg, err := rm.buildCommitMessage(from, to, rm.serverURL, cqExtraTrybots, emails)
+	// Build the roll.
+	commitMsg, nextRollChanges, err := rm.createRoll(ctx, from, to, rm.serverURL, cqExtraTrybots, emails)
 	if err != nil {
 		return 0, err
 	}
@@ -95,7 +95,7 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to str
 
 	// Create the change.
 	ci, err := gerrit.CreateAndEditChange(rm.g, rm.gerritConfig.Project, rm.parentBranch, commitMsg, rm.baseCommit, func(g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
-		for file, contents := range rm.nextRollChanges {
+		for file, contents := range nextRollChanges {
 			if contents == "" {
 				if err := g.DeleteFile(ci, file); err != nil {
 					return fmt.Errorf("Failed to delete %s file: %s", file, err)
@@ -147,7 +147,7 @@ func (rm *noCheckoutRepoManager) Update(ctx context.Context) error {
 	// and next rolls.
 	rm.strategyMtx.RLock()
 	defer rm.strategyMtx.RUnlock()
-	lastRollRev, nextRollRev, notRolledRevs, nextRollChanges, err := rm.updateHelper(ctx, rm.strategy, rm.parentRepo, baseCommit.Hash)
+	lastRollRev, nextRollRev, notRolledRevs, err := rm.updateHelper(ctx, rm.strategy, rm.parentRepo, baseCommit.Hash)
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,6 @@ func (rm *noCheckoutRepoManager) Update(ctx context.Context) error {
 	rm.lastRollRev = lastRollRev
 	rm.nextRollRev = nextRollRev
 	rm.notRolledRevs = notRolledRevs
-	rm.nextRollChanges = nextRollChanges
 	return nil
 }
 
