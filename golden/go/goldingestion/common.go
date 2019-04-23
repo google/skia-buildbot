@@ -15,10 +15,13 @@ import (
 )
 
 // idAndParams constructs the Trace ID and the Trace params from the keys and options.
+// It returns the id as a string of all the values, in the alphabetic order of the
+// keys, separated by a colon. The trace params returned are a single map of
+// key-> values. "Options" are omitted from the trace id, as per design.
 func idAndParams(dm *DMResults, r *jsonio.Result) (string, map[string]string) {
-	combinedLen := len(dm.Key) + len(dm.Key)
+	combinedLen := len(dm.Key) + len(r.Key)
 	traceIdParts := make(map[string]string, combinedLen)
-	params := make(map[string]string, combinedLen+1)
+	params := make(map[string]string, combinedLen+len(r.Options))
 	for k, v := range dm.Key {
 		traceIdParts[k] = v
 		params[k] = v
@@ -106,7 +109,7 @@ func (d *DMResults) Name() string {
 	return d.name
 }
 
-// ParseDMResultsFromReader parses the stream out of the io.ReadCloser
+// ParseDMResultsFromReader parses the JSON stream out of the io.ReadCloser
 // into a DMResults instance and closes the reader.
 func ParseDMResultsFromReader(r io.ReadCloser, name string) (*DMResults, error) {
 	defer util.Close(r)
@@ -121,7 +124,8 @@ func ParseDMResultsFromReader(r io.ReadCloser, name string) (*DMResults, error) 
 	return dmResults, nil
 }
 
-// processDMResults opens the given input file and processes it.
+// processDMResults opens the given JSON input file and processes it, converting
+// it into a goldingestion.DMResults object and returning it.
 func processDMResults(resultsFile ingestion.ResultFileLocation) (*DMResults, error) {
 	r, err := resultsFile.Open()
 	if err != nil {

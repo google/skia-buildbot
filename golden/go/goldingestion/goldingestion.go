@@ -81,7 +81,7 @@ func (g *goldProcessor) Process(ctx context.Context, resultsFile ingestion.Resul
 	}
 
 	// Add the column to the trace db.
-	cid, err := g.getCommitID(commit, dmResults)
+	cid, err := g.getCommitID(commit)
 	if err != nil {
 		return err
 	}
@@ -100,8 +100,8 @@ func (g *goldProcessor) Process(ctx context.Context, resultsFile ingestion.Resul
 // See ingestion.Processor interface.
 func (g *goldProcessor) BatchFinished() error { return nil }
 
-// getCommitID extracts the commitID from the given commit and dm results.
-func (g *goldProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults *DMResults) (*tracedb.CommitID, error) {
+// getCommitID extracts the commitID from the given commit.
+func (g *goldProcessor) getCommitID(commit *vcsinfo.LongCommit) (*tracedb.CommitID, error) {
 	return &tracedb.CommitID{
 		Timestamp: commit.Timestamp.Unix(),
 		ID:        commit.Hash,
@@ -117,16 +117,21 @@ func (g *goldProcessor) getCanonicalCommitHash(ctx context.Context, targetHash s
 	if !isCommit(ctx, g.vcs, targetHash) {
 		// Extract the commit.
 		foundCommit, err := g.vcs.ResolveCommit(ctx, targetHash)
-		if err != nil {
-			return "", fmt.Errorf("Unable to resolve commit %s in secondary repo. Got err: %s", targetHash, err)
+		if err != nil && err != vcsinfo.NoSecondaryRepo {
+			return "", fmt.Errorf("Unable to resolve commit %s in primary or secondary repo. Got err: %s", targetHash, err)
 		}
 
 		if foundCommit == "" {
-			sklog.Warningf("Unable to resolve commit %s in secondary repo.", targetHash)
+			if err == vcsinfo.NoSecondaryRepo {
+				sklog.Warningf("Unable to find commit %s in primary or secondary repo.", targetHash)
+			} else {
+				sklog.Warningf("Unable to find commit %s in primary repo and no secondary configured.", targetHash)
+			}
 			return "", ingestion.IgnoreResultsFileErr
 		}
 
-		// Check if the found commit is actually in the primary repository.
+		// Check if the found commit is actually in the primary repository. This could indicate misconfiguration
+		// of the secondary repo.
 		if !isCommit(ctx, g.vcs, foundCommit) {
 			return "", fmt.Errorf("Found invalid commit %s in secondary repo at commit %s. Not contained in primary repo.", foundCommit, targetHash)
 		}

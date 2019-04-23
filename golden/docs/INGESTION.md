@@ -81,12 +81,6 @@ Here is a shortened but representative example of the input format:
       "model" : "iPhone7",
       "os" : "iOS"
    },
-   "issue": "0",
-   "patchset": "0",
-   "buildbucket_build_id" : "0",
-   "builder" : "Test-Android-Clang-iPhone7-GPU-PowerVRGT7600-arm64-Debug-All-Metal",
-   "swarming_bot_id" : "skia-rpi-102",
-   "swarming_task_id" : "3fcd8d4a539ba311",
    "results" : [
       {
          "key" : {
@@ -123,7 +117,16 @@ Here is a shortened but representative example of the input format:
             "ext" : "png"
          }
       }
-   ]
+   ],
+   // These keys are required for tryjobs and can be omitted for non-tryjobs.
+   // GitHub support coming soon, Gerrit/googlesource support only at the moment.
+   "issue": "0",
+   "patchset": "0",
+   "buildbucket_build_id" : "0",
+   // These keys are optional, but can assist in debugging
+   "builder" : "Test-Android-Clang-iPhone7-GPU-PowerVRGT7600-arm64-Debug-All-Metal",
+   "swarming_bot_id" : "skia-rpi-102",
+   "swarming_task_id" : "3fcd8d4a539ba311",
 }
 ```
 
