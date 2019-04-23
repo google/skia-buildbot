@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "af66f42e_211ee761",
+        "filename": "am/modules/silence-sk/silence-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-23T16:43:04Z",
+      "side": 1,
+      "message": "Nice!",
+      "range": {
+        "startLine": 198,
+        "startChar": 8,
+        "endLine": 198,
+        "endChar": 25
+      },
+      "revId": "212a117b3bdef3b416290db3b7fb2ee1e1f4159e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
