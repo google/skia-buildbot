@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3c94e88a_01f7d11c",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-23T20:55:32Z",
+      "side": 1,
+      "message": "This is going to end up looking something like\ngit@github.com:flutter/engine.git/commit/${HASH}\nwhich is not right\n\nProbably better to just leave this blank for now.",
+      "range": {
+        "startLine": 196,
+        "startChar": 3,
+        "endLine": 196,
+        "endChar": 6
+      },
+      "revId": "f1636fd076db0cf75b9cac79046c72e85122ba17",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
