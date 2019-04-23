@@ -14,6 +14,7 @@ import (
 	"runtime/pprof"
 	"time"
 
+	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/auth"
@@ -29,6 +30,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	_ "go.skia.org/infra/golden/go/goldingestion"
+	"go.skia.org/infra/golden/go/gtracestore"
 	"google.golang.org/api/option"
 )
 
@@ -36,6 +38,7 @@ func main() {
 	// Command line flags.
 	var (
 		btInstance      = flag.String("bt_instance", "", "Bigtable instance to use in the project identified by 'project_id'")
+		btTable         = flag.String("bt_table", "", "Bigtable table to use in the instance configured by 'bt_instance' and 'project_id'")
 		configFilename  = flag.String("config_filename", "default.json5", "Configuration file in JSON5 format.")
 		gitBTInstanceID = flag.String("git_bt_instance", "", "ID of the BigTable instance that contains Git metadata")
 		gitBTTableID    = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
@@ -92,6 +95,16 @@ func main() {
 		sklog.Infof("IngestionStore instance instantiated.")
 	}
 
+	btClient, err := bigtable.NewClient(ctx, *projectID, *btInstance)
+	if err != nil {
+		sklog.Fatalf("Unable to create BigTable client: %s", err)
+	}
+
+	traceStore, err := gtracestore.NewBTTraceStore(btClient, *btTable)
+	if err != nil {
+		sklog.Fatalf("Unable to tracestore: %s", err)
+	}
+
 	// Start the ingesters.
 	config, err := sharedconfig.ConfigFromJson5File(*configFilename)
 	if err != nil {
@@ -128,7 +141,7 @@ func main() {
 	var ingesters []*ingestion.Ingester
 	go func() {
 		var err error
-		ingesters, err = ingestion.IngestersFromConfig(ctx, config, client, eventBus, ingestionStore, btConf)
+		ingesters, err = ingestion.IngestersFromConfig(ctx, traceStore, config, client, eventBus, ingestionStore, btConf)
 		if err != nil {
 			sklog.Fatalf("Unable to instantiate ingesters: %s", err)
 		}
