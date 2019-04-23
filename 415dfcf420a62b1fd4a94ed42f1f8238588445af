@@ -45,6 +45,29 @@
       "revId": "415dfcf420a62b1fd4a94ed42f1f8238588445af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6af19d5_db5db9e9",
+        "filename": "golden/go/search/.gitignore",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-23T14:27:24Z",
+      "side": 1,
+      "message": "Please don\u0027t do this.  Test data should go in temporary dirs, not inside the checkout.",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 8
+      },
+      "revId": "415dfcf420a62b1fd4a94ed42f1f8238588445af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
