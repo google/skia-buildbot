@@ -7,6 +7,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/modes"
+	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/deepequal"
@@ -32,21 +33,28 @@ func TestCopyStatus(t *testing.T) {
 			NumFailedRolls:      3,
 			NumNotRolledCommits: 6,
 		},
-		ChildHead:          "abc123",
-		ChildName:          "child-repo",
-		CurrentRoll:        recent[0],
-		Error:              "some error!",
-		FullHistoryUrl:     "http://history",
-		IssueUrlBase:       "http://issue.url/",
-		LastRoll:           recent[1],
-		LastRollRev:        recent[1].RollingTo,
-		NotRolledRevisions: []string{"a", "b"},
-		ParentName:         "parent-repo",
-		Recent:             recent,
-		Status:             "some-status",
-		ThrottledUntil:     time.Now().Unix(),
-		ValidModes:         modes.VALID_MODES,
-		ValidStrategies:    []string{strategy.ROLL_STRATEGY_SINGLE, strategy.ROLL_STRATEGY_BATCH},
+		ChildHead:      "abc123",
+		ChildName:      "child-repo",
+		CurrentRoll:    recent[0],
+		Error:          "some error!",
+		FullHistoryUrl: "http://history",
+		IssueUrlBase:   "http://issue.url/",
+		LastRoll:       recent[1],
+		LastRollRev:    recent[1].RollingTo,
+		NotRolledRevisions: []*repo_manager.Revision{
+			{
+				Id: "a",
+			},
+			{
+				Id: "b",
+			},
+		},
+		ParentName:      "parent-repo",
+		Recent:          recent,
+		Status:          "some-status",
+		ThrottledUntil:  time.Now().Unix(),
+		ValidModes:      modes.VALID_MODES,
+		ValidStrategies: []string{strategy.ROLL_STRATEGY_SINGLE, strategy.ROLL_STRATEGY_BATCH},
 	}
 	deepequal.AssertCopy(t, v, v.Copy())
 }

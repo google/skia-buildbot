@@ -239,7 +239,7 @@ func (rm *noCheckoutDEPSRepoManager) getNextRollRev(ctx context.Context, notRoll
 }
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []string, error) {
+func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []*Revision, error) {
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
 
@@ -285,9 +285,15 @@ func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, strat str
 	}
 
 	// Get the list of not-yet-rolled revisions.
-	notRolledRevs := make([]string, 0, len(notRolled))
+	notRolledRevs := make([]*Revision, 0, len(notRolled))
 	for _, rev := range notRolled {
-		notRolledRevs = append(notRolledRevs, rev.Hash)
+		notRolledRevs = append(notRolledRevs, &Revision{
+			Id:          rev.Hash,
+			Display:     rev.Hash[:7],
+			Description: rev.Subject,
+			Timestamp:   rev.Timestamp,
+			URL:         fmt.Sprintf("%s/+/%s", rm.childRepoUrl, rev.Hash),
+		})
 	}
 
 	rm.nextRollCommits = nextRollCommits

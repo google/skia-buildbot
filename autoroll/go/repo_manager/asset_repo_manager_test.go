@@ -172,7 +172,7 @@ func TestAssetRepoManager(t *testing.T) {
 	rolledPast, err = rm.RolledPast(ctx, assetVersionNext)
 	assert.NoError(t, err)
 	assert.False(t, rolledPast)
-	deepequal.AssertDeepEqual(t, []string{assetVersionNext}, rm.NotRolledRevisions())
+	deepequal.AssertDeepEqual(t, []*Revision{{Id: assetVersionNext}}, rm.NotRolledRevisions())
 
 	// Upload a CL.
 	ci := gerrit.ChangeInfo{

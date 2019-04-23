@@ -62,8 +62,9 @@ type issueJson struct {
 // depsRepoManager is a struct used by DEPs AutoRoller for managing checkouts.
 type depsRepoManager struct {
 	*depotToolsRepoManager
-	includeBugs bool
-	includeLog  bool
+	childRepoUrl string
+	includeBugs  bool
+	includeLog   bool
 }
 
 // DEPSRepoManagerConfig provides configuration for the DEPS RepoManager.
@@ -130,14 +131,29 @@ func (dr *depsRepoManager) Update(ctx context.Context) error {
 		return err
 	}
 
-	// Get the list of not-yet-rolled revisions.
-	notRolledRevs := make([]string, 0, len(notRolled))
-	for _, rev := range notRolled {
-		notRolledRevs = append(notRolledRevs, rev.Hash)
-	}
-
 	dr.infoMtx.Lock()
 	defer dr.infoMtx.Unlock()
+
+	if dr.childRepoUrl == "" {
+		childRepo, err := exec.RunCwd(ctx, dr.childDir, "git", "remote", "get-url", "origin")
+		if err != nil {
+			return err
+		}
+		dr.childRepoUrl = childRepo
+	}
+
+	// Get the list of not-yet-rolled revisions.
+	notRolledRevs := make([]*Revision, 0, len(notRolled))
+	for _, rev := range notRolled {
+		notRolledRevs = append(notRolledRevs, &Revision{
+			Id:          rev.Hash,
+			Display:     rev.Hash[:7],
+			Description: rev.Subject,
+			Timestamp:   rev.Timestamp,
+			URL:         fmt.Sprintf("%s/+/%s", dr.childRepoUrl, rev.Hash),
+		})
+	}
+
 	dr.lastRollRev = lastRollRev
 	dr.nextRollRev = nextRollRev
 	dr.notRolledRevs = notRolledRevs
@@ -158,7 +174,7 @@ func (dr *depsRepoManager) getLastRollRev(ctx context.Context) (string, error) {
 }
 
 // Helper function for building the commit message.
-func buildCommitMsg(from, to, childPath, cqExtraTrybots, remoteUrl, serverURL, logStr string, bugs []string, numCommits int, includeLog bool) (string, error) {
+func buildCommitMsg(from, to, childPath, cqExtraTrybots, childRepo, serverURL, logStr string, bugs []string, numCommits int, includeLog bool) (string, error) {
 	data := struct {
 		ChildPath  string
 		ChildRepo  string
@@ -171,7 +187,7 @@ func buildCommitMsg(from, to, childPath, cqExtraTrybots, remoteUrl, serverURL, l
 		Footer     string
 	}{
 		ChildPath:  childPath,
-		ChildRepo:  remoteUrl,
+		ChildRepo:  childRepo,
 		From:       from[:12],
 		To:         to[:12],
 		NumCommits: numCommits,
@@ -205,12 +221,7 @@ func (dr *depsRepoManager) buildCommitMsg(ctx context.Context, from, to, cqExtra
 	}
 	logStr = strings.TrimSpace(logStr)
 	numCommits := len(strings.Split(logStr, "\n"))
-	remoteUrl, err := exec.RunCwd(ctx, dr.childDir, "git", "remote", "get-url", "origin")
-	if err != nil {
-		return "", err
-	}
-	remoteUrl = strings.TrimSpace(remoteUrl)
-	return buildCommitMsg(from, to, dr.childPath, cqExtraTrybots, remoteUrl, dr.serverURL, logStr, bugs, numCommits, dr.includeLog)
+	return buildCommitMsg(from, to, dr.childPath, cqExtraTrybots, dr.childRepoUrl, dr.serverURL, logStr, bugs, numCommits, dr.includeLog)
 }
 
 // See documentation for RepoManager interface.
