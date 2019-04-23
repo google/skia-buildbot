@@ -106,7 +106,7 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 		parentRepo:            parentRepo,
 		genSdkBpRepo:          genSdkBpRepo,
 	}
-	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, authClient, cr, rv.buildCommitMessage, rv.updateHelper, local)
+	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, authClient, cr, rv.createRoll, rv.updateHelper, local)
 	if err != nil {
 		return nil, err
 	}
@@ -115,39 +115,47 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 }
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []string, map[string]string, error) {
+func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []string, error) {
 	sklog.Info("Updating Android checkout...")
 	if err := rm.arm.updateAndroidCheckout(ctx); err != nil {
-		return "", "", nil, nil, err
+		return "", "", nil, err
 	}
 
 	sklog.Info("Finding next roll rev...")
-	lastRollRev, nextRollRev, notRolledRevs, _, err := rm.fuchsiaSDKRepoManager.updateHelper(ctx, strat, parentRepo, baseCommit)
+	lastRollRev, nextRollRev, notRolledRevs, err := rm.fuchsiaSDKRepoManager.updateHelper(ctx, strat, parentRepo, baseCommit)
 	if err != nil {
-		return "", "", nil, nil, err
+		return "", "", nil, err
 	}
 
 	if err := rm.parentRepo.Update(ctx); err != nil {
-		return "", "", nil, nil, err
+		return "", "", nil, err
 	}
+	return lastRollRev, nextRollRev, notRolledRevs, nil
+}
+
+// See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
+func (rm *fuchsiaSDKAndroidRepoManager) createRoll(ctx context.Context, from, to, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
+	rm.infoMtx.Lock()
+	defer rm.infoMtx.Unlock()
+
 	// Sync the parentRepo to baseCommit.
-	if _, err := rm.parentRepo.Git(ctx, "reset", "--hard", baseCommit); err != nil {
-		return "", "", nil, nil, err
+	if _, err := rm.parentRepo.Git(ctx, "reset", "--hard", rm.baseCommit); err != nil {
+		return "", nil, err
 	}
 	if err := rm.genSdkBpRepo.Update(ctx); err != nil {
-		return "", "", nil, nil, err
+		return "", nil, err
 	}
 	if _, err := rm.genSdkBpRepo.Git(ctx, "checkout", fmt.Sprintf("origin/%s", rm.parentBranch)); err != nil {
-		return "", "", nil, nil, err
+		return "", nil, err
 	}
 	genSdkBpRepoHash, err := rm.genSdkBpRepo.RevParse(ctx, "HEAD")
 	if err != nil {
-		return "", "", nil, nil, err
+		return "", nil, err
 	}
 	sklog.Info("Reading old file contents...")
 	oldContents, err := fileutil.ReadAllFilesRecursive(rm.parentRepo.Dir(), []string{".git"})
 	if err != nil {
-		return "", "", nil, nil, err
+		return "", nil, err
 	}
 
 	// Instead of simply rolling the version hash into a file, download and
@@ -157,14 +165,14 @@ func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, strat 
 		sklog.Warningf("Failed to remove SDK dest path %s: %s", sdkDestPath, err)
 	}
 	if err := os.MkdirAll(sdkDestPath, os.ModePerm); err != nil {
-		return "", "", nil, nil, err
+		return "", nil, err
 	}
-	sdkGsPath := rm.gsListPath + "/linux-amd64/" + nextRollRev
+	sdkGsPath := rm.gsListPath + "/linux-amd64/" + to
 	sklog.Infof("Downloading SDK from %s...", sdkGsPath)
 	newContents := map[string][]byte{}
 	r, err := rm.gcsClient.FileReader(ctx, sdkGsPath)
 	if err != nil {
-		return "", "", nil, nil, err
+		return "", nil, err
 	}
 	if err := tar.ReadGzipArchive(r, func(filename string, r io.Reader) error {
 		b, err := ioutil.ReadAll(r)
@@ -183,7 +191,7 @@ func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, strat 
 		}
 		return ioutil.WriteFile(filePath, b, os.ModePerm)
 	}); err != nil {
-		return "", "", nil, nil, fmt.Errorf("Failed to read archive: %s", err)
+		return "", nil, fmt.Errorf("Failed to read archive: %s", err)
 	}
 
 	// Run the gen_sdk_bp.py script.
@@ -199,12 +207,12 @@ func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, strat 
 		LogStdout:  true,
 		LogStderr:  true,
 	}); err != nil {
-		return "", "", nil, nil, err
+		return "", nil, err
 	}
 	src := path.Join(rm.arm.workdir, rm.childPath, ANDROID_BP)
 	b, err := ioutil.ReadFile(src)
 	if err != nil {
-		return "", "", nil, nil, err
+		return "", nil, err
 	}
 	newContents[ANDROID_BP] = b
 
@@ -222,17 +230,12 @@ func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, strat 
 	}
 
 	// Lastly, include the SDK version hash file.
-	nextRollContents[rm.versionFileLinux] = nextRollRev
+	nextRollContents[rm.versionFileLinux] = to
 	sklog.Infof("Next roll modifies %d files.", len(nextRollContents))
-	return lastRollRev, nextRollRev, notRolledRevs, nextRollContents, nil
-}
 
-// See documentation for noCheckoutRepoManagerBuildCommitMessageFunc.
-func (rm *fuchsiaSDKAndroidRepoManager) buildCommitMessage(from, to, serverURL, cqExtraTrybots string, emails []string) (string, error) {
-	msg, err := rm.fuchsiaSDKRepoManager.buildCommitMessage(from, to, serverURL, cqExtraTrybots, emails)
-	if err != nil {
-		return "", err
-	}
+	// Create the commit message.
+	msg := rm.fuchsiaSDKRepoManager.buildCommitMessage(from, to, serverURL, cqExtraTrybots, emails)
 	msg += "\nExempt-From-Owner-Approval: The autoroll bot does not require owner approval."
-	return msg, nil
+
+	return msg, nextRollContents, nil
 }
