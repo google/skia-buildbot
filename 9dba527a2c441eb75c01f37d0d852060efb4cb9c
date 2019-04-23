@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8947f835_8f82ee2f",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-23T17:31:02Z",
+      "side": 1,
+      "message": "I don\u0027t think this is going to work. We\u0027ll create metrics where committedImage !\u003d liveImage and set its value to 1, then we will never change the value, and it will continue to be reported as 1. If you want the liveImage as a tag, you will need to delete the old metrics when any of the tags change.",
+      "range": {
+        "startLine": 172,
+        "startChar": 0,
+        "endLine": 179,
+        "endChar": 7
+      },
+      "revId": "9dba527a2c441eb75c01f37d0d852060efb4cb9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0dbc634_892258fd",
+        "filename": "promk/prometheus/alerts_public.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-23T17:31:02Z",
+      "side": 1,
+      "message": "IIUC, this would alert after the liveness was above 5m for 5m, so it would have been failing for 10m. Probably simplest to remove the \"for\" field.",
+      "range": {
+        "startLine": 353,
+        "startChar": 0,
+        "endLine": 353,
+        "endChar": 11
+      },
+      "revId": "9dba527a2c441eb75c01f37d0d852060efb4cb9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
