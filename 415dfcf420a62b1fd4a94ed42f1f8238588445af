@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3e45255f_cc451ef5",
+        "filename": "go/vcsinfo/vcsinfo.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-23T14:18:13Z",
+      "side": 1,
+      "message": "super nit: I would use skerr.Fmt(....) solely to use the same function for all error messages that we create.",
+      "range": {
+        "startLine": 56,
+        "startChar": 22,
+        "endLine": 56,
+        "endChar": 81
+      },
+      "revId": "415dfcf420a62b1fd4a94ed42f1f8238588445af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad8dd24e_3b65b37c",
+        "filename": "go/vcsinfo/vcsinfo.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-23T14:18:13Z",
+      "side": 1,
+      "message": "nit: I would just say returns vcsinfo.NoSecondaryRepo, IMO once an error is returned the other return value is irrelevant and nobody should rely on it being a specific value",
+      "range": {
+        "startLine": 97,
+        "startChar": 29,
+        "endLine": 98,
+        "endChar": 45
+      },
+      "revId": "415dfcf420a62b1fd4a94ed42f1f8238588445af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
