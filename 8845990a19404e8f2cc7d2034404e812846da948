@@ -16,6 +16,24 @@
       "revId": "8845990a19404e8f2cc7d2034404e812846da948",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f577f59_4e22a4cd",
+        "filename": "k8s_checker/Makefile",
+        "patchSetId": 22
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-23T16:59:29Z",
+      "side": 1,
+      "message": "I will have a follow up change for that",
+      "parentUuid": "95e255e3_bc65cead",
+      "revId": "8845990a19404e8f2cc7d2034404e812846da948",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
