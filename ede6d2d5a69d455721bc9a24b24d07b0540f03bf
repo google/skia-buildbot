@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eca8c8b2_510c0f88",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-23T19:01:11Z",
+      "side": 1,
+      "message": "I like to put this in /tmp/.gitcookies or some such, and only use user.Current() when running locally (it\u0027s not supported everywhere).",
+      "range": {
+        "startLine": 248,
+        "startChar": 2,
+        "endLine": 248,
+        "endChar": 16
+      },
+      "revId": "ede6d2d5a69d455721bc9a24b24d07b0540f03bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d24351b_44b7f4a2",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-23T19:01:11Z",
+      "side": 1,
+      "message": "This parameter is optional.  Without it, you don\u0027t need --service_account_key, which is preferable IMO.",
+      "range": {
+        "startLine": 249,
+        "startChar": 54,
+        "endLine": 249,
+        "endChar": 66
+      },
+      "revId": "ede6d2d5a69d455721bc9a24b24d07b0540f03bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
