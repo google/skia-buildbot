@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "95e255e3_bc65cead",
+        "filename": "k8s_checker/Makefile",
+        "patchSetId": 22
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-23T16:58:39Z",
+      "side": 1,
+      "message": "Also need to push to corp?",
+      "revId": "8845990a19404e8f2cc7d2034404e812846da948",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
