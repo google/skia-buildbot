@@ -9,15 +9,18 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"os/user"
 	"path/filepath"
 	"strings"
 	"time"
 
 	yaml "gopkg.in/yaml.v2"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 )
@@ -205,6 +208,28 @@ func main() {
 		activationCmd := fmt.Sprintf("gcloud auth activate-service-account --key-file %s", *serviceAccountKey)
 		if _, err := exec.RunSimple(ctx, activationCmd); err != nil {
 			sklog.Fatal(err)
+		}
+		b, err := ioutil.ReadFile(*serviceAccountKey)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		s := struct {
+			ClientEmail string `json:"client_email"`
+		}{}
+		json.Unmarshal(b, &s)
+
+		// Use the gitcookie created by gitauth package.
+		user, err := user.Current()
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")
+		if _, err := gitauth.New(ts, gitcookiesPath, true, s.ClientEmail); err != nil {
+			sklog.Fatalf("Failed to create git cookie updater: %s", err)
 		}
 	}
 
