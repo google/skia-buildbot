@@ -188,6 +188,9 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T) {
 
 	lastRollRev := childCommits[0]
 
+	// Mock the request to retrieve the DEPS file.
+	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
+
 	// Mock the initial change creation.
 	logStr := ""
 	childGitRepo := git.GitDir(childRepo.Dir())

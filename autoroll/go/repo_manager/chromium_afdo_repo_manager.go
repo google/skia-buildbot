@@ -71,7 +71,7 @@ func newAfdoRepoManager(ctx context.Context, c *AFDORepoManagerConfig, workdir s
 		afdoVersionFile: AFDO_VERSION_FILE_PATH,
 		authClient:      client,
 	}
-	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, client, cr, rv.buildCommitMessage, rv.updateHelper, local)
+	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, client, cr, rv.createRoll, rv.updateHelper, local)
 	if err != nil {
 		return nil, err
 	}
@@ -79,8 +79,8 @@ func newAfdoRepoManager(ctx context.Context, c *AFDORepoManagerConfig, workdir s
 	return rv, nil
 }
 
-// See documentation for noCheckoutRepoManagerBuildCommitMessageFunc.
-func (rm *afdoRepoManager) buildCommitMessage(from, to, serverURL, cqExtraTrybots string, emails []string) (string, error) {
+// See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
+func (rm *afdoRepoManager) createRoll(ctx context.Context, from, to, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
 	commitMsg := fmt.Sprintf(AFDO_COMMIT_MSG_TMPL, afdoShortVersion(from), afdoShortVersion(to), serverURL)
 	if cqExtraTrybots != "" {
 		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
@@ -90,15 +90,15 @@ func (rm *afdoRepoManager) buildCommitMessage(from, to, serverURL, cqExtraTrybot
 		tbr += strings.Join(emails, ",")
 	}
 	commitMsg += tbr
-	return commitMsg, nil
+	return commitMsg, map[string]string{AFDO_VERSION_FILE_PATH: to}, nil
 }
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []string, map[string]string, error) {
+func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []string, error) {
 	// Read the version file to determine the last roll rev.
 	buf := bytes.NewBuffer([]byte{})
 	if err := parentRepo.ReadFileAtRef(rm.afdoVersionFile, baseCommit, buf); err != nil {
-		return "", "", nil, nil, err
+		return "", "", nil, err
 	}
 	lastRollRev := strings.TrimSpace(buf.String())
 
@@ -106,7 +106,7 @@ func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.Next
 	// and next rolls.
 	nextRollRev, err := strat.GetNextRollRev(ctx, nil)
 	if err != nil {
-		return "", "", nil, nil, err
+		return "", "", nil, err
 	}
 	if nextRollRev == "" {
 		nextRollRev = lastRollRev
@@ -138,7 +138,7 @@ func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.Next
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
 	rm.versions = versions
-	return lastRollRev, nextRollRev, notRolledRevs, map[string]string{AFDO_VERSION_FILE_PATH: nextRollRev}, nil
+	return lastRollRev, nextRollRev, notRolledRevs, nil
 }
 
 // See documentation for RepoManager interface.
