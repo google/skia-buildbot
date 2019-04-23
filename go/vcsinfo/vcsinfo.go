@@ -2,6 +2,7 @@ package vcsinfo
 
 import (
 	"context"
+	"errors"
 	"time"
 )
 
@@ -52,6 +53,8 @@ func (s LongCommitSlice) Len() int           { return len(s) }
 func (s LongCommitSlice) Less(i, j int) bool { return s[i].Timestamp.After(s[j].Timestamp) }
 func (s LongCommitSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
+var NoSecondaryRepo = errors.New("No secondary repo configured for this vcsinfo")
+
 // VCS is a generic interface to the information contained in a version
 // control system.
 type VCS interface {
@@ -91,7 +94,8 @@ type VCS interface {
 	GetFile(ctx context.Context, fileName, commitHash string) (string, error)
 
 	// ResolveCommit will resolve the given commit against a secondary repo if one
-	// was defined with the VCS.
+	// was defined with the VCS. Returns vcsinfo.NoSecondaryRepo if there is
+	// no secondary repo configured.
 	ResolveCommit(ctx context.Context, commitHash string) (string, error)
 
 	// GetBranch returns the branch that is tracked by this VCS instance.
