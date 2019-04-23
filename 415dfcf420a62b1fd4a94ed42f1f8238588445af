@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "17373226_2775601a",
+        "filename": "go/vcsinfo/vcsinfo.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-23T16:53:41Z",
+      "side": 1,
+      "message": "I disagree - this is more idiomatic go [1]. Besides, we don\u0027t need the line number that skerr provides, nor do I think that would be helpful.\n\n[1] https://golang.org/pkg/os/#pkg-variables",
+      "parentUuid": "3e45255f_cc451ef5",
+      "range": {
+        "startLine": 56,
+        "startChar": 22,
+        "endLine": 56,
+        "endChar": 81
+      },
+      "revId": "415dfcf420a62b1fd4a94ed42f1f8238588445af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ad8dd24e_3b65b37c",
         "filename": "go/vcsinfo/vcsinfo.go",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "2bc966a4_af88488e",
+        "filename": "go/vcsinfo/vcsinfo.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-23T16:53:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ad8dd24e_3b65b37c",
+      "range": {
+        "startLine": 97,
+        "startChar": 29,
+        "endLine": 98,
+        "endChar": 45
+      },
+      "revId": "415dfcf420a62b1fd4a94ed42f1f8238588445af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b6af19d5_db5db9e9",
         "filename": "golden/go/search/.gitignore",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2019-04-23T14:27:24Z",
       "side": 1,
       "message": "Please don\u0027t do this.  Test data should go in temporary dirs, not inside the checkout.",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 8
+      },
+      "revId": "415dfcf420a62b1fd4a94ed42f1f8238588445af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f4397b1_55dd75a6",
+        "filename": "golden/go/search/.gitignore",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-23T16:53:41Z",
+      "side": 1,
+      "message": "I\u0027m not changing where the data goes.  The existing tests already put it here.",
+      "parentUuid": "b6af19d5_db5db9e9",
       "range": {
         "startLine": 2,
         "startChar": 0,
