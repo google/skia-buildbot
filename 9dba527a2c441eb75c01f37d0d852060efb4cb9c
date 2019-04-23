@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ce1a7b6_18c4de5b",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-23T17:34:29Z",
+      "side": 1,
+      "message": "Yea, I struggled with this a little.\nDo you recommend I go back to what I had before?\nI was trying to make it easier for trooper to see the live image name to see who changed it. But maybe it\u0027s enough just to show the committedImage name and say that the live image is now different.",
+      "parentUuid": "8947f835_8f82ee2f",
+      "range": {
+        "startLine": 172,
+        "startChar": 0,
+        "endLine": 179,
+        "endChar": 7
+      },
+      "revId": "9dba527a2c441eb75c01f37d0d852060efb4cb9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e0dbc634_892258fd",
         "filename": "promk/prometheus/alerts_public.yml",
         "patchSetId": 3
