@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baf96174_61383202",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-23T17:56:04Z",
+      "side": 1,
+      "message": "I think you just have to remember previous metrics and delete the ones that you no longer need. Eric did something similar in https://skia-review.googlesource.com/c/buildbot/+/207608 -- search for oldMetrics. (It relies on the fact that metrics2.GetInt64Metric will return the same object for the same tags.)\n\nIf you want to make it a bit nicer, in the alert config, do something like \u0027sum(...) without (liveImage)\u0027 so that the metric links show a continuous line.",
+      "parentUuid": "9ce1a7b6_18c4de5b",
+      "range": {
+        "startLine": 172,
+        "startChar": 0,
+        "endLine": 179,
+        "endChar": 7
+      },
+      "revId": "9dba527a2c441eb75c01f37d0d852060efb4cb9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e0dbc634_892258fd",
         "filename": "promk/prometheus/alerts_public.yml",
         "patchSetId": 3
