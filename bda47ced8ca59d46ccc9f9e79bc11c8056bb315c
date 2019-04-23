@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "923b15ce_9bdf0a23",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-23T18:57:56Z",
+      "side": 1,
+      "message": "nit: doc new param and return value",
+      "revId": "bda47ced8ca59d46ccc9f9e79bc11c8056bb315c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
