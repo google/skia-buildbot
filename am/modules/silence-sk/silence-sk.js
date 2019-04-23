@@ -74,6 +74,7 @@ import * as paramset from '../paramset'
 import { $$ } from 'common-sk/modules/dom'
 import { abbr, displaySilence, expiresIn, notes } from '../am'
 import { diffDate } from 'common-sk/modules/human'
+import { errorMessage } from 'elements-sk/errorMessage'
 import { html, render } from 'lit-html'
 import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
@@ -87,11 +88,11 @@ function table(ele, o) {
 function addNote(ele) {
   if (ele._state.key) {
     return html`
-    <textarea rows=2 cols=80></textarea>
+    <textarea rows=2 cols=80 placeholder="Add description for the silence"></textarea>
     <button @click=${ele._addNote}>Submit</button>
   `;
   } else {
-    return html`<textarea rows=2 cols=80></textarea>`;
+    return html`<textarea rows=2 cols=80 placeholder="Add description for the silence"></textarea>`;
   }
 }
 
@@ -192,6 +193,11 @@ window.customElements.define('silence-sk', class extends HTMLElement {
     };
     if (!this._state.key) {
       let textarea = $$('textarea', this);
+      if (!textarea.value) {
+        errorMessage("Please enter a description for the silence");
+        textarea.focus();
+        return;
+      }
       detail.silence.notes = [{
         text: textarea.value,
         ts: Math.floor(new Date().getTime()/1000),
