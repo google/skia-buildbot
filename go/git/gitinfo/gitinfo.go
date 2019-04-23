@@ -514,7 +514,7 @@ func (g *GitInfo) IsAncestor(ctx context.Context, a, b string) bool {
 // ResolveCommit see vcsinfo.VCS interface.
 func (g *GitInfo) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
 	if g.secondaryVCS == nil {
-		return "", nil
+		return "", vcsinfo.NoSecondaryRepo
 	}
 
 	foundCommit, err := g.secondaryExtractor.ExtractCommit(g.secondaryVCS.GetFile(ctx, "DEPS", commitHash))

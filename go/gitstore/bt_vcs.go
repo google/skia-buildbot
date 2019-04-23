@@ -311,7 +311,7 @@ func (b *btVCS) GetFile(ctx context.Context, fileName, commitHash string) (strin
 // Update implements the vcsinfo.VCS interface
 func (b *btVCS) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
 	if b.secondaryVCS == nil {
-		return "", nil
+		return "", vcsinfo.NoSecondaryRepo
 	}
 
 	foundCommit, err := b.secondaryExtractor.ExtractCommit(b.secondaryVCS.GetFile(ctx, "DEPS", commitHash))
