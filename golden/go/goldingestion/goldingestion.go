@@ -12,7 +12,7 @@ import (
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/config"
-	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/gtracestore"
 )
 
 const (
@@ -35,22 +35,19 @@ func init() {
 
 // goldProcessor implements the ingestion.Processor interface for gold.
 type goldProcessor struct {
-	traceDB tracedb.DB
-	vcs     vcsinfo.VCS
+	traceStore gtracestore.TraceStore
+	vcs        vcsinfo.VCS
 }
 
 type extractIDFn func(*vcsinfo.LongCommit, *DMResults) (*tracedb.CommitID, error)
 
 // implements the ingestion.Constructor signature.
 func newGoldProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, eventBus eventbus.EventBus) (ingestion.Processor, error) {
-	traceDB, err := tracedb.NewTraceServiceDBFromAddress(config.ExtraParams[CONFIG_TRACESERVICE], types.GoldenTraceBuilder)
-	if err != nil {
-		return nil, err
-	}
+	traceStore := gtracestore.TraceStore(nil)
 
 	ret := &goldProcessor{
-		traceDB: traceDB,
-		vcs:     vcs,
+		traceStore: traceStore,
+		vcs:        vcs,
 	}
 	return ret, nil
 }
@@ -80,34 +77,18 @@ func (g *goldProcessor) Process(ctx context.Context, resultsFile ingestion.Resul
 		return ingestion.IgnoreResultsFileErr
 	}
 
-	// Add the column to the trace db.
-	cid, err := g.getCommitID(commit, dmResults)
-	if err != nil {
-		return err
-	}
-
 	// Get the entries that should be added to the tracedb.
 	entries, err := extractTraceDBEntries(dmResults)
 	if err != nil {
 		return err
 	}
 
-	// Write the result to the tracedb.
-	err = g.traceDB.Add(cid, entries)
-	return err
+	// Write the result to the tracestore.
+	return g.traceStore.Put(commit, entries)
 }
 
 // See ingestion.Processor interface.
 func (g *goldProcessor) BatchFinished() error { return nil }
-
-// getCommitID extracts the commitID from the given commit and dm results.
-func (g *goldProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults *DMResults) (*tracedb.CommitID, error) {
-	return &tracedb.CommitID{
-		Timestamp: commit.Timestamp.Unix(),
-		ID:        commit.Hash,
-		Source:    "master",
-	}, nil
-}
 
 // getCanonicalCommitHash returns the commit hash in the primary repository. If the given
 // target hash is not in the primary repository it will try and find it in the secondary
