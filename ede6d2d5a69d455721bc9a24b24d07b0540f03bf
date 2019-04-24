@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d182449c_fa232c62",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-24T11:47:37Z",
+      "side": 1,
+      "message": "Put it in *workdir and got rid of user.",
+      "parentUuid": "eca8c8b2_510c0f88",
+      "range": {
+        "startLine": 248,
+        "startChar": 2,
+        "endLine": 248,
+        "endChar": 16
+      },
+      "revId": "ede6d2d5a69d455721bc9a24b24d07b0540f03bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4d24351b_44b7f4a2",
         "filename": "k8s_checker/go/k8s_checker/main.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "ede6d2d5a69d455721bc9a24b24d07b0540f03bf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4b743d4_cbf31408",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-24T11:47:37Z",
+      "side": 1,
+      "message": "Cool, I did not know it was optional.",
+      "parentUuid": "4d24351b_44b7f4a2",
+      "range": {
+        "startLine": 249,
+        "startChar": 54,
+        "endLine": 249,
+        "endChar": 66
+      },
+      "revId": "ede6d2d5a69d455721bc9a24b24d07b0540f03bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
