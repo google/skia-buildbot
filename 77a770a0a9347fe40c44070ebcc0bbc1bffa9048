@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dd515203_450440cf",
+        "filename": "go/bt/testutil/testutil.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-24T23:18:29Z",
+      "side": 1,
+      "message": "It\u0027s a pain to have a package with the same name as a golang package. Could we call this sktest or something?\n\nAlternatively, could we just use https://godoc.org/github.com/stretchr/testify/require#TestingT?",
+      "range": {
+        "startLine": 9,
+        "startChar": 2,
+        "endLine": 9,
+        "endChar": 30
+      },
+      "revId": "77a770a0a9347fe40c44070ebcc0bbc1bffa9048",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
