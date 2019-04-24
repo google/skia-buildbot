@@ -102,29 +102,57 @@ type K8sConfig struct {
 // checkForDirtyConfigs checks for:
 // * Dirty images checked into K8s config files.
 // * Dirty configs running in K8s.
+<<<<<<< HEAD
+// It takes in a map of oldMetrics, any metrics from that map that are not encountered during this
+// invocation of the function are deleted. This is done to handle the case when metric tags
+// change. Eg: liveImage in dirtyConfigMetricTags.
+// It returns a map of newMetrics, which are all the metrics that were used during this
+// invocation of the function.
+func checkForDirtyConfigs(ctx context.Context, oldMetrics map[metrics2.Int64Metric]struct{}) (map[metrics2.Int64Metric]struct{}, error) {
+	sklog.Info("\n\n---------- New round of checking k8 dirty configs ----------\n\n")
+=======
 func checkForDirtyConfigs(ctx context.Context) error {
+>>>>>>> 4a8ecc362713b44655650a13529ab678753040c4
 
 	// Get mapping from live apps to their containers and images.
 	liveAppContainerToImages, err := getLiveAppContainersToImages(ctx)
 	if err != nil {
+<<<<<<< HEAD
+		return nil, fmt.Errorf("Could not get live pods from kubectl: %s", err)
+=======
 		return fmt.Errorf("Could not get live pods from kubectl: %s", err)
+>>>>>>> 4a8ecc362713b44655650a13529ab678753040c4
 	}
 
 	// Checkout the K8s config repo.
 	// Use gitiles if this ends up giving us any problems.
 	g, err := git.NewCheckout(ctx, *k8sYamlRepo, *workdir)
 	if err != nil {
+<<<<<<< HEAD
+		return nil, fmt.Errorf("Error when checking out %s: %s", *k8sYamlRepo, err)
+	}
+	if err := g.Update(ctx); err != nil {
+		return nil, fmt.Errorf("Error when updating %s: %s", *k8sYamlRepo, err)
+=======
 		return fmt.Errorf("Error when checking out %s: %s", *k8sYamlRepo, err)
 	}
 	if err := g.Update(ctx); err != nil {
 		return fmt.Errorf("Error when updating %s: %s", *k8sYamlRepo, err)
+>>>>>>> 4a8ecc362713b44655650a13529ab678753040c4
 	}
 
 	files, err := ioutil.ReadDir(g.Dir())
 	if err != nil {
+<<<<<<< HEAD
+		return nil, fmt.Errorf("Error when reading from %s: %s", g.Dir(), err)
+	}
+
+	newMetrics := map[metrics2.Int64Metric]struct{}{}
+=======
 		return fmt.Errorf("Error when reading from %s: %s", g.Dir(), err)
 	}
 
+>>>>>>> 4a8ecc362713b44655650a13529ab678753040c4
 	for _, f := range files {
 		if filepath.Ext(f.Name()) != ".yaml" {
 			// Only interested in YAML configs.
@@ -150,6 +178,17 @@ func checkForDirtyConfigs(ctx context.Context) error {
 			for _, c := range config.Spec.Template.TemplateSpec.Containers {
 				container := c.Name
 				committedImage := c.Image
+<<<<<<< HEAD
+
+				// Check if the image in the config is dirty.
+				dirtyCommittedMetricTags := map[string]string{
+					"yaml":           f.Name(),
+					"repo":           *k8sYamlRepo,
+					"committedImage": committedImage,
+				}
+				dirtyCommittedMetric := metrics2.GetInt64Metric(DIRTY_COMMITTED_IMAGE_METRIC, dirtyCommittedMetricTags)
+				newMetrics[dirtyCommittedMetric] = struct{}{}
+=======
 				metricTags := map[string]string{
 					"container": container,
 					"yaml":      f.Name(),
@@ -158,6 +197,7 @@ func checkForDirtyConfigs(ctx context.Context) error {
 
 				// Check if the image in the config is dirty.
 				dirtyCommittedMetric := metrics2.GetInt64Metric(DIRTY_COMMITTED_IMAGE_METRIC, metricTags)
+>>>>>>> 4a8ecc362713b44655650a13529ab678753040c4
 				if strings.HasSuffix(committedImage, IMAGE_DIRTY_SUFFIX) {
 					sklog.Infof("%s has a dirty committed image: %s\n\n", f.Name(), committedImage)
 					dirtyCommittedMetric.Update(1)
@@ -166,9 +206,24 @@ func checkForDirtyConfigs(ctx context.Context) error {
 				}
 
 				// Check if the image running in k8s matches the checked in image.
+<<<<<<< HEAD
+				if liveContainersToImages, ok := liveAppContainerToImages[app]; ok {
+					if liveImage, ok := liveContainersToImages[container]; ok {
+						dirtyConfigMetricTags := map[string]string{
+							"app":            app,
+							"container":      container,
+							"yaml":           f.Name(),
+							"repo":           *k8sYamlRepo,
+							"committedImage": committedImage,
+							"liveImage":      liveImage,
+						}
+						dirtyConfigMetric := metrics2.GetInt64Metric(DIRTY_CONFIG_METRIC, dirtyConfigMetricTags)
+						newMetrics[dirtyConfigMetric] = struct{}{}
+=======
 				dirtyConfigMetric := metrics2.GetInt64Metric(DIRTY_CONFIG_METRIC, metricTags)
 				if liveContainersToImages, ok := liveAppContainerToImages[app]; ok {
 					if liveImage, ok := liveContainersToImages[container]; ok {
+>>>>>>> 4a8ecc362713b44655650a13529ab678753040c4
 						if liveImage != committedImage {
 							dirtyConfigMetric.Update(1)
 							sklog.Infof("For app %s and container %s the running image differs from the image in config: %s != %s\n\n", app, container, liveImage, committedImage)
@@ -177,16 +232,39 @@ func checkForDirtyConfigs(ctx context.Context) error {
 						}
 					} else {
 						sklog.Infof("There is no running container %s for the config file %s\n\n", container, f.Name())
+<<<<<<< HEAD
+					}
+				} else {
+					sklog.Infof("There is no running app %s for the config file %s\n\n", app, f.Name())
+=======
 						dirtyConfigMetric.Update(0)
 					}
 				} else {
 					sklog.Infof("There is no running app %s for the config file %s\n\n", app, f.Name())
 					dirtyConfigMetric.Update(0)
+>>>>>>> 4a8ecc362713b44655650a13529ab678753040c4
 				}
 			}
 		}
 	}
+<<<<<<< HEAD
+
+	// Delete unused old metrics.
+	for m, _ := range oldMetrics {
+		if _, ok := newMetrics[m]; !ok {
+			if err := m.Delete(); err != nil {
+				sklog.Errorf("Failed to delete metric: %s", err)
+				// Add the metric to newMetrics so that we'll
+				// have the chance to delete it again on the
+				// next cycle.
+				newMetrics[m] = struct{}{}
+			}
+		}
+	}
+	return newMetrics, nil
+=======
 	return nil
+>>>>>>> 4a8ecc362713b44655650a13529ab678753040c4
 }
 
 func main() {
@@ -202,11 +280,22 @@ func main() {
 	}
 
 	liveness := metrics2.NewLiveness(LIVENESS_METRIC)
+<<<<<<< HEAD
+	oldMetrics := map[metrics2.Int64Metric]struct{}{}
+	for range time.Tick(*dirtyConfigChecksPeriod) {
+		newMetrics, err := checkForDirtyConfigs(ctx, oldMetrics)
+		if err != nil {
+			sklog.Errorf("Error when checking for dirty configs: %s", err)
+		} else {
+			liveness.Reset()
+			oldMetrics = newMetrics
+=======
 	for range time.Tick(*dirtyConfigChecksPeriod) {
 		if err := checkForDirtyConfigs(ctx); err != nil {
 			sklog.Errorf("Error when checking for dirty configs: %s", err)
 		} else {
 			liveness.Reset()
+>>>>>>> 4a8ecc362713b44655650a13529ab678753040c4
 		}
 	}
 }
