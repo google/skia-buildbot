@@ -22,6 +22,30 @@
       "revId": "f1636fd076db0cf75b9cac79046c72e85122ba17",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4d37142_aa51016c",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-24T12:27:45Z",
+      "side": 1,
+      "message": "SGTM, done here and in github_deps_repo_manager.go, even though that one presumably has googlesource as the child repo.",
+      "parentUuid": "3c94e88a_01f7d11c",
+      "range": {
+        "startLine": 196,
+        "startChar": 3,
+        "endLine": 196,
+        "endChar": 6
+      },
+      "revId": "f1636fd076db0cf75b9cac79046c72e85122ba17",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
