@@ -15,9 +15,11 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 )
@@ -226,6 +228,16 @@ func main() {
 		activationCmd := fmt.Sprintf("gcloud auth activate-service-account --key-file %s", *serviceAccountKey)
 		if _, err := exec.RunSimple(ctx, activationCmd); err != nil {
 			sklog.Fatal(err)
+		}
+
+		// Use the gitcookie created by gitauth package.
+		ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		gitcookiesPath := filepath.Join(*workdir, ".gitcookies")
+		if _, err := gitauth.New(ts, gitcookiesPath, true, ""); err != nil {
+			sklog.Fatalf("Failed to create git cookie updater: %s", err)
 		}
 	}
 
