@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "472bcb68_24787355",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-24T22:42:30Z",
+      "side": 1,
+      "message": "I think you meant to use https://golang.org/pkg/sync/#Map",
+      "range": {
+        "startLine": 58,
+        "startChar": 14,
+        "endLine": 58,
+        "endChar": 25
+      },
+      "revId": "4c0c1b964d0135dc59151f88087d42fed676a202",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57a3a03d_ec396d27",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 992,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-24T22:42:30Z",
+      "side": 1,
+      "message": "I think using RepoGraph here is causing more problems than it solves. We don\u0027t really need the commits in exactly topological order, and we don\u0027t care if we include commits from other branches. We also don\u0027t need to cache the entire repo. ISTM you can do what you want with something like this:\n\nctx :\u003d r.Context()\ndetails, err :\u003d wh.Storages.VCS.DetailsMulti(ctx, []string{start, end}, false)\nif err !\u003d nil || len(details) \u003c 2 || details[0] \u003d\u003d nil || details[1] \u003d\u003d nil { ... }\nindexCommits, err :\u003d wh.Storages.VCS.Range(details[0].Timestamp, details[1].Timestamp.Add(time.Nanosecond))\nif err !\u003d nil { ... }\nhashes :\u003d make([]string, 0, len(commits))\nfor _, c :\u003d range indexCommits {\n  hashes \u003d append(hashes, c.Hash)\n}\ncommits, err :\u003d wh.Storages.VCS.DetailsMulti(ctx, hashes, false)\nif err !\u003d nil { ... }\n\nIf you want to keep using RepoGraph, I don\u0027t see a good reason for messageCache, since RepoGraph already keeps everything in memory.",
+      "range": {
+        "startLine": 988,
+        "startChar": 0,
+        "endLine": 992,
+        "endChar": 2
+      },
+      "revId": "4c0c1b964d0135dc59151f88087d42fed676a202",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5073669_da6d3cab",
+        "filename": "res/imp/commit-panel-demo.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-24T22:42:30Z",
+      "side": 1,
+      "message": "nit: None of these fields are included in the response from the Gold server. Might be good to omit them so that the demo reflects the server implementation.",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 12
+      },
+      "revId": "4c0c1b964d0135dc59151f88087d42fed676a202",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
