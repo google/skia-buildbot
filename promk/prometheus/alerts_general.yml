@@ -471,3 +471,31 @@ groups:
     annotations:
       abbr: '{{ $labels.branch }}'
       description: 'There are no bots which can run the tasks for {{ $labels.tryjob }} on supported branch {{ $labels.branch }} in {{ $labels.repo }}.  Either the dimensions for the tasks used by the job need to be updated in {{ $labels.repo }}/+/{{ $labels.branch}}/infra/bots/tasks.json or bots need to be added which can run the tasks. See the logs for details: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+
+# K8s Checker
+  - alert: K8sCheckerLiveness
+    expr: liveness_k8s_checker_s > 300
+    labels:
+      category: infra
+      severity: critical
+      owner: rmistry@google.com
+    annotations:
+      description: 'k8s_checker has failed to run in the last 5 minutes.'
+
+  - alert: DirtyCommittedK8sImage
+    expr: dirty_committed_image_metric == 1
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.yaml }}'
+      description: 'There is a dirty committed image {{ $labels.committedImage }} in {{ $labels.repo }}/+/refs/heads/master/{{ $labels.yaml }}'
+
+  - alert: DirtyRunningK8sConfig
+    expr: dirty_config_metric == 1
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.container }}'
+      description: 'For app {{ $labels.app }} and container {{ $labels.container }} the running image differs from the image in {{ $labels.repo }}/+/refs/heads/master/{{ $labels.yaml }} : {{ $labels.liveImage }} != {{ $labels.committedImage }}'
