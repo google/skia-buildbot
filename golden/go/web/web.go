@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/issues"
@@ -33,6 +34,7 @@ import (
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/validation"
+	"golang.org/x/sync/syncmap"
 )
 
 const (
@@ -51,6 +53,9 @@ type WebHandlers struct {
 	Indexer       *indexer.Indexer
 	IssueTracker  issues.IssueTracker
 	SearchAPI     *search.SearchAPI
+	RepoGraph     *repograph.Graph
+
+	messageCache syncmap.Map // maps hash -> commit message
 }
 
 // TODO(stephana): once the byBlameHandler is removed, refactor this to
@@ -934,7 +939,9 @@ func (wh *WebHandlers) JsonParamsHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-// JsonParamsHandler returns the most current commits.
+// JsonParamsHandler returns the commits from the most recent tile.
+// Note that this returns things of tiling.Commit, which lacks information
+// like the message. For a fuller commit, see JsonGitLogHandler.
 func (wh *WebHandlers) JsonCommitsHandler(w http.ResponseWriter, r *http.Request) {
 	cpxTile, err := wh.Storages.GetLastTileTrimmed()
 	if err != nil {
@@ -943,6 +950,95 @@ func (wh *WebHandlers) JsonCommitsHandler(w http.ResponseWriter, r *http.Request
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(cpxTile.DataCommits()); err != nil {
+		sklog.Errorf("Failed to write or encode result: %s", err)
+	}
+}
+
+// gitLog is a struct to mimic the return value of googlesource (see JsonGitLogHandler)
+type gitLog struct {
+	Log []commitInfo `json:"log"`
+}
+
+// commitInfo is a simplified view of a commit. The author and timestamp should
+// already be on the frontend, as those are stored in tiling.Tile but Message
+// is not, so it needs to be provided in this struct.
+type commitInfo struct {
+	Commit  string `json:"commit"`
+	Message string `json:"message"`
+}
+
+// JsonGitLogHandler takes a request with a start and end commit and returns
+// an array of commit hashes and messages similar to the JSON googlesource would
+// return for a query like:
+// https://chromium.googlesource.com/chromium/src/+log/[start]~1..[end]
+// Essentially, we just need the commit Subject for each of the commits,
+// although this could easily be expanded to have more of the commit info.
+func (wh *WebHandlers) JsonGitLogHandler(w http.ResponseWriter, r *http.Request) {
+	// We have start and end as request params
+	p := r.URL.Query()
+	startHashes := p["start"] // the oldest commit
+	endHashes := p["end"]     // the newest commit
+	if len(startHashes) == 0 || len(endHashes) == 0 {
+		http.Error(w, "must supply a start and end hash", http.StatusBadRequest)
+		return
+	}
+	start := startHashes[0]
+	end := endHashes[0]
+
+	hashes, err := wh.RepoGraph.RevList(start, end)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to find commits in range")
+		return
+	}
+	// Use the start inclusively (It will be omitted by default).
+	// This transforms the request from start..end to start~1..end
+	hashes = append(hashes, start)
+
+	sklog.Infof("Looking up commit data for hashes %q", hashes)
+	updated := false // If we have a cache miss on commits, update exactly once
+
+	ci := make([]commitInfo, 0, len(hashes))
+	for _, h := range hashes {
+		if m, ok := wh.messageCache.Load(h); ok {
+			ci = append(ci, commitInfo{
+				Commit:  h,
+				Message: m.(string),
+			})
+		} else {
+			msg := ""
+			c := wh.RepoGraph.Get(h)
+			if c == nil {
+				// update and try again - only update if we cannot find a given
+				// commit because it takes a few seconds and can cause significant
+				// latency if it is done on every request.
+				// Further, only call update a max of once per request.
+				if !updated {
+					wh.RepoGraph.Update(r.Context())
+					updated = true
+				}
+				c := wh.RepoGraph.Get(h)
+				if c != nil {
+					sklog.Warningf("Could not find commit for hash %s, even after calling update", h)
+				} else {
+					msg = c.Subject
+				}
+			} else {
+				msg = c.Subject
+			}
+			wh.messageCache.Store(h, msg)
+			ci = append(ci, commitInfo{
+				Commit:  h,
+				Message: msg,
+			})
+		}
+	}
+
+	val := gitLog{
+		Log: ci,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(val); err != nil {
 		sklog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
