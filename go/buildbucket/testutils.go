@@ -10,7 +10,7 @@ import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 	assert "github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testing"
 )
 
 // MockClient is a wrapper around Client which doesn't actually perform API
@@ -20,10 +20,10 @@ import (
 type MockClient struct {
 	*Client
 	mock *buildbucketpb.MockBuildsClient
-	t    testutils.TestingT
+	t    testing.TestingT
 }
 
-func NewMockClient(t testutils.TestingT) *MockClient {
+func NewMockClient(t testing.TestingT) *MockClient {
 	ctrl := gomock.NewController(t)
 	mock := buildbucketpb.NewMockBuildsClient(ctrl)
 	c := &Client{
@@ -92,7 +92,7 @@ func ts(t time.Time) *timestamp.Timestamp {
 	}
 }
 
-func unconvertBuild(t testutils.TestingT, b *Build) *buildbucketpb.Build {
+func unconvertBuild(t testing.TestingT, b *Build) *buildbucketpb.Build {
 	id, err := strconv.ParseInt(b.Id, 10, 64)
 	assert.NoError(t, err)
 	patchset, err := strconv.ParseInt(b.Parameters.Properties.GerritPatchset, 10, 64)

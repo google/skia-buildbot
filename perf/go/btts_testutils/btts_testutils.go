@@ -5,11 +5,11 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testing"
 	"golang.org/x/oauth2"
 )
 
-func CreateTestTable(t testutils.TestingT) {
+func CreateTestTable(t testing.TestingT) {
 	ctx := context.Background()
 	client, _ := bigtable.NewAdminClient(ctx, "test", "test")
 	err := client.CreateTableFromConf(ctx, &bigtable.TableConf{
@@ -24,7 +24,7 @@ func CreateTestTable(t testutils.TestingT) {
 	assert.NoError(t, err)
 }
 
-func CleanUpTestTable(t testutils.TestingT) {
+func CleanUpTestTable(t testing.TestingT) {
 	ctx := context.Background()
 	client, _ := bigtable.NewAdminClient(ctx, "test", "test")
 	err := client.DeleteTable(ctx, "test")

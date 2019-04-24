@@ -15,17 +15,17 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testing"
 )
 
 type MockRepo struct {
 	c    *mockhttpclient.URLMock
 	repo git.GitDir
-	t    testutils.TestingT
+	t    testing.TestingT
 	url  string
 }
 
-func NewMockRepo(t testutils.TestingT, url string, repo git.GitDir, c *mockhttpclient.URLMock) *MockRepo {
+func NewMockRepo(t testing.TestingT, url string, repo git.GitDir, c *mockhttpclient.URLMock) *MockRepo {
 	return &MockRepo{
 		c:    c,
 		repo: repo,
