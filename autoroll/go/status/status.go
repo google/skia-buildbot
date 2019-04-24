@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"cloud.google.com/go/datastore"
+	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/sklog"
@@ -34,7 +35,7 @@ type AutoRollStatus struct {
 	IssueUrlBase       string                    `json:"issueUrlBase"`
 	LastRoll           *autoroll.AutoRollIssue   `json:"lastRoll"`
 	LastRollRev        string                    `json:"lastRollRev"`
-	NotRolledRevisions []string                  `json:"notRolledRevs"`
+	NotRolledRevisions []*repo_manager.Revision  `json:"notRolledRevs"`
 	ParentName         string                    `json:"parentName"`
 	Recent             []*autoroll.AutoRollIssue `json:"recent"`
 	Status             string                    `json:"status"`
@@ -189,6 +190,13 @@ func (s *AutoRollStatus) Copy() *AutoRollStatus {
 			recent = append(recent, r.Copy())
 		}
 	}
+	var notRolledRevisions []*repo_manager.Revision
+	if s.NotRolledRevisions != nil {
+		notRolledRevisions = make([]*repo_manager.Revision, 0, len(s.NotRolledRevisions))
+		for _, r := range s.NotRolledRevisions {
+			notRolledRevisions = append(notRolledRevisions, r.Copy())
+		}
+	}
 	rv := &AutoRollStatus{
 		AutoRollMiniStatus: AutoRollMiniStatus{
 			CurrentRollRev:      s.CurrentRollRev,
@@ -202,7 +210,7 @@ func (s *AutoRollStatus) Copy() *AutoRollStatus {
 		FullHistoryUrl:     s.FullHistoryUrl,
 		IssueUrlBase:       s.IssueUrlBase,
 		LastRollRev:        s.LastRollRev,
-		NotRolledRevisions: util.CopyStringSlice(s.NotRolledRevisions),
+		NotRolledRevisions: notRolledRevisions,
 		ParentName:         s.ParentName,
 		Recent:             recent,
 		Status:             s.Status,

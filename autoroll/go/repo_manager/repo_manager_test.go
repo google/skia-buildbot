@@ -2,8 +2,10 @@ package repo_manager
 
 import (
 	"testing"
+	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -75,4 +77,17 @@ func TestDepotToolsConfigValidation(t *testing.T) {
 		ParentRepo: "parentRepo",
 	}
 	assert.Error(t, cfg.Validate())
+}
+
+func TestCopyRevision(t *testing.T) {
+	testutils.SmallTest(t)
+
+	v := &Revision{
+		Id:          "abc123",
+		Display:     "abc",
+		Description: "This is a great commit.",
+		Timestamp:   time.Now(),
+		URL:         "www.best-commit.com",
+	}
+	deepequal.AssertCopy(t, v, v.Copy())
 }

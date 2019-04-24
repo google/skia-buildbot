@@ -54,7 +54,7 @@ type noCheckoutRepoManager struct {
 // which returns the last roll revision, next roll revision, and a list of
 // not-yet-rolled revisions. The parameters are the parent repo and its base
 // commit.
-type noCheckoutUpdateHelperFunc func(context.Context, strategy.NextRollStrategy, *gitiles.Repo, string) (string, string, []string, error)
+type noCheckoutUpdateHelperFunc func(context.Context, strategy.NextRollStrategy, *gitiles.Repo, string) (string, string, []*Revision, error)
 
 // noCheckoutCreateRollHelperFunc is a function called by
 // noCheckoutRepoManager.CreateNewRoll() which returns a commit message for

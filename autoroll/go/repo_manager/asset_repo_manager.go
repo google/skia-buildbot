@@ -200,9 +200,11 @@ func (rm *assetRepoManager) Update(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	notRolledRevs := make([]string, 0, nextInt-lastInt)
+	notRolledRevs := make([]*Revision, 0, nextInt-lastInt)
 	for rev := lastInt + 1; rev <= nextInt; rev++ {
-		notRolledRevs = append(notRolledRevs, strconv.Itoa(rev))
+		notRolledRevs = append(notRolledRevs, &Revision{
+			Id: strconv.Itoa(rev),
+		})
 	}
 
 	rm.infoMtx.Lock()

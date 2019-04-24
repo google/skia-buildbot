@@ -41,11 +41,43 @@ be CC'd on the roll, and stop the roller if necessary.
 	ROLL_BRANCH = "roll_branch"
 )
 
+// Revision is a struct containing information about a given revision.
+type Revision struct {
+	// Id is the full ID of this Revision, eg. a full commit hash. This is
+	// the only required field.
+	Id string `json:"id"`
+
+	// Display is a string used for human-friendly display of the Revision,
+	// eg. a shortened commit hash.
+	Display string `json:"display"`
+
+	// Description is a human-friendly description of the Revision, eg. a
+	// commit title line.
+	Description string `json:"description"`
+
+	// Timestamp is the time at which the Revision was created.
+	Timestamp time.Time `json:"time"`
+
+	// URL used by a human to view the Revision.
+	URL string `json:"url"`
+}
+
+// Copy the Revision.
+func (r *Revision) Copy() *Revision {
+	return &Revision{
+		Id:          r.Id,
+		Display:     r.Display,
+		Description: r.Description,
+		Timestamp:   r.Timestamp,
+		URL:         r.URL,
+	}
+}
+
 // RepoManager is the interface used by different Autoroller implementations
 // to manage checkouts.
 type RepoManager interface {
 	// Return the revisions which have not yet been rolled.
-	NotRolledRevisions() []string
+	NotRolledRevisions() []*Revision
 
 	// Create a new roll attempt.
 	CreateNewRoll(context.Context, string, string, []string, string, bool) (int64, error)
@@ -155,7 +187,7 @@ type commonRepoManager struct {
 	lastRollRev    string
 	local          bool
 	nextRollRev    string
-	notRolledRevs  []string
+	notRolledRevs  []*Revision
 	parentBranch   string
 	preUploadSteps []PreUploadStep
 	repoMtx        sync.RWMutex
@@ -233,7 +265,7 @@ func (r *commonRepoManager) PreUploadSteps() []PreUploadStep {
 }
 
 // See documentation for RepoManager interface.
-func (r *commonRepoManager) NotRolledRevisions() []string {
+func (r *commonRepoManager) NotRolledRevisions() []*Revision {
 	return r.notRolledRevs
 }
 

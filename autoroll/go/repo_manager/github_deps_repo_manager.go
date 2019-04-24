@@ -146,14 +146,27 @@ func (rm *githubDEPSRepoManager) Update(ctx context.Context) error {
 		return err
 	}
 
-	// Get the list of not-yet-rolled revisions.
-	notRolledRevs := make([]string, 0, len(notRolled))
-	for _, rev := range notRolled {
-		notRolledRevs = append(notRolledRevs, rev.Hash)
-	}
-
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
+	if rm.childRepoUrl == "" {
+		childRepo, err := exec.RunCwd(ctx, rm.childDir, "git", "remote", "get-url", "origin")
+		if err != nil {
+			return err
+		}
+		rm.childRepoUrl = childRepo
+	}
+
+	// Get the list of not-yet-rolled revisions.
+	notRolledRevs := make([]*Revision, 0, len(notRolled))
+	for _, rev := range notRolled {
+		notRolledRevs = append(notRolledRevs, &Revision{
+			Id:          rev.Hash,
+			Display:     rev.Hash[:7],
+			Description: rev.Subject,
+			Timestamp:   rev.Timestamp,
+		})
+	}
+
 	rm.lastRollRev = lastRollRev
 	rm.nextRollRev = nextRollRev
 	rm.notRolledRevs = notRolledRevs
@@ -237,12 +250,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to str
 		return 0, err
 	}
 	logStr = strings.TrimSpace(logStr)
-	remoteUrl, err := rm.childRepo.Git(ctx, "remote", "get-url", "origin")
-	if err != nil {
-		return 0, err
-	}
-	remoteUrl = strings.TrimSpace(remoteUrl)
-	childRepoCompareURL := fmt.Sprintf("%s/%%2Blog/%s..%s", remoteUrl, from[:12], to[:12])
+	childRepoCompareURL := fmt.Sprintf("%s/%%2Blog/%s..%s", rm.childRepoUrl, from[:12], to[:12])
 	commitMsg, err := GetGithubCommitMsg(logStr, childRepoCompareURL, rm.childPath, from, to, rm.serverURL, logCmd, emails)
 	if err != nil {
 		return 0, fmt.Errorf("Could not build github commit message: %s", err)
