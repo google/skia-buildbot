@@ -203,7 +203,7 @@ func checkForDirtyConfigs(ctx context.Context, oldMetrics map[metrics2.Int64Metr
 	}
 
 	// Delete unused old metrics.
-	for m, _ := range oldMetrics {
+	for m := range oldMetrics {
 		if _, ok := newMetrics[m]; !ok {
 			if err := m.Delete(); err != nil {
 				sklog.Errorf("Failed to delete metric: %s", err)
