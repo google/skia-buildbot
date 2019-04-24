@@ -289,6 +289,9 @@ func (c *cloudClient) addTest(name string, imgFileName string, additionalKeys ma
 		})
 
 		ret = c.resultState.Expectations[name][imgHash] == types.POSITIVE
+		if !ret {
+			fmt.Printf("Untriaged or negative image: %s/detail?test=%s&digest=%s\n", c.resultState.GoldURL, name, imgHash)
+		}
 	}
 
 	if err := egroup.Wait(); err != nil {
