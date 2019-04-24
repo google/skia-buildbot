@@ -44,7 +44,7 @@ var (
 
 const (
 	// EXPIRE_DURATION is the time to wait before expiring an incident.
-	EXPIRE_DURATION = 2 * time.Minute
+	EXPIRE_DURATION = 5 * time.Minute
 )
 
 // Server is the state of the server.
