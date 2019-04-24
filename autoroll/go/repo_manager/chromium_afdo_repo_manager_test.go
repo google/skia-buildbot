@@ -212,7 +212,7 @@ func TestAFDORepoManager(t *testing.T) {
 	rolledPast, err = rm.RolledPast(ctx, afdoRevNext)
 	assert.NoError(t, err)
 	assert.False(t, rolledPast)
-	deepequal.AssertDeepEqual(t, []string{afdoRevNext}, rm.NotRolledRevisions())
+	deepequal.AssertDeepEqual(t, []*Revision{{Id: afdoRevNext}}, rm.NotRolledRevisions())
 
 	// Upload a CL.
 

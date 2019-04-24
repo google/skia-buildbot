@@ -94,7 +94,7 @@ func (rm *afdoRepoManager) createRoll(ctx context.Context, from, to, serverURL, 
 }
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []string, error) {
+func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []*Revision, error) {
 	// Read the version file to determine the last roll rev.
 	buf := bytes.NewBuffer([]byte{})
 	if err := parentRepo.ReadFileAtRef(rm.afdoVersionFile, baseCommit, buf); err != nil {
@@ -131,9 +131,11 @@ func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.Next
 	}
 	// Get the list of not-yet-rolled revisions. The versions are in
 	// descending order.
-	notRolledRevs := make([]string, 0, lastIdx-nextIdx)
+	notRolledRevs := make([]*Revision, 0, lastIdx-nextIdx)
 	for idx := lastIdx - 1; idx >= nextIdx; idx-- {
-		notRolledRevs = append(notRolledRevs, versions[idx])
+		notRolledRevs = append(notRolledRevs, &Revision{
+			Id: versions[idx],
+		})
 	}
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()

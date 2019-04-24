@@ -157,7 +157,7 @@ func (rm *fuchsiaSDKRepoManager) createRoll(ctx context.Context, from, to, serve
 }
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []string, error) {
+func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []*Revision, error) {
 	// Read the version file to determine the last roll rev.
 	buf := bytes.NewBuffer([]byte{})
 	if err := parentRepo.ReadFileAtRef(rm.versionFileLinux, baseCommit, buf); err != nil {
@@ -224,7 +224,7 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strateg
 	// notRolledRevs correctly because there are things other than SDKs in
 	// the GS dir, and because they are content-addressed, we can't tell
 	// which ones are relevant to us.
-	notRolledRevs := []string{}
+	notRolledRevs := []*Revision{}
 
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
