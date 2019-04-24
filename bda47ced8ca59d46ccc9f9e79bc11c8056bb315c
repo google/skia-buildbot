@@ -16,6 +16,24 @@
       "revId": "bda47ced8ca59d46ccc9f9e79bc11c8056bb315c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8b1af32_ddbac34a",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-24T12:13:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "923b15ce_9bdf0a23",
+      "revId": "bda47ced8ca59d46ccc9f9e79bc11c8056bb315c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
