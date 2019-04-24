@@ -23,6 +23,7 @@ import (
 	"cloud.google.com/go/datastore"
 	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/autoroll/go/status"
@@ -32,12 +33,17 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
+)
+
+const (
+	MANUAL_ROLL_REQUEST_LIMIT = 10
 )
 
 var (
@@ -62,8 +68,9 @@ var (
 	mainTemplate   *template.Template = nil
 	rollerTemplate *template.Template = nil
 
-	rollerNames []string               = nil
-	rollers     map[string]*autoroller = nil
+	manualRollDB manual.DB              = nil
+	rollerNames  []string               = nil
+	rollers      map[string]*autoroller = nil
 )
 
 // Struct used for organizing information about a roller.
@@ -79,9 +86,10 @@ type autoroller struct {
 // Union types for combining roller status with modes and strategies.
 type autoRollStatus struct {
 	*status.AutoRollStatus
-	Mode            *modes.ModeChange        `json:"mode"`
-	ParentWaterfall string                   `json:"parentWaterfall"`
-	Strategy        *strategy.StrategyChange `json:"strategy"`
+	ManualRequests  []*manual.ManualRollRequest `json:"manualRequests"`
+	Mode            *modes.ModeChange           `json:"mode"`
+	ParentWaterfall string                      `json:"parentWaterfall"`
+	Strategy        *strategy.StrategyChange    `json:"strategy"`
 }
 
 type autoRollMiniStatus struct {
@@ -197,15 +205,27 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	mode := roller.Mode.CurrentMode()
 	strategy := roller.Strategy.CurrentStrategy()
+	manualRequests, err := manualRollDB.GetRecent(roller.Cfg.RollerName, MANUAL_ROLL_REQUEST_LIMIT)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to obtain manual roll requests.")
+		return
+	}
+
+	// NotRolledRevisions can take up a lot of space, and they aren't needed
+	// if the roller doesn't support manual rolls.
+	if !roller.Cfg.SupportsManualRolls {
+		status.NotRolledRevisions = nil
+	}
 
 	// Encode response.
 	if err := json.NewEncoder(w).Encode(&autoRollStatus{
 		AutoRollStatus:  status,
+		ManualRequests:  manualRequests,
 		Mode:            mode,
 		ParentWaterfall: roller.Cfg.ParentWaterfall,
 		Strategy:        strategy,
 	}); err != nil {
-		httputils.ReportError(w, r, err, "Failed to obtain status.")
+		httputils.ReportError(w, r, err, "Failed to encode response.")
 		return
 	}
 }
@@ -286,6 +306,32 @@ func jsonAllHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func newManualRollHandler(w http.ResponseWriter, r *http.Request) {
+	roller := getRoller(w, r)
+	if roller == nil {
+		// Errors are handled by getRoller().
+		return
+	}
+	var req manual.ManualRollRequest
+	defer util.Close(r.Body)
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode request body.")
+		return
+	}
+	req.Requester = login.LoggedInAs(r)
+	req.RollerName = roller.Cfg.RollerName
+	req.Status = manual.STATUS_PENDING
+	req.Timestamp = time.Now().UTC()
+	if err := manualRollDB.Insert(&req); err != nil {
+		httputils.ReportError(w, r, err, "Failed to insert manual roll request.")
+		return
+	}
+	if err := json.NewEncoder(w).Encode(&req); err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode response.")
+		return
+	}
+}
+
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
@@ -327,6 +373,7 @@ func runServer(ctx context.Context, serverURL string) {
 	rollerRouter.HandleFunc("/json/ministatus", httputils.CorsHandler(miniStatusJsonHandler))
 	rollerRouter.HandleFunc("/json/status", httputils.CorsHandler(statusJsonHandler))
 	rollerRouter.Handle("/json/mode", login.RestrictEditorFn(modeJsonHandler)).Methods("POST")
+	rollerRouter.Handle("/json/manual", login.RestrictEditorFn(newManualRollHandler)).Methods("POST")
 	rollerRouter.Handle("/json/strategy", login.RestrictEditorFn(strategyJsonHandler)).Methods("POST")
 	rollerRouter.Handle("/json/unthrottle", login.RestrictEditorFn(unthrottleHandler)).Methods("POST")
 	sklog.AddLogsRedirect(r)
@@ -367,6 +414,11 @@ func main() {
 	}
 
 	ctx := context.Background()
+
+	manualRollDB, err = manual.NewDB(ctx, firestore.FIRESTORE_PROJECT, "production", ts)
+	if err != nil {
+		sklog.Fatal(err)
+	}
 
 	// Read the config files for the rollers.
 	if *configDir == "" {
