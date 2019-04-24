@@ -11,7 +11,6 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strings"
-	"time"
 
 	yaml "gopkg.in/yaml.v2"
 
@@ -35,12 +34,11 @@ const (
 
 var (
 	// Flags.
-	k8sYamlRepo             = flag.String("k8s_yaml_repo", "https://skia.googlesource.com/skia-public-config", "The repository where K8s yaml files are stored (eg: https://skia.googlesource.com/skia-public-config)")
-	kubeConfig              = flag.String("kube_config", "/var/secrets/kube-config/kube_config", "The kube config of the project kubectl will query against.")
-	workdir                 = flag.String("workdir", "/tmp/", "Directory to use for scratch work.")
-	promPort                = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
-	serviceAccountKey       = flag.String("service_account_key", "", "Should be set when running in K8s.")
-	dirtyConfigChecksPeriod = flag.Duration("dirty_config_checks_period", 2*time.Minute, "How often to check for dirty configs/images in K8s.")
+	k8sYamlRepo       = flag.String("k8s_yaml_repo", "https://skia.googlesource.com/skia-public-config", "The repository where K8s yaml files are stored (eg: https://skia.googlesource.com/skia-public-config)")
+	kubeConfig        = flag.String("kube_config", "/var/secrets/kube-config/kube_config", "The kube config of the project kubectl will query against.")
+	workdir           = flag.String("workdir", "/tmp/", "Directory to use for scratch work.")
+	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	serviceAccountKey = flag.String("service_account_key", "", "Should be set when running in K8s.")
 )
 
 type K8sPodsJson struct {
@@ -243,7 +241,7 @@ func main() {
 
 	liveness := metrics2.NewLiveness(LIVENESS_METRIC)
 	oldMetrics := map[metrics2.Int64Metric]struct{}{}
-	for range time.Tick(*dirtyConfigChecksPeriod) {
+	for {
 		newMetrics, err := checkForDirtyConfigs(ctx, oldMetrics)
 		if err != nil {
 			sklog.Errorf("Error when checking for dirty configs: %s", err)
