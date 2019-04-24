@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/httputils"
@@ -268,6 +269,7 @@ func main() {
 			evt = eventbus.New()
 		}
 
+		var repoGraph *repograph.Graph
 		var vcs vcsinfo.VCS
 		if *gitBTInstanceID != "" && *gitBTTableID != "" {
 			btConf := &gitstore.BTConfig{
@@ -282,11 +284,15 @@ func main() {
 			if foundRepoURL, ok := gitstore.RepoURLFromID(ctx, btConf, *gitRepoURL); ok {
 				useRepoURL = foundRepoURL
 			}
-
 			gitStore, err := gitstore.NewBTGitStore(ctx, btConf, useRepoURL)
 			if err != nil {
 				sklog.Fatalf("Error instantiating gitstore: %s", err)
 			}
+			repoGraph, err = repograph.NewGitStoreGraph(ctx, gitStore)
+			if err != nil {
+				sklog.Fatalf("Error instantiating repograph: %s", err)
+			}
+
 			gitilesRepo := gitiles.NewRepo("", "", nil)
 
 			trackNCommits := *nCommits
@@ -472,6 +478,7 @@ func main() {
 			Indexer:       ixr,
 			IssueTracker:  issueTracker,
 			SearchAPI:     searchAPI,
+			RepoGraph:     repoGraph,
 		}
 
 		mainTimer.Stop()
@@ -533,21 +540,22 @@ func main() {
 
 	jsonRouter.HandleFunc(trim(shared.KNOWN_HASHES_ROUTE), handlers.TextKnownHashesProxy).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/byblame"), handlers.JsonByBlameHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/list"), handlers.JsonListTestsHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/paramset"), handlers.JsonParamsHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/commits"), handlers.JsonCommitsHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/diff"), handlers.JsonDiffHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/details"), handlers.JsonDetailsHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/triage"), handlers.JsonTriageHandler).Methods("POST")
+	jsonRouter.HandleFunc(trim("/json/cleardigests"), handlers.JsonClearDigests).Methods("POST")
 	jsonRouter.HandleFunc(trim("/json/clusterdiff"), handlers.JsonClusterDiffHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/cmp"), handlers.JsonCompareTestHandler).Methods("POST")
-	jsonRouter.HandleFunc(trim("/json/triagelog"), handlers.JsonTriageLogHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/triagelog/undo"), handlers.JsonTriageUndoHandler).Methods("POST")
+	jsonRouter.HandleFunc(trim("/json/commits"), handlers.JsonCommitsHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/details"), handlers.JsonDetailsHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/diff"), handlers.JsonDiffHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/export"), handlers.JsonExportHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/failure"), handlers.JsonListFailureHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/failure/clear"), handlers.JsonClearFailureHandler).Methods("POST")
-	jsonRouter.HandleFunc(trim("/json/cleardigests"), handlers.JsonClearDigests).Methods("POST")
+	jsonRouter.HandleFunc(trim("/json/gitlog"), handlers.JsonGitLogHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/list"), handlers.JsonListTestsHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/paramset"), handlers.JsonParamsHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/search"), handlers.JsonSearchHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/export"), handlers.JsonExportHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/triage"), handlers.JsonTriageHandler).Methods("POST")
+	jsonRouter.HandleFunc(trim("/json/triagelog"), handlers.JsonTriageLogHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/triagelog/undo"), handlers.JsonTriageUndoHandler).Methods("POST")
 	jsonRouter.HandleFunc(trim("/json/tryjob"), handlers.JsonTryjobListHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/tryjob/{id}"), handlers.JsonTryjobSummaryHandler).Methods("GET")
 
