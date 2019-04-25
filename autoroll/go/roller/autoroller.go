@@ -639,10 +639,12 @@ func (r *AutoRoller) rollFinished(ctx context.Context, justFinished codereview.R
 
 // Handle manual roll requests.
 func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
+	sklog.Infof("Searching manual roll requests for %s", r.cfg.RollerName)
 	reqs, err := r.manualRollDB.GetIncomplete(r.cfg.RollerName)
 	if err != nil {
 		return fmt.Errorf("Failed to get incomplete rolls: %s", err)
 	}
+	sklog.Infof("Found %d requests.", len(reqs))
 	for _, req := range reqs {
 		var issueNum int64
 		if req.Status == manual.STATUS_PENDING {
@@ -651,6 +653,7 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 				emails = append(emails, req.Requester)
 			}
 			var err error
+			sklog.Infof("Creating manual roll to %s as requested by %s...", req.Revision, req.Requester)
 			issueNum, err = r.rm.CreateNewRoll(ctx, r.GetCurrentRev(), req.Revision, emails, strings.Join(r.cfg.CqExtraTrybots, ";"), false)
 			if err != nil {
 				return fmt.Errorf("Failed to create manual roll for %s: %s", req.Id, err)
@@ -666,6 +669,7 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			sklog.Errorf("Found manual roll request %s in unknown status %q", req.Id, req.Status)
 			continue
 		}
+		sklog.Infof("Getting status for manual roll # %d", issueNum)
 		roll, err := r.retrieveRoll(ctx, issueNum)
 		if err != nil {
 			return fmt.Errorf("Failed to retrieve manual roll %s: %s", req.Id, err)
