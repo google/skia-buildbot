@@ -46,6 +46,30 @@
       "revId": "77a770a0a9347fe40c44070ebcc0bbc1bffa9048",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2404b458_daeaefc1",
+        "filename": "go/bt/testutil/testutil.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-25T14:17:22Z",
+      "side": 1,
+      "message": "Let\u0027s go with sktest, as that is very unlikely to conflict.",
+      "parentUuid": "006bc403_8ab6976b",
+      "range": {
+        "startLine": 9,
+        "startChar": 2,
+        "endLine": 9,
+        "endChar": 30
+      },
+      "revId": "77a770a0a9347fe40c44070ebcc0bbc1bffa9048",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
