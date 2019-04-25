@@ -71,6 +71,29 @@
     },
     {
       "key": {
+        "uuid": "e0730bd4_ec58be8b",
+        "filename": "autoroll/go/manual/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-25T14:38:05Z",
+      "side": 1,
+      "message": "nit: Generally not a good idea to use \u003d\u003d with time.Time, since it has the monotonic clock component.",
+      "range": {
+        "startLine": 263,
+        "startChar": 4,
+        "endLine": 263,
+        "endChar": 35
+      },
+      "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "de372e32_053bbf16",
         "filename": "autoroll/go/roller/autoroller.go",
         "patchSetId": 5

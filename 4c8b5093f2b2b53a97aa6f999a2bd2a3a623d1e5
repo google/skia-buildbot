@@ -137,6 +137,24 @@
     },
     {
       "key": {
+        "uuid": "08299074_fd1478a4",
+        "filename": "autoroll/go/manual/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-25T14:38:05Z",
+      "side": 1,
+      "message": "Any of these options are fine with me, including just not worrying about it. It\u0027s probably no big deal if Timestamp is different after reading back the ManualRollRequest.",
+      "parentUuid": "17d26f0c_035bbf0b",
+      "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "21b09c6e_32ef9f74",
         "filename": "autoroll/go/manual/db.go",
         "patchSetId": 3
