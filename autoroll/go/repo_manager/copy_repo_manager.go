@@ -234,6 +234,15 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 			return 0, err
 		}
 	}
+	headerSrc := path.Join(childFullPath, "skcms.h")
+	headerDst := path.Join(rm.parentDir, "include", "third_party", "skcms", "skcms.h")
+	if err := os.Rename(headerSrc, headerDst); err != nil {
+		return 0, err
+	}
+	redirectHdr := []byte("#include \"include/third_party/skcms/skcms.h\"\n")
+	if err := ioutil.WriteFile(headerSrc, redirectHdr, os.ModePerm); err != nil {
+		return 0, err
+	}
 	if err := os.RemoveAll(path.Join(childFullPath, ".git")); err != nil {
 		return 0, err
 	}
@@ -241,6 +250,9 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 		return 0, err
 	}
 	if _, err := parentRepo.Git(ctx, "add", childFullPath); err != nil {
+		return 0, err
+	}
+	if _, err := parentRepo.Git(ctx, "add", headerDst); err != nil {
 		return 0, err
 	}
 
