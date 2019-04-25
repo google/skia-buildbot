@@ -32,6 +32,9 @@ var (
 	// overridden for testing.
 	NewAndroidRepoManager func(context.Context, *AndroidRepoManagerConfig, string, gerrit.GerritInterface, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newAndroidRepoManager
 
+	// Files which exist in Skia but do not exist in Android.
+	DELETE_MERGE_CONFLICT_FILES = []string{android_skia_checkout.SkUserConfigRelPath}
+	// Files which exist in Android but do not exist in Skia.
 	IGNORE_MERGE_CONFLICT_FILES = []string{android_skia_checkout.SkUserConfigAndroidRelPath, android_skia_checkout.SkUserConfigLinuxRelPath, android_skia_checkout.SkUserConfigMacRelPath, android_skia_checkout.SkUserConfigWinRelPath}
 	FILES_GENERATED_BY_GN_TO_GP = []string{android_skia_checkout.SkUserConfigAndroidRelPath, android_skia_checkout.SkUserConfigLinuxRelPath, android_skia_checkout.SkUserConfigMacRelPath, android_skia_checkout.SkUserConfigWinRelPath, android_skia_checkout.AndroidBpRelPath}
 
@@ -311,6 +314,17 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 				if conflict == ignore {
 					ignoreConflict = true
 					sklog.Infof("Ignoring conflict in %s", conflict)
+					break
+				}
+			}
+			for _, del := range DELETE_MERGE_CONFLICT_FILES {
+				if conflict == del {
+					_, resetErr := exec.RunCwd(ctx, r.childDir, "git", "reset", "--", del)
+					util.LogErr(resetErr)
+					_, delErr := exec.RunCwd(ctx, r.childDir, "rm", del)
+					util.LogErr(delErr)
+					ignoreConflict = true
+					sklog.Infof("Deleting %s due to merge conflict", conflict)
 					break
 				}
 			}
