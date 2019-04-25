@@ -5,13 +5,12 @@ import (
 	"context"
 	fmt "fmt"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.chromium.org/luci/grpc/prpc"
-	"google.golang.org/genproto/protobuf/field_mask"
+	"go.skia.org/infra/go/buildbucket/common"
 )
 
 const (
@@ -23,33 +22,6 @@ var (
 	DEFAULT_SCOPES = []string{
 		"https://www.googleapis.com/auth/userinfo.email",
 		"https://www.googleapis.com/auth/userinfo.profile",
-	}
-
-	// getBuildFields is a FieldMask which indicates which fields we want
-	// returned from a GetBuild request.
-	getBuildFields = &field_mask.FieldMask{
-		Paths: []string{
-			"id",
-			"builder",
-			"created_by",
-			"create_time",
-			"start_time",
-			"end_time",
-			"status",
-			"input.properties",
-		},
-	}
-
-	// searchBuildsFields is a FieldMask which indicates which fields we
-	// want returned from a SearchBuilds request.
-	searchBuildsFields = &field_mask.FieldMask{
-		Paths: func(buildFields []string) []string {
-			rv := make([]string, 0, len(buildFields))
-			for _, f := range buildFields {
-				rv = append(rv, fmt.Sprintf("builds.*.%s", f))
-			}
-			return rv
-		}(getBuildFields.Paths),
 	}
 )
 
@@ -119,6 +91,14 @@ func NewClient(c *http.Client) *Client {
 	}
 }
 
+// NewTestingClient lets the MockClient inject a mock BuildsClient and host.
+func NewTestingClient(bc buildbucketpb.BuildsClient, host string) *Client {
+	return &Client{
+		bc:   bc,
+		host: host,
+	}
+}
+
 func (c *Client) convertBuild(b *buildbucketpb.Build) *Build {
 	status := ""
 	result := ""
@@ -184,7 +164,7 @@ func (c *Client) GetBuild(ctx context.Context, buildId string) (*Build, error) {
 	}
 	b, err := c.bc.GetBuild(ctx, &buildbucketpb.GetBuildRequest{
 		Id:     id,
-		Fields: getBuildFields,
+		Fields: common.GetBuildFields,
 	})
 	if err != nil {
 		return nil, err
@@ -198,7 +178,7 @@ func (c *Client) Search(ctx context.Context, pred *buildbucketpb.BuildPredicate)
 	cursor := ""
 	for {
 		req := &buildbucketpb.SearchBuildsRequest{
-			Fields:    searchBuildsFields,
+			Fields:    common.SearchBuildsFields,
 			PageToken: cursor,
 			Predicate: pred,
 		}
@@ -220,27 +200,9 @@ func (c *Client) Search(ctx context.Context, pred *buildbucketpb.BuildPredicate)
 	return rv, nil
 }
 
-// getTrybotsForCLPredicate returns a *buildbucketpb.BuildPredicate which
-// searches for trybots from the given CL.
-func getTrybotsForCLPredicate(issue, patchset int64, gerritUrl string) (*buildbucketpb.BuildPredicate, error) {
-	u, err := url.Parse(gerritUrl)
-	if err != nil {
-		return nil, err
-	}
-	return &buildbucketpb.BuildPredicate{
-		GerritChanges: []*buildbucketpb.GerritChange{
-			{
-				Host:     u.Host,
-				Change:   issue,
-				Patchset: patchset,
-			},
-		},
-	}, nil
-}
-
 // GetTrybotsForCL retrieves trybot results for the given CL.
 func (c *Client) GetTrybotsForCL(ctx context.Context, issue, patchset int64, gerritUrl string) ([]*Build, error) {
-	pred, err := getTrybotsForCLPredicate(issue, patchset, gerritUrl)
+	pred, err := common.GetTrybotsForCLPredicate(issue, patchset, gerritUrl)
 	if err != nil {
 		return nil, err
 	}
