@@ -23,6 +23,7 @@ import (
 	"cloud.google.com/go/datastore"
 	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/autoroll/go/status"
@@ -32,6 +33,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skiaversion"
@@ -42,13 +44,14 @@ import (
 
 var (
 	// flags.
-	configDir    = flag.String("config_dir", "", "Directory containing only configuration files for all rollers.")
-	host         = flag.String("host", "localhost", "HTTP service host")
-	internal     = flag.Bool("internal", false, "If true, display the internal rollers.")
-	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	port         = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
-	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	configDir         = flag.String("config_dir", "", "Directory containing only configuration files for all rollers.")
+	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
+	host              = flag.String("host", "localhost", "HTTP service host")
+	internal          = flag.Bool("internal", false, "If true, display the internal rollers.")
+	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port              = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
+	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 
 	WHITELISTED_VIEWERS = []string{
 		"prober@skia-public.iam.gserviceaccount.com",
@@ -62,8 +65,9 @@ var (
 	mainTemplate   *template.Template = nil
 	rollerTemplate *template.Template = nil
 
-	rollerNames []string               = nil
-	rollers     map[string]*autoroller = nil
+	manualRollDB manual.DB              = nil
+	rollerNames  []string               = nil
+	rollers      map[string]*autoroller = nil
 )
 
 // Struct used for organizing information about a roller.
@@ -79,9 +83,10 @@ type autoroller struct {
 // Union types for combining roller status with modes and strategies.
 type autoRollStatus struct {
 	*status.AutoRollStatus
-	Mode            *modes.ModeChange        `json:"mode"`
-	ParentWaterfall string                   `json:"parentWaterfall"`
-	Strategy        *strategy.StrategyChange `json:"strategy"`
+	ManualRequests  []*manual.ManualRollRequest `json:"manualRequests"`
+	Mode            *modes.ModeChange           `json:"mode"`
+	ParentWaterfall string                      `json:"parentWaterfall"`
+	Strategy        *strategy.StrategyChange    `json:"strategy"`
 }
 
 type autoRollMiniStatus struct {
@@ -198,14 +203,30 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 	mode := roller.Mode.CurrentMode()
 	strategy := roller.Strategy.CurrentStrategy()
 
+	// Obtain manual roll requests, if supported by the roller.
+	var manualRequests []*manual.ManualRollRequest
+	if roller.Cfg.SupportsManualRolls {
+		var err error
+		manualRequests, err = manualRollDB.GetRecent(roller.Cfg.RollerName, len(status.NotRolledRevisions))
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to obtain manual roll requests.")
+			return
+		}
+	} else {
+		// NotRolledRevisions can take up a lot of space, and they aren't needed
+		// if the roller doesn't support manual rolls.
+		status.NotRolledRevisions = nil
+	}
+
 	// Encode response.
 	if err := json.NewEncoder(w).Encode(&autoRollStatus{
 		AutoRollStatus:  status,
+		ManualRequests:  manualRequests,
 		Mode:            mode,
 		ParentWaterfall: roller.Cfg.ParentWaterfall,
 		Strategy:        strategy,
 	}); err != nil {
-		httputils.ReportError(w, r, err, "Failed to obtain status.")
+		httputils.ReportError(w, r, err, "Failed to encode response.")
 		return
 	}
 }
@@ -286,6 +307,32 @@ func jsonAllHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func newManualRollHandler(w http.ResponseWriter, r *http.Request) {
+	roller := getRoller(w, r)
+	if roller == nil {
+		// Errors are handled by getRoller().
+		return
+	}
+	var req manual.ManualRollRequest
+	defer util.Close(r.Body)
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode request body.")
+		return
+	}
+	req.Requester = login.LoggedInAs(r)
+	req.RollerName = roller.Cfg.RollerName
+	req.Status = manual.STATUS_PENDING
+	req.Timestamp = firestore.FixTimestamp(time.Now())
+	if err := manualRollDB.Put(&req); err != nil {
+		httputils.ReportError(w, r, err, "Failed to insert manual roll request.")
+		return
+	}
+	if err := json.NewEncoder(w).Encode(&req); err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode response.")
+		return
+	}
+}
+
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
@@ -327,6 +374,7 @@ func runServer(ctx context.Context, serverURL string) {
 	rollerRouter.HandleFunc("/json/ministatus", httputils.CorsHandler(miniStatusJsonHandler))
 	rollerRouter.HandleFunc("/json/status", httputils.CorsHandler(statusJsonHandler))
 	rollerRouter.Handle("/json/mode", login.RestrictEditorFn(modeJsonHandler)).Methods("POST")
+	rollerRouter.Handle("/json/manual", login.RestrictEditorFn(newManualRollHandler)).Methods("POST")
 	rollerRouter.Handle("/json/strategy", login.RestrictEditorFn(strategyJsonHandler)).Methods("POST")
 	rollerRouter.Handle("/json/unthrottle", login.RestrictEditorFn(unthrottleHandler)).Methods("POST")
 	sklog.AddLogsRedirect(r)
@@ -367,6 +415,11 @@ func main() {
 	}
 
 	ctx := context.Background()
+
+	manualRollDB, err = manual.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts)
+	if err != nil {
+		sklog.Fatal(err)
+	}
 
 	// Read the config files for the rollers.
 	if *configDir == "" {

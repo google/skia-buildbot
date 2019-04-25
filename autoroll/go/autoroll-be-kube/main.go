@@ -17,6 +17,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chatbot"
@@ -24,6 +25,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitauth"
@@ -44,15 +46,16 @@ const (
 
 // flags
 var (
-	chatWebHooksFile = flag.String("chat_webhooks_file", "", "Chat webhook config.")
-	configFile       = flag.String("config_file", "", "Configuration file to use.")
-	emailCreds       = flag.String("email_creds", "", "Directory containing credentials for sending emails.")
-	local            = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	port             = flag.String("port", ":8000", "HTTP service port.")
-	promPort         = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	recipesCfgFile   = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
-	workdir          = flag.String("workdir", ".", "Directory to use for scratch work.")
-	hang             = flag.Bool("hang", false, "If true, just hang and do nothing.")
+	chatWebHooksFile  = flag.String("chat_webhooks_file", "", "Chat webhook config.")
+	configFile        = flag.String("config_file", "", "Configuration file to use.")
+	emailCreds        = flag.String("email_creds", "", "Directory containing credentials for sending emails.")
+	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
+	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port              = flag.String("port", ":8000", "HTTP service port.")
+	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	recipesCfgFile    = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
+	workdir           = flag.String("workdir", ".", "Directory to use for scratch work.")
+	hang              = flag.Bool("hang", false, "If true, just hang and do nothing.")
 )
 
 // AutoRollerI is the common interface for starting an AutoRoller and handling HTTP requests.
@@ -231,6 +234,12 @@ func main() {
 		}
 	}
 
+	sklog.Info("Creating manual roll DB.")
+	manualRolls, err := manual.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts)
+	if err != nil {
+		sklog.Fatalf("Failed to create manual roll DB: %s", err)
+	}
+
 	if *recipesCfgFile == "" {
 		*recipesCfgFile = filepath.Join(*workdir, "recipes.cfg")
 	}
@@ -240,7 +249,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	arb, err := roller.NewAutoRoller(ctx, cfg, emailer, chatBotConfigReader, g, githubClient, *workdir, *recipesCfgFile, serverURL, gitcookiesPath, gcsClient, client, rollerName, *local)
+	arb, err := roller.NewAutoRoller(ctx, cfg, emailer, chatBotConfigReader, g, githubClient, *workdir, *recipesCfgFile, serverURL, gitcookiesPath, gcsClient, client, rollerName, *local, manualRolls)
 	if err != nil {
 		sklog.Fatal(err)
 	}
