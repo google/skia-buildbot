@@ -12,7 +12,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	ds_testutil "go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
@@ -61,7 +61,7 @@ var (
 func TestIndexer(t *testing.T) {
 	testutils.LargeTest(t)
 
-	err := gcs.DownloadTestDataFile(t, gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
+	err := gcs_testutils.DownloadTestDataFile(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
 	assert.NoError(t, err, "Unable to download testdata.")
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 

@@ -9,7 +9,7 @@ var testBytes []byte = ...
 
 func TestFetchFromGCS(t *testing.T) {
 	testutils.SmallTest(t)
-	m := mock_gcs_client.New()
+	m := test_gcsclient.NewMockClient()
 	defer m.AssertExpectations(t)
 
 	o := MyObjStruct{client:m}
@@ -27,7 +27,7 @@ func TestFetchFromGCS(t *testing.T) {
 }
 
 type MyObjStruct {
-	client gs.GCSClient
+	client gcs.GCSClient
 }
 
 

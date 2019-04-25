@@ -20,7 +20,7 @@ import (
 	"go.skia.org/infra/datahopper/go/swarming_metrics"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitauth"
@@ -99,7 +99,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	storageClient := gcs.NewGCSClient(gsClient, *perfBucket)
+	storageClient := gcsclient.New(gsClient, *perfBucket)
 	pc := perfclient.New(*perfPrefix, storageClient)
 
 	tnp := taskname.DefaultTaskNameParser()

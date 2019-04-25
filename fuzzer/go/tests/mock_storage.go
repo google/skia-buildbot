@@ -2,11 +2,11 @@ package tests
 
 import (
 	"go.skia.org/infra/fuzzer/go/storage"
-	"go.skia.org/infra/go/mockgcsclient"
+	"go.skia.org/infra/go/gcs/test_gcsclient"
 )
 
 type MockGCSClient struct {
-	mockgcsclient.MockGCSClient
+	test_gcsclient.MockGCSClient
 }
 
 func NewMockGCSClient() *MockGCSClient {
@@ -28,5 +28,5 @@ func (m *MockGCSClient) DownloadAllFuzzes(downloadToPath, category, revision, ar
 	return args.Get(0).([]string), args.Error(1)
 }
 
-// Make sure MockGCSClient fulfills gcs.GCSClient
+// Make sure MockGCSClient fulfills FuzzerGCSClient
 var _ storage.FuzzerGCSClient = (*MockGCSClient)(nil)

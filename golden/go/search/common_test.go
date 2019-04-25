@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/types"
@@ -13,7 +13,7 @@ import (
 func TestTraceViewFn(t *testing.T) {
 	testutils.MediumTest(t)
 
-	_, _, tile, _ := getStoragesIndexTile(t, gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH, false)
+	_, _, tile, _ := getStoragesIndexTile(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH, false)
 
 	commits := tile.Commits[0 : tile.LastCommitIndex()+1]
 	middle := len(commits) / 2

@@ -7,7 +7,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcs_testutils"
 )
 
 const (
@@ -41,11 +41,11 @@ func BenchmarkNewSearchAPI(b *testing.B) {
 	localQueriesPath := TEST_DATA_DIR_SEARCH_API + "/" + QUERIES_FNAME_SEARCH_API
 
 	if !fileutil.FileExists(localTilePath) {
-		assert.NoError(b, gcs.DownloadTestDataFile(b, gcs.TEST_DATA_BUCKET, cloudTilePath, localTilePath))
+		assert.NoError(b, gcs_testutils.DownloadTestDataFile(b, gcs_testutils.TEST_DATA_BUCKET, cloudTilePath, localTilePath))
 	}
 
 	if !fileutil.FileExists(localQueriesPath) {
-		assert.NoError(b, gcs.DownloadTestDataFile(b, gcs.TEST_DATA_BUCKET, cloudQueriesPath, localQueriesPath))
+		assert.NoError(b, gcs_testutils.DownloadTestDataFile(b, gcs_testutils.TEST_DATA_BUCKET, cloudQueriesPath, localQueriesPath))
 	}
 
 	// Load the storage layer.

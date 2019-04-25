@@ -1,4 +1,4 @@
-package mockgcsclient
+package test_gcsclient
 
 import (
 	"context"
@@ -19,7 +19,7 @@ type MockGCSClient struct {
 
 // New returns a pointer to a newly created struct.  We return the pointer because we want to
 // make sure the methods on mock.Mock stay accessible, e.g. m.On()
-func New() *MockGCSClient {
+func NewMockClient() *MockGCSClient {
 	return &MockGCSClient{}
 }
 func (m *MockGCSClient) FileReader(ctx context.Context, path string) (io.ReadCloser, error) {

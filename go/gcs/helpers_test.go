@@ -1,4 +1,4 @@
-package gcs
+package gcs_test
 
 import (
 	"context"
@@ -7,20 +7,20 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
 )
-
-// TODO(dogben): This should really have some tests for gcsclient.
 
 // captureFileWriterGCSClient captures FileWriter args for TestWithWriteFile* and
 // TestWithWriteFileGzip*.
 type captureFileWriterGCSClient struct {
-	*MemoryGCSClient
+	*test_gcsclient.MemoryGCSClient
 	fileWriterCtx  context.Context
-	fileWriterOpts FileWriteOptions
+	fileWriterOpts gcs.FileWriteOptions
 }
 
-func (c *captureFileWriterGCSClient) FileWriter(ctx context.Context, path string, opts FileWriteOptions) io.WriteCloser {
+func (c *captureFileWriterGCSClient) FileWriter(ctx context.Context, path string, opts gcs.FileWriteOptions) io.WriteCloser {
 	c.fileWriterCtx = ctx
 	c.fileWriterOpts = opts
 	return c.MemoryGCSClient.FileWriter(ctx, path, opts)
@@ -30,16 +30,16 @@ func TestWithWriteFileSimple(t *testing.T) {
 	testutils.SmallTest(t)
 
 	c := &captureFileWriterGCSClient{
-		MemoryGCSClient: NewMemoryGCSClient("compositions"),
+		MemoryGCSClient: test_gcsclient.NewMemoryClient("compositions"),
 	}
 
 	ctx := context.Background()
-	opts := FileWriteOptions{
+	opts := gcs.FileWriteOptions{
 		ContentType: "text/plain",
 	}
 	const path = "story"
 	const contents = "Once upon a time..."
-	assert.NoError(t, WithWriteFile(c, ctx, path, opts, func(w io.Writer) error {
+	assert.NoError(t, gcs.WithWriteFile(c, ctx, path, opts, func(w io.Writer) error {
 		_, err := w.Write([]byte(contents))
 		return err
 	}))
@@ -55,16 +55,16 @@ func TestWithWriteFileError(t *testing.T) {
 	testutils.SmallTest(t)
 
 	c := &captureFileWriterGCSClient{
-		MemoryGCSClient: NewMemoryGCSClient("compositions"),
+		MemoryGCSClient: test_gcsclient.NewMemoryClient("compositions"),
 	}
 
 	ctx := context.Background()
-	opts := FileWriteOptions{
+	opts := gcs.FileWriteOptions{
 		ContentType: "text/plain",
 	}
 	const path = "the-neverstarting-story"
 	err := errors.New("I can't remember how it starts.")
-	assert.Equal(t, WithWriteFile(c, ctx, path, opts, func(w io.Writer) error {
+	assert.Equal(t, gcs.WithWriteFile(c, ctx, path, opts, func(w io.Writer) error {
 		return err
 	}), err)
 	// The context should be canceled.
@@ -79,19 +79,19 @@ func TestWithWriteFileGzipSimple(t *testing.T) {
 	testutils.SmallTest(t)
 
 	c := &captureFileWriterGCSClient{
-		MemoryGCSClient: NewMemoryGCSClient("compositions"),
+		MemoryGCSClient: test_gcsclient.NewMemoryClient("compositions"),
 	}
 
 	ctx := context.Background()
 	const path = "condensible-story"
 	const contents = "So like there was like this one time that I was like totally like..."
-	assert.NoError(t, WithWriteFileGzip(c, ctx, path, func(w io.Writer) error {
+	assert.NoError(t, gcs.WithWriteFileGzip(c, ctx, path, func(w io.Writer) error {
 		_, err := w.Write([]byte(contents))
 		return err
 	}))
 	// The context should be canceled.
 	assert.Equal(t, context.Canceled, c.fileWriterCtx.Err())
-	assert.Equal(t, FileWriteOptions{
+	assert.Equal(t, gcs.FileWriteOptions{
 		ContentEncoding: "gzip",
 	}, c.fileWriterOpts)
 	actualContents, err := c.GetFileContents(ctx, path)

@@ -12,7 +12,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -211,9 +211,9 @@ func initGSClient(t *testing.T) (*GStorageClient, *GSClientOptions) {
 func TestCondenseTile(t *testing.T) {
 	testutils.LargeTest(t)
 
-	bucket, storagePath, outputPath := gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH
+	bucket, storagePath, outputPath := gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH
 
-	err := gcs.DownloadTestDataFile(t, bucket, storagePath, outputPath)
+	err := gcs_testutils.DownloadTestDataFile(t, bucket, storagePath, outputPath)
 	assert.NoError(t, err, "Unable to download testdata.")
 	sample := loadSample(t, outputPath)
 	testTile := sample.Tile

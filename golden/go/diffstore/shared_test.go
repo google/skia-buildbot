@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/mocks"
 )
@@ -36,7 +36,7 @@ var (
 
 func getSetupAndTile(t assert.TestingT, baseDir string) (*http.Client, *tiling.Tile) {
 	testDataPath := filepath.Join(baseDir, TEST_DATA_FILE_NAME)
-	assert.NoError(t, gcs.DownloadTestDataFile(t, TEST_DATA_STORAGE_BUCKET, TEST_DATA_STORAGE_PATH, testDataPath))
+	assert.NoError(t, gcs_testutils.DownloadTestDataFile(t, TEST_DATA_STORAGE_BUCKET, TEST_DATA_STORAGE_PATH, testDataPath))
 
 	tile := mocks.NewMockTileBuilderFromJson(t, testDataPath).GetTile()
 
