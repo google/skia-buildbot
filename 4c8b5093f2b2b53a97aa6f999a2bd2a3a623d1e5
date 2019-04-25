@@ -1,0 +1,135 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3b31e94e_3cc46815",
+        "filename": "autoroll/go/manual/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-25T00:20:49Z",
+      "side": 1,
+      "message": "Maybe just autoroll?",
+      "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54b5d483_9f08bec0",
+        "filename": "autoroll/go/manual/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-25T00:20:49Z",
+      "side": 1,
+      "message": "nit: I would call this Put or Set",
+      "range": {
+        "startLine": 178,
+        "startChar": 1,
+        "endLine": 178,
+        "endChar": 7
+      },
+      "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd6e0579_8b93746a",
+        "filename": "autoroll/go/manual/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-25T00:20:49Z",
+      "side": 1,
+      "message": "Do you need \"fixTimestamp(req.Timestamp)\"?",
+      "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21b09c6e_32ef9f74",
+        "filename": "autoroll/go/manual/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-25T00:20:49Z",
+      "side": 1,
+      "message": "nit: maybe add\nif !req.DbModified.After(oldDbModified) {\n  req.DbModified \u003d oldDbModified.Add(firestore.TS_RESOLUTION)\n}",
+      "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "19b53f3b_c5f599fd",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-25T00:20:49Z",
+      "side": 1,
+      "message": "Seems misplaced.",
+      "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b4d26a8_c448b1a9",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 657,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-25T00:20:49Z",
+      "side": 1,
+      "message": "nit: Include ID so that it\u0027s easy to go into the Firestore UI and delete the doc if needed. x~4",
+      "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a5fb602_e8412956",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 663,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-25T00:20:49Z",
+      "side": 1,
+      "message": "nit: include req.Url in error message",
+      "range": {
+        "startLine": 663,
+        "startChar": 60,
+        "endLine": 663,
+        "endChar": 61
+      },
+      "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
