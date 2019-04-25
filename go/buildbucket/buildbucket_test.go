@@ -1,4 +1,4 @@
-package buildbucket
+package buildbucket_test
 
 import (
 	"context"
@@ -8,6 +8,8 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/buildbucket/bb_testutils"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 )
@@ -16,18 +18,18 @@ func TestGetBuild(t *testing.T) {
 	testutils.SmallTest(t)
 
 	id := int64(12345)
-	c := NewMockClient(t)
+	c := bb_testutils.NewMockClient(t)
 
-	expect := &Build{
+	expect := &buildbucket.Build{
 		Bucket:    "skia.primary",
 		Completed: time.Unix(1553793030, 570629000).UTC(),
 		CreatedBy: "some@user.com",
 		Created:   time.Unix(1553792903, 783203000).UTC(),
 		Id:        fmt.Sprintf("%d", id),
-		Url:       fmt.Sprintf(BUILD_URL_TMPL, apiUrl, id),
-		Parameters: &Parameters{
+		Url:       fmt.Sprintf(buildbucket.BUILD_URL_TMPL, bb_testutils.MockBBURL, id),
+		Parameters: &buildbucket.Parameters{
 			BuilderName: "Housekeeper-OnDemand-Presubmit",
-			Properties: Properties{
+			Properties: buildbucket.Properties{
 				Category:       "cq",
 				Gerrit:         "https://skia-review.googlesource.com",
 				GerritIssue:    12345,
@@ -39,8 +41,8 @@ func TestGetBuild(t *testing.T) {
 				TryJobRepo:     "https://skia.googlesource.com/skia_internal.git",
 			},
 		},
-		Result: RESULT_SUCCESS,
-		Status: STATUS_COMPLETED,
+		Result: buildbucket.RESULT_SUCCESS,
+		Status: buildbucket.STATUS_COMPLETED,
 	}
 	c.MockGetBuild(expect.Id, expect, nil)
 	b, err := c.GetBuild(context.TODO(), fmt.Sprintf("%d", id))
@@ -55,18 +57,18 @@ func TestGetTrybotsForCL(t *testing.T) {
 	testutils.SmallTest(t)
 
 	id := int64(12345)
-	c := NewMockClient(t)
+	c := bb_testutils.NewMockClient(t)
 
-	expect := &Build{
+	expect := &buildbucket.Build{
 		Bucket:    "skia.primary",
 		Completed: time.Unix(1553793030, 570629000).UTC(),
 		CreatedBy: "some@user.com",
 		Created:   time.Unix(1553792903, 783203000).UTC(),
 		Id:        fmt.Sprintf("%d", id),
-		Url:       fmt.Sprintf(BUILD_URL_TMPL, apiUrl, id),
-		Parameters: &Parameters{
+		Url:       fmt.Sprintf(buildbucket.BUILD_URL_TMPL, bb_testutils.MockBBURL, id),
+		Parameters: &buildbucket.Parameters{
 			BuilderName: "Housekeeper-OnDemand-Presubmit",
-			Properties: Properties{
+			Properties: buildbucket.Properties{
 				Category:       "cq",
 				Gerrit:         "https://skia-review.googlesource.com",
 				GerritIssue:    12345,
@@ -78,8 +80,8 @@ func TestGetTrybotsForCL(t *testing.T) {
 				TryJobRepo:     "https://skia.googlesource.com/skia_internal.git",
 			},
 		},
-		Result: RESULT_SUCCESS,
-		Status: STATUS_COMPLETED,
+		Result: buildbucket.RESULT_SUCCESS,
+		Status: buildbucket.STATUS_COMPLETED,
 	}
 	c.MockSearchBuilds(&buildbucketpb.BuildPredicate{
 		GerritChanges: []*buildbucketpb.GerritChange{
@@ -89,7 +91,7 @@ func TestGetTrybotsForCL(t *testing.T) {
 				Patchset: 1,
 			},
 		},
-	}, []*Build{expect}, nil)
+	}, []*buildbucket.Build{expect}, nil)
 	b, err := c.GetTrybotsForCL(context.TODO(), 12345, 1, "https://skia-review.googlesource.com")
 	assert.NoError(t, err)
 	assert.NotNil(t, b)
