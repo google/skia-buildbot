@@ -319,39 +319,37 @@ server {
     access_log /var/log/nginx/autoroll-internal.access.log;
     error_log /var/log/nginx/autoroll-internal.error.log error;
 
-    location / {
-        proxy_pass https://35.201.76.220;
-        proxy_set_header Host $host;
-    }
+    rewrite ^ https://skia-autoroll.corp.goog redirect;
 }
+
 server {
     listen      80;
     server_name autoroll-internal.skia.org;
-    return 301 https://autoroll-internal.skia.org$request_uri;
+    rewrite ^ https://skia-autoroll.corp.goog redirect;
 }
 
 #####   android-master-roll.skia.org   ###########################
 server {
     listen      443;
     server_name android-master-roll.skia.org;
-    return 301 https://autoroll-internal.skia.org/r/android-master-autoroll;
+    return 301 https://skia-autoroll.corp.goog/r/android-master-autoroll;
 }
 server {
     listen      80;
     server_name android-master-roll.skia.org;
-    return 301 https://autoroll-internal.skia.org/r/android-master-autoroll;
+    return 301 https://skia-autoroll.corp.goog/r/android-master-autoroll;
 }
 
 #####   android-next-roll.skia.org   ###########################
 server {
     listen      443;
     server_name android-next-roll.skia.org;
-    return 301 https://autoroll-internal.skia.org/r/android-next-autoroll;
+    return 301 https://skia-autoroll.corp.goog/r/android-next-autoroll;
 }
 server {
     listen      80;
     server_name android-next-roll.skia.org;
-    return 301 https://autoroll-internal.skia.org/r/android-next-autoroll;
+    return 301 https://skia-autoroll.corp.goog/r/android-next-autoroll;
 }
 
 
@@ -359,12 +357,12 @@ server {
 server {
     listen      443;
     server_name android-o-roll.skia.org;
-    return 301 https://autoroll-internal.skia.org/r/android-o-autoroll;
+    return 301 https://skia-autoroll.corp.goog/r/android-o-autoroll;
 }
 server {
     listen      80;
     server_name android-o-roll.skia.org;
-    return 301 https://autoroll-internal.skia.org/r/android-o-autoroll;
+    return 301 https://skia-autoroll.corp.goog/r/android-o-autoroll;
 }
 
 
@@ -473,13 +471,13 @@ server {
         proxy_set_header Host $host;
     }
     location / {
-        return 301 https://autoroll-internal.skia.org/r/google3-autoroll;
+        return 301 https://skia-autoroll.corp.goog/r/google3-autoroll;
     }
 }
 server {
     listen      80;
     server_name google3-roll.skia.org;
-    return 301 https://autoroll-internal.skia.org/r/google3-autoroll;
+    return 301 https://skia-autoroll.corp.goog/r/google3-autoroll;
 }
 
 #####   lottie-web-lottie-ci-roll.skia.org   ###########################
@@ -618,12 +616,12 @@ server {
 server {
     listen      443;
     server_name src-internal-chromium-roll.skia.org;
-    return 301 https://autoroll-internal.skia.org/r/src-internal-chromium-autoroll;
+    return 301 https://skia-autoroll.corp.goog/r/src-internal-chromium-autoroll;
 }
 server {
     listen      80;
     server_name src-internal-chromium-roll.skia.org;
-    return 301 https://autoroll-internal.skia.org/r/src-internal-chromium-autoroll;
+    return 301 https://skia-autoroll.corp.goog/r/src-internal-chromium-autoroll;
 }
 
 #####   swiftshader-skia-roll.skia.org   ###########################
