@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -32,6 +33,9 @@ var (
 	// overridden for testing.
 	NewAndroidRepoManager func(context.Context, *AndroidRepoManagerConfig, string, gerrit.GerritInterface, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newAndroidRepoManager
 
+	// Files which exist in Skia but do not exist in Android.
+	DELETE_MERGE_CONFLICT_FILES = []string{android_skia_checkout.SkUserConfigRelPath}
+	// Files which exist in Android but do not exist in Skia.
 	IGNORE_MERGE_CONFLICT_FILES = []string{android_skia_checkout.SkUserConfigAndroidRelPath, android_skia_checkout.SkUserConfigLinuxRelPath, android_skia_checkout.SkUserConfigMacRelPath, android_skia_checkout.SkUserConfigWinRelPath}
 	FILES_GENERATED_BY_GN_TO_GP = []string{android_skia_checkout.SkUserConfigAndroidRelPath, android_skia_checkout.SkUserConfigLinuxRelPath, android_skia_checkout.SkUserConfigMacRelPath, android_skia_checkout.SkUserConfigWinRelPath, android_skia_checkout.AndroidBpRelPath}
 
@@ -296,11 +300,13 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	// Start the merge.
 
 	if _, err := exec.RunCwd(ctx, r.childDir, "git", "merge", to, "--no-commit"); err != nil {
+		// fmt.Println("time sleep")
+		// time.Sleep(5 * time.Minute)
 		// Check to see if this was a merge conflict with IGNORE_MERGE_CONFLICT_FILES.
 		conflictsOutput, conflictsErr := exec.RunCwd(ctx, r.childDir, "git", "diff", "--name-only", "--diff-filter=U")
 		if conflictsErr != nil || conflictsOutput == "" {
 			util.LogErr(conflictsErr)
-			return 0, fmt.Errorf("Failed to roll to %s. Needs human investigation: %s", to, err)
+			// return 0, fmt.Errorf("Failed to roll to %s. Needs human investigation: %s", to, err)
 		}
 		for _, conflict := range strings.Split(conflictsOutput, "\n") {
 			if conflict == "" {
@@ -311,6 +317,20 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 				if conflict == ignore {
 					ignoreConflict = true
 					sklog.Infof("Ignoring conflict in %s", conflict)
+					break
+				}
+			}
+			for _, del := range DELETE_MERGE_CONFLICT_FILES {
+				fmt.Println("xxx")
+				fmt.Println(conflict)
+				fmt.Println(del)
+				if conflict == del {
+					_, resetErr := exec.RunCwd(ctx, r.childDir, "git", "reset", "--", del)
+					util.LogErr(resetErr)
+					_, delErr := exec.RunCwd(ctx, r.childDir, "rm", del)
+					util.LogErr(delErr)
+					ignoreConflict = true
+					sklog.Infof("Deleting %s due to merge conflict", conflict)
 					break
 				}
 			}
@@ -458,6 +478,8 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 		util.LogErr(r.abandonRepoBranch(ctx))
 		return 0, revParseErr
 	}
+	fmt.Println("TRYING TO UPLOAD NOW")
+	time.Sleep(10 * time.Minute)
 	commitHash := strings.Split(commitHashOutput, "\n")[0]
 	// We no longer need the local branch. Abandon the repo.
 	util.LogErr(r.abandonRepoBranch(ctx))

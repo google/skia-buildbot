@@ -15,10 +15,10 @@ var (
 	// Files within the Skia checkout.
 	SkUserConfigManualRelPath  = path.Join("include", "config", "SkUserConfigManual.h")
 	SkUserConfigRelPath        = path.Join("include", "config", "SkUserConfig.h")
-	SkUserConfigAndroidRelPath = path.Join("include", "config", "android", "SkUserConfig.h")
-	SkUserConfigLinuxRelPath   = path.Join("include", "config", "linux", "SkUserConfig.h")
-	SkUserConfigMacRelPath     = path.Join("include", "config", "mac", "SkUserConfig.h")
-	SkUserConfigWinRelPath     = path.Join("include", "config", "win", "SkUserConfig.h")
+	SkUserConfigAndroidRelPath = path.Join("android", "include", "config", "SkUserConfig.h")
+	SkUserConfigLinuxRelPath   = path.Join("linux", "include", "config", "SkUserConfig.h")
+	SkUserConfigMacRelPath     = path.Join("mac", "include", "config", "SkUserConfig.h")
+	SkUserConfigWinRelPath     = path.Join("win", "include", "config", "SkUserConfig.h")
 	AndroidBpRelPath           = path.Join("Android.bp")
 )
 
