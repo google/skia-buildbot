@@ -1,4 +1,4 @@
-package buildbucket
+package bb_testutils
 
 import (
 	"context"
@@ -10,15 +10,19 @@ import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 	assert "github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/buildbucket/common"
 	"go.skia.org/infra/go/sktest"
 )
+
+var MockBBURL = "mock-buildbucket.appspot.com"
 
 // MockClient is a wrapper around Client which doesn't actually perform API
 // calls but instead simply returns mock results. Call any of the Mock* methods
 // before calling the corresponding method on Client, and the mocked result will
 // be returned.
 type MockClient struct {
-	*Client
+	*buildbucket.Client
 	mock *buildbucketpb.MockBuildsClient
 	t    sktest.TestingT
 }
@@ -26,23 +30,19 @@ type MockClient struct {
 func NewMockClient(t sktest.TestingT) *MockClient {
 	ctrl := gomock.NewController(t)
 	mock := buildbucketpb.NewMockBuildsClient(ctrl)
-	c := &Client{
-		bc:   mock,
-		host: apiUrl,
-	}
 	return &MockClient{
-		Client: c,
+		Client: buildbucket.NewTestingClient(mock, MockBBURL),
 		mock:   mock,
 		t:      t,
 	}
 }
 
-func (c *MockClient) MockGetBuild(id string, rv *Build, rvErr error) {
+func (c *MockClient) MockGetBuild(id string, rv *buildbucket.Build, rvErr error) {
 	buildId, err := strconv.ParseInt(id, 10, 64)
 	assert.NoError(c.t, err)
 	call := c.mock.EXPECT().GetBuild(context.TODO(), &buildbucketpb.GetBuildRequest{
 		Id:     buildId,
-		Fields: getBuildFields,
+		Fields: common.GetBuildFields,
 	})
 	var build *buildbucketpb.Build
 	if rv != nil {
@@ -51,10 +51,10 @@ func (c *MockClient) MockGetBuild(id string, rv *Build, rvErr error) {
 	call.Return(build, rvErr)
 }
 
-func (c *MockClient) MockSearchBuilds(pred *buildbucketpb.BuildPredicate, rv []*Build, rvErr error) {
+func (c *MockClient) MockSearchBuilds(pred *buildbucketpb.BuildPredicate, rv []*buildbucket.Build, rvErr error) {
 	call := c.mock.EXPECT().SearchBuilds(context.TODO(), &buildbucketpb.SearchBuildsRequest{
 		Predicate: pred,
-		Fields:    searchBuildsFields,
+		Fields:    common.SearchBuildsFields,
 	})
 	var resp *buildbucketpb.SearchBuildsResponse
 	if rv != nil {
@@ -69,8 +69,8 @@ func (c *MockClient) MockSearchBuilds(pred *buildbucketpb.BuildPredicate, rv []*
 	call.Return(resp, rvErr)
 }
 
-func (c *MockClient) MockGetTrybotsForCL(issueID, patchsetID int64, gerritUrl string, rv []*Build, rvErr error) {
-	pred, err := getTrybotsForCLPredicate(issueID, patchsetID, gerritUrl)
+func (c *MockClient) MockGetTrybotsForCL(issueID, patchsetID int64, gerritUrl string, rv []*buildbucket.Build, rvErr error) {
+	pred, err := common.GetTrybotsForCLPredicate(issueID, patchsetID, gerritUrl)
 	assert.NoError(c.t, err)
 	c.MockSearchBuilds(pred, rv, rvErr)
 }
@@ -92,24 +92,24 @@ func ts(t time.Time) *timestamp.Timestamp {
 	}
 }
 
-func unconvertBuild(t sktest.TestingT, b *Build) *buildbucketpb.Build {
+func unconvertBuild(t sktest.TestingT, b *buildbucket.Build) *buildbucketpb.Build {
 	id, err := strconv.ParseInt(b.Id, 10, 64)
 	assert.NoError(t, err)
 	patchset, err := strconv.ParseInt(b.Parameters.Properties.GerritPatchset, 10, 64)
 	assert.NoError(t, err)
 	status := buildbucketpb.Status_STATUS_UNSPECIFIED
 	switch b.Status {
-	case STATUS_SCHEDULED:
+	case buildbucket.STATUS_SCHEDULED:
 		status = buildbucketpb.Status_SCHEDULED
-	case STATUS_STARTED:
+	case buildbucket.STATUS_STARTED:
 		status = buildbucketpb.Status_STARTED
-	case STATUS_COMPLETED:
+	case buildbucket.STATUS_COMPLETED:
 		switch b.Result {
-		case RESULT_CANCELED:
+		case buildbucket.RESULT_CANCELED:
 			status = buildbucketpb.Status_CANCELED
-		case RESULT_FAILURE:
+		case buildbucket.RESULT_FAILURE:
 			status = buildbucketpb.Status_FAILURE
-		case RESULT_SUCCESS:
+		case buildbucket.RESULT_SUCCESS:
 			status = buildbucketpb.Status_SUCCESS
 		}
 	}

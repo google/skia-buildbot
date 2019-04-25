@@ -7,6 +7,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/buildbucket/bb_testutils"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/sktest"
@@ -21,7 +22,7 @@ const (
 // MockGerrit is a GerritInterface implementation which mocks out requests to
 // the server.
 type MockGerrit struct {
-	bb        *buildbucket.MockClient
+	bb        *bb_testutils.MockClient
 	Gerrit    *gerrit.Gerrit
 	Mock      *mockhttpclient.URLMock
 	isAndroid bool
@@ -36,7 +37,7 @@ func NewGerrit(t sktest.TestingT, workdir string, isAndroid bool) *MockGerrit {
 	mock := mockhttpclient.NewURLMock()
 	g, err := gerrit.NewGerrit(FAKE_GERRIT_URL, gitcookies, mock.Client())
 	assert.NoError(t, err)
-	bb := buildbucket.NewMockClient(t)
+	bb := bb_testutils.NewMockClient(t)
 	g.BuildbucketClient = bb.Client
 	return &MockGerrit{
 		bb:        bb,
