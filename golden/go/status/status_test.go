@@ -8,7 +8,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/testutils"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/golden/go/digeststore"
@@ -32,7 +32,7 @@ const (
 func TestStatusWatcher(t *testing.T) {
 	testutils.LargeTest(t)
 
-	err := gcs.DownloadTestDataFile(t, gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
+	err := gcs_testutils.DownloadTestDataFile(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
 	assert.NoError(t, err, "Unable to download testdata.")
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 

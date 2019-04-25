@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs"
-	"go.skia.org/infra/go/mockgcsclient"
+	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/ingestcommon"
 )
@@ -20,7 +20,7 @@ var ctx = mock.AnythingOfType("*context.emptyCtx")
 func TestHappyCase(t *testing.T) {
 	testutils.SmallTest(t)
 
-	ms := mockgcsclient.New()
+	ms := test_gcsclient.NewMockClient()
 	defer ms.AssertExpectations(t)
 	pc := New("/foobar", ms)
 

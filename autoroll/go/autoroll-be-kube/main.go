@@ -26,7 +26,8 @@ import (
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/firestore"
-	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcs_testutils"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/github"
@@ -111,7 +112,7 @@ func main() {
 	gcsBucket := GS_BUCKET_AUTOROLLERS
 	rollerName := cfg.RollerName
 	if *local {
-		gcsBucket = gcs.TEST_DATA_BUCKET
+		gcsBucket = gcs_testutils.TEST_DATA_BUCKET
 		hostname, err := os.Hostname()
 		if err != nil {
 			sklog.Fatalf("Could not get hostname: %s", err)
@@ -180,7 +181,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 	sklog.Infof("Writing persistent data to gs://%s/%s", gcsBucket, rollerName)
-	gcsClient := gcs.NewGCSClient(s, gcsBucket)
+	gcsClient := gcsclient.New(s, gcsBucket)
 
 	// The rollers use the gitcookie created by gitauth package.
 	gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")

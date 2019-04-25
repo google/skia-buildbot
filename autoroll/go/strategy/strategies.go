@@ -8,6 +8,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
@@ -46,14 +47,14 @@ func GetNextRollStrategy(ctx context.Context, strategy, branch, upstreamRemote, 
 			return nil, err
 		}
 		return &AFDOStrategy{
-			gcs: gcs.NewGCSClient(storageClient, AFDO_GS_BUCKET),
+			gcs: gcsclient.New(storageClient, AFDO_GS_BUCKET),
 		}, nil
 	case ROLL_STRATEGY_GCS_FILE:
 		storageClient, err := storage.NewClient(ctx)
 		if err != nil {
 			return nil, err
 		}
-		return StrategyGCSFile(gcs.NewGCSClient(storageClient, gsBucket), gsPathTemplates), nil
+		return StrategyGCSFile(gcsclient.New(storageClient, gsBucket), gsPathTemplates), nil
 	case ROLL_STRATEGY_BATCH:
 		return StrategyHead(branch), nil
 	case ROLL_STRATEGY_FUCHSIA_SDK:
