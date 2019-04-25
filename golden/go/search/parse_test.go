@@ -11,7 +11,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
@@ -80,7 +80,7 @@ func TestParseQueryLarge(t *testing.T) {
 	defer testutils.RemoveAll(t, TEST_DATA_DIR_PARSE)
 
 	// Download the list of queries.
-	assert.NoError(t, gcs.DownloadTestDataFile(t, gcs.TEST_DATA_BUCKET, cloudQueriesPath, localQueriesPath))
+	assert.NoError(t, gcs_testutils.DownloadTestDataFile(t, gcs_testutils.TEST_DATA_BUCKET, cloudQueriesPath, localQueriesPath))
 
 	// Load the list of of live queries.
 	queries, err := fileutil.ReadLines(localQueriesPath)

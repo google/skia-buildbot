@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -42,7 +43,7 @@ type fuzzerclient struct {
 }
 
 func NewFuzzerGCSClient(s *storage.Client, bucket string) FuzzerGCSClient {
-	return &fuzzerclient{gcs.NewGCSClient(s, bucket)}
+	return &fuzzerclient{gcsclient.New(s, bucket)}
 }
 
 func (g *fuzzerclient) GetAllFuzzNamesInFolder(name string) (hashes []string, err error) {

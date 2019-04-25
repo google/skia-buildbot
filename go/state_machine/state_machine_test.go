@@ -7,6 +7,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -15,7 +16,7 @@ func TestStateMachine(t *testing.T) {
 
 	ctx := context.Background()
 
-	gcsClient := gcs.NewMemoryGCSClient("test-bucket")
+	gcsClient := test_gcsclient.NewMemoryClient("test-bucket")
 	file := "test_state_machine"
 	busyFile := file + ".transitioning"
 
