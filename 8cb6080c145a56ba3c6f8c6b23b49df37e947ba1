@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9cac89fd_0829d84f",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-25T15:12:41Z",
+      "side": 1,
+      "message": "(3) looks like the best option but not sure how difficult it will be.\nMaking it simple and doing len(status.NotRolledRevisions) also works for me.\nUpto you.",
+      "parentUuid": "9b46c350_6120a711",
+      "range": {
+        "startLine": 209,
+        "startChar": 70,
+        "endLine": 209,
+        "endChar": 95
+      },
+      "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b03faabb_32eb323c",
         "filename": "autoroll/go/autoroll-fe/main.go",
         "patchSetId": 5
@@ -328,6 +352,30 @@
       "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb734d68_30bf2094",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-25T15:12:41Z",
+      "side": 1,
+      "message": "I suggested that mainly because others have asked me to do that. Golang docs seem to use this convention though: https://golang.org/pkg/strings/#HasPrefix",
+      "parentUuid": "57ea23b8_f1d988f7",
+      "range": {
+        "startLine": 80,
+        "startChar": 3,
+        "endLine": 80,
+        "endChar": 6
+      },
+      "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
