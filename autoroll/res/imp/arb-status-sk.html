@@ -33,6 +33,7 @@
 <link rel="import" href="/res/imp/bower_components/paper-item/paper-item.html">
 <link rel="import" href="/res/imp/bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="/res/imp/bower_components/paper-tabs/paper-tabs.html">
 <link rel="stylesheet" href="/res/common/css/md.css">
 <dom-module id="arb-status-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning styles-sk">
@@ -43,29 +44,58 @@
       font-size: 0.8em;
       padding: 0px 15px;
     }
+    #tabsContainer {
+      width: 400px;
+    }
     a,a.visited {
       color: #1f78b4;
     }
+
+    paper-tabs {
+      background: #A6CEE3;
+      color: #555;
+    }
+    paper-tab.iron-selected {
+      background: #1F78B4;
+      color: white;
+      border: #1F78B4 solid 2px;
+    }
+    paper-tab {
+      border: white solid 2px;
+    }
+
     .big {
       font-size: 1.3em;
     }
     .small {
       font-size: 0.8em;
     }
+    .hidden {
+      display: none;
+    }
     .nowrap {
       white-space: nowrap;
+    }
+    .rollCandidate {
+      height: 80px;
     }
     .trybot {
       margin: 5px;
     }
   </style>
   <template>
-    <div class="horizontal layout center" id="loadstatus">
-      <paper-input type="number" value="{{reload}}" label="Reload (s)" prevent-invalid-input></paper-input>
-      <div class="flex"></div>
-      <div>Last loaded at <span>{{_lastLoaded}}</span></div>
+    <div id="tabsContainer">
+    <paper-tabs id="tabs" attr-for-selected="id" selected="{{selectedTab}}" no-bar>
+      <paper-tab id="status">Roller Status</paper-tab>
+      <paper-tab id="manual">Trigger Manual Rolls</paper-tab>
+    </paper-tabs>
     </div>
     <div id="statusDisplay">
+      <div class="horizontal layout center" id="loadstatus">
+        <paper-input type="number" value="{{reload}}" label="Reload (s)" prevent-invalid-input></paper-input>
+        <div class="flex"></div>
+        <div>Last loaded at <span>{{_lastLoaded}}</span></div>
+      </div>
       <div class="table">
         <template is="dom-if" if="{{_exists(parentWaterfall)}}">
           <div class="tr">
@@ -200,6 +230,52 @@
         </div>
       </div>
     </div>
+    <div id="rollCandidates" class="hidden">
+      <div class="table">
+        <template is="dom-if" if="{{rollCandidates}}">
+          <div class="tr">
+            <div class="th">Revision</div>
+            <div class="th">Description</div>
+            <div class="th">Timestamp</div>
+            <div class="th">Requester</div>
+            <div class="th">Requested at</div>
+            <div class="th">Roll</div>
+          </div>
+          <template is="dom-repeat" items="[[rollCandidates]]">
+            <div class="tr rollCandidate">
+              <div class="td">
+                <template is="dom-if" if="{{item.revision.url}}">
+                  <a href="[[item.revision.url]]" target="_blank">[[item.revision.display]]</a>
+                </template>
+                <template is="dom-if" if="{{!item.revision.url}}">
+                  [[item.revision.display]]
+                </template>
+              </div>
+              <div class="td">[[_revDescription(item.revision.description)]]</div>
+              <div class="td"><human-date-sk date="[[item.revision.timestamp]]"></human-date-sk></div>
+              <div class="td">[[item.requester]]</div>
+              <div class="td"><human-date-sk date="[[item.timestamp]]"></human-date-sk></div>
+              <div class="td">
+                <template is="dom-if" if="{{_reqHasURL(item)}}">
+                  <a href="{{item.url}}", target="_blank">{{item.url}}</a>
+                </template>
+                <template is="dom-if" if="{{_reqHasStatus(item)}}">
+                  [[item.status]]
+                </template>
+                <template is="dom-if" if="{{_reqHasButton(item)}}">
+                  <button on-tap="_requestManualRoll" data-rev$="{{item.revision.id}}" class="requestRoll">Request Roll</button>
+                </template>
+              </div>
+            </div>
+          </template>
+        </template>
+        <template is="dom-if" if="{{!rollCandidates}}">
+          This roller does not support manual rolls. If you want this feature,
+          update the config file for the roller to enable it. Note that some
+          rollers cannot support manual rolls for technical reasons.
+        </template>
+      </div>
+    </div>
     <!-- Warning for future travelers: paper-dialog doesn't like to be inside of
          divs. It's best left just inside the top-level <template> -->
     <paper-dialog id="mode_change_dialog" modal on-iron-overlay-closed="_changeMode">
@@ -289,10 +365,14 @@
           value: null,
           readOnly: true,
         },
-        throttledUntil: {
-          type: Number,
-          value: 0,
-          readOnly: true,
+        rollCandidates: {
+          type: Array,
+          value: null,
+        },
+        selectedTab: {
+          type: String,
+          value: "status",
+          observer: "tabChanged",
         },
         strategy: {
           type: String,
@@ -307,6 +387,11 @@
         strategyChangeMsg: {
           type: String,
           value: "",
+          readOnly: true,
+        },
+        throttledUntil: {
+          type: Number,
+          value: 0,
           readOnly: true,
         },
         validModes: {
@@ -479,6 +564,44 @@
         }.bind(this));
       },
 
+      _reqHasURL: function(req) {
+        return !!req.url;
+      },
+
+      _reqHasStatus: function(req) {
+        return !req.url && req.status;
+      },
+
+      _reqHasButton: function(req) {
+        return !req.url && !req.status;
+      },
+
+      _requestManualRoll: function(e) {
+        var url = window.location.pathname + "/json/manual";
+        var rev = sk.findParent(e.target, "BUTTON").dataset.rev;
+        var body = JSON.stringify({
+            "revision": rev,
+        });
+        sk.post(url, body).then(JSON.parse).then(function(json) {
+          for (var i = 0; i < this.rollCandidates.length; i++) {
+            var rc = this.rollCandidates[i];
+            if (rc.revision.id == json.revision) {
+              // The returned manual roll request's revision field only contains
+              // the revision ID; we want the whole object, so replace it.
+              json.revision = rc.revision;
+              this.set("rollCandidates." + i, json);
+              break;
+            }
+          }
+        }.bind(this), function(err) {
+          sk.errorMessage("Failed to request manual roll: " + err);
+        });
+      },
+
+      _revDescription: function(desc) {
+        return sk.truncate(desc, 100);
+      },
+
       _rollClass: function(roll) {
         if (!roll) {
           return "unknown";
@@ -526,6 +649,16 @@
           return
         }
         this.$.strategy_change_dialog.open();
+      },
+
+      tabChanged: function() {
+        if (this.selectedTab == "status") {
+          this.$.statusDisplay.classList.remove("hidden");
+          this.$.rollCandidates.classList.add("hidden");
+        } else if (this.selectedTab == "manual") {
+          this.$.statusDisplay.classList.add("hidden");
+          this.$.rollCandidates.classList.remove("hidden");
+        }
       },
 
       _trybotClass: function(trybot) {
@@ -583,6 +716,37 @@
           }
         }
         this._setModeButtons(modeButtons);
+
+        var rollCandidates = null;
+        if (json.notRolledRevs) {
+          rollCandidates = [];
+          var manualByRev = {};
+          if (json.manualRequests) {
+            for (var i = 0; i < json.manualRequests.length; i++) {
+              var req = json.manualRequests[i];
+              manualByRev[req.revision] = req;
+            }
+          }
+          for (var i = 0; i < json.notRolledRevs.length; i++) {
+            var rev = json.notRolledRevs[i];
+            var req = manualByRev[rev.id];
+            if (!req && this.currentRoll && this.currentRoll.rollingTo == rev.id) {
+              req = {
+                "requester": "autoroller",
+                "status":    "STARTED",
+                "timestamp": this.currentRoll.created,
+                "url":       this._issueURL(this.currentRoll),
+              };
+            } else if (!req) {
+              req = {};
+            }
+            // The manual roll request's revision field only contains the
+            // revision ID; we want the whole object, so replace it.
+            req.revision = rev;
+            rollCandidates.push(req);
+          }
+        }
+        this.set("rollCandidates", rollCandidates);
 
         this._lastLoaded = new Date().toLocaleTimeString();
         this._resetTimeout();
