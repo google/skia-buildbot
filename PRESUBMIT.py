@@ -92,6 +92,7 @@ def _CheckBannedGoAPIs(input_api, output_api):
     (r'\bsignal\.Notify\b', 'AtExit in go.skia.org/go/cleanup'),
     (r'\bsyscall.SIGINT\b', 'AtExit in go.skia.org/go/cleanup'),
     (r'\bsyscall.SIGTERM\b', 'AtExit in go.skia.org/go/cleanup'),
+    (r'\bsyncmap.Map\b', 'sync.Map, added in go 1.9'),
   ]
 
   compiled_replacements = []

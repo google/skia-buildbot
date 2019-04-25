@@ -80,7 +80,7 @@
 
             <template is="dom-if" if="{{!_noBlames(item)}}">
               <h3>Blame</h3>
-              <commits-panel-sk commitinfo="[[item.commits]]" progress="[[_showProgress]]" repo="[[_repo]]"></commits-panel-sk>
+              <commits-panel-sk commitinfo="[[item.commits]]" progress="[[_showProgress]]" repo="[[_repo]]" origin></commits-panel-sk>
             </template>
 
             <h3>Tests Affected</h3>
