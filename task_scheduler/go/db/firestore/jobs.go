@@ -7,6 +7,7 @@ import (
 	"time"
 
 	fs "cloud.google.com/go/firestore"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -21,9 +22,9 @@ const (
 
 // Fix all timestamps for the given job.
 func fixJobTimestamps(job *types.Job) {
-	job.Created = fixTimestamp(job.Created)
-	job.DbModified = fixTimestamp(job.DbModified)
-	job.Finished = fixTimestamp(job.Finished)
+	job.Created = firestore.FixTimestamp(job.Created)
+	job.DbModified = firestore.FixTimestamp(job.DbModified)
+	job.Finished = firestore.FixTimestamp(job.Finished)
 }
 
 // jobs returns a reference to the jobs collection.
@@ -163,7 +164,7 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 
 	// Record the previous ID and DbModified timestamp. We'll reset these
 	// if we fail to insert the jobs into the DB.
-	now := fixTimestamp(time.Now())
+	now := firestore.FixTimestamp(time.Now())
 	isNew := make([]bool, len(jobs))
 	prevId := make([]string, len(jobs))
 	prevModified := make([]time.Time, len(jobs))

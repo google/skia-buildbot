@@ -77,6 +77,12 @@ var (
 	opCounts = []string{opCountRows, opCountQueries}
 )
 
+// FixTimestamp adjusts the given timestamp for storage in Firestore. Firestore
+// only supports microsecond precision, and we always want to store UTC.
+func FixTimestamp(t time.Time) time.Time {
+	return t.UTC().Truncate(TS_RESOLUTION)
+}
+
 // DocumentRefSlice is a slice of DocumentRefs, used for sorting.
 type DocumentRefSlice []*firestore.DocumentRef
 

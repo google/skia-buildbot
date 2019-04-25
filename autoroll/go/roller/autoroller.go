@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
 	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
@@ -56,6 +58,7 @@ type AutoRoller struct {
 	gerrit          *gerrit.Gerrit
 	github          *github.GitHub
 	liveness        metrics2.Liveness
+	manualRollDB    manual.DB
 	modeHistory     *modes.ModeHistory
 	notifier        *arb_notifier.AutoRollNotifier
 	notifierConfigs []*notifier.Config
@@ -78,7 +81,7 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller returns an AutoRoller instance.
-func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL, gitcookiesPath string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL, gitcookiesPath string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool, manualRollDB manual.DB) (*AutoRoller, error) {
 	// Validation and setup.
 	if err := c.Validate(); err != nil {
 		return nil, fmt.Errorf("Failed to validate config: %s", err)
@@ -200,6 +203,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		gerrit:          g,
 		github:          githubClient,
 		liveness:        metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": c.RollerName}),
+		manualRollDB:    manualRollDB,
 		modeHistory:     mh,
 		notifier:        n,
 		notifierConfigs: c.Notifiers,
@@ -306,6 +310,18 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency tim
 			}
 		}
 	}, nil)
+
+	// Handle requests for manual rolls.
+	if r.cfg.SupportsManualRolls {
+		lvManualRolls := metrics2.NewLiveness("last_successful_manual_roll_check", map[string]string{"roller": r.roller})
+		cleanup.Repeat(time.Minute, func() {
+			if err := r.handleManualRolls(ctx); err != nil {
+				sklog.Error(err)
+			} else {
+				lvManualRolls.Reset()
+			}
+		}, nil)
+	}
 }
 
 // Utility for replacing the placeholder $SHERIFF with real sheriff emails
@@ -618,5 +634,55 @@ func (r *AutoRoller) rollFinished(ctx context.Context, justFinished codereview.R
 		r.notifier.SendLastNFailed(ctx, NOTIFY_IF_LAST_N_FAILED, issueURL)
 	}
 
+	return nil
+}
+
+// Handle manual roll requests.
+func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
+	reqs, err := r.manualRollDB.GetIncomplete(r.cfg.RollerName)
+	if err != nil {
+		return fmt.Errorf("Failed to get incomplete rolls: %s", err)
+	}
+	for _, req := range reqs {
+		var issueNum int64
+		if req.Status == manual.STATUS_PENDING {
+			emails := r.GetEmails()
+			if !util.In(req.Requester, emails) {
+				emails = append(emails, req.Requester)
+			}
+			var err error
+			issueNum, err = r.rm.CreateNewRoll(ctx, r.GetCurrentRev(), req.Revision, emails, strings.Join(r.cfg.CqExtraTrybots, ";"), false)
+			if err != nil {
+				return fmt.Errorf("Failed to create manual roll for %s: %s", req.Id, err)
+			}
+		} else if req.Status == manual.STATUS_STARTED {
+			split := strings.Split(req.Url, "/")
+			i, err := strconv.Atoi(split[len(split)-1])
+			if err != nil {
+				return fmt.Errorf("Failed to parse issue number from %s for %s: %s", req.Url, req.Id, err)
+			}
+			issueNum = int64(i)
+		} else {
+			sklog.Errorf("Found manual roll request %s in unknown status %q", req.Id, req.Status)
+			continue
+		}
+		roll, err := r.retrieveRoll(ctx, issueNum)
+		if err != nil {
+			return fmt.Errorf("Failed to retrieve manual roll %s: %s", req.Id, err)
+		}
+		req.Status = manual.STATUS_STARTED
+		req.Url = roll.IssueURL()
+		if roll.IsFinished() {
+			req.Status = manual.STATUS_COMPLETE
+			if roll.IsSuccess() {
+				req.Result = manual.RESULT_SUCCESS
+			} else {
+				req.Result = manual.RESULT_FAILURE
+			}
+		}
+		if err := r.manualRollDB.Put(req); err != nil {
+			return fmt.Errorf("Failed to update manual roll request: %s", err)
+		}
+	}
 	return nil
 }

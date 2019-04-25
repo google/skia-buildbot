@@ -193,6 +193,8 @@ type AutoRollerConfig struct {
 	// Throttling configuration to prevent uploading too many CLs within
 	// too short a time period.
 	SafetyThrottle *ThrottleConfig `json:"safetyThrottle,omitempty"`
+	// If true, this roller supports one-click "manual" rolls.
+	SupportsManualRolls bool `json:"supportsManualRolls,omitempty"`
 
 	// Private.
 	rollerType string // Set by RollerType().

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	fs "cloud.google.com/go/firestore"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -21,10 +22,10 @@ const (
 
 // Fix all timestamps for the given task.
 func fixTaskTimestamps(task *types.Task) {
-	task.Created = fixTimestamp(task.Created)
-	task.DbModified = fixTimestamp(task.DbModified)
-	task.Finished = fixTimestamp(task.Finished)
-	task.Started = fixTimestamp(task.Started)
+	task.Created = firestore.FixTimestamp(task.Created)
+	task.DbModified = firestore.FixTimestamp(task.DbModified)
+	task.Finished = firestore.FixTimestamp(task.Finished)
+	task.Started = firestore.FixTimestamp(task.Started)
 }
 
 // tasks returns a reference to the tasks collection.
@@ -170,7 +171,7 @@ func (d *firestoreDB) PutTasks(tasks []*types.Task) (rvErr error) {
 
 	// Record the previous ID and DbModified timestamp. We'll reset these
 	// if we fail to insert the tasks into the DB.
-	now := fixTimestamp(time.Now())
+	now := firestore.FixTimestamp(time.Now())
 	isNew := make([]bool, len(tasks))
 	prevId := make([]string, len(tasks))
 	prevModified := make([]time.Time, len(tasks))
