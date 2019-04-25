@@ -8,7 +8,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
@@ -208,7 +208,7 @@ func TestDeSerializeSample(t *testing.T) {
 func getTestTile(t *testing.T) (*tiling.Tile, func()) {
 	testDataDir := TEST_DATA_DIR
 	testutils.RemoveAll(t, testDataDir)
-	assert.NoError(t, gcs.DownloadTestDataFile(t, TEST_DATA_STORAGE_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH))
+	assert.NoError(t, gcs_testutils.DownloadTestDataFile(t, TEST_DATA_STORAGE_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH))
 
 	f, err := os.Open(TEST_DATA_PATH)
 	assert.NoError(t, err)

@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitiles"
 	"google.golang.org/api/option"
@@ -105,7 +106,7 @@ func newFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfi
 	}
 
 	rv := &fuchsiaSDKRepoManager{
-		gcsClient:         gcs.NewGCSClient(storageClient, FUCHSIA_SDK_GS_BUCKET),
+		gcsClient:         gcsclient.New(storageClient, FUCHSIA_SDK_GS_BUCKET),
 		gsBucket:          FUCHSIA_SDK_GS_BUCKET,
 		gsLatestPathLinux: FUCHSIA_SDK_GS_LATEST_PATH_LINUX,
 		gsLatestPathMac:   FUCHSIA_SDK_GS_LATEST_PATH_MAC,

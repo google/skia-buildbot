@@ -15,7 +15,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -100,7 +100,7 @@ func TestMessageOrdering(t sktest.TestingT, d DB) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 	testDataFile := path.Join(wd, TEST_DATA_FILENAME)
-	err = gcs.DownloadTestDataFile(t, gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, testDataFile)
+	err = gcs_testutils.DownloadTestDataFile(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, testDataFile)
 	assert.NoError(t, err)
 	var msgs []*td.Message
 	assert.NoError(t, util.WithReadFile(testDataFile, func(r io.Reader) error {
