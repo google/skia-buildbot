@@ -16,6 +16,24 @@
       "revId": "8f0d7fb5be277915afbac662f8022cf31fa08ff2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de83a78d_ddd58527",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 333,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-25T17:10:44Z",
+      "side": 1,
+      "message": "Makes sense, although Kevin didn\u0027t see any instances of this warning, which makes me think the commits should have all been cached and just a map lookup: https://skia.googlesource.com/buildbot/+/master/go/git/repograph/gitstore.go#74",
+      "parentUuid": "afd9b890_692faee9",
+      "revId": "8f0d7fb5be277915afbac662f8022cf31fa08ff2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
