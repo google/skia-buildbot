@@ -175,7 +175,7 @@ func (b *btVCS) details(ctx context.Context, hash string, includeBranchInfo bool
 		return nil, err
 	}
 
-	if len(commits) == 0 {
+	if len(commits) == 0 || commits[0] == nil {
 		return nil, skerr.Fmt("Commit %s not found", hash)
 	}
 
