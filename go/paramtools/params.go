@@ -315,6 +315,11 @@ func NewOrderedParamSetFromBytes(b []byte) (*OrderedParamSet, error) {
 	return p, err
 }
 
+func NewOrderedParamSetFromMapping(keyMap map[string]int, valMap map[string]map[string]int) (*OrderedParamSet, error) {
+
+	return nil, nil
+}
+
 // buildEncoder builds a paramsEncoder for the current state of the OrderedParamSet.
 func (o *OrderedParamSet) buildEncoder() *paramsEncoder {
 	ret := &paramsEncoder{
