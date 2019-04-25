@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "2439658a_10521063",
+        "filename": "go/gcs/gcsclient/gcsclient_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-25T19:28:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c208294b_12b1c3b7",
+      "revId": "80c2880d229c8b99155a44a2401529b8e0c278ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "93b13282_b5c43921",
         "filename": "go/gcs/gcsclient/helpers_test.go",
         "patchSetId": 6
@@ -39,6 +57,30 @@
       "revId": "80c2880d229c8b99155a44a2401529b8e0c278ad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bcfb64e3_16026203",
+        "filename": "go/gcs/gcsclient/helpers_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-25T19:28:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "93b13282_b5c43921",
+      "range": {
+        "startLine": 9,
+        "startChar": 30,
+        "endLine": 9,
+        "endChar": 36
+      },
+      "revId": "80c2880d229c8b99155a44a2401529b8e0c278ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "39b9cbf2_363cb850",
+        "filename": "go/gcs/gcsclient/helpers_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-25T19:28:24Z",
+      "side": 1,
+      "message": "Done.  Thanks for teaching me something new!",
+      "parentUuid": "7e184f12_2151fc87",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 63
+      },
+      "revId": "80c2880d229c8b99155a44a2401529b8e0c278ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3e7d0816_0d64f68f",
         "filename": "go/gcs/helpers.go",
         "patchSetId": 6
@@ -79,6 +145,24 @@
       "revId": "80c2880d229c8b99155a44a2401529b8e0c278ad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b832fc3f_d0f8ddc8",
+        "filename": "go/gcs/helpers.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-25T19:28:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3e7d0816_0d64f68f",
+      "revId": "80c2880d229c8b99155a44a2401529b8e0c278ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -105,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "a30ba272_d39dd046",
+        "filename": "go/gcs/test_gcsclient/README.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-25T19:28:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "710e1342_42534ee9",
+      "range": {
+        "startLine": 12,
+        "startChar": 6,
+        "endLine": 12,
+        "endChar": 25
+      },
+      "revId": "80c2880d229c8b99155a44a2401529b8e0c278ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9f5c81fc_845c4736",
         "filename": "go/gcs/test_gcsclient/README.md",
         "patchSetId": 6
@@ -128,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "4443f77a_5e41f62a",
+        "filename": "go/gcs/test_gcsclient/README.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-25T19:28:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9f5c81fc_845c4736",
+      "range": {
+        "startLine": 30,
+        "startChar": 8,
+        "endLine": 30,
+        "endChar": 20
+      },
+      "revId": "80c2880d229c8b99155a44a2401529b8e0c278ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5f9c15d8_afde630b",
         "filename": "go/gcs/test_gcsclient/memory_client.go",
         "patchSetId": 6
@@ -139,6 +271,24 @@
       "writtenOn": "2019-04-25T19:06:22Z",
       "side": 1,
       "message": "Since you\u0027re already moving things around, any reason not to put mock_client.go and memory_client.go in different packages?",
+      "revId": "80c2880d229c8b99155a44a2401529b8e0c278ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb3271f3_369f4b6f",
+        "filename": "go/gcs/test_gcsclient/memory_client.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-25T19:28:24Z",
+      "side": 1,
+      "message": "I waffled on it a bit - there was no reason I needed to separate them either. Unless you have a strong opinion, I\u0027ll keep them together as is.  Maybe one can be replaced with the other at some point.",
+      "parentUuid": "5f9c15d8_afde630b",
       "revId": "80c2880d229c8b99155a44a2401529b8e0c278ad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -168,6 +318,30 @@
     },
     {
       "key": {
+        "uuid": "d85baf7e_d9bcf9c6",
+        "filename": "go/gcs/types.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-25T19:28:24Z",
+      "side": 1,
+      "message": "darn find/replace.",
+      "parentUuid": "098cb6d7_15bd79c4",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 76
+      },
+      "revId": "80c2880d229c8b99155a44a2401529b8e0c278ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb2d7d87_df5cfaaf",
         "filename": "go/gcs/types.go",
         "patchSetId": 6
@@ -179,6 +353,30 @@
       "writtenOn": "2019-04-25T19:01:59Z",
       "side": 1,
       "message": "FWIW, \"text/plain\" is a content type, not a content encoding.",
+      "range": {
+        "startLine": 68,
+        "startChar": 43,
+        "endLine": 68,
+        "endChar": 74
+      },
+      "revId": "80c2880d229c8b99155a44a2401529b8e0c278ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4b4af712_a1f8febb",
+        "filename": "go/gcs/types.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-25T19:28:24Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "eb2d7d87_df5cfaaf",
       "range": {
         "startLine": 68,
         "startChar": 43,
