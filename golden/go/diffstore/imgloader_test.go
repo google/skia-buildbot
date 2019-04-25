@@ -9,6 +9,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
@@ -74,7 +75,7 @@ func DefaultImagePath(baseDir, imageID string) string {
 	return fileutil.TwoLevelRadixPath(baseDir, imagePath)
 }
 
-func getImageLoaderAndTile(t testutils.TestingT, mapper DiffStoreMapper) (string, *tiling.Tile, *ImageLoader, func()) {
+func getImageLoaderAndTile(t sktest.TestingT, mapper DiffStoreMapper) (string, *tiling.Tile, *ImageLoader, func()) {
 	w, cleanup := testutils.TempDir(t)
 	baseDir := path.Join(w, TEST_DATA_BASE_DIR+"-imgloader")
 	client, tile := getSetupAndTile(t, baseDir)

@@ -15,6 +15,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/image/text"
@@ -48,7 +49,7 @@ func filesEqual(path1, path2 string) bool {
 	return 0 == bytes.Compare(checksum1, checksum2)
 }
 
-func readImg(t testutils.TestingT, path string) *image.NRGBA {
+func readImg(t sktest.TestingT, path string) *image.NRGBA {
 	infile, err := os.Open(path)
 	assert.Nil(t, err)
 	defer testutils.AssertCloses(t, infile)
@@ -62,7 +63,7 @@ func readImg(t testutils.TestingT, path string) *image.NRGBA {
 	return ret
 }
 
-func imagesEqual(t testutils.TestingT, path1, path2 string) {
+func imagesEqual(t sktest.TestingT, path1, path2 string) {
 	img_1 := readImg(t, path1)
 	img_2 := readImg(t, path2)
 

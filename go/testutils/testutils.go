@@ -17,6 +17,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/repo_root"
+	"go.skia.org/infra/go/sktest"
 )
 
 const (
@@ -61,27 +62,6 @@ var (
 	TryAgainErr = errors.New("Trying Again")
 )
 
-// TestingT is an interface which is compatible with testing.T and testing.B,
-// used so that we don't have to import the "testing" package except in _test.go
-// files.
-type TestingT interface {
-	Error(...interface{})
-	Errorf(string, ...interface{})
-	Fail()
-	FailNow()
-	Failed() bool
-	Fatal(...interface{})
-	Fatalf(string, ...interface{})
-	Helper()
-	Log(...interface{})
-	Logf(string, ...interface{})
-	Name() string
-	Skip(...interface{})
-	SkipNow()
-	Skipf(string, ...interface{})
-	Skipped() bool
-}
-
 // ShouldRun determines whether the test should run based on the provided flags.
 func ShouldRun(testType string) bool {
 	if *uncategorized {
@@ -109,7 +89,7 @@ func ShouldRun(testType string) bool {
 // SmallTest is a function which should be called at the beginning of a small
 // test: A test (under 2 seconds) with no dependencies on external databases,
 // networks, etc.
-func SmallTest(t TestingT) {
+func SmallTest(t sktest.TestingT) {
 	if !ShouldRun(SMALL_TEST) {
 		t.Skip("Not running small tests.")
 	}
@@ -118,7 +98,7 @@ func SmallTest(t TestingT) {
 // MediumTest is a function which should be called at the beginning of an
 // medium-sized test: a test (2-15 seconds) which has dependencies on external
 // databases, networks, etc.
-func MediumTest(t TestingT) {
+func MediumTest(t sktest.TestingT) {
 	if !ShouldRun(MEDIUM_TEST) {
 		t.Skip("Not running medium tests.")
 	}
@@ -128,7 +108,7 @@ func MediumTest(t TestingT) {
 // test: a test (> 15 seconds) with significant reliance on external
 // dependencies which makes it too slow or flaky to run as part of the normal
 // test suite.
-func LargeTest(t TestingT) {
+func LargeTest(t sktest.TestingT) {
 	if !ShouldRun(LARGE_TEST) {
 		t.Skip("Not running large tests.")
 	}
@@ -137,7 +117,7 @@ func LargeTest(t TestingT) {
 // ManualTest is a function which should be called at the beginning of tests
 // which shouldn't run on the bots due to excessive running time, external
 // requirements, etc. These only run when the --manual flag is set.
-func ManualTest(t TestingT) {
+func ManualTest(t sktest.TestingT) {
 	if !ShouldRun(MANUAL_TEST) {
 		t.Skip("Not running manual tests.")
 	}
@@ -216,30 +196,30 @@ func MustReadJsonFile(filename string, dest interface{}) {
 
 // WriteFile writes the given contents to the given file path, reporting any
 // error.
-func WriteFile(t TestingT, filename, contents string) {
+func WriteFile(t sktest.TestingT, filename, contents string) {
 	assert.NoErrorf(t, ioutil.WriteFile(filename, []byte(contents), os.ModePerm), "Unable to write to file %s", filename)
 }
 
 // AssertCloses takes an ioutil.Closer and asserts that it closes. E.g.:
 // frobber := NewFrobber()
 // defer testutils.AssertCloses(t, frobber)
-func AssertCloses(t TestingT, c io.Closer) {
+func AssertCloses(t sktest.TestingT, c io.Closer) {
 	assert.NoError(t, c.Close())
 }
 
 // Remove attempts to remove the given file and asserts that no error is returned.
-func Remove(t TestingT, fp string) {
+func Remove(t sktest.TestingT, fp string) {
 	assert.NoError(t, os.Remove(fp))
 }
 
 // RemoveAll attempts to remove the given directory and asserts that no error is returned.
-func RemoveAll(t TestingT, fp string) {
+func RemoveAll(t sktest.TestingT, fp string) {
 	assert.NoError(t, os.RemoveAll(fp))
 }
 
 // TempDir is a wrapper for ioutil.TempDir. Returns the path to the directory and a cleanup
 // function to defer.
-func TempDir(t TestingT) (string, func()) {
+func TempDir(t sktest.TestingT) (string, func()) {
 	d, err := ioutil.TempDir("", "testutils")
 	assert.NoError(t, err)
 	return d, func() {
@@ -248,27 +228,27 @@ func TempDir(t TestingT) (string, func()) {
 }
 
 // MarshalJSON encodes the given interface to a JSON string.
-func MarshalJSON(t TestingT, i interface{}) string {
+func MarshalJSON(t sktest.TestingT, i interface{}) string {
 	b, err := json.Marshal(i)
 	assert.NoError(t, err)
 	return string(b)
 }
 
 // MarshalIndentJSON encodes the given interface to an indented JSON string.
-func MarshalIndentJSON(t TestingT, i interface{}) string {
+func MarshalIndentJSON(t sktest.TestingT, i interface{}) string {
 	b, err := json.MarshalIndent(i, "", "  ")
 	assert.NoError(t, err)
 	return string(b)
 }
 
 // AssertErrorContains asserts that the given error contains the given string.
-func AssertErrorContains(t TestingT, err error, substr string) {
+func AssertErrorContains(t sktest.TestingT, err error, substr string) {
 	assert.NotNil(t, err)
 	assert.True(t, strings.Contains(err.Error(), substr))
 }
 
 // Return the path to the root of the checkout.
-func GetRepoRoot(t TestingT) string {
+func GetRepoRoot(t sktest.TestingT) string {
 	root, err := repo_root.Get()
 	assert.NoError(t, err)
 	return root
@@ -294,8 +274,8 @@ func EventuallyConsistent(duration time.Duration, f func() error) error {
 	return fmt.Errorf("Failed to pass test in allotted time.")
 }
 
-// MockTestingT implements TestingT by saving calls to Log and Fail. MockTestingT can be used to
-// test a test helper function. See also AssertFails.
+// MockTestingT implements sktest.TestingT by saving calls to Log and Fail. MockTestingT can
+// be used to test a test helper function. See also AssertFails.
 // The methods Helper, Name, Skip, SkipNow, Skipf, and Skipped are unimplemented.
 // This type is not safe for concurrent use.
 type MockTestingT struct {
@@ -354,9 +334,12 @@ func (m *MockTestingT) Skipped() bool {
 	return false
 }
 
+// Assert that MockTestingT implements the sktest.TestingT interface:
+var _ sktest.TestingT = (*MockTestingT)(nil)
+
 // AssertFails runs testfn with a MockTestingT and asserts that the test fails and the first failure
-// logged matches the regexp. The TestingT passed to testfn is not safe for concurrent use.
-func AssertFails(parent TestingT, regexp string, testfn func(TestingT)) {
+// logged matches the regexp. The sktest.TestingT passed to testfn is not safe for concurrent use.
+func AssertFails(parent sktest.TestingT, regexp string, testfn func(sktest.TestingT)) {
 	mock := MockTestingT{}
 	wg := sync.WaitGroup{}
 	wg.Add(1)

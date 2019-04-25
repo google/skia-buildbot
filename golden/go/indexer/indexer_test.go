@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
@@ -159,7 +160,7 @@ func BenchmarkIndexer(b *testing.B) {
 	wg.Wait()
 }
 
-func setupStorages(t testutils.TestingT, ctx context.Context) (*storage.Storage, expstorage.ExpectationsStore) {
+func setupStorages(t sktest.TestingT, ctx context.Context) (*storage.Storage, expstorage.ExpectationsStore) {
 	flag.Parse()
 
 	// Set up the diff store, the event bus and the DB connection.

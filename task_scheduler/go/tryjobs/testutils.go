@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/cacher"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
@@ -78,7 +79,7 @@ var (
 
 // setup prepares the tests to run. Returns the created temporary dir,
 // TryJobIntegrator instance, and URLMock instance.
-func setup(t testutils.TestingT) (context.Context, *TryJobIntegrator, *git_testutils.GitBuilder, *mockhttpclient.URLMock, func()) {
+func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutils.GitBuilder, *mockhttpclient.URLMock, func()) {
 	testutils.LargeTest(t)
 
 	ctx := context.Background()
@@ -155,7 +156,7 @@ func setup(t testutils.TestingT) (context.Context, *TryJobIntegrator, *git_testu
 	}
 }
 
-func Params(t testutils.TestingT, builder, project, revision, server, issue, patchset string) buildbucket.Parameters {
+func Params(t sktest.TestingT, builder, project, revision, server, issue, patchset string) buildbucket.Parameters {
 	p := buildbucket.Parameters{
 		BuilderName: builder,
 		Properties: buildbucket.Properties{
@@ -172,7 +173,7 @@ func Params(t testutils.TestingT, builder, project, revision, server, issue, pat
 	return p
 }
 
-func Build(t testutils.TestingT, now time.Time) *buildbucket_api.ApiCommonBuildMessage {
+func Build(t sktest.TestingT, now time.Time) *buildbucket_api.ApiCommonBuildMessage {
 	return &buildbucket_api.ApiCommonBuildMessage{
 		Bucket:            BUCKET_TESTING,
 		CreatedBy:         "tests",
@@ -218,7 +219,7 @@ type heartbeatResp struct {
 	Error   *errMsg `json:"error,omitempty"`
 }
 
-func MockHeartbeats(t testutils.TestingT, mock *mockhttpclient.URLMock, now time.Time, jobs []*types.Job, resps map[string]*heartbeatResp) {
+func MockHeartbeats(t sktest.TestingT, mock *mockhttpclient.URLMock, now time.Time, jobs []*types.Job, resps map[string]*heartbeatResp) {
 	// Create the request data.
 	expiry := fmt.Sprintf("%d", now.Add(LEASE_DURATION).Unix()*1000000)
 	heartbeats := make([]*heartbeat, 0, len(jobs))

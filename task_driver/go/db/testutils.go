@@ -16,6 +16,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/td"
@@ -28,7 +29,7 @@ const (
 )
 
 // Test basic DB functionality.
-func TestDB(t testutils.TestingT, d DB) {
+func TestDB(t sktest.TestingT, d DB) {
 	// DB should return nil with no error for missing task drivers.
 	id := "fake-id-TestDB"
 	r, err := d.GetTaskDriver(id)
@@ -94,7 +95,7 @@ func TestDB(t testutils.TestingT, d DB) {
 }
 
 // Verify that messages can arrive in any order with the same result.
-func TestMessageOrdering(t testutils.TestingT, d DB) {
+func TestMessageOrdering(t sktest.TestingT, d DB) {
 	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)

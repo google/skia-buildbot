@@ -13,12 +13,13 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/git_common"
+	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 )
 
 // GitBuilder creates commits and branches in a git repo.
 type GitBuilder struct {
-	t      testutils.TestingT
+	t      sktest.TestingT
 	dir    string
 	branch string
 }
@@ -26,7 +27,7 @@ type GitBuilder struct {
 // GitInit creates a new git repo in a temporary directory and returns a
 // GitBuilder to manage it. Call Cleanup to remove the temporary directory. The
 // current branch will be master.
-func GitInit(t testutils.TestingT, ctx context.Context) *GitBuilder {
+func GitInit(t sktest.TestingT, ctx context.Context) *GitBuilder {
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
@@ -36,7 +37,7 @@ func GitInit(t testutils.TestingT, ctx context.Context) *GitBuilder {
 // GitInit creates a new git repo in the specified directory and returns a
 // GitBuilder to manage it. Call Cleanup to remove the temporary directory. The
 // current branch will be master.
-func GitInitWithDir(t testutils.TestingT, ctx context.Context, dir string) *GitBuilder {
+func GitInitWithDir(t sktest.TestingT, ctx context.Context, dir string) *GitBuilder {
 	g := &GitBuilder{
 		t:      t,
 		dir:    dir,

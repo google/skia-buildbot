@@ -6,7 +6,7 @@ import (
 
 	bt_testutil "go.skia.org/infra/go/bt/testutil"
 	git_testutils "go.skia.org/infra/go/git/testutils"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
@@ -122,7 +122,7 @@ var (
 //
 // Returns the GitBuilder instance for the test repo, along with the commit
 // hashes for c1 and c2.
-func SetupTestRepo(t testutils.TestingT) (context.Context, *git_testutils.GitBuilder, string, string) {
+func SetupTestRepo(t sktest.TestingT) (context.Context, *git_testutils.GitBuilder, string, string) {
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
 
@@ -312,7 +312,7 @@ func SetupTestRepo(t testutils.TestingT) (context.Context, *git_testutils.GitBui
 // SetupBigTable performs setup for the TaskCfgCache in BigTable. Returns the
 // BigTable instance name which should be used to instantiate TaskCfgCache and a
 // cleanup function which should be deferred.
-func SetupBigTable(t testutils.TestingT) (string, string, func()) {
+func SetupBigTable(t sktest.TestingT) (string, string, func()) {
 	// The table and column family names are specs.BT_TABLE and
 	// specs.BT_COLUMN_FAMILY, but are hard-coded here to avoid a dependency
 	// cycle.

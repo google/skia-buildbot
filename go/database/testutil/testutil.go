@@ -6,7 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/database"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/util"
 )
 
@@ -61,7 +61,7 @@ func LocalTestRootDatabaseConfig(m []database.MigrationStep) *database.DatabaseC
 // given migration steps. See Get for required credentials.
 // The test assumes that the database is empty and that the readwrite user is
 // not allowed to create/drop/alter tables.
-func MySQLVersioningTests(t testutils.TestingT, dbName string, migrationSteps []database.MigrationStep) {
+func MySQLVersioningTests(t sktest.TestingT, dbName string, migrationSteps []database.MigrationStep) {
 	// OpenDB as root user and remove all tables.
 	rootConf := LocalTestRootDatabaseConfig(migrationSteps)
 	lockDB := GetMySQlLock(t, rootConf)
@@ -99,7 +99,7 @@ type LockDB struct {
 }
 
 // Get a lock from MySQL to serialize DB tests.
-func GetMySQlLock(t testutils.TestingT, conf *database.DatabaseConfig) *LockDB {
+func GetMySQlLock(t sktest.TestingT, conf *database.DatabaseConfig) *LockDB {
 	db, err := sqlx.Open("mysql", conf.MySQLString())
 	assert.NoError(t, err)
 
@@ -115,7 +115,7 @@ func GetMySQlLock(t testutils.TestingT, conf *database.DatabaseConfig) *LockDB {
 }
 
 // Release the MySQL lock.
-func (l *LockDB) Close(t testutils.TestingT) {
+func (l *LockDB) Close(t sktest.TestingT) {
 	var result int
 	assert.NoError(t, l.DB.Get(&result, "SELECT RELEASE_LOCK(?)", SQL_LOCK))
 	assert.Equal(t, result, 1)
@@ -123,7 +123,7 @@ func (l *LockDB) Close(t testutils.TestingT) {
 }
 
 // Remove all tables from the database.
-func ClearMySQLTables(t testutils.TestingT, vdb *database.VersionedDB) {
+func ClearMySQLTables(t sktest.TestingT, vdb *database.VersionedDB) {
 	stmt := `SHOW TABLES`
 	rows, err := vdb.DB.Query(stmt)
 	assert.NoError(t, err)
@@ -148,7 +148,7 @@ func ClearMySQLTables(t testutils.TestingT, vdb *database.VersionedDB) {
 type MySQLTestDatabase struct {
 	lockDB  *LockDB
 	rootVdb *database.VersionedDB
-	t       testutils.TestingT
+	t       sktest.TestingT
 }
 
 // SetupMySQLTestDatabase returns a MySQLTestDatabase in a clean state. It must
@@ -159,7 +159,7 @@ type MySQLTestDatabase struct {
 // db := SetupMySQLTestDatabase(t, migrationSteps)
 // defer util.Close(db)
 // ... Tests here ...
-func SetupMySQLTestDatabase(t testutils.TestingT, migrationSteps []database.MigrationStep) *MySQLTestDatabase {
+func SetupMySQLTestDatabase(t sktest.TestingT, migrationSteps []database.MigrationStep) *MySQLTestDatabase {
 
 	conf := LocalTestRootDatabaseConfig(migrationSteps)
 	lock := GetMySQlLock(t, conf)
@@ -177,14 +177,14 @@ func SetupMySQLTestDatabase(t testutils.TestingT, migrationSteps []database.Migr
 	return &MySQLTestDatabase{lock, rootVdb, t}
 }
 
-func (d *MySQLTestDatabase) Close(t testutils.TestingT) {
+func (d *MySQLTestDatabase) Close(t sktest.TestingT) {
 	assert.NoError(t, d.rootVdb.Migrate(0))
 	assert.NoError(t, d.rootVdb.Close())
 	d.lockDB.Close(t)
 }
 
 // Test wether the migration steps execute correctly.
-func testDBVersioning(t testutils.TestingT, vdb *database.VersionedDB) {
+func testDBVersioning(t sktest.TestingT, vdb *database.VersionedDB) {
 	// get the DB version
 	dbVersion, err := vdb.DBVersion()
 	assert.NoError(t, err)
@@ -200,7 +200,7 @@ func testDBVersioning(t testutils.TestingT, vdb *database.VersionedDB) {
 	assert.Equal(t, maxVersion, dbVersion)
 }
 
-func downgradeDB(t testutils.TestingT, vdb *database.VersionedDB) {
+func downgradeDB(t sktest.TestingT, vdb *database.VersionedDB) {
 	// downgrade to 0
 	err := vdb.Migrate(0)
 	assert.NoError(t, err)
