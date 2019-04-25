@@ -197,6 +197,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	commitsToRoll, err := childGitRepo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev, nextRollRev))
 	assert.NoError(t, err)
 	for _, c := range commitsToRoll {
+		mockChild.MockGetCommit(ctx, c)
 		details, err := childGitRepo.Details(ctx, c)
 		assert.NoError(t, err)
 		ts := details.Timestamp.Format("2006-01-02")

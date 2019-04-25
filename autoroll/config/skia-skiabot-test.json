@@ -18,6 +18,7 @@
   "sheriff": [
     "borenet@google.com"
   ],
+  "supportsManualRolls": true,
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "skia",

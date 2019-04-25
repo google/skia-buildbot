@@ -66,14 +66,13 @@ func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 
 type noCheckoutDEPSRepoManager struct {
 	*noCheckoutRepoManager
-	childRepo       *gitiles.Repo
-	childRepoUrl    string
-	depotTools      string
-	gclient         string
-	includeBugs     bool
-	includeLog      bool
-	nextRollCommits []*vcsinfo.LongCommit
-	parentRepoUrl   string
+	childRepo     *gitiles.Repo
+	childRepoUrl  string
+	depotTools    string
+	gclient       string
+	includeBugs   bool
+	includeLog    bool
+	parentRepoUrl string
 }
 
 // newNoCheckoutDEPSRepoManager returns a RepoManager instance which does not use
@@ -159,8 +158,23 @@ func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to, s
 	if monorailProject == "" {
 		sklog.Warningf("Found no entry in issues.REPO_PROJECT_MAPPING for %q", rm.parentRepoUrl)
 	}
+
+	nextRollCommits := make([]*vcsinfo.LongCommit, 0, len(rm.notRolledRevs))
+	found := false
+	for _, rev := range rm.notRolledRevs {
+		if rev.Id == to {
+			found = true
+		}
+		if found {
+			c, err := rm.childRepo.GetCommit(rev.Id)
+			if err != nil {
+				return "", nil, err
+			}
+			nextRollCommits = append(nextRollCommits, c)
+		}
+	}
 	logStr := ""
-	for _, c := range rm.nextRollCommits {
+	for _, c := range nextRollCommits {
 		date := c.Timestamp.Format("2006-01-02")
 		author := c.Author
 		authorSplit := strings.Split(c.Author, "(")
@@ -178,7 +192,7 @@ func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to, s
 		}
 	}
 
-	commitMsg, err := buildCommitMsg(from, to, rm.childPath, cqExtraTrybots, rm.childRepoUrl, rm.serverURL, logStr, bugs, len(rm.nextRollCommits), rm.includeLog)
+	commitMsg, err := buildCommitMsg(from, to, rm.childPath, cqExtraTrybots, rm.childRepoUrl, rm.serverURL, logStr, bugs, len(nextRollCommits), rm.includeLog)
 	if err != nil {
 		return "", nil, fmt.Errorf("Failed to build commit msg: %s", err)
 	}
@@ -264,24 +278,11 @@ func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, strat str
 	if err != nil {
 		return "", "", nil, err
 	}
-	notRolledCount := len(notRolled)
 
 	// Get the next roll revision.
 	nextRollRev, err := rm.getNextRollRev(ctx, notRolled, lastRollRev)
 	if err != nil {
 		return "", "", nil, err
-	}
-	nextRollCommits := make([]*vcsinfo.LongCommit, 0, notRolledCount)
-	found := false
-	if nextRollRev != lastRollRev {
-		for _, c := range notRolled {
-			if c.Hash == nextRollRev {
-				found = true
-			}
-			if found {
-				nextRollCommits = append(nextRollCommits, c)
-			}
-		}
 	}
 
 	// Get the list of not-yet-rolled revisions.
@@ -296,7 +297,6 @@ func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, strat str
 		})
 	}
 
-	rm.nextRollCommits = nextRollCommits
 	return lastRollRev, nextRollRev, notRolledRevs, nil
 }
 
