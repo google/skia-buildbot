@@ -25,6 +25,7 @@
 -->
 <link rel="import" href="/res/common/imp/human-date-sk.html">
 <link rel="import" href="/res/common/imp/styles-sk.html">
+<link rel="import" href="/res/common/imp/url-params-sk.html">
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
 <link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
@@ -265,6 +266,9 @@
                 <template is="dom-if" if="{{_reqHasButton(item)}}">
                   <button on-tap="_requestManualRoll" data-rev$="{{item.revision.id}}" class="requestRoll">Request Roll</button>
                 </template>
+                <template is="dom-if" if="{{_reqHasResult(item)}}">
+                  <span class$="{{_reqResultClass(item)}}">[[item.result]]</span>
+                </template>
               </div>
             </div>
           </template>
@@ -290,6 +294,7 @@
       <paper-button dialog-dismiss>Cancel</paper-button>
       <paper-button dialog-confirm>Submit</paper-button>
     </paper-dialog>
+    <url-param-sk name="tab" value="{{selectedTab}}" default="status"></url-param-sk>
   </template>
   <script>
     Polymer({
@@ -371,7 +376,6 @@
         },
         selectedTab: {
           type: String,
-          value: "status",
           observer: "tabChanged",
         },
         strategy: {
@@ -574,6 +578,21 @@
 
       _reqHasButton: function(req) {
         return !req.url && !req.status;
+      },
+
+      _reqHasResult: function(req) {
+        return !!req.result;
+      },
+
+      _reqResultClass: function(req) {
+        return {
+          "SUCCESS": "fg-success",
+          "FAILURE": "fg-failure",
+        }[req.result];
+      },
+
+      _reqResultText: function(req) {
+        return req.result;
       },
 
       _requestManualRoll: function(e) {
