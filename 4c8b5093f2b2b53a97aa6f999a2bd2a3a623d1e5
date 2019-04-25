@@ -119,6 +119,24 @@
     },
     {
       "key": {
+        "uuid": "17d26f0c_035bbf0b",
+        "filename": "autoroll/go/manual/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-25T12:15:54Z",
+      "side": 1,
+      "message": "I guess an alternative could be to change \"Timestamp\" to be \"Created\" and have Put() set that as well for new requests.",
+      "parentUuid": "a8d385b0_3da34849",
+      "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "21b09c6e_32ef9f74",
         "filename": "autoroll/go/manual/db.go",
         "patchSetId": 3
