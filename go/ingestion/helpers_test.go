@@ -9,7 +9,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -39,7 +39,7 @@ var (
 func TestGoogleStorageSource(t *testing.T) {
 	testutils.LargeTest(t)
 
-	src, err := NewGoogleStorageSource("gs-test-src", gcs.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient, nil)
+	src, err := NewGoogleStorageSource("gs-test-src", gcs_testutils.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient, nil)
 	assert.NoError(t, err)
 	testSource(t, src)
 }
@@ -47,7 +47,7 @@ func TestGoogleStorageSource(t *testing.T) {
 func TestFileSystemResultFileLocations(t *testing.T) {
 	testutils.LargeTest(t)
 
-	err := gcs.DownloadTestDataArchive(t, gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
+	err := gcs_testutils.DownloadTestDataArchive(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
@@ -59,10 +59,10 @@ func TestFileSystemResultFileLocations(t *testing.T) {
 func TestCompareSources(t *testing.T) {
 	testutils.LargeTest(t)
 
-	gsSource, err := NewGoogleStorageSource("gs-test-src", gcs.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient, nil)
+	gsSource, err := NewGoogleStorageSource("gs-test-src", gcs_testutils.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient, nil)
 	assert.NoError(t, err)
 
-	err = gcs.DownloadTestDataArchive(t, gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
+	err = gcs_testutils.DownloadTestDataArchive(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 

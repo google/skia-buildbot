@@ -22,7 +22,7 @@ import (
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools"
-	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -648,7 +648,7 @@ func main() {
 	}
 
 	storageClient, err := storage.NewClient(ctx, option.WithTokenSource(tokenSource))
-	diagClient := gcs.NewGCSClient(storageClient, *diagnosticsBucket)
+	diagClient := gcsclient.New(storageClient, *diagnosticsBucket)
 	diagInstance := *pubsubTopicSet
 
 	// Find depot_tools.
