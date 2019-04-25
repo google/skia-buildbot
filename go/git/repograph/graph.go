@@ -15,6 +15,7 @@ import (
 
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -232,6 +233,7 @@ func (r *Graph) Len() int {
 // addCommit adds the given commit to the Graph. Requires that the commit's
 // parents are already in the Graph. Assumes that the caller holds r.graphMtx.
 func (r *Graph) addCommit(lc *vcsinfo.LongCommit) error {
+	defer metrics2.FuncTimer().Stop()
 	maxParentHistoryLen := 0
 	var parents []*Commit
 	if len(lc.Parents) > 0 {
@@ -353,6 +355,7 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 
 	// Add newCommits in reverse order to ensure that all parents are added
 	// before their children.
+	sklog.Info("  Adding commits...")
 	addedCommits := make([]*vcsinfo.LongCommit, 0, len(newCommits))
 	for i := len(newCommits) - 1; i >= 0; i-- {
 		commit := newCommits[i]
@@ -396,6 +399,7 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 
 	// Update the rest of the Graph.
 	r.branches = newBranchesList
+	sklog.Info("  Finished update.")
 	return addedCommits, removedCommits, nil
 }
 
@@ -405,6 +409,7 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 func (r *Graph) update(ctx context.Context, cb func(*Graph) error) ([]*vcsinfo.LongCommit, []*vcsinfo.LongCommit, error) {
 	r.updateMtx.Lock()
 	defer r.updateMtx.Unlock()
+	defer metrics2.FuncTimer().Stop()
 	newGraph := r.shallowCopy()
 	added, removed, err := newGraph.updateFrom(ctx, r.repoImpl)
 	if err != nil {
