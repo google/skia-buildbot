@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9b46c350_6120a711",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-25T15:01:34Z",
+      "side": 1,
+      "message": "Just picked it arbitrarily, based on:\n- Normally we have fewer than 20 or so not-yet-rolled revisions\n- We probably won\u0027t (shouldn\u0027t, anyway) request manual rolls for every not-yet-rolled revision\n\nPossible alternatives:\n\n1. Make the limit equal to len(status.NotRolledRevisions), based on the fact that we don\u0027t care about manual rolls to past revisions (those aren\u0027t displayed on the UI; whether we want to support that in the future is a potential question), and that we probably won\u0027t have multiple manual rolls to the same revision.\n2. Just load the unfinished requests here, rather than a number of recent rolls.\n3. Only load requests which are associated with one of the NotRolledRevisions.",
+      "parentUuid": "a9afeed5_21ad685b",
+      "range": {
+        "startLine": 209,
+        "startChar": 70,
+        "endLine": 209,
+        "endChar": 95
+      },
+      "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b03faabb_32eb323c",
         "filename": "autoroll/go/autoroll-fe/main.go",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2019-04-25T14:38:00Z",
       "side": 1,
       "message": "Do we want to request manualRequests only if this is true? same in db.go",
+      "range": {
+        "startLine": 217,
+        "startChar": 16,
+        "endLine": 217,
+        "endChar": 35
+      },
+      "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21031f37_961bf13d",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-25T15:01:34Z",
+      "side": 1,
+      "message": "Good call, done.",
+      "parentUuid": "b03faabb_32eb323c",
       "range": {
         "startLine": 217,
         "startChar": 16,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "4d15db05_54ffbac9",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 405,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-25T15:01:34Z",
+      "side": 1,
+      "message": "Yes, Firestore uses the same scope.",
+      "parentUuid": "4215ab68_a4ea4ad8",
+      "range": {
+        "startLine": 405,
+        "startChar": 74,
+        "endLine": 405,
+        "endChar": 98
+      },
+      "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e0730bd4_ec58be8b",
         "filename": "autoroll/go/manual/db.go",
         "patchSetId": 5
@@ -91,6 +163,30 @@
       "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c79fb61b_cb7aa22e",
+        "filename": "autoroll/go/manual/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-25T15:01:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e0730bd4_ec58be8b",
+      "range": {
+        "startLine": 263,
+        "startChar": 4,
+        "endLine": 263,
+        "endChar": 35
+      },
+      "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "ef565bcf_d67f26cd",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-25T15:01:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "de372e32_053bbf16",
+      "range": {
+        "startLine": 61,
+        "startChar": 1,
+        "endLine": 61,
+        "endChar": 12
+      },
+      "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4c0c99b4_3b3681de",
         "filename": "autoroll/res/imp/arb-status-sk.html",
         "patchSetId": 5
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "e7e723fb_7a84367b",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-25T15:01:34Z",
+      "side": 1,
+      "message": "Changed to not disable this tab, since that didn\u0027t work well anyway.  Instead, the tab shows a message indicating that the config can be updated if the roller doesn\u0027t support manual rolls.",
+      "parentUuid": "4c0c99b4_3b3681de",
+      "range": {
+        "startLine": 90,
+        "startChar": 80,
+        "endLine": 90,
+        "endChar": 81
+      },
+      "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1f306f05_05acc8fa",
         "filename": "go/firestore/firestore.go",
         "patchSetId": 5
@@ -151,6 +295,30 @@
       "writtenOn": "2019-04-25T14:38:00Z",
       "side": 1,
       "message": "Nit: start doc with function name",
+      "range": {
+        "startLine": 80,
+        "startChar": 3,
+        "endLine": 80,
+        "endChar": 6
+      },
+      "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57ea23b8_f1d988f7",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-25T15:01:34Z",
+      "side": 1,
+      "message": "Done, although I\u0027m not a big fan of enforcing that rule, because it often leads to docstrings like, \"FixTimestamp fixes the given timestamp\".",
+      "parentUuid": "1f306f05_05acc8fa",
       "range": {
         "startLine": 80,
         "startChar": 3,
