@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "cab4e5f0_047971cb",
+        "filename": "autoroll/go/manual/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-25T12:14:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3b31e94e_3cc46815",
+      "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "54b5d483_9f08bec0",
         "filename": "autoroll/go/manual/db.go",
         "patchSetId": 3
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "3b2aafa0_33148df2",
+        "filename": "autoroll/go/manual/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-25T12:14:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "54b5d483_9f08bec0",
+      "range": {
+        "startLine": 178,
+        "startChar": 1,
+        "endLine": 178,
+        "endChar": 7
+      },
+      "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cd6e0579_8b93746a",
         "filename": "autoroll/go/manual/db.go",
         "patchSetId": 3
@@ -53,6 +95,24 @@
       "writtenOn": "2019-04-25T00:20:49Z",
       "side": 1,
       "message": "Do you need \"fixTimestamp(req.Timestamp)\"?",
+      "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8d385b0_3da34849",
+        "filename": "autoroll/go/manual/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-25T12:14:59Z",
+      "side": 1,
+      "message": "Moved that function from task_scheduler/go/db/firestore into go/firestore and reused it in this package.  I changed Validate() to assert that req.Timestamp \u003d\u003d firestore.FixTimestamp(req.Timestamp).  Downside is that the autoroll frontend now has to call firestore.FixTimestamp(), but that\u0027s not so terrible.",
+      "parentUuid": "cd6e0579_8b93746a",
       "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -76,6 +136,24 @@
     },
     {
       "key": {
+        "uuid": "ec5d0d86_677ae8c3",
+        "filename": "autoroll/go/manual/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-25T12:14:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "21b09c6e_32ef9f74",
+      "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "19b53f3b_c5f599fd",
         "filename": "autoroll/go/roller/autoroller.go",
         "patchSetId": 3
@@ -93,6 +171,24 @@
     },
     {
       "key": {
+        "uuid": "fc95a007_67b8d4ff",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-25T12:14:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "19b53f3b_c5f599fd",
+      "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2b4d26a8_c448b1a9",
         "filename": "autoroll/go/roller/autoroller.go",
         "patchSetId": 3
@@ -107,6 +203,24 @@
       "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "82daf89c_872f55b5",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 657,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-25T12:14:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2b4d26a8_c448b1a9",
+      "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -130,6 +244,30 @@
       "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "26246e98_862890fa",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 663,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-25T12:14:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a5fb602_e8412956",
+      "range": {
+        "startLine": 663,
+        "startChar": 60,
+        "endLine": 663,
+        "endChar": 61
+      },
+      "revId": "4c8b5093f2b2b53a97aa6f999a2bd2a3a623d1e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
