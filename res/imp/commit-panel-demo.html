@@ -9,6 +9,67 @@
   <link rel=import href="/res/imp/bower_components/polymer/polymer.html">
   <link rel=import href="commit-panel.html">
   <link rel=import href="error-toast-sk.html">
+  <script src="/res/js/common.js"></script>
+  <script src="bower_components/sinonjs/sinon.js"></script>
+
+  <script>
+    // We have a /json/gitlog that offers a subset of gittile's API
+    //
+    // Gittiles would return something like:
+    // {
+    //   "commit": "bb886749feb444edfd8fbf053a9ea815e3605f8a",
+    //   "tree": "9e706bbbffd860ee22390c3599ebb32154ad596f",
+    //   "parents": [
+    //     "e02716908fe82c7c4ae9b415793277620a22bcd6"
+    //   ],
+    //   "author": {
+    //     "name": "reed",
+    //     "email": "reed@chromium.org",
+    //     "time": "Sat Aug 15 07:42:31 2015 -0700"
+    //   },
+    //   "committer": {
+    //     "name": "Commit bot",
+    //     "email": "commit-bot@chromium.org",
+    //     "time": "Sat Aug 15 07:42:31 2015 -0700"
+    //   },
+    //   "message": "Fetched because origin was set"
+    // },
+    // for a given commit. The structure below reflects what
+    // /json/gitlog returns (since we only need the message)
+    var remoteCommitInfo = {
+      log: [
+        {
+          "commit": "bb886749feb444edfd8fbf053a9ea815e3605f8a",
+          "message": "Fetched because origin was set"
+        },
+        {
+          "commit": "e02716908fe82c7c4ae9b415793277620a22bcd6",
+          "message": "Not from googlesource, the default behavior"
+        }
+      ]
+    };
+
+    var server = sinon.fakeServer.create();
+
+    // Let the requests to http://skia.googlesource go through to do a real request.
+    sinon.FakeXMLHttpRequest.useFilters = true;
+    sinon.FakeXMLHttpRequest.addFilter(function(method, url, async, username, password) {
+      return url.startsWith("http");
+    });
+
+
+    server.autoRespond = true;
+    server.autoRespondAfter = 1000;
+
+    server.respondWith("GET", /\/json\/gitlog.*/, function(request) {
+      console.log("Called  " + JSON.stringify(request));
+      request.respond(200, {"Content-Type":"application/json"},
+        JSON.stringify(remoteCommitInfo));
+    });
+
+  </script>
+
+
   <style type="text/css" media="screen">
     body {
       font-family:Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
@@ -35,6 +96,10 @@
   <h2>Allow selections</h2>
   <commits-panel-sk mailbox=foo selection id=panel3></commits-panel-sk>
 
+  <br>
+  <h2>Origin repo</h2>
+  <commits-panel-sk commits=foo id=panel4 origin></commits-panel-sk>
+
   <script type="text/javascript" charset="utf-8">
     var commitinfo = [
       {
@@ -52,6 +117,8 @@
     ]
     sk.Mailbox.send("commits", commitinfo);
     $$$('#panel2').setCommitInfo(commitinfo);
+
+    $$$('#panel4').setCommitInfo(commitinfo);
   </script>
 
   <error-toast-sk></error-toast-sk>

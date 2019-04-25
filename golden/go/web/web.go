@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -51,6 +52,8 @@ type WebHandlers struct {
 	Indexer       *indexer.Indexer
 	IssueTracker  issues.IssueTracker
 	SearchAPI     *search.SearchAPI
+
+	messageCache sync.Map // maps hash -> commit message
 }
 
 // TODO(stephana): once the byBlameHandler is removed, refactor this to
@@ -934,7 +937,9 @@ func (wh *WebHandlers) JsonParamsHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-// JsonParamsHandler returns the most current commits.
+// JsonParamsHandler returns the commits from the most recent tile.
+// Note that this returns things of tiling.Commit, which lacks information
+// like the message. For a fuller commit, see JsonGitLogHandler.
 func (wh *WebHandlers) JsonCommitsHandler(w http.ResponseWriter, r *http.Request) {
 	cpxTile, err := wh.Storages.GetLastTileTrimmed()
 	if err != nil {
@@ -943,6 +948,105 @@ func (wh *WebHandlers) JsonCommitsHandler(w http.ResponseWriter, r *http.Request
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(cpxTile.DataCommits()); err != nil {
+		sklog.Errorf("Failed to write or encode result: %s", err)
+	}
+}
+
+// gitLog is a struct to mimic the return value of googlesource (see JsonGitLogHandler)
+type gitLog struct {
+	Log []commitInfo `json:"log"`
+}
+
+// commitInfo is a simplified view of a commit. The author and timestamp should
+// already be on the frontend, as those are stored in tiling.Commit but Message
+// is not, so it needs to be provided in this struct.
+type commitInfo struct {
+	Commit  string `json:"commit"`
+	Message string `json:"message"`
+}
+
+// JsonGitLogHandler takes a request with a start and end commit and returns
+// an array of commit hashes and messages similar to the JSON googlesource would
+// return for a query like:
+// https://chromium.googlesource.com/chromium/src/+log/[start]~1..[end]
+// Essentially, we just need the commit Subject for each of the commits,
+// although this could easily be expanded to have more of the commit info.
+func (wh *WebHandlers) JsonGitLogHandler(w http.ResponseWriter, r *http.Request) {
+	// We have start and end as request params
+	p := r.URL.Query()
+	startHashes := p["start"] // the oldest commit
+	endHashes := p["end"]     // the newest commit
+	if len(startHashes) == 0 || len(endHashes) == 0 {
+		http.Error(w, "must supply a start and end hash", http.StatusBadRequest)
+		return
+	}
+	start := startHashes[0]
+	end := endHashes[0]
+	ctx := r.Context()
+
+	details, err := wh.Storages.VCS.DetailsMulti(ctx, []string{start, end}, false)
+	if err != nil || len(details) < 2 || details[0] == nil || details[1] == nil {
+		sklog.Infof("Invalid gitlog request start=%s end=%s: %#v %v", start, end, details, err)
+		http.Error(w, "invalid start or end hash", http.StatusBadRequest)
+		return
+	}
+
+	first, second := details[0].Timestamp, details[1].Timestamp
+	// Add one nanosecond because range is exclusive on the end and we want to include that last commit
+	indexCommits := wh.Storages.VCS.Range(first, second.Add(time.Nanosecond))
+	if indexCommits == nil {
+		// indexCommit should never be nil, but just in case...
+		http.Error(w, "no commits found between hashes", http.StatusBadRequest)
+		return
+	}
+
+	hashes := make([]string, 0, len(indexCommits))
+	for _, c := range indexCommits {
+		hashes = append(hashes, c.Hash)
+	}
+
+	// Check the cache first, before making a query to DetailsMulti
+	// DetailsMulti can take over 500ms for large ranges (e.g. 100+ commits)
+	// So the cache helps keep latency low
+	toLookUp := []string{}
+	ci := make([]commitInfo, 0, len(hashes))
+	for _, h := range hashes {
+		if m, ok := wh.messageCache.Load(h); ok {
+			ci = append(ci, commitInfo{
+				Commit:  h,
+				Message: m.(string),
+			})
+		} else {
+			toLookUp = append(toLookUp, h)
+		}
+	}
+
+	if len(toLookUp) > 0 {
+		sklog.Debugf("Looking up commit data for %d hashes %q", len(toLookUp), toLookUp)
+
+		commits, err := wh.Storages.VCS.DetailsMulti(ctx, toLookUp, false)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to look up commit data.")
+			return
+		}
+
+		sklog.Debugf("Looking up complete")
+
+		for _, c := range commits {
+			wh.messageCache.Store(c.Hash, c.Subject)
+			ci = append(ci, commitInfo{
+				Commit:  c.Hash,
+				Message: c.Subject,
+			})
+		}
+	}
+
+	val := gitLog{
+		Log: ci,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(val); err != nil {
 		sklog.Errorf("Failed to write or encode result: %s", err)
 	}
 }

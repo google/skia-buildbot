@@ -1,6 +1,9 @@
 <!-- The <commits-panel-sk> custom element declaration.
 
-  An element to display information on one or more commits.
+  An element to display information on one or more commits. There is some added complexity
+  because the tiles storing commits do not keep track of the commit message. Thus,
+  this element will make an XHR to the repo (or the server, see origin) for the
+  commit message of a given commit.
 
   Attributes:
     progress - Boolean, if true then display the percent complete
@@ -21,8 +24,11 @@
     commitinfo - A list of commits that are passed to setCommitInfo (see below).
            This is the direct way to set commits.
 
+    origin - a Boolean, if true, indicates the base server should be queried for the commit
+             messages instead of the repo. This can help prevent CORS errors.
+
   Methods:
-    setCommitInfo - Sets the commit info, an array of *types.Commit. See the
+    setCommitInfo - Sets the commit info, an array of *tiling.Commit. See the
       description for the commits Mailbox for more details.
 
     selectHash - Forces the selection of the given hash.
@@ -39,7 +45,7 @@
   Mailboxes:
     commits - The sk.Mailbox name to listen for the data to populate
       the element. The mailbox data needs to be a serialized slice
-      of []*types.Commit. If not set then the data must be supplied
+      of []*tiling.Commit. If not set then the data must be supplied
       by the setCommitInfo method.
 
         [
@@ -127,6 +133,12 @@
           value: "https://skia.googlesource.com/skia",
           notify: true
         },
+
+        origin: {
+          type: Boolean,
+          value: false
+        },
+
         commitinfo: {
           type: Array,
           value: null,
@@ -194,16 +206,19 @@
           var lastHash = this._commitinfo[0].hash;
           this._firstHash = this._commitinfo[this._commitinfo.length - 1].hash;
           if (!this._commitinfo[0].message) {
-            var url = this.repo + '/+log/' + this._firstHash + '~' + 1 + '..' + lastHash + '?format=json';
+            var url = this._getCommitRangeURL(this._firstHash, lastHash);
             // The git hashes are in time order, but not contiguous, so request
             // the log range and them populate messages by matching git hashes.
             sk.get(url).then(this._removeSecurityHeader).then(JSON.parse).then(function (json) {
               var len = this._commitinfo.length;
+
               for (var i = 0; i < json.log.length; i++) {
                 var commit = json.log[i].commit;
-                // The git hash of this log meesage.
+
+                // Fill out the messages, matching the hashes of the commits in the JSON
+                // to what we have in _commitinfo.
                 for (var j = 0; j < len; j++) {
-                  if (this._commitinfo[j].hash == commit) {
+                  if (this._commitinfo[j].hash === commit) {
                     this.set('_commitinfo.'+j+'.message', json.log[i].message.slice(0, 60));
                     break;
                   }
@@ -236,11 +251,23 @@
         }
       },
 
+      // _getCommitRangeURL returns the URL to retreive a commit range between
+      // startHash and endHash, inclusive on both ends.
+      _getCommitRangeURL: function(startHash, endHash) {
+        if (this.origin) {
+          return '/json/gitlog?start=' + startHash + '&end=' + endHash;
+        }
+        return this.repo + '/+log/' + startHash + '~' + 1 + '..' + endHash + '?format=json';
+      },
+
       // _removeSecurityHeader strips the first 4 chars from the input. Needed
       // since googlesource.com prefixes all JSON responses with )]}' as an
       // XSS defense.
       _removeSecurityHeader: function (s) {
-        return s.slice(4, s.length);
+        if (s.startsWith(")]}'")) {
+          return s.slice(4, s.length);
+        }
+        return s;
       },
 
       _commitPercent: function (p) {

@@ -381,7 +381,7 @@ func ReportError(w http.ResponseWriter, r *http.Request, err error, message stri
 		if message == "" {
 			httpErrMsg = "Unknown error"
 		}
-		http.Error(w, httpErrMsg, 500)
+		http.Error(w, httpErrMsg, http.StatusInternalServerError)
 	}
 }
 

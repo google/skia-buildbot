@@ -289,6 +289,8 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 	// Load new commits.
 	var newCommits []*vcsinfo.LongCommit
 	sklog.Infof("  Loading commits...")
+	defer sklog.Infof("Done loading repograph.Graph")
+
 	needOrphanCheck := false
 	for _, branch := range newBranchesList {
 		newHead := newBranchesMap[branch.Name]
