@@ -984,69 +984,94 @@ func (wh *WebHandlers) JsonGitLogHandler(w http.ResponseWriter, r *http.Request)
 	end := endHashes[0]
 	ctx := r.Context()
 
-	details, err := wh.Storages.VCS.DetailsMulti(ctx, []string{start, end}, false)
-	if err != nil || len(details) < 2 || details[0] == nil || details[1] == nil {
-		sklog.Infof("Invalid gitlog request start=%s end=%s: %#v %v", start, end, details, err)
-		http.Error(w, "invalid start or end hash", http.StatusBadRequest)
-		return
-	}
+	rv := gitLog{}
 
-	first, second := details[0].Timestamp, details[1].Timestamp
-	// Add one nanosecond because range is exclusive on the end and we want to include that last commit
-	indexCommits := wh.Storages.VCS.Range(first, second.Add(time.Nanosecond))
-	if indexCommits == nil {
-		// indexCommit should never be nil, but just in case...
-		http.Error(w, "no commits found between hashes", http.StatusBadRequest)
-		return
-	}
-
-	hashes := make([]string, 0, len(indexCommits))
-	for _, c := range indexCommits {
-		hashes = append(hashes, c.Hash)
-	}
-
-	// Check the cache first, before making a query to DetailsMulti
-	// DetailsMulti can take over 500ms for large ranges (e.g. 100+ commits)
-	// So the cache helps keep latency low
-	toLookUp := []string{}
-	ci := make([]commitInfo, 0, len(hashes))
-	for _, h := range hashes {
-		if m, ok := wh.messageCache.Load(h); ok {
-			ci = append(ci, commitInfo{
-				Commit:  h,
+	if start == end {
+		// Single commit
+		ci := make([]commitInfo, 1)
+		if m, ok := wh.messageCache.Load(start); ok {
+			ci[0] = commitInfo{
+				Commit:  start,
 				Message: m.(string),
-			})
+			}
 		} else {
-			toLookUp = append(toLookUp, h)
+			// cache miss
+			c, err := wh.Storages.VCS.Details(ctx, start, false)
+			if err != nil || c == nil {
+				sklog.Infof("Could not find commit with hash %s: %v", start, err)
+				http.Error(w, "invalid start and end hash", http.StatusBadRequest)
+				return
+			}
+			wh.messageCache.Store(c.Hash, c.Subject)
+			ci[0] = commitInfo{
+				Commit:  c.Hash,
+				Message: c.Subject,
+			}
 		}
-	}
-
-	if len(toLookUp) > 0 {
-		sklog.Debugf("Looking up commit data for %d hashes %q", len(toLookUp), toLookUp)
-
-		commits, err := wh.Storages.VCS.DetailsMulti(ctx, toLookUp, false)
-		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to look up commit data.")
+		rv.Log = ci
+	} else {
+		// range of commits
+		details, err := wh.Storages.VCS.DetailsMulti(ctx, []string{start, end}, false)
+		if err != nil || len(details) < 2 || details[0] == nil || details[1] == nil {
+			sklog.Infof("Invalid gitlog request start=%s end=%s: %#v %v", start, end, details, err)
+			http.Error(w, "invalid start or end hash", http.StatusBadRequest)
 			return
 		}
 
-		sklog.Debugf("Looking up complete")
-
-		for _, c := range commits {
-			wh.messageCache.Store(c.Hash, c.Subject)
-			ci = append(ci, commitInfo{
-				Commit:  c.Hash,
-				Message: c.Subject,
-			})
+		first, second := details[0].Timestamp, details[1].Timestamp
+		// Add one nanosecond because range is exclusive on the end and we want to include that last commit
+		indexCommits := wh.Storages.VCS.Range(first, second.Add(time.Nanosecond))
+		if indexCommits == nil {
+			// indexCommit should never be nil, but just in case...
+			http.Error(w, "no commits found between hashes", http.StatusBadRequest)
+			return
 		}
-	}
 
-	val := gitLog{
-		Log: ci,
+		hashes := make([]string, 0, len(indexCommits))
+		for _, c := range indexCommits {
+			hashes = append(hashes, c.Hash)
+		}
+
+		// Check the cache first, before making a query to DetailsMulti
+		// DetailsMulti can take over 500ms for large ranges (e.g. 100+ commits)
+		// So the cache helps keep latency low
+		toLookUp := []string{}
+		ci := make([]commitInfo, 0, len(hashes))
+		for _, h := range hashes {
+			if m, ok := wh.messageCache.Load(h); ok {
+				ci = append(ci, commitInfo{
+					Commit:  h,
+					Message: m.(string),
+				})
+			} else {
+				toLookUp = append(toLookUp, h)
+			}
+		}
+
+		if len(toLookUp) > 0 {
+			sklog.Debugf("Looking up commit data for %d hashes %q", len(toLookUp), toLookUp)
+
+			commits, err := wh.Storages.VCS.DetailsMulti(ctx, toLookUp, false)
+			if err != nil {
+				httputils.ReportError(w, r, err, "Failed to look up commit data.")
+				return
+			}
+
+			sklog.Debugf("Looking up complete")
+
+			for _, c := range commits {
+				wh.messageCache.Store(c.Hash, c.Subject)
+				ci = append(ci, commitInfo{
+					Commit:  c.Hash,
+					Message: c.Subject,
+				})
+			}
+		}
+		rv.Log = ci
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(val); err != nil {
+	if err := json.NewEncoder(w).Encode(rv); err != nil {
 		sklog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
