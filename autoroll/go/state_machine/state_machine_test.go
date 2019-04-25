@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -323,7 +324,7 @@ func setup(t *testing.T) (context.Context, *AutoRollStateMachine, *TestAutoRolle
 	testutils.MediumTest(t)
 
 	ctx := context.Background()
-	gcsClient := gcs.NewMemoryGCSClient("test-bucket")
+	gcsClient := test_gcsclient.NewMemoryClient("test-bucket")
 	rollerImpl := NewTestAutoRollerImpl(t, ctx, gcsClient)
 	n, err := notifier.New(ctx, "fake", "fake", "fake", nil, nil, nil)
 	assert.NoError(t, err)

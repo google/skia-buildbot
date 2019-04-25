@@ -12,7 +12,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -133,7 +133,7 @@ func getTargetDigests(t assert.TestingT, q *Query, tile *tiling.Tile, exp types.
 }
 
 func getStoragesIndexTile(t *testing.T, bucket, storagePath, outputPath string, randomize bool) (*storage.Storage, *indexer.SearchIndex, *tiling.Tile, *indexer.Indexer) {
-	err := gcs.DownloadTestDataFile(t, bucket, storagePath, outputPath)
+	err := gcs_testutils.DownloadTestDataFile(t, bucket, storagePath, outputPath)
 	assert.NoError(t, err, "Unable to download testdata.")
 	return getStoragesAndIndexerFromTile(t, outputPath, randomize)
 }

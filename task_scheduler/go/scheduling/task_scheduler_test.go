@@ -21,7 +21,7 @@ import (
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/deepequal"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
-	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -217,7 +217,7 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *sw
 	assert.NoError(t, err)
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
 	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, nil, gcs.NewMemoryGCSClient("diag_unit_tests"), btInstance)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, nil, test_gcsclient.NewMemoryClient("diag_unit_tests"), btInstance)
 	assert.NoError(t, err)
 	return ctx, gb, d, swarmingClient, s, urlMock, func() {
 		testutils.AssertCloses(t, s)
@@ -2360,7 +2360,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
 	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, nil, gcs.NewMemoryGCSClient("diag_unit_tests"), btInstance)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, nil, test_gcsclient.NewMemoryClient("diag_unit_tests"), btInstance)
 	assert.NoError(t, err)
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
