@@ -16,6 +16,24 @@
       "revId": "50bf8cc000cc805acb9ede83374c8b560668f278",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b5f13e6_647c305e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-25T19:31:05Z",
+      "side": 1,
+      "message": "I\u0027m ok with keeping package name and directory name the same.",
+      "parentUuid": "23eebb19_943dc316",
+      "revId": "50bf8cc000cc805acb9ede83374c8b560668f278",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
