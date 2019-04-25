@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ca153b9_2fd291f9",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 989,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-25T16:49:25Z",
+      "side": 1,
+      "message": "err could be nil here, so %v is a better fit IMO",
+      "parentUuid": "12512da2_3ac387bd",
+      "range": {
+        "startLine": 989,
+        "startChar": 59,
+        "endLine": 989,
+        "endChar": 61
+      },
+      "revId": "1c22ab4b505095506abafe40c89a9ebfb71c399d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7f6d271a_d668de4b",
         "filename": "golden/go/web/web.go",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "1c22ab4b505095506abafe40c89a9ebfb71c399d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c9031d3_8c674258",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 997,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-25T16:49:25Z",
+      "side": 1,
+      "message": "len(indexCommits) could be 0 on a regular basis, e.g. when the UI queries something where start \u003e end. In that case, I don\u0027t want to return 400 - but an empty array.  I\u0027m not quite sure why the UI does that, but I\u0027d rather replicate existing behavior than try to open that can of worms quite yet.",
+      "parentUuid": "7f6d271a_d668de4b",
+      "range": {
+        "startLine": 997,
+        "startChar": 4,
+        "endLine": 997,
+        "endChar": 23
+      },
+      "revId": "1c22ab4b505095506abafe40c89a9ebfb71c399d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "e925bffb_3dbc4985",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1004,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-25T16:49:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9837eeac_d306d3fa",
+      "range": {
+        "startLine": 1003,
+        "startChar": 0,
+        "endLine": 1004,
+        "endChar": 63
+      },
+      "revId": "1c22ab4b505095506abafe40c89a9ebfb71c399d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "851a7523_75d5aa69",
         "filename": "golden/go/web/web.go",
         "patchSetId": 7
@@ -91,6 +163,30 @@
       "revId": "1c22ab4b505095506abafe40c89a9ebfb71c399d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4fc93f7e_bd740544",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1038,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-25T16:49:25Z",
+      "side": 1,
+      "message": "I believe so - the memory usage shouldn\u0027t be that high. If it becomes an issue, we can turn it into a large LRU or something.",
+      "parentUuid": "851a7523_75d5aa69",
+      "range": {
+        "startLine": 1038,
+        "startChar": 3,
+        "endLine": 1038,
+        "endChar": 24
+      },
+      "revId": "1c22ab4b505095506abafe40c89a9ebfb71c399d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
