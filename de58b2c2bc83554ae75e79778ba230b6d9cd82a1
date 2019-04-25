@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a5ca1e1a_86af4200",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-25T21:38:00Z",
+      "side": 1,
+      "message": "Thanks for fixing this. \n\nif commits[0] \u003d\u003d nil {\n\nis actually enough, because Get guarantees that the the returned array \nis always the same length as the input array.",
+      "range": {
+        "startLine": 178,
+        "startChar": 4,
+        "endLine": 178,
+        "endChar": 44
+      },
+      "revId": "de58b2c2bc83554ae75e79778ba230b6d9cd82a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
