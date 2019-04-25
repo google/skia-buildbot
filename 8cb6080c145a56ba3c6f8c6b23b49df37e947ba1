@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a9afeed5_21ad685b",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-25T14:38:00Z",
+      "side": 1,
+      "message": "Curious why this is 10 (seems low)",
+      "range": {
+        "startLine": 209,
+        "startChar": 70,
+        "endLine": 209,
+        "endChar": 95
+      },
+      "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b03faabb_32eb323c",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-25T14:38:00Z",
+      "side": 1,
+      "message": "Do we want to request manualRequests only if this is true? same in db.go",
+      "range": {
+        "startLine": 217,
+        "startChar": 16,
+        "endLine": 217,
+        "endChar": 35
+      },
+      "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4215ab68_a4ea4ad8",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 405,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-25T14:38:00Z",
+      "side": 1,
+      "message": "I guess this scope is sufficient for firestore as well.",
+      "range": {
+        "startLine": 405,
+        "startChar": 74,
+        "endLine": 405,
+        "endChar": 98
+      },
+      "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "de372e32_053bbf16",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-25T14:38:00Z",
+      "side": 1,
+      "message": "manualRollDB ? (same below)",
+      "range": {
+        "startLine": 61,
+        "startChar": 1,
+        "endLine": 61,
+        "endChar": 12
+      },
+      "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c0c99b4_3b3681de",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-25T14:38:00Z",
+      "side": 1,
+      "message": "I wonder if it will be useful to say \"(disabled in config)\" if !rollCandidates. Users then will know to ask to enable if they want it for their roller.",
+      "range": {
+        "startLine": 90,
+        "startChar": 80,
+        "endLine": 90,
+        "endChar": 81
+      },
+      "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1f306f05_05acc8fa",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-25T14:38:00Z",
+      "side": 1,
+      "message": "Nit: start doc with function name",
+      "range": {
+        "startLine": 80,
+        "startChar": 3,
+        "endLine": 80,
+        "endChar": 6
+      },
+      "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
