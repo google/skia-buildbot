@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "afd9b890_692faee9",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 333,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-25T16:43:11Z",
+      "side": 1,
+      "message": "My guess is that this is the slow part, due to the numerous round-trips to get each commit\u0027s parents. If there\u0027s a way to use GetMulti, that would likely be faster.",
+      "revId": "8f0d7fb5be277915afbac662f8022cf31fa08ff2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
