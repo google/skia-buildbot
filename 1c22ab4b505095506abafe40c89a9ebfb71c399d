@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "38731fca_b76e73fe",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 989,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-25T17:14:10Z",
+      "side": 1,
+      "message": "Huh, for the last 4 years I thought %v would show me the error\u0027s fields rather than the result of Error().",
+      "parentUuid": "5ca153b9_2fd291f9",
+      "range": {
+        "startLine": 989,
+        "startChar": 59,
+        "endLine": 989,
+        "endChar": 61
+      },
+      "revId": "1c22ab4b505095506abafe40c89a9ebfb71c399d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7f6d271a_d668de4b",
         "filename": "golden/go/web/web.go",
         "patchSetId": 7
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "len(indexCommits) could be 0 on a regular basis, e.g. when the UI queries something where start \u003e end. In that case, I don\u0027t want to return 400 - but an empty array.  I\u0027m not quite sure why the UI does that, but I\u0027d rather replicate existing behavior than try to open that can of worms quite yet.",
       "parentUuid": "7f6d271a_d668de4b",
+      "range": {
+        "startLine": 997,
+        "startChar": 4,
+        "endLine": 997,
+        "endChar": 23
+      },
+      "revId": "1c22ab4b505095506abafe40c89a9ebfb71c399d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d2dc6cdf_1bede46f",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 997,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-25T17:14:10Z",
+      "side": 1,
+      "message": "Why do we need this if statement at all then?",
+      "parentUuid": "5c9031d3_8c674258",
       "range": {
         "startLine": 997,
         "startChar": 4,
