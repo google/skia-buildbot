@@ -9,6 +9,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -80,7 +81,7 @@ func TestPersistentAutoDecrementCounter(t *testing.T) {
 	testutils.MediumTest(t)
 
 	ctx := context.Background()
-	gcsClient := gcs.NewMemoryGCSClient("test-bucket")
+	gcsClient := test_gcsclient.NewMemoryClient("test-bucket")
 
 	mt := newMockTime()
 	timeAfterFunc = mt.AfterFunc
