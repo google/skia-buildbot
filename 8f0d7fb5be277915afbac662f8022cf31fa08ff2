@@ -34,6 +34,24 @@
       "revId": "8f0d7fb5be277915afbac662f8022cf31fa08ff2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae03c43b_66c570e5",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 333,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-25T17:18:06Z",
+      "side": 1,
+      "message": "Oh, right. No clue what\u0027s happening.",
+      "parentUuid": "de83a78d_ddd58527",
+      "revId": "8f0d7fb5be277915afbac662f8022cf31fa08ff2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
