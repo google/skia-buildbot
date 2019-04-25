@@ -16,7 +16,7 @@ import (
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
@@ -83,7 +83,7 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 	}
 
 	fsrm := &fuchsiaSDKRepoManager{
-		gcsClient:         gcs.NewGCSClient(storageClient, FUCHSIA_SDK_GS_BUCKET),
+		gcsClient:         gcsclient.New(storageClient, FUCHSIA_SDK_GS_BUCKET),
 		gsBucket:          FUCHSIA_SDK_GS_BUCKET,
 		gsLatestPathLinux: FUCHSIA_SDK_GS_LATEST_PATH_LINUX,
 		gsLatestPathMac:   FUCHSIA_SDK_GS_LATEST_PATH_MAC,
