@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "12512da2_3ac387bd",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 989,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-25T15:16:53Z",
+      "side": 1,
+      "message": "nit: Use %s for error.",
+      "range": {
+        "startLine": 989,
+        "startChar": 59,
+        "endLine": 989,
+        "endChar": 61
+      },
+      "revId": "1c22ab4b505095506abafe40c89a9ebfb71c399d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f6d271a_d668de4b",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 997,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-25T15:16:53Z",
+      "side": 1,
+      "message": "nit: len(indexCommits) \u003d\u003d 0",
+      "range": {
+        "startLine": 997,
+        "startChar": 4,
+        "endLine": 997,
+        "endChar": 23
+      },
+      "revId": "1c22ab4b505095506abafe40c89a9ebfb71c399d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9837eeac_d306d3fa",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1004,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-25T15:16:53Z",
+      "side": 1,
+      "message": "Comment no longer applies.",
+      "range": {
+        "startLine": 1003,
+        "startChar": 0,
+        "endLine": 1004,
+        "endChar": 63
+      },
+      "revId": "1c22ab4b505095506abafe40c89a9ebfb71c399d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "851a7523_75d5aa69",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1038,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-25T15:16:53Z",
+      "side": 1,
+      "message": "Is it OK that we never remove items from the cache?",
+      "range": {
+        "startLine": 1038,
+        "startChar": 3,
+        "endLine": 1038,
+        "endChar": 24
+      },
+      "revId": "1c22ab4b505095506abafe40c89a9ebfb71c399d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
