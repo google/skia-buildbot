@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "e44aaadc_3df30562",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-25T15:18:59Z",
+      "side": 1,
+      "message": "It\u0027s not hard but would require writing another query and adding another index to the DB.  I went with #1 for now.  We\u0027ll probably have to re-evaluate in the future anyway.",
+      "parentUuid": "9cac89fd_0829d84f",
+      "range": {
+        "startLine": 209,
+        "startChar": 70,
+        "endLine": 209,
+        "endChar": 95
+      },
+      "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b03faabb_32eb323c",
         "filename": "autoroll/go/autoroll-fe/main.go",
         "patchSetId": 5
@@ -367,6 +391,30 @@
       "side": 1,
       "message": "I suggested that mainly because others have asked me to do that. Golang docs seem to use this convention though: https://golang.org/pkg/strings/#HasPrefix",
       "parentUuid": "57ea23b8_f1d988f7",
+      "range": {
+        "startLine": 80,
+        "startChar": 3,
+        "endLine": 80,
+        "endChar": 6
+      },
+      "revId": "8cb6080c145a56ba3c6f8c6b23b49df37e947ba1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8d565eed_f8b20680",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-25T15:18:59Z",
+      "side": 1,
+      "message": "Yeah, it\u0027s ubiquitous and generally good practice.  I hate reading docstrings that just repeat the function name in sentence form, but that\u0027s not necessarily because of this convention.",
+      "parentUuid": "eb734d68_30bf2094",
       "range": {
         "startLine": 80,
         "startChar": 3,
