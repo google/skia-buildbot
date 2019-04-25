@@ -9,7 +9,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -23,7 +23,7 @@ func InitTempRepo() (string, func()) {
 	return tr.Dir, tr.Cleanup
 }
 
-func TestDisplay(t testutils.TestingT, vcs vcsinfo.VCS) {
+func TestDisplay(t sktest.TestingT, vcs vcsinfo.VCS) {
 	ctx := context.Background()
 	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
 	testCases := []struct {
@@ -56,7 +56,7 @@ func TestDisplay(t testutils.TestingT, vcs vcsinfo.VCS) {
 	}
 }
 
-func TestFrom(t testutils.TestingT, vcs vcsinfo.VCS) {
+func TestFrom(t sktest.TestingT, vcs vcsinfo.VCS) {
 	// All timestamps refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
 	// The two commits in the master branch of the repo have timestamps:
 	// 1406721715 and 1406721642.
@@ -89,7 +89,7 @@ func TestFrom(t testutils.TestingT, vcs vcsinfo.VCS) {
 	}
 }
 
-func TestByIndex(t testutils.TestingT, vcs vcsinfo.VCS) {
+func TestByIndex(t sktest.TestingT, vcs vcsinfo.VCS) {
 	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
 	ctx := context.Background()
 	commit, err := vcs.ByIndex(ctx, 0)
@@ -102,7 +102,7 @@ func TestByIndex(t testutils.TestingT, vcs vcsinfo.VCS) {
 	assert.Error(t, err)
 }
 
-func TestLastNIndex(t testutils.TestingT, vcs vcsinfo.VCS) {
+func TestLastNIndex(t sktest.TestingT, vcs vcsinfo.VCS) {
 	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
 	c1 := &vcsinfo.IndexCommit{
 		Hash:      "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
@@ -142,7 +142,7 @@ func TestLastNIndex(t testutils.TestingT, vcs vcsinfo.VCS) {
 	}
 }
 
-func TestIndexOf(t testutils.TestingT, vcs vcsinfo.VCS) {
+func TestIndexOf(t sktest.TestingT, vcs vcsinfo.VCS) {
 	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
 	ctx := context.Background()
 	idx, err := vcs.IndexOf(ctx, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f")
@@ -155,7 +155,7 @@ func TestIndexOf(t testutils.TestingT, vcs vcsinfo.VCS) {
 	assert.Error(t, err)
 }
 
-func TestRange(t testutils.TestingT, vcs vcsinfo.VCS) {
+func TestRange(t sktest.TestingT, vcs vcsinfo.VCS) {
 	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
 	ts1 := time.Unix(1406721642, 0).UTC()
 	ts2 := time.Unix(1406721715, 0).UTC()

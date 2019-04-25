@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -24,11 +25,11 @@ type MockGerrit struct {
 	Gerrit    *gerrit.Gerrit
 	Mock      *mockhttpclient.URLMock
 	isAndroid bool
-	t         testutils.TestingT
+	t         sktest.TestingT
 }
 
 // NewGerrit returns a mocked Gerrit instance.
-func NewGerrit(t testutils.TestingT, workdir string, isAndroid bool) *MockGerrit {
+func NewGerrit(t sktest.TestingT, workdir string, isAndroid bool) *MockGerrit {
 	gitcookies := path.Join(workdir, "gitcookies_fake")
 	testutils.WriteFile(t, gitcookies, FAKE_GITCOOKIES)
 

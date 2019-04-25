@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -32,9 +33,9 @@ const (
 //	AssertDeepEqual = deepequal.AssertDeepEqual
 //
 // This is necessary to break the hard linking of this file to the "testing" module.
-var AssertDeepEqual func(t testutils.TestingT, expected, actual interface{})
+var AssertDeepEqual func(t sktest.TestingT, expected, actual interface{})
 
-func findModifiedTasks(t testutils.TestingT, m ModifiedTasksReader, id string, expect ...*types.Task) {
+func findModifiedTasks(t sktest.TestingT, m ModifiedTasksReader, id string, expect ...*types.Task) {
 	// Note that the slice only works because we don't call
 	// TrackModifiedTask more than once for any given task,
 	// otherwise we'd have to use a map and compare DbModified.
@@ -53,7 +54,7 @@ func findModifiedTasks(t testutils.TestingT, m ModifiedTasksReader, id string, e
 	}))
 }
 
-func findModifiedJobs(t testutils.TestingT, m ModifiedJobsReader, id string, expect ...*types.Job) {
+func findModifiedJobs(t sktest.TestingT, m ModifiedJobsReader, id string, expect ...*types.Job) {
 	// Note that the slice only works because we don't call
 	// TrackModifiedJob more than once for any given job, otherwise
 	// we'd have to use a map and compare DbModified.
@@ -72,7 +73,7 @@ func findModifiedJobs(t testutils.TestingT, m ModifiedJobsReader, id string, exp
 	}))
 }
 
-func findModifiedComments(t testutils.TestingT, m ModifiedComments, id string, e1 []*types.TaskComment, e2 []*types.TaskSpecComment, e3 []*types.CommitComment) {
+func findModifiedComments(t sktest.TestingT, m ModifiedComments, id string, e1 []*types.TaskComment, e2 []*types.TaskSpecComment, e3 []*types.CommitComment) {
 	// Note that the slice only works because we don't call
 	// TrackModifiedJob more than once for any given job, otherwise
 	// we'd have to use a map and compare DbModified.
@@ -100,7 +101,7 @@ func findModifiedComments(t testutils.TestingT, m ModifiedComments, id string, e
 }
 
 // TestTaskDB performs basic tests for an implementation of TaskDB.
-func TestTaskDB(t testutils.TestingT, db TaskDB) {
+func TestTaskDB(t sktest.TestingT, db TaskDB) {
 	_, err := db.GetModifiedTasks("dummy-id")
 	assert.True(t, IsUnknownId(err))
 
@@ -251,7 +252,7 @@ func TestTaskDB(t testutils.TestingT, db TaskDB) {
 
 // Test that PutTask and PutTasks return ErrConcurrentUpdate when a cached Task
 // has been updated in the DB.
-func TestTaskDBConcurrentUpdate(t testutils.TestingT, db TaskDB) {
+func TestTaskDBConcurrentUpdate(t sktest.TestingT, db TaskDB) {
 	// Insert a task.
 	t1 := types.MakeTestTask(time.Now(), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
@@ -300,7 +301,7 @@ func TestTaskDBConcurrentUpdate(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries when no errors or retries.
-func testUpdateTasksWithRetriesSimple(t testutils.TestingT, db TaskDB) {
+func testUpdateTasksWithRetriesSimple(t sktest.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Test no-op.
@@ -352,7 +353,7 @@ func testUpdateTasksWithRetriesSimple(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries when there are some retries, but eventual success.
-func testUpdateTasksWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
+func testUpdateTasksWithRetriesSuccess(t sktest.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create and cache.
@@ -403,7 +404,7 @@ func testUpdateTasksWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries when f returns an error.
-func testUpdateTasksWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB) {
+func testUpdateTasksWithRetriesErrorInFunc(t sktest.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	myErr := fmt.Errorf("NO! Bad dog!")
@@ -427,7 +428,7 @@ func testUpdateTasksWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries when PutTasks returns an error.
-func testUpdateTasksWithRetriesErrorInPutTasks(t testutils.TestingT, db TaskDB) {
+func testUpdateTasksWithRetriesErrorInPutTasks(t sktest.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	callCount := 0
@@ -450,7 +451,7 @@ func testUpdateTasksWithRetriesErrorInPutTasks(t testutils.TestingT, db TaskDB) 
 }
 
 // Test UpdateTasksWithRetries when retries are exhausted.
-func testUpdateTasksWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
+func testUpdateTasksWithRetriesExhausted(t sktest.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create and cache.
@@ -483,7 +484,7 @@ func testUpdateTasksWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when no errors or retries.
-func testUpdateTaskWithRetriesSimple(t testutils.TestingT, db TaskDB) {
+func testUpdateTaskWithRetriesSimple(t sktest.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
@@ -515,7 +516,7 @@ func testUpdateTaskWithRetriesSimple(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when there are some retries, but eventual success.
-func testUpdateTaskWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
+func testUpdateTaskWithRetriesSuccess(t sktest.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
@@ -552,7 +553,7 @@ func testUpdateTaskWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when f returns an error.
-func testUpdateTaskWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB) {
+func testUpdateTaskWithRetriesErrorInFunc(t sktest.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
@@ -586,7 +587,7 @@ func testUpdateTaskWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when retries are exhausted.
-func testUpdateTaskWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
+func testUpdateTaskWithRetriesExhausted(t sktest.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
@@ -625,7 +626,7 @@ func testUpdateTaskWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when the given ID is not found in the DB.
-func testUpdateTaskWithRetriesTaskNotFound(t testutils.TestingT, db TaskDB) {
+func testUpdateTaskWithRetriesTaskNotFound(t sktest.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Assign ID for a task, but don't put it in the DB.
@@ -650,7 +651,7 @@ func testUpdateTaskWithRetriesTaskNotFound(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries and UpdateTaskWithRetries.
-func TestUpdateTasksWithRetries(t testutils.TestingT, db TaskDB) {
+func TestUpdateTasksWithRetries(t sktest.TestingT, db TaskDB) {
 	testUpdateTasksWithRetriesSimple(t, db)
 	testUpdateTasksWithRetriesSuccess(t, db)
 	testUpdateTasksWithRetriesErrorInFunc(t, db)
@@ -664,7 +665,7 @@ func TestUpdateTasksWithRetries(t testutils.TestingT, db TaskDB) {
 }
 
 // TestJobDB performs basic tests on an implementation of JobDB.
-func TestJobDB(t testutils.TestingT, db JobDB) {
+func TestJobDB(t sktest.TestingT, db JobDB) {
 	_, err := db.GetModifiedJobs("dummy-id")
 	assert.True(t, IsUnknownId(err))
 
@@ -809,7 +810,7 @@ func TestJobDB(t testutils.TestingT, db JobDB) {
 }
 
 // Test that a JobDB properly tracks its maximum number of users.
-func TestJobDBTooManyUsers(t testutils.TestingT, db JobDB) {
+func TestJobDBTooManyUsers(t sktest.TestingT, db JobDB) {
 	// Max out the number of modified-jobs users; ensure that we error out.
 	for i := 0; i < MAX_MODIFIED_DATA_USERS; i++ {
 		_, err := db.StartTrackingModifiedJobs()
@@ -821,7 +822,7 @@ func TestJobDBTooManyUsers(t testutils.TestingT, db JobDB) {
 
 // Test that PutJob and PutJobs return ErrConcurrentUpdate when a cached Job
 // has been updated in the DB.
-func TestJobDBConcurrentUpdate(t testutils.TestingT, db JobDB) {
+func TestJobDBConcurrentUpdate(t sktest.TestingT, db JobDB) {
 	// Insert a job.
 	j1 := types.MakeTestJob(time.Now())
 	assert.NoError(t, db.PutJob(j1))
@@ -870,7 +871,7 @@ func TestJobDBConcurrentUpdate(t testutils.TestingT, db JobDB) {
 }
 
 // TestCommentDB validates that db correctly implements the CommentDB interface.
-func TestCommentDB(t testutils.TestingT, db CommentDB) {
+func TestCommentDB(t sktest.TestingT, db CommentDB) {
 	_, _, _, err := db.GetModifiedComments("dummy-id")
 	assert.True(t, IsUnknownId(err))
 
@@ -1106,7 +1107,7 @@ func DummyGetRevisionTimestamp(ts time.Time) GetRevisionTimestamp {
 	return func(string, string) (time.Time, error) { return ts, nil }
 }
 
-func TestTaskDBGetTasksFromDateRangeByRepo(t testutils.TestingT, db TaskDB) {
+func TestTaskDBGetTasksFromDateRangeByRepo(t sktest.TestingT, db TaskDB) {
 	r1 := common.REPO_SKIA
 	r2 := common.REPO_SKIA_INFRA
 	r3 := common.REPO_CHROMIUM
@@ -1136,7 +1137,7 @@ func TestTaskDBGetTasksFromDateRangeByRepo(t testutils.TestingT, db TaskDB) {
 	}
 }
 
-func TestTaskDBGetTasksFromWindow(t testutils.TestingT, db TaskDB) {
+func TestTaskDBGetTasksFromWindow(t sktest.TestingT, db TaskDB) {
 	now := time.Now()
 	timeWindow := 24 * time.Hour
 	// Offset commit timestamps for different repos to ensure that we get
@@ -1220,7 +1221,7 @@ func TestTaskDBGetTasksFromWindow(t testutils.TestingT, db TaskDB) {
 	test(time.Duration(0), 3, repos, 9)
 }
 
-func TestModifiedTasks(t testutils.TestingT, m ModifiedTasks) {
+func TestModifiedTasks(t sktest.TestingT, m ModifiedTasks) {
 	_, err := m.GetModifiedTasks("dummy-id")
 	assert.True(t, IsUnknownId(err))
 
@@ -1265,7 +1266,7 @@ func TestModifiedTasks(t testutils.TestingT, m ModifiedTasks) {
 
 // Test that if a Task is modified multiple times, it only appears once in the
 // result of GetModifiedTasks.
-func TestMultipleTaskModifications(t testutils.TestingT, m ModifiedTasks) {
+func TestMultipleTaskModifications(t sktest.TestingT, m ModifiedTasks) {
 	id, err := m.StartTrackingModifiedTasks()
 	assert.NoError(t, err)
 
@@ -1304,7 +1305,7 @@ func TestMultipleTaskModifications(t testutils.TestingT, m ModifiedTasks) {
 	}))
 }
 
-func TestModifiedJobs(t testutils.TestingT, m ModifiedJobs) {
+func TestModifiedJobs(t sktest.TestingT, m ModifiedJobs) {
 	_, err := m.GetModifiedJobs("dummy-id")
 	assert.True(t, IsUnknownId(err))
 
@@ -1348,7 +1349,7 @@ func TestModifiedJobs(t testutils.TestingT, m ModifiedJobs) {
 	assert.True(t, IsUnknownId(err))
 }
 
-func TestMultipleJobModifications(t testutils.TestingT, m ModifiedJobs) {
+func TestMultipleJobModifications(t sktest.TestingT, m ModifiedJobs) {
 	id, err := m.StartTrackingModifiedJobs()
 	assert.NoError(t, err)
 
@@ -1387,7 +1388,7 @@ func TestMultipleJobModifications(t testutils.TestingT, m ModifiedJobs) {
 	}))
 }
 
-func TestModifiedComments(t testutils.TestingT, m ModifiedComments) {
+func TestModifiedComments(t sktest.TestingT, m ModifiedComments) {
 	_, _, _, err := m.GetModifiedComments("dummy-id")
 	assert.True(t, IsUnknownId(err))
 
@@ -1439,7 +1440,7 @@ func TestModifiedComments(t testutils.TestingT, m ModifiedComments) {
 	assert.True(t, IsUnknownId(err))
 }
 
-func TestMultipleCommentModifications(t testutils.TestingT, m ModifiedComments) {
+func TestMultipleCommentModifications(t sktest.TestingT, m ModifiedComments) {
 	id, err := m.StartTrackingModifiedComments()
 	assert.NoError(t, err)
 
@@ -1474,7 +1475,7 @@ func TestMultipleCommentModifications(t testutils.TestingT, m ModifiedComments) 
 	}))
 }
 
-func TestUpdateDBFromSwarmingTask(t testutils.TestingT, db TaskDB) {
+func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {
 	// Create task, initialize from swarming, and save.
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &types.Task{
@@ -1568,7 +1569,7 @@ func TestUpdateDBFromSwarmingTask(t testutils.TestingT, db TaskDB) {
 	assert.True(t, lastDbModified.Equal(updatedTask.DbModified))
 }
 
-func TestUpdateDBFromSwarmingTaskTryJob(t testutils.TestingT, db TaskDB) {
+func TestUpdateDBFromSwarmingTaskTryJob(t sktest.TestingT, db TaskDB) {
 	// Create task, initialize from swarming, and save.
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &types.Task{

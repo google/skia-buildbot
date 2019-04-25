@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -116,7 +117,7 @@ func TestAssertJSONRoundTrip(t *testing.T) {
 	type Unencodable struct {
 		Unsupported map[Success]struct{} `json:"unsupported"`
 	}
-	testutils.AssertFails(t, `unsupported type: map\[\w+\.Success]struct`, func(t testutils.TestingT) {
+	testutils.AssertFails(t, `unsupported type: map\[\w+\.Success]struct`, func(t sktest.TestingT) {
 		AssertJSONRoundTrip(t, &Unencodable{
 			Unsupported: map[Success]struct{}{
 				{
@@ -130,7 +131,7 @@ func TestAssertJSONRoundTrip(t *testing.T) {
 		// go vet complains if we add a json struct field tag to a private field.
 		private int
 	}
-	testutils.AssertFails(t, "Objects do not match", func(t testutils.TestingT) {
+	testutils.AssertFails(t, "Objects do not match", func(t sktest.TestingT) {
 		AssertJSONRoundTrip(t, &CantRoundTrip{
 			private: 123,
 		})
