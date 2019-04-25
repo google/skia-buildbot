@@ -373,6 +373,12 @@
       });
     };
 
+    var manualRollResult = 0;
+    var manualRollResults = [
+      "",
+      "SUCCESS",
+      "FAILURE",
+    ];
     sk.post = function(url, body) {
       return new Promise(function(resolve, reject) {
         if (url === "/arb-status-sk-demo.html/json/mode") {
@@ -400,9 +406,11 @@
         } else if (url === "/arb-status-sk-demo.html/json/manual") {
           var req = JSON.parse(body);
           req["requester"] = "you@google.com";
+          req["result"] = manualRollResults[manualRollResult++ % manualRollResults.length];
           req["rollerName"] = "skia-autoroll";
           req["status"] = "PENDING";
           req["timestamp"] = "2017-08-28T03:51:10Z";
+          req["url"] = req["result"] == "" ? "" : "https://fake.google.com";
           if (!fakeStatus["manualRequests"]) {
             fakeStatus["manualRequests"] = [];
           }
