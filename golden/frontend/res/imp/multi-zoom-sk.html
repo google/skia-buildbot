@@ -287,9 +287,16 @@ There are three images that it deals with, called left, top, and diff.
 
       ready: function(){
         this._seq = [];
-        this.listen(this.$.zoomLeft, 'zoom-point', '_handleZoomPixels');
+        this.listen(this.$.zoomLeft,   'zoom-point', '_handleZoomPixels');
         this.listen(this.$.zoomMiddle, 'zoom-point', '_handleZoomPixels');
-        this.listen(this.$.zoomRight, 'zoom-point', '_handleZoomPixels');
+        this.listen(this.$.zoomRight,  'zoom-point', '_handleZoomPixels');
+
+        this.addEventListener('crosshair', () => {
+          this.$.zoomLeft.updateZoom();
+          this.$.zoomMiddle.updateZoom();
+          this.$.zoomRight.updateZoom();
+        });
+
         this.listen(document, 'keydown', '_handleKeyDown');
       },
 
