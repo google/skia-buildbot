@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "cead87a1_c0819f07",
+        "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-26T14:42:51Z",
+      "side": 1,
+      "message": "Per the test failure, srcRelPath and dstRelPath need to be capitalized in the struct definition (but not the JSON tag).",
+      "range": {
+        "startLine": 44,
+        "startChar": 1,
+        "endLine": 44,
+        "endChar": 2
+      },
+      "revId": "b612b0678fb76d9e76e9823a6ac4f5075006f625",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1aa6a0aa_4935a8ab",
         "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
         "patchSetId": 3
