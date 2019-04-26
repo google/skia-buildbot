@@ -1397,20 +1397,24 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.
 
 	if len(insert) > 0 {
 		// Insert the newly-triggered tasks into the DB.
-		if err := s.addTasks(ctx, insert); err != nil {
-			errs = append(errs, fmt.Errorf("Triggered tasks but failed to insert into DB: %s", err))
-		} else {
-			// Remove the tasks from the pending map.
-			s.pendingInsertMtx.Lock()
-			for _, byRepo := range insert {
-				for _, byName := range byRepo {
-					for _, t := range byName {
-						delete(s.pendingInsert, t.Id)
-					}
+		err := s.addTasks(ctx, insert)
+
+		// Remove the tasks from the pending map, regardless of whether
+		// we successfully inserted into the DB.
+		s.pendingInsertMtx.Lock()
+		for _, byRepo := range insert {
+			for _, byName := range byRepo {
+				for _, t := range byName {
+					delete(s.pendingInsert, t.Id)
 				}
 			}
-			s.pendingInsertMtx.Unlock()
+		}
+		s.pendingInsertMtx.Unlock()
 
+		// Handle failure/success.
+		if err != nil {
+			errs = append(errs, fmt.Errorf("Triggered tasks but failed to insert into DB: %s", err))
+		} else {
 			// Organize the triggered task by TaskKey.
 			remove := make(map[types.TaskKey]*types.Task, numTriggered)
 			for _, byRepo := range insert {
