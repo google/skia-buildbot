@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "8a4434f7_776f501d",
+        "filename": "autoroll/config/skcms-skia.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-26T14:28:10Z",
+      "side": 1,
+      "message": "I guess we shouldn\u0027t need this any more, but since it\u0027s part of the top-level CommonRepoManagerConfig there\u0027s no sensible way to remove it.",
+      "range": {
+        "startLine": 24,
+        "startChar": 4,
+        "endLine": 24,
+        "endChar": 42
+      },
+      "revId": "b612b0678fb76d9e76e9823a6ac4f5075006f625",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1aa6a0aa_4935a8ab",
         "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
         "patchSetId": 3
@@ -13,6 +36,24 @@
       "writtenOn": "2019-04-26T14:14:38Z",
       "side": 1,
       "message": "This is obviously a non-trivial change, but it feels like the bots shouldn\u0027t have any other local changes that will get picked up? I guess the other consideration here is that with the old dir-to-dir change, we fully removed the target dir before we started. Now, if things change in the future, the roller won\u0027t automatically remove the header?",
+      "revId": "b612b0678fb76d9e76e9823a6ac4f5075006f625",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d4de01d_294e0179",
+        "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-26T14:28:10Z",
+      "side": 1,
+      "message": "Yeah, this should be fine but still seems a little scary.  I guess another alternative is to do this for each copy on line 235, but I\u0027m okay either way.",
+      "parentUuid": "1aa6a0aa_4935a8ab",
       "revId": "b612b0678fb76d9e76e9823a6ac4f5075006f625",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
