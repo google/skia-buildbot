@@ -83,10 +83,11 @@ type autoroller struct {
 // Union types for combining roller status with modes and strategies.
 type autoRollStatus struct {
 	*status.AutoRollStatus
-	ManualRequests  []*manual.ManualRollRequest `json:"manualRequests"`
-	Mode            *modes.ModeChange           `json:"mode"`
-	ParentWaterfall string                      `json:"parentWaterfall"`
-	Strategy        *strategy.StrategyChange    `json:"strategy"`
+	ManualRequests      []*manual.ManualRollRequest `json:"manualRequests"`
+	Mode                *modes.ModeChange           `json:"mode"`
+	ParentWaterfall     string                      `json:"parentWaterfall"`
+	Strategy            *strategy.StrategyChange    `json:"strategy"`
+	SupportsManualRolls bool                        `json:"supportsManualRolls"`
 }
 
 type autoRollMiniStatus struct {
@@ -220,11 +221,12 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Encode response.
 	if err := json.NewEncoder(w).Encode(&autoRollStatus{
-		AutoRollStatus:  status,
-		ManualRequests:  manualRequests,
-		Mode:            mode,
-		ParentWaterfall: roller.Cfg.ParentWaterfall,
-		Strategy:        strategy,
+		AutoRollStatus:      status,
+		ManualRequests:      manualRequests,
+		Mode:                mode,
+		ParentWaterfall:     roller.Cfg.ParentWaterfall,
+		Strategy:            strategy,
+		SupportsManualRolls: roller.Cfg.SupportsManualRolls,
 	}); err != nil {
 		httputils.ReportError(w, r, err, "Failed to encode response.")
 		return

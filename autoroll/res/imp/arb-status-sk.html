@@ -233,50 +233,55 @@
     </div>
     <div id="rollCandidates" class="hidden">
       <div class="table">
-        <template is="dom-if" if="{{rollCandidates}}">
-          <div class="tr">
-            <div class="th">Revision</div>
-            <div class="th">Description</div>
-            <div class="th">Timestamp</div>
-            <div class="th">Requester</div>
-            <div class="th">Requested at</div>
-            <div class="th">Roll</div>
-          </div>
-          <template is="dom-repeat" items="[[rollCandidates]]">
-            <div class="tr rollCandidate">
-              <div class="td">
-                <template is="dom-if" if="{{item.revision.url}}">
-                  <a href="[[item.revision.url]]" target="_blank">[[item.revision.display]]</a>
-                </template>
-                <template is="dom-if" if="{{!item.revision.url}}">
-                  [[item.revision.display]]
-                </template>
-              </div>
-              <div class="td">[[_revDescription(item.revision.description)]]</div>
-              <div class="td"><human-date-sk date="[[item.revision.timestamp]]"></human-date-sk></div>
-              <div class="td">[[item.requester]]</div>
-              <div class="td"><human-date-sk date="[[item.timestamp]]"></human-date-sk></div>
-              <div class="td">
-                <template is="dom-if" if="{{_reqHasURL(item)}}">
-                  <a href="{{item.url}}", target="_blank">{{item.url}}</a>
-                </template>
-                <template is="dom-if" if="{{_reqHasStatus(item)}}">
-                  [[item.status]]
-                </template>
-                <template is="dom-if" if="{{_reqHasButton(item)}}">
-                  <button on-tap="_requestManualRoll" data-rev$="{{item.revision.id}}" class="requestRoll">Request Roll</button>
-                </template>
-                <template is="dom-if" if="{{_reqHasResult(item)}}">
-                  <span class$="{{_reqResultClass(item)}}">[[item.result]]</span>
-                </template>
-              </div>
-            </div>
-          </template>
-        </template>
-        <template is="dom-if" if="{{!rollCandidates}}">
+        <template is="dom-if" if="{{!supportsManualRolls}}">
           This roller does not support manual rolls. If you want this feature,
           update the config file for the roller to enable it. Note that some
           rollers cannot support manual rolls for technical reasons.
+        </template>
+        <template is="dom-if" if="{{supportsManualRolls}}">
+          <template is="dom-if" if="{{!rollCandidates}}">
+            The roller is up to date; there are no revisions which could be manually rolled.
+          </template>
+          <template is="dom-if" if="{{rollCandidates}}">
+            <div class="tr">
+              <div class="th">Revision</div>
+              <div class="th">Description</div>
+              <div class="th">Timestamp</div>
+              <div class="th">Requester</div>
+              <div class="th">Requested at</div>
+              <div class="th">Roll</div>
+            </div>
+            <template is="dom-repeat" items="[[rollCandidates]]">
+              <div class="tr rollCandidate">
+                <div class="td">
+                  <template is="dom-if" if="{{item.revision.url}}">
+                    <a href="[[item.revision.url]]" target="_blank">[[item.revision.display]]</a>
+                  </template>
+                  <template is="dom-if" if="{{!item.revision.url}}">
+                    [[item.revision.display]]
+                  </template>
+                </div>
+                <div class="td">[[_revDescription(item.revision.description)]]</div>
+                <div class="td"><human-date-sk date="[[item.revision.timestamp]]"></human-date-sk></div>
+                <div class="td">[[item.requester]]</div>
+                <div class="td"><human-date-sk date="[[item.timestamp]]"></human-date-sk></div>
+                <div class="td">
+                  <template is="dom-if" if="{{_reqHasURL(item)}}">
+                    <a href="{{item.url}}", target="_blank">{{item.url}}</a>
+                  </template>
+                  <template is="dom-if" if="{{_reqHasStatus(item)}}">
+                    [[item.status]]
+                  </template>
+                  <template is="dom-if" if="{{_reqHasButton(item)}}">
+                    <button on-tap="_requestManualRoll" data-rev$="{{item.revision.id}}" class="requestRoll">Request Roll</button>
+                  </template>
+                  <template is="dom-if" if="{{_reqHasResult(item)}}">
+                    <span class$="{{_reqResultClass(item)}}">[[item.result]]</span>
+                  </template>
+                </div>
+              </div>
+            </template>
+          </template>
         </template>
       </div>
     </div>
@@ -391,6 +396,10 @@
         strategyChangeMsg: {
           type: String,
           value: "",
+          readOnly: true,
+        },
+        supportsManualRolls: {
+          type: Boolean,
           readOnly: true,
         },
         throttledUntil: {
@@ -721,6 +730,7 @@
         this._setStrategy(json.strategy.strategy);
         this._setStrategyChangeBy(json.strategy.user);
         this._setStrategyChangeMsg(json.strategy.message);
+        this._setSupportsManualRolls(json.supportsManualRolls);
         this._setThrottledUntil(json.throttledUntil);
         this._setValidModes(json.validModes);
         this._setValidStrategies(json.validStrategies);
