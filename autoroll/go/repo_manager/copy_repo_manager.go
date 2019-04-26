@@ -39,6 +39,11 @@ var (
 	NewCopyRepoManager func(context.Context, *CopyRepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newCopyRepoManager
 )
 
+type CopyEntry struct {
+	SrcRelPath string `json:"srcRelPath"`
+	DstRelPath string `json:"dstRelPath"`
+}
+
 // CopyRepoManagerConfig provides configuration for the copy
 // RepoManager.
 type CopyRepoManagerConfig struct {
@@ -49,10 +54,10 @@ type CopyRepoManagerConfig struct {
 
 	// Optional fields.
 
-	// Whitelist indicates which files and directories to copy from the
+	// Copies indicates which files and directories to copy from the
 	// child repo into the parent repo. If not specified, the whole repo
 	// is copied.
-	Whitelist []string `json:"whitelist,omitempty"`
+	Copies []CopyEntry `json:"copies,omitempty"`
 }
 
 // Validate the config.
@@ -68,7 +73,7 @@ type copyRepoManager struct {
 	childRepoUrl string
 	includeLog   bool
 	versionFile  string
-	whitelist    []string
+	copies       []CopyEntry
 }
 
 // newCopyRepoManager returns a RepoManager instance which rolls a dependency
@@ -91,7 +96,7 @@ func newCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, workdir s
 		childRepoUrl:          c.ChildRepo,
 		includeLog:            true, // TODO(borenet): Consider adding IncludeLog to the config.
 		versionFile:           path.Join(drm.childDir, COPY_VERSION_HASH_FILE),
-		whitelist:             c.Whitelist,
+		copies:                c.Copies,
 	}
 	return rm, nil
 }
@@ -217,10 +222,10 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	if err := os.MkdirAll(path.Dir(childFullPath), os.ModePerm); err != nil {
 		return 0, err
 	}
-	if len(rm.whitelist) > 0 {
-		for _, w := range rm.whitelist {
-			src := path.Join(rm.childRepo.Dir(), w)
-			dst := path.Join(childFullPath, w)
+	if len(rm.copies) > 0 {
+		for _, c := range rm.copies {
+			src := path.Join(rm.childRepo.Dir(), c.SrcRelPath)
+			dst := path.Join(parentRepo.Dir(), c.DstRelPath)
 			dstDir := path.Dir(dst)
 			if err := os.MkdirAll(dstDir, os.ModePerm); err != nil {
 				return 0, err
@@ -240,7 +245,7 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	if err := ioutil.WriteFile(rm.versionFile, []byte(to), os.ModePerm); err != nil {
 		return 0, err
 	}
-	if _, err := parentRepo.Git(ctx, "add", childFullPath); err != nil {
+	if _, err := parentRepo.Git(ctx, "add", parentRepo.Dir()); err != nil {
 		return 0, err
 	}
 
