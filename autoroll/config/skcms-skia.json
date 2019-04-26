@@ -25,14 +25,15 @@
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git",
     "childRepo": "https://skia.googlesource.com/skcms.git",
-    "whitelist": [
-      "LICENSE",
-      "README.chromium",
-      "skcms.cc",
-      "skcms.gni",
-      "skcms.h",
-      "skcms_internal.h",
-      "src"
+    "copies": [
+      { "srcRelPath": "LICENSE",          "dstRelPath": "third_party/skcms/LICENSE" },
+      { "srcRelPath": "README.chromium",  "dstRelPath": "third_party/skcms/README.chromium" },
+      { "srcRelPath": "skcms.cc",         "dstRelPath": "third_party/skcms/skcms.cc" },
+      { "srcRelPath": "skcms.gni",        "dstRelPath": "third_party/skcms/skcms.gni" },
+      { "srcRelPath": "skcms_internal.h", "dstRelPath": "third_party/skcms/skcms_internal.h" },
+      { "srcRelPath": "src",              "dstRelPath": "third_party/skcms/src" },
+
+      { "srcRelPath": "skcms.h",          "dstRelPath": "include/third_party/skcms/skcms.h" }
     ]
   },
   "cqExtraTrybots": [
