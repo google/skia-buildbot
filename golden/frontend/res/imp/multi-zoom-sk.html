@@ -57,8 +57,6 @@ There are three images that it deals with, called left, top, and diff.
     }
 
     .zoomContainer {
-      width: 270px;
-      height: 270px;
       padding: 0;
       margin: 0;
     }
@@ -269,7 +267,7 @@ There are three images that it deals with, called left, top, and diff.
 
         _pixels : {
           type: Number,
-          value: 64,
+          value: 128,
           notify: true
         },
 
@@ -311,7 +309,6 @@ There are three images that it deals with, called left, top, and diff.
         this.set('_x', 0);
         this.set('_y', 0);
         this.set('details', details);
-        this.set('_pixels', 64);
         this._updateTiming();
         this._showNext(true);
         this._active = true;
@@ -406,12 +403,12 @@ There are three images that it deals with, called left, top, and diff.
             this.set('_x', this._x+1);
             break;
           case "A":
-            this.set('_pixels', Math.max(this._pixels/2, 8));
+            this.set('_pixels', Math.min(this._pixels*2, 256));
+            this.set('_pixel_size', Math.max(this._pixel_size/2, 2));
             break;
           case "Z":
-            var size = this.$.zoomLeft.ctx.canvas.width;
-            var maxPixels = Math.pow(2, Math.floor(Math.log(size)/Math.log(2))-1);
-            this.set('_pixels', Math.min(this._pixels*2, maxPixels));
+            this.set('_pixels', Math.max(this._pixels/2, 2));
+            this.set('_pixel_size', Math.min(this._pixel_size*2, 256));
             break;
           case "U":
             this._moveToLargestDiff();
