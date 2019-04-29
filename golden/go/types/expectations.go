@@ -2,6 +2,8 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
+	"sort"
 )
 
 // TestExp is a map[test_name][digest]Label that captures the expectations or baselines
@@ -45,6 +47,30 @@ func (t TestExp) DeepCopy() TestExp {
 	ret := make(TestExp, len(t))
 	for testName, digests := range t {
 		ret.AddDigests(testName, digests)
+	}
+	return ret
+}
+
+// String returns an alphabetically sorted string representation
+// of this object.
+func (t TestExp) String() string {
+	names := make([]string, 0, len(t))
+	for testName := range t {
+		names = append(names, testName)
+	}
+	sort.Strings(names)
+	ret := ""
+	for _, testName := range names {
+		digestMap := t[testName]
+		digests := make([]string, 0, len(digestMap))
+		for d := range digestMap {
+			digests = append(digests, d)
+		}
+		sort.Strings(digests)
+		ret += fmt.Sprintf("%s: \n", testName)
+		for _, d := range digests {
+			ret += fmt.Sprintf("\t%s : %s\n", d, digestMap[d].String())
+		}
 	}
 	return ret
 }
