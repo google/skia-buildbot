@@ -23,7 +23,7 @@ import (
 var (
 	cacheSize          = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
 	convertLegacy      = flag.Bool("convert_legacy", false, "Converts the legacy cache to the new format.")
-	gsBucketNames      = flag.String("gs_buckets", "skia-infra-gm,chromium-skia-gm", "Comma-separated list of google storage bucket that hold uploaded images.")
+	gsBucketNames      = flag.String("gs_buckets", "", "[required] Comma-separated list of google storage bucket that hold uploaded images.")
 	gsBaseDir          = flag.String("gs_basedir", diffstore.DEFAULT_GCS_IMG_DIR_NAME, "String that represents the google storage directory/directories following the GS bucket")
 	imageDir           = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
 	imagePort          = flag.String("image_port", ":9001", "Address that serves image files via HTTP.")
@@ -59,6 +59,10 @@ func main() {
 
 	// Get the version of the repo.
 	skiaversion.MustLogVersion()
+
+	if *gsBucketNames == "" {
+		sklog.Fatalf("Must specify --gs_buckets")
+	}
 
 	// Get the client to be used to access GCS.
 	ts, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
