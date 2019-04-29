@@ -3,6 +3,7 @@ package notifier
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/email"
@@ -51,6 +52,7 @@ type filteredThreadedNotifier struct {
 // Router is a struct used for sending notification through zero or more
 // Notifiers.
 type Router struct {
+	client       *http.Client
 	configReader chatbot.ConfigReader
 	emailer      *email.GMail
 	notifiers    []*filteredThreadedNotifier
@@ -83,8 +85,9 @@ func (r *Router) Send(ctx context.Context, msg *Message) error {
 }
 
 // Return a Router instance.
-func NewRouter(emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader) *Router {
+func NewRouter(client *http.Client, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader) *Router {
 	return &Router{
+		client:       client,
 		configReader: chatBotConfigReader,
 		emailer:      emailer,
 		notifiers:    []*filteredThreadedNotifier{},
@@ -108,7 +111,7 @@ func (r *Router) AddFromConfig(ctx context.Context, c *Config) error {
 	if err := c.Validate(); err != nil {
 		return err
 	}
-	n, f, wl, s, err := c.Create(ctx, r.emailer, r.configReader)
+	n, f, wl, s, err := c.Create(ctx, r.client, r.emailer, r.configReader)
 	if err != nil {
 		return err
 	}
