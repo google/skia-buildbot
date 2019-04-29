@@ -17,6 +17,7 @@ skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com" \
     --db_name=skiacorrectness  \
     --diff_server_grpc=skia-diffserver-prod:8000 \
     --diff_server_http=skia-diffserver-prod:8001 \
+    --gs_buckets=skia-infra-gm,skia-infra-gm-internal \
     --ds_namespace=gold-skia-prod \
     --event_topic=gold-prod-eventbus \
     --force_login \

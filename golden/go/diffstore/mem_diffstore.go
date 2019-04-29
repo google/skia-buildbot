@@ -13,6 +13,7 @@ import (
 
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/rtcache"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
@@ -120,21 +121,32 @@ type MemDiffStore struct {
 func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string, gsImageBaseDir string, gigs int, mapper DiffStoreMapper) (diff.DiffStore, error) {
 	imageCacheCount, diffCacheCount := getCacheCounts(gigs)
 
+	imgPath := filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME)
+	imgDir, err := fileutil.EnsureDirExists(imgPath)
+	if err != nil {
+		return nil, skerr.Fmt("Could not make image directory %s: %s", imgPath, err)
+	}
+
+	diffPath := filepath.Join(baseDir, DEFAULT_DIFFIMG_DIR_NAME)
+	difDir, err := fileutil.EnsureDirExists(diffPath)
+	if err != nil {
+		return nil, skerr.Fmt("Could not make diff image directory %s: %s", diffPath, err)
+	}
+
 	// Set up image retrieval, caching and serving.
-	imgDir := fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME)))
 	imgLoader, err := NewImgLoader(client, baseDir, imgDir, gsBucketNames, gsImageBaseDir, imageCacheCount, mapper)
 	if err != err {
-		return nil, err
+		return nil, skerr.Fmt("Could not create img loader %s", err)
 	}
 
 	mStore, err := newMetricsStore(baseDir, mapper, mapper)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Fmt("Could not create metrics store %s", err)
 	}
 
 	ret := &MemDiffStore{
 		baseDir:         baseDir,
-		localDiffDir:    fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFFIMG_DIR_NAME))),
+		localDiffDir:    difDir,
 		imgLoader:       imgLoader,
 		metricsStore:    mStore,
 		mapper:          mapper,
@@ -142,7 +154,7 @@ func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string
 	}
 
 	if ret.diffMetricsCache, err = rtcache.New(ret.diffMetricsWorker, diffCacheCount, runtime.NumCPU()); err != nil {
-		return nil, err
+		return nil, skerr.Fmt("Could not create diffMetricsCache: %s", err)
 	}
 	return ret, nil
 }
@@ -438,9 +450,12 @@ func getCacheCounts(gigs int) (int, int) {
 		return 0, 0
 	}
 
-	imgSize := float64(BYTES_PER_IMAGE)
-	diffSize := float64(BYTES_PER_DIFF_METRIC)
-	bytesGig := float64(uint64(gigs) * 1024 * 1024 * 1024)
+	// We are looking for x (number of images we can cache) where x is found by solving
+	// a * x^2 + b * x = c
+	diffSize := float64(BYTES_PER_DIFF_METRIC)             // a
+	imgSize := float64(BYTES_PER_IMAGE)                    // b
+	bytesGig := float64(uint64(gigs) * 1024 * 1024 * 1024) // c
+	// To solve, use the quadratic formula and round to an int
 	imgCount := int((-imgSize + math.Sqrt(imgSize*imgSize+4*diffSize*bytesGig)) / (2 * diffSize))
 	return imgCount, imgCount * imgCount
 }
