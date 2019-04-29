@@ -620,17 +620,16 @@ func (r *AutoRoller) rollFinished(ctx context.Context, justFinished codereview.R
 	}
 
 	// Send a notification if the last N rolls failed in a row.
-	lastNFailed := false
-	if len(recent) >= NOTIFY_IF_LAST_N_FAILED {
-		lastNFailed = true
-		for _, roll := range recent[:NOTIFY_IF_LAST_N_FAILED] {
-			if util.In(roll.Result, autoroll.SUCCESS_RESULTS) {
-				lastNFailed = false
-				break
-			}
+	nFailed := 0
+	// recent is in reverse chronological order.
+	for _, roll := range recent {
+		if util.In(roll.Result, autoroll.SUCCESS_RESULTS) {
+			break
+		} else {
+			nFailed++
 		}
 	}
-	if lastNFailed {
+	if nFailed == NOTIFY_IF_LAST_N_FAILED {
 		r.notifier.SendLastNFailed(ctx, NOTIFY_IF_LAST_N_FAILED, issueURL)
 	}
 
