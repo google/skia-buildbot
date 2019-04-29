@@ -630,7 +630,7 @@ func makeMocks() (*MockAuthOpt, *mocks.HTTPClient, *mocks.GoldUploader) {
 // loadGoldClient will load the cloudClient off the disk and returns it
 // after stubbing out the time. Tests calling this should likely be
 // medium sized due to disk reading.
-func loadGoldClient(auth AuthOpt, workDir string) (*cloudClient, error) {
+func loadGoldClient(auth AuthOpt, workDir string) (*CloudClient, error) {
 	c, err := LoadCloudClient(auth, workDir)
 	if err != nil {
 		return nil, err
@@ -643,7 +643,7 @@ func loadGoldClient(auth AuthOpt, workDir string) (*cloudClient, error) {
 
 // makeGoldClient will create new cloud client from scratch (using a
 // set configuration), stub out time handling and return it.
-func makeGoldClient(auth AuthOpt, passFail bool, uploadOnly bool, workDir string) (*cloudClient, error) {
+func makeGoldClient(auth AuthOpt, passFail bool, uploadOnly bool, workDir string) (*CloudClient, error) {
 	config := GoldClientConfig{
 		InstanceID:   testInstanceID,
 		WorkDir:      workDir,
@@ -661,7 +661,7 @@ func makeGoldClient(auth AuthOpt, passFail bool, uploadOnly bool, workDir string
 	return c, nil
 }
 
-func overrideLoadAndHashImage(c *cloudClient, testFn func(path string) ([]byte, string, error)) {
+func overrideLoadAndHashImage(c *CloudClient, testFn func(path string) ([]byte, string, error)) {
 	c.loadAndHashImage = testFn
 }
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"go.skia.org/infra/go/fileutil"
@@ -29,7 +30,7 @@ func getAuthCmd() *cobra.Command {
 		Short: "Authenticate against GCP and Gold instances",
 		Long: `
 Authenticate against GCP and the Gold instance.
-Currently only service accounts are supported. `,
+`,
 		Run: env.runAuthCmd,
 	}
 
@@ -46,7 +47,8 @@ Currently only service accounts are supported. `,
 	return cmd
 }
 
-// runAuthCommand
+// runAuthCommand executes the logic for the auth command. It
+// sets up the work directory to support future calls (e.g. imgtest)
 func (a *authEnv) runAuthCmd(cmd *cobra.Command, args []string) {
 	_, err := fileutil.EnsureDirExists(a.flagWorkDir)
 	if err != nil {
@@ -63,4 +65,11 @@ func (a *authEnv) runAuthCmd(cmd *cobra.Command, args []string) {
 		err = goldclient.InitGSUtil(a.flagWorkDir)
 	}
 	ifErrLogExit(cmd, err)
+	abs, err := filepath.Abs(a.flagWorkDir)
+	if err == nil {
+		fmt.Printf("Authentication set up in directory %s\n", abs)
+	} else {
+		fmt.Printf("Authentication set up in directory %s\n", filepath.Clean(a.flagWorkDir))
+	}
+
 }

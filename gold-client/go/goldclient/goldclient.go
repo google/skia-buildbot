@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"image/png"
 	"io"
@@ -13,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -80,6 +82,18 @@ type GoldClient interface {
 	Finalize() error
 }
 
+// This interface contains some "optional" methods that can assist
+// in debugging.
+type GoldClientDebug interface {
+	// Returns a human-readable representation of the baseline as a string.
+	// This is a set of test names that each have  a set of image
+	// digests that each have exactly one types.Label.
+	DumpBaseline() (string, error)
+	// Returns a human-readable representation of the known image digests
+	// which is a list of hashes.
+	DumpKnownHashes() (string, error)
+}
+
 // HTTPClient makes it easier to mock out goldclient's dependencies on
 // http.Client by representing a smaller interface.
 type HTTPClient interface {
@@ -87,7 +101,7 @@ type HTTPClient interface {
 }
 
 // cloudClient implements the GoldClient interface for the remote Gold service.
-type cloudClient struct {
+type CloudClient struct {
 	// workDir is a temporary directory that has to exist between related calls
 	workDir string
 
@@ -143,7 +157,7 @@ type resultState struct {
 // NewCloudClient returns an implementation of the GoldClient that relies on the Gold service.
 // If a new instance is created for each call to Test, the arguments of the first call are
 // preserved. They are cached in a JSON file in the work directory.
-func NewCloudClient(authOpt AuthOpt, config GoldClientConfig) (*cloudClient, error) {
+func NewCloudClient(authOpt AuthOpt, config GoldClientConfig) (*CloudClient, error) {
 	// Make sure the workdir was given and exists.
 	if config.WorkDir == "" {
 		return nil, skerr.Fmt("No 'workDir' provided to NewCloudClient")
@@ -158,7 +172,7 @@ func NewCloudClient(authOpt AuthOpt, config GoldClientConfig) (*cloudClient, err
 		return nil, skerr.Fmt("Can't have empty config")
 	}
 
-	ret := cloudClient{
+	ret := CloudClient{
 		workDir:          workDir,
 		auth:             authOpt,
 		loadAndHashImage: loadAndHashImage,
@@ -180,12 +194,12 @@ func NewCloudClient(authOpt AuthOpt, config GoldClientConfig) (*cloudClient, err
 
 // LoadCloudClient returns a GoldClient that has previously been stored to disk
 // in the path given by workDir.
-func LoadCloudClient(authOpt AuthOpt, workDir string) (*cloudClient, error) {
+func LoadCloudClient(authOpt AuthOpt, workDir string) (*CloudClient, error) {
 	// Make sure the workdir was given and exists.
 	if workDir == "" {
 		return nil, skerr.Fmt("No 'workDir' provided to LoadCloudClient")
 	}
-	ret := cloudClient{
+	ret := CloudClient{
 		workDir:          workDir,
 		auth:             authOpt,
 		loadAndHashImage: loadAndHashImage,
@@ -204,7 +218,7 @@ func LoadCloudClient(authOpt AuthOpt, workDir string) (*cloudClient, error) {
 }
 
 // SetSharedConfig implements the GoldClient interface.
-func (c *cloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults) error {
+func (c *CloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults) error {
 	existingConfig := GoldClientConfig{
 		WorkDir: c.workDir,
 	}
@@ -230,7 +244,7 @@ func (c *cloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults) error {
 }
 
 // Test implements the GoldClient interface.
-func (c *cloudClient) Test(name string, imgFileName string, additionalKeys map[string]string) (bool, error) {
+func (c *CloudClient) Test(name string, imgFileName string, additionalKeys map[string]string) (bool, error) {
 	if res, err := c.addTest(name, imgFileName, additionalKeys); err != nil {
 		return false, err
 	} else {
@@ -240,7 +254,7 @@ func (c *cloudClient) Test(name string, imgFileName string, additionalKeys map[s
 
 // addTest adds a test to results. If perTestPassFail is true it will also upload the result.
 // Returns true if the test was added (and maybe uploaded) successfully.
-func (c *cloudClient) addTest(name string, imgFileName string, additionalKeys map[string]string) (bool, error) {
+func (c *CloudClient) addTest(name string, imgFileName string, additionalKeys map[string]string) (bool, error) {
 	if err := c.isReady(); err != nil {
 		return false, skerr.Fmt("Unable to process test result. Cloud Gold Client not ready: %s", err)
 	}
@@ -301,7 +315,7 @@ func (c *cloudClient) addTest(name string, imgFileName string, additionalKeys ma
 }
 
 // Finalize implements the GoldClient interface.
-func (c *cloudClient) Finalize() error {
+func (c *CloudClient) Finalize() error {
 	if err := c.isReady(); err != nil {
 		return skerr.Fmt("Cannot finalize - client not ready: %s", err)
 	}
@@ -314,7 +328,7 @@ func (c *cloudClient) Finalize() error {
 
 // uploadResultJSON uploads the results (which live in SharedConfig, specifically
 // SharedConfig.Results), to GCS.
-func (c *cloudClient) uploadResultJSON(uploader GoldUploader) error {
+func (c *CloudClient) uploadResultJSON(uploader GoldUploader) error {
 	localFileName := filepath.Join(c.workDir, jsonTempFile)
 	resultFilePath := c.resultState.getResultFilePath(c.now())
 	if err := uploader.UploadJSON(c.resultState.SharedConfig, localFileName, resultFilePath); err != nil {
@@ -325,7 +339,7 @@ func (c *cloudClient) uploadResultJSON(uploader GoldUploader) error {
 
 // setHttpClient sets authenticated httpClient, if authentication was configured via SetAuthConfig.
 // It also retrieves a token of the configured source to make sure it works.
-func (c *cloudClient) setHttpClient() error {
+func (c *CloudClient) setHttpClient() error {
 	// If no auth option was set, we return an unauthenticated client.
 	client, err := c.auth.GetHTTPClient()
 	if err != nil {
@@ -337,14 +351,14 @@ func (c *cloudClient) setHttpClient() error {
 
 // saveAuthOpt assumes that auth has been set. It saves it to the work directory for retrieval
 // during later calls.
-func (c *cloudClient) saveAuthOpt() error {
+func (c *CloudClient) saveAuthOpt() error {
 	outFile := filepath.Join(c.workDir, authFile)
 	return saveJSONFile(outFile, c.auth)
 }
 
 // isReady returns true if the instance is ready to accept test results (all necessary info has been
 // configured)
-func (c *cloudClient) isReady() error {
+func (c *CloudClient) isReady() error {
 	if c.ready {
 		return nil
 	}
@@ -372,12 +386,12 @@ func (c *cloudClient) isReady() error {
 }
 
 // getResultStatePath returns the path of the temporary file where the state is cached as JSON
-func (c *cloudClient) getResultStatePath() string {
+func (c *CloudClient) getResultStatePath() string {
 	return filepath.Join(c.workDir, stateFile)
 }
 
 // addResult adds the given test to the overall results.
-func (c *cloudClient) addResult(name, imgHash string, additionalKeys map[string]string) {
+func (c *CloudClient) addResult(name, imgHash string, additionalKeys map[string]string) {
 	newResult := &jsonio.Result{
 		Digest: imgHash,
 		Key:    map[string]string{types.PRIMARY_KEY_FIELD: name},
@@ -400,16 +414,20 @@ func (c *cloudClient) addResult(name, imgHash string, additionalKeys map[string]
 
 // downloadHashesAndBaselineFromGold downloads the hashes and baselines
 // and stores them to resultState.
-func (c *cloudClient) downloadHashesAndBaselineFromGold() error {
+func (c *CloudClient) downloadHashesAndBaselineFromGold() error {
 	// What hashes have we seen already (to avoid uploading them again).
 	if err := c.resultState.loadKnownHashes(c.httpClient); err != nil {
 		return err
 	}
 
+	fmt.Printf("Loaded %d known hashes\n", len(c.resultState.KnownHashes))
+
 	// Fetch the baseline (may be empty but should not fail).
 	if err := c.resultState.loadExpectations(c.httpClient); err != nil {
 		return err
 	}
+	fmt.Printf("Loaded %d tests from the baseline\n", len(c.resultState.Expectations))
+
 	return nil
 }
 
@@ -654,5 +672,33 @@ func getHostURL(instanceID string) string {
 	return fmt.Sprintf(goldHostTemplate, instanceID)
 }
 
-// Make sure cloudClient fulfils the GoldClient interface
-var _ GoldClient = (*cloudClient)(nil)
+// DumpBaseline fulfills the GoldClientDebug interface
+func (c *CloudClient) DumpBaseline() (string, error) {
+	if c.resultState == nil || c.resultState.Expectations == nil {
+		return "", errors.New("Not instantiated - call init?")
+	}
+	return c.resultState.Expectations.String(), nil
+}
+
+// DumpKnownHashes fulfills the GoldClientDebug interface
+func (c *CloudClient) DumpKnownHashes() (string, error) {
+	if c.resultState == nil || c.resultState.KnownHashes == nil {
+		return "", errors.New("Not instantiated - call init?")
+	}
+	hashes := []string{}
+	for h := range c.resultState.KnownHashes {
+		hashes = append(hashes, h)
+	}
+	sort.Strings(hashes)
+	s := strings.Builder{}
+	_, _ = s.WriteString("Hashes:\n\t")
+	_, _ = s.WriteString(strings.Join(hashes, "\n\t"))
+	_, _ = s.WriteString("\n")
+	return s.String(), nil
+}
+
+// Make sure CloudClient fulfills the GoldClient interface
+var _ GoldClient = (*CloudClient)(nil)
+
+// Make sure CloudClient fulfills the GoldClientDebug interface
+var _ GoldClientDebug = (*CloudClient)(nil)
