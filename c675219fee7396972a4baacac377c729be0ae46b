@@ -46,6 +46,30 @@
       "revId": "c675219fee7396972a4baacac377c729be0ae46b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4cdd0a89_f5aedd1a",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 632,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-29T15:04:22Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0f200468_305ce4a3",
+      "range": {
+        "startLine": 632,
+        "startChar": 12,
+        "endLine": 632,
+        "endChar": 15
+      },
+      "revId": "c675219fee7396972a4baacac377c729be0ae46b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
