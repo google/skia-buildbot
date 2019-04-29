@@ -178,7 +178,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	}
 	sklog.Info("Creating notifier")
 	configCopies := replaceSheriffPlaceholder(ctx, c.Notifiers, emails)
-	n, err := arb_notifier.New(ctx, c.ChildName, c.ParentName, serverURL, emailer, chatBotConfigReader, configCopies)
+	n, err := arb_notifier.New(ctx, c.ChildName, c.ParentName, serverURL, client, emailer, chatBotConfigReader, configCopies)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create notifier: %s", err)
 	}

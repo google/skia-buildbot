@@ -292,7 +292,7 @@ func (c *AutoRollerConfig) Validate() error {
 	}
 
 	// Verify that the notifier configs are valid.
-	_, err := arb_notifier.New(context.Background(), "fake", "fake", "fake", nil, nil, c.Notifiers)
+	_, err := arb_notifier.New(context.Background(), "fake", "fake", "fake", nil, nil, nil, c.Notifiers)
 	if err != nil {
 		return err
 	}
