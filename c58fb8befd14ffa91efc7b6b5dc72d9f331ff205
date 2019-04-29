@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "dae82b87_68330828",
+        "filename": "golden/cmd/skia_diff_server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-29T17:02:49Z",
+      "side": 1,
+      "message": "Done.  Added extra check here (where it\u0027s actually required)",
+      "parentUuid": "c42ec0a9_55ed72be",
+      "range": {
+        "startLine": 26,
+        "startChar": 49,
+        "endLine": 26,
+        "endChar": 85
+      },
+      "revId": "c58fb8befd14ffa91efc7b6b5dc72d9f331ff205",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "23cfa927_f5eeb0d0",
         "filename": "golden/sys/skiacorrectness-prod.service",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "c58fb8befd14ffa91efc7b6b5dc72d9f331ff205",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9116da06_9492cbaf",
+        "filename": "golden/sys/skiacorrectness-prod.service",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-29T17:02:49Z",
+      "side": 1,
+      "message": "That\u0027s always been there. It was just in diffserver.service, and being ignored here.  These flags are similarly not being used (being overridden by the diffserver, essentially).\n\nI just removed them to avoid being confusing.",
+      "parentUuid": "23cfa927_f5eeb0d0",
+      "range": {
+        "startLine": 20,
+        "startChar": 30,
+        "endLine": 20,
+        "endChar": 53
+      },
+      "revId": "c58fb8befd14ffa91efc7b6b5dc72d9f331ff205",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
