@@ -29,8 +29,10 @@ type Notifier interface {
 type Config struct {
 	// Required fields.
 
-	// Configuration for filtering out messages.
-	Filter string `json:"filter"`
+	// Configuration for filtering out messages. Exactly one of these should
+	// be specified.
+	Filter           string   `json:"filter,omitempty"`
+	MsgTypeWhitelist []string `json:"msgTypeWhitelist,omitempty"`
 
 	// Exactly one of these should be specified.
 	Email  *EmailNotifierConfig  `json:"email,omitempty"`
@@ -45,11 +47,16 @@ type Config struct {
 
 // Validate the Config.
 func (c *Config) Validate() error {
-	if c.Filter == "" {
-		return errors.New("Filter is required.")
+	if c.Filter == "" && c.MsgTypeWhitelist == nil {
+		return errors.New("Either Filter or MsgTypeWhitelist is required.")
 	}
-	if _, err := ParseFilter(c.Filter); err != nil {
-		return err
+	if c.Filter != "" && c.MsgTypeWhitelist != nil {
+		return errors.New("Only one of Filter or MsgTypeWhitelist may be provided.")
+	}
+	if c.Filter != "" {
+		if _, err := ParseFilter(c.Filter); err != nil {
+			return err
+		}
 	}
 	n := []util.Validator{}
 	if c.Email != nil {
@@ -68,13 +75,13 @@ func (c *Config) Validate() error {
 }
 
 // Create a Notifier from the Config.
-func (c *Config) Create(ctx context.Context, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader) (Notifier, Filter, string, error) {
+func (c *Config) Create(ctx context.Context, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader) (Notifier, Filter, []string, string, error) {
 	if err := c.Validate(); err != nil {
-		return nil, FILTER_SILENT, "", err
+		return nil, FILTER_SILENT, nil, "", err
 	}
 	filter, err := ParseFilter(c.Filter)
 	if err != nil {
-		return nil, FILTER_SILENT, "", err
+		return nil, FILTER_SILENT, nil, "", err
 	}
 	var n Notifier
 	if c.Email != nil {
@@ -84,12 +91,12 @@ func (c *Config) Create(ctx context.Context, emailer *email.GMail, chatBotConfig
 	} else if c.PubSub != nil {
 		n, err = PubSubNotifier(ctx, c.PubSub.Topic)
 	} else {
-		return nil, FILTER_SILENT, "", fmt.Errorf("No config specified!")
+		return nil, FILTER_SILENT, nil, "", fmt.Errorf("No config specified!")
 	}
 	if err != nil {
-		return nil, FILTER_SILENT, "", err
+		return nil, FILTER_SILENT, nil, "", err
 	}
-	return n, filter, c.Subject, nil
+	return n, filter, c.MsgTypeWhitelist, c.Subject, nil
 }
 
 // Create a copy of this Config.

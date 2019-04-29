@@ -13,6 +13,18 @@ import (
 )
 
 const (
+	// Types of notification message sent by the roller. These can be
+	// whitelisted in the notifier configs.
+	MSG_TYPE_ISSUE_UPDATE     = "issue update"
+	MSG_TYPE_MODE_CHANGE      = "mode change"
+	MSG_TYPE_STRATEGY_CHANGE  = "strategy change"
+	MSG_TYPE_SAFETY_THROTTLE  = "safety throttle"
+	MSG_TYPE_SUCCESS_THROTTLE = "success throttle"
+	MSG_TYPE_NEW_SUCCESS      = "new success"
+	MSG_TYPE_NEW_FAILURE      = "new failure"
+	MSG_TYPE_LAST_N_FAILED    = "last n failed"
+
+	// Templates for messages sent by the roller.
 	subjectIssueUpdate = "The {{.ChildName}} into {{.ParentName}} AutoRoller has uploaded issue {{.IssueID}}"
 
 	bodyModeChange    = "{{.User}} changed the mode to \"{{.Mode}}\" with message: {{.Message}}"
@@ -120,7 +132,7 @@ func (a *AutoRollNotifier) Router() *notifier.Router {
 }
 
 // Send a message.
-func (a *AutoRollNotifier) send(ctx context.Context, vars *tmplVars, subjectTmpl, bodyTmpl *template.Template, severity notifier.Severity) {
+func (a *AutoRollNotifier) send(ctx context.Context, vars *tmplVars, subjectTmpl, bodyTmpl *template.Template, severity notifier.Severity, msgType string) {
 	vars.ChildName = a.childName
 	vars.ParentName = a.parentName
 	vars.ServerURL = a.serverURL
@@ -142,6 +154,7 @@ func (a *AutoRollNotifier) send(ctx context.Context, vars *tmplVars, subjectTmpl
 		Subject:  subjectBytes.String(),
 		Body:     bodyBytes.String(),
 		Severity: severity,
+		Type:     msgType,
 	}); err != nil {
 		// We don't want to block the roller on failure to send
 		// notifications. Log the error and move on.
@@ -159,7 +172,7 @@ func (a *AutoRollNotifier) SendIssueUpdate(ctx context.Context, id, url, msg str
 	a.send(ctx, &tmplVars{
 		IssueID:  id,
 		IssueURL: url,
-	}, subjectTmplIssueUpdate, bodyTmpl, notifier.SEVERITY_INFO)
+	}, subjectTmplIssueUpdate, bodyTmpl, notifier.SEVERITY_INFO, MSG_TYPE_ISSUE_UPDATE)
 }
 
 // Send a mode change message.
@@ -168,7 +181,7 @@ func (a *AutoRollNotifier) SendModeChange(ctx context.Context, user, mode, messa
 		Message: message,
 		Mode:    mode,
 		User:    user,
-	}, subjectTmplModeChange, bodyTmplModeChange, notifier.SEVERITY_WARNING)
+	}, subjectTmplModeChange, bodyTmplModeChange, notifier.SEVERITY_WARNING, MSG_TYPE_MODE_CHANGE)
 }
 
 // Send a strategy change message.
@@ -177,21 +190,21 @@ func (a *AutoRollNotifier) SendStrategyChange(ctx context.Context, user, strateg
 		Message:  message,
 		Strategy: strategy,
 		User:     user,
-	}, subjectTmplStrategyChange, bodyTmplStrategyChange, notifier.SEVERITY_WARNING)
+	}, subjectTmplStrategyChange, bodyTmplStrategyChange, notifier.SEVERITY_WARNING, MSG_TYPE_STRATEGY_CHANGE)
 }
 
 // Send a notification that the roller is safety-throttled.
 func (a *AutoRollNotifier) SendSafetyThrottled(ctx context.Context, until time.Time) {
 	a.send(ctx, &tmplVars{
 		ThrottledUntil: until.Format(time.RFC1123),
-	}, subjectTmplThrottled, bodyTmplSafetyThrottled, notifier.SEVERITY_ERROR)
+	}, subjectTmplThrottled, bodyTmplSafetyThrottled, notifier.SEVERITY_ERROR, MSG_TYPE_SAFETY_THROTTLE)
 }
 
 // Send a notification that the roller is success-throttled.
 func (a *AutoRollNotifier) SendSuccessThrottled(ctx context.Context, until time.Time) {
 	a.send(ctx, &tmplVars{
 		ThrottledUntil: until.Format(time.RFC1123),
-	}, subjectTmplThrottled, bodyTmplSuccessThrottled, notifier.SEVERITY_INFO)
+	}, subjectTmplThrottled, bodyTmplSuccessThrottled, notifier.SEVERITY_INFO, MSG_TYPE_SUCCESS_THROTTLE)
 }
 
 // Send a notification that the most recent roll succeeded when the roll before
@@ -200,7 +213,7 @@ func (a *AutoRollNotifier) SendNewSuccess(ctx context.Context, id, url string) {
 	a.send(ctx, &tmplVars{
 		IssueID:  id,
 		IssueURL: url,
-	}, subjectTmplNewSuccess, bodyTmplNewSuccess, notifier.SEVERITY_WARNING)
+	}, subjectTmplNewSuccess, bodyTmplNewSuccess, notifier.SEVERITY_WARNING, MSG_TYPE_NEW_SUCCESS)
 }
 
 // Send a notification that the most recent roll failed when the roll before
@@ -209,7 +222,7 @@ func (a *AutoRollNotifier) SendNewFailure(ctx context.Context, id, url string) {
 	a.send(ctx, &tmplVars{
 		IssueID:  id,
 		IssueURL: url,
-	}, subjectTmplNewFailure, bodyTmplNewFailure, notifier.SEVERITY_WARNING)
+	}, subjectTmplNewFailure, bodyTmplNewFailure, notifier.SEVERITY_WARNING, MSG_TYPE_NEW_FAILURE)
 }
 
 // Send a notification that the last N roll attempts have failed.
@@ -217,5 +230,5 @@ func (a *AutoRollNotifier) SendLastNFailed(ctx context.Context, n int, url strin
 	a.send(ctx, &tmplVars{
 		IssueURL: url,
 		N:        n,
-	}, subjectTmplLastNFailed, bodyTmplLastNFailed, notifier.SEVERITY_ERROR)
+	}, subjectTmplLastNFailed, bodyTmplLastNFailed, notifier.SEVERITY_ERROR, MSG_TYPE_LAST_N_FAILED)
 }

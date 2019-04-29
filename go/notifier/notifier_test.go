@@ -11,12 +11,18 @@ func TestConfigs(t *testing.T) {
 	testutils.SmallTest(t)
 
 	c := Config{}
-	assert.EqualError(t, c.Validate(), "Filter is required.")
+	assert.EqualError(t, c.Validate(), "Either Filter or MsgTypeWhitelist is required.")
 
 	c = Config{
 		Filter: "bogus",
 	}
 	assert.EqualError(t, c.Validate(), "Unknown filter \"bogus\"")
+
+	c = Config{
+		Filter:           "debug",
+		MsgTypeWhitelist: []string{"whitelisted-type"},
+	}
+	assert.EqualError(t, c.Validate(), "Only one of Filter or MsgTypeWhitelist may be provided.")
 
 	c = Config{
 		Filter: "debug",

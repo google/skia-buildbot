@@ -6,6 +6,7 @@ import (
 
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/util"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -19,6 +20,9 @@ type Message struct {
 	// Severity of the message. May cause the message not to be sent,
 	// depending on filter settings.
 	Severity Severity
+	// Type of message. This is used with the optional MsgTypeWhitelist to
+	// send only specific types of messages.
+	Type string
 }
 
 // Validate the Message.
@@ -29,12 +33,16 @@ func (m *Message) Validate() error {
 	if m.Body == "" {
 		return fmt.Errorf("Message.Body is required.")
 	}
+	if m.Type == "" {
+		return fmt.Errorf("Message.Type is required.")
+	}
 	return nil
 }
 
 // filteredThreadedNotifier groups a Notifier with a Filter and an optional
 // static subject line for all messages to this Notifier.
 type filteredThreadedNotifier struct {
+	msgTypeWhitelist    []string
 	notifier            Notifier
 	filter              Filter
 	singleThreadSubject string
@@ -57,14 +65,18 @@ func (r *Router) Send(ctx context.Context, msg *Message) error {
 	for _, n := range r.notifiers {
 		n := n
 		group.Go(func() error {
-			if n.filter.ShouldSend(msg.Severity) {
-				subject := msg.Subject
-				if n.singleThreadSubject != "" {
-					subject = n.singleThreadSubject
+			if n.msgTypeWhitelist != nil {
+				if !util.In(msg.Type, n.msgTypeWhitelist) {
+					return nil
 				}
-				return n.notifier.Send(ctx, subject, msg)
+			} else if !n.filter.ShouldSend(msg.Severity) {
+				return nil
 			}
-			return nil
+			subject := msg.Subject
+			if n.singleThreadSubject != "" {
+				subject = n.singleThreadSubject
+			}
+			return n.notifier.Send(ctx, subject, msg)
 		})
 	}
 	return group.Wait()
@@ -82,8 +94,9 @@ func NewRouter(emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader) *
 // Add a new Notifier, which filters according to the given Filter. If
 // singleThreadSubject is provided, that will be used as the subject for all
 // Messages, ignoring their Subject field.
-func (r *Router) Add(n Notifier, f Filter, singleThreadSubject string) {
+func (r *Router) Add(n Notifier, f Filter, msgTypeWhitelist []string, singleThreadSubject string) {
 	r.notifiers = append(r.notifiers, &filteredThreadedNotifier{
+		msgTypeWhitelist:    msgTypeWhitelist,
 		notifier:            n,
 		filter:              f,
 		singleThreadSubject: singleThreadSubject,
@@ -95,11 +108,11 @@ func (r *Router) AddFromConfig(ctx context.Context, c *Config) error {
 	if err := c.Validate(); err != nil {
 		return err
 	}
-	n, f, s, err := c.Create(ctx, r.emailer, r.configReader)
+	n, f, wl, s, err := c.Create(ctx, r.emailer, r.configReader)
 	if err != nil {
 		return err
 	}
-	r.Add(n, f, s)
+	r.Add(n, f, wl, s)
 	return nil
 }
 
