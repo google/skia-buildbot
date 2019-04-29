@@ -26,7 +26,7 @@ type GSClientOptions struct {
 // use cases, i.e. the list of known hash files or the base line.
 type GStorageClient struct {
 	storageClient *gstorage.Client
-	options       GSClientOptions
+	Options       GSClientOptions
 }
 
 // NewGStorageClient creates a new instance of GStorage client. The various
@@ -39,7 +39,7 @@ func NewGStorageClient(client *http.Client, options *GSClientOptions) (*GStorage
 
 	return &GStorageClient{
 		storageClient: storageClient,
-		options:       *options,
+		Options:       *options,
 	}, nil
 }
 
@@ -55,7 +55,7 @@ func (g *GStorageClient) WriteKnownDigests(digests []string) error {
 		return nil
 	}
 
-	return g.writeToPath(g.options.HashesGSPath, "text/plain", writeFn)
+	return g.writeToPath(g.Options.HashesGSPath, "text/plain", writeFn)
 }
 
 // WriteBaseLine writes the given baseline to GCS. It returns the path of the
@@ -123,14 +123,14 @@ func (g *GStorageClient) getBaselinePath(commitHash string, issueID int64) strin
 	} else {
 		outPath = "master.json"
 	}
-	return g.options.BaselineGSPath + "/" + outPath
+	return g.Options.BaselineGSPath + "/" + outPath
 }
 
 // LoadKnownDigests loads the digests that have previously been written
 // to GS via WriteKnownDigests. The digests should be copied to the
 // provided writer 'w'.
 func (g *GStorageClient) LoadKnownDigests(w io.Writer) error {
-	bucketName, storagePath := gcs.SplitGSPath(g.options.HashesGSPath)
+	bucketName, storagePath := gcs.SplitGSPath(g.Options.HashesGSPath)
 
 	ctx := context.Background()
 	target := g.storageClient.Bucket(bucketName).Object(storagePath)

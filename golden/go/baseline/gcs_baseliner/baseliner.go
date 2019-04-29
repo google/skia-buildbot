@@ -1,4 +1,4 @@
-package storage
+package gcs_baseliner
 
 import (
 	"context"
@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
@@ -39,7 +40,7 @@ const (
 // GCS and retrieve them. Other packages use it to continuously write expectations to GCS
 // as they become available.
 type Baseliner struct {
-	gStorageClient       *GStorageClient
+	gStorageClient       *storage.GStorageClient
 	expectationsStore    expstorage.ExpectationsStore
 	issueExpStoreFactory expstorage.IssueExpStoreFactory
 	tryjobStore          tryjobstore.TryjobStore
@@ -62,8 +63,8 @@ type Baseliner struct {
 	issueBaselineCache *lru.Cache
 }
 
-// NewBaseliner creates a new instance of Baseliner.
-func NewBaseliner(gStorageClient *GStorageClient, expectationsStore expstorage.ExpectationsStore, issueExpStoreFactory expstorage.IssueExpStoreFactory, tryjobStore tryjobstore.TryjobStore, vcs vcsinfo.VCS) (*Baseliner, error) {
+// New creates a new instance of Baseliner that interacts with baselines in GCS.
+func New(gStorageClient *storage.GStorageClient, expectationsStore expstorage.ExpectationsStore, issueExpStoreFactory expstorage.IssueExpStoreFactory, tryjobStore tryjobstore.TryjobStore, vcs vcsinfo.VCS) (*Baseliner, error) {
 	cache, err := lru.New(issueCacheSize)
 	if err != nil {
 		return nil, skerr.Fmt("Error allocating cache: %s", err)
@@ -82,7 +83,7 @@ func NewBaseliner(gStorageClient *GStorageClient, expectationsStore expstorage.E
 
 // CanWriteBaseline returns true if this instance was configured to write baseline files.
 func (b *Baseliner) CanWriteBaseline() bool {
-	return (b.gStorageClient != nil) && (b.gStorageClient.options.BaselineGSPath != "")
+	return (b.gStorageClient != nil) && (b.gStorageClient.Options.BaselineGSPath != "")
 }
 
 // PushMasterBaselines writes the baselines for the master branch to GCS.
@@ -382,3 +383,5 @@ func fromLongCommit(lc *vcsinfo.LongCommit) *tiling.Commit {
 		Author:     lc.Author,
 	}
 }
+
+var _ baseline.Baseliner = (*Baseliner)(nil)
