@@ -341,6 +341,16 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 
 	}
 	for _, genFile := range FILES_GENERATED_BY_GN_TO_GP {
+		if r.parentBranch != "master" {
+			if genFile != android_skia_checkout.AndroidBpRelPath {
+				// Temporary hack to avoid having to cherrypick the very large
+				// change https://skia-review.googlesource.com/c/skia/+/209706
+				// TODO(rmistry): Remove.
+				tokens := strings.Split(path.Dir(genFile), "/")
+				newPath := path.Join(tokens[1:]...)
+				genFile = path.Join(newPath, tokens[0], "SkUserConfig.h")
+			}
+		}
 		if _, err := exec.RunCwd(ctx, r.childDir, "git", "add", genFile); err != nil {
 			return 0, err
 		}
