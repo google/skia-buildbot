@@ -90,7 +90,7 @@ func main() {
 		gitBTTableID        = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
 		gitRepoDir          = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 		gitRepoURL          = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
-		gsBucketNames       = flag.String("gs_buckets", "skia-infra-gm,chromium-skia-gm", "Comma-separated list of google storage bucket that hold uploaded images.")
+		gsBucketNames       = flag.String("gs_buckets", "skia-infra-gm", "Comma-separated list of google storage bucket that hold uploaded images.")
 		hashesGSPath        = flag.String("hashes_gs_path", "", "GS path, where the known hashes file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
 		imageDir            = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
 		indexInterval       = flag.Duration("idx_interval", 5*time.Minute, "Interval at which the indexer calculates the search index.")
