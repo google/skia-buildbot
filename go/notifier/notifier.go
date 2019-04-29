@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"cloud.google.com/go/pubsub"
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -140,8 +142,10 @@ type emailNotifier struct {
 // See documentation for Notifier interface.
 func (n *emailNotifier) Send(_ context.Context, subject string, msg *Message) error {
 	if n.gmail == nil {
+		sklog.Warning("No gmail API client; cannot send email!")
 		return nil
 	}
+	sklog.Infof("Sending email to %s: %s", strings.Join(n.to, ","), subject)
 	return n.gmail.SendWithMarkup(n.from, n.to, subject, msg.Body, n.markup)
 }
 
