@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c42ec0a9_55ed72be",
+        "filename": "golden/cmd/skia_diff_server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-29T16:02:35Z",
+      "side": 1,
+      "message": "nit: remove default; it\u0027s already explicit in the .service files, and when running locally it\u0027s probably better to use a test bucket.\n\nx2",
+      "range": {
+        "startLine": 26,
+        "startChar": 49,
+        "endLine": 26,
+        "endChar": 85
+      },
+      "revId": "c58fb8befd14ffa91efc7b6b5dc72d9f331ff205",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23cfa927_f5eeb0d0",
+        "filename": "golden/sys/skiacorrectness-prod.service",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-29T16:02:35Z",
+      "side": 1,
+      "message": "Unless I\u0027m misunderstanding, you are adding this bucket. Is that intentional? Maybe mention in the commit message.",
+      "range": {
+        "startLine": 20,
+        "startChar": 30,
+        "endLine": 20,
+        "endChar": 53
+      },
+      "revId": "c58fb8befd14ffa91efc7b6b5dc72d9f331ff205",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
