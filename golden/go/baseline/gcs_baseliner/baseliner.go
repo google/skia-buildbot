@@ -1,4 +1,4 @@
-package storage
+package gcs_baseliner
 
 import (
 	"context"
@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
@@ -31,15 +32,11 @@ const (
 	issueCacheSize = 10000
 )
 
-// TODO(stephana): Baseliner needs to merged into the baseline package and
-// the nomenclature should either change to Expectations or make a it clearer that
-// baselines are synonymous to expectations.
-
-// Baseliner is a helper type that provides functions to write baselines (expectations) to
+// BaselinerImpl is a helper type that provides functions to write baselines (expectations) to
 // GCS and retrieve them. Other packages use it to continuously write expectations to GCS
 // as they become available.
-type Baseliner struct {
-	gStorageClient       *GStorageClient
+type BaselinerImpl struct {
+	gStorageClient       storage.GCStorageClient
 	expectationsStore    expstorage.ExpectationsStore
 	issueExpStoreFactory expstorage.IssueExpStoreFactory
 	tryjobStore          tryjobstore.TryjobStore
@@ -62,14 +59,14 @@ type Baseliner struct {
 	issueBaselineCache *lru.Cache
 }
 
-// NewBaseliner creates a new instance of Baseliner.
-func NewBaseliner(gStorageClient *GStorageClient, expectationsStore expstorage.ExpectationsStore, issueExpStoreFactory expstorage.IssueExpStoreFactory, tryjobStore tryjobstore.TryjobStore, vcs vcsinfo.VCS) (*Baseliner, error) {
+// New creates a new instance of baseliner.Baseliner that interacts with baselines in GCS.
+func New(gStorageClient storage.GCStorageClient, expectationsStore expstorage.ExpectationsStore, issueExpStoreFactory expstorage.IssueExpStoreFactory, tryjobStore tryjobstore.TryjobStore, vcs vcsinfo.VCS) (*BaselinerImpl, error) {
 	cache, err := lru.New(issueCacheSize)
 	if err != nil {
 		return nil, skerr.Fmt("Error allocating cache: %s", err)
 	}
 
-	return &Baseliner{
+	return &BaselinerImpl{
 		gStorageClient:       gStorageClient,
 		expectationsStore:    expectationsStore,
 		issueExpStoreFactory: issueExpStoreFactory,
@@ -81,8 +78,8 @@ func NewBaseliner(gStorageClient *GStorageClient, expectationsStore expstorage.E
 }
 
 // CanWriteBaseline returns true if this instance was configured to write baseline files.
-func (b *Baseliner) CanWriteBaseline() bool {
-	return (b.gStorageClient != nil) && (b.gStorageClient.options.BaselineGSPath != "")
+func (b *BaselinerImpl) CanWriteBaseline() bool {
+	return (b.gStorageClient != nil) && (b.gStorageClient.Options().BaselineGSPath != "")
 }
 
 // PushMasterBaselines writes the baselines for the master branch to GCS.
@@ -91,7 +88,7 @@ func (b *Baseliner) CanWriteBaseline() bool {
 // If targetHash != "" we also return the baseline for corresponding commit as the first return
 // value. Otherwise the first return value is nil.
 // It is assumed that the target commit is one of the commits that are written as part of this call.
-func (b *Baseliner) PushMasterBaselines(cpxTile *types.ComplexTile, targetHash string) (*baseline.CommitableBaseLine, error) {
+func (b *BaselinerImpl) PushMasterBaselines(cpxTile *types.ComplexTile, targetHash string) (*baseline.CommitableBaseLine, error) {
 	defer timer.New("PushmasterBaselines").Stop()
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
@@ -178,7 +175,7 @@ func (b *Baseliner) PushMasterBaselines(cpxTile *types.ComplexTile, targetHash s
 }
 
 // PushIssueBaseline writes the baseline for a Gerrit issue to GCS.
-func (b *Baseliner) PushIssueBaseline(issueID int64, cpxTile *types.ComplexTile, tallies *tally.Tallies) error {
+func (b *BaselinerImpl) PushIssueBaseline(issueID int64, cpxTile *types.ComplexTile, tallies *tally.Tallies) error {
 	issueExpStore := b.issueExpStoreFactory(issueID)
 	exp, err := issueExpStore.Get()
 	if err != nil {
@@ -216,7 +213,7 @@ func (b *Baseliner) PushIssueBaseline(issueID int64, cpxTile *types.ComplexTile,
 // them. If either of them doesn't exist an empty baseline is assumed.
 // If issueOnly is true and issueID > 0 then only the expectations attached to the issue are
 // returned (omitting the baselines of the master branch). This is primarily used for debugging.
-func (b *Baseliner) FetchBaseline(commitHash string, issueID int64, patchsetID int64, issueOnly bool) (*baseline.CommitableBaseLine, error) {
+func (b *BaselinerImpl) FetchBaseline(commitHash string, issueID int64, patchsetID int64, issueOnly bool) (*baseline.CommitableBaseLine, error) {
 	isIssue := issueID > 0
 
 	var masterBaseline *baseline.CommitableBaseLine
@@ -273,7 +270,7 @@ func (b *Baseliner) FetchBaseline(commitHash string, issueID int64, patchsetID i
 
 // getCommitSince returns all the commits have been added to the repo since the given commit.
 // The returned instances of tiling.Commit do not contain a valid Author field.
-func (b *Baseliner) getCommitsSince(firstCommit *tiling.Commit) ([]*tiling.Commit, error) {
+func (b *BaselinerImpl) getCommitsSince(firstCommit *tiling.Commit) ([]*tiling.Commit, error) {
 	defer timer.New("getCommitsSince").Stop()
 
 	// If there is an underlying gitstore retrieve it, otherwise this function becomes a no-op.
@@ -324,7 +321,7 @@ func (b *Baseliner) getCommitsSince(firstCommit *tiling.Commit) ([]*tiling.Commi
 	return ret[1:], nil
 }
 
-func (b *Baseliner) getMasterExpectations(commitHash string) (*baseline.CommitableBaseLine, error) {
+func (b *BaselinerImpl) getMasterExpectations(commitHash string) (*baseline.CommitableBaseLine, error) {
 	b.mutex.RLock()
 	cache := b.baselineCache
 	cpxTile := b.currCpxTile
@@ -382,3 +379,6 @@ func fromLongCommit(lc *vcsinfo.LongCommit) *tiling.Commit {
 		Author:     lc.Author,
 	}
 }
+
+// Make sure
+var _ baseline.Baseliner = (*BaselinerImpl)(nil)
