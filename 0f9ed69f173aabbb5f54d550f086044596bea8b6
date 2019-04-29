@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ad53e8b0_e0b5e2f2",
+        "filename": "gold-client/cmd/goldctl/cmd_dump.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-29T17:25:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4447f0f4_e9d7bec8",
+      "range": {
+        "startLine": 28,
+        "startChar": 54,
+        "endLine": 28,
+        "endChar": 60
+      },
+      "revId": "0f9ed69f173aabbb5f54d550f086044596bea8b6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "57d90bb7_cba976a9",
         "filename": "gold-client/cmd/goldctl/cmd_dump.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "0f9ed69f173aabbb5f54d550f086044596bea8b6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b992bbbb_99ee7a94",
+        "filename": "gold-client/cmd/goldctl/cmd_dump.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-29T17:25:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "57d90bb7_cba976a9",
+      "range": {
+        "startLine": 65,
+        "startChar": 4,
+        "endLine": 65,
+        "endChar": 22
+      },
+      "revId": "0f9ed69f173aabbb5f54d550f086044596bea8b6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "4fddc4f6_45b4936d",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-29T17:25:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "13b90a44_2dd80b4f",
+      "range": {
+        "startLine": 89,
+        "startChar": 26,
+        "endLine": 89,
+        "endChar": 32
+      },
+      "revId": "0f9ed69f173aabbb5f54d550f086044596bea8b6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1c07d5ed_55d03e65",
         "filename": "golden/go/types/expectations.go",
         "patchSetId": 2
@@ -82,6 +154,24 @@
       "writtenOn": "2019-04-29T16:31:11Z",
       "side": 1,
       "message": "Would it be easier to just dump as JSON and suggest jq for sorting?",
+      "revId": "0f9ed69f173aabbb5f54d550f086044596bea8b6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f3e513a0_3357aeff",
+        "filename": "golden/go/types/expectations.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-29T17:25:11Z",
+      "side": 1,
+      "message": "I\u0027d rather not have to rely on jq for nice, deterministic output. This also means I could use String() for tests w/o having to use jq.",
+      "parentUuid": "1c07d5ed_55d03e65",
       "revId": "0f9ed69f173aabbb5f54d550f086044596bea8b6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -108,6 +198,30 @@
       "revId": "0f9ed69f173aabbb5f54d550f086044596bea8b6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37e84098_2deb936e",
+        "filename": "golden/go/types/expectations.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-29T17:25:11Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "a9c4b24c_f059888a",
+      "range": {
+        "startLine": 62,
+        "startChar": 1,
+        "endLine": 62,
+        "endChar": 10
+      },
+      "revId": "0f9ed69f173aabbb5f54d550f086044596bea8b6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
