@@ -12,10 +12,12 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/rtcache"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
@@ -60,11 +62,12 @@ func NewImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []s
 	if err != nil {
 		return nil, err
 	}
-
-	fStore, err := newFailureStore(filepath.Join(baseDir, FAILUREDB_NAME))
+	fsPath := filepath.Join(baseDir, FAILUREDB_NAME)
+	fStore, err := newFailureStore(fsPath)
 	if err != nil {
 		return nil, err
 	}
+	sklog.Infof("failure store created at %s", fsPath)
 
 	ret := &ImageLoader{
 		storageClient:  storageClient,
@@ -122,6 +125,7 @@ func (il *ImageLoader) Get(priority int64, images []string) ([]*image.NRGBA, *sy
 	result := make([]*image.NRGBA, len(images))
 	imgWrappers := make(imgRetSlice, len(images))
 	errCh := make(chan errResult, len(images))
+	sklog.Debugf("About to Get %d images", len(images))
 	var wg sync.WaitGroup
 	wg.Add(len(images))
 	for idx, id := range images {
@@ -140,6 +144,7 @@ func (il *ImageLoader) Get(priority int64, images []string) ([]*image.NRGBA, *sy
 		}(idx, id)
 	}
 	wg.Wait()
+	sklog.Debugf("Done getting images, might need some cleanup")
 
 	// Cleanup the open channels in the background and extract the wait group to
 	// return. Note: This is advised even if there are errors since it deallocates
@@ -192,17 +197,20 @@ func (il *ImageLoader) imageLoadWorker(priority int64, imageID string) (interfac
 	// Check if the image is in the disk cache.
 	localRelPath, bucket, gsRelPath := il.mapper.ImagePaths(imageID)
 	localPath := filepath.Join(il.localImgDir, localRelPath)
+	sklog.Debugf("Looking for image with id %s", imageID)
 	if fileutil.FileExists(localPath) {
 		img, err := loadImg(localPath)
 		if err != nil {
 			util.LogErr(il.failureStore.addDigestFailure(diff.NewDigestFailure(imageID, diff.CORRUPTED)))
-			return nil, err
+			return nil, skerr.Fmt("Could not load %s from disk: %s", localPath, err)
 		}
+		sklog.Debugf("Found it on disk at %s", localPath)
 		util.LogErr(il.failureStore.purgeDigestFailures([]string{imageID}))
 		return &imgRet{img: img}, nil
 	}
 
-	// Download the image
+	sklog.Debugf("%s is not on disk yet, going to download from gs://%s", imageID, bucket)
+	// Download the image from GCS
 	imgBytes, err := il.downloadImg(bucket, gsRelPath)
 	if err != nil {
 		util.LogErr(il.failureStore.addDigestFailure(diff.NewDigestFailure(imageID, diff.HTTP)))
@@ -224,18 +232,19 @@ func (il *ImageLoader) imageLoadWorker(priority int64, imageID string) (interfac
 func (il *ImageLoader) saveImgInfoAsync(imageID string, imgBytes []byte) <-chan bool {
 	writeDoneCh := make(chan bool)
 	go func() {
+		defer close(writeDoneCh)
 		localRelPath, _, _ := il.mapper.ImagePaths(imageID)
-		if err := saveFilePath(filepath.Join(il.localImgDir, localRelPath), bytes.NewBuffer(imgBytes)); err != nil {
-			sklog.Error(err)
-			return
+		p := filepath.Join(il.localImgDir, localRelPath)
+		if err := saveFilePath(p, bytes.NewBuffer(imgBytes)); err != nil {
+			sklog.Errorf("Could not write file to disk at %s: %s", p, err)
 		}
-		close(writeDoneCh)
 	}()
 	return writeDoneCh
 }
 
 // downloadImg retrieves the given image from Google storage. If bucket is not empty
 // the gsPath is considered absolute within the bucket, otherwise it is relative to gsImageBaseDir.
+// We will look in every bucket we are configured for.
 func (il *ImageLoader) downloadImg(bucket, gsPath string) ([]byte, error) {
 	var bucketNames []string
 	var objLocation string
@@ -255,7 +264,7 @@ func (il *ImageLoader) downloadImg(bucket, gsPath string) ([]byte, error) {
 			return imgData, nil
 		}
 	}
-	return nil, fmt.Errorf("Failed finding image %s in buckets %v. Last error: %s", gsPath, bucketNames, err)
+	return nil, skerr.Fmt("Failed finding image %s in buckets %v. Last error: %s", objLocation, bucketNames, err)
 }
 
 // downloadImgFromBucket retrieves the given image from the given Google storage bucket.
@@ -266,15 +275,21 @@ func (il *ImageLoader) downloadImgFromBucket(objLocation, bucketName string) ([]
 	// Retrieve the attributes.
 	attrs, err := il.storageClient.Bucket(bucketName).Object(objLocation).Attrs(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to retrieve attributes for %s/%s: %.80s", bucketName, objLocation, err)
+		return nil, skerr.Fmt("Unable to retrieve attributes for %s/%s: %.80s", bucketName, objLocation, err)
 	}
 
 	var buf *bytes.Buffer
 	for i := 0; i < MAX_URI_GET_TRIES; i++ {
+		if i > 0 {
+			sklog.Infof("after error, sleeping 2s before GCS fetch for gs://%s/%s", bucketName, objLocation)
+			// This is an arbitrary amount of time to wait.
+			// TODO(kjlubick): should this be exponential backoff?
+			time.Sleep(2 * time.Second)
+		}
 		err = func() error {
 			reader, err := il.storageClient.Bucket(bucketName).Object(objLocation).NewReader(ctx)
 			if err != nil {
-				return fmt.Errorf("New reader failed for %s/%s: %.80s", bucketName, objLocation, err)
+				return fmt.Errorf("New reader failed for %s/%s: %s", bucketName, objLocation, err)
 			}
 			defer util.Close(reader)
 
@@ -289,7 +304,7 @@ func (il *ImageLoader) downloadImgFromBucket(objLocation, bucketName string) ([]
 
 			// Check the MD5.
 			if !bytes.Equal(md5Hash.Sum(nil), attrs.MD5) {
-				return fmt.Errorf("MD5 hash for digest %s incorrect.", objLocation)
+				return skerr.Fmt("MD5 hash for digest %s incorrect.", objLocation)
 			}
 
 			return nil
@@ -306,7 +321,7 @@ func (il *ImageLoader) downloadImgFromBucket(objLocation, bucketName string) ([]
 		return nil, err
 	}
 
-	sklog.Infof("Done downloading image for: %s. Length: %d", objLocation, buf.Len())
+	sklog.Infof("Done downloading image for: %s. Length: %d bytes", objLocation, buf.Len())
 	return buf.Bytes(), err
 }
 

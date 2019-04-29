@@ -5,7 +5,6 @@ package baseline
 import (
 	"fmt"
 
-	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
@@ -16,7 +15,16 @@ import (
 )
 
 // md5SumEmptyExp is the MD5 sum of an empty expectation.
-var md5SumEmptyExp = fileutil.Must(util.MD5Sum(types.TestExp{}))
+// it is initialized in this file's init().
+var md5SumEmptyExp = ""
+
+func init() {
+	var err error
+	md5SumEmptyExp, err = util.MD5Sum(types.TestExp{})
+	if err != nil {
+		panic(fmt.Sprintf("Could not get the MD5 sum of an empty expectation: %s", err))
+	}
+}
 
 // CommitableBaseLine captures the data necessary to verify test results on the
 // commit queue.

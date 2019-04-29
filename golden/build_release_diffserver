@@ -43,8 +43,8 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
   {
   set -e
 
-  INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
-  INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+  INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
+  INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
 
   ${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_diff_server      ${ROOT}/usr/local/bin/${APPNAME}
   ${INSTALL}     --mode=644 -T $SERVICE_FILE                       ${ROOT}/etc/systemd/system/${APPNAME}.service
