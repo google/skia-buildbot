@@ -25,6 +25,8 @@ var (
 	owner       = flag.String("owner", "", "The email address of the issue's owner")
 	cc          = common.NewMultiStringFlag("cc", nil, fmt.Sprintf("The email addresses to cc to this issue."))
 	labels      = common.NewMultiStringFlag("labels", nil, fmt.Sprintf(`The labels to add to this issue.  Common labels are "Type-Defect","Priority-Medium","Restrict-View-Google"`))
+	component   = flag.String("component", "", "Component name under which to file the issue.")
+	project     = flag.String("project", "", "Project ID under which to file the issue.")
 )
 
 func main() {
@@ -36,12 +38,15 @@ func main() {
 	}
 	mode := args[0]
 
-	ts, err := auth.NewDefaultJWTServiceAccountTokenSource("https://www.googleapis.com/auth/userinfo.email")
+	ts, err := auth.NewDefaultTokenSource(true, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
-		sklog.Fatalf("Unable to create installed app oauth client:%s", err)
+		sklog.Fatalf("Unable to create token source: %s", err)
+	}
+	if *project == "" {
+		*project = issues.PROJECT_SKIA
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	tracker = issues.NewMonorailIssueTracker(client, issues.PROJECT_SKIA)
+	tracker = issues.NewMonorailIssueTracker(client, *project)
 	switch mode {
 	case "query":
 		if len(args) < 2 {
@@ -106,6 +111,7 @@ func handleCreate() {
 		Labels:      *labels,
 		Summary:     *summary,
 		Description: *description,
+		Component:   *component,
 	}
 	if err := tracker.AddIssue(req); err != nil {
 		sklog.Errorf("Failed to add issue: %s", err)
