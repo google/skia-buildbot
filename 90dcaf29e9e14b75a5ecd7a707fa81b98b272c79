@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6cb4c780_2707c080",
+        "filename": "go/issues/issues.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-30T14:28:16Z",
+      "side": 1,
+      "message": "Optional: I find anonymous struct instantiation useful for things like this-\n\nreq :\u003d struct{\n  IssueRequest\n  Project string `json:\"projectId\"`\n}{\n  IssueRequest: issue,\n  Project: m.project,\n}",
+      "range": {
+        "startLine": 125,
+        "startChar": 8,
+        "endLine": 125,
+        "endChar": 26
+      },
+      "revId": "90dcaf29e9e14b75a5ecd7a707fa81b98b272c79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
