@@ -47,11 +47,17 @@ type ExpectationsStore interface {
 	// used for testing, but also to delete the expectations for a Gerrit issue.
 	// See the tryjobstore package.
 	Clear() error
+}
 
-	// removeChange removes the given digests from the expectations store.
+type DebugExpectationsStore interface {
+	ExpectationsStore
+	// RemoveChange removes the given digests from the expectations store.
 	// The key in changes is the test name which maps to a list of digests
 	// to remove. Used for testing only.
-	removeChange(changes types.TestExp) error
+	// TODO(kjlubick): The removeChange function is obsolete and should be removed.
+	// It was used for testing before the UndoChange function was added. It is simply
+	// wrong to change the expectations without a change record being added.
+	RemoveChange(changes types.TestExp) error
 }
 
 // TriageDetails represents one changed digest and the label that was
@@ -98,7 +104,7 @@ type MemExpectationsStore struct {
 }
 
 // New instance of memory backed expectation storage.
-func NewMemExpectationsStore(eventBus eventbus.EventBus) ExpectationsStore {
+func NewMemExpectationsStore(eventBus eventbus.EventBus) *MemExpectationsStore {
 	ret := &MemExpectationsStore{
 		eventBus: eventBus,
 	}
@@ -106,8 +112,7 @@ func NewMemExpectationsStore(eventBus eventbus.EventBus) ExpectationsStore {
 	return ret
 }
 
-// ------------- In-memory implementation
-// See ExpectationsStore interface.
+// Get fulfills the ExpectationsStore interface.
 func (m *MemExpectationsStore) Get() (types.Expectations, error) {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
@@ -115,7 +120,7 @@ func (m *MemExpectationsStore) Get() (types.Expectations, error) {
 	return m.readCopy, nil
 }
 
-// See ExpectationsStore interface.
+// AddChange fulfills the ExpectationsStore interface.
 func (m *MemExpectationsStore) AddChange(changedTests types.TestExp, userId string) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
@@ -129,8 +134,8 @@ func (m *MemExpectationsStore) AddChange(changedTests types.TestExp, userId stri
 	return nil
 }
 
-// removeChange, see ExpectationsStore interface.
-func (m *MemExpectationsStore) removeChange(changedDigests types.TestExp) error {
+// RemoveChange fulfills the DebugExpectationsStore interface.
+func (m *MemExpectationsStore) RemoveChange(changedDigests types.TestExp) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
@@ -174,3 +179,9 @@ func (m *MemExpectationsStore) Clear() error {
 	m.readCopy = types.NewExpectations(nil)
 	return nil
 }
+
+// Make sure MemExpectationsStore fulfills the ExpectationsStore interface
+var _ ExpectationsStore = (*MemExpectationsStore)(nil)
+
+// Make sure MemExpectationsStore fulfills the DebugExpectationsStore interface
+var _ DebugExpectationsStore = (*MemExpectationsStore)(nil)

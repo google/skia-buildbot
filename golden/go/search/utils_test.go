@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/mocks"
@@ -147,13 +148,16 @@ func getStoragesAndIndexerFromTile(t assert.TestingT, path string, randomize boo
 	err := expStore.AddChange(sample.Expectations.TestExp(), "testuser")
 	assert.NoError(t, err)
 
+	baseliner, err := gcs_baseliner.New(nil, expStore, nil, nil, nil)
+	assert.NoError(t, err)
+
 	storages := &storage.Storage{
 		ExpectationsStore: expStore,
 		MasterTileBuilder: tileBuilder,
 		DiffStore:         mocks.NewMockDiffStore(),
 		EventBus:          eventBus,
+		Baseliner:         baseliner,
 	}
-	assert.NoError(t, storages.InitBaseliner())
 
 	ixr, err := indexer.New(storages, 10*time.Minute)
 	assert.NoError(t, err)

@@ -28,7 +28,7 @@ type SQLExpectationsStore struct {
 	vdb *database.VersionedDB
 }
 
-func NewSQLExpectationStore(vdb *database.VersionedDB) ExpectationsStore {
+func NewSQLExpectationStore(vdb *database.VersionedDB) *SQLExpectationsStore {
 	return &SQLExpectationsStore{
 		vdb: vdb,
 	}
@@ -162,8 +162,8 @@ func insertWithPrep(insertStmt string, tx *sql.Tx, valsArr ...[]interface{}) err
 	return nil
 }
 
-// removeChange, see ExpectationsStore interface.
-func (s *SQLExpectationsStore) removeChange(changedDigests types.TestExp) (retErr error) {
+// RemoveChange, see ExpectationsStore interface.
+func (s *SQLExpectationsStore) RemoveChange(changedDigests types.TestExp) (retErr error) {
 	defer timer.New("removing exp change").Stop()
 
 	const markRemovedStmt = `UPDATE exp_test_change
@@ -408,13 +408,13 @@ func (s *SQLExpectationsStore) loadChangeEntry(changeID int64) (*TriageLogEntry,
 // Wraps around an ExpectationsStore and caches the expectations using
 // MemExpectationsStore.
 type CachingExpectationStore struct {
-	store    ExpectationsStore
-	cache    ExpectationsStore
+	store    DebugExpectationsStore
+	cache    DebugExpectationsStore
 	eventBus eventbus.EventBus
 	refresh  bool
 }
 
-func NewCachingExpectationStore(store ExpectationsStore, eventBus eventbus.EventBus) ExpectationsStore {
+func NewCachingExpectationStore(store DebugExpectationsStore, eventBus eventbus.EventBus) *CachingExpectationStore {
 	ret := &CachingExpectationStore{
 		store:    store,
 		cache:    NewMemExpectationsStore(nil),
@@ -491,7 +491,7 @@ func (c *CachingExpectationStore) addChangeToCache(evtChangedTests interface{}) 
 	}
 
 	if len(forRemoval) > 0 {
-		if err := c.cache.removeChange(forRemoval); err != nil {
+		if err := c.cache.RemoveChange(forRemoval); err != nil {
 			sklog.Errorf("Error removing changed expectations to cache: %s", err)
 		}
 	}
@@ -507,9 +507,9 @@ func (c *CachingExpectationStore) addChangeToCache(evtChangedTests interface{}) 
 	sklog.Infof("Expectations change has been added to the cache.")
 }
 
-// removeChange implements the ExpectationsStore interface.
-func (c *CachingExpectationStore) removeChange(changedDigests types.TestExp) error {
-	if err := c.store.removeChange(changedDigests); err != nil {
+// RemoveChange implements the DebugExpectationsStore interface.
+func (c *CachingExpectationStore) RemoveChange(changedDigests types.TestExp) error {
+	if err := c.store.RemoveChange(changedDigests); err != nil {
 		return err
 	}
 
@@ -546,3 +546,15 @@ func (c *CachingExpectationStore) Clear() error {
 	}
 	return c.cache.Clear()
 }
+
+// Make sure SQLExpectationsStore fulfills the ExpectationsStore interface
+var _ ExpectationsStore = (*SQLExpectationsStore)(nil)
+
+// Make sure SQLExpectationsStore fulfills the DebugExpectationsStore interface
+var _ DebugExpectationsStore = (*SQLExpectationsStore)(nil)
+
+// Make sure CachingExpectationStore fulfills the ExpectationsStore interface
+var _ ExpectationsStore = (*CachingExpectationStore)(nil)
+
+// Make sure CachingExpectationStore fulfills the DebugExpectationsStore interface
+var _ DebugExpectationsStore = (*CachingExpectationStore)(nil)

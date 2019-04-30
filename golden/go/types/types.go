@@ -183,13 +183,15 @@ func (c *ComplexTile) FromSame(completeTile *tiling.Tile, ignoreRev int64) bool 
 		c.irRevision == ignoreRev
 }
 
-// DataCommits returns all commits that contain data.
+// DataCommits returns all commits that contain data. In some busy repos, there are commits that
+// don't get tested directly because the commits are batched in with others. DataCommits
+// is a way to get just the commits where some data has been ingested.
 func (c *ComplexTile) DataCommits() []*tiling.Commit {
 	return c.tileWithIgnores.Commits
 }
 
 // AllCommits returns all commits that were processed to get the data commits.
-// It's first commit should match the first commit returned when calling DataCommits.
+// Its first commit should match the first commit returned when calling DataCommits.
 func (c *ComplexTile) AllCommits() []*tiling.Commit {
 	return c.sparseCommits
 }

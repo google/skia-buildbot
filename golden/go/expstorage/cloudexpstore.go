@@ -87,14 +87,14 @@ type CloudExpStore struct {
 	tsMutex sync.Mutex
 }
 
-// IssueExpStoreFactory creates an ExpectationsStore instance for the given issue id.
-type IssueExpStoreFactory func(issueID int64) ExpectationsStore
+// IssueExpStoreFactory creates an DebugExpectationsStore instance for the given issue id.
+type IssueExpStoreFactory func(issueID int64) DebugExpectationsStore
 
 // NewCloudExpectationsStore returns an ExpectationsStore implementation based on
 // Cloud Datastore for the master branch and a factory to create ExpectationsStore
 // instances for Gerrit issues. The factory uses the same datastore client as the
 // master store.
-func NewCloudExpectationsStore(client *datastore.Client, eventBus eventbus.EventBus) (ExpectationsStore, IssueExpStoreFactory, error) {
+func NewCloudExpectationsStore(client *datastore.Client, eventBus eventbus.EventBus) (*CloudExpStore, IssueExpStoreFactory, error) {
 	if client == nil {
 		return nil, nil, sklog.FmtErrorf("Received nil for datastore client.")
 	}
@@ -122,7 +122,7 @@ func NewCloudExpectationsStore(client *datastore.Client, eventBus eventbus.Event
 
 	// The factory allows to create an isolated ExpectationStore instance for the
 	// given issue.
-	factory := func(issueID int64) ExpectationsStore {
+	factory := func(issueID int64) DebugExpectationsStore {
 		summaryKey := ds.NewKey(ds.HELPER_RECENT_KEYS)
 		summaryKey.Name = fmt.Sprintf("expstorage-issue-%d", issueID)
 		expectationsKey := ds.NewKey(ds.EXPECTATIONS_BLOB_ROOT)
@@ -403,12 +403,8 @@ func (c *CloudExpStore) CalcExpectations(keys []*datastore.Key) (types.Expectati
 	return ret, nil
 }
 
-// TODO(stephana): The removeChange function is obsolete and should be removed.
-// It was used for testing before the UndoChange function was added. It is simply
-// wrong to change the expectations without a change record being added.
-
-// removeChange implements the ExpectationsStore interface.
-func (c *CloudExpStore) removeChange(changes types.TestExp) (err error) {
+// RemoveChange implements the ExpectationsStore interface.
+func (c *CloudExpStore) RemoveChange(changes types.TestExp) (err error) {
 	for _, digests := range changes {
 		for digest := range digests {
 			digests[digest] = types.UNTRIAGED
@@ -699,3 +695,9 @@ func (c *CloudExpStore) getUniqueTimeStampMs() int64 {
 	c.lastTS = ts
 	return ts
 }
+
+// Make sure CloudExpStore fulfills the ExpectationsStore interface
+var _ ExpectationsStore = (*CloudExpStore)(nil)
+
+// Make sure CloudExpStore fulfills the DebugExpectationsStore interface
+var _ DebugExpectationsStore = (*CloudExpStore)(nil)
