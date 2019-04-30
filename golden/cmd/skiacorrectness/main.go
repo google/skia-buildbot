@@ -38,6 +38,7 @@ import (
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
@@ -343,14 +344,14 @@ func main() {
 			sklog.Fatalf("Failed to build trace/db.DB: %s", err)
 		}
 
-		gsClientOpt := &storage.GSClientOptions{
+		gsClientOpt := storage.GCSClientOptions{
 			HashesGSPath:   *hashesGSPath,
 			BaselineGSPath: *baselineGSPath,
 		}
 
-		gsClient, err := storage.NewGStorageClient(client, gsClientOpt)
+		gsClient, err := storage.NewGCStorageClient(client, gsClientOpt)
 		if err != nil {
-			sklog.Fatalf("Unable to create GStorageClient: %s", err)
+			sklog.Fatalf("Unable to create GCStorageClient: %s", err)
 		}
 
 		if err := ds.InitWithOpt(*projectID, *dsNamespace, option.WithTokenSource(tokenSource)); err != nil {
@@ -359,6 +360,7 @@ func main() {
 
 		// Set up the cloud expectations store, since at least the issue portion
 		// will be used even if we use MySQL.
+		var expStore expstorage.DEPRECATED_ExpectationsStore
 		expStore, issueExpStoreFactory, err := expstorage.NewCloudExpectationsStore(ds.DS, evt)
 		if err != nil {
 			sklog.Fatalf("Unable to configure cloud expectations store: %s", err)
@@ -395,6 +397,12 @@ func main() {
 		}
 		tryjobMonitor := tryjobs.NewTryjobMonitor(tryjobStore, expStore, issueExpStoreFactory, gerritAPI, *siteURL, evt, *authoritative)
 
+		// Initialize the Baseliner instance from the values set above.
+		baseliner, err := gcs_baseliner.New(gsClient, expStore, issueExpStoreFactory, tryjobStore, vcs)
+		if err != nil {
+			sklog.Fatalf("Error initializing baseliner: %s", err)
+		}
+
 		// Extract the site URL
 		storages := &storage.Storage{
 			DiffStore:            diffStore,
@@ -407,16 +415,12 @@ func main() {
 			TryjobStore:          tryjobStore,
 			TryjobMonitor:        tryjobMonitor,
 			GerritAPI:            gerritAPI,
-			GStorageClient:       gsClient,
+			GCStorageClient:      gsClient,
 			VCS:                  vcs,
 			IsAuthoritative:      *authoritative,
 			SiteURL:              *siteURL,
 			IsSparseTile:         *sparseInput,
-		}
-
-		// Initialize the Baseliner instance from the values set above.
-		if err := storages.InitBaseliner(); err != nil {
-			sklog.Fatalf("Error initializing baseliner: %s", err)
+			Baseliner:            baseliner,
 		}
 
 		// Load the whitelist if there is one and disable querying for issues.
@@ -556,13 +560,9 @@ func main() {
 	jsonRouter.HandleFunc(trim("/json/tryjob/{id}"), handlers.JsonTryjobSummaryHandler).Methods("GET")
 
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
+	// These routes can be served with baseline_server for higher availability.
 	jsonRouter.HandleFunc(trim(shared.EXPECTATIONS_ROUTE), handlers.JsonBaselineHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim(shared.EXPECTATIONS_ISSUE_ROUTE), handlers.JsonBaselineHandler).Methods("GET")
-
-	// TODO(stephana): Remove this these endpoints (that contain spelling errors) until the already
-	// fixed version of goldctl has been pushed to CPID.
-	jsonRouter.HandleFunc(trim("/json/expecations/commit/{commit_hash}"), handlers.JsonBaselineHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/expecations/issue/{issue_id}"), handlers.JsonBaselineHandler).Methods("GET")
 
 	jsonRouter.HandleFunc(trim("/json/refresh/{id}"), handlers.JsonRefreshIssue).Methods("GET")
 

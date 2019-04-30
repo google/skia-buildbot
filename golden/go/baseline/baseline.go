@@ -26,34 +26,6 @@ func init() {
 	}
 }
 
-// CommitableBaseLine captures the data necessary to verify test results on the
-// commit queue.
-type CommitableBaseLine struct {
-	// StartCommit covered by these baselines.
-	StartCommit *tiling.Commit `json:"startCommit"`
-
-	// EncCommit is the commit for which this baseline was collected.
-	EndCommit *tiling.Commit `json:"endCommit"`
-
-	// CommitDelta is the difference in index within the commits of a tile.
-	CommitDelta int `json:"commitDelta"`
-
-	// Total is the total number of traces that were iterated when generating the baseline.
-	Total int `json:"total"`
-
-	// Filled is the number of traces that had non-empty values at EndCommit.
-	Filled int `json:"filled"`
-
-	// MD5 is the hash of the Baseline field.
-	MD5 string `json:"md5"`
-
-	// Baseline captures the baseline of the current commit.
-	Baseline types.TestExp `json:"master"`
-
-	// Issue indicates the Gerrit issue of this baseline. 0 indicates the master branch.
-	Issue int64
-}
-
 // DeepCopyBaseline returns a copy of the given instance of CommitableBaseline.
 // Note: It assumes all members except for BaseLine to be immutable, thus only
 // BaseLine is "deep" copied.
@@ -71,15 +43,15 @@ func (c *CommitableBaseLine) DeepCopyBaseline() *CommitableBaseLine {
 // in the given complex tile and BaseLines for these should be essentially copies of the last
 // commit in the tile. This covers the case when the current tile is slightly behind all commits
 // that have already been added to the repository.
-func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile, extraCommits []*tiling.Commit) (map[string]*CommitableBaseLine, error) {
-	allCommits := cpxTile.AllCommits()
+func GetBaselinesPerCommit(exps types.Expectations, commitSource CommitSource, extraCommits []*tiling.Commit) (map[string]*CommitableBaseLine, error) {
+	allCommits := commitSource.AllCommits()
 	if len(allCommits) == 0 {
 		return map[string]*CommitableBaseLine{}, nil
 	}
 
 	// Get the baselines for all commits for which we have data and that are not ignored.
-	denseTile := cpxTile.GetTile(false)
-	denseCommits := cpxTile.DataCommits()
+	denseTile := commitSource.GetTile(false)
+	denseCommits := commitSource.DataCommits()
 	denseBaseLines := make(map[string]types.TestExp, len(denseCommits))
 
 	// Initialize the expectations for all data commits
