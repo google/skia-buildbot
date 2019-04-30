@@ -18,6 +18,7 @@ import (
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
@@ -48,8 +49,8 @@ type Storage struct {
 	TryjobStore          tryjobstore.TryjobStore
 	TryjobMonitor        *tryjobs.TryjobMonitor
 	GerritAPI            gerrit.GerritInterface
-	GStorageClient       *GStorageClient
-	Baseliner            *Baseliner
+	GCStorageClient      GCStorageClient
+	Baseliner            baseline.Baseliner
 	VCS                  vcsinfo.VCS
 	WhiteListQuery       paramtools.ParamSet
 	IsAuthoritative      bool
@@ -66,16 +67,6 @@ type Storage struct {
 	lastCpxTile   *types.ComplexTile
 	lastTimeStamp time.Time
 	mutex         sync.Mutex
-}
-
-// TODO(stephana): Baseliner will eventually factored into the baseline package and
-// InitBaseliner should go away.
-
-// InitBaseliner initializes the Baseliner instance from values already set on the storage instance.
-func (s *Storage) InitBaseliner() error {
-	var err error
-	s.Baseliner, err = NewBaseliner(s.GStorageClient, s.ExpectationsStore, s.IssueExpStoreFactory, s.TryjobStore, s.VCS)
-	return err
 }
 
 // LoadWhiteList loads the given JSON5 file that defines that query to
