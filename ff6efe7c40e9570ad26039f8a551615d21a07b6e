@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "dae9b50c_ec84459a",
+        "filename": "go/issues/issues.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-30T13:28:38Z",
+      "side": 1,
+      "message": "I dont think it is needed, it is confusing if both/none are specified. Why not only use it from here and remove from IssueRequest. Is this a real usecase?- Instantiate MonorailIssueTracker for one project but send AddIssue for another project?",
+      "parentUuid": "9da5506d_e04955a0",
+      "revId": "ff6efe7c40e9570ad26039f8a551615d21a07b6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5dbfc561_895261b5",
         "filename": "go/issues/issues_helper/main.go",
         "patchSetId": 1
