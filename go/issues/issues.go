@@ -78,6 +78,12 @@ type IssueRequest struct {
 	Labels      []string         `json:"labels"`
 	Summary     string           `json:"summary"`
 	Description string           `json:"description"`
+	Component   string           `json:"component"`
+}
+
+type createIssueRequest struct {
+	IssueRequest
+	Project string `json:"projectId"`
 }
 
 // MonorailIssueTracker implements IssueTracker.
@@ -87,14 +93,16 @@ type IssueRequest struct {
 // Infra. Also note that the instance running needs to have the
 // https://www.googleapis.com/auth/userinfo.email scope added to it.
 type MonorailIssueTracker struct {
-	client *http.Client
-	url    string
+	client  *http.Client
+	project string
+	url     string
 }
 
 func NewMonorailIssueTracker(client *http.Client, project string) IssueTracker {
 	return &MonorailIssueTracker{
-		client: client,
-		url:    fmt.Sprintf(MONORAIL_BASE_URL_TMPL, project),
+		client:  client,
+		project: project,
+		url:     fmt.Sprintf(MONORAIL_BASE_URL_TMPL, project),
 	}
 }
 
@@ -114,7 +122,11 @@ func (m *MonorailIssueTracker) AddComment(id string, comment CommentRequest) err
 
 // AddIssue creates an issue with the passed in params.
 func (m *MonorailIssueTracker) AddIssue(issue IssueRequest) error {
-	return post(m.client, m.url, issue)
+	req := createIssueRequest{
+		IssueRequest: issue,
+		Project:      m.project,
+	}
+	return post(m.client, m.url, req)
 }
 
 func get(client *http.Client, u string) ([]Issue, error) {
