@@ -197,30 +197,18 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 	return BUNDLE_RECIPES_NAME
 }
 
-type isolateAssetCfg struct {
-	cipdPkg string
-	path    string
-}
-
-var ISOLATE_ASSET_MAPPING = map[string]isolateAssetCfg{
-	ISOLATE_GO_DEPS_NAME: {
-		cipdPkg: "go_deps",
-		path:    "go_deps",
-	},
-}
-
-// isolateCIPDAsset generates a task to isolate the given CIPD asset.
-func isolateCIPDAsset(b *specs.TasksCfgBuilder, name string) string {
-	asset := ISOLATE_ASSET_MAPPING[name]
-	b.MustAddTask(name, &specs.TaskSpec{
-		CipdPackages: []*specs.CipdPackage{
-			b.MustGetCipdPackageFromAsset(asset.cipdPkg),
+// isolateGoDeps generates a task to isolate the Go dependencies.
+func isolateGoDeps(b *specs.TasksCfgBuilder) string {
+	b.MustAddTask(ISOLATE_GO_DEPS_NAME, &specs.TaskSpec{
+		Caches:       CACHES_GO,
+		CipdPackages: append(CIPD_PKGS_GIT, b.MustGetCipdPackageFromAsset("go")),
+		Command: []string{
+			"/bin/bash", "buildbot/infra/bots/isolate_go_deps.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
 		},
-		Command:    []string{"/bin/cp", "-rL", asset.path, "${ISOLATED_OUTDIR}"},
 		Dimensions: linuxGceDimensions(MACHINE_TYPE_SMALL),
-		Isolate:    relpath("empty.isolate"),
+		Isolate:    "whole_repo.isolate",
 	})
-	return name
+	return ISOLATE_GO_DEPS_NAME
 }
 
 // buildTaskDrivers generates the task to compile the task driver code to run on
@@ -228,11 +216,12 @@ func isolateCIPDAsset(b *specs.TasksCfgBuilder, name string) string {
 func buildTaskDrivers(b *specs.TasksCfgBuilder) string {
 	b.MustAddTask(BUILD_TASK_DRIVERS_NAME, &specs.TaskSpec{
 		Caches:       CACHES_GO,
-		CipdPackages: append(CIPD_PKGS_GIT, b.MustGetCipdPackageFromAsset("go"), b.MustGetCipdPackageFromAsset("go_deps")),
+		CipdPackages: append(CIPD_PKGS_GIT, b.MustGetCipdPackageFromAsset("go")),
 		Command: []string{
 			"/bin/bash", "buildbot/infra/bots/build_task_drivers.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
 		},
-		Dimensions: linuxGceDimensions(MACHINE_TYPE_SMALL),
+		Dependencies: []string{ISOLATE_GO_DEPS_NAME},
+		Dimensions:   linuxGceDimensions(MACHINE_TYPE_SMALL),
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
@@ -333,7 +322,7 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("gcloud_linux"))
 	}
 
-	task.Dependencies = append(task.Dependencies, isolateCIPDAsset(b, ISOLATE_GO_DEPS_NAME))
+	task.Dependencies = append(task.Dependencies, isolateGoDeps(b))
 
 	// Re-run failing bots but not when testing for race conditions.
 	task.MaxAttempts = 2
@@ -421,8 +410,10 @@ func process(b *specs.TasksCfgBuilder, name string) {
 	var priority float64 // Leave as default for most jobs.
 	deps := []string{}
 
-	// Experimental recipe-less tasks.
-	if strings.Contains(name, "Experimental") {
+	if name == ISOLATE_GO_DEPS_NAME {
+		deps = append(deps, isolateGoDeps(b))
+	} else if strings.Contains(name, "Experimental") {
+		// Experimental recipe-less tasks.
 		deps = append(deps, experimental(b, name))
 	} else {
 		// Infra tests.
@@ -434,10 +425,6 @@ func process(b *specs.TasksCfgBuilder, name string) {
 			priority = 1
 			deps = append(deps, presubmit(b, name))
 		}
-	}
-	// Isolate CIPD assets.
-	if _, ok := ISOLATE_ASSET_MAPPING[name]; ok {
-		deps = append(deps, isolateCIPDAsset(b, name))
 	}
 
 	// Add the Job spec.

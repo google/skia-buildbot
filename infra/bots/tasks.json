@@ -194,17 +194,15 @@
           "name": "skia/bots/go",
           "path": "go",
           "version": "version:6"
-        },
-        {
-          "name": "skia/bots/go_deps",
-          "path": "go_deps",
-          "version": "version:225"
         }
       ],
       "command": [
         "/bin/bash",
         "buildbot/infra/bots/build_task_drivers.sh",
         "${ISOLATED_OUTDIR}"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-IsolateGoDeps"
       ],
       "dimensions": [
         "pool:Skia",
@@ -271,17 +269,37 @@
       "isolate": "infrabots.isolate"
     },
     "Housekeeper-PerCommit-IsolateGoDeps": {
+      "caches": [
+        {
+          "name": "go_cache",
+          "path": "cache/go_cache"
+        }
+      ],
       "cipd_packages": [
         {
-          "name": "skia/bots/go_deps",
-          "path": "go_deps",
-          "version": "version:225"
+          "name": "infra/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.17.1.chromium15"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:c9c8a52bfeaf8bc00ece22fdfd447822c8fcad77"
+        },
+        {
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+        },
+        {
+          "name": "skia/bots/go",
+          "path": "go",
+          "version": "version:6"
         }
       ],
       "command": [
-        "/bin/cp",
-        "-rL",
-        "go_deps",
+        "/bin/bash",
+        "buildbot/infra/bots/isolate_go_deps.sh",
         "${ISOLATED_OUTDIR}"
       ],
       "dimensions": [
@@ -291,7 +309,7 @@
         "cpu:x86-64-Haswell_GCE",
         "machine_type:n1-highmem-2"
       ],
-      "isolate": "empty.isolate"
+      "isolate": "whole_repo.isolate"
     },
     "Infra-Experimental-Small": {
       "caches": [
