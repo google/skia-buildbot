@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "fb004bbf_dfd14fef",
+        "filename": "go/issues/issues.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-30T13:51:11Z",
+      "side": 1,
+      "message": "I got an error when it was not set on the IssueRequest, so it needs to be there: \"{\\\"error\\\": {\\\"message\\\": \\\"Message IssueWrapper is missing required field projectId\\\"}}\"\n\nThere are a couple of ways to do this:\n1. Use a different struct to send the request JSON which wraps IssueRequest and adds the projectId field.\n2. Add Project field to IssueRequest and have AddIssue always overwrite it.\n3. Add Project field to IssueRequest and have AddIssue fill it if not specified.\n4. ???\n\n#3 seemed the most sensible way, but I\u0027m sure there are others I haven\u0027t thought of.",
+      "parentUuid": "dae9b50c_ec84459a",
+      "revId": "ff6efe7c40e9570ad26039f8a551615d21a07b6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5dbfc561_895261b5",
         "filename": "go/issues/issues_helper/main.go",
         "patchSetId": 1
