@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "94ccb442_126cdce1",
+        "filename": "autoroll/config/skia-go-deps-infra.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-30T11:57:39Z",
+      "side": 1,
+      "message": "😲",
+      "range": {
+        "startLine": 48,
+        "startChar": 16,
+        "endLine": 48,
+        "endChar": 34
+      },
+      "revId": "8cf221170e88e7a4ea65c25037da5d97a48c925f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "26107665_eb2f79ee",
+        "filename": "go/notifier/notifier.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-30T11:57:39Z",
+      "side": 1,
+      "message": "Project is also required.",
+      "revId": "8cf221170e88e7a4ea65c25037da5d97a48c925f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c4e80b02_498dcc09",
+        "filename": "go/notifier/notifier.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-30T11:57:39Z",
+      "side": 1,
+      "message": "The go/issues library should also support Components one day, seems reasonable for someone to request that bugs be filed in a component.",
+      "range": {
+        "startLine": 296,
+        "startChar": 15,
+        "endLine": 296,
+        "endChar": 27
+      },
+      "revId": "8cf221170e88e7a4ea65c25037da5d97a48c925f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
