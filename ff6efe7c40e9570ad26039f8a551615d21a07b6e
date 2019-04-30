@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd443f5b_549bd0f5",
+        "filename": "go/issues/issues.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-30T13:14:54Z",
+      "side": 1,
+      "message": "This is only used for AddIssue where we already have Project in IssueRequest, why do we need it here as well?",
+      "revId": "ff6efe7c40e9570ad26039f8a551615d21a07b6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5dbfc561_895261b5",
+        "filename": "go/issues/issues_helper/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-30T13:14:54Z",
+      "side": 1,
+      "message": "Where is this used?",
+      "revId": "ff6efe7c40e9570ad26039f8a551615d21a07b6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
