@@ -22,6 +22,30 @@
       "revId": "90dcaf29e9e14b75a5ecd7a707fa81b98b272c79",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f6c71608_f72a06c2",
+        "filename": "go/issues/issues.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-30T14:41:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6cb4c780_2707c080",
+      "range": {
+        "startLine": 125,
+        "startChar": 8,
+        "endLine": 125,
+        "endChar": 26
+      },
+      "revId": "90dcaf29e9e14b75a5ecd7a707fa81b98b272c79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
