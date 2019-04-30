@@ -73,6 +73,24 @@
     },
     {
       "key": {
+        "uuid": "4a8b79ff_d94974a8",
+        "filename": "go/issues/issues.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-30T14:08:52Z",
+      "side": 1,
+      "message": "I personally would have done 1 so that whenever project is required by an API call this library automatically uses the information it already has.\nLeaving it up to you, it was just very confusing to have project in both IssueRequest and MonorailIssueTracker even though we will ever only deal with a single project.",
+      "parentUuid": "fb004bbf_dfd14fef",
+      "revId": "ff6efe7c40e9570ad26039f8a551615d21a07b6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5dbfc561_895261b5",
         "filename": "go/issues/issues_helper/main.go",
         "patchSetId": 1
