@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "97786f10_d02f6a84",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1000,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-30T16:24:46Z",
+      "side": 1,
+      "message": "What implementation of VCS are we using here?",
+      "range": {
+        "startLine": 1000,
+        "startChar": 31,
+        "endLine": 1000,
+        "endChar": 34
+      },
+      "revId": "42941148be4c737502c72ca8e49f376297cb1a13",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
