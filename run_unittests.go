@@ -383,8 +383,8 @@ func main() {
 	if testutils.ShouldRun(testutils.MEDIUM_TEST) || testutils.ShouldRun(testutils.LARGE_TEST) {
 		sklog.Info("Installing pdfium_test if necessary.")
 		pdfiumInstall := path.Join(rootDir, "pdfium", "install_pdfium.sh")
-		if err := exec.Command(pdfiumInstall).Run(); err != nil {
-			sklog.Fatalf("Failed to install pdfium_test: %v", err)
+		if output, err := exec.Command(pdfiumInstall).CombinedOutput(); err != nil {
+			sklog.Fatalf("Failed to install pdfium_test: %s", string(output))
 		}
 		sklog.Info("Latest pdfium_test installed successfully.")
 	}
