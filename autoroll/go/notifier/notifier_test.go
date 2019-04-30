@@ -32,7 +32,7 @@ func TestNotifier(t *testing.T) {
 	testutils.SmallTest(t)
 
 	ctx := context.Background()
-	n, err := New(ctx, "childRepo", "parentRepo", "https://autoroll.skia.org/r/test-roller", nil, nil, nil)
+	n, err := New(ctx, "childRepo", "parentRepo", "https://autoroll.skia.org/r/test-roller", nil, nil, nil, nil)
 	assert.NoError(t, err)
 	t1 := &testNotifier{}
 	n.Router().Add(t1, notifier.FILTER_DEBUG, nil, "")

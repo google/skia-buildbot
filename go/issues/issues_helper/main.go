@@ -41,7 +41,7 @@ func main() {
 		sklog.Fatalf("Unable to create installed app oauth client:%s", err)
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	tracker = issues.NewMonorailIssueTracker(client)
+	tracker = issues.NewMonorailIssueTracker(client, issues.PROJECT_SKIA)
 	switch mode {
 	case "query":
 		if len(args) < 2 {

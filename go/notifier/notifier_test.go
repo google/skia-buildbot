@@ -73,4 +73,27 @@ func TestConfigs(t *testing.T) {
 		Chat: &ChatNotifierConfig{},
 	}
 	assert.EqualError(t, c.Validate(), "Exactly one notification config must be supplied, but got 2")
+
+	c = Config{
+		MsgTypeWhitelist: []string{"filebug"},
+		Monorail:         &MonorailNotifierConfig{},
+	}
+	assert.EqualError(t, c.Validate(), "Owner is required.")
+
+	c = Config{
+		MsgTypeWhitelist: []string{"filebug"},
+		Monorail: &MonorailNotifierConfig{
+			Owner: "me",
+		},
+	}
+	assert.EqualError(t, c.Validate(), "Project is required.")
+
+	c = Config{
+		MsgTypeWhitelist: []string{"filebug"},
+		Monorail: &MonorailNotifierConfig{
+			Owner:   "me",
+			Project: "my-project",
+		},
+	}
+	assert.NoError(t, c.Validate())
 }

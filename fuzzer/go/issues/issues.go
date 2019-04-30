@@ -61,7 +61,7 @@ fuzz_download: https://fuzzer.skia.org/fuzz/{{.Hash}}
 `))
 
 func (im *IssuesManager) CreateBadBugIssue(p IssueReportingPackage, desc string) error {
-	tracker := issues.NewMonorailIssueTracker(im.client)
+	tracker := issues.NewMonorailIssueTracker(im.client, issues.PROJECT_SKIA)
 
 	m, err := issueMessage(p, desc)
 	if err != nil {
