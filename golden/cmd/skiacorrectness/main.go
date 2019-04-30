@@ -461,7 +461,7 @@ func main() {
 		}
 		sklog.Infof("Search API created")
 
-		issueTracker := issues.NewMonorailIssueTracker(client)
+		issueTracker := issues.NewMonorailIssueTracker(client, issues.PROJECT_SKIA)
 
 		statusWatcher, err := status.New(storages)
 		if err != nil {

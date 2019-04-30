@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	MONORAIL_BASE_URL = "https://monorail-prod.appspot.com/_ah/api/monorail/v1/projects/skia/issues"
+	MONORAIL_BASE_URL_TMPL = "https://monorail-prod.appspot.com/_ah/api/monorail/v1/projects/%s/issues"
 
 	PROJECT_ANGLE    = "angleproject"
 	PROJECT_CHROMIUM = util.PROJECT_CHROMIUM
@@ -88,11 +88,13 @@ type IssueRequest struct {
 // https://www.googleapis.com/auth/userinfo.email scope added to it.
 type MonorailIssueTracker struct {
 	client *http.Client
+	url    string
 }
 
-func NewMonorailIssueTracker(client *http.Client) IssueTracker {
+func NewMonorailIssueTracker(client *http.Client, project string) IssueTracker {
 	return &MonorailIssueTracker{
 		client: client,
+		url:    fmt.Sprintf(MONORAIL_BASE_URL_TMPL, project),
 	}
 }
 
@@ -101,18 +103,18 @@ func (m *MonorailIssueTracker) FromQuery(q string) ([]Issue, error) {
 	query := url.Values{}
 	query.Add("q", q)
 	query.Add("fields", "items/id,items/state,items/title")
-	return get(m.client, MONORAIL_BASE_URL+"?"+query.Encode())
+	return get(m.client, m.url+"?"+query.Encode())
 }
 
 // AddComment adds a comment to the issue with the given id
 func (m *MonorailIssueTracker) AddComment(id string, comment CommentRequest) error {
-	u := fmt.Sprintf("%s/%s/comments", MONORAIL_BASE_URL, id)
+	u := fmt.Sprintf("%s/%s/comments", m.url, id)
 	return post(m.client, u, comment)
 }
 
 // AddIssue creates an issue with the passed in params.
 func (m *MonorailIssueTracker) AddIssue(issue IssueRequest) error {
-	return post(m.client, MONORAIL_BASE_URL, issue)
+	return post(m.client, m.url, issue)
 }
 
 func get(client *http.Client, u string) ([]Issue, error) {

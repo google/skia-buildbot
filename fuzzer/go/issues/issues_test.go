@@ -1,6 +1,7 @@
 package issues
 
 import (
+	"fmt"
 	"testing"
 
 	"go.skia.org/infra/go/issues"
@@ -39,7 +40,7 @@ func TestCreateBadBugIssue(t *testing.T) {
 		Category:       "api_parse_path",
 	}
 
-	urlMock.MockOnce(issues.MONORAIL_BASE_URL, mockhttpclient.MockPostDialogue("application/json", expectedIssueRequest, []byte(exampleMonorailResponse)))
+	urlMock.MockOnce(fmt.Sprintf(issues.MONORAIL_BASE_URL_TMPL, issues.PROJECT_SKIA), mockhttpclient.MockPostDialogue("application/json", expectedIssueRequest, []byte(exampleMonorailResponse)))
 
 	err := im.CreateBadBugIssue(p, "Mock fuzzer found a problem")
 	if err != nil {

@@ -197,7 +197,7 @@ func monitorIssueTracker(c *http.Client) {
 		issueStatus = append(issueStatus, &IssueStatus{
 			Name:   issueName,
 			Metric: metrics2.GetInt64Metric("issues", map[string]string{"status": strings.ToLower(issueName)}),
-			URL:    issues.MONORAIL_BASE_URL + "?" + q.Encode(),
+			URL:    fmt.Sprintf(issues.MONORAIL_BASE_URL_TMPL, issues.PROJECT_SKIA) + "?" + q.Encode(),
 		})
 	}
 

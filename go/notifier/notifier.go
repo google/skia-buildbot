@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"cloud.google.com/go/pubsub"
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -35,9 +37,10 @@ type Config struct {
 	MsgTypeWhitelist []string `json:"msgTypeWhitelist,omitempty"`
 
 	// Exactly one of these should be specified.
-	Email  *EmailNotifierConfig  `json:"email,omitempty"`
-	Chat   *ChatNotifierConfig   `json:"chat,omitempty"`
-	PubSub *PubSubNotifierConfig `json:"pubsub,omitempty"`
+	Email    *EmailNotifierConfig    `json:"email,omitempty"`
+	Chat     *ChatNotifierConfig     `json:"chat,omitempty"`
+	Monorail *MonorailNotifierConfig `json:"monorail,omitempty"`
+	PubSub   *PubSubNotifierConfig   `json:"pubsub,omitempty"`
 
 	// Optional fields.
 
@@ -68,6 +71,9 @@ func (c *Config) Validate() error {
 	if c.PubSub != nil {
 		n = append(n, c.PubSub)
 	}
+	if c.Monorail != nil {
+		n = append(n, c.Monorail)
+	}
 	if len(n) != 1 {
 		return fmt.Errorf("Exactly one notification config must be supplied, but got %d", len(n))
 	}
@@ -75,7 +81,7 @@ func (c *Config) Validate() error {
 }
 
 // Create a Notifier from the Config.
-func (c *Config) Create(ctx context.Context, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader) (Notifier, Filter, []string, string, error) {
+func (c *Config) Create(ctx context.Context, client *http.Client, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader) (Notifier, Filter, []string, string, error) {
 	if err := c.Validate(); err != nil {
 		return nil, FILTER_SILENT, nil, "", err
 	}
@@ -90,6 +96,8 @@ func (c *Config) Create(ctx context.Context, emailer *email.GMail, chatBotConfig
 		n, err = ChatNotifier(c.Chat.RoomID, chatBotConfigReader)
 	} else if c.PubSub != nil {
 		n, err = PubSubNotifier(ctx, c.PubSub.Topic)
+	} else if c.Monorail != nil {
+		n, err = MonorailNotifier(client, c.Monorail.Project, c.Monorail.Owner, c.Monorail.CC, c.Monorail.Labels)
 	} else {
 		return nil, FILTER_SILENT, nil, "", fmt.Errorf("No config specified!")
 	}
@@ -250,4 +258,73 @@ func PubSubNotifier(ctx context.Context, topic string) (Notifier, error) {
 	return &pubSubNotifier{
 		topic: t,
 	}, nil
+}
+
+// Configuration for a MonorailNotifier.
+type MonorailNotifierConfig struct {
+	// Project name under which to file bugs. Required.
+	Project string `json:"project"`
+
+	// Owner of bugs filed in Monorail. Required.
+	Owner string `json:"owner"`
+
+	// List of people to CC on bugs filed in Monorail. Optional.
+	CC []string `json:"cc,omitempty"`
+
+	// List of labels to apply to bugs filed in Monorail. Optional.
+	Labels []string `json:"labels,omitempty"`
+}
+
+// Validate the MonorailNotifierConfig.
+func (c *MonorailNotifierConfig) Validate() error {
+	if c.Owner == "" {
+		return errors.New("Owner is required.")
+	}
+	if c.Project == "" {
+		return errors.New("Project is required.")
+	}
+	return nil
+}
+
+// monorailNotifier is a Notifier implementation which files Monorail issues.
+type monorailNotifier struct {
+	tk     issues.IssueTracker
+	cc     []issues.MonorailPerson
+	labels []string
+	owner  issues.MonorailPerson
+}
+
+// See documentation for Notifier interface.
+func (n *monorailNotifier) Send(ctx context.Context, subject string, msg *Message) error {
+	req := issues.IssueRequest{
+		CC:          n.cc,
+		Description: msg.Body,
+		Labels:      n.labels,
+		Owner:       n.owner,
+		Status:      "New",
+		Summary:     subject,
+	}
+	return n.tk.AddIssue(req)
+}
+
+// MonorailNotifier returns a Notifier which files bugs in Monorail.
+func MonorailNotifier(c *http.Client, project, owner string, cc []string, labels []string) (Notifier, error) {
+	var personCC []issues.MonorailPerson
+	if cc != nil {
+		personCC := make([]issues.MonorailPerson, 0, len(cc))
+		for _, name := range cc {
+			personCC = append(personCC, issues.MonorailPerson{
+				Name: name,
+			})
+		}
+	}
+	return &monorailNotifier{
+		tk:     issues.NewMonorailIssueTracker(c, project),
+		cc:     personCC,
+		labels: labels,
+		owner: issues.MonorailPerson{
+			Name: owner,
+		},
+	}, nil
+
 }
