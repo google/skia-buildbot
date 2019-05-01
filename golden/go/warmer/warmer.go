@@ -60,7 +60,7 @@ func (w *Warmer) Run(tile *tiling.Tile, summaries *summary.Summaries, tallies *t
 	traceDigests := make(util.StringSet, tileLen)
 	for _, trace := range tile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
-		for _, digest := range gTrace.Values {
+		for _, digest := range gTrace.Digests {
 			if digest != types.MISSING_DIGEST {
 				traceDigests[digest] = true
 			}
