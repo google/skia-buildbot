@@ -1,4 +1,4 @@
-// Package indexer continously creates an index of the test results
+// Package indexer continuously creates an index of the test results
 // as the tiles, expectations and ignores change.
 package indexer
 
@@ -423,7 +423,7 @@ func writeKnownHashesList(state interface{}) error {
 	idx := state.(*SearchIndex)
 
 	// Only write the hash file if a storage client is available.
-	if idx.storages.GStorageClient == nil {
+	if idx.storages.GCSClient == nil {
 		return nil
 	}
 
@@ -454,7 +454,7 @@ func writeKnownHashesList(state interface{}) error {
 		// Keep track of the number of known hashes since this directly affects how
 		// many images the bots have to upload.
 		metrics2.GetInt64Metric(METRIC_KNOWN_HASHES).Update(int64(len(hashes)))
-		if err := idx.storages.GStorageClient.WriteKnownDigests(hashes.Keys()); err != nil {
+		if err := idx.storages.GCSClient.WriteKnownDigests(hashes.Keys()); err != nil {
 			sklog.Errorf("Error writing known digests list: %s", err)
 		}
 	}()

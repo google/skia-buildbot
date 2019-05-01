@@ -38,12 +38,12 @@ func BenchmarkMemDiffStore(b *testing.B) {
 	byTest := map[string]util.StringSet{}
 	for _, trace := range sample.Tile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
-		if _, ok := ignoreMatcher(gTrace.Params_); !ok && gTrace.Params_[types.CORPUS_FIELD] == "gm" {
-			testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
+		if _, ok := ignoreMatcher(gTrace.Keys); !ok && gTrace.Keys[types.CORPUS_FIELD] == "gm" {
+			testName := gTrace.Keys[types.PRIMARY_KEY_FIELD]
 			if found, ok := byTest[testName]; ok {
-				found.AddLists(gTrace.Values)
+				found.AddLists(gTrace.Digests)
 			} else {
-				byTest[testName] = util.NewStringSet(gTrace.Values)
+				byTest[testName] = util.NewStringSet(gTrace.Digests)
 			}
 		}
 	}
