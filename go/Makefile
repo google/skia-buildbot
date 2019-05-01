@@ -12,15 +12,11 @@ testgo: protobuf
 	go test ./... -v -test.short
 
 .PHONY: test
-test: pdfium protobuf
+test: protobuf
 	go test ./... -v
 
 .PHONY: all
 all: packages android_hashlookup
-
-.PHONY: pdfium
-pdfium:
-	../pdfium/install_pdfium.sh
 
 .PHONY: protobuf
 protobuf:

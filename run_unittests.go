@@ -378,17 +378,6 @@ func main() {
 		testutils.TIMEOUT_LARGE = testutils.TIMEOUT_RACE
 	}
 
-	// If we are running full tests make sure we have the latest
-	// pdfium_test installed.
-	if testutils.ShouldRun(testutils.MEDIUM_TEST) || testutils.ShouldRun(testutils.LARGE_TEST) {
-		sklog.Info("Installing pdfium_test if necessary.")
-		pdfiumInstall := path.Join(rootDir, "pdfium", "install_pdfium.sh")
-		if err := exec.Command(pdfiumInstall).Run(); err != nil {
-			sklog.Fatalf("Failed to install pdfium_test: %v", err)
-		}
-		sklog.Info("Latest pdfium_test installed successfully.")
-	}
-
 	// Gather all of the tests to run.
 	sklog.Info("Searching for tests.")
 	tests := []*test{goGenerate()}
