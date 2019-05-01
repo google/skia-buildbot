@@ -32,14 +32,6 @@ REF_HEAD = 'HEAD'
 REF_ORIGIN_MASTER = 'origin/master'
 
 
-def git(api, *cmd, **kwargs):
-  git_cmd = 'git.bat' if api.platform.is_win else 'git'
-  return api.step(
-      'git %s' % cmd[0],
-      cmd=[git_cmd] + list(cmd),
-      **kwargs)
-
-
 def RunSteps(api):
   # The 'build' and 'depot_tools directories come from recipe DEPS and aren't
   # provided by default. We have to set them manually.
@@ -47,44 +39,19 @@ def RunSteps(api):
       api.path.c.base_paths['start_dir'] +
       ('recipe_bundle', 'depot_tools'))
 
-  go_dir = api.path['start_dir'].join('go_deps')
-  go_src = go_dir.join('src')
-  api.file.ensure_directory('makedirs go/src', go_src)
-  infra_dir = go_src.join(INFRA_GO)
+  infra_dir = api.path['start_dir'].join('buildbot')
   go_cache = api.path['start_dir'].join('cache', 'go_cache')
   go_root = api.path['start_dir'].join('go', 'go')
   go_bin = go_root.join('bin')
-
-  # Run bot_update.
-  cfg_kwargs = {}
-  gclient_cfg = api.gclient.make_config(**cfg_kwargs)
-  dirname = go_dir.join('src', 'go.skia.org')
-  basename = 'infra'
-  sln = gclient_cfg.solutions.add()
-  sln.name = basename
-  sln.managed = False
-  sln.url = INFRA_GIT_URL
-  sln.revision = api.properties.get('revision', 'origin/master')
-  gclient_cfg.got_revision_mapping[basename] = 'got_revision'
-  patch_refs = None
-  patch_ref = api.properties.get('patch_ref')
-  if patch_ref:
-    patch_refs = ['%s@%s' %(api.properties['patch_repo'], patch_ref)]
-
-  with api.context(cwd=dirname):
-    api.bot_update.ensure_checkout(gclient_config=gclient_cfg,
-                                   patch_refs=patch_refs)
 
   # Fetch Go dependencies.
   env = {
       'CHROME_HEADLESS': '1',
       'GOCACHE': go_cache,
       'GOROOT': go_root,
-      'GOPATH': go_dir,
       'GIT_USER_AGENT': 'git/1.9.1',  # I don't think this version matters.
       'PATH': api.path.pathsep.join([
           str(go_bin),
-          str(go_dir.join('bin')),
           str(api.path['start_dir'].join('gcloud_linux', 'bin')),
           str(api.path['start_dir'].join('protoc', 'bin')),
           str(api.path['start_dir'].join('node', 'node', 'bin')),
@@ -93,14 +60,8 @@ def RunSteps(api):
   }
   with api.context(cwd=infra_dir, env=env):
     api.step('which go', cmd=['which', 'go'])
+    api.step('go get', cmd=['go', 'get'])
 
-  # Set got_revision.
-  test_data = lambda: api.raw_io.test_api.stream_output('abc123')
-  with api.context(cwd=infra_dir):
-    rev_parse = git(api, 'rev-parse', 'HEAD',
-                    stdout=api.raw_io.output(),
-                    step_test_data=test_data)
-  rev_parse.presentation.properties['got_revision'] = rev_parse.stdout.strip()
 
   # More prerequisites.
   builder = api.properties['buildername']
