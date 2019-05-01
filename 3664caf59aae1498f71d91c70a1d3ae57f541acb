@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2f0e6806_943d916e",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-05-01T14:53:37Z",
+      "side": 1,
+      "message": "this event dispatching was supposed to be inside that \"are we on the selected pixel\" if statement, causing a single event to happen for each call to updateZoom, containing info about the selected pixel. I think now you\u0027ve got it sending loads of events.",
+      "range": {
+        "startLine": 275,
+        "startChar": 0,
+        "endLine": 289,
+        "endChar": 32
+      },
+      "revId": "3664caf59aae1498f71d91c70a1d3ae57f541acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
