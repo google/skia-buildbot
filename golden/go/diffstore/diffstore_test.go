@@ -129,11 +129,11 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	byName := map[string]util.StringSet{}
 	for _, trace := range tile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
-		name := gTrace.Params_[types.PRIMARY_KEY_FIELD]
+		name := gTrace.Keys[types.PRIMARY_KEY_FIELD]
 		if _, ok := byName[name]; !ok {
 			byName[name] = util.StringSet{}
 		}
-		byName[name].AddLists(gTrace.Values)
+		byName[name].AddLists(gTrace.Digests)
 	}
 	testDigests := make([][]string, 0, len(byName))
 	for _, digests := range byName {

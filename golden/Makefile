@@ -63,4 +63,13 @@ build-static-diffserver: skiaversion
 	rm -f ./build/diff_server_k8s
 	$(KGO) -o build/diff_server_k8s -a ./cmd/skia_diff_server/main.go
 
+.PHONY: mocks
+mocks:
+	go get github.com/vektra/mockery/...
+
+	mockery -name GCSClient -dir go/storage/ -output ./go/mocks/
+	mockery -name TileInfo -dir go/baseline/ -output ./go/mocks/
+	mockery -name ExpectationsStore -dir go/expstorage/ -output ./go/mocks/
+	mockery -name TestExpBuilder -dir go/types/ -output ./go/mocks/
+
 include ../webtools/webtools.mk

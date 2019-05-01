@@ -89,14 +89,10 @@ func removeExistingEntities(dsClient *datastore.Client, targetKinds []ds.Kind) {
 
 func migrateExpectationStore(vdb *database.VersionedDB, dsClient *datastore.Client) {
 	sqlExpStore := expstorage.NewSQLExpectationStore(vdb)
-	newExpStore, _, err := expstorage.NewCloudExpectationsStore(dsClient, nil)
+	cloudExpStore, _, err := expstorage.NewCloudExpectationsStore(dsClient, nil)
 	if err != nil {
 		sklog.Fatalf("Unable to create cloud expectations store: %s", err)
 	}
-
-	// Get the cloud datastore directly to sideload the data via functions that
-	// are not part of the ExpectationsStore interface.
-	cloudExpStore := newExpStore.(*expstorage.CloudExpStore)
 
 	// Get the total number of expectation changes and divide them into pages.
 	_, total, err := sqlExpStore.QueryLog(0, 1, false)
@@ -157,7 +153,7 @@ func migrateExpectationStore(vdb *database.VersionedDB, dsClient *datastore.Clie
 	}
 
 	// Accumulate the expectations from what we have loaded from the SQL store.
-	localExps := types.NewExpectations(nil)
+	localExps := types.NewTestExpBuilder(nil)
 	for i := len(importChanges) - 1; i >= 0; i-- {
 		localExps.AddTestExp(importChanges[i])
 	}

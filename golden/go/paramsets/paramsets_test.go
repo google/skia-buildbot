@@ -16,36 +16,36 @@ func TestParamset(t *testing.T) {
 	tile := &tiling.Tile{
 		Traces: map[string]tiling.Trace{
 			"a": &types.GoldenTrace{
-				Values: []string{"aaa", "bbb"},
-				Params_: map[string]string{
+				Digests: []string{"aaa", "bbb"},
+				Keys: map[string]string{
 					"name":             "foo",
 					"config":           "8888",
 					types.CORPUS_FIELD: "gm"},
 			},
 			"b": &types.GoldenTrace{
-				Values: []string{"ccc", "ddd", "aaa"},
-				Params_: map[string]string{
+				Digests: []string{"ccc", "ddd", "aaa"},
+				Keys: map[string]string{
 					"name":             "foo",
 					"config":           "565",
 					types.CORPUS_FIELD: "gm"},
 			},
 			"c": &types.GoldenTrace{
-				Values: []string{"eee", types.MISSING_DIGEST},
-				Params_: map[string]string{
+				Digests: []string{"eee", types.MISSING_DIGEST},
+				Keys: map[string]string{
 					"name":             "foo",
 					"config":           "gpu",
 					types.CORPUS_FIELD: "gm"},
 			},
 			"e": &types.GoldenTrace{
-				Values: []string{"xxx", "yyy", "yyy"},
-				Params_: map[string]string{
+				Digests: []string{"xxx", "yyy", "yyy"},
+				Keys: map[string]string{
 					"name":             "bar",
 					"config":           "565",
 					types.CORPUS_FIELD: "gm"},
 			},
 			"f": &types.GoldenTrace{
-				Values: []string{"xxx", types.MISSING_DIGEST},
-				Params_: map[string]string{
+				Digests: []string{"xxx", types.MISSING_DIGEST},
+				Keys: map[string]string{
 					"name":             "bar",
 					"config":           "gpu",
 					types.CORPUS_FIELD: "gm"},

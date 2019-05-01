@@ -18,6 +18,7 @@ import (
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
@@ -48,8 +49,8 @@ type Storage struct {
 	TryjobStore          tryjobstore.TryjobStore
 	TryjobMonitor        *tryjobs.TryjobMonitor
 	GerritAPI            gerrit.GerritInterface
-	GStorageClient       *GStorageClient
-	Baseliner            *Baseliner
+	GCSClient            GCSClient
+	Baseliner            baseline.Baseliner
 	VCS                  vcsinfo.VCS
 	WhiteListQuery       paramtools.ParamSet
 	IsAuthoritative      bool
@@ -66,16 +67,6 @@ type Storage struct {
 	lastCpxTile   *types.ComplexTile
 	lastTimeStamp time.Time
 	mutex         sync.Mutex
-}
-
-// TODO(stephana): Baseliner will eventually factored into the baseline package and
-// InitBaseliner should go away.
-
-// InitBaseliner initializes the Baseliner instance from values already set on the storage instance.
-func (s *Storage) InitBaseliner() error {
-	var err error
-	s.Baseliner, err = NewBaseliner(s.GStorageClient, s.ExpectationsStore, s.IssueExpStoreFactory, s.TryjobStore, s.VCS)
-	return err
 }
 
 // LoadWhiteList loads the given JSON5 file that defines that query to
@@ -258,7 +249,7 @@ func FilterIgnored(inputTile *tiling.Tile, ignoreStore ignore.IgnoreStore) (*til
 	return ret, ignoreRules, nil
 }
 
-func (s *Storage) GetExpectationsForCommit(parentCommit string) (types.Expectations, error) {
+func (s *Storage) GetExpectationsForCommit(parentCommit string) (types.TestExpBuilder, error) {
 	return nil, sklog.FmtErrorf("Not implemented yet !")
 }
 
@@ -341,7 +332,7 @@ func (s *Storage) getCondensedTile(ctx context.Context, lastCpxTile *types.Compl
 			hash := sparseCommits[idx].Hash
 			for _, trace := range sparseTile.Traces {
 				gTrace := trace.(*types.GoldenTrace)
-				if gTrace.Values[idx] != types.MISSING_DIGEST {
+				if gTrace.Digests[idx] != types.MISSING_DIGEST {
 					targetHashes[hash] = true
 					cardinalities[idx]++
 				}
