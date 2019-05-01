@@ -193,7 +193,7 @@
         {
           "name": "skia/bots/go",
           "path": "go",
-          "version": "version:6"
+          "version": "version:7"
         },
         {
           "name": "skia/bots/go_deps",
@@ -324,7 +324,7 @@
         {
           "name": "skia/bots/go",
           "path": "go",
-          "version": "version:6"
+          "version": "version:7"
         },
         {
           "name": "skia/bots/node",
@@ -425,7 +425,7 @@
         {
           "name": "skia/bots/go",
           "path": "go",
-          "version": "version:6"
+          "version": "version:7"
         },
         {
           "name": "skia/bots/node",
@@ -564,7 +564,7 @@
         {
           "name": "skia/bots/go",
           "path": "go",
-          "version": "version:6"
+          "version": "version:7"
         },
         {
           "name": "skia/bots/node",
@@ -708,7 +708,7 @@
         {
           "name": "skia/bots/go",
           "path": "go",
-          "version": "version:6"
+          "version": "version:7"
         },
         {
           "name": "skia/bots/node",
@@ -842,7 +842,7 @@
         {
           "name": "skia/bots/go",
           "path": "go",
-          "version": "version:6"
+          "version": "version:7"
         },
         {
           "name": "skia/bots/node",
@@ -982,7 +982,7 @@
         {
           "name": "skia/bots/go",
           "path": "go",
-          "version": "version:6"
+          "version": "version:7"
         },
         {
           "name": "skia/bots/node",
