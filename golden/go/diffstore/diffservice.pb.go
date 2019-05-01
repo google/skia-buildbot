@@ -8,8 +8,6 @@ import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -551,29 +549,6 @@ type DiffServiceServer interface {
 	PurgeDigests(context.Context, *PurgeDigestsRequest) (*Empty, error)
 	// Ping is used to test connection.
 	Ping(context.Context, *Empty) (*Empty, error)
-}
-
-// UnimplementedDiffServiceServer can be embedded to have forward compatible implementations.
-type UnimplementedDiffServiceServer struct {
-}
-
-func (*UnimplementedDiffServiceServer) GetDiffs(ctx context.Context, req *GetDiffsRequest) (*GetDiffsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetDiffs not implemented")
-}
-func (*UnimplementedDiffServiceServer) WarmDigests(ctx context.Context, req *WarmDigestsRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method WarmDigests not implemented")
-}
-func (*UnimplementedDiffServiceServer) WarmDiffs(ctx context.Context, req *WarmDiffsRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method WarmDiffs not implemented")
-}
-func (*UnimplementedDiffServiceServer) UnavailableDigests(ctx context.Context, req *Empty) (*UnavailableDigestsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UnavailableDigests not implemented")
-}
-func (*UnimplementedDiffServiceServer) PurgeDigests(ctx context.Context, req *PurgeDigestsRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PurgeDigests not implemented")
-}
-func (*UnimplementedDiffServiceServer) Ping(ctx context.Context, req *Empty) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
 
 func RegisterDiffServiceServer(s *grpc.Server, srv DiffServiceServer) {
