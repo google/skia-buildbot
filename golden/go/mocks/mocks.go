@@ -23,6 +23,8 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
+// TODO(kjlubick): replace these mocks with mockery mocks so as to be consistent
+
 // Mock the url generator function.
 func MockUrlGenerator(path string) string {
 	return path
@@ -141,8 +143,8 @@ func NewMockTileBuilder(t assert.TestingT, digests [][]string, params []map[stri
 
 	for idx, traceDigests := range digests {
 		traces[TraceKey(params[idx])] = &types.GoldenTrace{
-			Params_: params[idx],
-			Values:  traceDigests,
+			Keys:    params[idx],
+			Digests: traceDigests,
 		}
 	}
 

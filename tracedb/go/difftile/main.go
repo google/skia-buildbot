@@ -53,8 +53,8 @@ func diff(tile *tiling.Tile, ts db.DB) error {
 			sklog.Fatalf("Trace missing: %s", traceID)
 		}
 
-		v1 := trace.(*gtypes.GoldenTrace).Values[:minLen]
-		v2 := tdbTraces[traceID].(*gtypes.GoldenTrace).Values[:minLen]
+		v1 := trace.(*gtypes.GoldenTrace).Digests[:minLen]
+		v2 := tdbTraces[traceID].(*gtypes.GoldenTrace).Digests[:minLen]
 		identicalCount := 0
 		indices := make([]int, 0, minLen)
 		for idx, val := range v1 {
