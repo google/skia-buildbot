@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c24a7917_7d42cb4c",
+        "filename": "autoroll/go/notifier/notifier.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-01T21:29:42Z",
+      "side": 1,
+      "message": "Two \"\\n\"s might make it clearer when the body starts.",
+      "range": {
+        "startLine": 156,
+        "startChar": 47,
+        "endLine": 156,
+        "endChar": 49
+      },
+      "revId": "71736798f5bd6746ab9a68a4f67abd72d8d79fa8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
