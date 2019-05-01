@@ -150,6 +150,10 @@ func (b *BaselinerImpl) PushMasterBaselines(commitSource baseline.CommitSource, 
 		}(commit, bLine)
 	}
 
+	if err := egroup.Wait(); err != nil {
+		return nil, skerr.Fmt("Problem writing per-commit baselines to GCS: %s", err)
+	}
+
 	// If a specific baseline was also requested we find it now
 	var ret *baseline.CommitableBaseLine
 	if targetHash != "" {

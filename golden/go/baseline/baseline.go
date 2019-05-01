@@ -39,6 +39,8 @@ func (c *CommitableBaseLine) DeepCopyBaseline() *CommitableBaseLine {
 // TODO(stephana): Add tests for GetBaselinePerCommit.
 
 // GetBaselinesPerCommit calculates the baselines for each commit in the tile.
+// Of note, it only fills out the Positive matches - everything not seen is either untriaged
+// or negative.
 // If extraCommits is not empty they are assumed to be commits immediately following the commits
 // in the given complex tile and BaseLines for these should be essentially copies of the last
 // commit in the tile. This covers the case when the current tile is slightly behind all commits
