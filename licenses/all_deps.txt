@@ -97,7 +97,8 @@ github.com/nfnt/resize
 github.com/pkg/errors
 github.com/pmezard/go-difflib/difflib
 github.com/robfig/go-cache
-github.com/russross/blackfriday
+github.com/russross/blackfriday/v2
+github.com/shurcooL/sanitized_anchor_name
 github.com/skia-dev/go-systemd/dbus
 github.com/spf13/cobra
 github.com/spf13/pflag
