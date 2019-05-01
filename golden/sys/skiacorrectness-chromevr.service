@@ -25,7 +25,7 @@ ExecStart=/usr/local/bin/skiacorrectness-chromevr  \
     --hashes_gs_path=skia-chromevr-gm/hash_files/gold-chromevr-hashes.txt \
     --image_dir=${DATA_DIR}/imageStore  \
     --logtostderr \
-    --n_commits=100   \
+    --n_commits=150   \
     --port=:8001  \
     --prom_port=:20001 \
     --public_whitelist=all \
