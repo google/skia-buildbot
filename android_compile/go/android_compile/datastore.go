@@ -75,6 +75,9 @@ func GetCompileTasksAndKeys() ([]*CompileTaskAndKey, []*CompileTaskAndKey, error
 	}
 	sort.Sort(sortTasks(waitingTasksAndKeys))
 	sort.Sort(sortTasks(runningTasksAndKeys))
+	fmt.Println("RETURNING THIS:::")
+	fmt.Println(waitingTasksAndKeys)
+	fmt.Println(runningTasksAndKeys)
 
 	return waitingTasksAndKeys, runningTasksAndKeys, nil
 }
