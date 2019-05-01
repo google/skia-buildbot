@@ -489,7 +489,6 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 		FullHistoryUrl:     r.codereview.GetFullHistoryUrl(),
 		IssueUrlBase:       r.codereview.GetIssueUrlBase(),
 		LastRoll:           r.recent.LastRoll(),
-		LastRollRev:        r.rm.LastRollRev(),
 		NotRolledRevisions: notRolledRevs,
 		Recent:             recent,
 		Status:             string(r.sm.Current()),

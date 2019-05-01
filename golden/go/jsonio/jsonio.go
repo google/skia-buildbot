@@ -78,12 +78,12 @@ func ParseGoldResults(r io.Reader) (*GoldResults, []string, error) {
 	// parse and validate the raw input from the previous step, i.e.
 	// parse string encoded integers.
 	var errMessages []string = nil
-	if errMsg := raw.parseValidate(); errMsg != nil {
-		errMessages = append(errMessages, errMsg...)
+	ret, errs := raw.parseValidate()
+	if len(errs) > 0 {
+		errMessages = append(errMessages, errs...)
 	}
 
 	// Extract the embedded Gold result and validate it.
-	ret := raw.GoldResults
 	if errMsg, err := ret.Validate(false); err != nil {
 		errMessages = append(errMessages, errMsg...)
 	}
@@ -91,7 +91,7 @@ func ParseGoldResults(r io.Reader) (*GoldResults, []string, error) {
 	if len(errMessages) > 0 {
 		return nil, errMessages, messagesToError(errMessages)
 	}
-	return &ret, nil, nil
+	return ret, nil, nil
 }
 
 // GoldResults is the top level structure to capture the the results of a
@@ -109,36 +109,50 @@ type GoldResults struct {
 	TaskID        string `json:"task_id"`
 }
 
+// rawGoldResults used to embed GoldResults, but in newer versions of Go (1.12+), it became
+// frowned upon to override JSON comments, so this struct was essentially forked.
 type rawGoldResults struct {
-	GoldResults
+	GitHash string            `json:"gitHash"  validate:"required"`
+	Key     map[string]string `json:"key"      validate:"required,min=1"`
+	Results []*Result         `json:"results"  validate:"min=1"`
 
-	// Override the fields that represent integers as strings.
+	// Required fields for tryjobs.
 	Issue         string `json:"issue"`
 	BuildBucketID string `json:"buildbucket_build_id"`
 	Patchset      string `json:"patchset"`
+	Builder       string `json:"builder"` // Builder is not strictly necessary but makes debugging easier.
+	TaskID        string `json:"task_id"`
 }
 
 // parseValidate validates the rawGoldResult instance and parses integers
-// that are encoded as strings.
-func (r *rawGoldResults) parseValidate() []string {
+// that are encoded as strings, returning a GoldResults instance.
+func (r *rawGoldResults) parseValidate() (*GoldResults, []string) {
 	jn := rawGoldResultsJsonMap
-	var ret []string
+	var errs []string
 	issueValid := (r.Issue == "") || (r.Issue != "" && r.BuildBucketID != "" && r.Patchset != "")
-	addErrMessage(&ret, issueValid, "fields '%s', '%s' must not be empty if field '%s' contains a value", jn["Patchset"], jn["BuildBucketID"], jn["Issue"])
+	addErrMessage(&errs, issueValid, "fields '%s', '%s' must not be empty if field '%s' contains a value", jn["Patchset"], jn["BuildBucketID"], jn["Issue"])
 
 	f := []string{"Issue", r.Issue, "Patchset", r.Patchset, "BuildBucketID", r.BuildBucketID}
 	for i := 0; i < len(f); i += 2 {
 		valid := f[i+1] == "" || regExInt.MatchString(f[i+1])
-		addErrMessage(&ret, valid, "field '%s' must be empty or contain a valid integer", jn[f[i]])
+		addErrMessage(&errs, valid, "field '%s' must be empty or contain a valid integer", jn[f[i]])
 	}
 
-	if len(ret) == 0 {
+	var ret *GoldResults
+	if errs == nil {
+		ret = &GoldResults{
+			GitHash: r.GitHash,
+			Key:     r.Key,
+			Results: r.Results,
+			Builder: r.Builder,
+			TaskID:  r.TaskID,
+		}
 		// If there was no error we can just parse the strings to int64.
-		r.GoldResults.Issue, _ = strconv.ParseInt(r.Issue, 10, 64)
-		r.GoldResults.BuildBucketID, _ = strconv.ParseInt(r.BuildBucketID, 10, 64)
-		r.GoldResults.Patchset, _ = strconv.ParseInt(r.Patchset, 10, 64)
+		ret.Issue, _ = strconv.ParseInt(r.Issue, 10, 64)
+		ret.BuildBucketID, _ = strconv.ParseInt(r.BuildBucketID, 10, 64)
+		ret.Patchset, _ = strconv.ParseInt(r.Patchset, 10, 64)
 	}
-	return ret
+	return ret, errs
 }
 
 // Validate validates the instance of GoldResult. If there are no errors
