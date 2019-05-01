@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/mocks"
@@ -23,7 +24,7 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qStr string, exp types.Expectations, buf *bytes.Buffer) int {
+func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qStr string, exp types.ExpectationsHandler, buf *bytes.Buffer) int {
 	q := &Query{}
 
 	// We ignore incorrect queries. They are tested somewhere else.
@@ -73,7 +74,7 @@ func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qSt
 	return 1
 }
 
-func getTargetDigests(t assert.TestingT, q *Query, tile *tiling.Tile, exp types.Expectations) util.StringSet {
+func getTargetDigests(t assert.TestingT, q *Query, tile *tiling.Tile, exp types.ExpectationsHandler) util.StringSet {
 	// Account for a given commit range.
 	startIdx := 0
 	endIdx := tile.LastCommitIndex()
@@ -144,7 +145,10 @@ func getStoragesAndIndexerFromTile(t assert.TestingT, path string, randomize boo
 	tileBuilder := mocks.NewMockTileBuilderFromTile(t, sample.Tile)
 	eventBus := eventbus.New()
 	expStore := expstorage.NewMemExpectationsStore(eventBus)
-	err := expStore.AddChange(sample.Expectations.TestExp(), "testuser")
+	err := expStore.AddChange(sample.ExpectationsHandler.TestExp(), "testuser")
+	assert.NoError(t, err)
+
+	baseliner, err := gcs_baseliner.New(nil, expStore, nil, nil, nil)
 	assert.NoError(t, err)
 
 	storages := &storage.Storage{
@@ -152,8 +156,8 @@ func getStoragesAndIndexerFromTile(t assert.TestingT, path string, randomize boo
 		MasterTileBuilder: tileBuilder,
 		DiffStore:         mocks.NewMockDiffStore(),
 		EventBus:          eventBus,
+		Baseliner:         baseliner,
 	}
-	assert.NoError(t, storages.InitBaseliner())
 
 	ixr, err := indexer.New(storages, 10*time.Minute)
 	assert.NoError(t, err)
@@ -170,13 +174,13 @@ func loadSample(t assert.TestingT, fileName string, randomize bool) *serialize.S
 	assert.NoError(t, err)
 
 	if randomize {
-		sample.Tile = randomizeTile(sample.Tile, sample.Expectations)
+		sample.Tile = randomizeTile(sample.Tile, sample.ExpectationsHandler)
 	}
 
 	return sample
 }
 
-func randomizeTile(tile *tiling.Tile, exp types.Expectations) *tiling.Tile {
+func randomizeTile(tile *tiling.Tile, exp types.ExpectationsHandler) *tiling.Tile {
 	allDigestSet := util.StringSet{}
 	testExp := exp.TestExp()
 	for _, digests := range testExp {

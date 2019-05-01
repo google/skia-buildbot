@@ -289,7 +289,7 @@ func (s *Summaries) search(tile *tiling.Tile, query string, head bool, pos bool,
 }
 
 // makeSummary returns a Summary for the given digests.
-func (s *Summaries) makeSummary(name string, e types.Expectations, diffStore diff.DiffStore, corpus string, digests []string) *Summary {
+func (s *Summaries) makeSummary(name string, e types.ExpectationsHandler, diffStore diff.DiffStore, corpus string, digests []string) *Summary {
 	pos := 0
 	neg := 0
 	unt := 0

@@ -23,14 +23,14 @@ import (
 // Sample contains the information necessary to represent the full state of
 // a Gold instance and a sample from a live instance.
 type Sample struct {
-	Tile         *tiling.Tile
-	Expectations types.Expectations
-	IgnoreRules  []*ignore.IgnoreRule
+	Tile                *tiling.Tile
+	ExpectationsHandler types.ExpectationsHandler
+	IgnoreRules         []*ignore.IgnoreRule
 }
 
 // Serialize writes this Sample instance to the given writer.
 func (s *Sample) Serialize(w io.Writer) error {
-	expBytes, err := json.Marshal(s.Expectations)
+	expBytes, err := json.Marshal(s.ExpectationsHandler)
 	if err != nil {
 		return err
 	}
@@ -56,14 +56,14 @@ func (s *Sample) Serialize(w io.Writer) error {
 // is the inverse operation of Sample.Searialize.
 func DeserializeSample(r io.Reader) (*Sample, error) {
 	ret := &Sample{
-		Expectations: types.NewExpectations(nil),
+		ExpectationsHandler: types.NewExpectationsHandler(nil),
 	}
 
 	expBytes, err := readBytesWithLength(r)
 	if err != nil {
 		return nil, err
 	}
-	if err = json.Unmarshal(expBytes, &ret.Expectations); err != nil {
+	if err = json.Unmarshal(expBytes, &ret.ExpectationsHandler); err != nil {
 		return nil, err
 	}
 
@@ -86,9 +86,9 @@ func DeserializeSample(r io.Reader) (*Sample, error) {
 // serialized using the json package.
 func (s *Sample) UnmarshalJSON(data []byte) error {
 	var dummy struct {
-		Tile         json.RawMessage
-		Expectations types.Expectations
-		IgnoreRules  []*ignore.IgnoreRule
+		Tile                json.RawMessage
+		ExpectationsHandler types.ExpectationsHandler
+		IgnoreRules         []*ignore.IgnoreRule
 	}
 	var err error
 
@@ -101,7 +101,7 @@ func (s *Sample) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("Error decoding tile from raw message: %s", err)
 	}
 
-	s.Expectations = dummy.Expectations
+	s.ExpectationsHandler = dummy.ExpectationsHandler
 	s.IgnoreRules = dummy.IgnoreRules
 	return nil
 }
