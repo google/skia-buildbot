@@ -22,7 +22,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/fiorix/go-web/autogzip"
 	"github.com/gorilla/mux"
-	"github.com/russross/blackfriday"
+	"github.com/russross/blackfriday/v2"
 	"go.skia.org/infra/docserverk/go/docset"
 	"go.skia.org/infra/docserverk/go/ssi"
 	"go.skia.org/infra/go/auth"
@@ -184,7 +184,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		body := blackfriday.MarkdownCommon(b)
+		body := blackfriday.Run(b)
 
 		// Resolve the serve side includes if there are any.
 		if body, err = ssi.ProcessSSI(body); err != nil {

@@ -87,7 +87,8 @@ require (
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d // indirect
 	github.com/robfig/go-cache v0.0.0-20130306151617-9fc39e0dbf62
 	github.com/rogpeppe/fastuuid v1.0.0 // indirect
-	github.com/russross/blackfriday v1.5.2
+	github.com/russross/blackfriday/v2 v2.0.1
+	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.4.1 // indirect
 	github.com/skia-dev/go-systemd v0.0.0-20181025131956-1cc903e82ae4
 	github.com/smartystreets/assertions v0.0.0-20190401211740-f487f9de1cd3 // indirect
