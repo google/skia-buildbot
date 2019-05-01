@@ -22,6 +22,30 @@
       "revId": "24b3996ede5c1911ef5edd11211432f6472e1271",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "09aa7871_f1daec5a",
+        "filename": "golden/go/types/expectations.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-01T20:28:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1250dc05_46e76383",
+      "range": {
+        "startLine": 81,
+        "startChar": 17,
+        "endLine": 81,
+        "endChar": 24
+      },
+      "revId": "24b3996ede5c1911ef5edd11211432f6472e1271",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

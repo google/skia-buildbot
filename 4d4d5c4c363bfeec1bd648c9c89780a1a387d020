@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4c57914b_76f9bc3f",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-01T20:28:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "09148ef9_33ab7fab",
+      "range": {
+        "startLine": 43,
+        "startChar": 6,
+        "endLine": 43,
+        "endChar": 28
+      },
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7dc660b6_b637abcd",
         "filename": "golden/go/baseline/types.go",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d9de36a_973a5be2",
+        "filename": "golden/go/baseline/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-01T20:28:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7dc660b6_b637abcd",
+      "range": {
+        "startLine": 39,
+        "startChar": 37,
+        "endLine": 39,
+        "endChar": 40
+      },
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "13b5c24e_b1053b43",
+        "filename": "golden/go/baseline/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-01T20:28:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8546a0b6_686c98e2",
+      "range": {
+        "startLine": 64,
+        "startChar": 3,
+        "endLine": 64,
+        "endChar": 15
+      },
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1d6400ce_6fb4a289",
         "filename": "golden/go/baseline/types.go",
         "patchSetId": 5
@@ -82,6 +154,24 @@
       "writtenOn": "2019-05-01T19:36:30Z",
       "side": 1,
       "message": "nit: doc should mention that the returned tile\u0027s commits are DataCommits. Maybe also rename this method GetDenseTile.",
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dfd8168c_2e09c901",
+        "filename": "golden/go/baseline/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-01T20:28:55Z",
+      "side": 1,
+      "message": "I\u0027m not sure that is accurate.  dense or sparse can be set at run time and I think this will return a dense tile if --dense was set, but a sparse tile if --sparse was set.",
+      "parentUuid": "1d6400ce_6fb4a289",
       "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "b05b7440_e1efa5be",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-01T20:28:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b026d3c8_8841b359",
+      "range": {
+        "startLine": 406,
+        "startChar": 31,
+        "endLine": 406,
+        "endChar": 48
+      },
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "60b66a7e_a7c10f50",
         "filename": "golden/go/expstorage/expstorage.go",
         "patchSetId": 5
@@ -122,6 +236,30 @@
       "writtenOn": "2019-05-01T19:36:30Z",
       "side": 1,
       "message": "nit: consider renaming to ExpectationsStoreForTesting",
+      "range": {
+        "startLine": 52,
+        "startChar": 5,
+        "endLine": 52,
+        "endChar": 27
+      },
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef5efad3_485ff6a9",
+        "filename": "golden/go/expstorage/expstorage.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-01T20:28:55Z",
+      "side": 1,
+      "message": "Not worth it if I intend to remove it.  May re-name if that\u0027s what it ends up being.",
+      "parentUuid": "60b66a7e_a7c10f50",
       "range": {
         "startLine": 52,
         "startChar": 5,
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "f4069cac_22fe4f15",
+        "filename": "golden/go/expstorage/expstorage.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-01T20:28:55Z",
+      "side": 1,
+      "message": "Same reasoning as above.",
+      "parentUuid": "449825ba_adb5cebb",
+      "range": {
+        "startLine": 60,
+        "startChar": 1,
+        "endLine": 60,
+        "endChar": 13
+      },
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "dc89f935_b8857feb",
         "filename": "golden/go/mocks/ExpectationsStore.go",
         "patchSetId": 5
@@ -174,6 +336,24 @@
     },
     {
       "key": {
+        "uuid": "3885a1b6_2bafefa6",
+        "filename": "golden/go/mocks/ExpectationsStore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-01T20:28:55Z",
+      "side": 1,
+      "message": "regenerated in later commit",
+      "parentUuid": "dc89f935_b8857feb",
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8cec52e1_3e17f43f",
         "filename": "golden/go/types/types.go",
         "patchSetId": 5
@@ -188,6 +368,24 @@
       "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c268b59_e6dbfccf",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-01T20:28:55Z",
+      "side": 1,
+      "message": "That would kind of imply a dependency cycle.  baselines/types.go is where the interface is defined, I don\u0027t think types/types.go should refer to it.",
+      "parentUuid": "8cec52e1_3e17f43f",
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
