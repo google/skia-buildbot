@@ -40,7 +40,6 @@ func TestCopyStatus(t *testing.T) {
 		FullHistoryUrl: "http://history",
 		IssueUrlBase:   "http://issue.url/",
 		LastRoll:       recent[1],
-		LastRollRev:    recent[1].RollingTo,
 		NotRolledRevisions: []*repo_manager.Revision{
 			{
 				Id: "a",
@@ -94,7 +93,6 @@ func TestStatus(t *testing.T) {
 		FullHistoryUrl:  "http://history",
 		IssueUrlBase:    "http://issue.url/",
 		LastRoll:        recent[1],
-		LastRollRev:     recent[1].RollingTo,
 		Recent:          recent,
 		Status:          "some-status",
 		ThrottledUntil:  time.Now().Unix(),
