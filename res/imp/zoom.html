@@ -121,6 +121,11 @@
         allow_draw: {
           type: Boolean,
           value: false,
+        },
+        hide_grid: {
+          type: Boolean,
+          value: false,
+          observer: 'updateZoom',
         }
       },
 
@@ -197,7 +202,7 @@
         this.updateZoom();
       },
 
-      updateZoom: function () {
+      updateZoom: function() {
         if (!this.allow_draw) { return; }
         if (!this.ctx) { return; }
 
@@ -241,40 +246,53 @@
           // is at the bottom left. HTML canvas origin is at the top left.
           flip = true;
         }
+        var selectedPixelOffset = 0;
+
         // Now draw each zoomed pixel as a rect.
         for (var x = 0; x < size; x++) {
           for (var y = 0; y < size; y++) {
             // Calulate the offset of this pixel into the buffer from x and y.
             var offset = (y * size + x) * 4;
             // If the buffer is vertically flipped, look for row size-1-y instead.
-            if (flip) { offset = ((size - 1 - y) * size + x) * 4; }
+            if (flip) {
+              offset = ((size - 1 - y) * size + x) * 4;
+            }
+            if (x === halfsize && y === halfsize) {
+              selectedPixelOffset = offset;
+            }
+
             // Read the pixel color.
             var colorRGB = sk.colorRGB(colors, offset, true);
             var colorRGBStyle = sk.colorRGB(colors, offset, false);
-            this.set("ctx.fillStyle", colorRGBStyle);
-            this.ctx.fillRect(x*ps+1, y*ps+1, ps-1, ps-1);
-            // Box one selected pixel with its rgba values.
-            if (x === halfsize && y === halfsize) {
-              this.ctx.strokeRect(x*ps+0.5, y*ps+0.5, ps, ps);
-              // When the selected pixel is drawn, publish some info about it in an event.
-              var detail = {
-                x: this.x,
-                y: this.y,
-                r: colors[offset+0],
-                g: colors[offset+1],
-                b: colors[offset+2],
-                a: colors[offset+3],
-                rgb: colorRGB,
-                hex: sk.colorHex(colors, offset),
-              };
-              var evt = new CustomEvent('zoom-point', {
-                detail: detail,
-                bubbles: true
-              });
-              this.dispatchEvent(evt);
+            this.set('ctx.fillStyle', colorRGBStyle);
+            if (this.hide_grid) {
+              // Draw the pixel full size
+              this.ctx.fillRect(x*ps, y*ps, ps, ps);
+            } else {
+              // inset the rect by 1 pixel to give an implicit grid
+              this.ctx.fillRect(x*ps+1, y*ps+1, ps-1, ps-1);
             }
           }
         }
+        // Box one selected pixel with its rgba values.
+        // This selected pixel is in the exact middle of the canvas.
+        this.ctx.strokeRect(halfsize*ps+0.5, halfsize*ps+0.5, ps, ps);
+        // When the selected pixel is drawn, publish some info about it in an event.
+        var detail = {
+          x: this.x,
+          y: this.y,
+          r: colors[selectedPixelOffset+0],
+          g: colors[selectedPixelOffset+1],
+          b: colors[selectedPixelOffset+2],
+          a: colors[selectedPixelOffset+3],
+          rgb: colorRGB,
+          hex: sk.colorHex(colors, selectedPixelOffset),
+        };
+        var evt = new CustomEvent('zoom-point', {
+          detail: detail,
+          bubbles: true
+        });
+        this.dispatchEvent(evt);
       },
 
     });
