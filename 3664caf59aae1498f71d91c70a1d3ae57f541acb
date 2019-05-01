@@ -46,6 +46,30 @@
       "revId": "3664caf59aae1498f71d91c70a1d3ae57f541acb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0c4ac34_2dc55995",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-05-01T15:44:44Z",
+      "side": 1,
+      "message": "I see, but does it still fire with information about the selected pixel? I don\u0027t think so. offset will refer to the last pixel after the for loops finish.",
+      "parentUuid": "9ad4af59_26bc4119",
+      "range": {
+        "startLine": 275,
+        "startChar": 0,
+        "endLine": 289,
+        "endChar": 32
+      },
+      "revId": "3664caf59aae1498f71d91c70a1d3ae57f541acb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
