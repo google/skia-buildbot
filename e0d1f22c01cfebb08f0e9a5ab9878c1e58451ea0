@@ -22,6 +22,30 @@
       "revId": "e0d1f22c01cfebb08f0e9a5ab9878c1e58451ea0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "24f30c85_3f656d8b",
+        "filename": "golden/frontend/res/imp/multi-zoom-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-01T18:39:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cc59122f_36553422",
+      "range": {
+        "startLine": 199,
+        "startChar": 14,
+        "endLine": 199,
+        "endChar": 19
+      },
+      "revId": "e0d1f22c01cfebb08f0e9a5ab9878c1e58451ea0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
