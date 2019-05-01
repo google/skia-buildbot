@@ -157,7 +157,6 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 		FullHistoryUrl:  "https://goto.google.com/skia-autoroll-history",
 		IssueUrlBase:    ISSUE_URL_BASE,
 		LastRoll:        lastRoll,
-		LastRollRev:     lastSuccessRev,
 		ParentName:      a.cfg.ParentName,
 		Recent:          recent,
 		Status:          state_machine.S_NORMAL_ACTIVE,

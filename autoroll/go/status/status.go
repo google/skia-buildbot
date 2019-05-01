@@ -34,7 +34,6 @@ type AutoRollStatus struct {
 	FullHistoryUrl     string                    `json:"fullHistoryUrl"`
 	IssueUrlBase       string                    `json:"issueUrlBase"`
 	LastRoll           *autoroll.AutoRollIssue   `json:"lastRoll"`
-	LastRollRev        string                    `json:"lastRollRev"`
 	NotRolledRevisions []*repo_manager.Revision  `json:"notRolledRevs"`
 	ParentName         string                    `json:"parentName"`
 	Recent             []*autoroll.AutoRollIssue `json:"recent"`
@@ -209,7 +208,6 @@ func (s *AutoRollStatus) Copy() *AutoRollStatus {
 		Error:              s.Error,
 		FullHistoryUrl:     s.FullHistoryUrl,
 		IssueUrlBase:       s.IssueUrlBase,
-		LastRollRev:        s.LastRollRev,
 		NotRolledRevisions: notRolledRevisions,
 		ParentName:         s.ParentName,
 		Recent:             recent,
