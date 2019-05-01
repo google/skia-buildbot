@@ -144,6 +144,8 @@
 
       .leftCol {
         margin-right: 3em;
+        overflow-x: auto;
+        overflow-y: visible;
       }
 
       .testHeader {
@@ -162,6 +164,10 @@
         min-width: 12em;
       }
 
+      .digest-spacer {
+        max-width: 200px;
+      }
+
     </style>
     <div class="horizontal layout wrap" hidden$="[[_noData(details)]]">
       <div class="vertical layout leftCol">
@@ -176,8 +182,9 @@
 
         </div>
         <div class="horizontal layout">
-          <div class="flex self-start testHeader">Left: [[details.digest]]</div>
-          <div class="flex self-start testHeader" hidden$="[[!_hasRight(_right)]]">Right: [[_right.digest]]</div>
+          <div class="self-start testHeader">Left: [[details.digest]]</div>
+          <div class="flex digest-spacer"></div>
+          <div class="self-start testHeader" hidden$="[[!_hasRight(_right)]]">Right: [[_right.digest]]</div>
         </div>
         <div class="horizontal layout">
 
@@ -478,6 +485,12 @@
         // Set the dots, dotlegend
         this.$.dots.setCommits(this.commits);
         this.$.dots.setValue(this.details.traces);
+        // We can't just set the scrollwidth now because the dots element hasn't
+        // been drawn to its full width, so we have to wait until after it has
+        // been rendered.
+        requestAnimationFrame(() => {
+          this.$.dots.scroll(this.$.dots.scrollWidth, 0);
+        });
       },
 
       statusClosest: function() {
