@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "708caecd_c72fdde4",
+        "filename": "golden/go/storage/gcsclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-01T19:36:30Z",
+      "side": 1,
+      "message": "nit: \"baseline\" (otherwise, field name should be \"BaseLineGSPath\")",
+      "range": {
+        "startLine": 24,
+        "startChar": 59,
+        "endLine": 24,
+        "endChar": 68
+      },
+      "revId": "bddf46fc73004ec8b78b09e9f37f4fc0fc3f8a09",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ac1cd3a3_71fa4563",
+        "filename": "golden/go/storage/gcsclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-01T19:36:30Z",
+      "side": 1,
+      "message": "nit: why not GCSClient?",
+      "range": {
+        "startLine": 29,
+        "startChar": 5,
+        "endLine": 29,
+        "endChar": 20
+      },
+      "revId": "bddf46fc73004ec8b78b09e9f37f4fc0fc3f8a09",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95c92271_77b703ed",
+        "filename": "golden/go/storage/gcsclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-01T19:36:30Z",
+      "side": 1,
+      "message": "nit: maybe name this RemoveForTestingOnly?",
+      "range": {
+        "startLine": 46,
+        "startChar": 1,
+        "endLine": 46,
+        "endChar": 7
+      },
+      "revId": "bddf46fc73004ec8b78b09e9f37f4fc0fc3f8a09",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

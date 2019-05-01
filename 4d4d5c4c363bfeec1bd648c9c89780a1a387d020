@@ -1,0 +1,193 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "09148ef9_33ab7fab",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-01T19:36:30Z",
+      "side": 1,
+      "message": "nit: update doc",
+      "range": {
+        "startLine": 43,
+        "startChar": 6,
+        "endLine": 43,
+        "endChar": 28
+      },
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7dc660b6_b637abcd",
+        "filename": "golden/go/baseline/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-01T19:36:30Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 39,
+        "startChar": 37,
+        "endLine": 39,
+        "endChar": 40
+      },
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8546a0b6_686c98e2",
+        "filename": "golden/go/baseline/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-01T19:36:30Z",
+      "side": 1,
+      "message": "nit: naming: \"CommitSource\" makes it sound like the repo from which we\u0027re ingesting data. Also, this seems to be a source of (or a wrapper around) Tiles, not just commits. Some alternative names to consider: TileInfo, TileData, TileCommits, CurrentTile(Info|Data|Commits), SparseTile(Info|Data|Commits).",
+      "range": {
+        "startLine": 64,
+        "startChar": 3,
+        "endLine": 64,
+        "endChar": 15
+      },
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d6400ce_6fb4a289",
+        "filename": "golden/go/baseline/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-01T19:36:30Z",
+      "side": 1,
+      "message": "nit: doc should mention that the returned tile\u0027s commits are DataCommits. Maybe also rename this method GetDenseTile.",
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b026d3c8_8841b359",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-01T19:36:30Z",
+      "side": 1,
+      "message": "nit: DebugExpectationsStore",
+      "range": {
+        "startLine": 406,
+        "startChar": 31,
+        "endLine": 406,
+        "endChar": 48
+      },
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60b66a7e_a7c10f50",
+        "filename": "golden/go/expstorage/expstorage.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-01T19:36:30Z",
+      "side": 1,
+      "message": "nit: consider renaming to ExpectationsStoreForTesting",
+      "range": {
+        "startLine": 52,
+        "startChar": 5,
+        "endLine": 52,
+        "endChar": 27
+      },
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "449825ba_adb5cebb",
+        "filename": "golden/go/expstorage/expstorage.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-01T19:36:30Z",
+      "side": 1,
+      "message": "nit: consider renaming to RemoveChangeForTesting",
+      "range": {
+        "startLine": 60,
+        "startChar": 1,
+        "endLine": 60,
+        "endChar": 13
+      },
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc89f935_b8857feb",
+        "filename": "golden/go/mocks/ExpectationsStore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-01T19:36:30Z",
+      "side": 1,
+      "message": "Out of date?",
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8cec52e1_3e17f43f",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-01T19:36:30Z",
+      "side": 1,
+      "message": "nit: maybe just point to interface doc?",
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

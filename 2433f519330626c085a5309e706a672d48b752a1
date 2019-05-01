@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7067eaec_9a53d968",
+        "filename": "golden/go/baseline/gcs_baseliner/baseliner.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 333,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-01T19:36:30Z",
+      "side": 1,
+      "message": "nit: Generally I get uneasy when not using defer to unlock a mutex. Especially in cases where there are multiple returns, I much prefer to call an anonymous function, i.e.:\n\nvar rv *baseline.ComitableBaseLine\nfunc() {\n  b.mutex.RLock()\n  defer b.mutex.RUnlock()\n  cpxTile :\u003d b.currCpxTile\n  // If no commit hash was given use current HEAD.\n  if commitHash \u003d\u003d \"\" {\n    // If we have no tile yet, we cannot get the HEAD of it.\n    if cpxTile \u003d\u003d nil {\n      rv \u003d baseline.EmptyBaseline(nil, nil)\n      return\n    }\n    // Get the last commit that has data.\n    allCommits :\u003d cpxTile.AllCommits()\n    commitHash \u003d allCommits[len(allCommits)-1].Hash\n  }\n  if bLine, ok :\u003d b.baselineCache[commitHash]; ok {\n    rv \u003d bLine.DeepCopyBaseline()\n  }\n}()\nif rv !\u003d nil {\n  return rv, nil\n}",
+      "revId": "2433f519330626c085a5309e706a672d48b752a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68f551f2_e1430d88",
+        "filename": "golden/go/baseline/gcs_baseliner/baseliner.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 376,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-01T19:36:30Z",
+      "side": 1,
+      "message": "Does this need to check if b.baselineCache[commitHash] has been set from another goroutine?",
+      "revId": "2433f519330626c085a5309e706a672d48b752a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f00fbdf1_1964a68a",
+        "filename": "golden/go/baseline/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-01T19:36:30Z",
+      "side": 1,
+      "message": "nit: Is this a TODO?",
+      "revId": "2433f519330626c085a5309e706a672d48b752a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

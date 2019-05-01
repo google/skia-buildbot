@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c1cd711f_55e8bdf4",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-01T19:36:30Z",
+      "side": 1,
+      "message": "nit: To me, methods like DeepCopyBaseline should be near the type definition. Maybe EmptyBaseline also.",
+      "revId": "0a9ff8fdafa4e98cce0757932c74cb97b328eb78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a5540c6_8dbf32fc",
+        "filename": "golden/go/baseline/types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-01T19:36:30Z",
+      "side": 1,
+      "message": "nit: consider a cleanup CL to bring the spellings \"Baseline\" and \"BaseLine\" into agreement.",
+      "range": {
+        "startLine": 9,
+        "startChar": 17,
+        "endLine": 9,
+        "endChar": 18
+      },
+      "revId": "0a9ff8fdafa4e98cce0757932c74cb97b328eb78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
