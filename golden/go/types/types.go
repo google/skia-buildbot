@@ -217,8 +217,10 @@ const (
 // GoldenTrace represents all the Digests of a single test across a series
 // of Commits. GoldenTrace implements the Trace interface.
 type GoldenTrace struct {
-	Keys    map[string]string
-	Digests []string
+	// The JSON keys are named this way to maintain backwards compatibility
+	// with JSON already written to disk.
+	Keys    map[string]string `json:"Params_"`
+	Digests []string          `json:"Values"`
 }
 
 func (g *GoldenTrace) Params() map[string]string {

@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -178,6 +179,9 @@ func NewMockTileBuilderFromJson(t assert.TestingT, fname string) tracedb.MasterT
 func GetHTTPClient(t assert.TestingT) *http.Client {
 	// Get the service account client from meta data or a local config file.
 	ts, err := auth.NewJWTServiceAccountTokenSource("", auth.DEFAULT_JWT_FILENAME, storage.ScopeFullControl)
+	if err != nil {
+		fmt.Println("If you are running this test locally, be sure you have a service-account.json in the test folder.")
+	}
 	assert.NoError(t, err)
 	return httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 }

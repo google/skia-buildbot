@@ -23,7 +23,7 @@ type CommitableBaseLine struct {
 	// Total is the total number of traces that were iterated when generating the baseline.
 	Total int `json:"total"`
 
-	// Filled is the number of traces that had non-empty values at EndCommit.
+	// Filled is the number of tests that had at least one positive digest at EndCommit.
 	Filled int `json:"filled"`
 
 	// MD5 is the hash of the Baseline field.
