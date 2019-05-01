@@ -109,7 +109,7 @@ There are three images that it deals with, called left, top, and diff.
               </div>
               <div class="selectorWrapper">
                 <paper-toggle-button checked={{_leftActive}}>
-                  <span class$="{{_boldClass(_currSeq, 'left')}}">{{details.llabel}}</span>
+                  <span class$="[[_boldClass(_currSeq, 'left')]]">[[details.llabel]]</span>
                 </paper-toggle-button>
               </div>
             </div>
@@ -117,7 +117,7 @@ There are three images that it deals with, called left, top, and diff.
             <div class="layout vertical imgColumn" hidden="{{_hideImg(details.middleImgUrl)}}">
               <div class="imgContainer">
                 <canvas-layers-sk layers='["crosshairMiddle"]' id="layersMiddle">
-                  <img id="middle_img" src$="{{details.middleImgUrl}}"/>
+                  <img id="middle_img" src$="[[details.middleImgUrl]]"/>
                 </canvas-layers-sk>
                 <crosshair-sk x="{{_x}}"
                               y="{{_y}}"
@@ -149,7 +149,7 @@ There are three images that it deals with, called left, top, and diff.
 
               <div class="selectorWrapper">
                 <paper-toggle-button checked={{_rightActive}}>
-                  <span class$="{{_boldClass(_currSeq, 'right')}}">{{details.rlabel}}</span>
+                  <span class$="{{_boldClass(_currSeq, 'right')}}">[[details.rlabel]]</span>
                 </paper-toggle-button>
               </div>
             </div>
@@ -157,29 +157,32 @@ There are three images that it deals with, called left, top, and diff.
 
           <div class="layout horizontal wrap">
             <div class="layout vertical zoomContainer">
-              <zoom-sk  hidden$="{{_hideMe(_currSeq, 'left')}}"
+              <zoom-sk  hidden$="[[_hideMe(_currSeq, 'left')]]"
                         source="left_img"
                         pixels="{{_pixels}}"
                         pixel_size="{{_pixel_size}}"
+                        hide_grid="[[_hide_grid]]"
                         id="zoomLeft"
                         x="{{_x}}"
                         y="{{_y}}">
               </zoom-sk>
 
-              <zoom-sk  hidden$="{{_hideMe(_currSeq, 'middle')}}"
+              <zoom-sk  hidden$="[[_hideMe(_currSeq, 'middle')]]"
                         source="middle_img"
                         pixels="{{_pixels}}"
                         pixel_size="{{_pixel_size}}"
                         id="zoomMiddle"
+                        hide_grid="[[_hide_grid]]"
                         x="{{_x}}"
                         y="{{_y}}">
               </zoom-sk>
 
-              <zoom-sk hidden$="{{_hideMe(_currSeq, 'right')}}"
+              <zoom-sk hidden$="[[_hideMe(_currSeq, 'right')]]"
                        source="right_img"
                        pixels="{{_pixels}}"
                        pixel_size="{{_pixel_size}}"
                        id="zoomRight"
+                       hide_grid="[[_hide_grid]]"
                        x="{{_x}}"
                        y="{{_y}}">
               </zoom-sk>
@@ -190,33 +193,34 @@ There are three images that it deals with, called left, top, and diff.
           <div class="legendContainer">
             <table border="0" cellspacing="5" cellpadding="5">
               <tr><th>Coord</th><td><pre>({{_x}}, {{_y}})</pre><td></tr>
-              <tr><th>{{details.llabel}}</th><td><pre>{{_centerPixel.zoomLeft}}</pre><td></tr>
+              <tr><th>{{details.llabel}}</th><td><pre>[[_centerPixel.zoomLeft]]</pre><td></tr>
               <tr hidden="{{_hideImg(details.middleImgUrl)}}"><th>Diff</th><td><pre>{{_centerPixel.zoomMiddle}}</pre><td></tr>
-              <tr hidden="{{_hideImg(details.rightImgUrl)}}"><th>{{details.rlabel}}</th><td><pre>{{_centerPixel.zoomRight}}</pre><td></tr>
+              <tr hidden="{{_hideImg(details.rightImgUrl)}}"><th>[[details.rlabel]]</th><td><pre>[[_centerPixel.zoomRight]]</pre><td></tr>
             </table>
-	    <div class="horizontal layout">
-            <table border="0" cellspacing="5" cellpadding="5">
-              <tr><th>Color Distance</th><th>RGBA</th><th>Alpha</th></tr>
-              <tr><td>1-1 </td><td><div style="background :#fdd0a2">&nbsp;</div>  </td><td><div style="background :#c6dbef">&nbsp;</div></td></tr>
-              <tr><td>2-5 </td><td><div style="background :#fdae6b">&nbsp;</div>  </td><td><div style="background :#9ecae1">&nbsp;</div></td></tr>
-              <tr><td>6-15  </td><td><div style="background :#fd8d3c">&nbsp;</div>  </td><td><div style="background :#6baed6">&nbsp;</div></td></tr>
-              <tr><td>16-46 </td><td><div style="background :#f16913">&nbsp;</div>  </td><td><div style="background :#4292c6">&nbsp;</div></td></tr>
-              <tr><td>47-140  </td><td><div style="background :#d94801">&nbsp;</div>  </td><td><div style="background :#2171b5">&nbsp;</div></td></tr>
-              <tr><td>141-420 </td><td><div style="background :#a63603">&nbsp;</div>  </td><td><div style="background :#08519c">&nbsp;</div></td></tr>
-              <tr><td>421-1024 </td><td><div style="background :#7f2704">&nbsp;</div> </td><td></td></tr>
-            </table>
-            <table border="0" cellspacing="5" cellpadding="5" id=nav>
-              <tr><th colspan=2>Naviation</th></tr>
-              <tr><th>H</th><td>Left</td></tr>
-              <tr><th>J</th><td>Down</td></tr>
-              <tr><th>K</th><td>Up</td></tr>
-              <tr><th>L</th><td>Right</td></tr>
-              <tr><th>A</th><td>Zoom In</td></tr>
-              <tr><th>Z</th><td>Zoom Out</td></tr>
-              <tr><th>U</th><td>Jump To Largest Diff</td></tr>
-              <tr><th>M</th><td>Manual Toggle</td></tr>
-            </table>
-	    </div>
+            <div class="horizontal layout">
+              <table border="0" cellspacing="5" cellpadding="5">
+                <tr><th>Color Distance</th><th>RGBA</th><th>Alpha</th></tr>
+                <tr><td>1-1 </td><td><div style="background :#fdd0a2">&nbsp;</div>  </td><td><div style="background :#c6dbef">&nbsp;</div></td></tr>
+                <tr><td>2-5 </td><td><div style="background :#fdae6b">&nbsp;</div>  </td><td><div style="background :#9ecae1">&nbsp;</div></td></tr>
+                <tr><td>6-15  </td><td><div style="background :#fd8d3c">&nbsp;</div>  </td><td><div style="background :#6baed6">&nbsp;</div></td></tr>
+                <tr><td>16-46 </td><td><div style="background :#f16913">&nbsp;</div>  </td><td><div style="background :#4292c6">&nbsp;</div></td></tr>
+                <tr><td>47-140  </td><td><div style="background :#d94801">&nbsp;</div>  </td><td><div style="background :#2171b5">&nbsp;</div></td></tr>
+                <tr><td>141-420 </td><td><div style="background :#a63603">&nbsp;</div>  </td><td><div style="background :#08519c">&nbsp;</div></td></tr>
+                <tr><td>421-1024 </td><td><div style="background :#7f2704">&nbsp;</div> </td><td></td></tr>
+              </table>
+              <table border="0" cellspacing="5" cellpadding="5" id=nav>
+                <tr><th colspan=2>Naviation</th></tr>
+                <tr><th>H</th><td>Left</td></tr>
+                <tr><th>J</th><td>Down</td></tr>
+                <tr><th>K</th><td>Up</td></tr>
+                <tr><th>L</th><td>Right</td></tr>
+                <tr><th>A</th><td>Zoom Out</td></tr>
+                <tr><th>Z</th><td>Zoom In</td></tr>
+                <tr><th>U</th><td>Jump To Largest Diff</td></tr>
+                <tr><th>M</th><td>Manual Toggle</td></tr>
+                <tr><th>G</th><td>Hide/Show Grid</td></tr>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -225,7 +229,7 @@ There are three images that it deals with, called left, top, and diff.
 
   <script>
     Polymer({
-    	is: "multi-zoom-sk",
+      is: "multi-zoom-sk",
 
       properties:{
         details: {
@@ -280,6 +284,11 @@ There are three images that it deals with, called left, top, and diff.
         _centerPixel: {
           type: Object,
           value: function() { return {}; }
+        },
+
+        _hide_grid: {
+          type: Boolean,
+          value: false,
         }
       },
 
@@ -390,6 +399,9 @@ There are three images that it deals with, called left, top, and diff.
 
         var c = String.fromCharCode(e.keyCode);
         switch (c) {
+          case "G":
+            this.set('_hide_grid', !this._hide_grid);
+            break;
           case "J":
             this.set('_y', this._y+1);
             break;
