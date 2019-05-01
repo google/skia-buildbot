@@ -192,10 +192,11 @@ There are three images that it deals with, called left, top, and diff.
         <div class="vertical layout">
           <div class="legendContainer">
             <table border="0" cellspacing="5" cellpadding="5">
-              <tr><th>Coord</th><td><pre>({{_x}}, {{_y}})</pre><td></tr>
-              <tr><th>{{details.llabel}}</th><td><pre>[[_centerPixel.zoomLeft]]</pre><td></tr>
-              <tr hidden="{{_hideImg(details.middleImgUrl)}}"><th>Diff</th><td><pre>{{_centerPixel.zoomMiddle}}</pre><td></tr>
-              <tr hidden="{{_hideImg(details.rightImgUrl)}}"><th>[[details.rlabel]]</th><td><pre>[[_centerPixel.zoomRight]]</pre><td></tr>
+              <tr><th>Coord</th><td><pre>([[_x]], [[_y]])</pre><td></tr>
+              <tr><th>[[details.llabel]]</th><td><pre>[[_centerPixel.zoomLeft]]</pre><td></tr>
+              <tr hidden="[[_hideImg(details.middleImgUrl)]]"><th>Diff</th><td><pre>[[_centerPixel.zoomMiddle]]</pre><td></tr>
+              <tr hidden="[[_hideImg(details.rightImgUrl)]]"><th>[[details.rlabel]]</th><td><pre>[[_centerPixel.zoomRight]]</pre><td></tr>
+              <tr><td colspan=2>[[_nthPixelDiff(_x, _y)]]</td></tr>
             </table>
             <div class="horizontal layout">
               <table border="0" cellspacing="5" cellpadding="5">
@@ -216,7 +217,8 @@ There are three images that it deals with, called left, top, and diff.
                 <tr><th>L</th><td>Right</td></tr>
                 <tr><th>A</th><td>Zoom Out</td></tr>
                 <tr><th>Z</th><td>Zoom In</td></tr>
-                <tr><th>U</th><td>Jump To Largest Diff</td></tr>
+                <tr><th>U</th><td>Jump To Next Largest Diff</td></tr>
+                <tr><th>Y</th><td>Jump To Prev. Largest Diff</td></tr>
                 <tr><th>M</th><td>Manual Toggle</td></tr>
                 <tr><th>G</th><td>Hide/Show Grid</td></tr>
               </table>
@@ -318,6 +320,8 @@ There are three images that it deals with, called left, top, and diff.
         this.set('_x', 0);
         this.set('_y', 0);
         this.set('details', details);
+        this._cachedDiffs = null;
+        this._cachedDiffIdx = -1;
         this._updateTiming();
         this._showNext(true);
         this._active = true;
@@ -423,7 +427,10 @@ There are three images that it deals with, called left, top, and diff.
             this.set('_pixel_size', Math.min(this._pixel_size*2, 256));
             break;
           case "U":
-            this._moveToLargestDiff();
+            this._moveToNextLargestDiff(false);
+            break;
+          case "Y":
+            this._moveToNextLargestDiff(true);
             break;
           case "M":
             this._manualToggle();
@@ -438,38 +445,65 @@ There are three images that it deals with, called left, top, and diff.
         this.$.zoomRight.updateZoom();
       },
 
-      _moveToLargestDiff: function() {
+      _moveToNextLargestDiff: function(backwards) {
         if (!this.details || !this.details.middleImgUrl) {
           return;
         }
+        if (!this._cachedDiffs) {
+          // find all the diffs and sort them biggest diff to
+          // smallest diff.
+          this._cachedDiffs = [];
 
-        var leftColors = this.$.zoomLeft.getImageData();
-        var rightColors = this.$.zoomRight.getImageData();
-        var width = leftColors.width;
-        var height = leftColors.height;
-        var lc = leftColors.data;
-        var rc = rightColors.data;
-        var max = 0;
-        var dx = 0;
-        var dy = 0
-        for (var x=0; x<width; x++) {
-          for (var y=0; y<height; y++) {
-            var offset = (y*width+x)*4; // Offset into the colors array.
-            var dist = this._colorDist(
-                rc[offset+0]-lc[offset+0],
-                rc[offset+1]-lc[offset+1],
-                rc[offset+2]-lc[offset+2],
-                rc[offset+3]-lc[offset+3]
-                );
-            if (dist > max) {
-              max = dist;
-              dx = x;
-              dy = y;
+          var leftColors = this.$.zoomLeft.getImageData();
+          var rightColors = this.$.zoomRight.getImageData();
+          var width = leftColors.width;
+          var height = leftColors.height;
+          var lc = leftColors.data;
+          var rc = rightColors.data;
+          for (var x=0; x<width; x++) {
+            for (var y=0; y<height; y++) {
+              var offset = (y*width+x)*4; // Offset into the colors array.
+              var dist = this._colorDist(
+                  rc[offset+0]-lc[offset+0],
+                  rc[offset+1]-lc[offset+1],
+                  rc[offset+2]-lc[offset+2],
+                  rc[offset+3]-lc[offset+3]
+                  );
+              if (!dist) {
+                // No difference in pixels - no need to add
+                // it to our list of "different pixels"
+                continue;
+              }
+              this._cachedDiffs.push({
+                x:    x,
+                y:    y,
+                diff: dist,
+              });
             }
           }
+          this._cachedDiffs.sort(function(a, b) {
+            // First sort diffs low to high
+            var d = b.diff - a.dist;
+            if (d) {
+              return d;
+            }
+            // prioritize up and to the left for tie breaks.
+            if (b.x !== a.x) {
+              return a.x - b.x;
+            }
+            return a.y - b.y;
+          });
         }
-        this._x = dx;
-        this._y = dy;
+
+        if (backwards && this._cachedDiffIdx > 0) {
+          this._cachedDiffIdx--;
+        } else if (!backwards && this._cachedDiffIdx < this._cachedDiffs.length-1) {
+          this._cachedDiffIdx++;
+        }
+
+        var diff = this._cachedDiffs[this._cachedDiffIdx];
+        this._x = diff.x;
+        this._y = diff.y;
       },
 
       // colorDist returns the distance of a color from (0, 0, 0, 0) using a
@@ -501,7 +535,27 @@ There are three images that it deals with, called left, top, and diff.
 
       _noImage: function(details) {
         return !(details && details.leftImgUrl);
-      }
+      },
+
+      _nthPixelDiff: function(x, y) {
+        if (!this._cachedDiffs) {
+          return '';
+        }
+        var endings = ['st', 'nd', 'rd']; // for 1st, 2nd, 3rd
+        var total = this._cachedDiffs.length;
+        for (var i = 0; i < total; i++) {
+          var d = this._cachedDiffs[i]
+          if (d.x === x && d.y === y) {
+            // Update our current diff index so that if the user navigates (using
+            // J/H/K/L) from the 3rd to the 12th biggest pixel and hits U, they
+            // go to the 13th biggest diff, not the 4th.
+            this._cachedDiffIdx = i;
+            var e = endings[i] || 'th';
+            return `${i+1}${e} biggest pixel diff (out of ${total})`;
+          }
+        }
+        return 'No difference on this pixel';
+      },
 
 
     });
