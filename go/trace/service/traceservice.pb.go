@@ -8,8 +8,6 @@ import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -1157,38 +1155,6 @@ type TraceServiceServer interface {
 	// Ping should always succeed. Used to test if the service is up and
 	// running.
 	Ping(context.Context, *Empty) (*Empty, error)
-}
-
-// UnimplementedTraceServiceServer can be embedded to have forward compatible implementations.
-type UnimplementedTraceServiceServer struct {
-}
-
-func (*UnimplementedTraceServiceServer) MissingParams(ctx context.Context, req *MissingParamsRequest) (*MissingParamsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method MissingParams not implemented")
-}
-func (*UnimplementedTraceServiceServer) AddParams(ctx context.Context, req *AddParamsRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddParams not implemented")
-}
-func (*UnimplementedTraceServiceServer) Add(ctx context.Context, req *AddRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Add not implemented")
-}
-func (*UnimplementedTraceServiceServer) List(ctx context.Context, req *ListRequest) (*ListResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
-}
-func (*UnimplementedTraceServiceServer) GetValues(ctx context.Context, req *GetValuesRequest) (*GetValuesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetValues not implemented")
-}
-func (*UnimplementedTraceServiceServer) GetParams(ctx context.Context, req *GetParamsRequest) (*GetParamsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetParams not implemented")
-}
-func (*UnimplementedTraceServiceServer) GetValuesRaw(ctx context.Context, req *GetValuesRequest) (*GetValuesRawResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetValuesRaw not implemented")
-}
-func (*UnimplementedTraceServiceServer) GetTraceIDs(ctx context.Context, req *GetTraceIDsRequest) (*GetTraceIDsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetTraceIDs not implemented")
-}
-func (*UnimplementedTraceServiceServer) Ping(ctx context.Context, req *Empty) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
 
 func RegisterTraceServiceServer(s *grpc.Server, srv TraceServiceServer) {
