@@ -27,7 +27,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitauth"
-	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/isolate"
@@ -612,7 +612,7 @@ func main() {
 	if *repoUrls == nil {
 		sklog.Fatal("--repo is required.")
 	}
-	btConf := &gitstore.BTConfig{
+	btConf := &bt_gitstore.BTConfig{
 		ProjectID:  *btProject,
 		InstanceID: *btInstance,
 		TableID:    *gitstoreTable,

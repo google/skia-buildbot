@@ -16,7 +16,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
-	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/sklog"
@@ -80,7 +80,7 @@ func main() {
 	sklog.Infof("\n\n  Effective configuration: \n%s \n", config.String())
 
 	// Configure the bigtable instance.
-	btConfig := &gitstore.BTConfig{
+	btConfig := &bt_gitstore.BTConfig{
 		ProjectID:  config.ProjectID,
 		InstanceID: config.BTInstanceID,
 		TableID:    config.BTTableID,
@@ -90,7 +90,7 @@ func main() {
 	// This should be invoked with a user that has admin privileges, so that the production user that
 	// wants to write to the instance does not need admin privileges.
 	if *runInit {
-		if err := gitstore.InitBT(btConfig); err != nil {
+		if err := bt_gitstore.InitBT(btConfig); err != nil {
 			sklog.Fatalf("Error initializing BT: %s", err)
 		}
 		sklog.Infof("BigTable instance %s and table %s in project %s initialized.", btConfig.InstanceID, btConfig.TableID, btConfig.ProjectID)

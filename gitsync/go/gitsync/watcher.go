@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -31,13 +32,13 @@ type RepoWatcher struct {
 
 // NewRepoWatcher creates a GitStore with the provided information and checks out the git repo
 // at repoURL into repoDir. It's Start(...) function will watch a repo in the background.
-func NewRepoWatcher(ctx context.Context, conf *gitstore.BTConfig, repoURL, repoDir string) (*RepoWatcher, error) {
+func NewRepoWatcher(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL, repoDir string) (*RepoWatcher, error) {
 	repoDir, err := fileutil.EnsureDirExists(repoDir)
 	if err != nil {
 		return nil, err
 	}
 
-	gitStore, err := gitstore.NewBTGitStore(ctx, conf, repoURL)
+	gitStore, err := bt_gitstore.New(ctx, conf, repoURL)
 	if err != nil {
 		return nil, skerr.Fmt("Error instantiating git store: %s", err)
 	}
