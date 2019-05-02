@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c1933017_3c3a34c6",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 733,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-02T16:40:29Z",
+      "side": 1,
+      "message": "Moved them to helpers.go since they don\u0027t actually rely on the BigTableGitStore type and this file is plenty big already.",
+      "parentUuid": "09275cf6_b5f3225f",
+      "range": {
+        "startLine": 730,
+        "startChar": 0,
+        "endLine": 733,
+        "endChar": 16
+      },
+      "revId": "69b939c155b670ed0291013868e256dd68e38a9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a628519f_38ac5dea",
         "filename": "go/gitstore/graph.go",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "69b939c155b670ed0291013868e256dd68e38a9d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15caff23_35cb44b8",
+        "filename": "go/gitstore/graph.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-02T16:40:29Z",
+      "side": 1,
+      "message": "I don\u0027t know, would be worth investigating at the future.  TODO added",
+      "parentUuid": "a628519f_38ac5dea",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 75
+      },
+      "revId": "69b939c155b670ed0291013868e256dd68e38a9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "69c90d76_b0cd6531",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-02T16:40:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f20630f8_0c2d2281",
+      "range": {
+        "startLine": 133,
+        "startChar": 0,
+        "endLine": 134,
+        "endChar": 23
+      },
+      "revId": "69b939c155b670ed0291013868e256dd68e38a9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3efbfd37_9c619119",
         "filename": "golden/go/web/web.go",
         "patchSetId": 5
@@ -91,6 +163,30 @@
       "revId": "69b939c155b670ed0291013868e256dd68e38a9d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a5ca3ad_6b752fdb",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1000,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-02T16:40:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3efbfd37_9c619119",
+      "range": {
+        "startLine": 998,
+        "startChar": 0,
+        "endLine": 1000,
+        "endChar": 76
+      },
+      "revId": "69b939c155b670ed0291013868e256dd68e38a9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
