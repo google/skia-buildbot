@@ -401,7 +401,8 @@
         }.bind(this));
 
         this._updateCount();
-        this._resizeWatcher();
+        // New chart doesn't need this.
+        // this._resizeWatcher();
       },
 
       _startStateReflector: function() {
