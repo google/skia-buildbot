@@ -17,7 +17,8 @@
   "rollerName": "skcms-skia-autoroll",
   "serviceAccount": "skia-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "https://skia-tree-status.appspot.com/current-sheriff"
+    "https://skia-tree-status.appspot.com/current-sheriff",
+    "mtklein@google.com"
   ],
   "copyRepoManager": {
     "childBranch": "master",
