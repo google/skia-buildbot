@@ -1,8 +1,9 @@
-package gitstore
+package bt_vcs
 
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"sort"
@@ -12,6 +13,8 @@ import (
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -29,15 +32,15 @@ const (
 	defaultWatchInterval = time.Second * 10
 )
 
-// btVCS implements the vcsinfo.VCS interface based on a BT-backed GitStore.
-type btVCS struct {
-	gitStore           GitStore
+// BigTableVCS implements the vcsinfo.VCS interface based on a BT-backed GitStore.
+type BigTableVCS struct {
+	gitStore           gitstore.GitStore
 	repo               *gitiles.Repo
 	defaultBranch      string
 	secondaryVCS       vcsinfo.VCS
 	secondaryExtractor depot_tools.DEPSExtractor
 
-	branchInfo   *BranchPointer
+	branchInfo   *gitstore.BranchPointer
 	indexCommits []*vcsinfo.IndexCommit
 	hashes       []string
 	timestamps   map[string]time.Time           //
@@ -51,8 +54,11 @@ type btVCS struct {
 // If evt is not nil and nCommits > 0 then this instance will continuously track
 // the last nCommits and publish a EV_NEW_GIT_COMMIT event.
 // The instances of gitiles.Repo is only used to fetch files.
-func NewVCS(gitStore GitStore, defaultBranch string, repo *gitiles.Repo, evt eventbus.EventBus, nCommits int) (vcsinfo.VCS, error) {
-	ret := &btVCS{
+func New(gitStore *bt_gitstore.BigTableGitStore, defaultBranch string, repo *gitiles.Repo, evt eventbus.EventBus, nCommits int) (*BigTableVCS, error) {
+	if gitStore == nil {
+		return nil, errors.New("Cannot have nil gitStore")
+	}
+	ret := &BigTableVCS{
 		gitStore:      gitStore,
 		repo:          repo,
 		defaultBranch: defaultBranch,
@@ -69,19 +75,19 @@ func NewVCS(gitStore GitStore, defaultBranch string, repo *gitiles.Repo, evt eve
 }
 
 // GetBranch implements the vcsinfo.VCS interface.
-func (b *btVCS) GetBranch() string {
+func (b *BigTableVCS) GetBranch() string {
 	return b.defaultBranch
 }
 
 // SetSecondaryRepo allows to add a secondary repository and extractor to this instance.
 // It is not included in the constructor since it is currently only used by the Gold ingesters.
-func (b *btVCS) SetSecondaryRepo(secVCS vcsinfo.VCS, extractor depot_tools.DEPSExtractor) {
+func (b *BigTableVCS) SetSecondaryRepo(secVCS vcsinfo.VCS, extractor depot_tools.DEPSExtractor) {
 	b.secondaryVCS = secVCS
 	b.secondaryExtractor = extractor
 }
 
 // Update implements the vcsinfo.VCS interface
-func (b *btVCS) Update(ctx context.Context, pull, allBranches bool) error {
+func (b *BigTableVCS) Update(ctx context.Context, pull, allBranches bool) error {
 	// Check if we need to pull across all branches.
 	targetBranch := b.defaultBranch
 	if allBranches {
@@ -98,7 +104,8 @@ func (b *btVCS) Update(ctx context.Context, pull, allBranches bool) error {
 		var ok bool
 		b.branchInfo, ok = branchHeads[targetBranch]
 		if !ok {
-			return skerr.Fmt("Unable to find branch %q in BitTable repo %s", targetBranch, (b.gitStore.(*btGitStore)).repoURL)
+			r := (b.gitStore.(*bt_gitstore.BigTableGitStore)).RepoURL
+			return skerr.Fmt("Unable to find branch %q in BitTable repo %s", targetBranch, r)
 		}
 	}
 
@@ -107,7 +114,7 @@ func (b *btVCS) Update(ctx context.Context, pull, allBranches bool) error {
 }
 
 // From implements the vcsinfo.VCS interface
-func (b *btVCS) From(start time.Time) []string {
+func (b *BigTableVCS) From(start time.Time) []string {
 	b.mutex.RLock()
 	defer b.mutex.RUnlock()
 
@@ -122,14 +129,14 @@ func (b *btVCS) From(start time.Time) []string {
 }
 
 // Details implements the vcsinfo.VCS interface
-func (b *btVCS) Details(ctx context.Context, hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
+func (b *BigTableVCS) Details(ctx context.Context, hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 	return b.details(ctx, hash, includeBranchInfo)
 }
 
 // DetailsMulti implements the vcsinfo.VCS interface
-func (b *btVCS) DetailsMulti(ctx context.Context, hashes []string, includeBranchInfo bool) ([]*vcsinfo.LongCommit, error) {
+func (b *BigTableVCS) DetailsMulti(ctx context.Context, hashes []string, includeBranchInfo bool) ([]*vcsinfo.LongCommit, error) {
 	commits, err := b.gitStore.Get(ctx, hashes)
 	if err != nil {
 		return nil, err
@@ -169,7 +176,7 @@ func (b *btVCS) DetailsMulti(ctx context.Context, hashes []string, includeBranch
 // that need it.
 
 // details returns all meta data details we care about.
-func (b *btVCS) details(ctx context.Context, hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
+func (b *BigTableVCS) details(ctx context.Context, hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
 	commits, err := b.gitStore.Get(ctx, []string{hash})
 	if err != nil {
 		return nil, err
@@ -195,7 +202,7 @@ func (b *btVCS) details(ctx context.Context, hash string, includeBranchInfo bool
 }
 
 // getBranchInfo determines which branches contain the given commit 'c'.
-func (b *btVCS) getBranchInfo(ctx context.Context, c *vcsinfo.LongCommit, allBranches map[string]*BranchPointer) (map[string]bool, error) {
+func (b *BigTableVCS) getBranchInfo(ctx context.Context, c *vcsinfo.LongCommit, allBranches map[string]*gitstore.BranchPointer) (map[string]bool, error) {
 	ret := make(map[string]bool, len(allBranches))
 	var mutex sync.Mutex
 	var egroup errgroup.Group
@@ -233,7 +240,7 @@ func (b *btVCS) getBranchInfo(ctx context.Context, c *vcsinfo.LongCommit, allBra
 }
 
 // Update implements the vcsinfo.VCS interface
-func (b *btVCS) LastNIndex(N int) []*vcsinfo.IndexCommit {
+func (b *BigTableVCS) LastNIndex(N int) []*vcsinfo.IndexCommit {
 	b.mutex.RLock()
 	defer b.mutex.RUnlock()
 
@@ -245,12 +252,12 @@ func (b *btVCS) LastNIndex(N int) []*vcsinfo.IndexCommit {
 }
 
 // Update implements the vcsinfo.VCS interface
-func (b *btVCS) Range(begin, end time.Time) []*vcsinfo.IndexCommit {
+func (b *BigTableVCS) Range(begin, end time.Time) []*vcsinfo.IndexCommit {
 	return b.timeRange(begin, end)
 }
 
 // Update implements the vcsinfo.VCS interface
-func (b *btVCS) IndexOf(ctx context.Context, hash string) (int, error) {
+func (b *BigTableVCS) IndexOf(ctx context.Context, hash string) (int, error) {
 	b.mutex.RLock()
 	defer b.mutex.Unlock()
 
@@ -274,7 +281,7 @@ func (b *btVCS) IndexOf(ctx context.Context, hash string) (int, error) {
 }
 
 // Update implements the vcsinfo.VCS interface
-func (b *btVCS) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, error) {
+func (b *BigTableVCS) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, error) {
 	// findFn returns the hash when N is within commits
 	findFn := func(commits []*vcsinfo.IndexCommit) string {
 		i := sort.Search(len(commits), func(i int) bool { return commits[i].Index >= N })
@@ -300,7 +307,7 @@ func (b *btVCS) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, error)
 }
 
 // Update implements the vcsinfo.VCS interface
-func (b *btVCS) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
+func (b *BigTableVCS) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
 	var buf bytes.Buffer
 	if err := b.repo.ReadFileAtRef(fileName, commitHash, &buf); err != nil {
 		return "", skerr.Fmt("Error reading file %s @ %s via gitiles: %s", fileName, commitHash, err)
@@ -309,7 +316,7 @@ func (b *btVCS) GetFile(ctx context.Context, fileName, commitHash string) (strin
 }
 
 // Update implements the vcsinfo.VCS interface
-func (b *btVCS) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
+func (b *BigTableVCS) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
 	if b.secondaryVCS == nil {
 		return "", vcsinfo.NoSecondaryRepo
 	}
@@ -322,12 +329,12 @@ func (b *btVCS) ResolveCommit(ctx context.Context, commitHash string) (string, e
 }
 
 // GetGitStore implements the gitstore.GitStoreBased interface
-func (b *btVCS) GetGitStore() GitStore {
+func (b *BigTableVCS) GetGitStore() gitstore.GitStore {
 	return b.gitStore
 }
 
 // fetchIndexRange gets in the range [startIndex, endIndex).
-func (b *btVCS) fetchIndexRange(ctx context.Context, startIndex, endIndex int) error {
+func (b *BigTableVCS) fetchIndexRange(ctx context.Context, startIndex, endIndex int) error {
 	newIC, err := b.gitStore.RangeN(ctx, startIndex, endIndex, b.defaultBranch)
 	if err != nil {
 		return err
@@ -343,7 +350,7 @@ func (b *btVCS) fetchIndexRange(ctx context.Context, startIndex, endIndex int) e
 	return nil
 }
 
-func (b *btVCS) timeRange(start time.Time, end time.Time) []*vcsinfo.IndexCommit {
+func (b *BigTableVCS) timeRange(start time.Time, end time.Time) []*vcsinfo.IndexCommit {
 	n := len(b.indexCommits)
 	startIdx := 0
 	for ; startIdx < n; startIdx++ {
@@ -369,7 +376,7 @@ func (b *btVCS) timeRange(start time.Time, end time.Time) []*vcsinfo.IndexCommit
 
 // startVCSTracker starts a background process that watches for new commits at the given interval.
 // When a new commit is detected a EV_NEW_GIT_COMMIT event is triggered.
-func startVCSTracker(gitStore GitStore, interval time.Duration, evt eventbus.EventBus, branch string, nCommits int) {
+func startVCSTracker(gitStore gitstore.GitStore, interval time.Duration, evt eventbus.EventBus, branch string, nCommits int) {
 	ctx := context.TODO()
 	// Keep track of commits.
 	var prevCommits []*vcsinfo.IndexCommit
@@ -402,3 +409,6 @@ func startVCSTracker(gitStore GitStore, interval time.Duration, evt eventbus.Eve
 		}
 	})
 }
+
+// Make sure BigTableVCS fulfills the VCS interface
+var _ vcsinfo.VCS = (*BigTableVCS)(nil)
