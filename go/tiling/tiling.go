@@ -117,6 +117,7 @@ func FormulaFromID(id string) string {
 
 // Commit is information about each Git commit.
 type Commit struct {
+	// CommitTime is in seconds since the epoch
 	CommitTime int64  `json:"commit_time" bq:"timestamp" db:"ts"`
 	Hash       string `json:"hash"        bq:"gitHash"   db:"githash"`
 	Author     string `json:"author"                     db:"author"`

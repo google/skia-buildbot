@@ -206,8 +206,8 @@ func addIgnoreCounts(rules []*IgnoreRule, ignoreStore IgnoreStore, lastCpxTile *
 	tileWithIgnores := cpxTile.GetTile(true)
 	for _, trace := range tileWithIgnores.Traces {
 		gTrace := trace.(*types.GoldenTrace)
-		if matchRules, ok := ignoreMatcher(gTrace.Params_); ok {
-			testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
+		if matchRules, ok := ignoreMatcher(gTrace.Keys); ok {
+			testName := gTrace.Keys[types.PRIMARY_KEY_FIELD]
 			if digest := gTrace.LastDigest(); digest != types.MISSING_DIGEST && (exp.Classification(testName, digest) == types.UNTRIAGED) {
 				k := testName + ":" + digest
 				for _, r := range matchRules {

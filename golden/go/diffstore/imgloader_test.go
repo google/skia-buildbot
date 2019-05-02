@@ -33,7 +33,7 @@ func TestImageLoader(t *testing.T) {
 	digestSet := util.NewStringSet()
 	for _, trace := range tile.Traces {
 		gt := trace.(*types.GoldenTrace)
-		for _, val := range gt.Values {
+		for _, val := range gt.Digests {
 			if val != types.MISSING_DIGEST {
 				digestSet[val] = true
 			}

@@ -48,6 +48,6 @@ func testTraceView(t *testing.T, tile *tiling.Tile, beginIdx, endIdx int, startH
 	for _, trace := range tile.Traces {
 		tr := trace.(*types.GoldenTrace)
 		reducedTr := traceViewFn(tr)
-		assert.Equal(t, tr.Values[beginIdx:endIdx+1], reducedTr.Values)
+		assert.Equal(t, tr.Digests[beginIdx:endIdx+1], reducedTr.Digests)
 	}
 }

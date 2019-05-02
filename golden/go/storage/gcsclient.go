@@ -16,36 +16,67 @@ import (
 	"google.golang.org/api/option"
 )
 
-// GSClientOptions is used to define input parameters to the GStorageClient.
-type GSClientOptions struct {
-	HashesGSPath   string // bucket and path for storing the list of known digests.
-	BaselineGSPath string // bucket and path for storing the base line information. This is considered a directory.
+// GCSClientOptions is used to define input parameters to the GCSClient.
+type GCSClientOptions struct {
+	// HashesGSPath is the bucket and path for storing the list of known digests.
+	HashesGSPath string
+
+	// BaselineGSPath is the bucket and path for storing the baseline information.
+	// This is considered to be a directory and will be used as such.
+	BaselineGSPath string
 }
 
-// GStorageClient provides read/write to Google storage for one-off
-// use cases, i.e. the list of known hash files or the base line.
-type GStorageClient struct {
+// GCSClient provides an abstraction around read/writes to Google storage.
+type GCSClient interface {
+	// WriteKnownDigests writes the given list of digests to GCS as newline separated strings.
+	WriteKnownDigests(digests []string) error
+
+	// WriteBaseline writes the given baseline to GCS. It returns the path of the
+	// written file in GCS (prefixed with 'gs://').
+	WriteBaseline(b *baseline.CommitableBaseline) (string, error)
+
+	// ReadBaseline returns the baseline for the given issue from GCS.
+	ReadBaseline(commitHash string, issueID int64) (*baseline.CommitableBaseline, error)
+
+	// LoadKnownDigests loads the digests that have previously been written
+	// to GS via WriteKnownDigests. The digests should be copied to the
+	// provided writer 'w'.
+	LoadKnownDigests(w io.Writer) error
+
+	// RemoveForTestingOnly removes the given file. Should only be used for testing.
+	RemoveForTestingOnly(targetPath string) error
+
+	// Returns the options that were used to initialize the client
+	Options() GCSClientOptions
+}
+
+// ClientImpl implements the GCSClient interface.
+type ClientImpl struct {
 	storageClient *gstorage.Client
-	options       GSClientOptions
+	options       GCSClientOptions
 }
 
-// NewGStorageClient creates a new instance of GStorage client. The various
-// output paths are set in GSClientOptions.
-func NewGStorageClient(client *http.Client, options *GSClientOptions) (*GStorageClient, error) {
+// NewGCSClient creates a new instance of ClientImpl. The various
+// output paths are set in GCSClientOptions.
+func NewGCSClient(client *http.Client, options GCSClientOptions) (*ClientImpl, error) {
 	storageClient, err := gstorage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, err
 	}
 
-	return &GStorageClient{
+	return &ClientImpl{
 		storageClient: storageClient,
-		options:       *options,
+		options:       options,
 	}, nil
 }
 
-// WriteKnownDigests writes the given list of digests to GS as newline
-// separated strings.
-func (g *GStorageClient) WriteKnownDigests(digests []string) error {
+// Options implements the GCSClient interface.
+func (g *ClientImpl) Options() GCSClientOptions {
+	return g.options
+}
+
+// WriteKnownDigests fulfills the GCSClient interface.
+func (g *ClientImpl) WriteKnownDigests(digests []string) error {
 	writeFn := func(w *gstorage.Writer) error {
 		for _, digest := range digests {
 			if _, err := w.Write([]byte(digest + "\n")); err != nil {
@@ -58,31 +89,30 @@ func (g *GStorageClient) WriteKnownDigests(digests []string) error {
 	return g.writeToPath(g.options.HashesGSPath, "text/plain", writeFn)
 }
 
-// WriteBaseLine writes the given baseline to GCS. It returns the path of the
-// written file in GCS (prefixed with 'gs://').
-func (g *GStorageClient) WriteBaseLine(baseLine *baseline.CommitableBaseLine) (string, error) {
+// ReadBaseline fulfills the GCSClient interface.
+func (g *ClientImpl) WriteBaseline(b *baseline.CommitableBaseline) (string, error) {
 	writeFn := func(w *gstorage.Writer) error {
-		if err := json.NewEncoder(w).Encode(baseLine); err != nil {
+		if err := json.NewEncoder(w).Encode(b); err != nil {
 			return fmt.Errorf("Error encoding baseline to JSON: %s", err)
 		}
 		return nil
 	}
 
 	// We need a valid end commit or issue.
-	if baseLine.EndCommit == nil && baseLine.Issue <= 0 {
+	if b.EndCommit == nil && b.Issue <= 0 {
 		return "", skerr.Fmt("Received empty end commit and no issue. Cannot write baseline")
 	}
 
 	hash := ""
-	if baseLine.EndCommit != nil {
-		hash = baseLine.EndCommit.Hash
+	if b.EndCommit != nil {
+		hash = b.EndCommit.Hash
 	}
-	outPath := g.getBaselinePath(hash, baseLine.Issue)
+	outPath := g.getBaselinePath(hash, b.Issue)
 	return "gs://" + outPath, g.writeToPath(outPath, "application/json", writeFn)
 }
 
-// ReadBaseline returns the baseline for the given issue from GCS.
-func (g *GStorageClient) ReadBaseline(commitHash string, issueID int64) (*baseline.CommitableBaseLine, error) {
+// ReadBaseline fulfills the GCSClient interface.
+func (g *ClientImpl) ReadBaseline(commitHash string, issueID int64) (*baseline.CommitableBaseline, error) {
 	baselinePath := g.getBaselinePath(commitHash, issueID)
 	bucketName, storagePath := gcs.SplitGSPath(baselinePath)
 
@@ -104,7 +134,7 @@ func (g *GStorageClient) ReadBaseline(commitHash string, issueID int64) (*baseli
 	}
 	defer util.Close(reader)
 
-	ret := &baseline.CommitableBaseLine{}
+	ret := &baseline.CommitableBaseline{}
 	if err := json.NewDecoder(reader).Decode(ret); err != nil {
 		return nil, sklog.FmtErrorf("Error decoding baseline file: %s", err)
 	}
@@ -113,7 +143,7 @@ func (g *GStorageClient) ReadBaseline(commitHash string, issueID int64) (*baseli
 
 // getBaselinePath returns the baseline path in GCS for the given issueID.
 // If issueID <= 0 it returns the path for the master baseline.
-func (g *GStorageClient) getBaselinePath(commitHash string, issueID int64) string {
+func (g *ClientImpl) getBaselinePath(commitHash string, issueID int64) string {
 	// Change the output file based on whether it's the master branch or a Gerrit issue.
 	var outPath string
 	if issueID > 0 {
@@ -126,10 +156,8 @@ func (g *GStorageClient) getBaselinePath(commitHash string, issueID int64) strin
 	return g.options.BaselineGSPath + "/" + outPath
 }
 
-// LoadKnownDigests loads the digests that have previously been written
-// to GS via WriteKnownDigests. The digests should be copied to the
-// provided writer 'w'.
-func (g *GStorageClient) LoadKnownDigests(w io.Writer) error {
+// LoadKnownDigests fulfills the GCSClient interface.
+func (g *ClientImpl) LoadKnownDigests(w io.Writer) error {
 	bucketName, storagePath := gcs.SplitGSPath(g.options.HashesGSPath)
 
 	ctx := context.Background()
@@ -156,8 +184,8 @@ func (g *GStorageClient) LoadKnownDigests(w io.Writer) error {
 	return err
 }
 
-// removeGSPath removes the given file. Primarily used for testing.
-func (g *GStorageClient) removeGSPath(targetPath string) error {
+// RemoveForTestingOnly fulfills the GCSClient interface.
+func (g *ClientImpl) RemoveForTestingOnly(targetPath string) error {
 	bucketName, storagePath := gcs.SplitGSPath(targetPath)
 	target := g.storageClient.Bucket(bucketName).Object(storagePath)
 	return target.Delete(context.Background())
@@ -165,7 +193,7 @@ func (g *GStorageClient) removeGSPath(targetPath string) error {
 
 // writeToPath is a generic function that allows to write data to the given
 // target path in GCS. The actual writing is done in the passed write function.
-func (g *GStorageClient) writeToPath(targetPath, contentType string, wrtFn func(w *gstorage.Writer) error) error {
+func (g *ClientImpl) writeToPath(targetPath, contentType string, wrtFn func(w *gstorage.Writer) error) error {
 	bucketName, storagePath := gcs.SplitGSPath(targetPath)
 
 	// Only write the known digests if a target path was given.
@@ -187,3 +215,6 @@ func (g *GStorageClient) writeToPath(targetPath, contentType string, wrtFn func(
 
 	return nil
 }
+
+// Ensure ClientImpl fulfills the GCSClient interface.
+var _ GCSClient = (*ClientImpl)(nil)

@@ -196,7 +196,7 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 	}
 
 	// Add changes to the issue
-	allChanges := types.NewExpectations(nil)
+	allChanges := types.NewTestExpBuilder(nil)
 	expLogEntries := []*expstorage.TriageLogEntry{}
 	userName := "jdoe@example.com"
 	expStore := expStoreFactory(issueID)
@@ -221,7 +221,7 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 		})
 	}
 
-	var foundExp types.Expectations
+	var foundExp types.TestExpBuilder
 	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
 		foundExp, err = expStore.Get()
 		assert.NoError(t, err)
@@ -247,7 +247,7 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 
 	assert.NoError(t, expStore.AddChange(foundTestExp, userName))
 
-	var untriagedExp types.Expectations
+	var untriagedExp types.TestExpBuilder
 	var untriagedTestExp types.TestExp
 	assert.NoError(t, testutils.EventuallyConsistent(3*time.Second, func() error {
 		untriagedExp, err = expStore.Get()

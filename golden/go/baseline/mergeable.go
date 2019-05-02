@@ -60,9 +60,9 @@ var (
 // The input is checked against these conditions:
 //    - No empty test names are allowed
 //    - All digests must be valid hex-encoded MD5 hashes (32 characters).
-func WriteMergeableBaseline(w io.Writer, baseLine types.TestExp) error {
-	allLines := make([]string, 0, len(baseLine))
-	for testName, digests := range baseLine {
+func WriteMergeableBaseline(w io.Writer, b types.TestExp) error {
+	allLines := make([]string, 0, len(b))
+	for testName, digests := range b {
 		if testName == "" {
 			return sklog.FmtErrorf("Received emtpy testname.")
 		}

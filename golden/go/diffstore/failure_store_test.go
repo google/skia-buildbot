@@ -27,7 +27,7 @@ func TestFailureHandling(t *testing.T) {
 	validDigestSet := util.StringSet{}
 	for _, trace := range tile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
-		validDigestSet.AddLists(gTrace.Values)
+		validDigestSet.AddLists(gTrace.Digests)
 	}
 	delete(validDigestSet, types.MISSING_DIGEST)
 

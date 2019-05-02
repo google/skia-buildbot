@@ -29,7 +29,7 @@ func newClosest() *Closest {
 // ClosestDigest returns the closest digest of type 'label' to 'digest', or "" if there aren't any positive digests.
 //
 // If no digest of type 'label' is found then Closest.Digest is the empty string.
-func ClosestDigest(test string, digest string, exp types.Expectations, tallies tally.Tally, diffStore diff.DiffStore, label types.Label) *Closest {
+func ClosestDigest(test string, digest string, exp types.TestExpBuilder, tallies tally.Tally, diffStore diff.DiffStore, label types.Label) *Closest {
 	ret := newClosest()
 	unavailableDigests := diffStore.UnavailableDigests()
 

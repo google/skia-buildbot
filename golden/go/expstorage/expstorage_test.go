@@ -170,7 +170,7 @@ func getRandomChange(nTests, nDigests int) types.TestExp {
 }
 
 // Test against the expectation store interface.
-func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventbus.EventBus, issueID int64, eventType string) {
+func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, eventBus eventbus.EventBus, issueID int64, eventType string) {
 	// Get the initial log size. This is necessary because we
 	// call this function multiple times with the same underlying
 	// SQLExpectationStore.
@@ -281,7 +281,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 		TEST_2: {DIGEST_22: types.UNTRIAGED},
 	}
 
-	assert.NoError(t, store.removeChange(removeDigests_1))
+	assert.NoError(t, store.RemoveChange(removeDigests_1))
 	if eventBus != nil {
 		found := waitForChanLen(t, callbackCh, 1)
 		assert.Equal(t, []string{TEST_1, TEST_2}, found[0])
@@ -294,7 +294,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 	assert.Equal(t, map[string]types.Label{DIGEST_21: types.POSITIVE}, foundTestExp[TEST_2])
 
 	removeDigests_2 := types.TestExp{TEST_1: {DIGEST_12: types.UNTRIAGED}}
-	assert.NoError(t, store.removeChange(removeDigests_2))
+	assert.NoError(t, store.RemoveChange(removeDigests_2))
 	if eventBus != nil {
 		found := waitForChanLen(t, callbackCh, 1)
 		assert.Equal(t, []string{TEST_1}, found[0])
@@ -304,7 +304,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(foundExps.TestExp()))
 
-	assert.NoError(t, store.removeChange(types.TestExp{}))
+	assert.NoError(t, store.RemoveChange(types.TestExp{}))
 	if eventBus != nil {
 		found := waitForChanLen(t, callbackCh, 1)
 		assert.Equal(t, []string{}, found[0])

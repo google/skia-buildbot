@@ -188,8 +188,8 @@ func testProcessor(t *testing.T, ctx context.Context, processor ingestion.Proces
 		assert.True(t, ok)
 		goldTrace, ok := found.(*types.GoldenTrace)
 		assert.True(t, ok)
-		assert.Equal(t, 1, len(goldTrace.Values))
-		assert.Equal(t, testEntry.value, goldTrace.Values[0])
+		assert.Equal(t, 1, len(goldTrace.Digests))
+		assert.Equal(t, testEntry.value, goldTrace.Digests[0])
 	}
 
 	assert.Equal(t, "master", commitIDs[0].Source)

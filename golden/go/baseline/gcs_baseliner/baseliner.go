@@ -1,4 +1,4 @@
-package storage
+package gcs_baseliner
 
 import (
 	"context"
@@ -15,31 +15,25 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/tryjobstore"
-	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/sync/errgroup"
 )
 
 // TODO(stephana): Tune issueCacheSize by either finding a good value that works across instance
 // or one that can be tuned.
 
-// TODO(stephana): Add tests for all functions in this file.
-
 const (
 	// issueCacheSize is the size of the baselines cache for issue.
 	issueCacheSize = 10000
 )
 
-// TODO(stephana): Baseliner needs to merged into the baseline package and
-// the nomenclature should either change to Expectations or make a it clearer that
-// baselines are synonymous to expectations.
-
-// Baseliner is a helper type that provides functions to write baselines (expectations) to
+// BaselinerImpl is a helper type that provides functions to write baselines (expectations) to
 // GCS and retrieve them. Other packages use it to continuously write expectations to GCS
 // as they become available.
-type Baseliner struct {
-	gStorageClient       *GStorageClient
+type BaselinerImpl struct {
+	gStorageClient       storage.GCSClient
 	expectationsStore    expstorage.ExpectationsStore
 	issueExpStoreFactory expstorage.IssueExpStoreFactory
 	tryjobStore          tryjobstore.TryjobStore
@@ -52,24 +46,24 @@ type Baseliner struct {
 	// a specific commit has been written already and whether we need to write it again (different MD5)
 	lastWrittenBaselines map[string]string
 
-	// baselineCache caches the baselines all commits of the current tile.
-	baselineCache map[string]*baseline.CommitableBaseLine
+	// baselineCache caches the baselines of all commits of the current tile.
+	baselineCache map[string]*baseline.CommitableBaseline
 
-	// cpxTile is the latest tile we have.
-	currCpxTile *types.ComplexTile
+	// currTileInfo is the latest tileInfo we have.
+	currTileInfo baseline.TileInfo
 
 	// issueBaselineCache caches baselines for issue by mapping from issueID to baseline.
 	issueBaselineCache *lru.Cache
 }
 
-// NewBaseliner creates a new instance of Baseliner.
-func NewBaseliner(gStorageClient *GStorageClient, expectationsStore expstorage.ExpectationsStore, issueExpStoreFactory expstorage.IssueExpStoreFactory, tryjobStore tryjobstore.TryjobStore, vcs vcsinfo.VCS) (*Baseliner, error) {
+// New creates a new instance of baseliner.Baseliner that interacts with baselines in GCS.
+func New(gStorageClient storage.GCSClient, expectationsStore expstorage.ExpectationsStore, issueExpStoreFactory expstorage.IssueExpStoreFactory, tryjobStore tryjobstore.TryjobStore, vcs vcsinfo.VCS) (*BaselinerImpl, error) {
 	cache, err := lru.New(issueCacheSize)
 	if err != nil {
 		return nil, skerr.Fmt("Error allocating cache: %s", err)
 	}
 
-	return &Baseliner{
+	return &BaselinerImpl{
 		gStorageClient:       gStorageClient,
 		expectationsStore:    expectationsStore,
 		issueExpStoreFactory: issueExpStoreFactory,
@@ -77,28 +71,24 @@ func NewBaseliner(gStorageClient *GStorageClient, expectationsStore expstorage.E
 		vcs:                  vcs,
 		issueBaselineCache:   cache,
 		lastWrittenBaselines: map[string]string{},
+		baselineCache:        map[string]*baseline.CommitableBaseline{},
 	}, nil
 }
 
 // CanWriteBaseline returns true if this instance was configured to write baseline files.
-func (b *Baseliner) CanWriteBaseline() bool {
-	return (b.gStorageClient != nil) && (b.gStorageClient.options.BaselineGSPath != "")
+func (b *BaselinerImpl) CanWriteBaseline() bool {
+	return (b.gStorageClient != nil) && (b.gStorageClient.Options().BaselineGSPath != "")
 }
 
-// PushMasterBaselines writes the baselines for the master branch to GCS.
-// If cpxTile is nil the tile of the last call to PushMasterBaselines is used. If the function
-// was never called before and cpxTile is nil, an error is returned.
-// If targetHash != "" we also return the baseline for corresponding commit as the first return
-// value. Otherwise the first return value is nil.
-// It is assumed that the target commit is one of the commits that are written as part of this call.
-func (b *Baseliner) PushMasterBaselines(cpxTile *types.ComplexTile, targetHash string) (*baseline.CommitableBaseLine, error) {
+// PushMasterBaselines fulfills the Baseliner interface
+func (b *BaselinerImpl) PushMasterBaselines(tileInfo baseline.TileInfo, targetHash string) (*baseline.CommitableBaseline, error) {
 	defer timer.New("PushmasterBaselines").Stop()
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
-	if cpxTile == nil {
-		cpxTile = b.currCpxTile
+	if tileInfo == nil {
+		tileInfo = b.currTileInfo
 	}
-	if cpxTile == nil {
+	if tileInfo == nil {
 		return nil, skerr.Fmt("Received nil tile and no previous tile defined")
 	}
 
@@ -116,13 +106,13 @@ func (b *Baseliner) PushMasterBaselines(cpxTile *types.ComplexTile, targetHash s
 	// fetched in intervals. New commits might have arrived since the last tile was read. Below we
 	// extrapolate the baselines of the new commits to be identical to the last commit in the tile.
 	// As new data arrive in the next tile, we update the baselines for these commits.
-	tileCommits := cpxTile.AllCommits()
+	tileCommits := tileInfo.AllCommits()
 	extraCommits, err := b.getCommitsSince(tileCommits[len(tileCommits)-1])
 	if err != nil {
 		return nil, err
 	}
 
-	perCommitBaselines, err := baseline.GetBaselinesPerCommit(exps, cpxTile, extraCommits)
+	perCommitBaselines, err := baseline.GetBaselinesPerCommit(exps, tileInfo, extraCommits)
 	if err != nil {
 		return nil, skerr.Fmt("Error getting master baseline: %s", err)
 	}
@@ -144,10 +134,10 @@ func (b *Baseliner) PushMasterBaselines(cpxTile *types.ComplexTile, targetHash s
 			continue
 		}
 
-		func(commit string, bLine *baseline.CommitableBaseLine) {
+		func(commit string, bLine *baseline.CommitableBaseline) {
 			egroup.Go(func() error {
 				// Write the baseline to GCS.
-				_, err := b.gStorageClient.WriteBaseLine(bLine)
+				_, err := b.gStorageClient.WriteBaseline(bLine)
 				if err != nil {
 					return skerr.Fmt("Error writing baseline to GCS: %s", err)
 				}
@@ -160,8 +150,12 @@ func (b *Baseliner) PushMasterBaselines(cpxTile *types.ComplexTile, targetHash s
 		}(commit, bLine)
 	}
 
+	if err := egroup.Wait(); err != nil {
+		return nil, skerr.Fmt("Problem writing per-commit baselines to GCS: %s", err)
+	}
+
 	// If a specific baseline was also requested we find it now
-	var ret *baseline.CommitableBaseLine
+	var ret *baseline.CommitableBaseline
 	if targetHash != "" {
 		var ok bool
 		ret, ok = perCommitBaselines[targetHash]
@@ -171,14 +165,14 @@ func (b *Baseliner) PushMasterBaselines(cpxTile *types.ComplexTile, targetHash s
 	}
 
 	// Swap out the baseline cache and the list of last written files.
-	b.currCpxTile = cpxTile
+	b.currTileInfo = tileInfo
 	b.baselineCache = perCommitBaselines
 	b.lastWrittenBaselines = written
 	return ret, nil
 }
 
 // PushIssueBaseline writes the baseline for a Gerrit issue to GCS.
-func (b *Baseliner) PushIssueBaseline(issueID int64, cpxTile *types.ComplexTile, tallies *tally.Tallies) error {
+func (b *BaselinerImpl) PushIssueBaseline(issueID int64, tileInfo baseline.TileInfo, tallies *tally.Tallies) error {
 	issueExpStore := b.issueExpStoreFactory(issueID)
 	exp, err := issueExpStore.Get()
 	if err != nil {
@@ -190,20 +184,20 @@ func (b *Baseliner) PushIssueBaseline(issueID int64, cpxTile *types.ComplexTile,
 		return skerr.Fmt("Unable to get TryjobResults")
 	}
 
-	baseLine, err := baseline.GetBaselineForIssue(issueID, tryjobs, tryjobResults, exp, cpxTile.AllCommits())
+	base, err := baseline.GetBaselineForIssue(issueID, tryjobs, tryjobResults, exp, tileInfo.AllCommits())
 	if err != nil {
 		return skerr.Fmt("Error calculating issue baseline: %s", err)
 	}
 
 	// Add it to the cache.
-	_ = b.issueBaselineCache.Add(issueID, baseLine)
+	_ = b.issueBaselineCache.Add(issueID, base)
 
 	if !b.CanWriteBaseline() {
 		return skerr.Fmt("Trying to write baseline while GCS path is not configured.")
 	}
 
 	// Write the baseline to GCS.
-	outputPath, err := b.gStorageClient.WriteBaseLine(baseLine)
+	outputPath, err := b.gStorageClient.WriteBaseline(base)
 	if err != nil {
 		return skerr.Fmt("Error writing baseline to GCS: %s", err)
 	}
@@ -216,11 +210,11 @@ func (b *Baseliner) PushIssueBaseline(issueID int64, cpxTile *types.ComplexTile,
 // them. If either of them doesn't exist an empty baseline is assumed.
 // If issueOnly is true and issueID > 0 then only the expectations attached to the issue are
 // returned (omitting the baselines of the master branch). This is primarily used for debugging.
-func (b *Baseliner) FetchBaseline(commitHash string, issueID int64, patchsetID int64, issueOnly bool) (*baseline.CommitableBaseLine, error) {
+func (b *BaselinerImpl) FetchBaseline(commitHash string, issueID int64, patchsetID int64, issueOnly bool) (*baseline.CommitableBaseline, error) {
 	isIssue := issueID > 0
 
-	var masterBaseline *baseline.CommitableBaseLine
-	var issueBaseline *baseline.CommitableBaseLine
+	var masterBaseline *baseline.CommitableBaseline
+	var issueBaseline *baseline.CommitableBaseline
 	var egroup errgroup.Group
 
 	// Retrieve the baseline on master.
@@ -234,7 +228,7 @@ func (b *Baseliner) FetchBaseline(commitHash string, issueID int64, patchsetID i
 		egroup.Go(func() error {
 			val, ok := b.issueBaselineCache.Get(issueID)
 			if ok {
-				issueBaseline = val.(*baseline.CommitableBaseLine)
+				issueBaseline = val.(*baseline.CommitableBaseline)
 				return nil
 			}
 
@@ -273,7 +267,7 @@ func (b *Baseliner) FetchBaseline(commitHash string, issueID int64, patchsetID i
 
 // getCommitSince returns all the commits have been added to the repo since the given commit.
 // The returned instances of tiling.Commit do not contain a valid Author field.
-func (b *Baseliner) getCommitsSince(firstCommit *tiling.Commit) ([]*tiling.Commit, error) {
+func (b *BaselinerImpl) getCommitsSince(firstCommit *tiling.Commit) ([]*tiling.Commit, error) {
 	defer timer.New("getCommitsSince").Stop()
 
 	// If there is an underlying gitstore retrieve it, otherwise this function becomes a no-op.
@@ -324,26 +318,30 @@ func (b *Baseliner) getCommitsSince(firstCommit *tiling.Commit) ([]*tiling.Commi
 	return ret[1:], nil
 }
 
-func (b *Baseliner) getMasterExpectations(commitHash string) (*baseline.CommitableBaseLine, error) {
-	b.mutex.RLock()
-	cache := b.baselineCache
-	cpxTile := b.currCpxTile
-	b.mutex.RUnlock()
+func (b *BaselinerImpl) getMasterExpectations(commitHash string) (*baseline.CommitableBaseline, error) {
+	rv := func() *baseline.CommitableBaseline {
+		b.mutex.RLock()
+		defer b.mutex.RUnlock()
+		tileInfo := b.currTileInfo
 
-	// If no commit hash was given use current HEAD.
-	if commitHash == "" {
-		// If we have no tile yet, we cannot get the HEAD of it.
-		if cpxTile == nil {
-			return baseline.EmptyBaseline(nil, nil), nil
+		// If no commit hash was given use current HEAD.
+		if commitHash == "" {
+			// If we have no tile yet, we cannot get the HEAD of it.
+			if tileInfo == nil {
+				return baseline.EmptyBaseline(nil, nil)
+			}
+			// Get the last commit that has data.
+			allCommits := tileInfo.AllCommits()
+			commitHash = allCommits[len(allCommits)-1].Hash
 		}
-		// Get the last commit that has data.
-		allCommits := cpxTile.AllCommits()
-		commitHash = allCommits[len(allCommits)-1].Hash
-	}
 
-	if bLine, ok := cache[commitHash]; ok {
-		bLine = bLine.DeepCopyBaseline()
-		return bLine, nil
+		if base, ok := b.baselineCache[commitHash]; ok {
+			return base.DeepCopyBaseline()
+		}
+		return nil
+	}()
+	if rv != nil {
+		return rv, nil
 	}
 
 	// We did not find it in the cache so lets load it from GCS.
@@ -371,6 +369,14 @@ func (b *Baseliner) getMasterExpectations(commitHash string) (*baseline.Commitab
 			return nil, err
 		}
 	}
+	// Since we fetched from GCS - go ahead and store to cache.
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	// Check that someone else didn't overwrite this already. It's probably
+	// not horrible if they did, but this should prevent any issues that might cause.
+	if _, ok := b.baselineCache[commitHash]; !ok {
+		b.baselineCache[commitHash] = ret
+	}
 	return ret, nil
 }
 
@@ -382,3 +388,6 @@ func fromLongCommit(lc *vcsinfo.LongCommit) *tiling.Commit {
 		Author:     lc.Author,
 	}
 }
+
+// Make sure BaselinerImpl fulfills the Baseliner Interface
+var _ baseline.Baseliner = (*BaselinerImpl)(nil)

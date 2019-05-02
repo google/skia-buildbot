@@ -169,7 +169,7 @@ func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []string, query u
 					if trid.tr.IsMissing(i) {
 						continue
 					} else {
-						digests[trid.tr.(*types.GoldenTrace).Values[i]] = true
+						digests[trid.tr.(*types.GoldenTrace).Digests[i]] = true
 						break
 					}
 				}
@@ -182,7 +182,7 @@ func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []string, query u
 				} else {
 					for i := lastCommitIndex; i >= 0; i-- {
 						if !trid.tr.IsMissing(i) {
-							digests[trid.tr.(*types.GoldenTrace).Values[i]] = true
+							digests[trid.tr.(*types.GoldenTrace).Digests[i]] = true
 						}
 					}
 				}
@@ -245,7 +245,7 @@ func (s *Summaries) search(tile *tiling.Tile, query string, head bool, pos bool,
 				if trace.IsMissing(i) {
 					continue
 				} else {
-					matches[test+":"+trace.(*types.GoldenTrace).Values[i]] = true
+					matches[test+":"+trace.(*types.GoldenTrace).Digests[i]] = true
 					break
 				}
 			}
@@ -289,7 +289,7 @@ func (s *Summaries) search(tile *tiling.Tile, query string, head bool, pos bool,
 }
 
 // makeSummary returns a Summary for the given digests.
-func (s *Summaries) makeSummary(name string, e types.Expectations, diffStore diff.DiffStore, corpus string, digests []string) *Summary {
+func (s *Summaries) makeSummary(name string, e types.TestExpBuilder, diffStore diff.DiffStore, corpus string, digests []string) *Summary {
 	pos := 0
 	neg := 0
 	unt := 0

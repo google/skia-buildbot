@@ -56,7 +56,7 @@ func TestClosestDigest(t *testing.T) {
 		"ddd": 2,
 		"eee": 2,
 	}
-	exp := types.NewExpectations(testExp)
+	exp := types.NewTestExpBuilder(testExp)
 
 	// First test against a test that has positive digests.
 	c := ClosestDigest("foo", "fff", exp, tallies, diffStore, types.POSITIVE)

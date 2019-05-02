@@ -216,7 +216,7 @@ func digestsFromTrace(id string, tr *types.GoldenTrace, head bool, lastCommitInd
 			if tr.IsMissing(i) {
 				continue
 			} else {
-				digests[tr.Values[i]] = true
+				digests[tr.Digests[i]] = true
 				break
 			}
 		}
@@ -229,7 +229,7 @@ func digestsFromTrace(id string, tr *types.GoldenTrace, head bool, lastCommitInd
 		} else {
 			for i := lastCommitIndex; i >= 0; i-- {
 				if !tr.IsMissing(i) {
-					digests[tr.Values[i]] = true
+					digests[tr.Digests[i]] = true
 				}
 			}
 		}

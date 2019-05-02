@@ -555,7 +555,7 @@ func (r *resultState) loadExpectations(httpClient HTTPClient) error {
 		return skerr.Fmt("Error closing response from request to %s: %s", url, err)
 	}
 
-	exp := &baseline.CommitableBaseLine{}
+	exp := &baseline.CommitableBaseline{}
 
 	if err := json.Unmarshal(jsonBytes, exp); err != nil {
 		fmt.Printf("Fetched from %s\n", url)

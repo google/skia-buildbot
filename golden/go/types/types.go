@@ -183,13 +183,15 @@ func (c *ComplexTile) FromSame(completeTile *tiling.Tile, ignoreRev int64) bool 
 		c.irRevision == ignoreRev
 }
 
-// DataCommits returns all commits that contain data.
+// DataCommits returns all commits that contain data. In some busy repos, there are commits that
+// don't get tested directly because the commits are batched in with others. DataCommits
+// is a way to get just the commits where some data has been ingested.
 func (c *ComplexTile) DataCommits() []*tiling.Commit {
 	return c.tileWithIgnores.Commits
 }
 
 // AllCommits returns all commits that were processed to get the data commits.
-// It's first commit should match the first commit returned when calling DataCommits.
+// Its first commit should match the first commit returned when calling DataCommits.
 func (c *ComplexTile) AllCommits() []*tiling.Commit {
 	return c.sparseCommits
 }
@@ -215,73 +217,75 @@ const (
 // GoldenTrace represents all the Digests of a single test across a series
 // of Commits. GoldenTrace implements the Trace interface.
 type GoldenTrace struct {
-	Params_ map[string]string
-	Values  []string
+	// The JSON keys are named this way to maintain backwards compatibility
+	// with JSON already written to disk.
+	Keys    map[string]string `json:"Params_"`
+	Digests []string          `json:"Values"`
 }
 
 func (g *GoldenTrace) Params() map[string]string {
-	return g.Params_
+	return g.Keys
 }
 
 func (g *GoldenTrace) Len() int {
-	return len(g.Values)
+	return len(g.Digests)
 }
 
 func (g *GoldenTrace) IsMissing(i int) bool {
-	return g.Values[i] == MISSING_DIGEST
+	return g.Digests[i] == MISSING_DIGEST
 }
 
 func (g *GoldenTrace) DeepCopy() tiling.Trace {
-	n := len(g.Values)
+	n := len(g.Digests)
 	cp := &GoldenTrace{
-		Values:  make([]string, n, n),
-		Params_: make(map[string]string),
+		Digests: make([]string, n, n),
+		Keys:    make(map[string]string),
 	}
-	copy(cp.Values, g.Values)
-	for k, v := range g.Params_ {
-		cp.Params_[k] = v
+	copy(cp.Digests, g.Digests)
+	for k, v := range g.Keys {
+		cp.Keys[k] = v
 	}
 	return cp
 }
 
 func (g *GoldenTrace) Merge(next tiling.Trace) tiling.Trace {
 	nextGold := next.(*GoldenTrace)
-	n := len(g.Values) + len(nextGold.Values)
-	n1 := len(g.Values)
+	n := len(g.Digests) + len(nextGold.Digests)
+	n1 := len(g.Digests)
 
 	merged := NewGoldenTraceN(n)
-	merged.Params_ = g.Params_
-	for k, v := range nextGold.Params_ {
-		merged.Params_[k] = v
+	merged.Keys = g.Keys
+	for k, v := range nextGold.Keys {
+		merged.Keys[k] = v
 	}
-	for i, v := range g.Values {
-		merged.Values[i] = v
+	for i, v := range g.Digests {
+		merged.Digests[i] = v
 	}
-	for i, v := range nextGold.Values {
-		merged.Values[n1+i] = v
+	for i, v := range nextGold.Digests {
+		merged.Digests[n1+i] = v
 	}
 	return merged
 }
 
 func (g *GoldenTrace) Grow(n int, fill tiling.FillType) {
-	if n < len(g.Values) {
-		panic(fmt.Sprintf("Grow must take a value (%d) larger than the current Trace size: %d", n, len(g.Values)))
+	if n < len(g.Digests) {
+		panic(fmt.Sprintf("Grow must take a value (%d) larger than the current Trace size: %d", n, len(g.Digests)))
 	}
-	delta := n - len(g.Values)
-	newValues := make([]string, n)
+	delta := n - len(g.Digests)
+	newDigests := make([]string, n)
 
 	if fill == tiling.FILL_AFTER {
-		copy(newValues, g.Values)
+		copy(newDigests, g.Digests)
 		for i := 0; i < delta; i++ {
-			newValues[i+len(g.Values)] = MISSING_DIGEST
+			newDigests[i+len(g.Digests)] = MISSING_DIGEST
 		}
 	} else {
 		for i := 0; i < delta; i++ {
-			newValues[i] = MISSING_DIGEST
+			newDigests[i] = MISSING_DIGEST
 		}
-		copy(newValues[delta:], g.Values)
+		copy(newDigests[delta:], g.Digests)
 	}
-	g.Values = newValues
+	g.Digests = newDigests
 }
 
 func (g *GoldenTrace) Trim(begin, end int) error {
@@ -289,27 +293,27 @@ func (g *GoldenTrace) Trim(begin, end int) error {
 		return fmt.Errorf("Invalid Trim range [%d, %d) of [0, %d]", begin, end, g.Len())
 	}
 	n := end - begin
-	newValues := make([]string, n)
+	newDigests := make([]string, n)
 
 	for i := 0; i < n; i++ {
-		newValues[i] = g.Values[i+begin]
+		newDigests[i] = g.Digests[i+begin]
 	}
-	g.Values = newValues
+	g.Digests = newDigests
 	return nil
 }
 
 func (g *GoldenTrace) SetAt(index int, value []byte) error {
-	if index < 0 || index > len(g.Values) {
+	if index < 0 || index > len(g.Digests) {
 		return fmt.Errorf("Invalid index: %d", index)
 	}
-	g.Values[index] = string(value)
+	g.Digests[index] = string(value)
 	return nil
 }
 
 // LastDigest returns the last digest in the trace (HEAD) or the empty string otherwise.
 func (g *GoldenTrace) LastDigest() string {
 	if idx := g.LastIndex(); idx >= 0 {
-		return g.Values[idx]
+		return g.Digests[idx]
 	}
 	return ""
 }
@@ -317,8 +321,8 @@ func (g *GoldenTrace) LastDigest() string {
 // LastIndex returns the index of last non-empty value in this trace and -1 if
 // if the entire trace is empty.
 func (g *GoldenTrace) LastIndex() int {
-	for i := len(g.Values) - 1; i >= 0; i-- {
-		if g.Values[i] != MISSING_DIGEST {
+	for i := len(g.Digests) - 1; i >= 0; i-- {
+		if g.Digests[i] != MISSING_DIGEST {
 			return i
 		}
 	}
@@ -327,7 +331,7 @@ func (g *GoldenTrace) LastIndex() int {
 
 // NewGoldenTrace allocates a new Trace set up for the given number of samples.
 //
-// The Trace Values are pre-filled in with the missing data sentinel since not
+// The Trace Digests are pre-filled in with the missing data sentinel since not
 // all tests will be run on all commits.
 func NewGoldenTrace() *GoldenTrace {
 	return NewGoldenTraceN(tiling.TILE_SIZE)
@@ -335,15 +339,15 @@ func NewGoldenTrace() *GoldenTrace {
 
 // NewGoldenTraceN allocates a new Trace set up for the given number of samples.
 //
-// The Trace Values are pre-filled in with the missing data sentinel since not
+// The Trace Digests are pre-filled in with the missing data sentinel since not
 // all tests will be run on all commits.
 func NewGoldenTraceN(n int) *GoldenTrace {
 	g := &GoldenTrace{
-		Values:  make([]string, n, n),
-		Params_: make(map[string]string),
+		Digests: make([]string, n, n),
+		Keys:    make(map[string]string),
 	}
-	for i := range g.Values {
-		g.Values[i] = MISSING_DIGEST
+	for i := range g.Digests {
+		g.Digests[i] = MISSING_DIGEST
 	}
 	return g
 }

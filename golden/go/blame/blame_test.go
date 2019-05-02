@@ -141,7 +141,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 
 	// Get the trace for the last parameters and set a value.
 	gTrace := tile.Traces[mocks.TraceKey(params[5])].(*types.GoldenTrace)
-	gTrace.Values[2] = DI_9
+	gTrace.Digests[2] = DI_9
 
 	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
 
@@ -307,7 +307,7 @@ func forEachTestDigestDo(tile *tiling.Tile, fn func(string, string)) {
 	for _, trace := range tile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
 		testName := gTrace.Params()[types.PRIMARY_KEY_FIELD]
-		for _, digest := range gTrace.Values {
+		for _, digest := range gTrace.Digests {
 			if digest != types.MISSING_DIGEST {
 				fn(testName, digest)
 			}
@@ -320,6 +320,6 @@ func forEachTestTraceDo(tile *tiling.Tile, fn func(string, []string)) {
 	for _, trace := range tile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
 		testName := gTrace.Params()[types.PRIMARY_KEY_FIELD]
-		fn(testName, gTrace.Values[:tileLen])
+		fn(testName, gTrace.Digests[:tileLen])
 	}
 }

@@ -87,36 +87,36 @@ func TestCalcSummaries(t *testing.T) {
 	tile := &tiling.Tile{
 		Traces: map[string]tiling.Trace{
 			"a": &types.GoldenTrace{
-				Values: []string{"aaa", "bbb"},
-				Params_: map[string]string{
+				Digests: []string{"aaa", "bbb"},
+				Keys: map[string]string{
 					"name":             "foo",
 					"config":           "8888",
 					types.CORPUS_FIELD: "gm"},
 			},
 			"b": &types.GoldenTrace{
-				Values: []string{"ccc", "ddd"},
-				Params_: map[string]string{
+				Digests: []string{"ccc", "ddd"},
+				Keys: map[string]string{
 					"name":             "foo",
 					"config":           "565",
 					types.CORPUS_FIELD: "gm"},
 			},
 			"c": &types.GoldenTrace{
-				Values: []string{"eee", types.MISSING_DIGEST},
-				Params_: map[string]string{
+				Digests: []string{"eee", types.MISSING_DIGEST},
+				Keys: map[string]string{
 					"name":             "foo",
 					"config":           "gpu",
 					types.CORPUS_FIELD: "gm"},
 			},
 			"d": &types.GoldenTrace{
-				Values: []string{"fff", "ggg"},
-				Params_: map[string]string{
+				Digests: []string{"fff", "ggg"},
+				Keys: map[string]string{
 					"name":             "bar",
 					"config":           "8888",
 					types.CORPUS_FIELD: "gm"},
 			},
 			"e": &types.GoldenTrace{
-				Values: []string{"jjj", types.MISSING_DIGEST},
-				Params_: map[string]string{
+				Digests: []string{"jjj", types.MISSING_DIGEST},
+				Keys: map[string]string{
 					"name":             "quux",
 					"config":           "8888",
 					types.CORPUS_FIELD: "image"},

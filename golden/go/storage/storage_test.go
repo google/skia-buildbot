@@ -60,7 +60,7 @@ var (
 		Author:     "Jane Doe",
 	}
 
-	masterBaseline = &baseline.CommitableBaseLine{
+	masterBaseline = &baseline.CommitableBaseline{
 		StartCommit: startCommit,
 		EndCommit:   endCommit,
 		Baseline: types.TestExp{
@@ -69,7 +69,7 @@ var (
 		Issue: 0,
 	}
 
-	issueBaseline = &baseline.CommitableBaseLine{
+	issueBaseline = &baseline.CommitableBaseline{
 		StartCommit: endCommit,
 		EndCommit:   endCommit,
 		Baseline: types.TestExp{
@@ -99,7 +99,7 @@ func TestWritingHashes(t *testing.T) {
 	removePaths := []string{opt.HashesGSPath}
 	defer func() {
 		for _, path := range removePaths {
-			_ = gsClient.removeGSPath(path)
+			_ = gsClient.RemoveForTestingOnly(path)
 		}
 	}()
 
@@ -114,11 +114,11 @@ func TestWritingBaselines(t *testing.T) {
 	removePaths := []string{}
 	defer func() {
 		for _, path := range removePaths {
-			_ = gsClient.removeGSPath(path)
+			_ = gsClient.RemoveForTestingOnly(path)
 		}
 	}()
 
-	path, err := gsClient.WriteBaseLine(masterBaseline)
+	path, err := gsClient.WriteBaseline(masterBaseline)
 	assert.NoError(t, err)
 	removePaths = append(removePaths, strings.TrimPrefix(path, "gs://"))
 
@@ -127,30 +127,13 @@ func TestWritingBaselines(t *testing.T) {
 	assert.Equal(t, masterBaseline, foundBaseline)
 
 	// Add a baseline for an issue
-	path, err = gsClient.WriteBaseLine(issueBaseline)
+	path, err = gsClient.WriteBaseline(issueBaseline)
 	assert.NoError(t, err)
 	removePaths = append(removePaths, strings.TrimPrefix(path, "gs://"))
 
 	foundBaseline, err = gsClient.ReadBaseline("", issueID)
 	assert.NoError(t, err)
 	assert.Equal(t, issueBaseline, foundBaseline)
-	baseLiner, err := NewBaseliner(gsClient, nil, nil, nil, nil)
-	assert.NoError(t, err)
-
-	// Fetch the combined baselines
-	storages := &Storage{
-		GStorageClient: gsClient,
-		Baseliner:      baseLiner,
-	}
-	combined := &baseline.CommitableBaseLine{}
-	*combined = *masterBaseline
-	combined.Baseline = masterBaseline.Baseline.DeepCopy()
-	combined.Baseline.Update(issueBaseline.Baseline)
-	combined.Issue = issueBaseline.Issue
-
-	foundBaseline, err = storages.Baseliner.FetchBaseline(endCommit.Hash, issueID, 0, false)
-	assert.NoError(t, err)
-	assert.Equal(t, combined, foundBaseline)
 }
 
 func TestBaselineRobustness(t *testing.T) {
@@ -161,7 +144,7 @@ func TestBaselineRobustness(t *testing.T) {
 	removePaths := []string{}
 	defer func() {
 		for _, path := range removePaths {
-			_ = gsClient.removeGSPath(path)
+			_ = gsClient.RemoveForTestingOnly(path)
 		}
 	}()
 
@@ -175,35 +158,18 @@ func TestBaselineRobustness(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Nil(t, foundBaseline)
 
-	path, err := gsClient.WriteBaseLine(masterBaseline)
+	path, err := gsClient.WriteBaseline(masterBaseline)
 	assert.NoError(t, err)
 	removePaths = append(removePaths, strings.TrimPrefix(path, "gs://"))
-
-	baseLiner, err := NewBaseliner(gsClient, nil, nil, nil, nil)
-	assert.NoError(t, err)
-
-	// Fetch the combined baselines when there are no baselines for the issue
-	storages := &Storage{
-		GStorageClient: gsClient,
-		Baseliner:      baseLiner,
-	}
-	expBaseline := &baseline.CommitableBaseLine{}
-	*expBaseline = *masterBaseline
-	expBaseline.Baseline = masterBaseline.Baseline.DeepCopy()
-	expBaseline.Issue = 5344
-
-	foundBaseline, err = storages.Baseliner.FetchBaseline(endCommit.Hash, 5344, 0, false)
-	assert.NoError(t, err)
-	assert.Equal(t, expBaseline, foundBaseline)
 }
 
-func initGSClient(t *testing.T) (*GStorageClient, *GSClientOptions) {
+func initGSClient(t *testing.T) (GCSClient, GCSClientOptions) {
 	timeStamp := fmt.Sprintf("%032d", time.Now().UnixNano())
-	opt := &GSClientOptions{
+	opt := GCSClientOptions{
 		HashesGSPath:   TEST_HASHES_GS_PATH + "-" + timeStamp,
 		BaselineGSPath: TEST_BASELINE_GS_PATH + "-" + timeStamp,
 	}
-	gsClient, err := NewGStorageClient(nil, opt)
+	gsClient, err := NewGCSClient(nil, opt)
 	assert.NoError(t, err)
 	return gsClient, opt
 }
@@ -246,7 +212,7 @@ func testCondenseForSize(t *testing.T, testTile *tiling.Tile, nCommits, nEmpty i
 	for idx := range sparseTile.Commits {
 		found := false
 		for _, trace := range sparseTile.Traces {
-			if (trace.(*types.GoldenTrace)).Values[idx] != types.MISSING_DIGEST {
+			if (trace.(*types.GoldenTrace)).Digests[idx] != types.MISSING_DIGEST {
 				found = true
 				break
 			}
@@ -269,7 +235,7 @@ func testCondenseForSize(t *testing.T, testTile *tiling.Tile, nCommits, nEmpty i
 	for _, trace := range sparseTile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
 		for idx := range empty {
-			gTrace.Values[idx] = types.MISSING_DIGEST
+			gTrace.Digests[idx] = types.MISSING_DIGEST
 		}
 	}
 
@@ -354,15 +320,15 @@ func (m *mockTDB) TileFromCommits(commitIDs []*tracedb.CommitID) (*tiling.Tile, 
 		newTrace := types.NewGoldenTraceN(len(commitIDs))
 
 		// Copy the params
-		for k, v := range gTrace.Params_ {
-			newTrace.Params_[k] = v
+		for k, v := range gTrace.Keys {
+			newTrace.Keys[k] = v
 		}
-		paramSet.AddParams(gTrace.Params_)
+		paramSet.AddParams(gTrace.Keys)
 
 		// Set the values in the order of the commit IDs.
 		for idx, commitID := range commitIDs {
 			srcIdx := comMap[commitID.ID]
-			newTrace.Values[idx] = gTrace.Values[srcIdx]
+			newTrace.Digests[idx] = gTrace.Digests[srcIdx]
 		}
 		ret.Traces[traceID] = newTrace
 	}
@@ -447,7 +413,7 @@ func loadSample(t assert.TestingT, fileName string) *serialize.Sample {
 	return sample
 }
 
-func loadKnownHashes(t *testing.T, gsClient *GStorageClient) []string {
+func loadKnownHashes(t *testing.T, gsClient GCSClient) []string {
 	var buf bytes.Buffer
 	assert.NoError(t, gsClient.LoadKnownDigests(&buf))
 

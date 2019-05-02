@@ -24,7 +24,7 @@ func TestMergeableBaseline(t *testing.T) {
 	randDigests := []string{randomDigest(), randomDigest()}
 	sort.Strings(randDigests)
 
-	baseLine := types.TestExp{
+	b := types.TestExp{
 		TEST_1: {randDigests[0]: types.UNTRIAGED, randDigests[1]: types.POSITIVE},
 		TEST_2: {randDigests[0]: types.UNTRIAGED, randDigests[1]: types.NEGATIVE},
 	}
@@ -32,7 +32,7 @@ func TestMergeableBaseline(t *testing.T) {
 	_, _ = fmt.Fprintf(&tmpBuf, "%s %s:%s %s:%s\n", TEST_1, randDigests[0], "u", randDigests[1], "p")
 	_, _ = fmt.Fprintf(&tmpBuf, "%s %s:%s %s:%s\n", TEST_2, randDigests[0], "u", randDigests[1], "n")
 	expected := tmpBuf.String()
-	testWriteReadBaseline(t, baseLine, &expected)
+	testWriteReadBaseline(t, b, &expected)
 
 	// Make sure it works for empty expectations.
 	empty := ""
@@ -43,11 +43,11 @@ func TestMergeableBaselineEdgeCases(t *testing.T) {
 	testutils.SmallTest(t)
 
 	// Write errors.
-	baseLine := types.TestExp{
+	b := types.TestExp{
 		TEST_1: {"some_digest": types.UNTRIAGED},
 	}
 	var buf bytes.Buffer
-	assert.Error(t, WriteMergeableBaseline(&buf, baseLine))
+	assert.Error(t, WriteMergeableBaseline(&buf, b))
 
 	// Read error for invalid digest.
 	testContent := "test-1 some_digest:u\n"
@@ -77,22 +77,22 @@ func TestMergeableBaselineEdgeCases(t *testing.T) {
 
 	// This should be treated like an empty file and read without error.
 	testContent = "\n\n# some comment\n"
-	baseLine, err = ReadMergeableBaseline(bytes.NewBuffer([]byte(testContent)))
+	b, err = ReadMergeableBaseline(bytes.NewBuffer([]byte(testContent)))
 	assert.NoError(t, err)
-	assert.Equal(t, types.TestExp{}, baseLine)
+	assert.Equal(t, types.TestExp{}, b)
 }
 
-func testWriteReadBaseline(t *testing.T, baseLine types.TestExp, expBuf *string) {
+func testWriteReadBaseline(t *testing.T, b types.TestExp, expBuf *string) {
 	var buf bytes.Buffer
-	assert.NoError(t, WriteMergeableBaseline(&buf, baseLine))
+	assert.NoError(t, WriteMergeableBaseline(&buf, b))
 
 	if expBuf != nil {
 		assert.Equal(t, *expBuf, buf.String())
 	}
 
-	foundBaseLine, err := ReadMergeableBaseline(&buf)
+	foundBaseline, err := ReadMergeableBaseline(&buf)
 	assert.NoError(t, err)
-	assert.Equal(t, baseLine, foundBaseLine)
+	assert.Equal(t, b, foundBaseline)
 }
 
 const (

@@ -26,65 +26,29 @@ func init() {
 	}
 }
 
-// CommitableBaseLine captures the data necessary to verify test results on the
-// commit queue.
-type CommitableBaseLine struct {
-	// StartCommit covered by these baselines.
-	StartCommit *tiling.Commit `json:"startCommit"`
-
-	// EncCommit is the commit for which this baseline was collected.
-	EndCommit *tiling.Commit `json:"endCommit"`
-
-	// CommitDelta is the difference in index within the commits of a tile.
-	CommitDelta int `json:"commitDelta"`
-
-	// Total is the total number of traces that were iterated when generating the baseline.
-	Total int `json:"total"`
-
-	// Filled is the number of traces that had non-empty values at EndCommit.
-	Filled int `json:"filled"`
-
-	// MD5 is the hash of the Baseline field.
-	MD5 string `json:"md5"`
-
-	// Baseline captures the baseline of the current commit.
-	Baseline types.TestExp `json:"master"`
-
-	// Issue indicates the Gerrit issue of this baseline. 0 indicates the master branch.
-	Issue int64
-}
-
-// DeepCopyBaseline returns a copy of the given instance of CommitableBaseline.
-// Note: It assumes all members except for BaseLine to be immutable, thus only
-// BaseLine is "deep" copied.
-func (c *CommitableBaseLine) DeepCopyBaseline() *CommitableBaseLine {
-	ret := &CommitableBaseLine{}
-	*ret = *c
-	ret.Baseline = c.Baseline.DeepCopy()
-	return ret
-}
-
-// TODO(stephana): Add tests for GetBaselinePerCommit.
+// TODO(kjlubick): Add tests for GetBaselinesPerCommit.
 
 // GetBaselinesPerCommit calculates the baselines for each commit in the tile.
+// Of note, it only fills out the Positive matches - everything not seen is either untriaged
+// or negative.
 // If extraCommits is not empty they are assumed to be commits immediately following the commits
-// in the given complex tile and BaseLines for these should be essentially copies of the last
+// in the given TileInfo and Baselines for these should be essentially copies of the last
 // commit in the tile. This covers the case when the current tile is slightly behind all commits
 // that have already been added to the repository.
-func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile, extraCommits []*tiling.Commit) (map[string]*CommitableBaseLine, error) {
-	allCommits := cpxTile.AllCommits()
+func GetBaselinesPerCommit(exps types.TestExpBuilder, tileInfo TileInfo, extraCommits []*tiling.Commit) (map[string]*CommitableBaseline, error) {
+	allCommits := tileInfo.AllCommits()
 	if len(allCommits) == 0 {
-		return map[string]*CommitableBaseLine{}, nil
+		return map[string]*CommitableBaseline{}, nil
 	}
 
 	// Get the baselines for all commits for which we have data and that are not ignored.
-	denseTile := cpxTile.GetTile(false)
-	denseCommits := cpxTile.DataCommits()
-	denseBaseLines := make(map[string]types.TestExp, len(denseCommits))
+	denseTile := tileInfo.GetTile(false)
+	denseCommits := tileInfo.DataCommits()
+	denseBaselines := make(map[string]types.TestExp, len(denseCommits))
 
 	// Initialize the expectations for all data commits
 	for _, commit := range denseCommits {
-		denseBaseLines[commit.Hash] = make(types.TestExp, len(denseTile.Traces))
+		denseBaselines[commit.Hash] = make(types.TestExp, len(denseTile.Traces))
 	}
 
 	// Sweep the tile and calculate the baselines.
@@ -93,9 +57,9 @@ func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile, 
 	for _, trace := range denseTile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
 		currDigests := map[string]types.Label{}
-		testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
+		testName := gTrace.Keys[types.PRIMARY_KEY_FIELD]
 		for idx := 0; idx < len(denseCommits); idx++ {
-			digest := gTrace.Values[idx]
+			digest := gTrace.Digests[idx]
 
 			// If the digest is not missing then add the digest to the running list of digests.
 			if digest != types.MISSING_DIGEST {
@@ -107,7 +71,7 @@ func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile, 
 			}
 
 			if len(currDigests) > 0 {
-				denseBaseLines[denseCommits[idx].Hash].AddDigests(testName, currDigests)
+				denseBaselines[denseCommits[idx].Hash].AddDigests(testName, currDigests)
 			}
 		}
 	}
@@ -122,17 +86,17 @@ func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile, 
 		combined = append(combined, extraCommits...)
 	}
 
-	ret := make(map[string]*CommitableBaseLine, len(combined))
-	var currBL *CommitableBaseLine = nil
+	ret := make(map[string]*CommitableBaseline, len(combined))
+	var currBL *CommitableBaseline = nil
 	for _, commit := range combined {
-		bl, ok := denseBaseLines[commit.Hash]
+		bl, ok := denseBaselines[commit.Hash]
 		if ok {
 			md5Sum, err := util.MD5Sum(bl)
 			if err != nil {
 				return nil, skerr.Fmt("Error calculating MD5 sum: %s", err)
 			}
 
-			ret[commit.Hash] = &CommitableBaseLine{
+			ret[commit.Hash] = &CommitableBaseline{
 				StartCommit: commit,
 				EndCommit:   commit,
 				Total:       len(denseTile.Traces),
@@ -158,28 +122,17 @@ func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile, 
 	return ret, nil
 }
 
-// EmptyBaseline returns an instance of CommitableBaseline with the provided commits and nil
-// values in all other fields. The Baseline field contains an empty instance of types.TestExp.
-func EmptyBaseline(startCommit, endCommit *tiling.Commit) *CommitableBaseLine {
-	return &CommitableBaseLine{
-		StartCommit: startCommit,
-		EndCommit:   endCommit,
-		Baseline:    types.TestExp{},
-		MD5:         md5SumEmptyExp,
-	}
-}
-
 // GetBaselineForIssue returns the baseline for the given issue. This baseline
 // contains all triaged digests that are not in the master tile.
-func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobResults [][]*tryjobstore.TryjobResult, exp types.Expectations, commits []*tiling.Commit) (*CommitableBaseLine, error) {
+func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobResults [][]*tryjobstore.TryjobResult, exp types.TestExpBuilder, commits []*tiling.Commit) (*CommitableBaseline, error) {
 	var startCommit *tiling.Commit = commits[len(commits)-1]
 	var endCommit *tiling.Commit = commits[len(commits)-1]
 
-	baseLine := types.TestExp{}
+	b := types.TestExp{}
 	for idx, tryjob := range tryjobs {
 		for _, result := range tryjobResults[idx] {
 			if result.Digest != types.MISSING_DIGEST && exp.Classification(result.TestName, result.Digest) == types.POSITIVE {
-				baseLine.AddDigest(result.TestName, result.Digest, types.POSITIVE)
+				b.AddDigest(result.TestName, result.Digest, types.POSITIVE)
 			}
 
 			_, c := tiling.FindCommit(commits, tryjob.MasterCommit)
@@ -188,7 +141,7 @@ func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobRes
 		}
 	}
 
-	md5Sum, err := util.MD5Sum(baseLine)
+	md5Sum, err := util.MD5Sum(b)
 	if err != nil {
 		return nil, skerr.Fmt("Error calculating MD5 sum: %s", err)
 	}
@@ -198,10 +151,10 @@ func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobRes
 
 	// TODO(stephana): Review whether StartCommit and EndCommit are useful here.
 
-	ret := &CommitableBaseLine{
+	ret := &CommitableBaseline{
 		StartCommit: startCommit,
 		EndCommit:   endCommit,
-		Baseline:    baseLine,
+		Baseline:    b,
 		Issue:       issueID,
 		MD5:         md5Sum,
 	}
