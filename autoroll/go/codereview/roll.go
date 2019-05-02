@@ -454,13 +454,14 @@ func newGithubRoll(ctx context.Context, g *github.GitHub, fullHash func(context.
 		return nil, err
 	}
 	return &githubRoll{
-		pullRequest:    pullRequest,
-		issue:          issue,
-		issueUrl:       fmt.Sprintf("%s%d", issueUrlBase, issue.Issue),
-		g:              g,
-		recent:         recent,
-		checksNum:      config.ChecksNum,
-		mergeMethodURL: config.MergeMethodURL,
+		checksNum:        config.ChecksNum,
+		finishedCallback: cb,
+		g:                g,
+		issue:            issue,
+		issueUrl:         fmt.Sprintf("%s%d", issueUrlBase, issue.Issue),
+		mergeMethodURL:   config.MergeMethodURL,
+		pullRequest:      pullRequest,
+		recent:           recent,
 		retrieveRoll: func(ctx context.Context, pullRequestNum int64) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
 			return retrieveGithubPullRequest(ctx, g, fullHash, pullRequestNum, config.ChecksNum, config.ChecksWaitFor, config.MergeMethodURL)
 		},
@@ -512,6 +513,7 @@ func (r *githubRoll) withModify(ctx context.Context, action string, fn func() er
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) Update(ctx context.Context) error {
+	alreadyFinished := r.IsFinished()
 	pullRequest, issue, err := r.retrieveRoll(ctx, int64(r.pullRequest.GetNumber()))
 	if err != nil {
 		return err
@@ -524,7 +526,7 @@ func (r *githubRoll) Update(ctx context.Context) error {
 	if err := r.recent.Update(ctx, r.issue); err != nil {
 		return err
 	}
-	if r.IsFinished() && r.finishedCallback != nil {
+	if r.IsFinished() && !alreadyFinished && r.finishedCallback != nil {
 		return r.finishedCallback(ctx, r)
 	}
 	return nil
