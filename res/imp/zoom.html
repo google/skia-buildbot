@@ -247,6 +247,7 @@
           flip = true;
         }
         var selectedPixelOffset = 0;
+        var selectedColorRGB;
 
         // Now draw each zoomed pixel as a rect.
         for (var x = 0; x < size; x++) {
@@ -259,10 +260,9 @@
             }
             if (x === halfsize && y === halfsize) {
               selectedPixelOffset = offset;
+              selectedColorRGB = sk.colorRGB(colors, offset, true);
             }
 
-            // Read the pixel color.
-            var colorRGB = sk.colorRGB(colors, offset, true);
             var colorRGBStyle = sk.colorRGB(colors, offset, false);
             this.set('ctx.fillStyle', colorRGBStyle);
             if (this.hide_grid) {
@@ -285,7 +285,7 @@
           g: colors[selectedPixelOffset+1],
           b: colors[selectedPixelOffset+2],
           a: colors[selectedPixelOffset+3],
-          rgb: colorRGB,
+          rgb: selectedColorRGB,
           hex: sk.colorHex(colors, selectedPixelOffset),
         };
         var evt = new CustomEvent('zoom-point', {
