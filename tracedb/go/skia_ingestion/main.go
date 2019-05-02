@@ -22,7 +22,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gevent"
-	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
@@ -115,9 +115,9 @@ func main() {
 	}
 
 	// Set up the gitstore if we have the necessary bigtable configuration.
-	var btConf *gitstore.BTConfig = nil
+	var btConf *bt_gitstore.BTConfig = nil
 	if *gitBTInstanceID != "" && *gitBTTableID != "" {
-		btConf = &gitstore.BTConfig{
+		btConf = &bt_gitstore.BTConfig{
 			ProjectID:  *projectID,
 			InstanceID: *gitBTInstanceID,
 			TableID:    *gitBTTableID,
