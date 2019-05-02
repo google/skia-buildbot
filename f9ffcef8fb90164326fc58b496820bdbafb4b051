@@ -46,6 +46,30 @@
       "revId": "f9ffcef8fb90164326fc58b496820bdbafb4b051",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a96da3df_fcf61f01",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-02T20:36:10Z",
+      "side": 1,
+      "message": "From Stephan: \"yes it currently only cares about positive commits \nI left that open to be fine-tuned later or maybe even make configurable\nprobably should have commented that \"",
+      "parentUuid": "aff3b335_f7bbe84f",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 15
+      },
+      "revId": "f9ffcef8fb90164326fc58b496820bdbafb4b051",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
