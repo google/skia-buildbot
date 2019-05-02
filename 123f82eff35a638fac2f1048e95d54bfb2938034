@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "53e4c344_15edf7dd",
+        "filename": "go/mocks/GitStore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-02T17:06:03Z",
+      "side": 1,
+      "message": "Why isn\u0027t this in the gitstore package (or a sub-package of the same)?",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 3,
+        "endChar": 13
+      },
+      "revId": "123f82eff35a638fac2f1048e95d54bfb2938034",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b2b3f74d_87208473",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-02T17:06:03Z",
+      "side": 1,
+      "message": "I\u0027m not sure how often we\u0027re doing Update(), but it seems to me that we could also pre-fetch details for all commits in range here.  My thinking is that it should be almost as fast to retrieve all of the commits as it is to retrieve a single one; pre-caching during Update() would help with latency in general.  We could optimize by only fetching details for those not already in the cache.",
+      "range": {
+        "startLine": 117,
+        "startChar": 0,
+        "endLine": 117,
+        "endChar": 55
+      },
+      "revId": "123f82eff35a638fac2f1048e95d54bfb2938034",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3cfada8f_3cc7dddc",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-02T17:06:03Z",
+      "side": 1,
+      "message": "Is this really necessary?  BigTable should be very fast, and as implemented if multiple requests for the same commit come in at the same time, we\u0027ll make multiple requests to BigTable (and multiply write to the detailsCache).",
+      "range": {
+        "startLine": 137,
+        "startChar": 41,
+        "endLine": 138,
+        "endChar": 68
+      },
+      "revId": "123f82eff35a638fac2f1048e95d54bfb2938034",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59837b00_ba43b787",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-02T17:06:03Z",
+      "side": 1,
+      "message": "This should use Details so that it can benefit from caching.  Alternatively, move the cache logic into details().",
+      "range": {
+        "startLine": 371,
+        "startChar": 0,
+        "endLine": 371,
+        "endChar": 35
+      },
+      "revId": "123f82eff35a638fac2f1048e95d54bfb2938034",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f688e5f0_8d916d75",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-02T17:06:03Z",
+      "side": 1,
+      "message": "We should be able to get rid of this now, right?  (I\u0027m okay leaving that for another CL though)",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 30
+      },
+      "revId": "123f82eff35a638fac2f1048e95d54bfb2938034",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
