@@ -8,9 +8,7 @@
   "author": "",
   "license": "BSD",
   "devDependencies": {
-    "http-server": "^0.10.0"
-  },
-  "dependencies": {
+    "http-server": "^0.11.1",
     "sinon": "^1.17.2"
   }
 }

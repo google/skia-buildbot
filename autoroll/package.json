@@ -15,6 +15,7 @@
     "chai": "~1.9.1",
     "cssmin": "~0.4.2",
     "html-minifier": "~3.0.0",
+    "http-server": "^0.11.1",
     "karma": "~0.12.25",
     "karma-chai": "~0.1.0",
     "karma-chrome-launcher": "~0.1.4",
@@ -24,11 +25,8 @@
     "karma-safari-launcher": "~0.1.1",
     "mocha": "~1.20.1",
     "native-promise-only": "~0.7.6-a",
+    "sinon": "^1.17.2",
     "uglify-js": "~2.4.15",
     "vulcanize": "~1.10.4"
-  },
-  "dependencies": {
-    "http-server": "^0.10.0",
-    "sinon": "^1.17.2"
   }
 }
