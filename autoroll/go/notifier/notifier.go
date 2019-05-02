@@ -153,7 +153,7 @@ func (a *AutoRollNotifier) send(ctx context.Context, vars *tmplVars, subjectTmpl
 		sklog.Errorf("Failed to send notification; failed to execute footer template: %s", err)
 		return
 	}
-	sklog.Infof("Sending notification (%s; %s): %s", severity.String(), msgType, subjectBytes.String())
+	sklog.Infof("Sending notification (%s; %s): %s\n\n%s", severity.String(), msgType, subjectBytes.String(), bodyBytes.String())
 	if err := a.n.Send(ctx, &notifier.Message{
 		Subject:  subjectBytes.String(),
 		Body:     bodyBytes.String(),
