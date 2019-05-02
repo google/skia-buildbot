@@ -87,14 +87,14 @@ type CloudExpStore struct {
 	tsMutex sync.Mutex
 }
 
-// IssueExpStoreFactory creates an ExpectationsStore instance for the given issue id.
-type IssueExpStoreFactory func(issueID int64) ExpectationsStore
+// IssueExpStoreFactory creates an DEPRECATED_ExpectationsStore instance for the given issue id.
+type IssueExpStoreFactory func(issueID int64) DEPRECATED_ExpectationsStore
 
 // NewCloudExpectationsStore returns an ExpectationsStore implementation based on
 // Cloud Datastore for the master branch and a factory to create ExpectationsStore
 // instances for Gerrit issues. The factory uses the same datastore client as the
 // master store.
-func NewCloudExpectationsStore(client *datastore.Client, eventBus eventbus.EventBus) (ExpectationsStore, IssueExpStoreFactory, error) {
+func NewCloudExpectationsStore(client *datastore.Client, eventBus eventbus.EventBus) (*CloudExpStore, IssueExpStoreFactory, error) {
 	if client == nil {
 		return nil, nil, sklog.FmtErrorf("Received nil for datastore client.")
 	}
@@ -122,7 +122,7 @@ func NewCloudExpectationsStore(client *datastore.Client, eventBus eventbus.Event
 
 	// The factory allows to create an isolated ExpectationStore instance for the
 	// given issue.
-	factory := func(issueID int64) ExpectationsStore {
+	factory := func(issueID int64) DEPRECATED_ExpectationsStore {
 		summaryKey := ds.NewKey(ds.HELPER_RECENT_KEYS)
 		summaryKey.Name = fmt.Sprintf("expstorage-issue-%d", issueID)
 		expectationsKey := ds.NewKey(ds.EXPECTATIONS_BLOB_ROOT)
@@ -151,7 +151,7 @@ func NewCloudExpectationsStore(client *datastore.Client, eventBus eventbus.Event
 }
 
 // Get implements the ExpectationsStore interface.
-func (c *CloudExpStore) Get() (types.Expectations, error) {
+func (c *CloudExpStore) Get() (types.TestExpBuilder, error) {
 	expectations, _, err := c.loadCurrentExpectations(nil)
 	if err != nil {
 		return nil, sklog.FmtErrorf("Error retrieving expectations: %s", err)
@@ -373,7 +373,7 @@ func (c *CloudExpStore) PutExpectations(exps types.TestExp) error {
 // CalcExpectations calculates the expectations by accumulating the expectation changes
 // referenced by the given list of keys. keys are assumed to be sorted in
 // reverse chronological order.
-func (c *CloudExpStore) CalcExpectations(keys []*datastore.Key) (types.Expectations, error) {
+func (c *CloudExpStore) CalcExpectations(keys []*datastore.Key) (types.TestExpBuilder, error) {
 	concurrent := make(chan bool, 10000)
 	changes := make([]types.TestExp, len(keys))
 	var egroup errgroup.Group
@@ -396,19 +396,15 @@ func (c *CloudExpStore) CalcExpectations(keys []*datastore.Key) (types.Expectati
 		return nil, err
 	}
 
-	ret := types.NewExpectations(nil)
+	ret := types.NewTestExpBuilder(nil)
 	for i := len(changes) - 1; i >= 0; i-- {
 		ret.AddTestExp(changes[i])
 	}
 	return ret, nil
 }
 
-// TODO(stephana): The removeChange function is obsolete and should be removed.
-// It was used for testing before the UndoChange function was added. It is simply
-// wrong to change the expectations without a change record being added.
-
-// removeChange implements the ExpectationsStore interface.
-func (c *CloudExpStore) removeChange(changes types.TestExp) (err error) {
+// RemoveChange implements the DebugExpectationsStore interface.
+func (c *CloudExpStore) RemoveChange(changes types.TestExp) (err error) {
 	for _, digests := range changes {
 		for digest := range digests {
 			digests[digest] = types.UNTRIAGED
@@ -535,7 +531,7 @@ func (c *CloudExpStore) updateCurrentExpectations(tx *datastore.Transaction, cha
 	oldExpsBlob := expState.ExpectationsBlob
 
 	if overwrite || (currentExp == nil) {
-		currentExp = types.NewExpectations(changes.DeepCopy())
+		currentExp = types.NewTestExpBuilder(changes.DeepCopy())
 	} else {
 		currentExp.AddTestExp(changes)
 	}
@@ -653,7 +649,7 @@ func (c *CloudExpStore) getExpChangeKeys(beforeID int64) ([]*datastore.Key, erro
 // loadCurrentExpectations loads the current expectations for this expectation
 // store (either for the master branch or for a Gerrit issue). If no expectations
 // have been set it will return non-nil values and no error.
-func (c *CloudExpStore) loadCurrentExpectations(tx *datastore.Transaction) (types.Expectations, *expectationsState, error) {
+func (c *CloudExpStore) loadCurrentExpectations(tx *datastore.Transaction) (types.TestExpBuilder, *expectationsState, error) {
 	getFn := dsutil.GetFn(c.client, tx)
 	testExp := types.TestExp{}
 	expState := &expectationsState{}
@@ -668,7 +664,7 @@ func (c *CloudExpStore) loadCurrentExpectations(tx *datastore.Transaction) (type
 		}
 	}
 
-	return types.NewExpectations(testExp), expState, err
+	return types.NewTestExpBuilder(testExp), expState, err
 }
 
 // getChanges loads the changes for the given expectations change key.
@@ -699,3 +695,9 @@ func (c *CloudExpStore) getUniqueTimeStampMs() int64 {
 	c.lastTS = ts
 	return ts
 }
+
+// Make sure CloudExpStore fulfills the ExpectationsStore interface
+var _ ExpectationsStore = (*CloudExpStore)(nil)
+
+// Make sure CloudExpStore fulfills the DEPRECATED_ExpectationsStore interface
+var _ DEPRECATED_ExpectationsStore = (*CloudExpStore)(nil)

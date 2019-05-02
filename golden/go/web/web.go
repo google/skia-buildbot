@@ -1111,7 +1111,7 @@ func (wh *WebHandlers) TextAllHashesHandler(w http.ResponseWriter, r *http.Reque
 // have a hash not found on this list, avoiding significant amounts of unnecessary uploads.
 func (wh *WebHandlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
-	if err := wh.Storages.GStorageClient.LoadKnownDigests(w); err != nil {
+	if err := wh.Storages.GCSClient.LoadKnownDigests(w); err != nil {
 		sklog.Errorf("Failed to copy the known hashes from GCS: %s", err)
 		return
 	}

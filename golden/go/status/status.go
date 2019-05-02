@@ -171,7 +171,7 @@ func (s *StatusWatcher) calcStatus(cpxTile *types.ComplexTile) error {
 		gTrace := trace.(*types.GoldenTrace)
 
 		idx := tileLen - 1
-		for (idx >= 0) && (gTrace.Values[idx] == types.MISSING_DIGEST) {
+		for (idx >= 0) && (gTrace.Digests[idx] == types.MISSING_DIGEST) {
 			idx--
 		}
 
@@ -200,7 +200,7 @@ func (s *StatusWatcher) calcStatus(cpxTile *types.ComplexTile) error {
 		}
 
 		// Account for the corpus and testname.
-		digest := gTrace.Values[idx]
+		digest := gTrace.Digests[idx]
 		testName := gTrace.Params()[types.PRIMARY_KEY_FIELD]
 		status := expectations.Classification(testName, digest)
 

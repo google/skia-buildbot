@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
@@ -77,14 +78,14 @@ func main() {
 
 	// TODO(stephana): There is a lot of overlap with code in skiacorrectness/main.go. This should
 	// be factored out into a common function.
-	gsClientOpt := &storage.GSClientOptions{
+	gsClientOpt := storage.GCSClientOptions{
 		HashesGSPath:   *hashesGSPath,
 		BaselineGSPath: *baselineGSPath,
 	}
 
-	gsClient, err := storage.NewGStorageClient(client, gsClientOpt)
+	gsClient, err := storage.NewGCSClient(client, gsClientOpt)
 	if err != nil {
-		sklog.Fatalf("Unable to create GStorageClient: %s", err)
+		sklog.Fatalf("Unable to create GCSClient: %s", err)
 	}
 
 	if err := ds.InitWithOpt(*projectID, *dsNamespace, option.WithTokenSource(tokenSource)); err != nil {
@@ -123,17 +124,17 @@ func main() {
 		sklog.Fatalf("Error creating VCS instance: %s", err)
 	}
 
-	storages := &storage.Storage{
-		GStorageClient:       gsClient,
-		ExpectationsStore:    expstorage.NewCachingExpectationStore(expStore, evt),
-		IssueExpStoreFactory: issueExpStoreFactory,
-		TryjobStore:          tryjobStore,
-		VCS:                  vcs,
+	// Initialize the Baseliner instance from the values set above.
+	baseliner, err := gcs_baseliner.New(gsClient, expstorage.NewCachingExpectationStore(expStore, evt), issueExpStoreFactory, tryjobStore, vcs)
+	if err != nil {
+		sklog.Fatalf("Error initializing baseliner: %s", err)
 	}
 
-	// Initialize the Baseliner instance from the values set above.
-	if err := storages.InitBaseliner(); err != nil {
-		sklog.Fatalf("Error initializing baseliner: %s", err)
+	// We only need to fill in the Storage struct with the following subset, since the baseline
+	// server only supplies a subset of the functionality.
+	storages := &storage.Storage{
+		GCSClient: gsClient,
+		Baseliner: baseliner,
 	}
 
 	handlers := web.WebHandlers{
@@ -147,10 +148,11 @@ func main() {
 	appRouter.HandleFunc(shared.KNOWN_HASHES_ROUTE, handlers.TextKnownHashesProxy).Methods("GET")
 	appRouter.HandleFunc(shared.LEGACY_KNOWN_HASHES_ROUTE, handlers.TextKnownHashesProxy).Methods("GET")
 
-	// Serve the expecations for the master branch and for CLs in progress.
+	// Serve the expectations for the master branch and for CLs in progress.
 	appRouter.HandleFunc(shared.EXPECTATIONS_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
 	appRouter.HandleFunc(shared.EXPECTATIONS_ISSUE_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
 
+	// TODO(kjlubick): remove these - they are no longer used by goldctl.
 	appRouter.HandleFunc("/json/expecations/commit/{commit_hash}", handlers.JsonBaselineHandler).Methods("GET")
 	appRouter.HandleFunc("/json/expecations/issue/{issue_id}", handlers.JsonBaselineHandler).Methods("GET")
 

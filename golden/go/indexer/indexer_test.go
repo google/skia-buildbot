@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
+	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/mocks"
@@ -69,19 +70,23 @@ func TestIndexer(t *testing.T) {
 	eventBus := eventbus.New()
 	expStore := expstorage.NewMemExpectationsStore(eventBus)
 
-	opts := &storage.GSClientOptions{
+	opts := storage.GCSClientOptions{
 		HashesGSPath: TEST_HASHES_PATH,
 	}
-	gsClient, err := storage.NewGStorageClient(mocks.GetHTTPClient(t), opts)
+	gsClient, err := storage.NewGCSClient(mocks.GetHTTPClient(t), opts)
 	assert.NoError(t, err)
 	assert.NotNil(t, gsClient)
+
+	baseliner, err := gcs_baseliner.New(gsClient, expStore, nil, nil, nil)
+	assert.NoError(t, err)
 
 	storages := &storage.Storage{
 		ExpectationsStore: expStore,
 		MasterTileBuilder: tileBuilder,
 		DiffStore:         mocks.NewMockDiffStore(),
 		EventBus:          eventBus,
-		GStorageClient:    gsClient,
+		GCSClient:         gsClient,
+		Baseliner:         baseliner,
 	}
 
 	// Set up a waitgroup that waits for index updates throughout the test.
@@ -89,8 +94,6 @@ func TestIndexer(t *testing.T) {
 	eventBus.SubscribeAsync(EV_INDEX_UPDATED, func(ignore interface{}) {
 		wg.Done()
 	})
-
-	assert.NoError(t, storages.InitBaseliner())
 
 	wg.Add(1)
 	ixr, err := New(storages, time.Minute)
@@ -117,9 +120,9 @@ func getChanges(t *testing.T, tile *tiling.Tile) types.TestExp {
 	for _, trace := range tile.Traces {
 		if rand.Float32() > 0.5 {
 			gTrace := trace.(*types.GoldenTrace)
-			for _, digest := range gTrace.Values {
+			for _, digest := range gTrace.Digests {
 				if digest != types.MISSING_DIGEST {
-					testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
+					testName := gTrace.Keys[types.PRIMARY_KEY_FIELD]
 					if found, ok := ret[testName]; ok {
 						found[digest] = labelVals[rand.Int()%2]
 					} else {

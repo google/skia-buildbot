@@ -83,7 +83,7 @@ func tallyTile(tile *tiling.Tile) (map[string]Tally, map[string]Tally, map[strin
 	for k, tr := range tile.Traces {
 		gtr := tr.(*types.GoldenTrace)
 		tally := Tally{}
-		for _, s := range gtr.Values {
+		for _, s := range gtr.Digests {
 			if s == types.MISSING_DIGEST {
 				continue
 			}

@@ -25,7 +25,7 @@ build-static-goldctl:
 
 .PHONY: mocks
 mocks:
-	go get github.com/vektra/mockery/.../
+	go get github.com/vektra/mockery/...
 	# We must make this one in the same package to avoid circular dependency
 	mockery -name AuthOpt -dir go/goldclient/ -inpkg
 	mockery -name HTTPClient -dir go/goldclient/ -output ./go/mocks/
