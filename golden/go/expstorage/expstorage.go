@@ -26,7 +26,7 @@ func init() {
 type ExpectationsStore interface {
 	// Get the current classifications for image digests. The keys of the
 	// expectations map are the test names.
-	Get() (exp types.Expectations, err error)
+	Get() (exp types.TestExpBuilder, err error)
 
 	// AddChange writes the given classified digests to the database and records the
 	// user that made the change.
@@ -47,11 +47,17 @@ type ExpectationsStore interface {
 	// used for testing, but also to delete the expectations for a Gerrit issue.
 	// See the tryjobstore package.
 	Clear() error
+}
 
-	// removeChange removes the given digests from the expectations store.
+type DEPRECATED_ExpectationsStore interface {
+	ExpectationsStore
+	// RemoveChange removes the given digests from the expectations store.
 	// The key in changes is the test name which maps to a list of digests
 	// to remove. Used for testing only.
-	removeChange(changes types.TestExp) error
+	// TODO(kjlubick): The removeChange function is obsolete and should be removed.
+	// It was used for testing before the UndoChange function was added. It is simply
+	// wrong to change the expectations without a change record being added.
+	RemoveChange(changes types.TestExp) error
 }
 
 // TriageDetails represents one changed digest and the label that was
@@ -89,8 +95,8 @@ func (t *TriageLogEntry) GetChanges() types.TestExp {
 
 // Implements ExpectationsStore in memory for prototyping and testing.
 type MemExpectationsStore struct {
-	expectations types.Expectations
-	readCopy     types.Expectations
+	expectations types.TestExpBuilder
+	readCopy     types.TestExpBuilder
 	eventBus     eventbus.EventBus
 
 	// Protects expectations.
@@ -98,7 +104,7 @@ type MemExpectationsStore struct {
 }
 
 // New instance of memory backed expectation storage.
-func NewMemExpectationsStore(eventBus eventbus.EventBus) ExpectationsStore {
+func NewMemExpectationsStore(eventBus eventbus.EventBus) *MemExpectationsStore {
 	ret := &MemExpectationsStore{
 		eventBus: eventBus,
 	}
@@ -106,16 +112,15 @@ func NewMemExpectationsStore(eventBus eventbus.EventBus) ExpectationsStore {
 	return ret
 }
 
-// ------------- In-memory implementation
-// See ExpectationsStore interface.
-func (m *MemExpectationsStore) Get() (types.Expectations, error) {
+// Get fulfills the ExpectationsStore interface.
+func (m *MemExpectationsStore) Get() (types.TestExpBuilder, error) {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
 	return m.readCopy, nil
 }
 
-// See ExpectationsStore interface.
+// AddChange fulfills the ExpectationsStore interface.
 func (m *MemExpectationsStore) AddChange(changedTests types.TestExp, userId string) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
@@ -125,12 +130,12 @@ func (m *MemExpectationsStore) AddChange(changedTests types.TestExp, userId stri
 		m.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedTests, masterIssueID, nil), true)
 	}
 
-	m.readCopy = types.NewExpectations(m.expectations.TestExp().DeepCopy())
+	m.readCopy = types.NewTestExpBuilder(m.expectations.TestExp().DeepCopy())
 	return nil
 }
 
-// removeChange, see ExpectationsStore interface.
-func (m *MemExpectationsStore) removeChange(changedDigests types.TestExp) error {
+// RemoveChange fulfills the DEPRECATED_ExpectationsStore interface.
+func (m *MemExpectationsStore) RemoveChange(changedDigests types.TestExp) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
@@ -144,13 +149,13 @@ func (m *MemExpectationsStore) removeChange(changedDigests types.TestExp) error 
 		}
 	}
 	// Replace the current expectations.
-	m.expectations = types.NewExpectations(testExp)
+	m.expectations = types.NewTestExpBuilder(testExp)
 
 	if m.eventBus != nil {
 		m.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedDigests, masterIssueID, nil), true)
 	}
 
-	m.readCopy = types.NewExpectations(m.expectations.TestExp().DeepCopy())
+	m.readCopy = types.NewTestExpBuilder(m.expectations.TestExp().DeepCopy())
 	return nil
 }
 
@@ -160,7 +165,7 @@ func (m *MemExpectationsStore) QueryLog(offset, size int, details bool) ([]*Tria
 	return nil, 0, nil
 }
 
-// See  ExpectationsStore interface.
+// See ExpectationsStore interface.
 func (m *MemExpectationsStore) UndoChange(changeID int64, userID string) (types.TestExp, error) {
 	sklog.Fatal("MemExpectation store does not support undo.")
 	return nil, nil
@@ -170,7 +175,13 @@ func (m *MemExpectationsStore) UndoChange(changeID int64, userID string) (types.
 func (m *MemExpectationsStore) Clear() error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	m.expectations = types.NewExpectations(nil)
-	m.readCopy = types.NewExpectations(nil)
+	m.expectations = types.NewTestExpBuilder(nil)
+	m.readCopy = types.NewTestExpBuilder(nil)
 	return nil
 }
+
+// Make sure MemExpectationsStore fulfills the ExpectationsStore interface
+var _ ExpectationsStore = (*MemExpectationsStore)(nil)
+
+// Make sure MemExpectationsStore fulfills the DEPRECATED_ExpectationsStore interface
+var _ DEPRECATED_ExpectationsStore = (*MemExpectationsStore)(nil)
