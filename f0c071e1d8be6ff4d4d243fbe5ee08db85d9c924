@@ -225,6 +225,30 @@
     },
     {
       "key": {
+        "uuid": "36bb4159_5e978307",
+        "filename": "golden/go/storage/gcsclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-02T18:05:00Z",
+      "side": 1,
+      "message": "Oh, sorry, I confused it for RemoveChange in DEPRECATED_ExpectationsStore.",
+      "parentUuid": "b6b2043e_5214a935",
+      "range": {
+        "startLine": 187,
+        "startChar": 37,
+        "endLine": 187,
+        "endChar": 46
+      },
+      "revId": "f0c071e1d8be6ff4d4d243fbe5ee08db85d9c924",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "af9305b1_e200f3bb",
         "filename": "golden/go/storage/storage_test.go",
         "patchSetId": 13

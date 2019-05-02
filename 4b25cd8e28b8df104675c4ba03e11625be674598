@@ -34,6 +34,24 @@
       "revId": "4b25cd8e28b8df104675c4ba03e11625be674598",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ba0ed68_a9fc3305",
+        "filename": "golden/go/storage/storage_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-02T18:05:00Z",
+      "side": 0,
+      "message": "The tests you wrote mock out the GCSClient, so I don\u0027t think they test it.",
+      "parentUuid": "e16bcbbe_b8f9f00f",
+      "revId": "4b25cd8e28b8df104675c4ba03e11625be674598",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

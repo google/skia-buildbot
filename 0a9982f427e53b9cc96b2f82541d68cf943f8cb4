@@ -93,6 +93,30 @@
       "revId": "0a9982f427e53b9cc96b2f82541d68cf943f8cb4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7fd68122_825e5ea2",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-02T18:05:00Z",
+      "side": 1,
+      "message": "In JSON, it\u0027s \"key\" (singular), which I think is ambiguous but makes sense (see previous comment).",
+      "parentUuid": "fdb803be_5703ebc4",
+      "range": {
+        "startLine": 220,
+        "startChar": 1,
+        "endLine": 220,
+        "endChar": 5
+      },
+      "revId": "0a9982f427e53b9cc96b2f82541d68cf943f8cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
