@@ -22,6 +22,30 @@
       "revId": "71736798f5bd6746ab9a68a4f67abd72d8d79fa8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a0d69ddd_9a06c9dd",
+        "filename": "autoroll/go/notifier/notifier.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-02T11:15:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c24a7917_7d42cb4c",
+      "range": {
+        "startLine": 156,
+        "startChar": 47,
+        "endLine": 156,
+        "endChar": 49
+      },
+      "revId": "71736798f5bd6746ab9a68a4f67abd72d8d79fa8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
