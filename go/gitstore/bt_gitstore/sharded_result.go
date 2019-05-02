@@ -1,4 +1,4 @@
-package gitstore
+package bt_gitstore
 
 import (
 	"sort"

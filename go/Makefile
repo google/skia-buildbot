@@ -25,3 +25,9 @@ pdfium:
 .PHONY: protobuf
 protobuf:
 	go generate ./...
+
+.PHONY: mocks
+mocks:
+	go get github.com/vektra/mockery/...
+
+	mockery -name GitStore -dir gitstore/ -output ./mocks/
