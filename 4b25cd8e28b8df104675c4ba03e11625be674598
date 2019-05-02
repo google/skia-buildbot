@@ -16,6 +16,24 @@
       "revId": "4b25cd8e28b8df104675c4ba03e11625be674598",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e16bcbbe_b8f9f00f",
+        "filename": "golden/go/storage/storage_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-02T17:10:42Z",
+      "side": 0,
+      "message": "Correct - they have been replaced with the tests I wrote, mostly.  These were integration tests with real GCS, mine are unit tests.",
+      "parentUuid": "bbafe459_9c7ca708",
+      "revId": "4b25cd8e28b8df104675c4ba03e11625be674598",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

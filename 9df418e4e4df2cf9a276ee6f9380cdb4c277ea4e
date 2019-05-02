@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "12715540_faa05dad",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 567,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-02T17:10:42Z",
+      "side": 1,
+      "message": "The follow up CL deletes this.",
+      "parentUuid": "0a2e4202_3db4f417",
+      "range": {
+        "startLine": 567,
+        "startChar": 48,
+        "endLine": 567,
+        "endChar": 52
+      },
+      "revId": "9df418e4e4df2cf9a276ee6f9380cdb4c277ea4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fc63c6fb_decdbf78",
         "filename": "golden/go/baseline/gcs_baseliner/baseliner_test.go",
         "patchSetId": 10
@@ -45,6 +69,30 @@
       "revId": "9df418e4e4df2cf9a276ee6f9380cdb4c277ea4e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "888e7cea_18f3e616",
+        "filename": "golden/go/baseline/gcs_baseliner/baseliner_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-02T17:10:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fc63c6fb_decdbf78",
+      "range": {
+        "startLine": 68,
+        "startChar": 3,
+        "endLine": 68,
+        "endChar": 4
+      },
+      "revId": "9df418e4e4df2cf9a276ee6f9380cdb4c277ea4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

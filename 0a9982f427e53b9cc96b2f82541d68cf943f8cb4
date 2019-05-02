@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b04ddc24_9cd486bc",
+        "filename": "golden/go/baseline/gcs_baseliner/baseliner_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-02T17:10:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d9e619a3_f0f333a4",
+      "range": {
+        "startLine": 122,
+        "startChar": 55,
+        "endLine": 122,
+        "endChar": 59
+      },
+      "revId": "0a9982f427e53b9cc96b2f82541d68cf943f8cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b6d1d9a4_621f5c79",
         "filename": "golden/go/types/types.go",
         "patchSetId": 8
@@ -45,6 +69,30 @@
       "revId": "0a9982f427e53b9cc96b2f82541d68cf943f8cb4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fdb803be_5703ebc4",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-02T17:10:42Z",
+      "side": 1,
+      "message": "Keys was chosen because it matches the terminology used in https://github.com/google/skia-buildbot/blob/master/golden/docs/INGESTION.md#json-input-file where these keys describe the test input.\n\nI don\u0027t like Params because it\u0027s too general (It\u0027s the reason I renamed Values -\u003e Digests).",
+      "parentUuid": "b6d1d9a4_621f5c79",
+      "range": {
+        "startLine": 220,
+        "startChar": 1,
+        "endLine": 220,
+        "endChar": 5
+      },
+      "revId": "0a9982f427e53b9cc96b2f82541d68cf943f8cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
