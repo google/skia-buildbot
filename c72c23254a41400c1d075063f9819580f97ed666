@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ff20c347_1767b40a",
+        "filename": "go/repo_root/repo_root.go",
+        "patchSetId": 24
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-02T17:43:40Z",
+      "side": 1,
+      "message": "nit: Would be nice to match \"/buildbot/\" but I can\u0027t think of a way to do that that\u0027s not overly complicated.",
+      "range": {
+        "startLine": 16,
+        "startChar": 44,
+        "endLine": 16,
+        "endChar": 52
+      },
+      "revId": "c72c23254a41400c1d075063f9819580f97ed666",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11c0467f_339c5dba",
+        "filename": "infra/bots/recipes/swarm_infra.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-02T17:43:40Z",
+      "side": 1,
+      "message": "It seems like we will want a Swarming cache for gopath.\n\nIf not, it seems like this should be in a tmp dir; usually dirs under start_dir are for CIPD packages and isolated inputs and outputs.\n\nAlso in infra/bots/task_drivers/infra_tests/infra_tests.go.",
+      "revId": "c72c23254a41400c1d075063f9819580f97ed666",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e25746fa_f842bb54",
+        "filename": "infra/bots/recipes/swarm_infra.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-02T17:43:40Z",
+      "side": 1,
+      "message": "It will be interesting to see how long this takes and how often it fails. If it\u0027s not fast (or even if it\u0027s fast but uses a lot of network), we might want to go back to the IsolateGoDeps model, but have that task run the \u0027go mod download\u0027 and \u0027go install\u0027 steps.\n\nI wonder if we can reuse some ideas from bot_update to cache checkouts.\n\nAlso, as discussed, we might want to set up some mirrors on googlesource.",
+      "revId": "c72c23254a41400c1d075063f9819580f97ed666",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb745cd8_c5444b85",
+        "filename": "infra/bots/build_task_drivers.sh",
+        "patchSetId": 24
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-02T17:43:40Z",
+      "side": 0,
+      "message": "It\u0027s not clear to me where go will put downloaded packages when GOPATH is unset. Maybe this should also point to a Swarming cache (see other comment).",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 30
+      },
+      "revId": "9269d4e583f3fc5fd4f6000be65c80cf78d5e03b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3144dca4_cae8505a",
+        "filename": "go.mod",
+        "patchSetId": 23
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-02T17:43:40Z",
+      "side": 1,
+      "message": "I assume go.mod and go.sum were generated. Can you document either in a file or in the CL description how these were generated?",
+      "revId": "f0bafde60066ceb0522a0d04a71296a458eec8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
