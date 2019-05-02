@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d9e619a3_f0f333a4",
+        "filename": "golden/go/baseline/gcs_baseliner/baseliner_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-02T16:46:03Z",
+      "side": 1,
+      "message": "nit: use human var names for digests in comments",
+      "range": {
+        "startLine": 122,
+        "startChar": 55,
+        "endLine": 122,
+        "endChar": 59
+      },
+      "revId": "0a9982f427e53b9cc96b2f82541d68cf943f8cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6d1d9a4_621f5c79",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-02T16:46:03Z",
+      "side": 1,
+      "message": "nit: IMO renaming from Params_ to Keys was probably not the best change to make. \"Keys\" sounds like a slice of the keys of a map. I think either of the following would be better, although I\u0027m not sure it\u0027s worth the effort to rename again:\n - Rename the field to TraceIdMap or IdMap or TraceKey (singular, since it serves as the key for this trace in tiling.Tile.Traces).\n - Rename the field to params (to avoid conflicting with the method Params) and use Params() instead of accessing the field directly.",
+      "range": {
+        "startLine": 220,
+        "startChar": 1,
+        "endLine": 220,
+        "endChar": 5
+      },
+      "revId": "0a9982f427e53b9cc96b2f82541d68cf943f8cb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

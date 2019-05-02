@@ -178,6 +178,24 @@
     },
     {
       "key": {
+        "uuid": "ebbbdf2b_a938f8c0",
+        "filename": "golden/go/baseline/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-02T16:46:03Z",
+      "side": 1,
+      "message": "Sounds like it would be good to document that, or add a pointer to where it\u0027s documented.",
+      "parentUuid": "dfd8168c_2e09c901",
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b026d3c8_8841b359",
         "filename": "golden/go/expstorage/cloudexpstore.go",
         "patchSetId": 5
@@ -222,6 +240,30 @@
       "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3d63e9ba_ff9f307f",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-02T16:46:03Z",
+      "side": 1,
+      "message": "This has been renamed DEPRECATED_ExpectationsStore in a later PS.",
+      "parentUuid": "b05b7440_e1efa5be",
+      "range": {
+        "startLine": 406,
+        "startChar": 31,
+        "endLine": 406,
+        "endChar": 48
+      },
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
@@ -272,6 +314,30 @@
     },
     {
       "key": {
+        "uuid": "2c958a42_9f739b8b",
+        "filename": "golden/go/expstorage/expstorage.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-02T16:46:03Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ef5efad3_485ff6a9",
+      "range": {
+        "startLine": 52,
+        "startChar": 5,
+        "endLine": 52,
+        "endChar": 27
+      },
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "449825ba_adb5cebb",
         "filename": "golden/go/expstorage/expstorage.go",
         "patchSetId": 5
@@ -316,6 +382,30 @@
       "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cd69f95_9b605c3e",
+        "filename": "golden/go/expstorage/expstorage.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-02T16:46:03Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f4069cac_22fe4f15",
+      "range": {
+        "startLine": 60,
+        "startChar": 1,
+        "endLine": 60,
+        "endChar": 13
+      },
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -383,6 +473,24 @@
       "side": 1,
       "message": "That would kind of imply a dependency cycle.  baselines/types.go is where the interface is defined, I don\u0027t think types/types.go should refer to it.",
       "parentUuid": "8cec52e1_3e17f43f",
+      "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "60f38a8d_857d576f",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-02T16:46:03Z",
+      "side": 1,
+      "message": "I don\u0027t think humans care much about dependency cycles. One reason to use interfaces is to break dependency cycles. Not a big deal either way, just that duplicated docs are more likely to get out-of-date.",
+      "parentUuid": "8c268b59_e6dbfccf",
       "revId": "4d4d5c4c363bfeec1bd648c9c89780a1a387d020",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false

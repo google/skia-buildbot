@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bbafe459_9c7ca708",
+        "filename": "golden/go/storage/storage_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-02T16:46:03Z",
+      "side": 0,
+      "message": "Are these two tests no longer relevant?",
+      "revId": "4b25cd8e28b8df104675c4ba03e11625be674598",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
