@@ -482,8 +482,8 @@ There are three images that it deals with, called left, top, and diff.
             }
           }
           this._cachedDiffs.sort(function(a, b) {
-            // First sort diffs low to high
-            var d = b.diff - a.dist;
+            // First sort diffs high to low, so biggest ones are first
+            var d = b.diff - a.diff;
             if (d) {
               return d;
             }
