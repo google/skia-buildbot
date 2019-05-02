@@ -33,7 +33,7 @@ afar.lin@imgtec.com" \
     --internal_port=:19000 \
     --logtostderr \
     --match_fields=name,style \
-    --n_commits=100   \
+    --n_commits=150   \
     --port=:8001  \
     --prom_port=:20001 \
     --public_whitelist=${RESOURCE_DIR}/skiacorrectness-public-whitelist.json5 \
