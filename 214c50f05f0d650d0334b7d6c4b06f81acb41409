@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6c1f92b4_cf840377",
+        "filename": "go/imports/imports_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-02T20:34:55Z",
+      "side": 1,
+      "message": "missing not",
+      "range": {
+        "startLine": 51,
+        "startChar": 65,
+        "endLine": 51,
+        "endChar": 72
+      },
+      "revId": "214c50f05f0d650d0334b7d6c4b06f81acb41409",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45f22151_493723c0",
+        "filename": "go/imports/imports_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-02T20:34:55Z",
+      "side": 1,
+      "message": "nit: maybe remove this so the sentence flows better.",
+      "range": {
+        "startLine": 51,
+        "startChar": 44,
+        "endLine": 51,
+        "endChar": 55
+      },
+      "revId": "214c50f05f0d650d0334b7d6c4b06f81acb41409",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
