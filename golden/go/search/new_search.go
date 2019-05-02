@@ -231,7 +231,7 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 			continue
 		}
 		gTrace := trace.(*types.GoldenTrace)
-		for _, val := range gTrace.Values {
+		for _, val := range gTrace.Digests {
 			if val == digest {
 				oneInter.add(traceId, trace, nil)
 				break
@@ -599,12 +599,12 @@ func (s *SearchAPI) getDrawableTraces(test, digest string, last int, exp ExpSlic
 		oneTrace := traces[traceID]
 		tr := &outputTraces[i]
 		tr.ID = traceID
-		tr.Params = oneTrace.Params_
+		tr.Params = oneTrace.Keys
 		tr.Data = make([]Point, last+1, last+1)
 		insertNext := last
 
 		for j := last; j >= 0; j-- {
-			d := oneTrace.Values[j]
+			d := oneTrace.Digests[j]
 			if d == types.MISSING_DIGEST {
 				continue
 			}

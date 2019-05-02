@@ -165,7 +165,7 @@ func (b *Blamer) Calculate(tile *tiling.Tile) error {
 		// not in the blamelist.
 		lastIdx := -1
 		found := map[string]bool{}
-		for idx, digest := range gtr.Values[:tileLen] {
+		for idx, digest := range gtr.Digests[:tileLen] {
 			if digest == types.MISSING_DIGEST {
 				continue
 			}

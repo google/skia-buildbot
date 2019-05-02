@@ -189,9 +189,9 @@ func TestDeSerializeSample(t *testing.T) {
 	}
 
 	sample := &Sample{
-		Tile:         tile,
-		Expectations: types.NewExpectations(testExp.DeepCopy()),
-		IgnoreRules:  ignoreRules,
+		Tile:           tile,
+		TestExpBuilder: types.NewTestExpBuilder(testExp.DeepCopy()),
+		IgnoreRules:    ignoreRules,
 	}
 
 	var buf bytes.Buffer
@@ -202,7 +202,7 @@ func TestDeSerializeSample(t *testing.T) {
 
 	// Tile (de)serialization is tested above.
 	assert.Equal(t, sample.IgnoreRules, foundSample.IgnoreRules)
-	assert.Equal(t, sample.Expectations, foundSample.Expectations)
+	assert.Equal(t, sample.TestExpBuilder, foundSample.TestExpBuilder)
 }
 
 func getTestTile(t *testing.T) (*tiling.Tile, func()) {

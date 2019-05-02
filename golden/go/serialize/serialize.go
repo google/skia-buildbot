@@ -23,14 +23,16 @@ import (
 // Sample contains the information necessary to represent the full state of
 // a Gold instance and a sample from a live instance.
 type Sample struct {
-	Tile         *tiling.Tile
-	Expectations types.Expectations
-	IgnoreRules  []*ignore.IgnoreRule
+	// The JSON key names are set to keep the serializable code able to
+	// read old files.
+	Tile           *tiling.Tile         `json:"Tile"`
+	TestExpBuilder types.TestExpBuilder `json:"Expectations"`
+	IgnoreRules    []*ignore.IgnoreRule `json:"IgnoreRules"`
 }
 
 // Serialize writes this Sample instance to the given writer.
 func (s *Sample) Serialize(w io.Writer) error {
-	expBytes, err := json.Marshal(s.Expectations)
+	expBytes, err := json.Marshal(s.TestExpBuilder)
 	if err != nil {
 		return err
 	}
@@ -56,14 +58,14 @@ func (s *Sample) Serialize(w io.Writer) error {
 // is the inverse operation of Sample.Searialize.
 func DeserializeSample(r io.Reader) (*Sample, error) {
 	ret := &Sample{
-		Expectations: types.NewExpectations(nil),
+		TestExpBuilder: types.NewTestExpBuilder(nil),
 	}
 
 	expBytes, err := readBytesWithLength(r)
 	if err != nil {
 		return nil, err
 	}
-	if err = json.Unmarshal(expBytes, &ret.Expectations); err != nil {
+	if err = json.Unmarshal(expBytes, &ret.TestExpBuilder); err != nil {
 		return nil, err
 	}
 
@@ -86,9 +88,9 @@ func DeserializeSample(r io.Reader) (*Sample, error) {
 // serialized using the json package.
 func (s *Sample) UnmarshalJSON(data []byte) error {
 	var dummy struct {
-		Tile         json.RawMessage
-		Expectations types.Expectations
-		IgnoreRules  []*ignore.IgnoreRule
+		Tile           json.RawMessage      `json:"Tile"`
+		TestExpBuilder types.TestExpBuilder `json:"Expectations"`
+		IgnoreRules    []*ignore.IgnoreRule `json:"IgnoreRules"`
 	}
 	var err error
 
@@ -101,7 +103,7 @@ func (s *Sample) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("Error decoding tile from raw message: %s", err)
 	}
 
-	s.Expectations = dummy.Expectations
+	s.TestExpBuilder = dummy.TestExpBuilder
 	s.IgnoreRules = dummy.IgnoreRules
 	return nil
 }
@@ -165,7 +167,7 @@ func DeserializeTile(r io.Reader) (*tiling.Tile, error) {
 			return nil, err
 		}
 		traces[id] = gTrace
-		paramSets.AddParams(gTrace.Params_)
+		paramSets.AddParams(gTrace.Keys)
 	}
 
 	ret := &tiling.Tile{
@@ -500,7 +502,7 @@ func bytesToInts(arr []byte) ([]int, error) {
 func writeDigests(w io.Writer, traces map[string]tiling.Trace) (map[string]int, error) {
 	digestSet := util.NewStringSet()
 	for _, trace := range traces {
-		digestSet.AddLists(trace.(*types.GoldenTrace).Values)
+		digestSet.AddLists(trace.(*types.GoldenTrace).Digests)
 	}
 
 	digests := digestSet.Keys()
@@ -544,13 +546,13 @@ func writeTrace(w io.Writer, paramKeyTable map[string]int, paramValTable map[str
 	}
 
 	// Write parameters to bytes.
-	if err := writeBytesWithLength(w, paramsToBytes(paramKeyTable, paramValTable, trace.Params_)); err != nil {
+	if err := writeBytesWithLength(w, paramsToBytes(paramKeyTable, paramValTable, trace.Keys)); err != nil {
 		return err
 	}
 
 	// Write values
-	digests := make([]int, 0, len(trace.Values))
-	for _, d := range trace.Values {
+	digests := make([]int, 0, len(trace.Digests))
+	for _, d := range trace.Digests {
 		digests = append(digests, digestTable[d])
 	}
 
@@ -588,19 +590,19 @@ func readTrace(r io.Reader, keyTable map[int]string, valTable map[int]string, di
 		return "", nil, fmt.Errorf("Read wrong number of bytes. Expected %d, got %d.", len(buffer), nBytesRead)
 	}
 
-	intValues, err := bytesToInts(buffer)
+	intDigests, err := bytesToInts(buffer)
 	if err != nil {
 		return "", nil, err
 	}
 
-	values := make([]string, 0, len(intValues))
-	for _, intDigest := range intValues {
+	values := make([]string, 0, len(intDigests))
+	for _, intDigest := range intDigests {
 		values = append(values, digestTable[intDigest])
 	}
 
 	ret := &types.GoldenTrace{
-		Params_: params,
-		Values:  values,
+		Keys:    params,
+		Digests: values,
 	}
 
 	return id, ret, nil

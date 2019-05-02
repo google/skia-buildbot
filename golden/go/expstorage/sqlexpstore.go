@@ -28,14 +28,14 @@ type SQLExpectationsStore struct {
 	vdb *database.VersionedDB
 }
 
-func NewSQLExpectationStore(vdb *database.VersionedDB) ExpectationsStore {
+func NewSQLExpectationStore(vdb *database.VersionedDB) *SQLExpectationsStore {
 	return &SQLExpectationsStore{
 		vdb: vdb,
 	}
 }
 
 // See ExpectationsStore interface.
-func (s *SQLExpectationsStore) Get() (exp types.Expectations, err error) {
+func (s *SQLExpectationsStore) Get() (exp types.TestExpBuilder, err error) {
 	// Load the newest record from the database.
 	const stmt = `SELECT t1.name, t1.digest, t1.label
 	         FROM exp_test_change AS t1
@@ -60,7 +60,7 @@ func (s *SQLExpectationsStore) Get() (exp types.Expectations, err error) {
 		}
 		result.AddDigest(testName, digest, types.LabelFromString(label))
 	}
-	return types.NewExpectations(result), nil
+	return types.NewTestExpBuilder(result), nil
 }
 
 // See ExpectationsStore interface.
@@ -162,8 +162,8 @@ func insertWithPrep(insertStmt string, tx *sql.Tx, valsArr ...[]interface{}) err
 	return nil
 }
 
-// removeChange, see ExpectationsStore interface.
-func (s *SQLExpectationsStore) removeChange(changedDigests types.TestExp) (retErr error) {
+// RemoveChange, see ExpectationsStore interface.
+func (s *SQLExpectationsStore) RemoveChange(changedDigests types.TestExp) (retErr error) {
 	defer timer.New("removing exp change").Stop()
 
 	const markRemovedStmt = `UPDATE exp_test_change
@@ -408,13 +408,13 @@ func (s *SQLExpectationsStore) loadChangeEntry(changeID int64) (*TriageLogEntry,
 // Wraps around an ExpectationsStore and caches the expectations using
 // MemExpectationsStore.
 type CachingExpectationStore struct {
-	store    ExpectationsStore
-	cache    ExpectationsStore
+	store    DEPRECATED_ExpectationsStore
+	cache    DEPRECATED_ExpectationsStore
 	eventBus eventbus.EventBus
 	refresh  bool
 }
 
-func NewCachingExpectationStore(store ExpectationsStore, eventBus eventbus.EventBus) ExpectationsStore {
+func NewCachingExpectationStore(store DEPRECATED_ExpectationsStore, eventBus eventbus.EventBus) *CachingExpectationStore {
 	ret := &CachingExpectationStore{
 		store:    store,
 		cache:    NewMemExpectationsStore(nil),
@@ -435,7 +435,7 @@ func NewCachingExpectationStore(store ExpectationsStore, eventBus eventbus.Event
 }
 
 // See ExpectationsStore interface.
-func (c *CachingExpectationStore) Get() (exp types.Expectations, err error) {
+func (c *CachingExpectationStore) Get() (exp types.TestExpBuilder, err error) {
 	if c.refresh {
 		c.refresh = false
 		tempExp, err := c.store.Get()
@@ -491,7 +491,7 @@ func (c *CachingExpectationStore) addChangeToCache(evtChangedTests interface{}) 
 	}
 
 	if len(forRemoval) > 0 {
-		if err := c.cache.removeChange(forRemoval); err != nil {
+		if err := c.cache.RemoveChange(forRemoval); err != nil {
 			sklog.Errorf("Error removing changed expectations to cache: %s", err)
 		}
 	}
@@ -507,9 +507,9 @@ func (c *CachingExpectationStore) addChangeToCache(evtChangedTests interface{}) 
 	sklog.Infof("Expectations change has been added to the cache.")
 }
 
-// removeChange implements the ExpectationsStore interface.
-func (c *CachingExpectationStore) removeChange(changedDigests types.TestExp) error {
-	if err := c.store.removeChange(changedDigests); err != nil {
+// RemoveChange implements the DEPRECATED_ExpectationsStore interface.
+func (c *CachingExpectationStore) RemoveChange(changedDigests types.TestExp) error {
+	if err := c.store.RemoveChange(changedDigests); err != nil {
 		return err
 	}
 
@@ -546,3 +546,15 @@ func (c *CachingExpectationStore) Clear() error {
 	}
 	return c.cache.Clear()
 }
+
+// Make sure SQLExpectationsStore fulfills the ExpectationsStore interface
+var _ ExpectationsStore = (*SQLExpectationsStore)(nil)
+
+// Make sure SQLExpectationsStore fulfills the DEPRECATED_ExpectationsStore interface
+var _ DEPRECATED_ExpectationsStore = (*SQLExpectationsStore)(nil)
+
+// Make sure CachingExpectationStore fulfills the ExpectationsStore interface
+var _ ExpectationsStore = (*CachingExpectationStore)(nil)
+
+// Make sure CachingExpectationStore fulfills the DEPRECATED_ExpectationsStore interface
+var _ DEPRECATED_ExpectationsStore = (*CachingExpectationStore)(nil)
