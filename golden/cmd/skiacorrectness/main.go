@@ -561,13 +561,9 @@ func main() {
 	jsonRouter.HandleFunc(trim("/json/tryjob/{id}"), handlers.JsonTryjobSummaryHandler).Methods("GET")
 
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
+	// These routes can be served with baseline_server for higher availability.
 	jsonRouter.HandleFunc(trim(shared.EXPECTATIONS_ROUTE), handlers.JsonBaselineHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim(shared.EXPECTATIONS_ISSUE_ROUTE), handlers.JsonBaselineHandler).Methods("GET")
-
-	// TODO(stephana): Remove this these endpoints (that contain spelling errors) until the already
-	// fixed version of goldctl has been pushed to CPID.
-	jsonRouter.HandleFunc(trim("/json/expecations/commit/{commit_hash}"), handlers.JsonBaselineHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/expecations/issue/{issue_id}"), handlers.JsonBaselineHandler).Methods("GET")
 
 	jsonRouter.HandleFunc(trim("/json/refresh/{id}"), handlers.JsonRefreshIssue).Methods("GET")
 

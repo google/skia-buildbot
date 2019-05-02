@@ -153,10 +153,6 @@ func main() {
 	appRouter.HandleFunc(shared.EXPECTATIONS_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
 	appRouter.HandleFunc(shared.EXPECTATIONS_ISSUE_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
 
-	// TODO(kjlubick): remove these - they are no longer used by goldctl.
-	appRouter.HandleFunc("/json/expecations/commit/{commit_hash}", handlers.JsonBaselineHandler).Methods("GET")
-	appRouter.HandleFunc("/json/expecations/issue/{issue_id}", handlers.JsonBaselineHandler).Methods("GET")
-
 	// Only log and compress the app routes, but not the health check.
 	router := mux.NewRouter()
 	router.HandleFunc("/healthz", httputils.ReadyHandleFunc)
