@@ -22,6 +22,30 @@
       "revId": "3ca33994a910e945809c70ab3ede1bb4a19fde0a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "77f70977_26c5bbe2",
+        "filename": "android_compile/res/imp/list-tasks-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-02T18:20:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "50cc590d_852ebf3c",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 3
+      },
+      "revId": "3ca33994a910e945809c70ab3ede1bb4a19fde0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
