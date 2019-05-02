@@ -13,35 +13,41 @@ import (
 	"net/http"
 	"os/user"
 	"path/filepath"
-	"strconv"
+	//"runtime"
+	"html/template"
 	"sync"
 	"time"
 
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/storage"
+	"github.com/gorilla/mux"
+	"google.golang.org/api/option"
+
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/webhook"
-	"google.golang.org/api/option"
 )
 
 var (
 	// Flags
-	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	host               = flag.String("host", "localhost", "HTTP service host")
 	port               = flag.String("port", ":8000", "HTTP service port.")
+	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 	workdir            = flag.String("workdir", ".", "Directory to use for scratch work.")
-	resourcesDir       = flag.String("resources_dir", "", "The directory to find compile.sh.  If blank then the directory two directories up from this source file will be used.")
+	resourcesDir       = flag.String("resources_dir", "", "The directory to find compile.sh and template files.  If blank then the directory two directories up from this source file will be used.")
 	numCheckouts       = flag.Int("num_checkouts", 10, "The number of checkouts the Android compile server should maintain.")
 	repoUpdateDuration = flag.Duration("repo_update_duration", 1*time.Hour, "How often to update the main Android repository.")
 	serviceAccount     = flag.String("service_account", "", "Should be set when running in K8s.")
+	authWhiteList      = flag.String("auth_whitelist", "google.com", "White space separated list of domains and email addresses that are allowed to login.")
 
 	// Pubsub for storage flags.
 	projectID      = flag.String("project_id", "google.com:skia-corp", "Project ID of the Cloud project where the PubSub topic and GS bucket lives.")
@@ -51,43 +57,60 @@ var (
 
 	// Datastore params
 	namespace   = flag.String("namespace", "android-compile-staging", "The Cloud Datastore namespace, such as 'android-compile'.")
-	projectName = flag.String("project_name", "google.com:skia-buildbots", "The Google Cloud project name.")
+	projectName = flag.String("project_name", "google.com:skia-corp", "The Google Cloud project name.")
 
 	// Used to signal when checkouts are ready to serve requests.
 	checkoutsReadyMutex sync.RWMutex
+
+	// indexTemplate is the main index.html page we serve.
+	indexTemplate *template.Template = nil
+
+	serverURL string
 )
 
-func statusHandler(w http.ResponseWriter, r *http.Request) {
-	_, err := webhook.AuthenticateRequest(r)
+func reloadTemplates() {
+	indexTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/index.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+}
+
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, login.LoginURL(w, r), http.StatusFound)
+	return
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	if *local {
+		reloadTemplates()
+	}
+	w.Header().Set("Content-Type", "text/html")
+
+	if login.LoggedInAs(r) == "" {
+		http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
+		return
+	}
+
+	waitingTasks, runningTasks, err := GetCompileTasks()
 	if err != nil {
-		httputils.ReportError(w, r, err, "Authentication failure")
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-
-	taskParam := r.FormValue("task")
-	if taskParam == "" {
-		httputils.ReportError(w, r, nil, "Missing task parameter")
-		return
-	}
-	taskID, err := strconv.ParseInt(taskParam, 10, 64)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Invalid task parameter")
+		httputils.ReportError(w, r, err, "Failed to get compile tasks")
 		return
 	}
 
-	_, t, err := GetDSTask(taskID)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Could not find task")
+	var templateTasks = struct {
+		WaitingTasks []*CompileTask
+		RunningTasks []*CompileTask
+	}{
+		WaitingTasks: waitingTasks,
+		RunningTasks: runningTasks,
+	}
+	fmt.Println(templateTasks)
+	fmt.Println(runningTasks)
+
+	if err := indexTemplate.Execute(w, templateTasks); err != nil {
+		httputils.ReportError(w, r, err, "Failed to expand template")
 		return
 	}
-
-	if err := json.NewEncoder(w).Encode(t); err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode JSON")
-		return
-
-	}
-
 	return
 }
 
@@ -216,6 +239,26 @@ func newGCSFileLocation(result *storage.ObjectAttrs, storageClient *storage.Clie
 	}
 }
 
+func runServer() {
+	r := mux.NewRouter()
+	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
+	r.HandleFunc("/", indexHandler)
+
+	r.HandleFunc("/json/version", skiaversion.JsonHandler)
+	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
+	r.HandleFunc("/login/", loginHandler)
+	r.HandleFunc("/logout/", login.LogoutHandler)
+	r.HandleFunc("/loginstatus/", login.StatusHandler)
+	h := httputils.LoggingGzipRequestResponse(r)
+	if !*local {
+		h = httputils.HealthzAndHTTPS(h)
+	}
+
+	http.Handle("/", h)
+	sklog.Infof("Ready to serve on %s", serverURL)
+	sklog.Fatal(http.ListenAndServe(*port, nil))
+}
+
 func main() {
 	flag.Parse()
 
@@ -227,6 +270,13 @@ func main() {
 	if *projectID == "" || *topic == "" || *subscriberName == "" {
 		sklog.Fatalf("project_id, topic and subscriber flags must all be set.")
 	}
+
+	reloadTemplates()
+	serverURL = "https://" + *host
+	if *local {
+		serverURL = "http://" + *host + *port
+	}
+	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, allowed.Googlers(), allowed.Googlers(), nil)
 
 	// Create token source.
 	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_READ_WRITE, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, datastore.ScopeDatastore)
@@ -258,13 +308,13 @@ func main() {
 	}
 
 	// Initialize checkouts but do not block bringing up the server.
-	go func() {
-		checkoutsReadyMutex.Lock()
-		defer checkoutsReadyMutex.Unlock()
-		if err := CheckoutsInit(*numCheckouts, *workdir, *repoUpdateDuration, storageClient); err != nil {
-			sklog.Fatalf("Failed to init checkouts: %s", err)
-		}
-	}()
+	//go func() {
+	//	checkoutsReadyMutex.Lock()
+	//	defer checkoutsReadyMutex.Unlock()
+	//	if err := CheckoutsInit(*numCheckouts, *workdir, *repoUpdateDuration, storageClient); err != nil {
+	//		sklog.Fatalf("Failed to init checkouts: %s", err)
+	//	}
+	//}()
 
 	// Subscribe to storage pubsub events.
 	eventBus, err := gevent.New(*projectID, *topic, *subscriberName)
@@ -300,35 +350,35 @@ func main() {
 	// Find and reschedule all CompileTasks that are in "running" state. Any
 	// "running" CompileTasks means that the server was restarted in the middle
 	// of run(s). Do not block bringing up the server.
-	go func() {
-		_, runningTasksAndKeys, err := GetCompileTasksAndKeys()
-		if err != nil {
-			sklog.Fatalf("Failed to retrieve compile tasks and keys: %s", err)
-		}
+	//go func() {
+	//	_, runningTasksAndKeys, err := GetCompileTasksAndKeys()
+	//	if err != nil {
+	//		sklog.Fatalf("Failed to retrieve compile tasks and keys: %s", err)
+	//	}
 
-		for _, taskAndKey := range runningTasksAndKeys {
-			sklog.Infof("Found orphaned task %d. Retriggering it...", taskAndKey.key.ID)
-			// Fetch the object attributes.
-			fileName := fmt.Sprintf("%s-%d-%d.json", taskAndKey.task.LunchTarget, taskAndKey.task.Issue, taskAndKey.task.PatchSet)
-			objAttr, err := storageClient.Bucket(*storageBucket).Object(fileName).Attrs(ctx)
-			if err != nil {
-				sklog.Fatalf("Unable to get handle for orphaned task '%s/%s': %s", *storageBucket, fileName, err)
-			}
+	//	for _, taskAndKey := range runningTasksAndKeys {
+	//		sklog.Infof("Found orphaned task %d. Retriggering it...", taskAndKey.key.ID)
+	//		// Fetch the object attributes.
+	//		fileName := fmt.Sprintf("%s-%d-%d.json", taskAndKey.task.LunchTarget, taskAndKey.task.Issue, taskAndKey.task.PatchSet)
+	//		objAttr, err := storageClient.Bucket(*storageBucket).Object(fileName).Attrs(ctx)
+	//		if err != nil {
+	//			sklog.Fatalf("Unable to get handle for orphaned task '%s/%s': %s", *storageBucket, fileName, err)
+	//		}
 
-			triggerCompileTask(ctx, newGCSFileLocation(objAttr, storageClient), taskAndKey.task, taskAndKey.key)
-		}
-	}()
+	//		triggerCompileTask(ctx, newGCSFileLocation(objAttr, storageClient), taskAndKey.task, taskAndKey.key)
+	//	}
+	//}()
 
 	// Wait for compile task requests that come in.
-	go func() {
-		for true {
-			fileLocation := <-resultCh
-			if err = readGSAndTriggerCompileTask(ctx, fileLocation); err != nil {
-				sklog.Errorf("Error when reading from GS and triggering compile task: %s", err)
-				continue
-			}
-		}
-	}()
+	//go func() {
+	//	for true {
+	//		fileLocation := <-resultCh
+	//		if err = readGSAndTriggerCompileTask(ctx, fileLocation); err != nil {
+	//			sklog.Errorf("Error when reading from GS and triggering compile task: %s", err)
+	//			continue
+	//		}
+	//	}
+	//}()
 
-	httputils.RunHealthCheckServer(*port)
+	runServer()
 }
