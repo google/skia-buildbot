@@ -1,4 +1,4 @@
-package gitstore
+package bt_gitstore_test
 
 import (
 	"context"
@@ -8,10 +8,18 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/gitstore"
+	gitstore_testutils "go.skia.org/infra/go/gitstore/testutils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/vcsinfo"
 	vcs_testutils "go.skia.org/infra/go/vcsinfo/testutils"
+)
+
+const (
+	skiaRepoURL  = "https://skia.googlesource.com/skia.git"
+	skiaRepoDir  = "./skia"
+	localRepoURL = "https://example.com/local.git"
 )
 
 // This test requires a checkout of a repo (can be really any repo) in a directory named 'skia'
@@ -31,7 +39,7 @@ func TestGitStoreLocalRepo(t *testing.T) {
 
 func testGitStore(t *testing.T, repoURL, repoDir string, freshLoad bool) {
 	// Get all commits that have been added to the gitstore.
-	_, longCommits, gitStore := setupAndLoadGitStore(t, repoURL, repoDir, freshLoad)
+	_, longCommits, gitStore := gitstore_testutils.SetupAndLoadBTGitStore(t, repoURL, repoDir, freshLoad)
 
 	// Sort long commits they way they are sorted by BigTable (by timestamp/hash)
 	sort.Slice(longCommits, func(i, j int) bool {
@@ -103,7 +111,7 @@ func getBranchCommits(t *testing.T, repoDir string) ([]string, [][]string) {
 	return branchNames, branchCommits
 }
 
-func getFromRange(t *testing.T, gitStore GitStore, startIdx, endIdx int, branchName string) ([]*vcsinfo.IndexCommit, []*vcsinfo.LongCommit) {
+func getFromRange(t *testing.T, gitStore gitstore.GitStore, startIdx, endIdx int, branchName string) ([]*vcsinfo.IndexCommit, []*vcsinfo.LongCommit) {
 	ctx := context.TODO()
 
 	tQuery := timer.New(fmt.Sprintf("RangeN %d - %d commits from branch %q", startIdx, endIdx, branchName))

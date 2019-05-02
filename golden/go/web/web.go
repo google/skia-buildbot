@@ -995,13 +995,15 @@ func (wh *WebHandlers) JsonGitLogHandler(w http.ResponseWriter, r *http.Request)
 				Message: m.(string),
 			}
 		} else {
-			// cache miss
-			c, err := wh.Storages.VCS.Details(ctx, start, false)
-			if err != nil || c == nil {
+			// DetailsMulti is faster than Details, I think because Details makes a roundtrip
+			// request where details multi looks it up.
+			details, err := wh.Storages.VCS.DetailsMulti(ctx, []string{start}, false)
+			if err != nil || len(details) == 0 || details[0] == nil {
 				sklog.Infof("Could not find commit with hash %s: %v", start, err)
 				http.Error(w, "invalid start and end hash", http.StatusBadRequest)
 				return
 			}
+			c := details[0]
 			wh.messageCache.Store(c.Hash, c.Subject)
 			ci[0] = commitInfo{
 				Commit:  c.Hash,

@@ -1,4 +1,4 @@
-package gitstore
+package testutils
 
 import (
 	"context"
@@ -6,50 +6,39 @@ import (
 	"testing"
 	"time"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/vcsinfo"
-	vcstu "go.skia.org/infra/go/vcsinfo/testutils"
 )
 
 const (
-	skiaRepoURL      = "https://skia.googlesource.com/skia.git"
-	skiaRepoDir      = "./skia"
-	localRepoURL     = "https://example.com/local.git"
 	concurrentWrites = 1000
 )
 
 var (
-	btConf = &BTConfig{
+	btConf = &bt_gitstore.BTConfig{
 		ProjectID:  "skia-public",
 		InstanceID: "staging",
 		TableID:    "test-git-repos",
 	}
 )
 
-// setupVCSLocalRepo loads the test repo into a new GitStore and returns an instance of vcsinfo.VCS.
-func setupVCSLocalRepo(t *testing.T, branch string) (vcsinfo.VCS, GitStore, func()) {
-	repoDir, cleanup := vcstu.InitTempRepo()
-	_, _, gitStore := setupAndLoadGitStore(t, localRepoURL, repoDir, true)
-	vcs, err := NewVCS(gitStore, branch, nil, nil, 0)
-	assert.NoError(t, err)
-	return vcs, gitStore, cleanup
-}
-
-// setupAndLoadGitStore loads the Git repo in repoDir into the Gitstore. It assumes that the
+// SetupAndLoadBTGitStore loads the Git repo in repoDir into the Gitstore. It assumes that the
 // repo is checked out. repoURL is only used for creating the GitStore.
-func setupAndLoadGitStore(t *testing.T, repoURL, repoDir string, load bool) ([]*vcsinfo.IndexCommit, []*vcsinfo.LongCommit, GitStore) {
+func SetupAndLoadBTGitStore(t *testing.T, repoURL, repoDir string, load bool) ([]*vcsinfo.IndexCommit, []*vcsinfo.LongCommit, *bt_gitstore.BigTableGitStore) {
 	if load {
 		// Delete the tables.
 		assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-		assert.NoError(t, InitBT(btConf))
+		assert.NoError(t, bt_gitstore.InitBT(btConf))
 	}
 
 	// Get a new gitstore.
-	gitStore, err := NewBTGitStore(context.TODO(), btConf, repoURL)
+	gitStore, err := bt_gitstore.New(context.TODO(), btConf, repoURL)
 	assert.NoError(t, err)
 
 	// Get the commits of the last ~20 years and load them into the GitStore
@@ -66,7 +55,7 @@ type commitInfo struct {
 	indices []int
 }
 
-func loadGitRepo(t *testing.T, repoDir string, gitStore GitStore, timeDelta time.Duration, load bool) ([]*vcsinfo.IndexCommit, []*vcsinfo.LongCommit) {
+func loadGitRepo(t *testing.T, repoDir string, gitStore gitstore.GitStore, timeDelta time.Duration, load bool) ([]*vcsinfo.IndexCommit, []*vcsinfo.LongCommit) {
 	ctx := context.TODO()
 	commitCh := make(chan *commitInfo, 10)
 	indexCommits, branches := iterateCommits(t, repoDir, concurrentWrites, commitCh, timeDelta)

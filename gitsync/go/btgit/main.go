@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 )
@@ -31,7 +32,7 @@ func main() {
 	common.Init()
 
 	// Configure the bigtable instance.
-	config := &gitstore.BTConfig{
+	config := &bt_gitstore.BTConfig{
 		ProjectID:  *projectID,
 		InstanceID: *btInstanceID,
 		TableID:    *btTableID,
@@ -46,7 +47,7 @@ func main() {
 	ctx := context.Background()
 
 	// Get all repos and find the one we want plus the branch we want.
-	allRepoInfos, err := gitstore.AllRepos(ctx, config)
+	allRepoInfos, err := bt_gitstore.AllRepos(ctx, config)
 	if err != nil {
 		sklog.Fatalf("Error retrieving lists of repositories: %s", err)
 	}
@@ -82,7 +83,7 @@ func main() {
 	sklog.Infof("Found branch %q in repo for %s", *branch, repoInfo.RepoURL)
 
 	// Create a new BT based GitStore.
-	gitStore, err := gitstore.NewBTGitStore(ctx, config, *repoURL)
+	gitStore, err := bt_gitstore.New(ctx, config, *repoURL)
 	if err != nil {
 		sklog.Fatalf("Error instantiating git store: %s", err)
 	}
