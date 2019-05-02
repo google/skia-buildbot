@@ -26,7 +26,7 @@ skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com" \
     --internal_port=:19000 \
     --logtostderr \
     --match_fields=name,style \
-    --n_commits=150   \
+    --n_commits=100   \
     --port=:8001  \
     --prom_port=:20001 \
     --redirect_url=https://gold.skia.org/oauth2callback/  \
