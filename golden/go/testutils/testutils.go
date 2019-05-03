@@ -1,9 +1,10 @@
-package testhelpers
+package testutils
 
 import (
 	"net"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/sktest"
 	traceservice "go.skia.org/infra/go/trace/service"
 	"google.golang.org/grpc"
 )
@@ -13,7 +14,7 @@ import (
 // listening as the second return value.
 // Upon completion the calling test should call the Stop() function of the
 // returned server object.
-func StartTraceDBTestServer(t assert.TestingT, traceDBFileName, shareDBDir string) (*grpc.Server, string) {
+func StartTraceDBTestServer(t sktest.TestingT, traceDBFileName, shareDBDir string) (*grpc.Server, string) {
 	traceDBServer, err := traceservice.NewTraceServiceServer(traceDBFileName)
 	assert.NoError(t, err)
 
