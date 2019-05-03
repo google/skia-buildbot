@@ -36,6 +36,7 @@
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
+      "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
@@ -53,6 +54,7 @@
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
+      "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
@@ -71,6 +73,7 @@
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
+      "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
@@ -89,6 +92,7 @@
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
+      "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
@@ -107,6 +111,7 @@
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
+      "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
@@ -125,6 +130,7 @@
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
+      "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
@@ -144,6 +150,7 @@
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
+      "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
@@ -159,6 +166,7 @@
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
+      "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
@@ -175,6 +183,7 @@
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
+      "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
@@ -196,6 +205,7 @@
       "DATASTORE_EMULATOR_HOST": "localhost:8891",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
+      "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>:[DEPOT_TOOLS]",
@@ -216,6 +226,7 @@
       "DATASTORE_EMULATOR_HOST": "localhost:8891",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
+      "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>:[DEPOT_TOOLS]",

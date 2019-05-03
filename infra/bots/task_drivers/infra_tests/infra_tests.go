@@ -53,6 +53,7 @@ func goVars(ctx context.Context, workdir string) (string, []string) {
 	env := []string{
 		"CHROME_HEADLESS=1",
 		fmt.Sprintf("GOCACHE=%s", path.Join(workdir, "cache", "go_cache")),
+		"GOFLAGS=-mod=readonly", // Prohibit builds from modifying go.mod.
 		fmt.Sprintf("GOROOT=%s", goRoot),
 		fmt.Sprintf("GOPATH=%s", goPath),
 		"GIT_USER_AGENT=git/1.9.1", // I don't think this version matters.
