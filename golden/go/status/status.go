@@ -102,6 +102,15 @@ func (s *StatusWatcher) GetStatus() *GUIStatus {
 	return s.current
 }
 
+func updateLastCommitAge(tile *types.ComplexTile) {
+	commits := tile.AllCommits()
+	if len(commits) == 0 {
+		return
+	}
+	lastCommitAge := metrics2.GetInt64Metric("gold_last_commit_age_s")
+	lastCommitAge.Update((time.Now().Unix() - commits[len(commits)-1].CommitTime) / time.Second)
+}
+
 func (s *StatusWatcher) calcAndWatchStatus() error {
 	sklog.Infof("Starting status watcher")
 	expChanges := make(chan types.TestExp)
@@ -121,7 +130,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 	sklog.Infof("Calculated first status")
 
 	liveness := metrics2.NewLiveness("gold_status_monitoring")
-
+	updateLastCommitAge(lastCpxTile)
 	go func() {
 		for {
 			select {
@@ -137,6 +146,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 				} else {
 					lastCpxTile = cpxTile
 					liveness.Reset()
+					updateLastCommitAge(cpxTile)
 				}
 			case <-expChanges:
 				storage.DrainChangeChannel(expChanges)
