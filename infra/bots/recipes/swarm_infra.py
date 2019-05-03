@@ -53,6 +53,7 @@ def RunSteps(api):
   env = {
       'CHROME_HEADLESS': '1',
       'GOCACHE': go_cache,
+      'GOFLAGS': '-mod=readonly', # Prohibit builds from modifying go.mod.
       'GOROOT': go_root,
       'GOPATH': gopath,
       'GIT_USER_AGENT': 'git/1.9.1',  # I don't think this version matters.
