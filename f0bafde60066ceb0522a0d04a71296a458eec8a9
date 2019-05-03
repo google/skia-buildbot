@@ -52,6 +52,24 @@
       "revId": "f0bafde60066ceb0522a0d04a71296a458eec8a9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c32766dd_f9f2dd00",
+        "filename": "go.mod",
+        "patchSetId": 23
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-03T14:36:04Z",
+      "side": 1,
+      "message": "Actually, it seems like there are several updates needed to README.md. Maybe even just rewrite the first section from scratch.",
+      "parentUuid": "007b8a3b_3294cac6",
+      "revId": "f0bafde60066ceb0522a0d04a71296a458eec8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
