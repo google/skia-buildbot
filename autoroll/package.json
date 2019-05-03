@@ -15,7 +15,6 @@
     "chai": "~1.9.1",
     "cssmin": "~0.4.2",
     "html-minifier": "~3.0.0",
-    "http-server": "^0.11.1",
     "karma": "~0.12.25",
     "karma-chai": "~0.1.0",
     "karma-chrome-launcher": "~0.1.4",

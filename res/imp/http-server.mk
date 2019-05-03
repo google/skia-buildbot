@@ -15,13 +15,10 @@ port = 8$(shell printf "%03d" $(shell expr $(shell cksum <<< "$(server)" | cut -
 # Determine where http-server should be.
 bower_dir = $(shell realpath $(shell if [ -f bower.json ]; then echo "."; else echo "../.."; fi))
 common_dir = $(shell realpath $(shell if [ -f bower.json ]; then echo ".."; else echo "../../../res"; fi))
-httpserver = $(bower_dir)/node_modules/.bin/http-server
+httpserver = python -m SimpleHTTPServer
 
 # List of all dependencies.
-deps_list = bower_components res/imp/bower_components res/common res/img res/js res/imp/sinon-1.17.2.js $(httpserver)
-
-$(httpserver):
-	npm install http-server
+deps_list = bower_components res/imp/bower_components res/common res/img res/js res/imp/sinon-1.17.2.js
 
 bower_components: $(bower_dir)/third_party/bower_components
 	ln -sfT $(bower_dir)/third_party/bower_components bower_components
@@ -59,7 +56,7 @@ deps: $(deps_list)
 # Run a local HTTP server for the demo pages.
 .PHONY: run
 run: $(deps_list)
-	$(httpserver) -p $(port) -a $(shell hostname)
+	$(httpserver) $(port)
 
 # Print out some critical information for debugging.
 .PHONY: echo
