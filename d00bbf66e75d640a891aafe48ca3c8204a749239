@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1113454e_d49f0f2e",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-03T19:06:50Z",
+      "side": 1,
+      "message": "This needs to be protected by a mutex.",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 25
+      },
+      "revId": "d00bbf66e75d640a891aafe48ca3c8204a749239",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a3b0cb15_8820c453",
+        "filename": "android_compile/go/android_compile/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-03T19:06:50Z",
+      "side": 1,
+      "message": "nit: \"hang\"",
+      "range": {
+        "startLine": 56,
+        "startChar": 48,
+        "endLine": 56,
+        "endChar": 52
+      },
+      "revId": "d00bbf66e75d640a891aafe48ca3c8204a749239",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
