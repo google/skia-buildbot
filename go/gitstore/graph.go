@@ -10,9 +10,10 @@ const (
 	initialGraphSize = 100000
 )
 
-// buildGraph takes a rawGraph (a slice where each element contains a commit hash followed by its
+// BuildGraph takes a rawGraph (a slice where each element contains a commit hash followed by its
 // parents) and returns an instance of CommitGraph.
-func buildGraph(rawGraph [][]string, timeStamps []time.Time) *CommitGraph {
+// TODO(kjlubick,borenet): can this be replaced by go/git/repograph.Graph ?
+func BuildGraph(rawGraph [][]string, timeStamps []time.Time) *CommitGraph {
 	nodeMap := make(map[string]*Node, len(rawGraph))
 	for idx, rawNode := range rawGraph {
 		hash := rawNode[0]

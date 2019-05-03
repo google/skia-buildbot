@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vcsinfo"
@@ -66,13 +67,13 @@ func (u *gitstoreRefresher) refresh(commits ...*vcsinfo.LongCommit) {
 func setupGitStore(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph, refresher, func()) {
 	ctx, g, cleanup := commonSetup(t)
 
-	btConf := &gitstore.BTConfig{
+	btConf := &bt_gitstore.BTConfig{
 		ProjectID:  "fake-project",
 		InstanceID: fmt.Sprintf("fake-instance-%s", uuid.New()),
 		TableID:    "repograph-gitstore",
 	}
-	assert.NoError(t, gitstore.InitBT(btConf))
-	gs, err := gitstore.NewBTGitStore(context.Background(), btConf, g.RepoUrl())
+	assert.NoError(t, bt_gitstore.InitBT(btConf))
+	gs, err := bt_gitstore.New(context.Background(), btConf, g.RepoUrl())
 	assert.NoError(t, err)
 	ud := newGitstoreUpdater(t, gs, g)
 	repo, err := NewGitStoreGraph(ctx, gs)

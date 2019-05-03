@@ -22,12 +22,13 @@ import (
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"google.golang.org/api/option"
 )
 
@@ -66,7 +67,7 @@ func Register(id string, constructor Constructor) {
 // client is assumed to be suitable for the given application. If e.g. the
 // processors of the current application require an authenticated http client,
 // then it is expected that client meets these requirements.
-func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, client *http.Client, eventBus eventbus.EventBus, ingestionStore IngestionStore, btConf *gitstore.BTConfig) ([]*Ingester, error) {
+func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, client *http.Client, eventBus eventbus.EventBus, ingestionStore IngestionStore, btConf *bt_gitstore.BTConfig) ([]*Ingester, error) {
 	if client == nil {
 		return nil, errors.New("httpClient cannot be nil")
 	}
@@ -84,14 +85,14 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 	var vcs vcsinfo.VCS
 	var err error
 	if btConf != nil {
-		gitStore, err := gitstore.NewBTGitStore(ctx, btConf, config.GitRepoURL)
+		gitStore, err := bt_gitstore.New(ctx, btConf, config.GitRepoURL)
 		if err != nil {
 			return nil, skerr.Fmt("Error instantiating gitstore: %s", err)
 		}
 
 		// Set up VCS instance to track master.
 		gitilesRepo := gitiles.NewRepo(config.GitRepoURL, "", client)
-		if vcs, err = gitstore.NewVCS(gitStore, "master", gitilesRepo, nil, 0); err != nil {
+		if vcs, err = bt_vcs.New(gitStore, "master", gitilesRepo, nil, 0); err != nil {
 			return nil, err
 		}
 		sklog.Infof("Created vcs client based on BigTable.")

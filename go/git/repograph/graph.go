@@ -15,6 +15,7 @@ import (
 
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
@@ -782,10 +783,10 @@ func NewLocalMap(ctx context.Context, repos []string, workdir string) (Map, erro
 }
 
 // NewGitStoreMap returns a Map instance with Graphs for the given GitStores.
-func NewBTGitStoreMap(ctx context.Context, repoUrls []string, btConf *gitstore.BTConfig) (Map, error) {
+func NewBTGitStoreMap(ctx context.Context, repoUrls []string, btConf *bt_gitstore.BTConfig) (Map, error) {
 	rv := make(map[string]*Graph, len(repoUrls))
 	for _, repoUrl := range repoUrls {
-		gs, err := gitstore.NewBTGitStore(ctx, btConf, repoUrl)
+		gs, err := bt_gitstore.New(ctx, btConf, repoUrl)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to create GitStore for %s: %s", repoUrl, err)
 		}

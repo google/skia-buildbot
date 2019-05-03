@@ -1,4 +1,7 @@
-package gitstore
+package bt_gitstore
+
+// The bt_gitstore package implements a way to store Git metadata in BigTable for faster retrieval
+// than requiring a local checkout.
 
 import (
 	"bytes"
@@ -12,15 +15,55 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigtable"
-	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"golang.org/x/sync/errgroup"
 )
 
-// The file implements a way to store Git metadata in BigTable for faster retrieval.
+// BigTableGitStore implements the GitStore interface based on BigTable.
+type BigTableGitStore struct {
+	RepoID  int64
+	RepoURL string
+	shards  uint32
+	table   *bigtable.Table
+}
+
+// New returns an instance of GitStore that uses BigTable as its backend storage.
+// The given repoURL serves to identify the repository. Internally it is stored normalized
+// via a call to git.NormalizeURL.
+func New(ctx context.Context, config *BTConfig, repoURL string) (*BigTableGitStore, error) {
+	// Create the client.
+	client, err := bigtable.NewClient(ctx, config.ProjectID, config.InstanceID)
+	if err != nil {
+		return nil, skerr.Fmt("Error creating bigtable client: %s", err)
+	}
+
+	repoURL, err = git.NormalizeURL(repoURL)
+	if err != nil {
+		return nil, skerr.Fmt("Error normalizing URL %q: %s", repoURL, err)
+	}
+
+	shards := config.Shards
+	if shards <= 0 {
+		shards = DefaultShards
+	}
+
+	ret := &BigTableGitStore{
+		table:   client.Open(config.TableID),
+		shards:  uint32(shards),
+		RepoURL: repoURL,
+	}
+
+	repoInfo, err := ret.loadRepoInfo(ctx, true)
+	if err != nil {
+		return nil, skerr.Fmt("Error getting initial repo info: %s", err)
+	}
+	ret.RepoID = repoInfo.ID
+	return ret, nil
+}
 
 const (
 	// Column families.
@@ -72,207 +115,8 @@ var (
 	DefaultShards = 32
 )
 
-// GitStore defines the functions of a data store for Git metadata (aka vcsinfo.LongCommit)
-// Each GitStore instance relates to one repository that is defined in the constructor of the
-// implementation.
-type GitStore interface {
-	// Put stores the given commits. They can be retrieved in order of timestamps by using
-	// RangeByTime or RangeN (no topological ordering).
-	Put(ctx context.Context, commits []*vcsinfo.LongCommit) error
-
-	// Get retrieves the commits identified by 'hashes'. The return value will always have the length
-	// of the input value and the results will line up by index. If a commit does not exist the
-	// corresponding entry in the result is nil.
-	// The function will only return an error if the retrieval operation (the I/O) fails, not
-	// if the given hashes do not exist or are invalid.
-	Get(ctx context.Context, hashes []string) ([]*vcsinfo.LongCommit, error)
-
-	// PutBranches updates branches in the repository. It writes indices for the branches so they
-	// can be retrieved via RangeN and RangeByTime. These are ordered in toplogical order with only
-	// first-parents included.
-	// 'branches' maps branchName -> commit_hash to indicate the head of a branch. The store then
-	// calculates the commits of the branch and updates the indices accordingly.
-	// If a branch exists it will be updated. It will not remove existing branches in the repo if they
-	// are not listed in the 'branches' argument.
-	PutBranches(ctx context.Context, branches map[string]string) error
-
-	// GetBranches returns the current branches in the store. It maps[branchName]->BranchPointer.
-	// A BranchPointer contains the HEAD commit and also the Index of the HEAD commit, which is
-	// usually the total number of commits in the branch minus 1.
-	GetBranches(ctx context.Context) (map[string]*BranchPointer, error)
-
-	// RangeN returns all commits in the half open index range [startIndex, endIndex).
-	// Thus not including endIndex. It returns the commits in the given branch sorted by Index
-	// and the commits are topologically sorted only including first-parent commits.
-	RangeN(ctx context.Context, startIndex, endIndex int, branch string) ([]*vcsinfo.IndexCommit, error)
-
-	// RangeByTime returns all commits in the half open time range [startIndex, endIndex). Thus not
-	// including commits at 'end' time.
-	// Caveat: The returned results will match the requested range, but will be sorted by Index.
-	// So if the timestamps within a commit are not in order they will be unordered in the results.
-	RangeByTime(ctx context.Context, start, end time.Time, branch string) ([]*vcsinfo.IndexCommit, error)
-
-	// GetGraph returns the commit graph of the entire repository.
-	GetGraph(ctx context.Context) (*CommitGraph, error)
-}
-
-// GitStoreBased is an interface that tags an object as being based on GitStore and the
-// underlying GitStore instance can be retrieved. e.g.
-//
-// if gsb, ok := someInstance.(GitStoreBased); ok {
-//   gitStore := gsb.GetGitStore()
-//   ...  do something with gitStore
-// }
-//
-type GitStoreBased interface {
-	// GetGitStore returns the underlying GitStore instances.
-	GetGitStore() GitStore
-}
-
-// BranchPointer captures the HEAD of a branch and the index of that commit.
-type BranchPointer struct {
-	Head  string
-	Index int
-}
-
-// RepoInfo contains information about one repo in the GitStore.
-type RepoInfo struct {
-	// Numeric id of the repo. This is unique within all repos in a BT table. This ID is uniquely
-	// assigned whenever a new repo is added.
-	ID int64
-
-	// RepoURL contains the URL of the repo as returned by git.NormalizeURL(...).
-	RepoURL string
-
-	// Branches contain all the branches in the repo, mapping branch_name -> branch_pointer.
-	Branches map[string]*BranchPointer
-}
-
-// BTConfig contains the BigTable configuration to define where the repo should be stored.
-type BTConfig struct {
-	ProjectID  string
-	InstanceID string
-	TableID    string
-	Shards     int
-}
-
-// btGitStore implements the GitStore interface base on BigTable.
-type btGitStore struct {
-	table   *bigtable.Table
-	shards  uint32
-	repoURL string
-	repoID  int64
-}
-
-// InitBT initializes the BT instance for the given configuration. It uses the default way
-// to get auth information from the environment and must be called with an account that has
-// admin rights.
-func InitBT(conf *BTConfig) error {
-	return bt.InitBigtable(conf.ProjectID, conf.InstanceID, conf.TableID, []string{
-		cfCommit,
-		cfMeta,
-		cfBranches,
-		cfTsCommit,
-	})
-}
-
-// AllRepos returns a map of all repos contained in given BigTable project/instance/table.
-// It returns map[normalized_URL]RepoInfo.
-func AllRepos(ctx context.Context, conf *BTConfig) (map[string]*RepoInfo, error) {
-	// Create the client.
-	client, err := bigtable.NewClient(ctx, conf.ProjectID, conf.InstanceID)
-	if err != nil {
-		return nil, skerr.Fmt("Error creating bigtable client: %s", err)
-	}
-
-	table := client.Open(conf.TableID)
-	rowNamesPrefix := getRepoInfoRowNamePrefix()
-	ret := map[string]*RepoInfo{}
-	var readRowErr error = nil
-	err = table.ReadRows(ctx, bigtable.PrefixRange(rowNamesPrefix), func(row bigtable.Row) bool {
-		if readRowErr != nil {
-			return false
-		}
-
-		var repoInfo *RepoInfo
-		repoInfo, readRowErr = extractRepoInfo(row)
-		if readRowErr != nil {
-			return false
-		}
-		// save the repo info and set the all-commits branch.
-		ret[repoInfo.RepoURL] = repoInfo
-		if found, ok := repoInfo.Branches[allCommitsBranch]; ok {
-			repoInfo.Branches[""] = found
-			delete(repoInfo.Branches, allCommitsBranch)
-		}
-
-		return true
-	}, bigtable.RowFilter(bigtable.LatestNFilter(1)))
-
-	if err != nil {
-		return nil, skerr.Fmt("Error reading repo info: %s", err)
-	}
-	return ret, nil
-}
-
-// RepoURLFromID retrieves the URL of a repository by its corresponding numeric ID.
-// If a repository with the given ID can be found it will be returned and the second return value
-// is true. In any other case "" and false will be returned.
-func RepoURLFromID(ctx context.Context, conf *BTConfig, repoIDStr string) (string, bool) {
-	id, err := strconv.ParseInt(repoIDStr, 10, 64)
-	if err != nil {
-		return "", false
-	}
-
-	repoInfos, err := AllRepos(ctx, conf)
-	if err != nil {
-		return "", false
-	}
-
-	for repoURL, info := range repoInfos {
-		if info.ID == id {
-			return repoURL, false
-		}
-	}
-	return "", false
-}
-
-// NewBTGitStore returns an instance of GitStore that uses BigTable as its backend storage.
-// The given repoURL serves to identify the repository. Internally it is stored normalized
-// via a call to git.NormalizeURL.
-func NewBTGitStore(ctx context.Context, config *BTConfig, repoURL string) (GitStore, error) {
-	// Create the client.
-	client, err := bigtable.NewClient(ctx, config.ProjectID, config.InstanceID)
-	if err != nil {
-		return nil, skerr.Fmt("Error creating bigtable client: %s", err)
-	}
-
-	repoURL, err = git.NormalizeURL(repoURL)
-	if err != nil {
-		return nil, skerr.Fmt("Error normalizing URL %q: %s", repoURL, err)
-	}
-
-	shards := config.Shards
-	if shards <= 0 {
-		shards = DefaultShards
-	}
-
-	ret := &btGitStore{
-		table:   client.Open(config.TableID),
-		shards:  uint32(shards),
-		repoURL: repoURL,
-	}
-
-	repoInfo, err := ret.loadRepoInfo(ctx, true)
-	if err != nil {
-		return nil, skerr.Fmt("Error getting initial repo info: %s", err)
-	}
-	ret.repoID = repoInfo.ID
-	return ret, nil
-}
-
 // Put implements the GitStore interface.
-func (b *btGitStore) Put(ctx context.Context, commits []*vcsinfo.LongCommit) error {
+func (b *BigTableGitStore) Put(ctx context.Context, commits []*vcsinfo.LongCommit) error {
 	branch := ""
 
 	if err := b.writeLongCommits(ctx, commits); err != nil {
@@ -292,7 +136,7 @@ func (b *btGitStore) Put(ctx context.Context, commits []*vcsinfo.LongCommit) err
 }
 
 // Get implements the GitStore interface.
-func (b *btGitStore) Get(ctx context.Context, hashes []string) ([]*vcsinfo.LongCommit, error) {
+func (b *BigTableGitStore) Get(ctx context.Context, hashes []string) ([]*vcsinfo.LongCommit, error) {
 	rowNames := make(bigtable.RowList, len(hashes))
 	hashOrder := make(map[string]int, len(hashes))
 	for idx, h := range hashes {
@@ -358,7 +202,7 @@ func (b *btGitStore) Get(ctx context.Context, hashes []string) ([]*vcsinfo.LongC
 }
 
 // PutBranches implements the GitStore interface.
-func (b *btGitStore) PutBranches(ctx context.Context, branches map[string]string) error {
+func (b *BigTableGitStore) PutBranches(ctx context.Context, branches map[string]string) error {
 	repoInfo, err := b.loadRepoInfo(ctx, false)
 	if err != nil {
 		return err
@@ -372,10 +216,10 @@ func (b *btGitStore) PutBranches(ctx context.Context, branches map[string]string
 
 	// updateFromm maps branchName -> branch_pointer_to_old_head to capture the branches we  need to update
 	// and whether the branch existed before this update (the value of the map is not nil).
-	updateFrom := make(map[string]*BranchPointer, len(branches))
+	updateFrom := make(map[string]*gitstore.BranchPointer, len(branches))
 	for branchName, head := range branches {
 		// Assume we start out with a completely fresh branch
-		var oldHeadPtr *BranchPointer = nil
+		var oldHeadPtr *gitstore.BranchPointer = nil
 		if foundHeadPtr, ok := repoInfo.Branches[branchName]; ok {
 			// We are already done and do not need to update this branch.
 			if foundHeadPtr.Head == head {
@@ -393,7 +237,7 @@ func (b *btGitStore) PutBranches(ctx context.Context, branches map[string]string
 
 	var egroup errgroup.Group
 	for branchName, oldHeadPtr := range updateFrom {
-		func(branchName string, oldHeadPtr *BranchPointer) {
+		func(branchName string, oldHeadPtr *gitstore.BranchPointer) {
 			egroup.Go(func() error {
 				return b.updateBranch(ctx, branchName, branches[branchName], oldHeadPtr, graph)
 			})
@@ -406,7 +250,7 @@ func (b *btGitStore) PutBranches(ctx context.Context, branches map[string]string
 }
 
 // GetBranches implements the GitStore interface.
-func (b *btGitStore) GetBranches(ctx context.Context) (map[string]*BranchPointer, error) {
+func (b *BigTableGitStore) GetBranches(ctx context.Context) (map[string]*gitstore.BranchPointer, error) {
 	repoInfo, err := b.loadRepoInfo(ctx, false)
 	if err != nil {
 		return nil, err
@@ -422,7 +266,7 @@ func (b *btGitStore) GetBranches(ctx context.Context) (map[string]*BranchPointer
 }
 
 // RangeByTime implements the GitStore interface.
-func (b *btGitStore) RangeByTime(ctx context.Context, start, end time.Time, branch string) ([]*vcsinfo.IndexCommit, error) {
+func (b *BigTableGitStore) RangeByTime(ctx context.Context, start, end time.Time, branch string) ([]*vcsinfo.IndexCommit, error) {
 	startTS := sortableTimestamp(start)
 	endTS := sortableTimestamp(end)
 
@@ -437,7 +281,7 @@ func (b *btGitStore) RangeByTime(ctx context.Context, start, end time.Time, bran
 }
 
 // RangeByTime implements the GitStore interface.
-func (b *btGitStore) RangeN(ctx context.Context, startIndex, endIndex int, branch string) ([]*vcsinfo.IndexCommit, error) {
+func (b *BigTableGitStore) RangeN(ctx context.Context, startIndex, endIndex int, branch string) ([]*vcsinfo.IndexCommit, error) {
 	startIdx := sortableIndex(startIndex)
 	endIdx := sortableIndex(endIndex)
 
@@ -450,9 +294,9 @@ func (b *btGitStore) RangeN(ctx context.Context, startIndex, endIndex int, branc
 	return result.Sorted(), nil
 }
 
-func (b *btGitStore) loadRepoInfo(ctx context.Context, create bool) (*RepoInfo, error) {
+func (b *BigTableGitStore) loadRepoInfo(ctx context.Context, create bool) (*gitstore.RepoInfo, error) {
 	// load repo info
-	rowName := getRepoInfoRowName(b.repoURL)
+	rowName := getRepoInfoRowName(b.RepoURL)
 	row, err := b.table.ReadRow(ctx, rowName, bigtable.RowFilter(bigtable.LatestNFilter(1)))
 	if err != nil {
 		return nil, err
@@ -464,7 +308,7 @@ func (b *btGitStore) loadRepoInfo(ctx context.Context, create bool) (*RepoInfo, 
 
 	// If we are not create new repo information, return an error.
 	if !create {
-		return nil, skerr.Fmt("Repo information for %s not found.", b.repoURL)
+		return nil, skerr.Fmt("Repo information for %s not found.", b.RepoURL)
 	}
 
 	// Get a new ID from the DB
@@ -484,11 +328,11 @@ func (b *btGitStore) loadRepoInfo(ctx context.Context, create bool) (*RepoInfo, 
 		return nil, err
 	}
 
-	b.repoID = id
-	return &RepoInfo{
-		RepoURL:  b.repoURL,
+	b.RepoID = id
+	return &gitstore.RepoInfo{
+		RepoURL:  b.RepoURL,
 		ID:       id,
-		Branches: map[string]*BranchPointer{},
+		Branches: map[string]*gitstore.BranchPointer{},
 	}, nil
 }
 
@@ -497,7 +341,7 @@ func (b *btGitStore) loadRepoInfo(ctx context.Context, create bool) (*RepoInfo, 
 var graphColFilter = fmt.Sprintf("(%s)", strings.Join([]string{colHash, colParents}, "|"))
 
 // GetGraph implements the GitStore interface.
-func (b *btGitStore) GetGraph(ctx context.Context) (*CommitGraph, error) {
+func (b *BigTableGitStore) GetGraph(ctx context.Context) (*gitstore.CommitGraph, error) {
 	result := newRawNodesResult(b.shards)
 	filters := []bigtable.Filter{
 		bigtable.FamilyFilter(cfCommit),
@@ -507,10 +351,10 @@ func (b *btGitStore) GetGraph(ctx context.Context) (*CommitGraph, error) {
 		return nil, skerr.Fmt("Error getting sharded commits: %s", err)
 	}
 	rawGraph, timeStamps := result.Merge()
-	return buildGraph(rawGraph, timeStamps), nil
+	return gitstore.BuildGraph(rawGraph, timeStamps), nil
 }
 
-func (b *btGitStore) getAsIndexCommits(ctx context.Context, ancestors []*Node, startIdx int) ([]*vcsinfo.IndexCommit, error) {
+func (b *BigTableGitStore) getAsIndexCommits(ctx context.Context, ancestors []*gitstore.Node, startIdx int) ([]*vcsinfo.IndexCommit, error) {
 	ret := make([]*vcsinfo.IndexCommit, len(ancestors))
 	for idx, commitNode := range ancestors {
 		ret[idx] = &vcsinfo.IndexCommit{
@@ -525,7 +369,7 @@ func (b *btGitStore) getAsIndexCommits(ctx context.Context, ancestors []*Node, s
 // updateBranch updates the indices for the named branch and stores the branch pointer. It
 // calculates the branch based on the given commit graph.
 // If there is no previous branch then oldBranchPtr should be nil.
-func (b *btGitStore) updateBranch(ctx context.Context, branchName, newBranchHead string, oldBranchPtr *BranchPointer, graph *CommitGraph) error {
+func (b *BigTableGitStore) updateBranch(ctx context.Context, branchName, newBranchHead string, oldBranchPtr *gitstore.BranchPointer, graph *gitstore.CommitGraph) error {
 	// Make sure the new head node is in branch.
 	headNode := graph.GetNode(newBranchHead)
 	if headNode == nil {
@@ -534,7 +378,7 @@ func (b *btGitStore) updateBranch(ctx context.Context, branchName, newBranchHead
 
 	// If we have not previous branch we set the corresponding values so the logic below still works.
 	if oldBranchPtr == nil {
-		oldBranchPtr = &BranchPointer{Head: "", Index: 0}
+		oldBranchPtr = &gitstore.BranchPointer{Head: "", Index: 0}
 	}
 
 	branchNodes := graph.DecendantChain(oldBranchPtr.Head, newBranchHead)
@@ -561,7 +405,7 @@ func (b *btGitStore) updateBranch(ctx context.Context, branchName, newBranchHead
 
 // putBranchPointer writes the branch pointer (the HEAD of a branch) to the row that stores
 // the repo information. idxCommit is the index commit of the HEAD of the branch.
-func (b *btGitStore) putBranchPointer(ctx context.Context, repoInfoRowName, branchName string, idxCommit *vcsinfo.IndexCommit) error {
+func (b *BigTableGitStore) putBranchPointer(ctx context.Context, repoInfoRowName, branchName string, idxCommit *vcsinfo.IndexCommit) error {
 	if branchName == "" {
 		branchName = allCommitsBranch
 	}
@@ -574,7 +418,7 @@ func (b *btGitStore) putBranchPointer(ctx context.Context, repoInfoRowName, bran
 }
 
 // writeLongCommits writes the LongCommits to the store idempotently.
-func (b *btGitStore) writeLongCommits(ctx context.Context, commits []*vcsinfo.LongCommit) error {
+func (b *BigTableGitStore) writeLongCommits(ctx context.Context, commits []*vcsinfo.LongCommit) error {
 	branch := ""
 
 	// Assemble the mutations.
@@ -604,7 +448,7 @@ func (b *btGitStore) writeLongCommits(ctx context.Context, commits []*vcsinfo.Lo
 
 // applyBulkBatched writes the given rowNames/mutation pairs to bigtable in batches that are
 // maximally of size 'batchSize'. The batches are written in parallel.
-func (b *btGitStore) applyBulkBatched(ctx context.Context, rowNames []string, mutations []*bigtable.Mutation, batchSize int) error {
+func (b *BigTableGitStore) applyBulkBatched(ctx context.Context, rowNames []string, mutations []*bigtable.Mutation, batchSize int) error {
 	var egroup errgroup.Group
 	err := util.ChunkIter(len(rowNames), batchSize, func(chunkStart, chunkEnd int) error {
 		egroup.Go(func() error {
@@ -628,7 +472,7 @@ func (b *btGitStore) applyBulkBatched(ctx context.Context, rowNames []string, mu
 }
 
 // writeIndexCommits writes the given index commits keyed by their indices for the given branch.
-func (b *btGitStore) writeIndexCommits(ctx context.Context, indexCommits []*vcsinfo.IndexCommit, branch string) error {
+func (b *BigTableGitStore) writeIndexCommits(ctx context.Context, indexCommits []*vcsinfo.IndexCommit, branch string) error {
 	idxRowNames := make([]string, 0, len(indexCommits))
 	idxMutations := make([]*bigtable.Mutation, 0, len(indexCommits))
 
@@ -641,12 +485,12 @@ func (b *btGitStore) writeIndexCommits(ctx context.Context, indexCommits []*vcsi
 	if err := b.applyBulkBatched(ctx, idxRowNames, idxMutations, writeBatchSize); err != nil {
 		return skerr.Fmt("Error writing indices: %s", err)
 	}
-	return b.putBranchPointer(ctx, getRepoInfoRowName(b.repoURL), branch, indexCommits[len(indexCommits)-1])
+	return b.putBranchPointer(ctx, getRepoInfoRowName(b.RepoURL), branch, indexCommits[len(indexCommits)-1])
 }
 
 // writeTimestampIndexCommits writes the given index commits keyed by their timestamp for the
 // given branch.
-func (b *btGitStore) writeTimestampIndex(ctx context.Context, indexCommits []*vcsinfo.IndexCommit, branch string) error {
+func (b *BigTableGitStore) writeTimestampIndex(ctx context.Context, indexCommits []*vcsinfo.IndexCommit, branch string) error {
 	nMutations := len(indexCommits)
 	tsRowNames := make([]string, 0, nMutations)
 	tsMutations := make([]*bigtable.Mutation, 0, nMutations)
@@ -670,7 +514,7 @@ func (b *btGitStore) writeTimestampIndex(ctx context.Context, indexCommits []*vc
 // shards triggering as many queries as there are shards. If endKey is empty, then startKey is
 // used to generate a prefix and a Prefix scan is performed.
 // The results of the query are added to the instance of shardedResults.
-func (b *btGitStore) iterShardedRange(ctx context.Context, branch, rowType, startKey, endKey string, filters []bigtable.Filter, result shardedResults) error {
+func (b *BigTableGitStore) iterShardedRange(ctx context.Context, branch, rowType, startKey, endKey string, filters []bigtable.Filter, result shardedResults) error {
 	var egroup errgroup.Group
 
 	// Query all shards in parallel.
@@ -712,7 +556,7 @@ func (b *btGitStore) iterShardedRange(ctx context.Context, branch, rowType, star
 
 // simpleMutation assembles a simple mutation consisting of a column family, a timestamp and a
 // set of column/value pairs. The timestamp is applied to all column/pairs.
-func (b *btGitStore) simpleMutation(cfFam string, timeStamp time.Time, colValPairs ...[2]string) *bigtable.Mutation {
+func (b *BigTableGitStore) simpleMutation(cfFam string, timeStamp time.Time, colValPairs ...[2]string) *bigtable.Mutation {
 	ts := bigtable.Time(timeStamp.UTC())
 	ret := bigtable.NewMutation()
 	for _, pair := range colValPairs {
@@ -723,7 +567,7 @@ func (b *btGitStore) simpleMutation(cfFam string, timeStamp time.Time, colValPai
 
 // getCommitMutation gets the mutation to write a long commit. Since the timestamp is set to the
 // timestamp of the commit this is idempotent.
-func (b *btGitStore) getCommitMutation(commit *vcsinfo.LongCommit) *bigtable.Mutation {
+func (b *BigTableGitStore) getCommitMutation(commit *vcsinfo.LongCommit) *bigtable.Mutation {
 	ts := bigtable.Time(commit.Timestamp.UTC())
 	ret := bigtable.NewMutation()
 	ret.Set(cfCommit, colHash, ts, []byte(commit.Hash))
@@ -736,14 +580,14 @@ func (b *btGitStore) getCommitMutation(commit *vcsinfo.LongCommit) *bigtable.Mut
 
 // rowName returns that BT rowName based on the tuple: (branch,rowType,Key).
 // It also derives a unique shard for the given tuple and generates the complete rowName.
-func (b *btGitStore) rowName(branch string, rowType string, key string) string {
+func (b *BigTableGitStore) rowName(branch string, rowType string, key string) string {
 	return b.shardedRowName(crc32.ChecksumIEEE([]byte(key))%b.shards, branch, rowType, key)
 }
 
 // shardedRowName returns the row name from (shard, branch, rowType, key) this is useful
 // when we want to generate a specific row name with a defined shard.
-func (b *btGitStore) shardedRowName(shard uint32, branch, rowType, key string) string {
-	return fmt.Sprintf("%02d:%04d:%s:%s:%s", shard, b.repoID, branch, rowType, key)
+func (b *BigTableGitStore) shardedRowName(shard uint32, branch, rowType, key string) string {
+	return fmt.Sprintf("%02d:%04d:%s:%s:%s", shard, b.RepoID, branch, rowType, key)
 }
 
 // unshardedRowName concatenates parts without prefixing any sharding information. This is for
@@ -763,12 +607,12 @@ func getRepoInfoRowNamePrefix() string {
 }
 
 // extractRepoInfo extract the repo meta data information from a read row.
-func extractRepoInfo(row bigtable.Row) (*RepoInfo, error) {
+func extractRepoInfo(row bigtable.Row) (*gitstore.RepoInfo, error) {
 	rm := rowMap(row)
 
 	// Extract the branch info.
 	branchInfo := rm.GetStrMap(cfBranches)
-	branches := make(map[string]*BranchPointer, len(branchInfo))
+	branches := make(map[string]*gitstore.BranchPointer, len(branchInfo))
 	var err error
 	for name, b := range branchInfo {
 		branches[name], err = decBranchPointer([]byte(b))
@@ -783,7 +627,7 @@ func extractRepoInfo(row bigtable.Row) (*RepoInfo, error) {
 		return nil, skerr.Fmt("Error: Got id that's not exactly 8 bytes: '%x': %s", idBytes, err)
 	}
 
-	ret := &RepoInfo{
+	ret := &gitstore.RepoInfo{
 		RepoURL:  keyFromRowName(row.Key()),
 		ID:       int64(binary.BigEndian.Uint64(idBytes)),
 		Branches: branches,
@@ -844,12 +688,12 @@ func encBranchPointer(hash string, index int) []byte {
 
 // decBranchPointer a string previously generated by encBranchPointer into a BranchPointer,
 // containing a head and index.
-func decBranchPointer(encPointer []byte) (*BranchPointer, error) {
+func decBranchPointer(encPointer []byte) (*gitstore.BranchPointer, error) {
 	parts := bytes.SplitN(encPointer, []byte(":"), 2)
 	if len(parts) != 2 || len(parts[1]) != 8 {
 		return nil, skerr.Fmt("Received wrong branch pointer. Expected format <commit>:<big_endian_64_bit>")
 	}
-	return &BranchPointer{
+	return &gitstore.BranchPointer{
 		Head:  string(parts[0]),
 		Index: int(binary.BigEndian.Uint64([]byte(parts[1]))),
 	}, nil
@@ -882,3 +726,6 @@ func (r rowMap) GetStrMap(colFamName string) map[string]string {
 	}
 	return ret
 }
+
+// Make sure BigTableGitStore fulfills the GitStore interface
+var _ gitstore.GitStore = (*BigTableGitStore)(nil)
