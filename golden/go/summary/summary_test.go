@@ -86,40 +86,47 @@ func TestCalcSummaries(t *testing.T) {
 	testutils.SmallTest(t)
 	tile := &tiling.Tile{
 		Traces: map[string]tiling.Trace{
+			// These trace ids have been shortened for test terseness.
+			// A real trace id would be like "8888:gm:foo"
 			"a": &types.GoldenTrace{
 				Digests: []string{"aaa", "bbb"},
 				Keys: map[string]string{
-					"name":             "foo",
-					"config":           "8888",
-					types.CORPUS_FIELD: "gm"},
+					"config":                "8888",
+					types.CORPUS_FIELD:      "gm",
+					types.PRIMARY_KEY_FIELD: "foo",
+				},
 			},
 			"b": &types.GoldenTrace{
 				Digests: []string{"ccc", "ddd"},
 				Keys: map[string]string{
-					"name":             "foo",
-					"config":           "565",
-					types.CORPUS_FIELD: "gm"},
+					"config":                "565",
+					types.CORPUS_FIELD:      "gm",
+					types.PRIMARY_KEY_FIELD: "foo",
+				},
 			},
 			"c": &types.GoldenTrace{
 				Digests: []string{"eee", types.MISSING_DIGEST},
 				Keys: map[string]string{
-					"name":             "foo",
-					"config":           "gpu",
-					types.CORPUS_FIELD: "gm"},
+					"config":                "gpu",
+					types.CORPUS_FIELD:      "gm",
+					types.PRIMARY_KEY_FIELD: "foo",
+				},
 			},
 			"d": &types.GoldenTrace{
 				Digests: []string{"fff", "ggg"},
 				Keys: map[string]string{
-					"name":             "bar",
-					"config":           "8888",
-					types.CORPUS_FIELD: "gm"},
+					"config":                "8888",
+					types.CORPUS_FIELD:      "gm",
+					types.PRIMARY_KEY_FIELD: "bar",
+				},
 			},
 			"e": &types.GoldenTrace{
 				Digests: []string{"jjj", types.MISSING_DIGEST},
 				Keys: map[string]string{
-					"name":             "quux",
-					"config":           "8888",
-					types.CORPUS_FIELD: "image"},
+					"config":                "8888",
+					types.CORPUS_FIELD:      "image",
+					types.PRIMARY_KEY_FIELD: "quux",
+				},
 			},
 		},
 		Commits: []*tiling.Commit{

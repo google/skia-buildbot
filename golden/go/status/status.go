@@ -16,9 +16,9 @@ import (
 
 const (
 	// Metric names and templates for metric names added in this file.
-	METRIC_TOTAL  = "gold.status.total-digests"
-	METRIC_ALL    = "gold.status.all"
-	METRIC_CORPUS = "gold.status.by-corpus"
+	METRIC_TOTAL  = "gold_status_total_digests"
+	METRIC_ALL    = "gold_status_all"
+	METRIC_CORPUS = "gold_status_by_corpus"
 )
 
 // GUIStatus reflects the current rebaseline status. In particular whether
@@ -109,7 +109,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 		expChanges <- e.(*expstorage.EventExpectationChange).TestChanges
 	})
 
-	tileStream := s.storages.GetTileStreamNow(2 * time.Minute)
+	tileStream := s.storages.GetTileStreamNow(2*time.Minute, "status-watcher")
 	sklog.Infof("Got tile stream for status watcher")
 
 	lastCpxTile := <-tileStream
