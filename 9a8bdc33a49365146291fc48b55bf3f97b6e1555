@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb689f12_54064435",
+        "filename": "README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-03T14:53:14Z",
+      "side": 1,
+      "message": "I\u0027m not actually sure how good of an idea this is.  It seems to work, but I did have some strange behavior where I made breaking changes to a package in buildbot.git, cloned outside of GOPATH, and did not experience a build breakage.  I suspect this is because:\n1. I had a copy of go.skia.org/infra in GOPATH which is what our imports point to.\n2. We have a single root-level module, as opposed to one module per package.\n\nIt might be a good idea to continue working in GOPATH for the time being.",
+      "range": {
+        "startLine": 27,
+        "startChar": 16,
+        "endLine": 29,
+        "endChar": 0
+      },
+      "revId": "9a8bdc33a49365146291fc48b55bf3f97b6e1555",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
