@@ -28,7 +28,7 @@ import (
 	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
@@ -38,6 +38,7 @@ import (
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/diff"
@@ -274,7 +275,7 @@ func main() {
 
 		var vcs vcsinfo.VCS
 		if *gitBTInstanceID != "" && *gitBTTableID != "" {
-			btConf := &gitstore.BTConfig{
+			btConf := &bt_gitstore.BTConfig{
 				ProjectID:  *projectID,
 				InstanceID: *gitBTInstanceID,
 				TableID:    *gitBTTableID,
@@ -283,10 +284,10 @@ func main() {
 			// If the repoURL is numeric then it is treated like the numeric ID of a repository and
 			// we look up the corresponding repo URL.
 			useRepoURL := *gitRepoURL
-			if foundRepoURL, ok := gitstore.RepoURLFromID(ctx, btConf, *gitRepoURL); ok {
+			if foundRepoURL, ok := bt_gitstore.RepoURLFromID(ctx, btConf, *gitRepoURL); ok {
 				useRepoURL = foundRepoURL
 			}
-			gitStore, err := gitstore.NewBTGitStore(ctx, btConf, useRepoURL)
+			gitStore, err := bt_gitstore.New(ctx, btConf, useRepoURL)
 			if err != nil {
 				sklog.Fatalf("Error instantiating gitstore: %s", err)
 			}
@@ -299,7 +300,7 @@ func main() {
 				// commit.
 				trackNCommits *= 10
 			}
-			vcs, err = gitstore.NewVCS(gitStore, "master", gitilesRepo, evt, trackNCommits)
+			vcs, err = bt_vcs.New(gitStore, "master", gitilesRepo, evt, trackNCommits)
 		} else {
 			vcs, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
 		}

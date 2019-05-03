@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
@@ -15,6 +14,7 @@ import (
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -239,7 +239,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 	// When new commits have become available trigger writing the baselines. We choose size 100
 	// because that is large enough to handle an unlikely torrent of commits being added to the repo.
 	commitCh := make(chan []*vcsinfo.IndexCommit, 100)
-	ixr.storages.EventBus.SubscribeAsync(gitstore.EV_NEW_GIT_COMMIT, func(e interface{}) {
+	ixr.storages.EventBus.SubscribeAsync(bt_vcs.EV_NEW_GIT_COMMIT, func(e interface{}) {
 		commitCh <- e.([]*vcsinfo.IndexCommit)
 	})
 

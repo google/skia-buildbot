@@ -17,11 +17,12 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/shared"
@@ -106,17 +107,17 @@ func main() {
 
 	var vcs vcsinfo.VCS
 	if *gitBTInstanceID != "" && *gitBTTableID != "" {
-		btConf := &gitstore.BTConfig{
+		btConf := &bt_gitstore.BTConfig{
 			ProjectID:  *projectID,
 			InstanceID: *gitBTInstanceID,
 			TableID:    *gitBTTableID,
 		}
-		gitStore, err := gitstore.NewBTGitStore(ctx, btConf, *gitRepoURL)
+		gitStore, err := bt_gitstore.New(ctx, btConf, *gitRepoURL)
 		if err != nil {
 			sklog.Fatalf("Error instantiating gitstore: %s", err)
 		}
 		gitilesRepo := gitiles.NewRepo("", "", nil)
-		vcs, err = gitstore.NewVCS(gitStore, "master", gitilesRepo, nil, 0)
+		vcs, err = bt_vcs.New(gitStore, "master", gitilesRepo, nil, 0)
 	} else {
 		vcs, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
 	}

@@ -53,6 +53,8 @@ type WebHandlers struct {
 	IssueTracker  issues.IssueTracker
 	SearchAPI     *search.SearchAPI
 
+	// TODO(kjlubick): get rid of this cache once bt_vcs properly caches the LongCommit
+	// that contain the messages.
 	messageCache sync.Map // maps hash -> commit message
 }
 
