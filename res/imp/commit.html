@@ -133,9 +133,13 @@
 
     _commitHref: function (c, repo) {
       if (!c || !repo) {
-        return "";
+        return '';
       }
-      return repo + '/+/' + c.hash;
+      if (repo.indexOf('github.com') !== -1) {
+        return repo + '/commit/' + c.hash;
+      } else {
+        return repo + '/+/' + c.hash;
+      }
     },
 
     _trunc: function (s) {
