@@ -2,7 +2,7 @@
 //
 // The processing can be triggered at any node of the graph
 // and will follow the directed edges of the graph. Before
-// a function in a node is executed all it's parents
+// a function in a node is executed all its parents
 // have to finish execution. Thus the graph defines the order
 // in which the functions are executed and which functions are
 // executed serially or in parallel.
@@ -16,8 +16,8 @@
 //
 // For example
 //
-//     root := NewNode(a)
-//     NewNode(d, root.Child(b), root.Child(c))
+//     root := NewNodeWithParents(a)
+//     NewNodeWithParents(d, root.Child(b), root.Child(c))
 //
 //     state := map[string]string{}
 //     root.Trigger(data)
@@ -58,9 +58,9 @@ func NoOp(ctx interface{}) error {
 	return nil
 }
 
-// NewNode creates a new Node in the processing DAG. It takes the function
+// NewNodeWithParents creates a new Node in the processing DAG. It takes the function
 // to be executed in this node and an optional list of parent nodes.
-func NewNode(fn ProcessFn, parents ...*Node) *Node {
+func NewNodeWithParents(fn ProcessFn, parents ...*Node) *Node {
 	// Create a new node with a unique id.
 	id := uuid.New()
 	node := &Node{
@@ -85,15 +85,15 @@ func NewNode(fn ProcessFn, parents ...*Node) *Node {
 // Child is a shorthand function that creates a child
 // node of an existing node.
 func (n *Node) Child(fn ProcessFn) *Node {
-	return NewNode(fn, n)
+	return NewNodeWithParents(fn, n)
 }
 
 // Trigger starts execution at the current node and
-// executes all functions that descendents of this node.
+// executes all functions that are descendents of this node.
 // It blocks until all nodes have been executed. If any
-// of the functions returns an error, execution seizes
+// of the functions returns an error, execution ceases
 // and the error is returned.
-// Note: Trigger can an be called on any node in the graph
+// Note: Trigger can be called on any node in the graph
 // and will only call the decendents of that node.
 func (n *Node) Trigger(state interface{}) error {
 	// Create a call message.

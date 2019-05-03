@@ -31,6 +31,9 @@ const (
 	TEST_DATA_STORAGE_PATH = "gold-testdata/goldentile.json.gz"
 )
 
+// TestBlamerWithSyntheticData tests a lot of the functionality of
+// blamer. TODO(kjlubick) I think it tests too much and should
+// be broken up into smaller pieces.
 func TestBlamerWithSyntheticData(t *testing.T) {
 	testutils.SmallTest(t)
 	start := time.Now().Unix()
@@ -43,14 +46,14 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	}
 
 	params := []map[string]string{
-		{"name": "foo", "config": "8888", types.CORPUS_FIELD: "gm"},
-		{"name": "foo", "config": "565", types.CORPUS_FIELD: "gm"},
-		{"name": "foo", "config": "gpu", types.CORPUS_FIELD: "gm"},
-		{"name": "bar", "config": "8888", types.CORPUS_FIELD: "gm"},
-		{"name": "bar", "config": "565", types.CORPUS_FIELD: "gm"},
-		{"name": "bar", "config": "gpu", types.CORPUS_FIELD: "gm"},
-		{"name": "baz", "config": "565", types.CORPUS_FIELD: "gm"},
-		{"name": "baz", "config": "gpu", types.CORPUS_FIELD: "gm"},
+		{types.PRIMARY_KEY_FIELD: "foo", "config": "8888", types.CORPUS_FIELD: "gm"},
+		{types.PRIMARY_KEY_FIELD: "foo", "config": "565", types.CORPUS_FIELD: "gm"},
+		{types.PRIMARY_KEY_FIELD: "foo", "config": "gpu", types.CORPUS_FIELD: "gm"},
+		{types.PRIMARY_KEY_FIELD: "bar", "config": "8888", types.CORPUS_FIELD: "gm"},
+		{types.PRIMARY_KEY_FIELD: "bar", "config": "565", types.CORPUS_FIELD: "gm"},
+		{types.PRIMARY_KEY_FIELD: "bar", "config": "gpu", types.CORPUS_FIELD: "gm"},
+		{types.PRIMARY_KEY_FIELD: "baz", "config": "565", types.CORPUS_FIELD: "gm"},
+		{types.PRIMARY_KEY_FIELD: "baz", "config": "gpu", types.CORPUS_FIELD: "gm"},
 	}
 
 	DI_1, DI_2, DI_3 := "digest1", "digest2", "digest3"
