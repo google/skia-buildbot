@@ -848,7 +848,7 @@ server {
 
     location / {
         add_header Content-Type text/html;
-        return 200 '<meta name="go-import" content="go.skia.org/infra git https://skia.googlesource.com/buildbot">';
+        return 200 '<meta name="go-import" content="go.skia.org/infra git https://skia.googlesource.com/buildbot"><meta name="go-import" content="go.skia.org/skia git https://skia.googlesource.com/skia">';
     }
 }
 
