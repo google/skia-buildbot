@@ -9,7 +9,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -52,10 +51,6 @@ type WebHandlers struct {
 	Indexer       *indexer.Indexer
 	IssueTracker  issues.IssueTracker
 	SearchAPI     *search.SearchAPI
-
-	// TODO(kjlubick): get rid of this cache once bt_vcs properly caches the LongCommit
-	// that contain the messages.
-	messageCache sync.Map // maps hash -> commit message
 }
 
 // TODO(stephana): once the byBlameHandler is removed, refactor this to
@@ -990,27 +985,19 @@ func (wh *WebHandlers) JsonGitLogHandler(w http.ResponseWriter, r *http.Request)
 
 	if start == end {
 		// Single commit
-		ci := make([]commitInfo, 1)
-		if m, ok := wh.messageCache.Load(start); ok {
-			ci[0] = commitInfo{
-				Commit:  start,
-				Message: m.(string),
-			}
-		} else {
-			// cache miss
-			c, err := wh.Storages.VCS.Details(ctx, start, false)
-			if err != nil || c == nil {
-				sklog.Infof("Could not find commit with hash %s: %v", start, err)
-				http.Error(w, "invalid start and end hash", http.StatusBadRequest)
-				return
-			}
-			wh.messageCache.Store(c.Hash, c.Subject)
-			ci[0] = commitInfo{
+		c, err := wh.Storages.VCS.Details(ctx, start, false)
+		if err != nil || c == nil {
+			sklog.Infof("Could not find commit with hash %s: %v", start, err)
+			http.Error(w, "invalid start and end hash", http.StatusBadRequest)
+			return
+		}
+
+		rv.Log = []commitInfo{
+			{
 				Commit:  c.Hash,
 				Message: c.Subject,
-			}
+			},
 		}
-		rv.Log = ci
 	} else {
 		// range of commits
 		details, err := wh.Storages.VCS.DetailsMulti(ctx, []string{start, end}, false)
@@ -1021,7 +1008,8 @@ func (wh *WebHandlers) JsonGitLogHandler(w http.ResponseWriter, r *http.Request)
 		}
 
 		first, second := details[0].Timestamp, details[1].Timestamp
-		// Add one nanosecond because range is exclusive on the end and we want to include that last commit
+		// Add one nanosecond because range is exclusive on the end and we want to include that
+		// last commit
 		indexCommits := wh.Storages.VCS.Range(first, second.Add(time.Nanosecond))
 		if indexCommits == nil {
 			// indexCommit should never be nil, but just in case...
@@ -1034,40 +1022,18 @@ func (wh *WebHandlers) JsonGitLogHandler(w http.ResponseWriter, r *http.Request)
 			hashes = append(hashes, c.Hash)
 		}
 
-		// Check the cache first, before making a query to DetailsMulti
-		// DetailsMulti can take over 500ms for large ranges (e.g. 100+ commits)
-		// So the cache helps keep latency low
-		toLookUp := []string{}
-		ci := make([]commitInfo, 0, len(hashes))
-		for _, h := range hashes {
-			if m, ok := wh.messageCache.Load(h); ok {
-				ci = append(ci, commitInfo{
-					Commit:  h,
-					Message: m.(string),
-				})
-			} else {
-				toLookUp = append(toLookUp, h)
-			}
+		commits, err := wh.Storages.VCS.DetailsMulti(ctx, hashes, false)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to look up commit data.")
+			return
 		}
 
-		if len(toLookUp) > 0 {
-			sklog.Debugf("Looking up commit data for %d hashes %q", len(toLookUp), toLookUp)
-
-			commits, err := wh.Storages.VCS.DetailsMulti(ctx, toLookUp, false)
-			if err != nil {
-				httputils.ReportError(w, r, err, "Failed to look up commit data.")
-				return
-			}
-
-			sklog.Debugf("Looking up complete")
-
-			for _, c := range commits {
-				wh.messageCache.Store(c.Hash, c.Subject)
-				ci = append(ci, commitInfo{
-					Commit:  c.Hash,
-					Message: c.Subject,
-				})
-			}
+		ci := make([]commitInfo, 0, len(commits))
+		for _, c := range commits {
+			ci = append(ci, commitInfo{
+				Commit:  c.Hash,
+				Message: c.Subject,
+			})
 		}
 		rv.Log = ci
 	}
