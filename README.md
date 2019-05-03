@@ -8,23 +8,34 @@ Getting the Source Code
 =======================
 
 The main source code repository is a Git repository hosted at
-https://skia.googlesource.com/buildbot. Although it is possible to check out
-this repository directly with git clone or using gclient fetch, it is preferred to use go get so
-that the code is arranged correctly for Go. If this is your first time working on Go code, read
-about [the GOPATH environment variable](https://golang.org/doc/code.html#GOPATH). Make sure that
-$GOPATH/bin comes before /usr/bin in your PATH. If you have GOPATH set, run:
+[https://skia.googlesource.com/buildbot.git](https://skia.googlesource.com/buildbot.git).
+It is possible to check out this repository directly with `git clone` or via
+`go get`:
+
+```
+$ cd ${WORKDIR}
+$ git clone https://skia.googlesource.com/buildbot.git
+```
+
+or
 
 ```
 $ go get -u -t go.skia.org/infra/...
 ```
 
-This fetches the repository into your $GOPATH directory along with all the
-Go dependencies.
-Note: go.skia.org is a custom import path and will only work if used like the examples
-[here](http://golang.org/cmd/go/#hdr-Remote_import_paths).
+The latter fetches the repository into your $GOPATH directory along with all the
+Go dependencies, while the former allows you to work in whatever directory you
+want. If you're working within GOPATH, you probably want to set this variable:
 
-Install [Node.js](https://nodejs.org/en/download/) (not as root) and add the bin dir to your
-path. Optionally run `npm install npm -g`, as suggested by the
+```
+export GO111MODULE=on
+```
+
+Note: go.skia.org is a custom import path and will only work if used like the
+examples [here](http://golang.org/cmd/go/#hdr-Remote_import_paths).
+
+Install [Node.js](https://nodejs.org/en/download/) (not as root) and add the bin
+dir to your path. Optionally run `npm install npm -g`, as suggested by the
 [npm getting started doc](https://docs.npmjs.com/getting-started/installing-node#updating-npm).
 
 Install other dependencies:
@@ -37,10 +48,9 @@ $ go get -u github.com/kisielk/errcheck \
 $ npm install -g polylint bower
 ```
 
-Build from GOPATH:
+Build ~everything:
 
 ```
-$ cd $GOPATH/src/go.skia.org/infra/
 $ make all
 ```
 
