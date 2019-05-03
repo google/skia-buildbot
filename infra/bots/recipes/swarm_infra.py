@@ -25,19 +25,7 @@ DEPS = [
 ]
 
 
-INFRA_GO = 'go.skia.org/infra'
 INFRA_GIT_URL = 'https://skia.googlesource.com/buildbot'
-
-REF_HEAD = 'HEAD'
-REF_ORIGIN_MASTER = 'origin/master'
-
-
-def git(api, *cmd, **kwargs):
-  git_cmd = 'git.bat' if api.platform.is_win else 'git'
-  return api.step(
-      'git %s' % cmd[0],
-      cmd=[git_cmd] + list(cmd),
-      **kwargs)
 
 
 def RunSteps(api):
@@ -47,44 +35,30 @@ def RunSteps(api):
       api.path.c.base_paths['start_dir'] +
       ('recipe_bundle', 'depot_tools'))
 
-  go_dir = api.path['start_dir'].join('go_deps')
-  go_src = go_dir.join('src')
-  api.file.ensure_directory('makedirs go/src', go_src)
-  infra_dir = go_src.join(INFRA_GO)
+  gopath = api.path['start_dir'].join('cache', 'gopath')
+  infra_dir = api.path['start_dir'].join('buildbot')
   go_cache = api.path['start_dir'].join('cache', 'go_cache')
   go_root = api.path['start_dir'].join('go', 'go')
   go_bin = go_root.join('bin')
 
-  # Run bot_update.
-  cfg_kwargs = {}
-  gclient_cfg = api.gclient.make_config(**cfg_kwargs)
-  dirname = go_dir.join('src', 'go.skia.org')
-  basename = 'infra'
-  sln = gclient_cfg.solutions.add()
-  sln.name = basename
-  sln.managed = False
-  sln.url = INFRA_GIT_URL
-  sln.revision = api.properties.get('revision', 'origin/master')
-  gclient_cfg.got_revision_mapping[basename] = 'got_revision'
-  patch_refs = None
-  patch_ref = api.properties.get('patch_ref')
-  if patch_ref:
-    patch_refs = ['%s@%s' %(api.properties['patch_repo'], patch_ref)]
-
-  with api.context(cwd=dirname):
-    api.bot_update.ensure_checkout(gclient_config=gclient_cfg,
-                                   patch_refs=patch_refs)
+  # Initialize the Git repo. We receive the code via Isolate, but it doesn't
+  # include the .git dir.
+  with api.context(cwd=infra_dir):
+    api.step('git init', cmd=['git', 'init'])
+    api.step('git add', cmd=['git', 'add', '.'])
+    api.step('git commit',
+             cmd=['git', 'commit', '-m', 'Fake commit to satisfy recipe tests'])
 
   # Fetch Go dependencies.
   env = {
       'CHROME_HEADLESS': '1',
       'GOCACHE': go_cache,
       'GOROOT': go_root,
-      'GOPATH': go_dir,
+      'GOPATH': gopath,
       'GIT_USER_AGENT': 'git/1.9.1',  # I don't think this version matters.
       'PATH': api.path.pathsep.join([
           str(go_bin),
-          str(go_dir.join('bin')),
+          str(gopath.join('bin')),
           str(api.path['start_dir'].join('gcloud_linux', 'bin')),
           str(api.path['start_dir'].join('protoc', 'bin')),
           str(api.path['start_dir'].join('node', 'node', 'bin')),
@@ -93,14 +67,15 @@ def RunSteps(api):
   }
   with api.context(cwd=infra_dir, env=env):
     api.step('which go', cmd=['which', 'go'])
-
-  # Set got_revision.
-  test_data = lambda: api.raw_io.test_api.stream_output('abc123')
-  with api.context(cwd=infra_dir):
-    rev_parse = git(api, 'rev-parse', 'HEAD',
-                    stdout=api.raw_io.output(),
-                    step_test_data=test_data)
-  rev_parse.presentation.properties['got_revision'] = rev_parse.stdout.strip()
+    api.step('go mod download', cmd=['go', 'mod', 'download'])
+    install_targets = [
+      'github.com/golang/protobuf/protoc-gen-go',
+      'github.com/kisielk/errcheck',
+      'golang.org/x/tools/cmd/goimports',
+      'golang.org/x/tools/cmd/stringer',
+    ]
+    for target in install_targets:
+      api.step('go install %s' % target, cmd=['go', 'install', '-v', target])
 
   # More prerequisites.
   builder = api.properties['buildername']
@@ -124,20 +99,6 @@ def RunSteps(api):
     env['DATASTORE_EMULATOR_HOST'] = 'localhost:8891'
     env['BIGTABLE_EMULATOR_HOST'] = 'localhost:8892'
     env['PUBSUB_EMULATOR_HOST'] = 'localhost:8893'
-
-  # Determine if any dependencies are missing from the go_deps asset. This
-  # happens whenever we add a dependency on a new package and will be resolved
-  # automatically the next time that go_deps is rolled. For now, explicitly sync
-  # the missing dependencies.
-  with api.context(env=env):
-    script = infra_dir.join('scripts', 'find_missing_go_deps.py')
-    output = api.python('Find missing Go DEPS',
-                        script=script,
-                        args=['--json'],
-                        stdout=api.raw_io.output()).stdout.rstrip()
-    if output:
-      for pkg in json.loads(output):
-        api.step('Sync missing %s' % pkg, cmd=['go', 'get', pkg])
 
   # Run tests.
   env['SKIABOT_TEST_DEPOT_TOOLS'] = api.path['depot_tools']
@@ -166,11 +127,15 @@ def RunSteps(api):
           api.step('stop the cloud data store emulator',
               cmd=['./run_emulator', 'stop'])
 
+  # Sanity check; none of the above should have modified the go.mod file.
+  with api.context(cwd=infra_dir):
+    api.step('git diff go.mod',
+             cmd=['git', 'diff', '--no-ext-diff', '--exit-code', 'go.mod'])
+
 def GenTests(api):
+  test_revision = 'abc123'
   yield (
       api.test('Infra-PerCommit') +
-      api.path.exists(api.path['start_dir'].join('gopath', 'src', INFRA_GO,
-                                                 '.git')) +
       api.properties(buildername='Infra-PerCommit-Small',
                      path_config='kitchen')
   )
@@ -182,7 +147,7 @@ def GenTests(api):
   yield (
       api.test('Infra-PerCommit_try_gerrit') +
       api.properties(buildername='Infra-PerCommit-Small',
-                     revision=REF_HEAD,
+                     revision=test_revision,
                      patch_issue='1234',
                      patch_ref='refs/changes/34/1234/1',
                      patch_repo='https://skia.googlesource.com/buildbot.git',
@@ -210,14 +175,4 @@ def GenTests(api):
       api.test('Infra-PerCommit-Race') +
       api.properties(buildername='Infra-PerCommit-Race',
                      path_config='kitchen')
-  )
-  yield (
-      api.test('missing_deps') +
-      api.properties(buildername='Infra-PerCommit-Small',
-                     path_config='kitchen') +
-    api.step_data('Find missing Go DEPS',
-        stdout=api.raw_io.output('''[
-  "github.com/hashicorp/go-multierror",
-  "github.com/cenkalti/backoff"
-]'''))
   )

@@ -3,16 +3,12 @@
 set -x -e
 
 export GOCACHE="$(pwd)/cache/go_cache"
-export GOPATH="$(pwd)/go_deps"
+export GOPATH="$(pwd)/cache/gopath"
 export GOROOT="$(pwd)/go/go"
 
-# This is kind of dumb, but the easiest way to get actual desired current state
-# of the repo. Replace the go_deps version of the infra repo with the isolated
-# version, which will be more up-to-date and include any applied patch.
-rm -rf ${GOPATH}/src/go.skia.org/infra
-cp -r ./buildbot ${GOPATH}/src/go.skia.org/infra
+cd buildbot
 
-task_drivers_dir=${GOPATH}/src/go.skia.org/infra/infra/bots/task_drivers
+task_drivers_dir=infra/bots/task_drivers
 for td in $(cd ${task_drivers_dir} && ls); do
   go build -o ${1}/${td} ${task_drivers_dir}/${td}/${td}.go
 done
