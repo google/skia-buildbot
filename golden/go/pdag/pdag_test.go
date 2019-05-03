@@ -36,7 +36,7 @@ func TestSimpleTopology(t *testing.T) {
 	}
 
 	// Create a two node topology with a source and a sink.
-	root := NewNode(rootFn)
+	root := NewNodeWithParents(rootFn)
 	root.Child(sinkFn)
 
 	// Create a context and trigger in the root node.
@@ -73,8 +73,8 @@ func TestGenericTopology(t *testing.T) {
 
 	// Create a topology that fans out to aFn, bFn, cFn and
 	// then collects the results in a sink function.
-	root := NewNode(rootFn)
-	NewNode(sinkFn,
+	root := NewNodeWithParents(rootFn)
+	NewNodeWithParents(sinkFn,
 		root.Child(bFn),
 		root.Child(cFn),
 		root.Child(dFn))
@@ -108,7 +108,7 @@ func TestError(t *testing.T) {
 		return fmt.Errorf("Not Implemented")
 	}
 
-	root := NewNode(NoOp)
+	root := NewNodeWithParents(NoOp)
 	root.Child(NoOp).
 		Child(NoOp).
 		Child(errFn).
@@ -129,12 +129,12 @@ func TestComplexCallOrder(t *testing.T) {
 	fFn := orderFn("f")
 	gFn := orderFn("g")
 
-	a := NewNode(aFn).setName("a")
+	a := NewNodeWithParents(aFn).setName("a")
 	b := a.Child(bFn).setName("b")
 	c := a.Child(cFn).setName("c")
 	b.Child(dFn).setName("d")
-	e := NewNode(eFn, b, c).setName("e")
-	NewNode(fFn, b, e).setName("f")
+	e := NewNodeWithParents(eFn, b, c).setName("e")
+	NewNodeWithParents(fFn, b, e).setName("f")
 	e.Child(gFn).setName("g")
 
 	// Create a context and trigger in the root node.
