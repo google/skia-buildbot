@@ -13,9 +13,11 @@ func Get() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	prefix := "go.skia.org/infra"
-	if !strings.Contains(dir, prefix) {
-		return "", fmt.Errorf("No repo root found; are we running inside a checkout?")
+	prefixes := []string{"go.skia.org/infra", "buildbot"}
+	for _, prefix := range prefixes {
+		if strings.Contains(dir, prefix) {
+			return strings.Split(dir, prefix)[0] + prefix, nil
+		}
 	}
-	return strings.Split(dir, prefix)[0] + prefix, nil
+	return "", fmt.Errorf("No repo root found; are we running inside a checkout?")
 }

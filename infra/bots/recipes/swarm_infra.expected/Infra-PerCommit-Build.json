@@ -1,111 +1,135 @@
 [
   {
     "cmd": [
-      "python",
-      "-u",
-      "RECIPE_MODULE[recipe_engine::file]/resources/fileutil.py",
-      "--json-output",
-      "/path/to/tmp/json",
-      "ensure-directory",
-      "--mode",
-      "0777",
-      "[START_DIR]/go_deps/src"
+      "git",
+      "init"
     ],
-    "infra_step": true,
-    "name": "makedirs go/src"
+    "cwd": "[START_DIR]/buildbot",
+    "name": "git init"
   },
   {
     "cmd": [
-      "python",
-      "-u",
-      "RECIPE_MODULE[depot_tools::bot_update]/resources/bot_update.py",
-      "--spec-path",
-      "cache_dir = '[GIT_CACHE]'\nsolutions = [{'deps_file': '.DEPS.git', 'managed': False, 'name': 'infra', 'url': 'https://skia.googlesource.com/buildbot'}]",
-      "--revision_mapping_file",
-      "{\"got_revision\": \"infra\"}",
-      "--git-cache-dir",
-      "[GIT_CACHE]",
-      "--cleanup-dir",
-      "[CLEANUP]/bot_update",
-      "--output_json",
-      "/path/to/tmp/json",
-      "--revision",
-      "infra@origin/master"
+      "git",
+      "add",
+      "."
     ],
-    "cwd": "[START_DIR]/go_deps/src/go.skia.org",
-    "env_prefixes": {
-      "PATH": [
-        "RECIPE_REPO[depot_tools]"
-      ]
-    },
-    "infra_step": true,
-    "name": "bot_update",
-    "~followup_annotations": [
-      "@@@STEP_TEXT@Some step text@@@",
-      "@@@STEP_LOG_LINE@json.output@{@@@",
-      "@@@STEP_LOG_LINE@json.output@  \"did_run\": true, @@@",
-      "@@@STEP_LOG_LINE@json.output@  \"fixed_revisions\": {@@@",
-      "@@@STEP_LOG_LINE@json.output@    \"infra\": \"origin/master\"@@@",
-      "@@@STEP_LOG_LINE@json.output@  }, @@@",
-      "@@@STEP_LOG_LINE@json.output@  \"manifest\": {@@@",
-      "@@@STEP_LOG_LINE@json.output@    \"infra\": {@@@",
-      "@@@STEP_LOG_LINE@json.output@      \"repository\": \"https://fake.org/infra.git\", @@@",
-      "@@@STEP_LOG_LINE@json.output@      \"revision\": \"5e03a58dc0850e5137a8ebbce29610670c756aed\"@@@",
-      "@@@STEP_LOG_LINE@json.output@    }@@@",
-      "@@@STEP_LOG_LINE@json.output@  }, @@@",
-      "@@@STEP_LOG_LINE@json.output@  \"patch_failure\": false, @@@",
-      "@@@STEP_LOG_LINE@json.output@  \"patch_root\": \"infra\", @@@",
-      "@@@STEP_LOG_LINE@json.output@  \"properties\": {@@@",
-      "@@@STEP_LOG_LINE@json.output@    \"got_revision\": \"5e03a58dc0850e5137a8ebbce29610670c756aed\", @@@",
-      "@@@STEP_LOG_LINE@json.output@    \"got_revision_cp\": \"refs/heads/master@{#197293}\"@@@",
-      "@@@STEP_LOG_LINE@json.output@  }, @@@",
-      "@@@STEP_LOG_LINE@json.output@  \"root\": \"infra\", @@@",
-      "@@@STEP_LOG_LINE@json.output@  \"source_manifest\": {@@@",
-      "@@@STEP_LOG_LINE@json.output@    \"directories\": {@@@",
-      "@@@STEP_LOG_LINE@json.output@      \"infra\": {@@@",
-      "@@@STEP_LOG_LINE@json.output@        \"git_checkout\": {@@@",
-      "@@@STEP_LOG_LINE@json.output@          \"repo_url\": \"https://fake.org/infra.git\", @@@",
-      "@@@STEP_LOG_LINE@json.output@          \"revision\": \"5e03a58dc0850e5137a8ebbce29610670c756aed\"@@@",
-      "@@@STEP_LOG_LINE@json.output@        }@@@",
-      "@@@STEP_LOG_LINE@json.output@      }@@@",
-      "@@@STEP_LOG_LINE@json.output@    }, @@@",
-      "@@@STEP_LOG_LINE@json.output@    \"version\": 0@@@",
-      "@@@STEP_LOG_LINE@json.output@  }, @@@",
-      "@@@STEP_LOG_LINE@json.output@  \"step_text\": \"Some step text\"@@@",
-      "@@@STEP_LOG_LINE@json.output@}@@@",
-      "@@@STEP_LOG_END@json.output@@@",
-      "@@@SET_BUILD_PROPERTY@got_revision@\"5e03a58dc0850e5137a8ebbce29610670c756aed\"@@@",
-      "@@@SET_BUILD_PROPERTY@got_revision_cp@\"refs/heads/master@{#197293}\"@@@"
-    ]
+    "cwd": "[START_DIR]/buildbot",
+    "name": "git add"
+  },
+  {
+    "cmd": [
+      "git",
+      "commit",
+      "-m",
+      "Fake commit to satisfy recipe tests"
+    ],
+    "cwd": "[START_DIR]/buildbot",
+    "name": "git commit"
   },
   {
     "cmd": [
       "which",
       "go"
     ],
-    "cwd": "[START_DIR]/go_deps/src/go.skia.org/infra",
+    "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
-      "GOPATH": "[START_DIR]/go_deps",
+      "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/go_deps/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
     },
     "name": "which go"
   },
   {
     "cmd": [
-      "git",
-      "rev-parse",
-      "HEAD"
+      "go",
+      "mod",
+      "download"
     ],
-    "cwd": "[START_DIR]/go_deps/src/go.skia.org/infra",
-    "name": "git rev-parse",
-    "stdout": "/path/to/tmp/",
-    "~followup_annotations": [
-      "@@@SET_BUILD_PROPERTY@got_revision@\"abc123\"@@@"
-    ]
+    "cwd": "[START_DIR]/buildbot",
+    "env": {
+      "CHROME_HEADLESS": "1",
+      "GIT_USER_AGENT": "git/1.9.1",
+      "GOCACHE": "[START_DIR]/cache/go_cache",
+      "GOPATH": "[START_DIR]/cache/gopath",
+      "GOROOT": "[START_DIR]/go/go",
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+    },
+    "name": "go mod download"
+  },
+  {
+    "cmd": [
+      "go",
+      "install",
+      "-v",
+      "github.com/golang/protobuf/protoc-gen-go"
+    ],
+    "cwd": "[START_DIR]/buildbot",
+    "env": {
+      "CHROME_HEADLESS": "1",
+      "GIT_USER_AGENT": "git/1.9.1",
+      "GOCACHE": "[START_DIR]/cache/go_cache",
+      "GOPATH": "[START_DIR]/cache/gopath",
+      "GOROOT": "[START_DIR]/go/go",
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+    },
+    "name": "go install github.com/golang/protobuf/protoc-gen-go"
+  },
+  {
+    "cmd": [
+      "go",
+      "install",
+      "-v",
+      "github.com/kisielk/errcheck"
+    ],
+    "cwd": "[START_DIR]/buildbot",
+    "env": {
+      "CHROME_HEADLESS": "1",
+      "GIT_USER_AGENT": "git/1.9.1",
+      "GOCACHE": "[START_DIR]/cache/go_cache",
+      "GOPATH": "[START_DIR]/cache/gopath",
+      "GOROOT": "[START_DIR]/go/go",
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+    },
+    "name": "go install github.com/kisielk/errcheck"
+  },
+  {
+    "cmd": [
+      "go",
+      "install",
+      "-v",
+      "golang.org/x/tools/cmd/goimports"
+    ],
+    "cwd": "[START_DIR]/buildbot",
+    "env": {
+      "CHROME_HEADLESS": "1",
+      "GIT_USER_AGENT": "git/1.9.1",
+      "GOCACHE": "[START_DIR]/cache/go_cache",
+      "GOPATH": "[START_DIR]/cache/gopath",
+      "GOROOT": "[START_DIR]/go/go",
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+    },
+    "name": "go install golang.org/x/tools/cmd/goimports"
+  },
+  {
+    "cmd": [
+      "go",
+      "install",
+      "-v",
+      "golang.org/x/tools/cmd/stringer"
+    ],
+    "cwd": "[START_DIR]/buildbot",
+    "env": {
+      "CHROME_HEADLESS": "1",
+      "GIT_USER_AGENT": "git/1.9.1",
+      "GOCACHE": "[START_DIR]/cache/go_cache",
+      "GOPATH": "[START_DIR]/cache/gopath",
+      "GOROOT": "[START_DIR]/go/go",
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+    },
+    "name": "go install golang.org/x/tools/cmd/stringer"
   },
   {
     "cmd": [
@@ -115,51 +139,44 @@
       "-g",
       "bower@1.8.2"
     ],
-    "cwd": "[START_DIR]/go_deps/src/go.skia.org/infra",
+    "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
-      "GOPATH": "[START_DIR]/go_deps",
+      "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/go_deps/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
     },
     "name": "install bower"
-  },
-  {
-    "cmd": [
-      "python",
-      "-u",
-      "[START_DIR]/go_deps/src/go.skia.org/infra/scripts/find_missing_go_deps.py",
-      "--json"
-    ],
-    "env": {
-      "CHROME_HEADLESS": "1",
-      "GIT_USER_AGENT": "git/1.9.1",
-      "GOCACHE": "[START_DIR]/cache/go_cache",
-      "GOPATH": "[START_DIR]/go_deps",
-      "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/go_deps/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
-    },
-    "name": "Find missing Go DEPS",
-    "stdout": "/path/to/tmp/"
   },
   {
     "cmd": [
       "make",
       "all"
     ],
-    "cwd": "[START_DIR]/go_deps/src/go.skia.org/infra",
+    "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
-      "GOPATH": "[START_DIR]/go_deps",
+      "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/go_deps/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>:[DEPOT_TOOLS]",
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>:[DEPOT_TOOLS]",
       "SKIABOT_TEST_DEPOT_TOOLS": "[DEPOT_TOOLS]"
     },
     "name": "make all"
+  },
+  {
+    "cmd": [
+      "git",
+      "diff",
+      "--no-ext-diff",
+      "--exit-code",
+      "go.mod"
+    ],
+    "cwd": "[START_DIR]/buildbot",
+    "name": "git diff go.mod"
   },
   {
     "jsonResult": null,

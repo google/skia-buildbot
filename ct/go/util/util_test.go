@@ -24,7 +24,7 @@ func TestGetStartRange(t *testing.T) {
 
 func TestGetPathToPyFiles(t *testing.T) {
 	testutils.SmallTest(t)
-	expectedLocalPathSuffix := filepath.Join("src", "go.skia.org", "infra", "ct", "py")
+	expectedLocalPathSuffix := filepath.Join("ct", "py")
 	expectedMasterPath := filepath.Join("/", "usr", "local", "share", "ct-master", "py")
 	expectedSwarmingPathSuffix := "py"
 

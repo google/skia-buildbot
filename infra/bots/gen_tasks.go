@@ -28,8 +28,6 @@ const (
 	DEFAULT_OS       = DEFAULT_OS_LINUX
 	DEFAULT_OS_LINUX = "Debian-9.8"
 
-	ISOLATE_GO_DEPS_NAME = "Housekeeper-PerCommit-IsolateGoDeps"
-
 	// Small is a 2-core machine.
 	MACHINE_TYPE_SMALL = "n1-highmem-2"
 	// Medium is a 16-core machine
@@ -54,7 +52,6 @@ var (
 	// Top-level list of all Jobs to run at each commit.
 	JOBS = []string{
 		"Housekeeper-OnDemand-Presubmit",
-		ISOLATE_GO_DEPS_NAME,
 		"Infra-PerCommit-Build",
 		"Infra-PerCommit-Small",
 		"Infra-PerCommit-Medium",
@@ -125,6 +122,10 @@ var (
 		{
 			Name: "go_cache",
 			Path: "cache/go_cache",
+		},
+		{
+			Name: "gopath",
+			Path: "cache/gopath",
 		},
 	}
 
@@ -197,38 +198,12 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 	return BUNDLE_RECIPES_NAME
 }
 
-type isolateAssetCfg struct {
-	cipdPkg string
-	path    string
-}
-
-var ISOLATE_ASSET_MAPPING = map[string]isolateAssetCfg{
-	ISOLATE_GO_DEPS_NAME: {
-		cipdPkg: "go_deps",
-		path:    "go_deps",
-	},
-}
-
-// isolateCIPDAsset generates a task to isolate the given CIPD asset.
-func isolateCIPDAsset(b *specs.TasksCfgBuilder, name string) string {
-	asset := ISOLATE_ASSET_MAPPING[name]
-	b.MustAddTask(name, &specs.TaskSpec{
-		CipdPackages: []*specs.CipdPackage{
-			b.MustGetCipdPackageFromAsset(asset.cipdPkg),
-		},
-		Command:    []string{"/bin/cp", "-rL", asset.path, "${ISOLATED_OUTDIR}"},
-		Dimensions: linuxGceDimensions(MACHINE_TYPE_SMALL),
-		Isolate:    relpath("empty.isolate"),
-	})
-	return name
-}
-
 // buildTaskDrivers generates the task to compile the task driver code to run on
 // all platforms.
 func buildTaskDrivers(b *specs.TasksCfgBuilder) string {
 	b.MustAddTask(BUILD_TASK_DRIVERS_NAME, &specs.TaskSpec{
 		Caches:       CACHES_GO,
-		CipdPackages: append(CIPD_PKGS_GIT, b.MustGetCipdPackageFromAsset("go"), b.MustGetCipdPackageFromAsset("go_deps")),
+		CipdPackages: append(CIPD_PKGS_GIT, b.MustGetCipdPackageFromAsset("go")),
 		Command: []string{
 			"/bin/bash", "buildbot/infra/bots/build_task_drivers.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
 		},
@@ -318,7 +293,7 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 		// Using MACHINE_TYPE_LARGE for Large tests saves ~2 minutes.
 		machineType = MACHINE_TYPE_LARGE
 	}
-	task := kitchenTask(name, "swarm_infra", "infrabots.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
+	task := kitchenTask(name, "swarm_infra", "whole_repo.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
 	task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_GIT...)
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
 	task.Caches = append(task.Caches, CACHES_GO...)
@@ -332,8 +307,6 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 	if strings.Contains(name, "Large") || strings.Contains(name, "Race") {
 		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("gcloud_linux"))
 	}
-
-	task.Dependencies = append(task.Dependencies, isolateCIPDAsset(b, ISOLATE_GO_DEPS_NAME))
 
 	// Re-run failing bots but not when testing for race conditions.
 	task.MaxAttempts = 2
@@ -404,12 +377,12 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 			"--workdir", ".",
 			"--alsologtostderr",
 		},
-		Dependencies: []string{BUILD_TASK_DRIVERS_NAME, ISOLATE_GO_DEPS_NAME},
+		Dependencies: []string{BUILD_TASK_DRIVERS_NAME},
 		Dimensions:   linuxGceDimensions(machineType),
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
-		Isolate:        "empty.isolate",
+		Isolate:        "whole_repo.isolate",
 		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
 	}
 	b.MustAddTask(name, t)
@@ -421,8 +394,8 @@ func process(b *specs.TasksCfgBuilder, name string) {
 	var priority float64 // Leave as default for most jobs.
 	deps := []string{}
 
-	// Experimental recipe-less tasks.
 	if strings.Contains(name, "Experimental") {
+		// Experimental recipe-less tasks.
 		deps = append(deps, experimental(b, name))
 	} else {
 		// Infra tests.
@@ -434,10 +407,6 @@ func process(b *specs.TasksCfgBuilder, name string) {
 			priority = 1
 			deps = append(deps, presubmit(b, name))
 		}
-	}
-	// Isolate CIPD assets.
-	if _, ok := ISOLATE_ASSET_MAPPING[name]; ok {
-		deps = append(deps, isolateCIPDAsset(b, name))
 	}
 
 	// Add the Job spec.
