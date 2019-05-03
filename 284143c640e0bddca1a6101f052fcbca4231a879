@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a72813a0_176ac63c",
+        "filename": "res/imp/commit.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-03T14:23:16Z",
+      "side": 1,
+      "message": "nit: line 129 and 147 uses \"\", change them or this?",
+      "range": {
+        "startLine": 136,
+        "startChar": 15,
+        "endLine": 136,
+        "endChar": 17
+      },
+      "revId": "284143c640e0bddca1a6101f052fcbca4231a879",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
