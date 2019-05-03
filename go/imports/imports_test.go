@@ -56,6 +56,6 @@ func TestNoPackageImportsTestify(t *testing.T) {
 				badImports = append(badImports, i)
 			}
 		}
-		assert.Emptyf(t, badImports, "No non-test or non-testutil packages should import %q but the following do:\n%s", p, strings.Join(badImports, "\n"))
+		assert.Emptyf(t, badImports, "Only test or testutil packages should import %q. Violators:\n%s", p, strings.Join(badImports, "\n"))
 	}
 }
