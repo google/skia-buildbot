@@ -16,6 +16,24 @@
       "revId": "f0bafde60066ceb0522a0d04a71296a458eec8a9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "633775d6_25cdc544",
+        "filename": "go.mod",
+        "patchSetId": 23
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-03T14:22:17Z",
+      "side": 1,
+      "message": "Not sure if you missed this comment.",
+      "parentUuid": "3144dca4_cae8505a",
+      "revId": "f0bafde60066ceb0522a0d04a71296a458eec8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
