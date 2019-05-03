@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bc9ec8bb_d891012a",
+        "filename": "res/imp/http-server.mk",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-03T12:19:14Z",
+      "side": 1,
+      "message": "Does this still work for, eg. borenet0.cnc.corp.google.com:8080?",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 22
+      },
+      "revId": "2bfefdbabdb7b0a92f6a15039b658c21eff0d57c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
