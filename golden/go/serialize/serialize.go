@@ -14,9 +14,9 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -183,7 +183,7 @@ func DeserializeTile(r io.Reader) (*tiling.Tile, error) {
 // It will first write to a temporary file and then rename it
 // to target path.
 func CacheTile(tile *tiling.Tile, path string) error {
-	defer timer.New("Save cached tile").Stop()
+	defer shared.NewMetricsTimer("write_cached_tile").Stop()
 	dirName, fileName := filepath.Split(path)
 
 	outFile, err := ioutil.TempFile(dirName, fileName)
@@ -216,7 +216,7 @@ func LoadCachedTile(path string) (*tiling.Tile, error) {
 		return nil, nil
 	}
 
-	defer timer.New("Loading cached tile").Stop()
+	defer shared.NewMetricsTimer("load_cached_tile").Stop()
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err

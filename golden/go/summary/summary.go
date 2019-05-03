@@ -10,10 +10,10 @@ import (
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
@@ -123,12 +123,12 @@ type TraceID struct {
 //   Only consider digests at head if true.
 //
 func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []string, query url.Values, head bool) (map[string]*Summary, error) {
-	defer timer.New("CalcSummaries").Stop()
+	defer shared.NewMetricsTimer("calc_summaries_total").Stop()
 	sklog.Infof("CalcSummaries: head %v", head)
 
 	ret := map[string]*Summary{}
 
-	t := timer.New("CalcSummaries:Expectations")
+	t := shared.NewMetricsTimer("calc_summaries_expectations")
 	e, err := s.storages.ExpectationsStore.Get()
 	t.Stop()
 	if err != nil {
@@ -137,7 +137,7 @@ func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []string, query u
 
 	// Filter down to just the traces we are interested in, based on query.
 	filtered := map[string][]*TraceID{}
-	t = timer.New("Filter Traces")
+	t = shared.NewMetricsTimer("calc_summaries_filter_traces")
 	for id, tr := range tile.Traces {
 		name := tr.Params()[types.PRIMARY_KEY_FIELD]
 		if len(testNames) > 0 && !util.In(name, testNames) {
@@ -156,7 +156,7 @@ func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []string, query u
 	traceTally := s.tallies.ByTrace()
 
 	// Now create summaries for each test using the filtered set of traces.
-	t = timer.New("Tally up the filtered traces")
+	t = shared.NewMetricsTimer("calc_summaries_tally")
 	lastCommitIndex := tile.LastCommitIndex()
 	for name, traces := range filtered {
 		digests := util.NewStringSet()
@@ -214,7 +214,7 @@ func (s *Summaries) search(tile *tiling.Tile, query string, head bool, pos bool,
 		return nil, fmt.Errorf("Failed to parse Query in Search: %s", err)
 	}
 
-	t := timer.New("Search:Expectations")
+	t := shared.NewMetricsTimer("search_expectations")
 	e, err := s.storages.ExpectationsStore.Get()
 	t.Stop()
 	if err != nil {
@@ -223,7 +223,7 @@ func (s *Summaries) search(tile *tiling.Tile, query string, head bool, pos bool,
 
 	// Filter down to just the traces we are interested in, based on query.
 	filtered := map[string]tiling.Trace{}
-	t = timer.New("Filter Traces")
+	t = shared.NewMetricsTimer("search_filter_traces")
 	for id, tr := range tile.Traces {
 		if tiling.Matches(tr, q) {
 			filtered[id] = tr
@@ -235,7 +235,7 @@ func (s *Summaries) search(tile *tiling.Tile, query string, head bool, pos bool,
 
 	// Find all test:digest's in the filtered traces.
 	matches := map[string]bool{}
-	t = timer.New("Tally up the filtered traces")
+	t = shared.NewMetricsTimer("search_tally")
 	lastCommitIndex := tile.LastCommitIndex()
 	for id, trace := range filtered {
 		test := trace.Params()[types.PRIMARY_KEY_FIELD]
