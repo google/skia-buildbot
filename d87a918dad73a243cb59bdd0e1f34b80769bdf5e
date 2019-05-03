@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da5713a2_dede72c0",
+        "filename": "golden/go/shared/metrics_helper.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-03T21:22:16Z",
+      "side": 1,
+      "message": "You might want GetFloat64SummaryMetric and timer.NewWithSummary, which will provide 50th, 90th, and 99th %ile numbers at each data point. If you use GetFloat64Metric, each data point will just be the most recent value. (Prometheus collects one data point per scrape interval, which is 1m.)\n\nAlso, if you don\u0027t really care about having the times in the logs (personally I would think this would be mostly noise), you probably want to use metrics2.NewTimer (or metrics2.FuncTimer) instead of timer.NewWithMetric.\n\n(Maybe we should refactor to merge metrics2.NewTimer and timer.NewWithMetric. The method metrics2.Client.NewTimer isn\u0027t really necessary.)",
+      "range": {
+        "startLine": 13,
+        "startChar": 15,
+        "endLine": 13,
+        "endChar": 31
+      },
+      "revId": "d87a918dad73a243cb59bdd0e1f34b80769bdf5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a3643b6b_4e20c765",
+        "filename": "golden/go/types/expectations.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-03T21:22:16Z",
+      "side": 1,
+      "message": "TestExpBuilder",
+      "range": {
+        "startLine": 112,
+        "startChar": 54,
+        "endLine": 112,
+        "endChar": 66
+      },
+      "revId": "d87a918dad73a243cb59bdd0e1f34b80769bdf5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
