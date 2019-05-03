@@ -21,3 +21,9 @@ all: packages android_hashlookup
 .PHONY: protobuf
 protobuf:
 	go generate ./...
+
+.PHONY: mocks
+mocks:
+	go get github.com/vektra/mockery/...
+
+	mockery -name GitStore -dir gitstore/ -output ./gitstore/mocks/
