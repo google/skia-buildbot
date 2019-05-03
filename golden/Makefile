@@ -63,6 +63,15 @@ build-static-diffserver: skiaversion
 	rm -f ./build/diff_server_k8s
 	$(KGO) -o build/diff_server_k8s -a ./cmd/skia_diff_server/main.go
 
+.PHONY: release
+release: allgo frontend
+	./build_release "release" "all"
+
+.PHONY: release_diffserver
+release_diffserver: allgo
+	./build_release_diffserver "release" "all"
+
+
 .PHONY: mocks
 mocks:
 	go get github.com/vektra/mockery/...
