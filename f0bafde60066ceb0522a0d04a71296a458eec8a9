@@ -34,6 +34,24 @@
       "revId": "f0bafde60066ceb0522a0d04a71296a458eec8a9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "007b8a3b_3294cac6",
+        "filename": "go.mod",
+        "patchSetId": 23
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-03T14:33:07Z",
+      "side": 1,
+      "message": "Whoops, yes I did.  I guess I could document them in README.md, although I\u0027m not sure how useful that would be.",
+      "parentUuid": "633775d6_25cdc544",
+      "revId": "f0bafde60066ceb0522a0d04a71296a458eec8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
