@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -10,11 +9,10 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/task_driver/go/lib/checkout"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
-	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 var (
@@ -37,15 +35,10 @@ var (
 // goVars returns the target directory for the infra repo and the full set of
 // environment variables which should be used for running Go commands.
 func goVars(ctx context.Context, workdir string) (string, []string) {
-	goPath := path.Join(workdir, "go_deps")
-	goSrc := path.Join(goPath, "src")
-	if err := os_steps.MkdirAll(ctx, goSrc); err != nil {
-		td.Fatal(ctx, err)
-	}
+	goPath := path.Join(workdir, "gopath")
 	goRoot := path.Join(workdir, "go", "go")
 	goBin := path.Join(goRoot, "bin")
-	checkoutRoot := path.Join(goSrc, "go.skia.org")
-	infraDir := path.Join(checkoutRoot, "infra")
+	infraDir := path.Join(workdir, "buildbot")
 
 	depotToolsDir := path.Join(workdir, "depot_tools")
 	PATH := strings.Join([]string{
@@ -69,34 +62,6 @@ func goVars(ctx context.Context, workdir string) (string, []string) {
 	return infraDir, env
 }
 
-func syncMissingGoDeps(ctx context.Context, infraDir string) error {
-	ctx = td.StartStep(ctx, td.Props("Sync missing Go DEPS"))
-	defer td.EndStep(ctx)
-
-	// Determine if any dependencies are missing from the go_deps asset. This
-	// happens whenever we add a dependency on a new package and will be resolved
-	// automatically the next time that go_deps is rolled. For now, explicitly sync
-	// the missing dependencies.
-	script := path.Join(infraDir, "scripts", "find_missing_go_deps.py")
-	missing, err := exec.RunCwd(ctx, ".", "python", script, "--json")
-	if err != nil {
-		return td.FailStep(ctx, err)
-	}
-	missing = strings.TrimSpace(missing)
-	if len(missing) > 0 {
-		var missingList []string
-		if err := json.Unmarshal([]byte(missing), &missingList); err != nil {
-			return td.FailStep(ctx, err)
-		}
-		for _, pkg := range missingList {
-			if _, err := exec.RunCwd(ctx, ".", "go", "get", pkg); err != nil {
-				return td.FailStep(ctx, err)
-			}
-		}
-	}
-	return nil
-}
-
 func main() {
 	// Setup.
 	ctx := td.StartRun(projectId, taskId, taskName, output, local)
@@ -115,18 +80,17 @@ func main() {
 	}
 	infraDir, goEnv := goVars(ctx, wd)
 
-	// Check out code.
-	*repo = strings.TrimSuffix(*repo, ".git")
-	repoState := types.RepoState{
-		Repo:     *repo,
-		Revision: *revision,
-		Patch: types.Patch{
-			Issue:    *patchIssue,
-			Patchset: *patchSet,
-			Server:   *patchServer,
-		},
+	// Initialize the Git repo. We receive the code via Isolate, but it
+	// doesn't include the .git dir.
+	// with cwd = infraDir:
+	gd := git.GitDir(infraDir)
+	if _, err := gd.Git(ctx, "init"); err != nil {
+		td.Fatal(ctx, err)
 	}
-	if _, err := checkout.EnsureGitCheckout(ctx, infraDir, repoState); err != nil {
+	if _, err := gd.Git(ctx, "add", "."); err != nil {
+		td.Fatal(ctx, err)
+	}
+	if _, err := gd.Git(ctx, "commit", "-m", "Fake commit to satisfy recipe tests"); err != nil {
 		td.Fatal(ctx, err)
 	}
 
@@ -160,18 +124,32 @@ func main() {
 		}
 		sklog.Infof("Go version %s", out)
 
+		// Sync dependencies.
+		if _, err := exec.RunCwd(ctx, infraDir, "go", "mod", "download"); err != nil {
+			return err
+		}
+		installTargets := []string{
+			"github.com/golang/protobuf/protoc-gen-go",
+			"github.com/kisielk/errcheck",
+			"golang.org/x/tools/cmd/goimports",
+			"golang.org/x/tools/cmd/stringer",
+		}
+		for _, target := range installTargets {
+			if _, err := exec.RunCwd(ctx, infraDir, "go", "install", "-v", target); err != nil {
+				return err
+			}
+		}
+
 		// More prerequisites.
 		if !strings.Contains(*taskName, "Race") {
 			if _, err := exec.RunCwd(ctx, ".", "sudo", "npm", "i", "-g", "bower@1.8.2"); err != nil {
 				return err
 			}
 		}
-		if _, err := exec.RunCwd(ctx, path.Join(infraDir, "go", "database"), "./setup_test_db"); err != nil {
-			return err
-		}
-
-		if err := syncMissingGoDeps(ctx, infraDir); err != nil {
-			return err
+		if !strings.Contains(*taskName, "Build") {
+			if _, err := exec.RunCwd(ctx, path.Join(infraDir, "go", "database"), "./setup_test_db"); err != nil {
+				return err
+			}
 		}
 
 		// Run the tests.
@@ -188,6 +166,12 @@ func main() {
 		if _, err := exec.RunCwd(ctx, infraDir, cmd...); err != nil {
 			return err
 		}
+
+		// Sanity check; none of the above should have modified the go.mod file.
+		if _, err := exec.RunCwd(ctx, infraDir, "git", "diff", "--no-ext-diff", "--exit-code", "go.mod"); err != nil {
+			return err
+		}
+
 		return nil
 	}); err != nil {
 		td.Fatal(ctx, err)
