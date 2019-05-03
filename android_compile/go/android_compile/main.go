@@ -35,6 +35,10 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+const (
+	FORCE_SYNC_POST_URL = "/_/force_sync"
+)
+
 var (
 	// Flags
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
@@ -47,6 +51,9 @@ var (
 	repoUpdateDuration = flag.Duration("repo_update_duration", 1*time.Hour, "How often to update the main Android repository.")
 	serviceAccount     = flag.String("service_account", "", "Should be set when running in K8s.")
 	authWhiteList      = flag.String("auth_whitelist", "google.com", "White space separated list of domains and email addresses that are allowed to login.")
+
+	// Used for debugging.
+	hang = flag.Bool("hang", false, "If true, just hand and do nothing.")
 
 	// Pubsub for storage flags.
 	projectID      = flag.String("project_id", "google.com:skia-corp", "Project ID of the Cloud project where the PubSub topic and GS bucket lives.")
@@ -96,18 +103,44 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var templateTasks = struct {
-		WaitingTasks []*CompileTask
-		RunningTasks []*CompileTask
+	var info = struct {
+		WaitingTasks         []*CompileTask
+		RunningTasks         []*CompileTask
+		MirrorLastSynced     string
+		MirrorUpdateDuration time.Duration
+		MirrorUpdateRunning  bool
 	}{
-		WaitingTasks: waitingTasks,
-		RunningTasks: runningTasks,
+		WaitingTasks:         waitingTasks,
+		RunningTasks:         runningTasks,
+		MirrorLastSynced:     MirrorLastSynced.Format("Mon Jan 2 15:04:05 MST"),
+		MirrorUpdateDuration: *repoUpdateDuration,
+		MirrorUpdateRunning:  MirrorUpdateRunning,
 	}
 
-	if err := indexTemplate.Execute(w, templateTasks); err != nil {
+	if err := indexTemplate.Execute(w, info); err != nil {
 		httputils.ReportError(w, r, err, "Failed to expand template")
 		return
 	}
+	return
+}
+
+func forceSyncHandler(w http.ResponseWriter, r *http.Request) {
+	if *local {
+		reloadTemplates()
+	}
+
+	if login.LoggedInAs(r) == "" {
+		http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
+		return
+	}
+
+	if MirrorUpdateRunning {
+		httputils.ReportError(w, r, nil, "Checkout sync is currently in progress")
+		return
+	}
+
+	sklog.Infof("Force sync button has been pressed by %s", login.LoggedInAs(r))
+	UpdateMirror(context.Background())
 	return
 }
 
@@ -240,6 +273,7 @@ func runServer() {
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", indexHandler)
+	r.HandleFunc(FORCE_SYNC_POST_URL, forceSyncHandler)
 
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
@@ -274,6 +308,11 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, allowed.Googlers(), allowed.Googlers(), nil)
+
+	if *hang {
+		sklog.Infof("--hang provided; doing nothing.")
+		httputils.RunHealthCheckServer(*port)
+	}
 
 	// Create token source.
 	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_READ_WRITE, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, datastore.ScopeDatastore)
@@ -344,38 +383,38 @@ func main() {
 	// Reset metrics on server startup.
 	resetMetrics()
 
-	// Find and reschedule all CompileTasks that are in "running" state. Any
-	// "running" CompileTasks means that the server was restarted in the middle
-	// of run(s). Do not block bringing up the server.
-	go func() {
-		_, runningTasksAndKeys, err := GetCompileTasksAndKeys()
-		if err != nil {
-			sklog.Fatalf("Failed to retrieve compile tasks and keys: %s", err)
-		}
+	//// Find and reschedule all CompileTasks that are in "running" state. Any
+	//// "running" CompileTasks means that the server was restarted in the middle
+	//// of run(s). Do not block bringing up the server.
+	//go func() {
+	//	_, runningTasksAndKeys, err := GetCompileTasksAndKeys()
+	//	if err != nil {
+	//		sklog.Fatalf("Failed to retrieve compile tasks and keys: %s", err)
+	//	}
 
-		for _, taskAndKey := range runningTasksAndKeys {
-			sklog.Infof("Found orphaned task %d. Retriggering it...", taskAndKey.key.ID)
-			// Fetch the object attributes.
-			fileName := fmt.Sprintf("%s-%d-%d.json", taskAndKey.task.LunchTarget, taskAndKey.task.Issue, taskAndKey.task.PatchSet)
-			objAttr, err := storageClient.Bucket(*storageBucket).Object(fileName).Attrs(ctx)
-			if err != nil {
-				sklog.Fatalf("Unable to get handle for orphaned task '%s/%s': %s", *storageBucket, fileName, err)
-			}
+	//	for _, taskAndKey := range runningTasksAndKeys {
+	//		sklog.Infof("Found orphaned task %d. Retriggering it...", taskAndKey.key.ID)
+	//		// Fetch the object attributes.
+	//		fileName := fmt.Sprintf("%s-%d-%d.json", taskAndKey.task.LunchTarget, taskAndKey.task.Issue, taskAndKey.task.PatchSet)
+	//		objAttr, err := storageClient.Bucket(*storageBucket).Object(fileName).Attrs(ctx)
+	//		if err != nil {
+	//			sklog.Fatalf("Unable to get handle for orphaned task '%s/%s': %s", *storageBucket, fileName, err)
+	//		}
 
-			triggerCompileTask(ctx, newGCSFileLocation(objAttr, storageClient), taskAndKey.task, taskAndKey.key)
-		}
-	}()
+	//		triggerCompileTask(ctx, newGCSFileLocation(objAttr, storageClient), taskAndKey.task, taskAndKey.key)
+	//	}
+	//}()
 
-	// Wait for compile task requests that come in.
-	go func() {
-		for true {
-			fileLocation := <-resultCh
-			if err = readGSAndTriggerCompileTask(ctx, fileLocation); err != nil {
-				sklog.Errorf("Error when reading from GS and triggering compile task: %s", err)
-				continue
-			}
-		}
-	}()
+	//// Wait for compile task requests that come in.
+	//go func() {
+	//	for true {
+	//		fileLocation := <-resultCh
+	//		if err = readGSAndTriggerCompileTask(ctx, fileLocation); err != nil {
+	//			sklog.Errorf("Error when reading from GS and triggering compile task: %s", err)
+	//			continue
+	//		}
+	//	}
+	//}()
 
 	runServer()
 }

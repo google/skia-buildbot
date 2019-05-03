@@ -85,8 +85,10 @@ var (
 
 	gerritClient *gerrit.Gerrit
 
-	repoToolPath string
-	pathToMirror string
+	repoToolPath        string
+	pathToMirror        string
+	MirrorLastSynced    time.Time
+	MirrorUpdateRunning bool
 
 	// RWMutex for handling checkouts. The mirror will acquire a Lock()
 	// while the other local checkouts will acquire a RLock().
@@ -96,6 +98,15 @@ var (
 	recreateMirror bool
 )
 
+func UpdateMirror(ctx context.Context) {
+	if err := updateCheckout(ctx, pathToMirror, true); err != nil {
+		sklog.Errorf("Error when updating the mirror: %s", err)
+		mirrorSyncFailureMetric.Update(1)
+	} else {
+		mirrorSyncFailureMetric.Update(0)
+	}
+}
+
 func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Duration, storageClient *storage.Client) error {
 	user, err := user.Current()
 	if err != nil {
@@ -104,34 +115,32 @@ func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Dur
 	repoToolPath = path.Join(user.HomeDir, "bin", "repo")
 	ctx := context.Background()
 
-	// Make sure ccache directory exists.
-	pathToCcache := filepath.Join(workdir, "ccache")
-	if _, err := os.Stat(pathToCcache); err != nil {
-		if os.IsNotExist(err) {
-			if _, err := fileutil.EnsureDirExists(pathToCcache); err != nil {
-				return fmt.Errorf("Error creating %s: %s", pathToCcache, err)
-			}
-		}
-	}
+	//// Make sure ccache directory exists.
+	//pathToCcache := filepath.Join(workdir, "ccache")
+	//if _, err := os.Stat(pathToCcache); err != nil {
+	//	if os.IsNotExist(err) {
+	//		if _, err := fileutil.EnsureDirExists(pathToCcache); err != nil {
+	//			return fmt.Errorf("Error creating %s: %s", pathToCcache, err)
+	//		}
+	//	}
+	//}
 
-	// Make sure the mirror directory is created and initialized.
+	//// Make sure the mirror directory is created and initialized.
 	pathToMirror = filepath.Join(workdir, CHECKOUTS_TOPLEVEL_DIR, "mirror")
-	if _, err := os.Stat(pathToMirror); err != nil {
-		if os.IsNotExist(err) {
-			if err := createMirrorAndInit(ctx, pathToMirror); err != nil {
-				return fmt.Errorf("Error creating mirror in %s: %s", pathToMirror, err)
-			}
-		}
-	}
+	//if _, err := os.Stat(pathToMirror); err != nil {
+	//	if os.IsNotExist(err) {
+	//		if err := createMirrorAndInit(ctx, pathToMirror); err != nil {
+	//			return fmt.Errorf("Error creating mirror in %s: %s", pathToMirror, err)
+	//		}
+	//	}
+	//}
 	// Update mirror here and then periodically.
 	cleanup.Repeat(repoUpdateDuration, func() {
-		if err := updateCheckout(ctx, pathToMirror, true); err != nil {
-			sklog.Errorf("Error when updating the mirror: %s", err)
-			mirrorSyncFailureMetric.Update(1)
-		} else {
-			mirrorSyncFailureMetric.Update(0)
-		}
+		UpdateMirror(ctx)
 	}, nil)
+
+	// HACK
+	return nil
 
 	// Slice that will be used to update all checkouts in parallel.
 	checkoutsToUpdate := []string{}
@@ -236,9 +245,16 @@ func runInit(ctx context.Context, checkoutPath, initRepo string, isMirror bool) 
 // specified checkout. Errors are retried with exponential backoff using the
 // values in constants.
 func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) error {
+	fmt.Println("UPDATING CHECKOUT!!!!!!")
+	return nil
+
 	if isMirror {
 		checkoutsMutex.Lock()
 		defer checkoutsMutex.Unlock()
+		MirrorUpdateRunning = true
+		defer func() {
+			MirrorUpdateRunning = false
+		}()
 	} else {
 		checkoutsMutex.RLock()
 		defer checkoutsMutex.RUnlock()
@@ -285,6 +301,7 @@ func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) err
 					sklog.Warningf("Mirror sync time %s was greater than %s", duration, MAX_MIRROR_SYNC_TIME_BEFORE_RECREATION)
 					sklog.Info("Will recreate mirror before next sync.")
 				}
+				MirrorLastSynced = time.Now()
 			}
 		}()
 
