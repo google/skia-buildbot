@@ -6,8 +6,7 @@
 default:
 	ln -sf ../../third_party/bower_components bower_components
 	cd ../.. && bower install
-	npm install http-server
 
-# run: runs a local HTTP server for the demo pages, without caching and autoIndex.
+# run: runs a local HTTP server for the demo pages.
 run:
-	../../node_modules/.bin/http-server -p 8080 -a 127.0.0.1 -c-1 -i false ../..
+	python -m SimpleHTTPServer 8080

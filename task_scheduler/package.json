@@ -26,8 +26,5 @@
     "native-promise-only": "~0.7.6-a",
     "uglify-js": "~2.4.15",
     "vulcanize": "~1.10.4"
-  },
-  "dependencies": {
-    "http-server": "^0.11.1"
   }
 }
