@@ -176,7 +176,16 @@
 
       // _commitURL returns the repository url for the given hash.
       _commitURL: function(hash) {
-        return sk.app_config.baseRepoURL + "/+/" + hash;
+        var url = sk.app_config.baseRepoURL;
+        if (!url) {
+          // should never happen, but with Polymer, one can never be too cautious.
+          return;
+        }
+        if (url.indexOf('github.com') !== -1) {
+          return url + '/commit/' + hash;
+        } else {
+          return url + '/+/' + hash;
+        }
       }
     });
   </script>
