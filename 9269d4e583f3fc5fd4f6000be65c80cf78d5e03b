@@ -22,6 +22,30 @@
       "revId": "9269d4e583f3fc5fd4f6000be65c80cf78d5e03b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20fe4d33_56bd95e8",
+        "filename": "infra/bots/build_task_drivers.sh",
+        "patchSetId": 24
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-03T13:05:28Z",
+      "side": 0,
+      "message": "Replied to other comment.",
+      "parentUuid": "eb745cd8_c5444b85",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 30
+      },
+      "revId": "9269d4e583f3fc5fd4f6000be65c80cf78d5e03b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "06c61e69_3f407df8",
+        "filename": "go/repo_root/repo_root.go",
+        "patchSetId": 24
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-03T13:05:28Z",
+      "side": 1,
+      "message": "I don\u0027t know about the trailing slash (it wouldn\u0027t match if we\u0027re sitting in the repo root), but it seems like the leading slash should work without any problems.  I\u0027m not terribly concerned about robustness here though, since it\u0027s only used for tests.",
+      "parentUuid": "ff20c347_1767b40a",
+      "range": {
+        "startLine": 16,
+        "startChar": 44,
+        "endLine": 16,
+        "endChar": 52
+      },
+      "revId": "c72c23254a41400c1d075063f9819580f97ed666",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "11c0467f_339c5dba",
         "filename": "infra/bots/recipes/swarm_infra.py",
         "patchSetId": 24
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "511872b1_e2a62653",
+        "filename": "infra/bots/recipes/swarm_infra.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-03T13:05:28Z",
+      "side": 1,
+      "message": "Yep, this is a really good idea.  I don\u0027t think that would\u0027ve worked before, but now that we aren\u0027t directly editing the infra checkout inside the gopath, we should be able to let Go manage it.\n\nFTR, start_dir itself is a temporary directory and is cleaned up by Swarming after the task finishes.",
+      "parentUuid": "11c0467f_339c5dba",
+      "revId": "c72c23254a41400c1d075063f9819580f97ed666",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e25746fa_f842bb54",
         "filename": "infra/bots/recipes/swarm_infra.py",
         "patchSetId": 24
@@ -53,6 +95,24 @@
       "writtenOn": "2019-05-02T17:43:40Z",
       "side": 1,
       "message": "It will be interesting to see how long this takes and how often it fails. If it\u0027s not fast (or even if it\u0027s fast but uses a lot of network), we might want to go back to the IsolateGoDeps model, but have that task run the \u0027go mod download\u0027 and \u0027go install\u0027 steps.\n\nI wonder if we can reuse some ideas from bot_update to cache checkouts.\n\nAlso, as discussed, we might want to set up some mirrors on googlesource.",
+      "revId": "c72c23254a41400c1d075063f9819580f97ed666",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0e1a623e_fca4bcff",
+        "filename": "infra/bots/recipes/swarm_infra.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-03T13:05:28Z",
+      "side": 1,
+      "message": "In my experience with these try jobs, it takes about 45 seconds, BUT it doesn\u0027t seem to sync everything, because I see \"Downloading github.com/XYZ...\" messages in the logs for tests.  Let\u0027s start with caching GOPATH.  Because the dependencies are pinned, we should get good mileage out of that, assuming that there aren\u0027t too many bots.",
+      "parentUuid": "e25746fa_f842bb54",
       "revId": "c72c23254a41400c1d075063f9819580f97ed666",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
