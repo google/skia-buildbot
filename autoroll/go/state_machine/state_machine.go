@@ -72,13 +72,15 @@ type RollCLImpl interface {
 	// and the second is the message to add to the CL on closing.
 	Close(context.Context, string, string) error
 
-	// Return true iff the roll has finished (ie. succeeded or failed).
+	// Return true iff the roll is in normal mode and has finished (ie.
+	// succeeded or failed).
 	IsFinished() bool
 
 	// Return true iff the roll succeeded.
 	IsSuccess() bool
 
-	// Return true iff the dry run is finished.
+	// Return true iff the roll is in dry run mode and the dry run is
+	// finished.
 	IsDryRunFinished() bool
 
 	// Return true iff the dry run succeeded.

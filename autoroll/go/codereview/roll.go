@@ -134,12 +134,12 @@ func (r *gerritRoll) Close(ctx context.Context, result, msg string) error {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) IsFinished() bool {
-	return r.ci.IsClosed() || !r.issue.CommitQueue
+	return r.ci.IsClosed() || (!r.issue.CommitQueue && !r.issue.CommitQueueDryRun)
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) IsSuccess() bool {
-	return r.ci.Status == gerrit.CHANGE_STATUS_MERGED
+	return r.IsFinished() && r.ci.Status == gerrit.CHANGE_STATUS_MERGED
 }
 
 // See documentation for state_machine.RollCLImpl interface.
@@ -148,12 +148,12 @@ func (r *gerritRoll) IsDryRunFinished() bool {
 	// of success or failure. Since we uploaded with the dry run label set,
 	// we know the roll is in progress if the label is still set, and done
 	// otherwise.
-	return !r.issue.CommitQueueDryRun
+	return (!r.issue.CommitQueue && !r.issue.CommitQueueDryRun)
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) IsDryRunSuccess() bool {
-	return r.issue.AllTrybotsSucceeded()
+	return r.IsDryRunFinished() && r.issue.AllTrybotsSucceeded()
 }
 
 // See documentation for state_machine.RollCLImpl interface.
@@ -191,7 +191,7 @@ func (r *gerritRoll) RetryDryRun(ctx context.Context) error {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) Update(ctx context.Context) error {
-	alreadyFinished := r.IsFinished()
+	alreadyFinished := r.IsFinished() || r.IsDryRunFinished()
 	ci, issue, err := r.retrieveRoll(ctx, r.issue.Issue)
 	if err != nil {
 		return err
@@ -204,7 +204,7 @@ func (r *gerritRoll) Update(ctx context.Context) error {
 	if err := r.recent.Update(ctx, r.issue); err != nil {
 		return err
 	}
-	if r.IsFinished() && !alreadyFinished && r.finishedCallback != nil {
+	if (r.IsFinished() || r.IsDryRunFinished()) && !alreadyFinished && r.finishedCallback != nil {
 		return r.finishedCallback(ctx, r)
 	}
 	return nil
@@ -244,8 +244,31 @@ func newGerritAndroidRoll(ctx context.Context, g gerrit.GerritInterface, fullHas
 	}}, nil
 }
 
+func (r *gerritAndroidRoll) Update(ctx context.Context) error {
+	alreadyFinished := r.IsFinished() || r.IsDryRunFinished()
+	ci, issue, err := r.retrieveRoll(ctx, r.issue.Issue)
+	if err != nil {
+		return err
+	}
+	r.ci = ci
+	if r.result != "" {
+		issue.Result = r.result
+	}
+	r.issue = issue
+	if err := r.recent.Update(ctx, r.issue); err != nil {
+		return err
+	}
+	if (r.IsFinished() || r.IsDryRunFinished()) && !alreadyFinished && r.finishedCallback != nil {
+		return r.finishedCallback(ctx, r)
+	}
+	return nil
+}
+
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritAndroidRoll) IsDryRunFinished() bool {
+	if r.IsFinished() {
+		return false
+	}
 	if _, ok := r.ci.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL]; ok {
 		for _, lb := range r.ci.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL].All {
 			if lb.Value != gerrit.PRESUBMIT_VERIFIED_LABEL_RUNNING {
@@ -258,6 +281,9 @@ func (r *gerritAndroidRoll) IsDryRunFinished() bool {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritAndroidRoll) IsDryRunSuccess() bool {
+	if !r.IsDryRunFinished() {
+		return false
+	}
 	presubmit, ok := r.ci.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL]
 	if !ok || len(presubmit.All) == 0 {
 		// Not done yet.
@@ -333,6 +359,7 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, fullHash a
 	if err != nil {
 		return nil, nil, err
 	}
+	sklog.Errorf("waitFor %+v", checksWaitFor)
 	tryResults := []*autoroll.TryResult{}
 	for _, check := range checks {
 		if *check.ID != 0 {
@@ -513,7 +540,7 @@ func (r *githubRoll) withModify(ctx context.Context, action string, fn func() er
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) Update(ctx context.Context) error {
-	alreadyFinished := r.IsFinished()
+	alreadyFinished := r.IsFinished() || r.IsDryRunFinished()
 	pullRequest, issue, err := r.retrieveRoll(ctx, int64(r.pullRequest.GetNumber()))
 	if err != nil {
 		return err
@@ -526,7 +553,7 @@ func (r *githubRoll) Update(ctx context.Context) error {
 	if err := r.recent.Update(ctx, r.issue); err != nil {
 		return err
 	}
-	if r.IsFinished() && !alreadyFinished && r.finishedCallback != nil {
+	if (r.IsFinished() || r.IsDryRunFinished()) && !alreadyFinished && r.finishedCallback != nil {
 		return r.finishedCallback(ctx, r)
 	}
 	return nil
@@ -534,22 +561,22 @@ func (r *githubRoll) Update(ctx context.Context) error {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IsFinished() bool {
-	return r.pullRequest.GetState() == github.CLOSED_STATE || r.pullRequest.GetMerged() || !r.issue.CommitQueue
+	return r.pullRequest.GetState() == github.CLOSED_STATE || r.pullRequest.GetMerged() || (!r.issue.CommitQueue && !r.issue.CommitQueueDryRun)
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IsSuccess() bool {
-	return r.pullRequest.GetMerged()
+	return r.IsFinished() && r.pullRequest.GetMerged()
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IsDryRunFinished() bool {
-	return len(r.issue.TryResults) >= r.checksNum && r.issue.AllTrybotsFinished() || r.pullRequest.GetState() == github.CLOSED_STATE || !r.issue.CommitQueueDryRun
+	return !r.IsFinished() && len(r.issue.TryResults) >= r.checksNum && r.issue.AllTrybotsFinished() || r.pullRequest.GetState() == github.CLOSED_STATE || !r.issue.CommitQueueDryRun
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IsDryRunSuccess() bool {
-	return len(r.issue.TryResults) >= r.checksNum && r.issue.AllTrybotsSucceeded()
+	return r.IsDryRunFinished() && len(r.issue.TryResults) >= r.checksNum && r.issue.AllTrybotsSucceeded()
 }
 
 // See documentation for state_machine.RollCLImpl interface.
