@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "78de0756_e446516f",
+        "filename": "go/mocks/GitStore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-03T11:46:44Z",
+      "side": 1,
+      "message": "I have a pretty strong preference for putting the mocks for a thing in the same package or a subpackage of the thing they mock.  I don\u0027t want to end up with a whole bunch of unrelated mocks sitting in the same package, especially at the top level.",
+      "parentUuid": "f4afdbea_408b36b1",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 3,
+        "endChar": 13
+      },
+      "revId": "123f82eff35a638fac2f1048e95d54bfb2938034",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b2b3f74d_87208473",
         "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
         "patchSetId": 8
@@ -143,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "d20479c9_acff8075",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-03T11:46:44Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2331aa78_e3f755dd",
+      "range": {
+        "startLine": 137,
+        "startChar": 41,
+        "endLine": 138,
+        "endChar": 68
+      },
+      "revId": "123f82eff35a638fac2f1048e95d54bfb2938034",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "59837b00_ba43b787",
         "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
         "patchSetId": 8
@@ -234,6 +282,30 @@
       "revId": "123f82eff35a638fac2f1048e95d54bfb2938034",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3c4b066_970030b3",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-03T11:46:44Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ec253ae7_43348386",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 30
+      },
+      "revId": "123f82eff35a638fac2f1048e95d54bfb2938034",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
