@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a7af8899_d414e44d",
+        "filename": "go/imports/imports_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-03T14:28:23Z",
+      "side": 1,
+      "message": "You reverted my change. :-(",
+      "revId": "88e0c238d5d270d3700e3bb79bd9081a311306fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
