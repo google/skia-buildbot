@@ -13,10 +13,10 @@ import (
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/baseline"
+	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
-	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"golang.org/x/sync/errgroup"
 )
@@ -172,7 +172,7 @@ func (b *BaselinerImpl) PushMasterBaselines(tileInfo baseline.TileInfo, targetHa
 }
 
 // PushIssueBaseline writes the baseline for a Gerrit issue to GCS.
-func (b *BaselinerImpl) PushIssueBaseline(issueID int64, tileInfo baseline.TileInfo, tallies *tally.Tallies) error {
+func (b *BaselinerImpl) PushIssueBaseline(issueID int64, tileInfo baseline.TileInfo, dCounter digest_counter.DigestCounter) error {
 	issueExpStore := b.issueExpStoreFactory(issueID)
 	exp, err := issueExpStore.Get()
 	if err != nil {
