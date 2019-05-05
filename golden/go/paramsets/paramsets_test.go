@@ -4,23 +4,30 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/types"
 )
 
-func TestParamset(t *testing.T) {
+const (
+	testOne = "foo"
+	testTwo = "bar"
+)
+
+func TestParamsetByTraceForTile(t *testing.T) {
 	testutils.SmallTest(t)
 	tile := &tiling.Tile{
 		Traces: map[string]tiling.Trace{
+			// These trace ids have been shortened for test terseness.
+			// A real trace id would be like "8888:gm:foo"
 			"a": &types.GoldenTrace{
 				Digests: []string{"aaa", "bbb"},
 				Keys: map[string]string{
 					"config":                "8888",
 					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: "foo",
+					types.PRIMARY_KEY_FIELD: testOne,
 				},
 			},
 			"b": &types.GoldenTrace{
@@ -28,7 +35,7 @@ func TestParamset(t *testing.T) {
 				Keys: map[string]string{
 					"config":                "565",
 					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: "foo",
+					types.PRIMARY_KEY_FIELD: testOne,
 				},
 			},
 			"c": &types.GoldenTrace{
@@ -36,7 +43,7 @@ func TestParamset(t *testing.T) {
 				Keys: map[string]string{
 					"config":                "gpu",
 					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: "foo",
+					types.PRIMARY_KEY_FIELD: testOne,
 				},
 			},
 			"e": &types.GoldenTrace{
@@ -44,7 +51,7 @@ func TestParamset(t *testing.T) {
 				Keys: map[string]string{
 					"config":                "565",
 					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: "bar",
+					types.PRIMARY_KEY_FIELD: testTwo,
 				},
 			},
 			"f": &types.GoldenTrace{
@@ -52,7 +59,7 @@ func TestParamset(t *testing.T) {
 				Keys: map[string]string{
 					"config":                "gpu",
 					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: "bar",
+					types.PRIMARY_KEY_FIELD: testTwo,
 				},
 			},
 		},
@@ -88,10 +95,29 @@ func TestParamset(t *testing.T) {
 	byTrace := byTraceForTile(tile, tallies)
 
 	// Test that we are robust to traces appearing in tallies, but not in the tile, and vice-versa.
-	assert.Equal(t, byTrace["foo"]["bbb"]["config"], []string{"8888"})
-	assert.Equal(t, byTrace["foo"]["aaa"][types.PRIMARY_KEY_FIELD], []string{"foo"})
-	assert.Equal(t, byTrace["bar"]["yyy"]["config"], []string{"565"})
-	assert.Equal(t, util.NewStringSet([]string{"565", "gpu"}), util.NewStringSet(byTrace["bar"]["xxx"]["config"]))
-	assert.Equal(t, util.NewStringSet([]string{"565", "8888"}), util.NewStringSet(byTrace["foo"]["aaa"]["config"]))
+	assert.Equal(t, paramtools.ParamSet{
+		"config":                []string{"8888"},
+		types.CORPUS_FIELD:      []string{"gm"},
+		types.PRIMARY_KEY_FIELD: []string{testOne},
+	}, byTrace[testOne]["bbb"])
+	assert.Equal(t, paramtools.ParamSet{
+		"config":                []string{"8888", "565"},
+		types.CORPUS_FIELD:      []string{"gm"},
+		types.PRIMARY_KEY_FIELD: []string{testOne},
+	}, byTrace[testOne]["aaa"])
+
+	assert.Equal(t, paramtools.ParamSet{
+		"config":                []string{"565"},
+		types.CORPUS_FIELD:      []string{"gm"},
+		types.PRIMARY_KEY_FIELD: []string{testTwo},
+	}, byTrace[testTwo]["yyy"])
+
+	assert.Equal(t, paramtools.ParamSet{
+		"config":                []string{"565", "gpu"},
+		types.CORPUS_FIELD:      []string{"gm"},
+		types.PRIMARY_KEY_FIELD: []string{testTwo},
+	}, byTrace[testTwo]["xxx"])
+
 	assert.Nil(t, byTrace["bar:fff"])
+	assert.Nil(t, byTrace[testOne]["yyy"])
 }
