@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fe25a99d_0499ef2c",
+        "filename": "golden/go/status/status.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-05T13:32:03Z",
+      "side": 1,
+      "message": "Good catch. Done.",
+      "parentUuid": "9164b187_d8c10604",
+      "range": {
+        "startLine": 111,
+        "startChar": 78,
+        "endLine": 111,
+        "endChar": 99
+      },
+      "revId": "f65808c11196c0e94ca73c69dcb709f2575102b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "21607c9a_cdffd221",
         "filename": "prometheus/sys/alert.rules",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2019-05-03T21:51:35Z",
       "side": 1,
       "message": "This is a pretty long time. In other places where I\u0027ve made commit-based metrics, I use the age of the first commit after X has happened. In other words, updateLastCommitAge would look something like this:\n\nfunc (s *StatusWatcher) updateLastCommitAge() {\n\tst :\u003d s.GetStatus()\n\tif st \u003d\u003d nil {\n\t\treturn\n\t}\n\tif st.LastCommit \u003d\u003d nil {\n\t\treturn\n\t}\n\tcommitsFromLast :\u003d s.storages.VCS.Range(time.Unix(st.LastCommit.CommitTime, 0), time.Now())\n\tuningestedCommitAgeMetric :\u003d metrics2.GetInt64Metric(\"gold_uningested_commit_age_s\")\n\tif len(commitsFromLast) \u003c\u003d 1 {\n\t\tuningestedCommitAgeMetric.Update(0)\n\t} else {\n\t\tuningestedCommitAgeMetric.Update(time.Now().Unix() - commitsFromLast[1])\n\t}\n}",
+      "range": {
+        "startLine": 162,
+        "startChar": 40,
+        "endLine": 162,
+        "endChar": 48
+      },
+      "revId": "f65808c11196c0e94ca73c69dcb709f2575102b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f29238c_3a1bac1b",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 2
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-05T13:32:03Z",
+      "side": 1,
+      "message": "I\u0027m a little uneasy about using only the method you\u0027ve suggested because if VCS/gitsync stops working, this may return no commitsFromLast and then this alert appears happy.  It\u0027s a good addition though, so I\u0027ll include both - this one as \"with_new_commit\" and the other one as \"wall_time\", with an alert on both. The alert can be more aggressive for with_new_commit (like 20 minutes), and I\u0027ll be more conservative with the wall_time one, since wall_time is essentially a backup alert.",
+      "parentUuid": "21607c9a_cdffd221",
       "range": {
         "startLine": 162,
         "startChar": 40,
