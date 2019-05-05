@@ -4,7 +4,7 @@ package paramsets
 import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -46,7 +46,7 @@ func New() *ParamSummary {
 
 // Calculate sets the values the ParamSummary based on the given tile.
 func (s *ParamSummary) Calculate(cpxTile *types.ComplexTile, tallies *tally.Tallies, talliesWithIgnores *tally.Tallies) {
-	defer timer.New("paramsets").Stop()
+	defer shared.NewMetricsTimer("param_summary_calculate").Stop()
 	s.byTrace = byTraceForTile(cpxTile.GetTile(false), tallies.ByTrace())
 	s.byTraceIncludeIgnored = byTraceForTile(cpxTile.GetTile(true), talliesWithIgnores.ByTrace())
 }

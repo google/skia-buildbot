@@ -8,17 +8,17 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 )
 
 const (
 	// Metric names and templates for metric names added in this file.
-	METRIC_TOTAL  = "gold.status.total-digests"
-	METRIC_ALL    = "gold.status.all"
-	METRIC_CORPUS = "gold.status.by-corpus"
+	METRIC_TOTAL  = "gold_status_total_digests"
+	METRIC_ALL    = "gold_status_all"
+	METRIC_CORPUS = "gold_status_by_corpus"
 )
 
 // GUIStatus reflects the current rebaseline status. In particular whether
@@ -102,6 +102,38 @@ func (s *StatusWatcher) GetStatus() *GUIStatus {
 	return s.current
 }
 
+// updateLastCommitAge calculates how old the last commit in Gold is and reports
+// it to metrics, so we can alert on it. It computes the age in two ways - absolute
+// age (wall_time) and time since a newer commit landed (with_new_commit). The latter
+// is the preferred metric due to the lower false-positive chance, with the former
+// being a good backup since it has a lower false-negative chance.
+func (s *StatusWatcher) updateLastCommitAge() {
+	st := s.GetStatus()
+	if st == nil {
+		sklog.Warningf("GetStatus() was nil when computing metrics")
+		return
+	}
+	if st.LastCommit == nil {
+		sklog.Warningf("GetStatus() had nil LastCommit when computing metrics: %#v", st)
+		return
+	}
+	commitsFromLast := s.storages.VCS.Range(time.Unix(st.LastCommit.CommitTime, 0), time.Now())
+	uningestedCommitAgeMetric := metrics2.GetInt64Metric("gold_last_commit_age_s", map[string]string{
+		"type": "with_new_commit",
+	})
+	if len(commitsFromLast) <= 1 {
+		uningestedCommitAgeMetric.Update(0)
+	} else {
+		uningestedCommitAgeMetric.Update(time.Now().Unix() - commitsFromLast[1].Timestamp.Unix())
+	}
+
+	lastCommitAge := metrics2.GetInt64Metric("gold_last_commit_age_s", map[string]string{
+		"type": "wall_time",
+	})
+	lastCommitUnix := st.LastCommit.CommitTime / int64(time.Second)
+	lastCommitAge.Update(time.Now().Unix() - lastCommitUnix)
+}
+
 func (s *StatusWatcher) calcAndWatchStatus() error {
 	sklog.Infof("Starting status watcher")
 	expChanges := make(chan types.TestExp)
@@ -109,7 +141,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 		expChanges <- e.(*expstorage.EventExpectationChange).TestChanges
 	})
 
-	tileStream := s.storages.GetTileStreamNow(2 * time.Minute)
+	tileStream := s.storages.GetTileStreamNow(2*time.Minute, "status-watcher")
 	sklog.Infof("Got tile stream for status watcher")
 
 	lastCpxTile := <-tileStream
@@ -121,7 +153,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 	sklog.Infof("Calculated first status")
 
 	liveness := metrics2.NewLiveness("gold_status_monitoring")
-
+	s.updateLastCommitAge()
 	go func() {
 		for {
 			select {
@@ -153,7 +185,8 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 }
 
 func (s *StatusWatcher) calcStatus(cpxTile *types.ComplexTile) error {
-	defer timer.New("Calc status timer:").Stop()
+	defer s.updateLastCommitAge()
+	defer shared.NewMetricsTimer("calculate_status").Stop()
 
 	okByCorpus := map[string]bool{}
 	expectations, err := s.storages.ExpectationsStore.Get()
@@ -252,8 +285,8 @@ func (s *StatusWatcher) calcStatus(cpxTile *types.ComplexTile) error {
 
 	// Swap out the current tile.
 	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	s.current = result
-	s.mutex.Unlock()
 
 	return nil
 }
