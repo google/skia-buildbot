@@ -99,30 +99,30 @@ type TestExpBuilder interface {
 // NewTestExpBuilder returns an TestExpBuilder instance that wraps around an instance
 // of TestExp. If 'testExp' is not nil, then NewTestExpBuilder will take ownership of it and
 // wrap around it.
-func NewTestExpBuilder(testExp TestExp) *HandlerImpl {
+func NewTestExpBuilder(testExp TestExp) *BuilderImpl {
 	if testExp == nil {
 		testExp = TestExp{}
 	}
 
-	return &HandlerImpl{
+	return &BuilderImpl{
 		testExp: testExp,
 	}
 }
 
-// HandlerImpl is the canonical implementation of the Expectations interface. It wraps a
+// BuilderImpl is the canonical implementation of the TestExpBuilder interface. It wraps a
 // instance of TestExp. It uses a pointer receiver to a struct to make the Marshaller/Unmarshaler
 // interface work for the encoding/json package.
-type HandlerImpl struct {
+type BuilderImpl struct {
 	testExp TestExp
 }
 
 // TestExp implements the TestExpBuilder interface.
-func (b *HandlerImpl) TestExp() TestExp {
+func (b *BuilderImpl) TestExp() TestExp {
 	return b.testExp
 }
 
 // Classification implements the TestExpBuilder interface.
-func (b *HandlerImpl) Classification(test, digest string) Label {
+func (b *BuilderImpl) Classification(test, digest string) Label {
 	if label, ok := b.testExp[test][digest]; ok {
 		return label
 	}
@@ -130,7 +130,7 @@ func (b *HandlerImpl) Classification(test, digest string) Label {
 }
 
 // AddTestExp implements the TestExpBuilder interface.
-func (b *HandlerImpl) AddTestExp(testExp TestExp) {
+func (b *BuilderImpl) AddTestExp(testExp TestExp) {
 	for testName, digests := range testExp {
 		if _, ok := b.testExp[testName]; !ok {
 			b.testExp[testName] = map[string]Label{}
@@ -151,17 +151,17 @@ func (b *HandlerImpl) AddTestExp(testExp TestExp) {
 }
 
 // SetExpectation implements the TestExpBuilder interface.
-func (b *HandlerImpl) SetExpectation(testName string, digest string, label Label) {
+func (b *BuilderImpl) SetExpectation(testName string, digest string, label Label) {
 	b.testExp.AddDigest(testName, digest, label)
 }
 
 // MarshalJSON implements json.Marshaller interface
-func (b *HandlerImpl) MarshalJSON() ([]byte, error) {
+func (b *BuilderImpl) MarshalJSON() ([]byte, error) {
 	return json.Marshal(b.testExp)
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface
-func (b *HandlerImpl) UnmarshalJSON(data []byte) error {
+func (b *BuilderImpl) UnmarshalJSON(data []byte) error {
 	// TODO(stephana) once all test assets are converted the following code to handle the old
 	// JSON serialization (from the expstorage package) can be removed.
 	oldFormat := map[string]json.RawMessage{}
@@ -176,5 +176,5 @@ func (b *HandlerImpl) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &b.testExp)
 }
 
-// Ensure HandlerImpl fulfills the TestExpBuilder interface
-var _ TestExpBuilder = (*HandlerImpl)(nil)
+// Ensure BuilderImpl fulfills the TestExpBuilder interface
+var _ TestExpBuilder = (*BuilderImpl)(nil)

@@ -18,37 +18,42 @@ func TestParamset(t *testing.T) {
 			"a": &types.GoldenTrace{
 				Digests: []string{"aaa", "bbb"},
 				Keys: map[string]string{
-					"name":             "foo",
-					"config":           "8888",
-					types.CORPUS_FIELD: "gm"},
+					"config":                "8888",
+					types.CORPUS_FIELD:      "gm",
+					types.PRIMARY_KEY_FIELD: "foo",
+				},
 			},
 			"b": &types.GoldenTrace{
 				Digests: []string{"ccc", "ddd", "aaa"},
 				Keys: map[string]string{
-					"name":             "foo",
-					"config":           "565",
-					types.CORPUS_FIELD: "gm"},
+					"config":                "565",
+					types.CORPUS_FIELD:      "gm",
+					types.PRIMARY_KEY_FIELD: "foo",
+				},
 			},
 			"c": &types.GoldenTrace{
 				Digests: []string{"eee", types.MISSING_DIGEST},
 				Keys: map[string]string{
-					"name":             "foo",
-					"config":           "gpu",
-					types.CORPUS_FIELD: "gm"},
+					"config":                "gpu",
+					types.CORPUS_FIELD:      "gm",
+					types.PRIMARY_KEY_FIELD: "foo",
+				},
 			},
 			"e": &types.GoldenTrace{
 				Digests: []string{"xxx", "yyy", "yyy"},
 				Keys: map[string]string{
-					"name":             "bar",
-					"config":           "565",
-					types.CORPUS_FIELD: "gm"},
+					"config":                "565",
+					types.CORPUS_FIELD:      "gm",
+					types.PRIMARY_KEY_FIELD: "bar",
+				},
 			},
 			"f": &types.GoldenTrace{
 				Digests: []string{"xxx", types.MISSING_DIGEST},
 				Keys: map[string]string{
-					"name":             "bar",
-					"config":           "gpu",
-					types.CORPUS_FIELD: "gm"},
+					"config":                "gpu",
+					types.CORPUS_FIELD:      "gm",
+					types.PRIMARY_KEY_FIELD: "bar",
+				},
 			},
 		},
 	}
@@ -84,7 +89,7 @@ func TestParamset(t *testing.T) {
 
 	// Test that we are robust to traces appearing in tallies, but not in the tile, and vice-versa.
 	assert.Equal(t, byTrace["foo"]["bbb"]["config"], []string{"8888"})
-	assert.Equal(t, byTrace["foo"]["aaa"]["name"], []string{"foo"})
+	assert.Equal(t, byTrace["foo"]["aaa"][types.PRIMARY_KEY_FIELD], []string{"foo"})
 	assert.Equal(t, byTrace["bar"]["yyy"]["config"], []string{"565"})
 	assert.Equal(t, util.NewStringSet([]string{"565", "gpu"}), util.NewStringSet(byTrace["bar"]["xxx"]["config"]))
 	assert.Equal(t, util.NewStringSet([]string{"565", "8888"}), util.NewStringSet(byTrace["foo"]["aaa"]["config"]))

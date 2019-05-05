@@ -8,17 +8,17 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 )
 
 const (
 	// Metric names and templates for metric names added in this file.
-	METRIC_TOTAL  = "gold.status.total-digests"
-	METRIC_ALL    = "gold.status.all"
-	METRIC_CORPUS = "gold.status.by-corpus"
+	METRIC_TOTAL  = "gold_status_total_digests"
+	METRIC_ALL    = "gold_status_all"
+	METRIC_CORPUS = "gold_status_by_corpus"
 )
 
 // GUIStatus reflects the current rebaseline status. In particular whether
@@ -109,7 +109,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 		expChanges <- e.(*expstorage.EventExpectationChange).TestChanges
 	})
 
-	tileStream := s.storages.GetTileStreamNow(2 * time.Minute)
+	tileStream := s.storages.GetTileStreamNow(2*time.Minute, "status-watcher")
 	sklog.Infof("Got tile stream for status watcher")
 
 	lastCpxTile := <-tileStream
@@ -153,7 +153,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 }
 
 func (s *StatusWatcher) calcStatus(cpxTile *types.ComplexTile) error {
-	defer timer.New("Calc status timer:").Stop()
+	defer shared.NewMetricsTimer("calculate_status").Stop()
 
 	okByCorpus := map[string]bool{}
 	expectations, err := s.storages.ExpectationsStore.Get()
@@ -252,8 +252,8 @@ func (s *StatusWatcher) calcStatus(cpxTile *types.ComplexTile) error {
 
 	// Swap out the current tile.
 	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	s.current = result
-	s.mutex.Unlock()
 
 	return nil
 }
