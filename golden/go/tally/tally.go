@@ -10,12 +10,16 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-// Tally maps a digest to a count.
+// Tally maps a digest to a count. These counts are the number
+// of times a digest was seen in a given scenario.
 type Tally map[string]int
 
-// Tallies allows querying for digest counts in different ways.
-// It is not thread safe. The client of this package needs to make sure there
-// are no conflicts.
+// Tallies allows querying for digest counts for a digest in different ways.
+// For example, how many times did this tile see a given digest in a given
+// test or a given trace? The results can be further filtered using
+// ByQuery.
+// It is not thread safe. The client of this package needs to make
+// sure there are no conflicts.
 type Tallies struct {
 	traceTally      map[string]Tally
 	testTally       map[string]Tally
