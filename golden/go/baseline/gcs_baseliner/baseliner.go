@@ -11,10 +11,10 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/tryjobstore"
@@ -82,7 +82,7 @@ func (b *BaselinerImpl) CanWriteBaseline() bool {
 
 // PushMasterBaselines fulfills the Baseliner interface
 func (b *BaselinerImpl) PushMasterBaselines(tileInfo baseline.TileInfo, targetHash string) (*baseline.CommitableBaseline, error) {
-	defer timer.New("PushmasterBaselines").Stop()
+	defer shared.NewMetricsTimer("push_master_baselines").Stop()
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 	if tileInfo == nil {
@@ -268,7 +268,7 @@ func (b *BaselinerImpl) FetchBaseline(commitHash string, issueID int64, patchset
 // getCommitSince returns all the commits have been added to the repo since the given commit.
 // The returned instances of tiling.Commit do not contain a valid Author field.
 func (b *BaselinerImpl) getCommitsSince(firstCommit *tiling.Commit) ([]*tiling.Commit, error) {
-	defer timer.New("getCommitsSince").Stop()
+	defer shared.NewMetricsTimer("baseliner_get_commits_since").Stop()
 
 	// If there is an underlying gitstore retrieve it, otherwise this function becomes a no-op.
 	gitStoreBased, ok := b.vcs.(gitstore.GitStoreBased)

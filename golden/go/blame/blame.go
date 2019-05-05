@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -145,7 +145,7 @@ func (b *Blamer) Calculate(tile *tiling.Tile) error {
 		return err
 	}
 
-	defer timer.New("blame").Stop()
+	defer shared.NewMetricsTimer("blame_calculate").Stop()
 
 	// Note: blameStart and blameEnd are continuously updated to contain the
 	// smallest start and end index of the ranges for a testName/digest pair.

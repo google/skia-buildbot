@@ -443,8 +443,8 @@ func main() {
 
 		// If MySQL is configured we use it to store the ignore rules.
 		if useMySQL {
-			storages.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute))
-		} else if storages.IgnoreStore, err = ignore.NewCloudIgnoreStore(ds.DS, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute)); err != nil {
+			storages.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute, "gold-ignore-store"))
+		} else if storages.IgnoreStore, err = ignore.NewCloudIgnoreStore(ds.DS, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute, "gold-ignore-store")); err != nil {
 			sklog.Fatalf("Unable to create ignorestore: %s", err)
 		}
 
@@ -452,8 +452,8 @@ func main() {
 			sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
 		}
 
-		// Rebuild the index every two minutes.
-		sklog.Infof("Starting indexer")
+		// Rebuild the index every few minutes.
+		sklog.Infof("Starting indexer to run every %s", *indexInterval)
 		ixr, err := indexer.New(storages, *indexInterval)
 		if err != nil {
 			sklog.Fatalf("Failed to create indexer: %s", err)

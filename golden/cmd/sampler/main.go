@@ -225,12 +225,12 @@ func load(ctx context.Context, dsNamespace string) (*tiling.Tile, types.TestExpB
 	}
 
 	if dsNamespace != "" {
-		storages.IgnoreStore, err = ignore.NewCloudIgnoreStore(ds.DS, expStore, storages.GetTileStreamNow(time.Minute*20))
+		storages.IgnoreStore, err = ignore.NewCloudIgnoreStore(ds.DS, expStore, storages.GetTileStreamNow(time.Minute*20, "sampler-ignore-store"))
 		if err != nil {
 			sklog.Fatalf("Unable to create cloud ignorestore: %s", err)
 		}
 	} else {
-		storages.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, expStore, storages.GetTileStreamNow(time.Minute*20))
+		storages.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, expStore, storages.GetTileStreamNow(time.Minute*20, "sampler-ignore-store"))
 	}
 
 	expectations, err := expStore.Get()

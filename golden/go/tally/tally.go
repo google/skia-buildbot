@@ -5,8 +5,8 @@ import (
 	"net/url"
 
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -77,7 +77,7 @@ func tallyBy(tile *tiling.Tile, traceTally map[string]Tally, query url.Values) T
 
 // tallyTile computes a map[tracename]Tally and map[testname]Tally from the given Tile.
 func tallyTile(tile *tiling.Tile) (map[string]Tally, map[string]Tally, map[string]util.StringSet) {
-	defer timer.New("tally").Stop()
+	defer shared.NewMetricsTimer("tally_tile").Stop()
 	traceTally := map[string]Tally{}
 	testTally := map[string]Tally{}
 	for k, tr := range tile.Traces {

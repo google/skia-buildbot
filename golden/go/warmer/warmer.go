@@ -7,10 +7,10 @@ package warmer
 import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digesttools"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
@@ -39,7 +39,7 @@ func (w *Warmer) Run(tile *tiling.Tile, summaries *summary.Summaries, tallies *t
 		sklog.Errorf("warmer: Failed to get expectations: %s", err)
 	}
 
-	t := timer.New("warmer one loop")
+	t := shared.NewMetricsTimer("warmer_loop")
 	for test, sum := range summaries.Get() {
 		for _, digest := range sum.UntHashes {
 			t := tallies.ByTest()[test]

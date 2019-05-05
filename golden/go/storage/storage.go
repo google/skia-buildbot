@@ -11,6 +11,7 @@ import (
 	"github.com/flynn/json5"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -103,26 +104,31 @@ func (s *Storage) LoadWhiteList(fName string) error {
 
 // GetTileStreamNow is a utility function that reads tiles in the given
 // interval and sends them on the returned channel.
-// The first tile is send immediately.
+// The first tile is sent immediately.
 // Should the call to read a new tile fail it will send that last
 // successfully read tile. Thus it guarantees to send a tile in the provided
 // interval, assuming at least one tile could be read.
-func (s *Storage) GetTileStreamNow(interval time.Duration) <-chan *types.ComplexTile {
+// The metricsTag allows for us to monitor how long individual tile streams
+// take, in the unlikely event there are multiple failures of the tile in a row.
+func (s *Storage) GetTileStreamNow(interval time.Duration, metricsTag string) <-chan *types.ComplexTile {
 	retCh := make(chan *types.ComplexTile)
-
+	lastTileStreamed := metrics2.NewLiveness("last_tile_streamed", map[string]string{
+		"source": metricsTag,
+	})
 	go func() {
 		var lastTile *types.ComplexTile = nil
 
 		readOneTile := func() {
-			if tilePair, err := s.GetLastTileTrimmed(); err != nil {
+			if tile, err := s.GetLastTileTrimmed(); err != nil {
 				// Log the error and send the best tile we have right now.
 				sklog.Errorf("Error reading tile: %s", err)
 				if lastTile != nil {
 					retCh <- lastTile
 				}
 			} else {
-				lastTile = tilePair
-				retCh <- tilePair
+				lastTile = tile
+				lastTileStreamed.Reset()
+				retCh <- tile
 			}
 		}
 
@@ -150,7 +156,7 @@ Loop:
 
 var tileCacheTime = 3 * time.Minute
 
-// TODO(stephana): Expand the Tile and TilePair types to make querying faster.
+// TODO(stephana): Expand the Tile type to make querying faster.
 // i.e. add traces as an array so that iteration can be done in parallel and
 // add map[hash]Commit to do faster commit lookup (-> Remove tiling.FindCommit).
 

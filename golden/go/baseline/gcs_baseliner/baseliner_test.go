@@ -230,51 +230,51 @@ func makeTestTile() *tiling.Tile {
 			"angler:test_alpha:gm": &types.GoldenTrace{
 				Digests: []string{alphaBad1Hash, alphaBad1Hash, alphaGood1Hash},
 				Keys: map[string]string{
-					"device":           "angler",
-					"name":             "test_alpha",
-					types.CORPUS_FIELD: "gm",
+					"device":                "angler",
+					types.PRIMARY_KEY_FIELD: "test_alpha",
+					types.CORPUS_FIELD:      "gm",
 				},
 			},
 			"angler:test_beta:gm": &types.GoldenTrace{
 				Digests: []string{betaGood1Hash, betaGood1Hash, betaGood1Hash},
 				Keys: map[string]string{
-					"device":           "angler",
-					"name":             "test_beta",
-					types.CORPUS_FIELD: "gm",
+					"device":                "angler",
+					types.PRIMARY_KEY_FIELD: "test_beta",
+					types.CORPUS_FIELD:      "gm",
 				},
 			},
 
 			"bullhead:test_alpha:gm": &types.GoldenTrace{
 				Digests: []string{alphaBad1Hash, alphaBad1Hash, alphaUntriaged1Hash},
 				Keys: map[string]string{
-					"device":           "bullhead",
-					"name":             "test_alpha",
-					types.CORPUS_FIELD: "gm",
+					"device":                "bullhead",
+					types.PRIMARY_KEY_FIELD: "test_alpha",
+					types.CORPUS_FIELD:      "gm",
 				},
 			},
 			"bullhead:test_beta:gm": &types.GoldenTrace{
 				Digests: []string{betaGood1Hash, betaGood1Hash, betaGood1Hash},
 				Keys: map[string]string{
-					"device":           "bullhead",
-					"name":             "test_beta",
-					types.CORPUS_FIELD: "gm",
+					"device":                "bullhead",
+					types.PRIMARY_KEY_FIELD: "test_beta",
+					types.CORPUS_FIELD:      "gm",
 				},
 			},
 
 			"crosshatch:test_alpha:gm": &types.GoldenTrace{
 				Digests: []string{alphaBad1Hash, alphaBad1Hash, alphaGood1Hash},
 				Keys: map[string]string{
-					"device":           "crosshatch",
-					"name":             "test_alpha",
-					types.CORPUS_FIELD: "gm",
+					"device":                "crosshatch",
+					types.PRIMARY_KEY_FIELD: "test_alpha",
+					types.CORPUS_FIELD:      "gm",
 				},
 			},
 			"crosshatch:test_beta:gm": &types.GoldenTrace{
 				Digests: []string{betaUntriaged1Hash, types.MISSING_DIGEST, types.MISSING_DIGEST},
 				Keys: map[string]string{
-					"device":           "crosshatch",
-					"name":             "test_beta",
-					types.CORPUS_FIELD: "gm",
+					"device":                "crosshatch",
+					types.PRIMARY_KEY_FIELD: "test_beta",
+					types.CORPUS_FIELD:      "gm",
 				},
 			},
 		},

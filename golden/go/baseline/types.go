@@ -9,6 +9,8 @@ import (
 // CommitableBaseline captures the data necessary to verify test results on the
 // commit queue.  A baseline is essentially the expectations for a set of
 // tests in a given commit range.
+// TODO(kjlubick): Maybe make a version of this that handles a single commit/CL
+// called ExpectationsDelta or ChangelistExpectations or something like that.
 type CommitableBaseline struct {
 	// StartCommit covered by these baselines.
 	StartCommit *tiling.Commit `json:"startCommit"`

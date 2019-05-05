@@ -11,7 +11,6 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
@@ -20,6 +19,7 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/pdag"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
@@ -33,12 +33,12 @@ const (
 	EV_INDEX_UPDATED = "indexer:index-updated"
 
 	// Metric to track the number of digests that do not have be uploaded by bots.
-	METRIC_KNOWN_HASHES = "known-digests"
+	METRIC_KNOWN_HASHES = "known_digests"
 )
 
 // SearchIndex contains everything that is necessary to search
 // our current knowledge about test results. It should be
-// considered as immutable. Whenever the underlying data change
+// considered as immutable. Whenever the underlying data changes,
 // a new index is calculated via a pdag.
 type SearchIndex struct {
 	cpxTile              *types.ComplexTile
@@ -156,7 +156,7 @@ type Indexer struct {
 	mutex             sync.RWMutex
 }
 
-// New returns a new Indexer instance. It synchronously indexes the initiallly
+// New returns a new Indexer instance. It synchronously indexes the initially
 // available tile. If the indexing fails an error is returned.
 // The provided interval defines how often the index should be refreshed.
 func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
@@ -165,36 +165,38 @@ func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
 	}
 
 	// Set up the processing pipeline.
-	root := pdag.NewNode(pdag.NoOp)
+	root := pdag.NewNodeWithParents(pdag.NoOp)
 
-	// Node that triggers blame and writing baseslines.
+	// Node that triggers blame and writing baselines.
 	// This is used to trigger when expectations change.
 	indexTestsNode := root.Child(pdag.NoOp)
 
 	blamerNode := indexTestsNode.Child(calcBlame)
 
-	// write baselines whenever a new tile is processed, new commits become available or
+	// write baselines whenever a new tile is processed, new commits become available, or
 	// when the expectations change.
-	writeBaselineNode := pdag.NewNode(writeMasterBaseline, indexTestsNode)
+	writeBaselineNode := indexTestsNode.Child(writeMasterBaseline)
 
 	// Add the blamer and tallies
 	tallyNode := root.Child(calcTallies)
 	tallyIgnoresNode := root.Child(calcTalliesWithIgnores)
 
 	// parameters depend on tallies.
-	paramsNode := pdag.NewNode(calcParamsets, tallyNode, tallyIgnoresNode)
-	pdag.NewNode(writeKnownHashesList, tallyIgnoresNode)
+	paramsNode := pdag.NewNodeWithParents(calcParamsets, tallyNode, tallyIgnoresNode)
+
+	// write known hashes after ignores are computed
+	writeHashes := tallyIgnoresNode.Child(writeKnownHashesList)
 
 	// summaries depend on tallies and blamer.
-	summaryNode := pdag.NewNode(calcSummaries, tallyNode, blamerNode)
-	summaryIgnoresNode := pdag.NewNode(calcSummariesWithIgnores, tallyIgnoresNode, blamerNode)
+	summaryNode := pdag.NewNodeWithParents(calcSummaries, tallyNode, blamerNode)
+	summaryIgnoresNode := pdag.NewNodeWithParents(calcSummariesWithIgnores, tallyIgnoresNode, blamerNode)
 
 	// The warmer depends on summaries.
-	pdag.NewNode(runWarmer, summaryNode, summaryIgnoresNode)
+	pdag.NewNodeWithParents(runWarmer, summaryNode, summaryIgnoresNode)
 
 	// Set the result on the Indexer instance, once summaries, parameters and writing
 	// the hash files is done.
-	pdag.NewNode(ret.setIndex, summaryNode, summaryIgnoresNode, paramsNode)
+	pdag.NewNodeWithParents(ret.setIndex, summaryNode, summaryIgnoresNode, paramsNode, writeHashes)
 
 	ret.pipeline = root
 	ret.indexTestsNode = indexTestsNode
@@ -204,7 +206,7 @@ func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
 	return ret, ret.start(interval)
 }
 
-// GetIndex returns the current index, which is updated continously in the
+// GetIndex returns the current index, which is updated continuously in the
 // background. The returned instances of SearchIndex can be considered immutable
 // and is not going to change. It should be used to handle an entire request
 // to provide consistent information.
@@ -217,9 +219,10 @@ func (ixr *Indexer) GetIndex() *SearchIndex {
 // start builds the initial index and starts the background
 // process to continuously build indices.
 func (ixr *Indexer) start(interval time.Duration) error {
+	defer shared.NewMetricsTimer("initial_synchronous_index").Stop()
 	// Build the first index synchronously.
-	tileStream := ixr.storages.GetTileStreamNow(interval)
-	if err := ixr.indexTilePair(<-tileStream); err != nil {
+	tileStream := ixr.storages.GetTileStreamNow(interval, "gold-indexer")
+	if err := ixr.executePipeline(<-tileStream); err != nil {
 		return err
 	}
 
@@ -255,13 +258,16 @@ func (ixr *Indexer) start(interval time.Duration) error {
 			select {
 			// Catch a new tile.
 			case cpxTile = <-tileStream:
+				sklog.Infof("Indexer saw a new tile")
 
 				// Catch any test changes.
 			case tn := <-expCh:
 				testChanges = append(testChanges, tn)
+				sklog.Infof("Indexer saw %d tests change", len(tn))
 
 				// Catch changes in the commits.
 			case <-commitCh:
+				sklog.Infof("Indexer saw commits change")
 			}
 
 			// Drain all input channels, effectively bunching signals together that arrive in short
@@ -280,7 +286,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 			// If there is a tile, re-index everything and forget the
 			// individual tests that changed.
 			if cpxTile != nil {
-				if err := ixr.indexTilePair(cpxTile); err != nil {
+				if err := ixr.executePipeline(cpxTile); err != nil {
 					sklog.Errorf("Unable to index tile: %s", err)
 				}
 			} else if len(testChanges) > 0 {
@@ -296,9 +302,10 @@ func (ixr *Indexer) start(interval time.Duration) error {
 	return nil
 }
 
-// indexTilePair runs the given TilePair through the the indexing pipeline.
-func (ixr *Indexer) indexTilePair(cpxTile *types.ComplexTile) error {
-	defer timer.New("indexTilePair").Stop()
+// executePipeline runs the given tile through the the indexing pipeline.
+// pipeline.Trigger blocks until everything is done, so this function will as well.
+func (ixr *Indexer) executePipeline(cpxTile *types.ComplexTile) error {
+	defer shared.NewMetricsTimer("indexer_execute_pipeline").Stop()
 	// Create a new index from the given tile.
 	return ixr.pipeline.Trigger(newSearchIndex(ixr.storages, cpxTile))
 }
@@ -321,7 +328,7 @@ func (ixr *Indexer) indexTests(testChanges []types.TestExp) {
 		}
 	}
 
-	defer timer.New("indexTests").Stop()
+	defer shared.NewMetricsTimer("index_tests").Stop()
 	newIdx := ixr.cloneLastIndex()
 	if err := ixr.indexTestsNode.Trigger(newIdx); err != nil {
 		sklog.Errorf("Error indexing tests: %v \n\n Got error: %s", testNames, err)
@@ -479,7 +486,7 @@ func writeMasterBaseline(state interface{}) error {
 	return nil
 }
 
-// runWarmer is the pipeline function to run the wamer. It runs it
+// runWarmer is the pipeline function to run the warmer. It runs it
 // asynchronously since its results are not relevant for the searchIndex.
 func runWarmer(state interface{}) error {
 	idx := state.(*SearchIndex)

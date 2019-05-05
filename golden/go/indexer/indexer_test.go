@@ -196,12 +196,12 @@ func setupStorages(t sktest.TestingT, ctx context.Context) (*storage.Storage, ex
 		EventBus:          evt,
 	}
 
-	ret.IgnoreStore, err = ignore.NewCloudIgnoreStore(ds.DS, expStore, ret.GetTileStreamNow(time.Minute))
+	ret.IgnoreStore, err = ignore.NewCloudIgnoreStore(ds.DS, expStore, ret.GetTileStreamNow(time.Minute, "test-ignore-store"))
 	assert.NoError(t, err)
 
-	tilePair, err := ret.GetLastTileTrimmed()
+	tile, err := ret.GetLastTileTrimmed()
 	assert.NoError(t, err)
 
-	assert.True(t, len(tilePair.IgnoreRules()) > 0)
+	assert.True(t, len(tile.IgnoreRules()) > 0)
 	return ret, expStore
 }

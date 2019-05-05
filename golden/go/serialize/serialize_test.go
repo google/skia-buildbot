@@ -30,19 +30,19 @@ const (
 
 var testParamsList = []paramtools.Params{
 	map[string]string{
-		"name":             "foo1",
-		"config":           "8888",
-		types.CORPUS_FIELD: "gmx",
+		"config":                "8888",
+		types.CORPUS_FIELD:      "gmx",
+		types.PRIMARY_KEY_FIELD: "foo1",
 	},
 	map[string]string{
-		"name":             "foo1",
-		"config":           "565",
-		types.CORPUS_FIELD: "gmx",
+		"config":                "565",
+		types.CORPUS_FIELD:      "gmx",
+		types.PRIMARY_KEY_FIELD: "foo1",
 	},
 	map[string]string{
-		"name":             "foo2",
-		"config":           "gpu",
-		types.CORPUS_FIELD: "gm",
+		"config":                "gpu",
+		types.CORPUS_FIELD:      "gm",
+		types.PRIMARY_KEY_FIELD: "foo2",
 	},
 }
 
