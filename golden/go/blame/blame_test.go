@@ -296,7 +296,7 @@ func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBui
 	})
 }
 
-func waitForChange(t assert.TestingT, blamer *Blamer, oldBlameLists map[string]map[string]*BlameDistribution) {
+func waitForChange(t assert.TestingT, blamer Blamer, oldBlameLists map[string]map[string]*BlameDistribution) {
 	assert.NoError(t, testutils.EventuallyConsistent(time.Second*10, func() error {
 		blameLists, _ := blamer.GetAllBlameLists()
 		if !reflect.DeepEqual(blameLists, oldBlameLists) {
