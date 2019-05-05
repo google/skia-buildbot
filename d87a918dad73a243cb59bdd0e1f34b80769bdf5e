@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4bbb2a53_1d1bfdb5",
+        "filename": "golden/go/shared/metrics_helper.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-05T13:20:15Z",
+      "side": 1,
+      "message": "Done. Keeping in logs for now, just as I continue to get familiar with Gold and the performance of things.",
+      "parentUuid": "da5713a2_dede72c0",
+      "range": {
+        "startLine": 13,
+        "startChar": 15,
+        "endLine": 13,
+        "endChar": 31
+      },
+      "revId": "d87a918dad73a243cb59bdd0e1f34b80769bdf5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a3643b6b_4e20c765",
         "filename": "golden/go/types/expectations.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "d87a918dad73a243cb59bdd0e1f34b80769bdf5e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e38a7c3_6297b01f",
+        "filename": "golden/go/types/expectations.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-05T13:20:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a3643b6b_4e20c765",
+      "range": {
+        "startLine": 112,
+        "startChar": 54,
+        "endLine": 112,
+        "endChar": 66
+      },
+      "revId": "d87a918dad73a243cb59bdd0e1f34b80769bdf5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
