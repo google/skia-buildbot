@@ -27,7 +27,9 @@ func byTraceForTile(tile *tiling.Tile, digestCountsByTrace map[string]digest_cou
 			test := tr.Params()[types.PRIMARY_KEY_FIELD]
 			for digest := range dc {
 				if foundTest, ok := ret[test]; !ok {
-					ret[test] = map[string]paramtools.ParamSet{digest: paramtools.NewParamSet(tr.Params())}
+					ret[test] = map[string]paramtools.ParamSet{
+						digest: paramtools.NewParamSet(tr.Params()),
+					}
 				} else if foundDigest, ok := foundTest[digest]; !ok {
 					foundTest[digest] = paramtools.NewParamSet(tr.Params())
 				} else {
@@ -45,7 +47,7 @@ func New() *ParamSummary {
 }
 
 // Calculate sets the values the ParamSummary based on the given tile.
-func (s *ParamSummary) Calculate(cpxTile *types.ComplexTile, dCounter digest_counter.DigestCounter, dCounterWithIgnores digest_counter.DigestCounter) {
+func (s *ParamSummary) Calculate(cpxTile types.ComplexTile, dCounter digest_counter.DigestCounter, dCounterWithIgnores digest_counter.DigestCounter) {
 	defer shared.NewMetricsTimer("param_summary_calculate").Stop()
 	s.byTrace = byTraceForTile(cpxTile.GetTile(false), dCounter.ByTrace())
 	s.byTraceIncludeIgnored = byTraceForTile(cpxTile.GetTile(true), dCounterWithIgnores.ByTrace())
