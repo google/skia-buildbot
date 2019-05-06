@@ -219,3 +219,12 @@ ALERT AlertToPubSub
     abbr = "google.com:skia-buildbots",
     description = "Failed to send alert via PubSub. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.job }}"
   }
+
+# git-sync
+ALERT GitSyncStalled
+  IF liveness_last_successful_git_sync_s > 10*60
+  LABELS { category = "infra", severity = "critical", owner = "kjlubick@google.com"}
+  ANNOTATIONS {
+    description = "gitsync has failed to update {{ $labels.repo}} for the last 10 minutes. Check out
+    pod {{ $labels.statefulset_kubernetes_io_pod_name }} in project {{ $labels.project }}.",
+  }
