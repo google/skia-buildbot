@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6c98ccaf_fbfbaff0",
+        "filename": "android_compile/go/android_compile/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-06T14:15:20Z",
+      "side": 1,
+      "message": "Need to lock the mutex here.  I think it might be nicer to make this \"private\" and add IsMirrorUpdateRunning and SetMirrorUpdateRunning funcs.  Alternatively, always call UpdateMirror here and make UpdateMirror be the sole user of MirrorUpdateRunning; lock the mutex when called and if the update is already running, return the below error.",
+      "range": {
+        "startLine": 137,
+        "startChar": 4,
+        "endLine": 137,
+        "endChar": 23
+      },
+      "revId": "bc1830013d65ef86f6fc1ea70e943116fab41a10",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
