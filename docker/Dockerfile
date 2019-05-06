@@ -39,7 +39,7 @@ USER root
 RUN curl -sL https://deb.nodesource.com/setup_10.x | bash - \
   && apt-get install -y nodejs
 
-# USER skia
+USER skia
 #
 # RUN cd /home/skia/golib/src/go.skia.org/infra/perf \
 #     && make
