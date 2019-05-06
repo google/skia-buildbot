@@ -85,8 +85,11 @@ var (
 
 	gerritClient *gerrit.Gerrit
 
-	repoToolPath string
-	pathToMirror string
+	repoToolPath             string
+	pathToMirror             string
+	MirrorLastSynced         time.Time
+	MirrorUpdateRunning      bool
+	MirrorUpdateRunningMutex sync.Mutex
 
 	// RWMutex for handling checkouts. The mirror will acquire a Lock()
 	// while the other local checkouts will acquire a RLock().
@@ -95,6 +98,15 @@ var (
 	// Whether the mirror should be recreated before it is synced.
 	recreateMirror bool
 )
+
+func UpdateMirror(ctx context.Context) {
+	if err := updateCheckout(ctx, pathToMirror, true); err != nil {
+		sklog.Errorf("Error when updating the mirror: %s", err)
+		mirrorSyncFailureMetric.Update(1)
+	} else {
+		mirrorSyncFailureMetric.Update(0)
+	}
+}
 
 func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Duration, storageClient *storage.Client) error {
 	user, err := user.Current()
@@ -125,12 +137,7 @@ func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Dur
 	}
 	// Update mirror here and then periodically.
 	cleanup.Repeat(repoUpdateDuration, func() {
-		if err := updateCheckout(ctx, pathToMirror, true); err != nil {
-			sklog.Errorf("Error when updating the mirror: %s", err)
-			mirrorSyncFailureMetric.Update(1)
-		} else {
-			mirrorSyncFailureMetric.Update(0)
-		}
+		UpdateMirror(ctx)
 	}, nil)
 
 	// Slice that will be used to update all checkouts in parallel.
@@ -232,6 +239,18 @@ func runInit(ctx context.Context, checkoutPath, initRepo string, isMirror bool) 
 	return nil
 }
 
+func setMirrorUpdateRunning(isRunning bool) {
+	MirrorUpdateRunningMutex.Lock()
+	defer MirrorUpdateRunningMutex.Unlock()
+	MirrorUpdateRunning = isRunning
+}
+
+func getMirrorUpdateRunning() bool {
+	MirrorUpdateRunningMutex.Lock()
+	defer MirrorUpdateRunningMutex.Unlock()
+	return MirrorUpdateRunning
+}
+
 // updateCheckout updates the Android checkout using the repo tool in the
 // specified checkout. Errors are retried with exponential backoff using the
 // values in constants.
@@ -239,6 +258,8 @@ func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) err
 	if isMirror {
 		checkoutsMutex.Lock()
 		defer checkoutsMutex.Unlock()
+		setMirrorUpdateRunning(true)
+		defer setMirrorUpdateRunning(false)
 	} else {
 		checkoutsMutex.RLock()
 		defer checkoutsMutex.RUnlock()
@@ -285,6 +306,7 @@ func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) err
 					sklog.Warningf("Mirror sync time %s was greater than %s", duration, MAX_MIRROR_SYNC_TIME_BEFORE_RECREATION)
 					sklog.Info("Will recreate mirror before next sync.")
 				}
+				MirrorLastSynced = time.Now()
 			}
 		}()
 

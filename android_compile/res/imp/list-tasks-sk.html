@@ -55,6 +55,12 @@
       <compile-menu-sk navigation></compile-menu-sk>
       <br/><br/>
 
+      <force-sync-sk mirror-last-synced="{{mirrorLastSynced}}"
+                     mirror-update-duration="{{mirrorUpdateDuration}}"
+                     mirror-update-running="{{mirrorUpdateRunning}}">
+      </force-sync-sk>
+      <br/><br/>
+
       <table class="tasktable" cellpadding="5" border="1">
         <col width = "50%">
         <col width = "50%">
@@ -114,6 +120,18 @@
   Polymer({
     is: "list-tasks-sk",
     properties: {
+      mirrorLastSynced: {
+        type: Object,
+        value: null,
+      },
+      mirrorUpdateDuration: {
+        type: Object,
+        value: null,
+      },
+      mirrorUpdateRunning: {
+        type: Boolean,
+        value: false,
+      },
       waitingTasks: {
         type: Array,
         value: [],

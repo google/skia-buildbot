@@ -9,6 +9,9 @@
 
     <script type="text/javascript" charset="utf-8">
       (function() {
+         $$$('list-tasks-sk').mirrorLastSynced = {{.MirrorLastSynced}};
+         $$$('list-tasks-sk').mirrorUpdateDuration = {{.MirrorUpdateDuration}};
+         $$$('list-tasks-sk').mirrorUpdateRunning = {{.MirrorUpdateRunning}};
          $$$('list-tasks-sk').waitingTasks = {{.WaitingTasks}};
          $$$('list-tasks-sk').runningTasks = {{.RunningTasks}};
        })();

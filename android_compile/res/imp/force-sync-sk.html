@@ -1,0 +1,95 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <force-sync-sk>
+
+  This element displays when the mirror was last synced, how often it is
+  normally synced, and a button to force a sync.
+
+  To use this file import it:
+
+    <link href="force-sync-sk.html" rel="import" />
+
+  Usage:
+
+    <force-sync-sk></force-sync-sk>
+
+  Attributes:
+    mirrorLastSynced - Time when the mirror was last synced.
+    mirrorUpdateDuration - How often the mirror is synced.
+    mirrorUpdateRunning - If the mirror is currently being synced.
+
+  Events:
+    None
+-->
+
+<dom-module id="force-sync-sk">
+  <template>
+    <style include="iron-positioning android-compile-app-style">
+      table.forcesync {
+        border:solid black 1px;
+        border-spacing: 0px;
+        width: 80%;
+      }
+      tr {
+        text-align: center;
+      }
+      td {
+        white-space: nowrap;
+        padding: 5px;
+        border:solid black 1px;
+      }
+      paper-button {
+        color: #1F78B4;
+      }
+    </style>
+
+    <table class="forcesync">
+      <col width = "50%">
+      <tr>
+        <td>
+          Checkout synced at: {{mirrorLastSynced}}
+        </td>
+        <td>
+          Periodic syncs done every: {{mirrorUpdateDuration}}
+        </td>
+      </tr>
+      <tr>
+        <td colspan=2>
+          <paper-button raised id="force_sync" disabled={{mirrorUpdateRunning}}>Force Sync Android Checkout</paper-button>
+          <template is="dom-if" if="{{mirrorUpdateRunning}}"><br/>Checkout is currently being synced</template>
+        </td>
+      </tr>
+    </table>
+
+  </template>
+
+  <script>
+  Polymer({
+    is: "force-sync-sk",
+    properties: {
+      mirrorLastSynced: {
+        type: Object,
+        value: null,
+      },
+      mirrorUpdateDuration: {
+        type: Object,
+        value: null,
+      },
+      mirrorUpdateRunning: {
+        type: Boolean,
+        value: false,
+      },
+    },
+
+    ready: function() {
+      this.$.force_sync.addEventListener('click', function(e) {
+        sk.post("/_/force_sync").then(function(resp) {
+          window.location.href = "/";
+        }).catch(sk.errorMessage);
+      });
+    },
+  });
+  </script>
+</dom-module>
