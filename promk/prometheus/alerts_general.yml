@@ -499,3 +499,13 @@ groups:
     annotations:
       abbr: '{{ $labels.container }}'
       description: 'For app {{ $labels.app }} and container {{ $labels.container }} the running image differs from the image in {{ $labels.repo }}/+/refs/heads/master/{{ $labels.yaml }} : {{ $labels.liveImage }} != {{ $labels.committedImage }}'
+
+  - alert: GitSyncStalled
+    expr: liveness_last_successful_git_sync_s > 10*60
+    labels:
+      category: infra
+      severity: critical
+      owner: kjlubick
+    annotations:
+      abbr: '{{ $labels.repo }}'
+      description: 'gitsync has failed to update {{ $labels.repo }} for the last 10 minutes. Check out pod {{ $labels.statefulset_kubernetes_io_pod_name }} in project {{ $labels.project }}.'
