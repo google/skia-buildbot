@@ -13,18 +13,20 @@ USER skia
 
 RUN mkdir -p /home/skia/golib \
     && cd /home/skia \
-    && wget https://dl.google.com/go/go1.10.3.linux-amd64.tar.gz \
-    && tar -xf go1.10.3.linux-amd64.tar.gz
+    && wget https://dl.google.com/go/go1.12.4.linux-amd64.tar.gz \
+    && tar -xf go1.12.4.linux-amd64.tar.gz
 
 ENV GOPATH /home/skia/golib
 ENV PATH $GOPATH/bin:/home/skia/go/bin:$PATH
+ENV GO111MODULE on
 
-RUN go get -u github.com/kisielk/errcheck \
+RUN cd /home/skia && git clone https://skia.googlesource.com/buildbot.git
+RUN cd /home/skia/buildbot && go get
+RUN cd /home/skia/buildbot && \
+  go get github.com/kisielk/errcheck \
   golang.org/x/tools/cmd/goimports \
   go.chromium.org/luci/client/cmd/isolate
-RUN go get -u -t go.skia.org/infra/...
-RUN cd $GOPATH/src/go.skia.org/infra/fiddlek/ \
-    && make fiddle_secwrap
+RUN cd /home/skia/buildbot/fiddlek && make fiddle_secwrap
 
 USER root
 
