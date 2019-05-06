@@ -496,6 +496,12 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
+func basicModeHandler(w http.ResponseWriter, r *http.Request) {
+	// This hash is that of the basic red line that is the starter code.
+	// By linking to that, the result shows up for new users/basic mode.
+	http.Redirect(w, r, "/c/cbb8dee39e9f1576cd97c2d504db8eee?mode=basic", http.StatusFound)
+}
+
 func main() {
 	common.InitWithMust(
 		"fiddle",
@@ -539,6 +545,7 @@ func main() {
 	r.HandleFunc("/s/{id:[0-9]+}", sourceHandler)
 	r.HandleFunc("/f/", failedHandler)
 	r.HandleFunc("/named/", namedHandler)
+	r.HandleFunc("/new", basicModeHandler)
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/_/run", runHandler)
 	r.HandleFunc("/healthz", healthzHandler)
