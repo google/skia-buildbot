@@ -152,7 +152,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 	return nil
 }
 
-func (s *StatusWatcher) calcStatus(cpxTile *types.ComplexTile) error {
+func (s *StatusWatcher) calcStatus(cpxTile types.ComplexTile) error {
 	defer shared.NewMetricsTimer("calculate_status").Stop()
 
 	okByCorpus := map[string]bool{}
