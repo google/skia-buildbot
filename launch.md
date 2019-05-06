@@ -228,6 +228,14 @@ apply to all apps and may not need to be added
   explicitly for your application, such as:
     - Too many goroutines.
     - Free disk space on the instance and any attached disks.
+    - This is also for alerts that apply to skia-public and skia-corp projects.
+
+- Check your alert rules by running `make validate` in `promk/`
+  (Legacy apps should run that commaind in `prometheus/`).
+
+- Then, after landing your valid alerts, run `make push` in `promk/`
+  (Again, legacy apps should do this in `prometheus/`).
+
 - Tell people about your new service.
 - Be prepared for bug reports. :-)
 
