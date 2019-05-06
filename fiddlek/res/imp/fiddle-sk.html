@@ -203,12 +203,21 @@
   </style>
   <template>
     <template is="dom-if" if="{{display_options}}">
-      <details-sk>
+      <details-sk open="{{_options_open}}">
         <summary-sk>Options</summary-sk>
         <div class=options>
-          <paper-checkbox id=textonly title="A text-only fiddle." checked="{{textonly}}">Text Only <span class=hint>[Use SkDebugf()]</span></paper-checkbox>
-          <paper-checkbox id=srgb title="sRGB" checked="{{srgb}}" disabled="[[f16]]">sRGB</paper-checkbox>
-          <paper-checkbox id=f16  title="Half floats" checked="{{f16}}" disabled="[[_not(srgb)]]">F16</paper-checkbox>
+          <paper-checkbox id=textonly title="A text-only fiddle."
+                checked="{{textonly}}" hidden$="[[_basic_mode]]">
+            Text Only <span class=hint>[Use SkDebugf()]</span>
+          </paper-checkbox>
+          <paper-checkbox id=srgb title="sRGB"
+                checked="{{srgb}}" disabled="[[f16]]" hidden$="[[_basic_mode]]">
+            sRGB
+          </paper-checkbox>
+          <paper-checkbox id=f16  title="Half floats"
+                checked="{{f16}}" disabled="[[_not(srgb)]]" hidden$="[[_basic_mode]]">
+            F16
+          </paper-checkbox>
           <div>
             <paper-input label="Width" size=5 auto-validate allowed-pattern="[0-9]+" value="{{width}}"></paper-input>
             <paper-input label="Height" size=5 auto-validate allowed-pattern="[0-9]+" value="{{height}}"></paper-input>
@@ -225,7 +234,10 @@ double frame;    // A value in [0, 1] of where we are in the animation.</pre>
 
 <!-- Add offscreen opts here-->
           <div>
-            <paper-checkbox id=offscreen title="Create an offscreen render target on the GPU." checked="{{offscreen}}" on-tap=_toggle_offscreen>Offscreen Render Target</paper-checkbox>
+            <paper-checkbox id=offscreen title="Create an offscreen render target on the GPU."
+                  checked="{{offscreen}}" on-tap=_toggle_offscreen hidden$="[[_basic_mode]]">
+              Offscreen Render Target
+            </paper-checkbox>
             <div hidden="[[_not(offscreen)]]" class=offset>
               <div>
                 <paper-input label="Width" size=5 auto-validate allowed-pattern="[0-9]+" value="{{offscreen_width}}"></paper-input>
@@ -267,14 +279,14 @@ GrBackendTexture backEndTexture; // GPU Only.</pre>
       <content select="p"></content>
     </div>
     <div id=submit>
-      <template is="dom-if" if="{{_not(embedded)}}">
+      <template is="dom-if" if="[[_not(embedded)]]">
         <button class=action on-tap="_run">Run</button>
         <paper-spinner></paper-spinner>
 
         <template is="dom-if" if="{{bug_link}}">
           <a id=bug target=_blank href$="{{_bugLink(fiddlehash)}}">File Bug</a>
         </template>
-        <toggle-display-sk>Embed</toggle-display-sk>
+        <toggle-display-sk hidden$="[[_basic_mode]]">Embed</toggle-display-sk>
         <div id=embedder>
           <h3>Embed as an image with a backlink:</h3>
           <input type="text" readonly size=150 value="&lt;a href='https://fiddle.skia.org/c/{{fiddlehash}}'>&lt;img src='https://fiddle.skia.org/i/{{fiddlehash}}_raster.png'>&lt;/a>">
@@ -315,10 +327,10 @@ GrBackendTexture backEndTexture; // GPU Only.</pre>
           </div>
         </template>
 
-        <template is="dom-if" if="{{_showGpu(gpu_embedded,embedded)}}">
+        <template is="dom-if" if="[[_showGpu(gpu_embedded,embedded,_basic_mode)]]">
           <div class="vertical layout center-justified">
-            <template is="dom-if" if="{{_not(animated)}}">
-              <img title=GPU src="[[domain]]/i/{{fiddlehash}}_gpu.png" width="{{width}}" height="{{height}}">
+            <template is="dom-if" if="[[_not(animated)]]">
+              <img title=GPU src="[[domain]]/i/[[fiddlehash]]_gpu.png" width="[[width]]" height="[[height]]">
             </template>
             <template is="dom-if" if="{{animated}}">
               <video title=GPU loop="[[loop]]" autoplay src="[[domain]]/i/{{fiddlehash}}_gpu.webm" width="{{width}}" height="{{height}}"></video>
@@ -331,12 +343,12 @@ GrBackendTexture backEndTexture; // GPU Only.</pre>
           </div>
         </template>
 
-        <template is="dom-if" if="{{_showLinks(animated,embedded)}}">
+        <template is="dom-if" if="[[_showLinks(animated,embedded,_basic_mode)]]">
           <div class="vertical layout center">
-            <a href="[[domain]]/i/{{fiddlehash}}.pdf">PDF</a>
+            <a href="[[domain]]/i/[[fiddlehash]].pdf">PDF</a>
           </div>
           <div class="vertical layout center">
-            <a href="[[domain]]/i/{{fiddlehash}}.skp">SKP</a>
+            <a href="[[domain]]/i/[[fiddlehash]].skp">SKP</a>
           </div>
           <div class="vertical layout center">
             <a href="https://debugger.skia.org/loadfrom?url=https://fiddle.skia.org/i/{{fiddlehash}}.skp">Debug</a>
@@ -346,7 +358,7 @@ GrBackendTexture backEndTexture; // GPU Only.</pre>
         <template is="dom-if" if="{{embedded}}">
           <button class=action on-tap="_run">Run</button>
           <paper-spinner></paper-spinner>
-          <a href="https://fiddle.skia.org/c/{{fiddlehash}}" target=_blank">Pop-out</a>
+          <a href="https://fiddle.skia.org/c/{{fiddlehash}}" target="_blank">Pop-out</a>
         </template>
 
         <template is="dom-if" if="{{animated}}">
@@ -541,11 +553,23 @@ GrBackendTexture backEndTexture; // GPU Only.</pre>
         value: "",
         reflectToAttribute: false,
       },
+      _basic_mode: {
+        type: Boolean,
+        value: false,
+      },
+      _options_open: {
+        type: Boolean,
+        value: false,
+      }
     },
 
     ready: function() {
       this._errorLinesRe = /draw.cpp:([0-9]+):([0-9]+):/;
       this._editor = $$$('textarea-numbers-sk', this);
+      this._basic_mode = window.location.search.indexOf("mode=basic") !== -1;
+      if (this._basic_mode) {
+        this._options_open = true;
+      }
     },
 
     _run: function() {
@@ -568,7 +592,7 @@ GrBackendTexture backEndTexture; // GPU Only.</pre>
       $$("paper-spinner", this).forEach(function(s) {
         s.active = true;
       }, this);
-      body = {
+      var body = {
         code: $$$('textarea', this).value,
         options: {
           width: +this.width,
@@ -588,7 +612,7 @@ GrBackendTexture backEndTexture; // GPU Only.</pre>
           offscreen_mipmap: this.offscreen_mipmap,
         }
       };
-      for (key in extra) {
+      for (var key in extra) {
         body[key] = extra[key];
       }
       sk.post(this.domain + "/_/run", JSON.stringify(body)).then(JSON.parse).then(function(json) {
@@ -711,12 +735,12 @@ GrBackendTexture backEndTexture; // GPU Only.</pre>
       return cpu_embedded || (!embedded || !gpu_embedded);
     },
 
-    _showGpu: function(gpu_embedded, embedded) {
-      return !embedded || gpu_embedded;
+    _showGpu: function(gpu_embedded, embedded, basic_mode) {
+      return (!embedded || gpu_embedded) && !basic_mode;
     },
 
-    _showLinks: function(animated, embedded) {
-      return !animated && !embedded;
+    _showLinks: function(animated, embedded, basic_mode) {
+      return !animated && !embedded && !basic_mode;
     },
 
   });
