@@ -7,7 +7,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/tally"
+	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -58,7 +58,7 @@ func TestParamset(t *testing.T) {
 		},
 	}
 
-	tallies := map[string]tally.Tally{
+	tallies := map[string]digest_counter.DigestCount{
 		"a": {
 			"aaa": 1,
 			"bbb": 1,
