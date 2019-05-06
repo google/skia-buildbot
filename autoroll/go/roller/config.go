@@ -23,7 +23,6 @@ const (
 	DEFAULT_SAFETY_THROTTLE_ATTEMPT_COUNT = 3
 	DEFAULT_SAFETY_THROTTLE_TIME_WINDOW   = 30 * time.Minute
 
-	ROLLER_TYPE_ASSET            = "asset"
 	ROLLER_TYPE_AFDO             = "afdo"
 	ROLLER_TYPE_ANDROID          = "android"
 	ROLLER_TYPE_COPY             = "copy"
@@ -163,7 +162,6 @@ type AutoRollerConfig struct {
 	// RepoManager configs. Exactly one must be provided.
 	AFDORepoManager              *repo_manager.AFDORepoManagerConfig              `json:"afdoRepoManager,omitempty"`
 	AndroidRepoManager           *repo_manager.AndroidRepoManagerConfig           `json:"androidRepoManager,omitempty"`
-	AssetRepoManager             *repo_manager.AssetRepoManagerConfig             `json:"assetRepoManager,omitempty"`
 	CopyRepoManager              *repo_manager.CopyRepoManagerConfig              `json:"copyRepoManager,omitempty"`
 	DEPSRepoManager              *repo_manager.DEPSRepoManagerConfig              `json:"depsRepoManager,omitempty"`
 	FuchsiaSDKAndroidRepoManager *repo_manager.FuchsiaSDKAndroidRepoManagerConfig `json:"fuchsiaSDKAndroidRepoManager,omitempty"`
@@ -250,9 +248,6 @@ func (c *AutoRollerConfig) Validate() error {
 	if c.AndroidRepoManager != nil {
 		rm = append(rm, c.AndroidRepoManager)
 	}
-	if c.AssetRepoManager != nil {
-		rm = append(rm, c.AssetRepoManager)
-	}
 	if c.CopyRepoManager != nil {
 		rm = append(rm, c.CopyRepoManager)
 	}
@@ -309,8 +304,6 @@ func (c *AutoRollerConfig) RollerType() string {
 			c.rollerType = ROLLER_TYPE_AFDO
 		} else if c.AndroidRepoManager != nil {
 			c.rollerType = ROLLER_TYPE_ANDROID
-		} else if c.AssetRepoManager != nil {
-			c.rollerType = ROLLER_TYPE_ASSET
 		} else if c.CopyRepoManager != nil {
 			c.rollerType = ROLLER_TYPE_COPY
 		} else if c.DEPSRepoManager != nil {

@@ -98,8 +98,6 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		rm, err = repo_manager.NewAFDORepoManager(ctx, c.AFDORepoManager, workdir, g, serverURL, gitcookiesPath, nil, cr, local)
 	} else if c.AndroidRepoManager != nil {
 		rm, err = repo_manager.NewAndroidRepoManager(ctx, c.AndroidRepoManager, workdir, g, serverURL, c.ServiceAccount, client, cr, local)
-	} else if c.AssetRepoManager != nil {
-		rm, err = repo_manager.NewAssetRepoManager(ctx, c.AssetRepoManager, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.CopyRepoManager != nil {
 		rm, err = repo_manager.NewCopyRepoManager(ctx, c.CopyRepoManager, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.DEPSRepoManager != nil {
