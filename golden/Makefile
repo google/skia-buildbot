@@ -82,5 +82,6 @@ mocks:
 	mockery -name TestExpBuilder -dir go/types/ -output ./go/mocks/
 	mockery -name ComplexTile -dir go/types/ -output ./go/mocks/
 	mockery -name DigestCounter -dir go/digest_counter/ -output ./go/mocks/
+	mockery -name TileSource -dir go/storage/ -output ./go/mocks/
 
 include ../webtools/webtools.mk
