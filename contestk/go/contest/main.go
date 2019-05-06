@@ -22,7 +22,7 @@ const (
 	index = `<!DOCTYPE html>
 <html>
 <head>
-    <title>Skia Drawing Contest</title>
+    <title>Skia Drawing Gallery</title>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -60,9 +60,9 @@ const (
 		</style>
 </head>
 <body>
-  <h2>Skia Coding Contest</h2>
+  <h2>Skia Coding Gallery</h2>
   <p>
-	  Create your entry at <a target=_blank href="https://fiddle.skia.org">fiddle.skia.org</a> and submit the URL of your completed fiddle <a href="http://goo.gl/forms/pRfo39hTND">here</a>.
+	  Create your entry at <a target=_blank href="https://fiddle.skia.org">fiddle.skia.org</a> and submit the URL of your completed fiddle <a href="https://forms.gle/XSzwGQisp8UsXk5K8">here</a>.
 	</p>
   {{range .Values}}
 	  <div>
@@ -159,7 +159,7 @@ func hash(values []*Values) string {
 
 // step does a single update of 'values' and 'valueHash' from the Google spreadsheet.
 func step() error {
-	v, err := ss.Spreadsheets.Values.Get("1Jbv7pWwH8NwHtoEBez1Bkwmk2wjhMnCk9UKttYqPjNQ", "A1:C200").Do()
+	v, err := ss.Spreadsheets.Values.Get("1r0-HUMcZfeVS8SqaDDUZyrUJZy0AQ8lHhmWCI6gIlMw", "A1:C200").Do()
 	if err != nil {
 		return err
 	}
