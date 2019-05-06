@@ -169,7 +169,8 @@ func (s *Storage) GetLastTileTrimmed() (*types.ComplexTile, error) {
 
 	// If the tile was updated within a certain time window just return it without
 	// calculating it again.
-	if s.lastCpxTile != nil && (time.Now().Sub(s.lastTimeStamp) > tileCacheTime) {
+	if s.lastCpxTile != nil && (time.Now().Sub(s.lastTimeStamp) < tileCacheTime) {
+		sklog.Infof("short circuiting get tile, because it's still new: %s < %s", time.Now().Sub(s.lastTimeStamp), tileCacheTime)
 		return s.lastCpxTile, nil
 	}
 

@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/git/gitinfo"
@@ -337,6 +338,9 @@ func main() {
 		// If a storage directory was provided we can use it to cache tiles.
 		mtbCache := ""
 		if *storageDir != "" {
+			if _, err := fileutil.EnsureDirExists(*storageDir); err != nil {
+				sklog.Fatalf("Failed to make storageDir: %s", err)
+			}
 			mtbCache = filepath.Join(*storageDir, "cached-last-tile")
 		}
 
@@ -485,28 +489,8 @@ func main() {
 		mainTimer.Stop()
 	}()
 
-	// TODO(stephana): Running the setup process in the a parallel go-routine is an ugly hack and the
-	// code below to set up a temporary server should also be removed asap.
-
-	// Set up a server that indicates that the server is ready until the
-	// startup work is finished.
-	readyRouter := mux.NewRouter()
-	readyRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
-	srv := http.Server{Addr: *port, Handler: readyRouter}
-	go func() {
-		sklog.Infof("Start serving ready endpoint.")
-		err := srv.ListenAndServe()
-		if err != http.ErrServerClosed {
-			sklog.Fatalf("Unexpected error closing ready server: %s", err)
-		}
-		sklog.Infof("Finished serving ready endpoint.")
-	}()
-
 	// Wait until the various storage objects are set up correctly.
 	wg.Wait()
-	if err := srv.Shutdown(context.Background()); err != nil {
-		sklog.Fatalf("Error shutting down ready server: %s", err)
-	}
 
 	// loggedRouter contains all the endpoints that are logged. See the call below to
 	// LoggingGzipRequestResponse.

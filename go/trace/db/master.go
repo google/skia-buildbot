@@ -114,6 +114,8 @@ func (t *masterTileBuilder) LoadTile(ctx context.Context) error {
 		sklog.Errorf("Failed to update Git repo: %s", err)
 	}
 	indexCommits := t.vcs.LastNIndex(t.tileSize)
+	last := indexCommits[len(indexCommits)-1]
+	sklog.Infof("Loaded tile with last commit: %#v", *last)
 	commitIDs := make([]*CommitID, 0, len(indexCommits))
 	for _, ic := range indexCommits {
 		commitIDs = append(commitIDs, &CommitID{
