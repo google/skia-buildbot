@@ -200,18 +200,6 @@ func updateCheckoutsInParallel(ctx context.Context, checkouts []string) error {
 		c := checkout // https://golang.org/doc/faq#closures_and_goroutines
 		// Create and run a goroutine closure that updates the checkout.
 		group.Go(c, func() error {
-			// Make sure the Skia checkout (if it exists) is without any modifications
-			// from a previous interrupted run.
-			skiaPath := filepath.Join(c, "external", "skia")
-			if stat, err := os.Stat(skiaPath); err == nil && stat.IsDir() {
-				skiaCheckout, err := git.NewCheckout(ctx, ANDROID_SKIA_URL, path.Dir(skiaPath))
-				if err != nil {
-					return fmt.Errorf("Failed to create GitDir from %s: %s", skiaPath, err)
-				}
-				if err := cleanSkiaCheckout(ctx, skiaCheckout, c); err != nil {
-					return fmt.Errorf("Error when cleaning Skia checkout at %s: %s", skiaCheckout.Dir(), err)
-				}
-			}
 			// Now update the Android checkout.
 			if err := updateCheckout(ctx, c, false); err != nil {
 				return fmt.Errorf("Error when updating checkout in %s: %s", c, err)
