@@ -35,7 +35,7 @@ func (r *Repo) Update(ctx context.Context) error {
 		Name:    "git",
 		Args:    []string{"fetch", "--force", "--all", "--prune"},
 		Dir:     r.Dir(),
-		Timeout: time.Minute,
+		Timeout: 2 * time.Minute,
 	}
 	out, err := exec.RunCommand(ctx, cmd)
 	if err != nil {
