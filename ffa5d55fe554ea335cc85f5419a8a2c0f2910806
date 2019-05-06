@@ -22,6 +22,30 @@
       "revId": "ffa5d55fe554ea335cc85f5419a8a2c0f2910806",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2edffc65_ca189172",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-06T15:10:48Z",
+      "side": 0,
+      "message": "Correct; we now have these three things pinned in go.mod, but \"go get\" doesn\u0027t know to use our go.mod unless cwd is inside our repository.  That\u0027s why I changed to check out the our repo first and run this command inside it.  In go module mode, \"go get -u\" will update the pin to the most recent minor release, which is desirable for a roller or when manually updating, but for this case (and for bots), where we just need to retrieve the dependency at the pinned revision, we just want \"go get\".",
+      "parentUuid": "d27a8cfa_5bd1e1d2",
+      "range": {
+        "startLine": 22,
+        "startChar": 11,
+        "endLine": 22,
+        "endChar": 13
+      },
+      "revId": "ffa5d55fe554ea335cc85f5419a8a2c0f2910806",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

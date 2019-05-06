@@ -22,6 +22,30 @@
       "revId": "9619b9425b0d4912847010b8393c9f2e2a0479fe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57295356_f570eaef",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-06T15:10:48Z",
+      "side": 1,
+      "message": "Whoops. Fixed to check out the infra code in the old location. FTR \"go get\" was putting it under $GOPATH/pkg/mod/go.skia.org/infra@\u003chash\u003e",
+      "parentUuid": "e071eb43_17538298",
+      "range": {
+        "startLine": 23,
+        "startChar": 7,
+        "endLine": 23,
+        "endChar": 17
+      },
+      "revId": "9619b9425b0d4912847010b8393c9f2e2a0479fe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
