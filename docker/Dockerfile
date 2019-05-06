@@ -28,7 +28,7 @@ RUN cd $GOPATH/src \
   && go get \
     github.com/kisielk/errcheck \
     golang.org/x/tools/cmd/goimports \
-    go.chromium.org/luci/client/cmd/isolate \
+    go.chromium.org/luci/client/cmd/isolate
 
 RUN cd $GOPATH/src/go.skia.org/infra/fiddlek \
   && make fiddle_secwrap
