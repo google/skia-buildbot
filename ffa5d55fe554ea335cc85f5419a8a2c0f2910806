@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d27a8cfa_5bd1e1d2",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-06T14:37:45Z",
+      "side": 0,
+      "message": "-u removed because it\u0027s the initial checkout and we just want to pull in what the mod/sum files say?",
+      "range": {
+        "startLine": 22,
+        "startChar": 11,
+        "endLine": 22,
+        "endChar": 13
+      },
+      "revId": "ffa5d55fe554ea335cc85f5419a8a2c0f2910806",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
