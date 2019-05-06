@@ -17,8 +17,39 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
+	testdata "go.skia.org/infra/golden/go/testutils"
 	"go.skia.org/infra/golden/go/types"
 )
+
+func TestBlamerCalculate(t *testing.T) {
+	testutils.SmallTest(t)
+
+	mt := &mocks.TileSource{}
+	mes := &mocks.ExpectationsStore{}
+	meh := &mocks.TestExpBuilder{}
+
+	defer mt.AssertExpectations(t)
+	defer mes.AssertExpectations(t)
+	defer meh.AssertExpectations(t)
+
+	mes.On("Get").Return(meh, nil)
+
+	meh.On("Classification", "test_alpha", testdata.AlphaGood1Hash).Return(types.POSITIVE)
+	meh.On("Classification", "test_alpha", testdata.AlphaUntriaged1Hash).Return(types.UNTRIAGED)
+	meh.On("Classification", "test_alpha", testdata.AlphaBad1Hash).Return(types.NEGATIVE)
+	meh.On("Classification", "test_beta", testdata.BetaGood1Hash).Return(types.POSITIVE)
+	meh.On("Classification", "test_beta", testdata.BetaUntriaged1Hash).Return(types.UNTRIAGED)
+
+	s := &storage.Storage{
+		ExpectationsStore: mes,
+		MasterTileBuilder: mt,
+	}
+	blamer := New(s)
+	err := blamer.Calculate(testdata.MakeTestTileThreeDevice())
+	assert.NoError(t, err)
+
+	assert.Fail(t, "Need more assertions")
+}
 
 const (
 	// Directory with testdata.
@@ -296,7 +327,7 @@ func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBui
 	})
 }
 
-func waitForChange(t assert.TestingT, blamer *Blamer, oldBlameLists map[string]map[string]*BlameDistribution) {
+func waitForChange(t assert.TestingT, blamer Blamer, oldBlameLists map[string]map[string]*BlameDistribution) {
 	assert.NoError(t, testutils.EventuallyConsistent(time.Second*10, func() error {
 		blameLists, _ := blamer.GetAllBlameLists()
 		if !reflect.DeepEqual(blameLists, oldBlameLists) {

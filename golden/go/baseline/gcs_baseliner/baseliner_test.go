@@ -2,16 +2,15 @@ package gcs_baseliner
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
+	testdata "go.skia.org/infra/golden/go/testutils"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -27,7 +26,7 @@ func TestFetchBaselineSunnyDay(t *testing.T) {
 	mgs := makeMockGCSStorage()
 	defer mgs.AssertExpectations(t)
 
-	mgs.On("ReadBaseline", testCommitHash, testIssueID).Return(makeTestBaseline(), nil).Once()
+	mgs.On("ReadBaseline", testCommitHash, testIssueID).Return(testdata.MakeTestBaselineThreeDevice(), nil).Once()
 
 	baseliner, err := New(mgs, nil, nil, nil, nil)
 	assert.NoError(t, err)
@@ -35,7 +34,7 @@ func TestFetchBaselineSunnyDay(t *testing.T) {
 	b, err := baseliner.FetchBaseline(testCommitHash, testIssueID, testPatchSetID, false)
 	assert.NoError(t, err)
 
-	deepequal.AssertDeepEqual(t, makeTestBaseline(), b)
+	deepequal.AssertDeepEqual(t, testdata.MakeTestBaselineThreeDevice(), b)
 }
 
 func TestFetchBaselineCachingSunnyDay(t *testing.T) {
@@ -49,7 +48,7 @@ func TestFetchBaselineCachingSunnyDay(t *testing.T) {
 	defer mgs.AssertExpectations(t)
 
 	// ReadBaseline should only be called once despite multiple requests below
-	mgs.On("ReadBaseline", testCommitHash, testIssueID).Return(makeTestBaseline(), nil).Once()
+	mgs.On("ReadBaseline", testCommitHash, testIssueID).Return(testdata.MakeTestBaselineThreeDevice(), nil).Once()
 
 	baseliner, err := New(mgs, nil, nil, nil, nil)
 	assert.NoError(t, err)
@@ -58,7 +57,7 @@ func TestFetchBaselineCachingSunnyDay(t *testing.T) {
 		b, err := baseliner.FetchBaseline(testCommitHash, testIssueID, testPatchSetID, false)
 		assert.NoError(t, err)
 		assert.NotNil(t, b)
-		deepequal.AssertDeepEqual(t, makeTestBaseline(), b)
+		deepequal.AssertDeepEqual(t, testdata.MakeTestBaselineThreeDevice(), b)
 	}
 }
 
@@ -81,17 +80,17 @@ func TestPushMasterBaselineSunnyDay(t *testing.T) {
 	defer mes.AssertExpectations(t)
 	defer meh.AssertExpectations(t)
 
-	mcs.On("AllCommits").Return(makeTestCommits())
-	mcs.On("DataCommits").Return(makeTestCommits())
-	mcs.On("GetTile", false).Return(makeTestTile())
+	mcs.On("AllCommits").Return(testdata.MakeTestCommitsThreeDevice())
+	mcs.On("DataCommits").Return(testdata.MakeTestCommitsThreeDevice())
+	mcs.On("GetTile", false).Return(testdata.MakeTestTileThreeDevice())
 
 	mes.On("Get").Return(meh, nil)
 
-	meh.On("Classification", "test_alpha", alphaGood1Hash).Return(types.POSITIVE)
-	meh.On("Classification", "test_alpha", alphaUntriaged1Hash).Return(types.UNTRIAGED)
-	meh.On("Classification", "test_alpha", alphaBad1Hash).Return(types.NEGATIVE)
-	meh.On("Classification", "test_beta", betaGood1Hash).Return(types.POSITIVE)
-	meh.On("Classification", "test_beta", betaUntriaged1Hash).Return(types.UNTRIAGED)
+	meh.On("Classification", "test_alpha", testdata.AlphaGood1Hash).Return(types.POSITIVE)
+	meh.On("Classification", "test_alpha", testdata.AlphaUntriaged1Hash).Return(types.UNTRIAGED)
+	meh.On("Classification", "test_alpha", testdata.AlphaBad1Hash).Return(types.NEGATIVE)
+	meh.On("Classification", "test_beta", testdata.BetaGood1Hash).Return(types.POSITIVE)
+	meh.On("Classification", "test_beta", testdata.BetaUntriaged1Hash).Return(types.UNTRIAGED)
 
 	mgs.On("WriteBaseline", mock.AnythingOfType("*baseline.CommitableBaseline")).Run(func(args mock.Arguments) {
 		b := args.Get(0).(*baseline.CommitableBaseline)
@@ -108,16 +107,16 @@ func TestPushMasterBaselineSunnyDay(t *testing.T) {
 		switch b.StartCommit.Hash {
 		default:
 			assert.Fail(t, "Bad hash", b.StartCommit.Hash)
-		case firstCommitHash:
+		case testdata.FirstCommitHash:
 			assert.Equal(t, 1, b.Filled)
-			assertLabel(t, b, "test_beta", betaGood1Hash, types.POSITIVE)
-		case secondCommitHash:
+			assertLabel(t, b, "test_beta", testdata.BetaGood1Hash, types.POSITIVE)
+		case testdata.SecondCommitHash:
 			assert.Equal(t, 1, b.Filled)
-			assertLabel(t, b, "test_beta", betaGood1Hash, types.POSITIVE)
-		case thirdCommitHash:
+			assertLabel(t, b, "test_beta", testdata.BetaGood1Hash, types.POSITIVE)
+		case testdata.ThirdCommitHash:
 			assert.Equal(t, 2, b.Filled)
-			assertLabel(t, b, "test_alpha", alphaGood1Hash, types.POSITIVE)
-			assertLabel(t, b, "test_beta", betaGood1Hash, types.POSITIVE)
+			assertLabel(t, b, "test_alpha", testdata.AlphaGood1Hash, types.POSITIVE)
+			assertLabel(t, b, "test_beta", testdata.BetaGood1Hash, types.POSITIVE)
 		}
 	}).Return("gs://test-bucket/baselines/foo-baseline.json", nil).Times(3) // once per commit
 
@@ -150,147 +149,3 @@ func assertLabel(t *testing.T, b *baseline.CommitableBaseline, testName, hash st
 	}
 	assert.Equal(t, label, lab)
 }
-
-// This baseline represents the following case: There are 3 devices
-// (angler, bullhead, crosshatch, each running 2 tests (test_alpha, test_beta)
-//
-// All 3 devices drew test_alpha incorrectly as digest alphaBad1Hash at StartCommit.
-// Devices angler and crosshatch drew test_alpha correctly as digest alphaGood1Hash at EndCommit.
-// Device bullhead drew test_alpha as digest alphaUntriaged1Hash at EndCommit.
-//
-// Devices angler and bullhead drew test_beta the same (digest betaGood1Hash)
-// and device crosshatch the remaining case betaUntriaged1Hash.
-// crosshatch is missing two digests (maybe that test hasn't run yet?)
-// The baseline is on the master branch.
-//
-// These helper functions all return a fresh copy of their objects so that
-// tests can mutate them w/o impacting future tests.
-func makeTestBaseline() *baseline.CommitableBaseline {
-	return &baseline.CommitableBaseline{
-		StartCommit: &tiling.Commit{
-			Hash:       firstCommitHash,
-			CommitTime: time.Date(2019, time.April, 26, 12, 0, 3, 0, time.UTC).Unix(),
-			Author:     "alpha@example.com",
-		},
-		EndCommit: &tiling.Commit{
-			Hash:       thirdCommitHash,
-			CommitTime: time.Date(2019, time.April, 26, 13, 10, 8, 0, time.UTC).Unix(),
-			Author:     "gamma@example.com",
-		},
-		MD5: "hashOfBaseline",
-		Baseline: types.TestExp{
-			"test_alpha": map[string]types.Label{
-				// These hashes are arbitrarily made up and have no real-world meaning.
-				alphaGood1Hash:      types.POSITIVE,
-				alphaUntriaged1Hash: types.UNTRIAGED,
-				alphaBad1Hash:       types.NEGATIVE,
-			},
-			"test_beta": map[string]types.Label{
-				// These hashes are arbitrarily made up and have no real-world meaning.
-				betaGood1Hash:      types.POSITIVE,
-				betaUntriaged1Hash: types.UNTRIAGED,
-			},
-		},
-		Filled: 2, // two tests had at least one positive digest
-		Total:  6,
-		Issue:  0, // 0 means master branch, by definition
-	}
-}
-
-func makeTestCommits() []*tiling.Commit {
-	// Three commits, with completely arbitrary data
-	return []*tiling.Commit{
-		{
-			Hash:       firstCommitHash,
-			CommitTime: time.Date(2019, time.April, 26, 12, 0, 3, 0, time.UTC).Unix(),
-			Author:     "alpha@example.com",
-		},
-		{
-			Hash:       secondCommitHash,
-			CommitTime: time.Date(2019, time.April, 26, 12, 10, 18, 0, time.UTC).Unix(),
-			Author:     "beta@example.com",
-		},
-		{
-			Hash:       thirdCommitHash,
-			CommitTime: time.Date(2019, time.April, 26, 13, 10, 8, 0, time.UTC).Unix(),
-			Author:     "gamma@example.com",
-		},
-	}
-}
-
-func makeTestTile() *tiling.Tile {
-	return &tiling.Tile{
-		Commits:   makeTestCommits(),
-		Scale:     1,
-		TileIndex: 0,
-
-		Traces: map[string]tiling.Trace{
-			// Reminder that the ids for the traces are created by concatenating
-			// all the values in alphabetical order of the keys.
-			"angler:test_alpha:gm": &types.GoldenTrace{
-				Digests: []string{alphaBad1Hash, alphaBad1Hash, alphaGood1Hash},
-				Keys: map[string]string{
-					"device":                "angler",
-					types.PRIMARY_KEY_FIELD: "test_alpha",
-					types.CORPUS_FIELD:      "gm",
-				},
-			},
-			"angler:test_beta:gm": &types.GoldenTrace{
-				Digests: []string{betaGood1Hash, betaGood1Hash, betaGood1Hash},
-				Keys: map[string]string{
-					"device":                "angler",
-					types.PRIMARY_KEY_FIELD: "test_beta",
-					types.CORPUS_FIELD:      "gm",
-				},
-			},
-
-			"bullhead:test_alpha:gm": &types.GoldenTrace{
-				Digests: []string{alphaBad1Hash, alphaBad1Hash, alphaUntriaged1Hash},
-				Keys: map[string]string{
-					"device":                "bullhead",
-					types.PRIMARY_KEY_FIELD: "test_alpha",
-					types.CORPUS_FIELD:      "gm",
-				},
-			},
-			"bullhead:test_beta:gm": &types.GoldenTrace{
-				Digests: []string{betaGood1Hash, betaGood1Hash, betaGood1Hash},
-				Keys: map[string]string{
-					"device":                "bullhead",
-					types.PRIMARY_KEY_FIELD: "test_beta",
-					types.CORPUS_FIELD:      "gm",
-				},
-			},
-
-			"crosshatch:test_alpha:gm": &types.GoldenTrace{
-				Digests: []string{alphaBad1Hash, alphaBad1Hash, alphaGood1Hash},
-				Keys: map[string]string{
-					"device":                "crosshatch",
-					types.PRIMARY_KEY_FIELD: "test_alpha",
-					types.CORPUS_FIELD:      "gm",
-				},
-			},
-			"crosshatch:test_beta:gm": &types.GoldenTrace{
-				Digests: []string{betaUntriaged1Hash, types.MISSING_DIGEST, types.MISSING_DIGEST},
-				Keys: map[string]string{
-					"device":                "crosshatch",
-					types.PRIMARY_KEY_FIELD: "test_beta",
-					types.CORPUS_FIELD:      "gm",
-				},
-			},
-		},
-	}
-}
-
-// human-readable variable names for the hashes (values are arbitrary, but valid md5 hashes)
-const (
-	alphaGood1Hash      = "0cc175b9c0f1b6a831c399e269772661"
-	alphaBad1Hash       = "92eb5ffee6ae2fec3ad71c777531578f"
-	alphaUntriaged1Hash = "4a8a08f09d37b73795649038408b5f33"
-
-	betaGood1Hash      = "7277e0910d750195b448797616e091ad"
-	betaUntriaged1Hash = "8fa14cdd754f91cc6554c9e71929cce7"
-
-	firstCommitHash  = "a3f82d283f72b5d51ecada8ec56ec8ff4aa81c6c"
-	secondCommitHash = "b52f7829a2384b001cc12b0c2613c756454a1f6a"
-	thirdCommitHash  = "cd77adf52094181356d60845ee5cf1d83aec6d2a"
-)

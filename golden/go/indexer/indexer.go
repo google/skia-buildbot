@@ -47,7 +47,7 @@ type SearchIndex struct {
 	summaries            *summary.Summaries
 	summariesWithIgnores *summary.Summaries
 	paramsetSummary      *paramsets.ParamSummary
-	blamer               *blame.Blamer
+	blamer               blame.Blamer
 	warmer               *warmer.Warmer
 
 	// This is set by the indexing pipeline when we just want to update
