@@ -13,8 +13,8 @@ USER skia
 
 RUN mkdir -p /home/skia/golib \
     && cd /home/skia \
-    && wget https://dl.google.com/go/go1.10.3.linux-amd64.tar.gz \
-    && tar -xf go1.10.3.linux-amd64.tar.gz
+    && wget https://dl.google.com/go/go1.12.4.linux-amd64.tar.gz \
+    && tar -xf go1.12.4.linux-amd64.tar.gz
 
 ENV GOPATH /home/skia/golib
 ENV PATH $GOPATH/bin:/home/skia/go/bin:$PATH
