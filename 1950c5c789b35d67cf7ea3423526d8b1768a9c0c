@@ -22,6 +22,30 @@
       "revId": "1950c5c789b35d67cf7ea3423526d8b1768a9c0c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ec2f39a_7b5856f2",
+        "filename": "fiddlek/go/fiddle/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 500,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-06T17:07:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "967a1b91_bd3a138e",
+      "range": {
+        "startLine": 500,
+        "startChar": 25,
+        "endLine": 500,
+        "endChar": 57
+      },
+      "revId": "1950c5c789b35d67cf7ea3423526d8b1768a9c0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
