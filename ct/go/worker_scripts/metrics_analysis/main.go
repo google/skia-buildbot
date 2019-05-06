@@ -15,6 +15,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -32,7 +33,7 @@ const (
 
 	METRICS_BENCHMARK_TIMEOUT_SECS = 300
 
-	TRACE_OUTPUT_BUCKET = "chrome-telemetry-output"
+	DEFAULT_TRACE_OUTPUT_BUCKET = "chrome-telemetry-output"
 )
 
 var (
@@ -42,6 +43,8 @@ var (
 	benchmarkExtraArgs = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
 	metricName         = flag.String("metric_name", "", "The metric to parse the traces with. Eg: loadingMetric")
 	valueColumnName    = flag.String("value_column_name", "", "Which column's entries to use as field values when combining CSVs.")
+
+	cloudUrlBucketRegex = regexp.MustCompile(`/m/cloudstorage/b/(.+)/o/`)
 )
 
 func metricsAnalysis() error {
@@ -229,11 +232,24 @@ func runMetricsAnalysisBenchmark(ctx context.Context, outputPath, downloadedTrac
 // destDir.
 func downloadTrace(traceURL, destDir string, gs *util.GcsUtil) (string, error) {
 	traceName := getTraceName(traceURL)
+	traceBucket := getBucketName(traceURL)
 	traceDest := filepath.Join(destDir, traceName)
-	if err := gs.DownloadRemoteFileFromBucket(TRACE_OUTPUT_BUCKET, traceName, traceDest); err != nil {
-		return "", fmt.Errorf("Error downloading %s from %s to %s: %s", traceName, TRACE_OUTPUT_BUCKET, traceDest, err)
+	if err := gs.DownloadRemoteFileFromBucket(traceBucket, traceName, traceDest); err != nil {
+		return "", fmt.Errorf("Error downloading %s from %s to %s: %s", traceName, traceBucket, traceDest, err)
 	}
 	return traceDest, nil
+}
+
+// getBucketName parses the provided traceURL and returns the name of the cloud bucket.
+// Returns DEFAULT_TRACE_OUTPUT_BUCKET if the provided URL is not in the form that
+// cloudUrlBucketRegex expects.
+func getBucketName(traceURL string) string {
+	m := cloudUrlBucketRegex.FindStringSubmatch(traceURL)
+	if len(m) == 2 {
+		return m[1]
+	} else {
+		return DEFAULT_TRACE_OUTPUT_BUCKET
+	}
 }
 
 // getTraceName parses the provided traceURI and returns the name of the trace.
