@@ -16,6 +16,24 @@
       "revId": "e2345b4b0c93ed0f3c3b8b4f7027c49930a1c844",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43068ab0_d066f88d",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-06T14:32:43Z",
+      "side": 1,
+      "message": "Yes, along with a couple of other fixes. I was about to ask how to tryjob this, but then I remembered \"docker build\" :P",
+      "parentUuid": "67d65319_70f7ecd4",
+      "revId": "e2345b4b0c93ed0f3c3b8b4f7027c49930a1c844",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
