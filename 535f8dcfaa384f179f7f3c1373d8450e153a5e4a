@@ -22,6 +22,30 @@
       "revId": "535f8dcfaa384f179f7f3c1373d8450e153a5e4a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0c1f07c0_8f0fa1cd",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 493,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-06T19:30:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f3d22591_03e9c348",
+      "range": {
+        "startLine": 492,
+        "startChar": 0,
+        "endLine": 493,
+        "endChar": 72
+      },
+      "revId": "535f8dcfaa384f179f7f3c1373d8450e153a5e4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
