@@ -212,6 +212,7 @@ func triggerCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTas
 		pathToCompileScript := filepath.Join(*resourcesDir, "compile.sh")
 		if err := RunCompileTask(ctx, g, task, datastoreKey, pathToCompileScript); err != nil {
 			task.InfraFailure = true
+			task.Error = err.Error()
 			sklog.Errorf("Error when compiling task with ID %d: %s", datastoreKey.ID, err)
 		}
 		updateInfraFailureMetric(task.InfraFailure)
