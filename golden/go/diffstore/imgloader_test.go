@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -54,19 +53,6 @@ func TestImageLoader(t *testing.T) {
 	assert.NoError(t, err)
 	_, _, err = imageLoader.Get(1, []string{"some-image-that-does-not-exist-at-all-in-any-bucket"})
 	assert.Error(t, err)
-
-	// Fetch arbitrary images from GCS.
-	gcsImgID := GCSPathToImageID(TEST_GCS_SECONDARY_BUCKET, TEST_PATH_IMG_1)
-	foundImgs, pendingWrites, err := imageLoader.Get(1, []string{gcsImgID})
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(foundImgs))
-	pendingWrites.Wait()
-
-	relLocalPath, _, _ := mapper.ImagePaths(gcsImgID)
-	localPath := filepath.Join(imageLoader.localImgDir, relLocalPath)
-	localImg, err := diff.OpenNRGBAFromFile(localPath)
-	assert.NoError(t, err)
-	assert.Equal(t, foundImgs[0], localImg)
 }
 
 // Calls TwoLevelRadixPath to create the local image file path.
