@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d41c747e_411362bd",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-07T14:25:51Z",
+      "side": 1,
+      "message": "cpxTile? (like below)",
+      "range": {
+        "startLine": 197,
+        "startChar": 2,
+        "endLine": 197,
+        "endChar": 4
+      },
+      "revId": "b8b826d1df1e3cdc762278d01f7d1f45e30c9f21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d5358f1_259de3e0",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-07T14:25:51Z",
+      "side": 1,
+      "message": "fulfills the ... interface",
+      "range": {
+        "startLine": 232,
+        "startChar": 3,
+        "endLine": 232,
+        "endChar": 14
+      },
+      "revId": "b8b826d1df1e3cdc762278d01f7d1f45e30c9f21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
