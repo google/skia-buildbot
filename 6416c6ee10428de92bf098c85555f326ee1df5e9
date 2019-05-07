@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "567f0c78_7c040a8b",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-07T15:09:17Z",
+      "side": 1,
+      "message": "I see the output show up locally but did not see it in cloud logging. I don\u0027t know why, but I\u0027m going to assume that output is part of error.",
+      "parentUuid": "c012e04d_b91c8066",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 106,
+        "endChar": 1
+      },
+      "revId": "6416c6ee10428de92bf098c85555f326ee1df5e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "68c38b07_9dcbd28e",
         "filename": "android_compile/go/android_compile/datastore.go",
         "patchSetId": 1
@@ -132,6 +156,30 @@
       "side": 1,
       "message": "Ok, these fields, and defining a type for each possible thing that can fail, make me kind of itchy.  I think I\u0027d prefer a map, to support arbitrary errors, or if we\u0027re always going to quit after the first error, just prefix the error message with the name of the failed step.",
       "parentUuid": "34ae97d7_dbb5e95b",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 48
+      },
+      "revId": "6416c6ee10428de92bf098c85555f326ee1df5e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d88a7071_f60224ea",
+        "filename": "android_compile/go/android_compile/datastore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-07T15:09:17Z",
+      "side": 1,
+      "message": "Changed it to be a single Error to make things easier",
+      "parentUuid": "4d0b09c5_b296f381",
       "range": {
         "startLine": 41,
         "startChar": 0,
