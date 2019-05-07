@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "c012e04d_b91c8066",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-07T14:34:40Z",
+      "side": 1,
+      "message": "I suspect that if the error thinks stdout+stderr is empty, then the returned output string will also be empty :(",
+      "parentUuid": "22747c9b_7b88c157",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 106,
+        "endChar": 1
+      },
+      "revId": "6416c6ee10428de92bf098c85555f326ee1df5e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "68c38b07_9dcbd28e",
         "filename": "android_compile/go/android_compile/datastore.go",
         "patchSetId": 1
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "Because wanted to be able to give detailed information on the bot about what to do for a particular type of error message.",
       "parentUuid": "68c38b07_9dcbd28e",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 48
+      },
+      "revId": "6416c6ee10428de92bf098c85555f326ee1df5e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4d0b09c5_b296f381",
+        "filename": "android_compile/go/android_compile/datastore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-07T14:34:40Z",
+      "side": 1,
+      "message": "Ok, these fields, and defining a type for each possible thing that can fail, make me kind of itchy.  I think I\u0027d prefer a map, to support arbitrary errors, or if we\u0027re always going to quit after the first error, just prefix the error message with the name of the failed step.",
+      "parentUuid": "34ae97d7_dbb5e95b",
       "range": {
         "startLine": 41,
         "startChar": 0,
