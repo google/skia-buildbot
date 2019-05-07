@@ -22,6 +22,30 @@
       "revId": "288ac881dd61ed4812e740e896591ad72ff71d2f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "77389f1f_cec5d012",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 14
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-07T12:22:13Z",
+      "side": 1,
+      "message": "Since I fixed the current bug of not syncing, I\u0027m more confident in GoldCommitTooOldNewerCommit and the GitSyncStalled alerts.  I bumped it up to 24 hours, which should be fine given our consistent trickle of autorolls and the relative business of the other repos.  I added a caution in the message too.",
+      "parentUuid": "c1960eee_98e98448",
+      "range": {
+        "startLine": 162,
+        "startChar": 40,
+        "endLine": 162,
+        "endChar": 48
+      },
+      "revId": "288ac881dd61ed4812e740e896591ad72ff71d2f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
