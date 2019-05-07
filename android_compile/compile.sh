@@ -53,9 +53,15 @@ ccache -s
 
 IFS=',' read -ra mmma_targets_arr <<< "$mmma_targets"
 for i in "${mmma_targets_arr[@]}"; do
-  mmma_cmd="time mmma -j25 $i"
-  log_step "Running $mmma_cmd"
-  eval $mmma_cmd
+  # Try building without dependencies first (mmm). If that does not work then
+  # build with dependencies (mmma).
+  mmm_cmd="time mmm -j25 $i"
+  log_step "Running $mmm_cmd"
+  if ! eval $mmm_cmd; then
+    mmma_cmd="time mmma -j25 $i"
+    log_step "mmm failed so now running $mmma_cmd"
+    eval $mmma_cmd
+  fi
 done
 
 log_step "ccache stats after compilations"
