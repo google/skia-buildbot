@@ -17,8 +17,126 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
+	three_devices "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
 )
+
+func TestBlamerGetBlamesForTestThreeDevices(t *testing.T) {
+	testutils.SmallTest(t)
+
+	blamer := blamerWithCalculate(t)
+
+	bd := blamer.GetBlamesForTest(three_devices.AlphaTest)
+	assert.Len(t, bd, 1)
+	b := bd[0]
+	assert.NotNil(t, b)
+
+	// The AlphaTest shifts in 3 traces at the third commit and nowhere else,
+	// so blamer should be able to identify the author of that third commit
+	// as the one and only culprit
+	assert.Equal(t, WeightedBlame{
+		Author: three_devices.ThirdCommitAuthor,
+		Prob:   1,
+	}, *b)
+
+	bd = blamer.GetBlamesForTest(three_devices.BetaTest)
+	assert.Len(t, bd, 1)
+	b = bd[0]
+	assert.NotNil(t, b)
+
+	// The BetaTest is good for two devices on all 3 commits
+	// and untriaged, missing, missing for the third device,
+	// so blame can point a finger at the oldest commit.
+	assert.Equal(t, WeightedBlame{
+		Author: three_devices.FirstCommitAuthor,
+		Prob:   1,
+	}, *b)
+
+	bd = blamer.GetBlamesForTest("test_that_does_not_exist")
+	assert.Len(t, bd, 0)
+}
+
+func TestBlamerGetBlameThreeDevices(t *testing.T) {
+	testutils.SmallTest(t)
+
+	blamer := blamerWithCalculate(t)
+	commits := three_devices.MakeTestCommits()
+
+	// In the first two commits, this untriaged image doesn't show up
+	// so GetBlame should return empty.
+	bd := blamer.GetBlame(three_devices.AlphaTest, three_devices.AlphaUntriaged1Digest, commits[0:2])
+	assert.NotNil(t, bd)
+	assert.Equal(t, BlameDistribution{
+		Freq: []int{},
+		Old:  false,
+	}, *bd)
+
+	// Searching in the whole range should indicates that
+	// the commit with index 2 (i.e. the third and last one)
+	// has the blame
+	bd = blamer.GetBlame(three_devices.AlphaTest, three_devices.AlphaUntriaged1Digest, commits[0:3])
+	assert.NotNil(t, bd)
+	assert.Equal(t, BlameDistribution{
+		Freq: []int{2},
+		Old:  false,
+	}, *bd)
+
+	// The BetaUntriaged1Digest only shows up in the first commit (index 0)
+	bd = blamer.GetBlame(three_devices.BetaTest, three_devices.BetaUntriaged1Digest, commits[0:3])
+	assert.NotNil(t, bd)
+	assert.Equal(t, BlameDistribution{
+		Freq: []int{0},
+		Old:  false,
+	}, *bd)
+
+	// Good digests have no blame ever
+	bd = blamer.GetBlame(three_devices.BetaTest, three_devices.BetaGood1Digest, commits[0:3])
+	assert.NotNil(t, bd)
+	assert.Equal(t, BlameDistribution{
+		Freq: []int{},
+		Old:  false,
+	}, *bd)
+
+	// Negative digests have no blame ever
+	bd = blamer.GetBlame(three_devices.AlphaTest, three_devices.AlphaBad1Digest, commits[0:3])
+	assert.NotNil(t, bd)
+	assert.Equal(t, BlameDistribution{
+		Freq: []int{},
+		Old:  false,
+	}, *bd)
+}
+
+// Returns a Blamer filled out with the data from three_devices.
+func blamerWithCalculate(t *testing.T) Blamer {
+	mt := &mocks.TileSource{}
+	mes := &mocks.ExpectationsStore{}
+	meh := &mocks.TestExpBuilder{}
+
+	// Whitebox testing - storage (and thus these mocks) should only
+	// be used in the Calculate step, so we can assert the expectations
+	// after that.
+	defer mt.AssertExpectations(t)
+	defer mes.AssertExpectations(t)
+	defer meh.AssertExpectations(t)
+
+	mes.On("Get").Return(meh, nil)
+
+	meh.On("Classification", three_devices.AlphaTest, three_devices.AlphaGood1Digest).Return(types.POSITIVE)
+	meh.On("Classification", three_devices.AlphaTest, three_devices.AlphaUntriaged1Digest).Return(types.UNTRIAGED)
+	meh.On("Classification", three_devices.AlphaTest, three_devices.AlphaBad1Digest).Return(types.NEGATIVE)
+	meh.On("Classification", three_devices.BetaTest, three_devices.BetaGood1Digest).Return(types.POSITIVE)
+	meh.On("Classification", three_devices.BetaTest, three_devices.BetaUntriaged1Digest).Return(types.UNTRIAGED)
+
+	s := &storage.Storage{
+		ExpectationsStore: mes,
+		MasterTileBuilder: mt,
+	}
+	blamer := New(s)
+	err := blamer.Calculate(three_devices.MakeTestTile())
+	assert.NoError(t, err)
+
+	return blamer
+}
 
 const (
 	// Directory with testdata.
@@ -33,7 +151,8 @@ const (
 
 // TestBlamerWithSyntheticData tests a lot of the functionality of
 // blamer. TODO(kjlubick) I think it tests too much and should
-// be broken up into smaller pieces.
+// be broken up into smaller pieces. Additionally, explaining why
+// the data ends up the way it does would aid in readability.
 func TestBlamerWithSyntheticData(t *testing.T) {
 	testutils.SmallTest(t)
 	start := time.Now().Unix()
@@ -296,7 +415,7 @@ func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBui
 	})
 }
 
-func waitForChange(t assert.TestingT, blamer *Blamer, oldBlameLists map[string]map[string]*BlameDistribution) {
+func waitForChange(t assert.TestingT, blamer Blamer, oldBlameLists map[string]map[string]*BlameDistribution) {
 	assert.NoError(t, testutils.EventuallyConsistent(time.Second*10, func() error {
 		blameLists, _ := blamer.GetAllBlameLists()
 		if !reflect.DeepEqual(blameLists, oldBlameLists) {
