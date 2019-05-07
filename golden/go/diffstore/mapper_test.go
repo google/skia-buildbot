@@ -2,7 +2,6 @@ package diffstore
 
 import (
 	"path"
-	"strings"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
@@ -56,39 +55,6 @@ func TestGoldDiffStoreMapper(t *testing.T) {
 	assert.True(t, mapper.IsValidImgID(TEST_GOLD_RIGHT))
 }
 
-func TestGCSSupport(t *testing.T) {
-	testutils.SmallTest(t)
-
-	mapper := GoldDiffStoreMapper{}
-
-	// Test for GCS paths.
-	gcsImgID1 := GCSPathToImageID(TEST_GCS_SECONDARY_BUCKET, TEST_PATH_IMG_1)
-	diffID := mapper.DiffID(gcsImgID1, TEST_GOLD_LEFT)
-	diffIDReverse := mapper.DiffID(TEST_GOLD_LEFT, gcsImgID1)
-	assert.Equal(t, diffID, diffIDReverse)
-	assert.True(t, strings.HasPrefix(diffID, GS_PREFIX))
-
-	id1, id2 := mapper.SplitDiffID(diffID)
-	if id1 > id2 {
-		id1, id2 = id2, id1
-	}
-	assert.Equal(t, id1, TEST_GOLD_LEFT)
-	assert.Equal(t, id2, gcsImgID1)
-
-	diffPath := mapper.DiffPath(TEST_GOLD_LEFT, gcsImgID1)
-	exp := "gs/skia-infra-testdata/gold-testdata/filediffstore-testdata/" + diffID + "." + IMG_EXTENSION
-	assert.Equal(t, exp, diffPath)
-
-	localPath, gsBucket, gsPath := mapper.ImagePaths(gcsImgID1)
-	exp = GS_PREFIX + "/" + TEST_GCS_SECONDARY_BUCKET + "/" + TEST_PATH_IMG_1
-	assert.Equal(t, exp, localPath)
-	assert.Equal(t, gsBucket, TEST_GCS_SECONDARY_BUCKET)
-	assert.Equal(t, gsPath, TEST_PATH_IMG_1)
-
-	assert.True(t, mapper.IsValidDiffImgID(diffID))
-	assert.True(t, mapper.IsValidImgID(gcsImgID1))
-}
-
 func TestCodec(t *testing.T) {
 	testutils.MediumTest(t)
 
@@ -116,30 +82,4 @@ func TestCodec(t *testing.T) {
 	metrics, err := memDiffStore.metricsStore.loadDiffMetrics(diffID)
 	assert.NoError(t, err)
 	assert.Equal(t, diffMetrics, metrics)
-}
-
-func TestBase62Encoding(t *testing.T) {
-	testutils.SmallTest(t)
-
-	randStr := "2Sde/4p8A/ziA/CI+WIzO/myfTvoyOHu0h5P2s8Hw0V8VE5VCPajRsFb/JzXIpRlG2FJ+:Mm5YJeN9V/"
-	for n := 0; n <= len(randStr); n++ {
-		rStr := randStr[:n]
-		encodedStr := encodeBase62(rStr)
-		found := decodeBase62(encodedStr)
-		assert.Equal(t, rStr, found)
-	}
-}
-
-func TestGCSImageIDs(t *testing.T) {
-	testutils.SmallTest(t)
-
-	imgID1 := GCSPathToImageID(TEST_GCS_SECONDARY_BUCKET, TEST_PATH_IMG_1)
-	bucket, path := ImageIDToGCSPath(imgID1)
-	assert.Equal(t, TEST_GCS_SECONDARY_BUCKET, bucket)
-	assert.Equal(t, TEST_PATH_IMG_1, path)
-	assert.True(t, ValidGCSImageID(imgID1))
-	assert.False(t, ValidGCSImageID(GCSPathToImageID("", "some/path/img.png")))
-	assert.False(t, ValidGCSImageID(GCSPathToImageID("some_bucket", "")))
-	decImgID1 := decodeBase62(imgID1[len(GS_PREFIX):])
-	assert.Equal(t, TEST_GCS_SECONDARY_BUCKET+"/"+TEST_PATH_IMG_1, decImgID1+"."+IMG_EXTENSION)
 }
