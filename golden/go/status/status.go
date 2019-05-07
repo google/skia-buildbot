@@ -121,7 +121,7 @@ func (s *StatusWatcher) updateLastCommitAge() {
 	lastCommitAge := metrics2.GetInt64Metric("gold_last_commit_age_s", map[string]string{
 		"type": "wall_time",
 	})
-	lastCommitUnix := st.LastCommit.CommitTime / int64(time.Second)
+	lastCommitUnix := st.LastCommit.CommitTime // already in seconds since epoch
 	lastCommitAge.Update(time.Now().Unix() - lastCommitUnix)
 
 	if s.storages == nil || s.storages.VCS == nil {
