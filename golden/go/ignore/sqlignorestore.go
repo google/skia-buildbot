@@ -17,8 +17,8 @@ type SQLIgnoreStore struct {
 	vdb           *database.VersionedDB
 	mutex         sync.Mutex
 	revision      int64
-	cpxTileStream <-chan *types.ComplexTile
-	lastCpxTile   *types.ComplexTile
+	cpxTileStream <-chan types.ComplexTile
+	lastCpxTile   types.ComplexTile
 	expStore      expstorage.ExpectationsStore
 }
 
@@ -26,7 +26,7 @@ type SQLIgnoreStore struct {
 //   vdb - database to connect to.
 //   expStore - expectations store needed to count the untriaged digests per rule.
 //   tileStream - continuously provides an updated copy of the current tile.
-func NewSQLIgnoreStore(vdb *database.VersionedDB, expStore expstorage.ExpectationsStore, tileStream <-chan *types.ComplexTile) IgnoreStore {
+func NewSQLIgnoreStore(vdb *database.VersionedDB, expStore expstorage.ExpectationsStore, tileStream <-chan types.ComplexTile) IgnoreStore {
 	ret := &SQLIgnoreStore{
 		vdb:           vdb,
 		cpxTileStream: tileStream,
@@ -173,7 +173,7 @@ func buildRuleMatcher(store IgnoreStore) (RuleMatcher, error) {
 // easily test against live (vs synthetic) data.
 
 // addIgnoreCounts adds counts for the current tile to the given list of rules.
-func addIgnoreCounts(rules []*IgnoreRule, ignoreStore IgnoreStore, lastCpxTile *types.ComplexTile, expStore expstorage.ExpectationsStore, tileStream <-chan *types.ComplexTile) (*types.ComplexTile, error) {
+func addIgnoreCounts(rules []*IgnoreRule, ignoreStore IgnoreStore, lastCpxTile types.ComplexTile, expStore expstorage.ExpectationsStore, tileStream <-chan types.ComplexTile) (types.ComplexTile, error) {
 	if (expStore == nil) || (tileStream == nil) {
 		return nil, fmt.Errorf("Either expStore or tileStream is nil. Cannot count ignores.")
 	}
@@ -189,7 +189,7 @@ func addIgnoreCounts(rules []*IgnoreRule, ignoreStore IgnoreStore, lastCpxTile *
 	}
 
 	// Get the next tile.
-	var cpxTile *types.ComplexTile = nil
+	var cpxTile types.ComplexTile = nil
 	select {
 	case cpxTile = <-tileStream:
 	default:
