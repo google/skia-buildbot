@@ -207,7 +207,7 @@ func (s *Storage) GetLastTileTrimmed() (types.ComplexTile, error) {
 	// Get the ignore revision and check if the tile has changed at all.
 	// Note: This only applies to tiles that are not sparse.
 	currentIgnoreRev := s.IgnoreStore.Revision()
-	if s.lastCpxTile.FromSame(rawTile, currentIgnoreRev) {
+	if s.lastCpxTile != nil && s.lastCpxTile.FromSame(rawTile, currentIgnoreRev) {
 		return s.lastCpxTile, nil
 	}
 
