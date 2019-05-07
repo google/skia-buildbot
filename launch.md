@@ -233,8 +233,8 @@ apply to all apps and may not need to be added
 - Check your alert rules by running `make validate` in `promk/`
   (Legacy apps should run that commaind in `prometheus/`).
 
-- Then, after landing your valid alerts, run `make push` in `promk/`
-  (Again, legacy apps should do this in `prometheus/`).
+- Then, after landing your valid alerts, run `make push_config && make push_config_corp` in `promk/`
+  (Again, legacy apps should do `make push` in `prometheus/`).
 
 - Tell people about your new service.
 - Be prepared for bug reports. :-)
