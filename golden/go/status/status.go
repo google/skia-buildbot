@@ -188,7 +188,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 	return nil
 }
 
-func (s *StatusWatcher) calcStatus(cpxTile *types.ComplexTile) error {
+func (s *StatusWatcher) calcStatus(cpxTile types.ComplexTile) error {
 	defer s.updateLastCommitAge()
 	defer shared.NewMetricsTimer("calculate_status").Stop()
 

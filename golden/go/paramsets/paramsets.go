@@ -27,7 +27,9 @@ func byTraceForTile(tile *tiling.Tile, digestCountsByTrace map[string]digest_cou
 			test := tr.Params()[types.PRIMARY_KEY_FIELD]
 			for digest := range dc {
 				if foundTest, ok := ret[test]; !ok {
-					ret[test] = map[string]paramtools.ParamSet{digest: paramtools.NewParamSet(tr.Params())}
+					ret[test] = map[string]paramtools.ParamSet{
+						digest: paramtools.NewParamSet(tr.Params()),
+					}
 				} else if foundDigest, ok := foundTest[digest]; !ok {
 					foundTest[digest] = paramtools.NewParamSet(tr.Params())
 				} else {
@@ -45,7 +47,7 @@ func New() *ParamSummary {
 }
 
 // Calculate sets the values the ParamSummary based on the given tile.
-func (s *ParamSummary) Calculate(cpxTile *types.ComplexTile, dCounter digest_counter.DigestCounter, dCounterWithIgnores digest_counter.DigestCounter) {
+func (s *ParamSummary) Calculate(cpxTile types.ComplexTile, dCounter digest_counter.DigestCounter, dCounterWithIgnores digest_counter.DigestCounter) {
 	defer shared.NewMetricsTimer("param_summary_calculate").Stop()
 	s.byTrace = byTraceForTile(cpxTile.GetTile(false), dCounter.ByTrace())
 	s.byTraceIncludeIgnored = byTraceForTile(cpxTile.GetTile(true), dCounterWithIgnores.ByTrace())
@@ -53,7 +55,7 @@ func (s *ParamSummary) Calculate(cpxTile *types.ComplexTile, dCounter digest_cou
 
 // Get returns the paramset for the given digest. If 'include' is true
 // then the paramset is calculated including ignored traces.
-func (s *ParamSummary) Get(test, digest string, include bool) map[string][]string {
+func (s *ParamSummary) Get(test, digest string, include bool) paramtools.ParamSet {
 	useMap := s.byTrace
 	if include {
 		useMap = s.byTraceIncludeIgnored
