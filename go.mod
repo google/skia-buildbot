@@ -109,13 +109,13 @@ require (
 	golang.org/x/image v0.0.0-20190501045829-6d32002ffd75 // indirect
 	golang.org/x/lint v0.0.0-20190409202823-959b441ac422 // indirect
 	golang.org/x/mobile v0.0.0-20190415191353-3e0bab5405d6 // indirect
-	golang.org/x/net v0.0.0-20190501004415-9ce7a6920f09
+	golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c
 	golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	golang.org/x/sys v0.0.0-20190429190828-d89cdac9e872 // indirect
+	golang.org/x/sys v0.0.0-20190506115046-ca7f33d4116e // indirect
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
-	golang.org/x/tools v0.0.0-20190501045030-23463209683d // indirect
+	golang.org/x/tools v0.0.0-20190503185657-3b6f9c0030f7 // indirect
 	google.golang.org/api v0.4.0
 	google.golang.org/genproto v0.0.0-20190425155659-357c62f0e4bb
 	google.golang.org/grpc v1.20.1

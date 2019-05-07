@@ -181,8 +181,9 @@ func TestCalcSummaries(t *testing.T) {
 	tileWithoutIgnored, _, err := storage.FilterIgnored(tile, storages.IgnoreStore)
 	assert.NoError(t, err)
 
-	blamer := blame.New(storages)
-	err = blamer.Calculate(tile)
+	exp, err := storages.ExpectationsStore.Get()
+	assert.NoError(t, err)
+	blamer, err := blame.New(tile, exp)
 	assert.NoError(t, err)
 
 	summaries := New(storages)

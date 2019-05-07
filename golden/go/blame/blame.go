@@ -2,27 +2,39 @@ package blame
 
 import (
 	"sort"
-	"sync"
 
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/shared"
-	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 )
 
-// Blamer calculates blame lists by continuously loading tiles
-// and changed expectations.
-// It is not thread safe. The client of this package needs to make sure there
-// are no conflicts.
-type Blamer struct {
+// Blamer provides the results of blame calculations from a given
+// tile and set of expectations. Specifically, blame is trying to identify
+// who is responsible for UNTRIAGED digests showing up (it essentially
+// ignores positive/negative digests).
+// A Blamer should be immutable after creation.
+type Blamer interface {
+	// GetAllBlameLists returns all BlameLists that have been computed.
+	GetAllBlameLists() (map[string]map[string]*BlameDistribution, []*tiling.Commit)
+
+	// GetBlamesForTest returns the list of WeightedBlame for the given test.
+	GetBlamesForTest(testName string) []*WeightedBlame
+
+	// GetBlame returns the indices of the provided list of commits that likely
+	// caused the given test name/digest pair. If the result is empty we are not
+	// able to determine blame, because the test name/digest appeared prior
+	// to the current tile.
+	GetBlame(testName string, digest string, commits []*tiling.Commit) *BlameDistribution
+}
+
+// BlamerImpl implements the Blamer interface.
+type BlamerImpl struct {
 	// commits are the commits corresponding to the current blamelists.
 	commits []*tiling.Commit
 
 	// testBlameLists are the blamelists keyed by testName and digest.
 	testBlameLists map[string]map[string]*BlameDistribution
-	storages       *storage.Storage
-	mutex          sync.Mutex
 }
 
 // BlameDistribution contains a rough estimation of the probabilities that
@@ -33,6 +45,17 @@ type BlameDistribution struct {
 	// for the observed digest. The counts apply to the last len(Freq)
 	// commits. When used as output structure in the GetBlame function
 	// Freq contains the indices of commits.
+	// TODO(kjlubick): What does this actually represent?  The comment
+	// above says two conflicting things. Can freq be anything other than
+	// length 0 or 1?
+	// dogben says: "When Freq contains counts, the array lines up with the
+	// tail of the associated slice of commits. It counts for how many traces
+	// the given digest was first seen at a particular commit.
+	// When Freq contains commit indices, it's essentially just a slice of
+	// commits. Any of those commits might be to blame, and there's no
+	// probability associated with them."
+	// TODO(kjlubick): refactor this into two structs, one for each condition
+	// mentioned by dogben.
 	Freq []int `json:"freq"`
 
 	// Old indicates whether the digest has been seen prior to the current
@@ -56,21 +79,18 @@ func (w WeightedBlameSlice) Swap(i, j int)      { w[i], w[j] = w[j], w[i] }
 
 // New returns a new Blamer instance and error. The error is not
 // nil if the first run of calculating the blame lists failed.
-func New(storages *storage.Storage) *Blamer {
-	return &Blamer{
-		storages: storages,
-	}
+func New(tile *tiling.Tile, exp types.TestExpBuilder) (*BlamerImpl, error) {
+	b := &BlamerImpl{}
+	return b, b.calculate(tile, exp)
 }
 
-func (b *Blamer) GetAllBlameLists() (map[string]map[string]*BlameDistribution, []*tiling.Commit) {
-	b.mutex.Lock()
-	defer b.mutex.Unlock()
+// GetAllBlameLists fulfills the Blamer interface.
+func (b *BlamerImpl) GetAllBlameLists() (map[string]map[string]*BlameDistribution, []*tiling.Commit) {
 	return b.testBlameLists, b.commits
 }
 
-// GetBlamesForTest returns the list of authors that have blame assigned to
-// them for the given test.
-func (b *Blamer) GetBlamesForTest(testName string) []*WeightedBlame {
+// GetBlamesForTest fulfills the Blamer interface.
+func (b *BlamerImpl) GetBlamesForTest(testName string) []*WeightedBlame {
 	blameLists, commits := b.GetAllBlameLists()
 
 	digestBlameList := blameLists[testName]
@@ -98,11 +118,8 @@ func (b *Blamer) GetBlamesForTest(testName string) []*WeightedBlame {
 // to be more obvious about the ways it is used (as intermediated and output
 // format).
 
-// GetBlame returns the indices of the provided list of commits that likely
-// caused the given test name/digest pair. If the result is empty we are not
-// able to determine blame, because the test name/digest appeared prior
-// to the current tile.
-func (b *Blamer) GetBlame(testName string, digest string, commits []*tiling.Commit) *BlameDistribution {
+// GetBlame fulfills the Blamer interface.
+func (b *BlamerImpl) GetBlame(testName string, digest string, commits []*tiling.Commit) *BlameDistribution {
 	blameLists, blameCommits := b.GetAllBlameLists()
 	commitIndices, maxCount := b.getBlame(blameLists[testName][digest], blameCommits, commits)
 	return &BlameDistribution{
@@ -111,7 +128,7 @@ func (b *Blamer) GetBlame(testName string, digest string, commits []*tiling.Comm
 	}
 }
 
-func (b *Blamer) getBlame(blameDistribution *BlameDistribution, blameCommits, commits []*tiling.Commit) ([]int, int) {
+func (b *BlamerImpl) getBlame(blameDistribution *BlameDistribution, blameCommits, commits []*tiling.Commit) ([]int, int) {
 	if (blameDistribution == nil) || (len(blameDistribution.Freq) == 0) {
 		return []int{}, 0
 	}
@@ -138,13 +155,7 @@ func (b *Blamer) getBlame(blameDistribution *BlameDistribution, blameCommits, co
 	return ret, maxCount
 }
 
-// Calculate calculates the blame list from the given tile.
-func (b *Blamer) Calculate(tile *tiling.Tile) error {
-	exp, err := b.storages.ExpectationsStore.Get()
-	if err != nil {
-		return err
-	}
-
+func (b *BlamerImpl) calculate(tile *tiling.Tile, exp types.TestExpBuilder) error {
 	defer shared.NewMetricsTimer("blame_calculate").Stop()
 
 	// Note: blameStart and blameEnd are continuously updated to contain the
@@ -235,9 +246,11 @@ func (b *Blamer) Calculate(tile *tiling.Tile) error {
 		}
 	}
 
-	// Swap out the old blame lists for the new ones.
-	b.mutex.Lock()
-	defer b.mutex.Unlock()
+	// store the computations in the struct to be used by
+	// the query methods (see Blamer interface).
 	b.testBlameLists, b.commits = ret, commits
 	return nil
 }
+
+// Make sure BlamerImpl fulfills the Blamer Interface
+var _ Blamer = (*BlamerImpl)(nil)

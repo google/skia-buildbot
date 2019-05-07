@@ -53,7 +53,7 @@ func (s *Summary) clone() *Summary {
 type Summaries struct {
 	storages  *storage.Storage
 	dCounter  digest_counter.DigestCounter
-	blamer    *blame.Blamer
+	blamer    blame.Blamer
 	summaries map[string]*Summary
 }
 
@@ -82,7 +82,7 @@ func (s *Summaries) Clone() *Summaries {
 // Calculate sets the summaries based on the given tile. If testNames is empty
 // (or nil) the entire tile will be calculated. Otherwise only the given
 // test names will be updated.
-func (s *Summaries) Calculate(tile *tiling.Tile, testNames []string, dCounter digest_counter.DigestCounter, blamer *blame.Blamer) error {
+func (s *Summaries) Calculate(tile *tiling.Tile, testNames []string, dCounter digest_counter.DigestCounter, blamer blame.Blamer) error {
 	s.dCounter = dCounter
 	s.blamer = blamer
 

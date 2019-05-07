@@ -37,6 +37,11 @@ const (
 	maxNSparseCommits = 3000
 )
 
+type TileSource interface {
+	// GetTile returns the most recently loaded Tile.
+	GetTile() *tiling.Tile
+}
+
 // Storage is a container struct for the various storage objects we are using.
 // It is intended to reduce parameter lists as we pass around storage objects.
 type Storage struct {
@@ -45,7 +50,7 @@ type Storage struct {
 	IssueExpStoreFactory expstorage.IssueExpStoreFactory
 	IgnoreStore          ignore.IgnoreStore
 	TraceDB              tracedb.DB
-	MasterTileBuilder    tracedb.MasterTileBuilder
+	MasterTileBuilder    TileSource
 	EventBus             eventbus.EventBus
 	TryjobStore          tryjobstore.TryjobStore
 	TryjobMonitor        *tryjobs.TryjobMonitor
