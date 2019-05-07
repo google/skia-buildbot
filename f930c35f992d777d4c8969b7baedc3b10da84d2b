@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aefa83e1_d5e8ede9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-07T14:41:15Z",
+      "side": 1,
+      "message": "Honestly, I have no idea why this is the case.  When running as the \"skia\" user, Cloud Build gets all kind of permissions errors while trying to create directories inside the image.  This indicates to me that there is a problem with the image; we shouldn\u0027t be trying to work inside root-owned directories, so either we\u0027re working in the wrong place or the ownership is wrong.",
+      "range": {
+        "startLine": 9,
+        "startChar": 50,
+        "endLine": 9,
+        "endChar": 70
+      },
+      "revId": "f930c35f992d777d4c8969b7baedc3b10da84d2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
