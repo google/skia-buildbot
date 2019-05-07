@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "22747c9b_7b88c157",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-07T14:22:18Z",
+      "side": 1,
+      "message": "Those errors did not include the output of the command, example:\n\"\"\"\nFailed to run gn_to_bp: Command exited with exit status 1: PATH\u003d/mnt/pd0/checkouts/checkout_7/external/skia/bin/:/home/skia/bin:/home/skia/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin python -c from gn import gn_to_bp; Stdout+Stderr:\n\"\"\"\nBut I also don\u0027t know why Stdout+Stderr is empty, so what I am trying here will likely not work. Let me run through this on local instance..",
+      "parentUuid": "cac33889_0a79dd5b",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 106,
+        "endChar": 1
+      },
+      "revId": "6416c6ee10428de92bf098c85555f326ee1df5e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "68c38b07_9dcbd28e",
         "filename": "android_compile/go/android_compile/datastore.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "6416c6ee10428de92bf098c85555f326ee1df5e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "34ae97d7_dbb5e95b",
+        "filename": "android_compile/go/android_compile/datastore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-07T14:22:18Z",
+      "side": 1,
+      "message": "Because wanted to be able to give detailed information on the bot about what to do for a particular type of error message.",
+      "parentUuid": "68c38b07_9dcbd28e",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 48
+      },
+      "revId": "6416c6ee10428de92bf098c85555f326ee1df5e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
