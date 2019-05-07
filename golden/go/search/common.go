@@ -36,7 +36,7 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *i
 		acceptFn = func(params paramtools.Params, digests []string) (bool, interface{}) { return true, nil }
 	}
 
-	traceTally := idx.TalliesByTrace(query.IncludeIgnores)
+	digestCountsByTrace := idx.DigestCountsByTrace(query.IncludeIgnores)
 	lastTraceIdx, traceView, err := getTraceViewFn(selectedTile, query.FCommitBegin, query.FCommitEnd)
 	if err != nil {
 		return err
@@ -49,7 +49,7 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *i
 			fullTr := trace.(*types.GoldenTrace)
 			params := fullTr.Keys
 			reducedTr := traceView(fullTr)
-			digests := digestsFromTrace(id, reducedTr, query.Head, lastTraceIdx, traceTally)
+			digests := digestsFromTrace(id, reducedTr, query.Head, lastTraceIdx, digestCountsByTrace)
 
 			// If there is an acceptFn defined then check whether
 			// we should include this trace.

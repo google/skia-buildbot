@@ -67,13 +67,13 @@ func (r *RefDiffer) GetRefDiffs(metric string, match []string, test, digest stri
 	// Find the minimum according to the diff metric.
 	minKey := ""
 	minDiff := float32(math.Inf(1))
-	tally := r.idx.TalliesByTest(includeIgnores)[test]
+	dCount := r.idx.DigestCountsByTest(includeIgnores)[test]
 	for key, val := range ret {
 		if val != nil {
 			// Fill in the missing fields.
 			val.Status = r.exp.Classification(test, val.Digest).String()
 			val.ParamSet = paramsByDigest[val.Digest]
-			val.N = tally[val.Digest]
+			val.N = dCount[val.Digest]
 
 			// Find the minimum.
 			if val.DiffMetrics.Diffs[metric] < minDiff {

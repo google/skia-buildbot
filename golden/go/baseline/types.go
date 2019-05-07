@@ -2,7 +2,7 @@ package baseline
 
 import (
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/golden/go/tally"
+	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -74,7 +74,7 @@ type Baseliner interface {
 	PushMasterBaselines(tileInfo TileInfo, targetHash string) (*CommitableBaseline, error)
 
 	// PushIssueBaseline writes the baseline for a Gerrit issue to GCS.
-	PushIssueBaseline(issueID int64, tileInfo TileInfo, tallies *tally.Tallies) error
+	PushIssueBaseline(issueID int64, tileInfo TileInfo, dCounter digest_counter.DigestCounter) error
 
 	// FetchBaseline fetches the complete baseline for the given Gerrit issue by
 	// loading the master baseline and the issue baseline from GCS and combining

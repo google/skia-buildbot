@@ -52,8 +52,8 @@ func GetBaselinesPerCommit(exps types.TestExpBuilder, tileInfo TileInfo, extraCo
 	}
 
 	// Sweep the tile and calculate the baselines.
-	// For each trace we keep a running tally of triaged digests and for each
-	// commit on the trace we add that tally to the baseline.
+	// For each trace we make a set of triaged, positive digests and for each
+	// commit on the trace we add that set to the baseline.
 	for _, trace := range denseTile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
 		currDigests := map[string]types.Label{}

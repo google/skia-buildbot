@@ -9,11 +9,11 @@ import (
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
-	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -33,7 +33,7 @@ func New(storages *storage.Storage) *Warmer {
 }
 
 // Run prefetches the digests in tile and calculates differences we'll need.
-func (w *Warmer) Run(tile *tiling.Tile, summaries *summary.Summaries, tallies *tally.Tallies) {
+func (w *Warmer) Run(tile *tiling.Tile, summaries *summary.Summaries, dCounter digest_counter.DigestCounter) {
 	exp, err := w.storages.ExpectationsStore.Get()
 	if err != nil {
 		sklog.Errorf("warmer: Failed to get expectations: %s", err)
@@ -42,7 +42,7 @@ func (w *Warmer) Run(tile *tiling.Tile, summaries *summary.Summaries, tallies *t
 	t := shared.NewMetricsTimer("warmer_loop")
 	for test, sum := range summaries.Get() {
 		for _, digest := range sum.UntHashes {
-			t := tallies.ByTest()[test]
+			t := dCounter.ByTest()[test]
 			if t != nil {
 				// Calculate the closest digest for the side effect of filling in the filediffstore cache.
 				digesttools.ClosestDigest(test, digest, exp, t, w.storages.DiffStore, types.POSITIVE)

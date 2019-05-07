@@ -302,7 +302,7 @@ func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, idx *indexer.Searc
 	// Adjust the add function to exclude digests already in the master branch
 	addFn := ret.add
 	if !q.IncludeMaster {
-		talliesByTest := idx.TalliesByTest(q.IncludeIgnores)
+		talliesByTest := idx.DigestCountsByTest(q.IncludeIgnores)
 		addFn = func(test, digest, traceID string, trace *types.GoldenTrace, params paramtools.ParamSet) {
 			// Include the digest if either the test or the digest is not in the master tile.
 			if _, ok := talliesByTest[test][digest]; !ok {

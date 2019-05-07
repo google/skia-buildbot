@@ -10,11 +10,11 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
+	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
-	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -168,7 +168,7 @@ func TestCalcSummaries(t *testing.T) {
 		},
 	}, "foo@example.com"))
 
-	ta := tally.New()
+	ta := digest_counter.New()
 	ta.Calculate(tile)
 
 	assert.NoError(t, storages.IgnoreStore.Create(&ignore.IgnoreRule{
