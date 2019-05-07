@@ -122,37 +122,58 @@ ALERT IssueTrackerLiveness
 
 ALERT GoldIgnoreMonitoring
   IF liveness_gold_expired_ignore_rules_monitoring_s{instance="skia-gold-prod:20001"} > 200
-  LABELS { category = "infra", severity = "critical", owner = "stephana@google.com"}
+  LABELS { category = "infra", severity = "critical", owner = "kjlubick@google.com"}
   ANNOTATIONS {
     description = "At least two rounds of monitoring for expired ignore rules have failed back to back.",
   }
 
 ALERT GoldErrorRate
   IF rate(num_log_lines{level="ERROR",job=~"skiacorrectness-.*"}[2m]) > 1
-  LABELS { category = "infra", severity = "critical", owner = "stephana@google.com"}
+  LABELS { category = "infra", severity = "critical", owner = "kjlubick@google.com"}
   ANNOTATIONS {
     description = "The error rate for Gold {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
   }
 
 ALERT GoldDiffServerErrorRate
   IF rate(num_log_lines{level="ERROR", instance="skia-diffserver-prod:20000"}[2m]) > 1
-  LABELS { category = "infra", severity = "critical", owner = "stephana@google.com"}
+  LABELS { category = "infra", severity = "critical", owner = "kjlubick@google.com"}
   ANNOTATIONS {
     description = "The error rate for Gold Diffserver {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
   }
 
 ALERT GoldIngestionStalled
   IF liveness_gold_s{metric="since-last-run",source="poll"} > 750
-  LABELS { category = "infra", severity = "critical", owner = "stephana@google.com"}
+  LABELS { category = "infra", severity = "critical", owner = "kjlubick@google.com"}
   ANNOTATIONS {
     description = "At least two rounds of gold ingestion have failed back to back for {{ $labels.corpus }}. See https://mon.skia.org/dashboard/db/gold-panel",
   }
 
 ALERT GoldIngestionErrorRate
   IF rate(num_log_lines{level="ERROR",job=~".*_ingestion"}[2m]) > 1
-  LABELS { category = "infra", severity = "critical", owner = "stephana@google.com"}
+  LABELS { category = "infra", severity = "critical", owner = "kjlubick@google.com"}
   ANNOTATIONS {
     description = "The error rate for Gold Ingestion {{ $labels.corpus }} is too high. See https://mon.skia.org/dashboard/db/gold-panel https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
+  }
+
+ALERT GoldCommitTooOldWallTime
+  IF gold_last_commit_age_s{type="wall_time"} > 24*60*60
+  LABELS { category = "infra", severity = "critical", owner = "kjlubick@google.com"}
+  ANNOTATIONS {
+    description = "It has been at least 24 hours since the last commit made it into Gold. Some process might have hung, or perhaps that repo simply has not seen a commit in that period.",
+  }
+
+ALERT GoldCommitTooOldNewerCommit
+  IF gold_last_commit_age_s{type="with_new_commit"} > 1*60*60
+  LABELS { category = "infra", severity = "critical", owner = "kjlubick@google.com"}
+  ANNOTATIONS {
+    description = "It has been at least 1 hour since a new commit landed, and Gold still hasn't picked it up. Some process might have hung.",
+  }
+
+ALERT GoldStatusStalled
+  IF liveness_gold_status_monitoring_s > 10*60
+  LABELS { category = "infra", severity = "critical", owner = "kjlubick@google.com"}
+  ANNOTATIONS {
+    description = "It has been at least 10 minutes since the Gold's status was re-computed. Some process might have hung.",
   }
 
 # Skolo
