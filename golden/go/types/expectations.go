@@ -109,7 +109,7 @@ func NewTestExpBuilder(testExp TestExp) *BuilderImpl {
 	}
 }
 
-// BuilderImpl is the canonical implementation of the TestExpBuilder interface. It wraps a
+// BuilderImpl is the canonical implementation of the Expectations interface. It wraps a
 // instance of TestExp. It uses a pointer receiver to a struct to make the Marshaller/Unmarshaler
 // interface work for the encoding/json package.
 type BuilderImpl struct {

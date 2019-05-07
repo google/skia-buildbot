@@ -102,6 +102,43 @@ func (s *StatusWatcher) GetStatus() *GUIStatus {
 	return s.current
 }
 
+// updateLastCommitAge calculates how old the last commit in Gold is and reports
+// it to metrics, so we can alert on it. It computes the age in two ways - absolute
+// age (wall_time) and time since a newer commit landed (with_new_commit). The latter
+// is the preferred metric due to the lower false-positive chance, with the former
+// being a good backup since it has a lower false-negative chance.
+func (s *StatusWatcher) updateLastCommitAge() {
+	st := s.GetStatus()
+	if st == nil {
+		sklog.Warningf("GetStatus() was nil when computing metrics")
+		return
+	}
+	if st.LastCommit == nil {
+		sklog.Warningf("GetStatus() had nil LastCommit when computing metrics: %#v", st)
+		return
+	}
+
+	lastCommitAge := metrics2.GetInt64Metric("gold_last_commit_age_s", map[string]string{
+		"type": "wall_time",
+	})
+	lastCommitUnix := st.LastCommit.CommitTime / int64(time.Second)
+	lastCommitAge.Update(time.Now().Unix() - lastCommitUnix)
+
+	if s.storages == nil || s.storages.VCS == nil {
+		sklog.Warningf("skipping with_new_commit becaues VCS not set up")
+		return
+	}
+	commitsFromLast := s.storages.VCS.Range(time.Unix(st.LastCommit.CommitTime, 0), time.Now())
+	uningestedCommitAgeMetric := metrics2.GetInt64Metric("gold_last_commit_age_s", map[string]string{
+		"type": "with_new_commit",
+	})
+	if len(commitsFromLast) <= 1 {
+		uningestedCommitAgeMetric.Update(0)
+	} else {
+		uningestedCommitAgeMetric.Update(time.Now().Unix() - commitsFromLast[1].Timestamp.Unix())
+	}
+}
+
 func (s *StatusWatcher) calcAndWatchStatus() error {
 	sklog.Infof("Starting status watcher")
 	expChanges := make(chan types.TestExp)
@@ -121,7 +158,6 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 	sklog.Infof("Calculated first status")
 
 	liveness := metrics2.NewLiveness("gold_status_monitoring")
-
 	go func() {
 		for {
 			select {
@@ -153,6 +189,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 }
 
 func (s *StatusWatcher) calcStatus(cpxTile *types.ComplexTile) error {
+	defer s.updateLastCommitAge()
 	defer shared.NewMetricsTimer("calculate_status").Stop()
 
 	okByCorpus := map[string]bool{}
