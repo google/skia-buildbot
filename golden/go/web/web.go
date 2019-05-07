@@ -1051,7 +1051,7 @@ func (wh *WebHandlers) TextAllHashesHandler(w http.ResponseWriter, r *http.Reque
 	unavailableDigests := wh.Storages.DiffStore.UnavailableDigests()
 
 	idx := wh.Indexer.GetIndex()
-	byTest := idx.TalliesByTest(true)
+	byTest := idx.DigestCountsByTest(true)
 	hashes := map[string]bool{}
 	for _, test := range byTest {
 		for k := range test {
