@@ -13,9 +13,9 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
-	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -49,10 +49,10 @@ func (s *Summary) clone() *Summary {
 
 // Summaries contains a Summary for each test.
 //
-// It also updates itself when Tallies have been updated.
+// It also updates itself when DigestCounter has been updated.
 type Summaries struct {
 	storages  *storage.Storage
-	tallies   *tally.Tallies
+	dCounter  digest_counter.DigestCounter
 	blamer    *blame.Blamer
 	summaries map[string]*Summary
 }
@@ -73,7 +73,7 @@ func (s *Summaries) Clone() *Summaries {
 
 	return &Summaries{
 		storages:  s.storages,
-		tallies:   s.tallies,
+		dCounter:  s.dCounter,
 		blamer:    s.blamer,
 		summaries: copied,
 	}
@@ -82,8 +82,8 @@ func (s *Summaries) Clone() *Summaries {
 // Calculate sets the summaries based on the given tile. If testNames is empty
 // (or nil) the entire tile will be calculated. Otherwise only the given
 // test names will be updated.
-func (s *Summaries) Calculate(tile *tiling.Tile, testNames []string, tallies *tally.Tallies, blamer *blame.Blamer) error {
-	s.tallies = tallies
+func (s *Summaries) Calculate(tile *tiling.Tile, testNames []string, dCounter digest_counter.DigestCounter, blamer *blame.Blamer) error {
+	s.dCounter = dCounter
 	s.blamer = blamer
 
 	summaries, err := s.CalcSummaries(tile, testNames, nil, true)
@@ -153,7 +153,7 @@ func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []string, query u
 	}
 	t.Stop()
 
-	traceTally := s.tallies.ByTrace()
+	digestsByTrace := s.dCounter.ByTrace()
 
 	// Now create summaries for each test using the filtered set of traces.
 	t = shared.NewMetricsTimer("calc_summaries_tally")
@@ -174,8 +174,8 @@ func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []string, query u
 					}
 				}
 			} else {
-				// Use the traceTally if available, otherwise just inspect the trace.
-				if t, ok := traceTally[trid.id]; ok {
+				// Use the digestsByTrace if available, otherwise just inspect the trace.
+				if t, ok := digestsByTrace[trid.id]; ok {
 					for k := range t {
 						digests[k] = true
 					}
@@ -231,9 +231,9 @@ func (s *Summaries) search(tile *tiling.Tile, query string, head bool, pos bool,
 	}
 	t.Stop()
 
-	traceTally := s.tallies.ByTrace()
+	digestsByTrace := s.dCounter.ByTrace()
 
-	// Find all test:digest's in the filtered traces.
+	// Find all test:digest pairs in the filtered traces.
 	matches := map[string]bool{}
 	t = shared.NewMetricsTimer("search_tally")
 	lastCommitIndex := tile.LastCommitIndex()
@@ -250,7 +250,7 @@ func (s *Summaries) search(tile *tiling.Tile, query string, head bool, pos bool,
 				}
 			}
 		} else {
-			if t, ok := traceTally[id]; ok {
+			if t, ok := digestsByTrace[id]; ok {
 				for d := range t {
 					matches[test+":"+d] = true
 				}

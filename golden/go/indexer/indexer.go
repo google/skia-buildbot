@@ -16,13 +16,13 @@ import (
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/pdag"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
-	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/warmer"
 )
@@ -42,8 +42,8 @@ const (
 // a new index is calculated via a pdag.
 type SearchIndex struct {
 	cpxTile              *types.ComplexTile
-	tallies              *tally.Tallies
-	talliesWithIgnores   *tally.Tallies
+	dCounter             digest_counter.DigestCounter
+	dCounterWithIgnores  digest_counter.DigestCounter
 	summaries            *summary.Summaries
 	summariesWithIgnores *summary.Summaries
 	paramsetSummary      *paramsets.ParamSummary
@@ -62,8 +62,8 @@ type SearchIndex struct {
 func newSearchIndex(storages *storage.Storage, cpxTile *types.ComplexTile) *SearchIndex {
 	return &SearchIndex{
 		cpxTile:              cpxTile,
-		tallies:              tally.New(),
-		talliesWithIgnores:   tally.New(),
+		dCounter:             digest_counter.New(),
+		dCounterWithIgnores:  digest_counter.New(),
 		summaries:            summary.New(storages),
 		summariesWithIgnores: summary.New(storages),
 		paramsetSummary:      paramsets.New(),
@@ -85,33 +85,33 @@ func (idx *SearchIndex) GetIgnoreMatcher() paramtools.ParamMatcher {
 	return idx.cpxTile.IgnoreRules()
 }
 
-// Proxy to tally.Tallies.ByTest
-func (idx *SearchIndex) TalliesByTest(includeIgnores bool) map[string]tally.Tally {
+// Proxy to digest_counter.DigestCounter.ByTest
+func (idx *SearchIndex) DigestCountsByTest(includeIgnores bool) map[string]digest_counter.DigestCount {
 	if includeIgnores {
-		return idx.talliesWithIgnores.ByTest()
+		return idx.dCounterWithIgnores.ByTest()
 	}
-	return idx.tallies.ByTest()
+	return idx.dCounter.ByTest()
 }
 
-// Proxy to tally.Tallies.MaxDigestsByTest
+// Proxy to digest_counter.DigestCounter.MaxDigestsByTest
 func (idx *SearchIndex) MaxDigestsByTest(includeIgnores bool) map[string]util.StringSet {
 	if includeIgnores {
-		return idx.talliesWithIgnores.MaxDigestsByTest()
+		return idx.dCounterWithIgnores.MaxDigestsByTest()
 	}
-	return idx.tallies.MaxDigestsByTest()
+	return idx.dCounter.MaxDigestsByTest()
 }
 
-// Proxy to tally.Tallies.ByTrace
-func (idx *SearchIndex) TalliesByTrace(includeIgnores bool) map[string]tally.Tally {
+// Proxy to digest_counter.DigestCounter.ByTrace
+func (idx *SearchIndex) DigestCountsByTrace(includeIgnores bool) map[string]digest_counter.DigestCount {
 	if includeIgnores {
-		return idx.talliesWithIgnores.ByTrace()
+		return idx.dCounterWithIgnores.ByTrace()
 	}
-	return idx.tallies.ByTrace()
+	return idx.dCounter.ByTrace()
 }
 
-// ByQuery returns a Tally of all the digests that match the given query.
-func (idx *SearchIndex) TalliesByQuery(query url.Values, includeIgnores bool) tally.Tally {
-	return idx.tallies.ByQuery(idx.cpxTile.GetTile(includeIgnores), query)
+// ByQuery returns a DigestCount of all the digests that match the given query.
+func (idx *SearchIndex) DigestCountsByQuery(query url.Values, includeIgnores bool) digest_counter.DigestCount {
+	return idx.dCounter.ByQuery(idx.cpxTile.GetTile(includeIgnores), query)
 }
 
 // Proxy to summary.Summary.Get.
@@ -169,29 +169,30 @@ func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
 
 	// Node that triggers blame and writing baselines.
 	// This is used to trigger when expectations change.
+	// TODO(kjlubick): should countNode and countIgnoresNode depend on
+	// this so they can also be re-executed when expectations change?
 	indexTestsNode := root.Child(pdag.NoOp)
 
+	// At the top level, Add the DigestCounter and invoke the Blamer to calculate the blames.
+	countNode := root.Child(calcDigestCounts)
+	countIgnoresNode := root.Child(calcDigestCountsWithIgnores)
 	blamerNode := indexTestsNode.Child(calcBlame)
 
-	// write baselines whenever a new tile is processed, new commits become available, or
+	// Write baselines whenever a new tile is processed, new commits become available, or
 	// when the expectations change.
 	writeBaselineNode := indexTestsNode.Child(writeMasterBaseline)
 
-	// Add the blamer and tallies
-	tallyNode := root.Child(calcTallies)
-	tallyIgnoresNode := root.Child(calcTalliesWithIgnores)
+	// Parameters depend on DigestCounter.
+	paramsNode := pdag.NewNodeWithParents(calcParamsets, countNode, countIgnoresNode)
 
-	// parameters depend on tallies.
-	paramsNode := pdag.NewNodeWithParents(calcParamsets, tallyNode, tallyIgnoresNode)
+	// Write known hashes after ignores are computed
+	writeHashes := countIgnoresNode.Child(writeKnownHashesList)
 
-	// write known hashes after ignores are computed
-	writeHashes := tallyIgnoresNode.Child(writeKnownHashesList)
+	// Summaries depend on DigestCounter and Blamer.
+	summaryNode := pdag.NewNodeWithParents(calcSummaries, countNode, blamerNode)
+	summaryIgnoresNode := pdag.NewNodeWithParents(calcSummariesWithIgnores, countIgnoresNode, blamerNode)
 
-	// summaries depend on tallies and blamer.
-	summaryNode := pdag.NewNodeWithParents(calcSummaries, tallyNode, blamerNode)
-	summaryIgnoresNode := pdag.NewNodeWithParents(calcSummariesWithIgnores, tallyIgnoresNode, blamerNode)
-
-	// The warmer depends on summaries.
+	// The Warmer depends on summaries.
 	pdag.NewNodeWithParents(runWarmer, summaryNode, summaryIgnoresNode)
 
 	// Set the result on the Indexer instance, once summaries, parameters and writing
@@ -340,8 +341,8 @@ func (ixr *Indexer) cloneLastIndex() *SearchIndex {
 	lastIdx := ixr.GetIndex()
 	return &SearchIndex{
 		cpxTile:              lastIdx.cpxTile,
-		tallies:              lastIdx.tallies,            // stay the same even if tests change.
-		talliesWithIgnores:   lastIdx.talliesWithIgnores, // stay the same even if tests change.
+		dCounter:             lastIdx.dCounter,            // stay the same even if tests change.
+		dCounterWithIgnores:  lastIdx.dCounterWithIgnores, // stay the same even if tests change.
 		summaries:            lastIdx.summaries.Clone(),
 		summariesWithIgnores: lastIdx.summariesWithIgnores.Clone(),
 		paramsetSummary:      lastIdx.paramsetSummary,
@@ -377,45 +378,45 @@ func (ixr *Indexer) writeIssueBaseline(evData interface{}) {
 	}
 
 	idx := ixr.GetIndex()
-	if err := ixr.storages.Baseliner.PushIssueBaseline(issueID, idx.cpxTile, idx.tallies); err != nil {
+	if err := ixr.storages.Baseliner.PushIssueBaseline(issueID, idx.cpxTile, idx.dCounter); err != nil {
 		sklog.Errorf("Unable to push baseline for issue %d to GCS: %s", issueID, err)
 		return
 	}
 }
 
-// calcTallies is the pipeline function to calculate the tallies.
-func calcTallies(state interface{}) error {
+// calcDigestCounts is the pipeline function to invoke DigestCounter.
+func calcDigestCounts(state interface{}) error {
 	idx := state.(*SearchIndex)
-	idx.tallies.Calculate(idx.cpxTile.GetTile(false))
+	idx.dCounter.Calculate(idx.cpxTile.GetTile(false))
 	return nil
 }
 
-// calcTalliesWithIgnores is the pipeline function to calculate the tallies for
+// calcDigestCountsWithIgnores is the pipeline function to invoke DigestCounter for
 // the tile that includes ignores.
-func calcTalliesWithIgnores(state interface{}) error {
+func calcDigestCountsWithIgnores(state interface{}) error {
 	idx := state.(*SearchIndex)
-	idx.talliesWithIgnores.Calculate(idx.cpxTile.GetTile(true))
+	idx.dCounterWithIgnores.Calculate(idx.cpxTile.GetTile(true))
 	return nil
 }
 
 // calcSummaries is the pipeline function to calculate the summaries.
 func calcSummaries(state interface{}) error {
 	idx := state.(*SearchIndex)
-	err := idx.summaries.Calculate(idx.cpxTile.GetTile(false), idx.testNames, idx.tallies, idx.blamer)
+	err := idx.summaries.Calculate(idx.cpxTile.GetTile(false), idx.testNames, idx.dCounter, idx.blamer)
 	return err
 }
 
 // calcSummariesWithIgnores is the pipeline function to calculate the summaries.
 func calcSummariesWithIgnores(state interface{}) error {
 	idx := state.(*SearchIndex)
-	err := idx.summariesWithIgnores.Calculate(idx.cpxTile.GetTile(true), idx.testNames, idx.talliesWithIgnores, idx.blamer)
+	err := idx.summariesWithIgnores.Calculate(idx.cpxTile.GetTile(true), idx.testNames, idx.dCounterWithIgnores, idx.blamer)
 	return err
 }
 
 // calcParamsets is the pipeline function to calculate the parameters.
 func calcParamsets(state interface{}) error {
 	idx := state.(*SearchIndex)
-	idx.paramsetSummary.Calculate(idx.cpxTile, idx.tallies, idx.talliesWithIgnores)
+	idx.paramsetSummary.Calculate(idx.cpxTile, idx.dCounter, idx.dCounterWithIgnores)
 	return nil
 }
 
@@ -436,7 +437,7 @@ func writeKnownHashesList(state interface{}) error {
 
 	// Trigger writing the hashes list.
 	go func() {
-		byTest := idx.TalliesByTest(true)
+		byTest := idx.DigestCountsByTest(true)
 		unavailableDigests := idx.storages.DiffStore.UnavailableDigests()
 		// Collect all hashes in the tile that haven't been marked as unavailable yet.
 		hashes := util.StringSet{}
@@ -493,6 +494,6 @@ func runWarmer(state interface{}) error {
 
 	// TODO (stephana): Instead of warming everything we should warm non-ignored
 	// traces with higher priority.
-	go idx.warmer.Run(idx.cpxTile.GetTile(true), idx.summariesWithIgnores, idx.talliesWithIgnores)
+	go idx.warmer.Run(idx.cpxTile.GetTile(true), idx.summariesWithIgnores, idx.dCounterWithIgnores)
 	return nil
 }
