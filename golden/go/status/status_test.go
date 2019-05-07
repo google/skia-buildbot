@@ -83,7 +83,7 @@ func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder)
 		for _, trace := range cpxTile.GetTile(false).Traces {
 			if trace.Params()[types.CORPUS_FIELD] == corpStatus.Name {
 				gTrace := trace.(*types.GoldenTrace)
-				testName := gTrace.Params()[types.PRIMARY_KEY_FIELD]
+				testName := gTrace.TestName()
 				for _, digest := range gTrace.Digests {
 					if _, ok := changes[testName]; !ok {
 						changes[testName] = map[string]types.Label{}

@@ -208,7 +208,7 @@ func blameGroupID(b *blame.BlameDistribution, commits []*tiling.Commit) string {
 // digestsFromTrace returns all the digests in the given trace, controlled by
 // 'head', and being robust to tallies not having been calculated for the
 // trace.
-func digestsFromTrace(id string, tr *types.GoldenTrace, head bool, lastCommitIndex int, digestsByTrace map[string]digest_counter.DigestCount) []string {
+func digestsFromTrace(id tiling.TraceId, tr *types.GoldenTrace, head bool, lastCommitIndex int, digestsByTrace map[tiling.TraceId]digest_counter.DigestCount) []types.Digest {
 	digests := util.NewStringSet()
 	if head {
 		// Find the last non-missing value in the trace.

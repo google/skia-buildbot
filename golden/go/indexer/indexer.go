@@ -53,7 +53,7 @@ type SearchIndex struct {
 
 	// This is set by the indexing pipeline when we just want to update
 	// individual tests that have changed.
-	testNames []string
+	testNames []types.TestName
 	storages  *storage.Storage
 }
 
@@ -87,7 +87,7 @@ func (idx *SearchIndex) GetIgnoreMatcher() paramtools.ParamMatcher {
 }
 
 // Proxy to digest_counter.DigestCounter.ByTest
-func (idx *SearchIndex) DigestCountsByTest(includeIgnores bool) map[string]digest_counter.DigestCount {
+func (idx *SearchIndex) DigestCountsByTest(includeIgnores bool) map[types.TestName]digest_counter.DigestCount {
 	if includeIgnores {
 		return idx.dCounterWithIgnores.ByTest()
 	}
@@ -95,7 +95,7 @@ func (idx *SearchIndex) DigestCountsByTest(includeIgnores bool) map[string]diges
 }
 
 // Proxy to digest_counter.DigestCounter.MaxDigestsByTest
-func (idx *SearchIndex) MaxDigestsByTest(includeIgnores bool) map[string]util.StringSet {
+func (idx *SearchIndex) MaxDigestsByTest(includeIgnores bool) map[types.TestName]util.StringSet {
 	if includeIgnores {
 		return idx.dCounterWithIgnores.MaxDigestsByTest()
 	}
@@ -103,7 +103,7 @@ func (idx *SearchIndex) MaxDigestsByTest(includeIgnores bool) map[string]util.St
 }
 
 // Proxy to digest_counter.DigestCounter.ByTrace
-func (idx *SearchIndex) DigestCountsByTrace(includeIgnores bool) map[string]digest_counter.DigestCount {
+func (idx *SearchIndex) DigestCountsByTrace(includeIgnores bool) map[tiling.TraceId]digest_counter.DigestCount {
 	if includeIgnores {
 		return idx.dCounterWithIgnores.ByTrace()
 	}
@@ -116,7 +116,7 @@ func (idx *SearchIndex) DigestCountsByQuery(query url.Values, includeIgnores boo
 }
 
 // Proxy to summary.Summary.Get.
-func (idx *SearchIndex) GetSummaries(includeIgnores bool) map[string]*summary.Summary {
+func (idx *SearchIndex) GetSummaries(includeIgnores bool) map[types.TestName]*summary.Summary {
 	if includeIgnores {
 		return idx.summariesWithIgnores.Get()
 	}
@@ -124,22 +124,22 @@ func (idx *SearchIndex) GetSummaries(includeIgnores bool) map[string]*summary.Su
 }
 
 // Proxy to summary.CalcSummaries.
-func (idx *SearchIndex) CalcSummaries(testNames []string, query url.Values, includeIgnores, head bool) (map[string]*summary.Summary, error) {
+func (idx *SearchIndex) CalcSummaries(testNames []types.TestName, query url.Values, includeIgnores, head bool) (map[types.TestName]*summary.Summary, error) {
 	return idx.summaries.CalcSummaries(idx.cpxTile.GetTile(includeIgnores), testNames, query, head)
 }
 
 // Proxy to paramsets.Get
-func (idx *SearchIndex) GetParamsetSummary(test, digest string, includeIgnores bool) paramtools.ParamSet {
+func (idx *SearchIndex) GetParamsetSummary(test types.TestName, digest types.Digest, includeIgnores bool) paramtools.ParamSet {
 	return idx.paramsetSummary.Get(test, digest, includeIgnores)
 }
 
 // Proxy to paramsets.GetByTest
-func (idx *SearchIndex) GetParamsetSummaryByTest(includeIgnores bool) map[string]map[string]paramtools.ParamSet {
+func (idx *SearchIndex) GetParamsetSummaryByTest(includeIgnores bool) map[types.TestName]map[types.Digest]paramtools.ParamSet {
 	return idx.paramsetSummary.GetByTest(includeIgnores)
 }
 
 // Proxy to blame.Blamer.GetBlame.
-func (idx *SearchIndex) GetBlame(test, digest string, commits []*tiling.Commit) *blame.BlameDistribution {
+func (idx *SearchIndex) GetBlame(test types.TestName, digest types.Digest, commits []*tiling.Commit) *blame.BlameDistribution {
 	return idx.blamer.GetBlame(test, digest, commits)
 }
 
@@ -153,7 +153,7 @@ type Indexer struct {
 	indexTestsNode    *pdag.Node
 	writeBaselineNode *pdag.Node
 	lastIndex         *SearchIndex
-	testNames         []string
+	testNames         []types.TestName
 	mutex             sync.RWMutex
 }
 
@@ -323,7 +323,8 @@ func (ixr *Indexer) writeBaselines() {
 // indexTest creates an updated index by indexing the given list of expectation changes.
 func (ixr *Indexer) indexTests(testChanges []types.TestExp) {
 	// Get all the testnames
-	testNames := util.StringSet{}
+	// TODO(kjlubick): Is anything actually done with this data?
+	testNames := map[types.TestName]bool{}
 	for _, testChange := range testChanges {
 		for testName := range testChange {
 			testNames[testName] = true
@@ -450,7 +451,7 @@ func writeKnownHashesList(state interface{}) error {
 		byTest := idx.DigestCountsByTest(true)
 		unavailableDigests := idx.storages.DiffStore.UnavailableDigests()
 		// Collect all hashes in the tile that haven't been marked as unavailable yet.
-		hashes := util.StringSet{}
+		hashes := map[types.Digest]bool{}
 		for _, test := range byTest {
 			for k := range test {
 				if _, ok := unavailableDigests[k]; !ok {
@@ -461,7 +462,11 @@ func writeKnownHashesList(state interface{}) error {
 
 		// Make sure they all fetched already. This will block until all digests
 		// are on disk or have failed to load repeatedly.
-		idx.storages.DiffStore.WarmDigests(diff.PRIORITY_NOW, hashes.Keys(), true)
+		knownHashes := make([]types.Digest, 0, len(hashes))
+		for d := range hashes {
+			knownHashes = append(knownHashes, d)
+		}
+		idx.storages.DiffStore.WarmDigests(diff.PRIORITY_NOW, knownHashes, true)
 		unavailableDigests = idx.storages.DiffStore.UnavailableDigests()
 		for h := range hashes {
 			if _, ok := unavailableDigests[h]; ok {
@@ -469,10 +474,15 @@ func writeKnownHashesList(state interface{}) error {
 			}
 		}
 
+		knownHashes = make([]types.Digest, 0, len(hashes))
+		for d := range hashes {
+			knownHashes = append(knownHashes, d)
+		}
+
 		// Keep track of the number of known hashes since this directly affects how
 		// many images the bots have to upload.
-		metrics2.GetInt64Metric(METRIC_KNOWN_HASHES).Update(int64(len(hashes)))
-		if err := idx.storages.GCSClient.WriteKnownDigests(hashes.Keys()); err != nil {
+		metrics2.GetInt64Metric(METRIC_KNOWN_HASHES).Update(int64(len(knownHashes)))
+		if err := idx.storages.GCSClient.WriteKnownDigests(knownHashes); err != nil {
 			sklog.Errorf("Error writing known digests list: %s", err)
 		}
 	}()

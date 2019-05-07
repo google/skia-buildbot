@@ -8,7 +8,7 @@ import (
 
 type ExpSlice []types.TestExpBuilder
 
-func (e ExpSlice) Classification(test, digest string) types.Label {
+func (e ExpSlice) Classification(test types.TestName, digest types.Digest) types.Label {
 	for _, exp := range e {
 		if label := exp.Classification(test, digest); label != types.UNTRIAGED {
 			return label

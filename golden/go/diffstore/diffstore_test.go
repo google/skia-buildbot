@@ -195,17 +195,6 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	}
 	ti.Stop()
 	testDiffs(t, baseDir, memDiffStore, digests, digests, foundDiffs)
-
-	// Diff against an arbitrary GCS location.
-	gcsImgID := GCSPathToImageID(TEST_GCS_SECONDARY_BUCKET, TEST_PATH_IMG_1)
-	foundDiffs = map[string]map[string]interface{}{}
-	for _, oneDigest := range digests {
-		found, err := diffStore.Get(diff.PRIORITY_NOW, oneDigest, []string{gcsImgID})
-		assert.NoError(t, err)
-		assert.Equal(t, 1, len(found))
-		foundDiffs[oneDigest] = found
-	}
-	testDiffs(t, baseDir, memDiffStore, digests, []string{gcsImgID}, foundDiffs)
 }
 
 func testDiffs(t *testing.T, baseDir string, diffStore *MemDiffStore, leftDigests, rightDigests []string, result map[string]map[string]interface{}) {
