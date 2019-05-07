@@ -9,6 +9,7 @@ import (
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
@@ -47,7 +48,7 @@ type SearchIndex struct {
 	summaries            *summary.Summaries
 	summariesWithIgnores *summary.Summaries
 	paramsetSummary      *paramsets.ParamSummary
-	blamer               *blame.Blamer
+	blamer               blame.Blamer
 	warmer               *warmer.Warmer
 
 	// This is set by the indexing pipeline when we just want to update
@@ -67,7 +68,7 @@ func newSearchIndex(storages *storage.Storage, cpxTile types.ComplexTile) *Searc
 		summaries:            summary.New(storages),
 		summariesWithIgnores: summary.New(storages),
 		paramsetSummary:      paramsets.New(),
-		blamer:               blame.New(storages),
+		blamer:               nil,
 		warmer:               warmer.New(storages),
 		storages:             storages,
 	}
@@ -346,7 +347,7 @@ func (ixr *Indexer) cloneLastIndex() *SearchIndex {
 		summaries:            lastIdx.summaries.Clone(),
 		summariesWithIgnores: lastIdx.summariesWithIgnores.Clone(),
 		paramsetSummary:      lastIdx.paramsetSummary,
-		blamer:               blame.New(ixr.storages),
+		blamer:               lastIdx.blamer, // blamer is immutable and thus, thread-safe.
 		warmer:               warmer.New(ixr.storages),
 		storages:             lastIdx.storages,
 	}
@@ -423,8 +424,17 @@ func calcParamsets(state interface{}) error {
 // calcBlame is the pipeline function to calculate the blame.
 func calcBlame(state interface{}) error {
 	idx := state.(*SearchIndex)
-	err := idx.blamer.Calculate(idx.cpxTile.GetTile(false))
-	return err
+	exp, err := idx.storages.ExpectationsStore.Get()
+	if err != nil {
+		return skerr.Fmt("Could not fetch expectaions needed to calculate blame: %s", err)
+	}
+	b, err := blame.New(idx.cpxTile.GetTile(false), exp)
+	if err != nil {
+		idx.blamer = nil
+		return skerr.Fmt("Could not calculate blame: %s", err)
+	}
+	idx.blamer = b
+	return nil
 }
 
 func writeKnownHashesList(state interface{}) error {
