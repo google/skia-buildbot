@@ -61,7 +61,7 @@ func GetPreUploadSteps(steps []string) ([]PreUploadStep, error) {
 func TrainInfra(ctx context.Context, env []string, client *http.Client, parentRepoDir string) error {
 	// TODO(borenet): Should we plumb through --local and --workdir?
 	sklog.Info("Installing Go...")
-	_, goEnv, err := go_install.EnsureGo(client, cipdRoot, true)
+	_, goEnv, err := go_install.EnsureGo(client, cipdRoot)
 	if err != nil {
 		return err
 	}
@@ -185,7 +185,7 @@ func FlutterLicenseScripts(ctx context.Context, _ []string, _ *http.Client, pare
 func GoGenerateCipd(ctx context.Context, _ []string, client *http.Client, parentRepoDir string) error {
 	// TODO(borenet): Should we plumb through --local and --workdir?
 	sklog.Info("Installing Go...")
-	goExc, goEnv, err := go_install.EnsureGo(client, cipdRoot, true)
+	goExc, goEnv, err := go_install.EnsureGo(client, cipdRoot)
 	if err != nil {
 		return err
 	}
