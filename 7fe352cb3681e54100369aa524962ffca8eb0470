@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "43a879dd_bed4bfd0",
+        "filename": "golden/go/blame/blame_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-07T15:13:37Z",
+      "side": 1,
+      "message": "Yes, that is correct.  This tests that fact.  Comment updated to be less confusing.",
+      "parentUuid": "7fcbaac8_69b5857f",
+      "revId": "7fe352cb3681e54100369aa524962ffca8eb0470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "67991f35_11808d6c",
         "filename": "golden/go/blame/blame_test.go",
         "patchSetId": 6
@@ -65,6 +83,30 @@
     },
     {
       "key": {
+        "uuid": "25c3aeaf_76040100",
+        "filename": "golden/go/blame/blame_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-07T15:13:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "67991f35_11808d6c",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 53
+      },
+      "revId": "7fe352cb3681e54100369aa524962ffca8eb0470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "15d3792b_d2b7a414",
         "filename": "golden/go/blame/blame_test.go",
         "patchSetId": 6
@@ -76,6 +118,24 @@
       "writtenOn": "2019-05-07T14:41:50Z",
       "side": 1,
       "message": "Would be nice to test the \u0027Old: true\u0027 case.",
+      "revId": "7fe352cb3681e54100369aa524962ffca8eb0470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "994318a2_3d997f81",
+        "filename": "golden/go/blame/blame_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-07T15:13:37Z",
+      "side": 1,
+      "message": "It would be, but I don\u0027t understand it well enough at this point to write a test case for it.  To me, it seems that it can only ever be false.",
+      "parentUuid": "15d3792b_d2b7a414",
       "revId": "7fe352cb3681e54100369aa524962ffca8eb0470",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -96,6 +156,24 @@
       "revId": "7fe352cb3681e54100369aa524962ffca8eb0470",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f4dca09_273c08ec",
+        "filename": "golden/go/testutils/data_three_devices/three_devices.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-07T15:13:37Z",
+      "side": 1,
+      "message": "I\u0027ll try it for now, see if I regret it in a while.  My vision is to have a few well-defined, interesting test cases that can be shared between packages with individual packages having some specific edge case test data if needed.",
+      "parentUuid": "2b0f6410_41687ee9",
+      "revId": "7fe352cb3681e54100369aa524962ffca8eb0470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
