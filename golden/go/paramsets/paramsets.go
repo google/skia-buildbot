@@ -4,8 +4,8 @@ package paramsets
 import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/shared"
-	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -19,13 +19,13 @@ type ParamSummary struct {
 }
 
 // byTraceForTile calculates all the paramsets from the given tile and tallies.
-func byTraceForTile(tile *tiling.Tile, traceTally map[string]tally.Tally) map[string]map[string]paramtools.ParamSet {
+func byTraceForTile(tile *tiling.Tile, digestCountsByTrace map[string]digest_counter.DigestCount) map[string]map[string]paramtools.ParamSet {
 	ret := map[string]map[string]paramtools.ParamSet{}
 
-	for id, t := range traceTally {
+	for id, dc := range digestCountsByTrace {
 		if tr, ok := tile.Traces[id]; ok {
 			test := tr.Params()[types.PRIMARY_KEY_FIELD]
-			for digest := range t {
+			for digest := range dc {
 				if foundTest, ok := ret[test]; !ok {
 					ret[test] = map[string]paramtools.ParamSet{digest: paramtools.NewParamSet(tr.Params())}
 				} else if foundDigest, ok := foundTest[digest]; !ok {
@@ -45,10 +45,10 @@ func New() *ParamSummary {
 }
 
 // Calculate sets the values the ParamSummary based on the given tile.
-func (s *ParamSummary) Calculate(cpxTile *types.ComplexTile, tallies *tally.Tallies, talliesWithIgnores *tally.Tallies) {
+func (s *ParamSummary) Calculate(cpxTile *types.ComplexTile, dCounter digest_counter.DigestCounter, dCounterWithIgnores digest_counter.DigestCounter) {
 	defer shared.NewMetricsTimer("param_summary_calculate").Stop()
-	s.byTrace = byTraceForTile(cpxTile.GetTile(false), tallies.ByTrace())
-	s.byTraceIncludeIgnored = byTraceForTile(cpxTile.GetTile(true), talliesWithIgnores.ByTrace())
+	s.byTrace = byTraceForTile(cpxTile.GetTile(false), dCounter.ByTrace())
+	s.byTraceIncludeIgnored = byTraceForTile(cpxTile.GetTile(true), dCounterWithIgnores.ByTrace())
 }
 
 // Get returns the paramset for the given digest. If 'include' is true

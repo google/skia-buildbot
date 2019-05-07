@@ -14,11 +14,11 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
-	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -208,7 +208,7 @@ func blameGroupID(b *blame.BlameDistribution, commits []*tiling.Commit) string {
 // digestsFromTrace returns all the digests in the given trace, controlled by
 // 'head', and being robust to tallies not having been calculated for the
 // trace.
-func digestsFromTrace(id string, tr *types.GoldenTrace, head bool, lastCommitIndex int, traceTally map[string]tally.Tally) []string {
+func digestsFromTrace(id string, tr *types.GoldenTrace, head bool, lastCommitIndex int, digestsByTrace map[string]digest_counter.DigestCount) []string {
 	digests := util.NewStringSet()
 	if head {
 		// Find the last non-missing value in the trace.
@@ -221,8 +221,8 @@ func digestsFromTrace(id string, tr *types.GoldenTrace, head bool, lastCommitInd
 			}
 		}
 	} else {
-		// Use the traceTally if available, otherwise just inspect the trace.
-		if t, ok := traceTally[id]; ok {
+		// Use the digestsByTrace if available, otherwise just inspect the trace.
+		if t, ok := digestsByTrace[id]; ok {
 			for k := range t {
 				digests[k] = true
 			}
@@ -592,7 +592,7 @@ func filterTileWithMatch(query *Query, matchFields []string, condDigests map[str
 
 // getCTRows returns the instance of CTRow that correspond to the given set of row digests.
 func getCTRows(entries map[string]paramtools.ParamSet, sortField, sortDir string, limit int32, includeIgnores bool, idx *indexer.SearchIndex) []*CTRow {
-	talliesByTest := idx.TalliesByTest(includeIgnores)
+	talliesByTest := idx.DigestCountsByTest(includeIgnores)
 	ret := make([]*CTRow, 0, len(entries))
 	for digest, paramSet := range entries {
 		testName := paramSet[types.PRIMARY_KEY_FIELD][0]

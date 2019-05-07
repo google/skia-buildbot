@@ -67,7 +67,7 @@ func (r *RefDiffer) GetRefDiffs(metric string, match []string, test, digest stri
 	// Find the minimum according to the diff metric.
 	minKey := ""
 	minDiff := float32(math.Inf(1))
-	tally := r.idx.TalliesByTest(includeIgnores)[test]
+	tally := r.idx.DigestCountsByTest(includeIgnores)[test]
 	for key, val := range ret {
 		if val != nil {
 			// Fill in the missing fields.
