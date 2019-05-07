@@ -29,14 +29,6 @@ var (
 		Version: VersionTag(PKG_VERSIONS_FROM_ASSETS["go"]),
 	}
 
-	// CIPD package which contains pre-built dependencies for the
-	// go.skia.org/infra repository.
-	PkgGoDEPS = &Package{
-		Dest:    "gopath",
-		Name:    "skia/bots/go_deps",
-		Version: VersionTag(PKG_VERSIONS_FROM_ASSETS["go_deps"]),
-	}
-
 	// CIPD package containing the Google Protocol Buffer compiler.
 	PkgProtoc = &Package{
 		Dest:    "protoc",
