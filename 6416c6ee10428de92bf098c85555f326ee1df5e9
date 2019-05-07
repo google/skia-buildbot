@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cac33889_0a79dd5b",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-07T14:05:14Z",
+      "side": 1,
+      "message": "Why do we need these types?  The errors returned from the exec package should include the output of the command.",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 106,
+        "endChar": 1
+      },
+      "revId": "6416c6ee10428de92bf098c85555f326ee1df5e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68c38b07_9dcbd28e",
+        "filename": "android_compile/go/android_compile/datastore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-07T14:05:14Z",
+      "side": 1,
+      "message": "Why not just use a single \"Error\" field for any error message?",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 48
+      },
+      "revId": "6416c6ee10428de92bf098c85555f326ee1df5e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2efc08eb_471ebf02",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-07T14:05:14Z",
+      "side": 1,
+      "message": "The returned error should already include the output.",
+      "range": {
+        "startLine": 340,
+        "startChar": 52,
+        "endLine": 340,
+        "endChar": 83
+      },
+      "revId": "6416c6ee10428de92bf098c85555f326ee1df5e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
