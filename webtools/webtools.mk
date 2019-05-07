@@ -53,7 +53,7 @@ res/js/core-debug.js: Makefile $(BOWER_DIR)/lastupdate $(CORE_SOURCE_FILES)
 	awk 'FNR==1{print ""}{print}' $(CORE_SOURCE_FILES) > res/js/core-debug.js
 
 $(BOWER_DIR)/lastupdate: bower.json ./node_modules/.bin/bower
-	./node_modules/.bin/bower update
+	./node_modules/.bin/bower --allow-root update
 	ln -sf ../../$(BOWER_DIR) res/imp/bower_components
 	touch $(BOWER_DIR)/lastupdate
 
