@@ -41,7 +41,7 @@ const (
 // considered as immutable. Whenever the underlying data changes,
 // a new index is calculated via a pdag.
 type SearchIndex struct {
-	cpxTile              *types.ComplexTile
+	cpxTile              types.ComplexTile
 	dCounter             digest_counter.DigestCounter
 	dCounterWithIgnores  digest_counter.DigestCounter
 	summaries            *summary.Summaries
@@ -59,7 +59,7 @@ type SearchIndex struct {
 // newSearchIndex creates a new instance of SearchIndex. It is not intended to
 // be used outside of this package. SearchIndex instances are created by the
 // Indexer and retrieved via GetIndex().
-func newSearchIndex(storages *storage.Storage, cpxTile *types.ComplexTile) *SearchIndex {
+func newSearchIndex(storages *storage.Storage, cpxTile types.ComplexTile) *SearchIndex {
 	return &SearchIndex{
 		cpxTile:              cpxTile,
 		dCounter:             digest_counter.New(),
@@ -75,7 +75,7 @@ func newSearchIndex(storages *storage.Storage, cpxTile *types.ComplexTile) *Sear
 
 // CpxTile returns the current complex tile from which simpler tiles, like one without ignored
 // traces can be retrieved
-func (idx *SearchIndex) CpxTile() *types.ComplexTile {
+func (idx *SearchIndex) CpxTile() types.ComplexTile {
 	return idx.cpxTile
 }
 
@@ -250,7 +250,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 	// Keep building indices for different types of events. This is the central
 	// event loop of the indexer.
 	go func() {
-		var cpxTile *types.ComplexTile
+		var cpxTile types.ComplexTile
 		for {
 			testChanges := []types.TestExp{}
 
@@ -305,7 +305,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 
 // executePipeline runs the given tile through the the indexing pipeline.
 // pipeline.Trigger blocks until everything is done, so this function will as well.
-func (ixr *Indexer) executePipeline(cpxTile *types.ComplexTile) error {
+func (ixr *Indexer) executePipeline(cpxTile types.ComplexTile) error {
 	defer shared.NewMetricsTimer("indexer_execute_pipeline").Stop()
 	// Create a new index from the given tile.
 	return ixr.pipeline.Trigger(newSearchIndex(ixr.storages, cpxTile))
@@ -478,6 +478,7 @@ func writeMasterBaseline(state interface{}) error {
 	}
 
 	// Write the baseline asynchronously.
+	// TODO(kjlubick): Does this being asynchronous cause problems?
 	go func() {
 		if _, err := idx.storages.Baseliner.PushMasterBaselines(idx.cpxTile, ""); err != nil {
 			sklog.Errorf("Error pushing master baseline to GCS: %s", err)
