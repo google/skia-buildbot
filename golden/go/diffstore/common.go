@@ -18,10 +18,6 @@ import (
 const (
 	// IMG_EXTENSION is the default extension of images.
 	IMG_EXTENSION = "png"
-
-	// GS_PREFIX is the prefix of an imageID that indicates that it is corresponds
-	// to a storage location in GCS.
-	GS_PREFIX = "gs"
 )
 
 // saveFile writes the given file to disk.

@@ -89,7 +89,6 @@ github.com/julienschmidt/httprouter
 github.com/Masterminds/goutils
 github.com/Masterminds/semver
 github.com/Masterminds/sprig
-github.com/mattheath/base62
 github.com/matttproud/golang_protobuf_extensions/pbutil
 github.com/modern-go/concurrent
 github.com/modern-go/reflect2
