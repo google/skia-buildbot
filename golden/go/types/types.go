@@ -87,7 +87,39 @@ func (tc *TestClassification) DeepCopy() TestClassification {
 // one with all ignored traces and one without the ignored traces.
 // In addition it also contains the ignore rules and information about the larger "sparse" tile
 // if the tiles at hand were condensed from a larger tile.
-type ComplexTile struct {
+type ComplexTile interface {
+	// AllCommits returns all commits that were processed to get the data commits.
+	// Its first commit should match the first commit returned when calling DataCommits.
+	AllCommits() []*tiling.Commit
+
+	// DataCommits returns all commits that contain data. In some busy repos, there are commits that
+	// don't get tested directly because the commits are batched in with others. DataCommits
+	// is a way to get just the commits where some data has been ingested.
+	DataCommits() []*tiling.Commit
+
+	// FromSame returns true if the given complex tile was derived from the same tile as the one
+	// provided and if none of the other parameters changed, especially the ignore revision.
+	FromSame(completeTile *tiling.Tile, ignoreRev int64) bool
+
+	// FilledCommits returns how many commits in the tile have data.
+	FilledCommits() int
+
+	// GetTile returns a simple tile either with or without ignored traces depending on the argument.
+	GetTile(includeIgnores bool) *tiling.Tile
+
+	// SetIgnoreRules adds ignore rules to the tile and a sub-tile with the ignores removed.
+	// In other words this function assumes that original tile has been filtered by the
+	// ignore rules that are being passed.
+	SetIgnoreRules(reducedTile *tiling.Tile, ignoreRules paramtools.ParamMatcher, irRev int64)
+
+	// IgnoreRules returns the ignore rules for this tile.
+	IgnoreRules() paramtools.ParamMatcher
+
+	// SetSparse sets sparsity information about this tile.
+	SetSparse(sparseCommits []*tiling.Commit, cardinalities []int)
+}
+
+type ComplexTileImpl struct {
 	// tile is the current tile without ignored traces.
 	tile *tiling.Tile
 
@@ -111,25 +143,22 @@ type ComplexTile struct {
 	filled int
 }
 
-func NewComplexTile(completeTile *tiling.Tile) *ComplexTile {
-	return &ComplexTile{
+func NewComplexTile(completeTile *tiling.Tile) *ComplexTileImpl {
+	return &ComplexTileImpl{
 		tile:            completeTile,
 		tileWithIgnores: completeTile,
 	}
 }
 
-// SetIgnoreRules adds ignore rules to the tile and a sub-tile with the ignores removed.
-// In other words this function assumes that original tile has been filtered by the
-// ignore rules that are being passed.
-func (c *ComplexTile) SetIgnoreRules(reducedTile *tiling.Tile, ignoreRules paramtools.ParamMatcher, irRev int64) *ComplexTile {
+// SetIgnoreRules fulfills the ComplexTile interface.
+func (c *ComplexTileImpl) SetIgnoreRules(reducedTile *tiling.Tile, ignoreRules paramtools.ParamMatcher, irRev int64) {
 	c.tile = reducedTile
 	c.irRevision = irRev
 	c.ignoreRules = ignoreRules
-	return c
 }
 
-// SetSparse sets sparsity information about this tile.
-func (c *ComplexTile) SetSparse(sparseCommits []*tiling.Commit, cardinalities []int) *ComplexTile {
+// SetSparse fulfills the ComplexTile interface.
+func (c *ComplexTileImpl) SetSparse(sparseCommits []*tiling.Commit, cardinalities []int) {
 	// Make sure we always have valid values sparce commits.
 	if len(sparseCommits) == 0 {
 		sparseCommits = c.tileWithIgnores.Commits
@@ -157,15 +186,15 @@ func (c *ComplexTile) SetSparse(sparseCommits []*tiling.Commit, cardinalities []
 	c.sparseCommits = sparseCommits
 	c.cardinalities = cardinalities
 	c.filled = filled
-	return c
 }
 
-func (c *ComplexTile) FilledCommits() int {
+// FilledCommits fulfills the ComplexTile interface.
+func (c *ComplexTileImpl) FilledCommits() int {
 	return c.filled
 }
 
 // ensureSparseInfo is a helper function that fills in the sparsity information if it wasn't set.
-func (c *ComplexTile) ensureSparseInfo() {
+func (c *ComplexTileImpl) ensureSparseInfo() {
 	if c != nil {
 		if c.sparseCommits == nil || c.cardinalities == nil {
 			c.SetSparse(nil, nil)
@@ -173,9 +202,8 @@ func (c *ComplexTile) ensureSparseInfo() {
 	}
 }
 
-// FromSame returns true if the given complex tile was derived from the same tile as the one
-// provided and if none of the other parameters changed, especially the ignore revision.
-func (c *ComplexTile) FromSame(completeTile *tiling.Tile, ignoreRev int64) bool {
+// FromSame fulfills the ComplexTile interface.
+func (c *ComplexTileImpl) FromSame(completeTile *tiling.Tile, ignoreRev int64) bool {
 	return c != nil &&
 		c.tileWithIgnores != nil &&
 		c.tileWithIgnores == completeTile &&
@@ -183,31 +211,31 @@ func (c *ComplexTile) FromSame(completeTile *tiling.Tile, ignoreRev int64) bool 
 		c.irRevision == ignoreRev
 }
 
-// DataCommits returns all commits that contain data. In some busy repos, there are commits that
-// don't get tested directly because the commits are batched in with others. DataCommits
-// is a way to get just the commits where some data has been ingested.
-func (c *ComplexTile) DataCommits() []*tiling.Commit {
+// DataCommits fulfills the ComplexTile interface.
+func (c *ComplexTileImpl) DataCommits() []*tiling.Commit {
 	return c.tileWithIgnores.Commits
 }
 
-// AllCommits returns all commits that were processed to get the data commits.
-// Its first commit should match the first commit returned when calling DataCommits.
-func (c *ComplexTile) AllCommits() []*tiling.Commit {
+// AllCommits fulfills the ComplexTile interface.
+func (c *ComplexTileImpl) AllCommits() []*tiling.Commit {
 	return c.sparseCommits
 }
 
-// GetTile returns a simple tile either with or without ignored traces depending on the argument.
-func (c *ComplexTile) GetTile(includeIgnores bool) *tiling.Tile {
+// GetTile fulfills the ComplexTile interface.
+func (c *ComplexTileImpl) GetTile(includeIgnores bool) *tiling.Tile {
 	if includeIgnores {
 		return c.tileWithIgnores
 	}
 	return c.tile
 }
 
-// IgnoreRules returns the ignore rules for this tile.
-func (c *ComplexTile) IgnoreRules() paramtools.ParamMatcher {
+// IgnoreRules fulfills the ComplexTile interface.
+func (c *ComplexTileImpl) IgnoreRules() paramtools.ParamMatcher {
 	return c.ignoreRules
 }
+
+// Make sure ComplexTileImpl fulfills the ComplexTile Interface
+var _ ComplexTile = (*ComplexTileImpl)(nil)
 
 const (
 	// No digest available.

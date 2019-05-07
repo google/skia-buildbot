@@ -19,13 +19,13 @@ type cloudIgnoreStore struct {
 	client         *datastore.Client
 	recentKeysList *dsutil.RecentKeysList
 	revision       int64
-	lastCpxTile    *types.ComplexTile
+	lastCpxTile    types.ComplexTile
 	expStore       expstorage.ExpectationsStore
-	cpxTileStream  <-chan *types.ComplexTile
+	cpxTileStream  <-chan types.ComplexTile
 }
 
 // NewCloudIgnoreStore returns an IgnoreStore instance that is backed by Cloud Datastore.
-func NewCloudIgnoreStore(client *datastore.Client, expStore expstorage.ExpectationsStore, tileStream <-chan *types.ComplexTile) (IgnoreStore, error) {
+func NewCloudIgnoreStore(client *datastore.Client, expStore expstorage.ExpectationsStore, tileStream <-chan types.ComplexTile) (IgnoreStore, error) {
 	if client == nil {
 		return nil, sklog.FmtErrorf("Received nil for datastore client.")
 	}

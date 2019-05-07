@@ -65,7 +65,7 @@ type Storage struct {
 	NCommits int
 
 	// Internal variables used to cache tiles.
-	lastCpxTile   *types.ComplexTile
+	lastCpxTile   types.ComplexTile
 	lastTimeStamp time.Time
 	mutex         sync.Mutex
 }
@@ -110,13 +110,13 @@ func (s *Storage) LoadWhiteList(fName string) error {
 // interval, assuming at least one tile could be read.
 // The metricsTag allows for us to monitor how long individual tile streams
 // take, in the unlikely event there are multiple failures of the tile in a row.
-func (s *Storage) GetTileStreamNow(interval time.Duration, metricsTag string) <-chan *types.ComplexTile {
-	retCh := make(chan *types.ComplexTile)
+func (s *Storage) GetTileStreamNow(interval time.Duration, metricsTag string) <-chan types.ComplexTile {
+	retCh := make(chan types.ComplexTile)
 	lastTileStreamed := metrics2.NewLiveness("last_tile_streamed", map[string]string{
 		"source": metricsTag,
 	})
 	go func() {
-		var lastTile *types.ComplexTile = nil
+		var lastTile types.ComplexTile = nil
 
 		readOneTile := func() {
 			if tile, err := s.GetLastTileTrimmed(); err != nil {
@@ -163,7 +163,7 @@ var tileCacheTime = 3 * time.Minute
 // GetLastTrimmed returns the last tile as read-only trimmed to contain at
 // most NCommits. It caches trimmed tiles as long as the underlying tiles
 // do not change.
-func (s *Storage) GetLastTileTrimmed() (*types.ComplexTile, error) {
+func (s *Storage) GetLastTileTrimmed() (types.ComplexTile, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -194,7 +194,9 @@ func (s *Storage) GetLastTileTrimmed() (*types.ComplexTile, error) {
 	// Get the tile with everything that needs to be whitelisted.
 	rawTile = s.getWhiteListedTile(rawTile)
 	if s.NCommits <= 0 {
-		return types.NewComplexTile(rawTile).SetSparse(nil, nil), nil
+		cpxTile := types.NewComplexTile(rawTile)
+		cpxTile.SetSparse(nil, nil)
+		return cpxTile, nil
 	}
 
 	// Get the ignore revision and check if the tile has changed at all.
@@ -205,7 +207,8 @@ func (s *Storage) GetLastTileTrimmed() (*types.ComplexTile, error) {
 	}
 
 	// Construct the new complex tile
-	cpxTile := types.NewComplexTile(rawTile).SetSparse(sparseCommits, cardinalities)
+	cpxTile := types.NewComplexTile(rawTile)
+	cpxTile.SetSparse(sparseCommits, cardinalities)
 
 	// Get the tile without the ignored traces and update the complex tile.
 	retIgnoredTile, ignoreRules, err := FilterIgnored(rawTile, s.IgnoreStore)
@@ -290,7 +293,7 @@ func (s *Storage) getWhiteListedTile(tile *tiling.Tile) *tiling.Tile {
 // getCondensedTile returns a tile that contains only commits that have at least one
 // nonempty entry. If lastTile is not nil, its first commit is used as a starting point to
 // fetch the tiles necessary to build the condensed tile (from several "sparse" tiles.)
-func (s *Storage) getCondensedTile(ctx context.Context, lastCpxTile *types.ComplexTile) (*tiling.Tile, []*tiling.Commit, []int, error) {
+func (s *Storage) getCondensedTile(ctx context.Context, lastCpxTile types.ComplexTile) (*tiling.Tile, []*tiling.Commit, []int, error) {
 	if s.NCommits <= 0 {
 		ret := tiling.NewTile()
 		ret.Commits = ret.Commits[:0]
@@ -429,7 +432,7 @@ func getCommitIDs(indexCommits []*vcsinfo.IndexCommit) []*tracedb.CommitID {
 
 // checkCommitableIssues checks all commits of the current tile whether
 // the associated expectations have been added to the baseline of the master.
-func (s *Storage) checkCommitableIssues(cpxTile *types.ComplexTile) {
+func (s *Storage) checkCommitableIssues(cpxTile types.ComplexTile) {
 	go func() {
 		var egroup errgroup.Group
 
