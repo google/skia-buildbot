@@ -26,6 +26,30 @@
     },
     {
       "key": {
+        "uuid": "449f7fab_ecd75a26",
+        "filename": "golden/go/digest_counter/digest_counter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-07T13:36:27Z",
+      "side": 1,
+      "message": "Done. I\u0027m surprised tricium didn\u0027t complain about it on later patchsets.",
+      "parentUuid": "b135136b_6a1f9c73",
+      "range": {
+        "startLine": 45,
+        "startChar": 11,
+        "endLine": 45,
+        "endChar": 22
+      },
+      "revId": "908261792bba22f087205d7317de455c5f8fa9e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6794b84f_81552dcc",
         "filename": "golden/go/digest_counter/digest_counter.go",
         "patchSetId": 2
@@ -46,6 +70,30 @@
       "revId": "908261792bba22f087205d7317de455c5f8fa9e0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f762429_45027908",
+        "filename": "golden/go/digest_counter/digest_counter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-07T13:36:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6794b84f_81552dcc",
+      "range": {
+        "startLine": 113,
+        "startChar": 2,
+        "endLine": 113,
+        "endChar": 7
+      },
+      "revId": "908261792bba22f087205d7317de455c5f8fa9e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -72,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "98c7feea_dadc69af",
+        "filename": "golden/go/digesttools/digesttools.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-07T13:36:27Z",
+      "side": 1,
+      "message": "Done. prefer dCount if the type was mentioned nearby (so it\u0027s clear d \u003d\u003e digest) and digestCounts if it is unclear or part of a longer var (e.g. digestCountsByTrace)",
+      "parentUuid": "06ee373d_a9a0241d",
+      "range": {
+        "startLine": 32,
+        "startChar": 73,
+        "endLine": 32,
+        "endChar": 84
+      },
+      "revId": "908261792bba22f087205d7317de455c5f8fa9e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "942eae27_5c1fae49",
         "filename": "golden/go/indexer/indexer.go",
         "patchSetId": 2
@@ -92,6 +164,30 @@
       "revId": "908261792bba22f087205d7317de455c5f8fa9e0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e68ceefa_b35a21ea",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-07T13:36:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "942eae27_5c1fae49",
+      "range": {
+        "startLine": 174,
+        "startChar": 4,
+        "endLine": 174,
+        "endChar": 9
+      },
+      "revId": "908261792bba22f087205d7317de455c5f8fa9e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
