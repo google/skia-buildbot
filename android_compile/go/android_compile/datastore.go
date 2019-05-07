@@ -36,9 +36,11 @@ type CompileTask struct {
 	WithPatchLog string `json:"withpatch_log"`
 	NoPatchLog   string `json:"nopatch_log"`
 
-	IsMasterBranch bool `json:"is_master_branch"`
-	Done           bool `json:"done"`
-	InfraFailure   bool `json:"infra_failure"`
+	IsMasterBranch    bool   `json:"is_master_branch"`
+	Done              bool   `json:"done"`
+	RebaseErrorOutput string `json:"rebase_error_output"`
+	GnToBpErrorOutput string `json:"gntobp_error_output"`
+	InfraFailure      bool   `json:"infra_failure"`
 }
 
 type CompileTaskAndKey struct {

@@ -211,10 +211,19 @@ func triggerCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTas
 		defer checkoutsReadyMutex.RUnlock()
 		pathToCompileScript := filepath.Join(*resourcesDir, "compile.sh")
 		if err := RunCompileTask(ctx, g, task, datastoreKey, pathToCompileScript); err != nil {
-			task.InfraFailure = true
+			if rebaseErr, ok := err.(*RebaseError); ok {
+				fmt.Errorf("Encountered error when rebasing the change: %s", rebaseErr.err)
+				task.RebaseErrorOutput = rebaseErr.output
+			} else if gnToBpErr, ok := err.(*GnToBpError); ok {
+				fmt.Errorf("Encountered error when running gn_to_bp.py: %s", gnToBpErr.err)
+				task.GnToBpErrorOutput = gnToBpErr.output
+			} else {
+				// Something else went wrong so set it as a general infra failure.
+				task.InfraFailure = true
+				updateInfraFailureMetric(task.InfraFailure)
+			}
 			sklog.Errorf("Error when compiling task with ID %d: %s", datastoreKey.ID, err)
 		}
-		updateInfraFailureMetric(task.InfraFailure)
 		task.Done = true
 		task.Completed = time.Now()
 		if err := UpdateCompileTask(ctx, g, datastoreKey, task); err != nil {

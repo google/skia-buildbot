@@ -99,6 +99,25 @@ var (
 	recreateMirror bool
 )
 
+// Custom errors.
+type RebaseError struct {
+	err    error  // Encountered error.
+	output string // Complete rebase error log.
+}
+
+func (e *RebaseError) Error() string {
+	return fmt.Sprintf("Rebase error: %s\n\nOutput: %s", e.err, e.output)
+}
+
+type GnToBpError struct {
+	err    error  // Encountered error.
+	output string // Complete gn_to_bp.py error log.
+}
+
+func (e *GnToBpError) Error() string {
+	return fmt.Sprintf("Error when running gn_to_bp: %s\n\nOutput: %s", e.err, e.output)
+}
+
 func UpdateMirror(ctx context.Context) {
 	if err := updateCheckout(ctx, pathToMirror, true); err != nil {
 		sklog.Errorf("Error when updating the mirror: %s", err)
@@ -392,8 +411,8 @@ func checkCommitFromMasterBranch(ctx context.Context, skiaCheckout *git.Checkout
 
 func prepareSkiaCheckoutForCompile(ctx context.Context, userConfigContent []byte, skiaCheckout *git.Checkout) error {
 	skiaPath := skiaCheckout.Dir()
-	if err := android_skia_checkout.RunGnToBp(ctx, skiaPath); err != nil {
-		return fmt.Errorf("Error when running gn_to_bp: %s", err)
+	if output, err := android_skia_checkout.RunGnToBp(ctx, skiaPath); err != nil {
+		return &GnToBpError{err: err, output: output}
 	}
 	// TODO(rmistry): Cannot compile Android with third_party/externals. Find
 	// a relatively less hackier way around this.
@@ -526,8 +545,8 @@ func RunCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTask, d
 			return nil
 		}
 		// Rebase the checkout after applying the patch.
-		if _, err := skiaCheckout.Git(ctx, "rebase"); err != nil {
-			return fmt.Errorf("Failed to rebase in %s: %s", skiaCheckout.Dir(), err)
+		if output, err := skiaCheckout.Git(ctx, "rebase"); err != nil {
+			return &RebaseError{err: err, output: output}
 		}
 	} else {
 		// Checkout the specified Skia hash.

@@ -335,9 +335,9 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		}
 	}
 
-	if err := android_skia_checkout.RunGnToBp(ctx, r.childDir); err != nil {
+	if output, err := android_skia_checkout.RunGnToBp(ctx, r.childDir); err != nil {
 		util.LogErr(r.abortMerge(ctx))
-		return 0, fmt.Errorf("Error when running gn_to_bp: %s", err)
+		return 0, fmt.Errorf("Error when running gn_to_bp: %s\n\nOutput: %s", err, output)
 
 	}
 	for _, genFile := range FILES_GENERATED_BY_GN_TO_GP {
