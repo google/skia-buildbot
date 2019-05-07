@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c1960eee_98e98448",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 14
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-07T12:12:59Z",
+      "side": 1,
+      "message": "This seems like a low threshold to me; it\u0027s likely to fire every night and weekend, right?",
+      "range": {
+        "startLine": 162,
+        "startChar": 40,
+        "endLine": 162,
+        "endChar": 48
+      },
+      "revId": "288ac881dd61ed4812e740e896591ad72ff71d2f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
