@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2927541b_c7ea62d5",
+        "filename": "golden/go/digest_counter/digest_counter_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-07T13:14:53Z",
+      "side": 1,
+      "message": "spelling",
+      "range": {
+        "startLine": 118,
+        "startChar": 3,
+        "endLine": 118,
+        "endChar": 12
+      },
+      "revId": "e07bc2f6b591a499c6a174dd2d38ee19588d2bbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

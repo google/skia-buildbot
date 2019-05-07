@@ -1,0 +1,97 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b135136b_6a1f9c73",
+        "filename": "golden/go/digest_counter/digest_counter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-07T13:14:53Z",
+      "side": 1,
+      "message": "\u003e \"implementes\" is a possible misspelling of \"implements\".\n\nPlease Fix",
+      "parentUuid": "cc2c3fe3_2c07320a",
+      "range": {
+        "startLine": 45,
+        "startChar": 11,
+        "endLine": 45,
+        "endChar": 22
+      },
+      "revId": "908261792bba22f087205d7317de455c5f8fa9e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6794b84f_81552dcc",
+        "filename": "golden/go/digest_counter/digest_counter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-07T13:14:53Z",
+      "side": 1,
+      "message": "do you want to rename this for clarity?",
+      "range": {
+        "startLine": 113,
+        "startChar": 2,
+        "endLine": 113,
+        "endChar": 7
+      },
+      "revId": "908261792bba22f087205d7317de455c5f8fa9e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "06ee373d_a9a0241d",
+        "filename": "golden/go/digesttools/digesttools.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-07T13:14:53Z",
+      "side": 1,
+      "message": "fyi: you called this dCount somewhere else, upto you if you want to stick to one convention",
+      "range": {
+        "startLine": 32,
+        "startChar": 73,
+        "endLine": 32,
+        "endChar": 84
+      },
+      "revId": "908261792bba22f087205d7317de455c5f8fa9e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "942eae27_5c1fae49",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-07T13:14:53Z",
+      "side": 1,
+      "message": "I expected there to be a Second and a Third. Maybe this will be more clear without the \"First, \"",
+      "range": {
+        "startLine": 174,
+        "startChar": 4,
+        "endLine": 174,
+        "endChar": 9
+      },
+      "revId": "908261792bba22f087205d7317de455c5f8fa9e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
