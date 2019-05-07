@@ -1,0 +1,101 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0efac533_db1c49b2",
+        "filename": "golden/go/blame/blame.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-07T14:41:50Z",
+      "side": 1,
+      "message": "Agree that it\u0027s very confusing and it should probably be split into two types.\n\nWhen Freq contains counts, the array lines up with the tail of the associated slice of commits. It counts for how many traces the given digest was first seen at a particular commit.\n\nWhen Freq contains commit indices, it\u0027s essentially just a slice of commits. Any of those commits might be to blame, and there\u0027s no probability associated with them.\n\nNote that this is just based on reading the comments and my understanding of Gold, not based on reading the code.",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 58,
+        "endChar": 18
+      },
+      "revId": "7fe352cb3681e54100369aa524962ffca8eb0470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7fcbaac8_69b5857f",
+        "filename": "golden/go/blame/blame_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-07T14:41:50Z",
+      "side": 1,
+      "message": "It\u0027s possible that I\u0027m misunderstanding, but I think Blamer only cares about untriaged digests. In other words, 2 of those traces are irrelevant; only the one that is still untriaged is relevant.",
+      "revId": "7fe352cb3681e54100369aa524962ffca8eb0470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67991f35_11808d6c",
+        "filename": "golden/go/blame/blame_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-07T14:41:50Z",
+      "side": 1,
+      "message": "As above, I think only the untriaged digest is relevant.",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 53
+      },
+      "revId": "7fe352cb3681e54100369aa524962ffca8eb0470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15d3792b_d2b7a414",
+        "filename": "golden/go/blame/blame_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-07T14:41:50Z",
+      "side": 1,
+      "message": "Would be nice to test the \u0027Old: true\u0027 case.",
+      "revId": "7fe352cb3681e54100369aa524962ffca8eb0470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b0f6410_41687ee9",
+        "filename": "golden/go/testutils/data_three_devices/three_devices.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-07T14:41:50Z",
+      "side": 1,
+      "message": "I\u0027m slighly skeptical that a shared package is better than copy/pasting, since a small change could affect many packages, but I\u0027m happy to defer to your judgement.",
+      "revId": "7fe352cb3681e54100369aa524962ffca8eb0470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
