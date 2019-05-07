@@ -38,12 +38,13 @@ func RunGnToBp(ctx context.Context, skiaCheckout string) error {
 
 	// Generate and add files created by gn/gn_to_bp.py
 	gnEnv := []string{fmt.Sprintf("PATH=%s/:%s", path.Join(skiaCheckout, "bin"), os.Getenv("PATH"))}
-	if _, gnToBpErr := exec.RunCommand(ctx, &exec.Command{
+	_, gnToBpErr := exec.RunCommand(ctx, &exec.Command{
 		Env:  gnEnv,
 		Dir:  skiaCheckout,
 		Name: "python",
 		Args: []string{"-c", "from gn import gn_to_bp"},
-	}); gnToBpErr != nil {
+	})
+	if gnToBpErr != nil {
 		return fmt.Errorf("Failed to run gn_to_bp: %s", gnToBpErr)
 	}
 	return nil
