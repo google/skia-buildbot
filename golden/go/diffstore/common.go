@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/types"
 )
 
 const (
@@ -62,7 +63,7 @@ func decodeImg(reader io.Reader) (*image.NRGBA, error) {
 }
 
 // getDigestImageFileName returns the image name based on the digest.
-func getDigestImageFileName(digest string) string {
+func getDigestImageFileName(digest types.Digest) string {
 	return fmt.Sprintf("%s.%s", digest, IMG_EXTENSION)
 }
 

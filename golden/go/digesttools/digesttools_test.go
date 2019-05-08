@@ -14,15 +14,16 @@ import (
 
 type MockDiffStore struct{}
 
-func (m MockDiffStore) ImageHandler(urlPrefix string) (http.Handler, error)                   { return nil, nil }
-func (m MockDiffStore) WarmDigests(priority int64, digests []string, sync bool)               {}
-func (m MockDiffStore) WarmDiffs(priority int64, leftDigests []string, rightDigests []string) {}
-func (m MockDiffStore) UnavailableDigests() map[string]*diff.DigestFailure                    { return nil }
-func (m MockDiffStore) PurgeDigests(digests []string, purgeGCS bool) error                    { return nil }
+func (m MockDiffStore) ImageHandler(urlPrefix string) (http.Handler, error)           { return nil, nil }
+func (m MockDiffStore) WarmDigests(priority int64, digests []types.Digest, sync bool) {}
+func (m MockDiffStore) WarmDiffs(priority int64, leftDigests, rightDigests []types.Digest) {
+}
+func (m MockDiffStore) UnavailableDigests() map[types.Digest]*diff.DigestFailure { return nil }
+func (m MockDiffStore) PurgeDigests(digests []types.Digest, purgeGCS bool) error { return nil }
 
 // Get always finds that digest "eee" is closest to dMain.
-func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[string]interface{}, error) {
-	result := map[string]interface{}{}
+func (m MockDiffStore) Get(priority int64, dMain types.Digest, dRest []types.Digest) (map[types.Digest]interface{}, error) {
+	result := map[types.Digest]interface{}{}
 	for i, d := range dRest {
 		diffPercent := float32(i + 2)
 		if d == "eee" {
@@ -40,7 +41,7 @@ func TestClosestDigest(t *testing.T) {
 	testutils.SmallTest(t)
 	diffStore := MockDiffStore{}
 	testExp := types.TestExp{
-		"foo": map[string]types.Label{
+		"foo": map[types.Digest]types.Label{
 			"aaa": types.POSITIVE,
 			"bbb": types.NEGATIVE,
 			"ccc": types.UNTRIAGED,
