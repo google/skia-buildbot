@@ -175,7 +175,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, fmt.Errorf("Failed to get sheriff: %s", err)
 	}
 	sklog.Info("Creating notifier")
-	configCopies := replaceSheriffPlaceholder(ctx, c.Notifiers, emails)
+	configCopies := replaceSheriffPlaceholder(c.Notifiers, emails)
 	n, err := arb_notifier.New(ctx, c.ChildName, c.ParentName, serverURL, client, emailer, chatBotConfigReader, configCopies)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create notifier: %s", err)
@@ -301,7 +301,7 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency tim
 			defer r.emailsMtx.Unlock()
 			r.emails = emails
 
-			configCopies := replaceSheriffPlaceholder(ctx, r.notifierConfigs, emails)
+			configCopies := replaceSheriffPlaceholder(r.notifierConfigs, emails)
 			if err := r.notifier.ReloadConfigs(ctx, configCopies); err != nil {
 				sklog.Errorf("Failed to reload configs: %s", err)
 				return
@@ -324,10 +324,10 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency tim
 
 // Utility for replacing the placeholder $SHERIFF with real sheriff emails
 // in configs. A modified copy of the passed in configs are returned.
-func replaceSheriffPlaceholder(ctx context.Context, configs []*notifier.Config, emails []string) []*notifier.Config {
+func replaceSheriffPlaceholder(configs []*notifier.Config, emails []string) []*notifier.Config {
 	configCopies := []*notifier.Config{}
 	for _, n := range configs {
-		configCopy := n.Copy(ctx)
+		configCopy := n.Copy()
 		if configCopy.Email != nil {
 			newEmails := []string{}
 			for _, e := range configCopy.Email.Emails {
