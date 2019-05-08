@@ -78,7 +78,7 @@ type IssueRequest struct {
 	Labels      []string         `json:"labels"`
 	Summary     string           `json:"summary"`
 	Description string           `json:"description"`
-	Component   string           `json:"component"`
+	Components  []string         `json:"components,omitempty"`
 }
 
 // MonorailIssueTracker implements IssueTracker.

@@ -111,7 +111,7 @@ func handleCreate() {
 		Labels:      *labels,
 		Summary:     *summary,
 		Description: *description,
-		Component:   *component,
+		Components:  []string{*component},
 	}
 	if err := tracker.AddIssue(req); err != nil {
 		sklog.Errorf("Failed to add issue: %s", err)
