@@ -36,5 +36,16 @@
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"
   },
-  "maxRollFrequency": "0m"
+  "maxRollFrequency": "0m",
+  "notifiers": [
+    {
+      "msgTypeWhitelist": ["last n failed"],
+      "monorail": {
+        "project": "skia",
+        "owner": "borenet@google.com",
+        "cc": ["rmistry@google.com"],
+        "components": ["AutoRoll"]
+      }
+    }
+  ]
 }

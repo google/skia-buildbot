@@ -113,10 +113,11 @@ func TestConfigCopy(t *testing.T) {
 			Emails: []string{"me@google.com", "you@google.com"},
 		},
 		Monorail: &MonorailNotifierConfig{
-			Project: "my-project",
-			Owner:   "me",
-			CC:      []string{"you", "me"},
-			Labels:  []string{"a", "b"},
+			Project:    "my-project",
+			Owner:      "me",
+			CC:         []string{"you", "me"},
+			Components: []string{"my-component"},
+			Labels:     []string{"a", "b"},
 		},
 		PubSub: &PubSubNotifierConfig{
 			Topic: "my-topic",
