@@ -31,12 +31,6 @@ func getSheriff(parentName, childName, metricsName string, sheriffSources, backu
 			}
 			return backupSheriffs, nil
 		}
-		// TODO(borenet): Do we need this any more?
-		if strings.Contains(parentName, "Chromium") && childName != "WebRTC" && childName != "Perfetto" {
-			for i, s := range emails {
-				emails[i] = strings.Replace(s, "google.com", "chromium.org", 1)
-			}
-		}
 		allEmails = append(allEmails, emails...)
 	}
 	m.Update(1)
