@@ -48,7 +48,7 @@ func TestLoadKnownHashes(t *testing.T) {
 	knownHashes := goldClient.resultState.KnownHashes
 	assert.Len(t, knownHashes, 4, "4 hashes loaded")
 	// spot check
-	assert.Contains(t, knownHashes, "a9e1481ebc45c1c4f6720d1119644c20")
+	assert.Contains(t, knownHashes, types.Digest("a9e1481ebc45c1c4f6720d1119644c20"))
 	assert.NotContains(t, knownHashes, "notInThere")
 }
 
@@ -179,7 +179,7 @@ func TestNewReportNormal(t *testing.T) {
 	defer cleanup()
 
 	imgData := []byte("some bytes")
-	imgHash := "9d0568469d206c1aedf1b71f12f474bc"
+	imgHash := types.Digest("9d0568469d206c1aedf1b71f12f474bc")
 
 	auth, httpClient, uploader := makeMocks()
 	defer auth.AssertExpectations(t)
@@ -192,7 +192,7 @@ func TestNewReportNormal(t *testing.T) {
 	expectations := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations/commit/abcd1234?issue=867").Return(expectations, nil)
 
-	expectedUploadPath := "gs://skia-gold-testing/dm-images-v1/" + imgHash + ".png"
+	expectedUploadPath := string("gs://skia-gold-testing/dm-images-v1/" + imgHash + ".png")
 	uploader.On("UploadBytes", imgData, testImgPath, expectedUploadPath).Return(nil)
 
 	// Notice the JSON is not uploaded if we are not in passfail mode - a client
@@ -202,7 +202,7 @@ func TestNewReportNormal(t *testing.T) {
 	err = goldClient.SetSharedConfig(testSharedConfig)
 	assert.NoError(t, err)
 
-	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, string, error) {
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
 		assert.Equal(t, testImgPath, path)
 		return imgData, imgHash, nil
 	})
@@ -305,17 +305,17 @@ func TestInitAddFinalize(t *testing.T) {
 	defer cleanup()
 
 	imgData := []byte("some bytes")
-	firstHash := "9d0568469d206c1aedf1b71f12f474bc"
-	secondHash := "29d0568469d206c1aedf1b71f12f474b"
+	firstHash := types.Digest("9d0568469d206c1aedf1b71f12f474bc")
+	secondHash := types.Digest("29d0568469d206c1aedf1b71f12f474b")
 
 	auth, httpClient, uploader := makeMocks()
 	defer auth.AssertExpectations(t)
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
-	expectedUploadPath := "gs://skia-gold-testing/dm-images-v1/" + firstHash + ".png"
+	expectedUploadPath := string("gs://skia-gold-testing/dm-images-v1/" + firstHash + ".png")
 	uploader.On("UploadBytes", imgData, testImgPath, expectedUploadPath).Return(nil).Once()
-	expectedUploadPath = "gs://skia-gold-testing/dm-images-v1/" + secondHash + ".png"
+	expectedUploadPath = string("gs://skia-gold-testing/dm-images-v1/" + secondHash + ".png")
 	uploader.On("UploadBytes", imgData, testImgPath, expectedUploadPath).Return(nil).Once()
 
 	// Notice the JSON is not uploaded if we are not in passfail mode - a client
@@ -325,7 +325,7 @@ func TestInitAddFinalize(t *testing.T) {
 	err = goldClient.SetSharedConfig(testSharedConfig)
 	assert.NoError(t, err)
 
-	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, string, error) {
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
 		assert.Equal(t, testImgPath, path)
 		return imgData, firstHash, nil
 	})
@@ -357,7 +357,7 @@ func TestInitAddFinalize(t *testing.T) {
 	assert.Equal(t, firstHash, r.Digest)
 
 	// Add a second test with the same hash
-	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, string, error) {
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
 		assert.Equal(t, testImgPath, path)
 		return imgData, secondHash, nil
 	})
@@ -401,8 +401,8 @@ func TestNewReportPassFail(t *testing.T) {
 	defer cleanup()
 
 	imgData := []byte("some bytes")
-	imgHash := "9d0568469d206c1aedf1b71f12f474bc"
-	testName := "TestNotSeenBefore"
+	imgHash := types.Digest("9d0568469d206c1aedf1b71f12f474bc")
+	testName := types.TestName("TestNotSeenBefore")
 
 	auth, httpClient, uploader := makeMocks()
 	defer auth.AssertExpectations(t)
@@ -415,7 +415,7 @@ func TestNewReportPassFail(t *testing.T) {
 	expectations := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations/commit/abcd1234?issue=867").Return(expectations, nil)
 
-	expectedUploadPath := "gs://skia-gold-testing/dm-images-v1/" + imgHash + ".png"
+	expectedUploadPath := string("gs://skia-gold-testing/dm-images-v1/" + imgHash + ".png")
 	uploader.On("UploadBytes", imgData, testImgPath, expectedUploadPath).Return(nil)
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
@@ -431,7 +431,7 @@ func TestNewReportPassFail(t *testing.T) {
 		assert.Len(t, results, 1)
 		r := results[0]
 		assert.Equal(t, imgHash, r.Digest)
-		assert.Equal(t, testName, r.Key["name"])
+		assert.Equal(t, string(testName), r.Key["name"])
 		// Since we did not specify a source_type it defaults to the instance name, which is
 		// "testing"
 		assert.Equal(t, "testing", r.Key["source_type"])
@@ -444,7 +444,7 @@ func TestNewReportPassFail(t *testing.T) {
 	err = goldClient.SetSharedConfig(testSharedConfig)
 	assert.NoError(t, err)
 
-	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, string, error) {
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
 		assert.Equal(t, testImgPath, path)
 		return imgData, imgHash, nil
 	})
@@ -464,8 +464,8 @@ func TestNegativePassFail(t *testing.T) {
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
-	imgHash := "badbadbad1325855590527db196112e0"
-	testName := "ThisIsTheOnlyTest"
+	imgHash := types.Digest("badbadbad1325855590527db196112e0")
+	testName := types.TestName("ThisIsTheOnlyTest")
 
 	auth, httpClient, uploader := makeMocks()
 	defer auth.AssertExpectations(t)
@@ -488,7 +488,7 @@ func TestNegativePassFail(t *testing.T) {
 	err = goldClient.SetSharedConfig(testSharedConfig)
 	assert.NoError(t, err)
 
-	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, string, error) {
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
 		assert.Equal(t, testImgPath, path)
 		return imgData, imgHash, nil
 	})
@@ -507,8 +507,8 @@ func TestPositivePassFail(t *testing.T) {
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
-	imgHash := "beef00d3a1527db19619ec12a4e0df68"
-	testName := "ThisIsTheOnlyTest"
+	imgHash := types.Digest("beef00d3a1527db19619ec12a4e0df68")
+	testName := types.TestName("ThisIsTheOnlyTest")
 
 	auth, httpClient, uploader := makeMocks()
 	defer auth.AssertExpectations(t)
@@ -531,7 +531,7 @@ func TestPositivePassFail(t *testing.T) {
 	err = goldClient.SetSharedConfig(testSharedConfig)
 	assert.NoError(t, err)
 
-	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, string, error) {
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
 		assert.Equal(t, testImgPath, path)
 		return imgData, imgHash, nil
 	})
@@ -661,7 +661,7 @@ func makeGoldClient(auth AuthOpt, passFail bool, uploadOnly bool, workDir string
 	return c, nil
 }
 
-func overrideLoadAndHashImage(c *CloudClient, testFn func(path string) ([]byte, string, error)) {
+func overrideLoadAndHashImage(c *CloudClient, testFn func(path string) ([]byte, types.Digest, error)) {
 	c.loadAndHashImage = testFn
 }
 

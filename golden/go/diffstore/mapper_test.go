@@ -6,12 +6,13 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/golden/go/types"
 )
 
 const (
 	// Test digests for GoldDiffStoreMapper.
-	TEST_GOLD_LEFT  = "098f6bcd4621d373cade4e832627b4f6"
-	TEST_GOLD_RIGHT = "1660f0783f4076284bc18c5f4bdc9608"
+	TEST_GOLD_LEFT  = types.Digest("098f6bcd4621d373cade4e832627b4f6")
+	TEST_GOLD_RIGHT = types.Digest("1660f0783f4076284bc18c5f4bdc9608")
 
 	// PNG extension.
 	DOT_EXT = ".png"
@@ -23,7 +24,7 @@ func TestGoldDiffStoreMapper(t *testing.T) {
 	mapper := GoldDiffStoreMapper{}
 
 	// Test DiffID and SplitDiffID
-	expectedDiffID := TEST_GOLD_LEFT + DIFF_IMG_SEPARATOR + TEST_GOLD_RIGHT
+	expectedDiffID := string(TEST_GOLD_LEFT + DIFF_IMG_SEPARATOR + TEST_GOLD_RIGHT)
 	actualDiffID := mapper.DiffID(TEST_GOLD_LEFT, TEST_GOLD_RIGHT)
 	actualLeft, actualRight := mapper.SplitDiffID(expectedDiffID)
 	assert.Equal(t, expectedDiffID, actualDiffID)
@@ -32,14 +33,14 @@ func TestGoldDiffStoreMapper(t *testing.T) {
 
 	// Test DiffPath
 	twoLevelRadix := TEST_GOLD_LEFT[0:2] + "/" + TEST_GOLD_LEFT[2:4] + "/"
-	expectedDiffPath := twoLevelRadix + TEST_GOLD_LEFT + "-" +
-		TEST_GOLD_RIGHT + DOT_EXT
+	expectedDiffPath := string(twoLevelRadix + TEST_GOLD_LEFT + "-" +
+		TEST_GOLD_RIGHT + DOT_EXT)
 	actualDiffPath := mapper.DiffPath(TEST_GOLD_LEFT, TEST_GOLD_RIGHT)
 	assert.Equal(t, expectedDiffPath, actualDiffPath)
 
 	// Test ImagePaths
-	expectedLocalPath := twoLevelRadix + TEST_GOLD_LEFT + DOT_EXT
-	expectedGSPath := TEST_GOLD_LEFT + DOT_EXT
+	expectedLocalPath := string(twoLevelRadix + TEST_GOLD_LEFT + DOT_EXT)
+	expectedGSPath := string(TEST_GOLD_LEFT + DOT_EXT)
 	localPath, bucket, gsPath := mapper.ImagePaths(TEST_GOLD_LEFT)
 	assert.Equal(t, expectedLocalPath, localPath)
 	assert.Equal(t, "", bucket)
@@ -51,8 +52,8 @@ func TestGoldDiffStoreMapper(t *testing.T) {
 	assert.True(t, mapper.IsValidDiffImgID(expectedDiffImgID))
 
 	// Test IsValidImgID
-	assert.True(t, mapper.IsValidImgID(TEST_GOLD_LEFT))
-	assert.True(t, mapper.IsValidImgID(TEST_GOLD_RIGHT))
+	assert.True(t, mapper.IsValidImgID(string(TEST_GOLD_LEFT)))
+	assert.True(t, mapper.IsValidImgID(string(TEST_GOLD_RIGHT)))
 }
 
 func TestCodec(t *testing.T) {

@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"path/filepath"
-	"strconv"
 
+	"go.skia.org/infra/ct_pixel_diff/go/common"
 	"go.skia.org/infra/ct_pixel_diff/go/dynamicdiff"
 	"go.skia.org/infra/ct_pixel_diff/go/resultstore"
 	"go.skia.org/infra/go/ingestion"
@@ -120,7 +119,7 @@ func (p *pixelDiffProcessor) Process(ctx context.Context, resultsFile ingestion.
 	for _, screenshot := range results.Screenshots {
 		// Trim the image extension from the filename and create the imageID.
 		filename := screenshot.Filename[:len(screenshot.Filename)-len(IMG_EXTENSION)]
-		imageID := getImageID(results.RunID, screenshot.Type, filename, screenshot.Rank)
+		imageID := common.GetImageID(results.RunID, screenshot.Type, filename, screenshot.Rank)
 
 		// Get the entry from the ResultStore using the runID and URL.
 		rec, err := p.resultStore.Get(results.RunID, screenshot.URL)
@@ -147,7 +146,7 @@ func (p *pixelDiffProcessor) Process(ctx context.Context, resultsFile ingestion.
 		// Calculate diff metrics if the entry contains both nopatch and withpatch
 		// images.
 		if rec.HasBothImages() {
-			diffResult, err := p.diffStore.Get(diff.PRIORITY_NOW, rec.NoPatchImg, []string{rec.WithPatchImg})
+			diffResult, err := p.diffStore.Get(diff.PRIORITY_NOW, rec.NoPatchImg, []common.ImageID{rec.WithPatchImg})
 			if err != nil {
 				return err
 			}
@@ -164,11 +163,4 @@ func (p *pixelDiffProcessor) Process(ctx context.Context, resultsFile ingestion.
 	}
 
 	return nil
-}
-
-// Returns the diffstore.PixelDiffIDPathMapper image ID for a screenshot, which
-// has the format runID/{nopatch/withpatch}/rank/URLfilename.
-func getImageID(runID, patchType, filename string, rank int) string {
-	rankStr := strconv.Itoa(rank)
-	return filepath.Join(runID, patchType, rankStr, filename)
 }

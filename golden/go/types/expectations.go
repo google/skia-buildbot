@@ -10,24 +10,24 @@ import (
 // TestExp is a map[test_name][digest]Label that captures the expectations or baselines
 // for a set of tests and digests as labels (POSITIVE/NEGATIVE/UNTRIAGED).
 // It is used throughout Gold to hold expectations/baselines.
-type TestExp map[string]map[string]Label
+type TestExp map[TestName]map[Digest]Label
 
 // AddDigest is a convenience function to set the label for a test_name/digest pair. If the
 // pair already exists it will be over written.
-func (t TestExp) AddDigest(testName, digest string, label Label) {
+func (t TestExp) AddDigest(testName TestName, digest Digest, label Label) {
 	if testEntry, ok := t[testName]; ok {
 		testEntry[digest] = label
 	} else {
-		t[testName] = map[string]Label{digest: label}
+		t[testName] = map[Digest]Label{digest: label}
 	}
 }
 
 // AddDigests is a convenience function to set the expectations of a set of digests for a
 // given test_name.
-func (t TestExp) AddDigests(testName string, digests map[string]Label) {
+func (t TestExp) AddDigests(testName TestName, digests map[Digest]Label) {
 	testEntry, ok := t[testName]
 	if !ok {
-		testEntry = make(map[string]Label, len(digests))
+		testEntry = make(map[Digest]Label, len(digests))
 	}
 	for digest, label := range digests {
 		testEntry[digest] = label
@@ -57,20 +57,20 @@ func (t TestExp) DeepCopy() TestExp {
 func (t TestExp) String() string {
 	names := make([]string, 0, len(t))
 	for testName := range t {
-		names = append(names, testName)
+		names = append(names, string(testName))
 	}
 	sort.Strings(names)
 	s := strings.Builder{}
 	for _, testName := range names {
-		digestMap := t[testName]
+		digestMap := t[TestName(testName)]
 		digests := make([]string, 0, len(digestMap))
 		for d := range digestMap {
-			digests = append(digests, d)
+			digests = append(digests, string(d))
 		}
 		sort.Strings(digests)
 		_, _ = fmt.Fprintf(&s, "%s:\n", testName)
 		for _, d := range digests {
-			_, _ = fmt.Fprintf(&s, "\t%s : %s\n", d, digestMap[d].String())
+			_, _ = fmt.Fprintf(&s, "\t%s : %s\n", d, digestMap[Digest(d)].String())
 		}
 	}
 	return s.String()
@@ -90,10 +90,10 @@ type TestExpBuilder interface {
 	AddTestExp(testExp TestExp)
 
 	// SetExpectation sets the given test/digest pair to the given label.
-	SetExpectation(test, digest string, label Label)
+	SetExpectation(test TestName, digest Digest, label Label)
 
 	// Classification returns the label for the given test/digest pair.
-	Classification(test, digest string) Label
+	Classification(test TestName, digest Digest) Label
 }
 
 // NewTestExpBuilder returns an TestExpBuilder instance that wraps around an instance
@@ -122,7 +122,7 @@ func (b *BuilderImpl) TestExp() TestExp {
 }
 
 // Classification implements the TestExpBuilder interface.
-func (b *BuilderImpl) Classification(test, digest string) Label {
+func (b *BuilderImpl) Classification(test TestName, digest Digest) Label {
 	if label, ok := b.testExp[test][digest]; ok {
 		return label
 	}
@@ -133,7 +133,7 @@ func (b *BuilderImpl) Classification(test, digest string) Label {
 func (b *BuilderImpl) AddTestExp(testExp TestExp) {
 	for testName, digests := range testExp {
 		if _, ok := b.testExp[testName]; !ok {
-			b.testExp[testName] = map[string]Label{}
+			b.testExp[testName] = map[Digest]Label{}
 		}
 		for digest, label := range digests {
 			// UNTRIAGED is the default value and we don't need to store it
@@ -151,7 +151,7 @@ func (b *BuilderImpl) AddTestExp(testExp TestExp) {
 }
 
 // SetExpectation implements the TestExpBuilder interface.
-func (b *BuilderImpl) SetExpectation(testName string, digest string, label Label) {
+func (b *BuilderImpl) SetExpectation(testName TestName, digest Digest, label Label) {
 	b.testExp.AddDigest(testName, digest, label)
 }
 
