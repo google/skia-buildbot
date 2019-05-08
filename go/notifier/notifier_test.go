@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -96,4 +97,39 @@ func TestConfigs(t *testing.T) {
 		},
 	}
 	assert.NoError(t, c.Validate())
+}
+
+func TestConfigCopy(t *testing.T) {
+	testutils.SmallTest(t)
+
+	c := &Config{
+		Filter:           "info",
+		MsgTypeWhitelist: []string{"a", "b"},
+		Subject:          "blah blah",
+		Chat: &ChatNotifierConfig{
+			RoomID: "my-room",
+		},
+		Email: &EmailNotifierConfig{
+			Emails: []string{"me@google.com", "you@google.com"},
+		},
+		Monorail: &MonorailNotifierConfig{
+			Project: "my-project",
+			Owner:   "me",
+			CC:      []string{"you", "me"},
+			Labels:  []string{"a", "b"},
+		},
+		PubSub: &PubSubNotifierConfig{
+			Topic: "my-topic",
+		},
+	}
+	cpy := c.Copy()
+	deepequal.AssertCopy(t, c, cpy)
+
+	// Note: AssertCopy does not dig into the member structs to see if those
+	// have also been properly initialized for testing. Call AssertCopy on
+	// each member struct to verify that we properly initialized them.
+	deepequal.AssertCopy(t, c.Chat, cpy.Chat)
+	deepequal.AssertCopy(t, c.Email, cpy.Email)
+	deepequal.AssertCopy(t, c.Monorail, cpy.Monorail)
+	deepequal.AssertCopy(t, c.PubSub, cpy.PubSub)
 }
