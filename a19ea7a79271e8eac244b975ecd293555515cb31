@@ -1,0 +1,28 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "57599256_746cd6a8",
+        "filename": "ct_pixel_diff/go/dynamicdiff/dynamicdiff.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-08T18:33:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "36d409f0_4d2342c8",
+      "range": {
+        "startLine": 8,
+        "startChar": 14,
+        "endLine": 8,
+        "endChar": 23
+      },
+      "revId": "a19ea7a79271e8eac244b975ecd293555515cb31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
