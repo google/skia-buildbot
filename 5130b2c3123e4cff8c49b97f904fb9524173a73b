@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e128865d_bf98f733",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-08T14:13:15Z",
+      "side": 1,
+      "message": "Would we rather just make the explicit go install call?",
+      "revId": "5130b2c3123e4cff8c49b97f904fb9524173a73b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
