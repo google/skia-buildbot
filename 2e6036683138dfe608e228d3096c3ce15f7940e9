@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9d8d4291_0ccb71f3",
+        "filename": "autoroll/config/glslang-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-08T14:30:13Z",
+      "side": 1,
+      "message": "I\u0027m willing to give this a try, but I believe we\u0027ve had problems in the past with +suffixes and Gerrit.",
+      "range": {
+        "startLine": 23,
+        "startChar": 16,
+        "endLine": 23,
+        "endChar": 28
+      },
+      "revId": "2e6036683138dfe608e228d3096c3ce15f7940e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
