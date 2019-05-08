@@ -178,8 +178,8 @@ func TestDeSerializeSample(t *testing.T) {
 	defer cleanupFn()
 
 	testExp := types.TestExp{
-		"test-01": map[string]types.Label{"d_01": types.POSITIVE, "d_02": types.NEGATIVE},
-		"test-02": map[string]types.Label{"d_03": types.UNTRIAGED, "d_04": types.POSITIVE},
+		"test-01": map[types.Digest]types.Label{"d_01": types.POSITIVE, "d_02": types.NEGATIVE},
+		"test-02": map[types.Digest]types.Label{"d_03": types.UNTRIAGED, "d_04": types.POSITIVE},
 	}
 
 	inOneHour := time.Now().Add(time.Hour).UTC()

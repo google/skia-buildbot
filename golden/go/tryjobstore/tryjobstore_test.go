@@ -138,8 +138,8 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 			testName := fmt.Sprintf("test-%d", i%5)
 			results = append(results, &TryjobResult{
 				BuildBucketID: tj.BuildBucketID,
-				Digest:        "digest-" + digestStr,
-				TestName:      testName,
+				Digest:        types.Digest("digest-" + digestStr),
+				TestName:      types.TestName(testName),
 				Params: map[string][]string{
 					"name":    {testName},
 					"param-1": {"value-1-1-" + digestStr, "value-1-2-" + digestStr},
@@ -204,9 +204,9 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 		triageDetails := []*expstorage.TriageDetail{}
 		changes := types.TestExp{}
 		for testCount := 0; testCount < 5; testCount++ {
-			testName := fmt.Sprintf("test-%04d", testCount)
+			testName := types.TestName(fmt.Sprintf("test-%04d", testCount))
 			for digestCount := 0; digestCount < 5; digestCount++ {
-				digest := fmt.Sprintf("digest-%04d-%04d", testCount, digestCount)
+				digest := types.Digest(fmt.Sprintf("digest-%04d-%04d", testCount, digestCount))
 				label := types.Label((i + testCount + digestCount) % 3)
 				changes.AddDigest(testName, digest, label)
 				triageDetails = append(triageDetails, &expstorage.TriageDetail{

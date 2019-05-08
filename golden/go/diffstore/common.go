@@ -13,15 +13,12 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/types"
 )
 
 const (
 	// IMG_EXTENSION is the default extension of images.
 	IMG_EXTENSION = "png"
-
-	// GS_PREFIX is the prefix of an imageID that indicates that it is corresponds
-	// to a storage location in GCS.
-	GS_PREFIX = "gs"
 )
 
 // saveFile writes the given file to disk.
@@ -66,7 +63,7 @@ func decodeImg(reader io.Reader) (*image.NRGBA, error) {
 }
 
 // getDigestImageFileName returns the image name based on the digest.
-func getDigestImageFileName(digest string) string {
+func getDigestImageFileName(digest types.Digest) string {
 	return fmt.Sprintf("%s.%s", digest, IMG_EXTENSION)
 }
 

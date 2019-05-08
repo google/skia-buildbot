@@ -21,8 +21,8 @@ func TestMergeableBaseline(t *testing.T) {
 	testutils.SmallTest(t)
 
 	// Test a simple case with two tests and two digests.
-	randDigests := []string{randomDigest(), randomDigest()}
-	sort.Strings(randDigests)
+	randDigests := types.DigestSlice{randomDigest(), randomDigest()}
+	sort.Sort(randDigests)
 
 	b := types.TestExp{
 		TEST_1: {randDigests[0]: types.UNTRIAGED, randDigests[1]: types.POSITIVE},
@@ -100,10 +100,10 @@ const (
 	md5Length  = 32
 )
 
-func randomDigest() string {
+func randomDigest() types.Digest {
 	ret := make([]byte, md5Length, md5Length)
 	for i := 0; i < md5Length; i++ {
 		ret[i] = hexLetters[rand.Intn(len(hexLetters))]
 	}
-	return string(ret)
+	return types.Digest(ret)
 }
