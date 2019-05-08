@@ -25,7 +25,8 @@ RUN cd $GOPATH/src \
   && cd go.skia.org \
   && git clone https://skia.googlesource.com/buildbot.git infra \
   && cd infra \
-  && go get
+  && go get \
+  && go install ./...
 
 RUN cd $GOPATH/src/go.skia.org/infra/fiddlek \
   && make fiddle_secwrap
