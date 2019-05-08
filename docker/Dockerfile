@@ -25,11 +25,7 @@ RUN cd $GOPATH/src \
   && cd go.skia.org \
   && git clone https://skia.googlesource.com/buildbot.git infra \
   && cd infra \
-  && go get \
-  && go get \
-    github.com/kisielk/errcheck \
-    golang.org/x/tools/cmd/goimports \
-    go.chromium.org/luci/client/cmd/isolate
+  && go get
 
 RUN cd $GOPATH/src/go.skia.org/infra/fiddlek \
   && make fiddle_secwrap
