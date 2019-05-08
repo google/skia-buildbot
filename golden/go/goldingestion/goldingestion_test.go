@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -40,8 +41,8 @@ const (
 var (
 	// trace ids and values that are contained in the test file.
 	TEST_ENTRIES = []struct {
-		key   string
-		value string
+		key   tiling.TraceId
+		value types.Digest
 	}{
 		{key: "x86_64:MSVC:pipe-8888:Debug:CPU:AVX2:ShuttleB:aaclip:Win8:gm", value: "fa3c371d201d6f88f7a47b41862e2e85"},
 		{key: "x86_64:MSVC:pipe-8888:Debug:CPU:AVX2:ShuttleB:clipcubic:Win8:gm", value: "64e446d96bebba035887dd7dda6db6c4"},
@@ -106,7 +107,7 @@ func TestDMResults(t *testing.T) {
 	for _, testEntry := range TEST_ENTRIES {
 		found, ok := entries[testEntry.key]
 		assert.True(t, ok)
-		assert.Equal(t, testEntry.value, string(found.Value))
+		assert.Equal(t, testEntry.value, types.Digest(found.Value))
 	}
 }
 

@@ -137,7 +137,7 @@ func makeMockGCSStorage() *mocks.GCSClient {
 	return &mgs
 }
 
-func assertLabel(t *testing.T, b *baseline.CommitableBaseline, testName, hash string, label types.Label) {
+func assertLabel(t *testing.T, b *baseline.CommitableBaseline, testName types.TestName, hash types.Digest, label types.Label) {
 	test, ok := b.Baseline[testName]
 	if !ok {
 		assert.Failf(t, "assertLabel", "Could not find test %s in baseline %#v", testName, b)

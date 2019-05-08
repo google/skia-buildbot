@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/ct_pixel_diff/go/common"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/diffstore"
@@ -17,8 +18,8 @@ import (
 
 const (
 	// Test image IDs for PixelDiffIDPathMapper.
-	TEST_PIXEL_DIFF_LEFT  = "lchoi-20170714123456/nopatch/1/http___www_google_com"
-	TEST_PIXEL_DIFF_RIGHT = "lchoi-20170714123456/withpatch/1/http___www_google_com"
+	TEST_PIXEL_DIFF_LEFT  = common.ImageID("lchoi-20170714123456/nopatch/1/http___www_google_com")
+	TEST_PIXEL_DIFF_RIGHT = common.ImageID("lchoi-20170714123456/withpatch/1/http___www_google_com")
 
 	// PNG extension.
 	DOT_EXT = ".png"
@@ -33,7 +34,7 @@ const (
 	TEST_GS_BASE_DIR = "tasks/pixel_diff_runs"
 
 	// Image to test loading images through a GS path.
-	TEST_IMG_PATH = "lchoi-20170804012953/nopatch/1/http___www_google_com"
+	TEST_IMG_PATH = common.ImageID("lchoi-20170804012953/nopatch/1/http___www_google_com")
 )
 
 func TestIsDynamicContentPixel(t *testing.T) {
@@ -87,7 +88,7 @@ func TestPixelDiffStoreMapper(t *testing.T) {
 	testutils.SmallTest(t)
 
 	mapper := PixelDiffStoreMapper{}
-	dirs := strings.Split(TEST_PIXEL_DIFF_LEFT, "/")
+	dirs := strings.Split(string(TEST_PIXEL_DIFF_LEFT), "/")
 
 	// Test DiffID and SplitDiffID
 	expectedDiffID := strings.Join([]string{dirs[0], dirs[2], dirs[3]}, ":")
@@ -103,7 +104,7 @@ func TestPixelDiffStoreMapper(t *testing.T) {
 	assert.Equal(t, expectedDiffPath, actualDiffPath)
 
 	// Test ImagePaths
-	expectedLocalPath := TEST_PIXEL_DIFF_LEFT + DOT_EXT
+	expectedLocalPath := string(TEST_PIXEL_DIFF_LEFT + DOT_EXT)
 	runID := strings.Split(dirs[0], "-")
 	timeStamp := runID[1]
 	// YYYY/MM/DD/HH directories
@@ -120,8 +121,8 @@ func TestPixelDiffStoreMapper(t *testing.T) {
 	assert.True(t, mapper.IsValidDiffImgID(expectedDiffImgID))
 
 	// Test IsValidImgID
-	assert.True(t, mapper.IsValidImgID(TEST_PIXEL_DIFF_LEFT))
-	assert.True(t, mapper.IsValidImgID(TEST_PIXEL_DIFF_RIGHT))
+	assert.True(t, mapper.IsValidImgID(string(TEST_PIXEL_DIFF_LEFT)))
+	assert.True(t, mapper.IsValidImgID(string(TEST_PIXEL_DIFF_RIGHT)))
 }
 
 // Tests loading GS images that are specified through a path.
@@ -144,10 +145,10 @@ func TestImageLoaderGetGSPath(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Get the images and wait until they are written to disk
-	_, pendingWrites, err := imgLoader.Get(1, []string{TEST_IMG_PATH})
+	_, pendingWrites, err := imgLoader.Get(1, []common.ImageID{TEST_IMG_PATH})
 	assert.NoError(t, err)
 	pendingWrites.Wait()
 
 	assert.NoError(t, err)
-	assert.True(t, fileutil.FileExists(filepath.Join(workingDir, TEST_IMG_PATH+DOT_EXT)))
+	assert.True(t, fileutil.FileExists(filepath.Join(workingDir, string(TEST_IMG_PATH)+DOT_EXT)))
 }
