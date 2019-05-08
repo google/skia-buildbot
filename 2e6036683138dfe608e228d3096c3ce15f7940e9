@@ -46,6 +46,30 @@
       "revId": "2e6036683138dfe608e228d3096c3ce15f7940e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "640d8d44_2964912f",
+        "filename": "autoroll/config/glslang-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 9672
+      },
+      "writtenOn": "2019-05-08T17:31:20Z",
+      "side": 1,
+      "message": "Although, I don\u0027t see the email in the group: https://groups.google.com/a/google.com/forum/?utm_medium\u003demail\u0026utm_source\u003dfooter#!forum/radial-bots",
+      "parentUuid": "4ee49771_9cee3da6",
+      "range": {
+        "startLine": 23,
+        "startChar": 16,
+        "endLine": 23,
+        "endChar": 28
+      },
+      "revId": "2e6036683138dfe608e228d3096c3ce15f7940e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
