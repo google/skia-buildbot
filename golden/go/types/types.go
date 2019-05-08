@@ -67,13 +67,18 @@ func ValidLabel(s string) bool {
 	return ok
 }
 
+// Strings are used a lot, so these type "aliases" can help document
+// which are meant where. See also tiling.TraceId
+type Digest string
+type TestName string
+
 // Stores the digests and their associated labels.
 // Note: The name of the test is assumed to be handled by the client of this
 // type. Most likely in the keys of a map.
-type TestClassification map[string]Label
+type TestClassification map[Digest]Label
 
 func (tc *TestClassification) DeepCopy() TestClassification {
-	result := make(map[string]Label, len(*tc))
+	result := make(map[Digest]Label, len(*tc))
 	for k, v := range *tc {
 		result[k] = v
 	}
@@ -239,7 +244,7 @@ var _ ComplexTile = (*ComplexTileImpl)(nil)
 
 const (
 	// No digest available.
-	MISSING_DIGEST = ""
+	MISSING_DIGEST = Digest("")
 )
 
 // GoldenTrace represents all the Digests of a single test across a series
@@ -248,25 +253,41 @@ type GoldenTrace struct {
 	// The JSON keys are named this way to maintain backwards compatibility
 	// with JSON already written to disk.
 	Keys    map[string]string `json:"Params_"`
-	Digests []string          `json:"Values"`
+	Digests []Digest          `json:"Values"`
 }
 
+// Params implements the tiling.Trace interface.
 func (g *GoldenTrace) Params() map[string]string {
 	return g.Keys
 }
 
+// TestName is a helper for extracting just the test name for this
+// trace, of which there should always be exactly one.
+func (g *GoldenTrace) TestName() TestName {
+	return TestName(g.Keys[PRIMARY_KEY_FIELD])
+}
+
+// Corpus is a helper for extracting just the corpus key for this
+// trace, of which there should always be exactly one.
+func (g *GoldenTrace) Corpus() string {
+	return g.Keys[CORPUS_FIELD]
+}
+
+// Len implements the tiling.Trace interface.
 func (g *GoldenTrace) Len() int {
 	return len(g.Digests)
 }
 
+// IsMissing implements the tiling.Trace interface.
 func (g *GoldenTrace) IsMissing(i int) bool {
 	return g.Digests[i] == MISSING_DIGEST
 }
 
+// DeepCopy implements the tiling.Trace interface.
 func (g *GoldenTrace) DeepCopy() tiling.Trace {
 	n := len(g.Digests)
 	cp := &GoldenTrace{
-		Digests: make([]string, n, n),
+		Digests: make([]Digest, n, n),
 		Keys:    make(map[string]string),
 	}
 	copy(cp.Digests, g.Digests)
@@ -276,6 +297,7 @@ func (g *GoldenTrace) DeepCopy() tiling.Trace {
 	return cp
 }
 
+// Merge implements the tiling.Trace interface.
 func (g *GoldenTrace) Merge(next tiling.Trace) tiling.Trace {
 	nextGold := next.(*GoldenTrace)
 	n := len(g.Digests) + len(nextGold.Digests)
@@ -295,12 +317,13 @@ func (g *GoldenTrace) Merge(next tiling.Trace) tiling.Trace {
 	return merged
 }
 
+// Grow implements the tiling.Trace interface.
 func (g *GoldenTrace) Grow(n int, fill tiling.FillType) {
 	if n < len(g.Digests) {
 		panic(fmt.Sprintf("Grow must take a value (%d) larger than the current Trace size: %d", n, len(g.Digests)))
 	}
 	delta := n - len(g.Digests)
-	newDigests := make([]string, n)
+	newDigests := make([]Digest, n)
 
 	if fill == tiling.FILL_AFTER {
 		copy(newDigests, g.Digests)
@@ -316,12 +339,13 @@ func (g *GoldenTrace) Grow(n int, fill tiling.FillType) {
 	g.Digests = newDigests
 }
 
+// Trim implements the tiling.Trace interface.
 func (g *GoldenTrace) Trim(begin, end int) error {
 	if end < begin || end > g.Len() || begin < 0 {
 		return fmt.Errorf("Invalid Trim range [%d, %d) of [0, %d]", begin, end, g.Len())
 	}
 	n := end - begin
-	newDigests := make([]string, n)
+	newDigests := make([]Digest, n)
 
 	for i := 0; i < n; i++ {
 		newDigests[i] = g.Digests[i+begin]
@@ -330,20 +354,21 @@ func (g *GoldenTrace) Trim(begin, end int) error {
 	return nil
 }
 
+// SetAt implements the tiling.Trace interface.
 func (g *GoldenTrace) SetAt(index int, value []byte) error {
 	if index < 0 || index > len(g.Digests) {
 		return fmt.Errorf("Invalid index: %d", index)
 	}
-	g.Digests[index] = string(value)
+	g.Digests[index] = Digest(value)
 	return nil
 }
 
 // LastDigest returns the last digest in the trace (HEAD) or the empty string otherwise.
-func (g *GoldenTrace) LastDigest() string {
+func (g *GoldenTrace) LastDigest() Digest {
 	if idx := g.LastIndex(); idx >= 0 {
 		return g.Digests[idx]
 	}
-	return ""
+	return Digest("")
 }
 
 // LastIndex returns the index of last non-empty value in this trace and -1 if
@@ -371,7 +396,7 @@ func NewGoldenTrace() *GoldenTrace {
 // all tests will be run on all commits.
 func NewGoldenTraceN(n int) *GoldenTrace {
 	g := &GoldenTrace{
-		Digests: make([]string, n, n),
+		Digests: make([]Digest, n, n),
 		Keys:    make(map[string]string),
 	}
 	for i := range g.Digests {
@@ -388,11 +413,11 @@ func GoldenTraceBuilder(n int) tiling.Trace {
 // utility struct that is used to parse a tile where we don't know the
 // Trace type upfront.
 type TileWithRawTraces struct {
-	Traces    map[string]json.RawMessage `json:"traces"`
-	ParamSet  map[string][]string        `json:"param_set"`
-	Commits   []*tiling.Commit           `json:"commits"`
-	Scale     int                        `json:"scale"`
-	TileIndex int                        `json:"tileIndex"`
+	Traces    map[tiling.TraceId]json.RawMessage `json:"traces"`
+	ParamSet  map[string][]string                `json:"param_set"`
+	Commits   []*tiling.Commit                   `json:"commits"`
+	Scale     int                                `json:"scale"`
+	TileIndex int                                `json:"tileIndex"`
 }
 
 // TileFromJson parses a tile that has been serialized to JSON.
@@ -413,7 +438,7 @@ func TileFromJson(r io.Reader, traceExample tiling.Trace) (*tiling.Tile, error) 
 	}
 
 	// Parse the traces.
-	traces := map[string]tiling.Trace{}
+	traces := map[tiling.TraceId]tiling.Trace{}
 	for k, rawJson := range rawTile.Traces {
 		newTrace := factory()
 		if err = json.Unmarshal(rawJson, newTrace); err != nil {

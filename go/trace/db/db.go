@@ -100,10 +100,10 @@ type TsDB struct {
 	cache *lru.Cache
 
 	// paramsCache is a cache of params retrieved from tracedb, keyed by traceid.
-	paramsCache map[string]map[string]string
+	paramsCache map[tiling.TraceId]map[string]string
 
 	// id64Cache is a cache of traceids retrieved from tracedb, keyed by trace64id.
-	id64Cache map[uint64]string
+	id64Cache map[uint64]tiling.TraceId
 
 	// ctx is the gRPC context.
 	ctx context.Context
@@ -124,8 +124,8 @@ func NewTraceServiceDB(conn *grpc.ClientConn, traceBuilder tiling.TraceBuilder) 
 		traceService: traceservice.NewTraceServiceClient(conn),
 		traceBuilder: traceBuilder,
 		cache:        lru.New(MAX_ID_CACHED),
-		paramsCache:  map[string]map[string]string{},
-		id64Cache:    map[uint64]string{},
+		paramsCache:  map[tiling.TraceId]map[string]string{},
+		id64Cache:    map[uint64]tiling.TraceId{},
 		ctx:          context.Background(),
 	}
 
@@ -150,11 +150,11 @@ func NewTraceServiceDB(conn *grpc.ClientConn, traceBuilder tiling.TraceBuilder) 
 		for range time.Tick(15 * time.Minute) {
 			ret.clearMutex.Lock()
 			if len(ret.paramsCache) > MAX_ID_CACHED {
-				ret.paramsCache = map[string]map[string]string{}
+				ret.paramsCache = map[tiling.TraceId]map[string]string{}
 				sklog.Warning("Had to clear paramsCache, this is unexpected. MAX_ID_CACHED too small?")
 			}
 			if len(ret.id64Cache) > MAX_ID_CACHED {
-				ret.id64Cache = map[uint64]string{}
+				ret.id64Cache = map[uint64]tiling.TraceId{}
 				sklog.Warning("Had to clear id64Cache, this is unexpected. MAX_ID_CACHED too small?")
 			}
 			ret.clearMutex.Unlock()
@@ -344,7 +344,7 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, []string, 
 				}
 				ts.mutex.Lock()
 				for _, tid := range traceids.Ids {
-					ts.id64Cache[tid.Id64] = tid.Id
+					ts.id64Cache[tid.Id64] = tiling.TraceId(tid.Id)
 				}
 				ts.mutex.Unlock()
 			}
@@ -391,7 +391,7 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, []string, 
 	sklog.Infof("Finished loading values. Starting to load Params.")
 
 	// Now load the params for the traces.
-	traceids := []string{}
+	traceids := []tiling.TraceId{}
 	ts.mutex.Lock()
 	for k := range tile.Traces {
 		// Only load params for traces not already in the cache.
@@ -403,24 +403,24 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, []string, 
 
 	// Break the loading of params into chunks and make those requests concurrently.
 	// The params are just loaded into the paramsCache.
-	tracechunks := [][]string{}
+	tracechunks := [][]tiling.TraceId{}
 	for len(traceids) > 0 {
 		if len(traceids) > CHUNK_SIZE {
 			tracechunks = append(tracechunks, traceids[:CHUNK_SIZE])
 			traceids = traceids[CHUNK_SIZE:]
 		} else {
 			tracechunks = append(tracechunks, traceids)
-			traceids = []string{}
+			traceids = []tiling.TraceId{}
 		}
 	}
 
 	errCh = make(chan error, len(tracechunks))
 	for _, chunk := range tracechunks {
 		wg.Add(1)
-		go func(chunk []string) {
+		go func(chunk []tiling.TraceId) {
 			defer wg.Done()
 			req := &traceservice.GetParamsRequest{
-				Traceids: chunk,
+				Traceids: asStrings(chunk),
 			}
 			resp, err := ts.traceService.GetParams(ctx, req)
 			if err != nil {
@@ -429,7 +429,7 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, []string, 
 			}
 			for _, param := range resp.Params {
 				ts.mutex.Lock()
-				ts.paramsCache[param.Key] = param.Params
+				ts.paramsCache[tiling.TraceId(param.Key)] = param.Params
 				ts.mutex.Unlock()
 			}
 		}(chunk)
@@ -459,6 +459,14 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, []string, 
 	sklog.Infof("Finished loading params. Starting to rebuild ParamSet.")
 	tiling.GetParamSet(tile.Traces, tile.ParamSet)
 	return tile, hash, nil
+}
+
+func asStrings(xt []tiling.TraceId) []string {
+	s := make([]string, 0, len(xt))
+	for _, t := range xt {
+		s = append(s, string(t))
+	}
+	return s
 }
 
 // Close the underlying connection to the datastore.
