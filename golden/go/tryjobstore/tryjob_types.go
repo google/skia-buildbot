@@ -10,6 +10,7 @@ import (
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/golden/go/types"
 )
 
 // TODO(stephana): Move the UNKNOWN status to the first spot, so that we can
@@ -215,8 +216,8 @@ func (t *Tryjob) newer(r interface{}) bool {
 // a Tryjob entity.
 type TryjobResult struct {
 	BuildBucketID int64               `datastore:"BuildBucketID"`
-	TestName      string              `datastore:"TestName,noindex"`
-	Digest        string              `datastore:"Digest,noindex"`
+	TestName      types.TestName      `datastore:"TestName,noindex"`
+	Digest        types.Digest        `datastore:"Digest,noindex"`
 	Params        paramtools.ParamSet `datastore:"-"`
 }
 

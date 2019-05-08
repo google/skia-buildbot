@@ -179,7 +179,7 @@ func TestNewReportNormal(t *testing.T) {
 	defer cleanup()
 
 	imgData := []byte("some bytes")
-	imgHash := "9d0568469d206c1aedf1b71f12f474bc"
+	imgHash := types.Digest("9d0568469d206c1aedf1b71f12f474bc")
 
 	auth, httpClient, uploader := makeMocks()
 	defer auth.AssertExpectations(t)
@@ -202,7 +202,7 @@ func TestNewReportNormal(t *testing.T) {
 	err = goldClient.SetSharedConfig(testSharedConfig)
 	assert.NoError(t, err)
 
-	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, string, error) {
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
 		assert.Equal(t, testImgPath, path)
 		return imgData, imgHash, nil
 	})
@@ -305,8 +305,8 @@ func TestInitAddFinalize(t *testing.T) {
 	defer cleanup()
 
 	imgData := []byte("some bytes")
-	firstHash := "9d0568469d206c1aedf1b71f12f474bc"
-	secondHash := "29d0568469d206c1aedf1b71f12f474b"
+	firstHash := types.Digest("9d0568469d206c1aedf1b71f12f474bc")
+	secondHash := types.Digest("29d0568469d206c1aedf1b71f12f474b")
 
 	auth, httpClient, uploader := makeMocks()
 	defer auth.AssertExpectations(t)
@@ -325,7 +325,7 @@ func TestInitAddFinalize(t *testing.T) {
 	err = goldClient.SetSharedConfig(testSharedConfig)
 	assert.NoError(t, err)
 
-	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, string, error) {
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
 		assert.Equal(t, testImgPath, path)
 		return imgData, firstHash, nil
 	})
@@ -357,7 +357,7 @@ func TestInitAddFinalize(t *testing.T) {
 	assert.Equal(t, firstHash, r.Digest)
 
 	// Add a second test with the same hash
-	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, string, error) {
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
 		assert.Equal(t, testImgPath, path)
 		return imgData, secondHash, nil
 	})
@@ -401,8 +401,8 @@ func TestNewReportPassFail(t *testing.T) {
 	defer cleanup()
 
 	imgData := []byte("some bytes")
-	imgHash := "9d0568469d206c1aedf1b71f12f474bc"
-	testName := "TestNotSeenBefore"
+	imgHash := types.Digest("9d0568469d206c1aedf1b71f12f474bc")
+	testName := types.TestName("TestNotSeenBefore")
 
 	auth, httpClient, uploader := makeMocks()
 	defer auth.AssertExpectations(t)
@@ -444,7 +444,7 @@ func TestNewReportPassFail(t *testing.T) {
 	err = goldClient.SetSharedConfig(testSharedConfig)
 	assert.NoError(t, err)
 
-	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, string, error) {
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
 		assert.Equal(t, testImgPath, path)
 		return imgData, imgHash, nil
 	})
@@ -464,8 +464,8 @@ func TestNegativePassFail(t *testing.T) {
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
-	imgHash := "badbadbad1325855590527db196112e0"
-	testName := "ThisIsTheOnlyTest"
+	imgHash := types.Digest("badbadbad1325855590527db196112e0")
+	testName := types.TestName("ThisIsTheOnlyTest")
 
 	auth, httpClient, uploader := makeMocks()
 	defer auth.AssertExpectations(t)
@@ -488,7 +488,7 @@ func TestNegativePassFail(t *testing.T) {
 	err = goldClient.SetSharedConfig(testSharedConfig)
 	assert.NoError(t, err)
 
-	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, string, error) {
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
 		assert.Equal(t, testImgPath, path)
 		return imgData, imgHash, nil
 	})
@@ -507,8 +507,8 @@ func TestPositivePassFail(t *testing.T) {
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
-	imgHash := "beef00d3a1527db19619ec12a4e0df68"
-	testName := "ThisIsTheOnlyTest"
+	imgHash := types.Digest("beef00d3a1527db19619ec12a4e0df68")
+	testName := types.TestName("ThisIsTheOnlyTest")
 
 	auth, httpClient, uploader := makeMocks()
 	defer auth.AssertExpectations(t)
@@ -531,7 +531,7 @@ func TestPositivePassFail(t *testing.T) {
 	err = goldClient.SetSharedConfig(testSharedConfig)
 	assert.NoError(t, err)
 
-	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, string, error) {
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
 		assert.Equal(t, testImgPath, path)
 		return imgData, imgHash, nil
 	})
@@ -661,7 +661,7 @@ func makeGoldClient(auth AuthOpt, passFail bool, uploadOnly bool, workDir string
 	return c, nil
 }
 
-func overrideLoadAndHashImage(c *CloudClient, testFn func(path string) ([]byte, string, error)) {
+func overrideLoadAndHashImage(c *CloudClient, testFn func(path string) ([]byte, types.Digest, error)) {
 	c.loadAndHashImage = testFn
 }
 

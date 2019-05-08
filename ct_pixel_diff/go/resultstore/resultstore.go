@@ -11,6 +11,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	"go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/ct_pixel_diff/go/common"
 	"go.skia.org/infra/ct_pixel_diff/go/dynamicdiff"
 	"go.skia.org/infra/go/fileutil"
 )
@@ -70,10 +71,10 @@ type ResultRec struct {
 	Rank int
 
 	// NoPatchImg is the imageID of the screenshot taken without the page.
-	NoPatchImg string
+	NoPatchImg common.ImageID
 
 	// WithPatchImg is the imageID of the screenshot taken with the patch.
-	WithPatchImg string
+	WithPatchImg common.ImageID
 
 	// DiffMetrics are the results of diffing NoPatchImg and WithPatchImg.
 	DiffMetrics *dynamicdiff.DynamicDiffMetrics

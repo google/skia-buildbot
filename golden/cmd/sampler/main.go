@@ -56,7 +56,7 @@ func sampleTile(tile *tiling.Tile, sampleSize int, queryStr string, nTests int) 
 			sklog.Fatalf("Unable to parse querye '%s'. Got error: %s", queryStr, err)
 		}
 
-		newTraces := map[string]tiling.Trace{}
+		newTraces := map[tiling.TraceId]tiling.Trace{}
 		for traceID, trace := range tile.Traces {
 			if tiling.Matches(trace, query) {
 				newTraces[traceID] = trace
@@ -67,13 +67,13 @@ func sampleTile(tile *tiling.Tile, sampleSize int, queryStr string, nTests int) 
 
 	// Fixed number of tests selected.
 	if nTests > 0 {
-		byTest := map[string][]string{}
+		byTest := map[types.TestName][]tiling.TraceId{}
 		for traceID, trace := range tile.Traces {
-			name := trace.Params()[types.PRIMARY_KEY_FIELD]
+			name := types.TestName(trace.Params()[types.PRIMARY_KEY_FIELD])
 			byTest[name] = append(byTest[name], traceID)
 		}
 
-		newTraces := map[string]tiling.Trace{}
+		newTraces := map[tiling.TraceId]tiling.Trace{}
 		idx := 0
 		for testName, traceIDs := range byTest {
 			for _, traceID := range traceIDs {
@@ -88,13 +88,13 @@ func sampleTile(tile *tiling.Tile, sampleSize int, queryStr string, nTests int) 
 		tile.Traces = newTraces
 	} else if sampleSize > 0 {
 		// Sample a given number of traces.
-		traceIDs := make([]string, 0, len(tile.Traces))
+		traceIDs := make([]tiling.TraceId, 0, len(tile.Traces))
 		for id := range tile.Traces {
 			traceIDs = append(traceIDs, id)
 		}
 
 		permutation := rand.Perm(len(traceIDs))[:util.MinInt(len(traceIDs), sampleSize)]
-		newTraces := make(map[string]tiling.Trace, len(traceIDs))
+		newTraces := make(map[tiling.TraceId]tiling.Trace, len(traceIDs))
 		for _, idx := range permutation {
 			newTraces[traceIDs[idx]] = tile.Traces[traceIDs[idx]]
 		}

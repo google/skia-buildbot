@@ -36,10 +36,10 @@ func TestGoldenTrace(t *testing.T) {
 	if got, want := g2.Len(), N+M; got != want {
 		t.Errorf("Merge length wrong: Got %v Want %v", got, want)
 	}
-	if got, want := g2.(*GoldenTrace).Digests[0], "a digest"; got != want {
+	if got, want := g2.(*GoldenTrace).Digests[0], Digest("a digest"); got != want {
 		t.Errorf("Digest not copied correctly: Got %v Want %v", got, want)
 	}
-	if got, want := g2.(*GoldenTrace).Digests[6], "another digest"; got != want {
+	if got, want := g2.(*GoldenTrace).Digests[6], Digest("another digest"); got != want {
 		t.Errorf("Digest not copied correctly: Got %v Want %v", got, want)
 	}
 
@@ -47,14 +47,14 @@ func TestGoldenTrace(t *testing.T) {
 	g = NewGoldenTraceN(N)
 	g.Digests[0] = "foo"
 	g.Grow(2*N, tiling.FILL_BEFORE)
-	if got, want := g.Digests[N], "foo"; got != want {
+	if got, want := g.Digests[N], Digest("foo"); got != want {
 		t.Errorf("Grow didn't FILL_BEFORE correctly: Got %v Want %v", got, want)
 	}
 
 	g = NewGoldenTraceN(N)
 	g.Digests[0] = "foo"
 	g.Grow(2*N, tiling.FILL_AFTER)
-	if got, want := g.Digests[0], "foo"; got != want {
+	if got, want := g.Digests[0], Digest("foo"); got != want {
 		t.Errorf("Grow didn't FILL_AFTER correctly: Got %v Want %v", got, want)
 	}
 
@@ -64,7 +64,7 @@ func TestGoldenTrace(t *testing.T) {
 	if err := g.Trim(1, 3); err != nil {
 		t.Fatalf("Trim Failed: %s", err)
 	}
-	if got, want := g.Digests[0], "foo"; got != want {
+	if got, want := g.Digests[0], Digest("foo"); got != want {
 		t.Errorf("Trim didn't copy correctly: Got %v Want %v", got, want)
 	}
 	if got, want := g.Len(), 2; got != want {
@@ -92,7 +92,7 @@ func TestGoldenTrace(t *testing.T) {
 func TestSetAt(t *testing.T) {
 	testutils.SmallTest(t)
 	testCases := []struct {
-		want string
+		want Digest
 	}{
 		{
 			want: "",

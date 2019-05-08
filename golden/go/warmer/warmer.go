@@ -7,7 +7,6 @@ package warmer
 import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/digesttools"
@@ -57,7 +56,7 @@ func (w *Warmer) Run(tile *tiling.Tile, summaries *summary.Summaries, dCounter d
 	// which ensures that the image has been downloaded.
 	// TODO(stephana): Remove this once the new diffstore is in place.
 	tileLen := tile.LastCommitIndex() + 1
-	traceDigests := make(util.StringSet, tileLen)
+	traceDigests := make(types.DigestSet, tileLen)
 	for _, trace := range tile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
 		for _, digest := range gTrace.Digests {
@@ -67,9 +66,8 @@ func (w *Warmer) Run(tile *tiling.Tile, summaries *summary.Summaries, dCounter d
 		}
 	}
 
-	digests := traceDigests.Keys()
-	sklog.Infof("FOUND %d digests to fetch.", len(digests))
-	w.storages.DiffStore.WarmDigests(diff.PRIORITY_BACKGROUND, digests, false)
+	sklog.Infof("FOUND %d digests to fetch.", len(traceDigests))
+	w.storages.DiffStore.WarmDigests(diff.PRIORITY_BACKGROUND, traceDigests.Keys(), false)
 
 	// TODO(stephana): Add warmer for Tryjob digests.
 }

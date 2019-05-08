@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/validation"
 )
 
@@ -36,13 +37,13 @@ func (g GoldDiffStoreMapper) DiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA)
 }
 
 // DiffID implements the DiffStoreMapper interface.
-func (g GoldDiffStoreMapper) DiffID(leftImgID, rightImgID string) string {
+func (g GoldDiffStoreMapper) DiffID(leftImgID, rightImgID types.Digest) string {
 	_, _, diffID := g.getOrderedDiffID(leftImgID, rightImgID)
 	return diffID
 }
 
 // SplitDiffID implements the DiffStoreMapper interface.
-func (g GoldDiffStoreMapper) SplitDiffID(diffID string) (string, string) {
+func (g GoldDiffStoreMapper) SplitDiffID(diffID string) (types.Digest, types.Digest) {
 	imageIDs := strings.Split(diffID, DIFF_IMG_SEPARATOR)
 
 	// TODO(stephana): Remove this legacy handling code as soon as it has converted the
@@ -51,20 +52,20 @@ func (g GoldDiffStoreMapper) SplitDiffID(diffID string) (string, string) {
 		imageIDs = strings.Split(diffID, ":")
 	}
 
-	return imageIDs[0], imageIDs[1]
+	return types.Digest(imageIDs[0]), types.Digest(imageIDs[1])
 }
 
 // SplitDiffID implements the DiffStoreMapper interface.
-func (g GoldDiffStoreMapper) DiffPath(leftImgID, rightImgID string) string {
+func (g GoldDiffStoreMapper) DiffPath(leftImgDigest, rightImgDigest types.Digest) string {
 	// Get the diff ID and the left imageID.
-	leftImgID, _, diffID := g.getOrderedDiffID(leftImgID, rightImgID)
+	_, _, diffID := g.getOrderedDiffID(leftImgDigest, rightImgDigest)
 	imagePath := fmt.Sprintf("%s.%s", diffID, IMG_EXTENSION)
 
 	return fileutil.TwoLevelRadixPath(imagePath)
 }
 
 // ImagePaths implements the DiffStoreMapper interface.
-func (g GoldDiffStoreMapper) ImagePaths(imageID string) (string, string, string) {
+func (g GoldDiffStoreMapper) ImagePaths(imageID types.Digest) (string, string, string) {
 	gsPath := fmt.Sprintf("%s.%s", imageID, IMG_EXTENSION)
 	localPath := fileutil.TwoLevelRadixPath(gsPath)
 	return localPath, "", gsPath
@@ -84,10 +85,10 @@ func (g GoldDiffStoreMapper) IsValidImgID(imgID string) bool {
 	return validation.IsValidDigest(imgID)
 }
 
-func (g GoldDiffStoreMapper) getOrderedDiffID(leftImgID, rightImgID string) (string, string, string) {
+func (g GoldDiffStoreMapper) getOrderedDiffID(leftImgID, rightImgID types.Digest) (types.Digest, types.Digest, string) {
 	if rightImgID < leftImgID {
 		// Make sure the smaller digest is left imageID.
 		leftImgID, rightImgID = rightImgID, leftImgID
 	}
-	return leftImgID, rightImgID, leftImgID + DIFF_IMG_SEPARATOR + rightImgID
+	return leftImgID, rightImgID, string(leftImgID) + DIFF_IMG_SEPARATOR + string(rightImgID)
 }
