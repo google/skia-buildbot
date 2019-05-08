@@ -218,7 +218,7 @@ func (s *StatusWatcher) calcStatus(cpxTile types.ComplexTile) error {
 		}
 
 		// If this corpus doesn't exist yet, we initialize it.
-		corpus := gTrace.Params()[types.CORPUS_FIELD]
+		corpus := gTrace.Corpus()
 		if _, ok := byCorpus[corpus]; !ok {
 			okByCorpus[corpus] = true
 			byCorpus[corpus] = map[types.Label]map[string]bool{
@@ -238,12 +238,12 @@ func (s *StatusWatcher) calcStatus(cpxTile types.ComplexTile) error {
 
 		// Account for the corpus and testname.
 		digest := gTrace.Digests[idx]
-		testName := gTrace.Params()[types.PRIMARY_KEY_FIELD]
+		testName := gTrace.TestName()
 		status := expectations.Classification(testName, digest)
 
 		okByCorpus[corpus] = okByCorpus[corpus] &&
 			((status == types.POSITIVE) || (status == types.NEGATIVE))
-		byCorpus[corpus][status][testName+digest] = true
+		byCorpus[corpus][status][string(testName)+string(digest)] = true
 	}
 
 	overallOk := true

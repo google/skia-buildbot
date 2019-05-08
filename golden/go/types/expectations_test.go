@@ -11,12 +11,12 @@ func TestExpString(t *testing.T) {
 	testutils.SmallTest(t)
 
 	te := TestExp{
-		"beta": map[string]Label{
+		"beta": map[Digest]Label{
 			"hash1": POSITIVE,
 			"hash3": NEGATIVE,
 			"hash2": UNTRIAGED,
 		},
-		"alpha": map[string]Label{
+		"alpha": map[Digest]Label{
 			"hashB": UNTRIAGED,
 			"hashA": NEGATIVE,
 			"hashC": UNTRIAGED,

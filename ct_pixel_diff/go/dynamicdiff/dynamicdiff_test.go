@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/ct_pixel_diff/go/common"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/diffstore"
@@ -33,7 +34,7 @@ const (
 	TEST_GS_BASE_DIR = "tasks/pixel_diff_runs"
 
 	// Image to test loading images through a GS path.
-	TEST_IMG_PATH = "lchoi-20170804012953/nopatch/1/http___www_google_com"
+	TEST_IMG_PATH = common.ImageID("lchoi-20170804012953/nopatch/1/http___www_google_com")
 )
 
 func TestIsDynamicContentPixel(t *testing.T) {
@@ -144,10 +145,10 @@ func TestImageLoaderGetGSPath(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Get the images and wait until they are written to disk
-	_, pendingWrites, err := imgLoader.Get(1, []string{TEST_IMG_PATH})
+	_, pendingWrites, err := imgLoader.Get(1, []common.ImageID{TEST_IMG_PATH})
 	assert.NoError(t, err)
 	pendingWrites.Wait()
 
 	assert.NoError(t, err)
-	assert.True(t, fileutil.FileExists(filepath.Join(workingDir, TEST_IMG_PATH+DOT_EXT)))
+	assert.True(t, fileutil.FileExists(filepath.Join(workingDir, string(TEST_IMG_PATH)+DOT_EXT)))
 }
