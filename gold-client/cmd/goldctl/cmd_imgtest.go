@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/gold-client/go/goldclient"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/shared"
+	"go.skia.org/infra/golden/go/types"
 )
 
 // imgTestEnv is the environment for the imgtest command ant its sub-commands.
@@ -271,7 +272,7 @@ func (i *imgTestEnv) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	pass, err := goldClient.Test(i.flagTestName, i.flagPNGFile, extraKeys)
+	pass, err := goldClient.Test(types.TestName(i.flagTestName), i.flagPNGFile, extraKeys)
 	ifErrLogExit(cmd, err)
 
 	if !pass {

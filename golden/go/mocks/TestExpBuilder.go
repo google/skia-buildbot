@@ -16,11 +16,11 @@ func (_m *TestExpBuilder) AddTestExp(testExp types.TestExp) {
 }
 
 // Classification provides a mock function with given fields: test, digest
-func (_m *TestExpBuilder) Classification(test string, digest string) types.Label {
+func (_m *TestExpBuilder) Classification(test types.TestName, digest types.Digest) types.Label {
 	ret := _m.Called(test, digest)
 
 	var r0 types.Label
-	if rf, ok := ret.Get(0).(func(string, string) types.Label); ok {
+	if rf, ok := ret.Get(0).(func(types.TestName, types.Digest) types.Label); ok {
 		r0 = rf(test, digest)
 	} else {
 		r0 = ret.Get(0).(types.Label)
@@ -30,7 +30,7 @@ func (_m *TestExpBuilder) Classification(test string, digest string) types.Label
 }
 
 // SetExpectation provides a mock function with given fields: test, digest, label
-func (_m *TestExpBuilder) SetExpectation(test string, digest string, label types.Label) {
+func (_m *TestExpBuilder) SetExpectation(test types.TestName, digest types.Digest, label types.Label) {
 	_m.Called(test, digest, label)
 }
 

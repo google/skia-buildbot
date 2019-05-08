@@ -5,14 +5,13 @@ import (
 	"net/url"
 
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 )
 
 // DigestCount maps a digest to a count. These counts are the number
 // of times a digest was seen in a given scenario.
-type DigestCount map[string]int
+type DigestCount map[types.Digest]int
 
 // DigestCounter allows querying for digest counts for a digest in different ways.
 // For example, how many times did this tile see a given digest in a given
@@ -27,15 +26,15 @@ type DigestCounter interface {
 	Calculate(tile *tiling.Tile)
 
 	// ByTest returns a map of test_name -> DigestCount
-	ByTest() map[string]DigestCount
+	ByTest() map[types.TestName]DigestCount
 
 	// ByTrace returns a map of trace_id -> DigestCount
-	ByTrace() map[string]DigestCount
+	ByTrace() map[tiling.TraceId]DigestCount
 
 	// MaxDigestsByTest returns a map of all tests seen
 	// in the tile mapped to the digest that showed up
 	// the most in that test.
-	MaxDigestsByTest() map[string]util.StringSet
+	MaxDigestsByTest() map[types.TestName]types.DigestSet
 
 	// ByQuery returns a DigestCount of all the digests that match the given query in
 	// the provided tile.
@@ -44,9 +43,9 @@ type DigestCounter interface {
 
 // Counter implements DigestCounter
 type Counter struct {
-	traceDigestCount map[string]DigestCount
-	testDigestCount  map[string]DigestCount
-	maxCountsByTest  map[string]util.StringSet
+	traceDigestCount map[tiling.TraceId]DigestCount
+	testDigestCount  map[types.TestName]DigestCount
+	maxCountsByTest  map[types.TestName]types.DigestSet
 }
 
 // New creates a new Counter object.
@@ -63,17 +62,17 @@ func (t *Counter) Calculate(tile *tiling.Tile) {
 }
 
 // ByTest implements the DigestCounter interface.
-func (t *Counter) ByTest() map[string]DigestCount {
+func (t *Counter) ByTest() map[types.TestName]DigestCount {
 	return t.testDigestCount
 }
 
 // ByTrace implements the DigestCounter interface.
-func (t *Counter) ByTrace() map[string]DigestCount {
+func (t *Counter) ByTrace() map[tiling.TraceId]DigestCount {
 	return t.traceDigestCount
 }
 
 // MaxDigestsByTest implements the DigestCounter interface.
-func (t *Counter) MaxDigestsByTest() map[string]util.StringSet {
+func (t *Counter) MaxDigestsByTest() map[types.TestName]types.DigestSet {
 	return t.maxCountsByTest
 }
 
@@ -84,7 +83,7 @@ func (t *Counter) ByQuery(tile *tiling.Tile, query url.Values) DigestCount {
 }
 
 // countByQuery does the actual work of ByQuery.
-func countByQuery(tile *tiling.Tile, traceDigestCount map[string]DigestCount, query url.Values) DigestCount {
+func countByQuery(tile *tiling.Tile, traceDigestCount map[tiling.TraceId]DigestCount, query url.Values) DigestCount {
 	ret := DigestCount{}
 	for k, tr := range tile.Traces {
 		if tiling.Matches(tr, query) {
@@ -104,10 +103,10 @@ func countByQuery(tile *tiling.Tile, traceDigestCount map[string]DigestCount, qu
 }
 
 // calculate computes a map[tracename]DigestCount and map[testname]DigestCount from the given Tile.
-func calculate(tile *tiling.Tile) (map[string]DigestCount, map[string]DigestCount, map[string]util.StringSet) {
+func calculate(tile *tiling.Tile) (map[tiling.TraceId]DigestCount, map[types.TestName]DigestCount, map[types.TestName]types.DigestSet) {
 	defer shared.NewMetricsTimer("digest_counter_calculate").Stop()
-	traceDigestCount := map[string]DigestCount{}
-	testDigestCount := map[string]DigestCount{}
+	traceDigestCount := map[tiling.TraceId]DigestCount{}
+	testDigestCount := map[types.TestName]DigestCount{}
 	for k, tr := range tile.Traces {
 		gtr := tr.(*types.GoldenTrace)
 		dCount := DigestCount{}
@@ -122,7 +121,7 @@ func calculate(tile *tiling.Tile) (map[string]DigestCount, map[string]DigestCoun
 			}
 		}
 		traceDigestCount[k] = dCount
-		testName := tr.Params()[types.PRIMARY_KEY_FIELD]
+		testName := gtr.TestName()
 		if t, ok := testDigestCount[testName]; ok {
 			for digest, n := range dCount {
 				if _, ok := t[digest]; ok {
@@ -140,7 +139,7 @@ func calculate(tile *tiling.Tile) (map[string]DigestCount, map[string]DigestCoun
 		}
 	}
 
-	maxCountsByTest := make(map[string]util.StringSet, len(testDigestCount))
+	maxCountsByTest := make(map[types.TestName]types.DigestSet, len(testDigestCount))
 	for testName, dCount := range testDigestCount {
 		maxCount := 0
 		for _, count := range dCount {
@@ -148,7 +147,7 @@ func calculate(tile *tiling.Tile) (map[string]DigestCount, map[string]DigestCoun
 				maxCount = count
 			}
 		}
-		maxCountsByTest[testName] = util.StringSet{}
+		maxCountsByTest[testName] = types.DigestSet{}
 		for digest, count := range dCount {
 			if count == maxCount {
 				maxCountsByTest[testName][digest] = true
