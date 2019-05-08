@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9f6e0fec_9c51908a",
+        "filename": "go/ds/ds_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-08T18:49:07Z",
+      "side": 1,
+      "message": "Nit: I\u0027d prefer to either call testutils.ManualTest(t) or t.Skip() at the beginning of the test.",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 67
+      },
+      "revId": "419e5d0a21541d1c80bc154f263dda3bebf31be6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
