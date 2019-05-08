@@ -108,14 +108,15 @@ func (c *Config) Create(ctx context.Context, client *http.Client, emailer *email
 }
 
 // Create a copy of this Config.
-func (c *Config) Copy(ctx context.Context) *Config {
+func (c *Config) Copy() *Config {
 	configCopy := &Config{
-		Filter:  c.Filter,
-		Subject: c.Subject,
+		Filter:           c.Filter,
+		MsgTypeWhitelist: util.CopyStringSlice(c.MsgTypeWhitelist),
+		Subject:          c.Subject,
 	}
 	if c.Email != nil {
 		configCopy.Email = &EmailNotifierConfig{
-			Emails: c.Email.Emails,
+			Emails: util.CopyStringSlice(c.Email.Emails),
 		}
 	}
 	if c.Chat != nil {
@@ -126,6 +127,14 @@ func (c *Config) Copy(ctx context.Context) *Config {
 	if c.PubSub != nil {
 		configCopy.PubSub = &PubSubNotifierConfig{
 			Topic: c.PubSub.Topic,
+		}
+	}
+	if c.Monorail != nil {
+		configCopy.Monorail = &MonorailNotifierConfig{
+			Project: c.Monorail.Project,
+			Owner:   c.Monorail.Owner,
+			CC:      util.CopyStringSlice(c.Monorail.CC),
+			Labels:  util.CopyStringSlice(c.Monorail.Labels),
 		}
 	}
 	return configCopy
