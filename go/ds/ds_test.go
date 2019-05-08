@@ -40,7 +40,8 @@ func TestDeleteAll(t *testing.T) {
 	assert.Equal(t, 0, count)
 }
 
-func TestMigrateData(t *testing.T) {
+// disabled: https://bugs.chromium.org/p/skia/issues/detail?id=9061
+func testMigrateData(t *testing.T) {
 	testutils.LargeTest(t)
 	ctx := context.TODO()
 
