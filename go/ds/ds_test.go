@@ -41,7 +41,8 @@ func TestDeleteAll(t *testing.T) {
 }
 
 func TestMigrateData(t *testing.T) {
-	testutils.LargeTest(t)
+	// disabled: https://bugs.chromium.org/p/skia/issues/detail?id=9061
+	testutils.ManualTest(t)
 	ctx := context.TODO()
 
 	// Create the source project.
