@@ -3,7 +3,9 @@
 {
   "childName": "shaderc",
   "contacts": [
-    "dsinclair@google.com"
+    "dsinclair@chromium.org",
+    "rharrison@chromium.org",
+    "dneto@chromium.org"
   ],
   "gerrit": {
     "url": "https://chromium-review.googlesource.com",
@@ -16,7 +18,7 @@
   "rollerName": "shaderc-chromium-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "dsinclair@google.com"
+    "radial-bots+chrome-roll@google.com"
   ],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",

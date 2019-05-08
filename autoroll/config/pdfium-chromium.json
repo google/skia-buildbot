@@ -3,7 +3,7 @@
 {
   "childName": "PDFium",
   "contacts": [
-    "dsinclair@chromium.org"
+    "thestig@chromium.org"
   ],
   "gerrit": {
     "url": "https://chromium-review.googlesource.com",
@@ -16,7 +16,7 @@
   "rollerName": "pdfium-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "dsinclair@chromium.org"
+    "thestig@chromium.org"
   ],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",

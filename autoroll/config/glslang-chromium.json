@@ -3,7 +3,7 @@
 {
   "childName": "glslang",
   "contacts": [
-    "dsinclair@google.com",
+    "dsinclair@chromium.org",
     "geofflang@chromium.org",
     "jmadill@chromium.org",
     "syoussefi@chromium.org",
@@ -20,7 +20,7 @@
   "rollerName": "glslang-chromium-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "dsinclair@google.com",
+    "radial-bots+chrome-roll@google.com",
     "https://rota-ng.appspot.com/legacy/sheriff_angle.json"
   ],
   "noCheckoutDEPSRepoManager": {
