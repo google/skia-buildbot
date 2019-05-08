@@ -97,7 +97,7 @@ func (c *Config) Create(ctx context.Context, client *http.Client, emailer *email
 	} else if c.PubSub != nil {
 		n, err = PubSubNotifier(ctx, c.PubSub.Topic)
 	} else if c.Monorail != nil {
-		n, err = MonorailNotifier(client, c.Monorail.Project, c.Monorail.Owner, c.Monorail.CC, c.Monorail.Labels)
+		n, err = MonorailNotifier(client, c.Monorail.Project, c.Monorail.Owner, c.Monorail.CC, c.Monorail.Components, c.Monorail.Labels)
 	} else {
 		return nil, FILTER_SILENT, nil, "", fmt.Errorf("No config specified!")
 	}
@@ -131,10 +131,11 @@ func (c *Config) Copy() *Config {
 	}
 	if c.Monorail != nil {
 		configCopy.Monorail = &MonorailNotifierConfig{
-			Project: c.Monorail.Project,
-			Owner:   c.Monorail.Owner,
-			CC:      util.CopyStringSlice(c.Monorail.CC),
-			Labels:  util.CopyStringSlice(c.Monorail.Labels),
+			Project:    c.Monorail.Project,
+			Owner:      c.Monorail.Owner,
+			CC:         util.CopyStringSlice(c.Monorail.CC),
+			Components: util.CopyStringSlice(c.Monorail.Components),
+			Labels:     util.CopyStringSlice(c.Monorail.Labels),
 		}
 	}
 	return configCopy
@@ -280,6 +281,9 @@ type MonorailNotifierConfig struct {
 	// List of people to CC on bugs filed in Monorail. Optional.
 	CC []string `json:"cc,omitempty"`
 
+	// List of components to apply to the bugs. Optional.
+	Components []string `json:"components,omitempty"`
+
 	// List of labels to apply to bugs filed in Monorail. Optional.
 	Labels []string `json:"labels,omitempty"`
 }
@@ -297,16 +301,18 @@ func (c *MonorailNotifierConfig) Validate() error {
 
 // monorailNotifier is a Notifier implementation which files Monorail issues.
 type monorailNotifier struct {
-	tk     issues.IssueTracker
-	cc     []issues.MonorailPerson
-	labels []string
-	owner  issues.MonorailPerson
+	tk         issues.IssueTracker
+	cc         []issues.MonorailPerson
+	components []string
+	labels     []string
+	owner      issues.MonorailPerson
 }
 
 // See documentation for Notifier interface.
 func (n *monorailNotifier) Send(ctx context.Context, subject string, msg *Message) error {
 	req := issues.IssueRequest{
 		CC:          n.cc,
+		Components:  n.components,
 		Description: msg.Body,
 		Labels:      n.labels,
 		Owner:       n.owner,
@@ -317,7 +323,7 @@ func (n *monorailNotifier) Send(ctx context.Context, subject string, msg *Messag
 }
 
 // MonorailNotifier returns a Notifier which files bugs in Monorail.
-func MonorailNotifier(c *http.Client, project, owner string, cc []string, labels []string) (Notifier, error) {
+func MonorailNotifier(c *http.Client, project, owner string, cc, components, labels []string) (Notifier, error) {
 	var personCC []issues.MonorailPerson
 	if cc != nil {
 		personCC := make([]issues.MonorailPerson, 0, len(cc))
@@ -328,9 +334,10 @@ func MonorailNotifier(c *http.Client, project, owner string, cc []string, labels
 		}
 	}
 	return &monorailNotifier{
-		tk:     issues.NewMonorailIssueTracker(c, project),
-		cc:     personCC,
-		labels: labels,
+		tk:         issues.NewMonorailIssueTracker(c, project),
+		cc:         personCC,
+		components: components,
+		labels:     labels,
 		owner: issues.MonorailPerson{
 			Name: owner,
 		},
