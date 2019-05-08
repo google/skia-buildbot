@@ -24,14 +24,14 @@ type ExportDigestInfo struct {
 // ExportTestRecord accumulates the images/digests generated for one test.
 // This is the format of the meta.json file.
 type ExportTestRecord struct {
-	TestName string              `json:"testName"`
+	TestName types.TestName      `json:"testName"`
 	Digests  []*ExportDigestInfo `json:"digests"`
 }
 
 // GetExportRecords converts a given search response into a slice of ExportTestRecords.
 func GetExportRecords(searchResp *NewSearchResponse, imgBaseURL string) []*ExportTestRecord {
 	// Group the results by test.
-	retMap := map[string]*ExportTestRecord{}
+	retMap := map[types.TestName]*ExportTestRecord{}
 	for _, oneDigest := range searchResp.Digests {
 		testNameVal := oneDigest.ParamSet[types.PRIMARY_KEY_FIELD]
 		if len(testNameVal) == 0 {
@@ -44,7 +44,7 @@ func GetExportRecords(searchResp *NewSearchResponse, imgBaseURL string) []*Expor
 			URL:      DigestUrl(imgBaseURL, oneDigest.Digest),
 		}
 
-		testName := oneDigest.ParamSet[types.PRIMARY_KEY_FIELD][0]
+		testName := types.TestName(oneDigest.ParamSet[types.PRIMARY_KEY_FIELD][0])
 		if found, ok := retMap[testName]; ok {
 			found.Digests = append(found.Digests, digestInfo)
 		} else {
@@ -89,7 +89,7 @@ func ReadExportTestRecords(reader io.Reader) ([]*ExportTestRecord, error) {
 }
 
 // GetURL returns the URL given a base URL and the digest.
-func DigestUrl(baseURL, digest string) string {
+func DigestUrl(baseURL string, digest types.Digest) string {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return fmt.Sprintf(urlTemplate, baseURL, digest)
 }
