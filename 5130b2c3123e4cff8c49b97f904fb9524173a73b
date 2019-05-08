@@ -16,6 +16,24 @@
       "revId": "5130b2c3123e4cff8c49b97f904fb9524173a73b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13af37cb_6c6ad181",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-08T14:16:16Z",
+      "side": 1,
+      "message": "Sure, I don\u0027t feel strongly either way.  I suspect we\u0027ll generally want to do \"go get ./...\" as opposed to \"go get \u0026\u0026 go install ./...\".  The biggest problem here was simply not realizing that \"go get\" alone did not perform the install.",
+      "parentUuid": "e128865d_bf98f733",
+      "revId": "5130b2c3123e4cff8c49b97f904fb9524173a73b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
