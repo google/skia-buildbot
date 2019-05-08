@@ -1,0 +1,42 @@
+// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childName": "motion-interchange-objc",
+  "contacts": [
+    "jbudorick@chromium.org"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
+  "isInternal": false,
+  "parentName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "motion-interchange-objc-chromium-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "https://rota-ng.appspot.com/legacy/sheriff_ios.json"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "stable",
+    "childPath": "ios/third_party/motion_interchange_objc/src",
+    "childRepo": "https://chromium.googlesource.com/external/github.com/material-motion/motion-interchange-objc",
+    "includeBugs": false,
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+  },
+  "cqExtraTrybots": [
+    "luci.chrome.try:ios-internal-mdc"
+  ],
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0m"
+}
