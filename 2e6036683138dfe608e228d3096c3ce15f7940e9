@@ -118,6 +118,30 @@
       "revId": "2e6036683138dfe608e228d3096c3ce15f7940e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d8d291a_e59b01e8",
+        "filename": "autoroll/config/glslang-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 9672
+      },
+      "writtenOn": "2019-05-08T18:01:42Z",
+      "side": 1,
+      "message": "So, these are all radial-bots+chrome-roll@google.com but the reviewer is set to:  radial-bots+chrome-roll@chromium.org  ... not sure how that ended up as @chromium?",
+      "parentUuid": "24a79c8d_3bc8bfc1",
+      "range": {
+        "startLine": 23,
+        "startChar": 16,
+        "endLine": 23,
+        "endChar": 28
+      },
+      "revId": "2e6036683138dfe608e228d3096c3ce15f7940e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
