@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/types"
 )
 
 const (
@@ -98,7 +99,10 @@ func newMetricsStore(baseDir string, mapper DiffStoreMapper, codec util.LRUCodec
 	// instantiate metricsRecFactory which acts as codec and factory for metricsRec instances.
 	factoryCodec := &metricsRecFactory{
 		LRUCodec: util.JSONCodec(&metricsRec{}),
-		splitFn:  mapper.SplitDiffID,
+		splitFn: func(toSplit string) (string, string) {
+			a, b := mapper.SplitDiffID(toSplit)
+			return string(a), string(b)
+		},
 	}
 
 	config := &boltutil.Config{
@@ -166,9 +170,9 @@ func (m *metricsStore) saveDiffMetrics(id string, diffMetrics interface{}) error
 }
 
 // purgeDiffMetrics removes all diff metrics based on specific digests.
-func (m *metricsStore) purgeDiffMetrics(digests []string) error {
+func (m *metricsStore) purgeDiffMetrics(digests types.DigestSlice) error {
 	updateFn := func(tx *bolt.Tx) error {
-		metricIDMap, err := m.store.ReadIndexTx(tx, METRICS_DIGEST_INDEX, digests)
+		metricIDMap, err := m.store.ReadIndexTx(tx, METRICS_DIGEST_INDEX, asStrings(digests))
 		if err != nil {
 			return err
 		}

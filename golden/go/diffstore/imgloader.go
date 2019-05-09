@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/types"
 	"google.golang.org/api/option"
 )
 
@@ -79,7 +80,9 @@ func NewImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []s
 	}
 
 	// Set up the work queues that balance the load.
-	if ret.imageCache, err = rtcache.New(ret.imageLoadWorker, maxCacheSize, N_IMG_WORKERS); err != nil {
+	if ret.imageCache, err = rtcache.New(func(priority int64, digest string) (interface{}, error) {
+		return ret.imageLoadWorker(priority, types.Digest(digest))
+	}, maxCacheSize, N_IMG_WORKERS); err != nil {
 		return nil, err
 	}
 	return ret, nil
@@ -89,7 +92,7 @@ func NewImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []s
 // If synchronous is true the call blocks until all fetched images are written to disk.
 // It works in sync with Get, any image that is scheduled to be retrieved by Get
 // will not be fetched again.
-func (il *ImageLoader) Warm(priority int64, images []string, synchronous bool) {
+func (il *ImageLoader) Warm(priority int64, images types.DigestSlice, synchronous bool) {
 	var pendingWritesWG *sync.WaitGroup
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -112,7 +115,7 @@ func (il *ImageLoader) Warm(priority int64, images []string, synchronous bool) {
 // errResult is a helper type to capture error information in Get(...).
 type errResult struct {
 	err error
-	id  string
+	id  types.Digest
 }
 
 // Get returns the images identified by digests and returns them as NRGBA images.
@@ -120,7 +123,7 @@ type errResult struct {
 // The returned instance of WaitGroup can be used to wait until all images are
 // not just loaded but also written to disk. Calling the Wait() function of the
 // WaitGroup is optional and the client should not call any of its other functions.
-func (il *ImageLoader) Get(priority int64, images []string) ([]*image.NRGBA, *sync.WaitGroup, error) {
+func (il *ImageLoader) Get(priority int64, images types.DigestSlice) ([]*image.NRGBA, *sync.WaitGroup, error) {
 	// Parallel load the requested images.
 	result := make([]*image.NRGBA, len(images))
 	imgWrappers := make(imgRetSlice, len(images))
@@ -129,9 +132,9 @@ func (il *ImageLoader) Get(priority int64, images []string) ([]*image.NRGBA, *sy
 	var wg sync.WaitGroup
 	wg.Add(len(images))
 	for idx, id := range images {
-		go func(idx int, id string) {
+		go func(idx int, id types.Digest) {
 			defer wg.Done()
-			tmp, err := il.imageCache.Get(priority, id)
+			tmp, err := il.imageCache.Get(priority, string(id))
 			if err != nil {
 				errCh <- errResult{err: err, id: id}
 			} else {
@@ -168,13 +171,13 @@ func (il *ImageLoader) Get(priority int64, images []string) ([]*image.NRGBA, *sy
 }
 
 // IsOnDisk returns true if the image that corresponds to the given imageID is in the disk cache.
-func (il *ImageLoader) IsOnDisk(imageID string) bool {
+func (il *ImageLoader) IsOnDisk(imageID types.Digest) bool {
 	localRelPath, _, _ := il.mapper.ImagePaths(imageID)
 	return fileutil.FileExists(filepath.Join(il.localImgDir, localRelPath))
 }
 
 // PurgeImages removes the images that correspond to the given images.
-func (il *ImageLoader) PurgeImages(images []string, purgeGCS bool) error {
+func (il *ImageLoader) PurgeImages(images types.DigestSlice, purgeGCS bool) error {
 	for _, id := range images {
 		localRelPath, bucket, gsRelPath := il.mapper.ImagePaths(id)
 		localPath := filepath.Join(il.localImgDir, localRelPath)
@@ -193,7 +196,7 @@ func (il *ImageLoader) PurgeImages(images []string, purgeGCS bool) error {
 
 // imageLoadWorker implements the rtcache.ReadThroughFunc signature.
 // It loads an image file either from disk or from Google storage.
-func (il *ImageLoader) imageLoadWorker(priority int64, imageID string) (interface{}, error) {
+func (il *ImageLoader) imageLoadWorker(priority int64, imageID types.Digest) (interface{}, error) {
 	// Check if the image is in the disk cache.
 	localRelPath, bucket, gsRelPath := il.mapper.ImagePaths(imageID)
 	localPath := filepath.Join(il.localImgDir, localRelPath)
@@ -205,7 +208,7 @@ func (il *ImageLoader) imageLoadWorker(priority int64, imageID string) (interfac
 			return nil, skerr.Fmt("Could not load %s from disk: %s", localPath, err)
 		}
 		sklog.Debugf("Found it on disk at %s", localPath)
-		util.LogErr(il.failureStore.purgeDigestFailures([]string{imageID}))
+		util.LogErr(il.failureStore.purgeDigestFailures(types.DigestSlice{imageID}))
 		return &imgRet{img: img}, nil
 	}
 
@@ -229,7 +232,7 @@ func (il *ImageLoader) imageLoadWorker(priority int64, imageID string) (interfac
 	return &imgRet{writtenCh: writeDoneCh, img: img}, nil
 }
 
-func (il *ImageLoader) saveImgInfoAsync(imageID string, imgBytes []byte) <-chan bool {
+func (il *ImageLoader) saveImgInfoAsync(imageID types.Digest, imgBytes []byte) <-chan bool {
 	writeDoneCh := make(chan bool)
 	go func() {
 		defer close(writeDoneCh)

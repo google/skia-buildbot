@@ -7,6 +7,7 @@ import (
 	"go.skia.org/infra/go/boltutil"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/types"
 )
 
 const (
@@ -21,7 +22,7 @@ type digestFailureRec struct {
 
 // Key see boltutil.Record interface.
 func (d *digestFailureRec) Key() string {
-	return d.Digest
+	return string(d.Digest)
 }
 
 // IndexValues see boltutil.Record interface. No index at this point.
@@ -37,7 +38,7 @@ type failureStore struct {
 	store *boltutil.IndexedBucket
 
 	// cachedFailures caches all failures for fast lookup.
-	cachedFailures map[string]*diff.DigestFailure
+	cachedFailures map[types.Digest]*diff.DigestFailure
 
 	// dbMutex protects changes to the database.
 	dbMutex sync.Mutex
@@ -76,7 +77,7 @@ func newFailureStore(baseDir string) (*failureStore, error) {
 }
 
 // unavailableDigests returns the current list of unavailable digests for fast lookup.
-func (f *failureStore) unavailableDigests() map[string]*diff.DigestFailure {
+func (f *failureStore) unavailableDigests() map[types.Digest]*diff.DigestFailure {
 	f.cacheMutex.RLock()
 	defer f.cacheMutex.RUnlock()
 	return f.cachedFailures
@@ -119,7 +120,7 @@ func (f *failureStore) addDigestFailure(failure *diff.DigestFailure) error {
 }
 
 // purgeDigestFailures removes the failures identified by digests from the database.
-func (f *failureStore) purgeDigestFailures(digests []string) error {
+func (f *failureStore) purgeDigestFailures(digests types.DigestSlice) error {
 	f.dbMutex.Lock()
 	defer f.dbMutex.Unlock()
 
@@ -127,7 +128,7 @@ func (f *failureStore) purgeDigestFailures(digests []string) error {
 	unavailable := f.unavailableDigests()
 	for _, d := range digests {
 		if _, ok := unavailable[d]; ok {
-			targets = append(targets, d)
+			targets = append(targets, string(d))
 		}
 	}
 
@@ -135,7 +136,7 @@ func (f *failureStore) purgeDigestFailures(digests []string) error {
 		return nil
 	}
 
-	if err := f.store.Delete(digests); err != nil {
+	if err := f.store.Delete(targets); err != nil {
 		return err
 	}
 
@@ -149,7 +150,7 @@ func (f *failureStore) loadDigestFailures() error {
 		return err
 	}
 
-	ret := make(map[string]*diff.DigestFailure, len(allFailures))
+	ret := make(map[types.Digest]*diff.DigestFailure, len(allFailures))
 	for _, rec := range allFailures {
 		failure := rec.(*digestFailureRec)
 		ret[failure.Digest] = failure.DigestFailure

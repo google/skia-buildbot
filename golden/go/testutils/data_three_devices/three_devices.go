@@ -27,12 +27,12 @@ import (
 
 // human-readable variable names for the data (values are arbitrary, but valid)
 const (
-	AlphaGood1Digest      = "0cc175b9c0f1b6a831c399e269772661"
-	AlphaBad1Digest       = "92eb5ffee6ae2fec3ad71c777531578f"
-	AlphaUntriaged1Digest = "4a8a08f09d37b73795649038408b5f33"
+	AlphaGood1Digest      = types.Digest("0cc175b9c0f1b6a831c399e269772661")
+	AlphaBad1Digest       = types.Digest("92eb5ffee6ae2fec3ad71c777531578f")
+	AlphaUntriaged1Digest = types.Digest("4a8a08f09d37b73795649038408b5f33")
 
-	BetaGood1Digest      = "7277e0910d750195b448797616e091ad"
-	BetaUntriaged1Digest = "8fa14cdd754f91cc6554c9e71929cce7"
+	BetaGood1Digest      = types.Digest("7277e0910d750195b448797616e091ad")
+	BetaUntriaged1Digest = types.Digest("8fa14cdd754f91cc6554c9e71929cce7")
 
 	FirstCommitHash  = "a3f82d283f72b5d51ecada8ec56ec8ff4aa81c6c"
 	SecondCommitHash = "b52f7829a2384b001cc12b0c2613c756454a1f6a"
@@ -42,8 +42,8 @@ const (
 	SecondCommitAuthor = "beta@example.com"
 	ThirdCommitAuthor  = "gamma@example.com"
 
-	AlphaTest = "test_alpha"
-	BetaTest  = "test_beta"
+	AlphaTest = types.TestName("test_alpha")
+	BetaTest  = types.TestName("test_beta")
 )
 
 func MakeTestBaseline() *baseline.CommitableBaseline {
@@ -59,13 +59,13 @@ func MakeTestBaseline() *baseline.CommitableBaseline {
 			Author:     ThirdCommitAuthor,
 		},
 		Baseline: types.TestExp{
-			AlphaTest: map[string]types.Label{
+			AlphaTest: map[types.Digest]types.Label{
 				// These hashes are arbitrarily made up and have no real-world meaning.
 				AlphaGood1Digest:      types.POSITIVE,
 				AlphaUntriaged1Digest: types.UNTRIAGED,
 				AlphaBad1Digest:       types.NEGATIVE,
 			},
-			BetaTest: map[string]types.Label{
+			BetaTest: map[types.Digest]types.Label{
 				// These hashes are arbitrarily made up and have no real-world meaning.
 				BetaGood1Digest:      types.POSITIVE,
 				BetaUntriaged1Digest: types.UNTRIAGED,
@@ -110,56 +110,56 @@ func MakeTestTile() *tiling.Tile {
 		Scale:     1,
 		TileIndex: 0,
 
-		Traces: map[string]tiling.Trace{
+		Traces: map[tiling.TraceId]tiling.Trace{
 			// Reminder that the ids for the traces are created by concatenating
 			// all the values in alphabetical order of the keys.
 			"angler:test_alpha:gm": &types.GoldenTrace{
-				Digests: []string{AlphaBad1Digest, AlphaBad1Digest, AlphaGood1Digest},
+				Digests: types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaGood1Digest},
 				Keys: map[string]string{
 					"device":                "angler",
-					types.PRIMARY_KEY_FIELD: AlphaTest,
+					types.PRIMARY_KEY_FIELD: string(AlphaTest),
 					types.CORPUS_FIELD:      "gm",
 				},
 			},
 			"angler:test_beta:gm": &types.GoldenTrace{
-				Digests: []string{BetaGood1Digest, BetaGood1Digest, BetaGood1Digest},
+				Digests: types.DigestSlice{BetaGood1Digest, BetaGood1Digest, BetaGood1Digest},
 				Keys: map[string]string{
 					"device":                "angler",
-					types.PRIMARY_KEY_FIELD: BetaTest,
+					types.PRIMARY_KEY_FIELD: string(BetaTest),
 					types.CORPUS_FIELD:      "gm",
 				},
 			},
 
 			"bullhead:test_alpha:gm": &types.GoldenTrace{
-				Digests: []string{AlphaBad1Digest, AlphaBad1Digest, AlphaUntriaged1Digest},
+				Digests: types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaUntriaged1Digest},
 				Keys: map[string]string{
 					"device":                "bullhead",
-					types.PRIMARY_KEY_FIELD: AlphaTest,
+					types.PRIMARY_KEY_FIELD: string(AlphaTest),
 					types.CORPUS_FIELD:      "gm",
 				},
 			},
 			"bullhead:test_beta:gm": &types.GoldenTrace{
-				Digests: []string{BetaGood1Digest, BetaGood1Digest, BetaGood1Digest},
+				Digests: types.DigestSlice{BetaGood1Digest, BetaGood1Digest, BetaGood1Digest},
 				Keys: map[string]string{
 					"device":                "bullhead",
-					types.PRIMARY_KEY_FIELD: BetaTest,
+					types.PRIMARY_KEY_FIELD: string(BetaTest),
 					types.CORPUS_FIELD:      "gm",
 				},
 			},
 
 			"crosshatch:test_alpha:gm": &types.GoldenTrace{
-				Digests: []string{AlphaBad1Digest, AlphaBad1Digest, AlphaGood1Digest},
+				Digests: types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaGood1Digest},
 				Keys: map[string]string{
 					"device":                "crosshatch",
-					types.PRIMARY_KEY_FIELD: AlphaTest,
+					types.PRIMARY_KEY_FIELD: string(AlphaTest),
 					types.CORPUS_FIELD:      "gm",
 				},
 			},
 			"crosshatch:test_beta:gm": &types.GoldenTrace{
-				Digests: []string{BetaUntriaged1Digest, types.MISSING_DIGEST, types.MISSING_DIGEST},
+				Digests: types.DigestSlice{BetaUntriaged1Digest, types.MISSING_DIGEST, types.MISSING_DIGEST},
 				Keys: map[string]string{
 					"device":                "crosshatch",
-					types.PRIMARY_KEY_FIELD: BetaTest,
+					types.PRIMARY_KEY_FIELD: string(BetaTest),
 					types.CORPUS_FIELD:      "gm",
 				},
 			},

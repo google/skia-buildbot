@@ -14,15 +14,16 @@ import (
 
 type MockDiffStore struct{}
 
-func (m MockDiffStore) ImageHandler(urlPrefix string) (http.Handler, error)                   { return nil, nil }
-func (m MockDiffStore) WarmDigests(priority int64, digests []string, sync bool)               {}
-func (m MockDiffStore) WarmDiffs(priority int64, leftDigests []string, rightDigests []string) {}
-func (m MockDiffStore) UnavailableDigests() map[string]*diff.DigestFailure                    { return nil }
-func (m MockDiffStore) PurgeDigests(digests []string, purgeGCS bool) error                    { return nil }
+func (m MockDiffStore) ImageHandler(urlPrefix string) (http.Handler, error)              { return nil, nil }
+func (m MockDiffStore) WarmDigests(priority int64, digests types.DigestSlice, sync bool) {}
+func (m MockDiffStore) WarmDiffs(priority int64, leftDigests, rightDigests types.DigestSlice) {
+}
+func (m MockDiffStore) UnavailableDigests() map[types.Digest]*diff.DigestFailure    { return nil }
+func (m MockDiffStore) PurgeDigests(digests types.DigestSlice, purgeGCS bool) error { return nil }
 
 // Get always finds that digest "eee" is closest to dMain.
-func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[string]interface{}, error) {
-	result := map[string]interface{}{}
+func (m MockDiffStore) Get(priority int64, dMain types.Digest, dRest types.DigestSlice) (map[types.Digest]interface{}, error) {
+	result := map[types.Digest]interface{}{}
 	for i, d := range dRest {
 		diffPercent := float32(i + 2)
 		if d == "eee" {
@@ -40,7 +41,7 @@ func TestClosestDigest(t *testing.T) {
 	testutils.SmallTest(t)
 	diffStore := MockDiffStore{}
 	testExp := types.TestExp{
-		"foo": map[string]types.Label{
+		"foo": map[types.Digest]types.Label{
 			"aaa": types.POSITIVE,
 			"bbb": types.NEGATIVE,
 			"ccc": types.UNTRIAGED,
@@ -61,19 +62,19 @@ func TestClosestDigest(t *testing.T) {
 	// First test against a test that has positive digests.
 	c := ClosestDigest("foo", "fff", exp, digestCounts, diffStore, types.POSITIVE)
 	assert.InDelta(t, 0.0372, float64(c.Diff), 0.01)
-	assert.Equal(t, "eee", c.Digest)
+	assert.Equal(t, types.Digest("eee"), c.Digest)
 	assert.Equal(t, []int{5, 3, 4, 0}, c.MaxRGBA)
 
 	// Now test against a test with no positive digests.
 	c = ClosestDigest("bar", "fff", exp, digestCounts, diffStore, types.POSITIVE)
 	assert.Equal(t, float32(math.MaxFloat32), c.Diff)
-	assert.Equal(t, "", c.Digest)
+	assert.Equal(t, types.Digest(""), c.Digest)
 	assert.Equal(t, []int{}, c.MaxRGBA)
 
 	// Now test against negative digests.
 	c = ClosestDigest("foo", "fff", exp, digestCounts, diffStore, types.NEGATIVE)
 	assert.InDelta(t, 0.166, float64(c.Diff), 0.01)
-	assert.Equal(t, "bbb", c.Digest)
+	assert.Equal(t, types.Digest("bbb"), c.Digest)
 	assert.Equal(t, []int{5, 3, 4, 0}, c.MaxRGBA)
 }
 

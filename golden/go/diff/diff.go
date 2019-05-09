@@ -13,6 +13,7 @@ import (
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/types"
 )
 
 var (
@@ -92,15 +93,15 @@ const (
 
 // DigestFailure captures the details of a digest error that occurred.
 type DigestFailure struct {
-	Digest string  `json:"digest"`
-	Reason DiffErr `json:"reason"`
-	TS     int64   `json:"ts"`
+	Digest types.Digest `json:"digest"`
+	Reason DiffErr      `json:"reason"`
+	TS     int64        `json:"ts"`
 }
 
 // NewDigestFailure is a convenience function to create an instance of DigestFailure.
 // It sets the provided arguments in the correct fields and adds a timestamp with
 // the current time in milliseconds.
-func NewDigestFailure(digest string, reason DiffErr) *DigestFailure {
+func NewDigestFailure(digest types.Digest, reason DiffErr) *DigestFailure {
 	return &DigestFailure{
 		Digest: digest,
 		Reason: reason,
@@ -133,7 +134,7 @@ const (
 type DiffStore interface {
 	// Get returns the DiffMetrics of the provided dMain digest vs all digests
 	// specified in dRest.
-	Get(priority int64, mainDigest string, rightDigests []string) (map[string]interface{}, error)
+	Get(priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]interface{}, error)
 
 	// ImageHandler returns a http.Handler for the given path prefix. The caller
 	// can then serve images of the format:
@@ -143,22 +144,22 @@ type DiffStore interface {
 
 	// WarmDigest will fetch the given digests. If sync is true the call will
 	// block until all digests have been fetched or failed to fetch.
-	WarmDigests(priority int64, digests []string, sync bool)
+	WarmDigests(priority int64, digests types.DigestSlice, sync bool)
 
 	// WarmDiffs will calculate the difference between every digests in
 	// leftDigests and every in digests in rightDigests.
-	WarmDiffs(priority int64, leftDigests []string, rightDigests []string)
+	WarmDiffs(priority int64, leftDigests types.DigestSlice, rightDigests types.DigestSlice)
 
 	// UnavailableDigests returns map[digest]*DigestFailure which can be used
 	// to check whether a digest could not be processed and to provide details
 	// about failures.
-	UnavailableDigests() map[string]*DigestFailure
+	UnavailableDigests() map[types.Digest]*DigestFailure
 
 	// PurgeDigests removes all information related to the indicated digests
 	// (image, diffmetric) from local caches. If purgeGCS is true it will also
 	// purge the digests image from Google storage, forcing that the digest
 	// be re-uploaded by the build bots.
-	PurgeDigests(digests []string, purgeGCS bool) error
+	PurgeDigests(digests types.DigestSlice, purgeGCS bool) error
 }
 
 // OpenNRGBA reads an NRGBA image from the given reader.

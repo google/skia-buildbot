@@ -93,7 +93,7 @@ func (wh *WebHandlers) JsonByBlameHandler(w http.ResponseWriter, r *http.Request
 	// The Commit info for each group id.
 	commitinfo := map[string][]*tiling.Commit{}
 	// map [groupid] [test] TestRollup
-	rollups := map[string]map[string]*TestRollup{}
+	rollups := map[string]map[types.TestName]*TestRollup{}
 
 	for test, s := range sum {
 		for _, d := range s.UntHashes {
@@ -121,7 +121,7 @@ func (wh *WebHandlers) JsonByBlameHandler(w http.ResponseWriter, r *http.Request
 				grouped[groupid] = append(grouped[groupid], value)
 			}
 			if _, ok := rollups[groupid]; !ok {
-				rollups[groupid] = map[string]*TestRollup{}
+				rollups[groupid] = map[types.TestName]*TestRollup{}
 			}
 			// Calculate the rollups.
 			if _, ok := rollups[groupid][test]; !ok {
@@ -166,11 +166,11 @@ func (wh *WebHandlers) JsonByBlameHandler(w http.ResponseWriter, r *http.Request
 }
 
 // allUntriagedSummaries returns a tile and summaries for all untriaged GMs.
-func allUntriagedSummaries(idx *indexer.SearchIndex, query url.Values) (*tiling.Tile, map[string]*summary.Summary, error) {
+func allUntriagedSummaries(idx *indexer.SearchIndex, query url.Values) (*tiling.Tile, map[types.TestName]*summary.Summary, error) {
 	tile := idx.CpxTile().GetTile(true)
 
 	// Get a list of all untriaged images by test.
-	sum, err := idx.CalcSummaries([]string{}, query, false, true)
+	sum, err := idx.CalcSummaries([]types.TestName{}, query, false, true)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Couldn't load summaries: %s", err)
 	}
@@ -204,8 +204,8 @@ func (b ByBlameEntrySlice) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
 
 // ByBlame describes a single digest and it's blames.
 type ByBlame struct {
-	Test          string                   `json:"test"`
-	Digest        string                   `json:"digest"`
+	Test          types.TestName           `json:"test"`
+	Digest        types.Digest             `json:"digest"`
 	Blame         *blame.BlameDistribution `json:"blame"`
 	CommitIndices []int                    `json:"commit_indices"`
 	Key           string
@@ -219,9 +219,9 @@ func (p CommitSlice) Less(i, j int) bool { return p[i].CommitTime > p[j].CommitT
 func (p CommitSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 type TestRollup struct {
-	Test         string `json:"test"`
-	Num          int    `json:"num"`
-	SampleDigest string `json:"sample_digest"`
+	Test         types.TestName `json:"test"`
+	Num          int            `json:"num"`
+	SampleDigest types.Digest   `json:"sample_digest"`
 }
 
 // JsonTryjobListHandler returns the list of Gerrit issues that have triggered
@@ -355,7 +355,7 @@ func (wh *WebHandlers) JsonDetailsHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	ret, err := wh.SearchAPI.GetDigestDetails(test, digest)
+	ret, err := wh.SearchAPI.GetDigestDetails(types.TestName(test), types.Digest(digest))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to get digest details.")
 		return
@@ -378,7 +378,7 @@ func (wh *WebHandlers) JsonDiffHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ret, err := search.CompareDigests(test, left, right, wh.Storages, wh.Indexer.GetIndex())
+	ret, err := search.CompareDigests(types.TestName(test), types.Digest(left), types.Digest(right), wh.Storages, wh.Indexer.GetIndex())
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to compare digests")
 		return
@@ -515,7 +515,7 @@ func (wh *WebHandlers) JsonIgnoresAddHandler(w http.ResponseWriter, r *http.Requ
 // TriageRequest is the form of the JSON posted to jsonTriageHandler.
 type TriageRequest struct {
 	// TestDigestStatus maps status to test name and digests as: map[testName][digest]status
-	TestDigestStatus map[string]map[string]string `json:"testDigestStatus"`
+	TestDigestStatus map[types.TestName]map[types.Digest]string `json:"testDigestStatus"`
 
 	// Issue is the id of the code review issue for which we want to change the expectations.
 	Issue int64 `json:"issue"`
@@ -545,7 +545,7 @@ func (wh *WebHandlers) JsonTriageHandler(w http.ResponseWriter, r *http.Request)
 	// Build the expectations change request from the list of digests passed in.
 	tc = make(types.TestExp, len(req.TestDigestStatus))
 	for test, digests := range req.TestDigestStatus {
-		labeledDigests := make(map[string]types.Label, len(digests))
+		labeledDigests := make(map[types.Digest]types.Label, len(digests))
 		for d, label := range digests {
 			if !types.ValidLabel(label) {
 				httputils.ReportError(w, r, nil, "Receive invalid label in triage request.")
@@ -611,21 +611,21 @@ func (wh *WebHandlers) JsonClusterDiffHandler(w http.ResponseWriter, r *http.Req
 	// // they will be displayed 'on top', because in SVG document order is z-order.
 	// sort.Sort(SearchDigestSlice(searchResponse.Digests))
 
-	digests := []string{}
+	digests := types.DigestSlice{}
 	for _, digest := range searchResponse.Digests {
 		digests = append(digests, digest.Digest)
 	}
 
-	digestIndex := map[string]int{}
+	digestIndex := map[types.Digest]int{}
 	for i, d := range digests {
 		digestIndex[d] = i
 	}
 
 	d3 := ClusterDiffResult{
-		Test:             testName,
+		Test:             types.TestName(testName),
 		Nodes:            []Node{},
 		Links:            []Link{},
-		ParamsetByDigest: map[string]map[string][]string{},
+		ParamsetByDigest: map[types.Digest]map[string][]string{},
 		ParamsetsUnion:   map[string][]string{},
 	}
 	for i, d := range searchResponse.Digests {
@@ -677,8 +677,8 @@ func (p SearchDigestSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 
 // Node represents a single node in a d3 diagram. Used in ClusterDiffResult.
 type Node struct {
-	Name   string `json:"name"`
-	Status string `json:"status"`
+	Name   types.Digest `json:"name"`
+	Status string       `json:"status"`
 }
 
 // Link represents a link between d3 nodes, used in ClusterDiffResult.
@@ -694,9 +694,9 @@ type ClusterDiffResult struct {
 	Nodes []Node `json:"nodes"`
 	Links []Link `json:"links"`
 
-	Test             string                         `json:"test"`
-	ParamsetByDigest map[string]map[string][]string `json:"paramsetByDigest"`
-	ParamsetsUnion   map[string][]string            `json:"paramsetsUnion"`
+	Test             types.TestName                       `json:"test"`
+	ParamsetByDigest map[types.Digest]map[string][]string `json:"paramsetByDigest"`
+	ParamsetsUnion   map[string][]string                  `json:"paramsetsUnion"`
 }
 
 // JsonListTestsHandler returns a JSON list with high level information about
@@ -838,7 +838,7 @@ func (wh *WebHandlers) purgeDigests(w http.ResponseWriter, r *http.Request) bool
 		return false
 	}
 
-	digests := []string{}
+	digests := types.DigestSlice{}
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&digests); err != nil {
 		httputils.ReportError(w, r, err, "Unable to decode digest list.")
@@ -1052,7 +1052,7 @@ func (wh *WebHandlers) TextAllHashesHandler(w http.ResponseWriter, r *http.Reque
 
 	idx := wh.Indexer.GetIndex()
 	byTest := idx.DigestCountsByTest(true)
-	hashes := map[string]bool{}
+	hashes := map[types.Digest]bool{}
 	for _, test := range byTest {
 		for k := range test {
 			if _, ok := unavailableDigests[k]; !ok {

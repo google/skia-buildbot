@@ -10,7 +10,6 @@ import (
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
@@ -23,12 +22,12 @@ import (
 // It is not thread safe. The client of this package needs to make sure there
 // are no conflicts.
 type Summary struct {
-	Name      string                 `json:"name"`
+	Name      types.TestName         `json:"name"`
 	Diameter  int                    `json:"diameter"`
 	Pos       int                    `json:"pos"`
 	Neg       int                    `json:"neg"`
 	Untriaged int                    `json:"untriaged"`
-	UntHashes []string               `json:"untHashes"`
+	UntHashes types.DigestSlice      `json:"untHashes"`
 	Num       int                    `json:"num"`
 	Corpus    string                 `json:"corpus"`
 	Blame     []*blame.WeightedBlame `json:"blame"`
@@ -38,7 +37,7 @@ type Summary struct {
 func (s *Summary) clone() *Summary {
 	ret := &Summary{}
 	*ret = *s
-	ret.UntHashes = append([]string(nil), s.UntHashes...)
+	ret.UntHashes = append(types.DigestSlice(nil), s.UntHashes...)
 	ret.Blame = append([]*blame.WeightedBlame(nil), s.Blame...)
 	for idx, b := range s.Blame {
 		ret.Blame[idx] = &blame.WeightedBlame{}
@@ -54,7 +53,7 @@ type Summaries struct {
 	storages  *storage.Storage
 	dCounter  digest_counter.DigestCounter
 	blamer    blame.Blamer
-	summaries map[string]*Summary
+	summaries map[types.TestName]*Summary
 }
 
 // New creates a new instance of Summaries.
@@ -66,7 +65,7 @@ func New(storages *storage.Storage) *Summaries {
 
 // Clone creates a deep copy of the Summaries instance.
 func (s *Summaries) Clone() *Summaries {
-	copied := make(map[string]*Summary, len(s.summaries))
+	copied := make(map[types.TestName]*Summary, len(s.summaries))
 	for k, v := range s.summaries {
 		copied[k] = v.clone()
 	}
@@ -82,7 +81,7 @@ func (s *Summaries) Clone() *Summaries {
 // Calculate sets the summaries based on the given tile. If testNames is empty
 // (or nil) the entire tile will be calculated. Otherwise only the given
 // test names will be updated.
-func (s *Summaries) Calculate(tile *tiling.Tile, testNames []string, dCounter digest_counter.DigestCounter, blamer blame.Blamer) error {
+func (s *Summaries) Calculate(tile *tiling.Tile, testNames []types.TestName, dCounter digest_counter.DigestCounter, blamer blame.Blamer) error {
 	s.dCounter = dCounter
 	s.blamer = blamer
 
@@ -103,14 +102,23 @@ func (s *Summaries) Calculate(tile *tiling.Tile, testNames []string, dCounter di
 }
 
 // Get returns the summaries keyed by the test names.
-func (s *Summaries) Get() map[string]*Summary {
+func (s *Summaries) Get() map[types.TestName]*Summary {
 	return s.summaries
 }
 
-// TraceID is used to hold traces, along with their ids.
-type TraceID struct {
-	id string
+// tracePair is used to hold traces, along with their ids.
+type tracePair struct {
+	id tiling.TraceId
 	tr tiling.Trace
+}
+
+func in(t types.TestName, tests []types.TestName) bool {
+	for _, x := range tests {
+		if x == t {
+			return true
+		}
+	}
+	return false
 }
 
 // CalcSummaries returns a Summary for each test that matches the given input filters.
@@ -122,11 +130,11 @@ type TraceID struct {
 // head
 //   Only consider digests at head if true.
 //
-func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []string, query url.Values, head bool) (map[string]*Summary, error) {
+func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []types.TestName, query url.Values, head bool) (map[types.TestName]*Summary, error) {
 	defer shared.NewMetricsTimer("calc_summaries_total").Stop()
 	sklog.Infof("CalcSummaries: head %v", head)
 
-	ret := map[string]*Summary{}
+	ret := map[types.TestName]*Summary{}
 
 	t := shared.NewMetricsTimer("calc_summaries_expectations")
 	e, err := s.storages.ExpectationsStore.Get()
@@ -136,18 +144,18 @@ func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []string, query u
 	}
 
 	// Filter down to just the traces we are interested in, based on query.
-	filtered := map[string][]*TraceID{}
+	filtered := map[types.TestName][]*tracePair{}
 	t = shared.NewMetricsTimer("calc_summaries_filter_traces")
 	for id, tr := range tile.Traces {
-		name := tr.Params()[types.PRIMARY_KEY_FIELD]
-		if len(testNames) > 0 && !util.In(name, testNames) {
+		name := types.TestName(tr.Params()[types.PRIMARY_KEY_FIELD])
+		if len(testNames) > 0 && !in(name, testNames) {
 			continue
 		}
 		if tiling.Matches(tr, query) {
 			if slice, ok := filtered[name]; ok {
-				filtered[name] = append(slice, &TraceID{tr: tr, id: id})
+				filtered[name] = append(slice, &tracePair{tr: tr, id: id})
 			} else {
-				filtered[name] = []*TraceID{{tr: tr, id: id}}
+				filtered[name] = []*tracePair{{tr: tr, id: id}}
 			}
 		}
 	}
@@ -159,7 +167,7 @@ func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []string, query u
 	t = shared.NewMetricsTimer("calc_summaries_tally")
 	lastCommitIndex := tile.LastCommitIndex()
 	for name, traces := range filtered {
-		digests := util.NewStringSet()
+		digestMap := types.DigestSet{}
 		corpus := ""
 		for _, trid := range traces {
 			corpus = trid.tr.Params()[types.CORPUS_FIELD]
@@ -169,7 +177,7 @@ func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []string, query u
 					if trid.tr.IsMissing(i) {
 						continue
 					} else {
-						digests[trid.tr.(*types.GoldenTrace).Digests[i]] = true
+						digestMap[trid.tr.(*types.GoldenTrace).Digests[i]] = true
 						break
 					}
 				}
@@ -177,18 +185,18 @@ func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []string, query u
 				// Use the digestsByTrace if available, otherwise just inspect the trace.
 				if t, ok := digestsByTrace[trid.id]; ok {
 					for k := range t {
-						digests[k] = true
+						digestMap[k] = true
 					}
 				} else {
 					for i := lastCommitIndex; i >= 0; i-- {
 						if !trid.tr.IsMissing(i) {
-							digests[trid.tr.(*types.GoldenTrace).Digests[i]] = true
+							digestMap[trid.tr.(*types.GoldenTrace).Digests[i]] = true
 						}
 					}
 				}
 			}
 		}
-		ret[name] = s.makeSummary(name, e, s.storages.DiffStore, corpus, digests.Keys())
+		ret[name] = s.makeSummary(name, e, s.storages.DiffStore, corpus, digestMap.Keys())
 	}
 	t.Stop()
 
@@ -197,8 +205,8 @@ func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []string, query u
 
 // DigestInfo is test name and a digest found in that test. Returned from Search.
 type DigestInfo struct {
-	Test   string `json:"test"`
-	Digest string `json:"digest"`
+	Test   types.TestName `json:"test"`
+	Digest types.Digest   `json:"digest"`
 }
 
 // TODO(stephana): search should probably be removed because it is not used
@@ -222,7 +230,7 @@ func (s *Summaries) search(tile *tiling.Tile, query string, head bool, pos bool,
 	}
 
 	// Filter down to just the traces we are interested in, based on query.
-	filtered := map[string]tiling.Trace{}
+	filtered := map[tiling.TraceId]tiling.Trace{}
 	t = shared.NewMetricsTimer("search_filter_traces")
 	for id, tr := range tile.Traces {
 		if tiling.Matches(tr, q) {
@@ -245,14 +253,14 @@ func (s *Summaries) search(tile *tiling.Tile, query string, head bool, pos bool,
 				if trace.IsMissing(i) {
 					continue
 				} else {
-					matches[test+":"+trace.(*types.GoldenTrace).Digests[i]] = true
+					matches[test+":"+string(trace.(*types.GoldenTrace).Digests[i])] = true
 					break
 				}
 			}
 		} else {
 			if t, ok := digestsByTrace[id]; ok {
 				for d := range t {
-					matches[test+":"+d] = true
+					matches[test+":"+string(d)] = true
 				}
 			}
 		}
@@ -268,8 +276,8 @@ func (s *Summaries) search(tile *tiling.Tile, query string, head bool, pos bool,
 			sklog.Errorf("Invalid test name or digest value: %s", key)
 			continue
 		}
-		test := testDigest[0]
-		digest := testDigest[1]
+		test := types.TestName(testDigest[0])
+		digest := types.Digest(testDigest[1])
 		class := e.Classification(test, digest)
 		switch {
 		case class == types.NEGATIVE && !neg:
@@ -289,12 +297,12 @@ func (s *Summaries) search(tile *tiling.Tile, query string, head bool, pos bool,
 }
 
 // makeSummary returns a Summary for the given digests.
-func (s *Summaries) makeSummary(name string, e types.TestExpBuilder, diffStore diff.DiffStore, corpus string, digests []string) *Summary {
+func (s *Summaries) makeSummary(name types.TestName, e types.TestExpBuilder, diffStore diff.DiffStore, corpus string, digests types.DigestSlice) *Summary {
 	pos := 0
 	neg := 0
 	unt := 0
-	diamDigests := []string{}
-	untHashes := []string{}
+	diamDigests := types.DigestSlice{}
+	untHashes := types.DigestSlice{}
 	testExp := e.TestExp()
 	if expectations, ok := testExp[name]; ok {
 		for _, digest := range digests {
@@ -321,8 +329,8 @@ func (s *Summaries) makeSummary(name string, e types.TestExpBuilder, diffStore d
 		diamDigests = digests
 		untHashes = digests
 	}
-	sort.Strings(diamDigests)
-	sort.Strings(untHashes)
+	sort.Sort(diamDigests)
+	sort.Sort(untHashes)
 	return &Summary{
 		Name: name,
 		// TODO(jcgregorio) Make diameter faster, and also make the actual diameter
@@ -339,7 +347,7 @@ func (s *Summaries) makeSummary(name string, e types.TestExpBuilder, diffStore d
 	}
 }
 
-func diameter(digests []string, diffStore diff.DiffStore) int {
+func diameter(digests types.DigestSlice, diffStore diff.DiffStore) int {
 	// TODO Parallelize.
 	lock := sync.Mutex{}
 	max := 0
@@ -349,7 +357,7 @@ func diameter(digests []string, diffStore diff.DiffStore) int {
 			break
 		}
 		wg.Add(1)
-		go func(d1 string, d2 []string) {
+		go func(d1 types.Digest, d2 types.DigestSlice) {
 			defer wg.Done()
 			dms, err := diffStore.Get(diff.PRIORITY_NOW, d1, d2)
 			if err != nil {

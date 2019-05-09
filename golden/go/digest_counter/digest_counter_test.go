@@ -7,7 +7,6 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -18,7 +17,7 @@ func TestDigestCountCalculate(t *testing.T) {
 	dc := New()
 	dc.Calculate(tile)
 
-	assert.Equal(t, map[string]DigestCount{
+	assert.Equal(t, map[tiling.TraceId]DigestCount{
 		x86TestAlphaTraceID: {
 			// FirstDigest showed up twice for this test+config and SecondDigest only once.
 			FirstDigest:  2,
@@ -31,7 +30,7 @@ func TestDigestCountCalculate(t *testing.T) {
 		},
 	}, dc.ByTrace())
 
-	assert.Equal(t, map[string]DigestCount{
+	assert.Equal(t, map[types.TestName]DigestCount{
 		AlphaTest: {
 			// AlphaTest was the only test, so these are the counts for both configs.
 			FirstDigest:  3,
@@ -40,7 +39,7 @@ func TestDigestCountCalculate(t *testing.T) {
 		},
 	}, dc.ByTest())
 
-	assert.Equal(t, map[string]util.StringSet{
+	assert.Equal(t, map[types.TestName]types.DigestSet{
 		AlphaTest: {
 			// AlphaTest had the most of any digest in this test (see above)
 			FirstDigest: true,
@@ -56,7 +55,7 @@ func TestDigestCountCalculateTies(t *testing.T) {
 	dc := New()
 	dc.Calculate(tile)
 
-	assert.Equal(t, map[string]util.StringSet{
+	assert.Equal(t, map[types.TestName]types.DigestSet{
 		AlphaTest: {
 			FirstDigest:  true,
 			SecondDigest: true,
@@ -67,7 +66,7 @@ func TestDigestCountCalculateTies(t *testing.T) {
 		},
 	}, dc.MaxDigestsByTest())
 
-	assert.Equal(t, map[string]DigestCount{
+	assert.Equal(t, map[types.TestName]DigestCount{
 		AlphaTest: {
 			FirstDigest:  2,
 			SecondDigest: 2,
@@ -105,7 +104,7 @@ func TestDigestCountByQuery(t *testing.T) {
 	}, bq)
 
 	bq = dc.ByQuery(tile, url.Values{
-		types.PRIMARY_KEY_FIELD: []string{AlphaTest},
+		types.PRIMARY_KEY_FIELD: []string{string(AlphaTest)},
 	})
 
 	assert.Equal(t, DigestCount{
@@ -117,39 +116,39 @@ func TestDigestCountByQuery(t *testing.T) {
 
 // arbitrary, but valid md5 hashes
 const (
-	FirstDigest  = "aaa4bc0a9335c27f086f24ba207a4912"
-	SecondDigest = "bbbd0bd836b90d08f4cf640b4c298e7c"
-	ThirdDigest  = "ccc23a9039add2978bf5b49550572c7c"
+	FirstDigest  = types.Digest("aaa4bc0a9335c27f086f24ba207a4912")
+	SecondDigest = types.Digest("bbbd0bd836b90d08f4cf640b4c298e7c")
+	ThirdDigest  = types.Digest("ccc23a9039add2978bf5b49550572c7c")
 
-	AlphaTest = "test_alpha"
-	BetaTest  = "test_beta"
+	AlphaTest = types.TestName("test_alpha")
+	BetaTest  = types.TestName("test_beta")
 
-	x86TestAlphaTraceID = "x86:test_alpha:gm"
-	x64TestAlphaTraceID = "x86_64:test_alpha:image"
+	x86TestAlphaTraceID = tiling.TraceId("x86:test_alpha:gm")
+	x64TestAlphaTraceID = tiling.TraceId("x86_64:test_alpha:image")
 
-	x64TestBetaTraceID = "x86_64:test_beta:image"
+	x64TestBetaTraceID = tiling.TraceId("x86_64:test_beta:image")
 )
 
 func makePartialTileOne() *tiling.Tile {
 	return &tiling.Tile{
 		// Commits, Scale and Tile Index omitted (should not affect things)
 
-		Traces: map[string]tiling.Trace{
+		Traces: map[tiling.TraceId]tiling.Trace{
 			// Reminder that the ids for the traces are created by concatenating
 			// all the values in alphabetical order of the keys.
 			x86TestAlphaTraceID: &types.GoldenTrace{
-				Digests: []string{FirstDigest, FirstDigest, SecondDigest},
+				Digests: types.DigestSlice{FirstDigest, FirstDigest, SecondDigest},
 				Keys: map[string]string{
 					"config":                "x86",
-					types.PRIMARY_KEY_FIELD: AlphaTest,
+					types.PRIMARY_KEY_FIELD: string(AlphaTest),
 					types.CORPUS_FIELD:      "gm",
 				},
 			},
 			x64TestAlphaTraceID: &types.GoldenTrace{
-				Digests: []string{ThirdDigest, FirstDigest, types.MISSING_DIGEST},
+				Digests: types.DigestSlice{ThirdDigest, FirstDigest, types.MISSING_DIGEST},
 				Keys: map[string]string{
 					"config":                "x86_64",
-					types.PRIMARY_KEY_FIELD: AlphaTest,
+					types.PRIMARY_KEY_FIELD: string(AlphaTest),
 					types.CORPUS_FIELD:      "image",
 				},
 			},
@@ -162,22 +161,22 @@ func makePartialTileTwo() *tiling.Tile {
 	return &tiling.Tile{
 		// Commits, Scale and Tile Index omitted (should not affect things)
 
-		Traces: map[string]tiling.Trace{
+		Traces: map[tiling.TraceId]tiling.Trace{
 			// Reminder that the ids for the traces are created by concatenating
 			// all the values in alphabetical order of the keys.
 			x86TestAlphaTraceID: &types.GoldenTrace{
-				Digests: []string{FirstDigest, FirstDigest, SecondDigest, SecondDigest},
+				Digests: types.DigestSlice{FirstDigest, FirstDigest, SecondDigest, SecondDigest},
 				Keys: map[string]string{
 					"config":                "x86",
-					types.PRIMARY_KEY_FIELD: AlphaTest,
+					types.PRIMARY_KEY_FIELD: string(AlphaTest),
 					types.CORPUS_FIELD:      "gm",
 				},
 			},
 			x64TestBetaTraceID: &types.GoldenTrace{
-				Digests: []string{ThirdDigest, FirstDigest, ThirdDigest, FirstDigest},
+				Digests: types.DigestSlice{ThirdDigest, FirstDigest, ThirdDigest, FirstDigest},
 				Keys: map[string]string{
 					"config":                "x86_64",
-					types.PRIMARY_KEY_FIELD: BetaTest,
+					types.PRIMARY_KEY_FIELD: string(BetaTest),
 					types.CORPUS_FIELD:      "image",
 				},
 			},

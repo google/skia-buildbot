@@ -34,8 +34,8 @@ func MockUrlGenerator(path string) string {
 // Mock the diffstore.
 type MockDiffStore struct{}
 
-func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[string]interface{}, error) {
-	result := map[string]interface{}{}
+func (m MockDiffStore) Get(priority int64, dMain types.Digest, dRest types.DigestSlice) (map[types.Digest]interface{}, error) {
+	result := map[types.Digest]interface{}{}
 	for _, d := range dRest {
 		if dMain != d {
 			result[d] = &diff.DiffMetrics{
@@ -53,11 +53,12 @@ func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[st
 	return result, nil
 }
 
-func (m MockDiffStore) UnavailableDigests() map[string]*diff.DigestFailure                    { return nil }
-func (m MockDiffStore) PurgeDigests(digests []string, purgeGCS bool) error                    { return nil }
-func (m MockDiffStore) ImageHandler(urlPrefix string) (http.Handler, error)                   { return nil, nil }
-func (m MockDiffStore) WarmDigests(priority int64, digests []string, sync bool)               {}
-func (m MockDiffStore) WarmDiffs(priority int64, leftDigests []string, rightDigests []string) {}
+func (m MockDiffStore) UnavailableDigests() map[types.Digest]*diff.DigestFailure         { return nil }
+func (m MockDiffStore) PurgeDigests(digests types.DigestSlice, purgeGCS bool) error      { return nil }
+func (m MockDiffStore) ImageHandler(urlPrefix string) (http.Handler, error)              { return nil, nil }
+func (m MockDiffStore) WarmDigests(priority int64, digests types.DigestSlice, sync bool) {}
+func (m MockDiffStore) WarmDiffs(priority int64, leftDigests types.DigestSlice, rightDigests types.DigestSlice) {
+}
 
 func NewMockDiffStore() diff.DiffStore {
 	return MockDiffStore{}
@@ -65,13 +66,13 @@ func NewMockDiffStore() diff.DiffStore {
 
 // TraceKey returns the trace key used in MockTileStore generated from the
 // params map.
-func TraceKey(params map[string]string) string {
+func TraceKey(params map[string]string) tiling.TraceId {
 	traceParts := make([]string, 0, len(params))
 	for _, v := range params {
 		traceParts = append(traceParts, v)
 	}
 	sort.Strings(traceParts)
-	return strings.Join(traceParts, ":")
+	return tiling.TraceId(strings.Join(traceParts, ":"))
 }
 
 type MockDigestStore struct {
@@ -138,9 +139,9 @@ func GetTileBuilderFromEnv(t assert.TestingT, ctx context.Context) tracedb.Maste
 }
 
 // Mock the tilestore for GoldenTraces
-func NewMockTileBuilder(t assert.TestingT, digests [][]string, params []map[string]string, commits []*tiling.Commit) tracedb.MasterTileBuilder {
+func NewMockTileBuilder(t assert.TestingT, digests []types.DigestSlice, params []map[string]string, commits []*tiling.Commit) tracedb.MasterTileBuilder {
 	// Build the tile from the digests, params and commits.
-	traces := map[string]tiling.Trace{}
+	traces := map[tiling.TraceId]tiling.Trace{}
 
 	for idx, traceDigests := range digests {
 		traces[TraceKey(params[idx])] = &types.GoldenTrace{

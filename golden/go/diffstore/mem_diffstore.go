@@ -3,7 +3,6 @@ package diffstore
 import (
 	"bytes"
 	"fmt"
-	"image"
 	"math"
 	"net/http"
 	"path/filepath"
@@ -17,6 +16,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/types"
 )
 
 const (
@@ -44,45 +44,6 @@ const (
 	// This was determined empirically: we had instances running with 500k go-routines without problems.
 	maxGoRoutines = 500000
 )
-
-// DiffStoreMapper is the interface to customize the specific behavior of MemDiffStore.
-// It defines what diff metric is calculated and how to translate image ids and diff
-// ids into paths on the file system and in GCS.
-type DiffStoreMapper interface {
-	// LRUCodec defines the Encode and Decode functions to serialize/deserialize
-	// instances of the diff metrics returned by the DiffFn function below.
-	util.LRUCodec
-
-	// DiffFn calculates the different between two given images and returns a
-	// difference image. The type underlying interface{} is the input and output
-	// of the LRUCodec above. It is also what is returned by the Get(...) function
-	// of the DiffStore interface.
-	DiffFn(*image.NRGBA, *image.NRGBA) (interface{}, *image.NRGBA)
-
-	// Takes two image IDs and returns a unique diff ID.
-	// Note: DiffID(a,b) == DiffID(b, a) should hold.
-	DiffID(leftImgID, rightImgID string) string
-
-	// Inverse function of DiffID.
-	// SplitDiffID(DiffID(a,b)) should return (a,b) or (b,a).
-	SplitDiffID(diffID string) (string, string)
-
-	// DiffPath returns the local file path for the diff image of two images.
-	// This path is used to store the diff image on disk and serve it over HTTP.
-	DiffPath(leftImgID, rightImgID string) string
-
-	// ImagePaths returns the storage paths for a given image ID. The first return
-	// value is the local file path used to store the image on disk and serve it
-	// over HTTP. The second return value is the storage bucket and the third the
-	// path within that bucket.
-	ImagePaths(imageID string) (string, string, string)
-
-	// IsValidDiffImgID returns true if the given diffImgID is in the correct format.
-	IsValidDiffImgID(diffImgID string) bool
-
-	// IsValidImgID returns true if the given imgID is in the correct format.
-	IsValidImgID(imgID string) bool
-}
 
 // MemDiffStore implements the diff.DiffStore interface.
 type MemDiffStore struct {
@@ -168,8 +129,8 @@ func (d *MemDiffStore) ConvertLegacy() {
 
 // WarmDigests fetches images based on the given list of digests. It does
 // not cache the images but makes sure they are downloaded from GCS.
-func (d *MemDiffStore) WarmDigests(priority int64, digests []string, sync bool) {
-	missingDigests := make([]string, 0, len(digests))
+func (d *MemDiffStore) WarmDigests(priority int64, digests types.DigestSlice, sync bool) {
+	missingDigests := make(types.DigestSlice, 0, len(digests))
 	for _, digest := range digests {
 		if !d.imgLoader.IsOnDisk(digest) {
 			missingDigests = append(missingDigests, digest)
@@ -183,7 +144,7 @@ func (d *MemDiffStore) WarmDigests(priority int64, digests []string, sync bool) 
 // WarmDiffs puts the diff metrics for the cross product of leftDigests x rightDigests into the cache for the
 // given diff metric and with the given priority. This means if there are multiple subsets of the digests
 // with varying priority (ignored vs "regular") we can call this multiple times.
-func (d *MemDiffStore) WarmDiffs(priority int64, leftDigests []string, rightDigests []string) {
+func (d *MemDiffStore) WarmDiffs(priority int64, leftDigests types.DigestSlice, rightDigests types.DigestSlice) {
 	priority = rtcache.PriorityTimeCombined(priority)
 	diffIDs := d.getDiffIds(leftDigests, rightDigests)
 	sklog.Infof("Warming %d diffs", len(diffIDs))
@@ -191,14 +152,14 @@ func (d *MemDiffStore) WarmDiffs(priority int64, leftDigests []string, rightDige
 	for _, id := range diffIDs {
 		d.maxGoRoutinesCh <- true
 
-		go func(id string) {
+		go func(diffId string) {
 			defer func() {
 				d.wg.Done()
 				<-d.maxGoRoutinesCh
 			}()
 
-			if err := d.diffMetricsCache.Warm(priority, id); err != nil {
-				sklog.Errorf("Unable to warm diff %s. Got error: %s", id, err)
+			if err := d.diffMetricsCache.Warm(priority, diffId); err != nil {
+				sklog.Errorf("Unable to warm diff %s. Got error: %s", diffId, err)
 			}
 		}(id)
 	}
@@ -209,12 +170,12 @@ func (d *MemDiffStore) sync() {
 }
 
 // See DiffStore interface.
-func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []string) (map[string]interface{}, error) {
+func (d *MemDiffStore) Get(priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]interface{}, error) {
 	if mainDigest == "" {
 		return nil, fmt.Errorf("Received empty dMain digest.")
 	}
 
-	diffMap := make(map[string]interface{}, len(rightDigests))
+	diffMap := make(map[types.Digest]interface{}, len(rightDigests))
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 	for _, right := range rightDigests {
@@ -223,7 +184,7 @@ func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []str
 			wg.Add(1)
 			d.maxGoRoutinesCh <- true
 
-			go func(right string) {
+			go func(right types.Digest) {
 				defer func() {
 					wg.Done()
 					<-d.maxGoRoutinesCh
@@ -245,12 +206,12 @@ func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []str
 }
 
 // UnavailableDigests implements the DiffStore interface.
-func (m *MemDiffStore) UnavailableDigests() map[string]*diff.DigestFailure {
+func (m *MemDiffStore) UnavailableDigests() map[types.Digest]*diff.DigestFailure {
 	return m.imgLoader.failureStore.unavailableDigests()
 }
 
 // PurgeDigests implements the DiffStore interface.
-func (m *MemDiffStore) PurgeDigests(digests []string, purgeGCS bool) error {
+func (m *MemDiffStore) PurgeDigests(digests types.DigestSlice, purgeGCS bool) error {
 	// We remove the given digests from the various places where they might
 	// be stored. None of the purge steps should return an error if the digests
 	// related information is missing. So any error indicates a bigger problem in the
@@ -264,7 +225,10 @@ func (m *MemDiffStore) PurgeDigests(digests []string, purgeGCS bool) error {
 	}
 
 	// Remove the diff metrics from the cache if they exist.
-	digestSet := util.NewStringSet(digests)
+	digestSet := make(types.DigestSet, len(digests))
+	for _, d := range digests {
+		digestSet[d] = true
+	}
 	removeKeys := make([]string, 0, len(digests))
 	for _, key := range m.diffMetricsCache.Keys() {
 		d1, d2 := m.mapper.SplitDiffID(key)
@@ -324,18 +288,20 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 				return
 			}
 
+			imgDigest := types.Digest(imgID)
+
 			// Make sure the file exists. If not fetch it. Should be the exception.
-			if !m.imgLoader.IsOnDisk(imgID) {
-				_, pendingWrites, err := m.imgLoader.Get(diff.PRIORITY_NOW, []string{imgID})
+			if !m.imgLoader.IsOnDisk(imgDigest) {
+				_, pendingWrites, err := m.imgLoader.Get(diff.PRIORITY_NOW, types.DigestSlice{imgDigest})
 				if err != nil {
-					sklog.Errorf("Errorf retrieving digests: %s", imgID)
+					sklog.Errorf("Errorf retrieving digests: %s", imgDigest)
 					noCacheNotFound(w, r)
 					return
 				}
 				// Wait until the images are written to disk.
 				pendingWrites.Wait()
 			}
-			localRelPath, _, _ = m.mapper.ImagePaths(imgID)
+			localRelPath, _, _ = m.mapper.ImagePaths(imgDigest)
 		} else {
 			// Validate the requested diff image ID.
 			if !m.mapper.IsValidDiffImgID(imgID) {
@@ -378,7 +344,7 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 
 	// Get the images, but we don't need to wait for them to be written to disk,
 	// since we are not e.g. serving them over http.
-	imgs, _, err := d.imgLoader.Get(priority, []string{leftDigest, rightDigest})
+	imgs, _, err := d.imgLoader.Get(priority, types.DigestSlice{leftDigest, rightDigest})
 	if err != nil {
 		return nil, err
 	}
@@ -399,7 +365,7 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 }
 
 // saveDiffInfoAsync saves the given diff information to disk asynchronously.
-func (d *MemDiffStore) saveDiffInfoAsync(diffID, leftDigest, rightDigest string, diffMetrics interface{}, imgBytes []byte) {
+func (d *MemDiffStore) saveDiffInfoAsync(diffID string, leftDigest, rightDigest types.Digest, diffMetrics interface{}, imgBytes []byte) {
 	d.wg.Add(2)
 	d.maxGoRoutinesCh <- true
 	go func() {
@@ -429,7 +395,8 @@ func (d *MemDiffStore) saveDiffInfoAsync(diffID, leftDigest, rightDigest string,
 
 // Returns all combinations of leftDigests and rightDigests using the given
 // DiffID function of the DiffStore's mapper.
-func (d *MemDiffStore) getDiffIds(leftDigests, rightDigests []string) []string {
+func (d *MemDiffStore) getDiffIds(leftDigests, rightDigests types.DigestSlice) []string {
+	// reminder: diffIds are "digest1:digest2"
 	diffIDsSet := make(util.StringSet, len(leftDigests)*len(rightDigests))
 	for _, left := range leftDigests {
 		for _, right := range rightDigests {

@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/baseline"
+	"go.skia.org/infra/golden/go/types"
 	"google.golang.org/api/option"
 )
 
@@ -29,7 +30,7 @@ type GCSClientOptions struct {
 // GCSClient provides an abstraction around read/writes to Google storage.
 type GCSClient interface {
 	// WriteKnownDigests writes the given list of digests to GCS as newline separated strings.
-	WriteKnownDigests(digests []string) error
+	WriteKnownDigests(digests types.DigestSlice) error
 
 	// WriteBaseline writes the given baseline to GCS. It returns the path of the
 	// written file in GCS (prefixed with 'gs://').
@@ -76,7 +77,7 @@ func (g *ClientImpl) Options() GCSClientOptions {
 }
 
 // WriteKnownDigests fulfills the GCSClient interface.
-func (g *ClientImpl) WriteKnownDigests(digests []string) error {
+func (g *ClientImpl) WriteKnownDigests(digests types.DigestSlice) error {
 	writeFn := func(w *gstorage.Writer) error {
 		for _, digest := range digests {
 			if _, err := w.Write([]byte(digest + "\n")); err != nil {

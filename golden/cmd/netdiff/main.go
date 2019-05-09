@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
+	"go.skia.org/infra/golden/go/types"
 	"google.golang.org/grpc"
 )
 
@@ -26,8 +27,11 @@ func main() {
 	}
 
 	args := flag.Args()
-	mainDigest := args[0]
-	rightDigests := args[1:]
+	mainDigest := types.Digest(args[0])
+	rightDigests := make(types.DigestSlice, 0, len(args)-1)
+	for _, d := range args[1:] {
+		rightDigests = append(rightDigests, types.Digest(d))
+	}
 
 	// Create the client connection and connect to the server.
 	conn, err := grpc.Dial(*grpcAddr, grpc.WithInsecure())

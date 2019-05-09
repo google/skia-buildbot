@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/types"
 	"google.golang.org/grpc"
@@ -126,21 +125,21 @@ func TestNetDiffStore(t *testing.T) {
 
 func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore diff.DiffStore, memDiffStore *MemDiffStore) {
 	// Pick the test with highest number of digests.
-	byName := map[string]util.StringSet{}
+	byName := map[types.TestName]types.DigestSet{}
 	for _, trace := range tile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
-		name := gTrace.Keys[types.PRIMARY_KEY_FIELD]
+		name := gTrace.TestName()
 		if _, ok := byName[name]; !ok {
-			byName[name] = util.StringSet{}
+			byName[name] = types.DigestSet{}
 		}
 		byName[name].AddLists(gTrace.Digests)
 	}
-	testDigests := make([][]string, 0, len(byName))
+	testDigests := make(digestSliceSlice, 0, len(byName))
 	for _, digests := range byName {
 		delete(digests, types.MISSING_DIGEST)
 		testDigests = append(testDigests, digests.Keys())
 	}
-	sort.Sort(digestsSlice(testDigests))
+	sort.Sort(digestSliceSlice(testDigests))
 
 	// Warm the digests and make sure they are in the cache.
 	digests := testDigests[0][:TEST_N_DIGESTS]
@@ -166,7 +165,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	}
 
 	// Get the results and make sure they are correct.
-	foundDiffs := make(map[string]map[string]interface{}, len(digests))
+	foundDiffs := make(map[types.Digest]map[types.Digest]interface{}, len(digests))
 	ti := timer.New("Get warmed diffs.")
 	for _, oneDigest := range digests {
 		found, err := diffStore.Get(diff.PRIORITY_NOW, oneDigest, digests)
@@ -187,7 +186,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	// Get the results directly and make sure they are correct.
 	digests = testDigests[1][:TEST_N_DIGESTS]
 	ti = timer.New("Get cold diffs")
-	foundDiffs = make(map[string]map[string]interface{}, len(digests))
+	foundDiffs = make(map[types.Digest]map[types.Digest]interface{}, len(digests))
 	for _, oneDigest := range digests {
 		found, err := diffStore.Get(diff.PRIORITY_NOW, oneDigest, digests)
 		assert.NoError(t, err)
@@ -197,7 +196,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	testDiffs(t, baseDir, memDiffStore, digests, digests, foundDiffs)
 }
 
-func testDiffs(t *testing.T, baseDir string, diffStore *MemDiffStore, leftDigests, rightDigests []string, result map[string]map[string]interface{}) {
+func testDiffs(t *testing.T, baseDir string, diffStore *MemDiffStore, leftDigests, rightDigests types.DigestSlice, result map[types.Digest]map[types.Digest]interface{}) {
 	diffStore.sync()
 	for _, left := range leftDigests {
 		for _, right := range rightDigests {
@@ -216,8 +215,9 @@ type DummyDiffMetrics struct {
 	PercentDiffPixels float32
 }
 
-type digestsSlice [][]string
+// Allows for sorting slices of digests by the length (longer slices first)
+type digestSliceSlice []types.DigestSlice
 
-func (d digestsSlice) Len() int           { return len(d) }
-func (d digestsSlice) Less(i, j int) bool { return len(d[i]) > len(d[j]) }
-func (d digestsSlice) Swap(i, j int)      { d[i], d[j] = d[j], d[i] }
+func (d digestSliceSlice) Len() int           { return len(d) }
+func (d digestSliceSlice) Less(i, j int) bool { return len(d[i]) > len(d[j]) }
+func (d digestSliceSlice) Swap(i, j int)      { d[i], d[j] = d[j], d[i] }

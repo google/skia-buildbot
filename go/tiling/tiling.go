@@ -65,6 +65,15 @@ type Trace interface {
 // or a GoldenTrace.
 type TraceBuilder func(n int) Trace
 
+// TraceId helps document when strings should represent TraceIds
+type TraceId string
+
+type TraceIdSlice []TraceId
+
+func (b TraceIdSlice) Len() int           { return len(b) }
+func (b TraceIdSlice) Less(i, j int) bool { return string(b[i]) < string(b[j]) }
+func (b TraceIdSlice) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
+
 // Matches returns true if the given Trace matches the given query.
 func Matches(tr Trace, query url.Values) bool {
 	for k, values := range query {
@@ -153,7 +162,7 @@ func LastCommitIndex(commits []*Commit) int {
 // The length of the Commits array is the same length as all of the Values
 // arrays in all of the Traces.
 type Tile struct {
-	Traces   map[string]Trace    `json:"traces"`
+	Traces   map[TraceId]Trace   `json:"traces"`
 	ParamSet map[string][]string `json:"param_set"`
 	Commits  []*Commit           `json:"commits"`
 
@@ -166,7 +175,7 @@ type Tile struct {
 // NewTile returns an new Tile object.
 func NewTile() *Tile {
 	t := &Tile{
-		Traces:   map[string]Trace{},
+		Traces:   map[TraceId]Trace{},
 		ParamSet: map[string][]string{},
 		Commits:  make([]*Commit, TILE_SIZE, TILE_SIZE),
 	}
@@ -190,7 +199,7 @@ func (t Tile) CommitRange() (string, string) {
 // all the rest of the data is a shallow copy.
 func (t Tile) Copy() *Tile {
 	ret := &Tile{
-		Traces:    map[string]Trace{},
+		Traces:    map[TraceId]Trace{},
 		ParamSet:  t.ParamSet,
 		Scale:     t.Scale,
 		TileIndex: t.TileIndex,
@@ -216,7 +225,7 @@ func (t Tile) Trim(begin, end int) (*Tile, error) {
 		return nil, fmt.Errorf("Invalid Trim range [%d, %d) of [0, %d]", begin, end, length)
 	}
 	ret := &Tile{
-		Traces:    map[string]Trace{},
+		Traces:    map[TraceId]Trace{},
 		ParamSet:  t.ParamSet,
 		Scale:     t.Scale,
 		TileIndex: t.TileIndex,
@@ -280,7 +289,7 @@ type TileStore interface {
 }
 
 // Finds the paramSet for the given slice of traces.
-func GetParamSet(traces map[string]Trace, paramSet map[string][]string) {
+func GetParamSet(traces map[TraceId]Trace, paramSet map[string][]string) {
 	for _, trace := range traces {
 		for k, v := range trace.Params() {
 			if _, ok := paramSet[k]; !ok {
@@ -297,7 +306,7 @@ func Merge(tile1, tile2 *Tile) *Tile {
 	n := len(tile1.Commits) + len(tile2.Commits)
 	n1 := len(tile1.Commits)
 	t := &Tile{
-		Traces:   make(map[string]Trace),
+		Traces:   make(map[TraceId]Trace),
 		ParamSet: make(map[string][]string),
 		Commits:  make([]*Commit, n, n),
 	}
@@ -314,7 +323,7 @@ func Merge(tile1, tile2 *Tile) *Tile {
 	}
 
 	// Merge the Traces.
-	seen := map[string]bool{}
+	seen := map[TraceId]bool{}
 	for key, trace := range tile1.Traces {
 		seen[key] = true
 		if trace2, ok := tile2.Traces[key]; ok {

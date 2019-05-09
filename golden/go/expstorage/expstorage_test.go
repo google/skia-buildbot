@@ -125,12 +125,12 @@ func initDS(t *testing.T, kinds ...ds.Kind) func() {
 const hexLetters = "0123456789abcdef"
 const md5Length = 32
 
-func randomDigest() string {
+func randomDigest() types.Digest {
 	ret := make([]byte, md5Length, md5Length)
 	for i := 0; i < md5Length; i++ {
 		ret[i] = hexLetters[rand.Intn(len(hexLetters))]
 	}
-	return string(ret)
+	return types.Digest(ret)
 }
 
 func TestBigSQLChange(t *testing.T) {
@@ -160,11 +160,11 @@ func getRandomChange(nTests, nDigests int) types.TestExp {
 	labels := []types.Label{types.POSITIVE, types.NEGATIVE, types.UNTRIAGED}
 	ret := make(types.TestExp, nTests)
 	for i := 0; i < nTests; i++ {
-		digests := make(map[string]types.Label, nDigests)
+		digests := make(map[types.Digest]types.Label, nDigests)
 		for j := 0; j < nDigests; j++ {
 			digests[randomDigest()] = labels[rand.Intn(len(labels))]
 		}
-		ret[util.RandomName()] = digests
+		ret[types.TestName(util.RandomName())] = digests
 	}
 	return ret
 }
@@ -184,7 +184,7 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 	assert.Equal(t, 0, len(emptyExp.TestExp()))
 
 	// If we have an event bus then keep gathering events.
-	callbackCh := make(chan []string, 3)
+	callbackCh := make(chan types.TestNameSlice, 3)
 	if eventBus != nil {
 		eventBus.SubscribeAsync(eventType, func(e interface{}) {
 			evData := e.(*EventExpectationChange)
@@ -192,20 +192,20 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 				return
 			}
 
-			testNames := make([]string, 0, len(evData.TestChanges))
+			testNames := make(types.TestNameSlice, 0, len(evData.TestChanges))
 			for testName := range evData.TestChanges {
 				testNames = append(testNames, testName)
 			}
-			sort.Strings(testNames)
+			sort.Sort(testNames)
 			callbackCh <- testNames
 		})
 	}
 
-	TEST_1, TEST_2 := "test1", "test2"
+	TEST_1, TEST_2 := types.TestName("test1"), types.TestName("test2")
 
 	// digests
-	DIGEST_11, DIGEST_12 := "d11", "d12"
-	DIGEST_21, DIGEST_22 := "d21", "d22"
+	DIGEST_11, DIGEST_12 := types.Digest("d11"), types.Digest("d12")
+	DIGEST_21, DIGEST_22 := types.Digest("d21"), types.Digest("d22")
 
 	expChange_1 := types.TestExp{
 		TEST_1: {
@@ -227,7 +227,7 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 	assert.NoError(t, store.AddChange(expChange_1, "user-0"))
 	if eventBus != nil {
 		found := waitForChanLen(t, callbackCh, 1)
-		assert.Equal(t, []string{TEST_1, TEST_2}, found[0])
+		assert.Equal(t, types.TestNameSlice{TEST_1, TEST_2}, found[0])
 	}
 
 	foundExps, err := store.Get()
@@ -253,7 +253,7 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 	assert.NoError(t, store.AddChange(expChange_2, "user-1"))
 	if eventBus != nil {
 		found := waitForChanLen(t, callbackCh, 1)
-		assert.Equal(t, []string{TEST_1, TEST_2}, found[0])
+		assert.Equal(t, types.TestNameSlice{TEST_1, TEST_2}, found[0])
 	}
 
 	foundExps, err = store.Get()
@@ -268,7 +268,7 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 	assert.NoError(t, store.AddChange(emptyChanges, "user-2"))
 	if eventBus != nil {
 		found := waitForChanLen(t, callbackCh, 1)
-		assert.Equal(t, []string{}, found[0])
+		assert.Empty(t, found[0])
 	}
 	checkLogEntry(t, store, emptyChanges)
 
@@ -284,20 +284,20 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 	assert.NoError(t, store.RemoveChange(removeDigests_1))
 	if eventBus != nil {
 		found := waitForChanLen(t, callbackCh, 1)
-		assert.Equal(t, []string{TEST_1, TEST_2}, found[0])
+		assert.Equal(t, types.TestNameSlice{TEST_1, TEST_2}, found[0])
 	}
 
 	foundExps, err = store.Get()
 	assert.NoError(t, err)
 	foundTestExp = foundExps.TestExp()
-	assert.Equal(t, map[string]types.Label{DIGEST_12: types.NEGATIVE}, foundTestExp[TEST_1])
-	assert.Equal(t, map[string]types.Label{DIGEST_21: types.POSITIVE}, foundTestExp[TEST_2])
+	assert.Equal(t, map[types.Digest]types.Label{DIGEST_12: types.NEGATIVE}, foundTestExp[TEST_1])
+	assert.Equal(t, map[types.Digest]types.Label{DIGEST_21: types.POSITIVE}, foundTestExp[TEST_2])
 
 	removeDigests_2 := types.TestExp{TEST_1: {DIGEST_12: types.UNTRIAGED}}
 	assert.NoError(t, store.RemoveChange(removeDigests_2))
 	if eventBus != nil {
 		found := waitForChanLen(t, callbackCh, 1)
-		assert.Equal(t, []string{TEST_1}, found[0])
+		assert.Equal(t, types.TestNameSlice{TEST_1}, found[0])
 	}
 
 	foundExps, err = store.Get()
@@ -307,7 +307,7 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 	assert.NoError(t, store.RemoveChange(types.TestExp{}))
 	if eventBus != nil {
 		found := waitForChanLen(t, callbackCh, 1)
-		assert.Equal(t, []string{}, found[0])
+		assert.Empty(t, found[0])
 	}
 
 	// Make sure we added the correct number of triage log entries.
@@ -382,8 +382,8 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 
 // waitForChan removes 'targetLen' elements from the channel and returns them.
 // If the given number of items are not returned within one second the test fails.
-func waitForChanLen(t *testing.T, ch chan []string, targetLen int) [][]string {
-	ret := make([][]string, 0, targetLen)
+func waitForChanLen(t *testing.T, ch chan types.TestNameSlice, targetLen int) []types.TestNameSlice {
+	ret := make([]types.TestNameSlice, 0, targetLen)
 	assert.NoError(t, testutils.EventuallyConsistent(time.Second, func() error {
 		select {
 		case ele := <-ch:

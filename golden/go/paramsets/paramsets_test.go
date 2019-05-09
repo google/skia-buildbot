@@ -18,50 +18,50 @@ func TestParamsetByTraceForTile(t *testing.T) {
 	tile := makePartialTestTile()
 	counts := makeTestDigestCounts()
 
-	byTrace := byTraceForTile(tile, counts)
+	byTest := byTestForTile(tile, counts)
 
 	// The calls to normalize are for test determinism.
 	// Spot check the data by looking at various test/digest
 	// combos.
-	ps := byTrace[testOne][DigestB]
+	ps := byTest[testOne][DigestB]
 	assert.NotNil(t, ps)
 	ps.Normalize()
 	assert.Equal(t, paramtools.ParamSet{
 		"config":                []string{"8888"},
 		types.CORPUS_FIELD:      []string{"gm"},
-		types.PRIMARY_KEY_FIELD: []string{testOne},
+		types.PRIMARY_KEY_FIELD: []string{string(testOne)},
 	}, ps)
 
-	ps = byTrace[testOne][DigestA]
+	ps = byTest[testOne][DigestA]
 	assert.NotNil(t, ps)
 	ps.Normalize()
 	assert.Equal(t, paramtools.ParamSet{
 		"config":                []string{"565", "8888"},
 		types.CORPUS_FIELD:      []string{"gm"},
-		types.PRIMARY_KEY_FIELD: []string{testOne},
+		types.PRIMARY_KEY_FIELD: []string{string(testOne)},
 	}, ps)
 
-	ps = byTrace[testTwo][DigestG]
+	ps = byTest[testTwo][DigestG]
 	assert.NotNil(t, ps)
 	ps.Normalize()
 	assert.Equal(t, paramtools.ParamSet{
 		"config":                []string{"565"},
 		types.CORPUS_FIELD:      []string{"gm"},
-		types.PRIMARY_KEY_FIELD: []string{testTwo},
+		types.PRIMARY_KEY_FIELD: []string{string(testTwo)},
 	}, ps)
 
-	ps = byTrace[testTwo][DigestF]
+	ps = byTest[testTwo][DigestF]
 	assert.NotNil(t, ps)
 	ps.Normalize()
 	assert.Equal(t, paramtools.ParamSet{
 		"config":                []string{"565", "gpu"},
 		types.CORPUS_FIELD:      []string{"gm"},
-		types.PRIMARY_KEY_FIELD: []string{testTwo},
+		types.PRIMARY_KEY_FIELD: []string{string(testTwo)},
 	}, ps)
 
-	assert.Nil(t, byTrace[nonExistentTrace])
+	assert.Nil(t, byTest[nonExistentTest])
 	// testOne did not see this digest
-	assert.Nil(t, byTrace[testOne][DigestG])
+	assert.Nil(t, byTest[testOne][DigestG])
 }
 
 func TestParamsetCalculate(t *testing.T) {
@@ -69,7 +69,7 @@ func TestParamsetCalculate(t *testing.T) {
 
 	tile := makePartialTestTile()
 	counts := makeTestDigestCounts()
-	noCounts := map[string]digest_counter.DigestCount{}
+	noCounts := map[tiling.TraceId]digest_counter.DigestCount{}
 
 	mc := &mocks.ComplexTile{}
 	// without ignores
@@ -100,32 +100,32 @@ func TestParamsetCalculate(t *testing.T) {
 	assert.Equal(t, paramtools.ParamSet{
 		"config":                []string{"565"},
 		types.CORPUS_FIELD:      []string{"gm"},
-		types.PRIMARY_KEY_FIELD: []string{testTwo},
+		types.PRIMARY_KEY_FIELD: []string{string(testTwo)},
 	}, p)
 
 	assert.Nil(t, ps.Get(testTwo, DigestG, true))
 }
 
 const (
-	testOne = "test_one"
-	testTwo = "test_two"
+	testOne = types.TestName("test_one")
+	testTwo = types.TestName("test_two")
 
-	nonExistentTrace = "nope:fff"
+	nonExistentTest = types.TestName("test_not_exist_nope")
 
 	// Arbitrary, but valid md5 hashes
-	DigestA = "aaa65156b09fc699a7f8892b108ee7e3"
-	DigestB = "bbb8e0260c64418510cefb2b06eee5cd"
-	DigestC = "ccc25df8f8f22eefed0ef135c19b8394"
-	DigestD = "ddd8984c6e72a0289a1dfde0b36df79d"
-	DigestE = "eee789257fd5ba858522462608b079bb"
-	DigestF = "fff1ff99147118958954b57e0223f1ba"
-	DigestG = "000cfe8dbf645d61325257224ee8aec5"
+	DigestA = types.Digest("aaa65156b09fc699a7f8892b108ee7e3")
+	DigestB = types.Digest("bbb8e0260c64418510cefb2b06eee5cd")
+	DigestC = types.Digest("ccc25df8f8f22eefed0ef135c19b8394")
+	DigestD = types.Digest("ddd8984c6e72a0289a1dfde0b36df79d")
+	DigestE = types.Digest("eee789257fd5ba858522462608b079bb")
+	DigestF = types.Digest("fff1ff99147118958954b57e0223f1ba")
+	DigestG = types.Digest("000cfe8dbf645d61325257224ee8aec5")
 )
 
 // These counts include some of the data from the testTile, but
 // also some made up data
-func makeTestDigestCounts() map[string]digest_counter.DigestCount {
-	return map[string]digest_counter.DigestCount{
+func makeTestDigestCounts() map[tiling.TraceId]digest_counter.DigestCount {
+	return map[tiling.TraceId]digest_counter.DigestCount{
 		"a": {
 			DigestA: 1,
 			DigestB: 1,
@@ -159,47 +159,47 @@ func makeTestDigestCounts() map[string]digest_counter.DigestCount {
 func makePartialTestTile() *tiling.Tile {
 	return &tiling.Tile{
 		// Commits, Scale and Tile Index omitted (should not affect things)
-		Traces: map[string]tiling.Trace{
+		Traces: map[tiling.TraceId]tiling.Trace{
 			// These trace ids have been shortened for test terseness.
 			// A real trace id would be like "8888:gm:foo"
 			"a": &types.GoldenTrace{
-				Digests: []string{DigestA, DigestB},
+				Digests: types.DigestSlice{DigestA, DigestB},
 				Keys: map[string]string{
 					"config":                "8888",
 					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: testOne,
+					types.PRIMARY_KEY_FIELD: string(testOne),
 				},
 			},
 			"b": &types.GoldenTrace{
-				Digests: []string{DigestC, DigestD, DigestA},
+				Digests: types.DigestSlice{DigestC, DigestD, DigestA},
 				Keys: map[string]string{
 					"config":                "565",
 					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: testOne,
+					types.PRIMARY_KEY_FIELD: string(testOne),
 				},
 			},
 			"c": &types.GoldenTrace{
-				Digests: []string{DigestE, types.MISSING_DIGEST},
+				Digests: types.DigestSlice{DigestE, types.MISSING_DIGEST},
 				Keys: map[string]string{
 					"config":                "gpu",
 					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: testOne,
+					types.PRIMARY_KEY_FIELD: string(testOne),
 				},
 			},
 			"e": &types.GoldenTrace{
-				Digests: []string{DigestF, DigestG, DigestG},
+				Digests: types.DigestSlice{DigestF, DigestG, DigestG},
 				Keys: map[string]string{
 					"config":                "565",
 					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: testTwo,
+					types.PRIMARY_KEY_FIELD: string(testTwo),
 				},
 			},
 			"f": &types.GoldenTrace{
-				Digests: []string{DigestF, types.MISSING_DIGEST},
+				Digests: types.DigestSlice{DigestF, types.MISSING_DIGEST},
 				Keys: map[string]string{
 					"config":                "gpu",
 					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: testTwo,
+					types.PRIMARY_KEY_FIELD: string(testTwo),
 				},
 			},
 		},

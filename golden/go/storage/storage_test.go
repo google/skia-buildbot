@@ -64,7 +64,7 @@ var (
 		StartCommit: startCommit,
 		EndCommit:   endCommit,
 		Baseline: types.TestExp{
-			"test-1": map[string]types.Label{"d1": types.POSITIVE},
+			"test-1": map[types.Digest]types.Label{"d1": types.POSITIVE},
 		},
 		Issue: 0,
 	}
@@ -73,7 +73,7 @@ var (
 		StartCommit: endCommit,
 		EndCommit:   endCommit,
 		Baseline: types.TestExp{
-			"test-3": map[string]types.Label{"d2": types.POSITIVE},
+			"test-3": map[types.Digest]types.Label{"d2": types.POSITIVE},
 		},
 		Issue: issueID,
 	}
@@ -83,7 +83,7 @@ func TestWritingHashes(t *testing.T) {
 	testutils.LargeTest(t)
 	gsClient, opt := initGSClient(t)
 
-	knownDigests := []string{
+	knownDigests := types.DigestSlice{
 		"c003788f8d306ff1226e2a460835dae4",
 		"885b31941c25efc313b0fd66d55b86d9",
 		"264d0d87b12ba337f796fc592cd5357d",
@@ -279,13 +279,16 @@ func testCondenseForSize(t *testing.T, testTile *tiling.Tile, nCommits, nEmpty i
 }
 
 // mockTBD implements the TileFromCommits function of the tracedb.DB interface.
+// TODO(kjlubick): Replace this with a mockery based implementation
 type mockTDB struct {
 	tile *tiling.Tile
 }
 
-func (m *mockTDB) List(begin, end time.Time) ([]*tracedb.CommitID, error)                 { return nil, nil }
-func (m *mockTDB) Close() error                                                           { return nil }
-func (m *mockTDB) Add(commitID *tracedb.CommitID, values map[string]*tracedb.Entry) error { return nil }
+func (m *mockTDB) List(begin, end time.Time) ([]*tracedb.CommitID, error) { return nil, nil }
+func (m *mockTDB) Close() error                                           { return nil }
+func (m *mockTDB) Add(commitID *tracedb.CommitID, values map[tiling.TraceId]*tracedb.Entry) error {
+	return nil
+}
 
 func (m *mockTDB) TileFromCommits(commitIDs []*tracedb.CommitID) (*tiling.Tile, []string, error) {
 	// comMap maps hashes from commitIDs to indices in the commits of the test tile.
@@ -413,14 +416,14 @@ func loadSample(t assert.TestingT, fileName string) *serialize.Sample {
 	return sample
 }
 
-func loadKnownHashes(t *testing.T, gsClient GCSClient) []string {
+func loadKnownHashes(t *testing.T, gsClient GCSClient) types.DigestSlice {
 	var buf bytes.Buffer
 	assert.NoError(t, gsClient.LoadKnownDigests(&buf))
 
 	scanner := bufio.NewScanner(&buf)
-	ret := []string{}
+	ret := types.DigestSlice{}
 	for scanner.Scan() {
-		ret = append(ret, scanner.Text())
+		ret = append(ret, types.Digest(scanner.Text()))
 	}
 	return ret
 }

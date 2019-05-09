@@ -198,15 +198,15 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 	// Convert to a trybotstore.TryjobResult slice by aggregating parameters for each test/digest pair.
 	resultsMap := make(map[string]*tryjobstore.TryjobResult, len(entries))
 	for _, entry := range entries {
-		testName := entry.Params[types.PRIMARY_KEY_FIELD]
-		key := testName + string(entry.Value)
+		testName := types.TestName(entry.Params[types.PRIMARY_KEY_FIELD])
+		key := string(testName) + string(entry.Value)
 		if found, ok := resultsMap[key]; ok {
 			found.Params.AddParams(entry.Params)
 		} else {
 			resultsMap[key] = &tryjobstore.TryjobResult{
 				BuildBucketID: tryjob.BuildBucketID,
 				TestName:      testName,
-				Digest:        string(entry.Value),
+				Digest:        types.Digest(entry.Value),
 				Params:        paramtools.NewParamSet(entry.Params),
 			}
 		}
