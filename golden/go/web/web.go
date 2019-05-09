@@ -1151,7 +1151,7 @@ func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	baseline, err := wh.Storages.Baseliner.FetchBaseline(commitHash, issueID, 0, issueOnly)
+	baseline, err := wh.Storages.Baseliner.FetchBaseline(commitHash, issueID, issueOnly)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fetching baselines failed.")
 		return

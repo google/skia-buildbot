@@ -21,7 +21,6 @@ func TestFetchBaselineSunnyDay(t *testing.T) {
 
 	testCommitHash := "abcd12345"
 	testIssueID := int64(0)
-	testPatchSetID := int64(0)
 
 	mgs := makeMockGCSStorage()
 	defer mgs.AssertExpectations(t)
@@ -31,10 +30,83 @@ func TestFetchBaselineSunnyDay(t *testing.T) {
 	baseliner, err := New(mgs, nil, nil, nil, nil)
 	assert.NoError(t, err)
 
-	b, err := baseliner.FetchBaseline(testCommitHash, testIssueID, testPatchSetID, false)
+	b, err := baseliner.FetchBaseline(testCommitHash, testIssueID, false)
 	assert.NoError(t, err)
 
 	deepequal.AssertDeepEqual(t, three_devices.MakeTestBaseline(), b)
+}
+
+// Test that the baseliner behaves differently when requesting a baseline
+// for a given tryjob.
+func TestFetchBaselineIssueSunnyDay(t *testing.T) {
+	testutils.SmallTest(t)
+
+	testCommitHash := "abcd12345"
+	testIssueID := int64(1234)
+
+	// These are valid, but arbitrary md5 hashes
+	IotaNewDigest := types.Digest("1115fba4ce5b4cb9ffd595beb63e7389")
+	KappaNewDigest := types.Digest("222d894f5b680a9f7bd74c8004b7d88d")
+	LambdaNewDigest := types.Digest("3333fe3127b984e4ff39f4885ddb0d98")
+
+	additionalTriages := &baseline.CommitableBaseline{
+		Baseline: types.TestExp{
+			"brand-new-test": map[types.Digest]types.Label{
+				IotaNewDigest:  types.POSITIVE,
+				KappaNewDigest: types.NEGATIVE,
+			},
+			three_devices.BetaTest: map[types.Digest]types.Label{
+				LambdaNewDigest: types.POSITIVE,
+				// Change these two pre-existing digests
+				three_devices.BetaGood1Digest:      types.NEGATIVE,
+				three_devices.BetaUntriaged1Digest: types.POSITIVE,
+			},
+		},
+		Issue: testIssueID,
+
+		StartCommit: nil, // This can all be blank, and in some real-world data, is blank
+		EndCommit:   nil,
+		Filled:      0,
+		Total:       0,
+	}
+
+	mgs := makeMockGCSStorage()
+	defer mgs.AssertExpectations(t)
+
+	// mock the master baseline
+	mgs.On("ReadBaseline", testCommitHash, int64(0)).Return(three_devices.MakeTestBaseline(), nil).Once()
+	// mock the expectations that a user would have applied to their CL (that
+	// are not live on master yet).
+	mgs.On("ReadBaseline", "", testIssueID).Return(additionalTriages, nil).Once()
+
+	baseliner, err := New(mgs, nil, nil, nil, nil)
+	assert.NoError(t, err)
+
+	b, err := baseliner.FetchBaseline(testCommitHash, testIssueID, false)
+	assert.NoError(t, err)
+
+	deepequal.AssertDeepEqual(t, testIssueID, b.Issue)
+	// The expectation should be the master baseline merged in with the additionalTriages
+	// with additionalTriages overwriting existing expectations, if applicable.
+	deepequal.AssertDeepEqual(t, types.TestExp{
+		"brand-new-test": map[types.Digest]types.Label{
+			IotaNewDigest:  types.POSITIVE,
+			KappaNewDigest: types.NEGATIVE,
+		},
+		// AlphaTest should be unchanged from the master baseline.
+		three_devices.AlphaTest: map[types.Digest]types.Label{
+			three_devices.AlphaBad1Digest:       types.NEGATIVE,
+			three_devices.AlphaGood1Digest:      types.POSITIVE,
+			three_devices.AlphaUntriaged1Digest: types.UNTRIAGED,
+		},
+		three_devices.BetaTest: map[types.Digest]types.Label{
+			LambdaNewDigest: types.POSITIVE,
+			// Note that the state caused by this set of expectations overwrites what
+			// was on the master branch
+			three_devices.BetaGood1Digest:      types.NEGATIVE,
+			three_devices.BetaUntriaged1Digest: types.POSITIVE,
+		},
+	}, b.Baseline)
 }
 
 func TestFetchBaselineCachingSunnyDay(t *testing.T) {
@@ -42,7 +114,6 @@ func TestFetchBaselineCachingSunnyDay(t *testing.T) {
 
 	testCommitHash := "abcd12345"
 	testIssueID := int64(0)
-	testPatchSetID := int64(0)
 
 	mgs := makeMockGCSStorage()
 	defer mgs.AssertExpectations(t)
@@ -54,7 +125,7 @@ func TestFetchBaselineCachingSunnyDay(t *testing.T) {
 	assert.NoError(t, err)
 
 	for i := 0; i < 10; i++ {
-		b, err := baseliner.FetchBaseline(testCommitHash, testIssueID, testPatchSetID, false)
+		b, err := baseliner.FetchBaseline(testCommitHash, testIssueID, false)
 		assert.NoError(t, err)
 		assert.NotNil(t, b)
 		deepequal.AssertDeepEqual(t, three_devices.MakeTestBaseline(), b)

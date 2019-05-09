@@ -81,7 +81,7 @@ type Baseliner interface {
 	// them. If either of them doesn't exist an empty baseline is assumed.
 	// If issueOnly is true and issueID > 0 then only the expectations attached to the issue are
 	// returned (omitting the baselines of the master branch). This is primarily used for debugging.
-	FetchBaseline(commitHash string, issueID int64, patchsetID int64, issueOnly bool) (*CommitableBaseline, error)
+	FetchBaseline(commitHash string, issueID int64, issueOnly bool) (*CommitableBaseline, error)
 }
 
 // TileInfo is an interface around a subset of the functionality given by types.ComplexTile.
