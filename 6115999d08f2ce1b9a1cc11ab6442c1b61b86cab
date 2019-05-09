@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0c4a1bf5_1c59bc7e",
+        "filename": "autoroll/go/autoroll-be-kube/autoroll-be.yaml.template",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-09T12:16:00Z",
+      "side": 1,
+      "message": "Intentional?",
+      "revId": "6115999d08f2ce1b9a1cc11ab6442c1b61b86cab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
