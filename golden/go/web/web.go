@@ -402,7 +402,7 @@ func (wh *WebHandlers) JsonIgnoresHandler(w http.ResponseWriter, r *http.Request
 	var err error
 	ignores, err = wh.Storages.IgnoreStore.List(true)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to retrieve ignored traces.")
+		httputils.ReportError(w, r, err, "Failed to retrieve ignore rules, there may be none.")
 		return
 	}
 
@@ -469,11 +469,16 @@ func (wh *WebHandlers) JsonIgnoresDeleteHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if _, err = wh.Storages.IgnoreStore.Delete(id); err != nil {
+	if numDeleted, err := wh.Storages.IgnoreStore.Delete(id); err != nil {
 		httputils.ReportError(w, r, err, "Unable to delete ignore rule.")
-	} else {
+	} else if numDeleted == 1 {
+		sklog.Infof("Successfully deleted ignore with id %d", id)
 		// If delete worked just list the current ignores and return them.
 		wh.JsonIgnoresHandler(w, r)
+	} else {
+		sklog.Infof("Deleting ignore with id %d from ignorestore failed", id)
+		http.Error(w, "Could not delete ignore - try again later", http.StatusInternalServerError)
+		return
 	}
 }
 

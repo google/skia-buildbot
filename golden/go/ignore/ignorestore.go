@@ -12,6 +12,8 @@ import (
 type RuleMatcher func(map[string]string) ([]*IgnoreRule, bool)
 
 // IgnoreStore stores and matches ignore rules.
+// TODO(kjlubick): Add context to these methods such that we can
+// pass in a context from the web request to the backend.
 type IgnoreStore interface {
 	// Create adds a new rule to the ignore store.
 	Create(*IgnoreRule) error
@@ -19,6 +21,9 @@ type IgnoreStore interface {
 	// List returns all ignore rules in the ignore store.
 	// 'addCounts' indicates whether to include counts how often an ignore
 	// rule appears in the current tile.
+	// TODO(kjlubick): Remove the addCounts flag in the signature of the List function
+	// and expose the AddIgnoreCounts function. This would remove the expsStore and
+	// tileStream members of the cloudIgnoreStore struct and simplify the interface.
 	List(addCounts bool) ([]*IgnoreRule, error)
 
 	// Updates an IgnoreRule.
@@ -41,7 +46,7 @@ type IgnoreStore interface {
 
 // IgnoreRule is the GUI struct for dealing with Ignore rules.
 type IgnoreRule struct {
-	ID             int64     `json:"id"`
+	ID             int64     `json:"id,string"`
 	Name           string    `json:"name"`
 	UpdatedBy      string    `json:"updatedBy"`
 	Expires        time.Time `json:"expires"`
