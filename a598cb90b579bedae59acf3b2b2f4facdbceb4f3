@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9a59467a_bcbcd274",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-09T13:59:31Z",
+      "side": 1,
+      "message": "So it implicitly supports different patchsets via the commit hash. I am assuming goldctl passes in commit hash + issue ID, it could also pass in patchset since it probably has all that information and the server could store it. What I mean is, it is probably going to be very straightforward to add support for patchsets.",
+      "parentUuid": "02e8b9d0_8a765989",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 51
+      },
+      "revId": "a598cb90b579bedae59acf3b2b2f4facdbceb4f3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8306c630_e57cf580",
         "filename": "golden/go/baseline/gcs_baseliner/baseliner_test.go",
         "patchSetId": 5
