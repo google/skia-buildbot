@@ -11,7 +11,7 @@
     "config": "chromium"
   },
   "isInternal": false,
-  "parentName": "Chromium",
+  "parentName": "emscripten-releases",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "emscripten-emscripten-releases",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
