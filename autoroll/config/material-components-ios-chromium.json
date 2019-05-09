@@ -13,14 +13,14 @@
   "isInternal": false,
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
-  "rollerName": "material-components-ios-chromium-autoroll",
+  "rollerName": "material-components-ios-chromium",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "https://rota-ng.appspot.com/legacy/sheriff_ios.json"
   ],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "stable",
-    "childPath": "ios/third_party/material_components_ios/src",
+    "childPath": "src/ios/third_party/material_components_ios/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/material-components/material-components-ios",
     "includeBugs": false,
     "includeLog": true,

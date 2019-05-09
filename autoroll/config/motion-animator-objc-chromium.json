@@ -13,14 +13,14 @@
   "isInternal": false,
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
-  "rollerName": "motion-animator-objc-chromium-autoroll",
+  "rollerName": "motion-animator-objc-chromium",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "https://rota-ng.appspot.com/legacy/sheriff_ios.json"
   ],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "stable",
-    "childPath": "ios/third_party/motion_animator_objc/src",
+    "childPath": "src/ios/third_party/motion_animator_objc/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/material-motion/motion-animator-objc",
     "includeBugs": false,
     "includeLog": true,
