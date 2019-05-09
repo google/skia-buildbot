@@ -15,6 +15,7 @@ spec:
     metadata:
       labels:
         app: gold-{{.INSTANCE_ID}}-ingestion  # Pod template's label selector
+        appgroup: gold-{{.INSTANCE_ID}}
       annotations:
         prometheus.io.scrape: "true"
         prometheus.io.port: "20000"
@@ -36,7 +37,6 @@ spec:
             - "--no_cloud_log"
             - "--project_id={{.PROJECT_ID}}"
             - "--prom_port=:20000"
-            - "--service_account_file=/var/secrets/google/key.json"
           ports:
             - containerPort: 9091
               name: http-health
@@ -45,18 +45,18 @@ spec:
               mountPath: /etc/gold-ingestion
             - name: gold-{{.INSTANCE_ID}}-ingestion-storage-volume
               mountPath: /data
-            - name: gold-sa
+            - name: gold-service-account-secrets
               mountPath: /var/secrets/google
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /var/secrets/google/key.json
+              value: /var/secrets/google/service-account.json
           resources:
             limits:
-              memory: "4Gi"
-              cpu: 2
+              memory: "8Gi"
+              cpu: 4
           readinessProbe:
             httpGet:
-              path: /ready
+              path: /healthz
               port: 9091
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -65,9 +65,9 @@ spec:
           configMap:
             defaultMode: 420
             name: gold-{{.INSTANCE_ID}}-ingestion-config
-        - name: gold-sa
+        - name: gold-service-account-secrets
           secret:
-            secretName: skia-gold
+            secretName: gold-service-account-secrets
   volumeClaimTemplates:
     - metadata:
         name: gold-{{.INSTANCE_ID}}-ingestion-storage-volume
