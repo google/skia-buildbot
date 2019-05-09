@@ -20,7 +20,7 @@
   ],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "stable",
-    "childPath": "src/ios/third_party/material_spirited_animation_view_ios/src",
+    "childPath": "src/ios/third_party/material_spirited_ani_view_ios/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/material-foundation/material-spirited-animation-view-ios",
     "includeBugs": false,
     "includeLog": true,
