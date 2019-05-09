@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2165ea95_785f03ff",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-09T13:15:57Z",
+      "side": 1,
+      "message": "Also ImageID",
+      "range": {
+        "startLine": 7,
+        "startChar": 29,
+        "endLine": 7,
+        "endChar": 37
+      },
+      "revId": "20a4c0c50c20864a338e163eb378ec8b4565d975",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07087f73_1b7f1266",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-09T13:15:57Z",
+      "side": 1,
+      "message": "Can all occurrences of []types.Digest change to types.DigestSlice ?",
+      "range": {
+        "startLine": 350,
+        "startChar": 22,
+        "endLine": 350,
+        "endChar": 36
+      },
+      "revId": "20a4c0c50c20864a338e163eb378ec8b4565d975",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
