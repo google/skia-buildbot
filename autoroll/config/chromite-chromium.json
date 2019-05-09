@@ -41,6 +41,16 @@
   "maxRollFrequency": "0m",
   "notifiers": [
     {
+      "msgTypeWhitelist": ["last n failed"],
+      "monorail": {
+        "project": "chromium",
+        "owner": "bpastene@chromium.org",
+        "cc": ["achuith@chromium.org"],
+        "components": ["Infra>Client>Chrome"],
+        "labels": ["Hotlist-CrOS-Gardener"]
+      }
+    },
+    {
       "filter": "warning",
       "email": {
         "emails": [
