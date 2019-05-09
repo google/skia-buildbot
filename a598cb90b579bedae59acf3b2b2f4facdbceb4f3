@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "3939480e_cd3bbaf8",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-09T14:03:45Z",
+      "side": 1,
+      "message": "It could be, but I don\u0027t think we actually need the patchsets.\n\nThis may be revisited when adding support for GitHub (or made easier by not having patchsets)",
+      "parentUuid": "9a59467a_bcbcd274",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 51
+      },
+      "revId": "a598cb90b579bedae59acf3b2b2f4facdbceb4f3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8306c630_e57cf580",
         "filename": "golden/go/baseline/gcs_baseliner/baseliner_test.go",
         "patchSetId": 5
