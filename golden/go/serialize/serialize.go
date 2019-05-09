@@ -10,9 +10,11 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"time"
 
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/ignore"
@@ -54,6 +56,20 @@ func (s *Sample) Serialize(w io.Writer) error {
 	return nil
 }
 
+// In the past, ids were serialized to disk as integers, but this caused
+// problems like https://crbug.com/skia/9070
+// TODO(kjlubick): regenerate/replace test data and remove this struct
+type legacyIgnoreRule struct {
+	ID             int64     `json:"id"`
+	Name           string    `json:"name"`
+	UpdatedBy      string    `json:"updatedBy"`
+	Expires        time.Time `json:"expires"`
+	Query          string    `json:"query"`
+	Note           string    `json:"note"`
+	Count          int       `json:"count"          datastore:"-"`
+	ExclusiveCount int       `json:"exclusiveCount" datastore:"-"`
+}
+
 // DeserializeSample returns a new instance of Sample from the given reader. It
 // is the inverse operation of Sample.Searialize.
 func DeserializeSample(r io.Reader) (*Sample, error) {
@@ -63,22 +79,40 @@ func DeserializeSample(r io.Reader) (*Sample, error) {
 
 	expBytes, err := readBytesWithLength(r)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Fmt("Could not read bytes for expectations: %s", err)
 	}
 	if err = json.Unmarshal(expBytes, &ret.TestExpBuilder); err != nil {
-		return nil, err
+		return nil, skerr.Fmt("Could not unmarshal expectations: %s", err)
 	}
 
 	ignoreBytes, err := readBytesWithLength(r)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Fmt("Could not read bytes for ignore rules: %s", err)
 	}
 	if err = json.Unmarshal(ignoreBytes, &ret.IgnoreRules); err != nil {
-		return nil, err
+		fmt.Println("Falling back to legacy IgnoreRule")
+		legacyRules := []*legacyIgnoreRule{}
+		if err = json.Unmarshal(ignoreBytes, &legacyRules); err != nil {
+			return nil, skerr.Fmt("Could not unmarshal ignore rules, even falling back to legacy: %s ", err)
+		}
+		ret.IgnoreRules = make([]*ignore.IgnoreRule, 0, len(legacyRules))
+		for _, ir := range legacyRules {
+			ret.IgnoreRules = append(ret.IgnoreRules, &ignore.IgnoreRule{
+				ID:             ir.ID,
+				Name:           ir.Name,
+				UpdatedBy:      ir.UpdatedBy,
+				Expires:        ir.Expires,
+				Query:          ir.Query,
+				Note:           ir.Note,
+				Count:          ir.Count,
+				ExclusiveCount: ir.ExclusiveCount,
+			})
+		}
+
 	}
 
 	if ret.Tile, err = DeserializeTile(r); err != nil {
-		return nil, err
+		return nil, skerr.Fmt("Could not deserialize tile: %s", err)
 	}
 
 	return ret, nil
