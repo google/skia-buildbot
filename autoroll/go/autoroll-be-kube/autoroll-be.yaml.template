@@ -30,6 +30,7 @@ spec:
             - "--logtostderr"
             - "--config_file=/usr/local/share/autoroll/config/{{.configFile}}"
             - "--email_creds=/var/secrets/autoroll-email-creds"
+            - "--firestore_instance=production"
             - "--port=:8000"
             - "--prom_port=:20000"
             - "--recipes_cfg=/usr/local/share/autoroll/recipes.cfg"
