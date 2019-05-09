@@ -142,6 +142,24 @@
     },
     {
       "key": {
+        "uuid": "81022497_babcf8af",
+        "filename": "golden/go/blame/blame_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-09T21:17:24Z",
+      "side": 1,
+      "message": "Does \u0027blamer.GetBlame(three_devices.BetaTest, three_devices.BetaUntriaged1Digest, commits[1:3])\u0027 give you \u0027Old: true\u0027? If not, there must be something I don\u0027t understand.",
+      "parentUuid": "994318a2_3d997f81",
+      "revId": "7fe352cb3681e54100369aa524962ffca8eb0470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2b0f6410_41687ee9",
         "filename": "golden/go/testutils/data_three_devices/three_devices.go",
         "patchSetId": 6

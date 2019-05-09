@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "76a1526d_5015df8a",
+        "filename": "golden/go/blame/blame.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-09T21:17:24Z",
+      "side": 1,
+      "message": "nit: you might consider moving the Classification method to types.TestExp and use the simpler type here.\n\n(BTW, I just noticed that types.TestExp has AddDigest/AddDigests/Update methods, so I\u0027m even more confused about the difference between types.TestExp and types.TestExpBuilder.)",
+      "range": {
+        "startLine": 158,
+        "startChar": 54,
+        "endLine": 158,
+        "endChar": 74
+      },
+      "revId": "d3ee8e7a0051e6f4a03b5db1fbd738e4af4ea085",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03f93b08_02921f49",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-09T21:17:24Z",
+      "side": 1,
+      "message": "Does this need to handle a nil blamer?",
+      "revId": "d3ee8e7a0051e6f4a03b5db1fbd738e4af4ea085",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "825a1fb4_b371d3d5",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-09T21:17:24Z",
+      "side": 1,
+      "message": "I assume idx.blamer can\u0027t be nil here? (Also for calcSummariesWithIgnores)",
+      "revId": "d3ee8e7a0051e6f4a03b5db1fbd738e4af4ea085",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
