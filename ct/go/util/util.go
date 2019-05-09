@@ -193,8 +193,10 @@ func ResetCheckout(ctx context.Context, dir, resetTo string) error {
 	// Run "git reset --hard HEAD"
 	resetArgs := []string{"reset", "--hard", resetTo}
 	util.LogErr(ExecuteCmd(ctx, BINARY_GIT, resetArgs, []string{}, GIT_RESET_TIMEOUT, nil, nil))
-	// Run "git clean -f -d"
-	cleanArgs := []string{"clean", "-f", "-d"}
+	// Run "git clean -f"
+	// Not doing "-d" here because it can delete directories like "/android_build_tools/aapt2/lib64/"
+	// even if "/android_build_tools/aapt2/lib64/*.so" is in .gitignore.
+	cleanArgs := []string{"clean", "-f"}
 	util.LogErr(ExecuteCmd(ctx, BINARY_GIT, cleanArgs, []string{}, GIT_CLEAN_TIMEOUT, nil, nil))
 
 	return nil
