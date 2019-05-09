@@ -357,7 +357,7 @@ func (c *cloudTryjobStore) UpdateTryjobResult(results []*TryjobResult) error {
 			return fmt.Errorf("Parameter value for primary key field '%s' must exactly contain one value. Found: %v", types.PRIMARY_KEY_FIELD, result.Params[types.PRIMARY_KEY_FIELD])
 		}
 		keys = append(keys, c.getTryjobResultKey())
-		uniqueEntries[result.TestName+result.Digest] = true
+		uniqueEntries[string(result.TestName)+string(result.Digest)] = true
 	}
 
 	if len(uniqueEntries) != len(keys) {

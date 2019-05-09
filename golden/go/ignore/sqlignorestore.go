@@ -207,9 +207,9 @@ func addIgnoreCounts(rules []*IgnoreRule, ignoreStore IgnoreStore, lastCpxTile t
 	for _, trace := range tileWithIgnores.Traces {
 		gTrace := trace.(*types.GoldenTrace)
 		if matchRules, ok := ignoreMatcher(gTrace.Keys); ok {
-			testName := gTrace.Keys[types.PRIMARY_KEY_FIELD]
+			testName := gTrace.TestName()
 			if digest := gTrace.LastDigest(); digest != types.MISSING_DIGEST && (exp.Classification(testName, digest) == types.UNTRIAGED) {
-				k := testName + ":" + digest
+				k := string(testName) + ":" + string(digest)
 				for _, r := range matchRules {
 					// Add the digest to all matching rules.
 					if t, ok := matchingDigests[r.ID]; ok {

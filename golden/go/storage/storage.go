@@ -277,7 +277,7 @@ func (s *Storage) getWhiteListedTile(tile *tiling.Tile) *tiling.Tile {
 
 	// filter tile.
 	ret := &tiling.Tile{
-		Traces:  make(map[string]tiling.Trace, len(tile.Traces)),
+		Traces:  make(map[tiling.TraceId]tiling.Trace, len(tile.Traces)),
 		Commits: tile.Commits,
 	}
 

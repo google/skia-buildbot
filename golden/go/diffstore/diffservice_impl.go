@@ -5,6 +5,7 @@ import (
 
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/types"
 )
 
 // Generate the go code from the protocol buffer definitions.
@@ -30,9 +31,26 @@ func NewDiffServiceServer(diffStore diff.DiffStore, codec util.LRUCodec) DiffSer
 	}
 }
 
+// TODO(kjlubick): Is there a way to tell the protobuf to use the types.Digest directly?
+func asDigests(xs []string) types.DigestSlice {
+	d := make(types.DigestSlice, 0, len(xs))
+	for _, s := range xs {
+		d = append(d, types.Digest(s))
+	}
+	return d
+}
+
+func asStrings(xd types.DigestSlice) []string {
+	s := make([]string, 0, len(xd))
+	for _, d := range xd {
+		s = append(s, string(d))
+	}
+	return s
+}
+
 // GetDiffs wraps around the Get method of the underlying DiffStore.
 func (d *DiffServiceImpl) GetDiffs(ctx context.Context, req *GetDiffsRequest) (*GetDiffsResponse, error) {
-	diffs, err := d.diffStore.Get(req.Priority, req.MainDigest, req.RightDigests)
+	diffs, err := d.diffStore.Get(req.Priority, types.Digest(req.MainDigest), asDigests(req.RightDigests))
 	if err != nil {
 		return nil, err
 	}
@@ -49,13 +67,13 @@ func (d *DiffServiceImpl) GetDiffs(ctx context.Context, req *GetDiffsRequest) (*
 
 // WarmDigests wraps around the WarmDigests method of the underlying DiffStore.
 func (d *DiffServiceImpl) WarmDigests(ctx context.Context, req *WarmDigestsRequest) (*Empty, error) {
-	d.diffStore.WarmDigests(req.Priority, req.Digests, req.Sync)
+	d.diffStore.WarmDigests(req.Priority, asDigests(req.Digests), req.Sync)
 	return &Empty{}, nil
 }
 
 // WarmDiffs wraps around the WarmDiffs method of the underlying DiffStore.
 func (d *DiffServiceImpl) WarmDiffs(ctx context.Context, req *WarmDiffsRequest) (*Empty, error) {
-	d.diffStore.WarmDiffs(req.Priority, req.LeftDigests, req.RightDigests)
+	d.diffStore.WarmDiffs(req.Priority, asDigests(req.LeftDigests), asDigests(req.RightDigests))
 	return &Empty{}, nil
 }
 
@@ -64,8 +82,8 @@ func (d *DiffServiceImpl) UnavailableDigests(ctx context.Context, req *Empty) (*
 	unavailable := d.diffStore.UnavailableDigests()
 	ret := make(map[string]*DigestFailureResponse, len(unavailable))
 	for k, failure := range unavailable {
-		ret[k] = &DigestFailureResponse{
-			Digest: failure.Digest,
+		ret[string(k)] = &DigestFailureResponse{
+			Digest: string(failure.Digest),
 			Reason: string(failure.Reason),
 			TS:     failure.TS,
 		}
@@ -75,7 +93,7 @@ func (d *DiffServiceImpl) UnavailableDigests(ctx context.Context, req *Empty) (*
 
 // PurgeDigests wraps around the PurgeDigests method of the underlying DiffStore.
 func (d *DiffServiceImpl) PurgeDigests(ctx context.Context, req *PurgeDigestsRequest) (*Empty, error) {
-	return &Empty{}, d.diffStore.PurgeDigests(req.Digests, req.PurgeGCS)
+	return &Empty{}, d.diffStore.PurgeDigests(asDigests(req.Digests), req.PurgeGCS)
 }
 
 // Ping returns an empty message, used to test the connection.

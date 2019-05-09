@@ -155,7 +155,7 @@ func DeserializeTile(r io.Reader) (*tiling.Tile, error) {
 		return nil, err
 	}
 
-	traces := map[string]tiling.Trace{}
+	traces := map[tiling.TraceId]tiling.Trace{}
 	paramSets := paramtools.ParamSet{}
 	for {
 		id, gTrace, err := readTrace(r, paramKeyTable, paramValTable, digestTable, nCommits)
@@ -499,13 +499,17 @@ func bytesToInts(arr []byte) ([]int, error) {
 
 // writeDigests writes the given traces to disk. They are assumed to be instance of GoldenTrace.
 // And returns a mappint table between the digests and integers.
-func writeDigests(w io.Writer, traces map[string]tiling.Trace) (map[string]int, error) {
-	digestSet := util.NewStringSet()
+func writeDigests(w io.Writer, traces map[tiling.TraceId]tiling.Trace) (map[types.Digest]int, error) {
+	digestSet := types.DigestSet{}
 	for _, trace := range traces {
 		digestSet.AddLists(trace.(*types.GoldenTrace).Digests)
 	}
 
-	digests := digestSet.Keys()
+	// Can't use digestSet.Keys() because we actually want a []string not []type.Digest
+	digests := make([]string, 0, len(digestSet))
+	for d := range digestSet {
+		digests = append(digests, string(d))
+	}
 	if len(digests) > int(math.Pow(2, BYTES_PER_INT*8)) {
 		return nil, fmt.Errorf("Not enough bytes to encode digests. %d > %d", len(digests), int(math.Pow(2, BYTES_PER_INT*8)))
 	}
@@ -514,9 +518,9 @@ func writeDigests(w io.Writer, traces map[string]tiling.Trace) (map[string]int, 
 		return nil, err
 	}
 
-	digestTable := make(map[string]int, len(digests))
+	digestTable := make(map[types.Digest]int, len(digests))
 	for idx, d := range digests {
-		digestTable[d] = idx
+		digestTable[types.Digest(d)] = idx
 	}
 
 	return digestTable, nil
@@ -524,22 +528,22 @@ func writeDigests(w io.Writer, traces map[string]tiling.Trace) (map[string]int, 
 
 // readDigests reads digests from the given reader and returns a table to
 // map between integers and strings.
-func readDigests(r io.Reader) (map[int]string, error) {
+func readDigests(r io.Reader) (map[int]types.Digest, error) {
 	digests, err := readStringArr(r)
 	if err != nil {
 		return nil, err
 	}
 
-	digestTable := make(map[int]string, len(digests))
+	digestTable := make(map[int]types.Digest, len(digests))
 	for idx, d := range digests {
-		digestTable[idx] = d
+		digestTable[idx] = types.Digest(d)
 	}
 
 	return digestTable, nil
 }
 
 // writeTrace writes a trace to the given writer.
-func writeTrace(w io.Writer, paramKeyTable map[string]int, paramValTable map[string]int, digestTable map[string]int, id string, trace *types.GoldenTrace) error {
+func writeTrace(w io.Writer, paramKeyTable map[string]int, paramValTable map[string]int, digestTable map[types.Digest]int, id tiling.TraceId, trace *types.GoldenTrace) error {
 	// Write the id
 	if err := writeBytesWithLength(w, []byte(id)); err != nil {
 		return err
@@ -561,13 +565,13 @@ func writeTrace(w io.Writer, paramKeyTable map[string]int, paramValTable map[str
 }
 
 // readTrace reads a trace from the given reader.
-func readTrace(r io.Reader, keyTable map[int]string, valTable map[int]string, digestTable map[int]string, nCommits int) (string, *types.GoldenTrace, error) {
+func readTrace(r io.Reader, keyTable map[int]string, valTable map[int]string, digestTable map[int]types.Digest, nCommits int) (tiling.TraceId, *types.GoldenTrace, error) {
 	// Read the id.
 	byteId, err := readBytesWithLength(r)
 	if err != nil {
 		return "", nil, err
 	}
-	id := string(byteId)
+	id := tiling.TraceId(byteId)
 
 	// Read the parameters.
 	byteParams, err := readBytesWithLength(r)
@@ -595,7 +599,7 @@ func readTrace(r io.Reader, keyTable map[int]string, valTable map[int]string, di
 		return "", nil, err
 	}
 
-	values := make([]string, 0, len(intDigests))
+	values := make(types.DigestSlice, 0, len(intDigests))
 	for _, intDigest := range intDigests {
 		values = append(values, digestTable[intDigest])
 	}

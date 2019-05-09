@@ -67,15 +67,15 @@ func WriteMergeableBaseline(w io.Writer, b types.TestExp) error {
 			return sklog.FmtErrorf("Received emtpy testname.")
 		}
 
-		digestList := make([]string, 0, len(digests))
+		digestLabelList := make([]string, 0, len(digests))
 		for d, label := range digests {
-			if !isMD5.MatchString(d) {
+			if !isMD5.MatchString(string(d)) {
 				return sklog.FmtErrorf("Expected hex-encoded MD5 hash. Got: %q", d)
 			}
-			digestList = append(digestList, combineDigestLabel(d, label))
+			digestLabelList = append(digestLabelList, combineDigestLabel(d, label))
 		}
-		sort.Strings(digestList)
-		line := fmt.Sprintf("%s %s", testName, strings.Join(digestList, " "))
+		sort.Strings(digestLabelList)
+		line := fmt.Sprintf("%s %s", testName, strings.Join(digestLabelList, " "))
 		allLines = append(allLines, line)
 	}
 	sort.Strings(allLines)
@@ -162,7 +162,7 @@ func containsEmpty(parts []string) bool {
 
 // parseLine parses a single entry in the file and returns the test name and the mapping
 // from digests to labels, which can be used directly to add to a baseline.
-func parseLine(line string) (string, map[string]types.Label, error) {
+func parseLine(line string) (types.TestName, map[types.Digest]types.Label, error) {
 	parts := strings.Split(line, " ")
 	if containsEmpty(parts) {
 		return "", nil, sklog.FmtErrorf("Tokens in line can only contain one separating space. Multiple found in %q", line)
@@ -174,7 +174,7 @@ func parseLine(line string) (string, map[string]types.Label, error) {
 	}
 
 	testName := parts[0]
-	digests := make(map[string]types.Label, len(parts)-1)
+	digests := make(map[types.Digest]types.Label, len(parts)-1)
 	prev := ""
 	for _, digestLabel := range parts[1:] {
 		digest, label, err := splitDigestLabel(digestLabel)
@@ -184,28 +184,28 @@ func parseLine(line string) (string, map[string]types.Label, error) {
 
 		// Check if they are strictly monotonically increasing. This also covers the
 		// case of duplicate digests.
-		if digest <= prev {
+		if string(digest) <= prev {
 			return "", nil, sklog.FmtErrorf("Digests for test %q are not sorted or there are duplicates. Got sequence: %q %q", testName, prev, digest)
 		}
 
 		digests[digest] = label
-		prev = digest
+		prev = string(digest)
 	}
-	return parts[0], digests, nil
+	return types.TestName(parts[0]), digests, nil
 }
 
 // combineDigestLabel combines the digest and the label into a string and is the 'inverse' of
 // splitDigestLabel.
-func combineDigestLabel(digest string, label types.Label) string {
+func combineDigestLabel(digest types.Digest, label types.Label) string {
 	return fmt.Sprintf("%s:%s", digest, labelToCh[label])
 }
 
 // splitDigestLabel splits the digest and label encoded in a string by combineDigestLabel.
-func splitDigestLabel(digestLabel string) (string, types.Label, error) {
+func splitDigestLabel(digestLabel string) (types.Digest, types.Label, error) {
 	matchedGroups := validDigestLabel.FindStringSubmatch(digestLabel)
 	if len(matchedGroups) != 3 {
 		return "", types.UNTRIAGED, sklog.FmtErrorf("Invalid digest/label entry: %q", digestLabel)
 	}
 
-	return matchedGroups[1], chToLabel[matchedGroups[2]], nil
+	return types.Digest(matchedGroups[1]), chToLabel[matchedGroups[2]], nil
 }

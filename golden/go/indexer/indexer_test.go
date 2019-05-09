@@ -122,7 +122,7 @@ func getChanges(t *testing.T, tile *tiling.Tile) types.TestExp {
 			gTrace := trace.(*types.GoldenTrace)
 			for _, digest := range gTrace.Digests {
 				if digest != types.MISSING_DIGEST {
-					testName := gTrace.Keys[types.PRIMARY_KEY_FIELD]
+					testName := gTrace.TestName()
 					if found, ok := ret[testName]; ok {
 						found[digest] = labelVals[rand.Int()%2]
 					} else {

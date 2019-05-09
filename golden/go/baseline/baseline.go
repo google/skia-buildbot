@@ -56,8 +56,8 @@ func GetBaselinesPerCommit(exps types.TestExpBuilder, tileInfo TileInfo, extraCo
 	// commit on the trace we add that set to the baseline.
 	for _, trace := range denseTile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
-		currDigests := map[string]types.Label{}
-		testName := gTrace.Keys[types.PRIMARY_KEY_FIELD]
+		currDigests := map[types.Digest]types.Label{}
+		testName := gTrace.TestName()
 		for idx := 0; idx < len(denseCommits); idx++ {
 			digest := gTrace.Digests[idx]
 

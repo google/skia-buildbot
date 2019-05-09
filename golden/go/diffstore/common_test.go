@@ -6,6 +6,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/types"
 )
 
 func TestMetricMapCodec(t *testing.T) {
@@ -25,8 +26,8 @@ func TestMetricMapCodec(t *testing.T) {
 	}
 
 	// Put diffMetrics into a map with an MD5 digest as the key.
-	diffMap := make(map[string]interface{}, 0)
-	testDigest := "5460652359b9b272d520baaddaeddb5c"
+	diffMap := make(map[types.Digest]interface{}, 0)
+	testDigest := types.Digest("5460652359b9b272d520baaddaeddb5c")
 	diffMap[testDigest] = diffMetrics
 
 	// Encode the data.
@@ -39,6 +40,6 @@ func TestMetricMapCodec(t *testing.T) {
 
 	// Verify the deserialized data is the correct type and is structurally
 	// equivalent to the encoded data.
-	assert.IsType(t, data, map[string]interface{}{})
+	assert.IsType(t, data, map[types.Digest]interface{}{})
 	assert.Equal(t, diffMap, data)
 }

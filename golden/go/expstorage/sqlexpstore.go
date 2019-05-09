@@ -54,7 +54,9 @@ func (s *SQLExpectationsStore) Get() (exp types.TestExpBuilder, err error) {
 
 	result := types.TestExp{}
 	for rows.Next() {
-		var testName, digest, label string
+		var testName types.TestName
+		var digest types.Digest
+		var label string
 		if err = rows.Scan(&testName, &digest, &label); err != nil {
 			return nil, err
 		}
@@ -218,7 +220,7 @@ func (s *SQLExpectationsStore) getExpectationsAt(changeInfo *TriageLogEntry) (ty
 	placeHolders := []string{}
 	for _, d := range changeInfo.Details {
 		if _, ok := ret[d.TestName]; !ok {
-			ret[d.TestName] = map[string]types.Label{}
+			ret[d.TestName] = map[types.Digest]types.Label{}
 		}
 		ret[d.TestName][d.Digest] = types.UNTRIAGED
 		listArgs = append(listArgs, d.TestName, d.Digest)
@@ -235,7 +237,9 @@ func (s *SQLExpectationsStore) getExpectationsAt(changeInfo *TriageLogEntry) (ty
 	}
 	defer util.Close(rows)
 
-	var name, digest, label string
+	var name types.TestName
+	var digest types.Digest
+	var label string
 	for rows.Next() {
 		if err = rows.Scan(&name, &digest, &label); err != nil {
 			return nil, err

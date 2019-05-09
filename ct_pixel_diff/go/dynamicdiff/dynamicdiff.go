@@ -3,9 +3,13 @@ package dynamicdiff
 import (
 	"fmt"
 	"image"
+
+	// TODO(kjlubick): This package should probably not use path/filepath (which is os dependent)
+	// Since the separator is in GCS, it should use something that always uses '/'
 	"path/filepath"
 	"strings"
 
+	"go.skia.org/infra/ct_pixel_diff/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
@@ -50,30 +54,30 @@ func (g PixelDiffStoreMapper) DiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA
 }
 
 // DiffID implements the diffstore.DiffStoreMapper interface.
-func (p PixelDiffStoreMapper) DiffID(leftImgID, rightImgID string) string {
+func (p PixelDiffStoreMapper) DiffID(leftImgID, rightImgID common.ImageID) string {
 	// Return a string containing the common runID, rank and URL of the two image paths.
-	path := strings.Split(leftImgID, "/")
+	path := strings.Split(string(leftImgID), "/")
 	return strings.Join([]string{path[0], path[2], path[3]}, ":")
 }
 
 // SplitDiffID implements the diffstore.DiffStoreMapper interface.
-func (p PixelDiffStoreMapper) SplitDiffID(diffID string) (string, string) {
+func (p PixelDiffStoreMapper) SplitDiffID(diffID string) (common.ImageID, common.ImageID) {
 	path := strings.Split(diffID, ":")
-	return filepath.Join(path[0], "nopatch", path[1], path[2]),
-		filepath.Join(path[0], "withpatch", path[1], path[2])
+	return common.ImageID(filepath.Join(path[0], "nopatch", path[1], path[2])),
+		common.ImageID(filepath.Join(path[0], "withpatch", path[1], path[2]))
 }
 
 // DiffPath implements the diffstore.DiffStoreMapper interface.
-func (p PixelDiffStoreMapper) DiffPath(leftImgID, rightImgID string) string {
-	path := strings.Split(leftImgID, "/")
+func (p PixelDiffStoreMapper) DiffPath(leftImgID, rightImgID common.ImageID) string {
+	path := strings.Split(string(leftImgID), "/")
 	imageName := path[0] + "/" + path[3]
 	return fmt.Sprintf("%s.%s", imageName, diffstore.IMG_EXTENSION)
 }
 
 // ImagePaths implements the diffstore.DiffStoreMapper interface.
-func (p PixelDiffStoreMapper) ImagePaths(imageID string) (string, string, string) {
+func (p PixelDiffStoreMapper) ImagePaths(imageID common.ImageID) (string, string, string) {
 	localPath := fmt.Sprintf("%s.%s", imageID, diffstore.IMG_EXTENSION)
-	path := strings.Split(imageID, "/")
+	path := strings.Split(string(imageID), "/")
 	runID := strings.Split(path[0], "-")
 	timeStamp := runID[1]
 	datePath := filepath.Join(timeStamp[0:4], timeStamp[4:6], timeStamp[6:8], timeStamp[8:10])

@@ -16,16 +16,16 @@ import (
 // A Blamer should be immutable after creation.
 type Blamer interface {
 	// GetAllBlameLists returns all BlameLists that have been computed.
-	GetAllBlameLists() (map[string]map[string]*BlameDistribution, []*tiling.Commit)
+	GetAllBlameLists() (map[types.TestName]map[types.Digest]*BlameDistribution, []*tiling.Commit)
 
 	// GetBlamesForTest returns the list of WeightedBlame for the given test.
-	GetBlamesForTest(testName string) []*WeightedBlame
+	GetBlamesForTest(testName types.TestName) []*WeightedBlame
 
 	// GetBlame returns the indices of the provided list of commits that likely
 	// caused the given test name/digest pair. If the result is empty we are not
 	// able to determine blame, because the test name/digest appeared prior
 	// to the current tile.
-	GetBlame(testName string, digest string, commits []*tiling.Commit) *BlameDistribution
+	GetBlame(testName types.TestName, digest types.Digest, commits []*tiling.Commit) *BlameDistribution
 }
 
 // BlamerImpl implements the Blamer interface.
@@ -34,7 +34,7 @@ type BlamerImpl struct {
 	commits []*tiling.Commit
 
 	// testBlameLists are the blamelists keyed by testName and digest.
-	testBlameLists map[string]map[string]*BlameDistribution
+	testBlameLists map[types.TestName]map[types.Digest]*BlameDistribution
 }
 
 // BlameDistribution contains a rough estimation of the probabilities that
@@ -85,12 +85,12 @@ func New(tile *tiling.Tile, exp types.TestExpBuilder) (*BlamerImpl, error) {
 }
 
 // GetAllBlameLists fulfills the Blamer interface.
-func (b *BlamerImpl) GetAllBlameLists() (map[string]map[string]*BlameDistribution, []*tiling.Commit) {
+func (b *BlamerImpl) GetAllBlameLists() (map[types.TestName]map[types.Digest]*BlameDistribution, []*tiling.Commit) {
 	return b.testBlameLists, b.commits
 }
 
 // GetBlamesForTest fulfills the Blamer interface.
-func (b *BlamerImpl) GetBlamesForTest(testName string) []*WeightedBlame {
+func (b *BlamerImpl) GetBlamesForTest(testName types.TestName) []*WeightedBlame {
 	blameLists, commits := b.GetAllBlameLists()
 
 	digestBlameList := blameLists[testName]
@@ -119,7 +119,7 @@ func (b *BlamerImpl) GetBlamesForTest(testName string) []*WeightedBlame {
 // format).
 
 // GetBlame fulfills the Blamer interface.
-func (b *BlamerImpl) GetBlame(testName string, digest string, commits []*tiling.Commit) *BlameDistribution {
+func (b *BlamerImpl) GetBlame(testName types.TestName, digest types.Digest, commits []*tiling.Commit) *BlameDistribution {
 	blameLists, blameCommits := b.GetAllBlameLists()
 	commitIndices, maxCount := b.getBlame(blameLists[testName][digest], blameCommits, commits)
 	return &BlameDistribution{
@@ -160,22 +160,22 @@ func (b *BlamerImpl) calculate(tile *tiling.Tile, exp types.TestExpBuilder) erro
 
 	// Note: blameStart and blameEnd are continuously updated to contain the
 	// smallest start and end index of the ranges for a testName/digest pair.
-	blameStart := map[string]map[string]int{}
-	blameEnd := map[string]map[string]int{}
+	blameStart := map[types.TestName]map[types.Digest]int{}
+	blameEnd := map[types.TestName]map[types.Digest]int{}
 
 	// blameRange stores the candidate ranges for a testName/digest pair.
-	blameRange := map[string]map[string][][]int{}
+	blameRange := map[types.TestName]map[types.Digest][][]int{}
 	tileLen := tile.LastCommitIndex() + 1
-	ret := map[string]map[string]*BlameDistribution{}
+	ret := map[types.TestName]map[types.Digest]*BlameDistribution{}
 
 	for _, trace := range tile.Traces {
 		gtr := trace.(*types.GoldenTrace)
-		testName := gtr.Params()[types.PRIMARY_KEY_FIELD]
+		testName := gtr.TestName()
 
 		// lastIdx tracks the index of the last digest that is definitely
 		// not in the blamelist.
 		lastIdx := -1
-		found := map[string]bool{}
+		found := types.DigestSet{}
 		for idx, digest := range gtr.Digests[:tileLen] {
 			if digest == types.MISSING_DIGEST {
 				continue
@@ -200,10 +200,10 @@ func (b *BlamerImpl) calculate(tile *tiling.Tile, exp types.TestExpBuilder) erro
 				isOld := false
 				commitRange := []int{startIdx, endIdx}
 				if blameStartFound, ok := blameStart[testName]; !ok {
-					blameStart[testName] = map[string]int{digest: startIdx}
-					blameEnd[testName] = map[string]int{digest: endIdx}
-					blameRange[testName] = map[string][][]int{digest: {commitRange}}
-					ret[testName] = map[string]*BlameDistribution{digest: {Old: isOld}}
+					blameStart[testName] = map[types.Digest]int{digest: startIdx}
+					blameEnd[testName] = map[types.Digest]int{digest: endIdx}
+					blameRange[testName] = map[types.Digest][][]int{digest: {commitRange}}
+					ret[testName] = map[types.Digest]*BlameDistribution{digest: {Old: isOld}}
 				} else if currentStart, ok := blameStartFound[digest]; !ok {
 					blameStart[testName][digest] = startIdx
 					blameEnd[testName][digest] = endIdx

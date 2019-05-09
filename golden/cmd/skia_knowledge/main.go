@@ -98,7 +98,7 @@ func loadMetaData(client *http.Client, baseURL, query, metaDataFileName string) 
 // One directory is created for each test.
 func downloadImages(baseDir string, client *http.Client, testRecs []*search.ExportTestRecord) error {
 	for _, testRec := range testRecs {
-		testDir := filepath.Join(baseDir, testRec.TestName)
+		testDir := filepath.Join(baseDir, string(testRec.TestName))
 		absDirPath, err := fileutil.EnsureDirExists(testDir)
 		if err != nil {
 			sklog.Errorf("Error creating directory '%s'. Skipping. Got error: %s", testDir, err)

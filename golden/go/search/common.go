@@ -17,11 +17,11 @@ import (
 // result might require an expensive computation and we want to avoid repeating
 // that computation in the 'add' step. So we can return it here and it will
 // be passed into the instance of AddFn.
-type AcceptFn func(params paramtools.Params, digests []string) (bool, interface{})
+type AcceptFn func(params paramtools.Params, digests types.DigestSlice) (bool, interface{})
 
 // AddFn is the callback function used by iterTile to add a digest and it's
 // trace to the result. acceptResult is the same value returned by the AcceptFn.
-type AddFn func(test, digest, traceID string, trace *types.GoldenTrace, acceptResult interface{})
+type AddFn func(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace *types.GoldenTrace, acceptResult interface{})
 
 // iterTile is a generic function to extract information from a tile.
 // It iterates over the tile and filters against the given query. If calls
@@ -33,7 +33,7 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *i
 	selectedTile := cpxTile.GetTile(query.IncludeIgnores)
 
 	if acceptFn == nil {
-		acceptFn = func(params paramtools.Params, digests []string) (bool, interface{}) { return true, nil }
+		acceptFn = func(params paramtools.Params, digests types.DigestSlice) (bool, interface{}) { return true, nil }
 	}
 
 	digestCountsByTrace := idx.DigestCountsByTrace(query.IncludeIgnores)
@@ -59,7 +59,7 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *i
 			}
 
 			// Iterate over the digess and filter them.
-			test := params[types.PRIMARY_KEY_FIELD]
+			test := fullTr.TestName()
 			for _, digest := range digests {
 				cl := exp.Classification(test, digest)
 				if query.excludeClassification(cl) {

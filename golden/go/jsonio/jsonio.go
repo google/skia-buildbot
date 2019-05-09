@@ -47,6 +47,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"go.skia.org/infra/golden/go/types"
 )
 
 var (
@@ -193,7 +195,7 @@ func (g *GoldResults) Validate(ignoreResults bool) ([]string, error) {
 type Result struct {
 	Key     map[string]string `json:"key"      validate:"required"`
 	Options map[string]string `json:"options"  validate:"required"`
-	Digest  string            `json:"md5"      validate:"required"`
+	Digest  types.Digest      `json:"md5"      validate:"required"`
 }
 
 // validate the Result instance.
@@ -201,7 +203,7 @@ func (r *Result) validate(errMsg *[]string, parentField string) {
 	jn := resultJsonMap
 	addErrMessage(errMsg, len(r.Key) > 0 && hasNonEmptyKV(r.Key), "field '%s' must be non-empty and must not have empty keys or values", parentField+"."+jn["Key"])
 	addErrMessage(errMsg, hasNonEmptyKV(r.Options), "field '%s' must not have empty keys or values", parentField+"."+jn["Options"])
-	addErrMessage(errMsg, regExHexadecimal.MatchString(r.Digest), "field '%s' must be hexadecimal", parentField+"."+jn["Digest"])
+	addErrMessage(errMsg, regExHexadecimal.MatchString(string(r.Digest)), "field '%s' must be hexadecimal", parentField+"."+jn["Digest"])
 }
 
 // addErrMessage adds an error message to errMsg if isValid is false. The

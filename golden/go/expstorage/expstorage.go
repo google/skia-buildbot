@@ -63,9 +63,9 @@ type DEPRECATED_ExpectationsStore interface {
 // TriageDetails represents one changed digest and the label that was
 // assigned as part of the triage operation.
 type TriageDetail struct {
-	TestName string `json:"test_name"`
-	Digest   string `json:"digest"`
-	Label    string `json:"label"`
+	TestName types.TestName `json:"test_name"`
+	Digest   types.Digest   `json:"digest"`
+	Label    string         `json:"label"`
 }
 
 // TriageLogEntry represents one change in the expectation store.

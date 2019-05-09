@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/types"
 )
 
 const (
@@ -62,7 +63,7 @@ func decodeImg(reader io.Reader) (*image.NRGBA, error) {
 }
 
 // getDigestImageFileName returns the image name based on the digest.
-func getDigestImageFileName(digest string) string {
+func getDigestImageFileName(digest types.Digest) string {
 	return fmt.Sprintf("%s.%s", digest, IMG_EXTENSION)
 }
 
@@ -100,14 +101,14 @@ func (m MetricMapCodec) Encode(data interface{}) ([]byte, error) {
 
 // See util.LRUCodec interface
 func (m MetricMapCodec) Decode(byteData []byte) (interface{}, error) {
-	dm := map[string]*diff.DiffMetrics{}
+	dm := map[types.Digest]*diff.DiffMetrics{}
 	err := json.Unmarshal(byteData, &dm)
 	if err != nil {
 		return nil, err
 	}
 
 	// Must make result of deserialization generic in order to propagate
-	ret := make(map[string]interface{}, len(dm))
+	ret := make(map[types.Digest]interface{}, len(dm))
 	for k, metric := range dm {
 		ret[k] = metric
 	}

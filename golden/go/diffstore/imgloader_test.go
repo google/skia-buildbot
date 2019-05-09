@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -29,7 +28,7 @@ func TestImageLoader(t *testing.T) {
 	defer cleanup()
 
 	// Iterate over the tile and get all the digests
-	digestSet := util.NewStringSet()
+	digestSet := types.DigestSet{}
 	for _, trace := range tile.Traces {
 		gt := trace.(*types.GoldenTrace)
 		for _, val := range gt.Digests {
@@ -49,9 +48,9 @@ func TestImageLoader(t *testing.T) {
 	}
 
 	// Fetch images from the secondary bucket.
-	_, _, err := imageLoader.Get(1, []string{TEST_IMG_DIGEST})
+	_, _, err := imageLoader.Get(1, types.DigestSlice{TEST_IMG_DIGEST})
 	assert.NoError(t, err)
-	_, _, err = imageLoader.Get(1, []string{"some-image-that-does-not-exist-at-all-in-any-bucket"})
+	_, _, err = imageLoader.Get(1, types.DigestSlice{"some-image-that-does-not-exist-at-all-in-any-bucket"})
 	assert.Error(t, err)
 }
 

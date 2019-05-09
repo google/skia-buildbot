@@ -41,13 +41,13 @@ const (
 // SRDigest is a single search result digest returned
 // by the Search function below.
 type SRDigest struct {
-	Test       string                   `json:"test"`
-	Digest     string                   `json:"digest"`
-	Status     string                   `json:"status"`
-	ParamSet   map[string][]string      `json:"paramset"`
-	Traces     *Traces                  `json:"traces"`
-	ClosestRef string                   `json:"closestRef"`
-	RefDiffs   map[string]*SRDiffDigest `json:"refDiffs"`
+	Test       types.TestName                 `json:"test"`
+	Digest     types.Digest                   `json:"digest"`
+	Status     string                         `json:"status"`
+	ParamSet   map[string][]string            `json:"paramset"`
+	Traces     *Traces                        `json:"traces"`
+	ClosestRef types.Digest                   `json:"closestRef"`
+	RefDiffs   map[types.Digest]*SRDiffDigest `json:"refDiffs"`
 }
 
 // SRDiffDigest captures the diff information between
@@ -55,8 +55,8 @@ type SRDigest struct {
 // digest is given by the context where this is used.
 type SRDiffDigest struct {
 	*diff.DiffMetrics
-	Test     string              `json:"test"`
-	Digest   string              `json:"digest"`
+	Test     types.TestName      `json:"test"`
+	Digest   types.Digest        `json:"digest"`
 	Status   string              `json:"status"`
 	ParamSet map[string][]string `json:"paramset"`
 	N        int                 `json:"n"`
@@ -215,7 +215,7 @@ func (s *SearchAPI) Summary(issueID int64) (*IssueSummary, error) {
 }
 
 // GetDigestDetails returns details about a digest as an instance of SRDigestDetails.
-func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, error) {
+func (s *SearchAPI) GetDigestDetails(test types.TestName, digest types.Digest) (*SRDigestDetails, error) {
 	ctx := context.Background()
 	idx := s.ixr.GetIndex()
 	tile := idx.CpxTile().GetTile(true)
@@ -227,10 +227,11 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 
 	oneInter := newSrIntermediate(test, digest, "", nil, nil)
 	for traceId, trace := range tile.Traces {
-		if trace.Params()[types.PRIMARY_KEY_FIELD] != test {
+		gTrace := trace.(*types.GoldenTrace)
+		if gTrace.TestName() != test {
 			continue
 		}
-		gTrace := trace.(*types.GoldenTrace)
+
 		for _, val := range gTrace.Digests {
 			if val == digest {
 				oneInter.add(traceId, trace, nil)
@@ -303,7 +304,7 @@ func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, idx *indexer.Searc
 	addFn := ret.add
 	if !q.IncludeMaster {
 		talliesByTest := idx.DigestCountsByTest(q.IncludeIgnores)
-		addFn = func(test, digest, traceID string, trace *types.GoldenTrace, params paramtools.ParamSet) {
+		addFn = func(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace *types.GoldenTrace, params paramtools.ParamSet) {
 			// Include the digest if either the test or the digest is not in the master tile.
 			if _, ok := talliesByTest[test][digest]; !ok {
 				ret.add(test, digest, traceID, trace, params)
@@ -320,7 +321,7 @@ func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, idx *indexer.Searc
 
 // filterAddFn is a filter and add function that is passed to the getIssueDigest interface. It will
 // be called for each testName/digest combination and should accumulate the digests of interest.
-type filterAddFn func(test, digest, traceID string, trace *types.GoldenTrace, params paramtools.ParamSet)
+type filterAddFn func(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace *types.GoldenTrace, params paramtools.ParamSet)
 
 // extractIssueDigests loads the issue and its tryjob results and then filters the
 // results via the given query. For each testName/digest pair addFn is called.
@@ -401,7 +402,8 @@ func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx *inde
 					// Filter by classification.
 					cl := exp.Classification(tjr.TestName, tjr.Digest)
 					if !q.excludeClassification(cl) {
-						addFn(tjr.Params[types.PRIMARY_KEY_FIELD][0], tjr.Digest, "", nil, tjr.Params)
+						tn := types.TestName(tjr.Params[types.PRIMARY_KEY_FIELD][0])
+						addFn(tn, tjr.Digest, tiling.TraceId(""), nil, tjr.Params)
 					}
 				}
 			}
@@ -422,8 +424,8 @@ func (s *SearchAPI) filterTile(ctx context.Context, q *Query, exp ExpSlice, idx 
 	var acceptFn AcceptFn = nil
 	if q.FGroupTest == GROUP_TEST_MAX_COUNT {
 		maxDigestsByTest := idx.MaxDigestsByTest(q.IncludeIgnores)
-		acceptFn = func(params paramtools.Params, digests []string) (bool, interface{}) {
-			testName := params[types.PRIMARY_KEY_FIELD]
+		acceptFn = func(params paramtools.Params, digests types.DigestSlice) (bool, interface{}) {
+			testName := types.TestName(params[types.PRIMARY_KEY_FIELD])
 			for _, d := range digests {
 				if maxDigestsByTest[testName][d] {
 					return true, nil
@@ -435,7 +437,7 @@ func (s *SearchAPI) filterTile(ctx context.Context, q *Query, exp ExpSlice, idx 
 
 	// Add digest/trace to the result.
 	ret := srInterMap{}
-	addFn := func(test, digest, traceID string, trace *types.GoldenTrace, acceptRet interface{}) {
+	addFn := func(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace *types.GoldenTrace, acceptRet interface{}) {
 		ret.add(test, digest, traceID, trace, nil)
 	}
 
@@ -578,13 +580,13 @@ func (s *SearchAPI) addParamsAndTraces(ctx context.Context, digestInfo []*SRDige
 
 // getDrawableTraces returns an instance of Traces which allows to draw the
 // traces for the given test/digest.
-func (s *SearchAPI) getDrawableTraces(test, digest string, last int, exp ExpSlice, traces map[string]*types.GoldenTrace) *Traces {
+func (s *SearchAPI) getDrawableTraces(test types.TestName, digest types.Digest, last int, exp ExpSlice, traces map[tiling.TraceId]*types.GoldenTrace) *Traces {
 	// Get the information necessary to draw the traces.
-	traceIDs := make([]string, 0, len(traces))
+	traceIDs := make(tiling.TraceIdSlice, 0, len(traces))
 	for traceID := range traces {
 		traceIDs = append(traceIDs, traceID)
 	}
-	sort.Strings(traceIDs)
+	sort.Sort(traceIDs)
 
 	// Get the status for all digests in the traces.
 	digestStatuses := make([]DigestStatus, 0, MAX_REF_DIGESTS)

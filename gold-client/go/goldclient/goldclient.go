@@ -74,7 +74,7 @@ type GoldClient interface {
 	// they are likely shared between tests and should be added in SetSharedConfig.
 	//
 	// An error is only returned if there was a technical problem in processing the test.
-	Test(name string, imgFileName string, additionalKeys map[string]string) (bool, error)
+	Test(name types.TestName, imgFileName string, additionalKeys map[string]string) (bool, error)
 
 	// Upload the JSON file for all Test() calls previously seen.
 	// A no-op if configured for PASS/FAIL mode, since the JSON would have been uploaded
@@ -112,7 +112,7 @@ type CloudClient struct {
 	ready bool
 
 	// these functions are overwritable by tests
-	loadAndHashImage func(path string) ([]byte, string, error)
+	loadAndHashImage func(path string) ([]byte, types.Digest, error)
 	now              func() time.Time
 
 	// auth stores the authentication method to use.
@@ -150,7 +150,7 @@ type resultState struct {
 	InstanceID      string
 	GoldURL         string
 	Bucket          string
-	KnownHashes     util.StringSet
+	KnownHashes     types.DigestSet
 	Expectations    types.TestExp
 }
 
@@ -244,7 +244,7 @@ func (c *CloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults) error {
 }
 
 // Test implements the GoldClient interface.
-func (c *CloudClient) Test(name string, imgFileName string, additionalKeys map[string]string) (bool, error) {
+func (c *CloudClient) Test(name types.TestName, imgFileName string, additionalKeys map[string]string) (bool, error) {
 	if res, err := c.addTest(name, imgFileName, additionalKeys); err != nil {
 		return false, err
 	} else {
@@ -254,7 +254,7 @@ func (c *CloudClient) Test(name string, imgFileName string, additionalKeys map[s
 
 // addTest adds a test to results. If perTestPassFail is true it will also upload the result.
 // Returns true if the test was added (and maybe uploaded) successfully.
-func (c *CloudClient) addTest(name string, imgFileName string, additionalKeys map[string]string) (bool, error) {
+func (c *CloudClient) addTest(name types.TestName, imgFileName string, additionalKeys map[string]string) (bool, error) {
 	if err := c.isReady(); err != nil {
 		return false, skerr.Fmt("Unable to process test result. Cloud Gold Client not ready: %s", err)
 	}
@@ -391,10 +391,10 @@ func (c *CloudClient) getResultStatePath() string {
 }
 
 // addResult adds the given test to the overall results.
-func (c *CloudClient) addResult(name, imgHash string, additionalKeys map[string]string) {
+func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, additionalKeys map[string]string) {
 	newResult := &jsonio.Result{
 		Digest: imgHash,
-		Key:    map[string]string{types.PRIMARY_KEY_FIELD: name},
+		Key:    map[string]string{types.PRIMARY_KEY_FIELD: string(name)},
 
 		// We need to specify this is a png, otherwise the backend will refuse
 		// to ingest it.
@@ -433,7 +433,7 @@ func (c *CloudClient) downloadHashesAndBaselineFromGold() error {
 
 // loadAndHashImage loads an image from disk and hashes the internal Pixel buffer. It returns
 // the bytes of the encoded image and the MD5 hash as hex encoded string.
-func loadAndHashImage(fileName string) ([]byte, string, error) {
+func loadAndHashImage(fileName string) ([]byte, types.Digest, error) {
 	// Load the image
 	reader, err := os.Open(fileName)
 	if err != nil {
@@ -452,7 +452,7 @@ func loadAndHashImage(fileName string) ([]byte, string, error) {
 	}
 	nrgbaImg := diff.GetNRGBA(img)
 	md5Hash := fmt.Sprintf("%x", md5.Sum(nrgbaImg.Pix))
-	return imgBytes, md5Hash, nil
+	return imgBytes, types.Digest(md5Hash), nil
 }
 
 // defaultNow returns what time it is now in UTC
@@ -499,7 +499,7 @@ func loadStateFromJson(fileName string) (*resultState, error) {
 
 // loadKnownHashes loads the list of known hashes from the Gold instance.
 func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
-	r.KnownHashes = util.StringSet{}
+	r.KnownHashes = types.DigestSet{}
 
 	// Fetch the known hashes via http
 	hashesURL := fmt.Sprintf("%s/%s", r.GoldURL, knownHashesPath)
@@ -525,7 +525,7 @@ func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
 		// Ignore empty lines and lines that are not valid MD5 hashes
 		line := bytes.TrimSpace(scanner.Bytes())
 		if len(line) > 0 && md5Regexp.Match(line) {
-			r.KnownHashes[string(line)] = true
+			r.KnownHashes[types.Digest(line)] = true
 		}
 	}
 	if err := scanner.Err(); err != nil {
@@ -607,7 +607,7 @@ func (r *resultState) getResultFilePath(now time.Time) string {
 }
 
 // getGCSImagePath returns the path in GCS where the image with the given hash should be stored.
-func (r *resultState) getGCSImagePath(imgHash string) string {
+func (r *resultState) getGCSImagePath(imgHash types.Digest) string {
 	return fmt.Sprintf("%s/%s/%s.png", r.Bucket, imagePrefix, imgHash)
 }
 
@@ -687,7 +687,7 @@ func (c *CloudClient) DumpKnownHashes() (string, error) {
 	}
 	hashes := []string{}
 	for h := range c.resultState.KnownHashes {
-		hashes = append(hashes, h)
+		hashes = append(hashes, string(h))
 	}
 	sort.Strings(hashes)
 	s := strings.Builder{}

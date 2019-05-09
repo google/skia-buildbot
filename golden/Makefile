@@ -74,7 +74,7 @@ release_diffserver: allgo
 
 .PHONY: mocks
 mocks:
-	go get github.com/vektra/mockery/...
+	go get github.com/vektra/mockery
 
 	mockery -name GCSClient -dir go/storage/ -output ./go/mocks/
 	mockery -name TileInfo -dir go/baseline/ -output ./go/mocks/

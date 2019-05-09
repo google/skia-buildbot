@@ -64,10 +64,10 @@ func ToQuery(ignores []*IgnoreRule) ([]url.Values, error) {
 	return ret, nil
 }
 
-func NewIgnoreRule(name string, expires time.Time, queryStr string, note string) *IgnoreRule {
+func NewIgnoreRule(createdByUser string, expires time.Time, queryStr string, note string) *IgnoreRule {
 	return &IgnoreRule{
-		Name:      name,
-		UpdatedBy: name,
+		Name:      createdByUser,
+		UpdatedBy: createdByUser,
 		Expires:   expires,
 		Query:     queryStr,
 		Note:      note,

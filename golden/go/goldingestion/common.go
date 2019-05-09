@@ -8,6 +8,7 @@ import (
 
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/jsonio"
@@ -18,7 +19,7 @@ import (
 // It returns the id as a string of all the values, in the alphabetic order of the
 // keys, separated by a colon. The trace params returned are a single map of
 // key-> values. "Options" are omitted from the trace id, as per design.
-func idAndParams(dm *DMResults, r *jsonio.Result) (string, map[string]string) {
+func idAndParams(dm *DMResults, r *jsonio.Result) (tiling.TraceId, map[string]string) {
 	combinedLen := len(dm.Key) + len(r.Key)
 	traceIdParts := make(map[string]string, combinedLen)
 	params := make(map[string]string, combinedLen+len(r.Options))
@@ -43,12 +44,12 @@ func idAndParams(dm *DMResults, r *jsonio.Result) (string, map[string]string) {
 	for _, k := range keys {
 		values = append(values, traceIdParts[k])
 	}
-	return strings.Join(values, ":"), params
+	return tiling.TraceId(strings.Join(values, ":")), params
 }
 
 // extractTraceDBEntries returns the traceDB entries to be inserted into the data store.
-func extractTraceDBEntries(dm *DMResults) (map[string]*tracedb.Entry, error) {
-	ret := make(map[string]*tracedb.Entry, len(dm.Results))
+func extractTraceDBEntries(dm *DMResults) (map[tiling.TraceId]*tracedb.Entry, error) {
+	ret := make(map[tiling.TraceId]*tracedb.Entry, len(dm.Results))
 	for _, result := range dm.Results {
 		traceId, params := idAndParams(dm, result)
 		if ignoreResult(dm, params) {

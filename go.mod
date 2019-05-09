@@ -100,6 +100,7 @@ require (
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/texttheater/golang-levenshtein v0.0.0-20180516184445-d188e65d659e
 	github.com/unrolled/secure v1.0.0
+	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/luci v0.0.0-20190501011227-60ac53221b79

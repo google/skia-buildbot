@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
@@ -61,20 +60,20 @@ func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qSt
 
 	expDigests := getTargetDigests(t, q, tile, exp)
 
-	foundDigests := util.StringSet{}
+	foundDigests := types.DigestSet{}
 	for _, digestRec := range resp.Digests {
 		foundDigests[digestRec.Digest] = true
 	}
 
 	set1 := expDigests.Keys()
 	set2 := foundDigests.Keys()
-	sort.Strings(set1)
-	sort.Strings(set2)
+	sort.Sort(set1)
+	sort.Sort(set2)
 	assert.Equal(t, set1, set2)
 	return 1
 }
 
-func getTargetDigests(t assert.TestingT, q *Query, tile *tiling.Tile, exp types.TestExpBuilder) util.StringSet {
+func getTargetDigests(t assert.TestingT, q *Query, tile *tiling.Tile, exp types.TestExpBuilder) types.DigestSet {
 	// Account for a given commit range.
 	startIdx := 0
 	endIdx := tile.LastCommitIndex()
@@ -90,33 +89,32 @@ func getTargetDigests(t assert.TestingT, q *Query, tile *tiling.Tile, exp types.
 	}
 	assert.True(t, startIdx <= endIdx)
 
-	digestSet := util.StringSet{}
+	digestSet := types.DigestSet{}
 	for _, trace := range tile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
 		digestSet.AddLists(gTrace.Digests)
 	}
-	allDigests := map[string]int{}
+	allDigests := map[types.Digest]int{}
 	for idx, digest := range digestSet.Keys() {
 		allDigests[digest] = idx
 	}
 
-	result := util.StringSet{}
+	result := types.DigestSet{}
 	lastIdx := endIdx - startIdx
 	for _, trace := range tile.Traces {
 		if tiling.Matches(trace, q.Query) {
 			gTrace := trace.(*types.GoldenTrace)
 			vals := gTrace.Digests[startIdx : endIdx+1]
-			p := gTrace.Keys
-			test := p[types.PRIMARY_KEY_FIELD]
+			test := gTrace.TestName()
 
-			relevantDigests := []string(nil)
+			relevantDigests := types.DigestSlice{}
 			if q.Head {
 				idx := lastIdx
 				for (idx >= 0) && (vals[idx] == types.MISSING_DIGEST) {
 					idx--
 				}
 				if idx >= 0 {
-					relevantDigests = []string{vals[idx]}
+					relevantDigests = types.DigestSlice{vals[idx]}
 				}
 			} else {
 				relevantDigests = vals
@@ -181,7 +179,7 @@ func loadSample(t assert.TestingT, fileName string, randomize bool) *serialize.S
 }
 
 func randomizeTile(tile *tiling.Tile, exp types.TestExpBuilder) *tiling.Tile {
-	allDigestSet := util.StringSet{}
+	allDigestSet := types.DigestSet{}
 	testExp := exp.TestExp()
 	for _, digests := range testExp {
 		for d := range digests {

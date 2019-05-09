@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/trace/db/perftypes"
 	"go.skia.org/infra/go/util"
 )
@@ -30,7 +31,7 @@ func TestAdd(t *testing.T) {
 		},
 	}
 
-	entries := map[string]*Entry{
+	entries := map[tiling.TraceId]*Entry{
 		"key:8888:android": {
 			Params: map[string]string{
 				"config":   "8888",

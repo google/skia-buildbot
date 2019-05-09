@@ -7,7 +7,6 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/mocks"
@@ -35,22 +34,22 @@ func BenchmarkMemDiffStore(b *testing.B) {
 	assert.NoError(b, err)
 
 	// Build storages and get the digests that are not ignored.
-	byTest := map[string]util.StringSet{}
+	byTest := map[types.TestName]types.DigestSet{}
 	for _, trace := range sample.Tile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
-		if _, ok := ignoreMatcher(gTrace.Keys); !ok && gTrace.Keys[types.CORPUS_FIELD] == "gm" {
-			testName := gTrace.Keys[types.PRIMARY_KEY_FIELD]
+		if _, ok := ignoreMatcher(gTrace.Keys); !ok && gTrace.Corpus() == "gm" {
+			testName := gTrace.TestName()
 			if found, ok := byTest[testName]; ok {
 				found.AddLists(gTrace.Digests)
 			} else {
-				byTest[testName] = util.NewStringSet(gTrace.Digests)
+				byTest[testName] = types.DigestSet{}.AddLists(gTrace.Digests)
 			}
 		}
 	}
 
 	mapper := NewGoldDiffStoreMapper(&diff.DiffMetrics{})
 	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, mapper)
-	allDigests := make([][]string, 0, PROCESS_N_TESTS)
+	allDigests := make([]types.DigestSlice, 0, PROCESS_N_TESTS)
 	processed := 0
 	var wg sync.WaitGroup
 	for _, digestSet := range byTest {
@@ -62,7 +61,7 @@ func BenchmarkMemDiffStore(b *testing.B) {
 		diffStore.WarmDigests(diff.PRIORITY_NOW, digests, false)
 
 		wg.Add(1)
-		go func(digests []string) {
+		go func(digests types.DigestSlice) {
 			defer wg.Done()
 			for _, d1 := range digests {
 				_, _ = diffStore.Get(diff.PRIORITY_NOW, d1, digests)
@@ -80,7 +79,7 @@ func BenchmarkMemDiffStore(b *testing.B) {
 	b.ResetTimer()
 	for _, digests := range allDigests {
 		wg.Add(1)
-		go func(digests []string) {
+		go func(digests types.DigestSlice) {
 			defer wg.Done()
 			for _, d1 := range digests {
 				_, _ = diffStore.Get(diff.PRIORITY_NOW, d1, digests)
