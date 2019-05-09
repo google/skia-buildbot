@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "47867b99_8b521eb8",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-09T13:35:18Z",
+      "side": 1,
+      "message": "I am probably not understanding something. We will have different results for different patchsets but baseline will be only for the issue? Isn\u0027t commit hash used for baselines and commit hashes could change per patchset?",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 51
+      },
+      "revId": "a598cb90b579bedae59acf3b2b2f4facdbceb4f3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8306c630_e57cf580",
+        "filename": "golden/go/baseline/gcs_baseliner/baseliner_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-09T13:35:18Z",
+      "side": 1,
+      "message": "Remove Patchset?",
+      "range": {
+        "startLine": 41,
+        "startChar": 27,
+        "endLine": 41,
+        "endChar": 35
+      },
+      "revId": "a598cb90b579bedae59acf3b2b2f4facdbceb4f3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
