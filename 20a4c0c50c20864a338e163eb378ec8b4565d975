@@ -45,6 +45,30 @@
       "revId": "20a4c0c50c20864a338e163eb378ec8b4565d975",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c810460a_2ffd1379",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-09T13:48:23Z",
+      "side": 1,
+      "message": "Done - we\u0027ll see if I regret that.",
+      "parentUuid": "07087f73_1b7f1266",
+      "range": {
+        "startLine": 350,
+        "startChar": 22,
+        "endLine": 350,
+        "endChar": 36
+      },
+      "revId": "20a4c0c50c20864a338e163eb378ec8b4565d975",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
