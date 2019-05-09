@@ -13,7 +13,7 @@
   "isInternal": false,
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
-  "rollerName": "material-internationalization-ios-chromium",
+  "rollerName": "material-i18n-ios-chromium",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "https://rota-ng.appspot.com/legacy/sheriff_ios.json"

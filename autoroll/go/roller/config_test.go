@@ -22,6 +22,7 @@ func validBaseConfig() *AutoRollerConfig {
 		ParentName:      "parentName",
 		ParentWaterfall: "parentWaterfall",
 		RollerName:      "test-roller",
+		ServiceAccount:  "test-account@google.com",
 		Sheriff:         []string{"sheriff@gmail.com"},
 		Gerrit: &codereview.GerritConfig{
 			URL:     "https://gerrit",
