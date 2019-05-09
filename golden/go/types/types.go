@@ -69,6 +69,8 @@ func ValidLabel(s string) bool {
 
 // Strings are used a lot, so these type "aliases" can help document
 // which are meant where. See also tiling.TraceId
+// Of note, Digest exclusively means a unique image, identified by
+// the MD5 hash of its pixels.
 type Digest string
 type TestName string
 

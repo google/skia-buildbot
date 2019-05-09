@@ -75,12 +75,12 @@ func New(gStorageClient storage.GCSClient, expectationsStore expstorage.Expectat
 	}, nil
 }
 
-// CanWriteBaseline returns true if this instance was configured to write baseline files.
+// CanWriteBaseline implements the baseline.Baseliner interface.
 func (b *BaselinerImpl) CanWriteBaseline() bool {
 	return (b.gStorageClient != nil) && (b.gStorageClient.Options().BaselineGSPath != "")
 }
 
-// PushMasterBaselines fulfills the Baseliner interface
+// PushMasterBaselines implements the baseline.Baseliner interface.
 func (b *BaselinerImpl) PushMasterBaselines(tileInfo baseline.TileInfo, targetHash string) (*baseline.CommitableBaseline, error) {
 	defer shared.NewMetricsTimer("push_master_baselines").Stop()
 	b.mutex.Lock()
@@ -171,7 +171,7 @@ func (b *BaselinerImpl) PushMasterBaselines(tileInfo baseline.TileInfo, targetHa
 	return ret, nil
 }
 
-// PushIssueBaseline writes the baseline for a Gerrit issue to GCS.
+// PushIssueBaseline implements the baseline.Baseliner interface.
 func (b *BaselinerImpl) PushIssueBaseline(issueID int64, tileInfo baseline.TileInfo, dCounter digest_counter.DigestCounter) error {
 	issueExpStore := b.issueExpStoreFactory(issueID)
 	exp, err := issueExpStore.Get()
@@ -205,12 +205,8 @@ func (b *BaselinerImpl) PushIssueBaseline(issueID int64, tileInfo baseline.TileI
 	return nil
 }
 
-// FetchBaseline fetches the complete baseline for the given Gerrit issue by
-// loading the master baseline and the issue baseline from GCS and combining
-// them. If either of them doesn't exist an empty baseline is assumed.
-// If issueOnly is true and issueID > 0 then only the expectations attached to the issue are
-// returned (omitting the baselines of the master branch). This is primarily used for debugging.
-func (b *BaselinerImpl) FetchBaseline(commitHash string, issueID int64, patchsetID int64, issueOnly bool) (*baseline.CommitableBaseline, error) {
+// FetchBaseline implements the baseline.Baseliner interface.
+func (b *BaselinerImpl) FetchBaseline(commitHash string, issueID int64, issueOnly bool) (*baseline.CommitableBaseline, error) {
 	isIssue := issueID > 0
 
 	var masterBaseline *baseline.CommitableBaseline
@@ -221,7 +217,10 @@ func (b *BaselinerImpl) FetchBaseline(commitHash string, issueID int64, patchset
 	egroup.Go(func() error {
 		var err error
 		masterBaseline, err = b.getMasterExpectations(commitHash)
-		return err
+		if err != nil {
+			return skerr.Fmt("Could not get master baseline: %s", err)
+		}
+		return nil
 	})
 
 	if isIssue {
@@ -235,7 +234,7 @@ func (b *BaselinerImpl) FetchBaseline(commitHash string, issueID int64, patchset
 			var err error
 			issueBaseline, err = b.gStorageClient.ReadBaseline("", issueID)
 			if err != nil {
-				return err
+				return skerr.Fmt("Could not get baseline for issue %d: %s", issueID, err)
 			}
 
 			// If no baseline was found. We place an empty one.
@@ -243,12 +242,12 @@ func (b *BaselinerImpl) FetchBaseline(commitHash string, issueID int64, patchset
 				issueBaseline = baseline.EmptyBaseline(nil, nil)
 			}
 
-			return err
+			return nil
 		})
 	}
 
 	if err := egroup.Wait(); err != nil {
-		return nil, err
+		return nil, skerr.Fmt("Could not fetch baselines: %s", err)
 	}
 
 	if isIssue {
