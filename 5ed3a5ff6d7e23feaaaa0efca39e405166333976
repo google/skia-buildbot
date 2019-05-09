@@ -22,6 +22,53 @@
       "revId": "5ed3a5ff6d7e23feaaaa0efca39e405166333976",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "494ae326_df8c14fb",
+        "filename": "autoroll/config/material-spirited-animation-view-ios-chromium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-09T13:23:10Z",
+      "side": 1,
+      "message": "I don\u0027t think the roller name really maters much, so we can create it however we want to as long as it makes some sense to us.",
+      "parentUuid": "a1e5439e_854aae24",
+      "range": {
+        "startLine": 16,
+        "startChar": 16,
+        "endLine": 16,
+        "endChar": 58
+      },
+      "revId": "5ed3a5ff6d7e23feaaaa0efca39e405166333976",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "824ca5cd_2b3bb10d",
+        "filename": "autoroll/go/roller/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-09T13:23:10Z",
+      "side": 1,
+      "message": "might be useful to add something as an example of these prefixes and suffixes.",
+      "range": {
+        "startLine": 28,
+        "startChar": 35,
+        "endLine": 28,
+        "endChar": 56
+      },
+      "revId": "5ed3a5ff6d7e23feaaaa0efca39e405166333976",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
