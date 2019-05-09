@@ -7,6 +7,8 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/jsonutils"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/dsutil"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -27,7 +29,7 @@ type cloudIgnoreStore struct {
 // NewCloudIgnoreStore returns an IgnoreStore instance that is backed by Cloud Datastore.
 func NewCloudIgnoreStore(client *datastore.Client, expStore expstorage.ExpectationsStore, tileStream <-chan types.ComplexTile) (IgnoreStore, error) {
 	if client == nil {
-		return nil, sklog.FmtErrorf("Received nil for datastore client.")
+		return nil, skerr.Fmt("Received nil for datastore client.")
 	}
 
 	containerKey := ds.NewKey(ds.HELPER_RECENT_KEYS)
@@ -46,7 +48,7 @@ func NewCloudIgnoreStore(client *datastore.Client, expStore expstorage.Expectati
 func (c *cloudIgnoreStore) Create(ignoreRule *IgnoreRule) error {
 	createFn := func(tx *datastore.Transaction) error {
 		key := dsutil.TimeSortableKey(ds.IGNORE_RULE, 0)
-		ignoreRule.ID = key.ID
+		ignoreRule.ID = jsonutils.Number(key.ID)
 
 		// Add the new rule and put its key with the recently added keys.
 		if _, err := tx.Put(key, ignoreRule); err != nil {
@@ -67,10 +69,6 @@ func (c *cloudIgnoreStore) Create(ignoreRule *IgnoreRule) error {
 	}
 	return err
 }
-
-// TODO(stephana): Remove the addCounts flag in the signature of the List function
-// and expose the AddIgnoreCounts function. This would remove the expsStore and
-// tileStream members of the cloudIgnoreStore struct and simplify the interface.
 
 // List implements the IgnoreStore interface.
 func (c *cloudIgnoreStore) List(addCounts bool) ([]*IgnoreRule, error) {
@@ -93,7 +91,7 @@ func (c *cloudIgnoreStore) List(addCounts bool) ([]*IgnoreRule, error) {
 	})
 
 	if err := egroup.Wait(); err != nil {
-		return nil, sklog.FmtErrorf("Error getting keys of ignore rules: %s", err)
+		return nil, skerr.Fmt("Error getting keys of ignore rules: %s", err)
 	}
 
 	// Merge the keys to get all of the current keys.
@@ -120,10 +118,10 @@ func (c *cloudIgnoreStore) List(addCounts bool) ([]*IgnoreRule, error) {
 }
 
 // Update implements the IgnoreStore interface.
-func (c *cloudIgnoreStore) Update(id int64, rule *IgnoreRule) error {
+func (c *cloudIgnoreStore) Update(id jsonutils.Number, rule *IgnoreRule) error {
 	ctx := context.TODO()
 	key := ds.NewKey(ds.IGNORE_RULE)
-	key.ID = id
+	key.ID = int64(id)
 	_, err := c.client.Mutate(ctx, datastore.NewUpdate(key, rule))
 	if err == nil {
 		atomic.AddInt64(&c.revision, 1)
@@ -132,14 +130,14 @@ func (c *cloudIgnoreStore) Update(id int64, rule *IgnoreRule) error {
 }
 
 // Delete implements the IgnoreStore interface.
-func (c *cloudIgnoreStore) Delete(id int64) (int, error) {
+func (c *cloudIgnoreStore) Delete(id jsonutils.Number) (int, error) {
 	if id <= 0 {
-		return 0, sklog.FmtErrorf("Given id does not exist: %d", id)
+		return 0, skerr.Fmt("Given id does not exist: %d", id)
 	}
 
 	deleteFn := func(tx *datastore.Transaction) error {
 		key := ds.NewKey(ds.IGNORE_RULE)
-		key.ID = id
+		key.ID = int64(id)
 
 		ignoreRule := &IgnoreRule{}
 		if err := tx.Get(key, ignoreRule); err != nil {
@@ -158,6 +156,7 @@ func (c *cloudIgnoreStore) Delete(id int64) (int, error) {
 	if err != nil {
 		// Don't report an error if the item did not exist.
 		if err == datastore.ErrNoSuchEntity {
+			sklog.Warningf("Could not delete ignore with id %d because it did not exist", id)
 			return 0, nil
 		}
 		return 0, err

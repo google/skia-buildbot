@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/database"
+	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -55,13 +56,13 @@ func (m *SQLIgnoreStore) Create(rule *IgnoreRule) error {
 	if err != nil {
 		return err
 	}
-	rule.ID = createdId
+	rule.ID = jsonutils.Number(createdId)
 	m.inc()
 	return nil
 }
 
 // Update, see IgnoreStore interface.
-func (m *SQLIgnoreStore) Update(id int64, rule *IgnoreRule) error {
+func (m *SQLIgnoreStore) Update(id jsonutils.Number, rule *IgnoreRule) error {
 	stmt := `UPDATE ignorerule SET updated_by=?, expires=?, query=?, note=? WHERE id=?`
 
 	res, err := m.vdb.DB.Exec(stmt, rule.UpdatedBy, rule.Expires.Unix(), rule.Query, rule.Note, rule.ID)
@@ -110,7 +111,7 @@ func (m *SQLIgnoreStore) List(addCounts bool) ([]*IgnoreRule, error) {
 }
 
 // Delete, see IgnoreStore interface.
-func (m *SQLIgnoreStore) Delete(id int64) (int, error) {
+func (m *SQLIgnoreStore) Delete(id jsonutils.Number) (int, error) {
 	stmt := "DELETE FROM ignorerule WHERE id=?"
 	ret, err := m.vdb.DB.Exec(stmt, id)
 	if err != nil {
@@ -201,8 +202,8 @@ func addIgnoreCounts(rules []*IgnoreRule, ignoreStore IgnoreStore, lastCpxTile t
 
 	// Count the untriaged digests in HEAD.
 	// matchingDigests[rule.ID]map[digest]bool
-	matchingDigests := make(map[int64]map[string]bool, len(rules))
-	rulesByDigest := map[string]map[int64]bool{}
+	matchingDigests := make(map[jsonutils.Number]map[string]bool, len(rules))
+	rulesByDigest := map[string]map[jsonutils.Number]bool{}
 	tileWithIgnores := cpxTile.GetTile(true)
 	for _, trace := range tileWithIgnores.Traces {
 		gTrace := trace.(*types.GoldenTrace)
@@ -222,7 +223,7 @@ func addIgnoreCounts(rules []*IgnoreRule, ignoreStore IgnoreStore, lastCpxTile t
 					if t, ok := rulesByDigest[k]; ok {
 						t[r.ID] = true
 					} else {
-						rulesByDigest[k] = map[int64]bool{r.ID: true}
+						rulesByDigest[k] = map[jsonutils.Number]bool{r.ID: true}
 					}
 				}
 			}

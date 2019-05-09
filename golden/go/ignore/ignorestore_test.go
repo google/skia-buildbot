@@ -162,6 +162,6 @@ func TestToQuery(t *testing.T) {
 	assert.Equal(t, queries[0], url.Values{"config": []string{"gpu"}})
 
 	r1 = NewIgnoreRule("jon@example.com", time.Now().Add(time.Hour), "bad=%", "reason")
-	queries, err = ToQuery([]*IgnoreRule{r1})
-	assert.NotNil(t, err)
+	_, err = ToQuery([]*IgnoreRule{r1})
+	assert.NoError(t, err)
 }

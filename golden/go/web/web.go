@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/issues"
+	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -402,7 +403,7 @@ func (wh *WebHandlers) JsonIgnoresHandler(w http.ResponseWriter, r *http.Request
 	var err error
 	ignores, err = wh.Storages.IgnoreStore.List(true)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to retrieve ignored traces.")
+		httputils.ReportError(w, r, err, "Failed to retrieve ignore rules, there may be none.")
 		return
 	}
 
@@ -420,11 +421,12 @@ func (wh *WebHandlers) JsonIgnoresUpdateHandler(w http.ResponseWriter, r *http.R
 		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to update an ignore rule.")
 		return
 	}
-	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 0)
+	i, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 0)
 	if err != nil {
 		httputils.ReportError(w, r, err, "ID must be valid integer.")
 		return
 	}
+	id := jsonutils.Number(i)
 	req := &IgnoresRequest{}
 	if err := parseJson(r, req); err != nil {
 		httputils.ReportError(w, r, err, "Failed to parse submitted data.")
@@ -463,17 +465,23 @@ func (wh *WebHandlers) JsonIgnoresDeleteHandler(w http.ResponseWriter, r *http.R
 		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.")
 		return
 	}
-	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 0)
+	i, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 0)
 	if err != nil {
 		httputils.ReportError(w, r, err, "ID must be valid integer.")
 		return
 	}
+	id := jsonutils.Number(i)
 
-	if _, err = wh.Storages.IgnoreStore.Delete(id); err != nil {
+	if numDeleted, err := wh.Storages.IgnoreStore.Delete(id); err != nil {
 		httputils.ReportError(w, r, err, "Unable to delete ignore rule.")
-	} else {
+	} else if numDeleted == 1 {
+		sklog.Infof("Successfully deleted ignore with id %d", id)
 		// If delete worked just list the current ignores and return them.
 		wh.JsonIgnoresHandler(w, r)
+	} else {
+		sklog.Infof("Deleting ignore with id %d from ignorestore failed", id)
+		http.Error(w, "Could not delete ignore - try again later", http.StatusInternalServerError)
+		return
 	}
 }
 

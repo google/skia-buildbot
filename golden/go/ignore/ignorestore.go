@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"sync"
 	"time"
+
+	"go.skia.org/infra/go/jsonutils"
 )
 
 // RuleMatcher returns a list of rules in the IgnoreStore that match the given
@@ -12,6 +14,8 @@ import (
 type RuleMatcher func(map[string]string) ([]*IgnoreRule, bool)
 
 // IgnoreStore stores and matches ignore rules.
+// TODO(kjlubick): Add context to these methods such that we can
+// pass in a context from the web request to the backend.
 type IgnoreStore interface {
 	// Create adds a new rule to the ignore store.
 	Create(*IgnoreRule) error
@@ -19,14 +23,17 @@ type IgnoreStore interface {
 	// List returns all ignore rules in the ignore store.
 	// 'addCounts' indicates whether to include counts how often an ignore
 	// rule appears in the current tile.
+	// TODO(kjlubick): Remove the addCounts flag in the signature of the List function
+	// and expose the AddIgnoreCounts function. This would remove the expsStore and
+	// tileStream members of the cloudIgnoreStore struct and simplify the interface.
 	List(addCounts bool) ([]*IgnoreRule, error)
 
 	// Updates an IgnoreRule.
-	Update(id int64, rule *IgnoreRule) error
+	Update(id jsonutils.Number, rule *IgnoreRule) error
 
 	// Removes an IgnoreRule from the store. The return value is the number of
 	// records that were deleted (either 0 or 1).
-	Delete(id int64) (int, error)
+	Delete(id jsonutils.Number) (int, error)
 
 	// Revision returns a monotonically increasing int64 that goes up each time
 	// the ignores have been changed. It will not persist nor will it be the same
@@ -41,14 +48,14 @@ type IgnoreStore interface {
 
 // IgnoreRule is the GUI struct for dealing with Ignore rules.
 type IgnoreRule struct {
-	ID             int64     `json:"id"`
-	Name           string    `json:"name"`
-	UpdatedBy      string    `json:"updatedBy"`
-	Expires        time.Time `json:"expires"`
-	Query          string    `json:"query"`
-	Note           string    `json:"note"`
-	Count          int       `json:"count"          datastore:"-"`
-	ExclusiveCount int       `json:"exclusiveCount" datastore:"-"`
+	ID             jsonutils.Number `json:"id,string"`
+	Name           string           `json:"name"`
+	UpdatedBy      string           `json:"updatedBy"`
+	Expires        time.Time        `json:"expires"`
+	Query          string           `json:"query"`
+	Note           string           `json:"note"`
+	Count          int              `json:"count"          datastore:"-"`
+	ExclusiveCount int              `json:"exclusiveCount" datastore:"-"`
 }
 
 // ToQuery makes a slice of url.Values from the given slice of IngoreRules.
@@ -97,7 +104,7 @@ func (m *MemIgnoreStore) Create(rule *IgnoreRule) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	rule.ID = m.nextId
+	rule.ID = jsonutils.Number(m.nextId)
 	m.nextId++
 	m.rules = append(m.rules, rule)
 	m.inc()
@@ -116,7 +123,7 @@ func (m *MemIgnoreStore) List(addCounts bool) ([]*IgnoreRule, error) {
 }
 
 // Update, see IgnoreStore interface.
-func (m *MemIgnoreStore) Update(id int64, updated *IgnoreRule) error {
+func (m *MemIgnoreStore) Update(id jsonutils.Number, updated *IgnoreRule) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
@@ -132,7 +139,7 @@ func (m *MemIgnoreStore) Update(id int64, updated *IgnoreRule) error {
 }
 
 // Delete, see IgnoreStore interface.
-func (m *MemIgnoreStore) Delete(id int64) (int, error) {
+func (m *MemIgnoreStore) Delete(id jsonutils.Number) (int, error) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
