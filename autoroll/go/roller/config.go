@@ -23,6 +23,13 @@ const (
 	DEFAULT_SAFETY_THROTTLE_ATTEMPT_COUNT = 3
 	DEFAULT_SAFETY_THROTTLE_TIME_WINDOW   = 30 * time.Minute
 
+	// Maximum roller name length. This is limited by Kubernetes, which has
+	// a 63-character limit for various names. This length is derived from
+	// that limit, accounting for the prefixes and suffixes which are
+	// automatically added by our tooling, eg. the "autoroll-be-" prefix and
+	// "-storage" suffix for disks, controller hashes, etc.
+	MAX_ROLLER_NAME_LENGTH = 41
+
 	ROLLER_TYPE_AFDO             = "afdo"
 	ROLLER_TYPE_ANDROID          = "android"
 	ROLLER_TYPE_COPY             = "copy"
@@ -215,9 +222,10 @@ func (c *AutoRollerConfig) Validate() error {
 	if c.RollerName == "" {
 		return errors.New("RollerName is required.")
 	}
-	// TODO(borenet): Make ServiceAccount required for all rollers once
-	// they're moved to k8s.
-	if c.ServiceAccount == "" && c.Kubernetes != nil {
+	if len(c.RollerName) > MAX_ROLLER_NAME_LENGTH {
+		return fmt.Errorf("RollerName length %d is greater than maximum %d", len(c.RollerName), MAX_ROLLER_NAME_LENGTH)
+	}
+	if c.ServiceAccount == "" {
 		return errors.New("ServiceAccount is required.")
 	}
 	if c.Sheriff == nil || len(c.Sheriff) == 0 {
