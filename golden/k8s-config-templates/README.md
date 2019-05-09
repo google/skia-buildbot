@@ -1,5 +1,8 @@
-Experimental K8s Templating
+Kubernetes Configuration Templates
 ===========================
 
-This directory contains experimental templates to generated the boilerplate
-for creating Gold instances. Subject to change.
+This directory contains templates to generate the boilerplate for creating Gold instances.
+
+To use this, go to the infra/golden repo and run `./k8s-gen-config.sh [name]` where name
+is the instance to generate. The configuration of that instance should be in `../k8s-instances`
+as a JSON5 file.
