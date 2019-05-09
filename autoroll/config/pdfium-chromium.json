@@ -16,7 +16,7 @@
   "rollerName": "pdfium-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "thestig@chromium.org"
+    "pdfium-deps-rolls@chromium.org"
   ],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
