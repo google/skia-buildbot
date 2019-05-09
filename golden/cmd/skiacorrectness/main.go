@@ -377,6 +377,7 @@ func main() {
 
 		// Set up MySQL if requested.
 		if useMySQL {
+			sklog.Warning("MySQL is in use. This behavior is severely deprecated")
 			if !*local {
 				if err := dbConf.GetPasswordFromMetadata(); err != nil {
 					sklog.Fatal(err)
@@ -449,7 +450,7 @@ func main() {
 		if useMySQL {
 			storages.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute, "gold-ignore-store"))
 		} else if storages.IgnoreStore, err = ignore.NewCloudIgnoreStore(ds.DS, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute, "gold-ignore-store")); err != nil {
-			sklog.Fatalf("Unable to create ignorestore: %s", err)
+			sklog.Fatalf("Unable to create cloud ignorestore: %s", err)
 		}
 
 		if err := ignore.Init(storages.IgnoreStore); err != nil {
