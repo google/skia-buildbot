@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b918c602_e0807801",
+        "filename": "ct/go/worker_scripts/metrics_analysis/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-09T16:51:53Z",
+      "side": 1,
+      "message": "nit: Unlikely to ever be a problem, but you might want \u0027[^/]\u0027 here instead of \u0027.\u0027.",
+      "range": {
+        "startLine": 47,
+        "startChar": 62,
+        "endLine": 47,
+        "endChar": 63
+      },
+      "revId": "0146bdb2a36bbc9c474830e67eef66284226cbaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
