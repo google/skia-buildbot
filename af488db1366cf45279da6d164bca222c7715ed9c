@@ -65,6 +65,30 @@
     },
     {
       "key": {
+        "uuid": "fc5fad96_cd1f553e",
+        "filename": "golden/go/status/status.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-09T18:38:52Z",
+      "side": 1,
+      "message": "Bug found and fixed the old-fashioned way - in prod:\nhttps://skia-review.googlesource.com/c/buildbot/+/212481",
+      "parentUuid": "4f405b8f_95a9f1a4",
+      "range": {
+        "startLine": 124,
+        "startChar": 19,
+        "endLine": 124,
+        "endChar": 43
+      },
+      "revId": "af488db1366cf45279da6d164bca222c7715ed9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "69fc633f_51e1a93d",
         "filename": "prometheus/sys/alert.rules",
         "patchSetId": 16
