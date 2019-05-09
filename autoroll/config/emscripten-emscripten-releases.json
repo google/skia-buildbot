@@ -1,0 +1,39 @@
+// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childName": "emscripten",
+  "contacts": [
+    "dschuff@google.com"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "emscripten-releases",
+    "config": "chromium"
+  },
+  "isInternal": false,
+  "parentName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "emscripten-emscripten-releases",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "wasm-waterfall@grotations.appspotmail.com"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "incoming",
+    "childPath": "emscripten-releases/emscripten",
+    "childRepo": "https://chromium.googlesource.com/external/github.com/emscripten-core/emscripten.git",
+    "includeBugs": false,
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/emscripten-releases.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0m"
+}
