@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a1e5439e_854aae24",
+        "filename": "autoroll/config/material-spirited-animation-view-ios-chromium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-09T13:19:09Z",
+      "side": 1,
+      "message": "I\u0027m not a huge fan of creatively modifying the roller name like this.  I guess an alternative would be to come up with the \"ideal\" name and just truncate it, ie. \"material-spirited-animatino-view-ios-chro\" in this case.",
+      "range": {
+        "startLine": 16,
+        "startChar": 16,
+        "endLine": 16,
+        "endChar": 58
+      },
+      "revId": "5ed3a5ff6d7e23feaaaa0efca39e405166333976",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
