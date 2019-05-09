@@ -1,7 +1,7 @@
 // See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "material-spirited-animation-view-ios",
+  "childName": "material-sprited-animation-view-ios",
   "contacts": [
     "jbudorick@chromium.org"
   ],
@@ -13,15 +13,15 @@
   "isInternal": false,
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
-  "rollerName": "material-spirited-ani-view-ios-chromium",
+  "rollerName": "material-sprited-ani-view-ios-chromium",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "https://rota-ng.appspot.com/legacy/sheriff_ios.json"
   ],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "stable",
-    "childPath": "src/ios/third_party/material_spirited_animation_view_ios/src",
-    "childRepo": "https://chromium.googlesource.com/external/github.com/material-foundation/material-spirited-animation-view-ios",
+    "childPath": "src/ios/third_party/material_sprited_animation_view_ios/src",
+    "childRepo": "https://chromium.googlesource.com/external/github.com/material-foundation/material-sprited-animation-view-ios",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",
