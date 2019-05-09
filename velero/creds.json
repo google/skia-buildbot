@@ -1,0 +1,4 @@
+[
+  {"op": "replace", "path": "/spec/containers/0/env/name", "value": "foo.bar.io"},
+  {"op": "replace", "path": "/spec/rules/0/http/paths/0/backend/servicePort", "value": 8080}
+]

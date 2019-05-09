@@ -1,0 +1,4 @@
+resources:
+- velero-original.yaml
+patchesStrategicMerge:
+- creds.yaml
