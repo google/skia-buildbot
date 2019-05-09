@@ -1,0 +1,51 @@
+--- velero-original.yaml	2019-05-09 11:06:32.594397897 -0400
++++ velero.yaml	2019-05-09 11:10:44.285390453 -0400
+@@ -185,17 +185,6 @@
+       component: velero
+     name: velero
+     namespace: velero
+-- apiVersion: v1
+-  data:
+-    cloud: ""
+-  kind: Secret
+-  metadata:
+-    creationTimestamp: null
+-    labels:
+-      component: velero
+-    name: cloud-credentials
+-    namespace: velero
+-  type: Opaque
+ - apiVersion: velero.io/v1
+   kind: BackupStorageLocation
+   metadata:
+@@ -254,7 +243,7 @@
+           - name: VELERO_SCRATCH_DIR
+             value: /scratch
+           - name: GOOGLE_APPLICATION_CREDENTIALS
+-            value: /credentials/cloud
++            value: /var/secrets/google/key.json
+           - name: AWS_SHARED_CREDENTIALS_FILE
+             value: /credentials/cloud
+           - name: AZURE_CREDENTIALS_FILE
+@@ -271,8 +260,8 @@
+             name: plugins
+           - mountPath: /scratch
+             name: scratch
+-          - mountPath: /credentials
+-            name: cloud-credentials
++          - name: velero-backup
++            mountPath: /var/secrets/google
+         restartPolicy: Always
+         serviceAccountName: velero
+         volumes:
+@@ -280,8 +269,7 @@
+           name: plugins
+         - emptyDir: {}
+           name: scratch
+-        - name: cloud-credentials
++        - name: velero-backup
+           secret:
+-            secretName: cloud-credentials
++            secretName: velero-backup
+ kind: List
+-

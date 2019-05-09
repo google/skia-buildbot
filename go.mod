@@ -120,9 +120,13 @@ require (
 	google.golang.org/genproto v0.0.0-20190425155659-357c62f0e4bb
 	google.golang.org/grpc v1.20.1
 	gopkg.in/fsnotify.v1 v1.4.7
+	gopkg.in/imdario/mergo.v0 v0.3.7 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
+	gopkg.in/mikefarah/yq.v2 v2.3.0 // indirect
 	gopkg.in/olivere/elastic.v5 v5.0.80
+	gopkg.in/op/go-logging.v1 v1.0.0-20160211212156-b2cb9fa56473 // indirect
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
+	gopkg.in/spf13/cobra.v0 v0.0.3 // indirect
 	gopkg.in/unrolled/secure.v1 v1.0.0
 	gopkg.in/yaml.v2 v2.2.2
 	honnef.co/go/tools v0.0.0-20190418001031-e561f6794a2a // indirect
@@ -132,4 +136,5 @@ require (
 	k8s.io/gengo v0.0.0-20190327210449-e17681d19d3a // indirect
 	k8s.io/kube-openapi v0.0.0-20190430213458-20ad7abe0e6a // indirect
 	k8s.io/utils v0.0.0-20190308190857-21c4ce38f2a7 // indirect
+	sigs.k8s.io/kustomize v2.0.3+incompatible // indirect
 )

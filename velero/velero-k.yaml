@@ -1,0 +1,305 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  labels:
+    component: velero
+  name: velero
+spec: {}
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  labels:
+    component: velero
+  name: backups.velero.io
+spec:
+  group: velero.io
+  names:
+    kind: Backup
+    plural: backups
+  scope: Namespaced
+  version: v1
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  labels:
+    component: velero
+  name: backupstoragelocations.velero.io
+spec:
+  group: velero.io
+  names:
+    kind: BackupStorageLocation
+    plural: backupstoragelocations
+  scope: Namespaced
+  version: v1
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  labels:
+    component: velero
+  name: deletebackuprequests.velero.io
+spec:
+  group: velero.io
+  names:
+    kind: DeleteBackupRequest
+    plural: deletebackuprequests
+  scope: Namespaced
+  version: v1
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  labels:
+    component: velero
+  name: downloadrequests.velero.io
+spec:
+  group: velero.io
+  names:
+    kind: DownloadRequest
+    plural: downloadrequests
+  scope: Namespaced
+  version: v1
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  labels:
+    component: velero
+  name: podvolumebackups.velero.io
+spec:
+  group: velero.io
+  names:
+    kind: PodVolumeBackup
+    plural: podvolumebackups
+  scope: Namespaced
+  version: v1
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  labels:
+    component: velero
+  name: podvolumerestores.velero.io
+spec:
+  group: velero.io
+  names:
+    kind: PodVolumeRestore
+    plural: podvolumerestores
+  scope: Namespaced
+  version: v1
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  labels:
+    component: velero
+  name: resticrepositories.velero.io
+spec:
+  group: velero.io
+  names:
+    kind: ResticRepository
+    plural: resticrepositories
+  scope: Namespaced
+  version: v1
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  labels:
+    component: velero
+  name: restores.velero.io
+spec:
+  group: velero.io
+  names:
+    kind: Restore
+    plural: restores
+  scope: Namespaced
+  version: v1
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  labels:
+    component: velero
+  name: schedules.velero.io
+spec:
+  group: velero.io
+  names:
+    kind: Schedule
+    plural: schedules
+  scope: Namespaced
+  version: v1
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  labels:
+    component: velero
+  name: serverstatusrequests.velero.io
+spec:
+  group: velero.io
+  names:
+    kind: ServerStatusRequest
+    plural: serverstatusrequests
+  scope: Namespaced
+  version: v1
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  labels:
+    component: velero
+  name: volumesnapshotlocations.velero.io
+spec:
+  group: velero.io
+  names:
+    kind: VolumeSnapshotLocation
+    plural: volumesnapshotlocations
+  scope: Namespaced
+  version: v1
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: null
+  labels:
+    component: velero
+  name: velero
+  namespace: velero
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  creationTimestamp: null
+  labels:
+    component: velero
+  name: velero
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: velero
+  namespace: velero
+---
+apiVersion: v1
+data:
+  cloud: ""
+kind: Secret
+metadata:
+  creationTimestamp: null
+  labels:
+    component: velero
+  name: cloud-credentials
+  namespace: velero
+type: Opaque
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    component: velero
+  name: velero
+  namespace: velero
+spec:
+  selector:
+    matchLabels:
+      deploy: velero
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8085"
+        prometheus.io/scrape: "true"
+      creationTimestamp: null
+      labels:
+        component: velero
+        deploy: velero
+    spec:
+      containers:
+      - args:
+        - server
+        command:
+        - /velero
+        env:
+        - name: VELERO_SCRATCH_DIR
+          value: /scratch
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /var/secrets/google/key.json
+        - name: AWS_SHARED_CREDENTIALS_FILE
+          value: /credentials/cloud
+        - name: AZURE_CREDENTIALS_FILE
+          value: /credentials/cloud
+        image: gcr.io/heptio-images/velero:v1.0.0-beta.1
+        imagePullPolicy: IfNotPresent
+        name: velero
+        ports:
+        - containerPort: 8085
+          name: metrics
+        resources: {}
+        volumeMounts:
+        - mountPath: /var/secrets/google
+          name: velero-backup
+        - mountPath: /plugins
+          name: plugins
+        - mountPath: /scratch
+          name: scratch
+        - mountPath: /credentials
+          name: cloud-credentials
+      restartPolicy: Always
+      serviceAccountName: velero
+      volumes:
+      - name: velero-backup
+        secret:
+          secretName: velero-backup
+      - emptyDir: {}
+        name: plugins
+      - emptyDir: {}
+        name: scratch
+      - name: cloud-credentials
+        secret:
+          secretName: cloud-credentials
+---
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  creationTimestamp: null
+  labels:
+    component: velero
+  name: default
+  namespace: velero
+spec:
+  config: {}
+  objectStorage:
+    bucket: gs://velero-backup-skia-public
+    prefix: ""
+  provider: gcp
+---
+apiVersion: velero.io/v1
+kind: VolumeSnapshotLocation
+metadata:
+  creationTimestamp: null
+  labels:
+    component: velero
+  name: default
+  namespace: velero
+spec:
+  config: {}
+  provider: gcp
