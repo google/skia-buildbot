@@ -33,6 +33,9 @@ pushk: buildk skia-public
 ingest_json_validator:
 	go install -v ./go/ingest_json_validator
 
+start_datastore_emulator:
+	 docker run -ti -p 8008:8008 google/cloud-sdk:latest gcloud beta emulators datastore start --no-store-on-disk --project test-project --host-port 0.0.0.0:8008
+
 .PHONY: web
 web: clean_webtools elements_html core_js
 
