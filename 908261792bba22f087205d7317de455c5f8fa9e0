@@ -50,6 +50,23 @@
     },
     {
       "key": {
+        "uuid": "dd12405c_437e7350",
+        "filename": "golden/go/digest_counter/digest_counter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-09T22:48:59Z",
+      "side": 1,
+      "message": "nit: like Blamer, it makes more sense to me that we would just create a new instance every time we call Calculate rather than reusing the same instance.",
+      "revId": "908261792bba22f087205d7317de455c5f8fa9e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6794b84f_81552dcc",
         "filename": "golden/go/digest_counter/digest_counter.go",
         "patchSetId": 2

@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d982a1d6_188733b9",
+        "filename": "golden/go/digest_counter/digest_counter.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-09T22:48:59Z",
+      "side": 1,
+      "message": "nit: Apologies if I\u0027m repeating myself. I\u0027m a little skeptical that there will ever be more than one implementation for this interface, and it doesn\u0027t seem like something you would want to mock, so an interface seems like overkill.",
+      "revId": "90c0ab42d783560c9a88f1a234ad316961eb016a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cdc6ec9d_a29b407a",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-09T22:48:59Z",
+      "side": 1,
+      "message": "nit: Not sure how to phrase this comment.\n\nYour TODO indicates maybe countNode and countIgnoresNode should be children of indexTestsNode. You also moved the two lines that create the count* nodes so that if I\u0027m reading the code, it feels like those two nodes are children of indexTestsNode.\n\nHowever, they are still children of root. Not sure if you meant to change that, if you meant to move the two lines to be after root and before indexTestsNode, or if I\u0027m just reading too much into your changes.",
+      "range": {
+        "startLine": 172,
+        "startChar": 0,
+        "endLine": 178,
+        "endChar": 60
+      },
+      "revId": "90c0ab42d783560c9a88f1a234ad316961eb016a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
