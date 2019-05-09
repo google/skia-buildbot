@@ -1,0 +1,101 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "66f4f917_ca771cbd",
+        "filename": "golden/go/status/status.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-09T18:36:13Z",
+      "side": 1,
+      "message": "This is a good explanation -- thanks!",
+      "range": {
+        "startLine": 107,
+        "startChar": 75,
+        "endLine": 109,
+        "endChar": 66
+      },
+      "revId": "af488db1366cf45279da6d164bca222c7715ed9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "67d88a15_42003acf",
+        "filename": "golden/go/status/status.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-09T18:36:13Z",
+      "side": 1,
+      "message": "nit: maybe should mention in docs that this is OK to call concurrently (since we do).",
+      "revId": "af488db1366cf45279da6d164bca222c7715ed9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f405b8f_95a9f1a4",
+        "filename": "golden/go/status/status.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-09T18:36:13Z",
+      "side": 1,
+      "message": "This is also already in seconds. Sorry for not being clear in my previous comment.",
+      "range": {
+        "startLine": 124,
+        "startChar": 19,
+        "endLine": 124,
+        "endChar": 43
+      },
+      "revId": "af488db1366cf45279da6d164bca222c7715ed9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69fc633f_51e1a93d",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 16
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-09T18:36:13Z",
+      "side": 1,
+      "message": "nit: would be nice to have a PROD.md link and/or a link to logs. x6",
+      "revId": "af488db1366cf45279da6d164bca222c7715ed9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4998cc6c_2bc3144d",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 16
+      },
+      "lineNbr": 558,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-09T18:36:13Z",
+      "side": 1,
+      "message": "nit: I don\u0027t think we actually pay attention to these anywhere (maybe we should?), but I\u0027m not sure why this is warning rather than critical.",
+      "revId": "af488db1366cf45279da6d164bca222c7715ed9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
