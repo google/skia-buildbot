@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "73b4aaf1_b7050268",
+        "filename": "golden/go/digest_counter/digest_counter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-10T14:26:28Z",
+      "side": 1,
+      "message": "uber-nit: seems more idiomatic this way:\n\ttrace, test, maxCountsByTest :\u003d calculate(tile)\n\treturn \u0026Counter{\n\t\ttraceDigestCount: trace,\n\t\ttestDigestCount: test,\n\t\tmaxCountsByTest: maxCountsByTest,\n\t}",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 10
+      },
+      "revId": "c924add0cdc228b20a9f6beff2bd9b532881a1f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e82ec93_bce80247",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-10T14:26:28Z",
+      "side": 1,
+      "message": "After looking at the code in this file more closely, I don\u0027t think we need nil checks for dCounter* or blamer.",
+      "revId": "c924add0cdc228b20a9f6beff2bd9b532881a1f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
