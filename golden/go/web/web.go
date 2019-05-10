@@ -98,6 +98,13 @@ func (wh *WebHandlers) JsonByBlameHandler(w http.ResponseWriter, r *http.Request
 	for test, s := range sum {
 		for _, d := range s.UntHashes {
 			dist := idx.GetBlame(test, d, commits)
+			if dist == nil {
+				// Should only happen if the index isn't quite ready being prepared.
+				// Since we wait until the index is created before exposing the web
+				// server, this should never happen.
+				sklog.Warningf("nil blame for %s %s", test, d)
+				continue
+			}
 			groupid := strings.Join(lookUpCommits(dist.Freq, commits), ":")
 			// Only fill in commitinfo for each groupid only once.
 			if _, ok := commitinfo[groupid]; !ok {
