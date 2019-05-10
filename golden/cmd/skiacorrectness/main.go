@@ -502,7 +502,6 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Unable to get image handler: %s", err)
 	}
-	loggedRouter.PathPrefix(IMAGE_URL_PREFIX).Handler(imgHandler)
 
 	// New Polymer based UI endpoints.
 	loggedRouter.PathPrefix("/res/").HandlerFunc(web.MakeResourceHandler(*resourcesDir))
@@ -602,6 +601,10 @@ func main() {
 	// endpoint which is polled a lot.
 	appRouter := mux.NewRouter()
 	appRouter.HandleFunc("/json/trstatus", handlers.JsonStatusHandler)
+	// Images should not be served gzipped, which can sometimes have issues
+	// when serving an image from a NetDiffstore with HTTP2. Additionally, is wasteful
+	// given PNGs typically have zlib compression anyway.
+	appRouter.PathPrefix(IMAGE_URL_PREFIX).Handler(imgHandler)
 	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(loggedRouter))
 
 	// Use the appRouter as a handler and wrap it into middleware that enforces authentication if
