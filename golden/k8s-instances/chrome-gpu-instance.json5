@@ -1,20 +1,29 @@
 {
-    "TRACESERVER_MEMORY":      "500Mi",
-    "TRACESERVER_CPU":         "500m",
+    // Gold settings
     "GERRIT_URL":              "https://chromium-review.googlesource.com",
     "GITREPO_URL":             "https://chromium.googlesource.com/chromium/src",
-    "N_COMMITS":               50,
+    "N_COMMITS":               200,
     "SPARSE":                  true,
+    "SKCORR_TITLE":            "Chrome GPU Gold",
+    "SKCORR_DEFAULT_CORPUS":   "chrome-gpu",
+    "PROJECT_ID":              "skia-public",
+    "SITE_URL":                "https://chrome-gpu-gold.skia.org",
 
+    // Git BigTable settings
     "GIT_BT_INSTANCE":         "production",
     "GIT_BT_TABLE":            "git-repos",
+
+    // Traceserver settings.
+    "TRACESERVER_MEMORY":      "500Mi",
+    "TRACESERVER_CPU":         "1",
 
     // Settings for the main ingester.
     "ING_RUN_EVERY":           "5m",
     "ING_N_COMMITS":           75,
     "ING_MIN_DAYS":            20,
 
-    // Settings for the Tryjob ingester.
+    // Settings for the Tryjob ingester. If ING_TRY_ENABLED is false no ingester for
+    // tryjobs will be configured.
     "ING_TRY_ENABLED":         true,
     "ING_TRY_RUN_EVERY":       "5m",
     "ING_TRY_MIN_DAYS":        5,
@@ -24,7 +33,4 @@
     "ING_TRY_BB_INTERVAL":     "10s",
     "ING_TRY_BB_WINDOW":       "5h",
     "ING_TRY_BUILDER_REGEX":   "linux_optional_gpu_tests_rel",
-
-    "SKCORR_TITLE":          "Chrome GPU Gold",
-    "SKCORR_DEFAULT_CORPUS": "chrome-gpu",
 }

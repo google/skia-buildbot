@@ -29,6 +29,7 @@ spec:
     metadata:
       labels:
         app: gold-{{.INSTANCE_ID}}-baselineserver
+        appgroup: gold-{{.INSTANCE_ID}}
       annotations:
         prometheus.io.scrape: "true"
         prometheus.io.port: "20000"
