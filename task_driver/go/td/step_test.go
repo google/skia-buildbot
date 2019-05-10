@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -76,7 +77,7 @@ func TestExec(t *testing.T) {
 
 		// Verify that we get an error if the command fails.
 		_, err = exec.RunCwd(ctx, ".", "false")
-		assert.EqualError(t, err, "Command exited with exit status 1: false; Stdout+Stderr:\n")
+		assert.True(t, strings.Contains(err.Error(), "Command exited with exit status 1: "))
 
 		// Ensure that we collect stdout.
 		out, err := exec.RunCwd(ctx, ".", "echo", "hello world")
@@ -159,7 +160,7 @@ func TestFatal(t *testing.T) {
 		return nil
 	})
 	assert.Equal(t, 1, len(s.Errors))
-	assert.Equal(t, "Command exited with exit status 1: false; Stdout+Stderr:\n", s.Errors[0])
+	assert.True(t, strings.Contains(s.Errors[0], "Command exited with exit status 1: "))
 	assert.True(t, ranCleanup)
 
 	// Check the case where we call Fatal() after an infra step failed whose
@@ -176,4 +177,63 @@ func TestFatal(t *testing.T) {
 	})
 	assert.Equal(t, 1, len(s.Exceptions))
 	assert.Equal(t, "Infra Failure", s.Exceptions[0])
+}
+
+func TestEnv(t *testing.T) {
+	testutils.MediumTest(t)
+
+	// Verify that each step inherits the environment of its parent.
+	s := RunTestSteps(t, false, func(ctx context.Context) error {
+		return Do(ctx, Props("a").Env([]string{"a=a"}), func(ctx context.Context) error {
+			return Do(ctx, Props("b").Env([]string{"b=b"}), func(ctx context.Context) error {
+				_, err := exec.RunCommand(ctx, &exec.Command{
+					Name: "true",
+					Env:  []string{"c=c"},
+				})
+				return err
+			})
+		})
+	})
+	var leaf *StepReport
+	s.Recurse(func(s *StepReport) bool {
+		if len(s.Steps) == 0 {
+			leaf = s
+			return false
+		}
+		return true
+	})
+	var data *ExecData
+	for _, d := range leaf.Data {
+		ed, ok := d.(*ExecData)
+		if ok {
+			data = ed
+			break
+		}
+	}
+	assert.NotNil(t, data)
+	deepequal.AssertDeepEqual(t, data.Env, append(BASE_ENV, "a=a", "b=b", "c=c"))
+}
+
+func TestEnvMerge(t *testing.T) {
+	testutils.SmallTest(t)
+
+	// Unrelated variables both show up.
+	deepequal.AssertDeepEqual(t, []string{"a=a", "b=b"}, MergeEnv([]string{"a=a"}, []string{"b=b"}))
+	// The second env takes precedence over the first.
+	deepequal.AssertDeepEqual(t, []string{"k=v2"}, MergeEnv([]string{"k=v1"}, []string{"k=v2"}))
+
+	// PATH gets special treatment.
+
+	// If only one is specified, it gets preserved.
+	deepequal.AssertDeepEqual(t, []string{"PATH=p2"}, MergeEnv([]string{}, []string{"PATH=p2"}))
+	deepequal.AssertDeepEqual(t, []string{"PATH=p1"}, MergeEnv([]string{"PATH=p1"}, []string{}))
+	// The second env takes precedence over the first.
+	deepequal.AssertDeepEqual(t, []string{"PATH=p2"}, MergeEnv([]string{"PATH=p1"}, []string{"PATH=p2"}))
+	// ... even if the second env defines it to be empty.
+	deepequal.AssertDeepEqual(t, []string{"PATH="}, MergeEnv([]string{"PATH=p1"}, []string{"PATH="}))
+	// If provided, PATH_PLACEHOLDER gets replaced by PATH from the first.
+	deepequal.AssertDeepEqual(t, []string{"PATH=p1:p2"}, MergeEnv([]string{"PATH=p1"}, []string{fmt.Sprintf("PATH=%s:p2", PATH_PLACEHOLDER)}))
+	deepequal.AssertDeepEqual(t, []string{"PATH=p2:p1"}, MergeEnv([]string{"PATH=p1"}, []string{fmt.Sprintf("PATH=p2:%s", PATH_PLACEHOLDER)}))
+	// There's no good reason to do this, but it would work.
+	deepequal.AssertDeepEqual(t, []string{"PATH=p1:p1"}, MergeEnv([]string{"PATH=p1"}, []string{fmt.Sprintf("PATH=%s:%s", PATH_PLACEHOLDER, PATH_PLACEHOLDER)}))
 }

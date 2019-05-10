@@ -37,9 +37,18 @@ const (
 	ENVVAR_SWARMING_BOT    = "SWARMING_BOT_ID"
 	ENVVAR_SWARMING_SERVER = "SWARMING_SERVER"
 	ENVVAR_SWARMING_TASK   = "SWARMING_TASK_ID"
+
+	// PATH_VAR represents the PATH environment variable.
+	PATH_VAR = "PATH"
 )
 
 var (
+	BASE_ENV = []string{
+		"CHROME_HEADLESS=1",
+		"GIT_USER_AGENT=git/1.9.1", // I don't think this version matters.
+		fmt.Sprintf("%s=%s", PATH_VAR, os.Getenv(PATH_VAR)),
+	}
+
 	// Auth scopes required for all task_drivers.
 	SCOPES = []string{compute.CloudPlatformScope}
 )
@@ -247,7 +256,7 @@ func newRun(ctx context.Context, rec Receiver, taskId, taskName string, props *R
 		Type: MSG_TYPE_RUN_STARTED,
 		Run:  props,
 	})
-	ctx = newStep(ctx, STEP_ID_ROOT, nil, Props(taskName))
+	ctx = newStep(ctx, STEP_ID_ROOT, nil, Props(taskName).Env(BASE_ENV))
 	return ctx
 }
 
