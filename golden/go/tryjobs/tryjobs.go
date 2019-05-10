@@ -122,12 +122,11 @@ func (t *TryjobMonitor) WriteGoldLinkToGerrit(issueID int64) error {
 func (t *TryjobMonitor) CommitIssueBaseline(issueID int64, user string) error {
 	// Get the issue expecations.
 	issueExpStore := t.issueExpStoreFactory(issueID)
-	issueExps, err := issueExpStore.Get()
+	issueChanges, err := issueExpStore.Get()
 	if err != nil {
 		return sklog.FmtErrorf("Unable to retrieve expecations for issue %d: %s", issueID, err)
 	}
 
-	issueChanges := issueExps.TestExp()
 	if len(issueChanges) == 0 {
 		return nil
 	}

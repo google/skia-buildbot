@@ -32,7 +32,7 @@ type CommitableBaseline struct {
 	MD5 string `json:"md5"`
 
 	// Baseline captures the baseline of the current commit.
-	Baseline types.TestExp `json:"master"`
+	Baseline types.Expectations `json:"master"`
 
 	// Issue indicates the Gerrit issue of this baseline. 0 indicates the master branch.
 	Issue int64
@@ -49,12 +49,12 @@ func (c *CommitableBaseline) DeepCopyBaseline() *CommitableBaseline {
 }
 
 // EmptyBaseline returns an instance of CommitableBaseline with the provided commits and nil
-// values in all other fields. The Baseline field contains an empty instance of types.TestExp.
+// values in all other fields. The Baseline field contains an empty instance of types.Expectations.
 func EmptyBaseline(startCommit, endCommit *tiling.Commit) *CommitableBaseline {
 	return &CommitableBaseline{
 		StartCommit: startCommit,
 		EndCommit:   endCommit,
-		Baseline:    types.TestExp{},
+		Baseline:    types.Expectations{},
 		MD5:         md5SumEmptyExp,
 	}
 }

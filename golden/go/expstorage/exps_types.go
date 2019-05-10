@@ -30,7 +30,7 @@ type ExpChange struct {
 // and should be ignored.
 type EventExpectationChange struct {
 	IssueID     int64
-	TestChanges types.TestExp
+	TestChanges types.Expectations
 
 	// waitCh is used by the sender of the event to wait for the event being handled.
 	// It is not serialized and therefore not handled by distributed receivers, only locally.
@@ -38,7 +38,7 @@ type EventExpectationChange struct {
 }
 
 // evExpChange creates a new instance of EventExptationChange.
-func evExpChange(changes types.TestExp, issueID int64, waitCh chan<- bool) *EventExpectationChange {
+func evExpChange(changes types.Expectations, issueID int64, waitCh chan<- bool) *EventExpectationChange {
 	return &EventExpectationChange{
 		TestChanges: changes,
 		IssueID:     issueID,

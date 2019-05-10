@@ -63,7 +63,7 @@ var (
 	masterBaseline = &baseline.CommitableBaseline{
 		StartCommit: startCommit,
 		EndCommit:   endCommit,
-		Baseline: types.TestExp{
+		Baseline: types.Expectations{
 			"test-1": map[types.Digest]types.Label{"d1": types.POSITIVE},
 		},
 		Issue: 0,
@@ -72,7 +72,7 @@ var (
 	issueBaseline = &baseline.CommitableBaseline{
 		StartCommit: endCommit,
 		EndCommit:   endCommit,
-		Baseline: types.TestExp{
+		Baseline: types.Expectations{
 			"test-3": map[types.Digest]types.Label{"d2": types.POSITIVE},
 		},
 		Issue: issueID,
