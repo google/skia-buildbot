@@ -59,14 +59,12 @@ func (n *NetDiffStore) Get(priority int64, mainDigest types.Digest, rightDigests
 	return diffMetrics, nil
 }
 
-// ImageHandler, see the diff.DiffStore interface. This is not implemented and
-// will always return an error. The images are expected to be served by the
+// ImageHandler, see the diff.DiffStore interface. The images are expected to be served by the
 // the server that implements the backend of the DiffService.
 func (n *NetDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
-	// Set up a proxy to the differ server images ports. In production
-	// this should not be really used since we proxy directly from the frontend
-	// to the diff server.
-
+	// Set up a proxy to the diffserver images ports.
+	// With ingress rules, it would be possible to serve directly to the diffserver
+	// and bypass the main server.
 	targetURL, err := url.Parse(fmt.Sprintf("http://%s", n.diffServerImageAddress))
 	if err != nil {
 		return nil, fmt.Errorf("Invalid address for serving diff images. Got error: %s", err)

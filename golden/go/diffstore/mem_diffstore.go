@@ -258,6 +258,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 	fileServer := http.FileServer(http.Dir(absPath))
 	handlerFunc := func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
+		sklog.Debugf("diffstore handling %s", path)
 		idx := strings.Index(path, "/")
 		if idx == -1 {
 			noCacheNotFound(w, r)
@@ -317,9 +318,11 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 		r.URL.Path = filepath.Join(dir, localRelPath)
 
 		// Cache images for 12 hours.
-		w.Header().Set("Cache-control", "public, max-age=43200")
+		w.Header().Set("Cache-Control", "public, max-age=43200")
 		fileServer.ServeHTTP(w, r)
 	}
+
+	sklog.Infof("Created diffstore with base directory: %s", m.baseDir)
 
 	// The above function relies on the URL prefix being stripped.
 	return http.StripPrefix(urlPrefix, http.HandlerFunc(handlerFunc)), nil
