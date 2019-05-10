@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "e72d25e2_889f4f52",
+        "filename": "go/sktest/sktest.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T19:13:16Z",
+      "side": 1,
+      "message": "I\u0027m not thrilled about this coming into sktest - this sort of thing definitely should be in testutils, IMO Otherwise, you risk adding dependencies to assert on many other packages.\n\nFor the two cases you have - Just copy the implementation into task_driver_test.\n\nThat or make a new package unit_tests that has the flags and the SmallTest MediumTest, etc. (which is probably better long term)",
+      "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a7be858f_f96eceec",
         "filename": "go/testutils/testutils.go",
         "patchSetId": 10
@@ -18,6 +35,138 @@
         "startChar": 0,
         "endLine": 203,
         "endChar": 45
+      },
+      "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "79c3635c_6d865d1c",
+        "filename": "task_driver/go/lib/golang/golang.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T19:13:16Z",
+      "side": 1,
+      "message": "Go environement to be based in the given workdir ?",
+      "range": {
+        "startLine": 20,
+        "startChar": 47,
+        "endLine": 20,
+        "endChar": 61
+      },
+      "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48eb4698_d19ab724",
+        "filename": "task_driver/go/lib/golang/golang.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T19:13:16Z",
+      "side": 1,
+      "message": "Is this called just once?  I might be ok with it being inlined into Init.  Then maybe rename it to InitEnv() ?",
+      "range": {
+        "startLine": 30,
+        "startChar": 5,
+        "endLine": 30,
+        "endChar": 11
+      },
+      "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e5159252_2d9ad96e",
+        "filename": "task_driver/go/td/step_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T19:13:16Z",
+      "side": 1,
+      "message": "assert.Contains",
+      "range": {
+        "startLine": 163,
+        "startChar": 8,
+        "endLine": 163,
+        "endChar": 12
+      },
+      "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b08da41_846eec26",
+        "filename": "task_driver/go/td/step_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T19:13:16Z",
+      "side": 1,
+      "message": "This only works if true is an executable on the path?  So, no windows?",
+      "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37990f4c_4ea73607",
+        "filename": "task_driver/go/td/step_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T19:13:16Z",
+      "side": 1,
+      "message": "nit: refactor this test to be \"table-based\" i.e. make a struct that has an inputA, inputB, output.  Make a slice literal of that struct with the various test cases.  Then loop over the slice.",
+      "range": {
+        "startLine": 221,
+        "startChar": 5,
+        "endLine": 221,
+        "endChar": 17
+      },
+      "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f8a0c10_41dd6821",
+        "filename": "task_driver/go/td/step_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T19:13:16Z",
+      "side": 1,
+      "message": "nit: assert.Equal() is fine for []string",
+      "range": {
+        "startLine": 225,
+        "startChar": 11,
+        "endLine": 225,
+        "endChar": 26
       },
       "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
