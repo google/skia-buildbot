@@ -58,7 +58,7 @@ func MakeTestBaseline() *baseline.CommitableBaseline {
 			CommitTime: time.Date(2019, time.April, 26, 13, 10, 8, 0, time.UTC).Unix(),
 			Author:     ThirdCommitAuthor,
 		},
-		Baseline: types.TestExp{
+		Baseline: types.Expectations{
 			AlphaTest: map[types.Digest]types.Label{
 				// These hashes are arbitrarily made up and have no real-world meaning.
 				AlphaGood1Digest:      types.POSITIVE,
@@ -163,6 +163,20 @@ func MakeTestTile() *tiling.Tile {
 					types.CORPUS_FIELD:      "gm",
 				},
 			},
+		},
+	}
+}
+
+func MakeTestExpectations() types.Expectations {
+	return types.Expectations{
+		AlphaTest: map[types.Digest]types.Label{
+			AlphaGood1Digest:      types.POSITIVE,
+			AlphaUntriaged1Digest: types.UNTRIAGED,
+			AlphaBad1Digest:       types.NEGATIVE,
+		},
+		BetaTest: map[types.Digest]types.Label{
+			BetaGood1Digest:      types.POSITIVE,
+			BetaUntriaged1Digest: types.UNTRIAGED,
 		},
 	}
 }

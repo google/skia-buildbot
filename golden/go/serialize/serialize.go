@@ -27,14 +27,14 @@ import (
 type Sample struct {
 	// The JSON key names are set to keep the serializable code able to
 	// read old files.
-	Tile           *tiling.Tile         `json:"Tile"`
-	TestExpBuilder types.TestExpBuilder `json:"Expectations"`
-	IgnoreRules    []*ignore.IgnoreRule `json:"IgnoreRules"`
+	Tile         *tiling.Tile         `json:"Tile"`
+	Expectations types.Expectations   `json:"Expectations"`
+	IgnoreRules  []*ignore.IgnoreRule `json:"IgnoreRules"`
 }
 
 // Serialize writes this Sample instance to the given writer.
 func (s *Sample) Serialize(w io.Writer) error {
-	expBytes, err := json.Marshal(s.TestExpBuilder)
+	expBytes, err := json.Marshal(&s.Expectations)
 	if err != nil {
 		return err
 	}
@@ -74,14 +74,14 @@ type legacyIgnoreRule struct {
 // is the inverse operation of Sample.Searialize.
 func DeserializeSample(r io.Reader) (*Sample, error) {
 	ret := &Sample{
-		TestExpBuilder: types.NewTestExpBuilder(nil),
+		Expectations: types.Expectations{},
 	}
 
 	expBytes, err := readBytesWithLength(r)
 	if err != nil {
 		return nil, skerr.Fmt("Could not read bytes for expectations: %s", err)
 	}
-	if err = json.Unmarshal(expBytes, &ret.TestExpBuilder); err != nil {
+	if err = json.Unmarshal(expBytes, &ret.Expectations); err != nil {
 		return nil, skerr.Fmt("Could not unmarshal expectations: %s", err)
 	}
 
@@ -122,9 +122,9 @@ func DeserializeSample(r io.Reader) (*Sample, error) {
 // serialized using the json package.
 func (s *Sample) UnmarshalJSON(data []byte) error {
 	var dummy struct {
-		Tile           json.RawMessage      `json:"Tile"`
-		TestExpBuilder types.TestExpBuilder `json:"Expectations"`
-		IgnoreRules    []*ignore.IgnoreRule `json:"IgnoreRules"`
+		Tile         json.RawMessage      `json:"Tile"`
+		Expectations types.Expectations   `json:"Expectations"`
+		IgnoreRules  []*ignore.IgnoreRule `json:"IgnoreRules"`
 	}
 	var err error
 
@@ -137,7 +137,7 @@ func (s *Sample) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("Error decoding tile from raw message: %s", err)
 	}
 
-	s.TestExpBuilder = dummy.TestExpBuilder
+	s.Expectations = dummy.Expectations
 	s.IgnoreRules = dummy.IgnoreRules
 	return nil
 }

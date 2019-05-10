@@ -151,7 +151,7 @@ type resultState struct {
 	GoldURL         string
 	Bucket          string
 	KnownHashes     types.DigestSet
-	Expectations    types.TestExp
+	Expectations    types.Expectations
 }
 
 // NewCloudClient returns an implementation of the GoldClient that relies on the Gold service.
