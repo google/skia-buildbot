@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a7be858f_f96eceec",
+        "filename": "go/testutils/testutils.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-10T18:54:54Z",
+      "side": 1,
+      "message": "I didn\u0027t want to incur the cost of updating all callers, so I changed these to forward to sktest. The right thing is probably to move everything but the flags and related funcs into that package.",
+      "range": {
+        "startLine": 203,
+        "startChar": 0,
+        "endLine": 203,
+        "endChar": 45
+      },
+      "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
