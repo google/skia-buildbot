@@ -139,6 +139,9 @@ func (idx *SearchIndex) GetParamsetSummaryByTest(includeIgnores bool) map[types.
 
 // Proxy to blame.Blamer.GetBlame.
 func (idx *SearchIndex) GetBlame(test types.TestName, digest types.Digest, commits []*tiling.Commit) *blame.BlameDistribution {
+	if idx.blamer == nil {
+		return nil
+	}
 	return idx.blamer.GetBlame(test, digest, commits)
 }
 
