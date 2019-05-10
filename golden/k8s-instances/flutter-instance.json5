@@ -3,7 +3,7 @@
     "GERRIT_URL":              "",
     "GITREPO_URL":             "https://github.com/flutter/flutter",
     "N_COMMITS":               200,
-    "SPARSE":                  false,
+    "SPARSE":                  true,
     "SKCORR_TITLE":            "Flutter Gold",
     "SKCORR_DEFAULT_CORPUS":   "flutter",
     "PROJECT_ID":              "skia-public",
