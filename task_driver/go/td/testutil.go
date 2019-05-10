@@ -7,7 +7,6 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
-	"go.skia.org/infra/go/testutils"
 )
 
 type TestingRun struct {
@@ -21,7 +20,7 @@ type TestingRun struct {
 // StartTestRun returns a root-level Step to be used for testing. This is
 // an alternative so that we don't need to call Init() in testing.
 func StartTestRun(t sktest.TestingT) *TestingRun {
-	wd, cleanup := testutils.TempDir(t)
+	wd, cleanup := sktest.TempDir(t)
 	output := filepath.Join(wd, "output.json")
 	report := newReportReceiver(output)
 	return &TestingRun{
@@ -39,7 +38,7 @@ func (r *TestingRun) EndRun(expectPanic bool, err *error) *StepReport {
 }
 
 func (r *TestingRun) finishRun(expectPanic bool, err *error, recovered interface{}) (rv *StepReport) {
-	defer testutils.AssertCloses(r.t, getRun(r.ctx))
+	defer sktest.AssertCloses(r.t, getRun(r.ctx))
 	if expectPanic {
 		assert.NotNil(r.t, recovered)
 	} else {
