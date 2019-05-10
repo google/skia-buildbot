@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "44e4f326_57e861cd",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T16:52:57Z",
+      "side": 1,
+      "message": "Yes - since I moved the handler outside of the logginggzip handler, we have no logs for these requests otherwise.  On the netdiffserver side, there was never any logs, which made it annoying to debug - hopefully this helps in the future.",
+      "parentUuid": "cf6b6fd6_39bbaaf1",
+      "revId": "e11b71b704afaa0d9755e3ed4b83cd0c73cc164e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d3afe994_6ab6e0e4",
         "filename": "golden/go/diffstore/mem_diffstore.go",
         "patchSetId": 2
@@ -33,6 +51,24 @@
       "revId": "e11b71b704afaa0d9755e3ed4b83cd0c73cc164e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21555e8c_6b6bc87a",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T16:52:57Z",
+      "side": 1,
+      "message": "Yes, the diffserver had very little logging atm.",
+      "parentUuid": "d3afe994_6ab6e0e4",
+      "revId": "e11b71b704afaa0d9755e3ed4b83cd0c73cc164e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
