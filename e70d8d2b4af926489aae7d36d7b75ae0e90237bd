@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d2992ea5_e4b051ca",
+        "filename": "golden/create-gold-corp-sa.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T13:13:34Z",
+      "side": 1,
+      "message": "1) I prefer the more descriptive service-account.json 2) I\u0027d rather not have to change secrets that are actively in use by production services.",
+      "parentUuid": "4b2ad975_f3dabc49",
+      "range": {
+        "startLine": 56,
+        "startChar": 55,
+        "endLine": 56,
+        "endChar": 75
+      },
+      "revId": "e70d8d2b4af926489aae7d36d7b75ae0e90237bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fd8ef75b_130d35b3",
         "filename": "golden/k8s-instances/flutter-instance.json5",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "e70d8d2b4af926489aae7d36d7b75ae0e90237bd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cc5034df_88213526",
+        "filename": "golden/k8s-instances/flutter-instance.json5",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T13:13:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fd8ef75b_130d35b3",
+      "range": {
+        "startLine": 25,
+        "startChar": 39,
+        "endLine": 25,
+        "endChar": 41
+      },
+      "revId": "e70d8d2b4af926489aae7d36d7b75ae0e90237bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
