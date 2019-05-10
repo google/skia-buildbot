@@ -10,7 +10,7 @@ import (
 func TestExpString(t *testing.T) {
 	testutils.SmallTest(t)
 
-	te := TestExp{
+	te := Expectations{
 		"beta": map[Digest]Label{
 			"hash1": POSITIVE,
 			"hash3": NEGATIVE,

@@ -297,13 +297,12 @@ func (s *Summaries) search(tile *tiling.Tile, query string, head bool, pos bool,
 }
 
 // makeSummary returns a Summary for the given digests.
-func (s *Summaries) makeSummary(name types.TestName, e types.TestExpBuilder, diffStore diff.DiffStore, corpus string, digests types.DigestSlice) *Summary {
+func (s *Summaries) makeSummary(name types.TestName, testExp types.Expectations, diffStore diff.DiffStore, corpus string, digests types.DigestSlice) *Summary {
 	pos := 0
 	neg := 0
 	unt := 0
 	diamDigests := types.DigestSlice{}
 	untHashes := types.DigestSlice{}
-	testExp := e.TestExp()
 	if expectations, ok := testExp[name]; ok {
 		for _, digest := range digests {
 			if dtype, ok := expectations[digest]; ok {
