@@ -23,7 +23,7 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qStr string, exp types.TestExpBuilder, buf *bytes.Buffer) int {
+func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qStr string, exp types.Expectations, buf *bytes.Buffer) int {
 	q := &Query{}
 
 	// We ignore incorrect queries. They are tested somewhere else.
@@ -73,7 +73,7 @@ func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qSt
 	return 1
 }
 
-func getTargetDigests(t assert.TestingT, q *Query, tile *tiling.Tile, exp types.TestExpBuilder) types.DigestSet {
+func getTargetDigests(t assert.TestingT, q *Query, tile *tiling.Tile, exp types.Expectations) types.DigestSet {
 	// Account for a given commit range.
 	startIdx := 0
 	endIdx := tile.LastCommitIndex()
@@ -143,7 +143,7 @@ func getStoragesAndIndexerFromTile(t assert.TestingT, path string, randomize boo
 	tileBuilder := mocks.NewMockTileBuilderFromTile(t, sample.Tile)
 	eventBus := eventbus.New()
 	expStore := expstorage.NewMemExpectationsStore(eventBus)
-	err := expStore.AddChange(sample.TestExpBuilder.TestExp(), "testuser")
+	err := expStore.AddChange(sample.Expectations, "testuser")
 	assert.NoError(t, err)
 
 	baseliner, err := gcs_baseliner.New(nil, expStore, nil, nil, nil)
@@ -172,15 +172,14 @@ func loadSample(t assert.TestingT, fileName string, randomize bool) *serialize.S
 	assert.NoError(t, err)
 
 	if randomize {
-		sample.Tile = randomizeTile(sample.Tile, sample.TestExpBuilder)
+		sample.Tile = randomizeTile(sample.Tile, sample.Expectations)
 	}
 
 	return sample
 }
 
-func randomizeTile(tile *tiling.Tile, exp types.TestExpBuilder) *tiling.Tile {
+func randomizeTile(tile *tiling.Tile, testExp types.Expectations) *tiling.Tile {
 	allDigestSet := types.DigestSet{}
-	testExp := exp.TestExp()
 	for _, digests := range testExp {
 		for d := range digests {
 			allDigestSet[d] = true

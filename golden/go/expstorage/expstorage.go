@@ -26,11 +26,11 @@ func init() {
 type ExpectationsStore interface {
 	// Get the current classifications for image digests. The keys of the
 	// expectations map are the test names.
-	Get() (exp types.TestExpBuilder, err error)
+	Get() (exp types.Expectations, err error)
 
 	// AddChange writes the given classified digests to the database and records the
 	// user that made the change.
-	AddChange(changes types.TestExp, userId string) error
+	AddChange(changes types.Expectations, userId string) error
 
 	// QueryLog allows to paginate through the changes in the expectations.
 	// If details is true the result will include a list of triage operations
@@ -41,7 +41,7 @@ type ExpectationsStore interface {
 	// original change to the label they had before the change was applied.
 	// A new entry is added to the log with a reference to the change that was
 	// undone.
-	UndoChange(changeID int64, userID string) (types.TestExp, error)
+	UndoChange(changeID int64, userID string) (types.Expectations, error)
 
 	// Clear deletes all expectations in this ExpectationsStore. This is mostly
 	// used for testing, but also to delete the expectations for a Gerrit issue.
@@ -57,7 +57,7 @@ type DEPRECATED_ExpectationsStore interface {
 	// TODO(kjlubick): The removeChange function is obsolete and should be removed.
 	// It was used for testing before the UndoChange function was added. It is simply
 	// wrong to change the expectations without a change record being added.
-	RemoveChange(changes types.TestExp) error
+	RemoveChange(changes types.Expectations) error
 }
 
 // TriageDetails represents one changed digest and the label that was
@@ -80,8 +80,8 @@ type TriageLogEntry struct {
 	UndoChangeID int64           `json:"undoChangeId"`
 }
 
-func (t *TriageLogEntry) GetChanges() types.TestExp {
-	ret := types.TestExp{}
+func (t *TriageLogEntry) GetChanges() types.Expectations {
+	ret := types.Expectations{}
 	for _, d := range t.Details {
 		label := types.LabelFromString(d.Label)
 		if found, ok := ret[d.TestName]; !ok {
@@ -95,8 +95,8 @@ func (t *TriageLogEntry) GetChanges() types.TestExp {
 
 // Implements ExpectationsStore in memory for prototyping and testing.
 type MemExpectationsStore struct {
-	expectations types.TestExpBuilder
-	readCopy     types.TestExpBuilder
+	expectations types.Expectations
+	readCopy     types.Expectations
 	eventBus     eventbus.EventBus
 
 	// Protects expectations.
@@ -113,7 +113,7 @@ func NewMemExpectationsStore(eventBus eventbus.EventBus) *MemExpectationsStore {
 }
 
 // Get fulfills the ExpectationsStore interface.
-func (m *MemExpectationsStore) Get() (types.TestExpBuilder, error) {
+func (m *MemExpectationsStore) Get() (types.Expectations, error) {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
@@ -121,41 +121,41 @@ func (m *MemExpectationsStore) Get() (types.TestExpBuilder, error) {
 }
 
 // AddChange fulfills the ExpectationsStore interface.
-func (m *MemExpectationsStore) AddChange(changedTests types.TestExp, userId string) error {
+func (m *MemExpectationsStore) AddChange(changedTests types.Expectations, userId string) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	m.expectations.AddTestExp(changedTests)
+	m.expectations.MergeExpectations(changedTests)
 	if m.eventBus != nil {
 		m.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedTests, masterIssueID, nil), true)
 	}
 
-	m.readCopy = types.NewTestExpBuilder(m.expectations.TestExp().DeepCopy())
+	m.readCopy = m.expectations.DeepCopy()
 	return nil
 }
 
 // RemoveChange fulfills the DEPRECATED_ExpectationsStore interface.
-func (m *MemExpectationsStore) RemoveChange(changedDigests types.TestExp) error {
+func (m *MemExpectationsStore) RemoveChange(changedDigests types.Expectations) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	testExp := m.expectations.TestExp().DeepCopy()
+	exp := m.expectations.DeepCopy()
 	for testName, digests := range changedDigests {
 		for digest := range digests {
-			delete(testExp[testName], digest)
-			if len(testExp[testName]) == 0 {
-				delete(testExp, testName)
+			delete(exp[testName], digest)
+			if len(exp[testName]) == 0 {
+				delete(exp, testName)
 			}
 		}
 	}
 	// Replace the current expectations.
-	m.expectations = types.NewTestExpBuilder(testExp)
+	m.expectations = exp
 
 	if m.eventBus != nil {
 		m.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedDigests, masterIssueID, nil), true)
 	}
 
-	m.readCopy = types.NewTestExpBuilder(m.expectations.TestExp().DeepCopy())
+	m.readCopy = m.expectations.DeepCopy()
 	return nil
 }
 
@@ -166,7 +166,7 @@ func (m *MemExpectationsStore) QueryLog(offset, size int, details bool) ([]*Tria
 }
 
 // See ExpectationsStore interface.
-func (m *MemExpectationsStore) UndoChange(changeID int64, userID string) (types.TestExp, error) {
+func (m *MemExpectationsStore) UndoChange(changeID int64, userID string) (types.Expectations, error) {
 	sklog.Fatal("MemExpectation store does not support undo.")
 	return nil, nil
 }
@@ -175,8 +175,8 @@ func (m *MemExpectationsStore) UndoChange(changeID int64, userID string) (types.
 func (m *MemExpectationsStore) Clear() error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	m.expectations = types.NewTestExpBuilder(nil)
-	m.readCopy = types.NewTestExpBuilder(nil)
+	m.expectations = types.Expectations{}
+	m.readCopy = types.Expectations{}
 	return nil
 }
 
