@@ -200,31 +200,24 @@ func WriteFile(t sktest.TestingT, filename, contents string) {
 	assert.NoErrorf(t, ioutil.WriteFile(filename, []byte(contents), os.ModePerm), "Unable to write to file %s", filename)
 }
 
-// AssertCloses takes an ioutil.Closer and asserts that it closes. E.g.:
-// frobber := NewFrobber()
-// defer testutils.AssertCloses(t, frobber)
+// See documentation for sktest.AssertCloses.
 func AssertCloses(t sktest.TestingT, c io.Closer) {
-	assert.NoError(t, c.Close())
+	sktest.AssertCloses(t, c)
 }
 
-// Remove attempts to remove the given file and asserts that no error is returned.
+// See documentation for sktest.Remove.
 func Remove(t sktest.TestingT, fp string) {
-	assert.NoError(t, os.Remove(fp))
+	sktest.Remove(t, fp)
 }
 
-// RemoveAll attempts to remove the given directory and asserts that no error is returned.
+// See documentation for sktest.RemoveAll.
 func RemoveAll(t sktest.TestingT, fp string) {
-	assert.NoError(t, os.RemoveAll(fp))
+	sktest.RemoveAll(t, fp)
 }
 
-// TempDir is a wrapper for ioutil.TempDir. Returns the path to the directory and a cleanup
-// function to defer.
+// See documentation for sktest.TempDir.
 func TempDir(t sktest.TestingT) (string, func()) {
-	d, err := ioutil.TempDir("", "testutils")
-	assert.NoError(t, err)
-	return d, func() {
-		RemoveAll(t, d)
-	}
+	return sktest.TempDir(t)
 }
 
 // MarshalJSON encodes the given interface to a JSON string.
