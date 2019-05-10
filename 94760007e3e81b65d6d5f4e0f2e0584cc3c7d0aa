@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "334222c1_67cdfc2d",
+        "filename": "golden/docs/PROD.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T13:39:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0575e01e_0cfdca56",
+      "range": {
+        "startLine": 57,
+        "startChar": 68,
+        "endLine": 57,
+        "endChar": 70
+      },
+      "revId": "94760007e3e81b65d6d5f4e0f2e0584cc3c7d0aa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "68d67efd_43cd88a4",
         "filename": "prometheus/sys/alert.rules",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2019-05-10T13:26:37Z",
       "side": 1,
       "message": "Nit: I find it\u0027s always useful to have the log link here in the alert description, so that I don\u0027t have to go find it myself.",
+      "range": {
+        "startLine": 134,
+        "startChar": 79,
+        "endLine": 134,
+        "endChar": 173
+      },
+      "revId": "94760007e3e81b65d6d5f4e0f2e0584cc3c7d0aa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e731e7b7_0727f040",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 2
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T13:39:37Z",
+      "side": 1,
+      "message": "That\u0027s not going to scale in k8s land, since we have public/private and multiple instances.  The logs are linked in PROD.md",
+      "parentUuid": "68d67efd_43cd88a4",
       "range": {
         "startLine": 134,
         "startChar": 79,
