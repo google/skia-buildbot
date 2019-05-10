@@ -93,6 +93,30 @@
       "revId": "94760007e3e81b65d6d5f4e0f2e0584cc3c7d0aa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f0a7b91_d842318e",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 2
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-10T13:43:43Z",
+      "side": 1,
+      "message": "Why not?  We have log links for all autorollers, and there are 57 of them, public and private.",
+      "parentUuid": "e731e7b7_0727f040",
+      "range": {
+        "startLine": 134,
+        "startChar": 79,
+        "endLine": 134,
+        "endChar": 173
+      },
+      "revId": "94760007e3e81b65d6d5f4e0f2e0584cc3c7d0aa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
