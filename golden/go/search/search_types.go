@@ -6,7 +6,7 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-type ExpSlice []types.TestExpBuilder
+type ExpSlice []types.Expectations
 
 func (e ExpSlice) Classification(test types.TestName, digest types.Digest) types.Label {
 	for _, exp := range e {

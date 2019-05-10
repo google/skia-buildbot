@@ -114,8 +114,8 @@ func TestIndexer(t *testing.T) {
 	assert.NotEqual(t, idxOne, idxTwo)
 }
 
-func getChanges(t *testing.T, tile *tiling.Tile) types.TestExp {
-	ret := types.TestExp{}
+func getChanges(t *testing.T, tile *tiling.Tile) types.Expectations {
+	ret := types.Expectations{}
 	labelVals := []types.Label{types.POSITIVE, types.NEGATIVE}
 	for _, trace := range tile.Traces {
 		if rand.Float32() > 0.5 {
@@ -148,10 +148,8 @@ func BenchmarkIndexer(b *testing.B) {
 	assert.NoError(b, err)
 
 	// Update the expectations.
-	changes, err := expStore.Get()
+	changesTestExp, err := expStore.Get()
 	assert.NoError(b, err)
-
-	changesTestExp := changes.TestExp()
 
 	// Wait for the indexTests to complete when we change the expectations.
 	var wg sync.WaitGroup
