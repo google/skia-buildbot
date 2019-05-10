@@ -44,14 +44,14 @@ spec:
           args:
             - "--baseline_gs_path=skia-gold-{{.INSTANCE_ID}}/baselines"
             - "--ds_namespace=gold-{{.INSTANCE_ID}}"
-            - "--git_bt_instance=production"
+            - "--git_bt_instance={{.GIT_BT_INSTANCE}}"
             - "--git_bt_table=git-repos"
             - "--git_repo_url={{.GITREPO_URL}}"
             - "--hashes_gs_path=skia-gold-{{.INSTANCE_ID}}/hash_files/gold-{{.INSTANCE_ID}}-hashes.txt"
             - "--logtostderr"
             - "--no_cloud_log"
             - "--port=:8000"
-            - "--project_id=skia-public"
+            - "--project_id={{.PROJECT_ID}}"
             - "--prom_port=:20000"
             - "--service_account_file=/etc/gold-config/service-account.json"
           ports:

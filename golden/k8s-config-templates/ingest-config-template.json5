@@ -4,7 +4,7 @@
   EventTopic: "gold-{{.INSTANCE_ID}}-eventbus",
 
   Ingesters: {
-    // Chrome GPU Gold ingester
+    // Primary Ingester
     gold: {
       RunEvery: "5m",
       NCommits: 75,
