@@ -141,6 +141,30 @@
       "revId": "94760007e3e81b65d6d5f4e0f2e0584cc3c7d0aa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7fd2e576_5eb784d7",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 2
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-10T14:02:22Z",
+      "side": 1,
+      "message": "I think you need to \u0027git cl upload\u0027",
+      "parentUuid": "44b14b88_f46d3615",
+      "range": {
+        "startLine": 134,
+        "startChar": 79,
+        "endLine": 134,
+        "endChar": 173
+      },
+      "revId": "94760007e3e81b65d6d5f4e0f2e0584cc3c7d0aa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
