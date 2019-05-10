@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "19c62c96_01bc17b5",
+        "filename": "golden/docs/PROD.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-10T13:59:14Z",
+      "side": 1,
+      "message": "Hooray! I might give feedback on this too.",
+      "range": {
+        "startLine": 12,
+        "startChar": 1,
+        "endLine": 16,
+        "endChar": 56
+      },
+      "revId": "d54fe1fb5acdab290096d2d548196ed3e4e7af5d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
