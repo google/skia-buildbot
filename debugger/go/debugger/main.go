@@ -62,6 +62,12 @@ func templateHandler(name string) http.HandlerFunc {
 	}
 }
 
+// Permanently redirect debugger.skia.org to the wasm-baed version.
+// Old one still accessible at debugger.skia.org/legacy
+func v2RedirectHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "https://debugger-assets.skia.org/res/v2.html", 308)
+}
+
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	if *local {
@@ -189,10 +195,11 @@ func main() {
 
 	router := mux.NewRouter()
 	router.PathPrefix("/res/").HandlerFunc(autogzip.HandleFunc(makeResourceHandler()))
-	router.HandleFunc("/", mainHandler)
+	router.HandleFunc("/", v2RedirectHandler)
 	router.HandleFunc("/healthz", httputils.HealthCheckHandler).Methods("GET")
 	router.HandleFunc("/admin", adminHandler)
 	router.HandleFunc("/loadfrom", loadHandler)
+	router.HandleFunc("/legacy", mainHandler)
 
 	// All URLs that we don't understand will be routed to be handled by
 	// skiaserve.
