@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "49d2b801_b4a5ae4c",
+        "filename": "golden/go/blame/blame.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T13:29:41Z",
+      "side": 1,
+      "message": "Future CL will re-work the TestExpBuilder",
+      "parentUuid": "76a1526d_5015df8a",
+      "range": {
+        "startLine": 158,
+        "startChar": 54,
+        "endLine": 158,
+        "endChar": 74
+      },
+      "revId": "d3ee8e7a0051e6f4a03b5db1fbd738e4af4ea085",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "03f93b08_02921f49",
         "filename": "golden/go/indexer/indexer.go",
         "patchSetId": 11
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "67eee216_d76ab42b",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T13:29:41Z",
+      "side": 1,
+      "message": "Done.  Checked a few call-sites as well",
+      "parentUuid": "03f93b08_02921f49",
+      "revId": "d3ee8e7a0051e6f4a03b5db1fbd738e4af4ea085",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "825a1fb4_b371d3d5",
         "filename": "golden/go/indexer/indexer.go",
         "patchSetId": 11
@@ -56,6 +98,24 @@
       "revId": "d3ee8e7a0051e6f4a03b5db1fbd738e4af4ea085",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6639e737_7935f2a4",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T13:29:41Z",
+      "side": 1,
+      "message": "That\u0027s what I assume too.  The pdag makes these functions dependent on the calcBlame function, which should bail out with an error if blamer wasn\u0027t set.",
+      "parentUuid": "825a1fb4_b371d3d5",
+      "revId": "d3ee8e7a0051e6f4a03b5db1fbd738e4af4ea085",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

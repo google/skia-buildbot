@@ -160,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "d8f2ff56_2588e28a",
+        "filename": "golden/go/blame/blame_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T13:29:41Z",
+      "side": 1,
+      "message": "Nope - old is false.  If you look at blame.go, the only way Old is set to true is if old was previously set to true.  Thus I don\u0027t think it can ever be true.",
+      "parentUuid": "81022497_babcf8af",
+      "revId": "7fe352cb3681e54100369aa524962ffca8eb0470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2b0f6410_41687ee9",
         "filename": "golden/go/testutils/data_three_devices/three_devices.go",
         "patchSetId": 6
