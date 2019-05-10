@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "801ed81e_3340bf95",
+        "filename": "golden/go/status/status.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T13:05:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "67d88a15_42003acf",
+      "revId": "af488db1366cf45279da6d164bca222c7715ed9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4f405b8f_95a9f1a4",
         "filename": "golden/go/status/status.go",
         "patchSetId": 16
@@ -106,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "01300461_889da07b",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 16
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T13:05:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "69fc633f_51e1a93d",
+      "revId": "af488db1366cf45279da6d164bca222c7715ed9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4998cc6c_2bc3144d",
         "filename": "promk/prometheus/alerts_general.yml",
         "patchSetId": 16
@@ -120,6 +156,24 @@
       "revId": "af488db1366cf45279da6d164bca222c7715ed9c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87984725_4d04c026",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 16
+      },
+      "lineNbr": 558,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T13:05:43Z",
+      "side": 1,
+      "message": "The status only affects the UI, so in my mind that is less critical than \"gold is not functioning\".  /shrug",
+      "parentUuid": "4998cc6c_2bc3144d",
+      "revId": "af488db1366cf45279da6d164bca222c7715ed9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
