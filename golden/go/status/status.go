@@ -107,6 +107,7 @@ func (s *StatusWatcher) GetStatus() *GUIStatus {
 // age (wall_time) and time since a newer commit landed (with_new_commit). The latter
 // is the preferred metric due to the lower false-positive chance, with the former
 // being a good backup since it has a lower false-negative chance.
+// updateLastCommitAge is thread-safe.
 func (s *StatusWatcher) updateLastCommitAge() {
 	st := s.GetStatus()
 	if st == nil {
