@@ -4,7 +4,7 @@
 # it into the kubernetes cluster as a secret.
 
 set -e -x
-source ../kube/corp-config.sh
+source ../kube/config.sh
 source ../bash/ramdisk.sh
 
 # New service account we will create.
@@ -29,7 +29,7 @@ GS_SA_EMAIL="service-${PROJECT_NUMBER}@gs-project-accounts.iam.gserviceaccount.c
 cd /tmp/ramdisk
 
 gcloud --project=${PROJECT_ID} iam service-accounts create "${SA_NAME}" \
-    --display-name="Service account for Skia Gold in skia-corp"
+    --display-name="Service account for Skia Gold in skia-public"
 
 gcloud projects add-iam-policy-binding ${PROJECT_ID} \
     --member serviceAccount:${SA_EMAIL} --role roles/bigtable.user

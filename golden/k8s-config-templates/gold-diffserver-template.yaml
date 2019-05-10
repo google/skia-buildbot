@@ -1,0 +1,111 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: gold-{{.INSTANCE_ID}}-diffserver
+  labels:
+    app: gold-{{.INSTANCE_ID}}-diffserver
+spec:
+  ports:
+    - name: grpc
+      port: 8000
+    - name: http
+      port: 8001
+    - name: prometheus
+      port: 20000
+  selector:
+    app: gold-{{.INSTANCE_ID}}-diffserver
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: gold-{{.INSTANCE_ID}}-diffserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gold-{{.INSTANCE_ID}}-diffserver # Label selector that determines which Pods belong to the StatefulSet
+                                # Must match spec: template: metadata: labels
+  serviceName: "gold-{{.INSTANCE_ID}}-diffserver"
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: gold-{{.INSTANCE_ID}}-diffserver  # Pod template's label selector
+        appgroup: gold-{{.INSTANCE_ID}}
+      annotations:
+        prometheus.io.scrape: "true"
+        prometheus.io.port: "20000"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 2000 # aka skia
+        fsGroup: 2000   # aka skia
+      containers:
+        - name: gold-diffserver
+          image: {{.DIFF_SERVER_IMAGE}}
+          args:
+            - "--cache_size=10"
+            - "--grpc_port=:8000"
+            - "--gs_buckets=skia-gold-{{.INSTANCE_ID}}"
+            - "--image_dir=/data"
+            - "--image_port=:8001"
+            - "--logtostderr"
+            - "--no_cloud_log"
+            - "--prom_port=:20000"
+            - "--service_account_file=/var/secrets/google/service-account.json"
+          ports:
+            - containerPort: 8000
+              name: grpc
+            - containerPort: 8001
+              name: http
+            - containerPort: 20000
+              name: prom
+          volumeMounts:
+            - name: gold-{{.INSTANCE_ID}}-diffserver-storage-volume
+              mountPath: /data
+            - name: gold-{{.INSTANCE_ID}}-diffserver-diffs-storage-volume
+              mountPath: /data/imageStore/diffs
+            - name: gold-service-account-secrets
+              mountPath: /var/secrets/google/
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/service-account.json
+          resources:
+            requests:
+              memory: "32G"
+              cpu: "4"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8001
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            failureThreshold: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8001
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: gold-service-account-secrets
+          secret:
+            secretName: gold-service-account-secrets
+  volumeClaimTemplates:
+    - metadata:
+        name: gold-{{.INSTANCE_ID}}-diffserver-storage-volume
+      spec:
+        storageClassName: ssd-disk
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 100Gi
+    - metadata:
+        name: gold-{{.INSTANCE_ID}}-diffserver-diffs-storage-volume
+      spec:
+        storageClassName: standard
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1000Gi

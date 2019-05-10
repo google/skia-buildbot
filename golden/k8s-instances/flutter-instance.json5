@@ -1,26 +1,36 @@
 {
-    "TRACESERVER_MEMORY":      "500Mi",
-    "TRACESERVER_CPU":         "500m",
+    // Gold settings
     "GERRIT_URL":              "",
     "GITREPO_URL":             "https://github.com/flutter/flutter",
-    "N_COMMITS":               50,
+    "N_COMMITS":               200,
     "SPARSE":                  false,
+    "SKCORR_TITLE":            "Flutter Gold",
+    "SKCORR_DEFAULT_CORPUS":   "flutter",
+    "PROJECT_ID":              "skia-public",
+    "SITE_URL":                "https://flutter-gold.skia.org",
+
+    // Git BigTable settings
+    "GIT_BT_INSTANCE":         "production",
+    "GIT_BT_TABLE":            "git-repos",
+
+    // Traceserver settings.
+    "TRACESERVER_MEMORY":      "500Mi",
+    "TRACESERVER_CPU":         "1",
 
     // Settings for the main ingester.
     "ING_RUN_EVERY":           "5m",
-    "ING_N_COMMITS":           75,
+    "ING_N_COMMITS":           200,
     "ING_MIN_DAYS":            20,
 
-    // Settings for the Tryjob ingester.
+    // Settings for the Tryjob ingester. If ING_TRY_ENABLED is false no ingester for
+    // tryjobs will be configured.
     "ING_TRY_ENABLED":         false,
     "ING_TRY_RUN_EVERY":       "5m",
     "ING_TRY_MIN_DAYS":        20,
+    "ING_TRY_N_COMMITS":       10,
     "ING_TRY_BUILDBUCKET_URL": "",
     "ING_TRY_BUILDBUCKET":     "chromium/try",
     "ING_TRY_BB_INTERVAL":     "10s",
     "ING_TRY_BB_WINDOW":       "5h",
     "ING_TRY_BUILDER_REGEX":   "",
-
-    "SKCORR_TITLE":          "Flutter Gold",
-    "SKCORR_DEFAULT_CORPUS": "flutter",
 }
