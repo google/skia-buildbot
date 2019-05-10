@@ -50,7 +50,7 @@ func TestFetchBaselineIssueSunnyDay(t *testing.T) {
 	LambdaNewDigest := types.Digest("3333fe3127b984e4ff39f4885ddb0d98")
 
 	additionalTriages := &baseline.CommitableBaseline{
-		Baseline: types.TestExp{
+		Baseline: types.Expectations{
 			"brand-new-test": map[types.Digest]types.Label{
 				IotaNewDigest:  types.POSITIVE,
 				KappaNewDigest: types.NEGATIVE,
@@ -88,7 +88,7 @@ func TestFetchBaselineIssueSunnyDay(t *testing.T) {
 	deepequal.AssertDeepEqual(t, testIssueID, b.Issue)
 	// The expectation should be the master baseline merged in with the additionalTriages
 	// with additionalTriages overwriting existing expectations, if applicable.
-	deepequal.AssertDeepEqual(t, types.TestExp{
+	deepequal.AssertDeepEqual(t, types.Expectations{
 		"brand-new-test": map[types.Digest]types.Label{
 			IotaNewDigest:  types.POSITIVE,
 			KappaNewDigest: types.NEGATIVE,
@@ -144,24 +144,16 @@ func TestPushMasterBaselineSunnyDay(t *testing.T) {
 	mgs := makeMockGCSStorage()
 	mcs := &mocks.TileInfo{}
 	mes := &mocks.ExpectationsStore{}
-	meh := &mocks.TestExpBuilder{}
 
 	defer mgs.AssertExpectations(t)
 	defer mcs.AssertExpectations(t)
 	defer mes.AssertExpectations(t)
-	defer meh.AssertExpectations(t)
 
 	mcs.On("AllCommits").Return(three_devices.MakeTestCommits())
 	mcs.On("DataCommits").Return(three_devices.MakeTestCommits())
 	mcs.On("GetTile", false).Return(three_devices.MakeTestTile())
 
-	mes.On("Get").Return(meh, nil)
-
-	meh.On("Classification", three_devices.AlphaTest, three_devices.AlphaGood1Digest).Return(types.POSITIVE)
-	meh.On("Classification", three_devices.AlphaTest, three_devices.AlphaUntriaged1Digest).Return(types.UNTRIAGED)
-	meh.On("Classification", three_devices.AlphaTest, three_devices.AlphaBad1Digest).Return(types.NEGATIVE)
-	meh.On("Classification", three_devices.BetaTest, three_devices.BetaGood1Digest).Return(types.POSITIVE)
-	meh.On("Classification", three_devices.BetaTest, three_devices.BetaUntriaged1Digest).Return(types.UNTRIAGED)
+	mes.On("Get").Return(three_devices.MakeTestExpectations(), nil)
 
 	mgs.On("WriteBaseline", mock.AnythingOfType("*baseline.CommitableBaseline")).Run(func(args mock.Arguments) {
 		b := args.Get(0).(*baseline.CommitableBaseline)
