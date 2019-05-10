@@ -552,10 +552,10 @@ func (wh *WebHandlers) JsonTriageHandler(w http.ResponseWriter, r *http.Request)
 	}
 	sklog.Infof("Triage request: %#v", req)
 
-	var tc types.TestExp
+	var tc types.Expectations
 
 	// Build the expectations change request from the list of digests passed in.
-	tc = make(types.TestExp, len(req.TestDigestStatus))
+	tc = make(types.Expectations, len(req.TestDigestStatus))
 	for test, digests := range req.TestDigestStatus {
 		labeledDigests := make(map[types.Digest]types.Label, len(digests))
 		for d, label := range digests {
