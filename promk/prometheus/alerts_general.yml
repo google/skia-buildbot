@@ -539,7 +539,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'It has been at least 24 hours since the last commit made it into Gold for {{ $labels.app }}. Some process might have hung, or perhaps that repo simply has not seen a commit in that period.'
+      description: 'It has been at least 24 hours since the last commit made it into Gold for {{ $labels.app }}. Some process might have hung, or perhaps that repo simply has not seen a commit in that period. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldcommittoooldwalltime'
 
   - alert: GoldCommitTooOldNewerCommit
     expr: gold_last_commit_age_s{type="with_new_commit"} > 1*60*60
@@ -549,7 +549,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'It has been at least 1 hour since a new commit landed in {{ $labels.app }}, and Gold still has not picked it up. Some process might have hung.'
+      description: 'It has been at least 1 hour since a new commit landed in {{ $labels.app }}, and Gold still has not picked it up. Some process might have hung. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldcommittoooldnewercommit'
 
   - alert: GoldStatusStalled
     expr: liveness_gold_status_monitoring_s > 10*60
@@ -559,4 +559,4 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'It has been at least 10 minutes since the Gold status was re-computed for {{ $labels.app }}. Some process might have hung.'
+      description: 'It has been at least 10 minutes since the Gold status was re-computed for {{ $labels.app }}. Some process might have hung. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldstatusstalled'
