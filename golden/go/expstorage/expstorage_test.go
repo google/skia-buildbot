@@ -153,12 +153,12 @@ func TestBigSQLChange(t *testing.T) {
 	assert.NoError(t, sqlStore.AddChange(bigChange, "user-99"))
 	exp, err := sqlStore.Get()
 	assert.NoError(t, err)
-	assert.Equal(t, bigChange, exp.TestExp())
+	assert.Equal(t, bigChange, exp)
 }
 
-func getRandomChange(nTests, nDigests int) types.TestExp {
+func getRandomChange(nTests, nDigests int) types.Expectations {
 	labels := []types.Label{types.POSITIVE, types.NEGATIVE, types.UNTRIAGED}
-	ret := make(types.TestExp, nTests)
+	ret := make(types.Expectations, nTests)
 	for i := 0; i < nTests; i++ {
 		digests := make(map[types.Digest]types.Label, nDigests)
 		for j := 0; j < nDigests; j++ {
@@ -181,7 +181,7 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 	// Request expectations and make sure they are empty.
 	emptyExp, err := store.Get()
 	assert.NoError(t, err)
-	assert.Equal(t, 0, len(emptyExp.TestExp()))
+	assert.Empty(t, emptyExp)
 
 	// If we have an event bus then keep gathering events.
 	callbackCh := make(chan types.TestNameSlice, 3)
@@ -207,7 +207,7 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 	DIGEST_11, DIGEST_12 := types.Digest("d11"), types.Digest("d12")
 	DIGEST_21, DIGEST_22 := types.Digest("d21"), types.Digest("d22")
 
-	expChange_1 := types.TestExp{
+	expChange_1 := types.Expectations{
 		TEST_1: {
 			DIGEST_11: types.POSITIVE,
 			DIGEST_12: types.NEGATIVE,
@@ -233,11 +233,11 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 	foundExps, err := store.Get()
 	assert.NoError(t, err)
 
-	assert.Equal(t, expChange_1, foundExps.TestExp())
+	assert.Equal(t, expChange_1, foundExps)
 	checkLogEntry(t, store, expChange_1)
 
 	// Update digests.
-	expChange_2 := types.TestExp{
+	expChange_2 := types.Expectations{
 		TEST_1: {
 			DIGEST_11: types.NEGATIVE,
 		},
@@ -256,15 +256,14 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 		assert.Equal(t, types.TestNameSlice{TEST_1, TEST_2}, found[0])
 	}
 
-	foundExps, err = store.Get()
+	foundTestExp, err := store.Get()
 	assert.NoError(t, err)
-	foundTestExp := foundExps.TestExp()
 	assert.Equal(t, types.NEGATIVE, foundTestExp[TEST_1][DIGEST_11])
 	assert.Equal(t, types.UNTRIAGED, foundTestExp[TEST_2][DIGEST_22])
 	checkLogEntry(t, store, expChange_2)
 
 	// Send empty changes to test the event bus.
-	emptyChanges := types.TestExp{}
+	emptyChanges := types.Expectations{}
 	assert.NoError(t, store.AddChange(emptyChanges, "user-2"))
 	if eventBus != nil {
 		found := waitForChanLen(t, callbackCh, 1)
@@ -276,7 +275,7 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 	assert.NoError(t, err)
 
 	// Remove digests.
-	removeDigests_1 := types.TestExp{
+	removeDigests_1 := types.Expectations{
 		TEST_1: {DIGEST_11: types.UNTRIAGED},
 		TEST_2: {DIGEST_22: types.UNTRIAGED},
 	}
@@ -287,13 +286,12 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 		assert.Equal(t, types.TestNameSlice{TEST_1, TEST_2}, found[0])
 	}
 
-	foundExps, err = store.Get()
+	foundTestExp, err = store.Get()
 	assert.NoError(t, err)
-	foundTestExp = foundExps.TestExp()
 	assert.Equal(t, map[types.Digest]types.Label{DIGEST_12: types.NEGATIVE}, foundTestExp[TEST_1])
 	assert.Equal(t, map[types.Digest]types.Label{DIGEST_21: types.POSITIVE}, foundTestExp[TEST_2])
 
-	removeDigests_2 := types.TestExp{TEST_1: {DIGEST_12: types.UNTRIAGED}}
+	removeDigests_2 := types.Expectations{TEST_1: {DIGEST_12: types.UNTRIAGED}}
 	assert.NoError(t, store.RemoveChange(removeDigests_2))
 	if eventBus != nil {
 		found := waitForChanLen(t, callbackCh, 1)
@@ -302,9 +300,9 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 
 	foundExps, err = store.Get()
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(foundExps.TestExp()))
+	assert.Len(t, foundExps, 1)
 
-	assert.NoError(t, store.RemoveChange(types.TestExp{}))
+	assert.NoError(t, store.RemoveChange(types.Expectations{}))
 	if eventBus != nil {
 		found := waitForChanLen(t, callbackCh, 1)
 		assert.Empty(t, found[0])
@@ -344,9 +342,8 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 	assert.Equal(t, 0, len(logEntries[1].Details))
 	assert.Equal(t, 2, len(logEntries[0].Details))
 
-	foundExps, err = store.Get()
+	foundTestExp, err = store.Get()
 	assert.NoError(t, err)
-	foundTestExp = foundExps.TestExp()
 
 	for testName, digests := range expChange_2 {
 		for d := range digests {
@@ -416,7 +413,7 @@ func checkExpectationsAt(t *testing.T, sqlStore *SQLExpectationsStore, changeInf
 	}
 }
 
-func checkLogEntry(t *testing.T, store ExpectationsStore, changes types.TestExp) {
+func checkLogEntry(t *testing.T, store ExpectationsStore, changes types.Expectations) {
 	logEntries, _, err := store.QueryLog(0, 1, true)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(logEntries))
