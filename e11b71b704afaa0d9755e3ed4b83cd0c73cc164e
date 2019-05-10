@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cf6b6fd6_39bbaaf1",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-05-10T16:50:36Z",
+      "side": 1,
+      "message": "Intentional?",
+      "revId": "e11b71b704afaa0d9755e3ed4b83cd0c73cc164e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3afe994_6ab6e0e4",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-05-10T16:50:36Z",
+      "side": 1,
+      "message": "Intentional?",
+      "revId": "e11b71b704afaa0d9755e3ed4b83cd0c73cc164e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
