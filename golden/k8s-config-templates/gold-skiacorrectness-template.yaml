@@ -19,7 +19,6 @@ kind: Deployment
 metadata:
   name: gold-{{.INSTANCE_ID}}-skiacorrectness
 spec:
-  serviceName: "gold-{{.INSTANCE_ID}}-skiacorrectness"
   replicas: 1
   selector:
     matchLabels:
@@ -52,9 +51,9 @@ spec:
             - "--diff_server_http=gold-{{.INSTANCE_ID}}-diffserver:8001"
             - "--ds_namespace=gold-{{.INSTANCE_ID}}"
             - "--event_topic=gold-{{.INSTANCE_ID}}-eventbus"
-            - "--force_login=false"
+            - "--force_login={{.FORCE_LOGIN}}"
             - "--gerrit_url={{.GERRIT_URL}}"
-            - "--git_bt_instance=production"
+            - "--git_bt_instance={{.GIT_BT_INSTANCE}}"
             - "--git_bt_table=git-repos"
             - "--git_repo_dir=/data/ci-repo"
             - "--git_repo_url={{.GITREPO_URL}}"
@@ -64,13 +63,13 @@ spec:
             - "--n_commits={{.N_COMMITS}}"
             - "--no_cloud_log=true"
             - "--port=:8000"
-            - "--project_id=skia-public"
+            - "--project_id={{.PROJECT_ID}}"
             - "--prom_port=:20000"
             - "--public_whitelist=all"
             - "--redirect_url={{.SITE_URL}}/oauth2callback/"
             - "--resources_dir=/usr/local/share/skiacorrectness/frontend"
             - "--service_account_file=/var/secrets/google/service-account.json"
-            - "--site_url=https://{{.SITE_URL}}"
+            - "--site_url={{.SITE_URL}}"
             - "--show_bot_progress=false"
             - "--sparse={{.SPARSE}}"
             - "--trace_service=gold-{{.INSTANCE_ID}}-traceservice:9090"

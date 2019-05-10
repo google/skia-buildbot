@@ -8,6 +8,7 @@
     "SKCORR_DEFAULT_CORPUS":   "chrome-gpu",
     "PROJECT_ID":              "skia-public",
     "SITE_URL":                "https://chrome-gpu-gold.skia.org",
+    "FORCE_LOGIN":             "false",
 
     // Git BigTable settings
     "GIT_BT_INSTANCE":         "production",
