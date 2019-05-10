@@ -169,8 +169,7 @@ func TestCalcSummaries(t *testing.T) {
 		},
 	}, "user@example.com"))
 
-	dc := digest_counter.New()
-	dc.Calculate(tile)
+	dc := digest_counter.New(tile)
 
 	assert.NoError(t, storages.IgnoreStore.Create(&ignore.IgnoreRule{
 		ID:      1,

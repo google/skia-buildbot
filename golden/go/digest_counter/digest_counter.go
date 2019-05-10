@@ -17,14 +17,8 @@ type DigestCount map[types.Digest]int
 // For example, how many times did this tile see a given digest in a given
 // test or a given trace? The results can be further filtered using
 // ByQuery.
-// It is not thread safe. The client of this package needs to make
-// sure there are no conflicts.
+// It should be immutable once created and therefore thread-safe.
 type DigestCounter interface {
-	// Calculate computes the counts for a given tile.
-	// It must be called before any other method, or
-	// data may be outdated or wrong.
-	Calculate(tile *tiling.Tile)
-
 	// ByTest returns a map of test_name -> DigestCount
 	ByTest() map[types.TestName]DigestCount
 
@@ -49,16 +43,13 @@ type Counter struct {
 }
 
 // New creates a new Counter object.
-func New() *Counter {
-	return &Counter{}
-}
-
-// Calculate implements the DigestCounter interface.
-func (t *Counter) Calculate(tile *tiling.Tile) {
+func New(tile *tiling.Tile) *Counter {
 	trace, test, maxCountsByTest := calculate(tile)
-	t.traceDigestCount = trace
-	t.testDigestCount = test
-	t.maxCountsByTest = maxCountsByTest
+	return &Counter{
+		traceDigestCount: trace,
+		testDigestCount:  test,
+		maxCountsByTest:  maxCountsByTest,
+	}
 }
 
 // ByTest implements the DigestCounter interface.
@@ -102,7 +93,7 @@ func countByQuery(tile *tiling.Tile, traceDigestCount map[tiling.TraceId]DigestC
 	return ret
 }
 
-// calculate computes a map[tracename]DigestCount and map[testname]DigestCount from the given Tile.
+// calculate computes the counts by trace id and test name from the given Tile.
 func calculate(tile *tiling.Tile) (map[tiling.TraceId]DigestCount, map[types.TestName]DigestCount, map[types.TestName]types.DigestSet) {
 	defer shared.NewMetricsTimer("digest_counter_calculate").Stop()
 	traceDigestCount := map[tiling.TraceId]DigestCount{}
