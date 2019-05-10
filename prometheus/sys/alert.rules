@@ -124,21 +124,21 @@ ALERT GoldIgnoreMonitoring
   IF liveness_gold_expired_ignore_rules_monitoring_s{instance="skia-gold-prod:20001"} > 200
   LABELS { category = "infra", severity = "critical", owner = "kjlubick@google.com"}
   ANNOTATIONS {
-    description = "At least two rounds of monitoring for expired ignore rules have failed back to back.",
+    description = "At least two rounds of monitoring for expired ignore rules have failed back to back. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldignoremonitoring",
   }
 
 ALERT GoldErrorRate
   IF rate(num_log_lines{level="ERROR",job=~"skiacorrectness-.*"}[2m]) > 1
   LABELS { category = "infra", severity = "critical", owner = "kjlubick@google.com"}
   ANNOTATIONS {
-    description = "The error rate for Gold {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
+    description = "The error rate for Gold {{ $labels.instance }} is too high. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#golderrorrate https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
   }
 
 ALERT GoldDiffServerErrorRate
   IF rate(num_log_lines{level="ERROR", instance="skia-diffserver-prod:20000"}[2m]) > 1
   LABELS { category = "infra", severity = "critical", owner = "kjlubick@google.com"}
   ANNOTATIONS {
-    description = "The error rate for Gold Diffserver {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
+    description = "The error rate for Gold Diffserver {{ $labels.instance }} is too high. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#golddiffservererrorrate https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
   }
 
 ALERT GoldIngestionStalled
@@ -152,28 +152,28 @@ ALERT GoldIngestionErrorRate
   IF rate(num_log_lines{level="ERROR",job=~".*_ingestion"}[2m]) > 1
   LABELS { category = "infra", severity = "critical", owner = "kjlubick@google.com"}
   ANNOTATIONS {
-    description = "The error rate for Gold Ingestion {{ $labels.corpus }} is too high. See https://mon.skia.org/dashboard/db/gold-panel https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
+    description = "The error rate for Gold Ingestion {{ $labels.corpus }} is too high. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldingestionerrorrate https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
   }
 
 ALERT GoldCommitTooOldWallTime
   IF gold_last_commit_age_s{type="wall_time"} > 24*60*60
   LABELS { category = "infra", severity = "critical", owner = "kjlubick@google.com"}
   ANNOTATIONS {
-    description = "It has been at least 24 hours since the last commit made it into Gold. Some process might have hung, or perhaps that repo simply has not seen a commit in that period.",
+    description = "It has been at least 24 hours since the last commit made it into Gold. Some process might have hung, or perhaps that repo simply has not seen a commit in that period. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldcommittoooldwalltime",
   }
 
 ALERT GoldCommitTooOldNewerCommit
   IF gold_last_commit_age_s{type="with_new_commit"} > 1*60*60
   LABELS { category = "infra", severity = "critical", owner = "kjlubick@google.com"}
   ANNOTATIONS {
-    description = "It has been at least 1 hour since a new commit landed, and Gold still hasn't picked it up. Some process might have hung.",
+    description = "It has been at least 1 hour since a new commit landed, and Gold still hasn't picked it up. Some process might have hung. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldcommittoooldnewercommit",
   }
 
 ALERT GoldStatusStalled
   IF liveness_gold_status_monitoring_s > 10*60
   LABELS { category = "infra", severity = "critical", owner = "kjlubick@google.com"}
   ANNOTATIONS {
-    description = "It has been at least 10 minutes since the Gold's status was re-computed. Some process might have hung.",
+    description = "It has been at least 10 minutes since the Gold's status was re-computed. Some process might have hung. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldstatusstalled",
   }
 
 # Skolo
