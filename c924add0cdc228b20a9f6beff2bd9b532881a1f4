@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e1e181f0_87eef870",
+        "filename": "golden/go/digest_counter/digest_counter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T16:51:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "73b4aaf1_b7050268",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 10
+      },
+      "revId": "c924add0cdc228b20a9f6beff2bd9b532881a1f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4e82ec93_bce80247",
         "filename": "golden/go/indexer/indexer.go",
         "patchSetId": 2
@@ -36,6 +60,24 @@
       "writtenOn": "2019-05-10T14:26:28Z",
       "side": 1,
       "message": "After looking at the code in this file more closely, I don\u0027t think we need nil checks for dCounter* or blamer.",
+      "revId": "c924add0cdc228b20a9f6beff2bd9b532881a1f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8d2bf48b_a0e89931",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-10T16:51:06Z",
+      "side": 1,
+      "message": "Agreed, but they help me sleep at night.",
+      "parentUuid": "4e82ec93_bce80247",
       "revId": "c924add0cdc228b20a9f6beff2bd9b532881a1f4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
