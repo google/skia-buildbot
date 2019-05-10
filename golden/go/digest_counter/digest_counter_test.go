@@ -10,12 +10,11 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-func TestDigestCountCalculate(t *testing.T) {
+func TestDigestCountNew(t *testing.T) {
 	testutils.SmallTest(t)
 	tile := makePartialTileOne()
 
-	dc := New()
-	dc.Calculate(tile)
+	dc := New(tile)
 
 	assert.Equal(t, map[tiling.TraceId]DigestCount{
 		x86TestAlphaTraceID: {
@@ -48,12 +47,11 @@ func TestDigestCountCalculate(t *testing.T) {
 }
 
 // Check that counts and byTest work with ties and multiple tests
-func TestDigestCountCalculateTies(t *testing.T) {
+func TestDigestCountTies(t *testing.T) {
 	testutils.SmallTest(t)
 	tile := makePartialTileTwo()
 
-	dc := New()
-	dc.Calculate(tile)
+	dc := New(tile)
 
 	assert.Equal(t, map[types.TestName]types.DigestSet{
 		AlphaTest: {
@@ -82,8 +80,7 @@ func TestDigestCountByQuery(t *testing.T) {
 	testutils.SmallTest(t)
 	tile := makePartialTileOne()
 
-	dc := New()
-	dc.Calculate(tile)
+	dc := New(tile)
 
 	bq := dc.ByQuery(tile, url.Values{
 		types.CORPUS_FIELD: []string{"gm"},
@@ -114,7 +111,7 @@ func TestDigestCountByQuery(t *testing.T) {
 	}, bq)
 }
 
-// arbitrary, but valid md5 hashes
+// valid, but arbitrary md5 hashes
 const (
 	FirstDigest  = types.Digest("aaa4bc0a9335c27f086f24ba207a4912")
 	SecondDigest = types.Digest("bbbd0bd836b90d08f4cf640b4c298e7c")

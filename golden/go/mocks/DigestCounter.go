@@ -61,11 +61,6 @@ func (_m *DigestCounter) ByTrace() map[tiling.TraceId]digest_counter.DigestCount
 	return r0
 }
 
-// Calculate provides a mock function with given fields: tile
-func (_m *DigestCounter) Calculate(tile *tiling.Tile) {
-	_m.Called(tile)
-}
-
 // MaxDigestsByTest provides a mock function with given fields:
 func (_m *DigestCounter) MaxDigestsByTest() map[types.TestName]types.DigestSet {
 	ret := _m.Called()

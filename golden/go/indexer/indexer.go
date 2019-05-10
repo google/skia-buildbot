@@ -62,8 +62,8 @@ type SearchIndex struct {
 func newSearchIndex(storages *storage.Storage, cpxTile types.ComplexTile) *SearchIndex {
 	return &SearchIndex{
 		cpxTile:              cpxTile,
-		dCounter:             digest_counter.New(),
-		dCounterWithIgnores:  digest_counter.New(),
+		dCounter:             nil,
+		dCounterWithIgnores:  nil,
 		summaries:            summary.New(storages),
 		summariesWithIgnores: summary.New(storages),
 		paramsetSummary:      paramsets.New(),
@@ -170,15 +170,17 @@ func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
 	// Set up the processing pipeline.
 	root := pdag.NewNodeWithParents(pdag.NoOp)
 
+	// At the top level, Add the DigestCounter...
+	countNode := root.Child(calcDigestCounts)
+	countIgnoresNode := root.Child(calcDigestCountsWithIgnores)
+
 	// Node that triggers blame and writing baselines.
 	// This is used to trigger when expectations change.
 	// TODO(kjlubick): should countNode and countIgnoresNode depend on
 	// this so they can also be re-executed when expectations change?
 	indexTestsNode := root.Child(pdag.NoOp)
 
-	// At the top level, Add the DigestCounter and invoke the Blamer to calculate the blames.
-	countNode := root.Child(calcDigestCounts)
-	countIgnoresNode := root.Child(calcDigestCountsWithIgnores)
+	// ... and invoke the Blamer to calculate the blames.
 	blamerNode := indexTestsNode.Child(calcBlame)
 
 	// Write baselines whenever a new tile is processed, new commits become available, or
@@ -388,18 +390,19 @@ func (ixr *Indexer) writeIssueBaseline(evData interface{}) {
 	}
 }
 
-// calcDigestCounts is the pipeline function to invoke DigestCounter.
+// calcDigestCounts is the pipeline function to invoke DigestCounter. Ignore rules
+// are ignored for these counts.
 func calcDigestCounts(state interface{}) error {
 	idx := state.(*SearchIndex)
-	idx.dCounter.Calculate(idx.cpxTile.GetTile(false))
+	idx.dCounter = digest_counter.New(idx.cpxTile.GetTile(false))
 	return nil
 }
 
 // calcDigestCountsWithIgnores is the pipeline function to invoke DigestCounter for
-// the tile that includes ignores.
+// the tile that applies ignore rules.
 func calcDigestCountsWithIgnores(state interface{}) error {
 	idx := state.(*SearchIndex)
-	idx.dCounterWithIgnores.Calculate(idx.cpxTile.GetTile(true))
+	idx.dCounterWithIgnores = digest_counter.New(idx.cpxTile.GetTile(true))
 	return nil
 }
 
