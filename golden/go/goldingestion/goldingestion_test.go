@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
@@ -93,7 +94,7 @@ var (
 
 // Tests parsing and processing of a single file.
 func TestDMResults(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	f, err := os.Open(TEST_INGESTION_FILE)
 	assert.NoError(t, err)
 
@@ -113,7 +114,7 @@ func TestDMResults(t *testing.T) {
 
 // Tests the processor in conjunction with the vcs.
 func TestGoldProcessor(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Set up mock VCS and run a servcer with the given data directory.
 	ctx := context.Background()

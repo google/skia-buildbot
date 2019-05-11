@@ -13,11 +13,11 @@ import (
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestCopyStatus(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	recent := []*autoroll.AutoRollIssue{
 		{
 			RollingTo: "abc123",
@@ -59,7 +59,7 @@ func TestCopyStatus(t *testing.T) {
 }
 
 func TestStatus(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	ctx := context.Background()
 	testutil.InitDatastore(t, ds.KIND_AUTOROLL_STATUS)
 

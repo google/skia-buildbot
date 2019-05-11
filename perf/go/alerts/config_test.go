@@ -5,11 +5,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestConfig(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	a := NewConfig()
 	assert.Equal(t, "-1", a.IdAsString())
@@ -19,7 +19,7 @@ func TestConfig(t *testing.T) {
 }
 
 func TestValidate(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	a := NewConfig()
 	assert.NoError(t, a.Validate())
 
@@ -48,7 +48,7 @@ func TestValidate(t *testing.T) {
 }
 
 func TestGroupedBy(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		value    string
 		expected []string
@@ -88,7 +88,7 @@ func TestGroupedBy(t *testing.T) {
 }
 
 func TestCombinations(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		value       []int
 		limits      []int
@@ -168,7 +168,7 @@ func TestCombinations(t *testing.T) {
 }
 
 func TestToCombination(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	res, err := toCombination([]int{1, 2}, []string{"config", "model"},
 		paramtools.ParamSet{
 			"model":  []string{"nexus4", "nexus6", "nexus6"},
@@ -183,7 +183,7 @@ func TestToCombination(t *testing.T) {
 }
 
 func TestGroupCombinations(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	ps := paramtools.ParamSet{
 		"model":  []string{"nexus4", "nexus6", "nexus6"},
 		"config": []string{"565", "8888", "nvpr"},
@@ -213,7 +213,7 @@ func TestGroupCombinations(t *testing.T) {
 }
 
 func TestQueriesFromParamset(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	ps := paramtools.ParamSet{
 		"model":  []string{"nexus4", "nexus6", "nexus6"},
 		"config": []string{"565", "8888", "nvpr"},

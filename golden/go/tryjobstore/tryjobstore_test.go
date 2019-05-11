@@ -13,13 +13,14 @@ import (
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/types"
 )
 
 func TestCloudTryjobStore(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	// Otherwise try and connect to a locally running emulator.
 	cleanup := testutil.InitDatastore(t,
@@ -299,7 +300,7 @@ func normalizeTimeToMs(t time.Time) time.Time {
 }
 
 func TestTryjobJsonCodec(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	tryjob_1 := &Tryjob{
 		IssueID:       12345,

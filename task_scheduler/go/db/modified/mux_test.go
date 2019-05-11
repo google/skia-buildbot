@@ -6,26 +6,26 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 func TestMuxModifiedTasks(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	m := NewMuxModifiedTasks(&ModifiedTasksImpl{}, &ModifiedTasksImpl{})
 	db.TestModifiedTasks(t, m)
 }
 
 func TestMuxMultipleTaskModifications(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	m := NewMuxModifiedTasks(&ModifiedTasksImpl{}, &ModifiedTasksImpl{})
 	db.TestMultipleTaskModifications(t, m)
 }
 
 // Simple test to verify that we actually write to the write-only ModifiedTasks.
 func TestMuxModifiedTasksWriteOnly(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	rw := &ModifiedTasksImpl{}
 	w1 := &ModifiedTasksImpl{}
 	w2 := &ModifiedTasksImpl{}
@@ -59,20 +59,20 @@ func TestMuxModifiedTasksWriteOnly(t *testing.T) {
 }
 
 func TestMuxModifiedJobs(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	m := NewMuxModifiedJobs(&ModifiedJobsImpl{}, &ModifiedJobsImpl{})
 	db.TestModifiedJobs(t, m)
 }
 
 func TestMuxMultipleJobModifications(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	m := NewMuxModifiedJobs(&ModifiedJobsImpl{}, &ModifiedJobsImpl{})
 	db.TestMultipleJobModifications(t, m)
 }
 
 // Simple test to verify that we actually write to the write-only ModifiedJobs.
 func TestMuxModifiedJobsWriteOnly(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	rw := &ModifiedJobsImpl{}
 	w1 := &ModifiedJobsImpl{}
 	w2 := &ModifiedJobsImpl{}
@@ -106,20 +106,20 @@ func TestMuxModifiedJobsWriteOnly(t *testing.T) {
 }
 
 func TestMuxModifiedComments(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	m := NewMuxModifiedComments(&ModifiedCommentsImpl{}, &ModifiedCommentsImpl{})
 	db.TestModifiedComments(t, m)
 }
 
 func TestMuxMultipleCommentModifications(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	m := NewMuxModifiedComments(&ModifiedCommentsImpl{}, &ModifiedCommentsImpl{})
 	db.TestMultipleCommentModifications(t, m)
 }
 
 // Simple test to verify that we actually write to the write-only ModifiedComments.
 func TestMuxModifiedCommentsWriteOnly(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	rw := &ModifiedCommentsImpl{}
 	w1 := &ModifiedCommentsImpl{}
 	w2 := &ModifiedCommentsImpl{}

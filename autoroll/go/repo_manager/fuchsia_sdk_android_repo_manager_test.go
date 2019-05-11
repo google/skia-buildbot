@@ -21,6 +21,7 @@ import (
 	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func fuchsiaAndroidCfg() *FuchsiaSDKAndroidRepoManagerConfig {
@@ -150,7 +151,7 @@ func mockDownloadSDK(t *testing.T, urlmock *mockhttpclient.URLMock, rev, wd stri
 }
 
 func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, wd, rm, urlmock, mockParent, parent, cleanup := setupFuchsiaSDKAndroid(t)
 	defer cleanup()
@@ -263,7 +264,7 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 }
 
 func TestFuchsiaSDKAndroidConfigValidation(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	cfg := fuchsiaAndroidCfg()
 	cfg.ParentRepo = "dummy" // Not supplied above.

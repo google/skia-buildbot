@@ -5,7 +5,7 @@ import (
 	"image"
 	"testing"
 
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const IMAGE = `! SKTEXTSIMPLE
@@ -14,7 +14,7 @@ const IMAGE = `! SKTEXTSIMPLE
 0xddeeff00 0xffffff88`
 
 func TestDecoder(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	buf := bytes.NewBufferString(IMAGE)
 	img, err := Decode(buf)
 	if err != nil {
@@ -72,7 +72,7 @@ const ZERO_IMAGE = `! SKTEXTSIMPLE
 `
 
 func TestDecoderDegenerate(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	buf := bytes.NewBufferString(ZERO_IMAGE)
 	img, err := Decode(buf)
 	if err != nil {
@@ -107,7 +107,7 @@ const BAD_IMAGE_5 = `! SKTEXTSIMPLE
 0xddeeff00 0xffffff88`
 
 func TestDecoderFails(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	for _, tc := range []string{BAD_IMAGE_1, BAD_IMAGE_2, BAD_IMAGE_3, BAD_IMAGE_4, BAD_IMAGE_5} {
 		buf := bytes.NewBufferString(tc)
 		_, err := Decode(buf)
@@ -130,7 +130,7 @@ const NON_SQUARE_IMAGE_2 = `! SKTEXTSIMPLE
 0x001100ff`
 
 func TestRoundTrip(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	for _, tc := range []string{ZERO_IMAGE, IMAGE, NON_SQUARE_IMAGE, NON_SQUARE_IMAGE_2} {
 		buf := bytes.NewBufferString(tc)
 		img, err := Decode(buf)

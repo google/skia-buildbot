@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
@@ -60,7 +61,7 @@ var (
 )
 
 func TestIndexer(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	err := gcs_testutils.DownloadTestDataFile(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
 	assert.NoError(t, err, "Unable to download testdata.")

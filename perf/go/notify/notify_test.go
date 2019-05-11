@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/alerts"
 )
 
@@ -24,7 +24,7 @@ func (e *emailMock) Send(from string, to []string, subject string, body string) 
 }
 
 func TestExampleSend(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	e := &emailMock{}
 	n := New(e, "perf")

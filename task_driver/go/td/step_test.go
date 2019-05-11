@@ -9,12 +9,12 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
 func TestDefer(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Verify that we handle panics properly.
 	res := RunTestSteps(t, true, func(ctx context.Context) error {
@@ -66,7 +66,7 @@ func TestDefer(t *testing.T) {
 }
 
 func TestExec(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Basic tests around executing subprocesses.
 	_ = RunTestSteps(t, false, func(ctx context.Context) error {
@@ -93,7 +93,7 @@ func TestExec(t *testing.T) {
 }
 
 func TestFatal(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	err := errors.New("FATAL")
 	checkErr := func(s *StepReport) {

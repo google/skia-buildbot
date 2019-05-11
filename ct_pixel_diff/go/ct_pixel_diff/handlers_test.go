@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/ct_pixel_diff/go/dynamicdiff"
 	"go.skia.org/infra/ct_pixel_diff/go/resultstore"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -32,7 +32,7 @@ func createResultStore(t *testing.T) resultstore.ResultStore {
 }
 
 func TestJsonRunsHandler(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Create a ResultStore and assign it to the module level variable so that
 	// the handler can interact with it.
@@ -63,7 +63,7 @@ func TestJsonRunsHandler(t *testing.T) {
 }
 
 func TestJsonRenderHandler(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Create a ResultStore and assign it to the module level variable so that
 	// the handler can interact with it.
@@ -113,7 +113,7 @@ func TestJsonRenderHandler(t *testing.T) {
 }
 
 func TestJsonSortHandler(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Create a ResultStore and assign it to the module level variable so that
 	// the handler can interact with it.
@@ -162,7 +162,7 @@ func TestJsonSortHandler(t *testing.T) {
 }
 
 func TestJsonURLsHandler(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Create a ResultStore and assign it to the module level variable so that
 	// the handler can interact with it.
@@ -219,7 +219,7 @@ func TestJsonURLsHandler(t *testing.T) {
 }
 
 func TestJsonSearchHandler(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Create a ResultStore and assign it to the module level variable so that
 	// the handler can interact with it.
@@ -259,7 +259,7 @@ func TestJsonSearchHandler(t *testing.T) {
 }
 
 func TestJsonStatsHandler(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Create a ResultStore and assign it to the module level variable so that
 	// the handler can interact with it.

@@ -6,11 +6,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestTags(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	url := fmt.Sprintf("https://%s/v2/skia-public/docserver/tags/list", SERVER)
 	m := mockhttpclient.NewURLMock()
 	m.Mock(url, mockhttpclient.MockGetDialogue([]byte(`{"tags": ["foo", "bar"]}`)))
@@ -29,7 +29,7 @@ func TestTags(t *testing.T) {
 }
 
 func TestGcrTokenSource(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	m := mockhttpclient.NewURLMock()
 	url := fmt.Sprintf("https://%s/v2/token?scope=repository:skia-public/docserver:pull", SERVER)
 	m.Mock(url, mockhttpclient.MockGetDialogue([]byte(`{"token": "foo", "expires_in": 3600}`)))
