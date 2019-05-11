@@ -10,12 +10,12 @@ import (
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
 func TestCopyPatch(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	v := Patch{
 		Issue:     "1",
 		Patchset:  "2",
@@ -26,7 +26,7 @@ func TestCopyPatch(t *testing.T) {
 }
 
 func TestCopyRepoState(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	v := RepoState{
 		Patch: Patch{
 			Issue:     "1",
@@ -47,7 +47,7 @@ func TestCopyRepoState(t *testing.T) {
 // c0--c1------c3--c4--
 //       \-c2-----/
 func repoMapSetup(t *testing.T) (map[string][]string, repograph.Map, func()) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	ctx := context.Background()
 	gb1 := git_testutils.GitInit(t, ctx)
@@ -139,7 +139,7 @@ func TestGetCommitError(t *testing.T) {
 }
 
 func TestParentsTryJob(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	input := RepoState{
 		Patch: Patch{
 			Issue:    "1",
@@ -232,7 +232,7 @@ func TestParentsNone(t *testing.T) {
 }
 
 func TestParentsError(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// Empty.
 	var repoMap repograph.Map
 	input := RepoState{
@@ -245,7 +245,7 @@ func TestParentsError(t *testing.T) {
 }
 
 func TestRepoStateRowKey(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	check := func(rs RepoState, expect string) {
 		assert.Equal(t, expect, rs.RowKey())

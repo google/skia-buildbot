@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -19,7 +19,7 @@ var (
 )
 
 func TestIntermediate(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	srMap := srInterMap{}
 	srMap.add(TEST_1, DIGEST_01, "", nil, PARAMS_01)

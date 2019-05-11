@@ -8,7 +8,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs/gcs_testutils"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/types"
@@ -26,7 +26,7 @@ const (
 )
 
 func TestSearch(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	storages, idx, tile, ixr := getStoragesIndexTile(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH, false)
 

@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/proberk/go/types"
 )
 
 func TestProbeSSL(t *testing.T) {
 	t.Skip()
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	probes := &types.Probe{
 		URLs: []string{
 			"https://skia.org",

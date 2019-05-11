@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/btts"
@@ -33,7 +33,7 @@ var (
 )
 
 func TestFromIndexCommit(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	ts0 := time.Unix(1406721642, 0).UTC()
 	ts1 := time.Unix(1406721715, 0).UTC()
@@ -76,7 +76,7 @@ func TestFromIndexCommit(t *testing.T) {
 }
 
 func TestBuildTraceMapper(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	ctx := context.Background()
 	btts_testutils.CreateTestTable(t)
 	defer btts_testutils.CleanUpTestTable(t)
@@ -125,7 +125,7 @@ func addValusAtIndex(store *btts.BigTableTraceStore, index int32, values map[str
 }
 
 func TestBuildNew(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	ctx := context.Background()
 	btts_testutils.CreateTestTable(t)
 	defer btts_testutils.CleanUpTestTable(t)

@@ -8,10 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestTime(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	t1 := time.Now()
 	t2 := t1.Round(0)
@@ -28,7 +29,7 @@ func (b customEqualValue) Equal(o customEqualValue) bool {
 }
 
 func TestCustomEqualValue(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	a := customEqualValue{a: "foo"}
 	b := customEqualValue{a: "bar"}
@@ -45,7 +46,7 @@ func (b *customEqualPointer) Equal(o customEqualPointer) bool {
 }
 
 func TestCustomEqualPointer(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	a := customEqualPointer{a: "foo"}
 	b := customEqualPointer{a: "bar"}
@@ -62,7 +63,7 @@ func (b equalNoArgs) Equal() bool {
 }
 
 func TestEqualWithNoArgs(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	a := &equalNoArgs{a: "foo"}
 	b := &equalNoArgs{a: "bar"}
@@ -79,7 +80,7 @@ func (b equalWrongArgs) Equal(foo time.Time) bool {
 }
 
 func TestEqualWithWrongArgs(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	a := &equalWrongArgs{a: "foo"}
 	b := &equalWrongArgs{a: "bar"}
@@ -92,7 +93,7 @@ type infiniteNesting struct {
 }
 
 func TestInfiniteNesting(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	a := &infiniteNesting{}
 	a.alpha = a
@@ -105,7 +106,7 @@ func TestInfiniteNesting(t *testing.T) {
 }
 
 func TestAssertJSONRoundTrip(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	type Success struct {
 		Public int `json:"public"`

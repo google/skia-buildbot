@@ -16,7 +16,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/vcsinfo"
@@ -80,7 +80,7 @@ var (
 )
 
 func TestWritingHashes(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	gsClient, opt := initGSClient(t)
 
 	knownDigests := types.DigestSlice{
@@ -108,7 +108,7 @@ func TestWritingHashes(t *testing.T) {
 }
 
 func TestWritingBaselines(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	gsClient, _ := initGSClient(t)
 	removePaths := []string{}
@@ -137,7 +137,7 @@ func TestWritingBaselines(t *testing.T) {
 }
 
 func TestBaselineRobustness(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	gsClient, _ := initGSClient(t)
 
@@ -175,7 +175,7 @@ func initGSClient(t *testing.T) (GCSClient, GCSClientOptions) {
 }
 
 func TestCondenseTile(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	bucket, storagePath, outputPath := gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH
 

@@ -8,6 +8,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -33,42 +34,42 @@ func setupRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph
 }
 
 func TestGraphRepo(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	ctx, g, repo, ud, cleanup := setupRepo(t)
 	defer cleanup()
 	testGraph(t, ctx, g, repo, ud)
 }
 
 func TestRecurseRepo(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	ctx, g, repo, ud, cleanup := setupRepo(t)
 	defer cleanup()
 	testRecurse(t, ctx, g, repo, ud)
 }
 
 func TestRecurseAllBranchesRepo(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	ctx, g, repo, ud, cleanup := setupRepo(t)
 	defer cleanup()
 	testRecurseAllBranches(t, ctx, g, repo, ud)
 }
 
 func TestUpdateHistoryChangedRepo(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	ctx, g, repo, ud, cleanup := setupRepo(t)
 	defer cleanup()
 	testUpdateHistoryChanged(t, ctx, g, repo, ud)
 }
 
 func TestUpdateAndReturnCommitDiffsRepo(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	ctx, g, repo, ud, cleanup := setupRepo(t)
 	defer cleanup()
 	testUpdateAndReturnCommitDiffs(t, ctx, g, repo, ud)
 }
 
 func TestRevListRepo(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	ctx, g, repo, ud, cleanup := setupRepo(t)
 	defer cleanup()
 	testRevList(t, ctx, g, repo, ud)

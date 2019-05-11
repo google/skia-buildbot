@@ -4,12 +4,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
 func TestDownSample(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	sample := []*vcsinfo.IndexCommit{}
 	for i := 0; i < 5; i++ {
 		sample = append(sample, &vcsinfo.IndexCommit{Index: i})

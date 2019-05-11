@@ -6,6 +6,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -19,7 +20,7 @@ const (
 )
 
 func TestGoldDiffStoreMapper(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	mapper := GoldDiffStoreMapper{}
 
@@ -57,7 +58,7 @@ func TestGoldDiffStoreMapper(t *testing.T) {
 }
 
 func TestCodec(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	w, cleanup := testutils.TempDir(t)
 	defer cleanup()

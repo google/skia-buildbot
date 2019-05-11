@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/task_scheduler/go/window"
@@ -34,7 +35,7 @@ func assertCommits(t *testing.T, gb *git_testutils.GitBuilder, actual map[string
 }
 
 func TestIncrementalCommits(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	// Setup.
 	ctx := context.Background()

@@ -6,11 +6,11 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestTimeout(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	sleep := func(t time.Duration) func() error {
 		return func() error {

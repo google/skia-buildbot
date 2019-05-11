@@ -7,13 +7,13 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	vcstu "go.skia.org/infra/go/vcsinfo/testutils"
 )
 
 func TestVCSSuite(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	repoDir, cleanup := vcstu.InitTempRepo()
 	defer cleanup()
 
@@ -24,7 +24,7 @@ func TestVCSSuite(t *testing.T) {
 }
 
 func TestFrom(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	repoDir, cleanup := vcstu.InitTempRepo()
 	defer cleanup()
 
@@ -34,7 +34,7 @@ func TestFrom(t *testing.T) {
 }
 
 func TestLastN(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	repoDir, cleanup := vcstu.InitTempRepo()
 	defer cleanup()
 
@@ -73,7 +73,7 @@ func TestLastN(t *testing.T) {
 }
 
 func TestByIndex(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	repoDir, cleanup := vcstu.InitTempRepo()
 	defer cleanup()
 
@@ -83,7 +83,7 @@ func TestByIndex(t *testing.T) {
 }
 
 func TestLastNIndex(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	repoDir, cleanup := vcstu.InitTempRepo()
 	defer cleanup()
 
@@ -93,7 +93,7 @@ func TestLastNIndex(t *testing.T) {
 }
 
 func TestIndexOf(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	repoDir, cleanup := vcstu.InitTempRepo()
 	defer cleanup()
 
@@ -115,7 +115,7 @@ func TestIndexOf(t *testing.T) {
 }
 
 func TestRange(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	repoDir, cleanup := vcstu.InitTempRepo()
 	defer cleanup()
 
@@ -124,7 +124,7 @@ func TestRange(t *testing.T) {
 	vcstu.TestRange(t, r)
 }
 func TestLog(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	repoDir, cleanup := vcstu.InitTempRepo()
 	defer cleanup()
 
@@ -173,7 +173,7 @@ hello.go
 }
 
 func TestLogFine(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	repoDir, cleanup := vcstu.InitTempRepo()
 	defer cleanup()
 
@@ -205,7 +205,7 @@ func TestLogFine(t *testing.T) {
 }
 
 func TestLogArgs(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	repoDir, cleanup := vcstu.InitTempRepo()
 	defer cleanup()
 
@@ -226,7 +226,7 @@ func TestLogArgs(t *testing.T) {
 }
 
 func TestShortList(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	repoDir, cleanup := vcstu.InitTempRepo()
 	defer cleanup()
 
@@ -278,7 +278,7 @@ func TestShortList(t *testing.T) {
 }
 
 func TestTileAddressFromHash(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	repoDir, cleanup := vcstu.InitTempRepo()
 	defer cleanup()
 
@@ -322,7 +322,7 @@ func TestTileAddressFromHash(t *testing.T) {
 }
 
 func TestNumCommits(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	repoDir, cleanup := vcstu.InitTempRepo()
 	defer cleanup()
 
@@ -338,7 +338,7 @@ func TestNumCommits(t *testing.T) {
 }
 
 func TestRevList(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	repoDir, cleanup := vcstu.InitTempRepo()
 	defer cleanup()
 
@@ -389,7 +389,7 @@ func TestRevList(t *testing.T) {
 }
 
 func TestBranchInfo(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	repoDir, cleanup := vcstu.InitTempRepo()
 	defer cleanup()
 
@@ -409,7 +409,7 @@ func TestBranchInfo(t *testing.T) {
 }
 
 func TestSetBranch(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	repoDir, cleanup := vcstu.InitTempRepo()
 	defer cleanup()
 
