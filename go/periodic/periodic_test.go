@@ -7,11 +7,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestPeriodic(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

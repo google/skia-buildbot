@@ -5,7 +5,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func testClient(t *testing.T, c Client) {
@@ -65,7 +65,7 @@ func testClient(t *testing.T, c Client) {
 }
 
 func TestClients(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// Test Prometheus client.
 	var c Client = getPromClient()
 	testClient(t, c)

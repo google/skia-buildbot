@@ -8,11 +8,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestValidateKey(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		key    string
 		valid  bool
@@ -77,7 +77,7 @@ func TestValidateKey(t *testing.T) {
 }
 
 func TestMakeKey(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		m      map[string]string
 		key    string
@@ -127,7 +127,7 @@ func TestMakeKey(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	q, err := New(url.Values{"config": []string{"565", "8888"}})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(q.params))
@@ -175,7 +175,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestMatches(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		key     string
 		query   url.Values
@@ -342,7 +342,7 @@ func TestMatches(t *testing.T) {
 }
 
 func TestParseKey(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		key      string
 		parsed   map[string]string
@@ -399,7 +399,7 @@ func TestParseKey(t *testing.T) {
 }
 
 func TestForceValue(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		input map[string]string
 		want  map[string]string

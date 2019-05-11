@@ -5,13 +5,13 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs/gcs_testutils"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
 
 func TestTraceViewFn(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	_, _, tile, _ := getStoragesIndexTile(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH, false)
 

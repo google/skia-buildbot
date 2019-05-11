@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
 
 func TestDigestCountNew(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	tile := makePartialTileOne()
 
 	dc := New(tile)
@@ -48,7 +48,7 @@ func TestDigestCountNew(t *testing.T) {
 
 // Check that counts and byTest work with ties and multiple tests
 func TestDigestCountTies(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	tile := makePartialTileTwo()
 
 	dc := New(tile)
@@ -77,7 +77,7 @@ func TestDigestCountTies(t *testing.T) {
 }
 
 func TestDigestCountByQuery(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	tile := makePartialTileOne()
 
 	dc := New(tile)

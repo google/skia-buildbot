@@ -10,7 +10,7 @@ import (
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gitstore"
 	gitstore_testutils "go.skia.org/infra/go/gitstore/testutils"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/vcsinfo"
 	vcs_testutils "go.skia.org/infra/go/vcsinfo/testutils"
@@ -25,12 +25,12 @@ const (
 // This test requires a checkout of a repo (can be really any repo) in a directory named 'skia'
 // in the same directory as this test.
 func TestLargeGitStore(t *testing.T) {
-	testutils.ManualTest(t)
+	unittest.ManualTest(t)
 	testGitStore(t, skiaRepoURL, skiaRepoDir, true)
 }
 
 func TestGitStoreLocalRepo(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	repoDir, cleanup := vcs_testutils.InitTempRepo()
 	defer cleanup()

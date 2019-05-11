@@ -10,7 +10,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -19,7 +19,7 @@ const (
 )
 
 func TestPriorityQueue(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	pq := &priorityQueue{}
 	vals := []*workItem{
 		{id: "0", priority: 0},
@@ -47,7 +47,7 @@ func TestPriorityQueue(t *testing.T) {
 }
 
 func TestReadThroughCache(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	randBytes := make([]byte, PACKAGE_SIZE)
 	_, err := rand.Read(randBytes)
@@ -123,7 +123,7 @@ func TestReadThroughCache(t *testing.T) {
 }
 
 func TestErrHandling(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	errWorker := func(priority int64, id string) (interface{}, error) {
 		return nil, fmt.Errorf("id: %v", time.Now())
 	}

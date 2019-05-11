@@ -10,14 +10,14 @@ import (
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/tests"
 	"go.skia.org/infra/go/gcs"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 var ctx = mock.AnythingOfType("*context.emptyCtx")
 var callback = mock.AnythingOfType("func(*storage.ObjectAttrs)")
 
 func TestReportWorkDone(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mg := tests.NewMockGCSClient()
 	mc := tests.NewMockCommonImpl()
 	defer mc.AssertExpectations(t)
@@ -41,7 +41,7 @@ func TestReportWorkDone(t *testing.T) {
 }
 
 func TestReportWorkDoneLastStanding(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mg := tests.NewMockGCSClient()
 	mc := tests.NewMockCommonImpl()
 	defer mc.AssertExpectations(t)
@@ -66,7 +66,7 @@ func TestReportWorkDoneLastStanding(t *testing.T) {
 }
 
 func TestReportWorkDone404(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mg := tests.NewMockGCSClient()
 	mc := tests.NewMockCommonImpl()
 	defer mc.AssertExpectations(t)

@@ -7,11 +7,11 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestProcessSSI(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	// Inject our test function below.
 	processFNs["testfn"] = getTestProcessFn(t, "testfn")
@@ -46,7 +46,7 @@ const (
 /* Test assumes a local JWT service account.
 func TestGCEListing(t *testing.T) {
 
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Swap out the templates to make testing easier.
 	listGCSTagSnippet = "%s"

@@ -7,7 +7,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/ct_pixel_diff/go/dynamicdiff"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -55,7 +55,7 @@ func createBoltResultStore(t *testing.T) ResultStore {
 }
 
 func TestGetAndPut(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Initialize the ResultStore.
 	resultStore := createBoltResultStore(t)
@@ -103,7 +103,7 @@ func TestGetAndPut(t *testing.T) {
 }
 
 func TestGetAll(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Initialize the ResultStore.
 	resultStore := createBoltResultStore(t)
@@ -136,7 +136,7 @@ func TestGetAll(t *testing.T) {
 }
 
 func TestGetRunIDs(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Initialize the ResultStore.
 	resultStore := createBoltResultStore(t)
@@ -179,7 +179,7 @@ func TestGetRunIDs(t *testing.T) {
 }
 
 func TestRemoveRun(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Initialize the ResultStore.
 	resultStore := createBoltResultStore(t)
@@ -202,7 +202,7 @@ func TestRemoveRun(t *testing.T) {
 }
 
 func TestFillCache(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Initialize the ResultStore.
 	resultStore := createBoltResultStore(t)
@@ -221,7 +221,7 @@ func TestFillCache(t *testing.T) {
 }
 
 func TestGetFiltered(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Initialize the ResultStore.
 	resultStore := createBoltResultStore(t)
@@ -263,7 +263,7 @@ func TestGetFiltered(t *testing.T) {
 }
 
 func TestSortRun(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Initialize the ResultStore.
 	resultStore := createBoltResultStore(t)
@@ -333,7 +333,7 @@ func TestSortRun(t *testing.T) {
 }
 
 func TestGetURLs(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Initialize the ResultStore.
 	resultStore := createBoltResultStore(t)
@@ -366,7 +366,7 @@ func TestGetURLs(t *testing.T) {
 }
 
 func TestGetStats(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Initialize the ResultStore.
 	resultStore := createBoltResultStore(t)

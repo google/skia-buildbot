@@ -5,14 +5,14 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/trace/db/perftypes"
 	"go.skia.org/infra/go/util"
 )
 
 func TestAdd(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	ts, cleanup := setupClientServerForTesting(t.Fatalf)
 	defer cleanup()
 

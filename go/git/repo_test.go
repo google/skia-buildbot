@@ -11,10 +11,11 @@ import (
 	"go.skia.org/infra/go/deepequal"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, []string) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	// Create a local git repo to play with.
 	ctx := context.Background()

@@ -6,12 +6,13 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/types"
 )
 
 func TestFailureHandling(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Get a small tile and get them cached.
 	w, cleanup := testutils.TempDir(t)

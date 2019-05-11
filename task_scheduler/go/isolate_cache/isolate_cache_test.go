@@ -8,11 +8,12 @@ import (
 	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/atomic_miss_cache"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 func TestIsolateCache(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	btProject, btInstance, btCleanup := SetupBigTable(t)
 	defer btCleanup()

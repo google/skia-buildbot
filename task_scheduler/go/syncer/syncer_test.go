@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -82,7 +83,7 @@ func tempGitRepoBotUpdateTests(t *testing.T, cases map[types.RepoState]error) {
 }
 
 func TestTempGitRepo(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	_, gb, c1, c2 := tempGitRepoSetup(t)
 	defer gb.Cleanup()
 
@@ -104,7 +105,7 @@ func TestTempGitRepo(t *testing.T) {
 }
 
 func TestTempGitRepoPatch(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, gb, _, c2 := tempGitRepoSetup(t)
 	defer gb.Cleanup()
@@ -128,7 +129,7 @@ func TestTempGitRepoPatch(t *testing.T) {
 }
 
 func TestTempGitRepoParallel(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, gb, c1, _ := tcc_testutils.SetupTestRepo(t)
 	defer gb.Cleanup()
@@ -163,8 +164,8 @@ func TestTempGitRepoParallel(t *testing.T) {
 func TestTempGitRepoErr(t *testing.T) {
 	// bot_update uses lots of retries with exponential backoff, which makes
 	// this really slow.
-	testutils.ManualTest(t)
-	testutils.LargeTest(t)
+	unittest.ManualTest(t)
+	unittest.LargeTest(t)
 
 	ctx, gb, c1, _ := tcc_testutils.SetupTestRepo(t)
 	defer gb.Cleanup()
@@ -198,10 +199,10 @@ func TestTempGitRepoErr(t *testing.T) {
 }
 
 func TestLazyTempGitRepo(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	// TODO(borenet): This test only takes ~5 seconds locally, but for some
 	// reason it consistently times out after 4 minutes on the bots.
-	testutils.ManualTest(t)
+	unittest.ManualTest(t)
 
 	ctx, gb, c1, _ := tcc_testutils.SetupTestRepo(t)
 	defer gb.Cleanup()

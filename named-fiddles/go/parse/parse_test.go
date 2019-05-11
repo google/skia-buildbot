@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const good_sample = `// Copyright 2019 Google LLC.
@@ -99,7 +99,7 @@ void draw(SkCanvas* canvas) {
 }  // END FIDDLE`
 
 func TestParse(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	fc, err := ParseCpp(good_sample)
 	assert.NoError(t, err)

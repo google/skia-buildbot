@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/fuzzer/go/tests"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 var ctx = mock.AnythingOfType("*context.emptyCtx")
@@ -17,7 +17,7 @@ var callback = mock.AnythingOfType("func(*storage.ObjectAttrs)")
 func TestRevisionHelper(t *testing.T) {
 	// Tests that we are not dependent on the order the files in the pending or current
 	// version, especially when there are working_ tracker files.
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	m := tests.NewMockGCSClient()
 	defer m.AssertExpectations(t)
 

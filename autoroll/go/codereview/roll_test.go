@@ -20,6 +20,7 @@ import (
 	gerrit_testutils "go.skia.org/infra/go/gerrit/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func makeFakeRoll(issueNum int64, from, to string, dryRun, android bool) *gerrit.ChangeInfo {
@@ -96,7 +97,7 @@ TBR=some-sheriff
 }
 
 func TestGerritRoll(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
@@ -314,7 +315,7 @@ func TestGerritRoll(t *testing.T) {
 }
 
 func TestGerritAndroidRoll(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)

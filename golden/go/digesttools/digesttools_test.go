@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/types"
@@ -38,7 +38,7 @@ func (m MockDiffStore) Get(priority int64, dMain types.Digest, dRest types.Diges
 }
 
 func TestClosestDigest(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	diffStore := MockDiffStore{}
 	testExp := types.TestExp{
 		"foo": map[types.Digest]types.Label{
@@ -79,7 +79,7 @@ func TestClosestDigest(t *testing.T) {
 }
 
 func TestCombinedDiffMetric(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	assert.InDelta(t, 1.0, combinedDiffMetric(0.0, []int{}), 0.000001)
 	assert.InDelta(t, 1.0, combinedDiffMetric(1.0, []int{255, 255, 255, 255}), 0.000001)
 	assert.InDelta(t, math.Sqrt(0.5), combinedDiffMetric(0.5, []int{255, 255, 255, 255}), 0.000001)

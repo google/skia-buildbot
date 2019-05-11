@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -82,7 +83,7 @@ func setupAndroid(t *testing.T) (context.Context, string, func()) {
 
 // TestAndroidRepoManager tests all aspects of the RepoManager except for CreateNewRoll.
 func TestAndroidRepoManager(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	ctx, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
@@ -98,7 +99,7 @@ func TestAndroidRepoManager(t *testing.T) {
 
 // TestCreateNewAndroidRoll tests creating a new roll.
 func TestCreateNewAndroidRoll(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	ctx, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 
@@ -114,7 +115,7 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 }
 
 func TestExtractBugNumbers(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	bodyWithTwoBugs := `testing
 Test: tested
@@ -138,7 +139,7 @@ Bug: bb/234`
 }
 
 func TestExtractTestLines(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	bodyWithThreeTestLines := `testing
 Test: tested with 0
@@ -166,7 +167,7 @@ here
 
 // Verify that we ran the PreUploadSteps.
 func TestRanPreUploadStepsAndroid(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	ctx, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 
@@ -191,7 +192,7 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 }
 
 func TestAndroidConfigValidation(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	cfg := androidCfg()
 	assert.NoError(t, cfg.Validate())

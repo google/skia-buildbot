@@ -5,7 +5,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/power/go/testdata"
 )
@@ -18,7 +18,7 @@ type testcase struct {
 const MOCK_BOT_ID = "some-bot"
 
 func TestShouldPowercycleBot(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// This test assumes all the bots involved are powercyclable
 	tests := map[string]testcase{
 		"TooHot": {
@@ -56,7 +56,7 @@ func TestShouldPowercycleBot(t *testing.T) {
 	for name, c := range tests {
 		func(name string, c testcase) {
 			t.Run(name, func(t *testing.T) {
-				testutils.SmallTest(t)
+				unittest.SmallTest(t)
 				assert.Equal(t, c.shouldPowercycle, d.ShouldPowercycleBot(c.bot))
 			})
 		}(name, c)
@@ -64,7 +64,7 @@ func TestShouldPowercycleBot(t *testing.T) {
 }
 
 func TestShouldPowercycleDevice(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// This test assumes all the bots involved are powercyclable
 	tests := map[string]testcase{
 		"TooHot": {
@@ -102,7 +102,7 @@ func TestShouldPowercycleDevice(t *testing.T) {
 	for name, c := range tests {
 		func(name string, c testcase) {
 			t.Run(name, func(t *testing.T) {
-				testutils.SmallTest(t)
+				unittest.SmallTest(t)
 				assert.Equal(t, c.shouldPowercycle, d.ShouldPowercycleDevice(c.bot))
 			})
 		}(name, c)
@@ -114,7 +114,7 @@ func mockBot(t *testing.T, filename string) *swarming.SwarmingRpcsBotInfo {
 }
 
 func TestIDBasedPowercycleBot(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// This test tests the enabledBots logic
 	tests := map[string]testcase{
 		"SunnyDay": {
@@ -145,7 +145,7 @@ func TestIDBasedPowercycleBot(t *testing.T) {
 	for name, c := range tests {
 		func(name string, c testcase) {
 			t.Run(name, func(t *testing.T) {
-				testutils.SmallTest(t)
+				unittest.SmallTest(t)
 				assert.Equal(t, c.shouldPowercycle, d.ShouldPowercycleBot(c.bot))
 			})
 		}(name, c)
@@ -153,7 +153,7 @@ func TestIDBasedPowercycleBot(t *testing.T) {
 }
 
 func TestIDBasedPowercycleDevice(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// This test tests the enabledBots logic
 	tests := map[string]testcase{
 		"SunnyDay": {
@@ -184,7 +184,7 @@ func TestIDBasedPowercycleDevice(t *testing.T) {
 	for name, c := range tests {
 		func(name string, c testcase) {
 			t.Run(name, func(t *testing.T) {
-				testutils.SmallTest(t)
+				unittest.SmallTest(t)
 				assert.Equal(t, c.shouldPowercycle, d.ShouldPowercycleDevice(c.bot))
 			})
 		}(name, c)

@@ -4,12 +4,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
 func TestParamsNew(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	p := NewParams(",arch=x86,")
 	assert.Equal(t, Params{"arch": "x86"}, p)
 	p = NewParams(",arch=x86,config=565,")
@@ -17,7 +17,7 @@ func TestParamsNew(t *testing.T) {
 }
 
 func TestAddParamsFromKey(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	p := ParamSet{}
 	p.AddParamsFromKey(",arch=x86,")
 	assert.Equal(t, ParamSet{"arch": []string{"x86"}}, p)
@@ -26,7 +26,7 @@ func TestAddParamsFromKey(t *testing.T) {
 }
 
 func TestParams(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	p := Params{"foo": "1", "bar": "2"}
 	p2 := p.Copy()
 	p["baz"] = "3"
@@ -57,7 +57,7 @@ func TestParams(t *testing.T) {
 }
 
 func TestParamSet(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	p := ParamSet{"foo": []string{"bar", "baz"}}
 	assert.Equal(t, []string{"foo"}, p.Keys())
 
@@ -66,7 +66,7 @@ func TestParamSet(t *testing.T) {
 }
 
 func TestAddParamsToParamSet(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		a       ParamSet
 		b       Params
@@ -123,7 +123,7 @@ func TestAddParamsToParamSet(t *testing.T) {
 }
 
 func TestAddParamSetToParamSet(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		a       ParamSet
 		b       ParamSet
@@ -180,7 +180,7 @@ func TestAddParamSetToParamSet(t *testing.T) {
 }
 
 func TestParamSetCopy(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	p := ParamSet{
 		"foo": []string{"bar", "baz"},
 		"qux": []string{"quux"},
@@ -194,7 +194,7 @@ func TestParamSetCopy(t *testing.T) {
 }
 
 func TestMatching(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	recParams := ParamSet{
 		"foo": {"1", "2"},
 		"bar": {"a", "b", "c"},
@@ -255,13 +255,13 @@ func roundTripsEncode(t *testing.T, p *OrderedParamSet) {
 }
 
 func TestOrderedParamSetEmpty(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// Confirm that empty OrderedParamSet's round-trip correctly.
 	roundTripsEncode(t, NewOrderedParamSet())
 }
 
 func TestOrderedParamSetCopy(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	p := NewOrderedParamSet()
 	// Add some data.
@@ -289,7 +289,7 @@ func TestOrderedParamSetCopy(t *testing.T) {
 }
 
 func TestOrderedParamSetStartFromEmpty(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// Start from an empty OrderedParamSet.
 	p := NewOrderedParamSet()
 
@@ -324,7 +324,7 @@ func TestOrderedParamSetStartFromEmpty(t *testing.T) {
 }
 
 func TestOrderedParamSet(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// Start with an already populated OrderedParamSet.
 	p := &OrderedParamSet{
 		KeyOrder: []string{"config", "name", "arch"},
