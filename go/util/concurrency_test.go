@@ -8,11 +8,11 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestCondMonitor(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Define the id range and the number of concurrent calls for each id.
 	nFnCalls := 50

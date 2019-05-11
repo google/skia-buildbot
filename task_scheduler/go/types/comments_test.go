@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestCopyTaskComment(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	v := MakeTaskComment(1, 1, 1, 1, time.Now())
 	deleted := true
 	v.Deleted = &deleted
@@ -17,7 +17,7 @@ func TestCopyTaskComment(t *testing.T) {
 }
 
 func TestCopyTaskSpecComment(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	v := MakeTaskSpecComment(1, 1, 1, time.Now())
 	v.Flaky = true
 	v.IgnoreFailure = true
@@ -27,7 +27,7 @@ func TestCopyTaskSpecComment(t *testing.T) {
 }
 
 func TestCopyCommitComment(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	v := MakeCommitComment(1, 1, 1, time.Now())
 	v.IgnoreFailure = true
 	deleted := true
@@ -36,7 +36,7 @@ func TestCopyCommitComment(t *testing.T) {
 }
 
 func TestCopyRepoComments(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	v := &RepoComments{
 		Repo: "r1",
 		TaskComments: map[string]map[string][]*TaskComment{

@@ -20,6 +20,7 @@ import (
 	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -116,7 +117,7 @@ func mockGetLatestSDK(urlmock *mockhttpclient.URLMock, pathLinux, pathMac, revLi
 }
 
 func TestFuchsiaSDKRepoManager(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, rm, urlmock, mockParent, parent, cleanup := setupFuchsiaSDK(t)
 	defer cleanup()
@@ -224,7 +225,7 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 }
 
 func TestFuchsiaSDKConfigValidation(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	cfg := fuchsiaCfg()
 	cfg.ParentRepo = "dummy" // Not supplied above.

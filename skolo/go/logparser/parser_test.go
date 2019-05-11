@@ -7,10 +7,11 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestSyslogParsing(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	contents := testutils.MustReadFile("basicsyslog")
 	lp := ParseSyslog(contents)
 	assert.Equal(t, 2, lp.Len(), "Wrong number of log lines")
@@ -59,7 +60,7 @@ func TestSyslogParsing(t *testing.T) {
 }
 
 func TestPythonLogParsing(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	contents := testutils.MustReadFile("pythonlog1")
 	lp := ParsePythonLog(contents)
 	assert.Equal(t, 5, lp.Len(), "Wrong number of log lines")

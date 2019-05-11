@@ -6,12 +6,12 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
 func TestNoPackageImportsTesting(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	// Assert that no package imports "testing".
 	importers, err := FindImporters(context.Background(), "testing")
@@ -43,7 +43,7 @@ var legacyTestifyPackages = []string{
 }
 
 func TestNoPackageImportsTestify(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	for _, p := range unwantedTestifyPackages {
 

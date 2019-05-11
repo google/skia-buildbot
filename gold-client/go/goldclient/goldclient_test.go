@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/gold-client/go/mocks"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/types"
@@ -21,7 +22,7 @@ import (
 
 // test data processing of the known hashes input.
 func TestLoadKnownHashes(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
@@ -54,7 +55,7 @@ func TestLoadKnownHashes(t *testing.T) {
 
 // Test data processing of the baseline input
 func TestLoadBaseline(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
@@ -91,7 +92,7 @@ func TestLoadBaseline(t *testing.T) {
 // This is effectively a test for "goldctl imgtest init"
 func TestInit(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
@@ -134,7 +135,7 @@ func TestInit(t *testing.T) {
 // This is effectively a test for "goldctl imgtest init --upload-only"
 func TestInitUploadOnly(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
@@ -173,7 +174,7 @@ func TestInitUploadOnly(t *testing.T) {
 // Report an image that does not match any previous digests.
 // This is effectively a test for "goldctl imgtest add"
 func TestNewReportNormal(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
@@ -217,7 +218,7 @@ func TestNewReportNormal(t *testing.T) {
 // This is effectively a test for "goldctl imgtest finalize"
 func TestFinalizeNormal(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
@@ -299,7 +300,7 @@ func TestFinalizeNormal(t *testing.T) {
 //   goldctl imgtest finalize
 func TestInitAddFinalize(t *testing.T) {
 	// We read and write to disk a little
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
@@ -395,7 +396,7 @@ func TestInitAddFinalize(t *testing.T) {
 }
 
 func TestNewReportPassFail(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
@@ -457,7 +458,7 @@ func TestNewReportPassFail(t *testing.T) {
 }
 
 func TestNegativePassFail(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
@@ -500,7 +501,7 @@ func TestNegativePassFail(t *testing.T) {
 }
 
 func TestPositivePassFail(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
@@ -547,7 +548,7 @@ func TestPositivePassFail(t *testing.T) {
 // This (and the rest of TestInit*) are effectively tests of "goldctl auth".
 func TestInitServiceAccountAuth(t *testing.T) {
 	// writes to disk (but not a lot)
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
@@ -572,7 +573,7 @@ func TestInitServiceAccountAuth(t *testing.T) {
 // Tests gsutil authentication is properly setup in the working directory.
 func TestInitGSUtil(t *testing.T) {
 	// writes to disk (but not a lot)
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
@@ -596,7 +597,7 @@ func TestInitGSUtil(t *testing.T) {
 // Tests LUCI authentication is properly setup in the working directory.
 func TestInitLUCIAuth(t *testing.T) {
 	// writes to disk (but not a lot)
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()

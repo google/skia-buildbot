@@ -29,7 +29,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -88,7 +88,7 @@ func pendingChromiumPerfTask() ChromiumPerfTask {
 }
 
 func TestChromiumPerfExecute(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mockRun := exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
 		runId := getRunId(t, cmd)
@@ -144,7 +144,7 @@ func pendingPixelDiffTask() PixelDiffTask {
 }
 
 func TestPixelDiffExecute(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mockRun := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
 
@@ -195,7 +195,7 @@ func pendingMetricsAnalysisTask() MetricsAnalysisTask {
 }
 
 func TestMetricsAnalysisExecute(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mockRun := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
 
@@ -241,7 +241,7 @@ func pendingCaptureSkpsTask() CaptureSkpsTask {
 }
 
 func TestCaptureSkpsExecute(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mockRun := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
 
@@ -283,7 +283,7 @@ func pendingLuaScriptTaskWithAggregator(ctx context.Context) LuaScriptTask {
 }
 
 func TestLuaScriptExecuteWithAggregator(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mockRun := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
 	task := pendingLuaScriptTaskWithAggregator(ctx)
@@ -319,7 +319,7 @@ func TestLuaScriptExecuteWithAggregator(t *testing.T) {
 }
 
 func TestLuaScriptExecuteWithoutAggregator(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mockRun := exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
 		runId := getRunId(t, cmd)
@@ -375,7 +375,7 @@ func pendingChromiumBuildTask() ChromiumBuildTask {
 }
 
 func TestChromiumBuildExecute(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mockRun := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
 
@@ -413,7 +413,7 @@ func pendingRecreatePageSetsTask() RecreatePageSetsTask {
 }
 
 func TestRecreatePageSetsExecute(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mockRun := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
 
@@ -450,7 +450,7 @@ func pendingRecreateWebpageArchivesTask() RecreateWebpageArchivesTask {
 }
 
 func TestRecreateWebpageArchivesExecute(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mockRun := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
 
@@ -476,7 +476,7 @@ func TestRecreateWebpageArchivesExecute(t *testing.T) {
 }
 
 func TestAsPollerTask(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	ctx := context.Background()
 	expect.Nil(t, asPollerTask(ctx, nil))
 	{
@@ -513,7 +513,7 @@ func TestAsPollerTask(t *testing.T) {
 
 // Test that updateWebappTaskSetFailed works.
 func TestUpdateWebappTaskSetFailed(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	task := pendingRecreateWebpageArchivesTask()
 	mockServer := frontend.MockServer{}
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
@@ -533,7 +533,7 @@ func TestUpdateWebappTaskSetFailed(t *testing.T) {
 
 // Test that updateWebappTaskSetFailed returns an error when the server response indicates an error.
 func TestUpdateWebappTaskSetFailedFailure(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	errstr := "You must be at least this tall to ride this ride."
 	task := pendingRecreateWebpageArchivesTask()
 	reqCount := 0
@@ -552,7 +552,7 @@ func TestUpdateWebappTaskSetFailedFailure(t *testing.T) {
 }
 
 func TestPollAndExecOnce(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mockExec := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockExec.Run)
 	task := pendingRecreateWebpageArchivesTask()
@@ -583,7 +583,7 @@ func TestPollAndExecOnce(t *testing.T) {
 }
 
 func TestPollAndExecOnceMultipleTasks(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mockExec := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockExec.Run)
 	task1 := pendingRecreateWebpageArchivesTask()
@@ -622,7 +622,7 @@ func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 }
 
 func TestPollAndExecOnceError(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mockRun := exec.MockRun{}
 	commandCollector := exec.CommandCollector{}
 	commandCollector.SetDelegateRun(mockRun.Run)
@@ -664,7 +664,7 @@ func TestPollAndExecOnceError(t *testing.T) {
 }
 
 func TestPollAndExecOnceNoTasks(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mockCTAutoscaler := &ct_autoscaler.MockCTAutoscaler{}
 	mockServer := frontend.MockServer{}
 	mockServer.SetCurrentTask(nil)

@@ -24,7 +24,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 )
@@ -153,13 +153,13 @@ func polylintTest(cwd, fileName string) *test {
 			}
 			return "", fmt.Errorf("%d unresolved polylint problems:\n%s\n", count, unresolvedProblems)
 		},
-		Type: testutils.LARGE_TEST,
+		Type: unittest.LARGE_TEST,
 	}
 }
 
 // buildPolymerFolder runs the Makefile in the given folder.  This sets up the symbolic links so dependencies can be located for polylint.
 func buildPolymerFolder(cwd string) error {
-	cmd := cmdTest([]string{"make", "deps"}, cwd, fmt.Sprintf("Polymer build in %s", cwd), testutils.LARGE_TEST)
+	cmd := cmdTest([]string{"make", "deps"}, cwd, fmt.Sprintf("Polymer build in %s", cwd), unittest.LARGE_TEST)
 	return cmd.Run()
 }
 
@@ -173,7 +173,7 @@ func polylintTestsForDir(cwd string, fileNames ...string) []*test {
 				run: func() (string, error) {
 					return "", fmt.Errorf("Could not build Polymer files in %s: %s", cwd, err)
 				},
-				Type: testutils.LARGE_TEST,
+				Type: unittest.LARGE_TEST,
 			},
 		}
 	}
@@ -240,23 +240,23 @@ func goTest(cwd string, testType string, args ...string) *test {
 
 // goTestSmall returns a test which runs `go test --small` in the given cwd.
 func goTestSmall(cwd string) *test {
-	return goTest(cwd, testutils.SMALL_TEST, "--small", "--timeout", testutils.TIMEOUT_SMALL)
+	return goTest(cwd, unittest.SMALL_TEST, "--small", "--timeout", unittest.TIMEOUT_SMALL)
 }
 
 // goTestMedium returns a test which runs `go test --medium` in the given cwd.
 func goTestMedium(cwd string) *test {
-	return goTest(cwd, testutils.MEDIUM_TEST, "--medium", "--timeout", testutils.TIMEOUT_MEDIUM)
+	return goTest(cwd, unittest.MEDIUM_TEST, "--medium", "--timeout", unittest.TIMEOUT_MEDIUM)
 }
 
 // goTestLarge returns a test which runs `go test --large` in the given cwd.
 func goTestLarge(cwd string) *test {
-	return goTest(cwd, testutils.LARGE_TEST, "--large", "--timeout", testutils.TIMEOUT_LARGE)
+	return goTest(cwd, unittest.LARGE_TEST, "--large", "--timeout", unittest.TIMEOUT_LARGE)
 }
 
 // pythonTest returns a test which runs the given Python script and fails if
 // the script fails.
 func pythonTest(testPath string) *test {
-	return cmdTest([]string{"python", testPath}, ".", path.Base(testPath), testutils.SMALL_TEST)
+	return cmdTest([]string{"python", testPath}, ".", path.Base(testPath), unittest.SMALL_TEST)
 }
 
 // Verify that "go generate ./..." produces no diffs.
@@ -290,7 +290,7 @@ func goGenerate() *test {
 			}
 			return "", nil
 		},
-		Type: testutils.LARGE_TEST,
+		Type: unittest.LARGE_TEST,
 	}
 }
 
@@ -322,10 +322,10 @@ type test struct {
 
 // Run executes the function for the given test and returns an error if it fails.
 func (t *test) Run() error {
-	if !util.In(t.Type, testutils.TEST_TYPES) {
+	if !util.In(t.Type, unittest.TEST_TYPES) {
 		sklog.Fatalf("Test %q has invalid type %q", t.Name, t.Type)
 	}
-	if !testutils.ShouldRun(t.Type) {
+	if !unittest.ShouldRun(t.Type) {
 		sklog.Infof("Not running %s tests; skipping %q", t.Type, t.Name)
 		return nil
 	}
@@ -356,8 +356,8 @@ func main() {
 
 	// Ensure that we're actually going to run something.
 	ok := false
-	for _, tt := range testutils.TEST_TYPES {
-		if testutils.ShouldRun(tt) {
+	for _, tt := range unittest.TEST_TYPES {
+		if unittest.ShouldRun(tt) {
 			ok = true
 		}
 	}
@@ -373,9 +373,9 @@ func main() {
 	if *race {
 		// Use alternative timeouts when --race is enabled because the tests
 		// inherently take longer with the extra instrumentation.
-		testutils.TIMEOUT_SMALL = testutils.TIMEOUT_RACE
-		testutils.TIMEOUT_MEDIUM = testutils.TIMEOUT_RACE
-		testutils.TIMEOUT_LARGE = testutils.TIMEOUT_RACE
+		unittest.TIMEOUT_SMALL = unittest.TIMEOUT_RACE
+		unittest.TIMEOUT_MEDIUM = unittest.TIMEOUT_RACE
+		unittest.TIMEOUT_LARGE = unittest.TIMEOUT_RACE
 	}
 
 	// Gather all of the tests to run.
@@ -421,16 +421,16 @@ func main() {
 	}
 
 	// Other tests.
-	tests = append(tests, cmdTest([]string{"go", "vet", "./..."}, ".", "go vet", testutils.SMALL_TEST))
-	tests = append(tests, cmdTest([]string{"errcheck", "-ignore", ":Close", "go.skia.org/infra/..."}, ".", "errcheck", testutils.MEDIUM_TEST))
-	tests = append(tests, cmdTest([]string{"go", "run", "prober/go/build_probers_json5/main.go", "--srcdir=.", "--dest=/tmp/allprobers.json5"}, ".", "probers test", testutils.MEDIUM_TEST))
-	tests = append(tests, cmdTest([]string{"python", "infra/bots/recipes.py", "test", "run"}, ".", "recipes test", testutils.MEDIUM_TEST))
-	tests = append(tests, cmdTest([]string{"go", "run", "infra/bots/gen_tasks.go", "--test"}, ".", "gen_tasks.go --test", testutils.SMALL_TEST))
-	tests = append(tests, cmdTest([]string{"python", "go/testutils/uncategorized_tests.py"}, ".", "uncategorized tests", testutils.SMALL_TEST))
-	tests = append(tests, cmdTest([]string{"make", "testci"}, "common-sk", "common-sk elements", testutils.MEDIUM_TEST))
-	tests = append(tests, cmdTest([]string{"make", "testci"}, "named-fiddles", "named-fiddles elements", testutils.MEDIUM_TEST))
-	tests = append(tests, cmdTest([]string{"make", "test"}, "push", "push elements", testutils.MEDIUM_TEST))
-	tests = append(tests, cmdTest([]string{"make"}, "licenses", "check go package licenses", testutils.MEDIUM_TEST))
+	tests = append(tests, cmdTest([]string{"go", "vet", "./..."}, ".", "go vet", unittest.SMALL_TEST))
+	tests = append(tests, cmdTest([]string{"errcheck", "-ignore", ":Close", "go.skia.org/infra/..."}, ".", "errcheck", unittest.MEDIUM_TEST))
+	tests = append(tests, cmdTest([]string{"go", "run", "prober/go/build_probers_json5/main.go", "--srcdir=.", "--dest=/tmp/allprobers.json5"}, ".", "probers test", unittest.MEDIUM_TEST))
+	tests = append(tests, cmdTest([]string{"python", "infra/bots/recipes.py", "test", "run"}, ".", "recipes test", unittest.MEDIUM_TEST))
+	tests = append(tests, cmdTest([]string{"go", "run", "infra/bots/gen_tasks.go", "--test"}, ".", "gen_tasks.go --test", unittest.SMALL_TEST))
+	tests = append(tests, cmdTest([]string{"python", "go/testutils/unittest/uncategorized_tests.py"}, ".", "uncategorized tests", unittest.SMALL_TEST))
+	tests = append(tests, cmdTest([]string{"make", "testci"}, "common-sk", "common-sk elements", unittest.MEDIUM_TEST))
+	tests = append(tests, cmdTest([]string{"make", "testci"}, "named-fiddles", "named-fiddles elements", unittest.MEDIUM_TEST))
+	tests = append(tests, cmdTest([]string{"make", "test"}, "push", "push elements", unittest.MEDIUM_TEST))
+	tests = append(tests, cmdTest([]string{"make"}, "licenses", "check go package licenses", unittest.MEDIUM_TEST))
 
 	if !*race {
 		// put this behind a flag because polylintTests trys to build the polymer files
@@ -470,7 +470,7 @@ func main() {
 			return "", nil
 
 		},
-		Type: testutils.MEDIUM_TEST,
+		Type: unittest.MEDIUM_TEST,
 	})
 
 	gosimplifyCmd := []string{"gofmt", "-s", "-d", "."}
@@ -491,7 +491,7 @@ func main() {
 			}
 			return "", nil
 		},
-		Type: testutils.SMALL_TEST,
+		Type: unittest.SMALL_TEST,
 	})
 
 	if *race {

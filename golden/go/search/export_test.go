@@ -6,11 +6,11 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestWriteReadExport(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testRecs := []*ExportTestRecord{
 		{
 			TestName: "test-1",

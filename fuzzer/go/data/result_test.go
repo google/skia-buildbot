@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestIsGrey(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	assert.True(t, isGrey(0))
 	assert.True(t, isGrey(TerminatedGracefully))
 	assert.True(t, isGrey(TimedOut))
@@ -21,7 +21,7 @@ func TestIsGrey(t *testing.T) {
 }
 
 func TestToHumanReadableFlags(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	expected := []string{"ASANCrashed", "ASAN_heap-use-after-free"}
 	flag := ASANCrashed | ASAN_HeapUseAfterFree
 

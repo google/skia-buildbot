@@ -6,11 +6,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestInfraConvert(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	infra := []string{
 		"user:*@google.com",
 		"user:test@example.com",
@@ -41,7 +41,7 @@ const JSON = `{
 }`
 
 func TestWithClientMock(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	m := mockhttpclient.NewURLMock()
 	m.Mock(fmt.Sprintf(GROUP_URL_TEMPLATE, "test"), mockhttpclient.MockGetDialogue([]byte(JSON)))
 	i, err := NewAllowedFromChromeInfraAuth(m.Client(), "test")

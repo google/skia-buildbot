@@ -15,7 +15,7 @@ import (
 	expect "github.com/stretchr/testify/assert"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // Copied from go.skia.org/infra/go/util/util.go to avoid recursive dependency.
@@ -26,7 +26,7 @@ func RemoveAll(path string) {
 }
 
 func TestParseCommand(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	test := func(input string, expected Command) {
 		expect.Equal(t, expected, ParseCommand(input))
 	}
@@ -41,7 +41,7 @@ func TestParseCommand(t *testing.T) {
 }
 
 func TestSquashWriters(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	expect.Equal(t, nil, squashWriters())
 	expect.Equal(t, nil, squashWriters(nil))
 	expect.Equal(t, nil, squashWriters(nil, nil))
@@ -93,7 +93,7 @@ func TestSquashWriters(t *testing.T) {
 }
 
 func TestBasic(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
 	assert.NoError(t, err)
 	defer RemoveAll(dir)
@@ -115,7 +115,7 @@ touch "${EXEC_TEST_FILE}"
 `
 
 func TestEnv(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
 	assert.NoError(t, err)
 	defer RemoveAll(dir)
@@ -135,7 +135,7 @@ echo "${PATH}" > "${EXEC_TEST_FILE}"
 `
 
 func TestInheritPath(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
 	assert.NoError(t, err)
 	defer RemoveAll(dir)
@@ -162,7 +162,7 @@ echo "x${GOPATH}" >> "${EXEC_TEST_FILE}"
 `
 
 func TestInheritEnv(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
 	assert.NoError(t, err)
 	defer RemoveAll(dir)
@@ -194,7 +194,7 @@ echo "Hello World!" > output.txt
 `
 
 func TestDir(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	dir1, err := ioutil.TempDir("", "exec_test1")
 	assert.NoError(t, err)
 	defer RemoveAll(dir1)
@@ -213,7 +213,7 @@ func TestDir(t *testing.T) {
 }
 
 func TestSimpleIO(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	inputString := "foo\nbar\nbaz\n"
 	output := bytes.Buffer{}
 	assert.NoError(t, Run(context.Background(), &Command{
@@ -226,7 +226,7 @@ func TestSimpleIO(t *testing.T) {
 }
 
 func TestError(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
 	assert.NoError(t, err)
 	defer RemoveAll(dir)
@@ -250,7 +250,7 @@ echo "violets"
 `
 
 func TestCombinedOutput(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
 	assert.NoError(t, err)
 	defer RemoveAll(dir)
@@ -272,7 +272,7 @@ func TestCombinedOutput(t *testing.T) {
 // Run(&Command{... Stdout: outputFile})
 // See http://devs.cloudimmunity.com/gotchas-and-common-mistakes-in-go-golang/index.html#nil_in_nil_in_vals
 func TestNilIO(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	inputString := "foo\nbar\nbaz\n"
 	assert.NoError(t, Run(context.Background(), &Command{
 		Name:   "grep",
@@ -288,7 +288,7 @@ touch ran
 `
 
 func TestTimeoutNotReached(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
 	assert.NoError(t, err)
 	defer RemoveAll(dir)
@@ -305,7 +305,7 @@ func TestTimeoutNotReached(t *testing.T) {
 }
 
 func TestTimeoutExceeded(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
 	assert.NoError(t, err)
 	defer RemoveAll(dir)
@@ -324,7 +324,7 @@ func TestTimeoutExceeded(t *testing.T) {
 }
 
 func TestInjection(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	var actualCommand *Command
 	ctx := NewContext(context.Background(), func(command *Command) error {
 		actualCommand = command
@@ -346,21 +346,21 @@ func TestInjection(t *testing.T) {
 }
 
 func TestRunSimple(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	output, err := RunSimple(context.Background(), `echo "Hello Go!"`)
 	assert.NoError(t, err)
 	expect.Equal(t, "\"Hello Go!\"\n", output)
 }
 
 func TestRunCwd(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	output, err := RunCwd(context.Background(), "/", "pwd")
 	assert.NoError(t, err)
 	expect.Equal(t, "/\n", output)
 }
 
 func TestCommandCollector(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mock := CommandCollector{}
 	ctx := NewContext(context.Background(), mock.Run)
 	assert.NoError(t, Run(ctx, &Command{
@@ -394,7 +394,7 @@ func TestCommandCollector(t *testing.T) {
 }
 
 func TestMockRun(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mock := MockRun{}
 	ctx := NewContext(context.Background(), mock.Run)
 	mock.AddRule("touch /tmp/bar", fmt.Errorf("baz"))
@@ -411,7 +411,7 @@ func TestMockRun(t *testing.T) {
 }
 
 func TestRunCommand(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	ctx := context.Background()
 	// Without a thread-safe io.Writer for Command.CombinedOutput, this test
 	// fails "go test -race" and the output does not consistently match the

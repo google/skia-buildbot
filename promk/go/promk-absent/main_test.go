@@ -3,11 +3,11 @@ package main
 import (
 	"testing"
 
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestEquationFromExpr(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	testCases := []struct {
 		value    string

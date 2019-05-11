@@ -14,10 +14,11 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func setup(t *testing.T) (*Blacklist, func()) {
-	testutils.ManualTest(t)
+	unittest.ManualTest(t)
 
 	instance := fmt.Sprintf("test-%s", uuid.New())
 	b, err := New(context.Background(), firestore.FIRESTORE_PROJECT, instance, nil)
@@ -60,7 +61,7 @@ func TestAddRemove(t *testing.T) {
 }
 
 func TestRuleCopy(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	r := &Rule{
 		AddedBy:          "me@google.com",
 		TaskSpecPatterns: []string{"a", "b"},
@@ -72,7 +73,7 @@ func TestRuleCopy(t *testing.T) {
 }
 
 func TestRules(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	type testCase struct {
 		taskSpec    string
 		commit      string
@@ -257,7 +258,7 @@ func setupTestRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, []
 }
 
 func TestValidation(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	// Setup.
 	ctx, gb, commits := setupTestRepo(t)
 	defer gb.Cleanup()
@@ -391,7 +392,7 @@ func TestValidation(t *testing.T) {
 }
 
 func TestCommitRange(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	// Setup.
 	ctx, gb, commits := setupTestRepo(t)
 	defer gb.Cleanup()

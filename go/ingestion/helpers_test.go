@@ -11,6 +11,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -37,7 +38,7 @@ var (
 )
 
 func TestGoogleStorageSource(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	src, err := NewGoogleStorageSource("gs-test-src", gcs_testutils.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient, nil)
 	assert.NoError(t, err)
@@ -45,7 +46,7 @@ func TestGoogleStorageSource(t *testing.T) {
 }
 
 func TestFileSystemResultFileLocations(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	err := gcs_testutils.DownloadTestDataArchive(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
 	assert.NoError(t, err)
@@ -57,7 +58,7 @@ func TestFileSystemResultFileLocations(t *testing.T) {
 }
 
 func TestCompareSources(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	gsSource, err := NewGoogleStorageSource("gs-test-src", gcs_testutils.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient, nil)
 	assert.NoError(t, err)

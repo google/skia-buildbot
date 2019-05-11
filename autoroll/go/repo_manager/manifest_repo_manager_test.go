@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
@@ -154,7 +155,7 @@ func setupManifestFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
 
 // TestRepoManager tests all aspects of the ManifestRepoManager except for CreateNewRoll.
 func TestManifestRepoManager(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, wd, child, childCommits, parent, cleanup := setupManifest(t)
 	defer cleanup()
@@ -179,7 +180,7 @@ func TestManifestRepoManager(t *testing.T) {
 // TestCreateNewManifestRoll tests that CreateNewRoll returns the expected issueNum by mocking out
 // the git cl upload call.
 func TestCreateNewManifestRoll(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, wd, _, _, parent, cleanup := setupManifest(t)
 	defer cleanup()
@@ -201,7 +202,7 @@ func TestCreateNewManifestRoll(t *testing.T) {
 
 // Verify that we ran the PreUploadSteps.
 func TestRanPreUploadStepsManifest(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, wd, _, _, parent, cleanup := setupManifest(t)
 	defer cleanup()
@@ -229,7 +230,7 @@ func TestRanPreUploadStepsManifest(t *testing.T) {
 }
 
 func TestManifestConfigValidation(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	cfg := manifestCfg()
 	cfg.ParentRepo = "repo" // Excluded from manifestCfg.

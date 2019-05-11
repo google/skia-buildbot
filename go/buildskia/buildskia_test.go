@@ -12,12 +12,12 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
 func TestGetSkiaHash(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	deps := `vars = {
     # Use this googlecode_url variable only if there is an internal mirror for it.
     # If you do not know, use the full path while defining your new deps entry.
@@ -47,7 +47,7 @@ func TestGetSkiaHash(t *testing.T) {
 }
 
 func TestGetSkiaHashEmpty(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	deps := ``
 	body := base64.StdEncoding.EncodeToString([]byte(deps))
 	client := mockhttpclient.New(map[string]mockhttpclient.MockDialogue{
@@ -59,7 +59,7 @@ func TestGetSkiaHashEmpty(t *testing.T) {
 }
 
 func TestGetSkiaBranches(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	body := `)]}'
 {
   "HEAD": {
@@ -100,7 +100,7 @@ func TestGetSkiaBranches(t *testing.T) {
 }
 
 func TestGetSkiaBranchesEmpty(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	body := `)]}'`
 	client := mockhttpclient.New(map[string]mockhttpclient.MockDialogue{
 		SKIA_BRANCHES_JSON: mockhttpclient.MockGetDialogue([]byte(body)),
@@ -119,7 +119,7 @@ func TestGetSkiaBranchesEmpty(t *testing.T) {
 }
 
 func TestGetSkiaHead(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	body := `)]}'
 {
     "commit": "273c0f5e87397c40d22bb7e3ee078bb46a3f6860",
@@ -138,7 +138,7 @@ func TestGetSkiaHead(t *testing.T) {
 }
 
 func TestGetSkiaHeadEmpty(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	body := `)]}'`
 	client := mockhttpclient.New(map[string]mockhttpclient.MockDialogue{
 		SKIA_BRANCHES_JSON: mockhttpclient.MockGetDialogue([]byte(body)),
@@ -157,7 +157,7 @@ func TestGetSkiaHeadEmpty(t *testing.T) {
 }
 
 func TestGNGen(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mock := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mock.Run)
 
@@ -171,7 +171,7 @@ func TestGNGen(t *testing.T) {
 }
 
 func TestGNNinjaBuild(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mock := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mock.Run)
 
@@ -184,7 +184,7 @@ func TestGNNinjaBuild(t *testing.T) {
 }
 
 func TestGNDownloadSkia(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mock := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mock.Run)
 
@@ -222,7 +222,7 @@ func TestGNDownloadSkia(t *testing.T) {
 }
 
 func TestGNNinjaBuildTarget(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mock := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mock.Run)
 

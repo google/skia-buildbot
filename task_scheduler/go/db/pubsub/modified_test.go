@@ -6,12 +6,12 @@ import (
 
 	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 func setupTasks(t *testing.T) db.ModifiedTasks {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	topic := uuid.New()
 	m, err := NewModifiedTasks("fake-project", fmt.Sprintf("modified-tasks-test-%s", topic), "fake-label", nil)
 	assert.NoError(t, err)
@@ -29,7 +29,7 @@ func TestPubsubMultipleTaskModifications(t *testing.T) {
 }
 
 func setupJobs(t *testing.T) db.ModifiedJobs {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	topic := uuid.New()
 	m, err := NewModifiedJobs("fake-project", fmt.Sprintf("modified-jobs-test-%s", topic), "fake-label", nil)
 	assert.NoError(t, err)
@@ -47,7 +47,7 @@ func TestPubsubMultipleJobModifications(t *testing.T) {
 }
 
 func setupComments(t *testing.T) db.ModifiedComments {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	topic1 := fmt.Sprintf("modified-comments-test-tasks-%s", uuid.New())
 	topic2 := fmt.Sprintf("modified-comments-test-taskspecs-%s", uuid.New())
 	topic3 := fmt.Sprintf("modified-comments-test-commits-%s", uuid.New())

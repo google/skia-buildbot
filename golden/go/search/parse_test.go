@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -24,7 +25,7 @@ const (
 )
 
 func TestParseCTQuery(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testQuery := CTQuery{
 		RowQuery: &Query{
 			Pos:            true,
@@ -65,14 +66,14 @@ func TestParseCTQuery(t *testing.T) {
 }
 
 func TestParseQuery(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	checkParsedQuery(t, true, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&issue=2370153003&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true")
 	checkParsedQuery(t, true, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true")
 	checkParsedQuery(t, false, "fdiffmax=abc&fref=false&frgbamax=-1&head=true&include=false&limit=50&")
 }
 
 func TestParseQueryLarge(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	// Reuse the paths from the SearchAPI benchmarks.
 	cloudQueriesPath := TEST_STORAGE_DIR_SEARCH_API + "/" + QUERIES_FNAME_SEARCH_API + ".gz"

@@ -13,6 +13,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/golden/go/diff"
@@ -28,7 +29,7 @@ const (
 )
 
 func TestMemDiffStore(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	// Get a small tile and get them cached.
 	w, cleanup := testutils.TempDir(t)
@@ -53,7 +54,7 @@ func (d DummyDiffStoreMapper) DiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA
 }
 
 func TestDiffFn(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	w, cleanup := testutils.TempDir(t)
 	defer cleanup()
@@ -76,7 +77,7 @@ func TestDiffFn(t *testing.T) {
 }
 
 func TestNetDiffStore(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	w, cleanup := testutils.TempDir(t)
 	defer cleanup()
