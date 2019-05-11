@@ -24,6 +24,7 @@ protobuf:
 
 .PHONY: mocks
 mocks:
-	go get github.com/vektra/mockery/...
+	go get github.com/vektra/mockery
 
 	mockery -name GitStore -dir gitstore/ -output ./gitstore/mocks/
+	mockery -name GerritInterface -dir gerrit/ -output ./gerrit/mocks/
