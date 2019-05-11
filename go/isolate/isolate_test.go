@@ -12,10 +12,11 @@ import (
 	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestCopyIsolatedFile(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	link := "link"
 	mode := 777
@@ -46,7 +47,7 @@ func TestCopyIsolatedFile(t *testing.T) {
 }
 
 func TestIsolateTasks(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	// Setup.
 	workdir, err := ioutil.TempDir("", "")
@@ -163,7 +164,7 @@ func TestIsolateTasks(t *testing.T) {
 }
 
 func TestReUploadIsolatedFiles(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	// Setup.
 	workdir, err := ioutil.TempDir("", "")

@@ -7,11 +7,11 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestUnthrottle(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	r := "fake-roller"
 	ctx := context.Background()

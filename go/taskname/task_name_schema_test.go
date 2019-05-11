@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestTaskNameSchema(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	tc := map[string]map[string]string{
 		"Build-Ubuntu-GCC-x86-Release": {
 			"role":          "Build",
@@ -59,7 +59,7 @@ func TestTaskNameSchema(t *testing.T) {
 }
 
 func TestBadTaskNameSchema(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	tc := []string{
 		"Alpha-Ubuntu-GCC-x86-Release",
 		"Build",

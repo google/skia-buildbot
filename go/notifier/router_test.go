@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 type sentMessage struct {
@@ -26,7 +26,7 @@ func (n *testNotifier) Send(_ context.Context, subject string, msg *Message) err
 }
 
 func TestRouter(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	m := NewRouter(nil, nil, nil)
 	ctx := context.Background()

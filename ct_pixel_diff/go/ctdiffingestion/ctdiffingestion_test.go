@@ -10,7 +10,7 @@ import (
 	"go.skia.org/infra/ct_pixel_diff/go/dynamicdiff"
 	"go.skia.org/infra/ct_pixel_diff/go/resultstore"
 	"go.skia.org/infra/go/ingestion"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/mocks"
 )
@@ -39,7 +39,7 @@ const (
 
 // Tests parsing and processing of a single CT output JSON file.
 func TestCTResults(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	// Load the sample data file as CTResults.
 	r, err := os.Open(TEST_INGESTION_FILE)
@@ -65,7 +65,7 @@ func TestCTResults(t *testing.T) {
 }
 
 func TestPixelDiffProcessor(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	ctx := context.Background()
 
 	// Set up the DiffStore.

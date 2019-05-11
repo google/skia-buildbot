@@ -13,7 +13,7 @@ import (
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -82,21 +82,21 @@ func setupGitStore(t *testing.T) (context.Context, *git_testutils.GitBuilder, *G
 }
 
 func TestGraphGitStore(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	testGraph(t, ctx, g, repo, ud)
 }
 
 func TestRecurseGitStore(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	testRecurse(t, ctx, g, repo, ud)
 }
 
 func TestRecurseAllBranchesGitStore(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	testRecurseAllBranches(t, ctx, g, repo, ud)
@@ -106,21 +106,21 @@ func TestRecurseAllBranchesGitStore(t *testing.T) {
 TODO(borenet): This test is disabled because GitStore doesn't support deleting
 branches.
 func TestUpdateHistoryChangedGitStore(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	testUpdateHistoryChanged(t, ctx, g, repo, ud)
 }*/
 
 func TestUpdateAndReturnCommitDiffsGitStore(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	testUpdateAndReturnCommitDiffs(t, ctx, g, repo, ud)
 }
 
 func TestRevListGitStore(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	testRevList(t, ctx, g, repo, ud)

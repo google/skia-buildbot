@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/types"
 )
 
 func TestMerge(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// Simple
 	a := []*ColumnHeader{
 		{Offset: 1},
@@ -99,7 +99,7 @@ func TestMerge(t *testing.T) {
 }
 
 func TestDFAppend(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	a := DataFrame{
 		Header: []*ColumnHeader{
 			{Offset: 1},

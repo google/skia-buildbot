@@ -7,7 +7,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/modified"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -15,7 +15,7 @@ import (
 
 // TestCommentBox checks that CommentBox correctly implements CommentDB.
 func TestCommentBox(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	db.TestCommentDB(t, &CommentBox{ModifiedComments: &modified.ModifiedCommentsImpl{}})
 }
 
@@ -23,7 +23,7 @@ func TestCommentBox(t *testing.T) {
 // initialized with a persisted map and will correctly write changes to the
 // provided writer.
 func TestCommentBoxWithPersistence(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	expected := map[string]*types.RepoComments{}
 	callCount := 0
 	testWriter := func(actual map[string]*types.RepoComments) error {
@@ -181,7 +181,7 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 // NewCommentBoxWithPersistence returns an error, the modification does not take
 // effect.
 func TestCommentBoxWithPersistenceError(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	callCount := 0
 	var injectedError error = nil
 	testWriter := func(actual map[string]*types.RepoComments) error {

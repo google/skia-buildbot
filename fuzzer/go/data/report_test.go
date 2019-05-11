@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestSortedFuzzReports(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	a := make(SortedFuzzReports, 0, 5)
 	addingOrder := []string{"gggg", "aaaa", "cccc", "eeee", "dddd", "bbbb",
 		"ffff"}

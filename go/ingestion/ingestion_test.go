@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -33,12 +34,12 @@ const (
 )
 
 func TestPollingIngester(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	testIngester(t, LOCAL_STATUS_DIR+"-polling", nil)
 }
 
 func TestPollingIngesterWithStore(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	// Delete and recreate the BT tables to make sure there are no residual data.
 	assert.NoError(t, bt.DeleteTables(projectID, instanceID, TABLE_FILES_PROCESSED))

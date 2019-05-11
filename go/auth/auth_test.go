@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -14,7 +14,7 @@ const (
 )
 
 func TestSkolo(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	m := mockhttpclient.NewURLMock()
 	src := `{"access_token":"ya29.c.El...zwJOP","expires_in":900,"token_type":"Bearer"}`
 	m.Mock(tokenUrl, mockhttpclient.MockGetDialogue([]byte(src)))
@@ -30,7 +30,7 @@ func TestSkolo(t *testing.T) {
 }
 
 func TestSkoloFail(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		value    string
 		hasError bool

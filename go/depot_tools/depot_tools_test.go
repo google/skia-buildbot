@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -43,7 +43,7 @@ const (
 )
 
 func TestDEPSExtractor(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	ext_1 := NewRegExDEPSExtractor(DEPSSkiaVarRegEx)
 	ret, err := ext_1.ExtractCommit(TEST_VAR_DEPS, nil)

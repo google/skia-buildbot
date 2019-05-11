@@ -7,11 +7,11 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/buildbucket"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestTrybotResults(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// Create a fake roll with one in-progress trybot.
 	roll := &AutoRollIssue{
 		Closed:            false,
@@ -101,7 +101,7 @@ func TestTrybotResults(t *testing.T) {
 }
 
 func TestRollRev(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	test := func(msg, from, to string) {
 		assert.True(t, ROLL_REV_REGEX.MatchString(msg))

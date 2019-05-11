@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestConfigRead(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	m, err := ReadMetrics(filepath.Join("./testdata", "metrics.json5"))
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(m))
