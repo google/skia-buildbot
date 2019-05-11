@@ -10,12 +10,13 @@ import (
 	ds_testutil "go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
+	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/tryjobstore"
 )
 
 type MyGerritMock struct {
-	*gerrit.MockedGerrit
+	*gerrit_mocks.SimpleGerritInterface
 }
 
 func (m *MyGerritMock) AddComment(issue *gerrit.ChangeInfo, message string) error {
@@ -33,7 +34,7 @@ func TestWriteGoldLinkToGerrit(t *testing.T) {
 	issueID := int64(12345)
 	buildBucketID := int64(7654321)
 	eventBus := eventbus.New()
-	mockGerrit := &MyGerritMock{MockedGerrit: &gerrit.MockedGerrit{IssueID: issueID}}
+	mockGerrit := &MyGerritMock{SimpleGerritInterface: &gerrit_mocks.SimpleGerritInterface{IssueID: issueID}}
 	tjStore, err := tryjobstore.NewCloudTryjobStore(client, nil, eventBus)
 	assert.NoError(t, err)
 

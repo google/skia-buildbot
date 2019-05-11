@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -85,7 +86,7 @@ func TestAndroidRepoManager(t *testing.T) {
 	testutils.LargeTest(t)
 	ctx, wd, cleanup := setupAndroid(t)
 	defer cleanup()
-	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
+	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_REMOTE_BATCH))
@@ -102,7 +103,7 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	ctx, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 
-	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
+	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_REMOTE_BATCH))
@@ -170,7 +171,7 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	ctx, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 
-	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
+	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_REMOTE_BATCH))
