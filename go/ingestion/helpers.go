@@ -47,7 +47,7 @@ const (
 //   config is ususally parsed from a JSON5 file.
 //   client can be assumed to be ready to serve the needs of the resulting Processor.
 //   eventBus is the eventbus to be used by the ingester (optional).
-type Constructor func(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, eventBus eventbus.EventBus) (Processor, error)
+type Constructor func(vcs vcsinfo.VCS, traceStore gtracestore.TraceStore, config *sharedconfig.IngesterConfig, client *http.Client, eventBus eventbus.EventBus) (Processor, error)
 
 // stores the constructors that register for instantiation from a config struct.
 var constructors = map[string]Constructor{}
@@ -67,7 +67,7 @@ func Register(id string, constructor Constructor) {
 // client is assumed to be suitable for the given application. If e.g. the
 // processors of the current application require an authenticated http client,
 // then it is expected that client meets these requirements.
-func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, client *http.Client, eventBus eventbus.EventBus, ingestionStore IngestionStore, btConf *bt_gitstore.BTConfig) ([]*Ingester, error) {
+func IngestersFromConfig(ctx context.Context, traceStore gtracestore.TraceStore, config *sharedconfig.Config, client *http.Client, eventBus eventbus.EventBus, ingestionStore IngestionStore, btConf *gitstore.BTConfig) ([]*Ingester, error) {
 	if client == nil {
 		return nil, errors.New("httpClient cannot be nil")
 	}
@@ -134,7 +134,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		}
 
 		// instantiate the processor
-		processor, err := processorConstructor(vcs, ingesterConf, client, eventBus)
+		processor, err := processorConstructor(vcs, traceStore, ingesterConf, client, eventBus)
 		if err != nil {
 			return nil, err
 		}

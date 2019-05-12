@@ -22,7 +22,7 @@ const (
 	TEST_DATA_BUCKET = "skia-infra-testdata"
 )
 
-func getStorangeItem(bucket, gsPath string) (*storage.Reader, error) {
+func getStorageItem(bucket, gsPath string) (*storage.Reader, error) {
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(httputils.NewTimeoutClient()))
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func DownloadTestDataFile(t assert.TestingT, bucket, gsPath, targetPath string) 
 		return err
 	}
 
-	arch, err := getStorangeItem(bucket, gsPath)
+	arch, err := getStorageItem(bucket, gsPath)
 	if err != nil {
 		return fmt.Errorf("Could not get gs://%s/%s: %s", bucket, gsPath, err)
 	}
@@ -79,7 +79,7 @@ func DownloadTestDataArchive(t assert.TestingT, bucket, gsPath, targetDir string
 		return err
 	}
 
-	arch, err := getStorangeItem(bucket, gsPath)
+	arch, err := getStorageItem(bucket, gsPath)
 	if err != nil {
 		return fmt.Errorf("Could not get gs://%s/%s: %s", bucket, gsPath, err)
 	}

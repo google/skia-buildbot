@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/golden/go/bbstate"
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/gtracestore"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	gstorage "google.golang.org/api/storage/v1"
@@ -60,7 +61,7 @@ type goldTryjobProcessor struct {
 }
 
 // newGoldTryjobProcessor implements the ingestion.Constructor function.
-func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, ignoreClient *http.Client, eventBus eventbus.EventBus) (ingestion.Processor, error) {
+func newGoldTryjobProcessor(vcs vcsinfo.VCS, traceStore gtracestore.TraceStore, config *sharedconfig.IngesterConfig, ignoreClient *http.Client, eventBus eventbus.EventBus) (ingestion.Processor, error) {
 	gerritURL := config.ExtraParams[CONFIG_GERRIT_CODE_REVIEW_URL]
 	if strings.TrimSpace(gerritURL) == "" {
 		return nil, fmt.Errorf("Missing URL for the Gerrit code review systems. Got value: '%s'", gerritURL)
@@ -168,7 +169,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 		return ingestion.IgnoreResultsFileErr
 	}
 
-	entries, err := extractTraceDBEntries(dmResults)
+	entries, err := extractEntries(dmResults)
 	if err != nil {
 		sklog.Errorf("Error getting tracedb entries: %s", err)
 		return ingestion.IgnoreResultsFileErr

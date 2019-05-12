@@ -9,8 +9,8 @@ import (
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
-	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/gtracestore"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -47,19 +47,19 @@ func idAndParams(dm *DMResults, r *jsonio.Result) (tiling.TraceId, map[string]st
 	return tiling.TraceId(strings.Join(values, ":")), params
 }
 
-// extractTraceDBEntries returns the traceDB entries to be inserted into the data store.
+// extractEntries returns the traceDB entries to be inserted into the data store.
 func extractTraceDBEntries(dm *DMResults) (map[tiling.TraceId]*tracedb.Entry, error) {
 	ret := make(map[tiling.TraceId]*tracedb.Entry, len(dm.Results))
 	for _, result := range dm.Results {
-		traceId, params := idAndParams(dm, result)
+		_, params := idAndParams(dm, result)
 		if ignoreResult(dm, params) {
 			continue
 		}
 
-		ret[traceId] = &tracedb.Entry{
+		ret = append(ret, &gtracestore.Entry{
 			Params: params,
-			Value:  []byte(result.Digest),
-		}
+			Value:  result.Digest,
+		})
 	}
 
 	// If all results were ignored then we return an error.
