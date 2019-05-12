@@ -86,12 +86,11 @@ func TestParamsetCalculate(t *testing.T) {
 	md.On("ByTrace").Return(counts)
 	mdi.On("ByTrace").Return(noCounts)
 
-	ps := New()
-	ps.Calculate(mc, md, mdi)
+	ps := NewParamSummary(mc, md, mdi)
 
-	withIgnores := ps.GetByTest(true)
-	withoutIgnores := ps.GetByTest(false)
-	assert.NotEqual(t, withIgnores, withoutIgnores)
+	withoutIgnoreRules := ps.GetByTest(true)
+	withIgnoreRules := ps.GetByTest(false)
+	assert.NotEqual(t, withoutIgnoreRules, withIgnoreRules)
 	// spot check one from each
 
 	p := ps.Get(testTwo, DigestG, false)

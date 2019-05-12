@@ -112,7 +112,7 @@ type ComplexTile interface {
 	FilledCommits() int
 
 	// GetTile returns a simple tile either with or without ignored traces depending on the argument.
-	GetTile(includeIgnores bool) *tiling.Tile
+	GetTile(noIgnoreRules bool) *tiling.Tile
 
 	// SetIgnoreRules adds ignore rules to the tile and a sub-tile with the ignores removed.
 	// In other words this function assumes that original tile has been filtered by the
@@ -128,10 +128,10 @@ type ComplexTile interface {
 
 type ComplexTileImpl struct {
 	// tile is the current tile without ignored traces.
-	tile *tiling.Tile
+	tileWithIgnoreRules *tiling.Tile
 
 	// tileWithIgnores is the current tile containing all available data.
-	tileWithIgnores *tiling.Tile
+	tileWithoutIgnoreRules *tiling.Tile
 
 	// ignoreRules contains the rules used to created the TileWithIgnores.
 	ignoreRules paramtools.ParamMatcher
@@ -152,14 +152,14 @@ type ComplexTileImpl struct {
 
 func NewComplexTile(completeTile *tiling.Tile) *ComplexTileImpl {
 	return &ComplexTileImpl{
-		tile:            completeTile,
-		tileWithIgnores: completeTile,
+		tileWithIgnoreRules:    completeTile,
+		tileWithoutIgnoreRules: completeTile,
 	}
 }
 
 // SetIgnoreRules fulfills the ComplexTile interface.
 func (c *ComplexTileImpl) SetIgnoreRules(reducedTile *tiling.Tile, ignoreRules paramtools.ParamMatcher, irRev int64) {
-	c.tile = reducedTile
+	c.tileWithIgnoreRules = reducedTile
 	c.irRevision = irRev
 	c.ignoreRules = ignoreRules
 }
@@ -168,14 +168,14 @@ func (c *ComplexTileImpl) SetIgnoreRules(reducedTile *tiling.Tile, ignoreRules p
 func (c *ComplexTileImpl) SetSparse(sparseCommits []*tiling.Commit, cardinalities []int) {
 	// Make sure we always have valid values sparce commits.
 	if len(sparseCommits) == 0 {
-		sparseCommits = c.tileWithIgnores.Commits
+		sparseCommits = c.tileWithoutIgnoreRules.Commits
 	}
 
-	filled := len(c.tileWithIgnores.Commits)
+	filled := len(c.tileWithoutIgnoreRules.Commits)
 	if len(cardinalities) == 0 {
 		cardinalities = make([]int, len(sparseCommits))
 		for idx := range cardinalities {
-			cardinalities[idx] = len(c.tileWithIgnores.Traces)
+			cardinalities[idx] = len(c.tileWithoutIgnoreRules.Traces)
 		}
 	} else {
 		for _, card := range cardinalities {
@@ -212,15 +212,15 @@ func (c *ComplexTileImpl) ensureSparseInfo() {
 // FromSame fulfills the ComplexTile interface.
 func (c *ComplexTileImpl) FromSame(completeTile *tiling.Tile, ignoreRev int64) bool {
 	return c != nil &&
-		c.tileWithIgnores != nil &&
-		c.tileWithIgnores == completeTile &&
-		c.tile != nil &&
+		c.tileWithoutIgnoreRules != nil &&
+		c.tileWithoutIgnoreRules == completeTile &&
+		c.tileWithIgnoreRules != nil &&
 		c.irRevision == ignoreRev
 }
 
 // DataCommits fulfills the ComplexTile interface.
 func (c *ComplexTileImpl) DataCommits() []*tiling.Commit {
-	return c.tileWithIgnores.Commits
+	return c.tileWithoutIgnoreRules.Commits
 }
 
 // AllCommits fulfills the ComplexTile interface.
@@ -229,11 +229,11 @@ func (c *ComplexTileImpl) AllCommits() []*tiling.Commit {
 }
 
 // GetTile fulfills the ComplexTile interface.
-func (c *ComplexTileImpl) GetTile(includeIgnores bool) *tiling.Tile {
-	if includeIgnores {
-		return c.tileWithIgnores
+func (c *ComplexTileImpl) GetTile(noIgnoreRules bool) *tiling.Tile {
+	if noIgnoreRules {
+		return c.tileWithoutIgnoreRules
 	}
-	return c.tile
+	return c.tileWithIgnoreRules
 }
 
 // IgnoreRules fulfills the ComplexTile interface.

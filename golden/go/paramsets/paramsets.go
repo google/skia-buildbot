@@ -10,11 +10,22 @@ import (
 )
 
 // ParamSummary keep precalculated paramsets for each test, digest pair.
-// It is not thread safe. The client of this package needs to make sure there
-// are no conflicts.
-type ParamSummary struct {
-	byTest               map[types.TestName]map[types.Digest]paramtools.ParamSet
-	byTestIncludeIgnored map[types.TestName]map[types.Digest]paramtools.ParamSet
+// It is considered immutable and thread-safe.
+type ParamSummary interface {
+	// Get returns the paramset for the given digest. If 'noIgnoreRules' is true
+	// then the paramset is calculated without applying ignores.
+	Get(test types.TestName, digest types.Digest, noIgnoreRules bool) paramtools.ParamSet
+
+	// GetByTest returns the parameter sets organized by tests and digests.
+	// If 'noIgnoreRules' is true, then the paramset is calculated
+	// without applying ignores.
+	GetByTest(noIgnoreRules bool) map[types.TestName]map[types.Digest]paramtools.ParamSet
+}
+
+// ParamSummaryImpl implements the ParamSummary interface.
+type ParamSummaryImpl struct {
+	byTestWithIgnoreRules    map[types.TestName]map[types.Digest]paramtools.ParamSet
+	byTestWithoutIgnoreRules map[types.TestName]map[types.Digest]paramtools.ParamSet
 }
 
 // byTestForTile calculates all the paramsets from the given tile and tallies.
@@ -40,24 +51,21 @@ func byTestForTile(tile *tiling.Tile, digestCountsByTrace map[tiling.TraceId]dig
 	return ret
 }
 
-// New creates a new ParamSummary.
-func New() *ParamSummary {
-	return &ParamSummary{}
-}
-
-// Calculate sets the values the ParamSummary based on the given tile.
-func (s *ParamSummary) Calculate(cpxTile types.ComplexTile, dCounter digest_counter.DigestCounter, dCounterWithIgnores digest_counter.DigestCounter) {
+// NewParamSummary creates a new ParamSummaryImpl.
+func NewParamSummary(cpxTile types.ComplexTile, countsWithIgnoreRules digest_counter.DigestCounter, countsWithoutIgnoreRules digest_counter.DigestCounter) *ParamSummaryImpl {
 	defer shared.NewMetricsTimer("param_summary_calculate").Stop()
-	s.byTest = byTestForTile(cpxTile.GetTile(false), dCounter.ByTrace())
-	s.byTestIncludeIgnored = byTestForTile(cpxTile.GetTile(true), dCounterWithIgnores.ByTrace())
+	p := &ParamSummaryImpl{
+		byTestWithIgnoreRules:    byTestForTile(cpxTile.GetTile(false), countsWithIgnoreRules.ByTrace()),
+		byTestWithoutIgnoreRules: byTestForTile(cpxTile.GetTile(true), countsWithoutIgnoreRules.ByTrace()),
+	}
+	return p
 }
 
-// Get returns the paramset for the given digest. If 'include' is true
-// then the paramset is calculated including ignored traces.
-func (s *ParamSummary) Get(test types.TestName, digest types.Digest, include bool) paramtools.ParamSet {
-	useMap := s.byTest
-	if include {
-		useMap = s.byTestIncludeIgnored
+// Get implements the ParamSummaryImpl interface.
+func (s *ParamSummaryImpl) Get(test types.TestName, digest types.Digest, noIgnoreRules bool) paramtools.ParamSet {
+	useMap := s.byTestWithIgnoreRules
+	if noIgnoreRules {
+		useMap = s.byTestWithoutIgnoreRules
 	}
 
 	if foundTest, ok := useMap[test]; ok {
@@ -66,11 +74,10 @@ func (s *ParamSummary) Get(test types.TestName, digest types.Digest, include boo
 	return nil
 }
 
-// GetByTest returns the parameter sets organized by tests and digests:
-//      map[test_name]map[digest]ParamSet
-func (s *ParamSummary) GetByTest(includeIngores bool) map[types.TestName]map[types.Digest]paramtools.ParamSet {
-	if includeIngores {
-		return s.byTestIncludeIgnored
+// GetByTest implements the ParamSummaryImpl interface.
+func (s *ParamSummaryImpl) GetByTest(noIgnoreRules bool) map[types.TestName]map[types.Digest]paramtools.ParamSet {
+	if noIgnoreRules {
+		return s.byTestWithoutIgnoreRules
 	}
-	return s.byTest
+	return s.byTestWithIgnoreRules
 }
