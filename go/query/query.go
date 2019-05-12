@@ -340,7 +340,7 @@ func appendRegexForFilter(keyIndex string, values []string, part queryParam, ret
 }
 
 // Regexp returns a *regexp.Regex that can be used against OrderedParamSet
-// encoded Params, which are structured keys of indicies.
+// encoded Params, which are structured keys of indices.
 //
 // Note that the returned regexp is RE2 compliant
 // (https://github.com/google/re2/wiki/Syntax) and can be used in Cloud BigTable.

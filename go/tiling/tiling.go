@@ -26,41 +26,6 @@ const (
 	TILE_SIZE = 50
 )
 
-// Trace represents a single series of measurements. The actual values it
-// stores per Commit is defined by implementations of Trace.
-type Trace interface {
-	// Returns the parameters that describe this trace.
-	Params() map[string]string
-
-	// Merge this trace with the given trace. The given trace is expected to come
-	// after this trace.
-	Merge(Trace) Trace
-
-	DeepCopy() Trace
-
-	// Grow the measurements, filling in with sentinel values either before or
-	// after based on FillType.
-	Grow(int, FillType)
-
-	// The number of samples in the series.
-	Len() int
-
-	// IsMissing returns true if the measurement at index i is a sentinel value,
-	// for example, config.MISSING_DATA_SENTINEL.
-	IsMissing(i int) bool
-
-	// Trim trims the measurements to just the range from [begin, end).
-	//
-	// Just like a Go [:] slice this is inclusive of begin and exclusive of end.
-	// The length on the Trace will then become end-begin.
-	Trim(begin, end int) error
-
-	// Sets the value of the measurement at index.
-	//
-	// Each specialization will convert []byte to the correct type.
-	SetAt(index int, value []byte) error
-}
-
 // TraceBuilder builds an empty trace of the correct kind, either a PerfTrace
 // or a GoldenTrace.
 type TraceBuilder func(n int) Trace
@@ -170,6 +135,41 @@ type Tile struct {
 	// N=const.TILE_SCALE^Scale.
 	Scale     int `json:"scale"`
 	TileIndex int `json:"tileIndex"`
+}
+
+// Trace represents a single series of measurements. The actual values it
+// stores per Commit is defined by implementations of Trace.
+type Trace interface {
+	// Returns the parameters that describe this trace.
+	Params() map[string]string
+
+	// Merge this trace with the given trace. The given trace is expected to come
+	// after this trace.
+	Merge(Trace) Trace
+
+	DeepCopy() Trace
+
+	// Grow the measurements, filling in with sentinel values either before or
+	// after based on FillType.
+	Grow(int, FillType)
+
+	// The number of samples in the series.
+	Len() int
+
+	// IsMissing returns true if the measurement at index i is a sentinel value,
+	// for example, config.MISSING_DATA_SENTINEL.
+	IsMissing(i int) bool
+
+	// Trim trims the measurements to just the range from [begin, end).
+	//
+	// Just like a Go [:] slice this is inclusive of begin and exclusive of end.
+	// The length on the Trace will then become end-begin.
+	Trim(begin, end int) error
+
+	// Sets the value of the measurement at index.
+	//
+	// Each specialization will convert []byte to the correct type.
+	SetAt(index int, value []byte) error
 }
 
 // NewTile returns an new Tile object.
