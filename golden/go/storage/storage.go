@@ -16,12 +16,12 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
-	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/gtracestore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/tryjobs"
 	"go.skia.org/infra/golden/go/tryjobstore"
@@ -49,18 +49,19 @@ type Storage struct {
 	ExpectationsStore    expstorage.ExpectationsStore
 	IssueExpStoreFactory expstorage.IssueExpStoreFactory
 	IgnoreStore          ignore.IgnoreStore
-	TraceDB              tracedb.DB
+	// TraceDB              tracedb.DB
 	MasterTileBuilder    TileSource
-	EventBus             eventbus.EventBus
-	TryjobStore          tryjobstore.TryjobStore
-	TryjobMonitor        *tryjobs.TryjobMonitor
-	GerritAPI            gerrit.GerritInterface
+	TraceStore      gtracestore.TraceStore
+	EventBus        eventbus.EventBus
+	TryjobStore     tryjobstore.TryjobStore
+	TryjobMonitor   *tryjobs.TryjobMonitor
+	GerritAPI       gerrit.GerritInterface
 	GCSClient            GCSClient
 	Baseliner            baseline.Baseliner
-	VCS                  vcsinfo.VCS
-	WhiteListQuery       paramtools.ParamSet
-	IsAuthoritative      bool
-	SiteURL              string
+	VCS             vcsinfo.VCS
+	WhiteListQuery  paramtools.ParamSet
+	IsAuthoritative bool
+	SiteURL         string
 
 	// IsSparseTile indicates that new tiles should be condensed by removing commits that have no data.
 	IsSparseTile bool
@@ -184,16 +185,10 @@ func (s *Storage) GetLastTileTrimmed() (types.ComplexTile, error) {
 	var sparseCommits []*tiling.Commit = nil
 	var cardinalities []int = nil
 	var err error
-	ctx := context.Background()
 
-	// If it's a sparse tile, we build it anew.
-	if s.IsSparseTile {
-		rawTile, sparseCommits, cardinalities, err = s.getCondensedTile(ctx, s.lastCpxTile)
-		if err != nil {
-			return nil, skerr.Fmt("Error getting condensed tile: %s", err)
-		}
-	} else {
-		rawTile = s.MasterTileBuilder.GetTile()
+	rawTile, sparseCommits, cardinalities, err = s.TraceStore.GetTile(s.NCommits, s.IsSparseTile)
+	if err != nil {
+		return nil, skerr.Fmt("Error getting tile from tracestore: %s", err)
 	}
 
 	// Get the tile with everything that needs to be whitelisted.
@@ -295,145 +290,145 @@ func (s *Storage) getWhiteListedTile(tile *tiling.Tile) *tiling.Tile {
 	return ret
 }
 
-// getCondensedTile returns a tile that contains only commits that have at least one
-// nonempty entry. If lastTile is not nil, its first commit is used as a starting point to
-// fetch the tiles necessary to build the condensed tile (from several "sparse" tiles.)
+// // getCondensedTile returns a tile that contains only commits that have at least one
+// // nonempty entry. If lastTile is not nil, its first commit is used as a starting point to
+// // fetch the tiles necessary to build the condensed tile (from several "sparse" tiles.)
 func (s *Storage) getCondensedTile(ctx context.Context, lastCpxTile types.ComplexTile) (*tiling.Tile, []*tiling.Commit, []int, error) {
-	if s.NCommits <= 0 {
-		ret := tiling.NewTile()
-		ret.Commits = ret.Commits[:0]
-		return ret, nil, nil, nil
-	}
+// 	if s.NCommits <= 0 {
+// 		ret := tiling.NewTile()
+// 		ret.Commits = ret.Commits[:0]
+// 		return ret, nil, nil, nil
+// 	}
 
-	var err error
+// 	var err error
 
-	// Determine the starting value of commits to fetch.
-	lastNCommits := 10 * s.NCommits
-	if lastCpxTile != nil {
-		lastNCommits = len(lastCpxTile.AllCommits())
-	}
+// 	// Determine the starting value of commits to fetch.
+// 	lastNCommits := 10 * s.NCommits
+// 	if lastCpxTile != nil {
+// 		lastNCommits = len(lastCpxTile.AllCommits())
+// 	}
 
-	// Find all commit IDs we are interested in.
-	var sparseCommitIDs []*tracedb.CommitID
-	var sparseCommits []*tiling.Commit
-	var cardinalities []int
-	var targetHashes util.StringSet
+// 	// Find all commit IDs we are interested in.
+// 	var sparseCommitIDs []*tracedb.CommitID
+// 	var sparseCommits []*tiling.Commit
+// 	var cardinalities []int
+// 	var targetHashes util.StringSet
 
-	// Repeat until we get the desired number of commits.
-	var idxCommits, prevIdxCommits []*vcsinfo.IndexCommit
-	for len(targetHashes) < s.NCommits {
-		idxCommits = s.VCS.LastNIndex(lastNCommits)
-		if len(idxCommits) <= len(prevIdxCommits) {
-			break
-		}
-		prevIdxCommits = idxCommits
+// 	// Repeat until we get the desired number of commits.
+// 	var idxCommits, prevIdxCommits []*vcsinfo.IndexCommit
+// 	for len(targetHashes) < s.NCommits {
+// 		idxCommits = s.VCS.LastNIndex(lastNCommits)
+// 		if len(idxCommits) <= len(prevIdxCommits) {
+// 			break
+// 		}
+// 		prevIdxCommits = idxCommits
 
-		// Build a candidate Tile from the found commits
-		sparseCommitIDs = getCommitIDs(idxCommits)
-		sparseTile, _, err := s.TraceDB.TileFromCommits(sparseCommitIDs)
-		if err != nil {
-			return nil, nil, nil, skerr.Fmt("Failed to load tile from commitIDs: %s", err)
-		}
+// 		// Build a candidate Tile from the found commits
+// 		sparseCommitIDs = getCommitIDs(idxCommits)
+// 		sparseTile, _, err := s.TraceDB.TileFromCommits(sparseCommitIDs)
+// 		if err != nil {
+// 			return nil, nil, nil, skerr.Fmt("Failed to load tile from commitIDs: %s", err)
+// 		}
 
-		// Find which commits are non-empty
-		targetHashes = make(util.StringSet, len(sparseCommitIDs))
-		tileLen := sparseTile.LastCommitIndex() + 1
-		sklog.Infof("Sparse tile len: %d", tileLen)
-		sparseCommits = sparseTile.Commits[:tileLen]
-		sklog.Infof("Sparse tile commits len: %d", len(sparseCommits))
-		cardinalities = make([]int, tileLen)
+// 		// Find which commits are non-empty
+// 		targetHashes = make(util.StringSet, len(sparseCommitIDs))
+// 		tileLen := sparseTile.LastCommitIndex() + 1
+// 		sklog.Infof("Sparse tile len: %d", tileLen)
+// 		sparseCommits = sparseTile.Commits[:tileLen]
+// 		sklog.Infof("Sparse tile commits len: %d", len(sparseCommits))
+// 		cardinalities = make([]int, tileLen)
 
-		for idx := 0; idx < tileLen; idx++ {
-			hash := sparseCommits[idx].Hash
-			for _, trace := range sparseTile.Traces {
-				gTrace := trace.(*types.GoldenTrace)
+// 		for idx := 0; idx < tileLen; idx++ {
+// 			hash := sparseCommits[idx].Hash
+// 			for _, trace := range sparseTile.Traces {
+// 				gTrace := trace.(*types.GoldenTrace)
 				if gTrace.Digests[idx] != types.MISSING_DIGEST {
-					targetHashes[hash] = true
-					cardinalities[idx]++
-				}
-			}
-		}
+// 					targetHashes[hash] = true
+// 					cardinalities[idx]++
+// 				}
+// 			}
+// 		}
 
-		// double the number of commits we consider for the target tile to reach our goal fast.
-		// If we are above a maximum number of commits don't go any further and just use what we have.
-		lastNCommits *= 2
-		if lastNCommits > maxNSparseCommits && len(targetHashes) > 0 {
-			sklog.Infof("Reached limit of %d commits to consider in sparse tile. Using %d commits.", maxNSparseCommits, len(targetHashes))
-			break
-		}
-	}
-	sklog.Infof("Found %d target commits within %d sparse commits", len(targetHashes), len(sparseCommits))
+// 		// double the number of commits we consider for the target tile to reach our goal fast.
+// 		// If we are above a maximum number of commits don't go any further and just use what we have.
+// 		lastNCommits *= 2
+// 		if lastNCommits > maxNSparseCommits && len(targetHashes) > 0 {
+// 			sklog.Infof("Reached limit of %d commits to consider in sparse tile. Using %d commits.", maxNSparseCommits, len(targetHashes))
+// 			break
+// 		}
+// 	}
+// 	sklog.Infof("Found %d target commits within %d sparse commits", len(targetHashes), len(sparseCommits))
 
-	detailsHashes := make([]string, 0, len(sparseCommits))
-	denseCommitIDs := make([]*tracedb.CommitID, 0, len(targetHashes))
-	remainingCommits := len(targetHashes)
-	sparseStart := -1
-	sklog.Infof("Starting to add commit details")
-	for idx, commitID := range sparseCommitIDs {
-		if targetHashes[commitID.ID] {
-			if remainingCommits <= s.NCommits {
-				if sparseStart == -1 {
-					sparseStart = idx
-					sklog.Infof("Sparse start: %d", sparseStart)
-				}
-				denseCommitIDs = append(denseCommitIDs, commitID)
-			}
-			remainingCommits--
-		}
+// 	detailsHashes := make([]string, 0, len(sparseCommits))
+// 	denseCommitIDs := make([]*tracedb.CommitID, 0, len(targetHashes))
+// 	remainingCommits := len(targetHashes)
+// 	sparseStart := -1
+// 	sklog.Infof("Starting to add commit details")
+// 	for idx, commitID := range sparseCommitIDs {
+// 		if targetHashes[commitID.ID] {
+// 			if remainingCommits <= s.NCommits {
+// 				if sparseStart == -1 {
+// 					sparseStart = idx
+// 					sklog.Infof("Sparse start: %d", sparseStart)
+// 				}
+// 				denseCommitIDs = append(denseCommitIDs, commitID)
+// 			}
+// 			remainingCommits--
+// 		}
 
-		// If we have found the first commit we consider, then we add the details data.
-		if sparseStart >= 0 {
-			detailsHashes = append(detailsHashes, commitID.ID)
-		}
-	}
+// 		// If we have found the first commit we consider, then we add the details data.
+// 		if sparseStart >= 0 {
+// 			detailsHashes = append(detailsHashes, commitID.ID)
+// 		}
+// 	}
 
-	// Trim the prefix of the sparse commits
-	sparseCommits = sparseCommits[sparseStart:]
-	cardinalities = cardinalities[sparseStart:]
+// 	// Trim the prefix of the sparse commits
+// 	sparseCommits = sparseCommits[sparseStart:]
+// 	cardinalities = cardinalities[sparseStart:]
 
-	longCommits, err := s.VCS.DetailsMulti(ctx, detailsHashes, false)
-	if err != nil {
-		return nil, nil, nil, skerr.Fmt("Error retrieving details for: %s", err)
-	}
-	sklog.Infof("Retrieved %d details", len(longCommits))
+// 	longCommits, err := s.VCS.DetailsMulti(ctx, detailsHashes, false)
+// 	if err != nil {
+// 		return nil, nil, nil, skerr.Fmt("Error retrieving details for: %s", err)
+// 	}
+// 	sklog.Infof("Retrieved %d details", len(longCommits))
 
-	// Load the dense tile.
-	denseTile, _, err := s.TraceDB.TileFromCommits(denseCommitIDs)
-	if err != nil {
-		return nil, nil, nil, err
-	}
+// 	// Load the dense tile.
+// 	denseTile, _, err := s.TraceDB.TileFromCommits(denseCommitIDs)
+// 	if err != nil {
+// 		return nil, nil, nil, err
+// 	}
 
-	sklog.Infof("ncommits: %d", s.NCommits)
-	sklog.Infof("dense: %d", len(denseTile.Commits))
-	denseIdx := 0
-	for idx, commit := range sparseCommits {
-		commit.Author = longCommits[idx].Author
-		if denseIdx < len(denseTile.Commits) && denseTile.Commits[denseIdx].Hash == commit.Hash {
-			denseTile.Commits[denseIdx].Author = longCommits[idx].Author
-			denseIdx++
-		}
-	}
+// 	sklog.Infof("ncommits: %d", s.NCommits)
+// 	sklog.Infof("dense: %d", len(denseTile.Commits))
+// 	denseIdx := 0
+// 	for idx, commit := range sparseCommits {
+// 		commit.Author = longCommits[idx].Author
+// 		if denseIdx < len(denseTile.Commits) && denseTile.Commits[denseIdx].Hash == commit.Hash {
+// 			denseTile.Commits[denseIdx].Author = longCommits[idx].Author
+// 			denseIdx++
+// 		}
+// 	}
 
-	if len(sparseCommits) > 0 && len(denseTile.Commits) > 0 {
-		sklog.Infof("Found %d sparse commits and %d dense commits with starting hashes: %s == %s", len(sparseCommits), len(denseTile.Commits), denseTile.Commits[0].Hash, sparseCommits[0].Hash)
-	}
+// 	if len(sparseCommits) > 0 && len(denseTile.Commits) > 0 {
+// 		sklog.Infof("Found %d sparse commits and %d dense commits with starting hashes: %s == %s", len(sparseCommits), len(denseTile.Commits), denseTile.Commits[0].Hash, sparseCommits[0].Hash)
+// 	}
 
-	return denseTile, sparseCommits, cardinalities, nil
-}
+// 	return denseTile, sparseCommits, cardinalities, nil
+// }
 
-// getCommitIDs returns instances of tracedb.CommitID from the given hashes that can then be used
-// to retrieve data from the tracedb.
-func getCommitIDs(indexCommits []*vcsinfo.IndexCommit) []*tracedb.CommitID {
-	commitIDs := make([]*tracedb.CommitID, 0, len(indexCommits))
-	for _, c := range indexCommits {
-		commitIDs = append(commitIDs, &tracedb.CommitID{
-			ID:        c.Hash,
-			Source:    "master",
-			Timestamp: c.Timestamp.Unix(),
-		})
-	}
-	return commitIDs
-}
+// // getCommitIDs returns instances of tracedb.CommitID from the given hashes that can then be used
+// // to retrieve data from the tracedb.
+// func getCommitIDs(indexCommits []*vcsinfo.IndexCommit) []*tracedb.CommitID {
+// 	commitIDs := make([]*tracedb.CommitID, 0, len(indexCommits))
+// 	for _, c := range indexCommits {
+// 		commitIDs = append(commitIDs, &tracedb.CommitID{
+// 			ID:        c.Hash,
+// 			Source:    "master",
+// 			Timestamp: c.Timestamp.Unix(),
+// 		})
+// 	}
+// 	return commitIDs
+// }
 
 // checkCommitableIssues checks all commits of the current tile whether
 // the associated expectations have been added to the baseline of the master.

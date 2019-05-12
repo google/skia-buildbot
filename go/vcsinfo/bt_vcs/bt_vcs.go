@@ -340,29 +340,56 @@ func (b *BigTableVCS) Range(begin, end time.Time) []*vcsinfo.IndexCommit {
 	return b.timeRange(begin, end)
 }
 
-// IndexOf implements the vcsinfo.VCS interface
-func (b *BigTableVCS) IndexOf(ctx context.Context, hash string) (int, error) {
+// indexOf returns the index of the given hash in the internal slice of IndexCommits that
+// is set by Update.
+func (b *btVCS) indexOf(hash string) int {
 	b.mutex.RLock()
 	defer b.mutex.Unlock()
 
 	for i := len(b.indexCommits) - 1; i >= 0; i-- {
 		if hash == b.indexCommits[i].Hash {
-			return b.indexCommits[i].Index, nil
+			return b.indexCommits[i].Index
 		}
+	}
+	return -1
+}
+
+// Update implements the vcsinfo.VCS interface
+func (b *btVCS) IndexOf(ctx context.Context, hash string) (int, error) {
+	ret := b.indexOf(hash)
+	if ret >= 0 {
+		return ret, nil
 	}
 
 	// If it was not in memory we need to fetch it
-	details, err := b.gitStore.Get(ctx, []string{hash})
-	if err != nil {
+	if err := b.Update(ctx, true, false); err != nil {
 		return 0, err
 	}
 
-	if len(details) == 0 {
-		return 0, skerr.Fmt("Hash %s does not exist in repository on branch %s", hash, b.defaultBranch)
+	// Try again, if we cannot find it now it doesn't exist on this branch.
+	ret = b.indexOf(hash)
+	if ret >= 0 {
+		return ret, nil
 	}
 
-	return 0, nil
+	return 0, skerr.Fmt("Hash %s does not exist in repository on branch %s", hash, b.defaultBranch)
 }
+
+// 	details, err := b.gitStore.Get(ctx, []string{hash})
+// 	if err != nil {
+// 		return 0, err
+// 	}
+
+// 	if details[0] == nil {
+// 		return 0, skerr.Fmt("Hash %s does not exist in repository on branch %s", hash, b.defaultBranch)
+// 	}
+
+// 	if err := b.Update(ctx, true, false); err != nil {
+// 		return 0, err
+// 	}
+
+// 	return 0, nil
+// }
 
 // ByIndex implements the vcsinfo.VCS interface
 func (b *BigTableVCS) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, error) {
