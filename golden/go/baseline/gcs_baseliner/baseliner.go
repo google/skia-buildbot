@@ -4,10 +4,8 @@ import (
 	"context"
 	"math"
 	"sync"
-	"time"
 
 	lru "github.com/hashicorp/golang-lru"
-	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
@@ -269,39 +267,44 @@ func (b *BaselinerImpl) FetchBaseline(commitHash string, issueID int64, issueOnl
 func (b *BaselinerImpl) getCommitsSince(firstCommit *tiling.Commit) ([]*tiling.Commit, error) {
 	defer shared.NewMetricsTimer("baseliner_get_commits_since").Stop()
 
-	// If there is an underlying gitstore retrieve it, otherwise this function becomes a no-op.
-	gitStoreBased, ok := b.vcs.(gitstore.GitStoreBased)
-	if !ok {
-		return []*tiling.Commit{}, nil
-	}
+	// // If there is an underlying gitstore retrieve it, otherwise this function becomes a no-op.
+	// gitStoreBased, ok := b.vcs.(gitstore.GitStoreBased)
+	// if !ok {
+	// 	return []*tiling.Commit{}, nil
+	// }
 
-	gitStore := gitStoreBased.GetGitStore()
-	ctx := context.TODO()
-	startTime := time.Unix(firstCommit.CommitTime, 0)
-	endTime := startTime.Add(time.Second)
-	branch := b.vcs.GetBranch()
-	commits, err := gitStore.RangeByTime(ctx, startTime, endTime, branch)
+	// gitStore := gitStoreBased.GetGitStore()
+	// ctx := context.TODO()
+	// startTime := time.Unix(firstCommit.CommitTime, 0)
+	// endTime := startTime.Add(time.Second)
+	// branch := b.vcs.GetBranch()
+	// commits, err := gitStore.RangeByTime(ctx, startTime, endTime, branch)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// if len(commits) == 0 {
+	// 	return nil, skerr.Fmt("No commits found while querying for commit %s", firstCommit.Hash)
+	// }
+
+	// var target *vcsinfo.IndexCommit
+	// for _, c := range commits {
+	// 	if c.Hash == firstCommit.Hash {
+	// 		target = c
+	// 	}
+	// }
+
+	// if target == nil {
+	// 	return nil, skerr.Fmt("Commit %s not found in gitstore", firstCommit.Hash)
+	// }
+
+	index, err := b.vcs.IndexOf()
 	if err != nil {
 		return nil, err
 	}
 
-	if len(commits) == 0 {
-		return nil, skerr.Fmt("No commits found while querying for commit %s", firstCommit.Hash)
-	}
-
-	var target *vcsinfo.IndexCommit
-	for _, c := range commits {
-		if c.Hash == firstCommit.Hash {
-			target = c
-		}
-	}
-
-	if target == nil {
-		return nil, skerr.Fmt("Commit %s not found in gitstore", firstCommit.Hash)
-	}
-
 	// Fetch all commits after the first one which we already have.
-	if commits, err = gitStore.RangeN(ctx, target.Index, int(math.MaxInt32), branch); err != nil {
+	if commits, err = gitStore.RangeN(ctx, index, int(math.MaxInt32), branch); err != nil {
 		return nil, err
 	}
 
