@@ -88,6 +88,24 @@
       "revId": "e1caa7b9297978b924450095e1cbaf457099685b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b6d93748_d173ee95",
+        "filename": "golden/go/types/expectations.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-13T17:22:30Z",
+      "side": 0,
+      "message": "I\u0027ll take another look, but I don\u0027t think BuilderImpl was serialized/unserialized except for tests.  TestExp was the one serialized/unserialized most of the time (which didn\u0027t change, except for the type name)",
+      "parentUuid": "725dd682_a3dd6a24",
+      "revId": "e1caa7b9297978b924450095e1cbaf457099685b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
