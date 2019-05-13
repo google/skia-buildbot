@@ -235,7 +235,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 	// When the master expectations change, update the blamer and its dependents. We choose size
 	// 100 because that is plenty capture an unlikely torrent of changes (they are usually triggered
 	// by a user).
-	expCh := make(chan types.TestExp, 100)
+	expCh := make(chan types.Expectations, 100)
 	ixr.storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
 		// Schedule the list of test names to be recalculated.
 		expCh <- e.(*expstorage.EventExpectationChange).TestChanges
@@ -257,7 +257,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 	go func() {
 		var cpxTile types.ComplexTile
 		for {
-			testChanges := []types.TestExp{}
+			testChanges := []types.Expectations{}
 
 			// See if there is a tile or changed tests.
 			cpxTile = nil
@@ -325,7 +325,7 @@ func (ixr *Indexer) writeBaselines() {
 }
 
 // indexTest creates an updated index by indexing the given list of expectation changes.
-func (ixr *Indexer) indexTests(testChanges []types.TestExp) {
+func (ixr *Indexer) indexTests(testChanges []types.Expectations) {
 	// Get all the testnames
 	// TODO(kjlubick): Is anything actually done with this data?
 	testNames := types.TestNameSet{}

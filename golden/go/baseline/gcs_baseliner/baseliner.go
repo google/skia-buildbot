@@ -47,7 +47,7 @@ type BaselinerImpl struct {
 	lastWrittenBaselines map[string]string
 
 	// baselineCache caches the baselines of all commits of the current tile.
-	baselineCache map[string]*baseline.CommitableBaseline
+	baselineCache map[string]*baseline.Baseline
 
 	// currTileInfo is the latest tileInfo we have.
 	currTileInfo baseline.TileInfo
@@ -71,7 +71,7 @@ func New(gStorageClient storage.GCSClient, expectationsStore expstorage.Expectat
 		vcs:                  vcs,
 		issueBaselineCache:   cache,
 		lastWrittenBaselines: map[string]string{},
-		baselineCache:        map[string]*baseline.CommitableBaseline{},
+		baselineCache:        map[string]*baseline.Baseline{},
 	}, nil
 }
 
@@ -81,7 +81,7 @@ func (b *BaselinerImpl) CanWriteBaseline() bool {
 }
 
 // PushMasterBaselines implements the baseline.Baseliner interface.
-func (b *BaselinerImpl) PushMasterBaselines(tileInfo baseline.TileInfo, targetHash string) (*baseline.CommitableBaseline, error) {
+func (b *BaselinerImpl) PushMasterBaselines(tileInfo baseline.TileInfo, targetHash string) (*baseline.Baseline, error) {
 	defer shared.NewMetricsTimer("push_master_baselines").Stop()
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
@@ -134,7 +134,7 @@ func (b *BaselinerImpl) PushMasterBaselines(tileInfo baseline.TileInfo, targetHa
 			continue
 		}
 
-		func(commit string, bLine *baseline.CommitableBaseline) {
+		func(commit string, bLine *baseline.Baseline) {
 			egroup.Go(func() error {
 				// Write the baseline to GCS.
 				_, err := b.gStorageClient.WriteBaseline(bLine)
@@ -155,7 +155,7 @@ func (b *BaselinerImpl) PushMasterBaselines(tileInfo baseline.TileInfo, targetHa
 	}
 
 	// If a specific baseline was also requested we find it now
-	var ret *baseline.CommitableBaseline
+	var ret *baseline.Baseline
 	if targetHash != "" {
 		var ok bool
 		ret, ok = perCommitBaselines[targetHash]
@@ -206,11 +206,11 @@ func (b *BaselinerImpl) PushIssueBaseline(issueID int64, tileInfo baseline.TileI
 }
 
 // FetchBaseline implements the baseline.Baseliner interface.
-func (b *BaselinerImpl) FetchBaseline(commitHash string, issueID int64, issueOnly bool) (*baseline.CommitableBaseline, error) {
+func (b *BaselinerImpl) FetchBaseline(commitHash string, issueID int64, issueOnly bool) (*baseline.Baseline, error) {
 	isIssue := issueID > 0
 
-	var masterBaseline *baseline.CommitableBaseline
-	var issueBaseline *baseline.CommitableBaseline
+	var masterBaseline *baseline.Baseline
+	var issueBaseline *baseline.Baseline
 	var egroup errgroup.Group
 
 	// Retrieve the baseline on master.
@@ -227,7 +227,7 @@ func (b *BaselinerImpl) FetchBaseline(commitHash string, issueID int64, issueOnl
 		egroup.Go(func() error {
 			val, ok := b.issueBaselineCache.Get(issueID)
 			if ok {
-				issueBaseline = val.(*baseline.CommitableBaseline)
+				issueBaseline = val.(*baseline.Baseline)
 				return nil
 			}
 
@@ -257,7 +257,7 @@ func (b *BaselinerImpl) FetchBaseline(commitHash string, issueID int64, issueOnl
 			masterBaseline = issueBaseline
 		} else {
 			// Clone the retrieved baseline before we inject the issue information.
-			masterBaseline.Baseline.Update(issueBaseline.Baseline)
+			masterBaseline.Expectations.Update(issueBaseline.Expectations)
 			masterBaseline.Issue = issueID
 		}
 	}
@@ -317,8 +317,8 @@ func (b *BaselinerImpl) getCommitsSince(firstCommit *tiling.Commit) ([]*tiling.C
 	return ret[1:], nil
 }
 
-func (b *BaselinerImpl) getMasterExpectations(commitHash string) (*baseline.CommitableBaseline, error) {
-	rv := func() *baseline.CommitableBaseline {
+func (b *BaselinerImpl) getMasterExpectations(commitHash string) (*baseline.Baseline, error) {
+	rv := func() *baseline.Baseline {
 		b.mutex.RLock()
 		defer b.mutex.RUnlock()
 		tileInfo := b.currTileInfo
@@ -335,7 +335,7 @@ func (b *BaselinerImpl) getMasterExpectations(commitHash string) (*baseline.Comm
 		}
 
 		if base, ok := b.baselineCache[commitHash]; ok {
-			return base.DeepCopyBaseline()
+			return base.Copy()
 		}
 		return nil
 	}()

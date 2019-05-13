@@ -20,7 +20,7 @@ var md5SumEmptyExp = ""
 
 func init() {
 	var err error
-	md5SumEmptyExp, err = util.MD5Sum(types.TestExp{})
+	md5SumEmptyExp, err = util.MD5Sum(types.Expectations{})
 	if err != nil {
 		panic(fmt.Sprintf("Could not get the MD5 sum of an empty expectation: %s", err))
 	}
@@ -35,20 +35,20 @@ func init() {
 // in the given TileInfo and Baselines for these should be essentially copies of the last
 // commit in the tile. This covers the case when the current tile is slightly behind all commits
 // that have already been added to the repository.
-func GetBaselinesPerCommit(exps types.TestExpBuilder, tileInfo TileInfo, extraCommits []*tiling.Commit) (map[string]*CommitableBaseline, error) {
+func GetBaselinesPerCommit(exps types.Expectations, tileInfo TileInfo, extraCommits []*tiling.Commit) (map[string]*Baseline, error) {
 	allCommits := tileInfo.AllCommits()
 	if len(allCommits) == 0 {
-		return map[string]*CommitableBaseline{}, nil
+		return map[string]*Baseline{}, nil
 	}
 
 	// Get the baselines for all commits for which we have data and that are not ignored.
 	denseTile := tileInfo.GetTile(false)
 	denseCommits := tileInfo.DataCommits()
-	denseBaselines := make(map[string]types.TestExp, len(denseCommits))
+	denseBaselines := make(map[string]types.Expectations, len(denseCommits))
 
 	// Initialize the expectations for all data commits
 	for _, commit := range denseCommits {
-		denseBaselines[commit.Hash] = make(types.TestExp, len(denseTile.Traces))
+		denseBaselines[commit.Hash] = make(types.Expectations, len(denseTile.Traces))
 	}
 
 	// Sweep the tile and calculate the baselines.
@@ -86,8 +86,8 @@ func GetBaselinesPerCommit(exps types.TestExpBuilder, tileInfo TileInfo, extraCo
 		combined = append(combined, extraCommits...)
 	}
 
-	ret := make(map[string]*CommitableBaseline, len(combined))
-	var currBL *CommitableBaseline = nil
+	ret := make(map[string]*Baseline, len(combined))
+	var currBL *Baseline = nil
 	for _, commit := range combined {
 		bl, ok := denseBaselines[commit.Hash]
 		if ok {
@@ -96,13 +96,13 @@ func GetBaselinesPerCommit(exps types.TestExpBuilder, tileInfo TileInfo, extraCo
 				return nil, skerr.Fmt("Error calculating MD5 sum: %s", err)
 			}
 
-			ret[commit.Hash] = &CommitableBaseline{
-				StartCommit: commit,
-				EndCommit:   commit,
-				Total:       len(denseTile.Traces),
-				Filled:      len(bl),
-				Baseline:    bl,
-				MD5:         md5Sum,
+			ret[commit.Hash] = &Baseline{
+				StartCommit:  commit,
+				EndCommit:    commit,
+				Total:        len(denseTile.Traces),
+				Filled:       len(bl),
+				Expectations: bl,
+				MD5:          md5Sum,
 			}
 			currBL = ret[commit.Hash]
 		} else if currBL != nil {
@@ -124,11 +124,13 @@ func GetBaselinesPerCommit(exps types.TestExpBuilder, tileInfo TileInfo, extraCo
 
 // GetBaselineForIssue returns the baseline for the given issue. This baseline
 // contains all triaged digests that are not in the master tile.
-func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobResults [][]*tryjobstore.TryjobResult, exp types.TestExpBuilder, commits []*tiling.Commit) (*CommitableBaseline, error) {
-	var startCommit *tiling.Commit = commits[len(commits)-1]
-	var endCommit *tiling.Commit = commits[len(commits)-1]
+// Note: CommitDelta, Total and Filled are not relevant for an issue baseline since
+// the concept of traces doesn't really make sense for a single commit.
+func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobResults [][]*tryjobstore.TryjobResult, exp types.Expectations, commits []*tiling.Commit) (*Baseline, error) {
+	startCommit := commits[len(commits)-1]
+	endCommit := commits[len(commits)-1]
 
-	b := types.TestExp{}
+	b := types.Expectations{}
 	for idx, tryjob := range tryjobs {
 		for _, result := range tryjobResults[idx] {
 			if result.Digest != types.MISSING_DIGEST && exp.Classification(result.TestName, result.Digest) == types.POSITIVE {
@@ -146,23 +148,20 @@ func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobRes
 		return nil, skerr.Fmt("Error calculating MD5 sum: %s", err)
 	}
 
-	// Note: CommitDelta, Total and Filled are not relevant for an issue baseline since there
-	// are not traces and commits directly related to this.
-
 	// TODO(stephana): Review whether StartCommit and EndCommit are useful here.
 
-	ret := &CommitableBaseline{
-		StartCommit: startCommit,
-		EndCommit:   endCommit,
-		Baseline:    b,
-		Issue:       issueID,
-		MD5:         md5Sum,
+	ret := &Baseline{
+		StartCommit:  startCommit,
+		EndCommit:    endCommit,
+		Expectations: b,
+		Issue:        issueID,
+		MD5:          md5Sum,
 	}
 	return ret, nil
 }
 
 // commitIssueBaseline commits the expectations for the given issue to the master baseline.
-func commitIssueBaseline(issueID int64, user string, issueChanges types.TestExp, tryjobStore tryjobstore.TryjobStore, expStore expstorage.ExpectationsStore) error {
+func commitIssueBaseline(issueID int64, user string, issueChanges types.Expectations, tryjobStore tryjobstore.TryjobStore, expStore expstorage.ExpectationsStore) error {
 	if len(issueChanges) == 0 {
 		return nil
 	}
