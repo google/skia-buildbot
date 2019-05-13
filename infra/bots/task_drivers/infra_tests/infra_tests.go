@@ -45,7 +45,6 @@ func main() {
 
 	// Initialize the Git repo. We receive the code via Isolate, but it
 	// doesn't include the .git dir.
-	// with cwd = infraDir:
 	gd := git.GitDir(infraDir)
 	if _, err := gd.Git(ctx, "init"); err != nil {
 		td.Fatal(ctx, err)
