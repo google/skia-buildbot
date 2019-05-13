@@ -41,14 +41,12 @@ const (
 // considered as immutable. Whenever the underlying data changes,
 // a new index is calculated via a pdag.
 type SearchIndex struct {
-	cpxTile              types.ComplexTile
-	dCounter             digest_counter.DigestCounter
-	dCounterWithIgnores  digest_counter.DigestCounter
-	summaries            *summary.Summaries
-	summariesWithIgnores *summary.Summaries
-	paramsetSummary      *paramsets.ParamSummary
-	blamer               blame.Blamer
-	warmer               *warmer.Warmer
+	cpxTile           types.ComplexTile
+	dCounters         map[types.IgnoreState]digest_counter.DigestCounter
+	summaries         map[types.IgnoreState]*summary.Summaries
+	paramsetSummaries map[types.IgnoreState]paramsets.ParamSummary
+	blamer            blame.Blamer
+	warmer            *warmer.Warmer
 
 	// This is set by the indexing pipeline when we just want to update
 	// individual tests that have changed.
@@ -61,15 +59,16 @@ type SearchIndex struct {
 // Indexer and retrieved via GetIndex().
 func newSearchIndex(storages *storage.Storage, cpxTile types.ComplexTile) *SearchIndex {
 	return &SearchIndex{
-		cpxTile:              cpxTile,
-		dCounter:             nil,
-		dCounterWithIgnores:  nil,
-		summaries:            summary.New(storages),
-		summariesWithIgnores: summary.New(storages),
-		paramsetSummary:      paramsets.New(),
-		blamer:               nil,
-		warmer:               warmer.New(storages),
-		storages:             storages,
+		cpxTile:   cpxTile,
+		dCounters: map[types.IgnoreState]digest_counter.DigestCounter{},
+		summaries: map[types.IgnoreState]*summary.Summaries{
+			types.ExcludeIgnoredTraces: summary.New(storages),
+			types.IncludeIgnoredTraces: summary.New(storages),
+		},
+		paramsetSummaries: map[types.IgnoreState]paramsets.ParamSummary{},
+		blamer:            nil,
+		warmer:            warmer.New(storages),
+		storages:          storages,
 	}
 }
 
@@ -86,60 +85,50 @@ func (idx *SearchIndex) GetIgnoreMatcher() paramtools.ParamMatcher {
 }
 
 // Proxy to digest_counter.DigestCounter.ByTest
-func (idx *SearchIndex) DigestCountsByTest(includeIgnores bool) map[types.TestName]digest_counter.DigestCount {
-	if includeIgnores {
-		return idx.dCounterWithIgnores.ByTest()
-	}
-	return idx.dCounter.ByTest()
+func (idx *SearchIndex) DigestCountsByTest(is types.IgnoreState) map[types.TestName]digest_counter.DigestCount {
+	return idx.dCounters[is].ByTest()
 }
 
 // Proxy to digest_counter.DigestCounter.MaxDigestsByTest
-func (idx *SearchIndex) MaxDigestsByTest(includeIgnores bool) map[types.TestName]types.DigestSet {
-	if includeIgnores {
-		return idx.dCounterWithIgnores.MaxDigestsByTest()
-	}
-	return idx.dCounter.MaxDigestsByTest()
+func (idx *SearchIndex) MaxDigestsByTest(is types.IgnoreState) map[types.TestName]types.DigestSet {
+	return idx.dCounters[is].MaxDigestsByTest()
 }
 
 // Proxy to digest_counter.DigestCounter.ByTrace
-func (idx *SearchIndex) DigestCountsByTrace(includeIgnores bool) map[tiling.TraceId]digest_counter.DigestCount {
-	if includeIgnores {
-		return idx.dCounterWithIgnores.ByTrace()
-	}
-	return idx.dCounter.ByTrace()
+func (idx *SearchIndex) DigestCountsByTrace(is types.IgnoreState) map[tiling.TraceId]digest_counter.DigestCount {
+	return idx.dCounters[is].ByTrace()
 }
 
 // ByQuery returns a DigestCount of all the digests that match the given query.
-func (idx *SearchIndex) DigestCountsByQuery(query url.Values, includeIgnores bool) digest_counter.DigestCount {
-	return idx.dCounter.ByQuery(idx.cpxTile.GetTile(includeIgnores), query)
+func (idx *SearchIndex) DigestCountsByQuery(query url.Values, is types.IgnoreState) digest_counter.DigestCount {
+	return idx.dCounters[is].ByQuery(idx.cpxTile.GetTile(is), query)
 }
 
 // Proxy to summary.Summary.Get.
-func (idx *SearchIndex) GetSummaries(includeIgnores bool) map[types.TestName]*summary.Summary {
-	if includeIgnores {
-		return idx.summariesWithIgnores.Get()
-	}
-	return idx.summaries.Get()
+func (idx *SearchIndex) GetSummaries(is types.IgnoreState) map[types.TestName]*summary.Summary {
+	return idx.summaries[is].Get()
 }
 
 // Proxy to summary.CalcSummaries.
-func (idx *SearchIndex) CalcSummaries(testNames []types.TestName, query url.Values, includeIgnores, head bool) (map[types.TestName]*summary.Summary, error) {
-	return idx.summaries.CalcSummaries(idx.cpxTile.GetTile(includeIgnores), testNames, query, head)
+func (idx *SearchIndex) CalcSummaries(testNames []types.TestName, query url.Values, is types.IgnoreState, head bool) (map[types.TestName]*summary.Summary, error) {
+	return idx.summaries[is].CalcSummaries(idx.cpxTile.GetTile(is), testNames, query, head)
 }
 
 // Proxy to paramsets.Get
-func (idx *SearchIndex) GetParamsetSummary(test types.TestName, digest types.Digest, includeIgnores bool) paramtools.ParamSet {
-	return idx.paramsetSummary.Get(test, digest, includeIgnores)
+func (idx *SearchIndex) GetParamsetSummary(test types.TestName, digest types.Digest, is types.IgnoreState) paramtools.ParamSet {
+	return idx.paramsetSummaries[is].Get(test, digest)
 }
 
 // Proxy to paramsets.GetByTest
-func (idx *SearchIndex) GetParamsetSummaryByTest(includeIgnores bool) map[types.TestName]map[types.Digest]paramtools.ParamSet {
-	return idx.paramsetSummary.GetByTest(includeIgnores)
+func (idx *SearchIndex) GetParamsetSummaryByTest(is types.IgnoreState) map[types.TestName]map[types.Digest]paramtools.ParamSet {
+	return idx.paramsetSummaries[is].GetByTest()
 }
 
 // Proxy to blame.Blamer.GetBlame.
 func (idx *SearchIndex) GetBlame(test types.TestName, digest types.Digest, commits []*tiling.Commit) *blame.BlameDistribution {
 	if idx.blamer == nil {
+		// should never happen - indexer should have this initialized
+		// before the web server starts serving requests.
 		return nil
 	}
 	return idx.blamer.GetBlame(test, digest, commits)
@@ -170,14 +159,17 @@ func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
 	// Set up the processing pipeline.
 	root := pdag.NewNodeWithParents(pdag.NoOp)
 
-	// At the top level, Add the DigestCounter...
-	countNode := root.Child(calcDigestCounts)
-	countIgnoresNode := root.Child(calcDigestCountsWithIgnores)
+	// At the top level, Add the DigestCounters...
+	countsNodeInclude := root.Child(calcDigestCountsInclude)
+	// These are run in parallel because they can take tens of seconds
+	// in large repos like Skia.
+	countsNodeExclude := root.Child(calcDigestCountsExclude)
 
 	// Node that triggers blame and writing baselines.
 	// This is used to trigger when expectations change.
-	// TODO(kjlubick): should countNode and countIgnoresNode depend on
-	// this so they can also be re-executed when expectations change?
+	// We don't need to re-calculate DigestCounts if the
+	// expectations change because the DigestCounts don't care about
+	// the expectations, only on the tile.
 	indexTestsNode := root.Child(pdag.NoOp)
 
 	// ... and invoke the Blamer to calculate the blames.
@@ -188,21 +180,24 @@ func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
 	writeBaselineNode := indexTestsNode.Child(writeMasterBaseline)
 
 	// Parameters depend on DigestCounter.
-	paramsNode := pdag.NewNodeWithParents(calcParamsets, countNode, countIgnoresNode)
+	paramsNodeInclude := pdag.NewNodeWithParents(calcParamsetsInclude, countsNodeInclude)
+	// These are run in parallel because they can take tens of seconds
+	// in large repos like Skia.
+	paramsNodeExclude := pdag.NewNodeWithParents(calcParamsetsExclude, countsNodeExclude)
 
-	// Write known hashes after ignores are computed
-	writeHashes := countIgnoresNode.Child(writeKnownHashesList)
+	// Write known hashes after ignores are computed. DigestCount is a
+	// convenient way to get all the hashes, so that's what this node uses.
+	writeHashes := countsNodeInclude.Child(writeKnownHashesList)
 
 	// Summaries depend on DigestCounter and Blamer.
-	summaryNode := pdag.NewNodeWithParents(calcSummaries, countNode, blamerNode)
-	summaryIgnoresNode := pdag.NewNodeWithParents(calcSummariesWithIgnores, countIgnoresNode, blamerNode)
+	summariesNode := pdag.NewNodeWithParents(calcSummaries, countsNodeInclude, countsNodeExclude, blamerNode)
 
 	// The Warmer depends on summaries.
-	pdag.NewNodeWithParents(runWarmer, summaryNode, summaryIgnoresNode)
+	pdag.NewNodeWithParents(runWarmer, summariesNode)
 
 	// Set the result on the Indexer instance, once summaries, parameters and writing
 	// the hash files is done.
-	pdag.NewNodeWithParents(ret.setIndex, summaryNode, summaryIgnoresNode, paramsNode, writeHashes)
+	pdag.NewNodeWithParents(ret.setIndex, summariesNode, paramsNodeInclude, paramsNodeExclude, writeHashes)
 
 	ret.pipeline = root
 	ret.indexTestsNode = indexTestsNode
@@ -346,15 +341,16 @@ func (ixr *Indexer) indexTests(testChanges []types.Expectations) {
 func (ixr *Indexer) cloneLastIndex() *SearchIndex {
 	lastIdx := ixr.GetIndex()
 	return &SearchIndex{
-		cpxTile:              lastIdx.cpxTile,
-		dCounter:             lastIdx.dCounter,            // stay the same even if tests change.
-		dCounterWithIgnores:  lastIdx.dCounterWithIgnores, // stay the same even if tests change.
-		summaries:            lastIdx.summaries.Clone(),
-		summariesWithIgnores: lastIdx.summariesWithIgnores.Clone(),
-		paramsetSummary:      lastIdx.paramsetSummary,
-		blamer:               lastIdx.blamer, // blamer is immutable and thus, thread-safe.
-		warmer:               warmer.New(ixr.storages),
-		storages:             lastIdx.storages,
+		cpxTile:   lastIdx.cpxTile,
+		dCounters: lastIdx.dCounters, // stay the same even if tests change.
+		summaries: map[types.IgnoreState]*summary.Summaries{
+			types.ExcludeIgnoredTraces: lastIdx.summaries[types.ExcludeIgnoredTraces].Clone(),
+			types.IncludeIgnoredTraces: lastIdx.summaries[types.IncludeIgnoredTraces].Clone(),
+		},
+		paramsetSummaries: lastIdx.paramsetSummaries, //paramsetSummaries are immutable
+		blamer:            lastIdx.blamer,            // blamer is immutable and thus, thread-safe.
+		warmer:            warmer.New(ixr.storages),
+		storages:          lastIdx.storages,
 	}
 }
 
@@ -384,46 +380,59 @@ func (ixr *Indexer) writeIssueBaseline(evData interface{}) {
 	}
 
 	idx := ixr.GetIndex()
-	if err := ixr.storages.Baseliner.PushIssueBaseline(issueID, idx.cpxTile, idx.dCounter); err != nil {
+	if err := ixr.storages.Baseliner.PushIssueBaseline(issueID, idx.cpxTile, idx.dCounters[types.ExcludeIgnoredTraces]); err != nil {
 		sklog.Errorf("Unable to push baseline for issue %d to GCS: %s", issueID, err)
 		return
 	}
 }
 
-// calcDigestCounts is the pipeline function to invoke DigestCounter. Ignore rules
-// are ignored for these counts.
-func calcDigestCounts(state interface{}) error {
+// calcDigestCountsInclude is the pipeline function to calculate DigestCounts from
+// the full tile (not applying ignore rules)
+func calcDigestCountsInclude(state interface{}) error {
 	idx := state.(*SearchIndex)
-	idx.dCounter = digest_counter.New(idx.cpxTile.GetTile(false))
+	is := types.IncludeIgnoredTraces
+	idx.dCounters[is] = digest_counter.New(idx.cpxTile.GetTile(is))
 	return nil
 }
 
-// calcDigestCountsWithIgnores is the pipeline function to invoke DigestCounter for
-// the tile that applies ignore rules.
-func calcDigestCountsWithIgnores(state interface{}) error {
+// calcDigestCountsExclude is the pipeline function to calculate DigestCounts from
+// the partial tile (applying ignore rules).
+func calcDigestCountsExclude(state interface{}) error {
 	idx := state.(*SearchIndex)
-	idx.dCounterWithIgnores = digest_counter.New(idx.cpxTile.GetTile(true))
+	is := types.ExcludeIgnoredTraces
+	idx.dCounters[is] = digest_counter.New(idx.cpxTile.GetTile(is))
 	return nil
 }
 
 // calcSummaries is the pipeline function to calculate the summaries.
 func calcSummaries(state interface{}) error {
 	idx := state.(*SearchIndex)
-	err := idx.summaries.Calculate(idx.cpxTile.GetTile(false), idx.testNames, idx.dCounter, idx.blamer)
-	return err
+	for _, is := range types.IgnoreStates {
+		err := idx.summaries[is].Calculate(idx.cpxTile.GetTile(is), idx.testNames, idx.dCounters[is], idx.blamer)
+		if err != nil {
+			return skerr.Fmt("Could not calculate summaries with ignore state %d: %s", is, err)
+		}
+	}
+
+	return nil
 }
 
-// calcSummariesWithIgnores is the pipeline function to calculate the summaries.
-func calcSummariesWithIgnores(state interface{}) error {
+// calcParamsetsInclude is the pipeline function to calculate the parameters from
+// the full tile (not applying ignore rules)
+func calcParamsetsInclude(state interface{}) error {
 	idx := state.(*SearchIndex)
-	err := idx.summariesWithIgnores.Calculate(idx.cpxTile.GetTile(true), idx.testNames, idx.dCounterWithIgnores, idx.blamer)
-	return err
+	is := types.IncludeIgnoredTraces
+	idx.paramsetSummaries[is] = paramsets.NewParamSummary(idx.cpxTile.GetTile(is), idx.dCounters[is])
+
+	return nil
 }
 
-// calcParamsets is the pipeline function to calculate the parameters.
-func calcParamsets(state interface{}) error {
+// calcParamsetsExclude is the pipeline function to calculate the parameters from
+// the partial tile (applying ignore rules)
+func calcParamsetsExclude(state interface{}) error {
 	idx := state.(*SearchIndex)
-	idx.paramsetSummary.Calculate(idx.cpxTile, idx.dCounter, idx.dCounterWithIgnores)
+	is := types.ExcludeIgnoredTraces
+	idx.paramsetSummaries[is] = paramsets.NewParamSummary(idx.cpxTile.GetTile(is), idx.dCounters[is])
 	return nil
 }
 
@@ -434,7 +443,7 @@ func calcBlame(state interface{}) error {
 	if err != nil {
 		return skerr.Fmt("Could not fetch expectaions needed to calculate blame: %s", err)
 	}
-	b, err := blame.New(idx.cpxTile.GetTile(false), exp)
+	b, err := blame.New(idx.cpxTile.GetTile(types.ExcludeIgnoredTraces), exp)
 	if err != nil {
 		idx.blamer = nil
 		return skerr.Fmt("Could not calculate blame: %s", err)
@@ -453,7 +462,7 @@ func writeKnownHashesList(state interface{}) error {
 
 	// Trigger writing the hashes list.
 	go func() {
-		byTest := idx.DigestCountsByTest(true)
+		byTest := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
 		unavailableDigests := idx.storages.DiffStore.UnavailableDigests()
 		// Collect all hashes in the tile that haven't been marked as unavailable yet.
 		hashes := types.DigestSet{}
@@ -511,6 +520,7 @@ func runWarmer(state interface{}) error {
 
 	// TODO (stephana): Instead of warming everything we should warm non-ignored
 	// traces with higher priority.
-	go idx.warmer.Run(idx.cpxTile.GetTile(true), idx.summariesWithIgnores, idx.dCounterWithIgnores)
+	is := types.IncludeIgnoredTraces
+	go idx.warmer.Run(idx.cpxTile.GetTile(is), idx.summaries[is], idx.dCounters[is])
 	return nil
 }

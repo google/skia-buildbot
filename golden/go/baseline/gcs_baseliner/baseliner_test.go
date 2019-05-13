@@ -151,7 +151,7 @@ func TestPushMasterBaselineSunnyDay(t *testing.T) {
 
 	mcs.On("AllCommits").Return(three_devices.MakeTestCommits())
 	mcs.On("DataCommits").Return(three_devices.MakeTestCommits())
-	mcs.On("GetTile", false).Return(three_devices.MakeTestTile())
+	mcs.On("GetTile", types.ExcludeIgnoredTraces).Return(three_devices.MakeTestTile())
 
 	mes.On("Get").Return(three_devices.MakeTestExpectations(), nil)
 

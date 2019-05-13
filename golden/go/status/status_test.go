@@ -81,7 +81,7 @@ func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder)
 
 		changes := types.Expectations{}
 		posOrNeg := []types.Label{types.POSITIVE, types.NEGATIVE}
-		for _, trace := range cpxTile.GetTile(false).Traces {
+		for _, trace := range cpxTile.GetTile(types.ExcludeIgnoredTraces).Traces {
 			if trace.Params()[types.CORPUS_FIELD] == corpStatus.Name {
 				gTrace := trace.(*types.GoldenTrace)
 				testName := gTrace.TestName()

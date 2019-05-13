@@ -203,7 +203,7 @@ func (s *StatusWatcher) calcStatus(cpxTile types.ComplexTile) error {
 	byCorpus := map[string]map[types.Label]map[string]bool{}
 
 	// Iterate over the current traces
-	dataTile := cpxTile.GetTile(false)
+	dataTile := cpxTile.GetTile(types.ExcludeIgnoredTraces)
 	tileLen := dataTile.LastCommitIndex() + 1
 	for _, trace := range dataTile.Traces {
 		gTrace := trace.(*types.GoldenTrace)

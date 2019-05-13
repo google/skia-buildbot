@@ -30,13 +30,13 @@ type AddFn func(test types.TestName, digest types.Digest, traceID tiling.TraceId
 // acceptFn == nil equals unconditional acceptance.
 func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *indexer.SearchIndex) error {
 	cpxTile := idx.CpxTile()
-	selectedTile := cpxTile.GetTile(query.IncludeIgnores)
+	selectedTile := cpxTile.GetTile(query.IgnoreState())
 
 	if acceptFn == nil {
 		acceptFn = func(params paramtools.Params, digests types.DigestSlice) (bool, interface{}) { return true, nil }
 	}
 
-	digestCountsByTrace := idx.DigestCountsByTrace(query.IncludeIgnores)
+	digestCountsByTrace := idx.DigestCountsByTrace(query.IgnoreState())
 	lastTraceIdx, traceView, err := getTraceViewFn(selectedTile, query.FCommitBegin, query.FCommitEnd)
 	if err != nil {
 		return err

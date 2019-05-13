@@ -31,7 +31,7 @@ func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qSt
 	if err != nil {
 		return 0
 	}
-	tile := idx.CpxTile().GetTile(q.IncludeIgnores)
+	tile := idx.CpxTile().GetTile(q.IgnoreState())
 
 	// TODO(stephana): Remove the lines below to also exercise the search for
 	// issues. This requires to refresh the set of input queries.
@@ -160,7 +160,7 @@ func getStoragesAndIndexerFromTile(t assert.TestingT, path string, randomize boo
 	ixr, err := indexer.New(storages, 10*time.Minute)
 	assert.NoError(t, err)
 	idx := ixr.GetIndex()
-	tile := idx.CpxTile().GetTile(false)
+	tile := idx.CpxTile().GetTile(types.ExcludeIgnoredTraces)
 	return storages, idx, tile, ixr
 }
 

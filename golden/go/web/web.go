@@ -174,10 +174,10 @@ func (wh *WebHandlers) JsonByBlameHandler(w http.ResponseWriter, r *http.Request
 
 // allUntriagedSummaries returns a tile and summaries for all untriaged GMs.
 func allUntriagedSummaries(idx *indexer.SearchIndex, query url.Values) (*tiling.Tile, map[types.TestName]*summary.Summary, error) {
-	tile := idx.CpxTile().GetTile(true)
+	tile := idx.CpxTile().GetTile(types.IncludeIgnoredTraces)
 
 	// Get a list of all untriaged images by test.
-	sum, err := idx.CalcSummaries([]types.TestName{}, query, false, true)
+	sum, err := idx.CalcSummaries([]types.TestName{}, query, types.ExcludeIgnoredTraces, true)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Couldn't load summaries: %s", err)
 	}
@@ -659,7 +659,7 @@ func (wh *WebHandlers) JsonClusterDiffHandler(w http.ResponseWriter, r *http.Req
 				Value:  dm.PixelDiffPercent,
 			})
 		}
-		d3.ParamsetByDigest[d.Digest] = idx.GetParamsetSummary(d.Test, d.Digest, false)
+		d3.ParamsetByDigest[d.Digest] = idx.GetParamsetSummary(d.Test, d.Digest, types.ExcludeIgnoredTraces)
 		for _, p := range d3.ParamsetByDigest[d.Digest] {
 			sort.Strings(p)
 		}
@@ -754,7 +754,7 @@ func (wh *WebHandlers) JsonListTestsHandler(w http.ResponseWriter, r *http.Reque
 	corpus, hasSourceType := query.Query[types.CORPUS_FIELD]
 	sumSlice := []*summary.Summary{}
 	if !query.IncludeIgnores && query.Head && len(query.Query) == 1 && hasSourceType {
-		sumMap := idx.GetSummaries(false)
+		sumMap := idx.GetSummaries(types.ExcludeIgnoredTraces)
 		for _, s := range sumMap {
 			if util.In(s.Corpus, corpus) && includeSummary(s, &query) {
 				sumSlice = append(sumSlice, s)
@@ -762,7 +762,7 @@ func (wh *WebHandlers) JsonListTestsHandler(w http.ResponseWriter, r *http.Reque
 		}
 	} else {
 		sklog.Infof("%q %q %q", r.FormValue("query"), r.FormValue("include"), r.FormValue("head"))
-		sumMap, err := idx.CalcSummaries(nil, query.Query, query.IncludeIgnores, query.Head)
+		sumMap, err := idx.CalcSummaries(nil, query.Query, query.IgnoreState(), query.Head)
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to calculate summaries.")
 			return
@@ -939,7 +939,7 @@ func (wh *WebHandlers) JsonTriageUndoHandler(w http.ResponseWriter, r *http.Requ
 
 // JsonParamsHandler returns the union of all parameters.
 func (wh *WebHandlers) JsonParamsHandler(w http.ResponseWriter, r *http.Request) {
-	tile := wh.Indexer.GetIndex().CpxTile().GetTile(true)
+	tile := wh.Indexer.GetIndex().CpxTile().GetTile(types.IncludeIgnoredTraces)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(tile.ParamSet); err != nil {
 		sklog.Errorf("Failed to write or encode result: %s", err)
@@ -1063,7 +1063,7 @@ func (wh *WebHandlers) TextAllHashesHandler(w http.ResponseWriter, r *http.Reque
 	unavailableDigests := wh.Storages.DiffStore.UnavailableDigests()
 
 	idx := wh.Indexer.GetIndex()
-	byTest := idx.DigestCountsByTest(true)
+	byTest := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
 	hashes := map[types.Digest]bool{}
 	for _, test := range byTest {
 		for k := range test {
