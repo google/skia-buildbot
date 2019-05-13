@@ -51,6 +51,7 @@ var (
 
 	// Top-level list of all Jobs to run at each commit.
 	JOBS = []string{
+		"Housekeeper-Nightly-UpdateGoDeps",
 		"Housekeeper-OnDemand-Presubmit",
 		"Infra-PerCommit-Build",
 		"Infra-PerCommit-Small",
@@ -378,6 +379,39 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
 		Isolate:        "whole_repo.isolate",
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	}
+	b.MustAddTask(name, t)
+	return name
+}
+
+func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
+	cipd := append([]*specs.CipdPackage{}, CIPD_PKGS_GIT...)
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
+
+	machineType := MACHINE_TYPE_MEDIUM
+	t := &specs.TaskSpec{
+		Caches:       CACHES_GO,
+		CipdPackages: cipd,
+		Command: []string{
+			"./update_go_deps",
+			"--project_id", "skia-swarming-bots",
+			"--task_id", specs.PLACEHOLDER_TASK_ID,
+			"--task_name", name,
+			"--workdir", ".",
+			"--gerrit_url", "https://skia-review.googlesource.com",
+			"--repo", specs.PLACEHOLDER_REPO,
+			"--revision", specs.PLACEHOLDER_REVISION,
+			"--patch_issue", specs.PLACEHOLDER_ISSUE,
+			"--patch_set", specs.PLACEHOLDER_PATCHSET,
+			"--alsologtostderr",
+		},
+		Dependencies: []string{BUILD_TASK_DRIVERS_NAME},
+		Dimensions:   linuxGceDimensions(machineType),
+		EnvPrefixes: map[string][]string{
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
+		},
+		Isolate:        "empty.isolate",
 		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
 	}
 	b.MustAddTask(name, t)
