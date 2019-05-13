@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8ac46218_7dbc7a2b",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T18:14:13Z",
+      "side": 1,
+      "message": "Note that you\u0027re losing some parallelism here. Previously counts were processed for IncludeIgnored and ExcludeIgnored in parallel. Also for summariesNode.",
+      "range": {
+        "startLine": 162,
+        "startChar": 0,
+        "endLine": 163,
+        "endChar": 43
+      },
+      "revId": "1252a27dd78b338e08bfc9595dd6b77fd1ffba9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "73507dff_ebca86d1",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T18:14:13Z",
+      "side": 1,
+      "message": "nit: per chat, Traces",
+      "range": {
+        "startLine": 97,
+        "startChar": 15,
+        "endLine": 97,
+        "endChar": 22
+      },
+      "revId": "1252a27dd78b338e08bfc9595dd6b77fd1ffba9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7aba14ee_fa4ed982",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T18:14:13Z",
+      "side": 1,
+      "message": "nit: Traces here too",
+      "range": {
+        "startLine": 144,
+        "startChar": 19,
+        "endLine": 144,
+        "endChar": 26
+      },
+      "revId": "1252a27dd78b338e08bfc9595dd6b77fd1ffba9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
