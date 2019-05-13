@@ -150,6 +150,7 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/triage.html"),
 		filepath.Join(*resourcesDir, "templates/alerts.html"),
 		filepath.Join(*resourcesDir, "templates/help.html"),
+		filepath.Join(*resourcesDir, "templates/offline.html"),
 		filepath.Join(*resourcesDir, "templates/activitylog.html"),
 		filepath.Join(*resourcesDir, "templates/dryRunAlert.html"),
 
@@ -392,7 +393,22 @@ func helpHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "text/html")
 		ctx := calc.NewContext(nil, nil)
-		if err := templates.ExecuteTemplate(w, "help.html", ctx); err != nil {
+		if err := templates.ExecuteTemplate(w, "offline.html", ctx); err != nil {
+			sklog.Errorln("Failed to expand template:", err)
+		}
+	}
+}
+
+// offlineHandler handles the GET of the offline page.
+func offlineHandler(w http.ResponseWriter, r *http.Request) {
+	sklog.Infof("Help Handler: %q\n", r.URL.Path)
+	if *local {
+		loadTemplates()
+	}
+	if r.Method == "GET" {
+		w.Header().Set("Content-Type", "text/html")
+		ctx := calc.NewContext(nil, nil)
+		if err := templates.ExecuteTemplate(w, "offline.html", ctx); err != nil {
 			sklog.Errorln("Failed to expand template:", err)
 		}
 	}
@@ -1524,6 +1540,7 @@ func main() {
 	router.HandleFunc("/logout/", login.LogoutHandler)
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	router.HandleFunc("/offline", offlineHandler)
 
 	// JSON handlers.
 	router.HandleFunc("/_/initpage/", initpageHandler)
