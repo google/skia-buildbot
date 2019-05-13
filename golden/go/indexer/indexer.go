@@ -44,8 +44,8 @@ type SearchIndex struct {
 	cpxTile                     types.ComplexTile
 	dCounterWithIgnoreRules     digest_counter.DigestCounter
 	dCounterWithoutIgnoreRules  digest_counter.DigestCounter
-	summariesWithIgnoreRules    *summary.Summaries
-	summariesWithoutIgnoreRules *summary.Summaries
+	summariesWithIgnoreRules    summary.SummaryMap
+	summariesWithoutIgnoreRules summary.SummaryMap
 	paramsetSummary             paramsets.ParamSummary
 	blamer                      blame.Blamer
 	warmer                      *warmer.Warmer
@@ -64,8 +64,8 @@ func newSearchIndex(storages *storage.Storage, cpxTile types.ComplexTile) *Searc
 		cpxTile:                     cpxTile,
 		dCounterWithIgnoreRules:     nil,
 		dCounterWithoutIgnoreRules:  nil,
-		summariesWithIgnoreRules:    summary.New(storages),
-		summariesWithoutIgnoreRules: summary.New(storages),
+		summariesWithIgnoreRules:    nil,
+		summariesWithoutIgnoreRules: nil,
 		paramsetSummary:             nil,
 		blamer:                      nil,
 		warmer:                      warmer.New(storages),
@@ -86,55 +86,59 @@ func (idx *SearchIndex) GetIgnoreMatcher() paramtools.ParamMatcher {
 }
 
 // Proxy to digest_counter.DigestCounter.ByTest
-func (idx *SearchIndex) DigestCountsByTest(includeIgnores bool) map[types.TestName]digest_counter.DigestCount {
-	if includeIgnores {
+func (idx *SearchIndex) DigestCountsByTest(noIgnoreRules bool) map[types.TestName]digest_counter.DigestCount {
+	if noIgnoreRules {
 		return idx.dCounterWithoutIgnoreRules.ByTest()
 	}
 	return idx.dCounterWithIgnoreRules.ByTest()
 }
 
 // Proxy to digest_counter.DigestCounter.MaxDigestsByTest
-func (idx *SearchIndex) MaxDigestsByTest(includeIgnores bool) map[types.TestName]types.DigestSet {
-	if includeIgnores {
+func (idx *SearchIndex) MaxDigestsByTest(noIgnoreRules bool) map[types.TestName]types.DigestSet {
+	if noIgnoreRules {
 		return idx.dCounterWithoutIgnoreRules.MaxDigestsByTest()
 	}
 	return idx.dCounterWithIgnoreRules.MaxDigestsByTest()
 }
 
 // Proxy to digest_counter.DigestCounter.ByTrace
-func (idx *SearchIndex) DigestCountsByTrace(includeIgnores bool) map[tiling.TraceId]digest_counter.DigestCount {
-	if includeIgnores {
+func (idx *SearchIndex) DigestCountsByTrace(noIgnoreRules bool) map[tiling.TraceId]digest_counter.DigestCount {
+	if noIgnoreRules {
 		return idx.dCounterWithoutIgnoreRules.ByTrace()
 	}
 	return idx.dCounterWithIgnoreRules.ByTrace()
 }
 
 // ByQuery returns a DigestCount of all the digests that match the given query.
-func (idx *SearchIndex) DigestCountsByQuery(query url.Values, includeIgnores bool) digest_counter.DigestCount {
-	return idx.dCounterWithIgnoreRules.ByQuery(idx.cpxTile.GetTile(includeIgnores), query)
+func (idx *SearchIndex) DigestCountsByQuery(query url.Values, noIgnoreRules bool) digest_counter.DigestCount {
+	return idx.dCounterWithIgnoreRules.ByQuery(idx.cpxTile.GetTile(noIgnoreRules), query)
 }
 
 // Proxy to summary.Summary.Get.
-func (idx *SearchIndex) GetSummaries(includeIgnores bool) map[types.TestName]*summary.Summary {
-	if includeIgnores {
-		return idx.summariesWithoutIgnoreRules.Get()
+func (idx *SearchIndex) GetSummaries(noIgnoreRules bool) summary.SummaryMap {
+	if noIgnoreRules {
+		return idx.summariesWithoutIgnoreRules
 	}
-	return idx.summariesWithIgnoreRules.Get()
+	return idx.summariesWithIgnoreRules
 }
 
 // Proxy to summary.CalcSummaries.
-func (idx *SearchIndex) CalcSummaries(testNames []types.TestName, query url.Values, includeIgnores, head bool) (map[types.TestName]*summary.Summary, error) {
-	return idx.summariesWithIgnoreRules.CalcSummaries(idx.cpxTile.GetTile(includeIgnores), testNames, query, head)
+func (idx *SearchIndex) CalcSummaries(testNames []types.TestName, query url.Values, noIgnoreRules, head bool) (summary.SummaryMap, error) {
+	dCounter := idx.dCounterWithIgnoreRules
+	if noIgnoreRules {
+		dCounter = idx.dCounterWithoutIgnoreRules
+	}
+	return summary.NewSummaryMap(idx.storages, idx.cpxTile.GetTile(noIgnoreRules), dCounter, idx.blamer, testNames, query, head)
 }
 
 // Proxy to paramsets.Get
-func (idx *SearchIndex) GetParamsetSummary(test types.TestName, digest types.Digest, includeIgnores bool) paramtools.ParamSet {
+func (idx *SearchIndex) GetParamsetSummary(test types.TestName, digest types.Digest, noIgnoreRules bool) paramtools.ParamSet {
 	if idx.paramsetSummary == nil {
 		// should never happen - indexer should have this initialized
 		// before the web server starts serving requests.
 		return paramtools.ParamSet{}
 	}
-	return idx.paramsetSummary.Get(test, digest, includeIgnores)
+	return idx.paramsetSummary.Get(test, digest, noIgnoreRules)
 }
 
 // Proxy to paramsets.GetByTest
@@ -311,7 +315,8 @@ func (ixr *Indexer) start(interval time.Duration) error {
 				// Only index the tests that have changed.
 				ixr.indexTests(testChanges)
 			} else {
-				// At this point new commits have discovered and we just want to write the baselines.
+				// At this point new commits have been discovered and we just want to
+				// write the baselines.
 				ixr.writeBaselines()
 			}
 		}
@@ -421,15 +426,27 @@ func calcDigestCountsWithoutIgnoreRules(state interface{}) error {
 // calcSummariesWithIgnoreRules is the pipeline function to calculate the summaries.
 func calcSummariesWithIgnoreRules(state interface{}) error {
 	idx := state.(*SearchIndex)
-	err := idx.summariesWithIgnoreRules.Calculate(idx.cpxTile.GetTile(false), idx.testNames, idx.dCounterWithIgnoreRules, idx.blamer)
-	return err
+	dCounter := idx.dCounterWithIgnoreRules
+	sum, err := summary.NewSummaryMap(idx.storages, idx.cpxTile.GetTile(false), dCounter, idx.blamer, idx.testNames, nil, true)
+	if err != nil {
+		idx.summariesWithIgnoreRules = nil
+		return skerr.Fmt("Could not calculate summaryMap with ignore rules")
+	}
+	idx.summariesWithIgnoreRules = sum
+	return nil
 }
 
 // calcSummariesWithoutIgnoreRules is the pipeline function to calculate the summaries.
 func calcSummariesWithoutIgnoreRules(state interface{}) error {
 	idx := state.(*SearchIndex)
-	err := idx.summariesWithoutIgnoreRules.Calculate(idx.cpxTile.GetTile(true), idx.testNames, idx.dCounterWithoutIgnoreRules, idx.blamer)
-	return err
+	dCounter := idx.dCounterWithoutIgnoreRules
+	sum, err := summary.NewSummaryMap(idx.storages, idx.cpxTile.GetTile(true), dCounter, idx.blamer, idx.testNames, nil, true)
+	if err != nil {
+		idx.summariesWithoutIgnoreRules = nil
+		return skerr.Fmt("Could not calculate summaryMap without ignore rules")
+	}
+	idx.summariesWithoutIgnoreRules = sum
+	return nil
 }
 
 // calcParamsetsWithIgnoreRules is the pipeline function to calculate the parameters.
