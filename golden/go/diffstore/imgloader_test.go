@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -21,7 +22,7 @@ const (
 )
 
 func TestImageLoader(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	mapper := GoldDiffStoreMapper{}
 	workingDir, tile, imageLoader, cleanup := getImageLoaderAndTile(t, mapper)

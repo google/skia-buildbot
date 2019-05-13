@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -15,7 +16,7 @@ import (
 
 // TestDS test storing regressions in the datastore.
 func TestDS(t *testing.T) {
-	testutils.ManualTest(t)
+	unittest.ManualTest(t)
 
 	cleanup := testutil.InitDatastore(t, ds.REGRESSION)
 	defer cleanup()

@@ -13,7 +13,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/isolate"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -25,7 +25,7 @@ const (
 // TestCreateIsolatedGenJSON verifies that an isolated.gen.json with expected
 // values is created from the test isolated files.
 func TestCreateIsolatedGenJSON(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	workDir, err := ioutil.TempDir("", "swarming_work_")
 	assert.NoError(t, err)
 	s, err := NewSwarmingClient(context.Background(), workDir, SWARMING_SERVER, isolate.ISOLATE_SERVER_URL_FAKE, "")

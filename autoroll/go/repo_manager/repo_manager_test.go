@@ -6,7 +6,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func validCommonBaseConfig() *CommonRepoManagerConfig {
@@ -18,7 +18,7 @@ func validCommonBaseConfig() *CommonRepoManagerConfig {
 }
 
 func TestCommonConfigValidation(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	assert.NoError(t, validCommonBaseConfig().Validate())
 	cfg := validCommonBaseConfig()
@@ -55,7 +55,7 @@ func TestCommonConfigValidation(t *testing.T) {
 }
 
 func TestDepotToolsConfigValidation(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	validBaseConfig := func() *DepotToolsRepoManagerConfig {
 		return &DepotToolsRepoManagerConfig{
@@ -80,7 +80,7 @@ func TestDepotToolsConfigValidation(t *testing.T) {
 }
 
 func TestCopyRevision(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	v := &Revision{
 		Id:          "abc123",

@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/ingestcommon"
 )
 
@@ -18,7 +18,7 @@ const (
 )
 
 func TestParamsAndValues(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// Load the sample data file as BenchData.
 	r, err := os.Open(filepath.Join(TEST_DATA_DIR, TEST_INGESTION_FILE))
 	assert.NoError(t, err)

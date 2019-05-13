@@ -9,11 +9,11 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestIssueDetails(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	issue := &Issue{
 		ID:      12345,
@@ -47,7 +47,7 @@ func TestIssueDetails(t *testing.T) {
 }
 
 func TestSerialize(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	status := TryjobStatus(TRYJOB_INGESTED)
 	jsonStatus, err := json.Marshal(status)
 	assert.NoError(t, err)
@@ -55,7 +55,7 @@ func TestSerialize(t *testing.T) {
 }
 
 func TestTimeJsonMs(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	now := TimeJsonMs(time.Now())
 	expMs := fmt.Sprintf("%d", time.Time(now).UnixNano()/int64(time.Millisecond))

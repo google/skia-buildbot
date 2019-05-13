@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -26,7 +26,7 @@ var exampleHashes = []string{
 }
 
 func TestBTIStore(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	// Set up the table and column families.
 	assert.NoError(t, InitBT(projectID, instanceID, TABLE_FILES_PROCESSED))

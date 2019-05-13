@@ -11,11 +11,11 @@ import (
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/buildbucket/bb_testutils"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGetBuild(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	id := int64(12345)
 	c := bb_testutils.NewMockClient(t)
@@ -54,7 +54,7 @@ func TestGetBuild(t *testing.T) {
 }
 
 func TestGetTrybotsForCL(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	id := int64(12345)
 	c := bb_testutils.NewMockClient(t)

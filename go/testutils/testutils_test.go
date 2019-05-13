@@ -5,10 +5,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/sktest"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestInterfaces(t *testing.T) {
-	SmallTest(t)
+	unittest.SmallTest(t)
 
 	// Ensure that our interfaces are compatible.
 	var _ assert.TestingT = sktest.TestingT(nil)
@@ -17,7 +18,7 @@ func TestInterfaces(t *testing.T) {
 }
 
 func TestAssertFails(t *testing.T) {
-	SmallTest(t)
+	unittest.SmallTest(t)
 
 	AssertFails(t, `Not equal:\s+expected: 123\s+actual\s+: 124`, func(inner sktest.TestingT) {
 		assert.Equal(inner, 123, 124)

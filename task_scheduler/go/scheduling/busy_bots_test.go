@@ -7,12 +7,12 @@ import (
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 func TestBusyBots(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	bot := func(id string, dims map[string][]string) *swarming_api.SwarmingRpcsBotInfo {
 		return &swarming_api.SwarmingRpcsBotInfo{

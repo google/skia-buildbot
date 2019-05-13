@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -15,7 +15,7 @@ const (
 )
 
 func TestParseAFDOVersion(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	// Success cases.
 	testS := func(s string, expect [AFDO_VERSION_LENGTH]int) {
@@ -44,7 +44,7 @@ func TestParseAFDOVersion(t *testing.T) {
 }
 
 func TestAFDOVersionGreater(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	// Success cases.
 	test := func(a, b string, expect bool) {

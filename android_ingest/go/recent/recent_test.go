@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestRecent(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	r := New()
 	list := r.List()
 	assert.Len(t, list, 0)

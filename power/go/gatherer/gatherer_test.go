@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/am/go/incident"
 	"go.skia.org/infra/am/go/silence"
 	skswarming "go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/power/go/decider"
 	"go.skia.org/infra/power/go/recorder"
 	"go.skia.org/infra/power/go/testdata"
@@ -30,10 +30,10 @@ var cycleTests = map[string]func(t *testing.T, mi, me *skswarming.MockApiClient,
 // To cut down on the boilerplate of setting up the various mocks and asserting expectations, we (ab)use Go's ability to have "subtests". This allows us to make our test functions take the mocks as input and for us to assert the expectations after it completes. The asserting of the expectations after the test is why we cannot easily have just a setup function that all the tests call to make the mocks. Additionally, the use of package level variables for the mocks is not thread-safe if tests are run in parallel.
 // https://golang.org/pkg/testing/#hdr-Subtests_and_Sub_benchmarks
 func TestCycle(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	for name, test := range cycleTests {
 		t.Run(name, func(t *testing.T) {
-			testutils.SmallTest(t)
+			unittest.SmallTest(t)
 			// mi = "mock internal" client
 			mi := skswarming.NewMockApiClient()
 			// me = "mock external" client

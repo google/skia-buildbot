@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 var once sync.Once
@@ -17,7 +17,7 @@ func loginInit() {
 }
 
 func TestLoginURL(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	once.Do(loginInit)
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("GET", "http://example.com/", nil)
@@ -41,7 +41,7 @@ func TestLoginURL(t *testing.T) {
 }
 
 func TestLoggedInAs(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	once.Do(loginInit)
 	setActiveWhitelists(DEFAULT_DOMAIN_WHITELIST)
 
@@ -77,7 +77,7 @@ func TestLoggedInAs(t *testing.T) {
 }
 
 func TestDomainFromHost(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	assert.Equal(t, "localhost", domainFromHost("localhost:10110"))
 	assert.Equal(t, "localhost", domainFromHost("localhost"))
 	assert.Equal(t, "skia.org", domainFromHost("skia.org"))
@@ -87,7 +87,7 @@ func TestDomainFromHost(t *testing.T) {
 }
 
 func TestSplitAuthWhiteList(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	type testCase struct {
 		Input           string
@@ -134,7 +134,7 @@ func TestSplitAuthWhiteList(t *testing.T) {
 }
 
 func TestInWhitelist(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	once.Do(loginInit)
 	setActiveWhitelists("google.com chromium.org skia.org service-account@proj.iam.gserviceaccount.com")
 

@@ -8,11 +8,11 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestStateMachine(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	ctx := context.Background()
 

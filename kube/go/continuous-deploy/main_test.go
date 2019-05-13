@@ -4,12 +4,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	cloudbuild "google.golang.org/api/cloudbuild/v1"
 )
 
 func TestFindImages(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	*project = "skia-public"
 	Init()
 	buildInfo := cloudbuild.Build{
@@ -30,7 +30,7 @@ func TestFindImages(t *testing.T) {
 }
 
 func TestBaseImageName(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	assert.Equal(t, "", baseImageName(""))
 	assert.Equal(t, "", baseImageName("debian"))
 	assert.Equal(t, "fiddler", baseImageName("gcr.io/skia-public/fiddler:prod"))

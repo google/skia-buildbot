@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestActivity(t *testing.T) {
-	testutils.ManualTest(t)
+	unittest.ManualTest(t)
 	cleanup := testutil.InitDatastore(t, ds.ACTIVITY)
 
 	defer cleanup()

@@ -11,11 +11,12 @@ import (
 	"go.skia.org/infra/go/ds"
 	ds_testutil "go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
 func TestBlobStore(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	blobKind := ds.Kind("test-blob-parent-kind")
 	blobFragKind := ds.Kind("test-blob-kind")

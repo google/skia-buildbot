@@ -9,7 +9,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/metrics2/events"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -48,7 +48,7 @@ func assertTaskEvent(t *testing.T, ev *events.Event, task *types.Task) {
 
 // TestTaskUpdate checks that taskEventDB.update creates the correct Events from Tasks in the DB.
 func TestTaskUpdate(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	now := time.Now()
 	edb, tdb := setupTasks(t, now)
 	start := now.Add(-TIME_PERIODS[len(TIME_PERIODS)-1])
@@ -78,7 +78,7 @@ func TestTaskUpdate(t *testing.T) {
 
 // TestTaskRange checks that taskEventDB.Range returns Events within the given range.
 func TestTaskRange(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	now := time.Now()
 	edb, tdb := setupTasks(t, now)
 	base := now.Add(-time.Hour)
@@ -127,7 +127,7 @@ func TestTaskRange(t *testing.T) {
 }
 
 func TestComputeTaskFlakeRate(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	now := time.Now()
 	edb, tdb := setupTasks(t, now)
 	created := now.Add(-time.Hour)

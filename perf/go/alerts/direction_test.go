@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 type testDirStruct struct {
@@ -13,7 +13,7 @@ type testDirStruct struct {
 }
 
 func TestDirectionJSON(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	ts := testDirStruct{
 		Direction: UP,
 	}

@@ -8,7 +8,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/notifier"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 type msg struct {
@@ -29,7 +29,7 @@ func (n *testNotifier) Send(ctx context.Context, subject string, m *notifier.Mes
 }
 
 func TestNotifier(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	ctx := context.Background()
 	n, err := New(ctx, "childRepo", "parentRepo", "https://autoroll.skia.org/r/test-roller", nil, nil, nil, nil)

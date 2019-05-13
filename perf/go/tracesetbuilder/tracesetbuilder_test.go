@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -34,7 +34,7 @@ func encodeTraces(t *testing.T, traces types.TraceSet) (*paramtools.OrderedParam
 }
 
 func TestBuilder(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	traces1 := types.TraceSet{
 		",arch=x86,name=foo,": []float32{1.0, 2.0},
@@ -77,7 +77,7 @@ func TestBuilder(t *testing.T) {
 }
 
 func TestBuilderEmpty(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	builder := New(5)
 	traceSet, ops := builder.Build(context.Background())

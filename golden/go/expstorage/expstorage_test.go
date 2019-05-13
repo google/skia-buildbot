@@ -15,6 +15,7 @@ import (
 	ds_testutil "go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/types"
@@ -34,7 +35,7 @@ func TestMySQLExpectationsStore(t *testing.T) {
 	// is removed alltogether.
 	t.Skip()
 
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	// Set up the test database.
 	testDb := testutil.SetupMySQLTestDatabase(t, db.MigrationSteps())
 	defer testDb.Close(t)
@@ -55,7 +56,7 @@ func TestMySQLExpectationsStore(t *testing.T) {
 }
 
 func TestMasterCloudExpectationsStore(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	cleanup := initDS(t)
 	defer cleanup()
@@ -84,7 +85,7 @@ func testCloudExpstoreClear(t *testing.T, cloudStore ExpectationsStore) {
 }
 
 func TestCachingCloudExpectationsStore(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	cleanup := initDS(t)
 	defer cleanup()
@@ -99,7 +100,7 @@ func TestCachingCloudExpectationsStore(t *testing.T) {
 }
 
 func TestIssueCloudExpectationsStore(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	cleanup := initDS(t)
 	defer cleanup()
@@ -134,7 +135,7 @@ func randomDigest() types.Digest {
 }
 
 func TestBigSQLChange(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	// Set up the test database.
 	testDb := testutil.SetupMySQLTestDatabase(t, db.MigrationSteps())

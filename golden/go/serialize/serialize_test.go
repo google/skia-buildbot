@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/types"
@@ -47,7 +48,7 @@ var testParamsList = []paramtools.Params{
 }
 
 func TestSerializeStrings(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testArr := []string{}
 	for i := 0; i < 100; i++ {
 		testArr = append(testArr, fmt.Sprintf("str-%4d", i))
@@ -67,7 +68,7 @@ func TestSerializeStrings(t *testing.T) {
 }
 
 func TestSerializeCommits(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCommits := []*tiling.Commit{
 		{
 			CommitTime: 42,
@@ -95,7 +96,7 @@ func TestSerializeCommits(t *testing.T) {
 }
 
 func TestSerializeParamSets(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testParamSet := paramtools.ParamSet(map[string][]string{})
 	for _, p := range testParamsList {
 		testParamSet.AddParams(p)
@@ -129,7 +130,7 @@ func TestSerializeParamSets(t *testing.T) {
 }
 
 func TestIntsToBytes(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	data := []int{20266, 20266, 20266, 20266}
 	testBytes := intsToBytes(data)
 	found, err := bytesToInts(testBytes)
@@ -138,7 +139,7 @@ func TestIntsToBytes(t *testing.T) {
 }
 
 func TestSerializeTile(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	tile, cleanupFn := getTestTile(t)
 	defer cleanupFn()
 
@@ -173,7 +174,7 @@ func TestSerializeTile(t *testing.T) {
 }
 
 func TestDeSerializeSample(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	tile, cleanupFn := getTestTile(t)
 	defer cleanupFn()
 

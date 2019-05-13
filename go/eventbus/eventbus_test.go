@@ -10,6 +10,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 type testType struct {
@@ -18,7 +19,7 @@ type testType struct {
 }
 
 func TestEventBus(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	eventBus := New()
 
 	ch := make(chan int, 5)
@@ -47,7 +48,7 @@ const (
 )
 
 func TestSynStorageEvents(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	eventBus := New()
 
@@ -127,7 +128,7 @@ func assertEventsMatch(t *testing.T, expected, actual []*StorageEvent) {
 }
 
 func TestNotificationsMap(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	notifyMap := NewNotificationsMap()
 	notifyID := GetNotificationID(TEST_BUCKET, TEST_PREFIX)

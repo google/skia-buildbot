@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // mockTime is a struct used for faking the passage of time. It keeps a current
@@ -78,7 +79,7 @@ func (t *mockTime) Elapsed() time.Duration {
 }
 
 func TestPersistentAutoDecrementCounter(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	ctx := context.Background()
 	gcsClient := test_gcsclient.NewMemoryClient("test-bucket")

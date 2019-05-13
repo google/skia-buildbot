@@ -12,12 +12,12 @@ import (
 
 	"github.com/gorilla/mux"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
 func TestBasic(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// This is the example in the documentation.
 	r := mux.NewRouter()
 	r.Schemes("https").Host("www.google.com").Methods("GET").
@@ -31,7 +31,7 @@ func TestBasic(t *testing.T) {
 }
 
 func TestVars(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// This is the example in the documentation.
 	r := mux.NewRouter()
 	expectedResponse := "Success."
@@ -61,7 +61,7 @@ func (t *mockTestingT) Errorf(format string, args ...interface{}) {
 }
 
 func TestAssertionFailure(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mockT := &mockTestingT{}
 
 	r := mux.NewRouter()
@@ -84,7 +84,7 @@ func TestAssertionFailure(t *testing.T) {
 }
 
 func TestMissingHandler(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	r := mux.NewRouter()
 	handlerCalled := false
 	r.Host("example.com").Methods("POST").Path("/add/{id:[a-zA-Z0-9]+}").
@@ -101,7 +101,7 @@ func TestMissingHandler(t *testing.T) {
 }
 
 func TestErrorResponse(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	r := mux.NewRouter()
 	r.Schemes("https").Host("www.google.com").Methods("GET").
 		Handler(MockGetError("TODO(benjaminwagner)", http.StatusTeapot))
@@ -148,7 +148,7 @@ func doStreamingRequestAndAssertBodyClosed(t *testing.T, client *http.Client, ur
 }
 
 func TestStreamingBodyClosedForEmptyHandler(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	r := mux.NewRouter()
 	r.Host("example.com").Methods("POST").Path("/add/{id:[a-zA-Z0-9]+}").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -159,7 +159,7 @@ func TestStreamingBodyClosedForEmptyHandler(t *testing.T) {
 }
 
 func TestStreamingBodyClosedForMissingHandler(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	r := mux.NewRouter()
 	handlerCalled := false
 	r.Host("example.com").Methods("POST").Path("/add/{id:[a-zA-Z0-9]+}").
@@ -174,7 +174,7 @@ func TestStreamingBodyClosedForMissingHandler(t *testing.T) {
 }
 
 func TestStreamingBodyClosedForInvalidURL(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	r := mux.NewRouter()
 	handlerCalled := false
 	r.Host("example.com").Methods("POST").Path("/add/{id:[a-zA-Z0-9]+}").
@@ -189,7 +189,7 @@ func TestStreamingBodyClosedForInvalidURL(t *testing.T) {
 }
 
 func TestMockDialogueFailureInMuxClient(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	r := mux.NewRouter()
 	r.Schemes("https").Host("www.google.com").Methods("POST").
 		Handler(MockGetDialogue([]byte("Here's a response.")))

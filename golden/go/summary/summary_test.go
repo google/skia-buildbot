@@ -7,7 +7,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/digest_counter"
@@ -83,7 +83,7 @@ import (
 
 */
 func TestCalcSummaries(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	tile := &tiling.Tile{
 		Traces: map[tiling.TraceId]tiling.Trace{
 			// These trace ids have been shortened for test terseness.

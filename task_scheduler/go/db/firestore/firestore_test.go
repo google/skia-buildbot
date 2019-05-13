@@ -11,7 +11,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/firestore"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
 
@@ -21,7 +21,7 @@ func TestMain(m *testing.M) {
 }
 
 func setup(t *testing.T) (db.DBCloser, func()) {
-	testutils.ManualTest(t)
+	unittest.ManualTest(t)
 
 	instance := fmt.Sprintf("test-%s", uuid.New())
 	d, err := NewDB(context.Background(), firestore.FIRESTORE_PROJECT, instance, nil, nil)

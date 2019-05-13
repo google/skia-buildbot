@@ -10,18 +10,18 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestJobCopy(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	v := MakeFullJob(time.Now())
 	deepequal.AssertCopy(t, v, v.Copy())
 }
 
 // Test that sort.Sort(JobSlice(...)) works correctly.
 func TestJobSort(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	jobs := []*Job{}
 	addJob := func(ts time.Time) {
 		job := &Job{
@@ -45,7 +45,7 @@ func TestJobSort(t *testing.T) {
 }
 
 func TestJobEncoder(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// TODO(benjaminwagner): Is there any way to cause an error?
 	e := JobEncoder{}
 	expectedJobs := map[*Job][]byte{}
@@ -72,7 +72,7 @@ func TestJobEncoder(t *testing.T) {
 }
 
 func TestJobEncoderNoJobs(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	e := JobEncoder{}
 	job, serialized, err := e.Next()
 	assert.NoError(t, err)
@@ -81,7 +81,7 @@ func TestJobEncoderNoJobs(t *testing.T) {
 }
 
 func TestJobDecoder(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := NewJobDecoder()
 	expectedJobs := map[string]*Job{}
 	for i := 0; i < 250; i++ {
@@ -108,7 +108,7 @@ func TestJobDecoder(t *testing.T) {
 }
 
 func TestJobDecoderNoJobs(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := NewJobDecoder()
 	result, err := d.Result()
 	assert.NoError(t, err)
@@ -116,7 +116,7 @@ func TestJobDecoderNoJobs(t *testing.T) {
 }
 
 func TestJobDecoderError(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	job := &Job{}
 	job.Id = "Id"
 	var buf bytes.Buffer
@@ -142,7 +142,7 @@ func TestJobDecoderError(t *testing.T) {
 }
 
 func TestJobDeriveStatus(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// No tasks for the Job: in progress.
 	j1 := &Job{
 		Dependencies: map[string][]string{"test": {"build"}, "build": {}},

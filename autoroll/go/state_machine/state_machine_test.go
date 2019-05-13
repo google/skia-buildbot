@@ -12,7 +12,7 @@ import (
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -321,7 +321,7 @@ func checkNextState(t *testing.T, sm *AutoRollStateMachine, wanted string) {
 
 // Shared setup.
 func setup(t *testing.T) (context.Context, *AutoRollStateMachine, *TestAutoRollerImpl, gcs.GCSClient, func()) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	ctx := context.Background()
 	gcsClient := test_gcsclient.NewMemoryClient("test-bucket")

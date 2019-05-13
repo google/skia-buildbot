@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -49,7 +50,7 @@ func githubDEPSCfg() *GithubDEPSRepoManagerConfig {
 }
 
 func TestGithubDEPSConfigValidation(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	cfg := githubDEPSCfg()
 	cfg.ParentRepo = "repo" // Excluded from githubCfg.
@@ -148,7 +149,7 @@ func mockGithubDEPSRequests(t *testing.T, urlMock *mockhttpclient.URLMock, from,
 
 // TestGithubDEPSRepoManager tests all aspects of the GithubDEPSRepoManager except for CreateNewRoll.
 func TestGithubDEPSRepoManager(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, wd, child, childCommits, parent, _, cleanup := setupGithubDEPS(t)
 	defer cleanup()
@@ -188,7 +189,7 @@ func TestGithubDEPSRepoManager(t *testing.T) {
 }
 
 func TestCreateNewGithubDEPSRoll(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, wd, child, childCommits, parent, _, cleanup := setupGithubDEPS(t)
 	defer cleanup()
@@ -223,7 +224,7 @@ func TestCreateNewGithubDEPSRoll(t *testing.T) {
 
 // Verify that we ran the PreUploadSteps.
 func TestRanPreUploadStepsGithubDEPS(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, wd, _, _, parent, _, cleanup := setupGithubDEPS(t)
 	defer cleanup()
@@ -253,7 +254,7 @@ func TestRanPreUploadStepsGithubDEPS(t *testing.T) {
 
 // Verify that we fail when a PreUploadStep fails.
 func TestErrorPreUploadStepsGithubDEPS(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, wd, _, _, parent, _, cleanup := setupGithubDEPS(t)
 	defer cleanup()

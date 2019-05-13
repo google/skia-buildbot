@@ -9,7 +9,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const TEST_KIND = Kind("DS_TEST_KIND")
@@ -21,7 +21,7 @@ type testEntity struct {
 }
 
 func TestDeleteAll(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	assert.NoError(t, InitForTesting("test-project", "test-namespace"))
 	client := DS
@@ -42,7 +42,7 @@ func TestDeleteAll(t *testing.T) {
 
 func TestMigrateData(t *testing.T) {
 	// disabled: https://bugs.chromium.org/p/skia/issues/detail?id=9061
-	testutils.ManualTest(t)
+	unittest.ManualTest(t)
 	ctx := context.TODO()
 
 	// Create the source project.
@@ -96,7 +96,7 @@ func TestMigrateData(t *testing.T) {
 }
 
 func TestIterKeys(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	nEntries := 1200
 	maxID := int64(nEntries / 2)

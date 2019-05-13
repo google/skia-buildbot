@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestParseLog(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	c := &Cache{
 		hashes: map[int64]string{},
 	}

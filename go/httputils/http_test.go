@@ -12,11 +12,11 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestResponse2xxOnly(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		code, err := strconv.Atoi(r.URL.Query().Get("code"))
@@ -73,7 +73,7 @@ func (t *MockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) 
 }
 
 func TestBackoffTransport(t *testing.T) {
-	testutils.LargeTest(t) // BackoffTransport sleeps between requests.
+	unittest.LargeTest(t) // BackoffTransport sleeps between requests.
 	// Use a fail-faster config so the test doesn't take so long.
 	maxInterval := 600 * time.Millisecond
 	config := &BackOffConfig{
@@ -138,7 +138,7 @@ func (f RoundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 func TestBackoffTransportWithContext(t *testing.T) {
-	testutils.LargeTest(t) // BackoffTransport sleeps between requests.
+	unittest.LargeTest(t) // BackoffTransport sleeps between requests.
 	// Use a fail-faster config so the test doesn't take so long.
 	maxInterval := 600 * time.Millisecond
 	config := &BackOffConfig{
@@ -205,7 +205,7 @@ func TestBackoffTransportWithContext(t *testing.T) {
 }
 
 func TestForceHTTPS(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	var h http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, err := io.WriteString(w, "Hello World!")
 		assert.NoError(t, err)

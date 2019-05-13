@@ -3,12 +3,12 @@ package types
 import (
 	"testing"
 
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 )
 
 func TestGoldenTrace(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	N := 5
 	// Test NewGoldenTrace.
 	g := NewGoldenTraceN(N)
@@ -90,7 +90,7 @@ func TestGoldenTrace(t *testing.T) {
 }
 
 func TestSetAt(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		want Digest
 	}{

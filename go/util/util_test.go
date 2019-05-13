@@ -13,11 +13,11 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestAtMost(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	a := AtMost([]string{"a", "b"}, 3)
 	if got, want := len(a), 2; got != want {
 		t.Errorf("Wrong length: Got %v Want %v", got, want)
@@ -35,7 +35,7 @@ func TestAtMost(t *testing.T) {
 }
 
 func TestSSliceEqual(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testcases := []struct {
 		a    []string
 		b    []string
@@ -76,7 +76,7 @@ func TestSSliceEqual(t *testing.T) {
 }
 
 func TestInsertString(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	deepequal.AssertDeepEqual(t, []string{"a"}, InsertString([]string{}, 0, "a"))
 	deepequal.AssertDeepEqual(t, []string{"b", "a"}, InsertString([]string{"a"}, 0, "b"))
 	deepequal.AssertDeepEqual(t, []string{"b", "c", "a"}, InsertString([]string{"b", "a"}, 1, "c"))
@@ -84,7 +84,7 @@ func TestInsertString(t *testing.T) {
 }
 
 func TestInsertStringSorted(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	deepequal.AssertDeepEqual(t, []string{"a"}, InsertStringSorted([]string{}, "a"))
 	deepequal.AssertDeepEqual(t, []string{"a"}, InsertStringSorted([]string{"a"}, "a"))
 	deepequal.AssertDeepEqual(t, []string{"a", "b"}, InsertStringSorted([]string{"a"}, "b"))
@@ -93,7 +93,7 @@ func TestInsertStringSorted(t *testing.T) {
 }
 
 func TestIntersectIntSets(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	sets := []map[int]bool{
 		{1: true, 2: true, 3: true, 4: true},
 		{2: true, 4: true, 5: true, 7: true},
@@ -104,7 +104,7 @@ func TestIntersectIntSets(t *testing.T) {
 }
 
 func TestAddParamsToParamSet(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		a       map[string][]string
 		b       map[string]string
@@ -160,7 +160,7 @@ func TestAddParamsToParamSet(t *testing.T) {
 }
 
 func TestAddParamSetToParamSet(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		a       map[string][]string
 		b       map[string][]string
@@ -211,7 +211,7 @@ func TestAddParamSetToParamSet(t *testing.T) {
 }
 
 func TestAnyMatch(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	slice := []*regexp.Regexp{
 		regexp.MustCompile("somestring"),
 		regexp.MustCompile("^abcdefg$"),
@@ -234,7 +234,7 @@ func TestAnyMatch(t *testing.T) {
 }
 
 func TestIsNil(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	assert.True(t, IsNil(nil))
 	assert.False(t, IsNil(false))
 	assert.False(t, IsNil(0))
@@ -274,7 +274,7 @@ func TestIsNil(t *testing.T) {
 }
 
 func TestUnixFloatToTime(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	cases := []struct {
 		in  float64
 		out time.Time
@@ -290,7 +290,7 @@ func TestUnixFloatToTime(t *testing.T) {
 }
 
 func TestTimeToUnixFloat(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	cases := []struct {
 		in  time.Time
 		out float64
@@ -306,7 +306,7 @@ func TestTimeToUnixFloat(t *testing.T) {
 }
 
 func TestTimeConversion(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	cases := []float64{
 		0.0,
 		1.0,
@@ -319,7 +319,7 @@ func TestTimeConversion(t *testing.T) {
 }
 
 func TestMD5Hash(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	m_1 := map[string]string{"key1": "val1"}
 	m_2 := map[string]string{}
 	var m_3 map[string]string = nil
@@ -364,7 +364,7 @@ func TestMD5Hash(t *testing.T) {
 }
 
 func TestBugsFromCommitMsg(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	cases := []struct {
 		in  string
 		out map[string][]string
@@ -488,7 +488,7 @@ BUG=skia:888
 }
 
 func TestIsDirEmpty(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d, err := ioutil.TempDir(os.TempDir(), "test_empty")
 	assert.NoError(t, err)
 	defer RemoveAll(d)
@@ -520,7 +520,7 @@ type DomainTestCase struct {
 }
 
 func TestCookieDomainMatch(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// Test cases borrowed from test_domain_match in
 	// https://svn.python.org/projects/python/trunk/Lib/test/test_cookielib.py
 	testCases := []DomainTestCase{
@@ -554,7 +554,7 @@ func TestCookieDomainMatch(t *testing.T) {
 }
 
 func TestValidateCommit(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	tc := map[string]bool{
 		"":       false,
 		"abc123": false,
@@ -570,7 +570,7 @@ func TestValidateCommit(t *testing.T) {
 }
 
 func TestPermute(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	assert.Equal(t, [][]int{}, Permute([]int{}))
 	assert.Equal(t, [][]int{{0}}, Permute([]int{0}))
@@ -612,7 +612,7 @@ func TestPermute(t *testing.T) {
 }
 
 func TestPermuteStrings(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	assert.Equal(t, [][]string{}, PermuteStrings([]string{}))
 	assert.Equal(t, [][]string{{"a"}}, PermuteStrings([]string{"a"}))
@@ -654,7 +654,7 @@ func TestPermuteStrings(t *testing.T) {
 }
 
 func TestParseIntSet(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	test := func(input string, expect []int, expectErr string) {
 		res, err := ParseIntSet(input)
@@ -680,7 +680,7 @@ func TestParseIntSet(t *testing.T) {
 }
 
 func TestContainsMap(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	child := map[string]string{
 		"a": "1",
 		"b": "2",
@@ -704,7 +704,7 @@ func TestContainsMap(t *testing.T) {
 }
 
 func TestContainsAnyMap(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	child1 := map[string]string{
 		"a": "1",
 		"b": "2",
@@ -738,7 +738,7 @@ func TestContainsAnyMap(t *testing.T) {
 }
 
 func TestContainsMapInSliceValues(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	child := map[string]string{
 		"a": "1",
 		"b": "2",
@@ -764,7 +764,7 @@ func TestContainsMapInSliceValues(t *testing.T) {
 }
 
 func TestContainsAnyMapInSliceValues(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	child1 := map[string]string{
 		"a": "1",
 		"b": "2",
@@ -802,7 +802,7 @@ func TestContainsAnyMapInSliceValues(t *testing.T) {
 }
 
 func TestTruncate(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	s := "abcdefghijkl"
 	assert.Equal(t, "", Truncate(s, 0))
 	assert.Equal(t, "a", Truncate(s, 1))
@@ -823,7 +823,7 @@ func (w *fakeWriter) Write(p []byte) (int, error) {
 }
 
 func TestWithGzipWriter(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	write := func(w io.Writer, msg string) error {
 		_, err := w.Write([]byte(msg))
@@ -866,7 +866,7 @@ func TestWithGzipWriter(t *testing.T) {
 }
 
 func TestChunkIter(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	assert.Error(t, ChunkIter(10, -1, func(int, int) error { return nil }))
 	assert.Error(t, ChunkIter(10, 0, func(int, int) error { return nil }))
@@ -886,7 +886,7 @@ func TestChunkIter(t *testing.T) {
 }
 
 func TestRoundUpToPowerOf2(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	test := func(input, output int32) {
 		assert.Equal(t, output, RoundUpToPowerOf2(input))
@@ -914,7 +914,7 @@ func TestRoundUpToPowerOf2(t *testing.T) {
 }
 
 func TestTrunc(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	assert.Equal(t, "foo...", Trunc("foobar", 3))
 	assert.Equal(t, "fooba...", Trunc("foobar", 5))
@@ -923,7 +923,7 @@ func TestTrunc(t *testing.T) {
 }
 
 func TestSSliceCmp(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	// "Equal" slices.
 	testEq := func(a, b []string) {
@@ -951,7 +951,7 @@ func TestSSliceCmp(t *testing.T) {
 }
 
 func TestPowerSet(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	test := func(inp int, expect [][]int) {
 		deepequal.AssertDeepEqual(t, expect, PowerSet(inp))
 	}

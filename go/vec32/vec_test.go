@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -29,7 +29,7 @@ func vecNear(a, b []float32) bool {
 }
 
 func TestNew(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	v := New(0)
 	assert.Len(t, v, 0)
 
@@ -44,7 +44,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestNorm(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		In  []float32
 		Out []float32
@@ -83,7 +83,7 @@ func TestNorm(t *testing.T) {
 }
 
 func TestFill(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		In  []float32
 		Out []float32
@@ -119,7 +119,7 @@ func TestFill(t *testing.T) {
 }
 
 func TestFillAtErrors(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		Slice []float32
 		Idx   int
@@ -146,7 +146,7 @@ func TestFillAtErrors(t *testing.T) {
 }
 
 func TestDup(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	a := []float32{1, 2, MISSING_DATA_SENTINEL, 0}
 	b := Dup(a)
 	assert.Equal(t, a, b)
@@ -159,7 +159,7 @@ func TestDup(t *testing.T) {
 }
 
 func TestMean(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		Slice []float32
 		Mean  float32
@@ -193,7 +193,7 @@ func TestMean(t *testing.T) {
 }
 
 func TestSSE(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		Slice []float32
 		Base  float32
@@ -228,7 +228,7 @@ func TestSSE(t *testing.T) {
 }
 
 func TestFillMeanMissing(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		Slice []float32
 		Mean  []float32
@@ -264,7 +264,7 @@ func TestFillMeanMissing(t *testing.T) {
 }
 
 func TestFillStdDev(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		Slice []float32
 		Mean  []float32
@@ -300,7 +300,7 @@ func TestFillStdDev(t *testing.T) {
 }
 
 func TestFillCov(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		Slice []float32
 		Mean  []float32
@@ -336,7 +336,7 @@ func TestFillCov(t *testing.T) {
 }
 
 func TestFillStep(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		Slice []float32
 		Step  []float32

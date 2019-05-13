@@ -7,12 +7,13 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const TEST_DATA_DIR = "testdata"
 
 func TestDigestStore(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	assert.NoError(t, os.MkdirAll(TEST_DATA_DIR, 0755))
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 

@@ -7,11 +7,11 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestMapping(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	mn := MockBotNameGetter{}
 	mp := MockBotPortGetter{}
@@ -45,7 +45,7 @@ skia-rpi-002 192.168.1.102 b8:27:eb:66:6c:03
 skia-rpi-001 192.168.1.101 B8:27:eb:16:ba:04`
 
 func TestAnsibleParsing(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	bots := parseAnsibleResult(TEST_ANSIBLE_DATA)
 
@@ -75,7 +75,7 @@ var expectedEdgeSwitchResults = []Bot{
 }
 
 func TestEdgeSwitchParsing(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	bots, err := parseSSHResult(strings.Split(TEST_EDGESWITCH_DATA, "\n"))
 	assert.NoError(t, err)
@@ -84,7 +84,7 @@ func TestEdgeSwitchParsing(t *testing.T) {
 }
 
 func TestEdgeSwitchDeduping(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	deduped := dedupeBots(expectedEdgeSwitchResults)
 

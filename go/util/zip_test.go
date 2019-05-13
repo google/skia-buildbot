@@ -8,6 +8,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func createFile(dir, prefix, content string, t *testing.T) string {
@@ -26,7 +27,7 @@ func assertFileExists(dir, path, content string, t *testing.T) {
 }
 
 func TestZipE2E(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Create a directory in temp.
 	targetDir, err := ioutil.TempDir("", "zip_test")

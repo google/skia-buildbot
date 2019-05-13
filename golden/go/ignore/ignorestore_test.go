@@ -10,17 +10,18 @@ import (
 	"go.skia.org/infra/go/ds"
 	ds_testutil "go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/db"
 )
 
 func TestTestMemIgnoreStore(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	memStore := NewMemIgnoreStore()
 	testIgnoreStore(t, memStore)
 }
 
 func TestSQLIgnoreStore(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	// Set up the database. This also locks the db until this test is finished
 	// causing similar tests to wait.
 	migrationSteps := db.MigrationSteps()
@@ -36,7 +37,7 @@ func TestSQLIgnoreStore(t *testing.T) {
 }
 
 func TestCloudIgnoreStore(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	// Run to the locally running emulator.
 	cleanup := ds_testutil.InitDatastore(t,
@@ -151,7 +152,7 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 }
 
 func TestToQuery(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	queries, err := ToQuery([]*IgnoreRule{})
 	assert.NoError(t, err)
 	assert.Len(t, queries, 0)

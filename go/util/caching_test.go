@@ -5,11 +5,11 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestJSONCodec(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	itemCodec := JSONCodec(&myTestType{})
 	testInstance := &myTestType{5, "hello"}
 	jsonBytes, err := itemCodec.Encode(testInstance)
@@ -40,7 +40,7 @@ func TestJSONCodec(t *testing.T) {
 }
 
 func TestMemLRUCache(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	cache := NewMemLRUCache(0)
 	UnitTestLRUCache(t, cache)
 }

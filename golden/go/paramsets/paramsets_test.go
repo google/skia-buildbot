@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/mocks"
@@ -13,7 +13,7 @@ import (
 )
 
 func TestParamsetByTraceForTile(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	tile := makePartialTestTile()
 	counts := makeTestDigestCounts()
@@ -65,7 +65,7 @@ func TestParamsetByTraceForTile(t *testing.T) {
 }
 
 func TestParamsetCalculate(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	tile := makePartialTestTile()
 	counts := makeTestDigestCounts()

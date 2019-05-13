@@ -18,6 +18,7 @@ import (
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -135,7 +136,7 @@ func testGraph(t *testing.T, ctx context.Context, g *git_testutils.GitBuilder, r
 }
 
 func TestSerialize(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	ctx, g, repo, rf, cleanup := setupRepo(t)
 	defer cleanup()
 	gitSetup(t, ctx, g, repo, rf)
@@ -284,7 +285,7 @@ func testRecurseAllBranches(t *testing.T, ctx context.Context, g *git_testutils.
 }
 
 func TestFindCommit(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	ctx1, g1, repo1, rf1, cleanup1 := setupRepo(t)
 	defer cleanup1()
 	commits1 := gitSetup(t, ctx1, g1, repo1, rf1)
@@ -758,7 +759,7 @@ func assertHashesTopoSorted(t *testing.T, repo *Graph, hashes []string) {
 }
 
 func TestTopoSort(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx := context.Background()
 
@@ -912,7 +913,7 @@ func TestTopoSort(t *testing.T) {
 }
 
 func TestIsAncestor(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
@@ -984,7 +985,7 @@ func TestIsAncestor(t *testing.T) {
 }
 
 func TestMapUpdate(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	ctx, gb1, g1, r1, cleanup1 := setupRepo(t)
 	defer cleanup1()
 	_, gb2, g2, r2, cleanup2 := setupRepo(t)

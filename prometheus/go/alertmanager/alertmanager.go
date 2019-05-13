@@ -24,14 +24,14 @@ const (
     <th>Status</th></th>
     <th>Description</th>
   </tr>
-  {{range .Alerts}}
+{{range .Alerts}}
     <tr>
       <td>{{.Labels.alertname}}</td>
       <td>{{.Labels.severity}}</td>
       <td>{{.Status}}</td>
       <td>{{.Annotations.description}}</td>
     </tr>
-  {{end}}
+{{end}}
 </table>
 `
 

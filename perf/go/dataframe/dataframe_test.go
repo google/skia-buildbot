@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/types"
@@ -76,7 +76,7 @@ var (
 )
 
 func TestRangeImpl(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	expected_headers := []*ColumnHeader{
 		{
@@ -113,7 +113,7 @@ func TestRangeImpl(t *testing.T) {
 }
 
 func TestBuildParamSet(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// Test the empty case first.
 	df := &DataFrame{
 		TraceSet: types.TraceSet{},
@@ -141,7 +141,7 @@ func TestBuildParamSet(t *testing.T) {
 }
 
 func TestFilter(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	df := &DataFrame{
 		TraceSet: types.TraceSet{
 			",arch=x86,config=565,":  types.Trace([]float32{1.2, 2.1}),
@@ -173,7 +173,7 @@ func TestFilter(t *testing.T) {
 }
 
 func TestSlice(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	df := &DataFrame{
 		Header: []*ColumnHeader{
 			{Source: "master", Offset: 10},

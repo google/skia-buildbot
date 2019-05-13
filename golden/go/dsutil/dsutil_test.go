@@ -10,7 +10,7 @@ import (
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/ds"
 	ds_testutil "go.skia.org/infra/go/ds/testutil"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
@@ -26,7 +26,7 @@ var (
 )
 
 func TestRecently(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	evConsistentDeltaMs := int64(DefaultConsistencyDelta / time.Millisecond)
 
@@ -95,7 +95,7 @@ func TestRecently(t *testing.T) {
 }
 
 func TestRecentKeysList(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	// Run to the locally running emulator.
 	cleanup := ds_testutil.InitDatastore(t,
@@ -140,7 +140,7 @@ func TestRecentKeysList(t *testing.T) {
 }
 
 func TestTimeBasedKeyID(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	ts := util.TimeStamp(time.Millisecond)
 	keyID := getSortableTimeID(ts)

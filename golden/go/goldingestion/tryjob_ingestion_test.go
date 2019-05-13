@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -28,7 +29,7 @@ const (
 
 // Tests the processor in conjunction with the vcs.
 func TestTryjobGoldProcessor(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	// t.Skip()
 
 	cleanup := testutil.InitDatastore(t,

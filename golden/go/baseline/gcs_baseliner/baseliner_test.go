@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
@@ -17,7 +17,7 @@ import (
 // Test that the baseliner passes on the request to the storage.GCSClient
 // for a baseline it hasn't seen before
 func TestFetchBaselineSunnyDay(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	testCommitHash := "abcd12345"
 	testIssueID := int64(0)
@@ -39,7 +39,7 @@ func TestFetchBaselineSunnyDay(t *testing.T) {
 // Test that the baseliner behaves differently when requesting a baseline
 // for a given tryjob.
 func TestFetchBaselineIssueSunnyDay(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	testCommitHash := "abcd12345"
 	testIssueID := int64(1234)
@@ -110,7 +110,7 @@ func TestFetchBaselineIssueSunnyDay(t *testing.T) {
 }
 
 func TestFetchBaselineCachingSunnyDay(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	testCommitHash := "abcd12345"
 	testIssueID := int64(0)
@@ -139,7 +139,7 @@ func TestFetchBaselineCachingSunnyDay(t *testing.T) {
 // (which has the traces and known images) and combines it with the triage status from
 // ExpectationsStorage to create a baseline per commit.
 func TestPushMasterBaselineSunnyDay(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	mgs := makeMockGCSStorage()
 	mcs := &mocks.TileInfo{}

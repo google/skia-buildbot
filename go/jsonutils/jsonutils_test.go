@@ -6,11 +6,11 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestNumber(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	type testCase struct {
 		in  string
 		out int64
@@ -76,7 +76,7 @@ func TestNumber(t *testing.T) {
 }
 
 func TestTime(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	type testCase struct {
 		in  time.Time
 		out string

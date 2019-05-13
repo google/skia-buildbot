@@ -4,14 +4,14 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/mocks"
 	three_devices "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
 )
 
 func TestBlamerGetBlamesForTestThreeDevices(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	blamer := blamerWithCalculate(t)
 
@@ -45,7 +45,7 @@ func TestBlamerGetBlamesForTestThreeDevices(t *testing.T) {
 }
 
 func TestBlamerGetBlameThreeDevices(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	blamer := blamerWithCalculate(t)
 	commits := three_devices.MakeTestCommits()
@@ -127,7 +127,7 @@ const (
 // be broken up into smaller pieces. Additionally, explaining why
 // the data ends up the way it does would aid in readability.
 // func TestBlamerWithSyntheticData(t *testing.T) {
-// 	testutils.SmallTest(t)
+// 	unittest.SmallTest(t)
 // 	start := time.Now().Unix()
 // 	commits := []*tiling.Commit{
 // 		{CommitTime: start + 10, Hash: "h1", Author: "John Doe 1"},
@@ -281,7 +281,7 @@ const (
 // }
 
 // func TestBlamerWithLiveData(t *testing.T) {
-// 	testutils.LargeTest(t)
+// 	unittest.LargeTest(t)
 
 // 	err := gcs_testutils.DownloadTestDataFile(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
 // 	assert.NoError(t, err, "Unable to download testdata.")

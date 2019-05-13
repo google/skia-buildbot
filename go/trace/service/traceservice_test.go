@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/trace/db/perftypes"
 	"go.skia.org/infra/go/util"
 )
@@ -25,7 +25,7 @@ func cleanup() {
 	}
 }
 func TestCommitID(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// Test that CommitIDs round trip through byte slices.
 	now := time.Unix(time.Now().Unix(), 0)
 	c := &CommitID{
@@ -66,7 +66,7 @@ func TestCommitID(t *testing.T) {
 }
 
 func TestImpl(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	ts, err := NewTraceServiceServer(FILENAME)
 	assert.NoError(t, err)
 	defer util.Close(ts)
@@ -214,7 +214,7 @@ func TestImpl(t *testing.T) {
 }
 
 func TestAtomize(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	ts, err := NewTraceServiceServer(FILENAME)
 	assert.NoError(t, err)
 	defer util.Close(ts)
@@ -239,7 +239,7 @@ func TestAtomize(t *testing.T) {
 }
 
 func TestCommitInfo(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// Test roundtripping through []byte.
 	c := &CommitInfo{
 		Values: map[uint64][]byte{

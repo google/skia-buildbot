@@ -7,7 +7,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -41,7 +41,7 @@ func fullTaskCandidate() *taskCandidate {
 }
 
 func TestCopyTaskCandidate(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	v := fullTaskCandidate()
 	cp := v.CopyNoDiagnostics()
 	assert.Nil(t, cp.Diagnostics)
@@ -50,13 +50,13 @@ func TestCopyTaskCandidate(t *testing.T) {
 }
 
 func TestTaskCandidateJSON(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	v := fullTaskCandidate()
 	deepequal.AssertJSONRoundTrip(t, v)
 }
 
 func TestTaskCandidateId(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	t1 := makeTaskCandidate("task1", []string{"k:v"})
 	t1.Repo = "Myrepo"
 	t1.Revision = "abc123"
@@ -95,7 +95,7 @@ func TestTaskCandidateId(t *testing.T) {
 }
 
 func TestReplaceVar(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	c := makeTaskCandidate("c", []string{"k:v"})
 	c.Repo = "my-repo"
 	c.Revision = "abc123"
@@ -117,7 +117,7 @@ func TestReplaceVar(t *testing.T) {
 }
 
 func TestTaskCandidateJobs(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	c := taskCandidate{}
 	now := time.Now().UTC()

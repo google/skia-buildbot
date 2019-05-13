@@ -8,11 +8,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGetPreUploadStep(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	// Test for existing steps.
 	infraStep, err := GetPreUploadStep("TrainInfra")
@@ -30,7 +30,7 @@ func TestGetPreUploadStep(t *testing.T) {
 }
 
 func TestFlutterLicenseScripts(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	pubErr := error(nil)
 	dartErr := error(nil)

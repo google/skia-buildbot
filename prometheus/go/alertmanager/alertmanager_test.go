@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 var (
@@ -111,7 +111,7 @@ var (
 )
 
 func TestEmailBody(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	expectedBody := `<b>Alerts</b>: PerfAlert <br><br>
 
 <table border="0" cellspacing="5" cellpadding="5">
@@ -121,14 +121,14 @@ func TestEmailBody(t *testing.T) {
     <th>Status</th></th>
     <th>Description</th>
   </tr>
-  
+
     <tr>
       <td>PerfAlert</td>
       <td>Warning</td>
       <td>Firing</td>
       <td>At least one untriaged perf cluster has been found. Please visit https://perf.skia.org/t/ to triage.</td>
     </tr>
-  
+
 </table>
 `
 	expectedSubject := `Alert: PerfAlert started at 3:28pm EST (5 Jan 2017)`
@@ -140,7 +140,7 @@ func TestEmailBody(t *testing.T) {
 }
 
 func TestChatlBody(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	expectedBody := `*PerfAlert*
   *Firing* (Warning) At least one untriaged perf cluster has been found. Please visit https://perf.skia.org/t/ to triage.

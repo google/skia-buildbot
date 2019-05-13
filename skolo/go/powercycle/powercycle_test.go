@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 var deviceIDs = []string{}
 
 func TestConfig(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	dev, err := DeviceGroupFromJson5File("./example.json5", false)
 	assert.NoError(t, err)

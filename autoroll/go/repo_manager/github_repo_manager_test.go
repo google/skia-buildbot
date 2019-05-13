@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func githubCR(t *testing.T, g *github.GitHub) codereview.CodeReview {
@@ -48,7 +49,7 @@ func githubRmCfg() *GithubRepoManagerConfig {
 }
 
 func TestGithubConfigValidation(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	cfg := githubRmCfg()
 	assert.NoError(t, cfg.Validate())
@@ -155,7 +156,7 @@ func mockGithubRequests(t *testing.T, urlMock *mockhttpclient.URLMock, from, to 
 
 // TestGithubRepoManager tests all aspects of the GithubRepoManager except for CreateNewRoll.
 func TestGithubRepoManager(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, wd, _, childCommits, _, _, cleanup := setupGithub(t)
 	defer cleanup()
@@ -189,7 +190,7 @@ func TestGithubRepoManager(t *testing.T) {
 }
 
 func TestCreateNewGithubRoll(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, wd, _, childCommits, _, _, cleanup := setupGithub(t)
 	defer cleanup()
@@ -211,7 +212,7 @@ func TestCreateNewGithubRoll(t *testing.T) {
 
 // Verify that we ran the PreUploadSteps.
 func TestRanPreUploadStepsGithub(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, wd, _, childCommits, _, _, cleanup := setupGithub(t)
 	defer cleanup()
@@ -240,7 +241,7 @@ func TestRanPreUploadStepsGithub(t *testing.T) {
 
 // Verify that we fail when a PreUploadStep fails.
 func TestErrorPreUploadStepsGithub(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, wd, _, childCommits, _, _, cleanup := setupGithub(t)
 	defer cleanup()

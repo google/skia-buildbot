@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/mocks"
 	gs_testutils "go.skia.org/infra/go/gitstore/testutils"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	vcs_testutils "go.skia.org/infra/go/vcsinfo/testutils"
 )
@@ -22,7 +22,7 @@ const (
 )
 
 func TestVCSSuite(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	vcs, _, cleanup := setupVCSLocalRepo(t, "master")
 	defer cleanup()
 
@@ -35,7 +35,7 @@ func TestVCSSuite(t *testing.T) {
 }
 
 func TestBranchInfo(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	vcs, gitStore, cleanup := setupVCSLocalRepo(t, "")
 	defer cleanup()
 
@@ -55,7 +55,7 @@ func TestBranchInfo(t *testing.T) {
 // TestGetFile makes sure that we can use gittiles to fetch an
 // arbitrary file (DEPS) from the Skia repo at a chosen commit.
 func TestGetFile(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	gtRepo := gitiles.NewRepo(skiaRepoURL, "", nil)
 	hash := "9be246ed747fd1b900013dd0596aed0b1a63a1fa"
 	vcs := &BigTableVCS{
@@ -69,7 +69,7 @@ func TestGetFile(t *testing.T) {
 // not result in multiple calls to the underlying gitstore, that is,
 // the details per commit hash are cached.
 func TestDetailsCaching(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	mg := &mocks.GitStore{}
 	defer mg.AssertExpectations(t)
@@ -101,7 +101,7 @@ func TestDetailsCaching(t *testing.T) {
 
 // TestDetailsBranchInfo tests that the Branches field is filled out when requested.
 func TestDetailsBranchInfo(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	mg := &mocks.GitStore{}
 	defer mg.AssertExpectations(t)
@@ -129,7 +129,7 @@ func TestDetailsBranchInfo(t *testing.T) {
 
 // TestDetailsBranchInfoCaching validates the cache is cognizant of branch info
 func TestDetailsBranchInfoCaching(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	mg := &mocks.GitStore{}
 	defer mg.AssertExpectations(t)
@@ -168,7 +168,7 @@ func TestDetailsBranchInfoCaching(t *testing.T) {
 // not result in multiple calls to the underlying gitstore, that is,
 // the details per commit hash are cached.
 func TestDetailsMultiCaching(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	mg := &mocks.GitStore{}
 	defer mg.AssertExpectations(t)
@@ -210,7 +210,7 @@ func TestDetailsMultiCaching(t *testing.T) {
 // it makes sure a partial hit (e.g. some of the hashes are cached) results
 // in only the non-cached subset being queried to GitStore.
 func TestDetailsMultiPartialCaching(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	mg := &mocks.GitStore{}
 	defer mg.AssertExpectations(t)

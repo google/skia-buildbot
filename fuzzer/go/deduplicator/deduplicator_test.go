@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/mock"
 	"go.skia.org/infra/fuzzer/go/data"
 	"go.skia.org/infra/fuzzer/go/tests"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestLocalSimpleDeduplication(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := NewLocalDeduplicator()
 	r1 := data.MockReport("skpicture", "aaaa")
 	r2 := data.MockReport("skpicture", "bbbb")
@@ -37,7 +37,7 @@ func TestLocalSimpleDeduplication(t *testing.T) {
 }
 
 func TestLocalUnknownStacktraces(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := NewLocalDeduplicator()
 	// mock report ee has no stacktrace for either.  It should not be considered a duplicate, ever.
 	r1 := data.MockReport("skpicture", "eeee")
@@ -50,7 +50,7 @@ func TestLocalUnknownStacktraces(t *testing.T) {
 }
 
 func TestKey(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// r1 is a report with 6 and 7 stacktrace frames for Debug/Release
 	r1 := makeReport()
 	debugStacktrace := data.StackTrace{}
@@ -84,7 +84,7 @@ func TestKey(t *testing.T) {
 }
 
 func TestLocalLinesOfStacktrace(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := NewLocalDeduplicator()
 	r1 := makeReport()
 	r2 := makeReport()
@@ -107,7 +107,7 @@ func TestLocalLinesOfStacktrace(t *testing.T) {
 }
 
 func TestLocalLineNumbers(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := NewLocalDeduplicator()
 	r1 := makeReport()
 	r2 := makeReport()
@@ -130,7 +130,7 @@ func TestLocalLineNumbers(t *testing.T) {
 }
 
 func TestLocalFlags(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := NewLocalDeduplicator()
 	r1 := makeReport()
 	r2 := makeReport()
@@ -151,7 +151,7 @@ func TestLocalFlags(t *testing.T) {
 }
 
 func TestLocalCategory(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := NewLocalDeduplicator()
 	r1 := makeReport()
 	r2 := makeReport()
@@ -165,7 +165,7 @@ func TestLocalCategory(t *testing.T) {
 }
 
 func TestLocalArchitecture(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := NewLocalDeduplicator()
 	r1 := makeReport()
 	r2 := makeReport()
@@ -179,7 +179,7 @@ func TestLocalArchitecture(t *testing.T) {
 }
 
 func TestLocalOther(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := NewLocalDeduplicator()
 	r1 := makeReport()
 	r1.Flags["CLANG_DEBUG"] = append(r1.Flags["CLANG_DEBUG"], "Other")
@@ -203,7 +203,7 @@ func TestLocalOther(t *testing.T) {
 var ctx = mock.AnythingOfType("*context.emptyCtx")
 
 func TestRemoteLookup(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	m := tests.NewMockGCSClient()
 	defer m.AssertExpectations(t)
 
@@ -230,7 +230,7 @@ func TestRemoteLookup(t *testing.T) {
 }
 
 func TestRemoteLookupWithLocalCache(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	m := tests.NewMockGCSClient()
 	defer m.AssertExpectations(t)
 
@@ -256,7 +256,7 @@ func TestRemoteLookupWithLocalCache(t *testing.T) {
 }
 
 func TestRemoteLookupReset(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	m := tests.NewMockGCSClient()
 	defer m.AssertExpectations(t)
 

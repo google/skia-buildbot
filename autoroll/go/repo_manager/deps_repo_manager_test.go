@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -124,7 +125,7 @@ func setupFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
 
 // TestRepoManager tests all aspects of the DEPSRepoManager except for CreateNewRoll.
 func TestDEPSRepoManager(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, wd, child, childCommits, parent, _, _, cleanup := setup(t)
 	defer cleanup()
@@ -173,7 +174,7 @@ func TestDEPSRepoManager(t *testing.T) {
 }
 
 func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, wd, child, childCommits, parent, _, _, cleanup := setup(t)
 	defer cleanup()
@@ -213,7 +214,7 @@ func TestDEPSRepoManagerSingle(t *testing.T) {
 
 // Verify that we ran the PreUploadSteps.
 func TestRanPreUploadStepsDeps(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, wd, _, _, parent, _, _, cleanup := setup(t)
 	defer cleanup()
@@ -243,7 +244,7 @@ func TestRanPreUploadStepsDeps(t *testing.T) {
 
 // Verify that we respect the includeLog parameter.
 func TestDEPSRepoManagerIncludeLog(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	test := func(includeLog bool) {
 		ctx, wd, _, _, parent, _, lastUpload, cleanup := setup(t)
@@ -274,7 +275,7 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 
 // Verify that we properly utilize a gclient spec.
 func TestDEPSRepoManagerGclientSpec(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, wd, _, _, parent, mockRun, _, cleanup := setup(t)
 	defer cleanup()
@@ -325,7 +326,7 @@ cache_dir=None
 
 // Verify that we include the correct bug lings.
 func TestDEPSRepoManagerBugs(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	project := "skiatestproject"
 
@@ -386,7 +387,7 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 }
 
 func TestDEPSConfigValidation(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	cfg := depsCfg()
 	cfg.ParentRepo = "dummy" // Not supplied above.

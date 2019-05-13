@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestParseAPIResult(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	bots, err := getMatchingCandidates([]byte(TEST_DATA), "jumphost-rpi-01")
 	assert.NoError(t, err)

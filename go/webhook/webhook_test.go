@@ -9,7 +9,7 @@ import (
 
 	expect "github.com/stretchr/testify/assert"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
@@ -20,20 +20,20 @@ const (
 )
 
 func TestSetRequestSaltFromBase64Success(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	expect.Nil(t, setRequestSaltFromBase64([]byte(TEST_SALT_BASE64)))
 	expect.Equal(t, []byte(TEST_SALT), requestSalt)
 }
 
 func TestSetRequestSaltFromBase64Corrupt(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	err := setRequestSaltFromBase64([]byte(INVALID_BASE64))
 	assert.Error(t, err)
 	expect.Contains(t, err.Error(), "illegal base64 data")
 }
 
 func TestMustInitRequestSaltFromFileSuccess(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	f, err := ioutil.TempFile("", "webhook_test_salt")
 	assert.NoError(t, err)
 	defer util.Remove(f.Name())
@@ -44,7 +44,7 @@ func TestMustInitRequestSaltFromFileSuccess(t *testing.T) {
 }
 
 func TestComputeAuthHashBase64Success(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	assert.NoError(t, setRequestSaltFromBase64([]byte(TEST_SALT_BASE64)))
 	test := func(input, expected string) {
 		actual, err := ComputeAuthHashBase64([]byte(input))
@@ -62,7 +62,7 @@ func TestComputeAuthHashBase64Success(t *testing.T) {
 }
 
 func TestComputeAuthHashBase64NotInitialized(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	requestSalt = nil
 	_, err := ComputeAuthHashBase64([]byte("foo"))
 	assert.Error(t, err)
@@ -70,7 +70,7 @@ func TestComputeAuthHashBase64NotInitialized(t *testing.T) {
 }
 
 func TestAuthenticateRequestSuccess(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	assert.NoError(t, setRequestSaltFromBase64([]byte(TEST_SALT_BASE64)))
 	test := func(bodyStr string) {
 		body := []byte(bodyStr)
@@ -93,7 +93,7 @@ func TestAuthenticateRequestSuccess(t *testing.T) {
 }
 
 func TestAuthenticateRequestNoHeader(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	assert.NoError(t, setRequestSaltFromBase64([]byte(TEST_SALT_BASE64)))
 	body := []byte("my data")
 	req, err := http.NewRequest("POST", "http://invalid.", bytes.NewReader(body))
@@ -106,7 +106,7 @@ func TestAuthenticateRequestNoHeader(t *testing.T) {
 }
 
 func TestAuthenticateRequestErrorComputingHash(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	requestSalt = nil
 	body := []byte("my data")
 	req, err := http.NewRequest("POST", "http://invalid.", bytes.NewReader(body))
@@ -120,7 +120,7 @@ func TestAuthenticateRequestErrorComputingHash(t *testing.T) {
 }
 
 func TestAuthenticateRequestWrongHeader(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	assert.NoError(t, setRequestSaltFromBase64([]byte(TEST_SALT_BASE64)))
 	body := []byte("my data")
 	req, err := http.NewRequest("POST", "http://invalid.", bytes.NewReader(body))

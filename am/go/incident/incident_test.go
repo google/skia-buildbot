@@ -9,11 +9,11 @@ import (
 	"go.skia.org/infra/go/alerts"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestAlertArrival(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	cleanup := testutil.InitDatastore(t, ds.INCIDENT_AM, ds.INCIDENT_ACTIVE_PARENT_AM)
 	defer cleanup()
@@ -101,7 +101,7 @@ func TestAlertArrival(t *testing.T) {
 }
 
 func TestIdForAlert(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	m := map[string]string{
 		"__name__":   "ALERTS",
 		"alertname":  "BotMissing",
@@ -129,7 +129,7 @@ func TestIdForAlert(t *testing.T) {
 }
 
 func TestGetRegexesToOwners(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	ownersRegexesStr := "owner1:abbr_regex1,abbr_regex2;owner2:abbr_regex3"
 	m1, err := getRegexesToOwners(ownersRegexesStr)
@@ -146,7 +146,7 @@ func TestGetRegexesToOwners(t *testing.T) {
 }
 
 func TestGetOwnerIfMatch(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	// Test matches.
 	ownersRegexesStr := "superman@krypton.com:Bizarro.*,^Kryptonite.*Asteroid.*$;batman@gotham.com:Joker.*"

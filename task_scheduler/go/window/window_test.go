@@ -11,11 +11,12 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // A Window with no repos should just be a time range check.
 func TestWindowNoRepos(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	period := time.Hour
 	w, err := New(period, 0, nil)
 	assert.NoError(t, err)
@@ -67,7 +68,7 @@ func setupRepo(t *testing.T, numCommits int) (string, *repograph.Graph, []string
 // asserting that the Window returns a particular value for a given commit
 // index, and a cleanup function.
 func setup(t *testing.T, period time.Duration, numCommits, threshold int) (*Window, func(int, bool), func()) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	repoUrl, repo, commits, cleanup := setupRepo(t, numCommits)
 	rm := repograph.Map{
@@ -140,7 +141,7 @@ func TestWindowRepoAndDuration2(t *testing.T) {
 
 // Test multiple repos.
 func TestWindowMultiRepo(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	url1, repo1, commits1, cleanup1 := setupRepo(t, 20)
 	defer cleanup1()
 	url2, repo2, commits2, cleanup2 := setupRepo(t, 10)

@@ -5,11 +5,11 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestIngesterJson5Config(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	conf, err := ConfigFromJson5File("./test-file.json5")
 	assert.NoError(t, err)
 	checkTestConfig(t, conf)

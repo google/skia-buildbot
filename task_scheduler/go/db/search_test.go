@@ -7,12 +7,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 func TestJobSearch(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	now := time.Now()
 
@@ -172,7 +172,7 @@ func TestJobSearch(t *testing.T) {
 }
 
 func TestJobSearchParamsJson(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	decode := func(j string) *JobSearchParams {
 		var rv JobSearchParams

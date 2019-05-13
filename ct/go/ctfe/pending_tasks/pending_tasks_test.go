@@ -14,7 +14,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/go/ds"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func getCommonCols(kind ds.Kind) task_common.CommonCols {
@@ -33,7 +33,7 @@ func getCommonCols(kind ds.Kind) task_common.CommonCols {
 }
 
 func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	test := func(task task_common.Task) {
 		buf := bytes.Buffer{}
 		assert.NoError(t, EncodeTask(&buf, task))

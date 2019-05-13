@@ -5,11 +5,11 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestGetHourlyDirs(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	startTS := time.Date(1972, time.November, 29, 13, 45, 20, 67, time.UTC).Unix()
 	endTS := time.Date(1982, time.February, 2, 3, 45, 20, 67, time.UTC).Unix()
 	testFirstLastGetHourly(t, startTS, endTS, "prefix/1972/11/29/13", "prefix/1982/02/02/03")

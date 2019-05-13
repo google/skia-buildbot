@@ -9,6 +9,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
@@ -32,7 +33,7 @@ type testType struct {
 }
 
 func TestEventBus(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	testCodec := util.JSONCodec(&testType{})
 	RegisterCodec("channel1", testCodec)
@@ -87,7 +88,7 @@ func TestEventBus(t *testing.T) {
 }
 
 func TestSynStorageEvents(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	eventBus, err := New(PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_STORAGE_EVT)
 	assert.NoError(t, err)

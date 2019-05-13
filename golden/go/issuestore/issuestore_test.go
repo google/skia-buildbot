@@ -9,6 +9,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
@@ -24,7 +25,7 @@ const (
 )
 
 func TestIssueStore(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	const N_ISSUES = 20
 
 	// Add a number of issues

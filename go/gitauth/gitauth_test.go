@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 )
@@ -32,7 +32,7 @@ func (t *testTokenSource) Token() (*oauth2.Token, error) {
 }
 
 func TestNew(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("/tmp", "gitauth")
 	filename := filepath.Join(dir, "cookie")
 	assert.NoError(t, err)

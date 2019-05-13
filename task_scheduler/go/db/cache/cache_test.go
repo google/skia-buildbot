@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -32,7 +33,7 @@ func testGetTasksForCommits(t *testing.T, c TaskCache, b *types.Task) {
 }
 
 func TestTaskCache(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := memory.NewInMemoryTaskDB(nil)
 
 	// Pre-load a task into the DB.
@@ -73,7 +74,7 @@ func TestTaskCache(t *testing.T) {
 }
 
 func TestTaskCacheKnownTaskName(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := memory.NewInMemoryTaskDB(nil)
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
@@ -105,7 +106,7 @@ func TestTaskCacheKnownTaskName(t *testing.T) {
 }
 
 func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := memory.NewInMemoryTaskDB(nil)
 
 	// Pre-load a task into the DB.
@@ -192,7 +193,7 @@ func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 }
 
 func TestTaskCacheMultiRepo(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := memory.NewInMemoryTaskDB(nil)
 
 	// Insert several tasks with different repos.
@@ -255,7 +256,7 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 }
 
 func TestTaskCacheReset(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := memory.NewInMemoryTaskDB(nil)
 
 	// Pre-load a task into the DB.
@@ -300,7 +301,7 @@ func TestTaskCacheReset(t *testing.T) {
 }
 
 func TestTaskCacheUnfinished(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := memory.NewInMemoryTaskDB(nil)
 
 	// Insert a task.
@@ -408,7 +409,7 @@ func assertTasksNotCached(t *testing.T, c TaskCache, tasks []*types.Task) {
 }
 
 func TestTaskCacheExpiration(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := memory.NewInMemoryTaskDB(nil)
 
 	period := 10 * time.Minute
@@ -544,7 +545,7 @@ func TestTaskCacheExpiration(t *testing.T) {
 }
 
 func TestJobCache(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := memory.NewInMemoryJobDB(nil)
 
 	// Pre-load a job into the DB.
@@ -581,7 +582,7 @@ func TestJobCache(t *testing.T) {
 }
 
 func TestJobCacheTriggeredForCommit(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := memory.NewInMemoryJobDB(nil)
 
 	// Insert several jobs with different repos.
@@ -624,7 +625,7 @@ func testGetUnfinished(t *testing.T, expect []*types.Job, cache JobCache) {
 }
 
 func TestJobCacheReset(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := memory.NewInMemoryJobDB(nil)
 
 	// Pre-load a job into the DB.
@@ -653,7 +654,7 @@ func TestJobCacheReset(t *testing.T) {
 }
 
 func TestJobCacheUnfinished(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := memory.NewInMemoryJobDB(nil)
 
 	// Insert a job.
@@ -798,7 +799,7 @@ func assertJobsNotCached(t *testing.T, c JobCache, jobs []*types.Job) {
 }
 
 func TestJobCacheExpiration(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := memory.NewInMemoryJobDB(nil)
 
 	period := 10 * time.Minute
@@ -884,7 +885,7 @@ func TestJobCacheExpiration(t *testing.T) {
 }
 
 func TestJobCacheGetRevisionTimestampError(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := memory.NewInMemoryJobDB(nil)
 
 	period := 10 * time.Minute
@@ -966,7 +967,7 @@ func TestJobCacheGetRevisionTimestampError(t *testing.T) {
 }
 
 func TestGitRepoGetRevisionTimestamp(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	ctx := context.Background()
 	g := git_testutils.GitInit(t, ctx)
@@ -1008,7 +1009,7 @@ func TestGitRepoGetRevisionTimestamp(t *testing.T) {
 }
 
 func TestJobCacheGetMatchingJobsFromDateRange(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	d := memory.NewInMemoryJobDB(nil)
 

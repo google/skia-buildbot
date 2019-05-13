@@ -6,11 +6,11 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gce/autoscaler"
 	"go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestRegisterGCETask(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mock := &autoscaler.MockAutoscaler{}
 	c := CTAutoscaler{a: mock}
 
@@ -28,7 +28,7 @@ func TestRegisterGCETask(t *testing.T) {
 }
 
 func TestUnRegisterGCETask(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	mock := &autoscaler.MockAutoscaler{}
 	s := swarming.NewMockApiClient()
 	s.On("DeleteBots", autoscaler.TestInstances).Return(nil)

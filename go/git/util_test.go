@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestNormURL(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	httpURL := "https://github.com/skia-dev/textfiles.git"
 	gitURL := "ssh://git@github.com/skia-dev/textfiles"
 	gitURLWithExt := "ssh://git@github.com:skia-dev/textfiles.git"

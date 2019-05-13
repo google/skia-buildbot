@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/ingestion"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -27,7 +27,7 @@ var (
 )
 
 func TestCommitID(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	c := &CommitID{
 		Offset: 51,
 		Source: "master",
@@ -37,7 +37,7 @@ func TestCommitID(t *testing.T) {
 }
 
 func TestFromHash(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	ctx := context.Background()
 	vcs := ingestion.MockVCS(TEST_COMMITS, nil, nil)
 	commitID, err := FromHash(ctx, vcs, "fe4a4029a080bc955e9588d05a6cd9eb490845d4")
@@ -55,7 +55,7 @@ func TestFromHash(t *testing.T) {
 }
 
 func TestParseLogLine(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	ctx := context.Background()
 	s := "1476870603 e8f0a7b986f1e5583c9bc162efcdd92fd6430549 joel.liang@arm.com Generate Signed Distance Field directly from vector path"
 	var index int = 3
@@ -86,7 +86,7 @@ func TestParseLogLine(t *testing.T) {
 }
 
 func TestFromID(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		value    string
 		expected *CommitID

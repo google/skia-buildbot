@@ -6,11 +6,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestParse(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	r := bytes.NewBufferString(INCOMING)
 	in, err := Parse(r)
 	assert.NoError(t, err)
@@ -22,7 +22,7 @@ func TestParse(t *testing.T) {
 }
 
 func TestParse2(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	r := bytes.NewBufferString(INCOMING2)
 	in, err := Parse(r)
 	assert.NoError(t, err)
@@ -48,7 +48,7 @@ func (l lookupMockBad) Lookup(buildid int64) (string, error) {
 }
 
 func TestConvert(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	c := New(lookupMockGood{})
 	r := bytes.NewBufferString(INCOMING)
 	benchData, err := c.Convert(r)
@@ -61,7 +61,7 @@ func TestConvert(t *testing.T) {
 }
 
 func TestConvertSecondBranch(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// If our branch isn't listed as the master branch it should become part of the key.
 	c := New(lookupMockGood{})
 	r := bytes.NewBufferString(INCOMING)
@@ -75,7 +75,7 @@ func TestConvertSecondBranch(t *testing.T) {
 }
 
 func TestConvert2(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	c := New(lookupMockGood{})
 	r := bytes.NewBufferString(INCOMING2)
 	benchData, err := c.Convert(r)
@@ -87,7 +87,7 @@ func TestConvert2(t *testing.T) {
 }
 
 func TestConvertFailHashLookup(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	c := New(lookupMockBad{})
 	r := bytes.NewBufferString(INCOMING)
 	_, err := c.Convert(r)
@@ -95,7 +95,7 @@ func TestConvertFailHashLookup(t *testing.T) {
 }
 
 func TestConvertFailWrongBranch(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	c := New(lookupMockGood{})
 	r := bytes.NewBufferString(INCOMING)
 	_, err := c.Convert(r)

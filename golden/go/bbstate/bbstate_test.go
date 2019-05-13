@@ -13,7 +13,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	gstorage "google.golang.org/api/storage/v1"
@@ -23,7 +23,7 @@ import (
 // more testable. Supply a mock version of the interface.
 
 func TestBuildBucketState(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	// Comment out the line below to run tests locally.
 	t.Skip()

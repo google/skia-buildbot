@@ -4,11 +4,11 @@ import (
 	"math"
 	"testing"
 
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestStepFit(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		value    []float32
 		expected *StepFit

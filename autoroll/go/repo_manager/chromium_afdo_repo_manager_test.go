@@ -22,6 +22,7 @@ import (
 	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -169,7 +170,7 @@ func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, path stri
 }
 
 func TestAFDORepoManager(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, rm, urlmock, mockParent, parent, cleanup := setupAfdo(t)
 	defer cleanup()
@@ -274,7 +275,7 @@ func TestAFDORepoManager(t *testing.T) {
 }
 
 func TestChromiumAFDOConfigValidation(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	cfg := afdoCfg()
 	cfg.ParentRepo = "dummy" // Not supplied above.

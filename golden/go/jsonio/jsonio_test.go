@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 var (
@@ -73,7 +73,7 @@ var (
 )
 
 func TestValidate(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	empty := &GoldResults{}
 	errMsgs, err := empty.Validate(false)
@@ -111,7 +111,7 @@ func TestValidate(t *testing.T) {
 }
 
 func TestParseGoldResults(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	r := testParse(t, testJSON)
 
 	// Make sure some key fields come out correctly, i.e. are converted correctly from string to int.
@@ -123,7 +123,7 @@ func TestParseGoldResults(t *testing.T) {
 }
 
 func TestGenJson(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	// Test parsing the test JSON.
 	goldResults := testParse(t, testJSON)

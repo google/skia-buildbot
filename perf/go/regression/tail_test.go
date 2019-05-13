@@ -3,11 +3,11 @@ package regression
 import (
 	"testing"
 
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestFilterTail(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		trace    []float32
 		quantile float64

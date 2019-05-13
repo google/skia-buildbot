@@ -12,7 +12,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	metrics_util "go.skia.org/infra/go/metrics2/testutils"
 	"go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -35,7 +35,7 @@ func getPromClient() metrics2.Client {
 }
 
 func TestDeadQuarantinedBotMetrics(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	ms := swarming.NewMockApiClient()
 	defer ms.AssertExpectations(t)
@@ -112,7 +112,7 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 }
 
 func TestLastTaskBotMetrics(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	ms := swarming.NewMockApiClient()
 	defer ms.AssertExpectations(t)
@@ -155,7 +155,7 @@ func TestLastTaskBotMetrics(t *testing.T) {
 }
 
 func TestBotTemperatureMetrics(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	ms := swarming.NewMockApiClient()
 	defer ms.AssertExpectations(t)
@@ -253,7 +253,7 @@ func TestBotTemperatureMetrics(t *testing.T) {
 }
 
 func TestRebootRequiredMetrics(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	ms := swarming.NewMockApiClient()
 	defer ms.AssertExpectations(t)
@@ -334,7 +334,7 @@ func windowsSkoloOSVersionCountHelper(t *testing.T, now time.Time, bots []*swarm
 }
 
 func TestWindowsSkoloOSVersionCount(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	now := time.Date(2017, 9, 1, 12, 0, 0, 0, time.UTC)
 
 	// No Windows bots.

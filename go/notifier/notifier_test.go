@@ -5,11 +5,11 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestConfigs(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	c := Config{}
 	assert.EqualError(t, c.Validate(), "Either Filter or MsgTypeWhitelist is required.")
@@ -100,7 +100,7 @@ func TestConfigs(t *testing.T) {
 }
 
 func TestConfigCopy(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	c := &Config{
 		Filter:           "info",

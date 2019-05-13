@@ -9,13 +9,13 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/types"
 )
 
 func TestStepFit(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	cleanup := testutil.InitDatastore(t, ds.REGRESSION)
 	defer cleanup()

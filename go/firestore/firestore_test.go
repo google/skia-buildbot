@@ -11,13 +11,13 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 func TestWithTimeout(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	errTimeout := errors.New("timeout")
 	err := withTimeout(200*time.Millisecond, func(ctx context.Context) error {
@@ -70,7 +70,7 @@ func TestWithTimeoutAndRetries(t *testing.T) {
 }
 
 func setup(t *testing.T) (*Client, func()) {
-	testutils.ManualTest(t)
+	unittest.ManualTest(t)
 
 	project := "skia-firestore"
 	app := "firestore_pkg_tests"

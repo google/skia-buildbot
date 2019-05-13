@@ -4,24 +4,24 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 func TestDefaultModifiedTasks(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	db.TestModifiedTasks(t, &ModifiedTasksImpl{})
 }
 
 // Test that if a Task is modified multiple times, it only appears once in the
 // result of GetModifiedTasks.
 func TestDefaultMultipleTaskModifications(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	db.TestMultipleTaskModifications(t, &ModifiedTasksImpl{})
 }
 
 func TestDefaultModifiedTasksTooManyUsers(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	m := ModifiedTasksImpl{}
 
 	var oneId string
@@ -40,17 +40,17 @@ func TestDefaultModifiedTasksTooManyUsers(t *testing.T) {
 }
 
 func TestDefaultModifiedJobs(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	db.TestModifiedJobs(t, &ModifiedJobsImpl{})
 }
 
 func TestDefaultMultipleJobModifications(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	db.TestMultipleJobModifications(t, &ModifiedJobsImpl{})
 }
 
 func TestDefaultModifiedJobsTooManyUsers(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	m := ModifiedJobsImpl{}
 
 	var oneId string
@@ -69,19 +69,19 @@ func TestDefaultModifiedJobsTooManyUsers(t *testing.T) {
 }
 
 func TestDefaultModifiedComments(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	m := &ModifiedCommentsImpl{}
 	db.TestModifiedComments(t, m)
 }
 
 func TestDefaultMultipleCommentModifications(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	m := &ModifiedCommentsImpl{}
 	db.TestMultipleCommentModifications(t, m)
 }
 
 func TestDefaultModifiedCommentsTooManyUsers(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	m := ModifiedCommentsImpl{}
 
 	var oneId string

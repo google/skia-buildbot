@@ -9,7 +9,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -17,7 +17,7 @@ const (
 )
 
 func TestTwoLevelRadixPath(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	assert.Equal(t, "", TwoLevelRadixPath(""))
 	assert.Equal(t, "ab/cd/abcdefgh.txt", TwoLevelRadixPath("abcdefgh.txt"))
 	assert.Equal(t, "/etc/xyz/ab.txt", TwoLevelRadixPath("/etc", "xyz/ab.txt"))
@@ -26,7 +26,7 @@ func TestTwoLevelRadixPath(t *testing.T) {
 }
 
 func TestCountLines(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	lines, err := CountLines(filepath.Join(TEST_DATA_DIR, "no_lines_file.txt"))
 	assert.Nil(t, err)
@@ -46,7 +46,7 @@ func TestCountLines(t *testing.T) {
 }
 
 func TestReadAllFilesRecursive(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	test := func(write, expect map[string]string, excludeDirs []string) {
 		wd, err := ioutil.TempDir("", "")

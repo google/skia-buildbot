@@ -8,7 +8,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -21,7 +21,7 @@ func skipTestIfRequired(t *testing.T) {
 	if !RUN_GERRIT_TESTS {
 		t.Skip("Skipping test due to RUN_GERRIT_TESTS=false")
 	}
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 }
 
 func TestHasOpenDependency(t *testing.T) {
@@ -288,7 +288,7 @@ func TestAbandon(t *testing.T) {
 }
 
 func TestFiles(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, err := fmt.Fprintln(w, `)]}'
@@ -337,7 +337,7 @@ func TestFiles(t *testing.T) {
 }
 
 func TestGetFileNames(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, err := fmt.Fprintln(w, `)]}'
@@ -381,7 +381,7 @@ func TestGetFileNames(t *testing.T) {
 }
 
 func TestIsBinaryPatch(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	tsNoBinary := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -431,7 +431,7 @@ func TestIsBinaryPatch(t *testing.T) {
 }
 
 func TestExtractIssueFromCommit(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	cmtMsg := `
    	Author: John Doe <jdoe@example.com>
 		Date:   Mon Feb 5 10:51:20 2018 -0500

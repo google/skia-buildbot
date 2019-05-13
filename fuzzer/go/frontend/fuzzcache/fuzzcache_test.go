@@ -8,12 +8,13 @@ import (
 	"go.skia.org/infra/fuzzer/go/data"
 	"go.skia.org/infra/fuzzer/go/frontend/fuzzpool"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const TEST_DB_PATH = "/tmp/test-db"
 
 func TestBoltDBStoreAndRetrieve(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	deleteBeforeTest(t)
 	db, err := New(TEST_DB_PATH)
 	if err != nil {
@@ -42,7 +43,7 @@ func TestBoltDBStoreAndRetrieve(t *testing.T) {
 }
 
 func TestBoltDBDoesNotExist(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	deleteBeforeTest(t)
 	db, err := New(TEST_DB_PATH)
 	if err != nil {

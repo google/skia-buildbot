@@ -8,6 +8,7 @@ import (
 	"github.com/boltdb/bolt"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
 
@@ -53,7 +54,7 @@ func (e *exampleRec) IndexValues() map[string][]string {
 }
 
 func TestKeyConflicts(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	testIndices := []string{TEST_INDEX_ONE}
 	ib, baseDir, _ := newIndexedBucket(t, testIndices)
@@ -85,7 +86,7 @@ func TestKeyConflicts(t *testing.T) {
 }
 
 func TestIndexedBucket(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	ib, baseDir, dbFileName := newIndexedBucket(t, []string{TEST_INDEX_ONE})
 	defer testutils.RemoveAll(t, baseDir)

@@ -6,11 +6,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/android_ingest/go/buildapi"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestRationalize(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	// startTS is much later.
 	builds := []buildapi.Build{
@@ -47,7 +47,7 @@ func TestRationalize(t *testing.T) {
 }
 
 func TestSort(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	builds := []buildapi.Build{
 		{TS: 120, BuildId: 12},
 		{TS: 123, BuildId: 11},

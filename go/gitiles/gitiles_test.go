@@ -14,11 +14,12 @@ import (
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
 func TestLog(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Setup. The test repo looks like this:
 	/*
@@ -179,7 +180,7 @@ func TestLog(t *testing.T) {
 }
 
 func TestLogPagination(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	// Gitiles API paginates logs over 100 commits long.
 	repoUrl := "https://fake/repo"

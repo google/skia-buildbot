@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/btts_testutils"
 	"go.skia.org/infra/perf/go/config"
@@ -32,7 +32,7 @@ var (
 )
 
 func TestBasic(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	ctx := context.Background()
 	btts_testutils.CreateTestTable(t)
 	defer btts_testutils.CleanUpTestTable(t)
@@ -92,7 +92,7 @@ func encodeParams(t *testing.T, op *paramtools.OrderedParamSet, p paramtools.Par
 }
 
 func TestTraces(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 	ctx := context.Background()
 	btts_testutils.CreateTestTable(t)
 	defer btts_testutils.CleanUpTestTable(t)
@@ -193,7 +193,7 @@ func TestTraces(t *testing.T) {
 }
 
 func TestTileKey(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	numShards := int32(3)
 	tileKey := TileKeyFromOffset(0)
@@ -240,7 +240,7 @@ const rowJson = `{
 }`
 
 func TestOpsCacheEntry(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// Entry for an empty OPS.
 	o, err := NewOpsCacheEntry()
 	assert.NoError(t, err)

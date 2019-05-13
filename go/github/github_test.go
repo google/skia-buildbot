@@ -10,10 +10,11 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestAddComment(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	reqType := "application/json"
 	reqBody := []byte(`{"body":"test msg"}
 `)
@@ -29,7 +30,7 @@ func TestAddComment(t *testing.T) {
 }
 
 func TestGetAuthenticatedUser(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	r := mux.NewRouter()
 	md := mockhttpclient.MockGetError("OK", http.StatusOK)
 	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/user").Handler(md)
@@ -42,7 +43,7 @@ func TestGetAuthenticatedUser(t *testing.T) {
 }
 
 func TestGetPullRequest(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	respBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{State: &CLOSED_STATE}))
 	r := mux.NewRouter()
 	md := mockhttpclient.MockGetDialogue(respBody)
@@ -57,7 +58,7 @@ func TestGetPullRequest(t *testing.T) {
 }
 
 func TestCreatePullRequest(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	reqType := "application/json"
 	reqBody := []byte(`{"title":"title","head":"headBranch","base":"baseBranch","body":"testBody"}
 `)
@@ -76,7 +77,7 @@ func TestCreatePullRequest(t *testing.T) {
 }
 
 func TestMergePullRequest(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	reqType := "application/json"
 	reqBody := []byte(`{"commit_message":"test comment","merge_method":"squash"}
 `)
@@ -92,7 +93,7 @@ func TestMergePullRequest(t *testing.T) {
 }
 
 func TestClosePullRequest(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	respBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{State: &CLOSED_STATE}))
 	reqType := "application/json"
 	reqBody := []byte(`{"state":"closed"}
@@ -110,7 +111,7 @@ func TestClosePullRequest(t *testing.T) {
 }
 
 func TestGetLabelsRequest(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	label1Name := "test1"
 	label2Name := "test2"
 	label1 := github.Label{Name: &label1Name}
@@ -129,7 +130,7 @@ func TestGetLabelsRequest(t *testing.T) {
 }
 
 func TestAddLabelRequest(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	label1Name := "test1"
 	label2Name := "test2"
 	label1 := github.Label{Name: &label1Name}
@@ -155,7 +156,7 @@ func TestAddLabelRequest(t *testing.T) {
 }
 
 func TestReplaceLabelRequest(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	label1Name := "test1"
 	label2Name := "test2"
 	label1 := github.Label{Name: &label1Name}
@@ -181,7 +182,7 @@ func TestReplaceLabelRequest(t *testing.T) {
 }
 
 func TestGetChecksRequest(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	statusID1 := int64(100)
 	statusID2 := int64(200)
 	repoStatus1 := github.RepoStatus{ID: &statusID1}
@@ -202,7 +203,7 @@ func TestGetChecksRequest(t *testing.T) {
 }
 
 func TestGetDescription(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	body := "test test test"
 	respBody := []byte(testutils.MarshalJSON(t, &github.Issue{Body: &body}))
 	r := mux.NewRouter()
@@ -218,7 +219,7 @@ func TestGetDescription(t *testing.T) {
 }
 
 func TestReadRawFileRequest(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	respBody := []byte(`abcd`)
 	r := mux.NewRouter()
 	md := mockhttpclient.MockGetDialogue(respBody)
@@ -233,7 +234,7 @@ func TestReadRawFileRequest(t *testing.T) {
 }
 
 func TestGetFullHistoryUrl(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	httpClient := mockhttpclient.NewMuxClient(mux.NewRouter())
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	assert.NoError(t, err)
@@ -242,7 +243,7 @@ func TestGetFullHistoryUrl(t *testing.T) {
 }
 
 func TestGetIssueUrlBase(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	httpClient := mockhttpclient.NewMuxClient(mux.NewRouter())
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	assert.NoError(t, err)

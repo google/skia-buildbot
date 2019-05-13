@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 type Item struct {
@@ -18,7 +18,7 @@ type Item struct {
 }
 
 func TestGobEncoder(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// TODO(benjaminwagner): Is there any way to cause an error?
 	e := GobEncoder{}
 	expectedItems := map[*Item][]byte{}
@@ -44,7 +44,7 @@ func TestGobEncoder(t *testing.T) {
 }
 
 func TestGobEncoderNoItems(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	e := GobEncoder{}
 	item, serialized, err := e.Next()
 	assert.NoError(t, err)
@@ -53,7 +53,7 @@ func TestGobEncoderNoItems(t *testing.T) {
 }
 
 func TestGobDecoder(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := NewGobDecoder(func() interface{} {
 		return &Item{}
 	}, func(ch <-chan interface{}) interface{} {
@@ -88,7 +88,7 @@ func TestGobDecoder(t *testing.T) {
 }
 
 func TestGobDecoderNoItems(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := NewGobDecoder(func() interface{} {
 		return &Item{}
 	}, func(ch <-chan interface{}) interface{} {
@@ -104,7 +104,7 @@ func TestGobDecoderNoItems(t *testing.T) {
 }
 
 func TestGobDecoderError(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	item := &Item{}
 	item.Id = "Id"
 	var buf bytes.Buffer

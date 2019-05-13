@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/notifier"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // validBaseConfig returns a minimal valid AutoRollerConfig.
@@ -40,7 +40,7 @@ func validBaseConfig() *AutoRollerConfig {
 }
 
 func TestConfigs(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	// Sanity check: ensure that the base config is valid.
 	assert.NoError(t, validBaseConfig().Validate())
@@ -151,7 +151,7 @@ func TestConfigs(t *testing.T) {
 }
 
 func TestConfigSerialization(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	a := validBaseConfig()
 

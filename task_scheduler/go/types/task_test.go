@@ -12,11 +12,11 @@ import (
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestCopyTaskKey(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	v := TaskKey{
 		RepoState: RepoState{
 			Repo:     "nou.git",
@@ -31,7 +31,7 @@ func TestCopyTaskKey(t *testing.T) {
 // Test that Task.UpdateFromSwarming returns an error when the input data is
 // invalid.
 func TestUpdateFromSwarmingInvalid(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &Task{
 		Id: "A",
@@ -93,7 +93,7 @@ func TestUpdateFromSwarmingInvalid(t *testing.T) {
 // Test that Task.UpdateFromSwarming returns an error when the task "identity"
 // fields do not match.
 func TestUpdateFromSwarmingMismatched(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &Task{
 		Id: "A",
@@ -158,7 +158,7 @@ func TestUpdateFromSwarmingMismatched(t *testing.T) {
 
 // Test that Task.UpdateFromSwarming sets the expected fields in an empty Task.
 func TestUpdateFromSwarmingInit(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	now := time.Now().UTC().Round(time.Microsecond)
 	task1 := &Task{
 		SwarmingTaskId: "E",
@@ -245,7 +245,7 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 // Test that Task.UpdateFromSwarming updates the expected fields in an existing
 // Task.
 func TestUpdateFromSwarmingUpdate(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &Task{
 		Id: "A",
@@ -371,7 +371,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 
 // Test that Task.UpdateFromSwarming updates the Status field correctly.
 func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	now := time.Now().UTC().Round(time.Microsecond)
 
 	testUpdateStatus := func(s *swarming_api.SwarmingRpcsTaskResult, newStatus TaskStatus) {
@@ -445,7 +445,7 @@ func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
 }
 
 func TestCopyTask(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	now := time.Now()
 	v := &Task{
 		Attempt:        3,
@@ -479,7 +479,7 @@ func TestCopyTask(t *testing.T) {
 }
 
 func TestValidateTask(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	test := func(task *Task, msg string) {
 		err := task.Validate()
@@ -562,7 +562,7 @@ func TestValidateTask(t *testing.T) {
 
 // Test that sort.Sort(TaskSlice(...)) works correctly.
 func TestTaskSort(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	tasks := []*Task{}
 	addTask := func(ts time.Time) {
 		task := &Task{
@@ -586,7 +586,7 @@ func TestTaskSort(t *testing.T) {
 }
 
 func TestTaskEncoder(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// TODO(benjaminwagner): Is there any way to cause an error?
 	e := TaskEncoder{}
 	expectedTasks := map[*Task][]byte{}
@@ -611,7 +611,7 @@ func TestTaskEncoder(t *testing.T) {
 }
 
 func TestTaskEncoderNoTasks(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	e := TaskEncoder{}
 	task, serialized, err := e.Next()
 	assert.NoError(t, err)
@@ -620,7 +620,7 @@ func TestTaskEncoderNoTasks(t *testing.T) {
 }
 
 func TestTaskDecoder(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := NewTaskDecoder()
 	expectedTasks := map[string]*Task{}
 	for i := 0; i < 250; i++ {
@@ -647,7 +647,7 @@ func TestTaskDecoder(t *testing.T) {
 }
 
 func TestTaskDecoderNoTasks(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	d := NewTaskDecoder()
 	result, err := d.Result()
 	assert.NoError(t, err)
@@ -655,7 +655,7 @@ func TestTaskDecoderNoTasks(t *testing.T) {
 }
 
 func TestTaskDecoderError(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	task := &Task{}
 	task.Id = "Id"
 	var buf bytes.Buffer
@@ -681,7 +681,7 @@ func TestTaskDecoderError(t *testing.T) {
 }
 
 func TestCopyTaskSummary(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	v := &TaskSummary{
 		Attempt:        1,
 		Id:             "123",

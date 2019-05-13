@@ -30,6 +30,7 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -192,7 +193,7 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *types.Task, dims ma
 
 // Common setup for TaskScheduler tests.
 func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *swarming_testutils.TestClient, *TaskScheduler, *mockhttpclient.URLMock, func()) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, gb, _, _ := tcc_testutils.SetupTestRepo(t)
 
@@ -1117,7 +1118,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 }
 
 func TestTestedness(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	tc := []struct {
 		in  int
 		out float64
@@ -1157,7 +1158,7 @@ func TestTestedness(t *testing.T) {
 }
 
 func TestTestednessIncrease(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	tc := []struct {
 		a   int
 		b   int
@@ -1258,7 +1259,7 @@ func TestTestednessIncrease(t *testing.T) {
 }
 
 func TestComputeBlamelist(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	// Setup.
 	ctx := context.Background()
@@ -1509,7 +1510,7 @@ func TestComputeBlamelist(t *testing.T) {
 }
 
 func TestTimeDecay24Hr(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	tc := []struct {
 		decayAmt24Hr float64
 		elapsed      time.Duration
@@ -1768,7 +1769,7 @@ func makeSwarmingBot(id string, dims []string) *swarming_api.SwarmingRpcsBotInfo
 }
 
 func TestGetCandidatesToSchedule(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 	// Empty lists.
 	rv := getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{})
 	assert.Equal(t, 0, len(rv))
@@ -2302,7 +2303,7 @@ func (s *spyDB) PutTasks(tasks []*types.Task) error {
 }
 
 func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *TaskScheduler, *swarming_testutils.TestClient, []string, func(*types.Task), func()) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
@@ -2638,7 +2639,7 @@ func TestBlacklist(t *testing.T) {
 	// actually integrated into the scheduler.
 	ctx, gb, _, swarmingClient, s, _, cleanup := setup(t)
 	defer cleanup()
-	testutils.ManualTest(t)
+	unittest.ManualTest(t)
 	instance := fmt.Sprintf("task-scheduler-test-%s", uuid.New())
 	bl, err := blacklist.New(context.Background(), firestore.FIRESTORE_PROJECT, instance, nil)
 	assert.NoError(t, err)

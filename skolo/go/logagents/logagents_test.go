@@ -8,6 +8,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 type testStruct struct {
@@ -16,7 +17,7 @@ type testStruct struct {
 }
 
 func TestReadPersistenceActual(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	dir, err := testutils.TestDataDir()
 	assert.NoError(t, err)
 	assert.NoError(t, SetPersistenceDir(dir))
@@ -31,7 +32,7 @@ func TestReadPersistenceActual(t *testing.T) {
 }
 
 func TestWritePersistenceActual(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("", "writepersist")
 	assert.NoError(t, err)
 	assert.NoError(t, SetPersistenceDir(dir))
