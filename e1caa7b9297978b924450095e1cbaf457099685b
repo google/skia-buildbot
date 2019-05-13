@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "331f4da3_110516dd",
+        "filename": "golden/go/types/expectations.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T04:37:19Z",
+      "side": 0,
+      "message": "It would make me feel better if we had tests for deserializing from any persisted JSON format that exists.",
+      "revId": "e1caa7b9297978b924450095e1cbaf457099685b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

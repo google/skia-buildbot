@@ -1,0 +1,176 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4fd9c599_6ffa5223",
+        "filename": "golden/go/serialize/serialize.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T04:37:19Z",
+      "side": 1,
+      "message": "nit: Am I understanding correctly that this is only used in tests? If so, could we move it to a testutils package? Also, could we simplify the serialized format, e.g. (gzipped) JSON or GOB?",
+      "range": {
+        "startLine": 27,
+        "startChar": 5,
+        "endLine": 27,
+        "endChar": 11
+      },
+      "revId": "973116f41c45b75e934398ba0f2b1f358ddfc734",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ac2a099_b62ae70c",
+        "filename": "golden/go/serialize/serialize.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T04:37:19Z",
+      "side": 1,
+      "message": "nit: maybe out-of-date / no longer relevant\n\n(If you change the JSON tags, also do so for dummy below.)",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 19
+      },
+      "revId": "973116f41c45b75e934398ba0f2b1f358ddfc734",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69489939_0d7e9ad2",
+        "filename": "golden/go/serialize/serialize.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T04:37:19Z",
+      "side": 1,
+      "message": "nit: (Maybe made irrelevant by other comments.) This changes the serialized format. Are you sure you want to do that?",
+      "revId": "973116f41c45b75e934398ba0f2b1f358ddfc734",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d17824ed_f510f856",
+        "filename": "golden/go/serialize/serialize.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T04:37:19Z",
+      "side": 1,
+      "message": "Did you mean to use sklog here? x3",
+      "revId": "973116f41c45b75e934398ba0f2b1f358ddfc734",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b395373_afccb403",
+        "filename": "golden/go/storage/storage_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T04:37:19Z",
+      "side": 1,
+      "message": "nit: IWBN to change this filename so that the tests still pass when syncing to old revisions.\n\nAlso for TEST_DATA_STORAGE_PATH in golden/go/search/new_search_test.go (maybe other places too, not sure).",
+      "range": {
+        "startLine": 42,
+        "startChar": 27,
+        "endLine": 42,
+        "endChar": 67
+      },
+      "revId": "973116f41c45b75e934398ba0f2b1f358ddfc734",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b240404_46a8da49",
+        "filename": "golden/go/testutils/data_three_devices/three_devices.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T04:37:19Z",
+      "side": 1,
+      "message": "nit: could replace this with MakeTestExpectations()",
+      "range": {
+        "startLine": 61,
+        "startChar": 12,
+        "endLine": 73,
+        "endChar": 3
+      },
+      "revId": "973116f41c45b75e934398ba0f2b1f358ddfc734",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "33397897_b694e4d6",
+        "filename": "golden/go/types/expectations.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T04:37:19Z",
+      "side": 1,
+      "message": "nit/observation: It seems that this type is used in three slightly different ways:\n 1. To represent triaging (expectation changes), where the Label is allowed to be any of POSITIVE/NEGATIVE/UNTRIAGED. In this case, UNTRIAGED is meaningful because it indicates a change from POSITIVE or NEGATIVE to UNTRIAGED.\n 2. To represent stored expectations, where UNTRIAGED is omitted since it\u0027s the default.\n 3. To represent baselines, where only POSITIVE is useful.\n\nIf I\u0027m understanding correctly, for #2 and #3, if somehow we wind up with Expectations where a Label is UNTRIAGED (or NEGATIVE for #3), it\u0027s not really a problem for correctness, it\u0027s just less efficient space-wise.\n\nIf that\u0027s correct, we might consider:\n - remove MergeExpectations; instead call Update.\n - add method \"TrimUntriaged\" and call it before storing/serializing Expectations (where we were previously calling MergeExpectations).\n - maybe add method \"AsBaseline\" to return a copy of Expectations with only POSITIVE labels\nThe advantage would be that it\u0027s more explicit that Expectations is allowed to have any of POSITIVE/NEGATIVE/UNTRIAGED (unless it\u0027s the result of TrimUntriaged or AsBaseline).\n\nIf that\u0027s not correct, or if the above doesn\u0027t seem like a change you want to make, it would be nice to document each use of Expectations to indicate which of POSITIVE/NEGATIVE/UNTRIAGED it might contain. Where one of those is not allowed, it would also be nice to document each mutation to indicate why the new label is among those allowed, if it\u0027s not obvious.",
+      "range": {
+        "startLine": 10,
+        "startChar": 45,
+        "endLine": 10,
+        "endChar": 72
+      },
+      "revId": "973116f41c45b75e934398ba0f2b1f358ddfc734",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0f2e1a0_d9b59ed1",
+        "filename": "golden/go/types/expectations.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T04:37:19Z",
+      "side": 1,
+      "message": "I think we need the docs and naming to make a clear distinction between MergeExpectations and Update; or remove one or the other. \n\n(It looks like Update is only used in one spot, where we know that the \"right\" arg is a baseline, i.e. it only includes Positive labels.)",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 61
+      },
+      "revId": "973116f41c45b75e934398ba0f2b1f358ddfc734",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

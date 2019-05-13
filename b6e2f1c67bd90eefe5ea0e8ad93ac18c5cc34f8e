@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dd81aa9c_7c99d57d",
+        "filename": "golden/go/baseline/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T04:37:19Z",
+      "side": 1,
+      "message": "nit: could we rename this to Expectations and copy doc about baseline expectations from doc on Expectations struct?",
+      "range": {
+        "startLine": 35,
+        "startChar": 1,
+        "endLine": 35,
+        "endChar": 9
+      },
+      "revId": "b6e2f1c67bd90eefe5ea0e8ad93ac18c5cc34f8e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a5fa13b5_300d41e5",
+        "filename": "golden/go/baseline/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T04:37:19Z",
+      "side": 1,
+      "message": "nit: since you\u0027re renaming this, could we just call it \"Copy\"? ISTM if you don\u0027t want a deep copy, you would just do \"cpy :\u003d *orig\", so it seems obvious that a \"Copy\" method would be a deep copy.",
+      "range": {
+        "startLine": 44,
+        "startChar": 19,
+        "endLine": 44,
+        "endChar": 27
+      },
+      "revId": "b6e2f1c67bd90eefe5ea0e8ad93ac18c5cc34f8e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a192330c_cbe28c82",
+        "filename": "golden/go/types/expectations.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T04:37:19Z",
+      "side": 1,
+      "message": "nit: If \"Baseline\" is a type, I think it\u0027s confusing for it to also be a specific type of expectations. Instead, could we have \"baseline\" just refer to what the Baseline type represents, and refer to \"expectations with only positive labels\" as \"baseline expectations\"?",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 66
+      },
+      "revId": "b6e2f1c67bd90eefe5ea0e8ad93ac18c5cc34f8e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
