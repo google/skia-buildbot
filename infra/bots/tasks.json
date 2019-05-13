@@ -1,5 +1,8 @@
 {
   "jobs": {
+    "Housekeeper-Nightly-UpdateGoDeps": {
+      "tasks": []
+    },
     "Housekeeper-OnDemand-Presubmit": {
       "priority": 1,
       "tasks": [
