@@ -2,6 +2,7 @@ package unittest
 
 import (
 	"flag"
+	"os"
 
 	"go.skia.org/infra/go/sktest"
 )
@@ -103,5 +104,16 @@ func LargeTest(t sktest.TestingT) {
 func ManualTest(t sktest.TestingT) {
 	if !ShouldRun(MANUAL_TEST) {
 		t.Skip("Not running manual tests.")
+	}
+}
+
+func RequiresBigTableEmulator(t sktest.TestingT) {
+	s := os.Getenv("BIGTABLE_EMULATOR_HOST")
+	if s == "" {
+		t.Fatal(`This test requires the BigTable emulator.
+Follow the instructions at:
+	https://cloud.google.com/bigtable/docs/emulator#using_the_emulator
+and make sure the environment variable BIGTABLE_EMULATOR_HOST is set.
+`)
 	}
 }
