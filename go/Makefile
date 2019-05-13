@@ -28,3 +28,4 @@ mocks:
 
 	mockery -name GitStore -dir gitstore/ -output ./gitstore/mocks/
 	mockery -name GerritInterface -dir gerrit/ -output ./gerrit/mocks/
+	mockery -name VCS -dir vcsinfo/ -output ./vcsinfo/mocks/
