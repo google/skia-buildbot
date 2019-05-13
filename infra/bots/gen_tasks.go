@@ -51,6 +51,7 @@ var (
 
 	// Top-level list of all Jobs to run at each commit.
 	JOBS = []string{
+		"Housekeeper-Nightly-UpdateGoDeps",
 		"Housekeeper-OnDemand-Presubmit",
 		"Infra-PerCommit-Build",
 		"Infra-PerCommit-Small",
@@ -384,6 +385,40 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 	return name
 }
 
+func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
+	cipd := append([]*specs.CipdPackage{}, CIPD_PKGS_GIT...)
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
+
+	machineType := MACHINE_TYPE_MEDIUM
+	t := &specs.TaskSpec{
+		Caches:       CACHES_GO,
+		CipdPackages: cipd,
+		Command: []string{
+			"./update_go_deps",
+			"--project_id", "skia-swarming-bots",
+			"--task_id", specs.PLACEHOLDER_TASK_ID,
+			"--task_name", name,
+			"--workdir", ".",
+			"--gerrit_url", "https://skia-review.googlesource.com",
+			"--repo", specs.PLACEHOLDER_REPO,
+			"--revision", specs.PLACEHOLDER_REVISION,
+			"--patch_issue", specs.PLACEHOLDER_ISSUE,
+			"--patch_set", specs.PLACEHOLDER_PATCHSET,
+			"--service_account", SERVICE_ACCOUNT_COMPILE,
+			"--alsologtostderr",
+		},
+		Dependencies: []string{BUILD_TASK_DRIVERS_NAME},
+		Dimensions:   linuxGceDimensions(machineType),
+		EnvPrefixes: map[string][]string{
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
+		},
+		Isolate:        "empty.isolate",
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	}
+	b.MustAddTask(name, t)
+	return name
+}
+
 // process generates Tasks and Jobs for the given Job name.
 func process(b *specs.TasksCfgBuilder, name string) {
 	var priority float64 // Leave as default for most jobs.
@@ -392,6 +427,9 @@ func process(b *specs.TasksCfgBuilder, name string) {
 	if strings.Contains(name, "Experimental") {
 		// Experimental recipe-less tasks.
 		deps = append(deps, experimental(b, name))
+	} else if strings.Contains(name, "UpdateGoDeps") {
+		// Update Go deps bot.
+		deps = append(deps, updateGoDeps(b, name))
 	} else {
 		// Infra tests.
 		if strings.Contains(name, "Infra-PerCommit") {
