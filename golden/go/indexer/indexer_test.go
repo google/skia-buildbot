@@ -104,7 +104,7 @@ func TestIndexer(t *testing.T) {
 	idxOne := ixr.GetIndex()
 
 	// Change the classifications and wait for the indexing to propagate.
-	changes := getChanges(t, idxOne.cpxTile.GetTile(false))
+	changes := getChanges(t, idxOne.cpxTile.GetTile(types.ExcludeIgnoredTraces))
 	assert.NotEqual(t, 0, len(changes))
 	wg.Add(1)
 	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))

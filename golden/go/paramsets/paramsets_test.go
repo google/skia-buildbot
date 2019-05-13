@@ -69,32 +69,15 @@ func TestParamsetCalculate(t *testing.T) {
 
 	tile := makePartialTestTile()
 	counts := makeTestDigestCounts()
-	noCounts := map[tiling.TraceId]digest_counter.DigestCount{}
 
-	mc := &mocks.ComplexTile{}
-	// without ignores
 	md := &mocks.DigestCounter{}
-	// with ignores
-	mdi := &mocks.DigestCounter{}
-	defer mc.AssertExpectations(t)
 	defer md.AssertExpectations(t)
-	defer mdi.AssertExpectations(t)
-
-	mc.On("GetTile", true).Return(tile)
-	mc.On("GetTile", false).Return(tile)
 
 	md.On("ByTrace").Return(counts)
-	mdi.On("ByTrace").Return(noCounts)
 
-	ps := New()
-	ps.Calculate(mc, md, mdi)
+	ps := NewParamSummary(tile, md)
 
-	withIgnores := ps.GetByTest(true)
-	withoutIgnores := ps.GetByTest(false)
-	assert.NotEqual(t, withIgnores, withoutIgnores)
-	// spot check one from each
-
-	p := ps.Get(testTwo, DigestG, false)
+	p := ps.Get(testTwo, DigestG)
 	assert.NotNil(t, p)
 	p.Normalize()
 	assert.Equal(t, paramtools.ParamSet{
@@ -103,7 +86,21 @@ func TestParamsetCalculate(t *testing.T) {
 		types.PRIMARY_KEY_FIELD: []string{string(testTwo)},
 	}, p)
 
-	assert.Nil(t, ps.Get(testTwo, DigestG, true))
+}
+
+func TestParamsetCalculateNoCounts(t *testing.T) {
+	unittest.SmallTest(t)
+
+	tile := makePartialTestTile()
+	noCounts := map[tiling.TraceId]digest_counter.DigestCount{}
+
+	md := &mocks.DigestCounter{}
+	defer md.AssertExpectations(t)
+
+	md.On("ByTrace").Return(noCounts)
+
+	ps := NewParamSummary(tile, md)
+	assert.Nil(t, ps.Get(testTwo, DigestG))
 }
 
 const (

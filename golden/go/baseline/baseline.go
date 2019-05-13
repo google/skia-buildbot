@@ -42,7 +42,7 @@ func GetBaselinesPerCommit(exps types.TestExpBuilder, tileInfo TileInfo, extraCo
 	}
 
 	// Get the baselines for all commits for which we have data and that are not ignored.
-	denseTile := tileInfo.GetTile(false)
+	denseTile := tileInfo.GetTile(types.ExcludeIgnoredTraces)
 	denseCommits := tileInfo.DataCommits()
 	denseBaselines := make(map[string]types.TestExp, len(denseCommits))
 

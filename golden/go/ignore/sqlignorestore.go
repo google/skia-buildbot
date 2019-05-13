@@ -203,7 +203,7 @@ func addIgnoreCounts(rules []*IgnoreRule, ignoreStore IgnoreStore, lastCpxTile t
 	// matchingDigests[rule.ID]map[digest]bool
 	matchingDigests := make(map[int64]map[string]bool, len(rules))
 	rulesByDigest := map[string]map[int64]bool{}
-	tileWithIgnores := cpxTile.GetTile(true)
+	tileWithIgnores := cpxTile.GetTile(types.IncludeIgnoredTraces)
 	for _, trace := range tileWithIgnores.Traces {
 		gTrace := trace.(*types.GoldenTrace)
 		if matchRules, ok := ignoreMatcher(gTrace.Keys); ok {

@@ -99,5 +99,5 @@ type TileInfo interface {
 
 	// GetTile returns a simple tile either with or without ignored traces depending on
 	// the argument.
-	GetTile(includeIgnores bool) *tiling.Tile
+	GetTile(is types.IgnoreState) *tiling.Tile
 }
