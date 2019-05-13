@@ -46,8 +46,8 @@ const (
 	BetaTest  = types.TestName("test_beta")
 )
 
-func MakeTestBaseline() *baseline.CommitableBaseline {
-	b := baseline.CommitableBaseline{
+func MakeTestBaseline() *baseline.Baseline {
+	b := baseline.Baseline{
 		StartCommit: &tiling.Commit{
 			Hash:       FirstCommitHash,
 			CommitTime: time.Date(2019, time.April, 26, 12, 0, 3, 0, time.UTC).Unix(),
@@ -58,25 +58,13 @@ func MakeTestBaseline() *baseline.CommitableBaseline {
 			CommitTime: time.Date(2019, time.April, 26, 13, 10, 8, 0, time.UTC).Unix(),
 			Author:     ThirdCommitAuthor,
 		},
-		Baseline: types.TestExp{
-			AlphaTest: map[types.Digest]types.Label{
-				// These hashes are arbitrarily made up and have no real-world meaning.
-				AlphaGood1Digest:      types.POSITIVE,
-				AlphaUntriaged1Digest: types.UNTRIAGED,
-				AlphaBad1Digest:       types.NEGATIVE,
-			},
-			BetaTest: map[types.Digest]types.Label{
-				// These hashes are arbitrarily made up and have no real-world meaning.
-				BetaGood1Digest:      types.POSITIVE,
-				BetaUntriaged1Digest: types.UNTRIAGED,
-			},
-		},
-		Filled: 2, // two tests had at least one positive digest
-		Total:  6,
-		Issue:  0, // 0 means master branch, by definition
+		Expectations: MakeTestExpectations(),
+		Filled:       2, // two tests had at least one positive digest
+		Total:        6,
+		Issue:        0, // 0 means master branch, by definition
 	}
 	var err error
-	b.MD5, err = util.MD5Sum(b.Baseline)
+	b.MD5, err = util.MD5Sum(b.Expectations)
 	if err != nil {
 		panic(fmt.Sprintf("Error computing MD5 of the baseline: %s", err))
 	}
@@ -163,6 +151,20 @@ func MakeTestTile() *tiling.Tile {
 					types.CORPUS_FIELD:      "gm",
 				},
 			},
+		},
+	}
+}
+
+func MakeTestExpectations() types.Expectations {
+	return types.Expectations{
+		AlphaTest: map[types.Digest]types.Label{
+			AlphaGood1Digest:      types.POSITIVE,
+			AlphaUntriaged1Digest: types.UNTRIAGED,
+			AlphaBad1Digest:       types.NEGATIVE,
+		},
+		BetaTest: map[types.Digest]types.Label{
+			BetaGood1Digest:      types.POSITIVE,
+			BetaUntriaged1Digest: types.UNTRIAGED,
 		},
 	}
 }

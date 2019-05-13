@@ -49,8 +49,8 @@ func TestFetchBaselineIssueSunnyDay(t *testing.T) {
 	KappaNewDigest := types.Digest("222d894f5b680a9f7bd74c8004b7d88d")
 	LambdaNewDigest := types.Digest("3333fe3127b984e4ff39f4885ddb0d98")
 
-	additionalTriages := &baseline.CommitableBaseline{
-		Baseline: types.TestExp{
+	additionalTriages := &baseline.Baseline{
+		Expectations: types.Expectations{
 			"brand-new-test": map[types.Digest]types.Label{
 				IotaNewDigest:  types.POSITIVE,
 				KappaNewDigest: types.NEGATIVE,
@@ -88,7 +88,7 @@ func TestFetchBaselineIssueSunnyDay(t *testing.T) {
 	deepequal.AssertDeepEqual(t, testIssueID, b.Issue)
 	// The expectation should be the master baseline merged in with the additionalTriages
 	// with additionalTriages overwriting existing expectations, if applicable.
-	deepequal.AssertDeepEqual(t, types.TestExp{
+	deepequal.AssertDeepEqual(t, types.Expectations{
 		"brand-new-test": map[types.Digest]types.Label{
 			IotaNewDigest:  types.POSITIVE,
 			KappaNewDigest: types.NEGATIVE,
@@ -106,7 +106,7 @@ func TestFetchBaselineIssueSunnyDay(t *testing.T) {
 			three_devices.BetaGood1Digest:      types.NEGATIVE,
 			three_devices.BetaUntriaged1Digest: types.POSITIVE,
 		},
-	}, b.Baseline)
+	}, b.Expectations)
 }
 
 func TestFetchBaselineCachingSunnyDay(t *testing.T) {
@@ -144,27 +144,19 @@ func TestPushMasterBaselineSunnyDay(t *testing.T) {
 	mgs := makeMockGCSStorage()
 	mcs := &mocks.TileInfo{}
 	mes := &mocks.ExpectationsStore{}
-	meh := &mocks.TestExpBuilder{}
 
 	defer mgs.AssertExpectations(t)
 	defer mcs.AssertExpectations(t)
 	defer mes.AssertExpectations(t)
-	defer meh.AssertExpectations(t)
 
 	mcs.On("AllCommits").Return(three_devices.MakeTestCommits())
 	mcs.On("DataCommits").Return(three_devices.MakeTestCommits())
 	mcs.On("GetTile", false).Return(three_devices.MakeTestTile())
 
-	mes.On("Get").Return(meh, nil)
+	mes.On("Get").Return(three_devices.MakeTestExpectations(), nil)
 
-	meh.On("Classification", three_devices.AlphaTest, three_devices.AlphaGood1Digest).Return(types.POSITIVE)
-	meh.On("Classification", three_devices.AlphaTest, three_devices.AlphaUntriaged1Digest).Return(types.UNTRIAGED)
-	meh.On("Classification", three_devices.AlphaTest, three_devices.AlphaBad1Digest).Return(types.NEGATIVE)
-	meh.On("Classification", three_devices.BetaTest, three_devices.BetaGood1Digest).Return(types.POSITIVE)
-	meh.On("Classification", three_devices.BetaTest, three_devices.BetaUntriaged1Digest).Return(types.UNTRIAGED)
-
-	mgs.On("WriteBaseline", mock.AnythingOfType("*baseline.CommitableBaseline")).Run(func(args mock.Arguments) {
-		b := args.Get(0).(*baseline.CommitableBaseline)
+	mgs.On("WriteBaseline", mock.AnythingOfType("*baseline.Baseline")).Run(func(args mock.Arguments) {
+		b := args.Get(0).(*baseline.Baseline)
 		assert.NotNil(t, b)
 		assert.NotNil(t, b.StartCommit)
 		// These commits are per-commit baselines, thus the start and end are the same
@@ -208,8 +200,8 @@ func makeMockGCSStorage() *mocks.GCSClient {
 	return &mgs
 }
 
-func assertLabel(t *testing.T, b *baseline.CommitableBaseline, testName types.TestName, hash types.Digest, label types.Label) {
-	test, ok := b.Baseline[testName]
+func assertLabel(t *testing.T, b *baseline.Baseline, testName types.TestName, hash types.Digest, label types.Label) {
+	test, ok := b.Expectations[testName]
 	if !ok {
 		assert.Failf(t, "assertLabel", "Could not find test %s in baseline %#v", testName, b)
 	}

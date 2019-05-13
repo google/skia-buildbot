@@ -148,7 +148,7 @@ func (s *Storage) GetTileStreamNow(interval time.Duration, metricsTag string) <-
 
 // DrainChangeChannel removes everything from the channel thats currently
 // buffered or ready to be read.
-func DrainChangeChannel(ch <-chan types.TestExp) {
+func DrainChangeChannel(ch <-chan types.Expectations) {
 Loop:
 	for {
 		select {
@@ -264,7 +264,7 @@ func FilterIgnored(inputTile *tiling.Tile, ignoreStore ignore.IgnoreStore) (*til
 	return ret, ignoreRules, nil
 }
 
-func (s *Storage) GetExpectationsForCommit(parentCommit string) (types.TestExpBuilder, error) {
+func (s *Storage) GetExpectationsForCommit(parentCommit string) (types.Expectations, error) {
 	return nil, sklog.FmtErrorf("Not implemented yet !")
 }
 
