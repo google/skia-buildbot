@@ -81,11 +81,6 @@ func reloadTemplates() {
 	))
 }
 
-func loginHandler(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, login.LoginURL(w, r), http.StatusFound)
-	return
-}
-
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		reloadTemplates()
@@ -277,11 +272,9 @@ func runServer() {
 	r.HandleFunc(FORCE_SYNC_POST_URL, forceSyncHandler)
 
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
-	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
-	r.HandleFunc("/login/", loginHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
-	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	h := httputils.LoggingGzipRequestResponse(r)
+	h = login.RestrictViewer(h)
+	h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
 	if !*local {
 		h = httputils.HealthzAndHTTPS(h)
 	}
