@@ -2,12 +2,13 @@ package td
 
 import (
 	"context"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
-	"go.skia.org/infra/go/testutils"
 )
 
 type TestingRun struct {
@@ -21,15 +22,18 @@ type TestingRun struct {
 // StartTestRun returns a root-level Step to be used for testing. This is
 // an alternative so that we don't need to call Init() in testing.
 func StartTestRun(t sktest.TestingT) *TestingRun {
-	wd, cleanup := testutils.TempDir(t)
+	wd, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
 	output := filepath.Join(wd, "output.json")
 	report := newReportReceiver(output)
 	return &TestingRun{
-		t:       t,
-		ctx:     newRun(context.Background(), report, "fake-task-id", "fake-test-task", &RunProperties{Local: true}),
-		wd:      wd,
-		report:  report,
-		cleanup: cleanup,
+		t:      t,
+		ctx:    newRun(context.Background(), report, "fake-task-id", "fake-test-task", &RunProperties{Local: true}),
+		wd:     wd,
+		report: report,
+		cleanup: func() {
+			assert.NoError(t, os.RemoveAll(wd))
+		},
 	}
 }
 
@@ -39,7 +43,9 @@ func (r *TestingRun) EndRun(expectPanic bool, err *error) *StepReport {
 }
 
 func (r *TestingRun) finishRun(expectPanic bool, err *error, recovered interface{}) (rv *StepReport) {
-	defer testutils.AssertCloses(r.t, getRun(r.ctx))
+	defer func() {
+		assert.NoError(r.t, getRun(r.ctx).Close())
+	}()
 	if expectPanic {
 		assert.NotNil(r.t, recovered)
 	} else {

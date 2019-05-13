@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 
@@ -25,7 +26,51 @@ const (
 	STEP_RESULT_SUCCESS   StepResult = "SUCCESS"
 	STEP_RESULT_FAILURE   StepResult = "FAILURE"
 	STEP_RESULT_EXCEPTION StepResult = "EXCEPTION"
+
+	// PATH_PLACEHOLDER is a placeholder for any existing value of PATH,
+	// used when merging environments to avoid overriding the PATH
+	// altogether.
+	PATH_PLACEHOLDER = "%(PATH)s"
 )
+
+// Merge the second env into the base, returning a new env with the original
+// unchanged. Variables in the second env override those in the base, except
+// for PATH, which is merged. If PATH defined by the second env contains
+// %(PATH)s, then the result is the PATH from the second env with PATH from
+// the first env inserted in place of %(PATH)s. Otherwise, the PATH from the
+// second env overrides PATH from the first. Note that setting PATH to the empty
+// string in the second env will cause PATH to be empty in the result!
+func MergeEnv(base, other []string) []string {
+	m := make(map[string]string, len(base))
+	for _, kv := range base {
+		split := strings.SplitN(kv, "=", 2)
+		if len(split) != 2 {
+			sklog.Errorf("Invalid env var: %s", kv)
+			continue
+		}
+		m[split[0]] = split[1]
+	}
+	for _, kv := range other {
+		split := strings.SplitN(kv, "=", 2)
+		if len(split) != 2 {
+			sklog.Errorf("Invalid env var: %s", kv)
+			continue
+		}
+		k, v := split[0], split[1]
+		if existing, ok := m[k]; ok && k == PATH_VAR {
+			if strings.Contains(v, PATH_PLACEHOLDER) {
+				v = strings.Replace(v, PATH_PLACEHOLDER, existing, -1)
+			}
+		}
+		m[k] = v
+	}
+	rv := make([]string, 0, len(m))
+	for k, v := range m {
+		rv = append(rv, fmt.Sprintf("%s=%s", k, v))
+	}
+	sort.Strings(rv)
+	return rv
+}
 
 // StepResult represents the result of a Step.
 type StepResult string
@@ -37,12 +82,8 @@ func newStep(ctx context.Context, id string, parent *StepProperties, props *Step
 	}
 	props.Id = id
 	if parent != nil {
-		// If empty, steps inherit their environment from their parent
-		// step.
-		// TODO(borenet): Should we merge environments?
-		if len(props.Environ) == 0 {
-			props.Environ = parent.Environ
-		}
+		// Merge the step's environment into that of its parent.
+		props.Environ = MergeEnv(parent.Environ, props.Environ)
 
 		// Steps inherit the infra status of their parent.
 		// TODO(borenet): What if we want to have a parent which is an
@@ -318,14 +359,13 @@ type ExecData struct {
 func execCtx(ctx context.Context) context.Context {
 	return exec.NewContext(ctx, func(cmd *exec.Command) error {
 		name := strings.Join(append([]string{cmd.Name}, cmd.Args...), " ")
-		return Do(ctx, Props(name), func(ctx context.Context) error {
-			props := getStep(ctx)
-			// Inherit env from the step unless it's explicitly provided.
-			// TODO(borenet): Should we merge instead?
-			if len(cmd.Env) == 0 {
-				cmd.Env = props.Environ
-			}
 
+		// Merge the command's env into that of its parent.
+		parent := getStep(ctx)
+		env := MergeEnv(parent.Environ, cmd.Env)
+		cmd.Env = env
+
+		return Do(ctx, Props(name).Env(env), func(ctx context.Context) error {
 			// Set up stdout and stderr streams.
 			stdout := NewLogStream(ctx, "stdout", sklog.INFO)
 			if cmd.Stdout != nil {

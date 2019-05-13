@@ -8,10 +8,22 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
+
+func mockExec(ctx context.Context) context.Context {
+	mockRun := &exec.CommandCollector{}
+	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+		if cmd.Name == "true" {
+			return nil
+		}
+		return errors.New("Command exited with exit status 1: ")
+	})
+	return exec.NewContext(ctx, mockRun.Run)
+}
 
 func TestDefer(t *testing.T) {
 	unittest.MediumTest(t)
@@ -70,16 +82,18 @@ func TestExec(t *testing.T) {
 
 	// Basic tests around executing subprocesses.
 	_ = RunTestSteps(t, false, func(ctx context.Context) error {
+		mockExecCtx := mockExec(ctx)
+
 		// Simple command.
-		_, err := exec.RunSimple(ctx, "true")
+		_, err := exec.RunSimple(mockExecCtx, "true")
 		assert.NoError(t, err)
 
 		// Verify that we get an error if the command fails.
-		_, err = exec.RunCwd(ctx, ".", "false")
-		assert.EqualError(t, err, "Command exited with exit status 1: false; Stdout+Stderr:\n")
+		_, err = exec.RunCwd(mockExecCtx, ".", "false")
+		assert.Contains(t, err.Error(), "Command exited with exit status 1: ")
 
 		// Ensure that we collect stdout.
-		out, err := exec.RunCwd(ctx, ".", "echo", "hello world")
+		out, err := exec.RunCwd(ctx, ".", "python", "-c", "print 'hello world'")
 		assert.NoError(t, err)
 		assert.Equal(t, "hello world\n", out)
 
@@ -151,7 +165,7 @@ func TestFatal(t *testing.T) {
 				return nil
 			}))
 		}()
-
+		ctx = mockExec(ctx)
 		if _, err := exec.RunSimple(ctx, "false"); err != nil {
 			Fatal(ctx, err)
 			return err
@@ -159,7 +173,7 @@ func TestFatal(t *testing.T) {
 		return nil
 	})
 	assert.Equal(t, 1, len(s.Errors))
-	assert.Equal(t, "Command exited with exit status 1: false; Stdout+Stderr:\n", s.Errors[0])
+	assert.Contains(t, s.Errors[0], "Command exited with exit status 1: ")
 	assert.True(t, ranCleanup)
 
 	// Check the case where we call Fatal() after an infra step failed whose
@@ -176,4 +190,114 @@ func TestFatal(t *testing.T) {
 	})
 	assert.Equal(t, 1, len(s.Exceptions))
 	assert.Equal(t, "Infra Failure", s.Exceptions[0])
+}
+
+func TestEnv(t *testing.T) {
+	unittest.MediumTest(t)
+
+	// Verify that each step inherits the environment of its parent.
+	s := RunTestSteps(t, false, func(ctx context.Context) error {
+		return Do(ctx, Props("a").Env([]string{"a=a"}), func(ctx context.Context) error {
+			return Do(ctx, Props("b").Env([]string{"b=b"}), func(ctx context.Context) error {
+				_, err := exec.RunCommand(ctx, &exec.Command{
+					Name: "python",
+					Args: []string{"-c", "print 'hello world'"},
+					Env:  []string{"c=c"},
+				})
+				return err
+			})
+		})
+	})
+	var leaf *StepReport
+	s.Recurse(func(s *StepReport) bool {
+		if len(s.Steps) == 0 {
+			leaf = s
+			return false
+		}
+		return true
+	})
+	assert.NotNil(t, leaf)
+	expect := append(BASE_ENV, "a=a", "b=b", "c=c")
+	deepequal.AssertDeepEqual(t, expect, leaf.StepProperties.Environ)
+
+	var data *ExecData
+	for _, d := range leaf.Data {
+		ed, ok := d.(*ExecData)
+		if ok {
+			data = ed
+			break
+		}
+	}
+	assert.NotNil(t, data)
+	deepequal.AssertDeepEqual(t, data.Env, expect)
+}
+
+func TestEnvMerge(t *testing.T) {
+	unittest.SmallTest(t)
+
+	tc := []struct {
+		a      []string
+		b      []string
+		expect []string
+	}{
+		// Unrelated variables both show up.
+		{
+			expect: []string{"a=a", "b=b"},
+			a:      []string{"a=a"},
+			b:      []string{"b=b"},
+		},
+		// The second env takes precedence over the first.
+		{
+			expect: []string{"k=v2"},
+			a:      []string{"k=v1"},
+			b:      []string{"k=v2"},
+		},
+
+		// PATH gets special treatment.
+
+		// If only one is specified, it gets preserved.
+		{
+			expect: []string{"PATH=p2"},
+			a:      []string{},
+			b:      []string{"PATH=p2"},
+		},
+		{
+			expect: []string{"PATH=p1"},
+			a:      []string{"PATH=p1"},
+			b:      []string{},
+		},
+		// The second env takes precedence over the first.
+		{
+			expect: []string{"PATH=p2"},
+			a:      []string{"PATH=p1"},
+			b:      []string{"PATH=p2"},
+		},
+		// ... even if the second env defines it to be empty.
+		{
+			expect: []string{"PATH="},
+			a:      []string{"PATH=p1"},
+			b:      []string{"PATH="},
+		},
+		// If provided, PATH_PLACEHOLDER gets replaced by PATH from the first.
+		{
+			expect: []string{"PATH=p1:p2"},
+			a:      []string{"PATH=p1"},
+			b:      []string{fmt.Sprintf("PATH=%s:p2", PATH_PLACEHOLDER)},
+		},
+		{
+			expect: []string{"PATH=p2:p1"},
+			a:      []string{"PATH=p1"},
+			b:      []string{fmt.Sprintf("PATH=p2:%s", PATH_PLACEHOLDER)},
+		},
+		// There's no good reason to do this, but it would work.
+		{
+			expect: []string{"PATH=p1:p1"},
+			a:      []string{"PATH=p1"},
+			b:      []string{fmt.Sprintf("PATH=%s:%s", PATH_PLACEHOLDER, PATH_PLACEHOLDER)},
+		},
+	}
+
+	for _, c := range tc {
+		assert.Equal(t, c.expect, MergeEnv(c.a, c.b))
+	}
 }
