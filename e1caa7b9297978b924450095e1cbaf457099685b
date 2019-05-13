@@ -70,6 +70,24 @@
       "revId": "e1caa7b9297978b924450095e1cbaf457099685b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "725dd682_a3dd6a24",
+        "filename": "golden/go/types/expectations.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T17:19:58Z",
+      "side": 0,
+      "message": "I don\u0027t understand. Production Gold certainly serializes and deserializes Expectations. Are you saying that it doesn\u0027t use JSON to do so?",
+      "parentUuid": "de583670_ae86b540",
+      "revId": "e1caa7b9297978b924450095e1cbaf457099685b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
