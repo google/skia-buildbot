@@ -18,9 +18,10 @@ var (
 	goEnv []string // Filled in by Init().
 )
 
-// Init initializes the package by setting the Go environment. It should be
-// called before using anything else in this package. Returns the environment
-// variables which should be used when running Go commands.
+// Init initializes the package by setting the Go environment to be based in the
+// given workdir. It should be called before using anything else in this
+// package. Returns the environment variables which should be used when running
+// Go commands.
 func Init(workdir string) []string {
 	goPath := path.Join(workdir, "gopath")
 	goRoot := path.Join(workdir, "go", "go")
