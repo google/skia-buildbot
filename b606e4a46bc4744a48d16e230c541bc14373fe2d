@@ -16,6 +16,24 @@
       "revId": "b606e4a46bc4744a48d16e230c541bc14373fe2d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07c5b7d5_bb4edbf6",
+        "filename": "debugger/go/debugger/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-05-13T19:15:22Z",
+      "side": 1,
+      "message": "\u003e The URL for the debugger should always be debugger.skia.org.\n\nYes, I agree. Many existing pieces of documentation already referring readers to this url. \"The debugger\" should mean the new wasm version, which is why I\u0027m pointing debugger.skia.org at it. I think the simplest way to achieve that is a redirect, because moving the code from one docker application to another is probably full of pitfalls. \n\n\u003e We need a version of debugger-assets that has a flag so that it serves /res/v2.html as /.\n\nThis conclusion does not follow from your premise. That url would be different, but still require a redirect from debugger.skia.org.\n\nI can only understand your reply by assuming you\u0027ve either changed your mind, or misunderstood my proposal that debugger.skia.org should point to the wasm debugger. \nis that not true? Did I misunderstand something about what can be done with the nginx configs?",
+      "parentUuid": "2f9d730d_46665986",
+      "revId": "b606e4a46bc4744a48d16e230c541bc14373fe2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
