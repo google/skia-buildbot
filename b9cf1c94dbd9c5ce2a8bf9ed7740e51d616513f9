@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6f8e4422_96830c61",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 394,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T20:04:31Z",
+      "side": 1,
+      "message": "Need a mutex when modifying dCounters or paramsetSummaries concurrently. Here and lines 403, 425, and 435.",
+      "range": {
+        "startLine": 394,
+        "startChar": 5,
+        "endLine": 394,
+        "endChar": 18
+      },
+      "revId": "b9cf1c94dbd9c5ce2a8bf9ed7740e51d616513f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
