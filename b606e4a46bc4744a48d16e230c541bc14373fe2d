@@ -34,6 +34,24 @@
       "revId": "b606e4a46bc4744a48d16e230c541bc14373fe2d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8aec5ff2_4448422b",
+        "filename": "debugger/go/debugger/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-05-13T19:33:05Z",
+      "side": 1,
+      "message": "Sorry I wasn\u0027t clear. We need a version of debugger-assets that has a flag so that it serves /res/v2.html as /. We will deploy a distinct version of the debugger-assets app with that flag on and host that at debugger.skia.org. We will serve a distinct app with the flag off served at debugger-assets.skia.org. The current debugger app will be moved to be hosted at legacy-debugger.skia.org.",
+      "parentUuid": "07c5b7d5_bb4edbf6",
+      "revId": "b606e4a46bc4744a48d16e230c541bc14373fe2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
