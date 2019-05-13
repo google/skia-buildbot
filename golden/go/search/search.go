@@ -154,6 +154,14 @@ type Query struct {
 	NoDiff bool `json:"nodiff"`
 }
 
+func (q *Query) IgnoreState() types.IgnoreState {
+	is := types.ExcludeIgnoredTraces
+	if q.IncludeIgnores {
+		is = types.IncludeIgnoredTraces
+	}
+	return is
+}
+
 // SearchResponse is the standard search response. Depending on the query some fields
 // might be empty, i.e. IssueDetails only makes sense if a trybot isssue was given in the query.
 type SearchResponse struct {
@@ -271,13 +279,13 @@ func CompareDigests(test types.TestName, left, right types.Digest, storages *sto
 			Test:     test,
 			Digest:   left,
 			Status:   exp.Classification(test, left).String(),
-			ParamSet: idx.GetParamsetSummary(test, left, true),
+			ParamSet: idx.GetParamsetSummary(test, left, types.IncludeIgnoredTraces),
 		},
 		Right: &SRDiffDigest{
 			Test:        test,
 			Digest:      right,
 			Status:      exp.Classification(test, right).String(),
-			ParamSet:    idx.GetParamsetSummary(test, right, true),
+			ParamSet:    idx.GetParamsetSummary(test, right, types.IncludeIgnoredTraces),
 			DiffMetrics: diffResult[right].(*diff.DiffMetrics),
 		},
 	}, nil
@@ -384,7 +392,7 @@ func CompareTest(ctq *CTQuery, storages *storage.Storage, idx *indexer.SearchInd
 	totalRowDigests := len(rowDigests)
 
 	// Build the rows output.
-	rows := getCTRows(rowDigests, ctq.SortRows, ctq.RowsDir, ctq.RowQuery.Limit, ctq.RowQuery.IncludeIgnores, idx)
+	rows := getCTRows(rowDigests, ctq.SortRows, ctq.RowsDir, ctq.RowQuery.Limit, ctq.RowQuery.IgnoreState(), idx)
 
 	// If the number exceeds the maximum we always sort and trim by frequency.
 	if len(rows) > MAX_ROW_DIGESTS {
@@ -442,7 +450,7 @@ func CompareTest(ctq *CTQuery, storages *storage.Storage, idx *indexer.SearchInd
 	}
 
 	// Get the summaries of all tests in the result.
-	testSummaries := idx.GetSummaries(false)
+	testSummaries := idx.GetSummaries(types.ExcludeIgnoredTraces)
 	ctSummaries := make(map[types.TestName]*CTSummary, len(uniqueTests))
 	for testName := range uniqueTests {
 		ctSummaries[testName] = ctSummaryFromSummary(testSummaries[testName])
@@ -591,8 +599,8 @@ func filterTileWithMatch(query *Query, matchFields []string, condDigests map[typ
 }
 
 // getCTRows returns the instance of CTRow that correspond to the given set of row digests.
-func getCTRows(entries map[types.Digest]paramtools.ParamSet, sortField, sortDir string, limit int32, includeIgnores bool, idx *indexer.SearchIndex) []*CTRow {
-	talliesByTest := idx.DigestCountsByTest(includeIgnores)
+func getCTRows(entries map[types.Digest]paramtools.ParamSet, sortField, sortDir string, limit int32, is types.IgnoreState, idx *indexer.SearchIndex) []*CTRow {
+	talliesByTest := idx.DigestCountsByTest(is)
 	ret := make([]*CTRow, 0, len(entries))
 	for digest, paramSet := range entries {
 		testName := types.TestName(paramSet[types.PRIMARY_KEY_FIELD][0])
