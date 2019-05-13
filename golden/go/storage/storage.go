@@ -53,7 +53,7 @@ type Storage struct {
 	MasterTileBuilder    TileSource
 	EventBus             eventbus.EventBus
 	TryjobStore          tryjobstore.TryjobStore
-	TryjobMonitor        *tryjobs.TryjobMonitor
+	TryjobMonitor        tryjobs.TryjobMonitor
 	GerritAPI            gerrit.GerritInterface
 	GCSClient            GCSClient
 	Baseliner            baseline.Baseliner
