@@ -106,6 +106,24 @@
       "revId": "e1caa7b9297978b924450095e1cbaf457099685b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7c7bb71c_be750ea1",
+        "filename": "golden/go/types/expectations.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-13T17:55:46Z",
+      "side": 0,
+      "message": "Yes, I\u0027m pretty sure the only thing we serialized in production was the map.",
+      "parentUuid": "b6d93748_d173ee95",
+      "revId": "e1caa7b9297978b924450095e1cbaf457099685b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
