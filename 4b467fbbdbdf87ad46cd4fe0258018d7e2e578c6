@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "385b1a6e_83a6aa95",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T22:18:53Z",
+      "side": 1,
+      "message": "nit Immutable?",
+      "range": {
+        "startLine": 7,
+        "startChar": 7,
+        "endLine": 7,
+        "endChar": 15
+      },
+      "revId": "4b467fbbdbdf87ad46cd4fe0258018d7e2e578c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f07f028d_b055d6c7",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T22:18:53Z",
+      "side": 1,
+      "message": "nit: no longer accurate",
+      "range": {
+        "startLine": 109,
+        "startChar": 3,
+        "endLine": 109,
+        "endChar": 34
+      },
+      "revId": "4b467fbbdbdf87ad46cd4fe0258018d7e2e578c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd611164_0db7c69b",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T22:18:53Z",
+      "side": 1,
+      "message": "(No action required.) Thinking long-term, my opinion is that we will want to replace TestName (where it is used as a key) with a (string representation of) paramtools.Params. I can discuss in more detail if you\u0027d like, but basically if we triage a digest as positive for a non-color-correct trace, we should not be considering it as positive for a color-correct trace.",
+      "range": {
+        "startLine": 20,
+        "startChar": 26,
+        "endLine": 20,
+        "endChar": 34
+      },
+      "revId": "4b467fbbdbdf87ad46cd4fe0258018d7e2e578c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "77974f37_ea23d32e",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T22:18:53Z",
+      "side": 1,
+      "message": "nit: Is this actually immutable?",
+      "range": {
+        "startLine": 23,
+        "startChar": 3,
+        "endLine": 23,
+        "endChar": 25
+      },
+      "revId": "4b467fbbdbdf87ad46cd4fe0258018d7e2e578c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58516611_5c513ade",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T22:18:53Z",
+      "side": 1,
+      "message": "Is this actually needed if SummaryMap is intended to be immutable?",
+      "revId": "4b467fbbdbdf87ad46cd4fe0258018d7e2e578c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
