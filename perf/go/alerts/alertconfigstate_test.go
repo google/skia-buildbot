@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 type TestStruct struct {
@@ -13,7 +13,7 @@ type TestStruct struct {
 }
 
 func TestJSON(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	ts := TestStruct{
 		State: DELETED,
 	}

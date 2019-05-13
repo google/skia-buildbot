@@ -9,10 +9,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestAllowed(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		allowed  []string
 		value    string
@@ -84,7 +85,7 @@ func TestAllowed(t *testing.T) {
 }
 
 func TestAllowedFromFile(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	dirname, err := ioutil.TempDir("", "allowed_file")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, dirname)

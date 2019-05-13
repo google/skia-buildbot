@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/cid"
@@ -19,7 +19,7 @@ const (
 )
 
 func TestTooMuchMissingData(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		value    types.Trace
 		expected bool
@@ -70,7 +70,7 @@ func TestTooMuchMissingData(t *testing.T) {
 }
 
 func TestCalcCidsNotSparse(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	r := &ClusterRequest{
 		Source: "master",
@@ -111,7 +111,7 @@ func (m *mockVcs) ResolveCommit(ctx context.Context, commitHash string) (string,
 }
 
 func TestCalcCidsSparse(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	r := &ClusterRequest{
 		Source: "master",
@@ -154,7 +154,7 @@ func TestCalcCidsSparse(t *testing.T) {
 }
 
 func TestCalcCidsSparseFails(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	r := &ClusterRequest{
 		Source: "master",
@@ -173,7 +173,7 @@ func TestCalcCidsSparseFails(t *testing.T) {
 }
 
 func TestCidsWithData(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	e := vec32.MISSING_DATA_SENTINEL
 	headers := []*dataframe.ColumnHeader{
@@ -198,7 +198,7 @@ func TestCidsWithData(t *testing.T) {
 }
 
 func TestCidsWithDataEmpty(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	d := &dataframe.DataFrame{
 		TraceSet: types.TraceSet{},

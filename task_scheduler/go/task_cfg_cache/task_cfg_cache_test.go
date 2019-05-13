@@ -14,13 +14,14 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	tu "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 func TestTaskSpecs(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, gb, c1, c2 := tu.SetupTestRepo(t)
 	defer gb.Cleanup()
@@ -86,7 +87,7 @@ func TestTaskSpecs(t *testing.T) {
 }
 
 func TestAddedTaskSpecs(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, gb, c1, c2 := tu.SetupTestRepo(t)
 	defer gb.Cleanup()
@@ -220,7 +221,7 @@ func assertCacheLen(t *testing.T, c *atomic_miss_cache.AtomicMissCache, expect i
 }
 
 func TestTaskCfgCacheCleanup(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, gb, c1, c2 := tu.SetupTestRepo(t)
 	defer gb.Cleanup()
@@ -274,7 +275,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 }
 
 func TestTaskCfgCacheError(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	// Verify that we properly cache merge errors.
 	ctx, gb, c1, c2 := tu.SetupTestRepo(t)
@@ -343,7 +344,7 @@ func TestTaskCfgCacheError(t *testing.T) {
 }
 
 func TestTaskCfgCacheStorage(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	ctx, gb, r1, _ := tu.SetupTestRepo(t)
 	defer gb.Cleanup()

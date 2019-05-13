@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 const (
@@ -16,14 +16,14 @@ const (
 )
 
 func TestGetStartRange(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	assert.Equal(t, 1, GetStartRange(1, 1000))
 	assert.Equal(t, 2001, GetStartRange(3, 1000))
 	assert.Equal(t, 41, GetStartRange(3, 20))
 }
 
 func TestGetPathToPyFiles(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	expectedLocalPathSuffix := filepath.Join("ct", "py")
 	expectedMasterPath := filepath.Join("/", "usr", "local", "share", "ct-master", "py")
 	expectedSwarmingPathSuffix := "py"
@@ -44,7 +44,7 @@ func TestGetPathToPyFiles(t *testing.T) {
 }
 
 func TestGetIntFlagValue(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	assert.Equal(t, 4, GetIntFlagValue("--pageset-repeat=4", PAGESET_REPEAT_FLAG, 1))
 	assert.Equal(t, 4, GetIntFlagValue("--pageset-repeat 4", PAGESET_REPEAT_FLAG, 1))
 	// Use first value if multiple are specified.
@@ -56,7 +56,7 @@ func TestGetIntFlagValue(t *testing.T) {
 }
 
 func TestGetBasePixelDiffRemoteDir(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// Test valid runID.
 	remoteDir, err := GetBasePixelDiffRemoteDir("rmistry-20170510163703")
 	assert.NoError(t, err)
@@ -68,7 +68,7 @@ func TestGetBasePixelDiffRemoteDir(t *testing.T) {
 }
 
 func TestRemoveFlagsFromArgs(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	assert.Equal(t, "", RemoveFlagsFromArgs("--pageset-repeat=4", PAGESET_REPEAT_FLAG))
 	assert.Equal(t, "", RemoveFlagsFromArgs("--pageset-repeat=4 --run-benchmark-timeout=400", PAGESET_REPEAT_FLAG, RUN_BENCHMARK_TIMEOUT_FLAG))
 	assert.Equal(t, "--abc", RemoveFlagsFromArgs("--pageset-repeat=4 --pageset-repeat=abc --pageset-repeat --abc", PAGESET_REPEAT_FLAG))

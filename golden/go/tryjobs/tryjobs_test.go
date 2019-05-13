@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
 	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/tryjobstore"
 )
 
@@ -25,7 +25,7 @@ func (m *MyGerritMock) AddComment(issue *gerrit.ChangeInfo, message string) erro
 }
 
 func TestWriteGoldLinkToGerrit(t *testing.T) {
-	testutils.LargeTest(t)
+	unittest.LargeTest(t)
 
 	// Initialize the cloud datastore
 	initDS(t)

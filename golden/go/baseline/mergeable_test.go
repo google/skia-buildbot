@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -18,7 +18,7 @@ const (
 )
 
 func TestMergeableBaseline(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	// Test a simple case with two tests and two digests.
 	randDigests := types.DigestSlice{randomDigest(), randomDigest()}
@@ -40,7 +40,7 @@ func TestMergeableBaseline(t *testing.T) {
 }
 
 func TestMergeableBaselineEdgeCases(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	// Write errors.
 	b := types.TestExp{

@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/ct_pixel_diff/go/common"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/mocks"
 )
@@ -38,20 +39,20 @@ const (
 )
 
 func TestIsDynamicContentPixel(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	assert.True(t, isDynamicContentPixel(0, 255, 255))
 	assert.False(t, isDynamicContentPixel(128, 128, 128))
 }
 
 func TestDeltaOffset(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	assert.Equal(t, 6, deltaOffset(765))
 	assert.Equal(t, 2, deltaOffset(256))
 	assert.Equal(t, 0, deltaOffset(1))
 }
 
 func TestDynamicContentDiff(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	left := image.NewNRGBA(image.Rect(0, 0, 2, 2))
 	left.SetNRGBA(0, 0, color.NRGBA{0, 255, 255, 255})
@@ -85,7 +86,7 @@ func TestDynamicContentDiff(t *testing.T) {
 }
 
 func TestPixelDiffStoreMapper(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	mapper := PixelDiffStoreMapper{}
 	dirs := strings.Split(string(TEST_PIXEL_DIFF_LEFT), "/")
@@ -127,7 +128,7 @@ func TestPixelDiffStoreMapper(t *testing.T) {
 
 // Tests loading GS images that are specified through a path.
 func TestImageLoaderGetGSPath(t *testing.T) {
-	testutils.MediumTest(t)
+	unittest.MediumTest(t)
 
 	baseDir := TEST_DATA_BASE_DIR + "-imgloader"
 	defer testutils.RemoveAll(t, baseDir)

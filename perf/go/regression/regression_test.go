@@ -4,14 +4,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/stepfit"
 )
 
 func TestRegressions(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	r := New()
 	assert.True(t, r.Triaged(), "With no clusters, it should have Triaged() == true.")
 
@@ -60,7 +60,7 @@ func TestRegressions(t *testing.T) {
 }
 
 func TestMerge(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	r := newRegression()
 

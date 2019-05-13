@@ -7,10 +7,11 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestCopyTaskSpec(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	v := &TaskSpec{
 		Caches: []*Cache{
 			{
@@ -51,7 +52,7 @@ func TestCopyTaskSpec(t *testing.T) {
 }
 
 func TestCopyJobSpec(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	v := &JobSpec{
 		TaskSpecs: []string{"Build", "Test"},
 		Trigger:   "trigger-name",
@@ -87,7 +88,7 @@ func makeTasksCfg(t *testing.T, tasks, jobs map[string][]string) string {
 }
 
 func TestTasksCircularDependency(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	// Bonus: Unknown dependency.
 	_, err := ParseTasksCfg(makeTasksCfg(t, map[string][]string{
 		"a": {"b"},
@@ -178,7 +179,7 @@ func TestTasksCircularDependency(t *testing.T) {
 }
 
 func TestGetTaskSpecDAG(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	test := func(dag map[string][]string, jobDeps []string) {
 		cfg, err := ParseTasksCfg(makeTasksCfg(t, dag, map[string][]string{
 			"j": jobDeps,

@@ -10,11 +10,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestPrep(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	opts := &types.Options{
 		Width:  128,
 		Height: 256,
@@ -121,7 +121,7 @@ func testRun(cmd *exec.Command) error {
 }
 
 func TestRun(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, err := fmt.Fprintln(w, `{"Errors": "Compile Failed."}`)
@@ -139,7 +139,7 @@ func TestRun(t *testing.T) {
 }
 
 func TestValidateOptions(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	testCases := []struct {
 		value         *types.Options
 		errorExpected bool

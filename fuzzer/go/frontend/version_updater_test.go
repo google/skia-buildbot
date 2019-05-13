@@ -7,13 +7,13 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/fuzzer/go/tests"
 	"go.skia.org/infra/go/gcs"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 var ctx = mock.AnythingOfType("*context.emptyCtx")
 
 func TestUpdateVersionToFuzz(t *testing.T) {
-	testutils.SmallTest(t)
+	unittest.SmallTest(t)
 	m := tests.NewMockGCSClient()
 	defer m.AssertExpectations(t)
 
