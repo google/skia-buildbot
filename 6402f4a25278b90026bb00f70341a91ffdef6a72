@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "56a5b14b_464e1288",
+        "filename": "go/sktest/sktest.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-13T13:13:14Z",
+      "side": 1,
+      "message": "Copied the implementation. Let\u0027s add a test_flags or some such package in a subsequent CL.",
+      "parentUuid": "e72d25e2_889f4f52",
+      "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a7be858f_f96eceec",
         "filename": "go/testutils/testutils.go",
         "patchSetId": 10
@@ -39,6 +57,30 @@
       "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5123be2_fd166fc3",
+        "filename": "go/testutils/testutils.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-13T13:13:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a7be858f_f96eceec",
+      "range": {
+        "startLine": 203,
+        "startChar": 0,
+        "endLine": 203,
+        "endChar": 45
+      },
+      "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "cfa0e6b6_8ddde74e",
+        "filename": "task_driver/go/lib/golang/golang.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-13T13:13:14Z",
+      "side": 1,
+      "message": "Yep. We assume we\u0027re working in Swarming, where we want the GOPATH to be in the temporary workdir.",
+      "parentUuid": "79c3635c_6d865d1c",
+      "range": {
+        "startLine": 20,
+        "startChar": 47,
+        "endLine": 20,
+        "endChar": 61
+      },
+      "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "48eb4698_d19ab724",
         "filename": "task_driver/go/lib/golang/golang.go",
         "patchSetId": 10
@@ -85,6 +151,30 @@
       "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14be380a_9078bba1",
+        "filename": "task_driver/go/lib/golang/golang.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-13T13:13:14Z",
+      "side": 1,
+      "message": "Moved, but I like Init(). Less typing.",
+      "parentUuid": "48eb4698_d19ab724",
+      "range": {
+        "startLine": 30,
+        "startChar": 5,
+        "endLine": 30,
+        "endChar": 11
+      },
+      "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "5043de8f_34a1f5ba",
+        "filename": "task_driver/go/td/step_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-13T13:13:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e5159252_2d9ad96e",
+      "range": {
+        "startLine": 163,
+        "startChar": 8,
+        "endLine": 163,
+        "endChar": 12
+      },
+      "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7b08da41_846eec26",
         "filename": "task_driver/go/td/step_test.go",
         "patchSetId": 10
@@ -122,6 +236,24 @@
       "writtenOn": "2019-05-10T19:13:16Z",
       "side": 1,
       "message": "This only works if true is an executable on the path?  So, no windows?",
+      "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13f5adc5_7332a896",
+        "filename": "task_driver/go/td/step_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-13T13:13:14Z",
+      "side": 1,
+      "message": "Hrm. Yeah, this package is littered with them.  Fixed.",
+      "parentUuid": "7b08da41_846eec26",
       "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -151,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "2ad151e4_b31eba84",
+        "filename": "task_driver/go/td/step_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-13T13:13:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "37990f4c_4ea73607",
+      "range": {
+        "startLine": 221,
+        "startChar": 5,
+        "endLine": 221,
+        "endChar": 17
+      },
+      "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1f8a0c10_41dd6821",
         "filename": "task_driver/go/td/step_test.go",
         "patchSetId": 10
@@ -171,6 +327,30 @@
       "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7775a4b9_ad889f31",
+        "filename": "task_driver/go/td/step_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-13T13:13:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1f8a0c10_41dd6821",
+      "range": {
+        "startLine": 225,
+        "startChar": 11,
+        "endLine": 225,
+        "endChar": 26
+      },
+      "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
