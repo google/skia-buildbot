@@ -34,6 +34,24 @@
       "revId": "e1caa7b9297978b924450095e1cbaf457099685b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff711a30_a6da4873",
+        "filename": "golden/go/types/expectations.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T16:11:51Z",
+      "side": 0,
+      "message": "I assume the tests you\u0027re referring to are the ones that deserialize Sample. Do you think that those tests cover all the cases of where Expectations are stored in production Gold?",
+      "parentUuid": "7264e0a6_05649026",
+      "revId": "e1caa7b9297978b924450095e1cbaf457099685b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
