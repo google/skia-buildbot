@@ -156,7 +156,7 @@ func TestCalcSummaries(t *testing.T) {
 		EventBus:          eventBus,
 	}
 
-	assert.NoError(t, storages.ExpectationsStore.AddChange(types.TestExp{
+	assert.NoError(t, storages.ExpectationsStore.AddChange(types.Expectations{
 		FirstTest: map[types.Digest]types.Label{
 			"aaa": types.POSITIVE,
 			"bbb": types.NEGATIVE,

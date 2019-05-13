@@ -79,7 +79,7 @@ func (w WeightedBlameSlice) Swap(i, j int)      { w[i], w[j] = w[j], w[i] }
 
 // New returns a new Blamer instance and error. The error is not
 // nil if the first run of calculating the blame lists failed.
-func New(tile *tiling.Tile, exp types.TestExpBuilder) (*BlamerImpl, error) {
+func New(tile *tiling.Tile, exp types.Expectations) (*BlamerImpl, error) {
 	b := &BlamerImpl{}
 	return b, b.calculate(tile, exp)
 }
@@ -155,7 +155,7 @@ func (b *BlamerImpl) getBlame(blameDistribution *BlameDistribution, blameCommits
 	return ret, maxCount
 }
 
-func (b *BlamerImpl) calculate(tile *tiling.Tile, exp types.TestExpBuilder) error {
+func (b *BlamerImpl) calculate(tile *tiling.Tile, exp types.Expectations) error {
 	defer shared.NewMetricsTimer("blame_calculate").Stop()
 
 	// Note: blameStart and blameEnd are continuously updated to contain the

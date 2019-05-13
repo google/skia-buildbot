@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/ignore"
@@ -26,15 +27,15 @@ import (
 // a Gold instance and a sample from a live instance.
 type Sample struct {
 	// The JSON key names are set to keep the serializable code able to
-	// read old files.
-	Tile           *tiling.Tile         `json:"Tile"`
-	TestExpBuilder types.TestExpBuilder `json:"Expectations"`
-	IgnoreRules    []*ignore.IgnoreRule `json:"IgnoreRules"`
+	// read old files. If you change these JSON tags, do so for dummy below.
+	Tile         *tiling.Tile         `json:"Tile"`
+	Expectations types.Expectations   `json:"Expectations"`
+	IgnoreRules  []*ignore.IgnoreRule `json:"IgnoreRules"`
 }
 
 // Serialize writes this Sample instance to the given writer.
 func (s *Sample) Serialize(w io.Writer) error {
-	expBytes, err := json.Marshal(s.TestExpBuilder)
+	expBytes, err := json.Marshal(&s.Expectations)
 	if err != nil {
 		return err
 	}
@@ -74,15 +75,32 @@ type legacyIgnoreRule struct {
 // is the inverse operation of Sample.Searialize.
 func DeserializeSample(r io.Reader) (*Sample, error) {
 	ret := &Sample{
-		TestExpBuilder: types.NewTestExpBuilder(nil),
+		Expectations: types.Expectations{},
 	}
 
 	expBytes, err := readBytesWithLength(r)
 	if err != nil {
 		return nil, skerr.Fmt("Could not read bytes for expectations: %s", err)
 	}
-	if err = json.Unmarshal(expBytes, &ret.TestExpBuilder); err != nil {
-		return nil, skerr.Fmt("Could not unmarshal expectations: %s", err)
+
+	// TODO(kjlubick): Remove this oldFormat code once old data has been ported or tests have
+	// been ported to a different strategy.
+	oldFormat := map[string]json.RawMessage{}
+	if err := json.Unmarshal(expBytes, &oldFormat); err != nil {
+		return nil, err
+	}
+	if oldBytes, ok := oldFormat["tests"]; ok {
+		sklog.Info("Using legacy expectation format")
+		if err := json.Unmarshal([]byte(oldBytes), &ret.Expectations); err != nil {
+			sklog.Warningf("bad input was: %s\n", oldBytes)
+			return nil, skerr.Fmt("Could not deserialize expectations in old format: %s", err)
+		}
+	} else {
+		// Must be in new format
+		if err := json.Unmarshal(expBytes, &ret.Expectations); err != nil {
+			sklog.Warningf("bad input was: %s\n", expBytes)
+			return nil, skerr.Fmt("Could not unmarshal expectations in new format: %s", err)
+		}
 	}
 
 	ignoreBytes, err := readBytesWithLength(r)
@@ -90,7 +108,7 @@ func DeserializeSample(r io.Reader) (*Sample, error) {
 		return nil, skerr.Fmt("Could not read bytes for ignore rules: %s", err)
 	}
 	if err = json.Unmarshal(ignoreBytes, &ret.IgnoreRules); err != nil {
-		fmt.Println("Falling back to legacy IgnoreRule")
+		sklog.Info("Falling back to legacy IgnoreRule")
 		legacyRules := []*legacyIgnoreRule{}
 		if err = json.Unmarshal(ignoreBytes, &legacyRules); err != nil {
 			return nil, skerr.Fmt("Could not unmarshal ignore rules, even falling back to legacy: %s ", err)
@@ -122,9 +140,9 @@ func DeserializeSample(r io.Reader) (*Sample, error) {
 // serialized using the json package.
 func (s *Sample) UnmarshalJSON(data []byte) error {
 	var dummy struct {
-		Tile           json.RawMessage      `json:"Tile"`
-		TestExpBuilder types.TestExpBuilder `json:"Expectations"`
-		IgnoreRules    []*ignore.IgnoreRule `json:"IgnoreRules"`
+		Tile         json.RawMessage      `json:"Tile"`
+		Expectations types.Expectations   `json:"Expectations"`
+		IgnoreRules  []*ignore.IgnoreRule `json:"IgnoreRules"`
 	}
 	var err error
 
@@ -137,7 +155,7 @@ func (s *Sample) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("Error decoding tile from raw message: %s", err)
 	}
 
-	s.TestExpBuilder = dummy.TestExpBuilder
+	s.Expectations = dummy.Expectations
 	s.IgnoreRules = dummy.IgnoreRules
 	return nil
 }

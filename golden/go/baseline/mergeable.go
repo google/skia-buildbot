@@ -60,7 +60,7 @@ var (
 // The input is checked against these conditions:
 //    - No empty test names are allowed
 //    - All digests must be valid hex-encoded MD5 hashes (32 characters).
-func WriteMergeableBaseline(w io.Writer, b types.TestExp) error {
+func WriteMergeableBaseline(w io.Writer, b types.Expectations) error {
 	allLines := make([]string, 0, len(b))
 	for testName, digests := range b {
 		if testName == "" {
@@ -92,14 +92,14 @@ func WriteMergeableBaseline(w io.Writer, b types.TestExp) error {
 // It assumes that the given input file can be the result of Git merging two files that were
 // previously written via the WriteMergeableBaseline function.
 // It check that the input is consistent with the file format described above.
-func ReadMergeableBaseline(r io.Reader) (types.TestExp, error) {
+func ReadMergeableBaseline(r io.Reader) (types.Expectations, error) {
 	lines, err := readLines(r)
 	if err != nil {
 		return nil, sklog.FmtErrorf("Error reading lines: %s", err)
 	}
 
 	if len(lines) == 0 {
-		return types.TestExp{}, nil
+		return types.Expectations{}, nil
 	}
 
 	previousTest, digests, err := parseLine(lines[0])
@@ -107,7 +107,7 @@ func ReadMergeableBaseline(r io.Reader) (types.TestExp, error) {
 		return nil, sklog.FmtErrorf("Error parsing the first line: %s", err)
 	}
 
-	ret := types.TestExp{previousTest: digests}
+	ret := types.Expectations{previousTest: digests}
 
 	for _, line := range lines[1:] {
 		testName, digests, err := parseLine(line)

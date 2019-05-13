@@ -5,9 +5,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/golden/go/mocks"
 	three_devices "go.skia.org/infra/golden/go/testutils/data_three_devices"
-	"go.skia.org/infra/golden/go/types"
 )
 
 func TestBlamerGetBlamesForTestThreeDevices(t *testing.T) {
@@ -96,16 +94,9 @@ func TestBlamerGetBlameThreeDevices(t *testing.T) {
 
 // Returns a Blamer filled out with the data from three_devices.
 func blamerWithCalculate(t *testing.T) Blamer {
-	meh := &mocks.TestExpBuilder{}
-	defer meh.AssertExpectations(t)
+	exp := three_devices.MakeTestExpectations()
 
-	meh.On("Classification", three_devices.AlphaTest, three_devices.AlphaGood1Digest).Return(types.POSITIVE)
-	meh.On("Classification", three_devices.AlphaTest, three_devices.AlphaUntriaged1Digest).Return(types.UNTRIAGED)
-	meh.On("Classification", three_devices.AlphaTest, three_devices.AlphaBad1Digest).Return(types.NEGATIVE)
-	meh.On("Classification", three_devices.BetaTest, three_devices.BetaGood1Digest).Return(types.POSITIVE)
-	meh.On("Classification", three_devices.BetaTest, three_devices.BetaUntriaged1Digest).Return(types.UNTRIAGED)
-
-	blamer, err := New(three_devices.MakeTestTile(), meh)
+	blamer, err := New(three_devices.MakeTestTile(), exp)
 	assert.NoError(t, err)
 
 	return blamer
@@ -210,7 +201,7 @@ const (
 // 	assert.Equal(t, &BlameDistribution{Freq: []int{0}}, blamer.GetBlame("bar", DI_6, commits))
 
 // 	// Classify some digests and re-calculate.
-// 	changes := types.TestExp{
+// 	changes := types.Expectations{
 // 		"foo": map[string]types.Label{DI_1: types.POSITIVE, DI_2: types.NEGATIVE},
 // 		"bar": map[string]types.Label{DI_4: types.POSITIVE, DI_6: types.NEGATIVE},
 // 	}
@@ -335,7 +326,7 @@ const (
 // 	})
 
 // 	// Change the classification of one test and trigger the recalculation.
-// 	changes := types.TestExp{
+// 	changes := types.Expectations{
 // 		oneTestName: map[string]types.Label{oneDigest: types.POSITIVE},
 // 	}
 // 	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
@@ -357,7 +348,7 @@ const (
 // 	blameLists, _ = blamer.GetAllBlameLists()
 // 	// Randomly assign labels to the different digests and make sure
 // 	// that the blamelists are correct.
-// 	changes = types.TestExp{}
+// 	changes = types.Expectations{}
 // 	choices := []types.Label{types.POSITIVE, types.NEGATIVE, types.UNTRIAGED}
 // 	forEachTestDigestDo(tile, func(testName, digest string) {
 // 		// Randomly skip some digests.

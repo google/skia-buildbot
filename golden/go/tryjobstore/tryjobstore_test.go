@@ -197,13 +197,13 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 	}
 
 	// Add changes to the issue
-	allChanges := types.NewTestExpBuilder(nil)
+	allChanges := types.Expectations{}
 	expLogEntries := []*expstorage.TriageLogEntry{}
 	userName := "jdoe@example.com"
 	expStore := expStoreFactory(issueID)
 	for i := 0; i < 5; i++ {
 		triageDetails := []*expstorage.TriageDetail{}
-		changes := types.TestExp{}
+		changes := types.Expectations{}
 		for testCount := 0; testCount < 5; testCount++ {
 			testName := types.TestName(fmt.Sprintf("test-%04d", testCount))
 			for digestCount := 0; digestCount < 5; digestCount++ {
@@ -216,22 +216,22 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 			}
 		}
 		assert.NoError(t, expStore.AddChange(changes, userName))
-		allChanges.AddTestExp(changes)
+		allChanges.MergeExpectations(changes)
 		expLogEntries = append(expLogEntries, &expstorage.TriageLogEntry{
 			Name: userName, ChangeCount: len(triageDetails), Details: triageDetails,
 		})
 	}
 
-	var foundExp types.TestExpBuilder
+	var foundTestExp types.Expectations
 	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
-		foundExp, err = expStore.Get()
+		foundTestExp, err = expStore.Get()
 		assert.NoError(t, err)
-		if !deepequal.DeepEqual(allChanges, foundExp) {
+		if !deepequal.DeepEqual(allChanges, foundTestExp) {
 			return testutils.TryAgainErr
 		}
 		return nil
 	}))
-	assert.Equal(t, allChanges, foundExp)
+	assert.Equal(t, allChanges, foundTestExp)
 
 	logEntries, total, err := expStore.QueryLog(0, -1, false)
 	assert.NoError(t, err)
@@ -239,7 +239,6 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 	assert.Equal(t, 5, len(logEntries))
 
 	// Flip all expectations to untriaged.
-	foundTestExp := foundExp.TestExp()
 	for _, digests := range foundTestExp {
 		for digest := range digests {
 			digests[digest] = types.UNTRIAGED
@@ -248,12 +247,10 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 
 	assert.NoError(t, expStore.AddChange(foundTestExp, userName))
 
-	var untriagedExp types.TestExpBuilder
-	var untriagedTestExp types.TestExp
+	var untriagedTestExp types.Expectations
 	assert.NoError(t, testutils.EventuallyConsistent(3*time.Second, func() error {
-		untriagedExp, err = expStore.Get()
+		untriagedTestExp, err = expStore.Get()
 		assert.NoError(t, err)
-		untriagedTestExp = untriagedExp.TestExp()
 		for testName, digests := range foundTestExp {
 			for digest, label := range digests {
 				if label != untriagedTestExp[testName][digest] {

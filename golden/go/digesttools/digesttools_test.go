@@ -40,7 +40,7 @@ func (m MockDiffStore) Get(priority int64, dMain types.Digest, dRest types.Diges
 func TestClosestDigest(t *testing.T) {
 	unittest.SmallTest(t)
 	diffStore := MockDiffStore{}
-	testExp := types.TestExp{
+	testExp := types.Expectations{
 		"foo": map[types.Digest]types.Label{
 			"aaa": types.POSITIVE,
 			"bbb": types.NEGATIVE,
@@ -57,22 +57,21 @@ func TestClosestDigest(t *testing.T) {
 		"ddd": 2,
 		"eee": 2,
 	}
-	exp := types.NewTestExpBuilder(testExp)
 
 	// First test against a test that has positive digests.
-	c := ClosestDigest("foo", "fff", exp, digestCounts, diffStore, types.POSITIVE)
+	c := ClosestDigest("foo", "fff", testExp, digestCounts, diffStore, types.POSITIVE)
 	assert.InDelta(t, 0.0372, float64(c.Diff), 0.01)
 	assert.Equal(t, types.Digest("eee"), c.Digest)
 	assert.Equal(t, []int{5, 3, 4, 0}, c.MaxRGBA)
 
 	// Now test against a test with no positive digests.
-	c = ClosestDigest("bar", "fff", exp, digestCounts, diffStore, types.POSITIVE)
+	c = ClosestDigest("bar", "fff", testExp, digestCounts, diffStore, types.POSITIVE)
 	assert.Equal(t, float32(math.MaxFloat32), c.Diff)
 	assert.Equal(t, types.Digest(""), c.Digest)
 	assert.Equal(t, []int{}, c.MaxRGBA)
 
 	// Now test against negative digests.
-	c = ClosestDigest("foo", "fff", exp, digestCounts, diffStore, types.NEGATIVE)
+	c = ClosestDigest("foo", "fff", testExp, digestCounts, diffStore, types.NEGATIVE)
 	assert.InDelta(t, 0.166, float64(c.Diff), 0.01)
 	assert.Equal(t, types.Digest("bbb"), c.Digest)
 	assert.Equal(t, []int{5, 3, 4, 0}, c.MaxRGBA)

@@ -55,7 +55,7 @@ func TestSearch(t *testing.T) {
 	}
 }
 
-func testQueryCommitRange(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, tile *tiling.Tile, exp types.TestExpBuilder, startHash, endHash string) {
+func testQueryCommitRange(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, tile *tiling.Tile, exp types.Expectations, startHash, endHash string) {
 	var buf bytes.Buffer
 	paramQuery := url.QueryEscape("source_type=gm")
 	qStr := fmt.Sprintf("query=%s&fbegin=%s&fend=%s&unt=true&pos=true&neg=true&head=true", paramQuery, startHash, endHash)

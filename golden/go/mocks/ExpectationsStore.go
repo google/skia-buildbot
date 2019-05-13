@@ -12,11 +12,11 @@ type ExpectationsStore struct {
 }
 
 // AddChange provides a mock function with given fields: changes, userId
-func (_m *ExpectationsStore) AddChange(changes types.TestExp, userId string) error {
+func (_m *ExpectationsStore) AddChange(changes types.Expectations, userId string) error {
 	ret := _m.Called(changes, userId)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(types.TestExp, string) error); ok {
+	if rf, ok := ret.Get(0).(func(types.Expectations, string) error); ok {
 		r0 = rf(changes, userId)
 	} else {
 		r0 = ret.Error(0)
@@ -40,15 +40,15 @@ func (_m *ExpectationsStore) Clear() error {
 }
 
 // Get provides a mock function with given fields:
-func (_m *ExpectationsStore) Get() (types.TestExpBuilder, error) {
+func (_m *ExpectationsStore) Get() (types.Expectations, error) {
 	ret := _m.Called()
 
-	var r0 types.TestExpBuilder
-	if rf, ok := ret.Get(0).(func() types.TestExpBuilder); ok {
+	var r0 types.Expectations
+	if rf, ok := ret.Get(0).(func() types.Expectations); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(types.TestExpBuilder)
+			r0 = ret.Get(0).(types.Expectations)
 		}
 	}
 
@@ -93,15 +93,15 @@ func (_m *ExpectationsStore) QueryLog(offset int, size int, details bool) ([]*ex
 }
 
 // UndoChange provides a mock function with given fields: changeID, userID
-func (_m *ExpectationsStore) UndoChange(changeID int64, userID string) (types.TestExp, error) {
+func (_m *ExpectationsStore) UndoChange(changeID int64, userID string) (types.Expectations, error) {
 	ret := _m.Called(changeID, userID)
 
-	var r0 types.TestExp
-	if rf, ok := ret.Get(0).(func(int64, string) types.TestExp); ok {
+	var r0 types.Expectations
+	if rf, ok := ret.Get(0).(func(int64, string) types.Expectations); ok {
 		r0 = rf(changeID, userID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(types.TestExp)
+			r0 = ret.Get(0).(types.Expectations)
 		}
 	}
 

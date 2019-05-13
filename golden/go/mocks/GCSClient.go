@@ -42,15 +42,15 @@ func (_m *GCSClient) Options() storage.GCSClientOptions {
 }
 
 // ReadBaseline provides a mock function with given fields: commitHash, issueID
-func (_m *GCSClient) ReadBaseline(commitHash string, issueID int64) (*baseline.CommitableBaseline, error) {
+func (_m *GCSClient) ReadBaseline(commitHash string, issueID int64) (*baseline.Baseline, error) {
 	ret := _m.Called(commitHash, issueID)
 
-	var r0 *baseline.CommitableBaseline
-	if rf, ok := ret.Get(0).(func(string, int64) *baseline.CommitableBaseline); ok {
+	var r0 *baseline.Baseline
+	if rf, ok := ret.Get(0).(func(string, int64) *baseline.Baseline); ok {
 		r0 = rf(commitHash, issueID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*baseline.CommitableBaseline)
+			r0 = ret.Get(0).(*baseline.Baseline)
 		}
 	}
 
@@ -79,18 +79,18 @@ func (_m *GCSClient) RemoveForTestingOnly(targetPath string) error {
 }
 
 // WriteBaseline provides a mock function with given fields: b
-func (_m *GCSClient) WriteBaseline(b *baseline.CommitableBaseline) (string, error) {
+func (_m *GCSClient) WriteBaseline(b *baseline.Baseline) (string, error) {
 	ret := _m.Called(b)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*baseline.CommitableBaseline) string); ok {
+	if rf, ok := ret.Get(0).(func(*baseline.Baseline) string); ok {
 		r0 = rf(b)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*baseline.CommitableBaseline) error); ok {
+	if rf, ok := ret.Get(1).(func(*baseline.Baseline) error); ok {
 		r1 = rf(b)
 	} else {
 		r1 = ret.Error(1)

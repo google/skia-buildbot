@@ -60,19 +60,19 @@ var (
 		Author:     "Jane Doe",
 	}
 
-	masterBaseline = &baseline.CommitableBaseline{
+	masterBaseline = &baseline.Baseline{
 		StartCommit: startCommit,
 		EndCommit:   endCommit,
-		Baseline: types.TestExp{
+		Expectations: types.Expectations{
 			"test-1": map[types.Digest]types.Label{"d1": types.POSITIVE},
 		},
 		Issue: 0,
 	}
 
-	issueBaseline = &baseline.CommitableBaseline{
+	issueBaseline = &baseline.Baseline{
 		StartCommit: endCommit,
 		EndCommit:   endCommit,
-		Baseline: types.TestExp{
+		Expectations: types.Expectations{
 			"test-3": map[types.Digest]types.Label{"d2": types.POSITIVE},
 		},
 		Issue: issueID,
