@@ -155,6 +155,30 @@
     },
     {
       "key": {
+        "uuid": "76ce8115_62012929",
+        "filename": "task_driver/go/lib/golang/golang.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-13T13:36:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "265e0aca_4d1db359",
+      "range": {
+        "startLine": 20,
+        "startChar": 47,
+        "endLine": 20,
+        "endChar": 61
+      },
+      "revId": "6402f4a25278b90026bb00f70341a91ffdef6a72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "48eb4698_d19ab724",
         "filename": "task_driver/go/lib/golang/golang.go",
         "patchSetId": 10
