@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "16bacb2b_db019dd1",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-13T18:39:57Z",
+      "side": 1,
+      "message": "I was going to say it doesn\u0027t matter, but then I looked at the function timers.  digestCounts takes about 53 seconds each.  Summaries takes about 3 seconds.  I can live with the latter being unparrallelized, but the digestCounts is worth splitting up.\n\nFWIW: the paramSummaries were calculated in serial before, totaling about 21 seconds - I\u0027ve split that too.",
+      "parentUuid": "8ac46218_7dbc7a2b",
+      "range": {
+        "startLine": 162,
+        "startChar": 0,
+        "endLine": 163,
+        "endChar": 43
+      },
+      "revId": "1252a27dd78b338e08bfc9595dd6b77fd1ffba9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "73507dff_ebca86d1",
         "filename": "golden/go/types/types.go",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "38c7e4e4_2218a566",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-13T18:39:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "73507dff_ebca86d1",
+      "range": {
+        "startLine": 97,
+        "startChar": 15,
+        "endLine": 97,
+        "endChar": 22
+      },
+      "revId": "1252a27dd78b338e08bfc9595dd6b77fd1ffba9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aba14ee_fa4ed982",
         "filename": "golden/go/types/types.go",
         "patchSetId": 4
@@ -68,6 +116,30 @@
       "revId": "1252a27dd78b338e08bfc9595dd6b77fd1ffba9d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d91e2f7_7c188e03",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-13T18:39:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7aba14ee_fa4ed982",
+      "range": {
+        "startLine": 144,
+        "startChar": 19,
+        "endLine": 144,
+        "endChar": 26
+      },
+      "revId": "1252a27dd78b338e08bfc9595dd6b77fd1ffba9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
