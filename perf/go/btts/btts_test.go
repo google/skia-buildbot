@@ -33,6 +33,8 @@ var (
 
 func TestBasic(t *testing.T) {
 	unittest.LargeTest(t)
+	unittest.RequiresBigTableEmulator(t)
+
 	ctx := context.Background()
 	btts_testutils.CreateTestTable(t)
 	defer btts_testutils.CleanUpTestTable(t)
@@ -93,6 +95,8 @@ func encodeParams(t *testing.T, op *paramtools.OrderedParamSet, p paramtools.Par
 
 func TestTraces(t *testing.T) {
 	unittest.LargeTest(t)
+	unittest.RequiresBigTableEmulator(t)
+
 	ctx := context.Background()
 	btts_testutils.CreateTestTable(t)
 	defer btts_testutils.CleanUpTestTable(t)
