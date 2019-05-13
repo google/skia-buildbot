@@ -4,6 +4,15 @@ Android Compile Server Production Manual
 General information about the Android compile server is available in the
 [README](./README.md).
 
+If Android compile bots are failing for unknown reasons then look for errors in the
+[cloud logs](https://goto.google.com/skia-android-framework-compile-bot-cloud-logs-errors).
+
+If the error appears to be an Android infrastructure issue (eg: sync problems because
+repository is down) and it does not resolve soon, then make the bot an experimental bot
+in [commit-queue.cfg](https://skia.googlesource.com/skia/+/infra/config/commit-queue.cfg).
+Add it back to the regular CQ after the infrastructure problem eventually resolves.
+
+
 
 Alerts
 ======
@@ -39,15 +48,3 @@ Skia CLs to pass because the withpatch and nopatch builds are both red.
 Verify that the tree is really broken by looking at the android dashboard
 [here](https://goto.google.com/ab). Also look at task logs in
 the datastore [here](https://goto.google.com/skia-android-framework-compile-bot-datastore).
-
-
-infra_failure
--------------
-
-Atleast one compile task failed due to an infra failure. Look for errors in the
-[cloud logs](https://goto.google.com/skia-android-framework-compile-bot-cloud-logs-errors).
-
-If the error appears to be an Android infrastructure issue (eg: sync problems because
-repository is down) and it does not resolve soon, then make the bot an experimental bot
-in [commit-queue.cfg](https://skia.googlesource.com/skia/+/infra/config/commit-queue.cfg).
-Add it back to the regular CQ after the infrastructure problem eventually resolves.

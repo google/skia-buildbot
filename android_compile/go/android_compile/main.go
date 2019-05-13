@@ -215,7 +215,6 @@ func triggerCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTas
 			task.Error = err.Error()
 			sklog.Errorf("Error when compiling task with ID %d: %s", datastoreKey.ID, err)
 		}
-		updateInfraFailureMetric(task.InfraFailure)
 		task.Done = true
 		task.Completed = time.Now()
 		if err := UpdateCompileTask(ctx, g, datastoreKey, task); err != nil {
