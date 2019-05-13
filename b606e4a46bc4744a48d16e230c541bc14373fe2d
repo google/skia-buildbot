@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2f9d730d_46665986",
+        "filename": "debugger/go/debugger/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-05-13T15:59:50Z",
+      "side": 1,
+      "message": "The URL for the debugger should always be debugger.skia.org. We need a version of debugger-assets that has a flag so that it serves /res/v2.html as /.",
+      "revId": "b606e4a46bc4744a48d16e230c541bc14373fe2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
