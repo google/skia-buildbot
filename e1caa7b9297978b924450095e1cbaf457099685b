@@ -52,6 +52,24 @@
       "revId": "e1caa7b9297978b924450095e1cbaf457099685b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "de583670_ae86b540",
+        "filename": "golden/go/types/expectations.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-13T16:28:31Z",
+      "side": 0,
+      "message": "I don\u0027t think this was unserialized anywhere in production gold.  Only in tests.",
+      "parentUuid": "ff711a30_a6da4873",
+      "revId": "e1caa7b9297978b924450095e1cbaf457099685b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

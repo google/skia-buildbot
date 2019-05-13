@@ -22,6 +22,30 @@
       "revId": "78af323d7144a2a6c34b72794599a50190a9a307",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "815269c7_f53a1e47",
+        "filename": "golden/go/baseline/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-13T16:28:31Z",
+      "side": 1,
+      "message": "Will address in followup",
+      "parentUuid": "ba6424da_df235d02",
+      "range": {
+        "startLine": 35,
+        "startChar": 27,
+        "endLine": 35,
+        "endChar": 34
+      },
+      "revId": "78af323d7144a2a6c34b72794599a50190a9a307",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
