@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "26577fa5_cd08c5a5",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T05:24:14Z",
+      "side": 1,
+      "message": "nit: IDK, this is still a little confusing to me -- \"with\" makes me think \"extra\" which makes me think \"ignored are included.\" I think \"include ignored\" and \"exclude ignored\" are better. (The thing I don\u0027t like about \"include/exclude ignored\" is that the noun is missing, but \"include ignored traces\" seems too long, and \"include digests/expectations for ignored traces\" is definitely too long.)",
+      "range": {
+        "startLine": 10,
+        "startChar": 11,
+        "endLine": 10,
+        "endChar": 26
+      },
+      "revId": "ea12e568d399672140dd044b39c3f2d9dda59ff0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec04bd87_e1a9b792",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T05:24:14Z",
+      "side": 1,
+      "message": "nit: So, if I pass \"false\" here, that means I\u0027m not not ignoring digests, so that means I\u0027m paying attention to a limited set of digests, right?\n\nIMO the best thing to do would be to make an enum for IncludeIgnored and ExcludeIgnored and use that instead of a bool.\n\nYou could potentially use it instead of field names if you like, e.g. SearchIndex.summaries could be map[IgnoreState]*summary.Summaries, so CalcSummaries looks like \"return idx.summaries[ExcludeIgnored].CalcSummaries(...)\".",
+      "range": {
+        "startLine": 141,
+        "startChar": 49,
+        "endLine": 141,
+        "endChar": 67
+      },
+      "revId": "ea12e568d399672140dd044b39c3f2d9dda59ff0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed1361ad_b36826ee",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T05:24:14Z",
+      "side": 1,
+      "message": "nit: could return nil here",
+      "range": {
+        "startLine": 145,
+        "startChar": 9,
+        "endLine": 145,
+        "endChar": 66
+      },
+      "revId": "ea12e568d399672140dd044b39c3f2d9dda59ff0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3eb79695_9d454346",
+        "filename": "golden/go/paramsets/paramsets.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T05:24:14Z",
+      "side": 1,
+      "message": "nit: Consider removing the \"noIgnoreRules\" params from this interface and instead have the caller keep track of two different ParamSummary\u0027s, one with ignore rules and one without.",
+      "range": {
+        "startLine": 14,
+        "startChar": 5,
+        "endLine": 14,
+        "endChar": 17
+      },
+      "revId": "ea12e568d399672140dd044b39c3f2d9dda59ff0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
