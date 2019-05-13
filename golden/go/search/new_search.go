@@ -139,7 +139,7 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 	if getRefDiffs {
 		// Diff stage: Compare all digests found in the previous stages and find
 		// reference points (positive, negative etc.) for each digest.
-		s.getReferenceDiffs(ctx, ret, q.Metric, q.Match, q.RQuery, q.IncludeIgnores, exp, idx)
+		s.getReferenceDiffs(ctx, ret, q.Metric, q.Match, q.RQuery, q.IgnoreState(), exp, idx)
 		if err != nil {
 			return nil, err
 		}
@@ -161,7 +161,7 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 		Digests: ret,
 		Offset:  offset,
 		Size:    len(displayRet),
-		Commits: idx.CpxTile().GetTile(false).Commits,
+		Commits: idx.CpxTile().GetTile(types.ExcludeIgnoredTraces).Commits,
 		Issue:   issue,
 	}
 	return searchRet, nil
@@ -218,7 +218,7 @@ func (s *SearchAPI) Summary(issueID int64) (*IssueSummary, error) {
 func (s *SearchAPI) GetDigestDetails(test types.TestName, digest types.Digest) (*SRDigestDetails, error) {
 	ctx := context.Background()
 	idx := s.ixr.GetIndex()
-	tile := idx.CpxTile().GetTile(true)
+	tile := idx.CpxTile().GetTile(types.IncludeIgnoredTraces)
 
 	exp, err := s.getExpectationsFromQuery(nil)
 	if err != nil {
@@ -252,7 +252,7 @@ func (s *SearchAPI) GetDigestDetails(test types.TestName, digest types.Digest) (
 	// Wrap the intermediate value in a map so we can re-use the search function for this.
 	inter := srInterMap{test: {digest: oneInter}}
 	ret := s.getDigestRecs(inter, exp)
-	s.getReferenceDiffs(ctx, ret, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, nil, false, exp, idx)
+	s.getReferenceDiffs(ctx, ret, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, nil, types.ExcludeIgnoredTraces, exp, idx)
 	if err != nil {
 		return nil, err
 	}
@@ -303,7 +303,7 @@ func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, idx *indexer.Searc
 	// Adjust the add function to exclude digests already in the master branch
 	addFn := ret.add
 	if !q.IncludeMaster {
-		talliesByTest := idx.DigestCountsByTest(q.IncludeIgnores)
+		talliesByTest := idx.DigestCountsByTest(q.IgnoreState())
 		addFn = func(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace *types.GoldenTrace, params paramtools.ParamSet) {
 			// Include the digest if either the test or the digest is not in the master tile.
 			if _, ok := talliesByTest[test][digest]; !ok {
@@ -423,7 +423,7 @@ func (s *SearchAPI) filterTile(ctx context.Context, q *Query, exp ExpSlice, idx 
 
 	var acceptFn AcceptFn = nil
 	if q.FGroupTest == GROUP_TEST_MAX_COUNT {
-		maxDigestsByTest := idx.MaxDigestsByTest(q.IncludeIgnores)
+		maxDigestsByTest := idx.MaxDigestsByTest(q.IgnoreState())
 		acceptFn = func(params paramtools.Params, digests types.DigestSlice) (bool, interface{}) {
 			testName := types.TestName(params[types.PRIMARY_KEY_FIELD])
 			for _, d := range digests {
@@ -473,7 +473,7 @@ func (s *SearchAPI) getDigestRecs(inter srInterMap, exps ExpSlice) []*SRDigest {
 
 // getReferenceDiffs compares all digests collected in the intermediate representation
 // and compares them to the other known results for the test at hand.
-func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, includeIgnores bool, exp ExpSlice, idx *indexer.SearchIndex) {
+func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState, exp ExpSlice, idx *indexer.SearchIndex) {
 	ctx, span := trace.StartSpan(ctx, "search/getReferenceDiffs")
 	defer span.End()
 
@@ -482,7 +482,7 @@ func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDi
 	wg.Add(len(resultDigests))
 	for _, retDigest := range resultDigests {
 		go func(retDigest *SRDigest) {
-			closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, retDigest.Test, retDigest.Digest, retDigest.ParamSet, rhsQuery, includeIgnores)
+			closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, retDigest.Test, retDigest.Digest, retDigest.ParamSet, rhsQuery, is)
 			retDigest.ClosestRef = closestRef
 			retDigest.RefDiffs = refDiffs
 
@@ -568,7 +568,7 @@ func (s *SearchAPI) addParamsAndTraces(ctx context.Context, digestInfo []*SRDige
 	ctx, span := trace.StartSpan(ctx, "search/addParamsAndTraces")
 	defer span.End()
 
-	tile := idx.CpxTile().GetTile(false)
+	tile := idx.CpxTile().GetTile(types.ExcludeIgnoredTraces)
 	last := tile.LastCommitIndex()
 	for _, di := range digestInfo {
 		// Add the parameters and the drawable traces to the result.

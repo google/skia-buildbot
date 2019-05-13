@@ -48,13 +48,13 @@ func NewRefDiffer(exp ExpSlice, diffStore diff.DiffStore, idx *indexer.SearchInd
 // metric. 'match' is the list of parameters that need to match between
 // the digests that are compared, i.e. this allows to restrict comparison
 // of gamma correct images to other digests that are also gamma correct.
-func (r *RefDiffer) GetRefDiffs(metric string, match []string, test types.TestName, digest types.Digest, params paramtools.ParamSet, rhsQuery paramtools.ParamSet, includeIgnores bool) (types.Digest, map[types.Digest]*SRDiffDigest) {
+func (r *RefDiffer) GetRefDiffs(metric string, match []string, test types.TestName, digest types.Digest, params paramtools.ParamSet, rhsQuery paramtools.ParamSet, is types.IgnoreState) (types.Digest, map[types.Digest]*SRDiffDigest) {
 	unavailableDigests := r.diffStore.UnavailableDigests()
 	if _, ok := unavailableDigests[digest]; ok {
 		return "", nil
 	}
 
-	paramsByDigest := r.idx.GetParamsetSummaryByTest(false)[test]
+	paramsByDigest := r.idx.GetParamsetSummaryByTest(types.ExcludeIgnoredTraces)[test]
 	posDigests := r.getDigestsWithLabel(test, match, params, paramsByDigest, unavailableDigests, rhsQuery, types.POSITIVE)
 	negDigests := r.getDigestsWithLabel(test, match, params, paramsByDigest, unavailableDigests, rhsQuery, types.NEGATIVE)
 
@@ -67,7 +67,7 @@ func (r *RefDiffer) GetRefDiffs(metric string, match []string, test types.TestNa
 	// Find the minimum according to the diff metric.
 	minDigest := types.Digest("")
 	minDiff := float32(math.Inf(1))
-	dCount := r.idx.DigestCountsByTest(includeIgnores)[test]
+	dCount := r.idx.DigestCountsByTest(is)[test]
 	for digest, srdd := range ret {
 		if srdd != nil {
 			// Fill in the missing fields.
