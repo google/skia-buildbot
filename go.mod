@@ -103,7 +103,7 @@ require (
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
-	go.chromium.org/luci v0.0.0-20190501011227-60ac53221b79
+	go.chromium.org/luci v0.0.0-20190510235320-ecd36b94551a
 	go.opencensus.io v0.21.0
 	golang.org/x/crypto v0.0.0-20190426145343-a29dc8fdc734
 	golang.org/x/exp v0.0.0-20190429183610-475c5042d3f1 // indirect
