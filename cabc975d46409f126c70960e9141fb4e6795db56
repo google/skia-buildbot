@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7eab0c5f_32b2867c",
+        "filename": "golden/go/tryjobs/gerrit_tryjob_monitor/gerrit_tryjob_monitor_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T22:05:40Z",
+      "side": 1,
+      "message": "Did you mean to use github.com/stretchr/testify/require?",
+      "range": {
+        "startLine": 8,
+        "startChar": 3,
+        "endLine": 8,
+        "endChar": 36
+      },
+      "revId": "cabc975d46409f126c70960e9141fb4e6795db56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b84ac241_591d41c8",
+        "filename": "golden/go/tryjobs/gerrit_tryjob_monitor/gerrit_tryjob_monitor_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T22:05:40Z",
+      "side": 1,
+      "message": "Did you mean to do \u0027defer meb.AssertExpectations(t)\u0027? x2",
+      "range": {
+        "startLine": 29,
+        "startChar": 1,
+        "endLine": 29,
+        "endChar": 4
+      },
+      "revId": "cabc975d46409f126c70960e9141fb4e6795db56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3b8f090_88c91f9c",
+        "filename": "golden/go/tryjobs/gerrit_tryjob_monitor/gerrit_tryjob_monitor_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-13T22:05:40Z",
+      "side": 1,
+      "message": "nit: It\u0027s a good idea to assert the error message matches a regex or contains a string to check that you\u0027re testing what you think you\u0027re testing.",
+      "revId": "cabc975d46409f126c70960e9141fb4e6795db56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
