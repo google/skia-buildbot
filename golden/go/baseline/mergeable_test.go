@@ -24,7 +24,7 @@ func TestMergeableBaseline(t *testing.T) {
 	randDigests := types.DigestSlice{randomDigest(), randomDigest()}
 	sort.Sort(randDigests)
 
-	b := types.TestExp{
+	b := types.Expectations{
 		TEST_1: {randDigests[0]: types.UNTRIAGED, randDigests[1]: types.POSITIVE},
 		TEST_2: {randDigests[0]: types.UNTRIAGED, randDigests[1]: types.NEGATIVE},
 	}
@@ -36,14 +36,14 @@ func TestMergeableBaseline(t *testing.T) {
 
 	// Make sure it works for empty expectations.
 	empty := ""
-	testWriteReadBaseline(t, types.TestExp{}, &empty)
+	testWriteReadBaseline(t, types.Expectations{}, &empty)
 }
 
 func TestMergeableBaselineEdgeCases(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// Write errors.
-	b := types.TestExp{
+	b := types.Expectations{
 		TEST_1: {"some_digest": types.UNTRIAGED},
 	}
 	var buf bytes.Buffer
@@ -79,10 +79,10 @@ func TestMergeableBaselineEdgeCases(t *testing.T) {
 	testContent = "\n\n# some comment\n"
 	b, err = ReadMergeableBaseline(bytes.NewBuffer([]byte(testContent)))
 	assert.NoError(t, err)
-	assert.Equal(t, types.TestExp{}, b)
+	assert.Equal(t, types.Expectations{}, b)
 }
 
-func testWriteReadBaseline(t *testing.T, b types.TestExp, expBuf *string) {
+func testWriteReadBaseline(t *testing.T, b types.Expectations, expBuf *string) {
 	var buf bytes.Buffer
 	assert.NoError(t, WriteMergeableBaseline(&buf, b))
 

@@ -151,7 +151,7 @@ type resultState struct {
 	GoldURL         string
 	Bucket          string
 	KnownHashes     types.DigestSet
-	Expectations    types.TestExp
+	Expectations    types.Expectations
 }
 
 // NewCloudClient returns an implementation of the GoldClient that relies on the Gold service.
@@ -555,7 +555,7 @@ func (r *resultState) loadExpectations(httpClient HTTPClient) error {
 		return skerr.Fmt("Error closing response from request to %s: %s", url, err)
 	}
 
-	exp := &baseline.CommitableBaseline{}
+	exp := &baseline.Baseline{}
 
 	if err := json.Unmarshal(jsonBytes, exp); err != nil {
 		fmt.Printf("Fetched from %s\n", url)
@@ -567,7 +567,7 @@ func (r *resultState) loadExpectations(httpClient HTTPClient) error {
 		return skerr.Fmt("Error parsing JSON; this sometimes means auth issues: %s", err)
 	}
 
-	r.Expectations = exp.Baseline
+	r.Expectations = exp.Expectations
 	return nil
 }
 

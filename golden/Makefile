@@ -79,7 +79,6 @@ mocks:
 	mockery -name GCSClient -dir go/storage/ -output ./go/mocks/
 	mockery -name TileInfo -dir go/baseline/ -output ./go/mocks/
 	mockery -name ExpectationsStore -dir go/expstorage/ -output ./go/mocks/
-	mockery -name TestExpBuilder -dir go/types/ -output ./go/mocks/
 	mockery -name ComplexTile -dir go/types/ -output ./go/mocks/
 	mockery -name DigestCounter -dir go/digest_counter/ -output ./go/mocks/
 	mockery -name TileSource -dir go/storage/ -output ./go/mocks/

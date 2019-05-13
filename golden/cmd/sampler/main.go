@@ -105,10 +105,10 @@ func sampleTile(tile *tiling.Tile, sampleSize int, queryStr string, nTests int) 
 }
 
 // writeSample writes sample to disk.
-func writeSample(outputFileName string, tile *tiling.Tile, expectations types.TestExpBuilder, ignoreStore ignore.IgnoreStore) {
+func writeSample(outputFileName string, tile *tiling.Tile, expectations types.Expectations, ignoreStore ignore.IgnoreStore) {
 	sample := &serialize.Sample{
-		Tile:           tile,
-		TestExpBuilder: expectations,
+		Tile:         tile,
+		Expectations: expectations,
 	}
 
 	// Get the ignore rules.
@@ -158,7 +158,7 @@ func writeSample(outputFileName string, tile *tiling.Tile, expectations types.Te
 	}
 
 	// Compare the expectations and ignores
-	if !reflect.DeepEqual(sample.TestExpBuilder, foundSample.TestExpBuilder) {
+	if !reflect.DeepEqual(sample.Expectations, foundSample.Expectations) {
 		sklog.Fatalf("Expectations do not match")
 	}
 
@@ -170,7 +170,7 @@ func writeSample(outputFileName string, tile *tiling.Tile, expectations types.Te
 }
 
 // load retrieves the last tile, the expectations and the ignore store.
-func load(ctx context.Context, dsNamespace string) (*tiling.Tile, types.TestExpBuilder, ignore.IgnoreStore) {
+func load(ctx context.Context, dsNamespace string) (*tiling.Tile, types.Expectations, ignore.IgnoreStore) {
 	// Set up flags and the database.
 	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_ROOT, db.PROD_DB_NAME, db.MigrationSteps())
 	common.Init()
