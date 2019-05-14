@@ -23,6 +23,9 @@ ${INSTALL} --mode=644 -T ./sys/android-master-perf.json5       ${ROOT}/etc/skiap
 ${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiaperf/templates
 ${INSTALL} --mode=644 ./templates/*                            ${ROOT}/usr/local/share/skiaperf/templates
 ${INSTALL} --mode=644 ./res/img/favicon.ico                    ${ROOT}/usr/local/share/skiaperf/res/img/favicon.ico
+${INSTALL} --mode=644 ./res/img/icon-192x192.png               ${ROOT}/usr/local/share/skiaperf/res/img/icon-192x192.png
+${INSTALL} --mode=644 ./res/img/icon-512x512.png               ${ROOT}/usr/local/share/skiaperf/res/img/icon-512x512.png
+${INSTALL} --mode=644 ./res/manifest.json                      ${ROOT}/usr/local/share/skiaperf/res/manifest.json
 ${INSTALL} --mode=644 ./res/js/core.js                         ${ROOT}/usr/local/share/skiaperf/res/js/core.js
 ${INSTALL} --mode=644 ./res/vul/elements.html                  ${ROOT}/usr/local/share/skiaperf/res/vul/elements.html
 
