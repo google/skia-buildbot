@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "cdf69767_25405d1f",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-14T18:19:29Z",
+      "side": 1,
+      "message": "The best mutex is one that I don\u0027t have to write.",
+      "parentUuid": "9b2fe6b0_353934ee",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 20
+      },
+      "revId": "e20eb104c6290abea0ed77c6629e80ff5628302f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "43fa6a03_99e4f765",
         "filename": "golden/go/indexer/indexer.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "e20eb104c6290abea0ed77c6629e80ff5628302f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5584b20_91439521",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-14T18:19:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "43fa6a03_99e4f765",
+      "range": {
+        "startLine": 452,
+        "startChar": 58,
+        "endLine": 452,
+        "endChar": 75
+      },
+      "revId": "e20eb104c6290abea0ed77c6629e80ff5628302f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
