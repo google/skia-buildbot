@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	multierror "github.com/hashicorp/go-multierror"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	fsnotify "gopkg.in/fsnotify.v1"
@@ -415,7 +416,7 @@ type HttpResponseData struct {
 // See documentation for http.RoundTripper.
 func (t *httpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	var resp *http.Response
-	return resp, Do(t.ctx, Props(req.URL.String()), func(ctx context.Context) error {
+	return resp, Do(t.ctx, Props(fmt.Sprintf("%s %s", req.Method, req.URL.String())), func(ctx context.Context) error {
 		StepData(ctx, DATA_TYPE_HTTP_REQUEST, &HttpRequestData{
 			Method: req.Method,
 			URL:    req.URL,
@@ -435,7 +436,7 @@ func (t *httpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 // the requests it sends.
 func HttpClient(ctx context.Context, c *http.Client) *http.Client {
 	if c == nil {
-		c = http.DefaultClient // TODO(borenet): Use backoff client?
+		c = httputils.DefaultClientConfig().With2xxOnly().Client()
 	}
 	if c.Transport == nil {
 		c.Transport = http.DefaultTransport
