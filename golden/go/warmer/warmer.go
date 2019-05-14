@@ -32,14 +32,14 @@ func New(storages *storage.Storage) *Warmer {
 }
 
 // Run prefetches the digests in tile and calculates differences we'll need.
-func (w *Warmer) Run(tile *tiling.Tile, summaries *summary.Summaries, dCounter digest_counter.DigestCounter) {
+func (w *Warmer) Run(tile *tiling.Tile, summaries summary.SummaryMap, dCounter digest_counter.DigestCounter) {
 	exp, err := w.storages.ExpectationsStore.Get()
 	if err != nil {
 		sklog.Errorf("warmer: Failed to get expectations: %s", err)
 	}
 
 	t := shared.NewMetricsTimer("warmer_loop")
-	for test, sum := range summaries.Get() {
+	for test, sum := range summaries {
 		for _, digest := range sum.UntHashes {
 			t := dCounter.ByTest()[test]
 			if t != nil {
