@@ -26,6 +26,30 @@
     },
     {
       "key": {
+        "uuid": "8129142b_e6415cb6",
+        "filename": "velero/README.md",
+        "patchSetId": 23
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-05-14T16:02:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7974278d_01a99ae9",
+      "range": {
+        "startLine": 25,
+        "startChar": 17,
+        "endLine": 25,
+        "endChar": 24
+      },
+      "revId": "a5f7816c09c36a96f51f4721c78ae52ba3d2e9dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "32c994ec_01e75611",
         "filename": "velero/create-schedule.sh",
         "patchSetId": 23
@@ -37,6 +61,24 @@
       "writtenOn": "2019-05-14T15:23:24Z",
       "side": 1,
       "message": "Curious, why different schedules for corp and public? and how long does it take to run?",
+      "revId": "a5f7816c09c36a96f51f4721c78ae52ba3d2e9dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c9f4471d_831acfa2",
+        "filename": "velero/create-schedule.sh",
+        "patchSetId": 23
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-05-14T16:02:00Z",
+      "side": 1,
+      "message": "That way when I ran \"velero schedule describe\" I would get different values for skia-public and skia-corp, thus confirming it was running correctly in both places.",
+      "parentUuid": "32c994ec_01e75611",
       "revId": "a5f7816c09c36a96f51f4721c78ae52ba3d2e9dd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -66,6 +108,30 @@
     },
     {
       "key": {
+        "uuid": "6b6bb41d_0e522113",
+        "filename": "velero/create-velero-backup-sa.sh",
+        "patchSetId": 23
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-05-14T16:02:00Z",
+      "side": 1,
+      "message": "Just seemed easier to me to have a single SA that we store and use for all backups.",
+      "parentUuid": "306d274a_a701f4ea",
+      "range": {
+        "startLine": 4,
+        "startChar": 2,
+        "endLine": 4,
+        "endChar": 22
+      },
+      "revId": "a5f7816c09c36a96f51f4721c78ae52ba3d2e9dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "33293eba_66d97db6",
         "filename": "velero/create-velero-backup-sa.sh",
         "patchSetId": 23
@@ -77,6 +143,24 @@
       "writtenOn": "2019-05-14T15:23:24Z",
       "side": 1,
       "message": "[Optional] Instead of sourcing again you could have a BUCKET_PREFIX and use that for the different clusters",
+      "revId": "a5f7816c09c36a96f51f4721c78ae52ba3d2e9dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8fa2bd0d_1f102c55",
+        "filename": "velero/create-velero-backup-sa.sh",
+        "patchSetId": 23
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-05-14T16:02:00Z",
+      "side": 1,
+      "message": "I think the better fix, to do separately, is to remove SA_NAME from config.sh and corp-config.sh, since it doesn\u0027t belong there.",
+      "parentUuid": "33293eba_66d97db6",
       "revId": "a5f7816c09c36a96f51f4721c78ae52ba3d2e9dd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
