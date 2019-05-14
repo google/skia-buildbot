@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c0a57930_9226b3b0",
+        "filename": "golden/go/diff/diff.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-14T18:57:38Z",
+      "side": 1,
+      "message": "Not unused: https://github.com/google/skia-buildbot/blob/a3bf0cb002428a48775189094ac9602794656537/golden/go/indexer/indexer.go#L501\n\nI only deleted the warming stuff from warmer because it was duplicated here.",
+      "parentUuid": "9be2b683_b70edddc",
+      "range": {
+        "startLine": 145,
+        "startChar": 0,
+        "endLine": 147,
+        "endChar": 66
+      },
+      "revId": "918797e1b9096f27831f0b916b366231464ee524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "de959c86_33465c1c",
         "filename": "golden/go/digesttools/digesttools.go",
         "patchSetId": 2
@@ -39,6 +63,24 @@
       "revId": "918797e1b9096f27831f0b916b366231464ee524",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "77c0661c_79e76787",
+        "filename": "golden/go/digesttools/digesttools.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-14T18:57:38Z",
+      "side": 1,
+      "message": "Maybe.  Not something I want to do today though. TODO made.",
+      "parentUuid": "de959c86_33465c1c",
+      "revId": "918797e1b9096f27831f0b916b366231464ee524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "29610b3a_aefafc2f",
+        "filename": "golden/go/digesttools/digesttools.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-14T18:57:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3eef39cf_8fe03ec7",
+      "range": {
+        "startLine": 69,
+        "startChar": 29,
+        "endLine": 69,
+        "endChar": 32
+      },
+      "revId": "918797e1b9096f27831f0b916b366231464ee524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6b93daef_46284c3d",
         "filename": "golden/go/digesttools/digesttools_test.go",
         "patchSetId": 2
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "19dd7bbf_c97a6cad",
+        "filename": "golden/go/digesttools/digesttools_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-14T18:57:38Z",
+      "side": 1,
+      "message": "Ah, I do need to sort actual.",
+      "parentUuid": "6b93daef_46284c3d",
+      "range": {
+        "startLine": 115,
+        "startChar": 47,
+        "endLine": 118,
+        "endChar": 3
+      },
+      "revId": "918797e1b9096f27831f0b916b366231464ee524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2ff1fe39_9c203142",
         "filename": "golden/go/warmer/warmer.go",
         "patchSetId": 2
@@ -108,6 +198,30 @@
       "revId": "918797e1b9096f27831f0b916b366231464ee524",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "201e8dc0_85a4d8fd",
+        "filename": "golden/go/warmer/warmer.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-14T18:57:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2ff1fe39_9c203142",
+      "range": {
+        "startLine": 12,
+        "startChar": 36,
+        "endLine": 12,
+        "endChar": 44
+      },
+      "revId": "918797e1b9096f27831f0b916b366231464ee524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
