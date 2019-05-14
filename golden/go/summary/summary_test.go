@@ -186,11 +186,8 @@ func TestCalcSummaries(t *testing.T) {
 	blamer, err := blame.New(tile, exp)
 	assert.NoError(t, err)
 
-	summaries := New(storages)
-	assert.NoError(t, summaries.Calculate(tileWithIgnoreApplied, nil, dc, blamer))
-
 	// Query all gms with ignores
-	if sum, err := summaries.CalcSummaries(tileWithIgnoreApplied, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
+	if sum, err := NewSummaryMap(storages, tileWithIgnoreApplied, dc, blamer, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 2, len(sum))
@@ -203,7 +200,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Query all gms with full tile.
-	if sum, err := summaries.CalcSummaries(tile, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
+	if sum, err := NewSummaryMap(storages, tile, dc, blamer, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 2, len(sum))
@@ -215,7 +212,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Query gms belonging to test FirstTest from full tile
-	if sum, err := summaries.CalcSummaries(tile, []types.TestName{FirstTest}, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
+	if sum, err := NewSummaryMap(storages, tile, dc, blamer, []types.TestName{FirstTest}, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 1, len(sum))
@@ -226,7 +223,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Query all digests belonging to test FirstTest from tile with ignores applied
-	if sum, err := summaries.CalcSummaries(tileWithIgnoreApplied, []types.TestName{FirstTest}, nil, false); err != nil {
+	if sum, err := NewSummaryMap(storages, tileWithIgnoreApplied, dc, blamer, []types.TestName{FirstTest}, nil, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 1, len(sum))
@@ -238,7 +235,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// query any digest in 8888 OR 565 from tile with ignores applied
-	if sum, err := summaries.CalcSummaries(tileWithIgnoreApplied, nil, url.Values{"config": {"8888", "565"}}, false); err != nil {
+	if sum, err := NewSummaryMap(storages, tileWithIgnoreApplied, dc, blamer, nil, url.Values{"config": {"8888", "565"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 3, len(sum))
@@ -252,7 +249,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// query any digest in 8888 OR 565 from tile with ignores applied at Head
-	if sum, err := summaries.CalcSummaries(tileWithIgnoreApplied, nil, url.Values{"config": {"8888", "565"}}, true); err != nil {
+	if sum, err := NewSummaryMap(storages, tileWithIgnoreApplied, dc, blamer, nil, url.Values{"config": {"8888", "565"}}, true); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 3, len(sum))
@@ -267,7 +264,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Query any digest with the gpu config
-	if sum, err := summaries.CalcSummaries(tileWithIgnoreApplied, nil, url.Values{"config": {"gpu"}}, false); err != nil {
+	if sum, err := NewSummaryMap(storages, tileWithIgnoreApplied, dc, blamer, nil, url.Values{"config": {"gpu"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 1, len(sum))
@@ -277,7 +274,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Nothing should show up from an unknown query
-	if sum, err := summaries.CalcSummaries(tileWithIgnoreApplied, nil, url.Values{"config": {"unknown"}}, false); err != nil {
+	if sum, err := NewSummaryMap(storages, tileWithIgnoreApplied, dc, blamer, nil, url.Values{"config": {"unknown"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 0, len(sum))

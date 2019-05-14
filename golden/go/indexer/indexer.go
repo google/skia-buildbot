@@ -43,7 +43,7 @@ const (
 type SearchIndex struct {
 	cpxTile           types.ComplexTile
 	dCounters         map[types.IgnoreState]digest_counter.DigestCounter
-	summaries         map[types.IgnoreState]*summary.Summaries
+	summaries         map[types.IgnoreState]summary.SummaryMap
 	paramsetSummaries map[types.IgnoreState]paramsets.ParamSummary
 	blamer            blame.Blamer
 	warmer            *warmer.Warmer
@@ -63,12 +63,9 @@ type SearchIndex struct {
 // Indexer and retrieved via GetIndex().
 func newSearchIndex(storages *storage.Storage, cpxTile types.ComplexTile) *SearchIndex {
 	return &SearchIndex{
-		cpxTile:   cpxTile,
-		dCounters: map[types.IgnoreState]digest_counter.DigestCounter{},
-		summaries: map[types.IgnoreState]*summary.Summaries{
-			types.ExcludeIgnoredTraces: summary.New(storages),
-			types.IncludeIgnoredTraces: summary.New(storages),
-		},
+		cpxTile:           cpxTile,
+		dCounters:         map[types.IgnoreState]digest_counter.DigestCounter{},
+		summaries:         map[types.IgnoreState]summary.SummaryMap{},
 		paramsetSummaries: map[types.IgnoreState]paramsets.ParamSummary{},
 		blamer:            nil,
 		warmer:            warmer.New(storages),
@@ -109,13 +106,14 @@ func (idx *SearchIndex) DigestCountsByQuery(query url.Values, is types.IgnoreSta
 }
 
 // Proxy to summary.Summary.Get.
-func (idx *SearchIndex) GetSummaries(is types.IgnoreState) map[types.TestName]*summary.Summary {
-	return idx.summaries[is].Get()
+func (idx *SearchIndex) GetSummaries(is types.IgnoreState) summary.SummaryMap {
+	return idx.summaries[is]
 }
 
 // Proxy to summary.CalcSummaries.
-func (idx *SearchIndex) CalcSummaries(testNames []types.TestName, query url.Values, is types.IgnoreState, head bool) (map[types.TestName]*summary.Summary, error) {
-	return idx.summaries[is].CalcSummaries(idx.cpxTile.GetTile(is), testNames, query, head)
+func (idx *SearchIndex) CalcSummaries(testNames []types.TestName, query url.Values, is types.IgnoreState, head bool) (summary.SummaryMap, error) {
+	dCounter := idx.dCounters[is]
+	return summary.NewSummaryMap(idx.storages, idx.cpxTile.GetTile(is), dCounter, idx.blamer, testNames, query, head)
 }
 
 // Proxy to paramsets.Get
@@ -298,7 +296,8 @@ func (ixr *Indexer) start(interval time.Duration) error {
 				// Only index the tests that have changed.
 				ixr.indexTests(testChanges)
 			} else {
-				// At this point new commits have discovered and we just want to write the baselines.
+				// At this point new commits have been discovered and we
+				// just want to write the baselines.
 				ixr.writeBaselines()
 			}
 		}
@@ -354,7 +353,7 @@ func (ixr *Indexer) cloneLastIndex() *SearchIndex {
 	return &SearchIndex{
 		cpxTile:   lastIdx.cpxTile,
 		dCounters: lastIdx.dCounters, // stay the same even if tests change.
-		summaries: map[types.IgnoreState]*summary.Summaries{
+		summaries: map[types.IgnoreState]summary.SummaryMap{
 			types.ExcludeIgnoredTraces: lastIdx.summaries[types.ExcludeIgnoredTraces].Clone(),
 			types.IncludeIgnoredTraces: lastIdx.summaries[types.IncludeIgnoredTraces].Clone(),
 		},
@@ -426,10 +425,12 @@ func calcDigestCountsExclude(state interface{}) error {
 func calcSummaries(state interface{}) error {
 	idx := state.(*SearchIndex)
 	for _, is := range types.IgnoreStates {
-		err := idx.summaries[is].Calculate(idx.cpxTile.GetTile(is), idx.testNames, idx.dCounters[is], idx.blamer)
+		dCounter := idx.dCounters[is]
+		sum, err := summary.NewSummaryMap(idx.storages, idx.cpxTile.GetTile(is), dCounter, idx.blamer, idx.testNames, nil, true)
 		if err != nil {
 			return skerr.Fmt("Could not calculate summaries with ignore state %d: %s", is, err)
 		}
+		idx.summaries[is] = sum
 	}
 
 	return nil
