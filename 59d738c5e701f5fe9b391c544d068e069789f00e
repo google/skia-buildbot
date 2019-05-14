@@ -46,6 +46,30 @@
       "revId": "59d738c5e701f5fe9b391c544d068e069789f00e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ede6083d_b5c28077",
+        "filename": "go/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-14T19:07:53Z",
+      "side": 1,
+      "message": "Also yes, you should update; some of our dependencies refuse to build with \u003c 1.12.",
+      "parentUuid": "1ebc2fe1_84f6dd5a",
+      "range": {
+        "startLine": 27,
+        "startChar": 4,
+        "endLine": 27,
+        "endChar": 7
+      },
+      "revId": "59d738c5e701f5fe9b391c544d068e069789f00e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
