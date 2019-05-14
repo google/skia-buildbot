@@ -1,6 +1,7 @@
     <meta charset="utf-8">
-    <meta name="theme-color" content="#526E9C">
+    <meta name="theme-color" content="#1f78b4">
     <link rel="shortcut icon" href="/res/img/favicon.ico" />
+    <link rel="manifest" href="/res/manifest.json">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="/res/js/core.js" type="text/javascript" charset="utf-8"></script>
@@ -31,3 +32,11 @@
         line-height: 14px !important;
       }
     </style>
+    <script>
+      // Check that service workers are registered
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js');
+        });
+      }
+    </script>

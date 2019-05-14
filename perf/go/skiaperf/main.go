@@ -150,8 +150,10 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/triage.html"),
 		filepath.Join(*resourcesDir, "templates/alerts.html"),
 		filepath.Join(*resourcesDir, "templates/help.html"),
+		filepath.Join(*resourcesDir, "templates/offline.html"),
 		filepath.Join(*resourcesDir, "templates/activitylog.html"),
 		filepath.Join(*resourcesDir, "templates/dryRunAlert.html"),
+		filepath.Join(*resourcesDir, "templates/service-worker.js"),
 
 		// Sub templates used by other templates.
 		filepath.Join(*resourcesDir, "templates/header.html"),
@@ -188,6 +190,19 @@ func templateHandler(name string) http.HandlerFunc {
 			sklog.Errorf("Failed to JSON encode sk.perf context: %s", err)
 		}
 		if err := templates.ExecuteTemplate(w, name, map[string]template.JS{"context": template.JS(string(b))}); err != nil {
+			sklog.Errorln("Failed to expand template:", err)
+		}
+	}
+}
+
+// scriptHandler serves up a template as a script.
+func scriptHandler(name string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/javascript")
+		if *local {
+			loadTemplates()
+		}
+		if err := templates.ExecuteTemplate(w, name, nil); err != nil {
 			sklog.Errorln("Failed to expand template:", err)
 		}
 	}
@@ -393,6 +408,20 @@ func helpHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		ctx := calc.NewContext(nil, nil)
 		if err := templates.ExecuteTemplate(w, "help.html", ctx); err != nil {
+			sklog.Errorln("Failed to expand template:", err)
+		}
+	}
+}
+
+// offlineHandler handles the GET of the offline page.
+func offlineHandler(w http.ResponseWriter, r *http.Request) {
+	sklog.Infof("Help Handler: %q\n", r.URL.Path)
+	if *local {
+		loadTemplates()
+	}
+	if r.Method == "GET" {
+		w.Header().Set("Content-Type", "text/html")
+		if err := templates.ExecuteTemplate(w, "offline.html", nil); err != nil {
 			sklog.Errorln("Failed to expand template:", err)
 		}
 	}
@@ -1524,6 +1553,8 @@ func main() {
 	router.HandleFunc("/logout/", login.LogoutHandler)
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	router.HandleFunc("/offline", offlineHandler)
+	router.HandleFunc("/service-worker.js", scriptHandler("service-worker.js"))
 
 	// JSON handlers.
 	router.HandleFunc("/_/initpage/", initpageHandler)

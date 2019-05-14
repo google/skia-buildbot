@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!--
+      If you update this file then update the revision number in
+      templates/service-worker.js.
+    -->
+    <title>Skia Performance Monitoring | Offline</title>
+    {{template "header.html" .}}
+    <style type="text/css" media="screen">
+      body {
+        margin: 0;
+        padding: 2em;
+        background: #1f78b4;
+        color: white;
+        font-family: sans-serif;
+      }
+      p {
+        margin: 1em;
+      }
+      h1 {
+        margin-bottom: 0.5em;
+        margin-top: 1em;
+      }
+    </style>
+</head>
+<body>
+  <h1>Skia Perf - Offline</h1>
+  <p>Sorry, Skia Perf only works when you are online.</p>
+  <script type="text/javascript" charset="utf-8">
+    if (navigator.onLine) {
+      window.location = '/e/';
+    }
+  </script>
+</body>
+</html>
