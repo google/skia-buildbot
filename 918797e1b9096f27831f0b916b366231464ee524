@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "784182f5_8766609a",
+        "filename": "golden/go/diff/diff.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-14T20:19:59Z",
+      "side": 1,
+      "message": "Sorry, not sure how I missed that. Still looks like WarmDiffs and PRIORITY_* are unused.",
+      "parentUuid": "c0a57930_9226b3b0",
+      "range": {
+        "startLine": 145,
+        "startChar": 0,
+        "endLine": 147,
+        "endChar": 66
+      },
+      "revId": "918797e1b9096f27831f0b916b366231464ee524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "de959c86_33465c1c",
         "filename": "golden/go/digesttools/digesttools.go",
         "patchSetId": 2
