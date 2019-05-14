@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9b2fe6b0_353934ee",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-14T15:28:18Z",
+      "side": 1,
+      "message": "Here\u0027s another option: we could use slices indexed by the int value of IgnoreState; that would not require any mutexes.",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 20
+      },
+      "revId": "e20eb104c6290abea0ed77c6629e80ff5628302f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43fa6a03_99e4f765",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-14T15:28:18Z",
+      "side": 1,
+      "message": "I think this still needs a mutex. x2",
+      "range": {
+        "startLine": 452,
+        "startChar": 58,
+        "endLine": 452,
+        "endChar": 75
+      },
+      "revId": "e20eb104c6290abea0ed77c6629e80ff5628302f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
