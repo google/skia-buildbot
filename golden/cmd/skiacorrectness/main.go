@@ -51,7 +51,7 @@ import (
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
-	"go.skia.org/infra/golden/go/tryjobs"
+	"go.skia.org/infra/golden/go/tryjobs/gerrit_tryjob_monitor"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/web"
@@ -401,7 +401,7 @@ func main() {
 		if err != nil {
 			sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
 		}
-		tryjobMonitor := tryjobs.NewTryjobMonitor(tryjobStore, expStore, issueExpStoreFactory, gerritAPI, *siteURL, evt, *authoritative)
+		tryjobMonitor := gerrit_tryjob_monitor.New(tryjobStore, expStore, issueExpStoreFactory, gerritAPI, *siteURL, evt, *authoritative)
 
 		// Initialize the Baseliner instance from the values set above.
 		baseliner, err := gcs_baseliner.New(gsClient, expStore, issueExpStoreFactory, tryjobStore, vcs)
