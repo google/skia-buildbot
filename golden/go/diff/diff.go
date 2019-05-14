@@ -118,7 +118,7 @@ func (d DigestFailureSlice) Swap(i, j int)      { d[i], d[j] = d[j], d[i] }
 
 const (
 	// PRIORITY_NOW is the highest priority intended for in request calls.
-	PRIORITY_NOW = iota
+	PRIORITY_NOW int64 = iota
 
 	// PRIORITY_BACKGROUND is the priority to use for background tasks.
 	// i.e. Use to calculate diffs of ignored digests.
