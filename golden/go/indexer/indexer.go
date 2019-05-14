@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
+	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/pdag"
@@ -70,7 +71,7 @@ func newSearchIndex(storages *storage.Storage, cpxTile types.ComplexTile) *Searc
 		paramsetSummaries: make([]paramsets.ParamSummary, 2),
 		cpxTile:           cpxTile,
 		blamer:            nil,
-		warmer:            warmer.New(storages),
+		warmer:            warmer.New(),
 		storages:          storages,
 	}
 }
@@ -359,7 +360,7 @@ func (ixr *Indexer) cloneLastIndex() *SearchIndex {
 		},
 		paramsetSummaries: lastIdx.paramsetSummaries, //paramsetSummaries are immutable
 		blamer:            lastIdx.blamer,            // blamer is immutable and thus, thread-safe.
-		warmer:            warmer.New(ixr.storages),
+		warmer:            warmer.New(),
 		storages:          lastIdx.storages,
 
 		// Force testNames to be empty, just to be sure we re-compute everything by default
@@ -529,14 +530,20 @@ func writeMasterBaseline(state interface{}) error {
 	return nil
 }
 
-// runWarmer is the pipeline function to run the warmer. It runs it
+// runWarmer is the pipeline function to run the warmer. It runs
 // asynchronously since its results are not relevant for the searchIndex.
 func runWarmer(state interface{}) error {
 	idx := state.(*SearchIndex)
 
-	// TODO (stephana): Instead of warming everything we should warm non-ignored
+	// TODO(kjlubick): Instead of warming everything we should warm non-ignored
 	// traces with higher priority.
+
 	is := types.IncludeIgnoredTraces
-	go idx.warmer.Run(idx.cpxTile.GetTile(is), idx.summaries[is], idx.dCounters[is])
+	exp, err := idx.storages.ExpectationsStore.Get()
+	if err != nil {
+		return skerr.Fmt("Could not run warmer - expectations failure: %s", err)
+	}
+	d := digesttools.NewClosestDiffFinder(exp, idx.dCounters[is], idx.storages.DiffStore)
+	go idx.warmer.PrecomputeDiffs(idx.summaries[is], idx.dCounters[is], d)
 	return nil
 }
