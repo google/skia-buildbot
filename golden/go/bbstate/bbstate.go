@@ -4,6 +4,7 @@
 package bbstate
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -402,7 +403,7 @@ func (b *BuildBucketState) syncGerritIssue(issueID, patchsetID int64, issue *try
 // internal representation of the Gerrit issues. If issue is nil a new instance
 // will be allocated and returned.
 func (b *BuildBucketState) updateGerritIssue(issueID int64, issue *tryjobstore.Issue) (*tryjobstore.Issue, error) {
-	changeInfo, err := b.gerritAPI.GetIssueProperties(issueID)
+	changeInfo, err := b.gerritAPI.GetIssueProperties(context.TODO(), issueID)
 	if err != nil {
 		// Note: Make sure to pass through the error unchanged since it is tested against
 		// gerrit.ErrNotFound
@@ -419,7 +420,7 @@ func (b *BuildBucketState) updateGerritIssue(issueID int64, issue *tryjobstore.I
 		func(idx int, rev *gerrit.Revision) {
 			egroup.Go(func() error {
 				var err error
-				commitInfos[idx], err = b.gerritAPI.GetCommit(issueID, rev.ID)
+				commitInfos[idx], err = b.gerritAPI.GetCommit(context.TODO(), issueID, rev.ID)
 				return err
 			})
 		}(idx, rev)

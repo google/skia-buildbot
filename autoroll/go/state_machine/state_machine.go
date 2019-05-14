@@ -66,7 +66,7 @@ const (
 // Interface for interacting with a single autoroll CL.
 type RollCLImpl interface {
 	// Add a comment to the CL.
-	AddComment(string) error
+	AddComment(context.Context, string) error
 
 	// Close the CL. The first string argument is the result of the roll,
 	// and the second is the message to add to the CL on closing.

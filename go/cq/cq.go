@@ -181,7 +181,7 @@ func (c *Client) RefreshCQTryBots() error {
 // Note: Different stats are reported depending on whether the change has been
 // merged or not.
 func (c *Client) ReportCQStats(ctx context.Context, change int64) error {
-	changeInfo, err := c.gerritClient.GetIssueProperties(change)
+	changeInfo, err := c.gerritClient.GetIssueProperties(ctx, change)
 	if err != nil {
 		return err
 	}
