@@ -132,6 +132,30 @@
     },
     {
       "key": {
+        "uuid": "23f84049_7588038e",
+        "filename": "velero/create-velero-backup-sa.sh",
+        "patchSetId": 23
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-14T16:44:34Z",
+      "side": 1,
+      "message": "Since the backups are going into different buckets, maybe it would be more secure to have cluster-specific SAs to maintain the separation between public and corp?",
+      "parentUuid": "6b6bb41d_0e522113",
+      "range": {
+        "startLine": 4,
+        "startChar": 2,
+        "endLine": 4,
+        "endChar": 22
+      },
+      "revId": "a5f7816c09c36a96f51f4721c78ae52ba3d2e9dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "33293eba_66d97db6",
         "filename": "velero/create-velero-backup-sa.sh",
         "patchSetId": 23
@@ -164,6 +188,24 @@
       "revId": "a5f7816c09c36a96f51f4721c78ae52ba3d2e9dd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00a95a16_8858a1da",
+        "filename": "velero/create-velero-backup-sa.sh",
+        "patchSetId": 23
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-14T16:44:34Z",
+      "side": 1,
+      "message": "Yes that makes sense. I\u0027m not sure if those are used anywhere.",
+      "parentUuid": "8fa2bd0d_1f102c55",
+      "revId": "a5f7816c09c36a96f51f4721c78ae52ba3d2e9dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
