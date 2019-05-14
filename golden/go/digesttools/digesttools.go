@@ -10,36 +10,80 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
+// ClosestDiffFinder is able to query a diffstore for digests
+// that are the closest negative or closest positive to
+// a given digest. Implementations should be considered
+// not-thread-safe.
+type ClosestDiffFinder interface {
+	// Precompute allows the implementation to warm any caches.
+	// Call before doing a batch of ClosestDigest calls.
+	Precompute()
+
+	// ClosestDigest returns the closest digest of type 'label' to 'digest',
+	// or NoDigestFound if there aren't any positive digests.
+	//
+	// If no digest of type 'label' is found then Closest.Digest is the empty string.
+	ClosestDigest(test types.TestName, digest types.Digest, label types.Label) *Closest
+}
+
 // Closest describes one digest that is the closest another digest.
 type Closest struct {
-	Digest     types.Digest `json:"digest"`     // The closest digest, empty if there are no digests to compare to.
+	// The closest digest, empty if there are no digests to compare to.
+	Digest     types.Digest `json:"digest"`
 	Diff       float32      `json:"diff"`       // A percent value.
 	DiffPixels float32      `json:"diffPixels"` // A percent value.
 	MaxRGBA    []int        `json:"maxRGBA"`
 }
 
+const NoDigestFound = types.Digest("")
+
+// newClosest returns an initialized Closest struct, defaulting to
+// NoDigestFound and related values.
 func newClosest() *Closest {
 	return &Closest{
+		Digest:     NoDigestFound,
 		Diff:       math.MaxFloat32,
 		DiffPixels: math.MaxFloat32,
 		MaxRGBA:    []int{},
 	}
 }
 
-// ClosestDigest returns the closest digest of type 'label' to 'digest', or "" if there aren't any positive digests.
-//
-// If no digest of type 'label' is found then Closest.Digest is the empty string.
-func ClosestDigest(test types.TestName, digest types.Digest, exp types.Expectations, dCount digest_counter.DigestCount, diffStore diff.DiffStore, label types.Label) *Closest {
-	ret := newClosest()
-	unavailableDigests := diffStore.UnavailableDigests()
+// Impl implements the ClosestDiffFinder interface
+type Impl struct {
+	expectations types.Expectations
+	dCounter     digest_counter.DigestCounter
+	diffStore    diff.DiffStore
 
-	if _, ok := unavailableDigests[digest]; ok {
+	cachedUnavailableDigests map[types.Digest]*diff.DigestFailure
+}
+
+// NewClosestDiffFinder returns a *Impl loaded with the given data sources.
+func NewClosestDiffFinder(exp types.Expectations, dCounter digest_counter.DigestCounter, diffStore diff.DiffStore) *Impl {
+	return &Impl{
+		expectations: exp,
+		dCounter:     dCounter,
+		diffStore:    diffStore,
+	}
+}
+
+// Precompute implements the ClosestDiffFinder interface.
+func (i *Impl) Precompute() {
+	i.cachedUnavailableDigests = i.diffStore.UnavailableDigests()
+}
+
+// ClosestDigest implements the ClosestDiffFinder interface.
+func (i *Impl) ClosestDigest(test types.TestName, digest types.Digest, label types.Label) *Closest {
+	ret := newClosest()
+
+	if _, ok := i.cachedUnavailableDigests[digest]; ok {
 		return ret
 	}
 
+	// Locate all digests that this test produces and match the given label.
 	selected := types.DigestSlice{}
-	for d := range dCount {
-		if _, ok := unavailableDigests[d]; !ok && (exp.Classification(test, d) == label) {
+	testDigests := i.dCounter.ByTest()[test]
+	for d := range testDigests {
+		if _, ok := i.cachedUnavailableDigests[d]; !ok && (i.expectations.Classification(test, d) == label) {
 			selected = append(selected, d)
 		}
 	}
@@ -48,7 +92,7 @@ func ClosestDigest(test types.TestName, digest types.Digest, exp types.Expectati
 		return ret
 	}
 
-	if diffMetrics, err := diffStore.Get(diff.PRIORITY_NOW, digest, selected); err != nil {
+	if diffMetrics, err := i.diffStore.Get(diff.PRIORITY_NOW, digest, selected); err != nil {
 		sklog.Errorf("ClosestDigest: Failed to get diff: %s", err)
 		return ret
 	} else {
@@ -93,3 +137,6 @@ func combinedDiffMetric(pixelDiffPercent float32, maxRGBA []int) float32 {
 	// range [0, 1].
 	return float32(math.Sqrt(float64(pixelDiffPercent) * normalizedRGBA))
 }
+
+// Make sure Impl fulfills the ClosestDiffFinder interface
+var _ ClosestDiffFinder = (*Impl)(nil)
