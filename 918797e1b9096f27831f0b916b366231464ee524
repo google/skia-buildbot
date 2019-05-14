@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9be2b683_b70edddc",
+        "filename": "golden/go/diff/diff.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-14T16:49:18Z",
+      "side": 1,
+      "message": "nit: Seems to be unused now. Remove in followup CL?\n\nSame for WarmDiffs?\n\nSame for PRIORITY_*?",
+      "range": {
+        "startLine": 145,
+        "startChar": 0,
+        "endLine": 147,
+        "endChar": 66
+      },
+      "revId": "918797e1b9096f27831f0b916b366231464ee524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de959c86_33465c1c",
+        "filename": "golden/go/digesttools/digesttools.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-14T16:49:18Z",
+      "side": 1,
+      "message": "nit: IIUC, this logic is only used by Warmer. Would it make more sense to merge Warmer and ClosestDiffFinder?",
+      "revId": "918797e1b9096f27831f0b916b366231464ee524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3eef39cf_8fe03ec7",
+        "filename": "golden/go/digesttools/digesttools.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-14T16:49:18Z",
+      "side": 1,
+      "message": "typo x2",
+      "range": {
+        "startLine": 69,
+        "startChar": 29,
+        "endLine": 69,
+        "endChar": 32
+      },
+      "revId": "918797e1b9096f27831f0b916b366231464ee524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b93daef_46284c3d",
+        "filename": "golden/go/digesttools/digesttools_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-14T16:49:18Z",
+      "side": 1,
+      "message": "nit: I don\u0027t see why you used AnythingOfType here instead of expectedToCompareAgainst. If it was an ordering issue, it seems like you need to sort actual.",
+      "range": {
+        "startLine": 115,
+        "startChar": 47,
+        "endLine": 118,
+        "endChar": 3
+      },
+      "revId": "918797e1b9096f27831f0b916b366231464ee524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ff1fe39_9c203142",
+        "filename": "golden/go/warmer/warmer.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-14T16:49:18Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 12,
+        "startChar": 36,
+        "endLine": 12,
+        "endChar": 44
+      },
+      "revId": "918797e1b9096f27831f0b916b366231464ee524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
