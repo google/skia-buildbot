@@ -52,6 +52,10 @@ type SearchIndex struct {
 	// individual tests that have changed.
 	testNames []types.TestName
 	storages  *storage.Storage
+
+	// Prevents map[types.IgnoreState]foo from being written to at the
+	// same time during the main indexer loop. We don'
+	mapMutex sync.Mutex
 }
 
 // newSearchIndex creates a new instance of SearchIndex. It is not intended to
@@ -390,6 +394,8 @@ func (ixr *Indexer) writeIssueBaseline(evData interface{}) {
 // the full tile (not applying ignore rules)
 func calcDigestCountsInclude(state interface{}) error {
 	idx := state.(*SearchIndex)
+	idx.mapMutex.Lock()
+	defer idx.mapMutex.Unlock()
 	is := types.IncludeIgnoredTraces
 	idx.dCounters[is] = digest_counter.New(idx.cpxTile.GetTile(is))
 	return nil
@@ -399,6 +405,8 @@ func calcDigestCountsInclude(state interface{}) error {
 // the partial tile (applying ignore rules).
 func calcDigestCountsExclude(state interface{}) error {
 	idx := state.(*SearchIndex)
+	idx.mapMutex.Lock()
+	defer idx.mapMutex.Unlock()
 	is := types.ExcludeIgnoredTraces
 	idx.dCounters[is] = digest_counter.New(idx.cpxTile.GetTile(is))
 	return nil
@@ -421,6 +429,8 @@ func calcSummaries(state interface{}) error {
 // the full tile (not applying ignore rules)
 func calcParamsetsInclude(state interface{}) error {
 	idx := state.(*SearchIndex)
+	idx.mapMutex.Lock()
+	defer idx.mapMutex.Unlock()
 	is := types.IncludeIgnoredTraces
 	idx.paramsetSummaries[is] = paramsets.NewParamSummary(idx.cpxTile.GetTile(is), idx.dCounters[is])
 
@@ -431,6 +441,8 @@ func calcParamsetsInclude(state interface{}) error {
 // the partial tile (applying ignore rules)
 func calcParamsetsExclude(state interface{}) error {
 	idx := state.(*SearchIndex)
+	idx.mapMutex.Lock()
+	defer idx.mapMutex.Unlock()
 	is := types.ExcludeIgnoredTraces
 	idx.paramsetSummaries[is] = paramsets.NewParamSummary(idx.cpxTile.GetTile(is), idx.dCounters[is])
 	return nil
