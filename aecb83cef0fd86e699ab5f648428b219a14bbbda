@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c7f1f676_6cd75f6f",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-14T14:26:36Z",
+      "side": 1,
+      "message": "incomplete sent",
+      "range": {
+        "startLine": 57,
+        "startChar": 47,
+        "endLine": 57,
+        "endChar": 51
+      },
+      "revId": "aecb83cef0fd86e699ab5f648428b219a14bbbda",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e1c82ac6_60871575",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-14T14:26:36Z",
+      "side": 1,
+      "message": "If you lock the mutex for the entire function, you might as well run the functions serially.",
+      "revId": "aecb83cef0fd86e699ab5f648428b219a14bbbda",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
