@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a02a54a_b7d38f23",
+        "filename": "golden/go/tryjobs/gerrit_tryjob_monitor/gerrit_tryjob_monitor_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-14T11:32:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7eab0c5f_32b2867c",
+      "range": {
+        "startLine": 8,
+        "startChar": 3,
+        "endLine": 8,
+        "endChar": 36
+      },
+      "revId": "cabc975d46409f126c70960e9141fb4e6795db56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b84ac241_591d41c8",
         "filename": "golden/go/tryjobs/gerrit_tryjob_monitor/gerrit_tryjob_monitor_test.go",
         "patchSetId": 10
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "bb09636b_6dec4f8a",
+        "filename": "golden/go/tryjobs/gerrit_tryjob_monitor/gerrit_tryjob_monitor_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-14T11:32:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b84ac241_591d41c8",
+      "range": {
+        "startLine": 29,
+        "startChar": 1,
+        "endLine": 29,
+        "endChar": 4
+      },
+      "revId": "cabc975d46409f126c70960e9141fb4e6795db56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b3b8f090_88c91f9c",
         "filename": "golden/go/tryjobs/gerrit_tryjob_monitor/gerrit_tryjob_monitor_test.go",
         "patchSetId": 10
@@ -62,6 +110,24 @@
       "revId": "cabc975d46409f126c70960e9141fb4e6795db56",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4f5d049_5ae46d76",
+        "filename": "golden/go/tryjobs/gerrit_tryjob_monitor/gerrit_tryjob_monitor_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-14T11:32:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b3b8f090_88c91f9c",
+      "revId": "cabc975d46409f126c70960e9141fb4e6795db56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
