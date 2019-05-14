@@ -560,3 +560,14 @@ groups:
     annotations:
       abbr: '{{ $labels.app }}'
       description: 'It has been at least 10 minutes since the Gold status was re-computed for {{ $labels.app }}. Some process might have hung. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldstatusstalled'
+
+# Velero Backup
+  - alert: VeleroBackupFailed
+    expr: rate(velero_backup_failure_total[24h])*(24*60*60) > 1
+    labels:
+      category: infra
+      severity: error
+      owner: jcgregorio@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: 'It has been more than 24 hours since a successful backup in {{ $labels.project }}. See https://skia.googlesource.com/buildbot/%2B/master/velero/PROD.md#backup_failed'
