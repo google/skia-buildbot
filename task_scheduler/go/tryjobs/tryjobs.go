@@ -199,16 +199,16 @@ func (t *TryJobIntegrator) sendHeartbeats(now time.Time, jobs []*types.Job) erro
 
 	// Send heartbeats for all leases.
 	send := func(jobs []*types.Job) {
-		heartbeats := make([]*buildbucket_api.ApiHeartbeatBatchRequestMessageOneHeartbeat, 0, len(jobs))
+		heartbeats := make([]*buildbucket_api.LegacyApiHeartbeatBatchRequestMessageOneHeartbeat, 0, len(jobs))
 		for _, j := range jobs {
-			heartbeats = append(heartbeats, &buildbucket_api.ApiHeartbeatBatchRequestMessageOneHeartbeat{
+			heartbeats = append(heartbeats, &buildbucket_api.LegacyApiHeartbeatBatchRequestMessageOneHeartbeat{
 				BuildId:           j.BuildbucketBuildId,
 				LeaseKey:          j.BuildbucketLeaseKey,
 				LeaseExpirationTs: expiration,
 			})
 		}
 		sklog.Infof("Sending heartbeats for %d jobs...", len(jobs))
-		resp, err := t.bb.HeartbeatBatch(&buildbucket_api.ApiHeartbeatBatchRequestMessage{
+		resp, err := t.bb.HeartbeatBatch(&buildbucket_api.LegacyApiHeartbeatBatchRequestMessage{
 			Heartbeats: heartbeats,
 		}).Do()
 		if err != nil {
@@ -310,7 +310,7 @@ func (t *TryJobIntegrator) remoteCancelBuild(id int64, msg string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := t.bb.Cancel(id, &buildbucket_api.ApiCancelRequestBodyMessage{
+	resp, err := t.bb.Cancel(id, &buildbucket_api.LegacyApiCancelRequestBodyMessage{
 		ResultDetailsJson: string(b),
 	}).Do()
 	if err != nil {
@@ -325,7 +325,7 @@ func (t *TryJobIntegrator) remoteCancelBuild(id int64, msg string) error {
 func (t *TryJobIntegrator) tryLeaseBuild(id int64) (int64, error) {
 	expiration := time.Now().Add(LEASE_DURATION_INITIAL).Unix() * 1000000
 	sklog.Infof("Attempting to lease build %d", id)
-	resp, err := t.bb.Lease(id, &buildbucket_api.ApiLeaseRequestBodyMessage{
+	resp, err := t.bb.Lease(id, &buildbucket_api.LegacyApiLeaseRequestBodyMessage{
 		LeaseExpirationTs: expiration,
 	}).Do()
 	if err != nil {
@@ -337,7 +337,7 @@ func (t *TryJobIntegrator) tryLeaseBuild(id int64) (int64, error) {
 	return resp.Build.LeaseKey, nil
 }
 
-func (t *TryJobIntegrator) insertNewJob(ctx context.Context, b *buildbucket_api.ApiCommonBuildMessage) error {
+func (t *TryJobIntegrator) insertNewJob(ctx context.Context, b *buildbucket_api.LegacyApiCommonBuildMessage) error {
 	// Parse the build parameters.
 	var params buildbucket.Parameters
 	if err := json.NewDecoder(strings.NewReader(b.ParametersJson)).Decode(&params); err != nil {
@@ -452,7 +452,7 @@ func (t *TryJobIntegrator) Poll(ctx context.Context) error {
 		var wg sync.WaitGroup
 		for _, b := range resp.Builds {
 			wg.Add(1)
-			go func(b *buildbucket_api.ApiCommonBuildMessage) {
+			go func(b *buildbucket_api.LegacyApiCommonBuildMessage) {
 				defer wg.Done()
 				if err := t.insertNewJob(ctx, b); err != nil {
 					mtx.Lock()
@@ -478,7 +478,7 @@ func (t *TryJobIntegrator) Poll(ctx context.Context) error {
 
 // jobStarted notifies Buildbucket that the given Job has started.
 func (t *TryJobIntegrator) jobStarted(j *types.Job) error {
-	resp, err := t.bb.Start(j.BuildbucketBuildId, &buildbucket_api.ApiStartRequestBodyMessage{
+	resp, err := t.bb.Start(j.BuildbucketBuildId, &buildbucket_api.LegacyApiStartRequestBodyMessage{
 		LeaseKey: j.BuildbucketLeaseKey,
 		Url:      j.URL(t.host),
 	}).Do()
@@ -507,7 +507,7 @@ func (t *TryJobIntegrator) jobFinished(j *types.Job) error {
 		return err
 	}
 	if j.Status == types.JOB_STATUS_SUCCESS {
-		resp, err := t.bb.Succeed(j.BuildbucketBuildId, &buildbucket_api.ApiSucceedRequestBodyMessage{
+		resp, err := t.bb.Succeed(j.BuildbucketBuildId, &buildbucket_api.LegacyApiSucceedRequestBodyMessage{
 			LeaseKey:          j.BuildbucketLeaseKey,
 			ResultDetailsJson: string(b),
 			Url:               j.URL(t.host),
@@ -527,7 +527,7 @@ func (t *TryJobIntegrator) jobFinished(j *types.Job) error {
 		if j.Status == types.JOB_STATUS_MISHAP {
 			failureReason = "INFRA_FAILURE"
 		}
-		resp, err := t.bb.Fail(j.BuildbucketBuildId, &buildbucket_api.ApiFailRequestBodyMessage{
+		resp, err := t.bb.Fail(j.BuildbucketBuildId, &buildbucket_api.LegacyApiFailRequestBodyMessage{
 			FailureReason:     failureReason,
 			LeaseKey:          j.BuildbucketLeaseKey,
 			ResultDetailsJson: string(b),
