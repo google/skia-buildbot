@@ -32,7 +32,7 @@ type Baseline struct {
 	MD5 string `json:"md5"`
 
 	// Expectations captures the "baseline expectations", that is, the Expectations
-	// with only the positive commits of the current commit.
+	// with only the positive digests of the current commit.
 	Expectations types.Expectations `json:"master"`
 
 	// Issue indicates the Gerrit issue of this baseline. 0 indicates the master branch.

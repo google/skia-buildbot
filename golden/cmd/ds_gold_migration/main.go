@@ -29,6 +29,7 @@ var (
 	dsNamespace    = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
 	projectID      = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
 	promptPassword = flag.Bool("password", false, "Prompt for root password.")
+	discrepancies  = flag.Int("discrepancies", 4, "How many digest failures are tolerable? ")
 )
 
 // List of entities we are importing
@@ -147,7 +148,7 @@ func migrateExpectationStore(vdb *database.VersionedDB, dsClient *datastore.Clie
 		wg.Wait()
 		importChanges = append(importChanges, newEntries...)
 		importKeys = append(importKeys, newKeys...)
-		avgTime := float64(time.Now().Sub(startTime)/time.Millisecond) / float64(len(logEntries))
+		avgTime := float64(len(logEntries)) / float64(time.Now().Sub(startTime)/time.Millisecond)
 		changeRecCount += len(logEntries)
 		sklog.Infof("Migrated %d/%d records. %.2f ms average", changeRecCount, total, avgTime)
 	}
@@ -192,8 +193,8 @@ func migrateExpectationStore(vdb *database.VersionedDB, dsClient *datastore.Clie
 	// accept a small number of discrepancies. The number 4 was chosen based on
 	// differences inspected in a very recent snapshot of the database.
 	// If it goes up this will fail and further investigation is necessary.
-	if testFailures > 0 || digestFailures > 4 {
-		sklog.Fatalf("Got more errors than expected. Testfailures: %d  Digest failures: %d", testFailures, digestFailures)
+	if testFailures > 0 || digestFailures > *discrepancies {
+		sklog.Fatalf("Got more errors than expected. Test failures: %d  Digest failures: %d", testFailures, digestFailures)
 	}
 
 	// Calculate the expectations from the changes we imported into the CloudExpectationsStore
