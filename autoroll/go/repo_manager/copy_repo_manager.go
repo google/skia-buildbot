@@ -334,7 +334,7 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	}
 
 	// Mark the change as ready for review, if necessary.
-	if err := rm.unsetWIP(nil, issue.Issue); err != nil {
+	if err := rm.unsetWIP(ctx, nil, issue.Issue); err != nil {
 		return 0, err
 	}
 

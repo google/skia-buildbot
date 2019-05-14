@@ -264,18 +264,18 @@ func main() {
 		// CL. When these steps fail, all we know is that the command failed,
 		// and since we didn't get an issue number back we have to assume that
 		// no CL was uploaded. This can leave us with orphaned roll CLs.
-		myEmail, err := g.GetUserEmail()
+		myEmail, err := g.GetUserEmail(ctx)
 		if err != nil {
 			sklog.Fatal(err)
 		}
 		go func() {
 			for range time.Tick(60 * time.Minute) {
-				issues, err := g.Search(100, gerrit.SearchOwner(myEmail), gerrit.SearchStatus(gerrit.CHANGE_STATUS_DRAFT))
+				issues, err := g.Search(ctx, 100, gerrit.SearchOwner(myEmail), gerrit.SearchStatus(gerrit.CHANGE_STATUS_DRAFT))
 				if err != nil {
 					sklog.Errorf("Failed to retrieve autoroller issues: %s", err)
 					continue
 				}
-				issues2, err := g.Search(100, gerrit.SearchOwner(myEmail), gerrit.SearchStatus(gerrit.CHANGE_STATUS_NEW))
+				issues2, err := g.Search(ctx, 100, gerrit.SearchOwner(myEmail), gerrit.SearchStatus(gerrit.CHANGE_STATUS_NEW))
 				if err != nil {
 					sklog.Errorf("Failed to retrieve autoroller issues: %s", err)
 					continue
@@ -283,7 +283,7 @@ func main() {
 				issues = append(issues, issues2...)
 				for _, ci := range issues {
 					if ci.Updated.Before(time.Now().Add(-168 * time.Hour)) {
-						if err := g.Abandon(ci, "Abandoning new/draft issues older than a week."); err != nil {
+						if err := g.Abandon(ctx, ci, "Abandoning new/draft issues older than a week."); err != nil {
 							sklog.Errorf("Failed to abandon old issue %s: %s", g.Url(ci.Issue), err)
 						}
 					}

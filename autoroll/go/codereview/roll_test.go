@@ -144,7 +144,7 @@ func TestGerritRoll(t *testing.T) {
 	// Add a comment.
 	msg := "Here's a comment"
 	g.MockAddComment(roll, msg)
-	assert.NoError(t, gr.AddComment(msg))
+	assert.NoError(t, gr.AddComment(ctx, msg))
 	g.AssertEmpty()
 
 	// Set dry run.
@@ -362,7 +362,7 @@ func TestGerritAndroidRoll(t *testing.T) {
 	// Add a comment.
 	msg := "Here's a comment"
 	g.MockAddComment(roll, msg)
-	assert.NoError(t, gr.AddComment(msg))
+	assert.NoError(t, gr.AddComment(ctx, msg))
 	g.AssertEmpty()
 
 	// Set dry run.

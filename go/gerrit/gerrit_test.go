@@ -1,6 +1,7 @@
 package gerrit
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -30,11 +31,11 @@ func TestHasOpenDependency(t *testing.T) {
 	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
 	assert.NoError(t, err)
 
-	dep, err := api.HasOpenDependency(52160, 1)
+	dep, err := api.HasOpenDependency(context.TODO(), 52160, 1)
 	assert.NoError(t, err)
 	assert.False(t, dep)
 
-	dep2, err := api.HasOpenDependency(52123, 1)
+	dep2, err := api.HasOpenDependency(context.TODO(), 52123, 1)
 	assert.NoError(t, err)
 	assert.True(t, dep2)
 }
@@ -46,19 +47,19 @@ func TestGerritOwnerModifiedSearch(t *testing.T) {
 	assert.NoError(t, err)
 
 	t_delta := time.Now().Add(-10 * 24 * time.Hour)
-	issues, err := api.Search(1, SearchModifiedAfter(t_delta), SearchOwner("rmistry@google.com"))
+	issues, err := api.Search(context.TODO(), 1, SearchModifiedAfter(t_delta), SearchOwner("rmistry@google.com"))
 	assert.NoError(t, err)
 	assert.True(t, len(issues) > 0)
 
 	for _, issue := range issues {
-		details, err := api.GetIssueProperties(issue.Issue)
+		details, err := api.GetIssueProperties(context.TODO(), issue.Issue)
 		assert.NoError(t, err)
 		assert.True(t, details.Updated.After(t_delta))
 		assert.True(t, len(details.Patchsets) > 0)
 		assert.Equal(t, "rmistry@google.com", details.Owner.Email)
 	}
 
-	issues, err = api.Search(2, SearchModifiedAfter(time.Now().Add(-time.Hour)))
+	issues, err = api.Search(context.TODO(), 2, SearchModifiedAfter(time.Now().Add(-time.Hour)))
 	assert.NoError(t, err)
 }
 
@@ -69,12 +70,12 @@ func TestGerritCommitSearch(t *testing.T) {
 	assert.NoError(t, err)
 	api.TurnOnAuthenticatedGets()
 
-	issues, err := api.Search(1, SearchCommit("a2eb235a16ed430896cc54989e683cf930319eb7"))
+	issues, err := api.Search(context.TODO(), 1, SearchCommit("a2eb235a16ed430896cc54989e683cf930319eb7"))
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(issues))
 
 	for _, issue := range issues {
-		details, err := api.GetIssueProperties(issue.Issue)
+		details, err := api.GetIssueProperties(context.TODO(), issue.Issue)
 		assert.NoError(t, err)
 		assert.Equal(t, 5, len(details.Patchsets))
 		assert.Equal(t, "rmistry@google.com", details.Owner.Email)
@@ -108,7 +109,7 @@ func TestGetPatch(t *testing.T) {
 	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
 	assert.NoError(t, err)
 
-	patch, err := api.GetPatch(2370, "current")
+	patch, err := api.GetPatch(context.TODO(), 2370, "current")
 	assert.NoError(t, err)
 
 	// Note: The trailing spaces and newlines were added this way
@@ -132,9 +133,9 @@ func TestAddComment(t *testing.T) {
 	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
 	assert.NoError(t, err)
 
-	changeInfo, err := api.GetIssueProperties(2370)
+	changeInfo, err := api.GetIssueProperties(context.TODO(), 2370)
 	assert.NoError(t, err)
-	err = api.AddComment(changeInfo, "Testing API!!")
+	err = api.AddComment(context.TODO(), changeInfo, "Testing API!!")
 	assert.NoError(t, err)
 }
 
@@ -145,26 +146,26 @@ func TestSendToDryRun(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Send to dry run.
-	changeInfo, err := api.GetIssueProperties(2370)
+	changeInfo, err := api.GetIssueProperties(context.TODO(), 2370)
 	assert.NoError(t, err)
 	defaultLabelValue := changeInfo.Labels[COMMITQUEUE_LABEL].DefaultValue
-	err = api.SendToDryRun(changeInfo, "Sending to dry run")
+	err = api.SendToDryRun(context.TODO(), changeInfo, "Sending to dry run")
 	assert.NoError(t, err)
 
 	// Wait for a second for the above to take place.
 	time.Sleep(time.Second)
 
 	// Verify that the change was sent to dry run.
-	changeInfo, err = api.GetIssueProperties(2370)
+	changeInfo, err = api.GetIssueProperties(context.TODO(), 2370)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, changeInfo.Labels[COMMITQUEUE_LABEL].All[0].Value)
 
 	// Remove from dry run.
-	err = api.RemoveFromCQ(changeInfo, "")
+	err = api.RemoveFromCQ(context.TODO(), changeInfo, "")
 	assert.NoError(t, err)
 
 	// Verify that the change was removed from dry run.
-	changeInfo, err = api.GetIssueProperties(2370)
+	changeInfo, err = api.GetIssueProperties(context.TODO(), 2370)
 	assert.NoError(t, err)
 	assert.Equal(t, defaultLabelValue, changeInfo.Labels[COMMITQUEUE_LABEL].All[0].Value)
 }
@@ -176,26 +177,26 @@ func TestSendToCQ(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Send to CQ.
-	changeInfo, err := api.GetIssueProperties(2370)
+	changeInfo, err := api.GetIssueProperties(context.TODO(), 2370)
 	assert.NoError(t, err)
 	defaultLabelValue := changeInfo.Labels[COMMITQUEUE_LABEL].DefaultValue
-	err = api.SendToCQ(changeInfo, "Sending to CQ")
+	err = api.SendToCQ(context.TODO(), changeInfo, "Sending to CQ")
 	assert.NoError(t, err)
 
 	// Wait for a few seconds for the above to take place.
 	time.Sleep(5 * time.Second)
 
 	// Verify that the change was sent to CQ.
-	changeInfo, err = api.GetIssueProperties(2370)
+	changeInfo, err = api.GetIssueProperties(context.TODO(), 2370)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, changeInfo.Labels[COMMITQUEUE_LABEL].All[0].Value)
 
 	// Remove from CQ.
-	err = api.RemoveFromCQ(changeInfo, "")
+	err = api.RemoveFromCQ(context.TODO(), changeInfo, "")
 	assert.NoError(t, err)
 
 	// Verify that the change was removed from CQ.
-	changeInfo, err = api.GetIssueProperties(2370)
+	changeInfo, err = api.GetIssueProperties(context.TODO(), 2370)
 	assert.NoError(t, err)
 	assert.Equal(t, defaultLabelValue, changeInfo.Labels[COMMITQUEUE_LABEL].All[0].Value)
 }
@@ -207,26 +208,26 @@ func TestApprove(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Approve.
-	changeInfo, err := api.GetIssueProperties(2370)
+	changeInfo, err := api.GetIssueProperties(context.TODO(), 2370)
 	assert.NoError(t, err)
 	defaultLabelValue := changeInfo.Labels[CODEREVIEW_LABEL].DefaultValue
-	err = api.Approve(changeInfo, "LGTM")
+	err = api.Approve(context.TODO(), changeInfo, "LGTM")
 	assert.NoError(t, err)
 
 	// Wait for a second for the above to take place.
 	time.Sleep(time.Second)
 
 	// Verify that the change was approved.
-	changeInfo, err = api.GetIssueProperties(2370)
+	changeInfo, err = api.GetIssueProperties(context.TODO(), 2370)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, changeInfo.Labels[CODEREVIEW_LABEL].All[0].Value)
 
 	// Remove approval.
-	err = api.NoScore(changeInfo, "")
+	err = api.NoScore(context.TODO(), changeInfo, "")
 	assert.NoError(t, err)
 
 	// Verify that the change has no score.
-	changeInfo, err = api.GetIssueProperties(2370)
+	changeInfo, err = api.GetIssueProperties(context.TODO(), 2370)
 	assert.NoError(t, err)
 	assert.Equal(t, defaultLabelValue, changeInfo.Labels[CODEREVIEW_LABEL].All[0].Value)
 }
@@ -238,9 +239,9 @@ func TestReadOnlyFailure(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Approve.
-	changeInfo, err := api.GetIssueProperties(2370)
+	changeInfo, err := api.GetIssueProperties(context.TODO(), 2370)
 	assert.NoError(t, err)
-	err = api.Approve(changeInfo, "LGTM")
+	err = api.Approve(context.TODO(), changeInfo, "LGTM")
 	assert.Error(t, err)
 }
 
@@ -251,26 +252,26 @@ func TestDisApprove(t *testing.T) {
 	assert.NoError(t, err)
 
 	// DisApprove.
-	changeInfo, err := api.GetIssueProperties(2370)
+	changeInfo, err := api.GetIssueProperties(context.TODO(), 2370)
 	assert.NoError(t, err)
 	defaultLabelValue := changeInfo.Labels[CODEREVIEW_LABEL].DefaultValue
-	err = api.DisApprove(changeInfo, "not LGTM")
+	err = api.DisApprove(context.TODO(), changeInfo, "not LGTM")
 	assert.NoError(t, err)
 
 	// Wait for a second for the above to take place.
 	time.Sleep(time.Second)
 
 	// Verify that the change was disapproved.
-	changeInfo, err = api.GetIssueProperties(2370)
+	changeInfo, err = api.GetIssueProperties(context.TODO(), 2370)
 	assert.NoError(t, err)
 	assert.Equal(t, -1, changeInfo.Labels[CODEREVIEW_LABEL].All[0].Value)
 
 	// Remove disapproval.
-	err = api.NoScore(changeInfo, "")
+	err = api.NoScore(context.TODO(), changeInfo, "")
 	assert.NoError(t, err)
 
 	// Verify that the change has no score.
-	changeInfo, err = api.GetIssueProperties(2370)
+	changeInfo, err = api.GetIssueProperties(context.TODO(), 2370)
 	assert.NoError(t, err)
 	assert.Equal(t, defaultLabelValue, changeInfo.Labels[CODEREVIEW_LABEL].All[0].Value)
 }
@@ -283,7 +284,7 @@ func TestAbandon(t *testing.T) {
 	c1 := ChangeInfo{
 		ChangeId: "Idb96a747c8446126f60fdf1adca361dbc2e539d5",
 	}
-	err = api.Abandon(&c1, "Abandoning this CL")
+	err = api.Abandon(context.TODO(), &c1, "Abandoning this CL")
 	assert.Error(t, err, "Got status 409 Conflict (409)")
 }
 
@@ -324,7 +325,7 @@ func TestFiles(t *testing.T) {
 	defer ts.Close()
 
 	api, err := NewGerrit(ts.URL, "", nil)
-	files, err := api.Files(12345678, "current")
+	files, err := api.Files(context.TODO(), 12345678, "current")
 	assert.NoError(t, err)
 	assert.Len(t, files, 4)
 	assert.Contains(t, files, "/COMMIT_MSG")
@@ -332,7 +333,7 @@ func TestFiles(t *testing.T) {
 	assert.Contains(t, files, "tools/gpu/vk/GrVulkanDefines.h")
 	assert.Equal(t, 33, files["tools/gpu/vk/GrVulkanDefines.h"].LinesInserted)
 
-	files, err = api.Files(12345678, "alert()")
+	files, err = api.Files(context.TODO(), 12345678, "alert()")
 	assert.Error(t, err)
 }
 
@@ -373,7 +374,7 @@ func TestGetFileNames(t *testing.T) {
 	defer ts.Close()
 
 	api, err := NewGerrit(ts.URL, "", nil)
-	files, err := api.GetFileNames(12345678, "current")
+	files, err := api.GetFileNames(context.TODO(), 12345678, "current")
 	assert.NoError(t, err)
 	assert.Len(t, files, 4)
 	assert.Contains(t, files, "/COMMIT_MSG")
@@ -399,7 +400,7 @@ func TestIsBinaryPatch(t *testing.T) {
 	defer tsNoBinary.Close()
 	api, err := NewGerrit(tsNoBinary.URL, "", nil)
 	assert.NoError(t, err)
-	isBinaryPatch, err := api.IsBinaryPatch(4649, "3")
+	isBinaryPatch, err := api.IsBinaryPatch(context.TODO(), 4649, "3")
 	assert.NoError(t, err)
 	assert.False(t, isBinaryPatch)
 
@@ -425,7 +426,7 @@ func TestIsBinaryPatch(t *testing.T) {
 	defer tsBinary.Close()
 	api, err = NewGerrit(tsBinary.URL, "", nil)
 	assert.NoError(t, err)
-	isBinaryPatch, err = api.IsBinaryPatch(2370, "5")
+	isBinaryPatch, err = api.IsBinaryPatch(context.TODO(), 2370, "5")
 	assert.NoError(t, err)
 	assert.True(t, isBinaryPatch)
 }
@@ -462,7 +463,7 @@ func TestGetCommit(t *testing.T) {
 	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
 	assert.NoError(t, err)
 
-	commitInfo, err := api.GetCommit(issueID, revision)
+	commitInfo, err := api.GetCommit(context.TODO(), issueID, revision)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedParent, commitInfo.Parents[0].Commit)
 }

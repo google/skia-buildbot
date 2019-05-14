@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -142,11 +143,11 @@ func main() {
 	}
 	repoSplit := strings.Split(*repoUrl, "/")
 	project := strings.TrimSuffix(repoSplit[len(repoSplit)-1], ".git")
-	ci, err := gerrit.CreateAndEditChange(g, project, cq.CQ_CFG_REF, commitMsg, baseCommit, func(g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
-		if err := g.EditFile(ci, cq.CQ_CFG_FILE, string(newCfgBytes)); err != nil {
+	ci, err := gerrit.CreateAndEditChange(context.TODO(), g, project, cq.CQ_CFG_REF, commitMsg, baseCommit, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
+		if err := g.EditFile(ctx, ci, cq.CQ_CFG_FILE, string(newCfgBytes)); err != nil {
 			return err
 		}
-		if err := g.EditFile(ci, supported_branches.SUPPORTED_BRANCHES_FILE, string(buf.Bytes())); err != nil {
+		if err := g.EditFile(ctx, ci, supported_branches.SUPPORTED_BRANCHES_FILE, string(buf.Bytes())); err != nil {
 			return err
 		}
 		return nil

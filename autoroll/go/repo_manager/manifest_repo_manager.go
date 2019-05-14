@@ -255,7 +255,7 @@ TEST=CQ
 	}
 
 	// Set CR+2 and CQ+1/CQ+2 using the API.
-	change, err := mr.g.GetIssueProperties(issue.Issue)
+	change, err := mr.g.GetIssueProperties(ctx, issue.Issue)
 	if err != nil {
 		return issue.Issue, err
 	}
@@ -264,7 +264,7 @@ TEST=CQ
 	}
 
 	// Mark the change as ready for review, if necessary.
-	if err := mr.unsetWIP(change, 0); err != nil {
+	if err := mr.unsetWIP(ctx, change, 0); err != nil {
 		return 0, err
 	}
 
@@ -284,7 +284,7 @@ func (r *manifestRepoManager) setChangeLabels(change *gerrit.ChangeInfo, dryRun 
 	} else {
 		labelValues[gerrit.COMMITQUEUE_LABEL] = gerrit.COMMITQUEUE_LABEL_SUBMIT
 	}
-	return r.g.SetReview(change, "Roller setting labels to auto-land change.", labelValues, nil)
+	return r.g.SetReview(context.TODO(), change, "Roller setting labels to auto-land change.", labelValues, nil)
 }
 
 func (mr *manifestRepoManager) updateManifestFile(prevHash, newHash string) error {

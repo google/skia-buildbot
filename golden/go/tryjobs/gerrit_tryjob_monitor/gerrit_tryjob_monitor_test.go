@@ -1,6 +1,7 @@
 package gerrit_tryjob_monitor
 
 import (
+	"context"
 	"strconv"
 	"testing"
 	"time"
@@ -34,8 +35,8 @@ See image differences at: https://gold.skia.org/search?issue=12345`
 	defer mtjs.AssertExpectations(t)
 
 	changeInfo := makeTestChangeInfo()
-	mg.On("GetIssueProperties", mockIssueID).Return(changeInfo, nil)
-	mg.On("AddComment", changeInfo, expectedComment).Return(nil)
+	mg.On("GetIssueProperties", context.TODO(), mockIssueID).Return(changeInfo, nil)
+	mg.On("AddComment", context.TODO(), changeInfo, expectedComment).Return(nil)
 
 	storeIssue := makeTestIssue()
 	mtjs.On("GetIssue", mockIssueID, false).Return(storeIssue, nil)

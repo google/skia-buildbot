@@ -40,7 +40,7 @@ func NewTestRollCLImpl(t *testing.T, rollingTo string, isDryRun bool) *TestRollC
 }
 
 // See documentation for RollCLImpl.
-func (r *TestRollCLImpl) AddComment(string) error {
+func (r *TestRollCLImpl) AddComment(context.Context, string) error {
 	return nil
 }
 

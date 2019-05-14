@@ -238,24 +238,24 @@ func (r *androidRepoManager) abandonRepoBranch(ctx context.Context) error {
 
 // getChangeNumForHash returns the corresponding change number for the provided commit hash by querying Gerrit's search API.
 func (r *androidRepoManager) getChangeForHash(hash string) (*gerrit.ChangeInfo, error) {
-	issues, err := r.g.Search(1, gerrit.SearchCommit(hash))
+	issues, err := r.g.Search(context.TODO(), 1, gerrit.SearchCommit(hash))
 	if err != nil {
 		return nil, err
 	}
-	return r.g.GetIssueProperties(issues[0].Issue)
+	return r.g.GetIssueProperties(context.TODO(), issues[0].Issue)
 }
 
 // setTopic sets a topic using the name of the child repo and the change number.
 // Example: skia_merge_1234
 func (r *androidRepoManager) setTopic(changeNum int64) error {
 	topic := fmt.Sprintf("%s_merge_%d", path.Base(r.childDir), changeNum)
-	return r.g.SetTopic(topic, changeNum)
+	return r.g.SetTopic(context.TODO(), topic, changeNum)
 }
 
 // setChangeLabels sets the appropriate labels on the Gerrit change, according
 // to the Gerrit config.
 func (r *androidRepoManager) setChangeLabels(change *gerrit.ChangeInfo, dryRun bool) error {
-	return r.g.SetReview(change, "Roller setting labels to auto-land change.", r.codereview.Config().(*codereview.GerritConfig).GetLabels(dryRun), nil)
+	return r.g.SetReview(context.TODO(), change, "Roller setting labels to auto-land change.", r.codereview.Config().(*codereview.GerritConfig).GetLabels(dryRun), nil)
 }
 
 func ExtractBugNumbers(line string) map[string]bool {
@@ -511,7 +511,7 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 	}
 
 	// Mark the change as ready for review, if necessary.
-	if err := r.unsetWIP(change, 0); err != nil {
+	if err := r.unsetWIP(ctx, change, 0); err != nil {
 		return 0, err
 	}
 

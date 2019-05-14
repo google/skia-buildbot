@@ -43,12 +43,12 @@ func monitorStatsForInFlightCLs(ctx context.Context, cqClient *cq.Client, gerrit
 	liveness := metrics2.NewLiveness(fmt.Sprintf("%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME))
 	cqMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_WAITING_IN_CQ))
 	for range time.Tick(time.Duration(IN_FLIGHT_POLL_TIME)) {
-		dryRunChanges, err := gerritClient.Search(MAX_CLS_PER_POLL, gerrit.SearchStatus("open"), gerrit.SearchProject("skia"), gerrit.SearchLabel(gerrit.COMMITQUEUE_LABEL, "1"))
+		dryRunChanges, err := gerritClient.Search(ctx, MAX_CLS_PER_POLL, gerrit.SearchStatus("open"), gerrit.SearchProject("skia"), gerrit.SearchLabel(gerrit.COMMITQUEUE_LABEL, "1"))
 		if err != nil {
 			sklog.Errorf("Error searching for open changes with dry run in Gerrit: %s", err)
 			continue
 		}
-		cqChanges, err := gerritClient.Search(MAX_CLS_PER_POLL, gerrit.SearchStatus("open"), gerrit.SearchProject("skia"), gerrit.SearchLabel(gerrit.COMMITQUEUE_LABEL, "2"))
+		cqChanges, err := gerritClient.Search(ctx, MAX_CLS_PER_POLL, gerrit.SearchStatus("open"), gerrit.SearchProject("skia"), gerrit.SearchLabel(gerrit.COMMITQUEUE_LABEL, "2"))
 		if err != nil {
 			sklog.Errorf("Error searching for open changes waiting for CQ in Gerrit: %s", err)
 			continue
@@ -92,7 +92,7 @@ func monitorStatsForLandedCLs(ctx context.Context, cqClient *cq.Client, gerritCl
 		// Add a short (2 min) buffer to overlap with the last poll to make sure
 		// we do not lose any edge cases.
 		t_delta := time.Now().Add(-AFTER_COMMIT_POLL_TIME).Add(-2 * time.Minute)
-		changes, err := gerritClient.Search(MAX_CLS_PER_POLL, gerrit.SearchModifiedAfter(t_delta), gerrit.SearchStatus("merged"), gerrit.SearchProject("skia"))
+		changes, err := gerritClient.Search(ctx, MAX_CLS_PER_POLL, gerrit.SearchModifiedAfter(t_delta), gerrit.SearchStatus("merged"), gerrit.SearchProject("skia"))
 		if err != nil {
 			sklog.Errorf("Error searching for merged changes in Gerrit: %s", err)
 			continue

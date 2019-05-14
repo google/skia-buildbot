@@ -273,11 +273,11 @@ func (t *TryJobIntegrator) getRepo(props *buildbucket.Properties) (string, *repo
 	return topRepoUrl, r, patchRepoUrl, nil
 }
 
-func (t *TryJobIntegrator) getRevision(repo *repograph.Graph, revision string, issue int64) (string, error) {
+func (t *TryJobIntegrator) getRevision(ctx context.Context, repo *repograph.Graph, revision string, issue int64) (string, error) {
 	revision = strings.TrimPrefix(revision, "origin/")
 	if revision == "" || revision == "HEAD" {
 		// Obtain the branch name from Gerrit, then use the head of that branch.
-		changeInfo, err := t.gerrit.GetIssueProperties(issue)
+		changeInfo, err := t.gerrit.GetIssueProperties(ctx, issue)
 		if err != nil {
 			return "", fmt.Errorf("Failed to get ChangeInfo: %s", err)
 		}
@@ -349,7 +349,7 @@ func (t *TryJobIntegrator) insertNewJob(ctx context.Context, b *buildbucket_api.
 	if err != nil {
 		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Unable to find repo: %s", err))
 	}
-	revision, err := t.getRevision(topRepoGraph, params.Properties.Revision, int64(params.Properties.GerritIssue))
+	revision, err := t.getRevision(ctx, topRepoGraph, params.Properties.Revision, int64(params.Properties.GerritIssue))
 	if err != nil {
 		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid revision: %s", err))
 	}

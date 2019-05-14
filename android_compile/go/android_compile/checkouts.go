@@ -386,7 +386,7 @@ func cleanSkiaCheckout(ctx context.Context, skiaCheckout *git.Checkout, checkout
 }
 
 func checkPatchFromMasterBranch(issue int) (bool, error) {
-	changeInfo, err := gerritClient.GetIssueProperties(int64(issue))
+	changeInfo, err := gerritClient.GetIssueProperties(context.TODO(), int64(issue))
 	if err != nil {
 		return false, fmt.Errorf("Could not get properties of Gerrit issue %d: %s", issue, err)
 	}

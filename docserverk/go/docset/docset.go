@@ -120,7 +120,7 @@ func newDocSet(ctx context.Context, workDir, repo string, issue, patchset int64,
 	}
 
 	if issue > 0 {
-		info, err := gc.GetIssueProperties(issue)
+		info, err := gc.GetIssueProperties(ctx, issue)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to load issue info: %s", err)
 		}
@@ -210,7 +210,7 @@ func NewDocSet(ctx context.Context, workDir, repo string) (*DocSet, error) {
 //
 // The returned DocSet is not periodically refreshed.
 func NewDocSetForIssue(ctx context.Context, workDir, repo string, issue int64) (*DocSet, error) {
-	info, err := gc.GetIssueProperties(issue)
+	info, err := gc.GetIssueProperties(ctx, issue)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load issue info: %s", err)
 	}
@@ -534,7 +534,7 @@ func StartCleaner(workDir string) {
 				sklog.Errorf("Failed to parse %q as int: %s", m[1], err)
 				continue
 			}
-			info, err := gc.GetIssueProperties(issue)
+			info, err := gc.GetIssueProperties(context.TODO(), issue)
 			// Delete closed and missing issues.
 			if err != nil || info.Committed {
 				if err := os.RemoveAll(filename); err != nil {

@@ -94,14 +94,14 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	defer rm.infoMtx.Unlock()
 
 	// Create the change.
-	ci, err := gerrit.CreateAndEditChange(rm.g, rm.gerritConfig.Project, rm.parentBranch, commitMsg, rm.baseCommit, func(g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
+	ci, err := gerrit.CreateAndEditChange(ctx, rm.g, rm.gerritConfig.Project, rm.parentBranch, commitMsg, rm.baseCommit, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
 		for file, contents := range nextRollChanges {
 			if contents == "" {
-				if err := g.DeleteFile(ci, file); err != nil {
+				if err := g.DeleteFile(ctx, ci, file); err != nil {
 					return fmt.Errorf("Failed to delete %s file: %s", file, err)
 				}
 			} else {
-				if err := g.EditFile(ci, file, contents); err != nil {
+				if err := g.EditFile(ctx, ci, file, contents); err != nil {
 					return fmt.Errorf("Failed to edit %s file: %s", file, err)
 				}
 			}
@@ -110,7 +110,7 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	})
 	if err != nil {
 		if ci != nil {
-			if err2 := rm.g.Abandon(ci, "Failed to create roll CL"); err2 != nil {
+			if err2 := rm.g.Abandon(ctx, ci, "Failed to create roll CL"); err2 != nil {
 				return 0, fmt.Errorf("Failed to create roll with: %s\nAnd failed to abandon the change with: %s", err, err2)
 			}
 		}
@@ -118,12 +118,12 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	}
 
 	// Mark the change as ready for review, if necessary.
-	if err := rm.unsetWIP(ci, 0); err != nil {
+	if err := rm.unsetWIP(ctx, ci, 0); err != nil {
 		return 0, err
 	}
 
 	// Set the CQ bit as appropriate.
-	if err = rm.g.SetReview(ci, "", rm.gerritConfig.GetLabels(dryRun), emails); err != nil {
+	if err = rm.g.SetReview(ctx, ci, "", rm.gerritConfig.GetLabels(dryRun), emails); err != nil {
 		// TODO(borenet): Should we try to abandon the CL?
 		return 0, fmt.Errorf("Failed to set review: %s", err)
 	}
