@@ -191,7 +191,7 @@ func (b *BuildBucketState) startPollers(pollInterval, timeWindow time.Duration) 
 	}
 
 	// Create the channel that will receive the list of running tryjobs.
-	buildsCh := make(chan *bb_api.ApiCommonBuildMessage)
+	buildsCh := make(chan *bb_api.LegacyApiCommonBuildMessage)
 	workPermissions := make(chan bool, maxConcurrentWrites)
 
 	// Process the new builds discovered by the poller.
@@ -200,7 +200,7 @@ func (b *BuildBucketState) startPollers(pollInterval, timeWindow time.Duration) 
 			// Get work permission.
 			workPermissions <- true
 
-			go func(build *bb_api.ApiCommonBuildMessage) {
+			go func(build *bb_api.LegacyApiCommonBuildMessage) {
 				// Give up work permission at the end.
 				defer func() { <-workPermissions }()
 
@@ -467,7 +467,7 @@ func getParentCommit(commitInfo *gerrit.CommitInfo) string {
 }
 
 // pollBuildBucket queries the BuildBucket instance from (now - timeWindow) to now.
-func (b *BuildBucketState) searchForNewBuilds(buildsCh chan<- *bb_api.ApiCommonBuildMessage, timeWindow time.Duration) error {
+func (b *BuildBucketState) searchForNewBuilds(buildsCh chan<- *bb_api.LegacyApiCommonBuildMessage, timeWindow time.Duration) error {
 	// Search over a specific time window.
 	searchCall := b.service.Search()
 
@@ -483,7 +483,7 @@ func (b *BuildBucketState) searchForNewBuilds(buildsCh chan<- *bb_api.ApiCommonB
 // ignoreBuild is the central place to determine whether a build from
 // BuildBucket should be ignored. For example, BuildBucket can contain build jobs
 // that produce no test output.
-func (b *BuildBucketState) ignoreBuild(build *bb_api.ApiCommonBuildMessage, params *tryjobstore.Parameters) bool {
+func (b *BuildBucketState) ignoreBuild(build *bb_api.LegacyApiCommonBuildMessage, params *tryjobstore.Parameters) bool {
 	// If BuildResultDetails are there, then parse them and see if
 	// resultDetails['properties']['skip_test'] exists and is true.
 	// This will only apply to some clients, but there should not be any false positives.
@@ -506,7 +506,7 @@ func (b *BuildBucketState) ignoreBuild(build *bb_api.ApiCommonBuildMessage, para
 // startSearchPoller polls the BuildBucket immediately and starts a poller at the
 // given interval with the given time windows. All results are written to buildCh.
 // If the first poll fails, an error is returned.
-func (b *BuildBucketState) startSearchPoller(buildsCh chan<- *bb_api.ApiCommonBuildMessage, interval, timeWindow time.Duration) error {
+func (b *BuildBucketState) startSearchPoller(buildsCh chan<- *bb_api.LegacyApiCommonBuildMessage, interval, timeWindow time.Duration) error {
 	// Start the poller in the background. This is necessary to keep startup time to a minimum.
 	go func() {
 		// Immediately run a search so we don't have to wait for the passing of the first interval
@@ -531,7 +531,7 @@ var extractPatchsetRegex = regexp.MustCompile(`^refs\/changes\/[0-9]*\/[0-9]*\/(
 // It translates the status of a BuildBucket build to the status defined for
 // Tryjob instances in tryjobstore, which is richer in that it also captures
 // whether a tryjob result has been ingested or not.
-func getTryjobInfo(build *bb_api.ApiCommonBuildMessage, params *tryjobstore.Parameters) (*tryjobstore.Tryjob, error) {
+func getTryjobInfo(build *bb_api.LegacyApiCommonBuildMessage, params *tryjobstore.Parameters) (*tryjobstore.Tryjob, error) {
 	matchedGroups := extractPatchsetRegex.FindStringSubmatch(params.Properties.GerritPatchset)
 	if len(matchedGroups) != 2 {
 		return nil, fmt.Errorf("Unable to extract patchset info from '%s'", params.Properties.GerritPatchset)

@@ -445,7 +445,7 @@ func TestPoll(t *testing.T) {
 
 	now := time.Now()
 
-	assertAdded := func(builds []*buildbucket_api.ApiCommonBuildMessage) {
+	assertAdded := func(builds []*buildbucket_api.LegacyApiCommonBuildMessage) {
 		jobs, err := trybots.getActiveTryJobs()
 		assert.NoError(t, err)
 		byId := make(map[int64]*types.Job, len(jobs))
@@ -463,15 +463,15 @@ func TestPoll(t *testing.T) {
 		assert.NoError(t, trybots.db.PutJobs(jobs))
 	}
 
-	makeBuilds := func(n int) []*buildbucket_api.ApiCommonBuildMessage {
-		builds := make([]*buildbucket_api.ApiCommonBuildMessage, 0, n)
+	makeBuilds := func(n int) []*buildbucket_api.LegacyApiCommonBuildMessage {
+		builds := make([]*buildbucket_api.LegacyApiCommonBuildMessage, 0, n)
 		for i := 0; i < n; i++ {
 			builds = append(builds, Build(t, now))
 		}
 		return builds
 	}
 
-	mockBuilds := func(builds []*buildbucket_api.ApiCommonBuildMessage) []*buildbucket_api.ApiCommonBuildMessage {
+	mockBuilds := func(builds []*buildbucket_api.LegacyApiCommonBuildMessage) []*buildbucket_api.LegacyApiCommonBuildMessage {
 		MockPeek(mock, builds, now, "", "", nil)
 		for _, b := range builds {
 			MockTryLeaseBuild(mock, b.Id, nil)
@@ -480,7 +480,7 @@ func TestPoll(t *testing.T) {
 		return builds
 	}
 
-	check := func(builds []*buildbucket_api.ApiCommonBuildMessage) {
+	check := func(builds []*buildbucket_api.LegacyApiCommonBuildMessage) {
 		assert.Nil(t, trybots.Poll(ctx))
 		assert.True(t, mock.Empty())
 		assertAdded(builds)
