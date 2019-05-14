@@ -649,14 +649,14 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Invalid Gerrit CL number")
 		return
 	}
-	change, err := g.GetIssueProperties(cl)
+	change, err := g.GetIssueProperties(context.TODO(), cl)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to get issue properties from Gerrit")
 		return
 	}
 
 	// Check to see if the change has any open dependencies.
-	activeDep, err := g.HasOpenDependency(cl, len(change.Patchsets))
+	activeDep, err := g.HasOpenDependency(context.TODO(), cl, len(change.Patchsets))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to get related changes from Gerrit")
 		return
@@ -668,7 +668,7 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check to see if the change has a binary file.
 	latestPatchsetID := strconv.Itoa(len(change.Patchsets))
-	isBinary, err := g.IsBinaryPatch(cl, latestPatchsetID)
+	isBinary, err := g.IsBinaryPatch(context.TODO(), cl, latestPatchsetID)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to get list of files from Gerrit")
 		return
@@ -685,7 +685,7 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 		Project:       change.Project,
 		CodereviewURL: fmt.Sprintf("%s/c/%d/%s", crURL, cl, latestPatchsetID),
 	}
-	patch, err = g.GetPatch(cl, latestPatchsetID)
+	patch, err = g.GetPatch(context.TODO(), cl, latestPatchsetID)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to download patch from Gerrit")
 		return

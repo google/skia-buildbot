@@ -1,6 +1,7 @@
 package tryjobs
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -56,7 +57,7 @@ func (t *TryjobMonitor) ForceRefresh(issueID int64) error {
 
 	if !issue.Committed {
 		// Check if the issue has been merged and find the commit if necessary.
-		changeInfo, err := t.gerritAPI.GetIssueProperties(issueID)
+		changeInfo, err := t.gerritAPI.GetIssueProperties(context.TODO(), issueID)
 		if err != nil {
 			return skerr.Fmt("Error retrieving Gerrit issue %d: %s", issueID, err)
 		}
@@ -101,12 +102,12 @@ func (t *TryjobMonitor) WriteGoldLinkToGerrit(issueID int64) error {
 		return nil
 	}
 
-	gerritIssue, err := t.gerritAPI.GetIssueProperties(issueID)
+	gerritIssue, err := t.gerritAPI.GetIssueProperties(context.TODO(), issueID)
 	if err != nil {
 		return sklog.FmtErrorf("Error retrieving Gerrit issue %d: %s", issueID, err)
 	}
 
-	if err := t.gerritAPI.AddComment(gerritIssue, t.getGerritMsg(issueID)); err != nil {
+	if err := t.gerritAPI.AddComment(context.TODO(), gerritIssue, t.getGerritMsg(issueID)); err != nil {
 		return sklog.FmtErrorf("Error adding Gerrit comment to issue %d: %s", issueID, err)
 	}
 
