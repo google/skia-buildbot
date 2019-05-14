@@ -10,9 +10,17 @@ const (
 )
 
 func getStep(ctx context.Context) *StepProperties {
-	rv := ctx.Value(contextKeyStep)
+	rv := safeGetStep(ctx)
 	if rv == nil {
 		panic("Context has no step associated with it!")
+	}
+	return rv
+}
+
+func safeGetStep(ctx context.Context) *StepProperties {
+	rv := ctx.Value(contextKeyStep)
+	if rv == nil {
+		return nil
 	}
 	return rv.(*StepProperties)
 }

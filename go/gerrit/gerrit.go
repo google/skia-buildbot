@@ -198,35 +198,35 @@ type Revision struct {
 }
 
 type GerritInterface interface {
-	Abandon(*ChangeInfo, string) error
-	AddComment(*ChangeInfo, string) error
-	Approve(*ChangeInfo, string) error
-	CreateChange(string, string, string, string) (*ChangeInfo, error)
-	DeleteChangeEdit(*ChangeInfo) error
-	DeleteFile(*ChangeInfo, string) error
-	DisApprove(*ChangeInfo, string) error
-	EditFile(*ChangeInfo, string, string) error
+	Abandon(context.Context, *ChangeInfo, string) error
+	AddComment(context.Context, *ChangeInfo, string) error
+	Approve(context.Context, *ChangeInfo, string) error
+	CreateChange(context.Context, string, string, string, string) (*ChangeInfo, error)
+	DeleteChangeEdit(context.Context, *ChangeInfo) error
+	DeleteFile(context.Context, *ChangeInfo, string) error
+	DisApprove(context.Context, *ChangeInfo, string) error
+	EditFile(context.Context, *ChangeInfo, string, string) error
 	ExtractIssueFromCommit(string) (int64, error)
-	Files(issue int64, patch string) (map[string]*FileInfo, error)
-	GetFileNames(issue int64, patch string) ([]string, error)
-	GetIssueProperties(int64) (*ChangeInfo, error)
-	GetPatch(int64, string) (string, error)
+	Files(ctx context.Context, issue int64, patch string) (map[string]*FileInfo, error)
+	GetFileNames(ctx context.Context, issue int64, patch string) ([]string, error)
+	GetIssueProperties(context.Context, int64) (*ChangeInfo, error)
+	GetPatch(context.Context, int64, string) (string, error)
 	GetRepoUrl() string
 	GetTrybotResults(context.Context, int64, int64) ([]*buildbucket.Build, error)
-	GetUserEmail() (string, error)
+	GetUserEmail(context.Context) (string, error)
 	Initialized() bool
-	IsBinaryPatch(issue int64, patch string) (bool, error)
-	MoveFile(*ChangeInfo, string, string) error
-	NoScore(*ChangeInfo, string) error
-	PublishChangeEdit(*ChangeInfo) error
-	RemoveFromCQ(*ChangeInfo, string) error
-	Search(int, ...*SearchTerm) ([]*ChangeInfo, error)
-	SendToCQ(*ChangeInfo, string) error
-	SendToDryRun(*ChangeInfo, string) error
-	SetCommitMessage(*ChangeInfo, string) error
-	SetReadyForReview(*ChangeInfo) error
-	SetReview(*ChangeInfo, string, map[string]interface{}, []string) error
-	SetTopic(string, int64) error
+	IsBinaryPatch(ctx context.Context, issue int64, patch string) (bool, error)
+	MoveFile(context.Context, *ChangeInfo, string, string) error
+	NoScore(context.Context, *ChangeInfo, string) error
+	PublishChangeEdit(context.Context, *ChangeInfo) error
+	RemoveFromCQ(context.Context, *ChangeInfo, string) error
+	Search(context.Context, int, ...*SearchTerm) ([]*ChangeInfo, error)
+	SendToCQ(context.Context, *ChangeInfo, string) error
+	SendToDryRun(context.Context, *ChangeInfo, string) error
+	SetCommitMessage(context.Context, *ChangeInfo, string) error
+	SetReadyForReview(context.Context, *ChangeInfo) error
+	SetReview(context.Context, *ChangeInfo, string, map[string]interface{}, []string) error
+	SetTopic(context.Context, string, int64) error
 	TurnOnAuthenticatedGets()
 	Url(int64) string
 }
@@ -324,11 +324,11 @@ type AccountDetails struct {
 }
 
 // GetUserEmail returns the Gerrit user's email address.
-func (g *Gerrit) GetUserEmail() (string, error) {
+func (g *Gerrit) GetUserEmail(ctx context.Context) (string, error) {
 	g.TurnOnAuthenticatedGets()
 	url := "/accounts/self/detail"
 	var account AccountDetails
-	if err := g.get(url, &account, nil); err != nil {
+	if err := g.get(ctx, url, &account, nil); err != nil {
 		return "", fmt.Errorf("Failed to retrieve user: %s", err)
 	}
 	return account.Email, nil
@@ -389,10 +389,10 @@ func fixupChangeInfo(ci *ChangeInfo) *ChangeInfo {
 // GetIssueProperties returns a fully filled-in ChangeInfo object, as opposed to
 // the partial data returned by Gerrit's search endpoint.
 // If the given issue cannot be found ErrNotFound is returned as error.
-func (g *Gerrit) GetIssueProperties(issue int64) (*ChangeInfo, error) {
+func (g *Gerrit) GetIssueProperties(ctx context.Context, issue int64) (*ChangeInfo, error) {
 	url := fmt.Sprintf(URL_TMPL_CHANGE, issue)
 	fullIssue := &ChangeInfo{}
-	if err := g.get(url, fullIssue, ErrNotFound); err != nil {
+	if err := g.get(ctx, url, fullIssue, ErrNotFound); err != nil {
 		// Pass ErrNotFound through unchanged so calling functions can check for it.
 		if err == ErrNotFound {
 			return nil, err
@@ -413,9 +413,14 @@ func (c *ChangeInfo) GetPatchsetIDs() []int64 {
 
 // GetPatch returns the formatted patch for one revision. Documentation is here:
 // https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-patch
-func (g *Gerrit) GetPatch(issue int64, revision string) (string, error) {
+func (g *Gerrit) GetPatch(ctx context.Context, issue int64, revision string) (string, error) {
 	url := fmt.Sprintf("%s/changes/%d/revisions/%s/patch", g.url, issue, revision)
-	resp, err := g.client.Get(url)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return "", err
+	}
+	req = req.WithContext(ctx)
+	resp, err := g.client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("Failed to GET %s: %s", url, err)
 	}
@@ -454,10 +459,10 @@ type CommitInfo struct {
 // GetCommit retrieves the commit that corresponds to the patch identified by issue and revision.
 // It allows to retrieve the parent commit on which the given patchset is based on.
 // See: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-commit
-func (g *Gerrit) GetCommit(issue int64, revision string) (*CommitInfo, error) {
+func (g *Gerrit) GetCommit(ctx context.Context, issue int64, revision string) (*CommitInfo, error) {
 	path := fmt.Sprintf("/changes/%d/revisions/%s/commit", issue, revision)
 	ret := &CommitInfo{}
-	err := g.get(path, ret, nil)
+	err := g.get(ctx, path, ret, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -471,7 +476,7 @@ type reviewer struct {
 // setReview calls the Set Review endpoint of the Gerrit API to add messages and/or set labels for
 // the latest patchset.
 // API documentation: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#set-review
-func (g *Gerrit) SetReview(issue *ChangeInfo, message string, labels map[string]interface{}, reviewers []string) error {
+func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message string, labels map[string]interface{}, reviewers []string) error {
 	postData := map[string]interface{}{
 		"message": message,
 		"labels":  labels,
@@ -487,54 +492,54 @@ func (g *Gerrit) SetReview(issue *ChangeInfo, message string, labels map[string]
 		postData["reviewers"] = revs
 	}
 	latestPatchset := issue.Patchsets[len(issue.Patchsets)-1]
-	return g.postJson(fmt.Sprintf("/a/changes/%s/revisions/%s/review", issue.ChangeId, latestPatchset.ID), postData)
+	return g.postJson(ctx, fmt.Sprintf("/a/changes/%s/revisions/%s/review", issue.ChangeId, latestPatchset.ID), postData)
 }
 
 // AddComment adds a message to the issue.
-func (g *Gerrit) AddComment(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{}, nil)
+func (g *Gerrit) AddComment(ctx context.Context, issue *ChangeInfo, message string) error {
+	return g.SetReview(ctx, issue, message, map[string]interface{}{}, nil)
 }
 
 // Utility methods for interacting with the COMMITQUEUE_LABEL.
 
-func (g *Gerrit) SendToDryRun(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN}, nil)
+func (g *Gerrit) SendToDryRun(ctx context.Context, issue *ChangeInfo, message string) error {
+	return g.SetReview(ctx, issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN}, nil)
 }
 
-func (g *Gerrit) SendToCQ(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT}, nil)
+func (g *Gerrit) SendToCQ(ctx context.Context, issue *ChangeInfo, message string) error {
+	return g.SetReview(ctx, issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT}, nil)
 }
 
-func (g *Gerrit) RemoveFromCQ(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE}, nil)
+func (g *Gerrit) RemoveFromCQ(ctx context.Context, issue *ChangeInfo, message string) error {
+	return g.SetReview(ctx, issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE}, nil)
 }
 
 // Utility methods for interacting with the CODEREVIEW_LABEL.
 
-func (g *Gerrit) Approve(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_APPROVE}, nil)
+func (g *Gerrit) Approve(ctx context.Context, issue *ChangeInfo, message string) error {
+	return g.SetReview(ctx, issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_APPROVE}, nil)
 }
 
-func (g *Gerrit) NoScore(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_NONE}, nil)
+func (g *Gerrit) NoScore(ctx context.Context, issue *ChangeInfo, message string) error {
+	return g.SetReview(ctx, issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_NONE}, nil)
 }
 
-func (g *Gerrit) DisApprove(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_DISAPPROVE}, nil)
+func (g *Gerrit) DisApprove(ctx context.Context, issue *ChangeInfo, message string) error {
+	return g.SetReview(ctx, issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_DISAPPROVE}, nil)
 }
 
 // Abandon abandons the issue with the given message.
-func (g *Gerrit) Abandon(issue *ChangeInfo, message string) error {
+func (g *Gerrit) Abandon(ctx context.Context, issue *ChangeInfo, message string) error {
 	postData := map[string]interface{}{
 		"message": message,
 	}
-	return g.postJson(fmt.Sprintf("/a/changes/%s/abandon", issue.ChangeId), postData)
+	return g.postJson(ctx, fmt.Sprintf("/a/changes/%s/abandon", issue.ChangeId), postData)
 }
 
 // get retrieves the given sub URL and populates 'rv' with the result.
 // If notFoundError is not nil it will be returned if the requested item doesn't
 // exist.
-func (g *Gerrit) get(suburl string, rv interface{}, notFoundError error) error {
+func (g *Gerrit) get(ctx context.Context, suburl string, rv interface{}, notFoundError error) error {
 	getURL := g.url + suburl
 	if g.useAuthenticatedGets {
 		getURL = g.url + "/a" + suburl
@@ -543,6 +548,7 @@ func (g *Gerrit) get(suburl string, rv interface{}, notFoundError error) error {
 	if err != nil {
 		return err
 	}
+	req = req.WithContext(ctx)
 
 	if g.useAuthenticatedGets {
 		if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
@@ -582,11 +588,12 @@ func (g *Gerrit) get(suburl string, rv interface{}, notFoundError error) error {
 	return nil
 }
 
-func (g *Gerrit) post(suburl string, b []byte) error {
+func (g *Gerrit) post(ctx context.Context, suburl string, b []byte) error {
 	req, err := http.NewRequest("POST", g.url+suburl, bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
+	req = req.WithContext(ctx)
 
 	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
 		return err
@@ -608,19 +615,20 @@ func (g *Gerrit) post(suburl string, b []byte) error {
 	return nil
 }
 
-func (g *Gerrit) postJson(suburl string, postData interface{}) error {
+func (g *Gerrit) postJson(ctx context.Context, suburl string, postData interface{}) error {
 	b, err := json.Marshal(postData)
 	if err != nil {
 		return err
 	}
-	return g.post(suburl, b)
+	return g.post(ctx, suburl, b)
 }
 
-func (g *Gerrit) put(suburl string, b []byte) error {
+func (g *Gerrit) put(ctx context.Context, suburl string, b []byte) error {
 	req, err := http.NewRequest("PUT", g.url+suburl, bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
+	req = req.WithContext(ctx)
 
 	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
 		return err
@@ -636,19 +644,20 @@ func (g *Gerrit) put(suburl string, b []byte) error {
 	return nil
 }
 
-func (g *Gerrit) putJson(suburl string, data interface{}) error {
+func (g *Gerrit) putJson(ctx context.Context, suburl string, data interface{}) error {
 	b, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
-	return g.put(suburl, b)
+	return g.put(ctx, suburl, b)
 }
 
-func (g *Gerrit) delete(suburl string) error {
+func (g *Gerrit) delete(ctx context.Context, suburl string) error {
 	req, err := http.NewRequest("DELETE", g.url+suburl, nil)
 	if err != nil {
 		return err
 	}
+	req = req.WithContext(ctx)
 
 	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
 		return err
@@ -744,7 +753,7 @@ func queryString(terms []*SearchTerm) string {
 }
 
 // Sets a topic on the Gerrit change with the provided hash.
-func (g *Gerrit) SetTopic(topic string, changeNum int64) error {
+func (g *Gerrit) SetTopic(ctx context.Context, topic string, changeNum int64) error {
 	putData := map[string]interface{}{
 		"topic": topic,
 	}
@@ -756,6 +765,7 @@ func (g *Gerrit) SetTopic(topic string, changeNum int64) error {
 	if err != nil {
 		return err
 	}
+	req = req.WithContext(ctx)
 	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
 		return err
 	}
@@ -772,9 +782,9 @@ func (g *Gerrit) SetTopic(topic string, changeNum int64) error {
 
 // GetDependencies returns a slice of all dependencies around the specified change. See
 // https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-related-changes
-func (g *Gerrit) GetDependencies(changeNum int64, revision int) ([]*RelatedChangeAndCommitInfo, error) {
+func (g *Gerrit) GetDependencies(ctx context.Context, changeNum int64, revision int) ([]*RelatedChangeAndCommitInfo, error) {
 	data := RelatedChangesInfo{}
-	err := g.get(fmt.Sprintf("/changes/%d/revisions/%d/related", changeNum, revision), &data, nil)
+	err := g.get(ctx, fmt.Sprintf("/changes/%d/revisions/%d/related", changeNum, revision), &data, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -782,8 +792,8 @@ func (g *Gerrit) GetDependencies(changeNum int64, revision int) ([]*RelatedChang
 }
 
 // HasOpenDependency returns true if there is an active direct dependency of the specified change.
-func (g *Gerrit) HasOpenDependency(changeNum int64, revision int) (bool, error) {
-	dependencies, err := g.GetDependencies(changeNum, revision)
+func (g *Gerrit) HasOpenDependency(ctx context.Context, changeNum int64, revision int) (bool, error) {
+	dependencies, err := g.GetDependencies(ctx, changeNum, revision)
 	if err != nil {
 		return false, err
 	}
@@ -808,7 +818,7 @@ func (g *Gerrit) HasOpenDependency(changeNum int64, revision int) (bool, error) 
 }
 
 // Search returns a slice of Issues which fit the given criteria.
-func (g *Gerrit) Search(limit int, terms ...*SearchTerm) ([]*ChangeInfo, error) {
+func (g *Gerrit) Search(ctx context.Context, limit int, terms ...*SearchTerm) ([]*ChangeInfo, error) {
 	var issues changeListSortable
 	for {
 		data := make([]*ChangeInfo, 0)
@@ -820,7 +830,7 @@ func (g *Gerrit) Search(limit int, terms ...*SearchTerm) ([]*ChangeInfo, error) 
 		q.Add("n", strconv.Itoa(queryLimit))
 		q.Add("S", strconv.Itoa(skip))
 		searchUrl := "/changes/?" + q.Encode()
-		err := g.get(searchUrl, &data, nil)
+		err := g.get(ctx, searchUrl, &data, nil)
 		if err != nil {
 			return nil, fmt.Errorf("Gerrit search failed: %v", err)
 		}
@@ -845,15 +855,15 @@ func (g *Gerrit) GetTrybotResults(ctx context.Context, issueID int64, patchsetID
 }
 
 // SetReadyForReview marks the change as ready for review (ie, not WIP).
-func (g *Gerrit) SetReadyForReview(ci *ChangeInfo) error {
-	return g.post(fmt.Sprintf("/a/changes/%d/ready", ci.Issue), []byte("{}"))
+func (g *Gerrit) SetReadyForReview(ctx context.Context, ci *ChangeInfo) error {
+	return g.post(ctx, fmt.Sprintf("/a/changes/%d/ready", ci.Issue), []byte("{}"))
 }
 
 var revisionRegex = regexp.MustCompile("^[a-z0-9]+$")
 
 // Files returns the files that were modified, added or deleted in a revision.
 // https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#list-files
-func (g *Gerrit) Files(issue int64, patch string) (map[string]*FileInfo, error) {
+func (g *Gerrit) Files(ctx context.Context, issue int64, patch string) (map[string]*FileInfo, error) {
 	if patch == "" {
 		patch = "current"
 	}
@@ -862,7 +872,7 @@ func (g *Gerrit) Files(issue int64, patch string) (map[string]*FileInfo, error) 
 	}
 	url := fmt.Sprintf("/changes/%d/revisions/%s/files", issue, patch)
 	files := map[string]*FileInfo{}
-	if err := g.get(url, &files, ErrNotFound); err != nil {
+	if err := g.get(ctx, url, &files, ErrNotFound); err != nil {
 		return nil, fmt.Errorf("Failed to list files for issue %d: %v", issue, err)
 	}
 	return files, nil
@@ -870,9 +880,8 @@ func (g *Gerrit) Files(issue int64, patch string) (map[string]*FileInfo, error) 
 
 // GetFileNames returns the list of files for the given issue at the given patch. If
 // patch is the empty string then the most recent patch is queried.
-func (g *Gerrit) GetFileNames(issue int64, patch string) ([]string, error) {
-
-	files, err := g.Files(issue, patch)
+func (g *Gerrit) GetFileNames(ctx context.Context, issue int64, patch string) ([]string, error) {
+	files, err := g.Files(ctx, issue, patch)
 	if err != nil {
 		return nil, err
 	}
@@ -885,8 +894,8 @@ func (g *Gerrit) GetFileNames(issue int64, patch string) ([]string, error) {
 }
 
 // IsBinaryPatch returns true if the patch contains any binary files.
-func (g *Gerrit) IsBinaryPatch(issue int64, revision string) (bool, error) {
-	files, err := g.Files(issue, revision)
+func (g *Gerrit) IsBinaryPatch(ctx context.Context, issue int64, revision string) (bool, error) {
+	files, err := g.Files(ctx, issue, revision)
 	if err != nil {
 		return false, err
 	}
@@ -942,7 +951,7 @@ func (c *CodeReviewCache) Get(key int64) (*ChangeInfo, bool) {
 // Poll Gerrit for all issues that have changed in the recent past.
 func (c *CodeReviewCache) poll() {
 	// Search for all keys that have changed in the last timeDelta duration.
-	issues, err := c.gerritAPI.Search(10000, SearchModifiedAfter(time.Now().Add(-c.timeDelta)))
+	issues, err := c.gerritAPI.Search(context.Background(), 10000, SearchModifiedAfter(time.Now().Add(-c.timeDelta)))
 	if err != nil {
 		sklog.Errorf("Error polling Gerrit: %s", err)
 		return
@@ -969,7 +978,7 @@ func ContainsAny(id int64, changes []*ChangeInfo) bool {
 
 // Create a new Change in the given project, based on the given branch, and with
 // the given subject line.
-func (g *Gerrit) CreateChange(project, branch, subject, baseCommit string) (*ChangeInfo, error) {
+func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, baseCommit string) (*ChangeInfo, error) {
 	c := struct {
 		Project    string `json:"project"`
 		Subject    string `json:"subject"`
@@ -992,6 +1001,7 @@ func (g *Gerrit) CreateChange(project, branch, subject, baseCommit string) (*Cha
 	if err != nil {
 		return nil, err
 	}
+	req = req.WithContext(ctx)
 
 	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
 		return nil, err
@@ -1019,13 +1029,14 @@ func (g *Gerrit) CreateChange(project, branch, subject, baseCommit string) (*Cha
 // Modify the given file to have the given content. A ChangeEdit is created, if
 // one is not already active. You must call PublishChangeEdit in order for the
 // change to become a new patch set, otherwise it has no effect.
-func (g *Gerrit) EditFile(ci *ChangeInfo, filepath, content string) error {
+func (g *Gerrit) EditFile(ctx context.Context, ci *ChangeInfo, filepath, content string) error {
 	url := g.url + fmt.Sprintf("/a/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath))
 	b := []byte(content)
 	req, err := http.NewRequest("PUT", url, bytes.NewReader(b))
 	if err != nil {
 		return fmt.Errorf("Failed to create PUT request: %s", err)
 	}
+	req = req.WithContext(ctx)
 
 	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
 		return fmt.Errorf("Failed to add auth cookie: %s", err)
@@ -1048,7 +1059,7 @@ func (g *Gerrit) EditFile(ci *ChangeInfo, filepath, content string) error {
 // Move a given file. A ChangeEdit is created, if one is not already active.
 // You must call PublishChangeEdit in order for the change to become a new patch
 // set, otherwise it has no effect.
-func (g *Gerrit) MoveFile(ci *ChangeInfo, oldPath, newPath string) error {
+func (g *Gerrit) MoveFile(ctx context.Context, ci *ChangeInfo, oldPath, newPath string) error {
 	data := struct {
 		OldPath string `json:"old_path"`
 		NewPath string `json:"new_path"`
@@ -1056,41 +1067,41 @@ func (g *Gerrit) MoveFile(ci *ChangeInfo, oldPath, newPath string) error {
 		OldPath: oldPath,
 		NewPath: newPath,
 	}
-	return g.postJson(fmt.Sprintf("/a/changes/%s/edit", ci.Id), data)
+	return g.postJson(ctx, fmt.Sprintf("/a/changes/%s/edit", ci.Id), data)
 }
 
 // Delete the given file. A ChangeEdit is created, if one is not already active.
 // You must call PublishChangeEdit in order for the change to become a new patch
 // set, otherwise it has no effect.
-func (g *Gerrit) DeleteFile(ci *ChangeInfo, filepath string) error {
-	return g.delete(fmt.Sprintf("/a/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath)))
+func (g *Gerrit) DeleteFile(ctx context.Context, ci *ChangeInfo, filepath string) error {
+	return g.delete(ctx, fmt.Sprintf("/a/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath)))
 }
 
 // Set the commit message for the ChangeEdit. A ChangeEdit is created, if one is
 // not already active. You must call PublishChangeEdit in order for the change
 // to become a new patch set, otherwise it has no effect.
-func (g *Gerrit) SetCommitMessage(ci *ChangeInfo, msg string) error {
+func (g *Gerrit) SetCommitMessage(ctx context.Context, ci *ChangeInfo, msg string) error {
 	m := struct {
 		Message string `json:"message"`
 	}{
 		Message: msg,
 	}
 	url := fmt.Sprintf("/a/changes/%s/edit:message", ci.Id)
-	return g.putJson(url, m)
+	return g.putJson(ctx, url, m)
 }
 
 // Publish the active ChangeEdit as a new patch set.
-func (g *Gerrit) PublishChangeEdit(ci *ChangeInfo) error {
+func (g *Gerrit) PublishChangeEdit(ctx context.Context, ci *ChangeInfo) error {
 	msg := struct {
 		Notify string `json:"notify,omitempty"`
 	}{
 		Notify: "ALL",
 	}
 	url := fmt.Sprintf("/a/changes/%s/edit:publish", ci.Id)
-	return g.postJson(url, msg)
+	return g.postJson(ctx, url, msg)
 }
 
 // Delete the active ChangeEdit, restoring the state to the last patch set.
-func (g *Gerrit) DeleteChangeEdit(ci *ChangeInfo) error {
-	return g.delete(fmt.Sprintf("/a/changes/%s/edit", ci.Id))
+func (g *Gerrit) DeleteChangeEdit(ctx context.Context, ci *ChangeInfo) error {
+	return g.delete(ctx, fmt.Sprintf("/a/changes/%s/edit", ci.Id))
 }

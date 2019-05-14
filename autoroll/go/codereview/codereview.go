@@ -46,7 +46,7 @@ type gerritCodeReview struct {
 
 // Return a gerritCodeReview instance.
 func newGerritCodeReview(cfg *GerritConfig, gerritClient gerrit.GerritInterface) (CodeReview, error) {
-	userEmail, err := gerritClient.GetUserEmail()
+	userEmail, err := gerritClient.GetUserEmail(context.TODO())
 	if err != nil {
 		return nil, err
 	}

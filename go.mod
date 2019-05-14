@@ -103,7 +103,7 @@ require (
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
-	go.chromium.org/luci v0.0.0-20190501011227-60ac53221b79
+	go.chromium.org/luci v0.0.0-20190510235320-ecd36b94551a
 	go.opencensus.io v0.21.0
 	golang.org/x/crypto v0.0.0-20190426145343-a29dc8fdc734
 	golang.org/x/exp v0.0.0-20190429183610-475c5042d3f1 // indirect
@@ -116,7 +116,7 @@ require (
 	golang.org/x/sys v0.0.0-20190506115046-ca7f33d4116e // indirect
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
-	golang.org/x/tools v0.0.0-20190503185657-3b6f9c0030f7 // indirect
+	golang.org/x/tools v0.0.0-20190514171724-faff00d7e7f6 // indirect
 	google.golang.org/api v0.4.0
 	google.golang.org/genproto v0.0.0-20190425155659-357c62f0e4bb
 	google.golang.org/grpc v1.20.1
