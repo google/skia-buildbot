@@ -174,8 +174,8 @@ func Params(t sktest.TestingT, builder, project, revision, server, issue, patchs
 	return p
 }
 
-func Build(t sktest.TestingT, now time.Time) *buildbucket_api.ApiCommonBuildMessage {
-	return &buildbucket_api.ApiCommonBuildMessage{
+func Build(t sktest.TestingT, now time.Time) *buildbucket_api.LegacyApiCommonBuildMessage {
+	return &buildbucket_api.LegacyApiCommonBuildMessage{
 		Bucket:            BUCKET_TESTING,
 		CreatedBy:         "tests",
 		CreatedTs:         now.Unix() * 1000000,
@@ -337,13 +337,13 @@ func MockJobMishap(mock *mockhttpclient.URLMock, j *types.Job, now time.Time, ex
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/fail?alt=json&prettyPrint=false", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockPeek(mock *mockhttpclient.URLMock, builds []*buildbucket_api.ApiCommonBuildMessage, now time.Time, cursor, nextcursor string, err error) {
-	resp := buildbucket_api.ApiSearchResponseMessage{
+func MockPeek(mock *mockhttpclient.URLMock, builds []*buildbucket_api.LegacyApiCommonBuildMessage, now time.Time, cursor, nextcursor string, err error) {
+	resp := buildbucket_api.LegacyApiSearchResponseMessage{
 		Builds:     builds,
 		NextCursor: nextcursor,
 	}
 	if err != nil {
-		resp.Error = &buildbucket_api.ApiErrorMessage{
+		resp.Error = &buildbucket_api.LegacyApiErrorMessage{
 			Message: err.Error(),
 		}
 	}
