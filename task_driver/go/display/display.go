@@ -12,6 +12,7 @@ import (
 
 	multierror "github.com/hashicorp/go-multierror"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/db"
 	"go.skia.org/infra/task_driver/go/td"
 )
@@ -81,6 +82,7 @@ func TaskDriverForDisplay(t *db.TaskDriverRun) (*TaskDriverRunDisplay, error) {
 		s := &StepDisplay{
 			StepProperties: orig.Properties.Copy(),
 			Result:         orig.Result,
+			Errors:         util.CopyStringSlice(orig.Errors),
 			Started:        orig.Started,
 			Finished:       orig.Finished,
 			Data:           data,
