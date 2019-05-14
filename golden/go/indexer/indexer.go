@@ -325,19 +325,26 @@ func (ixr *Indexer) writeBaselines() {
 
 // indexTest creates an updated index by indexing the given list of expectation changes.
 func (ixr *Indexer) indexTests(testChanges []types.Expectations) {
-	// Get all the testnames
-	// TODO(kjlubick): Is anything actually done with this data?
+	// Get all the test names that had expectations changed.
 	testNames := types.TestNameSet{}
 	for _, testChange := range testChanges {
 		for testName := range testChange {
 			testNames[testName] = true
 		}
 	}
+	tests := testNames.Keys()
+	if len(tests) == 0 {
+		return
+	}
+
+	sklog.Infof("Going to re-index %d tests, starting with %s", len(tests), tests[0])
 
 	defer shared.NewMetricsTimer("index_tests").Stop()
 	newIdx := ixr.cloneLastIndex()
+	// Set the testNames such that we only recompute those tests.
+	newIdx.testNames = tests
 	if err := ixr.indexTestsNode.Trigger(newIdx); err != nil {
-		sklog.Errorf("Error indexing tests: %v \n\n Got error: %s", testNames, err)
+		sklog.Errorf("Error indexing tests: %v \n\n Got error: %s", tests, err)
 	}
 }
 
@@ -355,6 +362,9 @@ func (ixr *Indexer) cloneLastIndex() *SearchIndex {
 		blamer:            lastIdx.blamer,            // blamer is immutable and thus, thread-safe.
 		warmer:            warmer.New(ixr.storages),
 		storages:          lastIdx.storages,
+
+		// Force testNames to be empty, just to be sure we re-compute everything by default
+		testNames: nil,
 	}
 }
 
