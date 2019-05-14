@@ -41,21 +41,19 @@ const (
 // considered as immutable. Whenever the underlying data changes,
 // a new index is calculated via a pdag.
 type SearchIndex struct {
-	cpxTile           types.ComplexTile
-	dCounters         map[types.IgnoreState]digest_counter.DigestCounter
-	summaries         map[types.IgnoreState]*summary.Summaries
-	paramsetSummaries map[types.IgnoreState]paramsets.ParamSummary
-	blamer            blame.Blamer
-	warmer            *warmer.Warmer
+	// The indices of these slices are the int values of types.IgnoreState
+	dCounters         []digest_counter.DigestCounter
+	summaries         []*summary.Summaries
+	paramsetSummaries []paramsets.ParamSummary
+
+	cpxTile types.ComplexTile
+	blamer  blame.Blamer
+	warmer  *warmer.Warmer
 
 	// This is set by the indexing pipeline when we just want to update
 	// individual tests that have changed.
 	testNames []types.TestName
 	storages  *storage.Storage
-
-	// Prevents map[types.IgnoreState]foo from being written to at the
-	// same time during the main indexer loop. We don'
-	mapMutex sync.Mutex
 }
 
 // newSearchIndex creates a new instance of SearchIndex. It is not intended to
@@ -63,13 +61,14 @@ type SearchIndex struct {
 // Indexer and retrieved via GetIndex().
 func newSearchIndex(storages *storage.Storage, cpxTile types.ComplexTile) *SearchIndex {
 	return &SearchIndex{
-		cpxTile:   cpxTile,
-		dCounters: map[types.IgnoreState]digest_counter.DigestCounter{},
-		summaries: map[types.IgnoreState]*summary.Summaries{
-			types.ExcludeIgnoredTraces: summary.New(storages),
-			types.IncludeIgnoredTraces: summary.New(storages),
+		// The indices of these slices are the int values of types.IgnoreState
+		dCounters: make([]digest_counter.DigestCounter, 2),
+		summaries: []*summary.Summaries{
+			summary.New(storages),
+			summary.New(storages),
 		},
-		paramsetSummaries: map[types.IgnoreState]paramsets.ParamSummary{},
+		paramsetSummaries: make([]paramsets.ParamSummary, 2),
+		cpxTile:           cpxTile,
 		blamer:            nil,
 		warmer:            warmer.New(storages),
 		storages:          storages,
@@ -354,9 +353,9 @@ func (ixr *Indexer) cloneLastIndex() *SearchIndex {
 	return &SearchIndex{
 		cpxTile:   lastIdx.cpxTile,
 		dCounters: lastIdx.dCounters, // stay the same even if tests change.
-		summaries: map[types.IgnoreState]*summary.Summaries{
-			types.ExcludeIgnoredTraces: lastIdx.summaries[types.ExcludeIgnoredTraces].Clone(),
-			types.IncludeIgnoredTraces: lastIdx.summaries[types.IncludeIgnoredTraces].Clone(),
+		summaries: []*summary.Summaries{
+			lastIdx.summaries[types.ExcludeIgnoredTraces].Clone(),
+			lastIdx.summaries[types.IncludeIgnoredTraces].Clone(),
 		},
 		paramsetSummaries: lastIdx.paramsetSummaries, //paramsetSummaries are immutable
 		blamer:            lastIdx.blamer,            // blamer is immutable and thus, thread-safe.
@@ -404,8 +403,7 @@ func (ixr *Indexer) writeIssueBaseline(evData interface{}) {
 // the full tile (not applying ignore rules)
 func calcDigestCountsInclude(state interface{}) error {
 	idx := state.(*SearchIndex)
-	idx.mapMutex.Lock()
-	defer idx.mapMutex.Unlock()
+
 	is := types.IncludeIgnoredTraces
 	idx.dCounters[is] = digest_counter.New(idx.cpxTile.GetTile(is))
 	return nil
@@ -415,8 +413,7 @@ func calcDigestCountsInclude(state interface{}) error {
 // the partial tile (applying ignore rules).
 func calcDigestCountsExclude(state interface{}) error {
 	idx := state.(*SearchIndex)
-	idx.mapMutex.Lock()
-	defer idx.mapMutex.Unlock()
+
 	is := types.ExcludeIgnoredTraces
 	idx.dCounters[is] = digest_counter.New(idx.cpxTile.GetTile(is))
 	return nil
@@ -439,11 +436,9 @@ func calcSummaries(state interface{}) error {
 // the full tile (not applying ignore rules)
 func calcParamsetsInclude(state interface{}) error {
 	idx := state.(*SearchIndex)
-	idx.mapMutex.Lock()
-	defer idx.mapMutex.Unlock()
+
 	is := types.IncludeIgnoredTraces
 	idx.paramsetSummaries[is] = paramsets.NewParamSummary(idx.cpxTile.GetTile(is), idx.dCounters[is])
-
 	return nil
 }
 
@@ -451,8 +446,7 @@ func calcParamsetsInclude(state interface{}) error {
 // the partial tile (applying ignore rules)
 func calcParamsetsExclude(state interface{}) error {
 	idx := state.(*SearchIndex)
-	idx.mapMutex.Lock()
-	defer idx.mapMutex.Unlock()
+
 	is := types.ExcludeIgnoredTraces
 	idx.paramsetSummaries[is] = paramsets.NewParamSummary(idx.cpxTile.GetTile(is), idx.dCounters[is])
 	return nil
