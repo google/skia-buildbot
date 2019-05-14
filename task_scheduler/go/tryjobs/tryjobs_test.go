@@ -1,6 +1,7 @@
 package tryjobs
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"testing"
@@ -175,7 +176,7 @@ func TestGetRevision(t *testing.T) {
 		"abc123":        "",
 	}
 	for input, expect := range tests {
-		got, err := trybots.getRevision(r, input, gerritIssue)
+		got, err := trybots.getRevision(context.TODO(), r, input, gerritIssue)
 		if expect == "" {
 			assert.Error(t, err)
 		} else {
