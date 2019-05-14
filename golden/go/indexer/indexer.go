@@ -54,7 +54,9 @@ type SearchIndex struct {
 	storages  *storage.Storage
 
 	// Prevents map[types.IgnoreState]foo from being written to at the
-	// same time during the main indexer loop. We don'
+	// same time during the main indexer loop.  After the SearchIndex
+	// is created, there shouldn't be any more writing to the maps,
+	// so we won't need the mutex then.
 	mapMutex sync.Mutex
 }
 
@@ -404,10 +406,13 @@ func (ixr *Indexer) writeIssueBaseline(evData interface{}) {
 // the full tile (not applying ignore rules)
 func calcDigestCountsInclude(state interface{}) error {
 	idx := state.(*SearchIndex)
+
+	is := types.IncludeIgnoredTraces
+	dc := digest_counter.New(idx.cpxTile.GetTile(is))
+
 	idx.mapMutex.Lock()
 	defer idx.mapMutex.Unlock()
-	is := types.IncludeIgnoredTraces
-	idx.dCounters[is] = digest_counter.New(idx.cpxTile.GetTile(is))
+	idx.dCounters[is] = dc
 	return nil
 }
 
@@ -415,10 +420,13 @@ func calcDigestCountsInclude(state interface{}) error {
 // the partial tile (applying ignore rules).
 func calcDigestCountsExclude(state interface{}) error {
 	idx := state.(*SearchIndex)
+
+	is := types.ExcludeIgnoredTraces
+	dc := digest_counter.New(idx.cpxTile.GetTile(is))
+
 	idx.mapMutex.Lock()
 	defer idx.mapMutex.Unlock()
-	is := types.ExcludeIgnoredTraces
-	idx.dCounters[is] = digest_counter.New(idx.cpxTile.GetTile(is))
+	idx.dCounters[is] = dc
 	return nil
 }
 
@@ -439,11 +447,13 @@ func calcSummaries(state interface{}) error {
 // the full tile (not applying ignore rules)
 func calcParamsetsInclude(state interface{}) error {
 	idx := state.(*SearchIndex)
+
+	is := types.IncludeIgnoredTraces
+	ps := paramsets.NewParamSummary(idx.cpxTile.GetTile(is), idx.dCounters[is])
+
 	idx.mapMutex.Lock()
 	defer idx.mapMutex.Unlock()
-	is := types.IncludeIgnoredTraces
-	idx.paramsetSummaries[is] = paramsets.NewParamSummary(idx.cpxTile.GetTile(is), idx.dCounters[is])
-
+	idx.paramsetSummaries[is] = ps
 	return nil
 }
 
@@ -451,10 +461,13 @@ func calcParamsetsInclude(state interface{}) error {
 // the partial tile (applying ignore rules)
 func calcParamsetsExclude(state interface{}) error {
 	idx := state.(*SearchIndex)
+
+	is := types.ExcludeIgnoredTraces
+	ps := paramsets.NewParamSummary(idx.cpxTile.GetTile(is), idx.dCounters[is])
+
 	idx.mapMutex.Lock()
 	defer idx.mapMutex.Unlock()
-	is := types.ExcludeIgnoredTraces
-	idx.paramsetSummaries[is] = paramsets.NewParamSummary(idx.cpxTile.GetTile(is), idx.dCounters[is])
+	idx.paramsetSummaries[is] = ps
 	return nil
 }
 
