@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "41c1b4dc_7d1d656d",
+        "filename": "go/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-14T19:04:11Z",
+      "side": 1,
+      "message": "Could you just make this go install github.com/vektra/mockery  I\u0027ve noticed some issues with go modules and ./... at least on go 1.11 (but I should probably update that anyway)",
+      "range": {
+        "startLine": 27,
+        "startChar": 4,
+        "endLine": 27,
+        "endChar": 7
+      },
+      "revId": "59d738c5e701f5fe9b391c544d068e069789f00e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
