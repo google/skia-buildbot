@@ -37,15 +37,14 @@ func main() {
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-	goEnv := golang.Init(wd)
+	ctx = golang.SetEnv(ctx, wd)
 	infraDir := path.Join(wd, "buildbot")
 
 	// We get depot_tools via isolate. It's required for some tests.
-	goEnv = append(goEnv, fmt.Sprintf("SKIABOT_TEST_DEPOT_TOOLS=%s", dirs.DepotTools(*workdir)))
+	ctx = td.SetEnv(ctx, []string{fmt.Sprintf("SKIABOT_TEST_DEPOT_TOOLS=%s", dirs.DepotTools(*workdir))})
 
 	// Initialize the Git repo. We receive the code via Isolate, but it
 	// doesn't include the .git dir.
-	// with cwd = infraDir:
 	gd := git.GitDir(infraDir)
 	if _, err := gd.Git(ctx, "init"); err != nil {
 		td.Fatal(ctx, err)
@@ -63,9 +62,11 @@ func main() {
 		if _, err := exec.RunCwd(ctx, d, "./run_emulator", "start"); err != nil {
 			td.Fatal(ctx, err)
 		}
-		goEnv = append(goEnv, "DATASTORE_EMULATOR_HOST=localhost:8891")
-		goEnv = append(goEnv, "BIGTABLE_EMULATOR_HOST=localhost:8892")
-		goEnv = append(goEnv, "PUBSUB_EMULATOR_HOST=localhost:8893")
+		ctx = td.SetEnv(ctx, []string{
+			"DATASTORE_EMULATOR_HOST=localhost:8891",
+			"BIGTABLE_EMULATOR_HOST=localhost:8892",
+			"PUBSUB_EMULATOR_HOST=localhost:8893",
+		})
 		defer func() {
 			if _, err := exec.RunCwd(ctx, d, "./run_emulator", "stop"); err != nil {
 				td.Fatal(ctx, err)
@@ -90,6 +91,7 @@ func main() {
 		"github.com/kisielk/errcheck",
 		"golang.org/x/tools/cmd/goimports",
 		"golang.org/x/tools/cmd/stringer",
+		"github.com/vektra/mockery/...",
 	}
 	for _, target := range installTargets {
 		if err := golang.Install(ctx, infraDir, "-v", target); err != nil {
