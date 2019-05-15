@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
@@ -58,6 +59,7 @@ type WebHandlers struct {
 
 // JsonByBlameHandler returns a json object with the digests to be triaged grouped by blamelist.
 func (wh *WebHandlers) JsonByBlameHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	idx := wh.Indexer.GetIndex()
 
 	// Extract the corpus from the query.
@@ -234,6 +236,7 @@ type TestRollup struct {
 // JsonTryjobListHandler returns the list of Gerrit issues that have triggered
 // or produced tryjob results recently.
 func (wh *WebHandlers) JsonTryjobListHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	var tryjobRuns []*tryjobstore.Issue
 	var total int
 
@@ -258,6 +261,7 @@ func (wh *WebHandlers) JsonTryjobListHandler(w http.ResponseWriter, r *http.Requ
 // JsonTryjobsSummaryHandler is the endpoint to get a summary of the tryjob
 // results for a Gerrit issue.
 func (wh *WebHandlers) JsonTryjobSummaryHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	issueID, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
 	if err != nil {
 		httputils.ReportError(w, r, err, "ID must be valid integer.")
@@ -279,6 +283,7 @@ func (wh *WebHandlers) JsonTryjobSummaryHandler(w http.ResponseWriter, r *http.R
 
 // JsonSearchHandler is the endpoint for all searches.
 func (wh *WebHandlers) JsonSearchHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	query, ok := parseSearchQuery(w, r)
 	if !ok {
 		return
@@ -295,6 +300,7 @@ func (wh *WebHandlers) JsonSearchHandler(w http.ResponseWriter, r *http.Request)
 // JsonExportHandler is the endpoint to export the Gold knowledge base.
 // It has the same interface as the search endpoint.
 func (wh *WebHandlers) JsonExportHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	ctx := r.Context()
 
 	query, ok := parseSearchQuery(w, r)
@@ -350,6 +356,7 @@ func parseSearchQuery(w http.ResponseWriter, r *http.Request) (*search.Query, bo
 
 // JsonDetailsHandler returns the details about a single digest.
 func (wh *WebHandlers) JsonDetailsHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	// Extract: test, digest.
 	if err := r.ParseForm(); err != nil {
 		httputils.ReportError(w, r, err, "Failed to parse form values")
@@ -372,6 +379,7 @@ func (wh *WebHandlers) JsonDetailsHandler(w http.ResponseWriter, r *http.Request
 
 // JsonDiffHandler returns difference between two digests.
 func (wh *WebHandlers) JsonDiffHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	// Extract: test, left, right where left and right are digests.
 	if err := r.ParseForm(); err != nil {
 		httputils.ReportError(w, r, err, "Failed to parse form values")
@@ -403,6 +411,7 @@ type IgnoresRequest struct {
 
 // JsonIgnoresHandler returns the current ignore rules in JSON format.
 func (wh *WebHandlers) JsonIgnoresHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "application/json")
 
 	ignores := []*ignore.IgnoreRule{}
@@ -422,6 +431,7 @@ func (wh *WebHandlers) JsonIgnoresHandler(w http.ResponseWriter, r *http.Request
 
 // JsonIgnoresUpdateHandler updates an existing ignores rule.
 func (wh *WebHandlers) JsonIgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	user := login.LoggedInAs(r)
 	if user == "" {
 		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to update an ignore rule.")
@@ -465,6 +475,7 @@ func (wh *WebHandlers) JsonIgnoresUpdateHandler(w http.ResponseWriter, r *http.R
 
 // JsonIgnoresDeleteHandler deletes an existing ignores rule.
 func (wh *WebHandlers) JsonIgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	user := login.LoggedInAs(r)
 	if user == "" {
 		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.")
@@ -491,6 +502,7 @@ func (wh *WebHandlers) JsonIgnoresDeleteHandler(w http.ResponseWriter, r *http.R
 
 // JsonIgnoresAddHandler is for adding a new ignore rule.
 func (wh *WebHandlers) JsonIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	user := login.LoggedInAs(r)
 	if user == "" {
 		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.")
@@ -539,6 +551,7 @@ type TriageRequest struct {
 // It accepts a POST'd JSON serialization of TriageRequest and updates
 // the expectations.
 func (wh *WebHandlers) JsonTriageHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	user := login.LoggedInAs(r)
 	if user == "" {
 		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to triage.")
@@ -590,6 +603,7 @@ func (wh *WebHandlers) JsonTriageHandler(w http.ResponseWriter, r *http.Request)
 
 // JsonStatusHandler returns the current status of with respect to HEAD.
 func (wh *WebHandlers) JsonStatusHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	sendJsonResponse(w, wh.StatusWatcher.GetStatus())
 }
 
@@ -597,6 +611,7 @@ func (wh *WebHandlers) JsonStatusHandler(w http.ResponseWriter, r *http.Request)
 // the incoming query and returns the data in a format appropriate for
 // handling in d3.
 func (wh *WebHandlers) JsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	ctx := r.Context()
 
 	// Extract the test name as we only allow clustering within a test.
@@ -735,6 +750,7 @@ type ClusterDiffResult struct {
 //  ]
 //
 func (wh *WebHandlers) JsonListTestsHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	// Parse the query object like with the other searches.
 	query := search.Query{}
 	if err := search.ParseQuery(r, &query); err != nil {
@@ -805,6 +821,7 @@ type FailureList struct {
 
 // JsonListFailureHandler returns the digests that have failed to load.
 func (wh *WebHandlers) JsonListFailureHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	unavailable := wh.Storages.DiffStore.UnavailableDigests()
 	ret := FailureList{
 		DigestFailures: make([]*diff.DigestFailure, 0, len(unavailable)),
@@ -827,6 +844,7 @@ func (wh *WebHandlers) JsonListFailureHandler(w http.ResponseWriter, r *http.Req
 // JsonClearFailureHandler removes failing digests from the local cache and
 // returns the current failures.
 func (wh *WebHandlers) JsonClearFailureHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	if !wh.purgeDigests(w, r) {
 		return
 	}
@@ -835,6 +853,7 @@ func (wh *WebHandlers) JsonClearFailureHandler(w http.ResponseWriter, r *http.Re
 
 // JsonClearDigests clears digests from the local cache and GS.
 func (wh *WebHandlers) JsonClearDigests(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	if !wh.purgeDigests(w, r) {
 		return
 	}
@@ -868,6 +887,7 @@ func (wh *WebHandlers) purgeDigests(w http.ResponseWriter, r *http.Request) bool
 // JsonTriageLogHandler returns the entries in the triagelog paginated
 // in reverse chronological order.
 func (wh *WebHandlers) JsonTriageLogHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	// Get the pagination params.
 	var logEntries []*expstorage.TriageLogEntry
 	var total int
@@ -912,6 +932,7 @@ func (wh *WebHandlers) JsonTriageLogHandler(w http.ResponseWriter, r *http.Reque
 // If successful it returns the same result as a call to jsonTriageLogHandler
 // to reflect the changed triagelog.
 func (wh *WebHandlers) JsonTriageUndoHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	// Get the user and make sure they are logged in.
 	user := login.LoggedInAs(r)
 	if user == "" {
@@ -939,6 +960,7 @@ func (wh *WebHandlers) JsonTriageUndoHandler(w http.ResponseWriter, r *http.Requ
 
 // JsonParamsHandler returns the union of all parameters.
 func (wh *WebHandlers) JsonParamsHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	tile := wh.Indexer.GetIndex().CpxTile().GetTile(types.IncludeIgnoredTraces)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(tile.ParamSet); err != nil {
@@ -950,6 +972,7 @@ func (wh *WebHandlers) JsonParamsHandler(w http.ResponseWriter, r *http.Request)
 // Note that this returns things of tiling.Commit, which lacks information
 // like the message. For a fuller commit, see JsonGitLogHandler.
 func (wh *WebHandlers) JsonCommitsHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	cpxTile, err := wh.Storages.GetLastTileTrimmed()
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load tile")
@@ -981,6 +1004,7 @@ type commitInfo struct {
 // Essentially, we just need the commit Subject for each of the commits,
 // although this could easily be expanded to have more of the commit info.
 func (wh *WebHandlers) JsonGitLogHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	// We have start and end as request params
 	p := r.URL.Query()
 	startHashes := p["start"] // the oldest commit
@@ -1060,6 +1084,7 @@ func (wh *WebHandlers) JsonGitLogHandler(w http.ResponseWriter, r *http.Request)
 // regardless of triage status.
 // Endpoint used by the buildbots to avoid transferring already known images.
 func (wh *WebHandlers) TextAllHashesHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	unavailableDigests := wh.Storages.DiffStore.UnavailableDigests()
 
 	idx := wh.Indexer.GetIndex()
@@ -1090,6 +1115,7 @@ func (wh *WebHandlers) TextAllHashesHandler(w http.ResponseWriter, r *http.Reque
 // Each line contains a single digest for an image. Bots will then only upload images which
 // have a hash not found on this list, avoiding significant amounts of unnecessary uploads.
 func (wh *WebHandlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "text/plain")
 	if err := wh.Storages.GCSClient.LoadKnownDigests(w); err != nil {
 		sklog.Errorf("Failed to copy the known hashes from GCS: %s", err)
@@ -1106,6 +1132,7 @@ func (wh *WebHandlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Reque
 //
 //
 func (wh *WebHandlers) JsonCompareTestHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	// Note that testName cannot be empty by definition of the route that got us here.
 	var ctQuery search.CTQuery
 	if err := search.ParseCTQuery(r.Body, 5, &ctQuery); err != nil {
@@ -1130,6 +1157,7 @@ func (wh *WebHandlers) JsonCompareTestHandler(w http.ResponseWriter, r *http.Req
 // baseline and the baseline defined for the issue (usually based on tryjob
 // results).
 func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	commitHash := ""
 	issueID := int64(0)
 	issueOnly := false
@@ -1175,6 +1203,7 @@ func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Reques
 // JsonRefreshIssue forces a refresh of a Gerrit issue, i.e. reload data that
 // might not have been polled yet etc.
 func (wh *WebHandlers) JsonRefreshIssue(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	user := login.LoggedInAs(r)
 	if user == "" {
 		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to refresh tryjob data")
@@ -1203,6 +1232,7 @@ func (wh *WebHandlers) JsonRefreshIssue(w http.ResponseWriter, r *http.Request) 
 func MakeResourceHandler(resourceDir string) func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(resourceDir))
 	return func(w http.ResponseWriter, r *http.Request) {
+		defer metrics2.FuncTimer().Stop()
 		w.Header().Add("Cache-Control", "max-age=300")
 		fileServer.ServeHTTP(w, r)
 	}
