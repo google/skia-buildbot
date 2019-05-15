@@ -26,6 +26,4 @@ protobuf:
 mocks:
 	go get github.com/vektra/mockery/...
 
-	mockery -name EventBus -dir eventbus/ -output ./eventbus/mocks/
-	mockery -name GitStore -dir gitstore/ -output ./gitstore/mocks/
-	mockery -name GerritInterface -dir gerrit/ -output ./gerrit/mocks/
+	go generate ./...
