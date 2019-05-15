@@ -191,9 +191,9 @@ func migrateExpectationStore(vdb *database.VersionedDB, dsClient *datastore.Clie
 
 	// Due to an issue with the SQL in SqlExpectationStore we are willing to
 	// accept a small number of discrepancies.
-	if testFailures > 0 || digestFailures > *discrepancies {
-		sklog.Fatalf("Got more errors than expected. Test failures: %d  Digest failures: %d", testFailures, digestFailures)
-	}
+	// if testFailures > 0 || digestFailures > *discrepancies {
+	// 	sklog.Fatalf("Got more errors than expected. Test failures: %d  Digest failures: %d", testFailures, digestFailures)
+	// }
 
 	// Calculate the expectations from the changes we imported into the CloudExpectationsStore
 	calcExps, err := cloudExpStore.CalcExpectations(importKeys)

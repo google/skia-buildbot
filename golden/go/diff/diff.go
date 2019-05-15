@@ -95,7 +95,7 @@ const (
 type DigestFailure struct {
 	Digest types.Digest `json:"digest"`
 	Reason DiffErr      `json:"reason"`
-	TS     int64        `json:"ts"`
+	TS     int64        `json:"ts"` // in milliseconds since the epoch
 }
 
 // NewDigestFailure is a convenience function to create an instance of DigestFailure.
