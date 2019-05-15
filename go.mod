@@ -70,7 +70,7 @@ require (
 	github.com/lib/pq v1.1.0 // indirect
 	github.com/mailru/easyjson v0.0.0-20190403194419-1ea4449da983 // indirect
 	github.com/maruel/subcommands v0.0.0-20181220013616-967e945be48b // indirect
-	github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a
+	github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a // indirect
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20190414153302-2ae31c8b6b30 // indirect
@@ -116,7 +116,7 @@ require (
 	golang.org/x/sys v0.0.0-20190506115046-ca7f33d4116e // indirect
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
-	golang.org/x/tools v0.0.0-20190503185657-3b6f9c0030f7 // indirect
+	golang.org/x/tools v0.0.0-20190514171724-faff00d7e7f6 // indirect
 	google.golang.org/api v0.4.0
 	google.golang.org/genproto v0.0.0-20190425155659-357c62f0e4bb
 	google.golang.org/grpc v1.20.1
