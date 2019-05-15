@@ -6,8 +6,9 @@
     height - The height of the element in px.
 
   Methods:
-    addTraces(traces) - Adds the given traces to the plot. Note that the
-      'label' is also known as the trace id.
+    addTraces(traces, labels) - Adds the given traces to the plot. Note that the
+      'label' is also known as the trace id. Labels are the timestamps for
+      each point in the traces.
 
       [
         {
@@ -122,7 +123,7 @@
       }.bind(this));
     },
 
-    addTraces: function (traces) {
+    addTraces: function (traces, labels) {
       var plotData = {};
       for (var i = traces.length - 1; i >= 0; i--) {
         var t = traces[i];
@@ -131,7 +132,7 @@
           plotData[t.label] = t.data;
         }
       }
-      this.$.plot.addLines(plotData);
+      this.$.plot.addLines(plotData, labels);
     },
 
     setStepIndex: function(x) {
@@ -207,7 +208,6 @@
     },
 
     setBackgroundInfo: function (ticks, skps, lastCommitIndex) {
-      this.$.plot.setTicks(ticks);
       var bands = [];
       for (var i = 2, len = skps.length; i < len; i+=2) {
         bands.push([skps[i-1], skps[i]]);
