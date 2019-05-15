@@ -301,3 +301,77 @@ func TestEnvMerge(t *testing.T) {
 		assert.Equal(t, c.expect, MergeEnv(c.a, c.b))
 	}
 }
+
+func TestEnvInheritance(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Verify that environments are inherited properly.
+	/*s := RunTestSteps(t, false, func(ctx context.Context) error {
+		return Do(ctx, Props("a").Env([]string{"a=a", "b=a"}), func(ctx context.Context) error {
+			ctx = SetEnv(ctx, []string{"b=b", "c=b"})
+			return Do(ctx, Props("c").Env([]string{"c=c", "d=c"}), func(ctx context.Context) error {
+				_, err := exec.RunCommand(ctx, &exec.Command{
+					Name: "true",
+					Env:  []string{"d=d"},
+				})
+				return err
+			})
+		})
+	})
+	var leaf *StepReport
+	s.Recurse(func(s *StepReport) bool {
+		if len(s.Steps) == 0 {
+			leaf = s
+			return false
+		}
+		return true
+	})
+	assert.NotNil(t, leaf)
+	expect := append(BASE_ENV, "a=a", "b=b", "c=c", "d=d")
+	deepequal.AssertDeepEqual(t, expect, leaf.StepProperties.Environ)
+
+	var data *ExecData
+	for _, d := range leaf.Data {
+		ed, ok := d.(*ExecData)
+		if ok {
+			data = ed
+			break
+		}
+	}
+	assert.NotNil(t, data)
+	deepequal.AssertDeepEqual(t, data.Env, expect)*/
+
+	// Verify that multiple invocations of SetEnv get merged.
+	s := RunTestSteps(t, false, func(ctx context.Context) error {
+		ctx = SetEnv(ctx, []string{"a=a", "b=a"})
+		ctx = SetEnv(ctx, []string{"b=b", "c=b"})
+		ctx = SetEnv(ctx, []string{"c=c", "d=c"})
+		_, err := exec.RunCommand(ctx, &exec.Command{
+			Name: "true",
+			Env:  []string{"d=d"},
+		})
+		return err
+	})
+	var leaf *StepReport
+	s.Recurse(func(s *StepReport) bool {
+		if len(s.Steps) == 0 {
+			leaf = s
+			return false
+		}
+		return true
+	})
+	assert.NotNil(t, leaf)
+	expect := append(BASE_ENV, "a=a", "b=b", "c=c", "d=d")
+	deepequal.AssertDeepEqual(t, expect, leaf.StepProperties.Environ)
+
+	var data *ExecData
+	for _, d := range leaf.Data {
+		ed, ok := d.(*ExecData)
+		if ok {
+			data = ed
+			break
+		}
+	}
+	assert.NotNil(t, data)
+	deepequal.AssertDeepEqual(t, data.Env, expect)
+}
