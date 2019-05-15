@@ -2,27 +2,20 @@ package golang
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"path"
 	"strings"
 
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/lib/dirs"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
-var (
-	goEnv []string // Filled in by Init().
-)
-
-// Init initializes the package by setting the Go environment to be based in the
-// given workdir. It should be called before using anything else in this
-// package. Returns the environment variables which should be used when running
-// Go commands.
-func Init(workdir string) []string {
+// SetEnv sets the Go environment to be based in the given workdir. Calls to all
+// other functions in this package should use the returned Context, or a
+// descendant of it.
+func SetEnv(ctx context.Context, workdir string) context.Context {
 	goPath := path.Join(workdir, "gopath")
 	goRoot := path.Join(workdir, "go", "go")
 	goBin := path.Join(goRoot, "bin")
@@ -35,25 +28,20 @@ func Init(workdir string) []string {
 		path.Join(workdir, "node", "node", "bin"),
 		td.PATH_PLACEHOLDER,
 	}, string(os.PathListSeparator))
-	goEnv = []string{
+	return td.SetEnv(ctx, []string{
 		fmt.Sprintf("GOCACHE=%s", path.Join(dirs.Cache(workdir), "go_cache")),
 		"GOFLAGS=-mod=readonly", // Prohibit builds from modifying go.mod.
 		fmt.Sprintf("GOROOT=%s", goRoot),
 		fmt.Sprintf("GOPATH=%s", goPath),
 		fmt.Sprintf("PATH=%s", PATH),
-	}
-	return util.CopyStringSlice(goEnv)
+	})
 }
 
 // Go runs the given Go command in the given working directory.
 func Go(ctx context.Context, cwd string, args ...string) (string, error) {
-	if goEnv == nil {
-		return "", errors.New("You must call Init() before any other functions in golang package.")
-	}
 	return exec.RunCommand(ctx, &exec.Command{
 		Name: "go",
 		Args: args,
-		Env:  goEnv,
 		Dir:  cwd,
 	})
 }
