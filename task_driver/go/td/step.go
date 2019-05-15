@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	multierror "github.com/hashicorp/go-multierror"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	fsnotify "gopkg.in/fsnotify.v1"
@@ -81,9 +82,12 @@ func newStep(ctx context.Context, id string, parent *StepProperties, props *Step
 		props = &StepProperties{}
 	}
 	props.Id = id
+
+	// Derive the environment for the new step by extracting any variables
+	// set via SetEnv and those from the parent step.
+	props.Environ = deriveEnv(ctx, props.Environ)
+
 	if parent != nil {
-		// Merge the step's environment into that of its parent.
-		props.Environ = MergeEnv(parent.Environ, props.Environ)
 
 		// Steps inherit the infra status of their parent.
 		// TODO(borenet): What if we want to have a parent which is an
@@ -95,7 +99,6 @@ func newStep(ctx context.Context, id string, parent *StepProperties, props *Step
 		props.Parent = parent.Id
 	}
 	ctx = setStep(ctx, props)
-	ctx = execCtx(ctx)
 	getRun(ctx).Start(props)
 	return ctx
 }
@@ -361,11 +364,9 @@ func execCtx(ctx context.Context) context.Context {
 		name := strings.Join(append([]string{cmd.Name}, cmd.Args...), " ")
 
 		// Merge the command's env into that of its parent.
-		parent := getStep(ctx)
-		env := MergeEnv(parent.Environ, cmd.Env)
-		cmd.Env = env
+		cmd.Env = deriveEnv(ctx, cmd.Env)
 
-		return Do(ctx, Props(name).Env(env), func(ctx context.Context) error {
+		return Do(ctx, Props(name).Env(cmd.Env), func(ctx context.Context) error {
 			// Set up stdout and stderr streams.
 			stdout := NewLogStream(ctx, "stdout", sklog.INFO)
 			if cmd.Stdout != nil {
@@ -386,7 +387,7 @@ func execCtx(ctx context.Context) context.Context {
 			StepData(ctx, DATA_TYPE_COMMAND, d)
 
 			// Run the command.
-			return exec.DefaultRun(cmd)
+			return getExecRunFn(ctx)(cmd)
 		})
 	})
 }
@@ -415,7 +416,12 @@ type HttpResponseData struct {
 // See documentation for http.RoundTripper.
 func (t *httpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	var resp *http.Response
-	return resp, Do(t.ctx, Props(req.URL.String()), func(ctx context.Context) error {
+	ctx := req.Context()
+	if safeGetStep(ctx) == nil {
+		// Fallback in case the caller did not set a context on the request.
+		ctx = t.ctx
+	}
+	return resp, Do(ctx, Props(fmt.Sprintf("%s %s", req.Method, req.URL.String())), func(ctx context.Context) error {
 		StepData(ctx, DATA_TYPE_HTTP_REQUEST, &HttpRequestData{
 			Method: req.Method,
 			URL:    req.URL,
@@ -435,7 +441,7 @@ func (t *httpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 // the requests it sends.
 func HttpClient(ctx context.Context, c *http.Client) *http.Client {
 	if c == nil {
-		c = http.DefaultClient // TODO(borenet): Use backoff client?
+		c = httputils.DefaultClientConfig().Client()
 	}
 	if c.Transport == nil {
 		c.Transport = http.DefaultTransport
