@@ -251,13 +251,6 @@
         this.$.graph.removeAll();
         this.$.graph.addLines({special_centroid: line});
 
-        // Set the tickmarks.
-        var tickmap = {};
-        this._frame.ticks.forEach(function(t) {
-          tickmap[t[0]] = t[1];
-        });
-        this.$.graph.setTicks(tickmap);
-
         // Set the x-bar but only if status != uninteresting.
         if (this._summary.step_fit.status != "Uninteresting") {
           // Loop through the dataframe header to find the location we should
