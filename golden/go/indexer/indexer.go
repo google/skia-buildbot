@@ -49,7 +49,7 @@ type SearchIndex struct {
 
 	cpxTile types.ComplexTile
 	blamer  blame.Blamer
-	warmer  *warmer.Warmer
+	warmer  warmer.DiffWarmer
 
 	// This is set by the indexing pipeline when we just want to update
 	// individual tests that have changed.
@@ -60,7 +60,7 @@ type SearchIndex struct {
 // newSearchIndex creates a new instance of SearchIndex. It is not intended to
 // be used outside of this package. SearchIndex instances are created by the
 // Indexer and retrieved via GetIndex().
-func newSearchIndex(storages *storage.Storage, cpxTile types.ComplexTile) *SearchIndex {
+func newSearchIndex(storages *storage.Storage, cpxTile types.ComplexTile, w warmer.DiffWarmer) *SearchIndex {
 	return &SearchIndex{
 		// The indices of these slices are the int values of types.IgnoreState
 		dCounters: make([]digest_counter.DigestCounter, 2),
@@ -71,7 +71,7 @@ func newSearchIndex(storages *storage.Storage, cpxTile types.ComplexTile) *Searc
 		paramsetSummaries: make([]paramsets.ParamSummary, 2),
 		cpxTile:           cpxTile,
 		blamer:            nil,
-		warmer:            warmer.New(),
+		warmer:            w,
 		storages:          storages,
 	}
 }
@@ -144,6 +144,7 @@ func (idx *SearchIndex) GetBlame(test types.TestName, digest types.Digest, commi
 // of it.
 type Indexer struct {
 	storages          *storage.Storage
+	warmer            warmer.DiffWarmer
 	pipeline          *pdag.Node
 	indexTestsNode    *pdag.Node
 	writeBaselineNode *pdag.Node
@@ -155,9 +156,10 @@ type Indexer struct {
 // New returns a new Indexer instance. It synchronously indexes the initially
 // available tile. If the indexing fails an error is returned.
 // The provided interval defines how often the index should be refreshed.
-func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
+func New(storages *storage.Storage, w warmer.DiffWarmer, interval time.Duration) (*Indexer, error) {
 	ret := &Indexer{
 		storages: storages,
+		warmer:   w,
 	}
 
 	// Set up the processing pipeline.
@@ -224,6 +226,10 @@ func (ixr *Indexer) GetIndex() *SearchIndex {
 // start builds the initial index and starts the background
 // process to continuously build indices.
 func (ixr *Indexer) start(interval time.Duration) error {
+	if interval == 0 {
+		sklog.Warning("Not starting indexer because duration was 0")
+		return nil
+	}
 	defer shared.NewMetricsTimer("initial_synchronous_index").Stop()
 	// Build the first index synchronously.
 	tileStream := ixr.storages.GetTileStreamNow(interval, "gold-indexer")
@@ -312,7 +318,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 func (ixr *Indexer) executePipeline(cpxTile types.ComplexTile) error {
 	defer shared.NewMetricsTimer("indexer_execute_pipeline").Stop()
 	// Create a new index from the given tile.
-	return ixr.pipeline.Trigger(newSearchIndex(ixr.storages, cpxTile))
+	return ixr.pipeline.Trigger(newSearchIndex(ixr.storages, cpxTile, ixr.warmer))
 }
 
 // writeBaselines triggers the node that causes baselines to be written to GCS.
@@ -360,7 +366,7 @@ func (ixr *Indexer) cloneLastIndex() *SearchIndex {
 		},
 		paramsetSummaries: lastIdx.paramsetSummaries, //paramsetSummaries are immutable
 		blamer:            lastIdx.blamer,            // blamer is immutable and thus, thread-safe.
-		warmer:            warmer.New(),
+		warmer:            ixr.warmer,
 		storages:          lastIdx.storages,
 
 		// Force testNames to be empty, just to be sure we re-compute everything by default
@@ -516,6 +522,7 @@ func writeMasterBaseline(state interface{}) error {
 	idx := state.(*SearchIndex)
 
 	if !idx.storages.Baseliner.CanWriteBaseline() {
+		sklog.Warning("Indexer tried to write baselines, but was not allowed to")
 		return nil
 	}
 
@@ -543,7 +550,9 @@ func runWarmer(state interface{}) error {
 	if err != nil {
 		return skerr.Fmt("Could not run warmer - expectations failure: %s", err)
 	}
+	// TODO(kjlubick): make this injectible so we can mock it out
 	d := digesttools.NewClosestDiffFinder(exp, idx.dCounters[is], idx.storages.DiffStore)
-	go idx.warmer.PrecomputeDiffs(idx.summaries[is], idx.dCounters[is], d)
+
+	go idx.warmer.PrecomputeDiffs(idx.summaries[is].Get(), idx.dCounters[is], d)
 	return nil
 }

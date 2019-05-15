@@ -18,6 +18,8 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
+type SummaryMap map[types.TestName]*Summary
+
 // Summary contains rolled up metrics for one test.
 // It is not thread safe. The client of this package needs to make sure there
 // are no conflicts.
@@ -102,7 +104,7 @@ func (s *Summaries) Calculate(tile *tiling.Tile, testNames []types.TestName, dCo
 }
 
 // Get returns the summaries keyed by the test names.
-func (s *Summaries) Get() map[types.TestName]*Summary {
+func (s *Summaries) Get() SummaryMap {
 	return s.summaries
 }
 
