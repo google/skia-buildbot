@@ -1,0 +1,130 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "66bd6f25_532f8cbb",
+        "filename": "task_driver/go/td/context.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-15T21:39:39Z",
+      "side": 1,
+      "message": "nit: Apologies if we\u0027ve been through this discussion before and ended up with strings.\n\nThe docs for https://golang.org/pkg/context/#WithValue say not to use a string or other built-in type. The exec package does this: https://skia.googlesource.com/buildbot/+/fb18febd955fb13e066d296cb8590d6fcc0975c7/go/exec/exec.go#69\n\nYou probably have more experience with this; if the anonymous struct makes debugging difficult, you could also do:\ntype taskDriverContextKeyType struct{}\nconst contextKey \u003d \u0026taskDriverContextKeyType{}",
+      "revId": "6019097b2df5ba6b861c520b2cbd86e2a80c7f05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "728c8fe8_eecf0591",
+        "filename": "task_driver/go/td/context.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-15T21:39:39Z",
+      "side": 1,
+      "message": "nit: Would it be simpler to copy step and execRun from parent and merge envs in setCtx rather than deriving it in safeGetStep, deriveEnv, and getExecRunFn?\n\nIf you do that, you might even be able to replace calls to those functions with getCtx().step, getCtx().env, and getCtx().execRun.",
+      "range": {
+        "startLine": 18,
+        "startChar": 4,
+        "endLine": 18,
+        "endChar": 32
+      },
+      "revId": "6019097b2df5ba6b861c520b2cbd86e2a80c7f05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67b6fb18_a529d2ac",
+        "filename": "task_driver/go/td/context.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-15T21:39:39Z",
+      "side": 1,
+      "message": "nit: maybe call this \"nestContext\" or \"withChildContext\" or \"withContext\"",
+      "range": {
+        "startLine": 39,
+        "startChar": 5,
+        "endLine": 39,
+        "endChar": 11
+      },
+      "revId": "6019097b2df5ba6b861c520b2cbd86e2a80c7f05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48f7f321_be85e35c",
+        "filename": "task_driver/go/td/context.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-15T21:39:39Z",
+      "side": 1,
+      "message": "nit: add doc to describe what \"safe\" means. I had assumed it meant \"will never return nil\" but it actually seems to mean \"will return nil rather than panic.\"",
+      "revId": "6019097b2df5ba6b861c520b2cbd86e2a80c7f05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c366b01_4941103a",
+        "filename": "task_driver/go/td/context.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-15T21:39:39Z",
+      "side": 1,
+      "message": "nit: similar to above, maybe \"withStep\" and \"withRun\"\n\nOTOH, I suppose if you\u0027re familiar with Context, you know that it\u0027s immutable.",
+      "range": {
+        "startLine": 66,
+        "startChar": 5,
+        "endLine": 66,
+        "endChar": 8
+      },
+      "revId": "6019097b2df5ba6b861c520b2cbd86e2a80c7f05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28a67e36_1b0595b5",
+        "filename": "task_driver/go/td/step_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-15T21:39:39Z",
+      "side": 1,
+      "message": "nit: Was this debugging? If not, I think t.Logf provides better output.",
+      "range": {
+        "startLine": 324,
+        "startChar": 0,
+        "endLine": 325,
+        "endChar": 37
+      },
+      "revId": "6019097b2df5ba6b861c520b2cbd86e2a80c7f05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
