@@ -16,6 +16,24 @@
       "revId": "68c46fbba5204a78341cb94cc177a04240bbc2cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d385a26b_b1282f63",
+        "filename": "golden/cmd/ds_gold_migration/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-15T18:53:05Z",
+      "side": 1,
+      "message": "Yes, there was 1 test failure and 5 digest failures out of the 215k entries.  It does not appear to have led to large amounts of untriaged images, but I had to comment this check out to get the transition to land.  Since it took 2+ hours each try, it was somewhat painful to twiddle around with this check, so I just removed it.",
+      "parentUuid": "07f3cabe_025008d4",
+      "revId": "68c46fbba5204a78341cb94cc177a04240bbc2cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
