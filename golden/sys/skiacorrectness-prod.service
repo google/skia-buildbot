@@ -13,8 +13,6 @@ mtklein@chromium.org \
 skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com" \
     --baseline_gs_path=skia-infra-gm/baselines/gold-prod \
     --cache_size=20 \
-    --db_host=173.194.109.248  \
-    --db_name=skiacorrectness  \
     --diff_server_grpc=skia-diffserver-prod:8000 \
     --diff_server_http=skia-diffserver-prod:8001 \
     --ds_namespace=gold-skia-prod \
