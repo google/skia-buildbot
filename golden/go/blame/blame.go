@@ -63,8 +63,8 @@ type BlameDistribution struct {
 	Old bool `json:"old"`
 }
 
-// WeightedBlame combines an authors name with a probability that she
-// is on a blamelist this is aggregated over the digests of a test.
+// WeightedBlame combines an authors name with a probability that they
+// are on a blamelist. This is aggregated over the digests of a test.
 type WeightedBlame struct {
 	Author string  `json:"author"`
 	Prob   float64 `json:"prob"`
