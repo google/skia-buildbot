@@ -2,33 +2,77 @@ package td
 
 import (
 	"context"
+
+	"go.skia.org/infra/go/exec"
 )
 
-const (
-	contextKeyStep = "TaskDriverStep"
-	contextKeyRun  = "TaskDriverRun"
+var (
+	contextKey = &taskDriverContext{}
 )
 
-func getStep(ctx context.Context) *StepProperties {
-	rv := ctx.Value(contextKeyStep)
+type taskDriverContext struct{}
+
+type Context struct {
+	// run is always non-nil.
+	run    *run
+	parent *Context
+
+	// The below fields override those of the parent Context, if set.
+
+	// Current step.
+	step *StepProperties
+
+	// Environment variables, set via WithEnv.
+	env []string
+
+	// execRun provides a Run function to be called by execCtx. This is used
+	// for testing, where we may want to mock out subprocess invocations.
+	execRun func(*exec.Command) error
+}
+
+// getCtx retrieves the current Context. Panics if none exists.
+func getCtx(ctx context.Context) *Context {
+	rv := ctx.Value(contextKey)
 	if rv == nil {
-		panic("Context has no step associated with it!")
+		panic("No Context!")
 	}
-	return rv.(*StepProperties)
+	return rv.(*Context)
 }
 
-func setStep(ctx context.Context, s *StepProperties) context.Context {
-	return context.WithValue(ctx, contextKeyStep, s)
-}
-
-func getRun(ctx context.Context) *run {
-	rv := ctx.Value(contextKeyRun)
-	if rv == nil {
-		panic("Context has no run associated with it!")
+// withChildCtx adds the new Context as a child of the existing Context.
+func withChildCtx(ctx context.Context, child *Context) context.Context {
+	parent := getCtx(ctx)
+	child.parent = parent
+	child.run = parent.run
+	if child.step == nil {
+		child.step = parent.step
+		child.env = MergeEnv(parent.env, child.env)
+	} else {
+		child.step.Environ = MergeEnv(parent.env, child.step.Environ)
+		// Override child.env; it shouldn't be set when adding a step.
+		child.env = child.step.Environ
 	}
-	return rv.(*run)
+	if child.execRun == nil {
+		child.execRun = parent.execRun
+	}
+	ctx = context.WithValue(ctx, contextKey, child)
+	// Any time we set the parent step, env, or execRun, we need to set a
+	// new execCtx to ensure that exec has access to the new information.
+	ctx = execCtx(ctx)
+	return ctx
 }
 
-func setRun(ctx context.Context, r *run) context.Context {
-	return context.WithValue(ctx, contextKeyRun, r)
+// Set the given environment on the Context. Steps which use the Context will
+// inherit the environment variables. Merges with any previous calls to WithEnv.
+func WithEnv(ctx context.Context, env []string) context.Context {
+	return withChildCtx(ctx, &Context{
+		env: env,
+	})
+}
+
+// WithExecRunFn allows the Run function to be overridden for testing.
+func WithExecRunFn(ctx context.Context, run func(*exec.Command) error) context.Context {
+	return withChildCtx(ctx, &Context{
+		execRun: run,
+	})
 }

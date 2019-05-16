@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
@@ -231,7 +232,7 @@ func StartRun(projectId, taskId, taskName, output *string, local *bool) context.
 
 // Perform any cleanup work for the run. Should be deferred in main().
 func EndRun(ctx context.Context) {
-	defer util.Close(getRun(ctx))
+	defer util.Close(getCtx(ctx).run)
 
 	// Mark the root step as finished.
 	finishStep(ctx, recover())
@@ -251,10 +252,13 @@ func newRun(ctx context.Context, rec Receiver, taskId, taskName string, props *R
 		receiver: rec,
 		taskId:   taskId,
 	}
-	ctx = setRun(ctx, r)
 	r.send(&Message{
 		Type: MSG_TYPE_RUN_STARTED,
 		Run:  props,
+	})
+	ctx = context.WithValue(ctx, contextKey, &Context{
+		run:     r,
+		execRun: exec.DefaultRun,
 	})
 	ctx = newStep(ctx, STEP_ID_ROOT, nil, Props(taskName).Env(BASE_ENV))
 	return ctx
