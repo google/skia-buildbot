@@ -7,6 +7,7 @@ package os_steps
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -43,6 +44,28 @@ func Abs(ctx context.Context, path string) (string, error) {
 	err := td.Do(ctx, td.Props(fmt.Sprintf("Abs %s", path)).Infra(), func(context.Context) error {
 		var err error
 		rv, err = filepath.Abs(path)
+		return err
+	})
+	return rv, err
+}
+
+// ReadFile is a wrapper for ioutil.ReadFile.
+func ReadFile(ctx context.Context, path string) ([]byte, error) {
+	var rv []byte
+	err := td.Do(ctx, td.Props(fmt.Sprintf("Read %s", path)).Infra(), func(context.Context) error {
+		var err error
+		rv, err = ioutil.ReadFile(path)
+		return err
+	})
+	return rv, err
+}
+
+// ReadDir is a wrapper for ioutil.ReadDir.
+func ReadDir(ctx context.Context, path string) ([]os.FileInfo, error) {
+	var rv []os.FileInfo
+	err := td.Do(ctx, td.Props(fmt.Sprintf("ReadDir %s", path)).Infra(), func(context.Context) error {
+		var err error
+		rv, err = ioutil.ReadDir(path)
 		return err
 	})
 	return rv, err
