@@ -44,7 +44,7 @@ func (r *TestingRun) EndRun(expectPanic bool, err *error) *StepReport {
 
 func (r *TestingRun) finishRun(expectPanic bool, err *error, recovered interface{}) (rv *StepReport) {
 	defer func() {
-		assert.NoError(r.t, getRun(r.ctx).Close())
+		assert.NoError(r.t, getCtx(r.ctx).run.Close())
 	}()
 	if expectPanic {
 		assert.NotNil(r.t, recovered)

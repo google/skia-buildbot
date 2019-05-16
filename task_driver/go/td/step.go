@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	multierror "github.com/hashicorp/go-multierror"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	fsnotify "gopkg.in/fsnotify.v1"
@@ -81,10 +82,8 @@ func newStep(ctx context.Context, id string, parent *StepProperties, props *Step
 		props = &StepProperties{}
 	}
 	props.Id = id
-	if parent != nil {
-		// Merge the step's environment into that of its parent.
-		props.Environ = MergeEnv(parent.Environ, props.Environ)
 
+	if parent != nil {
 		// Steps inherit the infra status of their parent.
 		// TODO(borenet): What if we want to have a parent which is an
 		// infra step but a child which is not?
@@ -94,15 +93,16 @@ func newStep(ctx context.Context, id string, parent *StepProperties, props *Step
 
 		props.Parent = parent.Id
 	}
-	ctx = setStep(ctx, props)
-	ctx = execCtx(ctx)
-	getRun(ctx).Start(props)
+	ctx = withChildCtx(ctx, &Context{
+		step: props,
+	})
+	getCtx(ctx).run.Start(props)
 	return ctx
 }
 
 // Create a step.
 func StartStep(ctx context.Context, props *StepProperties) context.Context {
-	parent := getStep(ctx)
+	parent := getCtx(ctx).step
 	return newStep(ctx, uuid.New().String(), parent, props)
 }
 
@@ -134,11 +134,11 @@ func InfraError(err error) error {
 //	}
 //
 func FailStep(ctx context.Context, err error) error {
-	props := getStep(ctx)
+	props := getCtx(ctx).step
 	if props.IsInfra {
 		err = InfraError(err)
 	}
-	getRun(ctx).Failed(props.Id, err)
+	getCtx(ctx).run.Failed(props.Id, err)
 	return err
 }
 
@@ -156,8 +156,8 @@ func EndStep(ctx context.Context) {
 // finishStep is a helper function for EndStep which is also used by
 // RunFinished to set the result of the root step.
 func finishStep(ctx context.Context, recovered interface{}) {
-	props := getStep(ctx)
-	e := getRun(ctx)
+	props := getCtx(ctx).step
+	e := getCtx(ctx).run
 	if recovered != nil {
 		// If the panic is an error, use the original error, otherwise
 		// create an error.
@@ -173,8 +173,8 @@ func finishStep(ctx context.Context, recovered interface{}) {
 
 // Attach the given StepData to this Step.
 func StepData(ctx context.Context, typ DataType, d interface{}) {
-	props := getStep(ctx)
-	getRun(ctx).AddStepData(props.Id, typ, d)
+	props := getCtx(ctx).step
+	getCtx(ctx).run.AddStepData(props.Id, typ, d)
 }
 
 // Do is a convenience function which runs the given function as a Step. It
@@ -193,7 +193,7 @@ func Do(ctx context.Context, props *StepProperties, fn func(context.Context) err
 // from properly reporting errors.
 func Fatal(ctx context.Context, err error) {
 	sklog.Error(err)
-	if getStep(ctx).IsInfra {
+	if getCtx(ctx).step.IsInfra {
 		err = InfraError(err)
 	}
 	panic(err)
@@ -217,8 +217,8 @@ type LogData struct {
 // Create an io.Writer that will act as a log stream for this Step. Callers
 // probably want to use a higher-level method instead.
 func NewLogStream(ctx context.Context, name, severity string) io.Writer {
-	props := getStep(ctx)
-	return getRun(ctx).LogStream(props.Id, name, severity)
+	props := getCtx(ctx).step
+	return getCtx(ctx).run.LogStream(props.Id, name, severity)
 }
 
 // FileStream is a struct used for streaming logs from a file, eg. when a test
@@ -276,7 +276,7 @@ func NewFileStream(ctx context.Context, name, severity string) (*FileStream, err
 func (fs *FileStream) follow(doneCh chan<- struct{}) {
 	reportErr := func(format string, args ...interface{}) {
 		err := fmt.Errorf(format, args...)
-		getRun(fs.ctx).Failed(getStep(fs.ctx).Id, InfraError(err))
+		getCtx(fs.ctx).run.Failed(getCtx(fs.ctx).step.Id, InfraError(err))
 		fs.err = multierror.Append(fs.err, err)
 	}
 
@@ -361,11 +361,9 @@ func execCtx(ctx context.Context) context.Context {
 		name := strings.Join(append([]string{cmd.Name}, cmd.Args...), " ")
 
 		// Merge the command's env into that of its parent.
-		parent := getStep(ctx)
-		env := MergeEnv(parent.Environ, cmd.Env)
-		cmd.Env = env
+		cmd.Env = MergeEnv(getCtx(ctx).env, cmd.Env)
 
-		return Do(ctx, Props(name).Env(env), func(ctx context.Context) error {
+		return Do(ctx, Props(name).Env(cmd.Env), func(ctx context.Context) error {
 			// Set up stdout and stderr streams.
 			stdout := NewLogStream(ctx, "stdout", sklog.INFO)
 			if cmd.Stdout != nil {
@@ -386,7 +384,7 @@ func execCtx(ctx context.Context) context.Context {
 			StepData(ctx, DATA_TYPE_COMMAND, d)
 
 			// Run the command.
-			return exec.DefaultRun(cmd)
+			return getCtx(ctx).execRun(cmd)
 		})
 	})
 }
@@ -415,7 +413,12 @@ type HttpResponseData struct {
 // See documentation for http.RoundTripper.
 func (t *httpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	var resp *http.Response
-	return resp, Do(t.ctx, Props(req.URL.String()), func(ctx context.Context) error {
+	ctx := req.Context()
+	if ctx.Value(contextKey) == nil {
+		// Fallback in case the caller did not set a context on the request.
+		ctx = t.ctx
+	}
+	return resp, Do(ctx, Props(fmt.Sprintf("%s %s", req.Method, req.URL.String())), func(ctx context.Context) error {
 		StepData(ctx, DATA_TYPE_HTTP_REQUEST, &HttpRequestData{
 			Method: req.Method,
 			URL:    req.URL,
@@ -435,7 +438,7 @@ func (t *httpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 // the requests it sends.
 func HttpClient(ctx context.Context, c *http.Client) *http.Client {
 	if c == nil {
-		c = http.DefaultClient // TODO(borenet): Use backoff client?
+		c = httputils.DefaultClientConfig().Client()
 	}
 	if c.Transport == nil {
 		c.Transport = http.DefaultTransport

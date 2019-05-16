@@ -14,15 +14,20 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
-func mockExec(ctx context.Context) context.Context {
+// mockExec mocks out subprocesses named "true" with a success result and all
+// others with a failure. Returns the new context and a counter indicating how
+// many times the run function was called.
+func mockExec(ctx context.Context) (context.Context, *int) {
 	mockRun := &exec.CommandCollector{}
+	runCount := 0
 	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+		runCount++
 		if cmd.Name == "true" {
 			return nil
 		}
 		return errors.New("Command exited with exit status 1: ")
 	})
-	return exec.NewContext(ctx, mockRun.Run)
+	return WithExecRunFn(ctx, mockRun.Run), &runCount
 }
 
 func TestDefer(t *testing.T) {
@@ -60,7 +65,7 @@ func TestDefer(t *testing.T) {
 				defer EndStep(ctx)
 
 				// Actual work would go here.
-				id = getStep(ctx).Id
+				id = getCtx(ctx).step.Id
 				err := fmt.Errorf("whoops")
 				return FailStep(ctx, err)
 			}(ctx)
@@ -82,26 +87,30 @@ func TestExec(t *testing.T) {
 
 	// Basic tests around executing subprocesses.
 	_ = RunTestSteps(t, false, func(ctx context.Context) error {
-		mockExecCtx := mockExec(ctx)
+		mockExecCtx, counter := mockExec(ctx)
 
 		// Simple command.
 		_, err := exec.RunSimple(mockExecCtx, "true")
 		assert.NoError(t, err)
+		assert.Equal(t, 1, *counter)
 
 		// Verify that we get an error if the command fails.
 		_, err = exec.RunCwd(mockExecCtx, ".", "false")
 		assert.Contains(t, err.Error(), "Command exited with exit status 1: ")
+		assert.Equal(t, 2, *counter)
 
 		// Ensure that we collect stdout.
 		out, err := exec.RunCwd(ctx, ".", "python", "-c", "print 'hello world'")
 		assert.NoError(t, err)
 		assert.Equal(t, "hello world\n", out)
+		assert.Equal(t, 2, *counter) // Not using the mock for this test case.
 
 		// Ensure that we collect stdout and stderr.
 		out, err = exec.RunCwd(ctx, ".", "python", "-c", "import sys; print 'stdout'; print >> sys.stderr, 'stderr'")
 		assert.NoError(t, err)
 		assert.True(t, strings.Contains(out, "stdout"))
 		assert.True(t, strings.Contains(out, "stderr"))
+		assert.Equal(t, 2, *counter) // Not using the mock for this test case.
 		return nil
 	})
 }
@@ -165,7 +174,7 @@ func TestFatal(t *testing.T) {
 				return nil
 			}))
 		}()
-		ctx = mockExec(ctx)
+		ctx, _ = mockExec(ctx)
 		if _, err := exec.RunSimple(ctx, "false"); err != nil {
 			Fatal(ctx, err)
 			return err
@@ -300,4 +309,92 @@ func TestEnvMerge(t *testing.T) {
 	for _, c := range tc {
 		assert.Equal(t, c.expect, MergeEnv(c.a, c.b))
 	}
+}
+
+func TestEnvInheritance(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Set up exec mock and expectations.
+	runCount := 0
+	expect := append(BASE_ENV, "a=a", "b=b", "c=c", "d=d")
+	mockRun := &exec.CommandCollector{}
+	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+		runCount++
+		assert.Equal(t, expect, cmd.Env)
+		return nil
+	})
+
+	// Verify that environments are inherited properly.
+	assert.Equal(t, 0, runCount)
+	s := RunTestSteps(t, false, func(ctx context.Context) error {
+		ctx = WithExecRunFn(ctx, mockRun.Run)
+		return Do(ctx, Props("a").Env([]string{"a=a", "b=a"}), func(ctx context.Context) error {
+			ctx = WithEnv(ctx, []string{"b=b", "c=b"})
+			return Do(ctx, Props("c").Env([]string{"c=c", "d=c"}), func(ctx context.Context) error {
+				_, err := exec.RunCommand(ctx, &exec.Command{
+					Name: "true",
+					Env:  []string{"d=d"},
+				})
+				return err
+			})
+		})
+	})
+	assert.Equal(t, 1, runCount)
+	var leaf *StepReport
+	s.Recurse(func(s *StepReport) bool {
+		if len(s.Steps) == 0 {
+			leaf = s
+			return false
+		}
+		return true
+	})
+	assert.NotNil(t, leaf)
+	deepequal.AssertDeepEqual(t, expect, leaf.StepProperties.Environ)
+
+	var data *ExecData
+	for _, d := range leaf.Data {
+		ed, ok := d.(*ExecData)
+		if ok {
+			data = ed
+			break
+		}
+	}
+	assert.NotNil(t, data)
+	deepequal.AssertDeepEqual(t, data.Env, expect)
+
+	// Verify that multiple invocations of WithEnv get merged.
+	assert.Equal(t, 1, runCount)
+	s = RunTestSteps(t, false, func(ctx context.Context) error {
+		ctx = WithExecRunFn(ctx, mockRun.Run)
+		ctx = WithEnv(ctx, []string{"a=a", "b=a"})
+		ctx = WithEnv(ctx, []string{"b=b", "c=b"})
+		ctx = WithEnv(ctx, []string{"c=c", "d=c"})
+		_, err := exec.RunCommand(ctx, &exec.Command{
+			Name: "true",
+			Env:  []string{"d=d"},
+		})
+		return err
+	})
+	assert.Equal(t, 2, runCount)
+	leaf = nil
+	s.Recurse(func(s *StepReport) bool {
+		if len(s.Steps) == 0 {
+			leaf = s
+			return false
+		}
+		return true
+	})
+	assert.NotNil(t, leaf)
+	deepequal.AssertDeepEqual(t, expect, leaf.StepProperties.Environ)
+
+	data = nil
+	for _, d := range leaf.Data {
+		ed, ok := d.(*ExecData)
+		if ok {
+			data = ed
+			break
+		}
+	}
+	assert.NotNil(t, data)
+	deepequal.AssertDeepEqual(t, data.Env, expect)
 }
