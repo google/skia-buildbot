@@ -9,7 +9,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -158,24 +157,6 @@ func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobRes
 		MD5:          md5Sum,
 	}
 	return ret, nil
-}
-
-// commitIssueBaseline commits the expectations for the given issue to the master baseline.
-func commitIssueBaseline(issueID int64, user string, issueChanges types.Expectations, tryjobStore tryjobstore.TryjobStore, expStore expstorage.ExpectationsStore) error {
-	if len(issueChanges) == 0 {
-		return nil
-	}
-
-	syntheticUser := fmt.Sprintf("%s:%d", user, issueID)
-
-	commitFn := func() error {
-		if err := expStore.AddChange(issueChanges, syntheticUser); err != nil {
-			return skerr.Fmt("Unable to add expectations for issue %d: %s", issueID, err)
-		}
-		return nil
-	}
-
-	return tryjobStore.CommitIssueExp(issueID, commitFn)
 }
 
 // minCommit returns newCommit if it appears before current (or current is nil).

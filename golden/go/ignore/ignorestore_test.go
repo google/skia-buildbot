@@ -94,7 +94,9 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 
 	delCount, err = store.Delete(r1.ID)
 	assert.NoError(t, err)
+	assert.Equal(t, 1, delCount)
 	allRules, err = store.List(false)
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(allRules))
 	assert.Equal(t, r2.ID, allRules[0].ID)
 	assert.Equal(t, int64(7), store.Revision())
@@ -105,6 +107,7 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 	err = store.Update(updatedRule.ID, &updatedRule)
 	assert.NoError(t, err, "Update should succeed.")
 	allRules, err = store.List(false)
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(allRules))
 	assert.Equal(t, r2.ID, allRules[0].ID)
 	assert.Equal(t, "an updated rule", allRules[0].Note)
@@ -118,11 +121,14 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 
 	delCount, err = store.Delete(r2.ID)
 	assert.NoError(t, err)
+	assert.Equal(t, 1, delCount)
+
 	allRules, err = store.List(false)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(allRules))
 	assert.Equal(t, int64(9), store.Revision())
 
+	// This id doesn't exist, so we shouldn't be able to delete it.
 	delCount, err = store.Delete(1000000)
 	assert.NoError(t, err)
 	assert.Equal(t, delCount, 0)
@@ -143,7 +149,9 @@ func TestToQuery(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, queries[0], url.Values{"config": []string{"gpu"}})
 
+	// A bad rule won't get converted
 	r1 = NewIgnoreRule("jon@example.com", time.Now().Add(time.Hour), "bad=%", "reason")
 	queries, err = ToQuery([]*IgnoreRule{r1})
 	assert.NotNil(t, err)
+	assert.Empty(t, queries)
 }

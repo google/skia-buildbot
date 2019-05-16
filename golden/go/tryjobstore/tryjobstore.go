@@ -409,10 +409,10 @@ func (c *cloudTryjobStore) deleteTryjobsForIssue(issueID int64) error {
 func (c *cloudTryjobStore) getResultsForTryjobs(tryjobKeys []*datastore.Key, keysOnly bool) ([][]*datastore.Key, [][]*TryjobResult, error) {
 	// Collect all results across tryjobs.
 	n := len(tryjobKeys)
-	tryjobResultKeys := make([][]*datastore.Key, n, n)
+	tryjobResultKeys := make([][]*datastore.Key, n)
 	var tryjobResults [][]*TryjobResult = nil
 	if !keysOnly {
-		tryjobResults = make([][]*TryjobResult, n, n)
+		tryjobResults = make([][]*TryjobResult, n)
 	}
 
 	// Get there keys and results.
@@ -447,11 +447,6 @@ func (c *cloudTryjobStore) getResultsForTryjobs(tryjobKeys []*datastore.Key, key
 	return tryjobResultKeys, tryjobResults, nil
 }
 
-// deleteExpChanges deletes the given expectation changes.
-func (c *cloudTryjobStore) deleteExpChanges(keys []*datastore.Key) error {
-	return c.client.DeleteMulti(context.Background(), keys)
-}
-
 // getTryjobsForIssue is a utility function that retrieves the Tryjobs for a given
 // issue and list of patchsets. If keysOnly is true only the keys of the Tryjobs will
 // be returned. If filterDup is true duplicate Tryjobs will be filtered out for
@@ -470,8 +465,8 @@ func (c *cloudTryjobStore) getTryjobsForIssue(issueID int64, patchsetIDs []int64
 	}
 
 	n := len(patchsetIDs)
-	keysArr := make([][]*datastore.Key, n, n)
-	valsArr := make([][]*Tryjob, n, n)
+	keysArr := make([][]*datastore.Key, n)
+	valsArr := make([][]*Tryjob, n)
 	resultSize := int32(0)
 	var egroup errgroup.Group
 	for idx, patchsetID := range patchsetIDs {

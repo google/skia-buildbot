@@ -379,14 +379,5 @@ func (b *BaselinerImpl) getMasterExpectations(commitHash string) (*baseline.Base
 	return ret, nil
 }
 
-// fromLongCommit converts a *vcsinfo.LongCommit to a *tiling.Commit
-func fromLongCommit(lc *vcsinfo.LongCommit) *tiling.Commit {
-	return &tiling.Commit{
-		CommitTime: lc.Timestamp.Unix(),
-		Hash:       lc.Hash,
-		Author:     lc.Author,
-	}
-}
-
 // Make sure BaselinerImpl fulfills the Baseliner interface
 var _ baseline.Baseliner = (*BaselinerImpl)(nil)

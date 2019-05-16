@@ -33,6 +33,7 @@ func TestCloudTryjobStore(t *testing.T) {
 
 	eventBus := eventbus.New()
 	_, expStoreFactory, err := expstorage.NewCloudExpectationsStore(ds.DS, eventBus)
+	assert.NoError(t, err)
 	store, err := NewCloudTryjobStore(ds.DS, expStoreFactory, eventBus)
 	assert.NoError(t, err)
 
@@ -129,7 +130,7 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 
 	// Generate instances of results
 	allTryjobs := []*Tryjob{tryjob_1, tryjob_2}
-	tryjobResults := make([][]*TryjobResult, len(allTryjobs), len(allTryjobs))
+	tryjobResults := make([][]*TryjobResult, len(allTryjobs))
 	for idx, tj := range allTryjobs {
 		digestStart := int64((idx + 1) * 1000)
 		results := []*TryjobResult{}
@@ -198,6 +199,7 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 
 	// Add changes to the issue
 	allChanges := types.Expectations{}
+	// TODO(kjlubick): assert something with expLogEntries - it is only added to.
 	expLogEntries := []*expstorage.TriageLogEntry{}
 	userName := "jdoe@example.com"
 	expStore := expStoreFactory(issueID)

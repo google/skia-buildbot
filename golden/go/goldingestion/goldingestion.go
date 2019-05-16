@@ -39,8 +39,6 @@ type goldProcessor struct {
 	vcs     vcsinfo.VCS
 }
 
-type extractIDFn func(*vcsinfo.LongCommit, *DMResults) (*tracedb.CommitID, error)
-
 // implements the ingestion.Constructor signature.
 func newGoldProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, eventBus eventbus.EventBus) (ingestion.Processor, error) {
 	traceDB, err := tracedb.NewTraceServiceDBFromAddress(config.ExtraParams[CONFIG_TRACESERVICE], types.GoldenTraceBuilder)

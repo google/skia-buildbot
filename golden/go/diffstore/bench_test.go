@@ -49,6 +49,7 @@ func BenchmarkMemDiffStore(b *testing.B) {
 
 	mapper := NewGoldDiffStoreMapper(&diff.DiffMetrics{})
 	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, mapper)
+	assert.NoError(b, err)
 	allDigests := make([]types.DigestSlice, 0, PROCESS_N_TESTS)
 	processed := 0
 	var wg sync.WaitGroup

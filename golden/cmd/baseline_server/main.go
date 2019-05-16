@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skiaversion"
@@ -111,7 +112,8 @@ func main() {
 			InstanceID: *gitBTInstanceID,
 			TableID:    *gitBTTableID,
 		}
-		gitStore, err := bt_gitstore.New(ctx, btConf, *gitRepoURL)
+		var gitStore gitstore.GitStore
+		gitStore, err = bt_gitstore.New(ctx, btConf, *gitRepoURL)
 		if err != nil {
 			sklog.Fatalf("Error instantiating gitstore: %s", err)
 		}

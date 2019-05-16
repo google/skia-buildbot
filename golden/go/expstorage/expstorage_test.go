@@ -99,7 +99,7 @@ const hexLetters = "0123456789abcdef"
 const md5Length = 32
 
 func randomDigest() types.Digest {
-	ret := make([]byte, md5Length, md5Length)
+	ret := make([]byte, md5Length)
 	for i := 0; i < md5Length; i++ {
 		ret[i] = hexLetters[rand.Intn(len(hexLetters))]
 	}
@@ -180,6 +180,7 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 		assert.Equal(t, types.TestNameSlice{TEST_1, TEST_2}, found[0])
 	}
 
+	// TODO(kjlubick): assert something with foundExps
 	foundExps, err := store.Get()
 	assert.NoError(t, err)
 

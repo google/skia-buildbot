@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/issues"
@@ -283,7 +284,8 @@ func main() {
 			if foundRepoURL, ok := bt_gitstore.RepoURLFromID(ctx, btConf, *gitRepoURL); ok {
 				useRepoURL = foundRepoURL
 			}
-			gitStore, err := bt_gitstore.New(ctx, btConf, useRepoURL)
+			var gitStore gitstore.GitStore
+			gitStore, err = bt_gitstore.New(ctx, btConf, useRepoURL)
 			if err != nil {
 				sklog.Fatalf("Error instantiating gitstore: %s", err)
 			}

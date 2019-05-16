@@ -174,8 +174,8 @@ func (s *Storage) GetLastTileTrimmed() (types.ComplexTile, error) {
 
 	// If the tile was updated within a certain time window just return it without
 	// calculating it again.
-	if s.lastCpxTile != nil && (time.Now().Sub(s.lastTimeStamp) < tileCacheTime) {
-		sklog.Infof("short circuiting get tile, because it's still new: %s < %s", time.Now().Sub(s.lastTimeStamp), tileCacheTime)
+	if s.lastCpxTile != nil && (time.Since(s.lastTimeStamp) < tileCacheTime) {
+		sklog.Infof("short circuiting get tile, because it's still new: %s < %s", time.Since(s.lastTimeStamp), tileCacheTime)
 		return s.lastCpxTile, nil
 	}
 
@@ -257,7 +257,7 @@ func FilterIgnored(inputTile *tiling.Tile, ignoreStore ignore.IgnoreStore) (*til
 		}
 	}
 
-	ignoreRules := make([]paramtools.ParamSet, len(ignoreQueries), len(ignoreQueries))
+	ignoreRules := make([]paramtools.ParamSet, len(ignoreQueries))
 	for idx, q := range ignoreQueries {
 		ignoreRules[idx] = paramtools.ParamSet(q)
 	}

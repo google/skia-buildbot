@@ -261,7 +261,7 @@ func (t *TryjobResult) Load(props []datastore.Property) error {
 
 // strToInterfaceSlice copies a slice of string to a slice of interface{}.
 func strToInterfaceSlice(inArr []string) []interface{} {
-	ret := make([]interface{}, len(inArr), len(inArr))
+	ret := make([]interface{}, len(inArr))
 	for idx, val := range inArr {
 		ret[idx] = val
 	}
@@ -270,7 +270,7 @@ func strToInterfaceSlice(inArr []string) []interface{} {
 
 // interfaceToStrSlice copies a slice of interface{} to a string slice.
 func interfaceToStrSlice(inArr []interface{}) []string {
-	ret := make([]string, len(inArr), len(inArr))
+	ret := make([]string, len(inArr))
 	for idx, val := range inArr {
 		ret[idx] = val.(string)
 	}

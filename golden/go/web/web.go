@@ -414,9 +414,7 @@ func (wh *WebHandlers) JsonIgnoresHandler(w http.ResponseWriter, r *http.Request
 	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "application/json")
 
-	ignores := []*ignore.IgnoreRule{}
-	var err error
-	ignores, err = wh.Storages.IgnoreStore.List(true)
+	ignores, err := wh.Storages.IgnoreStore.List(true)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to retrieve ignore rules, there may be none.")
 		return
@@ -565,10 +563,8 @@ func (wh *WebHandlers) JsonTriageHandler(w http.ResponseWriter, r *http.Request)
 	}
 	sklog.Infof("Triage request: %#v", req)
 
-	var tc types.Expectations
-
 	// Build the expectations change request from the list of digests passed in.
-	tc = make(types.Expectations, len(req.TestDigestStatus))
+	tc := make(types.Expectations, len(req.TestDigestStatus))
 	for test, digests := range req.TestDigestStatus {
 		labeledDigests := make(map[types.Digest]types.Label, len(digests))
 		for d, label := range digests {

@@ -31,4 +31,5 @@ func TestIntermediate(t *testing.T) {
 			traces: map[tiling.TraceId]*types.GoldenTrace{},
 		},
 	}}, srMap)
+	assert.Equal(t, 1, srMap.numDigests())
 }

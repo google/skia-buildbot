@@ -147,7 +147,6 @@ type Indexer struct {
 	indexTestsNode    *pdag.Node
 	writeBaselineNode *pdag.Node
 	lastIndex         *SearchIndex
-	testNames         []types.TestName
 	mutex             sync.RWMutex
 }
 

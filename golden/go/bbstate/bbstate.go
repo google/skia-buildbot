@@ -110,6 +110,7 @@ type BuildBucketState struct {
 // bbURL is the URL of the target BuildBucket instance and client is an
 // authenticated http client.
 func NewBuildBucketState(config *Config) (BuildIssueSync, error) {
+	// TODO(kjlubick): use non-deprecated NewService() instead
 	service, err := bb_api.New(config.Client)
 	if err != nil {
 		return nil, err
