@@ -21,7 +21,6 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/fileutil"
@@ -41,7 +40,6 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
-	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -123,10 +121,6 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	mainTimer := timer.New("main init")
-
-	// Setup DB flags. But don't specify a default host or default database
-	// to avoid accidental writes.
-	dbConf := database.ConfigFromFlags("", db.PROD_DB_PORT, database.USER_RW, "", db.MigrationSteps())
 
 	// Parse the options. So we can configure logging.
 	flag.Parse()
@@ -364,38 +358,13 @@ func main() {
 			sklog.Fatalf("Unable to configure cloud datastore: %s", err)
 		}
 
-		// Set up the cloud expectations store, since at least the issue portion
-		// will be used even if we use MySQL.
+		// Set up the cloud expectations store
 		var expStore expstorage.DEPRECATED_ExpectationsStore
 		expStore, issueExpStoreFactory, err := expstorage.NewCloudExpectationsStore(ds.DS, evt)
 		if err != nil {
 			sklog.Fatalf("Unable to configure cloud expectations store: %s", err)
 		}
-
-		// Check if we should set up a MySQL backend for some of the stores.
-		useMySQL := (dbConf.Host != "") && (dbConf.Name != "")
-		var vdb *database.VersionedDB
-
-		// Set up MySQL if requested.
-		if useMySQL {
-			sklog.Warning("MySQL is in use. This behavior is severely deprecated")
-			if !*local {
-				if err := dbConf.GetPasswordFromMetadata(); err != nil {
-					sklog.Fatal(err)
-				}
-			}
-			vdb, err = dbConf.NewVersionedDB()
-			if err != nil {
-				sklog.Fatal(err)
-			}
-
-			if !vdb.IsLatestVersion() {
-				sklog.Fatal("Wrong DB version. Please updated to latest version.")
-			}
-
-			// This uses MySQL to manage expectations for the master branch.
-			expStore = expstorage.NewSQLExpectationStore(vdb)
-		}
+		// wrap it in a caching layer
 		expStore = expstorage.NewCachingExpectationStore(expStore, evt)
 
 		tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, issueExpStoreFactory, evt)
@@ -445,12 +414,10 @@ func main() {
 		// openSite indicates whether this can expose all end-points. The user still has to be authenticated.
 		openSite = (*pubWhiteList == WHITELIST_ALL) || *forceLogin
 
-		// TODO(stephana): Remove this workaround to avoid circular dependencies once the 'storage' module is cleaned up.
-
-		// If MySQL is configured we use it to store the ignore rules.
-		if useMySQL {
-			storages.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute, "gold-ignore-store"))
-		} else if storages.IgnoreStore, err = ignore.NewCloudIgnoreStore(ds.DS, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute, "gold-ignore-store")); err != nil {
+		// TODO(kjlubick): storage.Storage contains an IgnoreStore, so we can't pass ignore
+		// a storage.Storage directly. There probably shouldn't be one monolithic storage object,
+		// but each package could define its own.
+		if storages.IgnoreStore, err = ignore.NewCloudIgnoreStore(ds.DS, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute, "gold-ignore-store")); err != nil {
 			sklog.Fatalf("Unable to create cloud ignorestore: %s", err)
 		}
 

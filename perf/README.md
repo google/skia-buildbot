@@ -23,8 +23,6 @@ The current set of project level metadata required is:
   * apikey - The API Key found on this page
     https://console.developers.google.com/project/31977622648/apiui/credential
     Used for access to the project hosting API.
-  * readwrite - The MySQL readwrite password. Stored in http://valentine,
-    search for "skiaperf".
   * cookiesalt - A bit of entropy to use for hashing the users email address
     in the cookie as used for login. Store in http://valentine, search for "skiaperf".
   * clientid and clientsecret - The Client ID and Secret used in the OAuth flow

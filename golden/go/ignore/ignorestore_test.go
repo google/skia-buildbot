@@ -6,34 +6,15 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/database/testutil"
 	"go.skia.org/infra/go/ds"
 	ds_testutil "go.skia.org/infra/go/ds/testutil"
-	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/golden/go/db"
 )
 
 func TestTestMemIgnoreStore(t *testing.T) {
 	unittest.SmallTest(t)
 	memStore := NewMemIgnoreStore()
 	testIgnoreStore(t, memStore)
-}
-
-func TestSQLIgnoreStore(t *testing.T) {
-	unittest.LargeTest(t)
-	// Set up the database. This also locks the db until this test is finished
-	// causing similar tests to wait.
-	migrationSteps := db.MigrationSteps()
-	mysqlDB := testutil.SetupMySQLTestDatabase(t, migrationSteps)
-	defer mysqlDB.Close(t)
-
-	vdb, err := testutil.LocalTestDatabaseConfig(migrationSteps).NewVersionedDB()
-	assert.NoError(t, err)
-	defer testutils.AssertCloses(t, vdb)
-
-	store := NewSQLIgnoreStore(vdb, nil, nil)
-	testIgnoreStore(t, store)
 }
 
 func TestCloudIgnoreStore(t *testing.T) {

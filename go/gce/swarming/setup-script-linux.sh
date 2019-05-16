@@ -35,19 +35,6 @@ sudo ln -sfn /usr/lib/i386-linux-gnu/libGLU.so.1 /usr/lib/i386-linux-gnu/libGLU.
 sudo ln -sfn /usr/lib/i386-linux-gnu/libGL.so.1 /usr/lib/i386-linux-gnu/libGL.so
 sudo ln -sfn /usr/lib/i386-linux-gnu/libX11.so.6.3.0 /usr/lib/i386-linux-gnu/libX11.so
 
-# MySQL setup.
-sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password password tmp_pass'
-sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password tmp_pass'
-sudo apt-get --assume-yes install mysql-client mysql-server
-sudo mysql -uroot -ptmp_pass -e "SET PASSWORD = PASSWORD('');"
-cat <<EOF | sudo tee --append /etc/mysql/my.cnf
-
-[mysqld]
-# Required to fix "Error 1709: Index column size too large. The maximum column size is 767 bytes."
-character_set_server = latin1
-collation_server = latin1_swedish_ci
-EOF
-
 # NodeJS / NPM.
 # --location basically means follow redirects.
 curl --silent --location https://deb.nodesource.com/setup_6.x | sudo bash -

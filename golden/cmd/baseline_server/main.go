@@ -93,8 +93,7 @@ func main() {
 		sklog.Fatalf("Unable to configure cloud datastore: %s", err)
 	}
 
-	// Set up the cloud expectations store, since at least the issue portion
-	// will be used even if we use MySQL.
+	// Set up the cloud expectations store
 	expStore, issueExpStoreFactory, err := expstorage.NewCloudExpectationsStore(ds.DS, evt)
 	if err != nil {
 		sklog.Fatalf("Unable to configure cloud expectations store: %s", err)

@@ -87,12 +87,6 @@ def RunSteps(api):
           'install bower',
           cmd=['sudo', 'npm', 'i', '-g', 'bower@1.8.2'])
 
-  if 'Build' not in builder:
-    with api.context(cwd=infra_dir.join('go', 'database'), env=env):
-      api.step(
-          'setup database',
-          cmd=['./setup_test_db'])
-
   if ('Large' in builder) or ('Race' in builder):
     with api.context(cwd=infra_dir.join('go', 'ds', 'emulator'), env=env):
       api.step(

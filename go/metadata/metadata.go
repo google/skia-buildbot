@@ -29,11 +29,6 @@ const (
 	GMAIL_CLIENT_ID             = "gmail_clientid"
 	GMAIL_CLIENT_SECRET         = "gmail_clientsecret"
 
-	// DATABASE_RW_PASSWORD and DATABASE_ROOT_PASSWORD are the MySQL Database passwords for the
-	// readwrite and root user respectively.
-	DATABASE_RW_PASSWORD   = "database_readwrite"
-	DATABASE_ROOT_PASSWORD = "database_root"
-
 	// AUTH_WHITE_LIST is the comma or whitespace separated list of domains
 	// and email address that are allowed to log into an app.
 	AUTH_WHITE_LIST = "auth_white_list"
