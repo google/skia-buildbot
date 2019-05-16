@@ -44,34 +44,31 @@ const (
 type SearchIndex struct {
 	// The indices of these slices are the int values of types.IgnoreState
 	dCounters         []digest_counter.DigestCounter
-	summaries         []*summary.Summaries
+	summaries         []summary.SummaryMap
 	paramsetSummaries []paramsets.ParamSummary
 
 	cpxTile types.ComplexTile
 	blamer  blame.Blamer
-	warmer  *warmer.Warmer
+	warmer  warmer.DiffWarmer
 
 	// This is set by the indexing pipeline when we just want to update
 	// individual tests that have changed.
-	testNames []types.TestName
+	testNames types.TestNameSet
 	storages  *storage.Storage
 }
 
 // newSearchIndex creates a new instance of SearchIndex. It is not intended to
 // be used outside of this package. SearchIndex instances are created by the
 // Indexer and retrieved via GetIndex().
-func newSearchIndex(storages *storage.Storage, cpxTile types.ComplexTile) *SearchIndex {
+func newSearchIndex(storages *storage.Storage, cpxTile types.ComplexTile, w warmer.DiffWarmer) *SearchIndex {
 	return &SearchIndex{
 		// The indices of these slices are the int values of types.IgnoreState
-		dCounters: make([]digest_counter.DigestCounter, 2),
-		summaries: []*summary.Summaries{
-			summary.New(storages),
-			summary.New(storages),
-		},
+		dCounters:         make([]digest_counter.DigestCounter, 2),
+		summaries:         make([]summary.SummaryMap, 2),
 		paramsetSummaries: make([]paramsets.ParamSummary, 2),
 		cpxTile:           cpxTile,
 		blamer:            nil,
-		warmer:            warmer.New(),
+		warmer:            w,
 		storages:          storages,
 	}
 }
@@ -109,13 +106,14 @@ func (idx *SearchIndex) DigestCountsByQuery(query url.Values, is types.IgnoreSta
 }
 
 // Proxy to summary.Summary.Get.
-func (idx *SearchIndex) GetSummaries(is types.IgnoreState) map[types.TestName]*summary.Summary {
-	return idx.summaries[is].Get()
+func (idx *SearchIndex) GetSummaries(is types.IgnoreState) summary.SummaryMap {
+	return idx.summaries[is]
 }
 
 // Proxy to summary.CalcSummaries.
-func (idx *SearchIndex) CalcSummaries(testNames []types.TestName, query url.Values, is types.IgnoreState, head bool) (map[types.TestName]*summary.Summary, error) {
-	return idx.summaries[is].CalcSummaries(idx.cpxTile.GetTile(is), testNames, query, head)
+func (idx *SearchIndex) CalcSummaries(testNames types.TestNameSet, query url.Values, is types.IgnoreState, head bool) (summary.SummaryMap, error) {
+	dCounter := idx.dCounters[is]
+	return summary.NewSummaryMap(idx.storages, idx.cpxTile.GetTile(is), dCounter, idx.blamer, testNames, query, head)
 }
 
 // Proxy to paramsets.Get
@@ -144,6 +142,7 @@ func (idx *SearchIndex) GetBlame(test types.TestName, digest types.Digest, commi
 // of it.
 type Indexer struct {
 	storages          *storage.Storage
+	warmer            warmer.DiffWarmer
 	pipeline          *pdag.Node
 	indexTestsNode    *pdag.Node
 	writeBaselineNode *pdag.Node
@@ -155,9 +154,10 @@ type Indexer struct {
 // New returns a new Indexer instance. It synchronously indexes the initially
 // available tile. If the indexing fails an error is returned.
 // The provided interval defines how often the index should be refreshed.
-func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
+func New(storages *storage.Storage, w warmer.DiffWarmer, interval time.Duration) (*Indexer, error) {
 	ret := &Indexer{
 		storages: storages,
+		warmer:   w,
 	}
 
 	// Set up the processing pipeline.
@@ -224,6 +224,10 @@ func (ixr *Indexer) GetIndex() *SearchIndex {
 // start builds the initial index and starts the background
 // process to continuously build indices.
 func (ixr *Indexer) start(interval time.Duration) error {
+	if interval == 0 {
+		sklog.Warning("Not starting indexer because duration was 0")
+		return nil
+	}
 	defer shared.NewMetricsTimer("initial_synchronous_index").Stop()
 	// Build the first index synchronously.
 	tileStream := ixr.storages.GetTileStreamNow(interval, "gold-indexer")
@@ -298,7 +302,8 @@ func (ixr *Indexer) start(interval time.Duration) error {
 				// Only index the tests that have changed.
 				ixr.indexTests(testChanges)
 			} else {
-				// At this point new commits have discovered and we just want to write the baselines.
+				// At this point new commits have been discovered and we
+				// just want to write the baselines.
 				ixr.writeBaselines()
 			}
 		}
@@ -312,7 +317,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 func (ixr *Indexer) executePipeline(cpxTile types.ComplexTile) error {
 	defer shared.NewMetricsTimer("indexer_execute_pipeline").Stop()
 	// Create a new index from the given tile.
-	return ixr.pipeline.Trigger(newSearchIndex(ixr.storages, cpxTile))
+	return ixr.pipeline.Trigger(newSearchIndex(ixr.storages, cpxTile, ixr.warmer))
 }
 
 // writeBaselines triggers the node that causes baselines to be written to GCS.
@@ -332,19 +337,18 @@ func (ixr *Indexer) indexTests(testChanges []types.Expectations) {
 			testNames[testName] = true
 		}
 	}
-	tests := testNames.Keys()
-	if len(tests) == 0 {
+	if len(testNames) == 0 {
 		return
 	}
 
-	sklog.Infof("Going to re-index %d tests, starting with %s", len(tests), tests[0])
+	sklog.Infof("Going to re-index %d tests", len(testNames))
 
 	defer shared.NewMetricsTimer("index_tests").Stop()
 	newIdx := ixr.cloneLastIndex()
 	// Set the testNames such that we only recompute those tests.
-	newIdx.testNames = tests
+	newIdx.testNames = testNames
 	if err := ixr.indexTestsNode.Trigger(newIdx); err != nil {
-		sklog.Errorf("Error indexing tests: %v \n\n Got error: %s", tests, err)
+		sklog.Errorf("Error indexing tests: %v \n\n Got error: %s", testNames.Keys(), err)
 	}
 }
 
@@ -352,16 +356,18 @@ func (ixr *Indexer) indexTests(testChanges []types.Expectations) {
 func (ixr *Indexer) cloneLastIndex() *SearchIndex {
 	lastIdx := ixr.GetIndex()
 	return &SearchIndex{
-		cpxTile:   lastIdx.cpxTile,
-		dCounters: lastIdx.dCounters, // stay the same even if tests change.
-		summaries: []*summary.Summaries{
-			lastIdx.summaries[types.ExcludeIgnoredTraces].Clone(),
-			lastIdx.summaries[types.IncludeIgnoredTraces].Clone(),
+		cpxTile:           lastIdx.cpxTile,
+		dCounters:         lastIdx.dCounters,         // stay the same even if expectations change.
+		paramsetSummaries: lastIdx.paramsetSummaries, // stay the same even if expectations change.
+
+		summaries: []summary.SummaryMap{
+			lastIdx.summaries[types.ExcludeIgnoredTraces], // immutable, but may be replaced if
+			lastIdx.summaries[types.IncludeIgnoredTraces], // expectations change
 		},
-		paramsetSummaries: lastIdx.paramsetSummaries, //paramsetSummaries are immutable
-		blamer:            lastIdx.blamer,            // blamer is immutable and thus, thread-safe.
-		warmer:            warmer.New(),
-		storages:          lastIdx.storages,
+
+		blamer:   nil, // This will need to be recomputed if expectations change.
+		warmer:   ixr.warmer,
+		storages: lastIdx.storages,
 
 		// Force testNames to be empty, just to be sure we re-compute everything by default
 		testNames: nil,
@@ -404,7 +410,6 @@ func (ixr *Indexer) writeIssueBaseline(evData interface{}) {
 // the full tile (not applying ignore rules)
 func calcDigestCountsInclude(state interface{}) error {
 	idx := state.(*SearchIndex)
-
 	is := types.IncludeIgnoredTraces
 	idx.dCounters[is] = digest_counter.New(idx.cpxTile.GetTile(is))
 	return nil
@@ -414,7 +419,6 @@ func calcDigestCountsInclude(state interface{}) error {
 // the partial tile (applying ignore rules).
 func calcDigestCountsExclude(state interface{}) error {
 	idx := state.(*SearchIndex)
-
 	is := types.ExcludeIgnoredTraces
 	idx.dCounters[is] = digest_counter.New(idx.cpxTile.GetTile(is))
 	return nil
@@ -424,9 +428,15 @@ func calcDigestCountsExclude(state interface{}) error {
 func calcSummaries(state interface{}) error {
 	idx := state.(*SearchIndex)
 	for _, is := range types.IgnoreStates {
-		err := idx.summaries[is].Calculate(idx.cpxTile.GetTile(is), idx.testNames, idx.dCounters[is], idx.blamer)
+		dCounter := idx.dCounters[is]
+		sum, err := summary.NewSummaryMap(idx.storages, idx.cpxTile.GetTile(is), dCounter, idx.blamer, idx.testNames, nil, true)
 		if err != nil {
 			return skerr.Fmt("Could not calculate summaries with ignore state %d: %s", is, err)
+		}
+		if len(idx.testNames) > 0 && idx.summaries[is] != nil {
+			idx.summaries[is] = idx.summaries[is].Combine(sum)
+		} else {
+			idx.summaries[is] = sum
 		}
 	}
 
@@ -437,7 +447,6 @@ func calcSummaries(state interface{}) error {
 // the full tile (not applying ignore rules)
 func calcParamsetsInclude(state interface{}) error {
 	idx := state.(*SearchIndex)
-
 	is := types.IncludeIgnoredTraces
 	idx.paramsetSummaries[is] = paramsets.NewParamSummary(idx.cpxTile.GetTile(is), idx.dCounters[is])
 	return nil
@@ -447,7 +456,6 @@ func calcParamsetsInclude(state interface{}) error {
 // the partial tile (applying ignore rules)
 func calcParamsetsExclude(state interface{}) error {
 	idx := state.(*SearchIndex)
-
 	is := types.ExcludeIgnoredTraces
 	idx.paramsetSummaries[is] = paramsets.NewParamSummary(idx.cpxTile.GetTile(is), idx.dCounters[is])
 	return nil
@@ -516,6 +524,7 @@ func writeMasterBaseline(state interface{}) error {
 	idx := state.(*SearchIndex)
 
 	if !idx.storages.Baseliner.CanWriteBaseline() {
+		sklog.Warning("Indexer tried to write baselines, but was not allowed to")
 		return nil
 	}
 
@@ -544,6 +553,7 @@ func runWarmer(state interface{}) error {
 		return skerr.Fmt("Could not run warmer - expectations failure: %s", err)
 	}
 	d := digesttools.NewClosestDiffFinder(exp, idx.dCounters[is], idx.storages.DiffStore)
-	go idx.warmer.PrecomputeDiffs(idx.summaries[is], idx.dCounters[is], d)
+
+	go idx.warmer.PrecomputeDiffs(idx.summaries[is], idx.testNames, idx.dCounters[is], d)
 	return nil
 }
