@@ -95,7 +95,7 @@ const (
 type DigestFailure struct {
 	Digest types.Digest `json:"digest"`
 	Reason DiffErr      `json:"reason"`
-	TS     int64        `json:"ts"`
+	TS     int64        `json:"ts"` // in milliseconds since the epoch
 }
 
 // NewDigestFailure is a convenience function to create an instance of DigestFailure.
@@ -148,6 +148,7 @@ type DiffStore interface {
 
 	// WarmDiffs will calculate the difference between every digests in
 	// leftDigests and every in digests in rightDigests.
+	// TODO(kjlubick): Is this obsolete now that warmer will pre-compute these?
 	WarmDiffs(priority int64, leftDigests types.DigestSlice, rightDigests types.DigestSlice)
 
 	// UnavailableDigests returns map[digest]*DigestFailure which can be used

@@ -388,5 +388,5 @@ func fromLongCommit(lc *vcsinfo.LongCommit) *tiling.Commit {
 	}
 }
 
-// Make sure BaselinerImpl fulfills the Baseliner Interface
+// Make sure BaselinerImpl fulfills the Baseliner interface
 var _ baseline.Baseliner = (*BaselinerImpl)(nil)

@@ -1,4 +1,4 @@
-package digesttools
+package digesttools_test
 
 import (
 	"math"
@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
+	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -46,7 +47,7 @@ func TestClosestDigest(t *testing.T) {
 	mdc.On("ByTest").Return(digestCounts)
 	mds.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{})
 
-	cdf := NewClosestDiffFinder(exp, mdc, mds)
+	cdf := digesttools.NewClosestDiffFinder(exp, mdc, mds)
 
 	cdf.Precompute()
 
@@ -105,7 +106,7 @@ func TestClosestDigestWithUnavailable(t *testing.T) {
 		mockDigestB: {},
 	})
 
-	cdf := NewClosestDiffFinder(exp, mdc, mds)
+	cdf := digesttools.NewClosestDiffFinder(exp, mdc, mds)
 
 	cdf.Precompute()
 
@@ -127,21 +128,14 @@ func TestClosestDigestWithUnavailable(t *testing.T) {
 	// return that it couldn't find one.
 	c = cdf.ClosestDigest(mockTest, mockDigestF, types.NEGATIVE)
 	assert.InDelta(t, math.MaxFloat32, float64(c.Diff), 0.01)
-	assert.Equal(t, NoDigestFound, c.Digest)
+	assert.Equal(t, digesttools.NoDigestFound, c.Digest)
 	assert.Equal(t, []int{}, c.MaxRGBA)
 
 	// Now test against a test with no digests at all in the latest tile.
 	c = cdf.ClosestDigest(testThatDoesNotExist, mockDigestF, types.POSITIVE)
 	assert.Equal(t, float32(math.MaxFloat32), c.Diff)
-	assert.Equal(t, NoDigestFound, c.Digest)
+	assert.Equal(t, digesttools.NoDigestFound, c.Digest)
 	assert.Equal(t, []int{}, c.MaxRGBA)
-}
-
-func TestCombinedDiffMetric(t *testing.T) {
-	unittest.SmallTest(t)
-	assert.InDelta(t, 1.0, combinedDiffMetric(0.0, []int{}), 0.000001)
-	assert.InDelta(t, 1.0, combinedDiffMetric(1.0, []int{255, 255, 255, 255}), 0.000001)
-	assert.InDelta(t, math.Sqrt(0.5), combinedDiffMetric(0.5, []int{255, 255, 255, 255}), 0.000001)
 }
 
 const (

@@ -179,7 +179,7 @@ func allUntriagedSummaries(idx *indexer.SearchIndex, query url.Values) (*tiling.
 	tile := idx.CpxTile().GetTile(types.IncludeIgnoredTraces)
 
 	// Get a list of all untriaged images by test.
-	sum, err := idx.CalcSummaries([]types.TestName{}, query, types.ExcludeIgnoredTraces, true)
+	sum, err := idx.CalcSummaries(nil, query, types.ExcludeIgnoredTraces, true)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Couldn't load summaries: %s", err)
 	}

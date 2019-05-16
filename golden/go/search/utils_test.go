@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/golden/go/serialize"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/warmer"
 )
 
 func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qStr string, exp types.Expectations, buf *bytes.Buffer) int {
@@ -157,7 +158,7 @@ func getStoragesAndIndexerFromTile(t assert.TestingT, path string, randomize boo
 		Baseliner:         baseliner,
 	}
 
-	ixr, err := indexer.New(storages, 10*time.Minute)
+	ixr, err := indexer.New(storages, warmer.New(), 10*time.Minute)
 	assert.NoError(t, err)
 	idx := ixr.GetIndex()
 	tile := idx.CpxTile().GetTile(types.ExcludeIgnoredTraces)

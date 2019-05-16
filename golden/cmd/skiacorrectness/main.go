@@ -54,6 +54,7 @@ import (
 	"go.skia.org/infra/golden/go/tryjobs/gerrit_tryjob_monitor"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/warmer"
 	"go.skia.org/infra/golden/go/web"
 	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
@@ -459,7 +460,7 @@ func main() {
 
 		// Rebuild the index every few minutes.
 		sklog.Infof("Starting indexer to run every %s", *indexInterval)
-		ixr, err := indexer.New(storages, *indexInterval)
+		ixr, err := indexer.New(storages, warmer.New(), *indexInterval)
 		if err != nil {
 			sklog.Fatalf("Failed to create indexer: %s", err)
 		}
