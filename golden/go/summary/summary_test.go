@@ -1,4 +1,4 @@
-package summary
+package summary_test
 
 import (
 	"net/url"
@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
+	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -186,11 +187,8 @@ func TestCalcSummaries(t *testing.T) {
 	blamer, err := blame.New(tile, exp)
 	assert.NoError(t, err)
 
-	summaries := New(storages)
-	assert.NoError(t, summaries.Calculate(tileWithIgnoreApplied, nil, dc, blamer))
-
 	// Query all gms with ignores
-	if sum, err := summaries.CalcSummaries(tileWithIgnoreApplied, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
+	if sum, err := summary.NewSummaryMap(storages, tileWithIgnoreApplied, dc, blamer, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 2, len(sum))
@@ -203,7 +201,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Query all gms with full tile.
-	if sum, err := summaries.CalcSummaries(tile, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
+	if sum, err := summary.NewSummaryMap(storages, tile, dc, blamer, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 2, len(sum))
@@ -215,7 +213,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Query gms belonging to test FirstTest from full tile
-	if sum, err := summaries.CalcSummaries(tile, []types.TestName{FirstTest}, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
+	if sum, err := summary.NewSummaryMap(storages, tile, dc, blamer, types.TestNameSet{FirstTest: true}, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 1, len(sum))
@@ -226,7 +224,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Query all digests belonging to test FirstTest from tile with ignores applied
-	if sum, err := summaries.CalcSummaries(tileWithIgnoreApplied, []types.TestName{FirstTest}, nil, false); err != nil {
+	if sum, err := summary.NewSummaryMap(storages, tileWithIgnoreApplied, dc, blamer, types.TestNameSet{FirstTest: true}, nil, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 1, len(sum))
@@ -238,7 +236,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// query any digest in 8888 OR 565 from tile with ignores applied
-	if sum, err := summaries.CalcSummaries(tileWithIgnoreApplied, nil, url.Values{"config": {"8888", "565"}}, false); err != nil {
+	if sum, err := summary.NewSummaryMap(storages, tileWithIgnoreApplied, dc, blamer, nil, url.Values{"config": {"8888", "565"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 3, len(sum))
@@ -252,7 +250,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// query any digest in 8888 OR 565 from tile with ignores applied at Head
-	if sum, err := summaries.CalcSummaries(tileWithIgnoreApplied, nil, url.Values{"config": {"8888", "565"}}, true); err != nil {
+	if sum, err := summary.NewSummaryMap(storages, tileWithIgnoreApplied, dc, blamer, nil, url.Values{"config": {"8888", "565"}}, true); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 3, len(sum))
@@ -267,7 +265,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Query any digest with the gpu config
-	if sum, err := summaries.CalcSummaries(tileWithIgnoreApplied, nil, url.Values{"config": {"gpu"}}, false); err != nil {
+	if sum, err := summary.NewSummaryMap(storages, tileWithIgnoreApplied, dc, blamer, nil, url.Values{"config": {"gpu"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 1, len(sum))
@@ -277,14 +275,102 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Nothing should show up from an unknown query
-	if sum, err := summaries.CalcSummaries(tileWithIgnoreApplied, nil, url.Values{"config": {"unknown"}}, false); err != nil {
+	if sum, err := summary.NewSummaryMap(storages, tileWithIgnoreApplied, dc, blamer, nil, url.Values{"config": {"unknown"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 0, len(sum))
 	}
 }
 
-func triageCountsCorrect(t *testing.T, sum map[types.TestName]*Summary, name types.TestName, pos, neg, unt int) {
+func TestCombine(t *testing.T) {
+	unittest.SmallTest(t)
+
+	first := summary.SummaryMap{
+		FirstTest: {
+			Name:      FirstTest,
+			Diameter:  4,
+			Pos:       2,
+			Neg:       3,
+			Untriaged: 1,
+			UntHashes: types.DigestSlice{AlphaDigest},
+			Num:       6,
+			Corpus:    "gm",
+			Blame: []*blame.WeightedBlame{
+				{
+					Author: "test@example.com",
+					Prob:   1.00,
+				},
+			},
+		},
+		SecondTest: {
+			Name:      SecondTest,
+			Diameter:  14,
+			Pos:       12,
+			Neg:       13,
+			Untriaged: 1,
+			UntHashes: types.DigestSlice{BetaDigest},
+			Num:       26,
+			Corpus:    "gm",
+			Blame: []*blame.WeightedBlame{
+				{
+					Author: "other@example.com",
+					Prob:   0.5,
+				},
+				{
+					Author: "test@example.com",
+					Prob:   0.5,
+				},
+			},
+		},
+	}
+
+	second := summary.SummaryMap{
+		FirstTest: {
+			Name:      FirstTest,
+			Diameter:  24,
+			Pos:       22,
+			Neg:       23,
+			Untriaged: 0,
+			UntHashes: types.DigestSlice{},
+			Num:       45,
+			Corpus:    "gm",
+			Blame:     []*blame.WeightedBlame{},
+		},
+		ThirdTest: {
+			Name:      ThirdTest,
+			Diameter:  34,
+			Pos:       32,
+			Neg:       33,
+			Untriaged: 1,
+			UntHashes: types.DigestSlice{GammaDigest},
+			Num:       66,
+			Corpus:    "gm",
+			Blame: []*blame.WeightedBlame{
+				{
+					Author: "nobody@example.com",
+					Prob:   1.0,
+				},
+			},
+		},
+	}
+
+	result := first.Combine(second)
+
+	// Originals first and second should be unchanged
+	assert.Len(t, first, 2)
+	assert.Len(t, second, 2)
+	assert.Len(t, result, 3)
+
+	assert.Len(t, first[FirstTest].Blame, 1)
+	assert.Len(t, second[FirstTest].Blame, 0)
+	assert.Len(t, result[FirstTest].Blame, 0)
+
+	assert.Contains(t, result, FirstTest)
+	assert.Contains(t, result, SecondTest)
+	assert.Contains(t, result, ThirdTest)
+}
+
+func triageCountsCorrect(t *testing.T, sum summary.SummaryMap, name types.TestName, pos, neg, unt int) {
 	s, ok := sum[name]
 	assert.True(t, ok, "Could not find %s in %#v", name, sum)
 	assert.Equal(t, pos, s.Pos, "Postive count wrong")
@@ -296,4 +382,8 @@ const (
 	FirstTest  = types.TestName("test_first")
 	SecondTest = types.TestName("test_second")
 	ThirdTest  = types.TestName("test_third")
+
+	AlphaDigest = types.Digest("aaaec803b2ce49e4a541068d495ab570")
+	BetaDigest  = types.Digest("bbb9ee4a034fdeddd1b65be92debe731")
+	GammaDigest = types.Digest("ccc8f073f388469e0193300623691a36")
 )

@@ -1,206 +1,287 @@
 package indexer
 
 import (
-	"context"
-	"flag"
-	"math/rand"
+	"sort"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/ds"
-	ds_testutil "go.skia.org/infra/go/ds/testutil"
-	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/gcs/gcs_testutils"
-	"go.skia.org/infra/go/git/gitinfo"
-	"go.skia.org/infra/go/sktest"
-	"go.skia.org/infra/go/testutils"
+	mock_eventbus "go.skia.org/infra/go/eventbus/mocks"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
-	tracedb "go.skia.org/infra/go/trace/db"
-	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
-	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/blame"
+	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
+	"go.skia.org/infra/golden/go/summary"
+	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
 )
 
-const (
-	// Directory with testdata.
-	TEST_DATA_DIR = "./testdata"
+// TestIndexerInitialTriggerSunnyDay tests a full indexing run, assuming
+// nothing crashes or returns an error.
+func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
 
-	// Local file location of the test data.
-	TEST_DATA_PATH = TEST_DATA_DIR + "/goldentile.json.zip"
+	mb := &mocks.Baseliner{}
+	mds := &mocks.DiffStore{}
+	mdw := &mocks.DiffWarmer{}
+	meb := &mock_eventbus.EventBus{}
+	mes := &mocks.ExpectationsStore{}
+	mgc := &mocks.GCSClient{}
 
-	// Folder in the testdata bucket. See go/testutils for details.
-	TEST_DATA_STORAGE_PATH = "gold-testdata/goldentile.json.gz"
+	defer mb.AssertExpectations(t)
+	defer mds.AssertExpectations(t)
+	defer mdw.AssertExpectations(t)
+	defer meb.AssertExpectations(t)
+	defer mes.AssertExpectations(t)
+	defer mgc.AssertExpectations(t)
 
-	// REPO_URL is the url of the repo to check out.
-	REPO_URL = "https://skia.googlesource.com/skia"
-
-	// REPO_DIR contains the location of where to check out Skia for benchmarks.
-	REPO_DIR = "./skia"
-
-	// N_COMMITS is the number of commits used in benchmarks.
-	N_COMMITS = 50
-
-	// Database user used by benchmarks.
-	DB_USER = "readwrite"
-
-	// TEST_HASHES_PATH is the GCS path where the file will be written.
-	TEST_HASHES_PATH = "skia-infra-testdata/hash_files/testing-known-hashes.txt"
-)
-
-// Flags used by benchmarks. Everything else uses reasonable assumptions based
-// on a local setup of tracedb and skia_ingestion.
-var (
-	traceService = flag.String("trace_service", "localhost:9001", "The address of the traceservice endpoint.")
-	dbName       = flag.String("db_name", "gold_skiacorrectness", "The name of the databased to use. User 'readwrite' and local test settings are assumed.")
-)
-
-func TestIndexer(t *testing.T) {
-	unittest.LargeTest(t)
-
-	err := gcs_testutils.DownloadTestDataFile(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
-	assert.NoError(t, err, "Unable to download testdata.")
-	defer testutils.RemoveAll(t, TEST_DATA_DIR)
-
-	tileBuilder := mocks.NewMockTileBuilderFromJson(t, TEST_DATA_PATH)
-	eventBus := eventbus.New()
-	expStore := expstorage.NewMemExpectationsStore(eventBus)
-
-	opts := storage.GCSClientOptions{
-		HashesGSPath: TEST_HASHES_PATH,
-	}
-	gsClient, err := storage.NewGCSClient(mocks.GetHTTPClient(t), opts)
-	assert.NoError(t, err)
-	assert.NotNil(t, gsClient)
-
-	baseliner, err := gcs_baseliner.New(gsClient, expStore, nil, nil, nil)
-	assert.NoError(t, err)
+	ct, _, _ := makeComplexTileWithCrosshatchIgnores()
 
 	storages := &storage.Storage{
-		ExpectationsStore: expStore,
-		MasterTileBuilder: tileBuilder,
-		DiffStore:         mocks.NewMockDiffStore(),
-		EventBus:          eventBus,
-		GCSClient:         gsClient,
-		Baseliner:         baseliner,
+		ExpectationsStore: mes,
+		DiffStore:         mds,
+		EventBus:          meb,
+		GCSClient:         mgc,
+		Baseliner:         mb,
 	}
+	wg, isAsync, asyncWrapper := asyncHelpers()
 
-	// Set up a waitgroup that waits for index updates throughout the test.
-	var wg sync.WaitGroup
-	eventBus.SubscribeAsync(EV_INDEX_UPDATED, func(ignore interface{}) {
-		wg.Done()
+	allTestDigests := types.DigestSlice{data.AlphaGood1Digest, data.AlphaBad1Digest, data.AlphaUntriaged1Digest,
+		data.BetaGood1Digest, data.BetaUntriaged1Digest}
+	sort.Sort(allTestDigests)
+
+	mb.On("CanWriteBaseline").Return(true)
+	isAsync(mb.On("PushMasterBaselines", ct, "")).Return(nil, nil)
+
+	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+
+	// Return a non-empty map just to make sure things don't crash - this doesn't actually
+	// affect any of the assertions.
+	mds.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{
+		unavailableDigest: {
+			Digest: unavailableDigest,
+			Reason: "on vacation",
+			// Arbitrary date
+			TS: time.Date(2017, time.October, 5, 4, 3, 2, 0, time.UTC).UnixNano() / int64(time.Millisecond),
+		},
 	})
 
-	wg.Add(1)
-	ixr, err := New(storages, time.Minute)
+	mds.On("WarmDigests", diff.PRIORITY_NOW, mock.AnythingOfType("types.DigestSlice"), true).Run(asyncWrapper(func(args mock.Arguments) {
+		digests := args.Get(1).(types.DigestSlice)
+		sort.Sort(digests)
+
+		assert.Equal(t, allTestDigests, digests)
+	}))
+
+	mgc.On("WriteKnownDigests", mock.AnythingOfType("types.DigestSlice")).Run(asyncWrapper(func(args mock.Arguments) {
+		digests := args.Get(0).(types.DigestSlice)
+		sort.Sort(digests)
+
+		assert.Equal(t, allTestDigests, digests)
+	})).Return(nil)
+
+	publishedSearchIndex := (*SearchIndex)(nil)
+
+	meb.On("Publish", EV_INDEX_UPDATED, mock.AnythingOfType("*indexer.SearchIndex"), false).Run(func(args mock.Arguments) {
+		si := args.Get(1).(*SearchIndex)
+		assert.NotNil(t, si)
+
+		publishedSearchIndex = si
+	}).Return(nil)
+
+	// The first and third params are computed in indexer, so we should spot check their data
+	mdw.On("PrecomputeDiffs", mock.AnythingOfType("summary.SummaryMap"), types.TestNameSet(nil), mock.AnythingOfType("*digest_counter.Counter"), mock.AnythingOfType("*digesttools.Impl")).Run(asyncWrapper(func(args mock.Arguments) {
+		sm := args.Get(0).(summary.SummaryMap)
+		assert.NotNil(t, sm)
+		dCounter := args.Get(2).(*digest_counter.Counter)
+		assert.NotNil(t, dCounter)
+
+		// There's only one untriaged digest for each test
+		assert.Equal(t, types.DigestSlice{data.AlphaUntriaged1Digest}, sm[data.AlphaTest].UntHashes)
+		assert.Equal(t, types.DigestSlice{data.BetaUntriaged1Digest}, sm[data.BetaTest].UntHashes)
+
+		// These counts should include the ignored crosshatch traces
+		assert.Equal(t, map[types.TestName]digest_counter.DigestCount{
+			data.AlphaTest: {
+				data.AlphaGood1Digest:      2,
+				data.AlphaBad1Digest:       6,
+				data.AlphaUntriaged1Digest: 1,
+			},
+			data.BetaTest: {
+				data.BetaGood1Digest:      6,
+				data.BetaUntriaged1Digest: 1,
+			},
+		}, dCounter.ByTest())
+	}))
+
+	ixr, err := New(storages, mdw, 0)
 	assert.NoError(t, err)
+
+	err = ixr.executePipeline(ct)
+	assert.NoError(t, err)
+	assert.NotNil(t, publishedSearchIndex)
+	actualIndex := ixr.GetIndex()
+	assert.NotNil(t, actualIndex)
+
+	assert.Equal(t, publishedSearchIndex, actualIndex)
+
+	// Block until all async calls are finished so the assertExpectations calls
+	// can properly check that their functions were called.
 	wg.Wait()
-
-	idxOne := ixr.GetIndex()
-
-	// Change the classifications and wait for the indexing to propagate.
-	changes := getChanges(t, idxOne.cpxTile.GetTile(types.ExcludeIgnoredTraces))
-	assert.NotEqual(t, 0, len(changes))
-	wg.Add(1)
-	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
-	wg.Wait()
-
-	// Make sure the new index is different from the previous one.
-	idxTwo := ixr.GetIndex()
-	assert.NotEqual(t, idxOne, idxTwo)
 }
 
-func getChanges(t *testing.T, tile *tiling.Tile) types.Expectations {
-	ret := types.Expectations{}
-	labelVals := []types.Label{types.POSITIVE, types.NEGATIVE}
-	for _, trace := range tile.Traces {
-		if rand.Float32() > 0.5 {
-			gTrace := trace.(*types.GoldenTrace)
-			for _, digest := range gTrace.Digests {
-				if digest != types.MISSING_DIGEST {
-					testName := gTrace.TestName()
-					if found, ok := ret[testName]; ok {
-						found[digest] = labelVals[rand.Int()%2]
-					} else {
-						ret[testName] = types.TestClassification{digest: labelVals[rand.Int()%2]}
-					}
-				}
-			}
+// TestIndexerPartialUpdate tests the part of indexer that runs when expectations change
+// and we need to re-index a subset of the data, namely that which had tests change
+// (e.g. from Untriaged to Positive or whatever).
+func TestIndexerPartialUpdate(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mb := &mocks.Baseliner{}
+	mdw := &mocks.DiffWarmer{}
+	meb := &mock_eventbus.EventBus{}
+	mes := &mocks.ExpectationsStore{}
+
+	defer mb.AssertExpectations(t)
+	defer mdw.AssertExpectations(t)
+	defer meb.AssertExpectations(t)
+	defer mes.AssertExpectations(t)
+
+	ct, fullTile, partialTile := makeComplexTileWithCrosshatchIgnores()
+
+	wg, isAsync, asyncWrapper := asyncHelpers()
+
+	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+
+	mb.On("CanWriteBaseline").Return(true)
+	isAsync(mb.On("PushMasterBaselines", ct, "")).Return(nil, nil)
+
+	meb.On("Publish", EV_INDEX_UPDATED, mock.AnythingOfType("*indexer.SearchIndex"), false).Return(nil)
+
+	// Make sure PrecomputeDiffs is only told to recompute BetaTest.
+	tn := types.TestNameSet{data.BetaTest: true}
+	mdw.On("PrecomputeDiffs", mock.AnythingOfType("summary.SummaryMap"), tn, mock.AnythingOfType("*digest_counter.Counter"), mock.AnythingOfType("*digesttools.Impl")).Run(asyncWrapper(func(args mock.Arguments) {
+		sm := args.Get(0).(summary.SummaryMap)
+		assert.NotNil(t, sm)
+		dCounter := args.Get(2).(*digest_counter.Counter)
+		assert.NotNil(t, dCounter)
+	}))
+
+	storages := &storage.Storage{
+		ExpectationsStore: mes,
+		EventBus:          meb,
+		Baseliner:         mb,
+	}
+
+	ixr, err := New(storages, mdw, 0)
+	assert.NoError(t, err)
+
+	alphaOnly := summary.SummaryMap{
+		data.AlphaTest: {
+			Name:      data.AlphaTest,
+			Untriaged: 1,
+			UntHashes: types.DigestSlice{data.AlphaUntriaged1Digest},
+		},
+	}
+
+	ixr.lastIndex = &SearchIndex{
+		storages:  storages,
+		summaries: []summary.SummaryMap{alphaOnly, alphaOnly},
+		dCounters: []digest_counter.DigestCounter{
+			digest_counter.New(partialTile),
+			digest_counter.New(fullTile),
+		},
+
+		cpxTile: ct,
+	}
+
+	ixr.indexTests([]types.Expectations{
+		{
+			data.BetaTest: {
+				// Pretend this digest was just marked positive.
+				data.BetaGood1Digest: types.POSITIVE,
+			},
+		},
+	})
+
+	actualIndex := ixr.GetIndex()
+	assert.NotNil(t, actualIndex)
+
+	sm := actualIndex.GetSummaries(types.ExcludeIgnoredTraces)
+	assert.Contains(t, sm, data.AlphaTest)
+	assert.Contains(t, sm, data.BetaTest)
+
+	// Spot check the summaries themselves.
+	assert.Equal(t, types.DigestSlice{data.AlphaUntriaged1Digest}, sm[data.AlphaTest].UntHashes)
+
+	assert.Equal(t, &summary.Summary{
+		Name:      data.BetaTest,
+		Pos:       1,
+		Neg:       0,
+		Untriaged: 0, // Reminder that the untriaged image for BetaTest was ignored by the rules.
+		UntHashes: types.DigestSlice{},
+		Num:       1,
+		Corpus:    "gm",
+		Blame:     []*blame.WeightedBlame{},
+	}, sm[data.BetaTest])
+	// Block until all async calls are finished so the assertExpectations calls
+	// can properly check that their functions were called.
+	wg.Wait()
+}
+
+const (
+	// valid, but arbitrary md5 hash
+	unavailableDigest = types.Digest("fed541470e246b63b313930523220de8")
+)
+
+// You may be tempted to just use a MockComplexTile here, but I was running into a race
+// condition similar to https://github.com/stretchr/testify/issues/625 In essence, try
+// to avoid having a mock (A) assert it was called with another mock (B) where the
+// mock B is used elsewhere. There's a race because mock B is keeping track of what was
+// called on it while mock A records what it was called with.
+func makeComplexTileWithCrosshatchIgnores() (types.ComplexTile, *tiling.Tile, *tiling.Tile) {
+	fullTile := data.MakeTestTile()
+	partialTile := data.MakeTestTile()
+	delete(partialTile.Traces, "crosshatch:test_alpha:gm")
+	delete(partialTile.Traces, "crosshatch:test_beta:gm")
+
+	ct := types.NewComplexTile(fullTile)
+	ct.SetIgnoreRules(partialTile, []paramtools.ParamSet{
+		{
+			"device": []string{"crosshatch"},
+		},
+	}, 1)
+	return ct, fullTile, partialTile
+}
+
+// These helpers assist in wrapping the Run calls in the wait group
+// so we can be sure everything actually runs before the function
+// terminates. Ideally, I would have liked to be able to chain multiple
+// Run calls to the mock, but testify's mocks only allow one
+// Run per Call. We have two helpers then, one if a mock does not already
+// have a Run function and the other is for wrapping around a Run function
+// that already exists.
+// Note: do not call defer wg.Wait() because if any assert fails, it will
+// panic, possibly before all the wg.Done() are called, causing a deadlock.
+func asyncHelpers() (*sync.WaitGroup, func(c *mock.Call) *mock.Call, func(f func(args mock.Arguments)) func(mock.Arguments)) {
+	wg := sync.WaitGroup{}
+	isAsync := func(c *mock.Call) *mock.Call {
+		wg.Add(1)
+		return c.Run(func(a mock.Arguments) {
+			wg.Done()
+		})
+	}
+	asyncWrapper := func(f func(args mock.Arguments)) func(mock.Arguments) {
+		wg.Add(1)
+		return func(args mock.Arguments) {
+			defer wg.Done()
+			f(args)
 		}
 	}
-
-	assert.True(t, len(ret) > 0)
-	return ret
-}
-
-func BenchmarkIndexer(b *testing.B) {
-	ctx := context.Background()
-	storages, expStore := setupStorages(b, ctx)
-	defer testutils.RemoveAll(b, REPO_DIR)
-
-	// Build the initial index.
-	b.ResetTimer()
-	_, err := New(storages, time.Minute*15)
-	assert.NoError(b, err)
-
-	// Update the expectations.
-	changesTestExp, err := expStore.Get()
-	assert.NoError(b, err)
-
-	// Wait for the indexTests to complete when we change the expectations.
-	var wg sync.WaitGroup
-	wg.Add(1)
-	storages.EventBus.SubscribeAsync(EV_INDEX_UPDATED, func(state interface{}) {
-		wg.Done()
-	})
-	assert.NoError(b, storages.ExpectationsStore.AddChange(changesTestExp, ""))
-	wg.Wait()
-}
-
-func setupStorages(t sktest.TestingT, ctx context.Context) (*storage.Storage, expstorage.ExpectationsStore) {
-	flag.Parse()
-
-	// Set up the diff store, the event bus and the DB connection.
-	diffStore := mocks.NewMockDiffStore()
-	evt := eventbus.New()
-
-	// Set up the cloud datasstore and initialize the expectations store.
-	cleanup := ds_testutil.InitDatastore(t, ds.KindsToBackup[ds.GOLD_SKIA_PROD_NS]...)
-	defer cleanup()
-
-	cloudExpStore, _, err := expstorage.NewCloudExpectationsStore(ds.DS, evt)
-	assert.NoError(t, err)
-
-	expStore := expstorage.NewCachingExpectationStore(cloudExpStore, evt)
-
-	git, err := gitinfo.CloneOrUpdate(context.Background(), REPO_URL, REPO_DIR, false)
-	assert.NoError(t, err)
-
-	traceDB, err := tracedb.NewTraceServiceDBFromAddress(*traceService, types.GoldenTraceBuilder)
-	assert.NoError(t, err)
-
-	masterTileBuilder, err := tracedb.NewMasterTileBuilder(ctx, traceDB, git, N_COMMITS, evt, "")
-	assert.NoError(t, err)
-
-	ret := &storage.Storage{
-		DiffStore:         diffStore,
-		ExpectationsStore: expstorage.NewMemExpectationsStore(evt),
-		MasterTileBuilder: masterTileBuilder,
-		NCommits:          N_COMMITS,
-		EventBus:          evt,
-	}
-
-	ret.IgnoreStore, err = ignore.NewCloudIgnoreStore(ds.DS, expStore, ret.GetTileStreamNow(time.Minute, "test-ignore-store"))
-	assert.NoError(t, err)
-
-	tile, err := ret.GetLastTileTrimmed()
-	assert.NoError(t, err)
-
-	assert.True(t, len(tile.IgnoreRules()) > 0)
-	return ret, expStore
+	return &wg, isAsync, asyncWrapper
 }
