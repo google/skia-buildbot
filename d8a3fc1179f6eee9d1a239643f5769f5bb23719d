@@ -1,0 +1,182 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2a7f591e_843d288a",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-16T05:08:32Z",
+      "side": 1,
+      "message": "nit: It seems like you would want to check that actualIndex has the expected results.",
+      "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13bf79dd_729d3470",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-16T05:08:32Z",
+      "side": 1,
+      "message": "Call?",
+      "range": {
+        "startLine": 251,
+        "startChar": 11,
+        "endLine": 251,
+        "endChar": 15
+      },
+      "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "188f3dcd_7bfe038d",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-16T05:08:32Z",
+      "side": 1,
+      "message": "nit: I\u0027m guessing that you decided not to defer the call to wg.Wait() because it causes problems if the test fails before the point where the asynchronous call would be triggered. If so, maybe mention that in docs here.",
+      "range": {
+        "startLine": 253,
+        "startChar": 22,
+        "endLine": 253,
+        "endChar": 23
+      },
+      "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7489102f_9529916c",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-16T05:08:32Z",
+      "side": 1,
+      "message": "nit: This feels more like a struct that has methods isAsync and asyncWrapper. Maybe should even be in a mocks (or mocks_utils) package",
+      "range": {
+        "startLine": 254,
+        "startChar": 5,
+        "endLine": 254,
+        "endChar": 17
+      },
+      "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee396eed_5916e7de",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-16T05:08:32Z",
+      "side": 1,
+      "message": "nit: \"Merge\" sounds like a mutating operation.",
+      "range": {
+        "startLine": 56,
+        "startChar": 20,
+        "endLine": 56,
+        "endChar": 25
+      },
+      "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe6b9548_90ee144c",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-16T05:08:32Z",
+      "side": 1,
+      "message": "uber-nit: !testNames[name]\n\n(It should read like \"testNames doesn\u0027t contain name\" rather than \"the value for name in testNames is false.\")",
+      "range": {
+        "startLine": 101,
+        "startChar": 25,
+        "endLine": 101,
+        "endChar": 49
+      },
+      "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66d429e2_5df587b3",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-16T05:08:32Z",
+      "side": 1,
+      "message": "nit: Docs say \"if not nil or empty\" but this only handles one of those cases.\n\n(In general, idiomatic Go does not distinguish between a nil map and an empty map for read operations. In particular, \"len(map) \u003d\u003d 0\" is preferred over \"map \u003d\u003d nil\".)",
+      "range": {
+        "startLine": 101,
+        "startChar": 5,
+        "endLine": 101,
+        "endChar": 21
+      },
+      "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea1a279e_43c1bce1",
+        "filename": "golden/go/warmer/warmer.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-16T05:08:32Z",
+      "side": 1,
+      "message": "uber-nit ditto",
+      "range": {
+        "startLine": 37,
+        "startChar": 25,
+        "endLine": 37,
+        "endChar": 49
+      },
+      "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
