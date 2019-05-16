@@ -8,12 +8,19 @@ package display
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	multierror "github.com/hashicorp/go-multierror"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_driver/go/db"
 	"go.skia.org/infra/task_driver/go/td"
+)
+
+const (
+	ELLIPSES        = "..."
+	MAX_ERROR_CHARS = 1000
+	MAX_ERROR_LINES = 20
 )
 
 // StepDisplay represents one step in a single run of a Task Driver.
@@ -78,9 +85,14 @@ func TaskDriverForDisplay(t *db.TaskDriverRun) (*TaskDriverRunDisplay, error) {
 			// TODO(borenet): We should try to deep-copy the data.
 			data = append(data, d)
 		}
+		var errorMsgs []string
+		for _, errMsg := range orig.Errors {
+			errorMsgs = append(errorMsgs, truncateError(errMsg))
+		}
 		s := &StepDisplay{
 			StepProperties: orig.Properties.Copy(),
 			Result:         orig.Result,
+			Errors:         errorMsgs,
 			Started:        orig.Started,
 			Finished:       orig.Finished,
 			Data:           data,
@@ -134,4 +146,27 @@ func TaskDriverForDisplay(t *db.TaskDriverRun) (*TaskDriverRunDisplay, error) {
 	}
 
 	return rv, nil
+}
+
+// truncateError shortens an error message, returning the last part, so as not
+// to transfer giant logs to the client. There is an endpoint to retrieve a
+// specific error which will return the whole thing.
+func truncateError(err string) string {
+	lines := strings.Split(err, "\n")
+	// Logs often end in a newline; trim any empty line.
+	if len(lines) > 0 {
+		if lines[len(lines)-1] == "" {
+			lines = lines[:len(lines)-1]
+		}
+	}
+	if len(lines) > MAX_ERROR_LINES {
+		lines = lines[len(lines)-MAX_ERROR_LINES:]
+		lines[0] = ELLIPSES + lines[0]
+	}
+	rv := strings.Join(lines, "\n")
+	if len(rv) > MAX_ERROR_CHARS {
+		rv = ELLIPSES + rv[len(rv)-MAX_ERROR_CHARS+len(ELLIPSES):]
+	}
+	sklog.Infof("Truncating error message of length %d to %d", len(err), len(rv))
+	return rv
 }
