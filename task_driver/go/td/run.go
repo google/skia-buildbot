@@ -325,21 +325,43 @@ func (r *run) Finish(id string) {
 	r.send(msg)
 }
 
+// cbWriter is a wrapper around an io.Writer which runs a callback on the first
+// call to Write().
+type cbWriter struct {
+	w  io.Writer
+	cb func()
+}
+
+// See documentation for io.Writer interface.
+func (w *cbWriter) Write(b []byte) (int, error) {
+	if w.cb != nil {
+		w.cb()
+		w.cb = nil
+	}
+	return w.w.Write(b)
+}
+
 // Open a log stream.
 func (r *run) LogStream(stepId, logName, severity string) io.Writer {
 	logId := uuid.New().String() // TODO(borenet): Come up with a better ID.
-	rv, err := r.receiver.LogStream(stepId, logId, severity)
+	w, err := r.receiver.LogStream(stepId, logId, severity)
 	if err != nil {
 		panic(err)
 	}
 
-	// Emit step data for the log stream.
-	r.AddStepData(stepId, DATA_TYPE_LOG, &LogData{
-		Name:     logName,
-		Id:       logId,
-		Severity: severity,
-	})
-	return rv
+	// Wrap the io.Writer with a cbWrite so that we only send step data for
+	// log streams which are actually used.
+	return &cbWriter{
+		w: w,
+		cb: func() {
+			// Emit step data for the log stream.
+			r.AddStepData(stepId, DATA_TYPE_LOG, &LogData{
+				Name:     logName,
+				Id:       logId,
+				Severity: severity,
+			})
+		},
+	}
 }
 
 // Close the run.
