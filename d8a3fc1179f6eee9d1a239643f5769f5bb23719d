@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "66cc045d_c8a6110f",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-16T12:02:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2a7f591e_843d288a",
+      "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "13bf79dd_729d3470",
         "filename": "golden/go/indexer/indexer_test.go",
         "patchSetId": 7
@@ -39,6 +57,30 @@
       "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd394177_b2bfe908",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-16T12:02:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "13bf79dd_729d3470",
+      "range": {
+        "startLine": 251,
+        "startChar": 11,
+        "endLine": 251,
+        "endChar": 15
+      },
+      "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "792fb209_2588fbc1",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-16T12:02:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "188f3dcd_7bfe038d",
+      "range": {
+        "startLine": 253,
+        "startChar": 22,
+        "endLine": 253,
+        "endChar": 23
+      },
+      "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7489102f_9529916c",
         "filename": "golden/go/indexer/indexer_test.go",
         "patchSetId": 7
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "bfbd8b83_17218d4b",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-16T12:02:23Z",
+      "side": 1,
+      "message": "I\u0027ll keep that in mind if I need to do something similar in the future.",
+      "parentUuid": "7489102f_9529916c",
+      "range": {
+        "startLine": 254,
+        "startChar": 5,
+        "endLine": 254,
+        "endChar": 17
+      },
+      "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ee396eed_5916e7de",
         "filename": "golden/go/summary/summary.go",
         "patchSetId": 7
@@ -99,6 +189,30 @@
       "writtenOn": "2019-05-16T05:08:32Z",
       "side": 1,
       "message": "nit: \"Merge\" sounds like a mutating operation.",
+      "range": {
+        "startLine": 56,
+        "startChar": 20,
+        "endLine": 56,
+        "endChar": 25
+      },
+      "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0a1a051_6d387904",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-16T12:02:23Z",
+      "side": 1,
+      "message": "Combine better?",
+      "parentUuid": "ee396eed_5916e7de",
       "range": {
         "startLine": 56,
         "startChar": 20,
@@ -157,6 +271,54 @@
     },
     {
       "key": {
+        "uuid": "e58a997c_1c9ec7c5",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-16T12:02:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "66d429e2_5df587b3",
+      "range": {
+        "startLine": 101,
+        "startChar": 5,
+        "endLine": 101,
+        "endChar": 21
+      },
+      "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "68475ad6_3bb6c8b5",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-16T12:02:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fe6b9548_90ee144c",
+      "range": {
+        "startLine": 101,
+        "startChar": 25,
+        "endLine": 101,
+        "endChar": 49
+      },
+      "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ea1a279e_43c1bce1",
         "filename": "golden/go/warmer/warmer.go",
         "patchSetId": 7
@@ -177,6 +339,30 @@
       "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d6b8d0e5_f96c7567",
+        "filename": "golden/go/warmer/warmer.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-16T12:02:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ea1a279e_43c1bce1",
+      "range": {
+        "startLine": 37,
+        "startChar": 25,
+        "endLine": 37,
+        "endChar": 49
+      },
+      "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
