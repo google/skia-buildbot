@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fe472a35_c7ef736f",
+        "filename": "infra/bots/task_drivers/infra_tests/infra_tests.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-16T17:12:04Z",
+      "side": 1,
+      "message": "Apparently so.  I added it because it wasn\u0027t present before; it seems to only be used on Medium and Large, but we only run this for Small, so...",
+      "parentUuid": "d3b4befc_ad947337",
+      "revId": "0a0b7e3635a2171269bdf5faa6a10f059eb89dc5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0517a5d7_30f2341b",
         "filename": "infra/bots/task_drivers/update_go_deps/update_go_deps.go",
         "patchSetId": 39
@@ -39,6 +57,30 @@
       "revId": "0a0b7e3635a2171269bdf5faa6a10f059eb89dc5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b2491a2_a1693c91",
+        "filename": "infra/bots/task_drivers/update_go_deps/update_go_deps.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-16T17:12:04Z",
+      "side": 1,
+      "message": "Changed to \"on the bots\"",
+      "parentUuid": "0517a5d7_30f2341b",
+      "range": {
+        "startLine": 34,
+        "startChar": 62,
+        "endLine": 34,
+        "endChar": 89
+      },
+      "revId": "0a0b7e3635a2171269bdf5faa6a10f059eb89dc5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "6207b136_068cc259",
+        "filename": "infra/bots/task_drivers/update_go_deps/update_go_deps.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-16T17:12:04Z",
+      "side": 1,
+      "message": "Done, although this gets us into the whole issue about imported packages adding flags.",
+      "parentUuid": "ef161121_d600d9fd",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 2
+      },
+      "revId": "0a0b7e3635a2171269bdf5faa6a10f059eb89dc5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9f09674b_5f6988a3",
         "filename": "infra/bots/task_drivers/update_go_deps/update_go_deps.go",
         "patchSetId": 39
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "e33a9b1a_c1d4b2d2",
+        "filename": "infra/bots/task_drivers/update_go_deps/update_go_deps.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-16T17:12:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9f09674b_5f6988a3",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 102,
+        "endChar": 2
+      },
+      "revId": "0a0b7e3635a2171269bdf5faa6a10f059eb89dc5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ae91283b_67a9d410",
         "filename": "infra/bots/task_drivers/update_go_deps/update_go_deps.go",
         "patchSetId": 39
@@ -105,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "857351bd_4097fff5",
+        "filename": "infra/bots/task_drivers/update_go_deps/update_go_deps.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-16T17:12:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ae91283b_67a9d410",
+      "revId": "0a0b7e3635a2171269bdf5faa6a10f059eb89dc5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ea38b25_506f2bc0",
         "filename": "infra/bots/task_drivers/update_go_deps/update_go_deps.go",
         "patchSetId": 39
@@ -119,6 +227,24 @@
       "revId": "0a0b7e3635a2171269bdf5faa6a10f059eb89dc5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b701c569_db848391",
+        "filename": "infra/bots/task_drivers/update_go_deps/update_go_deps.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-16T17:12:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ea38b25_506f2bc0",
+      "revId": "0a0b7e3635a2171269bdf5faa6a10f059eb89dc5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -142,6 +268,54 @@
       "revId": "0a0b7e3635a2171269bdf5faa6a10f059eb89dc5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7511a22e_80f748b2",
+        "filename": "infra/bots/task_drivers/update_go_deps/update_go_deps.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-16T17:12:04Z",
+      "side": 1,
+      "message": "I would strongly prefer not to.  I don\u0027t want to get into autoroll-type functionality like that in what should be a simple task.",
+      "parentUuid": "4229d8e9_d5de20f9",
+      "range": {
+        "startLine": 150,
+        "startChar": 3,
+        "endLine": 150,
+        "endChar": 13
+      },
+      "revId": "0a0b7e3635a2171269bdf5faa6a10f059eb89dc5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3cad699_8af01477",
+        "filename": "task_driver/go/lib/os_steps/os_steps.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-16T17:12:04Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2da9b210_ebce188e",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 1
+      },
+      "revId": "0a0b7e3635a2171269bdf5faa6a10f059eb89dc5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
