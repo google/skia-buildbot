@@ -2,7 +2,6 @@ package expstorage
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"sort"
 	"strconv"
@@ -10,14 +9,12 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/database/testutil"
 	"go.skia.org/infra/go/ds"
 	ds_testutil "go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -28,31 +25,6 @@ var testKinds = []ds.Kind{
 	ds.HELPER_RECENT_KEYS,
 	ds.EXPECTATIONS_BLOB_ROOT,
 	ds.EXPECTATIONS_BLOB,
-}
-
-func TestMySQLExpectationsStore(t *testing.T) {
-	// Temporarily skip until we have the race condition resolved or this
-	// is removed alltogether.
-	t.Skip()
-
-	unittest.LargeTest(t)
-	// Set up the test database.
-	testDb := testutil.SetupMySQLTestDatabase(t, db.MigrationSteps())
-	defer testDb.Close(t)
-
-	conf := testutil.LocalTestDatabaseConfig(db.MigrationSteps())
-	vdb, err := conf.NewVersionedDB()
-	assert.NoError(t, err)
-
-	// Test the MySQL backed store
-	sqlStore := NewSQLExpectationStore(vdb)
-	testExpectationStore(t, sqlStore, nil, 0, EV_EXPSTORAGE_CHANGED)
-	assert.NoError(t, sqlStore.Clear())
-
-	// Test the caching version of the MySQL store.
-	eventBus := eventbus.New()
-	cachingStore := NewCachingExpectationStore(sqlStore, eventBus)
-	testExpectationStore(t, cachingStore, eventBus, 0, EV_EXPSTORAGE_CHANGED)
 }
 
 func TestMasterCloudExpectationsStore(t *testing.T) {
@@ -134,29 +106,6 @@ func randomDigest() types.Digest {
 	return types.Digest(ret)
 }
 
-func TestBigSQLChange(t *testing.T) {
-	unittest.LargeTest(t)
-
-	// Set up the test database.
-	testDb := testutil.SetupMySQLTestDatabase(t, db.MigrationSteps())
-	defer testDb.Close(t)
-
-	conf := testutil.LocalTestDatabaseConfig(db.MigrationSteps())
-	vdb, err := conf.NewVersionedDB()
-	assert.NoError(t, err)
-
-	// Test the MySQL backed store with a large number of changes
-	// 25313 is chosen at random to be large enough to be realistic and low enough
-	// to not unnecessarily slow down testing.
-	sqlStore := NewSQLExpectationStore(vdb)
-	bigChange := getRandomChange(1, 25313)
-
-	assert.NoError(t, sqlStore.AddChange(bigChange, "user-99"))
-	exp, err := sqlStore.Get()
-	assert.NoError(t, err)
-	assert.Equal(t, bigChange, exp)
-}
-
 func getRandomChange(nTests, nDigests int) types.Expectations {
 	labels := []types.Label{types.POSITIVE, types.NEGATIVE, types.UNTRIAGED}
 	ret := make(types.Expectations, nTests)
@@ -174,7 +123,7 @@ func getRandomChange(nTests, nDigests int) types.Expectations {
 func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, eventBus eventbus.EventBus, issueID int64, eventType string) {
 	// Get the initial log size. This is necessary because we
 	// call this function multiple times with the same underlying
-	// SQLExpectationStore.
+	// ExpectationStore.
 	initialLogRecs, initialLogTotal, err := store.QueryLog(0, 100, true)
 	assert.NoError(t, err)
 	initialLogRecsLen := len(initialLogRecs)
@@ -360,22 +309,6 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 	assert.Equal(t, 1, len(logEntries))
 	_, err = store.UndoChange(parseID(t, logEntries[0].ID), "user-1")
 	assert.NotNil(t, err)
-
-	// Make sure getExpectationsAt works correctly.
-	sqlStore, ok := store.(*SQLExpectationsStore)
-	if ok {
-		logEntries, _, err = store.QueryLog(0, 100, true)
-		assert.NoError(t, err)
-
-		// Check the first addition.
-		firstAdd := logEntries[len(logEntries)-1]
-		secondAdd := logEntries[len(logEntries)-2]
-		secondUndo := logEntries[len(logEntries)-5]
-
-		checkExpectationsAt(t, sqlStore, firstAdd, "first")
-		checkExpectationsAt(t, sqlStore, secondAdd, "second")
-		checkExpectationsAt(t, sqlStore, secondUndo, "third")
-	}
 }
 
 // waitForChan removes 'targetLen' elements from the channel and returns them.
@@ -402,16 +335,6 @@ func parseID(t *testing.T, idStr string) int64 {
 	ret, err := strconv.ParseInt(idStr, 10, 64)
 	assert.NoError(t, err)
 	return ret
-}
-
-func checkExpectationsAt(t *testing.T, sqlStore *SQLExpectationsStore, changeInfo *TriageLogEntry, name string) {
-	changeInfo.TS++
-	changes, err := sqlStore.getExpectationsAt(changeInfo)
-	assert.NoError(t, err)
-
-	for _, d := range changeInfo.Details {
-		assert.Equal(t, d.Label, changes[d.TestName][d.Digest].String(), fmt.Sprintf("Comparing: %s:  %s - %s", name, d.TestName, d.Digest))
-	}
 }
 
 func checkLogEntry(t *testing.T, store ExpectationsStore, changes types.Expectations) {

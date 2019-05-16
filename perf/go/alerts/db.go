@@ -15,7 +15,7 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-// Store persists Config's to/from an SQL database.
+// Store persists Config's to/from datastore.
 type Store struct {
 }
 
