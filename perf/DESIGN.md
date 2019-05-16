@@ -49,7 +49,7 @@ The frontend is available at http://skiaperf.com.
           +-------------------------------+
               |    |    |         |        
     +---------+-+  |    | +-------+--+     
-    |   MySQL   |  |    | | Google   |     
+    | Datastore |  |    | | Google   |     
     |           |  |    | | Storage  |     
     |           |  |    | |          |     
     |           |  |    | |          |     
@@ -70,7 +70,7 @@ The frontend is available at http://skiaperf.com.
 
 Perf is a Go application that serves the HTML, CSS, JS and the JSON representations
 that the JS needs. It loads test results in the form of 'tiles' from the Tile Repo.
-It combines that data with data about commits and annotations from the MySQL data base
+It combines that data with data about commits and annotations from Google Datastore
 and serves that the UI.
 
 The Tile Pipeline is a separate application that periodically queries for fresh
@@ -171,53 +171,7 @@ Both system and application level metrics are monitored.
 Annotations Database
 --------------------
 
-A Cloud SQL (a cloud version of MySQL) database is used to keep information on
-Skia git revisions and their corresponding annotations. The database will be
-updated when users add/edit/delete annotations via the dashboard UI.
-
-MySQL Flags to set:
-
-   max_allowed_packet = 1073741824
-
-All passwords for MySQL are stored in valentine (search "skiaperf").
-
-To connect to the database from authorized network (including skia-perf
-GCE):
-
-    $ mysql -h 173.194.104.24 -u root -p
-
-
-    mysql> use skia
-
-    mysql> show tables;
-
-Initial setup of the database, the users, and the tables:
-
-* Create the database and set up permissions. Execute the following after
-  you connect to a MySQL database.
-
-    CREATE DATABASE skia;
-    USE skia;
-    CREATE USER 'readonly'@'%' IDENTIFIED BY <password in valentine>;
-    GRANT SELECT ON *.* TO 'readonly'@'%';
-    CREATE USER 'readwrite'@'%' IDENTIFIED BY <password in valentine>;
-    GRANT SELECT, DELETE, UPDATE, INSERT ON *.* TO 'readwrite'@'%';
-
-* Create the versioned database tables.
-
-  We use the 'perf_migratedb' tool to keep the database in a well defined (versioned)
-  state. The db_host, db_port, db_user, and db_name flags allow you to specify
-  the target database. By default it will try to connect to the production
-  environment. But for testing a local MySQL database can be provided.
-
-  Bring the production database to the latest schema version:
-
-     $ perf_migratedb -logtostderr=true
-
-  Bring a local database to the latest schema version:
-
-     $ perf_migratedb -logtostderr=true -db_host=localhost --local
-
+TODO(jcgregorio): Update this to match the new datastore impl.
 
 Clustering
 ----------

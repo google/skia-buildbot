@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/git/gitinfo"
@@ -20,7 +19,6 @@ import (
 	"go.skia.org/infra/go/timer"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/serialize"
@@ -171,32 +169,16 @@ func writeSample(outputFileName string, tile *tiling.Tile, expectations types.Ex
 
 // load retrieves the last tile, the expectations and the ignore store.
 func load(ctx context.Context, dsNamespace string) (*tiling.Tile, types.Expectations, ignore.IgnoreStore) {
-	// Set up flags and the database.
-	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_ROOT, db.PROD_DB_NAME, db.MigrationSteps())
+	// Set up flags
 	common.Init()
 
 	evt := eventbus.New()
 	var expStore expstorage.ExpectationsStore
-	var vdb *database.VersionedDB
 	var err error
 
-	if dsNamespace != "" {
-		expStore, _, err = expstorage.NewCloudExpectationsStore(ds.DS, evt)
-		if err != nil {
-			sklog.Fatalf("Unable to create cloud expectations store: %s", err)
-		}
-	} else {
-		// Open the database
-		vdb, err = dbConf.NewVersionedDB()
-		if err != nil {
-			sklog.Fatal(err)
-		}
-
-		if !vdb.IsLatestVersion() {
-			sklog.Fatal("Wrong DB version. Please updated to latest version.")
-		}
-
-		expStore = expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt)
+	expStore, _, err = expstorage.NewCloudExpectationsStore(ds.DS, evt)
+	if err != nil {
+		sklog.Fatalf("Unable to create cloud expectations store: %s", err)
 	}
 
 	// Check out the repository.
@@ -224,13 +206,9 @@ func load(ctx context.Context, dsNamespace string) (*tiling.Tile, types.Expectat
 		EventBus:          evt,
 	}
 
-	if dsNamespace != "" {
-		storages.IgnoreStore, err = ignore.NewCloudIgnoreStore(ds.DS, expStore, storages.GetTileStreamNow(time.Minute*20, "sampler-ignore-store"))
-		if err != nil {
-			sklog.Fatalf("Unable to create cloud ignorestore: %s", err)
-		}
-	} else {
-		storages.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, expStore, storages.GetTileStreamNow(time.Minute*20, "sampler-ignore-store"))
+	storages.IgnoreStore, err = ignore.NewCloudIgnoreStore(ds.DS, expStore, storages.GetTileStreamNow(time.Minute*20, "sampler-ignore-store"))
+	if err != nil {
+		sklog.Fatalf("Unable to create cloud ignorestore: %s", err)
 	}
 
 	expectations, err := expStore.Get()

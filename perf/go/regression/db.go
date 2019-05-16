@@ -23,7 +23,7 @@ const (
 	UNTRIAGED_SUBSET   Subset = "untriaged"   // All untriaged alerting regressions regardless of range.
 )
 
-// Store persists Regressions to/from an SQL database.
+// Store persists Regressions to/from datastore..
 type Store struct {
 	mutex sync.Mutex
 }
