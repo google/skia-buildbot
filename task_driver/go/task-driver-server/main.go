@@ -46,6 +46,7 @@ var (
 	project      = flag.String("project_id", "", "GCE Project ID")
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir = flag.String("resources_dir", "./dist", "The directory to find templates, JS, and CSS files. If blank the \"dist\" subdirectory of the current directory will be used.")
+	hang         = flag.Bool("hang", false, "hang")
 
 	// Database used for storing and retrieving Task Drivers.
 	d db.DB
@@ -296,6 +297,9 @@ func main() {
 		sklog.Fatal("--project_id is required.")
 	}
 	skiaversion.MustLogVersion()
+	if *hang {
+		select {}
+	}
 
 	// Setup pubsub.
 	ctx := context.Background()
