@@ -120,7 +120,6 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 	// Find the digests (left hand side) we are interested in.
 	if isTryjobSearch {
 		// Search the tryjob results for the issue at hand.
-		issue = &tryjobstore.Issue{}
 		inter, issue, err = s.queryIssue(ctx, q, idx, exp)
 	} else {
 		// Iterate through the tile and get an intermediate
@@ -326,7 +325,7 @@ type filterAddFn func(test types.TestName, digest types.Digest, traceID tiling.T
 // extractIssueDigests loads the issue and its tryjob results and then filters the
 // results via the given query. For each testName/digest pair addFn is called.
 func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx *indexer.SearchIndex, exp ExpSlice, addFn filterAddFn) (*tryjobstore.Issue, error) {
-	ctx, span := trace.StartSpan(ctx, "search/queryIssue")
+	_, span := trace.StartSpan(ctx, "search/queryIssue")
 	defer span.End()
 
 	// Get the issue.
@@ -418,7 +417,7 @@ func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx *inde
 // filterTile iterates over the tile and accumulates the traces
 // that match the given query creating the initial search result.
 func (s *SearchAPI) filterTile(ctx context.Context, q *Query, exp ExpSlice, idx *indexer.SearchIndex) (srInterMap, error) {
-	ctx, span := trace.StartSpan(ctx, "search/filterTile")
+	_, span := trace.StartSpan(ctx, "search/filterTile")
 	defer span.End()
 
 	var acceptFn AcceptFn = nil
@@ -474,7 +473,7 @@ func (s *SearchAPI) getDigestRecs(inter srInterMap, exps ExpSlice) []*SRDigest {
 // getReferenceDiffs compares all digests collected in the intermediate representation
 // and compares them to the other known results for the test at hand.
 func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState, exp ExpSlice, idx *indexer.SearchIndex) {
-	ctx, span := trace.StartSpan(ctx, "search/getReferenceDiffs")
+	_, span := trace.StartSpan(ctx, "search/getReferenceDiffs")
 	defer span.End()
 
 	refDiffer := NewRefDiffer(exp, s.storages.DiffStore, idx)
@@ -496,7 +495,7 @@ func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDi
 
 // afterDiffResultFilter filters the results based on the diff results in 'digestInfo'.
 func (s *SearchAPI) afterDiffResultFilter(ctx context.Context, digestInfo []*SRDigest, q *Query) []*SRDigest {
-	ctx, span := trace.StartSpan(ctx, "search/afterDiffResultFilter")
+	_, span := trace.StartSpan(ctx, "search/afterDiffResultFilter")
 	defer span.End()
 
 	newDigestInfo := make([]*SRDigest, 0, len(digestInfo))
@@ -538,7 +537,7 @@ func (s *SearchAPI) afterDiffResultFilter(ctx context.Context, digestInfo []*SRD
 // the slice that should be shown on the page with its offset in the entire
 // result set.
 func (s *SearchAPI) sortAndLimitDigests(ctx context.Context, q *Query, digestInfo []*SRDigest, offset, limit int) ([]*SRDigest, int) {
-	ctx, span := trace.StartSpan(ctx, "search/sortAndLimitDigests")
+	_, span := trace.StartSpan(ctx, "search/sortAndLimitDigests")
 	defer span.End()
 
 	fullLength := len(digestInfo)
@@ -565,7 +564,7 @@ func (s *SearchAPI) sortAndLimitDigests(ctx context.Context, q *Query, digestInf
 // what were the union of parameters that generate the digest. This should be
 // only done for digests that are intended to be displayed.
 func (s *SearchAPI) addParamsAndTraces(ctx context.Context, digestInfo []*SRDigest, inter srInterMap, exp ExpSlice, idx *indexer.SearchIndex) {
-	ctx, span := trace.StartSpan(ctx, "search/addParamsAndTraces")
+	_, span := trace.StartSpan(ctx, "search/addParamsAndTraces")
 	defer span.End()
 
 	tile := idx.CpxTile().GetTile(types.ExcludeIgnoredTraces)
@@ -595,14 +594,14 @@ func (s *SearchAPI) getDrawableTraces(test types.TestName, digest types.Digest, 
 		Status: exp.Classification(test, digest).String(),
 	})
 
-	outputTraces := make([]Trace, len(traces), len(traces))
+	outputTraces := make([]Trace, len(traces))
 	for i, traceID := range traceIDs {
 		// Create a new trace entry.
 		oneTrace := traces[traceID]
 		tr := &outputTraces[i]
 		tr.ID = traceID
 		tr.Params = oneTrace.Keys
-		tr.Data = make([]Point, last+1, last+1)
+		tr.Data = make([]Point, last+1)
 		insertNext := last
 
 		for j := last; j >= 0; j-- {

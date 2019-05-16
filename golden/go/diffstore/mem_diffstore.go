@@ -96,7 +96,7 @@ func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string
 
 	// Set up image retrieval, caching and serving.
 	imgLoader, err := NewImgLoader(client, baseDir, imgDir, gsBucketNames, gsImageBaseDir, imageCacheCount, mapper)
-	if err != err {
+	if err != nil {
 		return nil, skerr.Fmt("Could not create img loader %s", err)
 	}
 

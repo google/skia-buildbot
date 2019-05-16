@@ -37,9 +37,6 @@ const (
 	IMAGE_URL_PREFIX = "/img/"
 )
 
-// diffStore handles all the diffing.
-var diffStore diff.DiffStore = nil
-
 func main() {
 
 	// Parse the options, so we can configure logging.

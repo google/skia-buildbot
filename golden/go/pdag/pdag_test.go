@@ -83,7 +83,7 @@ func TestGenericTopology(t *testing.T) {
 	d := &extype{data: map[string]int{}}
 	start := time.Now()
 	err := root.Trigger(d)
-	delta := time.Now().Sub(start)
+	delta := time.Since(start)
 
 	assert.Nil(t, err)
 

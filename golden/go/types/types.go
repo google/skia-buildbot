@@ -213,15 +213,6 @@ func (c *ComplexTileImpl) FilledCommits() int {
 	return c.filled
 }
 
-// ensureSparseInfo is a helper function that fills in the sparsity information if it wasn't set.
-func (c *ComplexTileImpl) ensureSparseInfo() {
-	if c != nil {
-		if c.sparseCommits == nil || c.cardinalities == nil {
-			c.SetSparse(nil, nil)
-		}
-	}
-}
-
 // FromSame fulfills the ComplexTile interface.
 func (c *ComplexTileImpl) FromSame(completeTile *tiling.Tile, ignoreRev int64) bool {
 	return c != nil &&
@@ -302,7 +293,7 @@ func (g *GoldenTrace) IsMissing(i int) bool {
 func (g *GoldenTrace) DeepCopy() tiling.Trace {
 	n := len(g.Digests)
 	cp := &GoldenTrace{
-		Digests: make([]Digest, n, n),
+		Digests: make([]Digest, n),
 		Keys:    make(map[string]string),
 	}
 	copy(cp.Digests, g.Digests)
@@ -323,9 +314,8 @@ func (g *GoldenTrace) Merge(next tiling.Trace) tiling.Trace {
 	for k, v := range nextGold.Keys {
 		merged.Keys[k] = v
 	}
-	for i, v := range g.Digests {
-		merged.Digests[i] = v
-	}
+	copy(merged.Digests, g.Digests)
+
 	for i, v := range nextGold.Digests {
 		merged.Digests[n1+i] = v
 	}
@@ -411,7 +401,7 @@ func NewGoldenTrace() *GoldenTrace {
 // all tests will be run on all commits.
 func NewGoldenTraceN(n int) *GoldenTrace {
 	g := &GoldenTrace{
-		Digests: make([]Digest, n, n),
+		Digests: make([]Digest, n),
 		Keys:    make(map[string]string),
 	}
 	for i := range g.Digests {

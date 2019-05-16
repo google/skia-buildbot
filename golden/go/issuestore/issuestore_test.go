@@ -25,6 +25,7 @@ const (
 )
 
 func TestIssueStore(t *testing.T) {
+	// Medium test because it stores a bolt db to disk
 	unittest.MediumTest(t)
 	const N_ISSUES = 20
 
@@ -62,6 +63,9 @@ func TestIssueStore(t *testing.T) {
 		initIssues[idx].Add(issue)
 		updatedIssuesIDs = append(updatedIssuesIDs, issue.IssueID)
 	}
+	assert.Len(t, updatedIssuesIDs, 11)
+	// Do a spot check
+	assert.Contains(t, updatedIssuesIDs, "ISSUES_0003")
 	testAgainstLookup(t, issueStore, lookup)
 
 	// Test the list function.
@@ -93,6 +97,7 @@ func TestIssueStore(t *testing.T) {
 	testAgainstLookup(t, issueStore, lookup)
 	foundList, total, err = issueStore.List(0, -1)
 	assert.NoError(t, err)
+	assert.Equal(t, N_ISSUES, total)
 	compareEntries(t, foundList, initIssues)
 
 	// Remove all entries to check at the bottom whether indices have been removed.
@@ -107,6 +112,8 @@ func TestIssueStore(t *testing.T) {
 	initIssues = initIssues[len(updateIssues):]
 	foundList, total, err = issueStore.List(0, -1)
 	assert.NoError(t, err)
+	// Should be 9 now because we started with 20 and removed 11.
+	assert.Equal(t, 9, total)
 	compareEntries(t, foundList, initIssues)
 
 	// Delete all issues and make sure they are gone.

@@ -26,7 +26,7 @@ func TestMetricMapCodec(t *testing.T) {
 	}
 
 	// Put diffMetrics into a map with an MD5 digest as the key.
-	diffMap := make(map[types.Digest]interface{}, 0)
+	diffMap := map[types.Digest]interface{}{}
 	testDigest := types.Digest("5460652359b9b272d520baaddaeddb5c")
 	diffMap[testDigest] = diffMetrics
 

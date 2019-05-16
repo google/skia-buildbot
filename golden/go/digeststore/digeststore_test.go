@@ -26,6 +26,7 @@ func testDigestStore(t assert.TestingT, digestStore DigestStore) {
 	testName_1, digest_1 := "smapleTest_1", "sampleDigest_1"
 	timestamp_1 := time.Now().Unix() - 20
 
+	// TODO(kjlubick): assert something with di
 	di, ok, err := digestStore.Get(testName_1, digest_1)
 	assert.NoError(t, err)
 	assert.False(t, ok)

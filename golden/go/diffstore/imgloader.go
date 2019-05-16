@@ -296,7 +296,7 @@ func (il *ImageLoader) downloadImgFromBucket(objLocation, bucketName string) ([]
 			}
 			defer util.Close(reader)
 
-			size := reader.Size()
+			size := reader.Attrs.Size
 			buf = bytes.NewBuffer(make([]byte, 0, size))
 			md5Hash := md5.New()
 			multiOut := io.MultiWriter(md5Hash, buf)

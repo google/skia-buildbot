@@ -154,6 +154,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	diffStore.WarmDiffs(diff.PRIORITY_NOW, digests, digests)
 	memDiffStore.sync()
 
+	// TODO(kjlubick): assert something with this diffIDs slice?
 	diffIDs := make([]string, 0, len(digests)*len(digests))
 	for _, d1 := range digests {
 		for _, d2 := range digests {

@@ -509,42 +509,6 @@ func paramsMatch(matchFields []string, condParamSets paramtools.ParamSet, params
 	return true
 }
 
-func getFilterByTileFunctions(matchFields []string, condDigests map[types.Digest]paramtools.ParamSet, target *map[types.Digest]types.DigestSet) (AcceptFn, AddFn) {
-	*target = make(map[types.Digest]types.DigestSet, len(condDigests))
-	for d := range condDigests {
-		(*target)[d] = types.DigestSet{}
-	}
-
-	// Define the acceptFn and addFn.
-	var acceptFn AcceptFn = nil
-	var addFn AddFn = nil
-	if len(matchFields) >= 0 {
-		matching := make(types.DigestSlice, 0, len(condDigests))
-		acceptFn = func(params paramtools.Params, digests types.DigestSlice) (bool, interface{}) {
-			matching = matching[:0]
-			for digest, paramSet := range condDigests {
-				if paramsMatch(matchFields, paramSet, params) {
-					matching = append(matching, digest)
-				}
-			}
-			return len(matching) > 0, matching
-		}
-		addFn = func(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace *types.GoldenTrace, acceptRet interface{}) {
-			for _, d := range acceptRet.(types.DigestSlice) {
-				(*target)[d][digest] = true
-			}
-		}
-	} else {
-		addFn = func(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace *types.GoldenTrace, acceptRet interface{}) {
-			for d := range condDigests {
-				(*target)[d][digest] = true
-			}
-		}
-	}
-
-	return acceptFn, addFn
-}
-
 // filterTileWithMatch iterates over the tile and finds the digests that match
 // the query and satisfy the condition of matching parameter values for the
 // fields listed in matchFields. condDigests contains the digests their

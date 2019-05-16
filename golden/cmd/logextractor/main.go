@@ -37,6 +37,9 @@ func main() {
 
 	result := []string{}
 	err := filepath.Walk(*logInputDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 		queries, err := extractQueries(path)
 		if err != nil {
 			return err

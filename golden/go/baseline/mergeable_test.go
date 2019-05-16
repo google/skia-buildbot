@@ -101,7 +101,7 @@ const (
 )
 
 func randomDigest() types.Digest {
-	ret := make([]byte, md5Length, md5Length)
+	ret := make([]byte, md5Length)
 	for i := 0; i < md5Length; i++ {
 		ret[i] = hexLetters[rand.Intn(len(hexLetters))]
 	}
