@@ -58,14 +58,12 @@ func DiffServerBase(name string) *gce.Instance {
 }
 
 func Prod() *gce.Instance {
-	// Below IP has been whitelisted in Cloud SQL.
 	vm := GoldBase("skia-gold-prod", "35.194.17.199")
 	vm.Metadata["auth_white_list"] = "google.com mtklein@chromium.org"
 	return vm
 }
 
 func Pdfium() *gce.Instance {
-	// Below IP has been whitelisted in Cloud SQL.
 	vm := GoldBase("skia-gold-pdfium", "104.197.62.179")
 	vm.DataDisks[0].SizeGb = 500
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16
@@ -73,7 +71,6 @@ func Pdfium() *gce.Instance {
 }
 
 func ChromeVR() *gce.Instance {
-	// Below IP has been whitelisted in Cloud SQL.
 	vm := GoldBase("skia-gold-chromevr", "35.224.220.244")
 	vm.DataDisks[0].SizeGb = 500
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16

@@ -2,6 +2,7 @@ package ignore
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"sync/atomic"
 
@@ -173,4 +174,76 @@ func (c *cloudIgnoreStore) Revision() int64 {
 // BuildRuleMatcher implements the IgnoreStore interface.
 func (c *cloudIgnoreStore) BuildRuleMatcher() (RuleMatcher, error) {
 	return buildRuleMatcher(c)
+}
+
+// TODO(kjlubick): Add unit tests to addIgnoreCounts using mocks
+
+// addIgnoreCounts adds counts for the current tile to the given list of rules.
+func addIgnoreCounts(rules []*IgnoreRule, ignoreStore IgnoreStore, lastCpxTile types.ComplexTile, expStore expstorage.ExpectationsStore, tileStream <-chan types.ComplexTile) (types.ComplexTile, error) {
+	if (expStore == nil) || (tileStream == nil) {
+		return nil, fmt.Errorf("Either expStore or tileStream is nil. Cannot count ignores.")
+	}
+
+	exp, err := expStore.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	ignoreMatcher, err := ignoreStore.BuildRuleMatcher()
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the next tile.
+	var cpxTile types.ComplexTile = nil
+	select {
+	case cpxTile = <-tileStream:
+	default:
+		cpxTile = lastCpxTile
+	}
+	if cpxTile == nil {
+		return nil, fmt.Errorf("No tile available to count ignores")
+	}
+
+	// Count the untriaged digests in HEAD.
+	// matchingDigests[rule.ID]map["testname:digest"]bool
+	matchingDigests := make(map[int64]map[string]bool, len(rules))
+	rulesByDigest := map[string]map[int64]bool{}
+	tileWithIgnores := cpxTile.GetTile(types.IncludeIgnoredTraces)
+	for _, trace := range tileWithIgnores.Traces {
+		gTrace := trace.(*types.GoldenTrace)
+		if matchRules, ok := ignoreMatcher(gTrace.Keys); ok {
+			testName := gTrace.TestName()
+			if digest := gTrace.LastDigest(); digest != types.MISSING_DIGEST && (exp.Classification(testName, digest) == types.UNTRIAGED) {
+				k := string(testName) + ":" + string(digest)
+				for _, r := range matchRules {
+					// Add the digest to all matching rules.
+					if t, ok := matchingDigests[r.ID]; ok {
+						t[k] = true
+					} else {
+						matchingDigests[r.ID] = map[string]bool{k: true}
+					}
+
+					// Add the rule to the test-digest.
+					if t, ok := rulesByDigest[k]; ok {
+						t[r.ID] = true
+					} else {
+						rulesByDigest[k] = map[int64]bool{r.ID: true}
+					}
+				}
+			}
+		}
+	}
+
+	for _, r := range rules {
+		r.Count = len(matchingDigests[r.ID])
+		r.ExclusiveCount = 0
+		for testDigestKey := range matchingDigests[r.ID] {
+			// If exactly this one rule matches then account for it.
+			if len(rulesByDigest[testDigestKey]) == 1 {
+				r.ExclusiveCount++
+			}
+		}
+	}
+	return cpxTile, nil
 }

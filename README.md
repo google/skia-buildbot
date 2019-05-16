@@ -67,7 +67,8 @@ Install the necessary go packages:
 $ go get -u \
   github.com/golang/protobuf/protoc-gen-go \
   golang.org/x/tools/cmd/stringer \
-  google.golang.org/grpc
+  google.golang.org/grpc \
+  github.com/vektra/mockery/...
 ```
 
 To generate code run in this directory:
@@ -76,28 +77,6 @@ To generate code run in this directory:
 $ go generate ./...
 ```
 
-Database Setup for Testing
-==========================
-
-Tests which use the database package's testutils require you to have a MySQL instance running with a
-database named "sk_testing" and users called "readwrite" and "test_root" with appropriate
-permissions for sk_testing. The 'setup_test_db' script in 'go/database' is included for convenience
-in setting up this test database and user.
-
-Go tests require a local installation of MySQL. For a Debian based distro:
-
-```
-$ sudo apt-get install mysql-client mysql-server
-```
-
-Leave the root password blank.
-
-Then, to set up local versions of the production databases:
-
-```
-$ cd $GOPATH/src/go.skia.org/infra/go/database
-$ ./setup_test_db
-```
 
 Running unit tests
 ==================
