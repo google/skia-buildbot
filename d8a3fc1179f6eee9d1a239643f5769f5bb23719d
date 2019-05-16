@@ -225,6 +225,30 @@
     },
     {
       "key": {
+        "uuid": "6421c71d_b1ea126c",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-16T16:10:06Z",
+      "side": 1,
+      "message": "SGTM. I had trouble thinking of a name -- the best I had was \"union\" which seems awkward.",
+      "parentUuid": "f0a1a051_6d387904",
+      "range": {
+        "startLine": 56,
+        "startChar": 20,
+        "endLine": 56,
+        "endChar": 25
+      },
+      "revId": "d8a3fc1179f6eee9d1a239643f5769f5bb23719d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fe6b9548_90ee144c",
         "filename": "golden/go/summary/summary.go",
         "patchSetId": 7

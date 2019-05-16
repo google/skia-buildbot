@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "460a4b16_417c21c8",
+        "filename": "golden/go/indexer/indexer_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-16T16:10:06Z",
+      "side": 1,
+      "message": "(Technically, I think it\u0027s a goexit, not a panic.)",
+      "range": {
+        "startLine": 270,
+        "startChar": 3,
+        "endLine": 270,
+        "endChar": 8
+      },
+      "revId": "8a7045626648811eda1d9d1350983a7aec445853",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
