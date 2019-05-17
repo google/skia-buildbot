@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "dd48e550_39200287",
+        "filename": "infra-sk/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-17T12:17:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f5b11f0e_906b4d5c",
+      "range": {
+        "startLine": 200,
+        "startChar": 15,
+        "endLine": 200,
+        "endChar": 17
+      },
+      "revId": "448ce3f3dc630135a398e57d906bcf8f315fa986",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a07a6b48_4e7528b5",
         "filename": "task_driver/go/handlers/handlers.go",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2019-05-17T11:34:21Z",
       "side": 1,
       "message": "Should this be a 404 or a 500?",
+      "range": {
+        "startLine": 167,
+        "startChar": 3,
+        "endLine": 167,
+        "endChar": 9
+      },
+      "revId": "448ce3f3dc630135a398e57d906bcf8f315fa986",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58aa0008_ecc7e515",
+        "filename": "task_driver/go/handlers/handlers.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-17T12:17:34Z",
+      "side": 1,
+      "message": "getTaskDriver handles the reporting of the error.  Added a comment to that effect.",
+      "parentUuid": "a07a6b48_4e7528b5",
       "range": {
         "startLine": 167,
         "startChar": 3,
