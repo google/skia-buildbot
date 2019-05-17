@@ -16,7 +16,7 @@
   "rollerName": "material-roboto-font-loader-ios-chromium",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "https://rota-ng.appspot.com/legacy/sheriff_ios.json"
+    "bling-p10-rolls@google.com"
   ],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "stable",
