@@ -6,12 +6,19 @@
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
   <script src="/res/common/js/common.js"></script>
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="/nm/chart.js/dist/Chart.bundle.min.js"></script>
+  <script src="/nm/chartjs-plugin-annotation/chartjs-plugin-annotation.js"></script>
+  <script src="/nm/chartjs-plugin-zoom/chartjs-plugin-zoom.js"></script>
   <link rel="stylesheet" href="/res/common/css/md.css">
   <link rel="import" href="/res/imp/bower_components/polymer/polymer.html">
   <link rel="import" href="plot-simple.html">
   <style type="text/css" media="screen">
     button {
       display: inline-block;
+    }
+
+    plot-simple-sk {
+      display: block;
     }
   </style>
 </head>
@@ -26,7 +33,6 @@
     <button class=action id=xbar>X Bar</button>
     <button class=action id=clearxbar>Clear X Bar</button>
     <button class=action id=bands>Bands</button>
-    <button class=action id=ticks>Ticks</button>
     <button class=action id=special>Add Special</button>
   </div>
 
@@ -44,17 +50,22 @@
       var n = 0;
 
       function add() {
+        let labels = [];
+        for (let i = 0; i < 50; i++) {
+          labels.push(new Date(1554143900000 + i * i * 1000*60*60));
+        }
+
         var traces = {};
         for (var j = 10 - 1; j >= 0; j--) {
           var trace = [];
           for (var i = 0; i < 50; i++) {
-            trace.push([i, 0.8 + Math.sin(i/10) + j + Math.random()*0.5]);
+            trace.push([i, 0.8 + Math.sin(i/10) + j + Math.random()*0.5 + 10]);
           }
           var id = "trace" + (10-j+n);
           traces[id] = trace;
         }
         n += 10;
-        ele.addLines(traces);
+        ele.addLines(traces, labels);
       }
 
       add();
@@ -101,14 +112,6 @@
 
       $$$('#bands').addEventListener('click', function(e) {
         ele.setBanding([[1, 4], [20, 30]]);
-      });
-
-      $$$('#ticks').addEventListener('click', function(e) {
-        ele.setTicks({
-          1: "5th",
-          10: "6th",
-          25: "7th"
-        });
       });
 
       $$$('#special').addEventListener('click', function(e) {
