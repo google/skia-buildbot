@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0acd6d4d_dc490655",
+        "filename": "autoroll/go/repo_manager/freetype_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-17T16:43:11Z",
+      "side": 1,
+      "message": "Add test since all other repo_managers have tests?",
+      "revId": "1ae43aa14e7ad43c9c1462a978e203dbf55407a6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
