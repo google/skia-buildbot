@@ -21,7 +21,7 @@ const (
 	// from New().
 	DEFAULT_NUM_COMMITS = 50
 
-	MAX_SAMPLE_SIZE = 256
+	MAX_SAMPLE_SIZE = 5000
 )
 
 // DataFrameBuilder is an interface for things that construct DataFrames.
