@@ -218,7 +218,11 @@ func (p *FrameRequestProcess) reportError(err error, message string) {
 func (p *FrameRequestProcess) progress(step, totalSteps int) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
-	p.percent = (float32(p.search) + (float32(step) / float32(totalSteps))) / float32(p.totalSearches)
+	if p.totalSearches != 0 && totalSteps != 0 {
+		p.percent = (float32(p.search) + (float32(step) / float32(totalSteps))) / float32(p.totalSearches)
+	} else {
+		p.percent = 0
+	}
 	p.lastUpdate = time.Now()
 }
 

@@ -10,13 +10,15 @@
   "author": "",
   "license": "BSD",
   "devDependencies": {
-    "autoprefixer": "~6.0.2",
-    "bower": "~1.5.2",
+    "autoprefixer": "~9.5.0",
+    "bower": "~1.8.8",
+    "chart.js": "^2.8.0",
+    "chartjs-plugin-annotation": "^0.5.7",
+    "chartjs-plugin-zoom": "^0.7.0",
     "cssmin": "",
-    "html-minifier": "~3.0.0",
-    "native-promise-only": "",
-    "postcss-cli": "~2.1.0",
+    "html-minifier": "~3.5.21",
+    "postcss-cli": "~6.1.2",
     "uglify-js": "",
-    "vulcanize": "^1.10.4"
+    "vulcanize": "^1.16.0"
   }
 }

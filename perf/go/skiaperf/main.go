@@ -602,7 +602,7 @@ func frameStatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		sklog.Errorf("Failed to encode response: %s", err)
+		sklog.Errorf("Failed to encode response: %s %#v", err, resp)
 	}
 }
 

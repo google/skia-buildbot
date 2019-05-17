@@ -95,6 +95,11 @@
       padding: 3px 6px;
     }
 
+    #graph {
+      width: 500px;
+      height: 200px;
+    }
+
     @media (max-width: 600px) {
       #graph {
         display: none;
@@ -246,17 +251,19 @@
         this._summary.centroid.forEach(function(y, x) {
           if (y != 1e32) {
             line.push([x, y]);
+          } else {
+            line.push([x, null]);
           }
         });
         this.$.graph.removeAll();
-        this.$.graph.addLines({special_centroid: line});
 
-        // Set the tickmarks.
-        var tickmap = {};
-        this._frame.ticks.forEach(function(t) {
-          tickmap[t[0]] = t[1];
+
+        var labels = [];
+        this.full_summary.frame.dataframe.header.forEach(header => {
+          labels.push(new Date(header.timestamp * 1000));
         });
-        this.$.graph.setTicks(tickmap);
+
+        this.$.graph.addLines({special_centroid: line}, labels);
 
         // Set the x-bar but only if status != uninteresting.
         if (this._summary.step_fit.status != "Uninteresting") {
