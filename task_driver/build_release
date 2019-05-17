@@ -12,6 +12,7 @@ ${INSTALL} --mode=644 -T  ./Dockerfile             ${ROOT}/Dockerfile
 ${INSTALL} --mode=755 -T  ${GOPATH}/bin/${APPNAME} ${ROOT}/usr/local/bin/${APPNAME}
 ${INSTALL_DIR}                                     ${ROOT}/usr/local/share
 cp -r                     ./dist                   ${ROOT}/usr/local/share/${APPNAME}
+chmod -R                  755                      ${ROOT}/usr/local/share/${APPNAME}
 }
 
 source ../bash/docker_build.sh

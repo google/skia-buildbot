@@ -8,7 +8,7 @@ task-driver-sk {
   div.step {
     border-style: solid;
     border-width: 0px 0px 1px 5px;
-    border-bottom-color: var(--light-gray);
+    border-bottom-color: #EEEEEE;
     font-family: sans-serif;
     margin: 2px;
     padding: 10px;
@@ -72,6 +72,10 @@ task-driver-sk {
     margin-bottom: 15px;
   }
 
+  pre {
+    white-space: pre-wrap;
+  }
+
   /**
    * Styling for tables.
    * TODO(borenet): Move these to a common module.
@@ -82,7 +86,7 @@ task-driver-sk {
   }
 
   tr {
-    border-bottom: 1px solid var(--gray);
+    border-bottom: 1px solid #EEEEEE;
     display: table-row;
   }
 
