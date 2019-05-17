@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -11,6 +12,7 @@ import (
 	"go.skia.org/infra/task_driver/go/db"
 	"go.skia.org/infra/task_driver/go/display"
 	"go.skia.org/infra/task_driver/go/logs"
+	"go.skia.org/infra/task_driver/go/td"
 )
 
 // logsHandler reads log entries from BigTable and writes them to the ResponseWriter.
@@ -142,9 +144,51 @@ func jsonTaskDriverHandler(d db.DB) http.HandlerFunc {
 	}
 }
 
+// fullErrorHandler returns the text of a given error.
+func fullErrorHandler(d db.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		taskId := getVar(w, r, "taskId")
+		errId := getVar(w, r, "errId")
+		if taskId == "" || errId == "" {
+			http.NotFound(w, r)
+			return
+		}
+		stepId, ok := mux.Vars(r)["stepId"]
+		if !ok {
+			stepId = td.STEP_ID_ROOT
+		}
+		errIdx, err := strconv.Atoi(errId)
+		if err != nil || errIdx < 0 {
+			httputils.ReportError(w, r, err, "Invalid error ID")
+			return
+		}
+		td := getTaskDriver(w, r, d)
+		if td == nil {
+			// Any error was handled by getTaskDriver.
+			return
+		}
+		step, ok := td.Steps[stepId]
+		if !ok {
+			http.NotFound(w, r)
+			return
+		}
+		if errIdx >= len(step.Errors) {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "text/plain")
+		if _, err := w.Write([]byte(step.Errors[errIdx])); err != nil {
+			httputils.ReportError(w, r, err, "Failed to write response.")
+			return
+		}
+	}
+}
+
 // AddTaskDriverHandlers adds handlers for Task Drivers to the given Router.
 func AddTaskDriverHandlers(r *mux.Router, d db.DB, lm *logs.LogsManager) {
 	r.HandleFunc("/json/td/{taskId}", jsonTaskDriverHandler(d))
+	r.HandleFunc("/errors/{taskId}/{errId}", fullErrorHandler(d))
+	r.HandleFunc("/errors/{taskId}/{stepId}/{errId}", fullErrorHandler(d))
 	r.HandleFunc("/logs/{taskId}", taskLogsHandler(lm))
 	r.HandleFunc("/logs/{taskId}/{stepId}", stepLogsHandler(lm))
 	r.HandleFunc("/logs/{taskId}/{stepId}/{logId}", singleLogHandler(lm))

@@ -41,6 +41,13 @@ function stepData(ele, s, d) {
   return "";
 }
 
+const stepError = (ele, s, e, idx) => propLine(html`
+  <a href="${ele._errLink(s.id, idx)}" target="_blank">
+    Error
+  </a>`, html`
+  <pre>${e}</pre>
+`);
+
 const stepProperties = (ele, s) => html`
   <table class="properties">
     ${s.properties
@@ -79,6 +86,7 @@ const stepProperties = (ele, s) => html`
     ${propLine("Log (combined)", html`
         <a href="${ele._logLink(s.id)}" target="_blank">all logs</a>
     `)}
+    ${s.errors ? s.errors.map((e, idx) => stepError(ele, s, e, idx)) : ""}
   </div>
 `;
 
@@ -187,8 +195,19 @@ window.customElements.define('task-driver-sk', class extends HTMLElement {
     this._render();
   }
 
+  _errLink(stepId, idx) {
+    let link = "/errors/" + this._data.id;
+    if (stepId !== this._data.id) {
+      link += "/" + stepId;
+    }
+    return link + "/" + idx;
+  }
+
   _logLink(stepId, logId) {
-    let link = "/logs/" + this._data.id + "/" + stepId;
+    let link = "/logs/" + this._data.id;
+    if (stepId !== this._data.id) {
+      link += "/" + stepId;
+    }
     if (logId) {
       link += "/" + logId;
     }
