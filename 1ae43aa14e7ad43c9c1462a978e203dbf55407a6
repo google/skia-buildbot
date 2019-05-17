@@ -16,6 +16,24 @@
       "revId": "1ae43aa14e7ad43c9c1462a978e203dbf55407a6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4499ebaf_2ae8aa26",
+        "filename": "autoroll/go/repo_manager/freetype_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-17T16:45:03Z",
+      "side": 1,
+      "message": "Will do. I was procrastinating since it\u0027s going to be big and slow.",
+      "parentUuid": "0acd6d4d_dc490655",
+      "revId": "1ae43aa14e7ad43c9c1462a978e203dbf55407a6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
