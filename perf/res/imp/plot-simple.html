@@ -7,10 +7,6 @@
 
     height - The height of the element in px.
 
-    nocrosshair - If true then the mouse following croshair is hidden.
-
-    specialevents - If true then special lines emit events also.
-
   Events:
     trace_selected - Event produced when the user clicks on a line.
       The e.detail contains the id of the line and the index of the
@@ -37,8 +33,9 @@
        by dragging.
 
   Methods:
-    addLines(lines) - Add lines to the plot, where lines is an object that
-      maps the line id to an array of [x, y] points. For example:
+    addLines(lines, labels) - Add lines to the plot, where lines is an object that
+      maps the line id to an array of [x, y] points. Labels are the x-axis
+      values. For example:
 
         var lines = {
           foo: [
@@ -52,7 +49,8 @@
             [0.5, 3.9],
           ],
         };
-        plot.addLines(lines);
+        var labels = [new Date(), new Date()];
+        plot.addLines(lines, labels);
 
       Any line id that begins with "special" will be treated specially,
       i.e. it will be presented as a dashed black line that doesn't
@@ -89,41 +87,18 @@
         ];
         plot.setBanding(bands);
 
-    setTicks(ticks) - Sets the tick mark locations and values. If not called
-      then uniformly spaces tick marks in the x axis units are displayed.
-      The value of ticks is an object that maps x axis values to their display
-      value.
-
-        var ticks = {
-           1: "5th",
-          10: "6th",
-          25: "7th",
-        };
-
     resetAxes() - Resets the axes back after the user has zoomed.
 
 -->
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
-<script src="/res/imp/bower_components/d3/d3.min.js"></script>
-
-<!--
-Styles for the svg elements used in plot-simple-sk are kept in a separate
-CSS file since we are using d3 to manage those elements and not the
-Polymer.dom() functions, so the whole magic CSS scoping stuff doesn't
-work, so we just prefix every rule with plot-simple-sk.
--->
-<link rel="stylesheet" href="plot-simple.css">
-
 <dom-module id="plot-simple-sk">
+  <style type="text/css" media="screen">
+    :host {
+      position: relative;
+    }
+  </style>
   <template>
-    <svg id="svg" width$="{{width}}" height$="{{height}}"
-      class$="{{noCrosshair(nocrosshair)}}">
-      <defs>
-        <clipPath id="clip">
-          <rect x="0" y="0" width="1000" height="500" />
-        </clipPath>
-      </defs>
-    </svg>
+    <canvas id=chart width$="{{width}}" height$="{{height}}"></canvas>
   </template>
 </dom-module>
 
@@ -158,498 +133,265 @@ work, so we just prefix every rule with plot-simple-sk.
           type: Number,
           value: 1000,
           reflectToAttribute: true,
-          observer: "_calcSize",
         },
         height: {
           type: Number,
           value: 500,
           reflectToAttribute: true,
-          observer: "_calcSize",
-        },
-        nocrosshair: {
-          type: Boolean,
-          value: false,
-          reflectToAttribute: true,
-        },
-        specialevents: {
-          type: Boolean,
-          value: false,
         },
       },
 
       ready: function() {
-        // The last reported position of the mouse, in plot and native
-        // coordinates.
-        this._mouse = {
-          x: 0,
-          y: 0,
-          x_native: 0,
-          y_native: 0,
-        };
-
-        // The closes line to the mouse, calculated after every mouse move
-        // event.
-        this._closest = {
-          d: 1e20,
-          trace: -1,
-          index: -1,
-          value: 0,
-        };
-
         // The location of the XBar. See setXBar().
         this._xbarx = 0;
 
         // The locations of the background bands. See setBanding().
         this._bands = [];
 
-        // The values of the custom x-axis tick marks, if set. See setTicks().
-        this._ticks = {};
+        this._chart = new Chart(this.$.chart, {
+          type: 'line',
+          data: {
+            datasets: [],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            spanGaps: true,
+            animation: {
+              duration: 0, // general animation time
+            },
+            hover: {
+              animationDuration: 0, // duration of animations when hovering an item
+            },
+            annotation: {
+              annotations: [],
+            },
+            responsiveAnimationDuration: 0, // animation duration after a resize
+            elements: {
+              line: {
+                tension: 0 // disables bezier curves
+              }
+            },
+            tooltips: {
+              intersect: false,
+              mode: 'nearest',
+              animationDuration: 0,
+              caretPadding: 10,
+              callbacks: {
+                label: (tooltipItem, data) => {
+                  var label = data.datasets[tooltipItem.datasetIndex].label || '';
+                  let detail = {
+                    id: label,
+                    value: tooltipItem.value,
+                    index: tooltipItem.index,
+                    pt: [tooltipItem.index, tooltipItem.value],
+                  };
+                  this.dispatchEvent(new CustomEvent('trace_focused', {detail: detail, bubbles: true}));
+                  return `Value: ${tooltipItem.value}`;
+                }
+              },
+            },
+            scales: {
+              xAxes: [{
+                type: 'time',
+                position: 'bottom',
+                time: {
+                  round: 'second',
+                  source: 'labels',
+                },
+                distribution: 'series',
+                ticks: {
+                  autoSkip: true,
+                  autoSkipPadding: 10,
+                  source: 'auto',
+                  minRotation: 60,
+                  autoSkip: true,
+                  maxTicksLimit: 10,
+                },
+              }]
+            },
+            legend: {
+              display: false,
+            },
+            onClick: (e) => {
+              let eles = this._chart.getElementAtEvent(e);
+              if (!eles.length) {
+                return
+              }
+              let ele = eles[0];
+              let id = this._chart.data.datasets[ele._datasetIndex].label;
+              if (id.startsWith(SPECIAL))  {
+                return
+              }
+              let index = ele._index;
+              let value = this._chart.data.datasets[ele._datasetIndex].data[ele._index];
+              let detail =  {
+                id: id,
+                index: index,
+                value: value,
+                pt: [index, value],
+              };
+              this.dispatchEvent(new CustomEvent('trace_selected', {detail: detail, bubbles: true}));
+              this.setHighlight([id]);
+            },
+            plugins: {
+              zoom: {
+                pan: {
+                  enabled: true,
+                  mode: 'xy',
+                  rangeMin: {
+                    x: null,
+                    y: null
+                  },
+                  rangeMax: {
+                    x: null,
+                    y: null
+                  },
+                },
+                zoom: {
+                  enabled: true,
+                  drag: true,
 
-        this._lineData = [ ];
-        this._initialSetup();
-        this.resetAxes();
-        this._plot();
+                  drag: {
+                    borderColor: 'lightgray',
+                    borderWidth: 3,
+                  },
+
+                  mode: 'xy',
+                  rangeMin: {
+                    x: null,
+                    y: null
+                  },
+                  rangeMax: {
+                    x: null,
+                    y: null
+                  },
+
+                  // Speed of zoom via mouse wheel
+                  // (percentage of zoom on a wheel event)
+                  speed: 0.1,
+
+                  onZoom: (c) => {
+                    let detail = {
+                      xMin: c.chart.scales["x-axis-0"].min,
+                      xMax: c.chart.scales["x-axis-0"].max,
+                      yMin: c.chart.scales["y-axis-0"].min,
+                      yMax: c.chart.scales["y-axis-0"].max,
+                    };
+                    this.dispatchEvent(new CustomEvent("zoom", {detail: detail, bubbles: true}));
+                  },
+                }
+              }
+            }
+          },
+        });
       },
 
       // lines is a map to the line data.
-      addLines: function(lines) {
-        Object.keys(lines).forEach(function(id) {
-          var line = lines[id];
-          line._id = id;
-          line._hash = (sk.hashString(id) % 8) + 1;
-          if (id.startsWith(SPECIAL)) {
-            line._hash = 0;
-          }
-          this._lineData.push(line);
-        }.bind(this));
-        this.resetAxes();
-        this._plot();
+      addLines: function(lines, labels) {
+        if (labels) {
+          this._chart.data.labels = labels;
+        }
+        Object.keys(lines).forEach((id) => {
+          let data = lines[id].map(arr => arr[1]);
+          this._chart.data.datasets.push({
+            label: id,
+            data: data,
+            fill: false,
+            borderColor: colors[(sk.hashString(id) % 8) + 1],
+            borderWidth: 1,
+          });
+        });
+        this._chart.update();
       },
 
       deleteLine: function(id) {
-        // First clear all the lines, but backup _lineData for later use.
-        var backup = this._lineData;
-        this.removeAll();
-        // Then re-add all the lines except the one we want deleted.
-        for (var i = backup.length - 1; i >= 0; i--) {
-          if (backup[i]._id != id) {
-            this._lineData.push(backup[i]);
+        let ds = this._chart.data.datasets;
+        for (var i = 0; i < ds.length; i++) {
+          if (ds[i].label === id) {
+            this._chart.data.datasets.splice(i, 1);
+            this._chart.update();
+            return;
           }
         }
-        this._plot();
       },
 
       removeAll: function() {
-        this._lineData = [];
-        this._plot();
+        this._chart.data.datasets = [];
+        this._chart.update();
       },
 
       setHighlight: function(ids) {
-        $$('.trace').forEach(function(ele) {
-          if (ids.indexOf(ele.getAttribute('data-id')) != -1) {
-            ele.classList.add('highlight');
+        this._chart.data.datasets.forEach((dataset) => {
+          if (ids.indexOf(dataset.label) != -1) {
+            dataset.borderWidth = 3;
+          } else {
+            dataset.borderWidth = 1;
           }
         });
+        this._chart.update();
       },
 
       highlighted: function() {
-        var ids = [];
-        $$('.trace.highlight').forEach(function(ele) {
-          ids.push(ele.getAttribute('data-id'));
+        let h = [];
+        this._chart.data.datasets.forEach((dataset) => {
+          if (dataset.borderWidth === 3) {
+            h.push(dataset.label);
+          }
         });
-        return ids;
+        return h;
       },
 
       clearHighlight: function() {
-        this._svg.selectAll(".trace")
-          .classed('highlight', false);
+        this._chart.data.datasets.forEach((dataset) => {
+          dataset.borderWidth = 1;
+        });
+        this._chart.update();
       },
 
       setXBar: function(x) {
-        this._xbarx = x;
-        this._xbar
-          .attr('x1', this._xRange(x))
-          .attr('x2', this._xRange(x))
-          .classed('displayed', true);
+        this.clearXBar();
+        this._chart.options.annotation.annotations.push({
+          id: 'xbar',
+          type: 'line',
+          mode: 'vertical',
+          scaleID: 'x-axis-0',
+          value: this._chart.data.labels[x],
+          borderColor: 'red',
+          borderWidth: 3,
+          drawTime: 'beforeDatasetsDraw',
+        });
+        this._chart.update();
       },
 
       clearXBar: function(x) {
-        this._xbar
-          .classed('displayed', false);
+        this._chart.options.annotation.annotations =
+          this._chart.options.annotation.annotations.filter(ann => {
+            return ann.id != 'xbar';
+          });
+        this._chart.update();
       },
 
       setBanding: function(bands) {
-        this._bands = bands;
-        this._plot();
-      },
-
-      setTicks: function(ticks) {
-        var values = Object.keys(ticks).sort();
-        this._ticks = ticks;
-
-        this._xAxis
-          .tickValues(values)
-          .tickFormat(function(d) { return this._ticks[d]; }.bind(this));
-
-        this._plot();
+        bands.forEach((band, i) => {
+          this._chart.options.annotation.annotations.push({
+            id: `band-${i}`,
+            type: 'box',
+            mode: 'vertical',
+            xScaleID: 'x-axis-0',
+            xMin: this._chart.data.labels[band[0]],
+            xMax: this._chart.data.labels[band[1]],
+            backgroundColor: 'rgba(0, 0, 0, 0.1)',
+            drawTime: 'beforeDatasetsDraw',
+          });
+        });
+        this._chart.update();
       },
 
       resetAxes:  function() {
-        if (!this._lineData || !this._xRange) {
-          return
+        if (this._chart) {
+          this._chart.resetZoom();
         }
-        xMin = d3.min(this._lineData, function (d) { return d3.min(d, function (d) { return d[0]; }) });
-        xMax = d3.max(this._lineData, function (d) { return d3.max(d, function (d) { return d[0]; }) });
-        yMin = d3.min(this._lineData, function (d) { return d3.min(d, function (d) { return d[1]; }) });
-        yMax = d3.max(this._lineData, function (d) { return d3.max(d, function (d) { return d[1]; }) });
-        var xMargin = Math.abs(xMax - xMin)*0.02;
-        var yMargin = Math.abs(yMax - yMin)*0.02;
-        this._xRange.domain([xMin-xMargin, xMax+xMargin]);
-        this._yRange.domain([yMin-yMargin, yMax+yMargin]);
-        this._plot();
-      },
-
-      // Create an event from this._closest of the given name.
-      _eventFromClosest: function(name) {
-        var id = this._lineData[this._closest.trace]._id;
-        if (!this.specialevents && id.startsWith(SPECIAL)) {
-          return
-        }
-        var detail = {
-          id: id,
-          index: this._closest.index,
-          value: this._closest.value,
-          pt: this._closest.pt,
-        }
-        this.dispatchEvent(new CustomEvent(name, {detail: detail, bubbles: true}));
-      },
-
-      _click: function() {
-        if (this._closest.trace == -1) {
-          return
-        }
-        this._eventFromClosest("trace_selected");
-      },
-
-      _move: function(p) {
-        this._mouse.x_native = p[0] - margins.left;
-        this._mouse.y_native = p[1] - margins.top;
-
-        // Only do the minimal work in _move, schedule the rest of the work
-        // to be done later in _mouseMoveWork.
-        window.setTimeout(this._mouseMoveWork.bind(this), 1);
-      },
-
-      // Calculates new this._closest value based on the mouse position.
-      // Also updates the 'focused' status of lines and dots.
-      _mouseMoveWork: function() {
-        this._mouse.x = this._xRange.invert(this._mouse.x_native);
-        this._mouse.y = this._yRange.invert(this._mouse.y_native);
-
-        this._vhair.attr('x1', this._mouse.x_native);
-        this._vhair.attr('x2', this._mouse.x_native);
-        this._hhair.attr('y1', this._mouse.y_native);
-        this._hhair.attr('y2', this._mouse.y_native);
-
-        var oldTrace = this._closest.trace;
-        var oldCommit = this._closest.index;
-
-        this._closest = {
-          d: 1e20,
-          trace: -1,
-          index: -1,
-          value: 0,
-        };
-        // We are going to calculate the distance between all the points and
-        // the mouse. For that to work we'll normalize all the x and y deltas
-        // so they scale from 0 to 1.0.
-        var scalex = Math.abs(xMax - xMin);
-        var scaley = Math.abs(yMax - yMin);
-        for (var i = this._lineData.length - 1; i >= 0; i--) {
-          var atrace = this._lineData[i];
-          for (var j = atrace.length - 1; j >= 0; j--) {
-            var pt = atrace[j];
-            var d = Math.pow((pt[0] - this._mouse.x)/scalex, 2)  + Math.pow((pt[1] - this._mouse.y)/scaley, 2);
-            if (d < this._closest.d) {
-              this._closest.d = d;
-              this._closest.trace = i;
-              this._closest.index= j;
-              this._closest.pt = pt;
-              this._closest.value= atrace[j][1];
-            }
-          }
-        }
-        if (oldTrace != this._closest.trace || oldCommit != this._closest.index) {
-          this._svg.selectAll(".trace")
-            .classed('focused', false);
-          this._svg.selectAll(".dot")
-            .classed('focused', false);
-          if (this._closest.trace >= 0) {
-            this._svg.select("#trace_"+this._closest.trace)
-              .classed('focused', true);
-            this._svg.select("#trace_"+this._closest.trace + " .c"+this._closest.index)
-              .classed('focused', true);
-          }
-
-          if (this._closest.trace != -1) {
-            this._eventFromClosest("trace_focused");
-          }
-        }
-      },
-
-      _calcSize: function() {
-        if (!this.height || !this.width || !this._lineData) {
-          return;
-        }
-        var ele = this.$.svg;
-        this._outerWidth = ele.width.baseVal.value;
-        this._outerHeight = ele.height.baseVal.value;
-        this._width = this._outerWidth - margins.left - margins.right;
-        this._height = this._outerHeight - margins.top - margins.bottom;
-        d3.select(ele).select('#clip rect')
-          .attr('width', this._width)
-          .attr('height', this._height);
-        var xMin = d3.min(this._lineData, function (d) { return d3.min(d, function (d) { return d[0]; }) });
-        var xMax = d3.max(this._lineData, function (d) { return d3.max(d, function (d) { return d[0]; }) });
-        var yMin = d3.min(this._lineData, function (d) { return d3.min(d, function (d) { return d[1]; }) });
-        var yMax = d3.max(this._lineData, function (d) { return d3.max(d, function (d) { return d[1]; }) });
-
-        this._xRange = d3.scale
-          .linear()
-          .range([0, this._width])
-          .domain([xMin, xMax]);
-
-        this._yRange = d3.scale
-          .linear()
-          .range([this._height, 0])
-          .domain([yMin, yMax]);
-
-        this._lineFunc = d3.svg.line()
-          .x(function (d) { return this._xRange(d[0]); }.bind(this))
-          .y(function (d) { return this._yRange(d[1]); }.bind(this))
-          .interpolate('linear');
-
-        this._xAxis = d3.svg.axis()
-          .scale(this._xRange)
-          .tickSize(5)
-          .tickSubdivide(true);
-
-        this._yAxis = d3.svg.axis()
-          .scale(this._yRange)
-          .tickSize(5)
-          .orient("left")
-          .tickSubdivide(true);
-
-        if (this._hhair) {
-          this._hhair.attr('x2', this._width);
-        }
-
-        this.setTicks(this._ticks);
-
-        this.resetAxes();
-      },
-
-      // Creates the initial set of SVG elements.
-      _initialSetup: function() {
-        var ele = this.$.svg;
-        this._calcSize();
-
-        this._svg = d3.select(ele)
-          .append("g")
-          .attr("class", "top")
-          .attr("transform", "translate(" + margins.left + "," + margins.top + ")");
-
-        d3.select(ele)
-          .on("click", this._click.bind(this))
-          .on("mousedown", this._mouseDown.bind(this))
-          .on("mousemove", this._mouseMove.bind(this))
-          .on("mouseup", this._mouseUp.bind(this));
-
-        this._svg.append("g")
-          .attr("class", "x axis")
-          .attr("transform", "translate(0," + this._height + ")")
-          .call(this._xAxis);
-
-        this._svg.append("g")
-          .attr("class", "y axis")
-          .call(this._yAxis);
-
-        // Add the crosshair.
-        this._hhair = this._svg.append("line")
-          .attr('x1', 0)
-          .attr('y1', 0)
-          .attr('x2', this._width)
-          .attr('y2', 0)
-          .attr('class', 'xhair');
-
-        this._vhair = this._svg.append("line")
-          .attr('x1', 0)
-          .attr('y1', 0)
-          .attr('x2', 0)
-          .attr('y2', this._height)
-          .attr('class', 'xhair');
-
-        this._xbar = this._svg.append("line")
-          .attr('x1', 0)
-          .attr('y1', 0)
-          .attr('x2', 0)
-          .attr('y2', this._height)
-          .attr('class', 'xbar');
-
-        this._vis = this._svg.append("g");
-      },
-
-
-      // Update the date displayed on the plot.
-      _plot: function() {
-        if (!this._vis) {
-          return
-        }
-        var trace = this._vis.selectAll(".trace")
-          .data(this._lineData);
-
-        trace.enter().append("g")
-          .attr("class", function(d) {
-            var ret = "trace";
-            if (d._id && d._id.startsWith(SPECIAL)) {
-              ret += " special";
-            }
-            return ret
-          })
-          .attr("clip-path", "url(#clip)")
-          .attr("stroke", function(d) { return colors[d._hash]; })
-          .attr("id", function(d, i) { return "trace_" + i; })
-          .attr("data-id", function(d) { return d._id; })
-          .append("path")
-          .attr("stroke-width", 2)
-          .attr("fill", "none");
-
-        trace.exit().remove();
-
-        trace.selectAll("path")
-          .attr("d", function(d) { return this._lineFunc(d); }.bind(this));
-
-        var dots = trace.selectAll(".dot")
-          .data(function(d) { return d; });
-
-        dots.enter().append("circle")
-          .attr("class", function(d, i) { return "c" + i + " dot"; })
-          .attr("r", 3.5);
-
-        dots.exit().remove();
-
-        dots
-          .attr("cx", this._lineFunc.x())
-          .attr("cy", this._lineFunc.y());
-
-
-        var bands = this._vis.selectAll(".band")
-          .data(this._bands);
-
-        bands.enter().append("rect")
-          .attr("class", "band")
-
-        bands.exit().remove();
-
-        bands
-          .attr("x", function(d) { return this._xRange(d[0]); }.bind(this))
-          .attr("y", 0)
-          .attr("width", function(d) { return this._xRange(d[1]) - this._xRange(d[0]); }.bind(this))
-          .attr("height", function() { return this._height; }.bind(this))
-
-        if (this._xbar && this._xbarx && this._xRange(this._xbarx) ) {
-          this._xbar
-            .attr('x1', this._xRange(this._xbarx))
-            .attr('x2', this._xRange(this._xbarx))
-        }
-
-        this._svg.select(".x.axis").call(this._xAxis);
-        this._svg.select(".y.axis").call(this._yAxis);
-      },
-
-      _mouseDown: function() {
-        var p = d3.mouse(this.$.svg);
-
-        this._svg.append("rect")
-          .attr({
-            rx    : 6,
-            ry    : 6,
-            class : "selectionrect",
-            x     : p[0] - margins.left,
-            y     : p[1] - margins.top,
-            width : 0,
-            height: 0,
-          });
-      },
-
-      _mouseMove: function() {
-        var s = this._svg.select(".selectionrect");
-
-        if (s.empty()) {
-          this._move(d3.mouse(this.$.svg));
-          return
-        }
-
-        var p = d3.mouse(this.$.svg);
-        p[0] = p[0] - margins.left;
-        p[1] = p[1] - margins.top;
-        var d = {
-          x     : parseInt(s.attr("x"), 10),
-          y     : parseInt(s.attr("y"), 10),
-          width : parseInt(s.attr("width"), 10),
-          height: parseInt(s.attr("height"), 10)
-        };
-        var dx = p[0] - d.x;
-        var dy = p[1]- d.y;
-
-        if (dx < 1) {
-          d.x = p[0];
-          d.width -= dx;
-        } else {
-          d.width = dx;
-        }
-
-        if (dy < 1) {
-          d.y = p[1];
-          d.height -= dy;
-        } else {
-          d.height = dy;
-        }
-
-        s.attr(d);
-      },
-
-      _mouseUp: function() {
-        // In M64 we don't get clicks, so also trigger on mouseup.
-        this._click();
-        var r = this._svg.select(".selectionrect")[0][0];
-        if (!r) {
-          return
-        }
-        var xMin = this._xRange.invert(r.x.baseVal.value);
-        var xMax = this._xRange.invert(r.x.baseVal.value + r.width.baseVal.value);
-        var yMax = this._yRange.invert(r.y.baseVal.value);
-        var yMin = this._yRange.invert(r.y.baseVal.value + r.height.baseVal.value);
-        this._svg.selectAll(".selectionrect").remove();
-
-        if (r.width.baseVal.value < 5 || r.height.baseVal.value  < 5) {
-          return
-        }
-
-        this._xRange.domain([xMin, xMax]);
-        this._yRange.domain([yMin, yMax]);
-        this._plot();
-        var detail = {
-          xMin: xMin,
-          xMax: xMax,
-          yMin: yMin,
-          yMax: yMax,
-        };
-        this.dispatchEvent(new CustomEvent("zoom", {detail: detail, bubbles: true}));
-      },
-
-      noCrosshair: function(nocrosshair) {
-        return nocrosshair ? 'nocrosshair' : '';
       },
 
     });

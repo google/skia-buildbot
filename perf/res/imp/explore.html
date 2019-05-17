@@ -102,7 +102,7 @@
     }
 
     domain-picker-sk {
-      display: block;
+      display: inline-block;
     }
 
     #commits {
@@ -116,103 +116,106 @@
     #percent {
       margin: 0.6em;
       font-family: 'Roboto Mono',monospace;
-      width: 3em;
     }
 
-    #plotDiv {
+    #plot {
       grid-area: graph;
+      display: block;
+      min-height: 30vh;
     }
 
     #buttons {
       grid-area: buttons;
-      display: flex;
-      flex-wrap: wrap;
       font-size: 11px;
-      align-content: flex-start;
+      align-self: center;
     }
 
     #tabs {
       grid-area: tabs;
     }
 
-    .container {
+    :host {
       width: 100%;
       display: inline-grid;
-      grid-template-columns: auto 20%;
-      grid-template-rows: auto auto;
+      grid-template-columns: auto;
+      grid-template-rows: auto auto auto;
       grid-template-areas:
-        "graph buttons"
-        "tabs tabs";
+        "buttons"
+        "graph"
+        "tabs";
     }
+
+    #spinner[aria-hidden=true] {
+      display: none;
+    }
+
+    #spin-container {
+      display: inline-block;
+    }
+
   </style>
   <template>
-    <div class=container>
-      <div id=plotDiv class="layout flex">
-        <highlightbar-sk id=highlight></highlightbar-sk>
-        <plot-simple-sk width=1024 height=256 id=plot></plot-simple-sk>
-        <div class="layout horizontal center-justified">
-          <domain-picker-sk id=range state="[[state]]" on-domain-changed="_rangeChange"></domain-picker-sk>
-          <paper-spinner id=spinner></paper-spinner>
-          <span id=percent></span>
-        </div>
-      </div>
+    <plot-simple-sk width=1024 height=256 id=plot></plot-simple-sk>
 
-      <div id=buttons>
-        <button on-click="_removeHighlighted" title="Remove all the highlighted traces.">Remove Highlighted</button>
-        <button on-click="_removeAll" title="Remove all the traces.">Remove All</button>
-        <button on-click="_highlightedOnly" title="Remove all but the highlighted traces.">Highlighted Only</button>
-        <button on-click="_clearHighlights" title="Remove highlights from all traces.">Clear Highlights</button>
-        <button on-click="_resetAxes" title="Reset back to the original zoom level.">Reset Axes</button>
-        <button on-click="_shiftLeft" title="Move 10 commits in the past.">&lt;&lt; [[_numShift]]</button>
-        <button on-click="_shiftBoth" title="Expand the display [[_numShift]] commits in
-          both directions.">&lt;&lt; +[[_numShift]] &gt;&gt;</button>
-        <button on-click="_shiftRight" title="Move 10 commits in the future.">[[_numShift]] &gt;&gt;</button>
-        <div>
-          <button on-click="_zoomToRange" id=zoom_range disabled title="Fit the time range to the current zoom window.">Zoom Range</button>
-          <span title="Number of commits skipped between each point displayed." hidden="[[_isZero(_dataframe.skip)]]" id=skip>[[_dataframe.skip]]</span>
-        </div>
-        <paper-checkbox on-click=_zeroChanged checked="{{state.show_zero}}" title="Toggle the presence of the zero line.">Zero</paper-checkbox>
-        <paper-checkbox on-click=_autoRefreshChanged checked="{{state.auto_refresh}}" title="Auto-refresh the data displayed in the graph.">Auto-Refresh</paper-checkbox>
-        <button on-click="_normalize" title="Apply norm() to all the traces.">Normalize</button>
-        <button on-click="_csv" title="Download all displayed data as a CSV file.">CSV</button>
-        <a href="" target=_blank download="traces.csv" id=csv_download></a>
+    <div id=buttons>
+      <domain-picker-sk id=range state="[[state]]" on-domain-changed="_rangeChange"></domain-picker-sk>
+      <button on-click="_removeHighlighted" title="Remove all the highlighted traces.">Remove Highlighted</button>
+      <button on-click="_removeAll" title="Remove all the traces.">Remove All</button>
+      <button on-click="_highlightedOnly" title="Remove all but the highlighted traces.">Highlighted Only</button>
+      <button on-click="_clearHighlights" title="Remove highlights from all traces.">Clear Highlights</button>
+      <button on-click="_resetAxes" title="Reset back to the original zoom level.">Reset Axes</button>
+      <button on-click="_shiftLeft" title="Move 10 commits in the past.">&lt;&lt; [[_numShift]]</button>
+      <button on-click="_shiftBoth" title="Expand the display [[_numShift]] commits in
+      both directions.">&lt;&lt; +[[_numShift]] &gt;&gt;</button>
+      <button on-click="_shiftRight" title="Move 10 commits in the future.">[[_numShift]] &gt;&gt;</button>
+      <button on-click="_zoomToRange" id=zoom_range disabled title="Fit the time range to the current zoom window.">Zoom Range</button>
+      <span title="Number of commits skipped between each point displayed." hidden="[[_isZero(_dataframe.skip)]]" id=skip>[[_dataframe.skip]]</span>
+      <paper-checkbox on-click=_zeroChanged checked="{{state.show_zero}}" title="Toggle the presence of the zero line.">Zero</paper-checkbox>
+      <paper-checkbox on-click=_autoRefreshChanged checked="{{state.auto_refresh}}" title="Auto-refresh the data displayed in the graph.">Auto-Refresh</paper-checkbox>
+      <button on-click="_normalize" title="Apply norm() to all the traces.">Normalize</button>
+      <button on-click="_csv" title="Download all displayed data as a CSV file.">CSV</button>
+      <a href="" target=_blank download="traces.csv" id=csv_download></a>
+      <div id=spin-container>
+        <paper-spinner id=spinner></paper-spinner>
+        <span id=percent></span>
       </div>
+    </div>
 
-      <div id=tabs class="flex">
-        <paper-tabs selected=0 id=detailtab no-bar on-iron-select="_tabSelect">
-          <paper-tab>Query</paper-tab>
-          <paper-tab>Params</paper-tab>
-          <paper-tab id=commitsTab disabled>Details</paper-tab>
-        </paper-tabs>
-        <div id=detail>
-          <div id=queryTab class="layout vertical">
-            <div class="layout horizontal">
-              <query2-sk id=query></query2-sk>
-              <div class="layout vertical" id=selections>
-                <h3>Selections</h3>
-                <query-summary-sk id=summary></query-summary-sk>
-                <div>
-                  Matches: <span id=matches></span>
-                </div>
-                <button on-tap="_add" class=action>Plot</button>
+
+    <div id=tabs class="flex">
+      <paper-tabs selected=0 id=detailtab no-bar on-iron-select="_tabSelect">
+        <paper-tab>Query</paper-tab>
+        <paper-tab>Params</paper-tab>
+        <paper-tab id=commitsTab disabled>Details</paper-tab>
+      </paper-tabs>
+      <div id=detail>
+        <div id=queryTab class="layout vertical">
+          <div class="layout horizontal">
+            <query2-sk id=query></query2-sk>
+            <div class="layout vertical" id=selections>
+              <h3>Selections</h3>
+              <query-summary-sk id=summary></query-summary-sk>
+              <div>
+                Matches: <span id=matches></span>
               </div>
-            </div>
-            <h3>Calculated Traces</h3>
-            <div class="layout horizontal center">
-              <paper-input-decorator floatingLabel label="Formula" flex>
-                <textarea id="formula" rows=3 cols=80></textarea>
-              </paper-input-decorator>
-              <button on-tap="_addCalculated" class=action>Add</button>
-              <a href="/help/" target=_blank><iron-icon icon="help"></iron-icon></a>
+              <button on-tap="_add" class=action>Plot</button>
             </div>
           </div>
-          <paramset-sk id=paramset class=hidden clickable-values></paramset-sk>
-          <div id=details class="layout horizontal wrap hidden">
-            <paramset-sk id=simple_paramset clickable-values></paramset-sk>
-            <div class="layout vertical">
-              <commit-detail-panel-sk id=commits></commit-detail-panel-sk>
-              <json-source id=jsonsource></json-source>
-            </div>
+          <h3>Calculated Traces</h3>
+          <div class="layout horizontal center">
+            <paper-input-decorator floatingLabel label="Formula" flex>
+              <textarea id="formula" rows=3 cols=80></textarea>
+            </paper-input-decorator>
+            <button on-tap="_addCalculated" class=action>Add</button>
+            <a href="/help/" target=_blank><iron-icon icon="help"></iron-icon></a>
+          </div>
+        </div>
+        <paramset-sk id=paramset class=hidden clickable-values></paramset-sk>
+        <div id=details class="layout horizontal wrap hidden">
+          <paramset-sk id=simple_paramset clickable-values></paramset-sk>
+          <div class="layout vertical">
+            <commit-detail-panel-sk id=commits></commit-detail-panel-sk>
+            <json-source id=jsonsource></json-source>
           </div>
         </div>
       </div>
@@ -318,10 +321,6 @@
           // Remove the paramset so it doesn't get displayed in the Params tab.
           json.dataframe.paramset = {};
 
-          // Display this SearchResult, which has no traces, but this will
-          // set up the tick marks, the skp bands, and the 0-trace.
-          this._addTraces(json, true, false);
-
           // From this point on reflect the state to the URL.
           this._startStateReflector();
         }.bind(this)).catch(sk.errorMessage);
@@ -353,16 +352,11 @@
         this.$.plot.addEventListener("trace_focused", function(e) {
           this.$.paramset.clearHighlight();
           this.$.paramset.setHighlight(sk.key.toObject(e.detail.id));
-          this.$.highlight.key = e.detail.id;
-          this.$.highlight.value = e.detail.pt[1];
         }.bind(this));
 
         // User has zoomed in on the graph.
         this.$.plot.addEventListener("zoom", function(e) {
-          var begin = this._dataframe.header[Math.floor(e.detail.xMin)].timestamp;
-          var endIndex = Math.min(Math.floor(e.detail.xMax), this._dataframe.header.length-1);
-          var end = this._dataframe.header[endIndex].timestamp+1;
-          this._zoomRange = [begin, end];
+          this._zoomRange = [e.detail.xMin/1000, e.detail.xMax/1000];
           this.$.zoom_range.disabled = false;
         }.bind(this));
 
@@ -401,7 +395,6 @@
         }.bind(this));
 
         this._updateCount();
-        this._resizeWatcher();
       },
 
       _startStateReflector: function() {
@@ -509,6 +502,10 @@
         var body = this._requestFrameBodyFullFromState();
         var switchToTab = body.formulas.length > 0 || body.queries.length > 0 || body.keys != "";
         this._requestFrame(body, function(json) {
+          if (json == null) {
+            sk.errorMessage('Failed to find any matching traces.');
+            return
+          }
           this.$.plot.removeAll();
           this._lines = [];
           this._addTraces(json, false, switchToTab);
@@ -603,6 +600,8 @@
           dataframe.traceset[key].forEach(function(y, x) {
             if (y != MISSING_DATA_SENTINEL) {
               values.push([x, y]);
+            } else {
+              values.push([x, null]);
             }
           });
           lines[key] = values;
@@ -626,19 +625,12 @@
         if (!incremental) {
           this.$.plot.removeAll();
         }
-        this.$.plot.addLines(this._lines);
-
-        // Ticks are serialized as a slice of slices, ala [[0, "foo"], [1.5, "bar"], ..]
-        // because the structure we actually need, a map[float64]string, isn't able
-        // to be serialized as JSON, so we transform the representations here.
-        //
-        // TODO(jcgregorio) Once we are the only customer of plot-simple-sk, then change
-        //   signature of setTicks().
-        var tickmap = {};
-        json.ticks.forEach(function(t) {
-          tickmap[t[0]] = t[1];
+        var labels = [];
+        dataframe.header.forEach(header => {
+          labels.push(new Date(header.timestamp * 1000));
         });
-        this.$.plot.setTicks(tickmap);
+
+        this.$.plot.addLines(this._lines, labels);
 
         // Always add in the last index so we draw a band if there's an odd
         // number of skp updates.
@@ -807,6 +799,8 @@
           this._dataframe.traceset[key].forEach(function(y, x) {
             if (y != MISSING_DATA_SENTINEL) {
               values.push([x, y]);
+            } else {
+              values.push([x, null]);
             }
           });
           toadd[key] = values;
@@ -848,6 +842,8 @@
           this._dataframe.traceset[key].forEach(function(y, x) {
             if (y != MISSING_DATA_SENTINEL) {
               values.push([x, y]);
+            } else {
+              values.push([x, null]);
             }
           });
           toadd[key] = values;

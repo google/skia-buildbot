@@ -1,9 +1,11 @@
 # The list of files we want to go into core.js, which is concat'd and
 # minified. These files should be either present in the project, brought
 # into third_party/bower_components via bower, or in node_modules.
-CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
-					third_party/bower_components/webcomponentsjs/webcomponents-lite.min.js \
-          ../res/js/common.js
+CORE_SOURCE_FILES = node_modules/chart.js/dist/Chart.bundle.min.js \
+										node_modules/chartjs-plugin-annotation/chartjs-plugin-annotation.min.js \
+										node_modules/chartjs-plugin-zoom/chartjs-plugin-zoom.min.js	 \
+										third_party/bower_components/webcomponentsjs/webcomponents-lite.min.js \
+										../res/js/common.js
 
 BOWER_DIR=third_party/bower_components
 
