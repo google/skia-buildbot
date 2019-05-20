@@ -29,7 +29,6 @@
   },
   "cqExtraTrybots": [
     "luci.chromium.try:linux_chromium_msan_rel_ng",
-    "luci.chromium.try:android-blink-rel",
     "luci.chromium.try:linux-blink-rel",
     "luci.chromium.try:mac10.12-blink-rel",
     "luci.chromium.try:mac10.13_retina-blink-rel",
