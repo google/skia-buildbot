@@ -104,6 +104,8 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		rm, err = repo_manager.NewDEPSRepoManager(ctx, c.DEPSRepoManager, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.FuchsiaSDKAndroidRepoManager != nil {
 		rm, err = repo_manager.NewFuchsiaSDKAndroidRepoManager(ctx, c.FuchsiaSDKAndroidRepoManager, workdir, g, serverURL, gitcookiesPath, nil, cr, local)
+	} else if c.FreeTypeRepoManager != nil {
+		rm, err = repo_manager.NewFreeTypeRepoManager(ctx, c.FreeTypeRepoManager, workdir, g, recipesCfgFile, serverURL, gitcookiesPath, client, cr, local)
 	} else if c.FuchsiaSDKRepoManager != nil {
 		rm, err = repo_manager.NewFuchsiaSDKRepoManager(ctx, c.FuchsiaSDKRepoManager, workdir, g, serverURL, gitcookiesPath, nil, cr, local)
 	} else if c.GithubRepoManager != nil {

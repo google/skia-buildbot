@@ -30,6 +30,7 @@ const (
 	DOWNLOAD_URL      = "%s/+/%s/%s?format=TEXT"
 	LOG_URL           = "%s/+log/%s..%s?format=JSON"
 	REFS_URL          = "%s/+refs%%2Fheads?format=JSON"
+	TAGS_URL          = "%s/+refs%%2Ftags?format=JSON"
 )
 
 // Repo is an object used for interacting with a single Git repo using Gitiles.
@@ -290,5 +291,22 @@ func (r *Repo) Branches() ([]*git.Branch, error) {
 		})
 	}
 	sort.Sort(git.BranchList(rv))
+	return rv, nil
+}
+
+// Tags returns the list of tags in the repo. The returned map has tag names as
+// keys and commit hashes as values.
+func (r *Repo) Tags() (map[string]string, error) {
+	tags := map[string]struct {
+		Value  string `json:"value"`
+		Peeled string `json:"peeled"`
+	}{}
+	if err := r.getJson(fmt.Sprintf(TAGS_URL, r.URL), &tags); err != nil {
+		return nil, err
+	}
+	rv := make(map[string]string, len(tags))
+	for k, tag := range tags {
+		rv[k] = tag.Value
+	}
 	return rv, nil
 }
