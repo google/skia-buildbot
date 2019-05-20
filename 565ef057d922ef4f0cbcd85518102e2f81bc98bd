@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "57f8845d_f8fbba19",
+        "filename": "autoroll/go/revision/revision.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-20T18:45:50Z",
+      "side": 1,
+      "message": "This will not work for github URLs, but probably does not matter because I do not think those rollers will use this.",
+      "revId": "565ef057d922ef4f0cbcd85518102e2f81bc98bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
