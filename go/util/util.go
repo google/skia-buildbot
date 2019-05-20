@@ -185,6 +185,23 @@ func Reverse(s []string) []string {
 	return r
 }
 
+// ReverseString reverses a string. It may not handle well for UTF
+// combining characters.
+// https://groups.google.com/forum/#!topic/golang-nuts/oPuBaYJ17t4
+func ReverseString(input string) string {
+	// Get Unicode code points.
+	runes := []rune(input)
+	n := len(runes)
+
+	// Reverse
+	for i := 0; i < n/2; i++ {
+		runes[i], runes[n-1-i] = runes[n-1-i], runes[i]
+	}
+
+	// Convert back to UTF-8.
+	return string(runes)
+}
+
 // InsertString inserts the given string into the slice at the given index.
 func InsertString(strs []string, idx int, s string) []string {
 	oldLen := len(strs)
