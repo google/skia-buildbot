@@ -13,6 +13,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/deepequal"
@@ -213,7 +214,7 @@ func TestAFDORepoManager(t *testing.T) {
 	rolledPast, err = rm.RolledPast(ctx, afdoRevNext)
 	assert.NoError(t, err)
 	assert.False(t, rolledPast)
-	deepequal.AssertDeepEqual(t, []*Revision{{Id: afdoRevNext}}, rm.NotRolledRevisions())
+	deepequal.AssertDeepEqual(t, []*revision.Revision{{Id: afdoRevNext}}, rm.NotRolledRevisions())
 
 	// Upload a CL.
 

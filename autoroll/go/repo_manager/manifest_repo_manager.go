@@ -81,28 +81,15 @@ func (mr *manifestRepoManager) Update(ctx context.Context) error {
 	}
 
 	// Find the number of not-rolled child repo commits.
-	notRolled, err := mr.getCommitsNotRolled(ctx, lastRollRev)
+	notRolledRevs, err := mr.getCommitsNotRolled(ctx, lastRollRev)
 	if err != nil {
 		return err
 	}
 
 	// Get the next roll revision.
-	nextRollRev, err := mr.getNextRollRev(ctx, notRolled, lastRollRev)
+	nextRollRev, err := mr.getNextRollRev(ctx, notRolledRevs, lastRollRev)
 	if err != nil {
 		return err
-	}
-
-	// Get the list of not-yet-rolled revisions.
-	notRolledRevs := make([]*Revision, 0, len(notRolled))
-	childRepoName := path.Base(mr.childDir)
-	for _, rev := range notRolled {
-		notRolledRevs = append(notRolledRevs, &Revision{
-			Id:          rev.Hash,
-			Display:     rev.Hash[:7],
-			Description: rev.Subject,
-			Timestamp:   rev.Timestamp,
-			URL:         fmt.Sprintf("https://%s.googlesource.com/%s.git/+/%s", childRepoName, childRepoName, rev.Hash),
-		})
 	}
 
 	mr.infoMtx.Lock()
