@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c75f0a6f_488faf8f",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-20T17:28:09Z",
+      "side": 1,
+      "message": "I\u0027ll be honest, I don\u0027t really understand this test (that Stephan wrote), other than it loads in a bunch of data and then reads it out.",
+      "revId": "668eb5839cd3e24f8525cf974b1486c8c42b6fe6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
