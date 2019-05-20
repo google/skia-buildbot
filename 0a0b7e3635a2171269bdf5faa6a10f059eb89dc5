@@ -131,6 +131,30 @@
     },
     {
       "key": {
+        "uuid": "2384336f_dcdea79a",
+        "filename": "infra/bots/task_drivers/update_go_deps/update_go_deps.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-20T15:01:36Z",
+      "side": 1,
+      "message": "Hmm, one option would be to do something like this in the lib:\n\ntype Flags struct {\n  GerritUrl *string\n  ...\n}\n\nfunc SetupFlags(fs *flag.FlagSet) *Flags {\n  if fs \u003d\u003d nil {\n    fs \u003d flag.CommandLine\n  }\n  return \u0026Flags{\n    GerritUrl \u003d fs.String(\"gerrit_url\", \"\", \"URL of the Gerrit instance.\"),\n    ...\n  }\n}\n\nfunc GetRepoState(f *Flags) (types.RepoState, error) {\n  ...\n}\n\nAnd call like:\n\nvar (\n  checkoutFlags \u003d checkout.SetupFlags(nil)\n)\n...\nrs, err :\u003d checkout.GetRepoState(checkoutFlags)\n...",
+      "parentUuid": "6207b136_068cc259",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 2
+      },
+      "revId": "0a0b7e3635a2171269bdf5faa6a10f059eb89dc5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9f09674b_5f6988a3",
         "filename": "infra/bots/task_drivers/update_go_deps/update_go_deps.go",
         "patchSetId": 39
@@ -283,6 +307,30 @@
       "side": 1,
       "message": "I would strongly prefer not to.  I don\u0027t want to get into autoroll-type functionality like that in what should be a simple task.",
       "parentUuid": "4229d8e9_d5de20f9",
+      "range": {
+        "startLine": 150,
+        "startChar": 3,
+        "endLine": 150,
+        "endChar": 13
+      },
+      "revId": "0a0b7e3635a2171269bdf5faa6a10f059eb89dc5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8d2e3d8_089d5ea6",
+        "filename": "infra/bots/task_drivers/update_go_deps/update_go_deps.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-20T15:01:36Z",
+      "side": 1,
+      "message": "How will we know when it fails?",
+      "parentUuid": "7511a22e_80f748b2",
       "range": {
         "startLine": 150,
         "startChar": 3,
