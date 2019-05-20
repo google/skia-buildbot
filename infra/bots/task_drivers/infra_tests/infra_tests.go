@@ -103,11 +103,6 @@ func main() {
 			td.Fatal(ctx, err)
 		}
 	}
-	if !strings.Contains(*taskName, "Build") {
-		if _, err := exec.RunCwd(ctx, path.Join(infraDir, "go", "database"), "./setup_test_db"); err != nil {
-			td.Fatal(ctx, err)
-		}
-	}
 
 	// Run the tests.
 	cmd := []string{"run", "./run_unittests.go", "--alsologtostderr"}
