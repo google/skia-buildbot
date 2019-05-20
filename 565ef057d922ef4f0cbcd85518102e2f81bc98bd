@@ -34,6 +34,24 @@
       "revId": "565ef057d922ef4f0cbcd85518102e2f81bc98bd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc01df25_9b987106",
+        "filename": "autoroll/go/revision/revision.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-20T20:54:06Z",
+      "side": 1,
+      "message": "Where will they use this?\n\nI do not think it\u0027s still going to work:\n\"git remote get-url origin\" in the /data/engine/src/flutter github repo gives:\ngit@github.com:skia-flutter-autoroll/engine.git\n\nCould instead construct the URL using the github.repoOwner and github.repoName to make:\nhttps://github.com/flutter/engine/commit/dbf083bda15740c6c10891a402c81c4ebf67e0fd\nIf we do that, it should probably be in go/github/github.go",
+      "parentUuid": "056fb896_1315dffe",
+      "revId": "565ef057d922ef4f0cbcd85518102e2f81bc98bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
