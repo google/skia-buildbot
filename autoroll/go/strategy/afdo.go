@@ -15,9 +15,9 @@ import (
 	"sync"
 
 	"cloud.google.com/go/storage"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -108,7 +108,7 @@ type AFDOStrategy struct {
 }
 
 // See documentation for Strategy interface.
-func (s *AFDOStrategy) GetNextRollRev(ctx context.Context, _ []*vcsinfo.LongCommit) (string, error) {
+func (s *AFDOStrategy) GetNextRollRev(ctx context.Context, _ []*revision.Revision) (string, error) {
 	// Find the available AFDO versions, sorted newest to oldest, and store.
 	available := []string{}
 	if err := s.gcs.AllFilesInDirectory(ctx, AFDO_GS_PATH, func(item *storage.ObjectAttrs) {

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/depot_tools"
@@ -41,43 +42,11 @@ be CC'd on the roll, and stop the roller if necessary.
 	ROLL_BRANCH = "roll_branch"
 )
 
-// Revision is a struct containing information about a given revision.
-type Revision struct {
-	// Id is the full ID of this Revision, eg. a full commit hash. This is
-	// the only required field.
-	Id string `json:"id"`
-
-	// Display is a string used for human-friendly display of the Revision,
-	// eg. a shortened commit hash.
-	Display string `json:"display"`
-
-	// Description is a human-friendly description of the Revision, eg. a
-	// commit title line.
-	Description string `json:"description"`
-
-	// Timestamp is the time at which the Revision was created.
-	Timestamp time.Time `json:"time"`
-
-	// URL used by a human to view the Revision.
-	URL string `json:"url"`
-}
-
-// Copy the Revision.
-func (r *Revision) Copy() *Revision {
-	return &Revision{
-		Id:          r.Id,
-		Display:     r.Display,
-		Description: r.Description,
-		Timestamp:   r.Timestamp,
-		URL:         r.URL,
-	}
-}
-
 // RepoManager is the interface used by different Autoroller implementations
 // to manage checkouts.
 type RepoManager interface {
 	// Return the revisions which have not yet been rolled.
-	NotRolledRevisions() []*Revision
+	NotRolledRevisions() []*revision.Revision
 
 	// Create a new roll attempt.
 	CreateNewRoll(context.Context, string, string, []string, string, bool) (int64, error)
@@ -187,7 +156,7 @@ type commonRepoManager struct {
 	lastRollRev    string
 	local          bool
 	nextRollRev    string
-	notRolledRevs  []*Revision
+	notRolledRevs  []*revision.Revision
 	parentBranch   string
 	preUploadSteps []PreUploadStep
 	repoMtx        sync.RWMutex
@@ -265,7 +234,7 @@ func (r *commonRepoManager) PreUploadSteps() []PreUploadStep {
 }
 
 // See documentation for RepoManager interface.
-func (r *commonRepoManager) NotRolledRevisions() []*Revision {
+func (r *commonRepoManager) NotRolledRevisions() []*revision.Revision {
 	return r.notRolledRevs
 }
 
@@ -295,7 +264,7 @@ func SetStrategy(ctx context.Context, r RepoManager, s string) error {
 	return nil
 }
 
-func (r *commonRepoManager) getNextRollRev(ctx context.Context, notRolled []*vcsinfo.LongCommit, lastRollRev string) (string, error) {
+func (r *commonRepoManager) getNextRollRev(ctx context.Context, notRolled []*revision.Revision, lastRollRev string) (string, error) {
 	r.strategyMtx.RLock()
 	defer r.strategyMtx.RUnlock()
 	nextRollRev, err := r.strategy.GetNextRollRev(ctx, notRolled)
@@ -308,13 +277,13 @@ func (r *commonRepoManager) getNextRollRev(ctx context.Context, notRolled []*vcs
 	return nextRollRev, nil
 }
 
-func (r *commonRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) ([]*vcsinfo.LongCommit, error) {
+func (r *commonRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) ([]*revision.Revision, error) {
 	head, err := r.childRepo.FullHash(ctx, fmt.Sprintf("origin/%s", r.childBranch))
 	if err != nil {
 		return nil, err
 	}
 	if head == lastRollRev {
-		return []*vcsinfo.LongCommit{}, nil
+		return []*revision.Revision{}, nil
 	}
 	commits, err := r.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev, head))
 	if err != nil {
@@ -328,7 +297,11 @@ func (r *commonRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev
 		}
 		notRolled = append(notRolled, detail)
 	}
-	return notRolled, nil
+	repoUrl, err := r.childRepo.Git(ctx, "remote", "get-url", "origin")
+	if err != nil {
+		return nil, err
+	}
+	return revision.FromLongCommits(strings.TrimSpace(repoUrl), notRolled), nil
 }
 
 // See documentation for RepoManager interface.
