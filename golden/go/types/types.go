@@ -387,6 +387,12 @@ func (g *GoldenTrace) LastIndex() int {
 	return -1
 }
 
+// LastIndex returns the index of last non-empty value in this trace and -1 if
+// if the entire trace is empty.
+func (g *GoldenTrace) String() string {
+	return fmt.Sprintf("Keys: %#v, Digests: %q", g.Keys, g.Digests)
+}
+
 // NewGoldenTrace allocates a new Trace set up for the given number of samples.
 //
 // The Trace Digests are pre-filled in with the missing data sentinel since not

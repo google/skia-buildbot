@@ -450,7 +450,7 @@ func (o *OrderedParamSet) getParamsEncoder() *paramsEncoder {
 	return o.paramsEncoder
 }
 
-// EncodeParamsAsString encodes the Params as a string.
+// EncodeParamsAsString encodes the Params as a string containing indices.
 func (o *OrderedParamSet) EncodeParamsAsString(p Params) (string, error) {
 	return o.getParamsEncoder().encodeAsString(p)
 }
