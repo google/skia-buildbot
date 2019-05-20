@@ -22,6 +22,30 @@
       "revId": "73e8f090ef15e2a31503d6cc3dbcfc7af4a526a0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "426e702a_4426ab70",
+        "filename": "infra/bots/task_drivers/update_go_deps/update_go_deps.go",
+        "patchSetId": 41
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-20T19:44:32Z",
+      "side": 1,
+      "message": "Added a separate gerritUrl flag, since the one provided in checkout will only be non-empty in the case of tryjobs.",
+      "parentUuid": "887d809a_3930c1e8",
+      "range": {
+        "startLine": 96,
+        "startChar": 47,
+        "endLine": 96,
+        "endChar": 72
+      },
+      "revId": "73e8f090ef15e2a31503d6cc3dbcfc7af4a526a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
