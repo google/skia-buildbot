@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"reflect"
+	"sync"
 
 	"cloud.google.com/go/logging"
 	"github.com/golang/glog"
@@ -122,6 +123,7 @@ type StepReport struct {
 
 // ReportReceiver collects all messages and generates a report when requested.
 type ReportReceiver struct {
+	mtx    sync.Mutex
 	root   *StepReport
 	output string
 }
@@ -175,6 +177,9 @@ func (r *ReportReceiver) findStep(id string) (*StepReport, error) {
 
 // See documentation for Receiver interface.
 func (r *ReportReceiver) HandleMessage(m *Message) error {
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+
 	switch m.Type {
 	case MSG_TYPE_RUN_STARTED:
 		// Do nothing.
@@ -226,6 +231,9 @@ func (r *ReportReceiver) HandleMessage(m *Message) error {
 
 // See documentation for Receiver interface.
 func (r *ReportReceiver) Close() error {
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+
 	// Write the report to the desired output.
 	var w io.Writer
 	if r.output == "" {
@@ -266,6 +274,9 @@ func (r *ReportReceiver) Close() error {
 
 // See documentation for Receiver interface.
 func (r *ReportReceiver) LogStream(stepId, logId, severity string) (io.Writer, error) {
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+
 	buf := bytes.NewBuffer([]byte{})
 	step, err := r.findStep(stepId)
 	if err != nil {
