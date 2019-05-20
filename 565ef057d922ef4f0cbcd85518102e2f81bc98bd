@@ -16,6 +16,24 @@
       "revId": "565ef057d922ef4f0cbcd85518102e2f81bc98bd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "056fb896_1315dffe",
+        "filename": "autoroll/go/revision/revision.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-20T19:59:07Z",
+      "side": 1,
+      "message": "Thanks for reminding me. The github rollers DO use this, so it needs to be correct.  I believe I\u0027ve fixed it.",
+      "parentUuid": "57f8845d_f8fbba19",
+      "revId": "565ef057d922ef4f0cbcd85518102e2f81bc98bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
