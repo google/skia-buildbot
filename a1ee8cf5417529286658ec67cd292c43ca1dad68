@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e0888098_421d19db",
+        "filename": "task_driver/go/lib/checkout/checkout.go",
+        "patchSetId": 42
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-20T20:45:10Z",
+      "side": 1,
+      "message": "nit: doc that fs\u003dnil means top-level CommandLine flags.",
+      "range": {
+        "startLine": 33,
+        "startChar": 65,
+        "endLine": 33,
+        "endChar": 66
+      },
+      "revId": "a1ee8cf5417529286658ec67cd292c43ca1dad68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
