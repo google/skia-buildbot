@@ -188,28 +188,15 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 		// all hitting the backend at the same time. Maybe we need a worker pool if this becomes a problem.
 		g.Go(func() error {
 			defer timer.New("dfbuilder_by_tile").Stop()
-			// Get the OPS, which we need to encode the query, and decode the traceids of the results.
+
+			// Get the OPS, which we need to decode the traceids of the results.
 			ops, err := b.store.GetOrderedParamSet(ctx, tileKey)
 			if err != nil {
-				return err
+				return fmt.Errorf("Failed to load OrderedParamSet for tile: %s", err)
 			}
-			// Convert query to regex.
-			r, err := q.Regexp(ops)
-			if err != nil {
-				sklog.Infof("Failed to compile query regex: %s", err)
-				// Not an error, we just won't match anything in this tile.
-				return nil
-			}
-			if !q.Empty() && r.String() == "" {
-				// Not an error, we just won't match anything in this tile. This
-				// condition occurs if a new key appears from one tile to the next, in
-				// which case Regexp(ops) returns "" for the Tile that's never seen the
-				// key.
-				sklog.Info("Query matches all traces, which we'll ignore.")
-				return nil
-			}
+
 			// Query for matching traces in the given tile.
-			traces, err := b.store.QueryTraces(ctx, tileKey, r)
+			traces, err := b.store.QueryTraces(ctx, tileKey, q)
 			if err != nil {
 				return err
 			}

@@ -382,11 +382,40 @@ func (b *BigTableTraceStore) ReadTraces(tileKey TileKey, keys []string) (map[str
 	return ret, nil
 }
 
+func (b *BigTableTraceStore) regexpFromQuery(ctx context.Context, tileKey TileKey, q *query.Query) (*regexp.Regexp, error) {
+	// Get the OPS, which we need to encode the query, and decode the traceids of the results.
+	ops, err := b.GetOrderedParamSet(ctx, tileKey)
+	if err != nil {
+		return nil, err
+	}
+	// Convert query to regex.
+	r, err := q.Regexp(ops)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to compile query regex: %s", err)
+	}
+	if !q.Empty() && r.String() == "" {
+		// Not an error, we just won't match anything in this tile. This
+		// condition occurs if a new key appears from one tile to the next, in
+		// which case Regexp(ops) returns "" for the Tile that's never seen the
+		// key.
+		return nil, fmt.Errorf("Query matches all traces, which we'll ignore.")
+	}
+	return r, nil
+}
+
 // QueryTraces returns a map of encoded keys to a slice of floats for all
 // traces that match the given query.
-func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q *regexp.Regexp) (map[string][]float32, error) {
+func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q *query.Query) (map[string][]float32, error) {
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.QueryTraces")
 	defer span.End()
+
+	// Convert query to regex.
+	r, err := b.regexpFromQuery(ctx, tileKey, q)
+	if err != nil {
+		sklog.Infof("Failed to compile query regex: %s", err)
+		// Not an error, we just won't match anything in this tile.
+		return nil, nil
+	}
 
 	defer timer.New("btts_query_traces").Stop()
 	defer metrics2.FuncTimer().Stop()
@@ -399,7 +428,7 @@ func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q
 	for i := int32(0); i < b.shards; i++ {
 		i := i
 		g.Go(func() error {
-			rowRegex := tileKey.TraceRowPrefix(i) + ".*" + q.String()
+			rowRegex := tileKey.TraceRowPrefix(i) + ".*" + r.String()
 			return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
 				vec := vec32.New(int(b.tileSize))
 				for _, col := range row[VALUES_FAMILY] {
@@ -427,16 +456,25 @@ func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q
 
 // QueryCount does the same work as QueryTraces but only returns the number of traces
 // that would be returned.
-func (b *BigTableTraceStore) QueryCount(tileKey TileKey, q *regexp.Regexp) (int64, error) {
+func (b *BigTableTraceStore) QueryCount(ctx context.Context, tileKey TileKey, q *query.Query) (int64, error) {
 	var g errgroup.Group
 	ret := int64(0)
+
+	// Convert query to regex.
+	r, err := b.regexpFromQuery(ctx, tileKey, q)
+	if err != nil {
+		sklog.Infof("Failed to compile query regex: %s", err)
+		// Not an error, we just won't match anything in this tile.
+		return 0, nil
+	}
+
 	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
 	// Spawn one Go routine for each shard.
 	for i := int32(0); i < b.shards; i++ {
 		i := i
 		g.Go(func() error {
-			rowRegex := tileKey.TraceRowPrefix(i) + ".*" + q.String()
+			rowRegex := tileKey.TraceRowPrefix(i) + ".*" + r.String()
 			return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
 				_ = atomic.AddInt64(&ret, 1)
 				return true
