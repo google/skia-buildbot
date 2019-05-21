@@ -169,6 +169,12 @@ func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs 
 		}
 		encoded[key] = values[i]
 	}
+	// Here we should write indices here, ala
+	//
+	// store.WriteIndices(index, params, encodedTraceKeySlice)
+	//
+	// Add a cache to remember all the TileKey:encodedTraceKeySlice's that have been written.
+
 	return store.WriteTraces(int32(index), encoded, name, timestamp)
 }
 

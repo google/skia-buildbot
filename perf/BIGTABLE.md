@@ -38,6 +38,13 @@ ops:
       - Columns: R   - Revision (hash of stored OPS to avoid the lost update problem).
                  OPS - The serialized Ordered ParamSet
 
+indices
+   - row name = 'I' + TileKey:Key:Value
+
+    I - Column family stores row names of traces that match the given Key:Value.
+      - Columns: The column names are the trace row names. They have the empty
+        string as a value.
+
 hashes:
    - row name = '&' + md5('gs://...')
      The md5 name of the full source file location.
@@ -48,7 +55,7 @@ hashes:
 Commands
 --------
 
-     cbt createtable skia families=V:maxversions=1,S:maxversions=1,D:maxversions=1
+     cbt createtable skia families=V:maxversions=1,S:maxversions=1,D:maxversions=1,I:maxversions=1
 
 Read all the OPS hashes from the android table in the perf-bt instance.
 

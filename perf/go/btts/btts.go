@@ -37,6 +37,7 @@ const (
 	VALUES_FAMILY  = "V"
 	SOURCES_FAMILY = "S"
 	HASHES_FAMILY  = "H"
+	INDEX_FAMILY   = "I"
 	OPS_FAMILY     = "D"
 
 	// Columns in the "H" column family.
