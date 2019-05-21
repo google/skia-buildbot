@@ -2,58 +2,57 @@ package golang
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/lib/dirs"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
 var (
-	goEnv []string // Filled in by Init().
+	// COMMON_DEPS are dependencies needed by the infra tests in this repo.
+	COMMON_DEPS = []string{
+		"github.com/golang/protobuf/protoc-gen-go",
+		"github.com/kisielk/errcheck",
+		"golang.org/x/tools/cmd/goimports",
+		"golang.org/x/tools/cmd/stringer",
+		"github.com/vektra/mockery/...",
+	}
 )
 
-// Init initializes the package by setting the Go environment to be based in the
-// given workdir. It should be called before using anything else in this
-// package. Returns the environment variables which should be used when running
-// Go commands.
-func Init(workdir string) []string {
-	goPath := path.Join(workdir, "gopath")
-	goRoot := path.Join(workdir, "go", "go")
-	goBin := path.Join(goRoot, "bin")
+// WithEnv sets the Go environment to be based in the given workdir. Calls to all
+// other functions in this package should use the returned Context, or a
+// descendant of it.
+func WithEnv(ctx context.Context, workdir string) context.Context {
+	goPath := filepath.Join(workdir, "gopath")
+	goRoot := filepath.Join(workdir, "go", "go")
+	goBin := filepath.Join(goRoot, "bin")
 
 	PATH := strings.Join([]string{
 		goBin,
-		path.Join(goPath, "bin"),
-		path.Join(workdir, "gcloud_linux", "bin"),
-		path.Join(workdir, "protoc", "bin"),
-		path.Join(workdir, "node", "node", "bin"),
+		filepath.Join(goPath, "bin"),
+		filepath.Join(workdir, "gcloud_linux", "bin"),
+		filepath.Join(workdir, "protoc", "bin"),
+		filepath.Join(workdir, "node", "node", "bin"),
 		td.PATH_PLACEHOLDER,
 	}, string(os.PathListSeparator))
-	goEnv = []string{
-		fmt.Sprintf("GOCACHE=%s", path.Join(dirs.Cache(workdir), "go_cache")),
+	return td.WithEnv(ctx, []string{
+		fmt.Sprintf("GOCACHE=%s", filepath.Join(dirs.Cache(workdir), "go_cache")),
 		"GOFLAGS=-mod=readonly", // Prohibit builds from modifying go.mod.
 		fmt.Sprintf("GOROOT=%s", goRoot),
 		fmt.Sprintf("GOPATH=%s", goPath),
 		fmt.Sprintf("PATH=%s", PATH),
-	}
-	return util.CopyStringSlice(goEnv)
+	})
 }
 
 // Go runs the given Go command in the given working directory.
 func Go(ctx context.Context, cwd string, args ...string) (string, error) {
-	if goEnv == nil {
-		return "", errors.New("You must call Init() before any other functions in golang package.")
-	}
 	return exec.RunCommand(ctx, &exec.Command{
 		Name: "go",
 		Args: args,
-		Env:  goEnv,
 		Dir:  cwd,
 	})
 }
@@ -81,4 +80,15 @@ func ModDownload(ctx context.Context, cwd string) error {
 func Install(ctx context.Context, cwd string, args ...string) error {
 	_, err := Go(ctx, cwd, append([]string{"install"}, args...)...)
 	return err
+}
+
+// InstallCommonDeps installs common dependencies needed by the infra tests in
+// this repo.
+func InstallCommonDeps(ctx context.Context, workdir string) error {
+	for _, target := range COMMON_DEPS {
+		if err := Install(ctx, workdir, "-v", target); err != nil {
+			return err
+		}
+	}
+	return nil
 }

@@ -23,7 +23,7 @@ var (
 	workdir   = flag.String("workdir", ".", "Working directory")
 
 	// Optional flags.
-	local  = flag.Bool("local", false, "True if running locally (as opposed to in production)")
+	local  = flag.Bool("local", false, "True if running locally (as opposed to on the bots)")
 	output = flag.String("o", "", "If provided, dump a JSON blob of step data to the given file. Prints to stdout if '-' is given.")
 )
 
@@ -37,15 +37,14 @@ func main() {
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-	goEnv := golang.Init(wd)
+	ctx = golang.WithEnv(ctx, wd)
 	infraDir := path.Join(wd, "buildbot")
 
 	// We get depot_tools via isolate. It's required for some tests.
-	goEnv = append(goEnv, fmt.Sprintf("SKIABOT_TEST_DEPOT_TOOLS=%s", dirs.DepotTools(*workdir)))
+	ctx = td.WithEnv(ctx, []string{fmt.Sprintf("SKIABOT_TEST_DEPOT_TOOLS=%s", dirs.DepotTools(*workdir))})
 
 	// Initialize the Git repo. We receive the code via Isolate, but it
 	// doesn't include the .git dir.
-	// with cwd = infraDir:
 	gd := git.GitDir(infraDir)
 	if _, err := gd.Git(ctx, "init"); err != nil {
 		td.Fatal(ctx, err)
@@ -63,9 +62,11 @@ func main() {
 		if _, err := exec.RunCwd(ctx, d, "./run_emulator", "start"); err != nil {
 			td.Fatal(ctx, err)
 		}
-		goEnv = append(goEnv, "DATASTORE_EMULATOR_HOST=localhost:8891")
-		goEnv = append(goEnv, "BIGTABLE_EMULATOR_HOST=localhost:8892")
-		goEnv = append(goEnv, "PUBSUB_EMULATOR_HOST=localhost:8893")
+		ctx = td.WithEnv(ctx, []string{
+			"DATASTORE_EMULATOR_HOST=localhost:8891",
+			"BIGTABLE_EMULATOR_HOST=localhost:8892",
+			"PUBSUB_EMULATOR_HOST=localhost:8893",
+		})
 		defer func() {
 			if _, err := exec.RunCwd(ctx, d, "./run_emulator", "stop"); err != nil {
 				td.Fatal(ctx, err)
@@ -85,16 +86,8 @@ func main() {
 	if err := golang.ModDownload(ctx, infraDir); err != nil {
 		td.Fatal(ctx, err)
 	}
-	installTargets := []string{
-		"github.com/golang/protobuf/protoc-gen-go",
-		"github.com/kisielk/errcheck",
-		"golang.org/x/tools/cmd/goimports",
-		"golang.org/x/tools/cmd/stringer",
-	}
-	for _, target := range installTargets {
-		if err := golang.Install(ctx, infraDir, "-v", target); err != nil {
-			td.Fatal(ctx, err)
-		}
+	if err := golang.InstallCommonDeps(ctx, infraDir); err != nil {
+		td.Fatal(ctx, err)
 	}
 
 	// More prerequisites.
