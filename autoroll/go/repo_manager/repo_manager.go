@@ -263,6 +263,10 @@ func (r *commonRepoManager) SetStrategy(s strategy.NextRollStrategy) {
 func SetStrategy(ctx context.Context, r RepoManager, s string) error {
 	valid := r.ValidStrategies()
 	if !util.In(s, valid) {
+		fmt.Println("-----------")
+		fmt.Println(s)
+		fmt.Println(r.ValidStrategies())
+		fmt.Println(util.In(s, r.ValidStrategies()))
 		return fmt.Errorf("Invalid strategy %q; valid: %v", s, valid)
 	}
 	strat, err := r.CreateNextRollStrategy(ctx, s)

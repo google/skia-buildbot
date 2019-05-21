@@ -175,6 +175,7 @@ type AutoRollerConfig struct {
 	FuchsiaSDKAndroidRepoManager *repo_manager.FuchsiaSDKAndroidRepoManagerConfig `json:"fuchsiaSDKAndroidRepoManager,omitempty"`
 	FuchsiaSDKRepoManager        *repo_manager.FuchsiaSDKRepoManagerConfig        `json:"fuchsiaSDKRepoManager,omitempty"`
 	GithubRepoManager            *repo_manager.GithubRepoManagerConfig            `json:"githubRepoManager,omitempty"`
+	GithubCipdDEPSRepoManager    *repo_manager.GithubCipdDEPSRepoManagerConfig    `json:"githubCipdDEPSRepoManager,omitempty"`
 	GithubDEPSRepoManager        *repo_manager.GithubDEPSRepoManagerConfig        `json:"githubDEPSRepoManager,omitempty"`
 	Google3RepoManager           *Google3FakeRepoManagerConfig                    `json:"google3,omitempty"`
 	ManifestRepoManager          *repo_manager.ManifestRepoManagerConfig          `json:"manifestRepoManager,omitempty"`
@@ -274,6 +275,9 @@ func (c *AutoRollerConfig) Validate() error {
 	}
 	if c.GithubRepoManager != nil {
 		rm = append(rm, c.GithubRepoManager)
+	}
+	if c.GithubCipdDEPSRepoManager != nil {
+		rm = append(rm, c.GithubCipdDEPSRepoManager)
 	}
 	if c.GithubDEPSRepoManager != nil {
 		rm = append(rm, c.GithubDEPSRepoManager)
