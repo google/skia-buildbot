@@ -3,7 +3,8 @@
     "Housekeeper-Nightly-UpdateGoDeps": {
       "tasks": [
         "Housekeeper-Nightly-UpdateGoDeps"
-      ]
+      ],
+      "trigger": "nightly"
     },
     "Housekeeper-OnDemand-Presubmit": {
       "priority": 1,
