@@ -54,10 +54,6 @@ type RepoManager interface {
 	// Create a new roll attempt.
 	CreateNewRoll(context.Context, string, string, []string, string, bool) (int64, error)
 
-	// Return the full git commit hash for the given short hash or ref in
-	// the child repo.
-	FullChildHash(context.Context, string) (string, error)
-
 	// Return the last-rolled child revision.
 	LastRollRev() string
 
@@ -207,13 +203,6 @@ func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, 
 		serverURL:        serverURL,
 		workdir:          workdir,
 	}, nil
-}
-
-// See documentation for RepoManager interface.
-func (r *commonRepoManager) FullChildHash(ctx context.Context, shortHash string) (string, error) {
-	r.repoMtx.RLock()
-	defer r.repoMtx.RUnlock()
-	return r.childRepo.FullHash(ctx, shortHash)
 }
 
 // See documentation for RepoManager interface.

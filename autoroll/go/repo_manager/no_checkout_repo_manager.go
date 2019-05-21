@@ -163,11 +163,6 @@ func (rm *noCheckoutRepoManager) Update(ctx context.Context) error {
 }
 
 // See documentation for RepoManager interface.
-func (rm *noCheckoutRepoManager) FullChildHash(ctx context.Context, ver string) (string, error) {
-	return "", fmt.Errorf("NOT IMPLEMENTED")
-}
-
-// See documentation for RepoManager interface.
 func (rm *noCheckoutRepoManager) RolledPast(ctx context.Context, ver string) (bool, error) {
 	return false, fmt.Errorf("NOT IMPLEMENTED")
 }

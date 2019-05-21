@@ -150,30 +150,6 @@ func TestNoCheckoutDEPSRepoManagerStrategies(t *testing.T) {
 	assert.Equal(t, childCommits[1], rm.NextRollRev())
 }
 
-func TestNoCheckoutDEPSRepoManagerFullChildHash(t *testing.T) {
-	cfg := noCheckoutDEPSCfg()
-	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg, strategy.ROLL_STRATEGY_BATCH)
-	defer cleanup()
-
-	mockParent.MockGetCommit(ctx, "master")
-	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
-	assert.NoError(t, err)
-	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, childCommits[0], "master")
-	nextRollRev := childCommits[len(childCommits)-1]
-	assert.NoError(t, rm.Update(ctx))
-
-	test := func(ref, expect string) {
-		mockChild.MockGetCommit(ctx, ref)
-		h, err := rm.FullChildHash(ctx, ref)
-		assert.NoError(t, err)
-		assert.Equal(t, expect, h)
-	}
-
-	test("master", nextRollRev)
-	test(childCommits[1][:12], childCommits[1])
-}
-
 func TestNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	cfg := noCheckoutDEPSCfg()
 	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg, strategy.ROLL_STRATEGY_BATCH)

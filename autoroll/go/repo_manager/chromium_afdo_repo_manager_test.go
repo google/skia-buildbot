@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
-	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -178,9 +177,6 @@ func TestAFDORepoManager(t *testing.T) {
 
 	assert.Equal(t, afdoRevBase, rm.LastRollRev())
 	assert.Equal(t, afdoRevBase, rm.NextRollRev())
-	fch, err := rm.FullChildHash(ctx, rm.LastRollRev())
-	assert.NoError(t, err)
-	assert.Equal(t, fch, rm.LastRollRev())
 	rolledPast, err := rm.RolledPast(ctx, afdoRevPrev)
 	assert.NoError(t, err)
 	assert.True(t, rolledPast)
@@ -267,12 +263,6 @@ func TestAFDORepoManager(t *testing.T) {
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, ci.Issue, issue)
-
-	// Ensure that we can parse the commit message.
-	from, to, err = autoroll.RollRev(ctx, subject, rm.FullChildHash)
-	assert.NoError(t, err)
-	assert.Equal(t, afdoRevBase, from)
-	assert.Equal(t, afdoRevNext, to)
 }
 
 func TestChromiumAFDOConfigValidation(t *testing.T) {

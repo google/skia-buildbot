@@ -240,18 +240,6 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strateg
 }
 
 // See documentation for RepoManager interface.
-func (rm *fuchsiaSDKRepoManager) FullChildHash(ctx context.Context, ver string) (string, error) {
-	rm.infoMtx.RLock()
-	defer rm.infoMtx.RUnlock()
-	for _, v := range rm.versions {
-		if strings.HasPrefix(v.Version, ver) {
-			return v.Version, nil
-		}
-	}
-	return "", fmt.Errorf("Unable to find version: %s", ver)
-}
-
-// See documentation for RepoManager interface.
 func (rm *fuchsiaSDKRepoManager) RolledPast(ctx context.Context, ver string) (bool, error) {
 	// TODO(borenet): Use a map?
 	var testVer *fuchsiaSDKVersion

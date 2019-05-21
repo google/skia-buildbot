@@ -291,15 +291,6 @@ func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, strat str
 }
 
 // See documentation for RepoManager interface.
-func (rm *noCheckoutDEPSRepoManager) FullChildHash(ctx context.Context, ref string) (string, error) {
-	c, err := rm.childRepo.GetCommit(ref)
-	if err != nil {
-		return "", err
-	}
-	return c.Hash, nil
-}
-
-// See documentation for RepoManager interface.
 func (r *noCheckoutDEPSRepoManager) CreateNextRollStrategy(ctx context.Context, s string) (strategy.NextRollStrategy, error) {
 	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_REMOTE, "", []string{}, nil, nil)
 }
