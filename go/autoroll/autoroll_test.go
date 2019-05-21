@@ -1,14 +1,52 @@
 package autoroll
 
 import (
-	"context"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/comment"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils/unittest"
 )
+
+func TestAutoRollIssueCopy(t *testing.T) {
+	unittest.SmallTest(t)
+	roll := &AutoRollIssue{
+		Closed: true,
+		Comments: []*comment.Comment{
+			{
+				Id:        "123",
+				Message:   "hello world",
+				Timestamp: time.Now(),
+				User:      "me@google.com",
+			},
+		},
+		CommitQueue:       true,
+		CommitQueueDryRun: true,
+		Committed:         true,
+		Created:           time.Now(),
+		Issue:             123,
+		Modified:          time.Now(),
+		Patchsets:         []int64{1},
+		Result:            ROLL_RESULT_SUCCESS,
+		RollingFrom:       "abc123",
+		RollingTo:         "def456",
+		Subject:           "Roll src/third_party/skia abc123..def456 (3 commits).",
+		TryResults: []*TryResult{
+			{
+				Builder:  "build",
+				Category: "cats",
+				Created:  time.Now(),
+				Result:   TRYBOT_RESULT_SUCCESS,
+				Status:   TRYBOT_STATUS_COMPLETED,
+				Url:      "http://build/cats",
+			},
+		},
+	}
+	deepequal.AssertCopy(t, roll, roll.Copy())
+}
 
 func TestTrybotResults(t *testing.T) {
 	unittest.SmallTest(t)
@@ -25,12 +63,6 @@ func TestTrybotResults(t *testing.T) {
 		Subject:           "Roll src/third_party/skia abc123..def456 (3 commits).",
 	}
 	roll.Result = rollResult(roll)
-	from, to, err := RollRev(context.Background(), roll.Subject, func(ctx context.Context, h string) (string, error) {
-		return h, nil
-	})
-	assert.NoError(t, err)
-	roll.RollingFrom = from
-	roll.RollingTo = to
 
 	trybot := &buildbucket.Build{
 		Created: time.Now().UTC(),
@@ -98,25 +130,4 @@ func TestTrybotResults(t *testing.T) {
 	roll.TryResults = append(roll.TryResults, tryResult)
 	assert.True(t, roll.AllTrybotsFinished())
 	assert.True(t, roll.AllTrybotsSucceeded())
-}
-
-func TestRollRev(t *testing.T) {
-	unittest.SmallTest(t)
-
-	test := func(msg, from, to string) {
-		assert.True(t, ROLL_REV_REGEX.MatchString(msg))
-		a, b, err := RollRev(context.Background(), msg, nil)
-		assert.NoError(t, err)
-		assert.Equal(t, from, a)
-		assert.Equal(t, to, b)
-	}
-
-	test("Roll skia/third_party/externals/skcms/ 839318c8b..0e960c612 (1 commit)", "839318c8b", "0e960c612")
-	test("Roll src/third_party/skia/ 2a223358e..ace53c313 (6 commits)", "2a223358e", "ace53c313")
-	test("Roll src/third_party/skia/ 2a223358e..ace53c313 (6 commits).", "2a223358e", "ace53c313")
-	test("Roll src/third_party/skia/ 2a223358e..ace53c313", "2a223358e", "ace53c313")
-	test("Roll AFDO from 66.0.3336.3_rc-r1 to 66.0.3337.3_rc-r1", "66.0.3336.3_rc-r1", "66.0.3337.3_rc-r1")
-	test("[manifest] Roll skia 1f1bb9c0b..4150eea6c (1 commits)", "1f1bb9c0b", "4150eea6c")
-	test("Roll Fuchsia SDK from abc123 to def456", "abc123", "def456")
-	test("RESTRICT AUTOMERGE: Roll external/skia fc6e072bd..057939b4d (1 commits)", "fc6e072bd", "057939b4d")
 }

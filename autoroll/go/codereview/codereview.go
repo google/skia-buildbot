@@ -24,7 +24,9 @@ type CodeReview interface {
 	GetFullHistoryUrl() string
 
 	// RetrieveRoll retrieves a RollImpl corresponding to the given issue.
-	RetrieveRoll(context.Context, autoroll.FullHashFn, *recent_rolls.RecentRolls, int64, func(context.Context, RollImpl) error) (RollImpl, error)
+	// The passed-in AutoRollIssue becomes owned by the RollImpl; it may
+	// modify it, insert it into the RecentRolls DB, etc.
+	RetrieveRoll(context.Context, *autoroll.AutoRollIssue, *recent_rolls.RecentRolls, func(context.Context, RollImpl) error) (RollImpl, error)
 
 	// UserEmail returns the email address of the authenticated user.
 	UserEmail() string
@@ -77,11 +79,11 @@ func (c *gerritCodeReview) GetFullHistoryUrl() string {
 }
 
 // See documentation for CodeReview interface.
-func (c *gerritCodeReview) RetrieveRoll(ctx context.Context, fullHashFn autoroll.FullHashFn, recent *recent_rolls.RecentRolls, issue int64, finishedCallback func(context.Context, RollImpl) error) (RollImpl, error) {
+func (c *gerritCodeReview) RetrieveRoll(ctx context.Context, issue *autoroll.AutoRollIssue, recent *recent_rolls.RecentRolls, finishedCallback func(context.Context, RollImpl) error) (RollImpl, error) {
 	if c.cfg.Config == GERRIT_CONFIG_ANDROID {
-		return newGerritAndroidRoll(ctx, c.gerritClient, fullHashFn, recent, issue, c.issueUrlBase, finishedCallback)
+		return newGerritAndroidRoll(ctx, issue, c.gerritClient, recent, c.issueUrlBase, finishedCallback)
 	}
-	return newGerritRoll(ctx, c.gerritClient, fullHashFn, recent, issue, c.issueUrlBase, finishedCallback)
+	return newGerritRoll(ctx, issue, c.gerritClient, recent, c.issueUrlBase, finishedCallback)
 }
 
 // See documentation for CodeReview interface.
@@ -144,8 +146,8 @@ func (c *githubCodeReview) GetFullHistoryUrl() string {
 }
 
 // See documentation for CodeReview interface.
-func (c *githubCodeReview) RetrieveRoll(ctx context.Context, fullHashFn autoroll.FullHashFn, recent *recent_rolls.RecentRolls, issue int64, finishedCallback func(context.Context, RollImpl) error) (RollImpl, error) {
-	return newGithubRoll(ctx, c.githubClient, fullHashFn, recent, issue, c.issueUrlBase, c.cfg, finishedCallback)
+func (c *githubCodeReview) RetrieveRoll(ctx context.Context, issue *autoroll.AutoRollIssue, recent *recent_rolls.RecentRolls, finishedCallback func(context.Context, RollImpl) error) (RollImpl, error) {
+	return newGithubRoll(ctx, issue, c.githubClient, recent, c.issueUrlBase, c.cfg, finishedCallback)
 }
 
 // See documentation for CodeReview interface.
