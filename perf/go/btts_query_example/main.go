@@ -41,10 +41,6 @@ func main() {
 		sklog.Fatal(err)
 	}
 	tileKey = tileKey.PrevTile()
-	op, err := store.GetOrderedParamSet(ctx, tileKey)
-	if err != nil {
-		sklog.Fatal(err)
-	}
 
 	// Create a query over the traces.
 	q, err := query.New(url.Values{"config": []string{"8888"}, "name": []string{"Chalkboard.svg"}})
@@ -52,16 +48,9 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	// Convert to a regular expression based on the OrderedParamSet for the tile.
-	r, err := q.Regexp(op)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-
 	// Time a Query.
-	sklog.Infof("Regex: %s", r)
 	sklog.Infof("Loading all the data.")
-	results, err := store.QueryTraces(ctx, tileKey, r)
+	results, err := store.QueryTraces(ctx, tileKey, q)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -69,7 +58,7 @@ func main() {
 
 	// Time a Query that just counts the number of matches.
 	sklog.Infof("Counting rows.")
-	count, err := store.QueryCount(tileKey, r)
+	count, err := store.QueryCount(ctx, tileKey, q)
 	if err != nil {
 		sklog.Fatal(err)
 	}
