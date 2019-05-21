@@ -52,6 +52,24 @@
       "revId": "565ef057d922ef4f0cbcd85518102e2f81bc98bd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2221ce6f_cdd1e4ac",
+        "filename": "autoroll/go/revision/revision.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-21T12:17:11Z",
+      "side": 1,
+      "message": "The github repo managers call getCommitsNotRolled, and I believe they get the commonRepoManager implementation: https://skia-review.googlesource.com/c/buildbot/+/214694/2/autoroll/go/repo_manager/repo_manager.go#285 (AndroidRepoManager is the only one to define its own implementation).  Added ChildRevLinkTmpl to CommonRepoManagerConfig.",
+      "parentUuid": "fc01df25_9b987106",
+      "revId": "565ef057d922ef4f0cbcd85518102e2f81bc98bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
