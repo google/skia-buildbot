@@ -18,6 +18,7 @@
   "sheriff": [
     "bungeman@google.com"
   ],
+  "supportsManualRolls": true,
   "freeTypeRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/freetype/src",
