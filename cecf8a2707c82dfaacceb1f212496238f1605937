@@ -393,6 +393,46 @@
     },
     {
       "key": {
+        "uuid": "14e78829_147d97ab",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T19:02:05Z",
+      "side": 1,
+      "message": "nit: seems like this should be private\n\nSame for DigestID, MissingDigestId, EncodedTraceId, EncTile, OpsCacheEntry and related functions, and DigestMap and related functions.",
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e66932c3_e8d3a06e",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T19:02:05Z",
+      "side": 1,
+      "message": "nit: golang seems to prefer all-caps rather than camelcase for acronyms/abbreviations. E.g. ServeHTTP, ParseRequestURI, MarshalJSON.\n\nSame for TraceID, OPSCacheEntry, etc.",
+      "range": {
+        "startLine": 106,
+        "startChar": 19,
+        "endLine": 106,
+        "endChar": 21
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7f2be84f_1a4e67b7",
         "filename": "golden/go/tracestore/bt_tracestore/types.go",
         "patchSetId": 13
@@ -409,6 +449,184 @@
         "startChar": 84,
         "endLine": 116,
         "endChar": 35
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7489e79_a45adb29",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T19:02:05Z",
+      "side": 1,
+      "message": "nit: include row.Key() in the error message\n\nx3",
+      "range": {
+        "startLine": 152,
+        "startChar": 63,
+        "endLine": 152,
+        "endChar": 65
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3f29f8d_8555783a",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T19:02:05Z",
+      "side": 1,
+      "message": "nit: Do we know that DigestIDs will begin at 0 and be contiguous (or mostly so)? If so, an array would be more efficient.",
+      "range": {
+        "startLine": 184,
+        "startChar": 1,
+        "endLine": 184,
+        "endChar": 7
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71f0f9b5_f5257058",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T19:02:05Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 188,
+        "startChar": 24,
+        "endLine": 188,
+        "endChar": 27
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc90ba4d_f8720775",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T19:02:05Z",
+      "side": 1,
+      "message": "nit: phrasing is a bit confusing. maybe \"expected forward mapping (%q -\u003e %d) and reverse mapping (%d -\u003e %q) to both be present\"",
+      "range": {
+        "startLine": 230,
+        "startChar": 46,
+        "endLine": 230,
+        "endChar": 90
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b1c925a_81e33d77",
+        "filename": "golden/go/tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T19:02:05Z",
+      "side": 1,
+      "message": "In the current ingestion code, there is a distinction between the trace id and the trace params. E.g. in idAndParams (https://skia.googlesource.com/buildbot/+/3ddff862228b8a495d878819dfb64b3ab01f102b/golden/go/goldingestion/common.go#18), the trace id does not include \"Options\" but the trace params do.\n\nIs that distinction still relevant? How is it used? How does this interface handle Options?",
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "043a72d2_14897a73",
+        "filename": "golden/go/tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T19:02:05Z",
+      "side": 1,
+      "message": "nit: should this be singular image?",
+      "range": {
+        "startLine": 19,
+        "startChar": 26,
+        "endLine": 19,
+        "endChar": 42
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2d9388c_3adc4b4d",
+        "filename": "golden/go/tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T19:02:05Z",
+      "side": 1,
+      "message": "I think this is broken and I don\u0027t think there\u0027s a way to fix it. It will create duplicate keys for different params.\n\nE.g.:\ntrace1 params: color_depth\u003d8888, name\u003dcar.svg\nTraceIDFromParams will return 8888:car.svg\n\ntrace2 params: config\u003d8888, name\u003dcar.svg\nTraceIDFromParams will return 8888:car.svg\n\nI discussed with Joe and he confirmed my understanding. Perf uses TraceIds like \",key1\u003dvalue1,key2\u003dvalue2,...,\". See https://skia.googlesource.com/buildbot/+/94104df6f25e4061374660b0f6132d1e104977d1/go/query/query.go",
+      "range": {
+        "startLine": 34,
+        "startChar": 5,
+        "endLine": 34,
+        "endChar": 22
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28df1474_5c6e067a",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 391,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T19:02:05Z",
+      "side": 1,
+      "message": "copypasta",
+      "range": {
+        "startLine": 390,
+        "startChar": 0,
+        "endLine": 391,
+        "endChar": 32
       },
       "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
