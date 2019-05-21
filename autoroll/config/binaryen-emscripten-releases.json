@@ -22,6 +22,7 @@
     "childBranch": "master",
     "childPath": "emscripten-releases/binaryen",
     "childRepo": "https://chromium.googlesource.com/external/github.com/WebAssembly/binaryen.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/WebAssembly/binaryen.git/+/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

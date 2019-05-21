@@ -22,6 +22,7 @@
     "childBranch": "master",
     "childPath": "../src",
     "childRepo": "https://chromium.googlesource.com/chromium/src.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/chromium/src.git/+/%s",
     "includeBugs": false,
     "includeLog": false,
     "parentBranch": "master",

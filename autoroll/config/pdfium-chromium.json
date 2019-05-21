@@ -22,6 +22,7 @@
     "childBranch": "master",
     "childPath": "src/third_party/pdfium",
     "childRepo": "https://pdfium.googlesource.com/pdfium.git",
+    "childRevLinkTmpl": "https://pdfium.googlesource.com/pdfium.git/+/%s",
     "includeBugs": true,
     "includeLog": true,
     "parentBranch": "master",

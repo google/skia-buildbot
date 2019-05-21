@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#13
 // for documentation of the autoroller config.
 {
   "childName": "Skia",
@@ -25,6 +25,7 @@
   "githubDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/skia",
+    "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+/%s",
     "parentBranch": "master",
     "preUploadSteps": [
       "FlutterLicenseScripts"

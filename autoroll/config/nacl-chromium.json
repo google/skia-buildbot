@@ -22,6 +22,7 @@
     "childBranch": "master",
     "childPath": "src/native_client",
     "childRepo": "https://chromium.googlesource.com/native_client/src/native_client.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/native_client/src/native_client.git/+/%s",
     "includeBugs": true,
     "includeLog": true,
     "parentBranch": "master",

@@ -22,6 +22,7 @@
     "childBranch": "stable",
     "childPath": "src/ios/third_party/material_font_disk_loader_ios/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/material-foundation/material-font-disk-loader-ios",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/material-foundation/material-font-disk-loader-ios/+/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

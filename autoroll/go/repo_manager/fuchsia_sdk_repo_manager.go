@@ -11,6 +11,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/gcsclient"
@@ -158,7 +159,7 @@ func (rm *fuchsiaSDKRepoManager) createRoll(ctx context.Context, from, to, serve
 }
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []*Revision, error) {
+func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []*revision.Revision, error) {
 	// Read the version file to determine the last roll rev.
 	buf := bytes.NewBuffer([]byte{})
 	if err := parentRepo.ReadFileAtRef(rm.versionFileLinux, baseCommit, buf); err != nil {
@@ -225,7 +226,7 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strateg
 	// notRolledRevs correctly because there are things other than SDKs in
 	// the GS dir, and because they are content-addressed, we can't tell
 	// which ones are relevant to us.
-	notRolledRevs := []*Revision{}
+	notRolledRevs := []*revision.Revision{}
 
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()

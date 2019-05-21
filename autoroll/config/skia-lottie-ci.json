@@ -21,6 +21,7 @@
   "depsRepoManager": {
     "childBranch": "master",
     "childPath": "skia",
+    "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+/%s",
     "parentBranch": "master",
     "preUploadSteps": [
       "TrainInfra"

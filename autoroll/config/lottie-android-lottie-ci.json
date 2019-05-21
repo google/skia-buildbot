@@ -22,6 +22,7 @@
     "childBranch": "master",
     "childPath": "lottie-android",
     "childRepo": "https://skia.googlesource.com/external/github.com/airbnb/lottie-android.git",
+    "childRevLinkTmpl": "https://skia.googlesource.com/external/github.com/airbnb/lottie-android.git/+/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

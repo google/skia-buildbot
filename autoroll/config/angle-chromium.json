@@ -25,6 +25,7 @@
     "childBranch": "master",
     "childPath": "src/third_party/angle",
     "childRepo": "https://chromium.googlesource.com/angle/angle.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/angle/angle.git/+/%s",
     "includeBugs": true,
     "includeLog": true,
     "parentBranch": "master",

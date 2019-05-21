@@ -22,6 +22,7 @@
     "childBranch": "stable",
     "childPath": "src/ios/third_party/material_text_accessibility_ios/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/material-foundation/material-text-accessibility-ios",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/material-foundation/material-text-accessibility-ios/+/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

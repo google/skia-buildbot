@@ -119,14 +119,14 @@ func (dr *depsRepoManager) Update(ctx context.Context) error {
 		return err
 	}
 
-	// Find the number of not-rolled child repo commits.
-	notRolled, err := dr.getCommitsNotRolled(ctx, lastRollRev)
+	// Find the not-rolled child repo commits.
+	notRolledRevs, err := dr.getCommitsNotRolled(ctx, lastRollRev)
 	if err != nil {
 		return err
 	}
 
 	// Get the next roll revision.
-	nextRollRev, err := dr.getNextRollRev(ctx, notRolled, lastRollRev)
+	nextRollRev, err := dr.getNextRollRev(ctx, notRolledRevs, lastRollRev)
 	if err != nil {
 		return err
 	}
@@ -140,18 +140,6 @@ func (dr *depsRepoManager) Update(ctx context.Context) error {
 			return err
 		}
 		dr.childRepoUrl = childRepo
-	}
-
-	// Get the list of not-yet-rolled revisions.
-	notRolledRevs := make([]*Revision, 0, len(notRolled))
-	for _, rev := range notRolled {
-		notRolledRevs = append(notRolledRevs, &Revision{
-			Id:          rev.Hash,
-			Display:     rev.Hash[:7],
-			Description: rev.Subject,
-			Timestamp:   rev.Timestamp,
-			URL:         fmt.Sprintf("%s/+/%s", dr.childRepoUrl, rev.Hash),
-		})
 	}
 
 	dr.lastRollRev = lastRollRev

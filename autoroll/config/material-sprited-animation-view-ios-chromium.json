@@ -22,6 +22,7 @@
     "childBranch": "stable",
     "childPath": "src/ios/third_party/material_sprited_animation_view_ios/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/material-foundation/material-sprited-animation-view-ios",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/material-foundation/material-sprited-animation-view-ios/+/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

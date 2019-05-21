@@ -22,6 +22,7 @@
     "childBranch": "incoming",
     "childPath": "emscripten-releases/emscripten",
     "childRepo": "https://chromium.googlesource.com/external/github.com/emscripten-core/emscripten.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/emscripten-core/emscripten.git/+/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

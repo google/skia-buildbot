@@ -31,6 +31,7 @@
     "childBranch": "master",
     "childPath": "src/third_party/catapult",
     "childRepo": "https://chromium.googlesource.com/catapult.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/catapult.git/+/%s",
     "includeBugs": true,
     "includeLog": true,
     "parentBranch": "master",

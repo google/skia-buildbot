@@ -22,6 +22,7 @@
     "childBranch": "master",
     "childPath": "src/third_party/freetype/src",
     "childRepo": "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git/+/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",
