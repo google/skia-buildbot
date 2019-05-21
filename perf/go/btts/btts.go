@@ -502,12 +502,24 @@ func (b *BigTableTraceStore) TileKeys(tileKey TileKey) ([]string, error) {
 
 // GetSource returns the full GCS URL of the file that contained the point at 'index' of trace 'traceId'.
 //
-// The traceId must be an OPS encoded key.
-func (b *BigTableTraceStore) GetSource(index int32, traceId string) (string, error) {
+// The traceId is a raw traceid key, i.e. not an encoded key.
+func (b *BigTableTraceStore) GetSource(ctx context.Context, index int32, traceId string) (string, error) {
 	tileKey := TileKeyFromOffset(index / b.tileSize)
+	ops, err := b.GetOrderedParamSet(ctx, tileKey)
+	if err != nil {
+		return "", fmt.Errorf("Failed to load OrderedParamSet for tile: %s", err)
+	}
+	p, err := query.ParseKey(traceId)
+	if err != nil {
+		return "", fmt.Errorf("Invalid traceid: %s", err)
+	}
+	encodedTraceId, err := ops.EncodeParamsAsString(p)
+	if err != nil {
+		return "", fmt.Errorf("Failed to encode key: %s", err)
+	}
 	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
-	row, err := b.getTable().ReadRow(tctx, tileKey.TraceRowName(traceId, b.shards), bigtable.RowFilter(
+	row, err := b.getTable().ReadRow(tctx, tileKey.TraceRowName(encodedTraceId, b.shards), bigtable.RowFilter(
 		bigtable.ChainFilters(
 			bigtable.LatestNFilter(1),
 			bigtable.FamilyFilter(SOURCES_FAMILY),

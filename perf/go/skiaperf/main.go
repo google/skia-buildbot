@@ -1229,23 +1229,7 @@ func detailsHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
 	name := ""
 	index := int32(dr.CID.Offset)
-	tileKey := traceStore.TileKey(index)
-	ops, err := traceStore.GetOrderedParamSet(r.Context(), tileKey)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to find details")
-		return
-	}
-	p, err := query.ParseKey(dr.TraceID)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Invalid trace id")
-		return
-	}
-	encodedKey, err := ops.EncodeParamsAsString(p)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode key")
-		return
-	}
-	name, err = traceStore.GetSource(index, encodedKey)
+	name, err = traceStore.GetSource(r.Context(), index, dr.TraceID)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load details")
 		return

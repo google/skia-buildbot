@@ -187,11 +187,13 @@ func TestTraces(t *testing.T) {
 	assert.Equal(t, expected, results)
 
 	// Source
-	s, err := b.GetSource(258, encodeParams(t, op, paramtools.Params{"cpu": "x86", "config": "8888"}))
+	traceId, err := query.MakeKey(paramtools.Params{"cpu": "x86", "config": "8888"})
+	assert.NoError(t, err)
+	s, err := b.GetSource(context.Background(), 258, traceId)
 	assert.NoError(t, err)
 	assert.Equal(t, "gs://some/other/test/location", s)
 
-	s, err = b.GetSource(259, encodeParams(t, op, paramtools.Params{"cpu": "x86", "config": "8888"}))
+	s, err = b.GetSource(context.Background(), 259, traceId)
 	assert.Error(t, err)
 	assert.Equal(t, "", s)
 }
