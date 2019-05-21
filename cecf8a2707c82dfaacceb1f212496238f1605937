@@ -324,6 +324,236 @@
     },
     {
       "key": {
+        "uuid": "997300f2_3f1733c5",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T21:10:54Z",
+      "side": 1,
+      "message": "nit: Background() is fine here.\n\nx several",
+      "range": {
+        "startLine": 48,
+        "startChar": 16,
+        "endLine": 48,
+        "endChar": 20
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad245283_5367d67e",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T21:10:54Z",
+      "side": 1,
+      "message": "nit: seems like you should loop over commits/digests in the outer loop and collect entries in the inner loop; then call Put with all entries for a given commit. That seems like it would reflect how it\u0027s used during ingestion better.",
+      "range": {
+        "startLine": 72,
+        "startChar": 21,
+        "endLine": 72,
+        "endChar": 24
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3eb0fe0e_c2a6b715",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T21:10:54Z",
+      "side": 1,
+      "message": "nit: MissingDigestID\n\nx several",
+      "range": {
+        "startLine": 190,
+        "startChar": 17,
+        "endLine": 190,
+        "endChar": 28
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6bc6e3d_e194768c",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T21:10:54Z",
+      "side": 1,
+      "message": "I would much prefer that this file is checked in to the git repo so that it can be versioned with the code that it\u0027s testing.",
+      "range": {
+        "startLine": 282,
+        "startChar": 0,
+        "endLine": 283,
+        "endChar": 68
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b1e958d2_0b065a9a",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T21:10:54Z",
+      "side": 1,
+      "message": "I don\u0027t understand what this is for.",
+      "range": {
+        "startLine": 312,
+        "startChar": 0,
+        "endLine": 312,
+        "endChar": 36
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6dbb4bb2_413d0d44",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T21:10:54Z",
+      "side": 1,
+      "message": "commit",
+      "range": {
+        "startLine": 323,
+        "startChar": 23,
+        "endLine": 323,
+        "endChar": 27
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e062aa78_9236ce5b",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T21:10:54Z",
+      "side": 1,
+      "message": "nit: ambiguous",
+      "range": {
+        "startLine": 353,
+        "startChar": 42,
+        "endLine": 353,
+        "endChar": 46
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0009c8e_30569037",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T21:10:54Z",
+      "side": 1,
+      "message": "I don\u0027t understand the need for both found and foundCount.",
+      "range": {
+        "startLine": 381,
+        "startChar": 0,
+        "endLine": 383,
+        "endChar": 17
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d83a72d_09fafa09",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 410,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T21:10:54Z",
+      "side": 1,
+      "message": "Can this be just \"assert.Equal(t expDigests, fgt.Digests)\"? Or maybe assert.ElementsMatch?",
+      "range": {
+        "startLine": 396,
+        "startChar": 0,
+        "endLine": 410,
+        "endChar": 0
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1278d82_396148d8",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-21T21:10:54Z",
+      "side": 1,
+      "message": "Can this be context.Context instead?",
+      "range": {
+        "startLine": 487,
+        "startChar": 31,
+        "endLine": 487,
+        "endChar": 48
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "515585cb_824224be",
         "filename": "golden/go/tracestore/bt_tracestore/types.go",
         "patchSetId": 13
