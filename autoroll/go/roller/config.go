@@ -169,6 +169,7 @@ type AutoRollerConfig struct {
 	// RepoManager configs. Exactly one must be provided.
 	AFDORepoManager              *repo_manager.AFDORepoManagerConfig              `json:"afdoRepoManager,omitempty"`
 	AndroidRepoManager           *repo_manager.AndroidRepoManagerConfig           `json:"androidRepoManager,omitempty"`
+	CIPDRepoManager              *repo_manager.CIPDRepoManagerConfig              `json:"cipdRepoManager,omitempty"`
 	CopyRepoManager              *repo_manager.CopyRepoManagerConfig              `json:"copyRepoManager,omitempty"`
 	DEPSRepoManager              *repo_manager.DEPSRepoManagerConfig              `json:"depsRepoManager,omitempty"`
 	FreeTypeRepoManager          *repo_manager.FreeTypeRepoManagerConfig          `json:"freeTypeRepoManager"`
@@ -256,6 +257,9 @@ func (c *AutoRollerConfig) Validate() error {
 	}
 	if c.AndroidRepoManager != nil {
 		rm = append(rm, c.AndroidRepoManager)
+	}
+	if c.CIPDRepoManager != nil {
+		rm = append(rm, c.CIPDRepoManager)
 	}
 	if c.CopyRepoManager != nil {
 		rm = append(rm, c.CopyRepoManager)
