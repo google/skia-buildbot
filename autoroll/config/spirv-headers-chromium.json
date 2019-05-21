@@ -27,6 +27,7 @@
     "childBranch": "master",
     "childPath": "src/third_party/spirv-headers/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Headers.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Headers.git/+/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

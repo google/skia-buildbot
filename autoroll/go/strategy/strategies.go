@@ -7,11 +7,11 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/vcsinfo"
 	"google.golang.org/api/option"
 )
 
@@ -35,7 +35,7 @@ type NextRollStrategy interface {
 	// Return the next roll revision, given the list of not-yet-rolled
 	// commits in reverse chronological order. Returning the empty string
 	// implies that we are up-to-date.
-	GetNextRollRev(context.Context, []*vcsinfo.LongCommit) (string, error)
+	GetNextRollRev(context.Context, []*revision.Revision) (string, error)
 }
 
 // Return the NextRollStrategy indicated by the given string.
@@ -76,10 +76,10 @@ type headStrategy struct {
 }
 
 // See documentation for NextRollStrategy interface.
-func (s *headStrategy) GetNextRollRev(ctx context.Context, notRolled []*vcsinfo.LongCommit) (string, error) {
+func (s *headStrategy) GetNextRollRev(ctx context.Context, notRolled []*revision.Revision) (string, error) {
 	if len(notRolled) > 0 {
 		// Commits are listed in reverse chronological order.
-		return notRolled[0].Hash, nil
+		return notRolled[0].Id, nil
 	}
 	return "", nil
 }
@@ -100,7 +100,7 @@ type remoteHeadStrategy struct {
 }
 
 // See documentation for NextRollStrategy interface.
-func (s *remoteHeadStrategy) GetNextRollRev(ctx context.Context, _ []*vcsinfo.LongCommit) (string, error) {
+func (s *remoteHeadStrategy) GetNextRollRev(ctx context.Context, _ []*revision.Revision) (string, error) {
 	output, err := s.repo.Git(ctx, "ls-remote", s.upstreamRemote, fmt.Sprintf("refs/heads/%s", s.branch), "-1")
 	if err != nil {
 		return "", err
@@ -128,11 +128,11 @@ type nCommitsStrategy struct {
 }
 
 // See documentation for NextRollStrategy interface.
-func (s *nCommitsStrategy) GetNextRollRev(ctx context.Context, notRolled []*vcsinfo.LongCommit) (string, error) {
+func (s *nCommitsStrategy) GetNextRollRev(ctx context.Context, notRolled []*revision.Revision) (string, error) {
 	if len(notRolled) > N_COMMITS {
-		return notRolled[len(notRolled)-N_COMMITS].Hash, nil
+		return notRolled[len(notRolled)-N_COMMITS].Id, nil
 	} else if len(notRolled) > 0 {
-		return notRolled[0].Hash, nil
+		return notRolled[0].Id, nil
 	} else {
 		return "", nil
 	}
@@ -156,14 +156,14 @@ type gcsFileStrategy struct {
 }
 
 // See documentation for NextRollStrategy interface.
-func (s *gcsFileStrategy) GetNextRollRev(ctx context.Context, notRolled []*vcsinfo.LongCommit) (string, error) {
+func (s *gcsFileStrategy) GetNextRollRev(ctx context.Context, notRolled []*revision.Revision) (string, error) {
 	if len(notRolled) > 0 {
 		// Commits are listed in reverse chronological order.
 		for _, notRolledCommit := range notRolled {
 			// Check to see if this commit exists in the gsPath locations.
 			missingFile := false
 			for _, gsPathTemplate := range s.gsPathTemplates {
-				gsPath := fmt.Sprintf(gsPathTemplate, notRolledCommit.Hash)
+				gsPath := fmt.Sprintf(gsPathTemplate, notRolledCommit.Id)
 				fileExists, err := s.gcs.DoesFileExist(ctx, gsPath)
 				if err != nil {
 					return "", err
@@ -178,8 +178,8 @@ func (s *gcsFileStrategy) GetNextRollRev(ctx context.Context, notRolled []*vcsin
 				}
 			}
 			if !missingFile {
-				sklog.Infof("[gcsFileStrategy] Found all %s paths for %s", s.gsPathTemplates, notRolledCommit.Hash)
-				return notRolledCommit.Hash, nil
+				sklog.Infof("[gcsFileStrategy] Found all %s paths for %s", s.gsPathTemplates, notRolledCommit.Id)
+				return notRolledCommit.Id, nil
 			}
 		}
 		// Could not find any hash in Google Storage.
@@ -205,9 +205,9 @@ type singleStrategy struct {
 }
 
 // See documentation for NextRollStrategy interface.
-func (s *singleStrategy) GetNextRollRev(ctx context.Context, notRolled []*vcsinfo.LongCommit) (string, error) {
+func (s *singleStrategy) GetNextRollRev(ctx context.Context, notRolled []*revision.Revision) (string, error) {
 	if len(notRolled) > 0 {
-		return notRolled[len(notRolled)-1].Hash, nil
+		return notRolled[len(notRolled)-1].Id, nil
 	}
 	return "", nil
 }

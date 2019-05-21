@@ -22,6 +22,7 @@
     "childBranch": "stable",
     "childPath": "src/ios/third_party/motion_transitioning_objc/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/material-motion/motion-transitioning-objc",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/material-motion/motion-transitioning-objc/+/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

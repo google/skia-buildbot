@@ -23,6 +23,7 @@
     "childBranch": "master",
     "childPath": "src/third_party/skia",
     "childRepo": "https://skia.googlesource.com/skia.git",
+    "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+/%s",
     "includeBugs": true,
     "includeLog": true,
     "parentBranch": "master",

@@ -26,6 +26,7 @@
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git",
     "childRepo": "https://skia.googlesource.com/skcms.git",
+    "childRevLinkTmpl": "https://skia.googlesource.com/skcms.git/+/%s",
     "copies": [
       { "srcRelPath": "LICENSE",          "dstRelPath": "third_party/skcms/LICENSE" },
       { "srcRelPath": "README.chromium",  "dstRelPath": "third_party/skcms/README.chromium" },

@@ -22,6 +22,7 @@
     "childBranch": "stable",
     "childPath": "src/ios/third_party/material_components_ios/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/material-components/material-components-ios",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/material-components/material-components-ios/+/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

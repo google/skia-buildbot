@@ -22,6 +22,7 @@
     "childBranch": "master",
     "childPath": "emscripten-releases/waterfall",
     "childRepo": "https://chromium.googlesource.com/external/github.com/WebAssembly/waterfall.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/WebAssembly/waterfall.git/+/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

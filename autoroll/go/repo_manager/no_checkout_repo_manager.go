@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitiles"
@@ -54,7 +55,7 @@ type noCheckoutRepoManager struct {
 // which returns the last roll revision, next roll revision, and a list of
 // not-yet-rolled revisions. The parameters are the parent repo and its base
 // commit.
-type noCheckoutUpdateHelperFunc func(context.Context, strategy.NextRollStrategy, *gitiles.Repo, string) (string, string, []*Revision, error)
+type noCheckoutUpdateHelperFunc func(context.Context, strategy.NextRollStrategy, *gitiles.Repo, string) (string, string, []*revision.Revision, error)
 
 // noCheckoutCreateRollHelperFunc is a function called by
 // noCheckoutRepoManager.CreateNewRoll() which returns a commit message for

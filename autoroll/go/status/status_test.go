@@ -7,7 +7,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/modes"
-	"go.skia.org/infra/autoroll/go/repo_manager"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/deepequal"
@@ -40,7 +40,7 @@ func TestCopyStatus(t *testing.T) {
 		FullHistoryUrl: "http://history",
 		IssueUrlBase:   "http://issue.url/",
 		LastRoll:       recent[1],
-		NotRolledRevisions: []*repo_manager.Revision{
+		NotRolledRevisions: []*revision.Revision{
 			{
 				Id: "a",
 			},

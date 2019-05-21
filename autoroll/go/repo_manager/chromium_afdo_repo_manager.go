@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitiles"
@@ -94,7 +95,7 @@ func (rm *afdoRepoManager) createRoll(ctx context.Context, from, to, serverURL, 
 }
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []*Revision, error) {
+func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []*revision.Revision, error) {
 	// Read the version file to determine the last roll rev.
 	buf := bytes.NewBuffer([]byte{})
 	if err := parentRepo.ReadFileAtRef(rm.afdoVersionFile, baseCommit, buf); err != nil {
@@ -131,9 +132,9 @@ func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.Next
 	}
 	// Get the list of not-yet-rolled revisions. The versions are in
 	// descending order.
-	notRolledRevs := make([]*Revision, 0, lastIdx-nextIdx)
+	notRolledRevs := make([]*revision.Revision, 0, lastIdx-nextIdx)
 	for idx := lastIdx - 1; idx >= nextIdx; idx-- {
-		notRolledRevs = append(notRolledRevs, &Revision{
+		notRolledRevs = append(notRolledRevs, &revision.Revision{
 			Id: versions[idx],
 		})
 	}

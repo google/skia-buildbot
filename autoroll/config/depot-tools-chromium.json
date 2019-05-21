@@ -22,6 +22,7 @@
     "childBranch": "master",
     "childPath": "src/third_party/depot_tools",
     "childRepo": "https://chromium.googlesource.com/chromium/tools/depot_tools.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/%s",
     "includeBugs": true,
     "includeLog": true,
     "parentBranch": "master",

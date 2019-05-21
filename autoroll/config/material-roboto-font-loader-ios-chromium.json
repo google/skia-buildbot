@@ -22,6 +22,7 @@
     "childBranch": "stable",
     "childPath": "src/ios/third_party/material_roboto_font_loader_ios/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/material-foundation/material-roboto-font-loader-ios",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/material-foundation/material-roboto-font-loader-ios/+/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

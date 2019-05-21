@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"cloud.google.com/go/datastore"
-	"go.skia.org/infra/autoroll/go/repo_manager"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/sklog"
@@ -34,7 +34,7 @@ type AutoRollStatus struct {
 	FullHistoryUrl     string                    `json:"fullHistoryUrl"`
 	IssueUrlBase       string                    `json:"issueUrlBase"`
 	LastRoll           *autoroll.AutoRollIssue   `json:"lastRoll"`
-	NotRolledRevisions []*repo_manager.Revision  `json:"notRolledRevs"`
+	NotRolledRevisions []*revision.Revision      `json:"notRolledRevs"`
 	ParentName         string                    `json:"parentName"`
 	Recent             []*autoroll.AutoRollIssue `json:"recent"`
 	Status             string                    `json:"status"`
@@ -189,9 +189,9 @@ func (s *AutoRollStatus) Copy() *AutoRollStatus {
 			recent = append(recent, r.Copy())
 		}
 	}
-	var notRolledRevisions []*repo_manager.Revision
+	var notRolledRevisions []*revision.Revision
 	if s.NotRolledRevisions != nil {
-		notRolledRevisions = make([]*repo_manager.Revision, 0, len(s.NotRolledRevisions))
+		notRolledRevisions = make([]*revision.Revision, 0, len(s.NotRolledRevisions))
 		for _, r := range s.NotRolledRevisions {
 			notRolledRevisions = append(notRolledRevisions, r.Copy())
 		}

@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
@@ -239,7 +240,7 @@ func (rm *noCheckoutDEPSRepoManager) RolledPast(ctx context.Context, hash string
 	return len(commits) > 0, nil
 }
 
-func (rm *noCheckoutDEPSRepoManager) getNextRollRev(ctx context.Context, notRolled []*vcsinfo.LongCommit, lastRollRev string) (string, error) {
+func (rm *noCheckoutDEPSRepoManager) getNextRollRev(ctx context.Context, notRolled []*revision.Revision, lastRollRev string) (string, error) {
 	rm.strategyMtx.RLock()
 	defer rm.strategyMtx.RUnlock()
 	nextRollRev, err := rm.strategy.GetNextRollRev(ctx, notRolled)
@@ -253,7 +254,7 @@ func (rm *noCheckoutDEPSRepoManager) getNextRollRev(ctx context.Context, notRoll
 }
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []*Revision, error) {
+func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []*revision.Revision, error) {
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
 
@@ -278,23 +279,12 @@ func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, strat str
 	if err != nil {
 		return "", "", nil, err
 	}
+	notRolledRevs := revision.FromLongCommits(fmt.Sprintf(gerritRevTmpl, rm.childRepoUrl, "%s"), notRolled)
 
 	// Get the next roll revision.
-	nextRollRev, err := rm.getNextRollRev(ctx, notRolled, lastRollRev)
+	nextRollRev, err := rm.getNextRollRev(ctx, notRolledRevs, lastRollRev)
 	if err != nil {
 		return "", "", nil, err
-	}
-
-	// Get the list of not-yet-rolled revisions.
-	notRolledRevs := make([]*Revision, 0, len(notRolled))
-	for _, rev := range notRolled {
-		notRolledRevs = append(notRolledRevs, &Revision{
-			Id:          rev.Hash,
-			Display:     rev.Hash[:7],
-			Description: rev.Subject,
-			Timestamp:   rev.Timestamp,
-			URL:         fmt.Sprintf("%s/+/%s", rm.childRepoUrl, rev.Hash),
-		})
 	}
 
 	return lastRollRev, nextRollRev, notRolledRevs, nil

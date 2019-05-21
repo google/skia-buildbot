@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -24,7 +25,7 @@ import (
 const (
 	ftReadmePath         = "third_party/freetype/README.chromium"
 	ftReadmeVersionTmpl  = "Version: %s"
-	ftReadmeRevisionTmpl = "Revision: %s"
+	ftReadmeRevisionTmpl = "revision.Revision: %s"
 
 	ftIncludeSrc  = "include/freetype/config"
 	ftIncludeDest = "third_party/freetype/include/freetype-custom-config"
@@ -193,7 +194,7 @@ func (rm *freetypeRepoManager) createRoll(ctx context.Context, from, to, serverU
 }
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *freetypeRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []*Revision, error) {
+func (rm *freetypeRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []*revision.Revision, error) {
 	lastRollRev, nextRollRev, notRolledRevs, err := rm.noCheckoutDEPSRepoManager.updateHelper(ctx, strat, parentRepo, baseCommit)
 	if err != nil {
 		return "", "", nil, err

@@ -22,6 +22,7 @@
     "childBranch": "master",
     "childPath": "emscripten-releases/llvm-project",
     "childRepo": "https://chromium.googlesource.com/external/github.com/llvm/llvm-project.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/llvm/llvm-project.git/+/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

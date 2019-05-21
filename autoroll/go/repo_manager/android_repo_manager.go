@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/android_skia_checkout"
 	"go.skia.org/infra/go/common"
@@ -154,29 +155,16 @@ func (r *androidRepoManager) Update(ctx context.Context) error {
 		return err
 	}
 
-	// Find the number of not-rolled child repo commits.
-	notRolled, err := r.getCommitsNotRolled(ctx, lastRollRev)
+	// Find the not-rolled child repo commits.
+	notRolledRevs, err := r.getCommitsNotRolled(ctx, lastRollRev)
 	if err != nil {
 		return err
 	}
 
 	// Get the next roll revision.
-	nextRollRev, err := r.getNextRollRev(ctx, notRolled, lastRollRev)
+	nextRollRev, err := r.getNextRollRev(ctx, notRolledRevs, lastRollRev)
 	if err != nil {
 		return err
-	}
-
-	// Get the list of not-yet-rolled revisions.
-	childRepoName := path.Base(r.childDir)
-	notRolledRevs := make([]*Revision, 0, len(notRolled))
-	for _, rev := range notRolled {
-		notRolledRevs = append(notRolledRevs, &Revision{
-			Id:          rev.Hash,
-			Display:     rev.Hash[:7],
-			Description: rev.Subject,
-			Timestamp:   rev.Timestamp,
-			URL:         fmt.Sprintf("https://%s.googlesource.com/%s.git/+/%s", childRepoName, childRepoName, rev.Hash),
-		})
 	}
 
 	r.infoMtx.Lock()
@@ -518,14 +506,14 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 	return change.Issue, nil
 }
 
-func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) ([]*vcsinfo.LongCommit, error) {
+func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) ([]*revision.Revision, error) {
 	output, err := r.childRepo.Git(ctx, "ls-remote", UPSTREAM_REMOTE_NAME, fmt.Sprintf("refs/heads/%s", r.childBranch), "-1")
 	if err != nil {
 		return nil, err
 	}
 	head := strings.Split(output, "\t")[0]
 	if head == lastRollRev {
-		return []*vcsinfo.LongCommit{}, nil
+		return []*revision.Revision{}, nil
 	}
 	// Only consider commits on the "main" branch as roll candidates.
 	commits, err := r.childRepo.RevList(ctx, "--ancestry-path", "--first-parent", fmt.Sprintf("%s..%s", lastRollRev, head))
@@ -540,7 +528,7 @@ func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRe
 		}
 		notRolled = append(notRolled, details)
 	}
-	return notRolled, nil
+	return revision.FromLongCommits(r.childRevLinkTmpl, notRolled), nil
 }
 
 // See documentation for RepoManager interface.
