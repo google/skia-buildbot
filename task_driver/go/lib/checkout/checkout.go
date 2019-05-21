@@ -6,6 +6,8 @@ package checkout
 
 import (
 	"context"
+	"errors"
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -18,6 +20,55 @@ import (
 	"go.skia.org/infra/task_driver/go/td"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
+
+// Flags contains command-line flags used by this package.
+type Flags struct {
+	PatchIssue  *string
+	PatchServer *string
+	PatchSet    *string
+	Repo        *string
+	Revision    *string
+}
+
+// SetupFlags initializes command-line flags used by this package. If a FlagSet
+// is not provided, then these become top-level CommandLine flags.
+func SetupFlags(fs *flag.FlagSet) *Flags {
+	if fs == nil {
+		fs = flag.CommandLine
+	}
+	return &Flags{
+		PatchIssue:  fs.String("patch_issue", "", "Issue ID; required if this is a try job."),
+		PatchServer: fs.String("patch_server", "", "URL of the Gerrit instance."),
+		PatchSet:    fs.String("patch_set", "", "Patch set ID; required if this is a try job."),
+		Repo:        fs.String("repo", "", "URL of the repo."),
+		Revision:    fs.String("revision", "", "Git revision to check out."),
+	}
+}
+
+// GetRepoState creates a RepoState from the given Flags.
+func GetRepoState(f *Flags) (types.RepoState, error) {
+	var rs types.RepoState
+	if *f.Repo == "" {
+		return rs, errors.New("--repo is required.")
+	}
+	if *f.Revision == "" {
+		return rs, errors.New("--revision is required.")
+	}
+	rs.Repo = *f.Repo
+	rs.Revision = *f.Revision
+	if *f.PatchIssue != "" {
+		rs.Patch = types.Patch{
+			Issue:     *f.PatchIssue,
+			PatchRepo: *f.Repo,
+			Patchset:  *f.PatchSet,
+			Server:    *f.PatchServer,
+		}
+	}
+	if !rs.Valid() {
+		return rs, errors.New("RepoState is invalid.")
+	}
+	return rs, nil
+}
 
 // ValidateCheckout returns true if the git checkout in the given destination
 // dir is in a reasonable state. Assumes that the dest dir exists.
