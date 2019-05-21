@@ -61,7 +61,7 @@ func GetPreUploadSteps(steps []string) ([]PreUploadStep, error) {
 func TrainInfra(ctx context.Context, env []string, client *http.Client, parentRepoDir string) error {
 	// TODO(borenet): Should we plumb through --local and --workdir?
 	sklog.Info("Installing Go...")
-	_, goEnv, err := go_install.EnsureGo(client, cipdRoot)
+	_, goEnv, err := go_install.EnsureGo(ctx, client, cipdRoot)
 	if err != nil {
 		return err
 	}
@@ -185,7 +185,7 @@ func FlutterLicenseScripts(ctx context.Context, _ []string, _ *http.Client, pare
 func GoGenerateCipd(ctx context.Context, _ []string, client *http.Client, parentRepoDir string) error {
 	// TODO(borenet): Should we plumb through --local and --workdir?
 	sklog.Info("Installing Go...")
-	goExc, goEnv, err := go_install.EnsureGo(client, cipdRoot)
+	goExc, goEnv, err := go_install.EnsureGo(ctx, client, cipdRoot)
 	if err != nil {
 		return err
 	}
@@ -193,7 +193,7 @@ func GoGenerateCipd(ctx context.Context, _ []string, client *http.Client, parent
 	// Also install the protoc asset. Use a different CIPD root dir to
 	// prevent conflicts with the Go packages.
 	protocRoot := path.Join(os.TempDir(), "cipd_protoc")
-	if err := cipd.Ensure(client, protocRoot, cipd.PkgProtoc); err != nil {
+	if err := cipd.Ensure(ctx, client, protocRoot, cipd.PkgProtoc); err != nil {
 		return err
 	}
 
