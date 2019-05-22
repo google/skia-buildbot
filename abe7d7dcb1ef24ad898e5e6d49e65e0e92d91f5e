@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d8326b82_f2726eed",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 506,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T12:18:42Z",
+      "side": 1,
+      "message": "Make this tiling.TraceId?  I\u0027d recommend a strong cup of coffee before if you attempt that.",
+      "range": {
+        "startLine": 506,
+        "startChar": 81,
+        "endLine": 506,
+        "endChar": 87
+      },
+      "revId": "abe7d7dcb1ef24ad898e5e6d49e65e0e92d91f5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
