@@ -69,8 +69,8 @@ type TileKey int32
 // BadTileKey is returned in error conditions.
 const BadTileKey = TileKey(-1)
 
-// TileKeyFromOffset returns a TileKey from the tile offset.
-func TileKeyFromOffset(tileOffset int32) TileKey {
+// tileKeyFromOffset returns a TileKey from the tile offset.
+func tileKeyFromOffset(tileOffset int32) TileKey {
 	if tileOffset < 0 {
 		return BadTileKey
 	}
@@ -78,7 +78,7 @@ func TileKeyFromOffset(tileOffset int32) TileKey {
 }
 
 func (t TileKey) PrevTile() TileKey {
-	return TileKeyFromOffset(t.Offset() - 1)
+	return tileKeyFromOffset(t.Offset() - 1)
 }
 
 // OpsRowName returns the name of the BigTable row that the OrderedParamSet for this tile is stored at.
@@ -218,7 +218,7 @@ func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.PerfBigTab
 
 // Given the index return the TileKey of the tile that would contain that column.
 func (b *BigTableTraceStore) TileKey(index int32) TileKey {
-	return TileKeyFromOffset(index / b.tileSize)
+	return tileKeyFromOffset(index / b.tileSize)
 }
 
 // Returns the offset within a tile for the given index.
@@ -282,7 +282,7 @@ func (b *BigTableTraceStore) GetOrderedParamSet(ctx context.Context, tileKey Til
 // The keys of 'values' must be the OPS encoded Params of the trace, i.e. at this point we know the OPS has been updated.
 func (b *BigTableTraceStore) WriteTraces(index int32, values map[string]float32, source string, timestamp time.Time) error {
 	sourceHash := md5.Sum([]byte(source))
-	tileKey := TileKeyFromOffset(index / b.tileSize)
+	tileKey := b.TileKey(index)
 	col := strconv.Itoa(int(index % b.tileSize))
 	ts := bigtable.Time(timestamp)
 
@@ -563,7 +563,7 @@ func (b *BigTableTraceStore) TileKeys(tileKey TileKey) ([]string, error) {
 //
 // The traceId is a raw traceid key, i.e. not an encoded key.
 func (b *BigTableTraceStore) GetSource(ctx context.Context, index int32, traceId string) (string, error) {
-	tileKey := TileKeyFromOffset(index / b.tileSize)
+	tileKey := b.TileKey(index)
 	ops, err := b.GetOrderedParamSet(ctx, tileKey)
 	if err != nil {
 		return "", fmt.Errorf("Failed to load OrderedParamSet for tile: %s", err)
