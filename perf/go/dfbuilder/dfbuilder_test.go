@@ -94,34 +94,20 @@ func TestBuildTraceMapper(t *testing.T) {
 }
 
 // The keys of values are structured keys, not encoded keys.
-func addValusAtIndex(store *btts.BigTableTraceStore, index int32, values map[string]float32, filename string, ts time.Time) error {
-	tileKey := store.TileKey(index)
+func addValusAtIndex(store *btts.BigTableTraceStore, index int32, keyValues map[string]float32, filename string, ts time.Time) error {
 	ps := paramtools.ParamSet{}
-	for structuredKey := range values {
-		p, err := query.ParseKey(structuredKey)
+	params := []paramtools.Params{}
+	values := []float32{}
+	for k, v := range keyValues {
+		p, err := query.ParseKey(k)
 		if err != nil {
 			return err
 		}
 		ps.AddParams(p)
+		params = append(params, p)
+		values = append(values, v)
 	}
-	ops, err := store.UpdateOrderedParamSet(tileKey, ps)
-	if err != nil {
-		return err
-	}
-	encoded := map[string]float32{}
-	for structuredKey, value := range values {
-		p, err := query.ParseKey(structuredKey)
-		if err != nil {
-			return err
-		}
-		encodedKey, err := ops.EncodeParamsAsString(p)
-		if err != nil {
-			return err
-		}
-		encoded[encodedKey] = value
-	}
-
-	return store.WriteTraces(index, encoded, filename, ts)
+	return store.WriteTraces(index, params, values, ps, filename, ts)
 }
 
 func TestBuildNew(t *testing.T) {

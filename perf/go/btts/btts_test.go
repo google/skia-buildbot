@@ -107,21 +107,24 @@ func TestTraces(t *testing.T) {
 	assert.NoError(t, err)
 
 	tileKey := tileKeyFromOffset(1)
-	op, err := b.UpdateOrderedParamSet(tileKey, paramtools.ParamSet{
-		"cpu": []string{"x86", "arm"},
-	})
-	assert.NoError(t, err)
-	op, err = b.UpdateOrderedParamSet(tileKey, paramtools.ParamSet{
+	paramset := paramtools.ParamSet{
 		"config": []string{"8888", "565"},
-	})
-	assert.NoError(t, err)
-	values := map[string]float32{
-		encodeParams(t, op, paramtools.Params{"cpu": "x86", "config": "8888"}): 1.0,
-		encodeParams(t, op, paramtools.Params{"cpu": "x86", "config": "565"}):  1.1,
-		encodeParams(t, op, paramtools.Params{"cpu": "arm", "config": "8888"}): 1.2,
-		encodeParams(t, op, paramtools.Params{"cpu": "arm", "config": "565"}):  1.3,
+		"cpu":    []string{"x86", "arm"},
 	}
-	err = b.WriteTraces(257, values, "gs://some/test/location", now)
+	assert.NoError(t, err)
+	params := []paramtools.Params{
+		paramtools.Params{"cpu": "x86", "config": "8888"},
+		paramtools.Params{"cpu": "x86", "config": "565"},
+		paramtools.Params{"cpu": "arm", "config": "8888"},
+		paramtools.Params{"cpu": "arm", "config": "565"},
+	}
+	values := []float32{
+		1.0,
+		1.1,
+		1.2,
+		1.3,
+	}
+	err = b.WriteTraces(257, params, values, paramset, "gs://some/test/location", now)
 	assert.NoError(t, err)
 
 	q, err := query.New(url.Values{"config": []string{"8888"}})
@@ -145,10 +148,13 @@ func TestTraces(t *testing.T) {
 	assert.Equal(t, []string{",0=0,1=0,", ",0=0,1=1,", ",0=1,1=0,", ",0=1,1=1,"}, keys)
 
 	// Now overwrite a value.
-	values = map[string]float32{
-		encodeParams(t, op, paramtools.Params{"cpu": "x86", "config": "8888"}): 2.0,
+	params = []paramtools.Params{
+		paramtools.Params{"cpu": "x86", "config": "8888"},
 	}
-	err = b.WriteTraces(257, values, "gs://some/other/test/location", now)
+	values = []float32{
+		2.0,
+	}
+	err = b.WriteTraces(257, params, values, paramset, "gs://some/other/test/location", now)
 	assert.NoError(t, err)
 
 	// Query again to get the updated value.
@@ -165,10 +171,13 @@ func TestTraces(t *testing.T) {
 	assert.Equal(t, expected, results)
 
 	// Write in the next column.
-	values = map[string]float32{
-		encodeParams(t, op, paramtools.Params{"cpu": "x86", "config": "8888"}): 3.0,
+	params = []paramtools.Params{
+		paramtools.Params{"cpu": "x86", "config": "8888"},
 	}
-	err = b.WriteTraces(258, values, "gs://some/other/test/location", now)
+	values = []float32{
+		3.0,
+	}
+	err = b.WriteTraces(258, params, values, paramset, "gs://some/other/test/location", now)
 	assert.NoError(t, err)
 
 	// Query again to get the updated value.

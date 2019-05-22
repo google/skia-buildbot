@@ -279,10 +279,22 @@ func (b *BigTableTraceStore) GetOrderedParamSet(ctx context.Context, tileKey Til
 
 // WriteTraces writes the given values into the store.
 //
-// The keys of 'values' must be the OPS encoded Params of the trace, i.e. at this point we know the OPS has been updated.
-func (b *BigTableTraceStore) WriteTraces(index int32, values map[string]float32, source string, timestamp time.Time) error {
-	sourceHash := md5.Sum([]byte(source))
+// index is the offset of the values to write.
+// params is a slice of params, where each Params represents a single trace.
+// values are the values to write, for each trace in params, at the offset given in index.
+// paramset is the ParamSet of all the params to be written.
+// source is the filename where the data came from.
+// timestamp is the timestamp when the data was generated.
+//
+// Note that the order of 'params' and 'values' need to match.
+func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params, values []float32, paramset paramtools.ParamSet, source string, timestamp time.Time) error {
 	tileKey := b.TileKey(index)
+	ops, err := b.UpdateOrderedParamSet(tileKey, paramset)
+	if err != nil {
+		return fmt.Errorf("Could not write traces, failed to update OPS: %s", err)
+	}
+
+	sourceHash := md5.Sum([]byte(source))
 	col := strconv.Itoa(int(index % b.tileSize))
 	ts := bigtable.Time(timestamp)
 
@@ -298,7 +310,7 @@ func (b *BigTableTraceStore) WriteTraces(index int32, values map[string]float32,
 
 	tctx, cancel := context.WithTimeout(context.Background(), WRITE_TIMEOUT)
 	defer cancel()
-	for k, v := range values {
+	for i, v := range values {
 		mut := bigtable.NewMutation()
 
 		buf := make([]byte, 4)
@@ -306,7 +318,12 @@ func (b *BigTableTraceStore) WriteTraces(index int32, values map[string]float32,
 		mut.Set(VALUES_FAMILY, col, ts, buf)
 		mut.Set(SOURCES_FAMILY, col, ts, sourceHash[:])
 		muts = append(muts, mut)
-		rowKeys = append(rowKeys, tileKey.TraceRowName(k, b.shards))
+		encodedKey, err := ops.EncodeParamsAsString(params[i])
+		if err != nil {
+			sklog.Warningf("Failed to encode key %q: %s", params[i], err)
+			continue
+		}
+		rowKeys = append(rowKeys, tileKey.TraceRowName(encodedKey, b.shards))
 		if len(muts) >= MAX_MUTATIONS {
 			b.writesCounter.Inc(int64(len(muts)))
 			errs, err := b.getTable().ApplyBulk(tctx, rowKeys, muts)
