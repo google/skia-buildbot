@@ -127,6 +127,36 @@ func TestTraces(t *testing.T) {
 	err = b.WriteTraces(257, params, values, paramset, "gs://some/test/location", now)
 	assert.NoError(t, err)
 
+	// Confirm that indices were written correctly.
+	expectedKeys := []string{
+		"i2147483646:config:565",
+		"i2147483646:config:8888",
+		"i2147483646:cpu:arm",
+		"i2147483646:cpu:x86",
+	}
+	expectedColumns := map[string][]string{
+		"i2147483646:config:565":  []string{"4:2147483646:,0=1,1=0,", "5:2147483646:,0=1,1=1,"},
+		"i2147483646:config:8888": []string{"0:2147483646:,0=0,1=1,", "1:2147483646:,0=0,1=0,"},
+		"i2147483646:cpu:arm":     []string{"0:2147483646:,0=0,1=1,", "5:2147483646:,0=1,1=1,"},
+		"i2147483646:cpu:x86":     []string{"1:2147483646:,0=0,1=0,", "4:2147483646:,0=1,1=0,"},
+	}
+
+	b.getTable().ReadRows(context.Background(), bigtable.PrefixRange(INDEX_PREFIX), func(row bigtable.Row) bool {
+		assert.Contains(t, expectedKeys, row.Key())
+		for _, col := range row[INDEX_FAMILY] {
+			// Strip off the family name which is prefixed.
+			rowKey := col.Column[2:]
+			assert.Contains(t, expectedColumns[col.Row], rowKey)
+		}
+		return true
+	}, bigtable.RowFilter(
+		bigtable.ChainFilters(
+			bigtable.LatestNFilter(1),
+			bigtable.FamilyFilter(INDEX_FAMILY),
+		),
+	),
+	)
+
 	q, err := query.New(url.Values{"config": []string{"8888"}})
 	assert.NoError(t, err)
 
