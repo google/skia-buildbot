@@ -20,10 +20,9 @@ const CHANNEL_BUFFER_SIZE = 10000
 //
 // See New() for more details.
 type request struct {
-	key      string // In the first stage this is the encoded key, in the second stage it is the decoded key.
+	key      string
 	params   paramtools.Params
 	trace    []float32
-	ops      *paramtools.OrderedParamSet
 	traceMap map[int32]int32
 }
 
@@ -71,26 +70,16 @@ func (m *mergeWorker) Close() {
 
 // TraceSetBuilder builds a TraceSet from traces found in Tiles.
 //
-// The process is a two stage pipeline, with the first stage key
-// decoding, and the second stage the actual merging of the trace data
-// into a TraceSet. The second stage of the pipeline, the mergeWorkers,
-// are selected based on the md5 hash of the decoded key for a trace,
-// this ensures that the same trace id will always be processed by the
-// same mergeWorker. This way we ensure that each mergeWorker sees only
-// their subset of the traces and we can avoid mutexes.
-//
-//           +->  hashWorker -+   mergeWorker
-//           |                |
-//  request -+    hashWorker  |   mergeWorker
-//                            |
-//                hashWorker  +-> mergeWorker
+//  The mergeWorkers are selected based on the md5 hash of the decoded key for
+//  a trace, this ensures that the same trace id will always be processed by
+//  the same mergeWorker. This way we ensure that each mergeWorker sees only
+//  their subset of the traces and we can avoid mutexes.
 //
 // The Build() func will consolidate all the work of the mergeWorkers
 // and shut down the worker pools. Because of that a TraceSetBuilder
 // cannot be reused.
 type TraceSetBuilder struct {
 	wg           *sync.WaitGroup
-	hashStageCh  chan *request
 	mergeWorkers []*mergeWorker // There are NUM_WORKERS of these.
 }
 
@@ -100,7 +89,6 @@ type TraceSetBuilder struct {
 func New(size int) *TraceSetBuilder {
 	t := &TraceSetBuilder{
 		wg:           &sync.WaitGroup{},
-		hashStageCh:  make(chan *request, CHANNEL_BUFFER_SIZE),
 		mergeWorkers: []*mergeWorker{},
 	}
 
@@ -109,49 +97,30 @@ func New(size int) *TraceSetBuilder {
 		t.mergeWorkers = append(t.mergeWorkers, newMergeWorker(t.wg, size))
 	}
 
-	// Build a pool of hash workers.
-	for i := 0; i < NUM_WORKERS; i++ {
-		go func() {
-			var err error
-			for req := range t.hashStageCh {
-				req.params, err = req.ops.DecodeParamsFromString(req.key)
-				if err != nil {
-					// It is possible we matched a trace that appeared after we grabbed the OPS,
-					// so just ignore it.
-					t.wg.Done()
-					continue
-				}
-				req.key, err = query.MakeKeyFast(req.params)
-				if err != nil {
-					sklog.Errorf("Failed to make a key from %#v: %s", req.params, err)
-					t.wg.Done()
-					continue
-				}
-				// Calculate which merge worker should handle this request.
-				index := crc32.ChecksumIEEE([]byte(req.key)) % NUM_WORKERS
-				t.mergeWorkers[index].Process(req)
-			}
-		}()
-	}
 	return t
 }
 
 // Add traces to the TraceSet.
 //
-// ops is the OrderedParamSet for the tile that the traces came from.
 // traceMap says where each trace value should be placed in the final trace.
-// traces are keyed by encoded key and the traces are just a single tile length.
-func (t *TraceSetBuilder) Add(ops *paramtools.OrderedParamSet, traceMap map[int32]int32, traces map[string][]float32) {
+// traces are keyed by traceId (unencoded) and the traces are just a single tile length.
+func (t *TraceSetBuilder) Add(traceMap map[int32]int32, traces types.TraceSet) {
 	defer timer.New("TraceSetBuilder.Add").Stop()
 	t.wg.Add(len(traces))
-	for encodedKey, trace := range traces {
-		req := &request{
-			key:      encodedKey,
-			trace:    trace,
-			ops:      ops,
-			traceMap: traceMap,
+	for key, trace := range traces {
+		params, err := query.ParseKey(key)
+		if err != nil {
+			sklog.Warningf("Found invalid key %q: %s", key, err)
+			continue
 		}
-		t.hashStageCh <- req
+		req := &request{
+			key:      key,
+			trace:    trace,
+			traceMap: traceMap,
+			params:   params,
+		}
+		index := crc32.ChecksumIEEE([]byte(req.key)) % NUM_WORKERS
+		t.mergeWorkers[index].Process(req)
 	}
 }
 
@@ -167,8 +136,6 @@ func (t *TraceSetBuilder) Build(ctx context.Context) (types.TraceSet, paramtools
 	defer timer.New("TraceSetBuilder.Build").Stop()
 	t.wg.Wait()
 	defer timer.New("TraceSetBuilder.Build-after-wait").Stop()
-	// Shut down the first stage.
-	close(t.hashStageCh)
 
 	traceSet := types.TraceSet{}
 	paramSet := paramtools.ParamSet{}

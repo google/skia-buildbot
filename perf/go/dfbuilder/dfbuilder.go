@@ -189,12 +189,6 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 		g.Go(func() error {
 			defer timer.New("dfbuilder_by_tile").Stop()
 
-			// Get the OPS, which we need to decode the traceids of the results.
-			ops, err := b.store.GetOrderedParamSet(ctx, tileKey)
-			if err != nil {
-				return fmt.Errorf("Failed to load OrderedParamSet for tile: %s", err)
-			}
-
 			// Query for matching traces in the given tile.
 			traces, err := b.store.QueryTraces(ctx, tileKey, q)
 			if err != nil {
@@ -202,7 +196,7 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 			}
 			sklog.Debugf("found %d traces for %s", len(traces), tileKey.OpsRowName())
 
-			traceSetBuilder.Add(ops, traceMap, traces)
+			traceSetBuilder.Add(traceMap, traces)
 			triggerProgress()
 			return nil
 		})

@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/types"
 	"golang.org/x/oauth2"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/api/option"
@@ -336,6 +337,8 @@ func (b *BigTableTraceStore) WriteTraces(index int32, values map[string]float32,
 // ReadTraces loads the traces for the given keys.
 //
 // Note that the keys are the structured keys, ReadTraces will convert them into OPS encoded keys.
+//
+// The returned map will be from un-encoded structured traceids.
 func (b *BigTableTraceStore) ReadTraces(tileKey TileKey, keys []string) (map[string][]float32, error) {
 	// First encode all the keys by the OrderedParamSet of the given tile.
 	ops, err := b.GetOrderedParamSet(context.TODO(), tileKey)
@@ -403,11 +406,24 @@ func (b *BigTableTraceStore) regexpFromQuery(ctx context.Context, tileKey TileKe
 	return r, nil
 }
 
+func traceIdFromEncoded(ops *paramtools.OrderedParamSet, encoded string) (string, error) {
+	p, err := ops.DecodeParamsFromString(encoded)
+	if err != nil {
+		return "", fmt.Errorf("Failed to decode key: %s", err)
+	}
+	return query.MakeKeyFast(p)
+}
+
 // QueryTraces returns a map of encoded keys to a slice of floats for all
 // traces that match the given query.
-func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q *query.Query) (map[string][]float32, error) {
+func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q *query.Query) (types.TraceSet, error) {
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.QueryTraces")
 	defer span.End()
+
+	ops, err := b.GetOrderedParamSet(ctx, tileKey)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get OPS: %s", err)
+	}
 
 	// Convert query to regex.
 	r, err := b.regexpFromQuery(ctx, tileKey, q)
@@ -420,7 +436,7 @@ func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q
 	defer timer.New("btts_query_traces").Stop()
 	defer metrics2.FuncTimer().Stop()
 	var mutex sync.Mutex
-	ret := map[string][]float32{}
+	ret := types.TraceSet{}
 	var g errgroup.Group
 	tctx, cancel := context.WithTimeout(ctx, TIMEOUT)
 	defer cancel()
@@ -435,8 +451,13 @@ func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q
 					vec[b.lookup[col.Column]] = math.Float32frombits(binary.LittleEndian.Uint32(col.Value))
 				}
 				parts := strings.Split(row.Key(), ":")
+				traceId, err := traceIdFromEncoded(ops, parts[2])
+				if err != nil {
+					sklog.Infof("Found encoded key %q that can't be decoded: %s", parts[2], err)
+					return true
+				}
 				mutex.Lock()
-				ret[parts[2]] = vec
+				ret[traceId] = vec
 				mutex.Unlock()
 				return true
 			}, bigtable.RowFilter(
