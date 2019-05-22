@@ -152,6 +152,14 @@ func MakeTestTile() *tiling.Tile {
 				},
 			},
 		},
+
+		// Summarizes all the keys and values seen in this tile
+		// The values should be in alphabetical order (see paramset.Normalize())
+		ParamSet: map[string][]string{
+			"device":                {"angler", "bullhead", "crosshatch"},
+			types.PRIMARY_KEY_FIELD: {string(AlphaTest), string(BetaTest)},
+			types.CORPUS_FIELD:      {"gm"},
+		},
 	}
 }
 
