@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/btts_testutils"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/types"
 )
 
 var (
@@ -132,9 +133,9 @@ func TestTraces(t *testing.T) {
 	vec1[1] = 1.0
 	vec2 := vec32.New(256)
 	vec2[1] = 1.2
-	expected := map[string][]float32{
-		",0=0,1=0,": vec1,
-		",0=1,1=0,": vec2,
+	expected := types.TraceSet{
+		",config=8888,cpu=x86,": vec1,
+		",config=8888,cpu=arm,": vec2,
 	}
 	assert.Equal(t, expected, results)
 
@@ -157,9 +158,9 @@ func TestTraces(t *testing.T) {
 	vec1[1] = 2.0
 	vec2 = vec32.New(256)
 	vec2[1] = 1.2
-	expected = map[string][]float32{
-		",0=0,1=0,": vec1,
-		",0=1,1=0,": vec2,
+	expected = types.TraceSet{
+		",config=8888,cpu=x86,": vec1,
+		",config=8888,cpu=arm,": vec2,
 	}
 	assert.Equal(t, expected, results)
 
@@ -178,9 +179,9 @@ func TestTraces(t *testing.T) {
 	vec1[2] = 3.0
 	vec2 = vec32.New(256)
 	vec2[1] = 1.2
-	expected = map[string][]float32{
-		",0=0,1=0,": vec1,
-		",0=1,1=0,": vec2,
+	expected = types.TraceSet{
+		",config=8888,cpu=x86,": vec1,
+		",config=8888,cpu=arm,": vec2,
 	}
 	assert.Equal(t, expected, results)
 
