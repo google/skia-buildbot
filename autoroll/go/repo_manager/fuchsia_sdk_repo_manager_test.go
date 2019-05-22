@@ -99,7 +99,7 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, RepoManager, *mockhttpclien
 
 	rm, err := NewFuchsiaSDKRepoManager(ctx, cfg, wd, g, "fake.server.com", "", urlmock.Client(), gerritCR(t, g), false)
 	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_FUCHSIA_SDK))
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
 
 	cleanup := func() {
@@ -130,7 +130,7 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, rolledPast)
 	assert.Empty(t, rm.PreUploadSteps())
-	assert.Equal(t, 0, len(rm.NotRolledRevisions())) // Always zero.
+	assert.Equal(t, 0, len(rm.NotRolledRevisions()))
 
 	// There's a new version.
 	mockParent.MockGetCommit(ctx, "master")
@@ -156,7 +156,8 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	rolledPast, err = rm.RolledPast(ctx, fuchsiaSDKRevNext)
 	assert.NoError(t, err)
 	assert.False(t, rolledPast)
-	assert.Equal(t, 0, len(rm.NotRolledRevisions())) // Always zero.
+	assert.Equal(t, 1, len(rm.NotRolledRevisions()))
+	assert.Equal(t, fuchsiaSDKRevNext, rm.NotRolledRevisions()[0].Id)
 
 	// Upload a CL.
 

@@ -95,13 +95,13 @@ func setupAfdo(t *testing.T) (context.Context, RepoManager, *mockhttpclient.URLM
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, AFDO_VERSION_FILE_PATH, parentMaster)
-	mockGSList(t, urlmock, strategy.AFDO_GS_BUCKET, strategy.AFDO_GS_PATH, map[string]string{
+	mockGSList(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, map[string]string{
 		afdoRevBase: afdoTimeBase,
 	})
 
 	rm, err := NewAFDORepoManager(ctx, cfg, wd, g, "fake.server.com", "", urlmock.Client(), gerritCR(t, g), false)
 	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_AFDO))
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
 
 	cleanup := func() {
@@ -194,7 +194,7 @@ func TestAFDORepoManager(t *testing.T) {
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, AFDO_VERSION_FILE_PATH, parentMaster)
-	mockGSList(t, urlmock, strategy.AFDO_GS_BUCKET, strategy.AFDO_GS_PATH, map[string]string{
+	mockGSList(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, map[string]string{
 		afdoRevBase: afdoTimeBase,
 		afdoRevNext: afdoTimeNext,
 	})
