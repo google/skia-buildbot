@@ -14,7 +14,6 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/strategy"
-	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -141,13 +140,6 @@ func TestDEPSRepoManager(t *testing.T) {
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
 
-	// Test FullChildHash.
-	for _, c := range childCommits {
-		h, err := rm.FullChildHash(ctx, c[:12])
-		assert.NoError(t, err)
-		assert.Equal(t, c, h)
-	}
-
 	// Test update.
 	lastCommit := child.CommitGen(context.Background(), "abc.txt")
 	assert.NoError(t, rm.Update(ctx))
@@ -176,7 +168,7 @@ func TestDEPSRepoManager(t *testing.T) {
 func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	unittest.LargeTest(t)
 
-	ctx, wd, child, childCommits, parent, _, _, cleanup := setup(t)
+	ctx, wd, _, _, parent, _, _, cleanup := setup(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
@@ -192,14 +184,6 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
-	msg, err := ioutil.ReadFile(path.Join(rm.(*depsRepoManager).parentDir, ".git", "COMMIT_EDITMSG"))
-	assert.NoError(t, err)
-	from, to, err := autoroll.RollRev(ctx, strings.Split(string(msg), "\n")[0], func(ctx context.Context, h string) (string, error) {
-		return git.GitDir(child.Dir()).RevParse(ctx, h)
-	})
-	assert.NoError(t, err)
-	assert.Equal(t, childCommits[0], from)
-	assert.Equal(t, childCommits[expectIdx], to)
 }
 
 // TestDEPSRepoManagerBatch tests the batch roll strategy.

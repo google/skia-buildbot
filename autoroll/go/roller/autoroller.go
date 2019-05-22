@@ -227,7 +227,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	arb.sm = sm
 	current := recent.CurrentRoll()
 	if current != nil {
-		roll, err := arb.retrieveRoll(ctx, current.Issue)
+		roll, err := arb.retrieveRoll(ctx, current)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to retrieve current roll: %s", err)
 		}
@@ -237,9 +237,13 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	return arb, nil
 }
 
-// Retrieve the roll with the given issue ID.
-func (r *AutoRoller) retrieveRoll(ctx context.Context, issue int64) (codereview.RollImpl, error) {
-	return r.codereview.RetrieveRoll(ctx, r.rm.FullChildHash, r.recent, issue, r.rollFinished)
+// Retrieve a RollImpl based on the given AutoRollIssue. The passed-in
+// AutoRollIssue becomes ownered bythe RollImpl; it may modify it, insert it
+// into the RecentRolls DB, etc. The Issue field is required, and if the roll
+// has not yet been inserted into the DB, the RollingFrom, and RollingTo fields
+// must be set as well.
+func (r *AutoRoller) retrieveRoll(ctx context.Context, roll *autoroll.AutoRollIssue) (codereview.RollImpl, error) {
+	return r.codereview.RetrieveRoll(ctx, roll, r.recent, r.rollFinished)
 }
 
 // isSyncError returns true iff the error looks like a sync error.
@@ -385,7 +389,12 @@ func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to string, dryRun 
 	if err != nil {
 		return err
 	}
-	roll, err := r.retrieveRoll(ctx, issueNum)
+	issue := &autoroll.AutoRollIssue{
+		Issue:       issueNum,
+		RollingFrom: from,
+		RollingTo:   to,
+	}
+	roll, err := r.retrieveRoll(ctx, issue)
 	if err != nil {
 		return err
 	}
@@ -644,7 +653,7 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 	}
 	sklog.Infof("Found %d requests.", len(reqs))
 	for _, req := range reqs {
-		var issueNum int64
+		var issue *autoroll.AutoRollIssue
 		if req.Status == manual.STATUS_PENDING {
 			emails := r.GetEmails()
 			if !util.In(req.Requester, emails) {
@@ -652,9 +661,15 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			}
 			var err error
 			sklog.Infof("Creating manual roll to %s as requested by %s...", req.Revision, req.Requester)
-			issueNum, err = r.rm.CreateNewRoll(ctx, r.GetCurrentRev(), req.Revision, emails, strings.Join(r.cfg.CqExtraTrybots, ";"), false)
+			from := r.GetCurrentRev()
+			issueNum, err := r.rm.CreateNewRoll(ctx, from, req.Revision, emails, strings.Join(r.cfg.CqExtraTrybots, ";"), false)
 			if err != nil {
 				return fmt.Errorf("Failed to create manual roll for %s: %s", req.Id, err)
+			}
+			issue = &autoroll.AutoRollIssue{
+				RollingFrom: from,
+				RollingTo:   req.Revision,
+				Issue:       issueNum,
 			}
 		} else if req.Status == manual.STATUS_STARTED {
 			split := strings.Split(req.Url, "/")
@@ -662,13 +677,16 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			if err != nil {
 				return fmt.Errorf("Failed to parse issue number from %s for %s: %s", req.Url, req.Id, err)
 			}
-			issueNum = int64(i)
+			issue = &autoroll.AutoRollIssue{
+				RollingTo: req.Revision,
+				Issue:     int64(i),
+			}
 		} else {
 			sklog.Errorf("Found manual roll request %s in unknown status %q", req.Id, req.Status)
 			continue
 		}
-		sklog.Infof("Getting status for manual roll # %d", issueNum)
-		roll, err := r.retrieveRoll(ctx, issueNum)
+		sklog.Infof("Getting status for manual roll # %d", issue.Issue)
+		roll, err := r.retrieveRoll(ctx, issue)
 		if err != nil {
 			return fmt.Errorf("Failed to retrieve manual roll %s: %s", req.Id, err)
 		}

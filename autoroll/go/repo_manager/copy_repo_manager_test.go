@@ -12,10 +12,8 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/strategy"
-	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/recipe_cfg"
@@ -102,13 +100,6 @@ func TestCopyRepoManager(t *testing.T) {
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
 
-	// Test FullChildHash.
-	for _, c := range childCommits {
-		h, err := rm.FullChildHash(ctx, c[:12])
-		assert.NoError(t, err)
-		assert.Equal(t, c, h)
-	}
-
 	// Test update.
 	lastCommit := child.CommitGen(context.Background(), "abc.txt")
 	assert.NoError(t, rm.Update(ctx))
@@ -128,7 +119,7 @@ func TestCopyRepoManager(t *testing.T) {
 func TestCopyCreateNewDEPSRoll(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, child, childCommits, parent, _, cleanup := setupCopy(t)
+	ctx, wd, child, _, parent, _, cleanup := setupCopy(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
@@ -176,12 +167,4 @@ func TestCopyCreateNewDEPSRoll(t *testing.T) {
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
-	msg, err := ioutil.ReadFile(path.Join(rm.(*copyRepoManager).parentDir, ".git", "COMMIT_EDITMSG"))
-	assert.NoError(t, err)
-	from, to, err := autoroll.RollRev(ctx, strings.Split(string(msg), "\n")[0], func(ctx context.Context, h string) (string, error) {
-		return git.GitDir(child.Dir()).RevParse(ctx, h)
-	})
-	assert.NoError(t, err)
-	assert.Equal(t, childCommits[0], from)
-	assert.Equal(t, childCommits[len(childCommits)-1], to)
 }

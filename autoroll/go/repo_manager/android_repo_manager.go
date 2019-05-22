@@ -185,13 +185,6 @@ func (r *androidRepoManager) getLastRollRev(ctx context.Context) (string, error)
 }
 
 // See documentation for RepoManager interface.
-func (r *androidRepoManager) FullChildHash(ctx context.Context, shortHash string) (string, error) {
-	r.repoMtx.RLock()
-	defer r.repoMtx.RUnlock()
-	return r.childRepo.FullHash(ctx, shortHash)
-}
-
-// See documentation for RepoManager interface.
 func (r *androidRepoManager) LastRollRev() string {
 	r.infoMtx.RLock()
 	defer r.infoMtx.RUnlock()

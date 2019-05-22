@@ -147,29 +147,12 @@ func (i *AutoRollIssue) Copy() *AutoRollIssue {
 	}
 }
 
-// ToGerritChangeInfo returns a GerritChangeInfo instance based on the
-// AutoRollIssue.
-func (a *AutoRollIssue) ToGerritChangeInfo() (*gerrit.ChangeInfo, error) {
-	patchsets := make([]*gerrit.Revision, 0, len(a.Patchsets))
-	for _, ps := range a.Patchsets {
-		patchsets = append(patchsets, &gerrit.Revision{
-			ID: fmt.Sprintf("%d", ps),
-		})
-	}
-	return &gerrit.ChangeInfo{
-		ChangeId:  fmt.Sprintf("%d", a.Issue),
-		Patchsets: patchsets,
-	}, nil
-}
-
-type FullHashFn func(context.Context, string) (string, error)
-
-// FromGitHubPullRequest returns an AutoRollIssue instance based on the given
-// PullRequest.
-func FromGitHubPullRequest(ctx context.Context, pullRequest *github_api.PullRequest, g *github.GitHub, fullHashFn FullHashFn) (*AutoRollIssue, error) {
+// UpdateFromGitHubPullRequest updates the AutoRollIssue instance based on the
+// given PullRequest.
+func (i *AutoRollIssue) UpdateFromGitHubPullRequest(ctx context.Context, pullRequest *github_api.PullRequest, g *github.GitHub) error {
 	labels, err := g.GetLabels(pullRequest.GetNumber())
 	if err != nil {
-		return nil, err
+		return err
 	}
 	cq := false
 	dryRun := false
@@ -185,36 +168,28 @@ func FromGitHubPullRequest(ctx context.Context, pullRequest *github_api.PullRequ
 	for i := 1; i <= *pullRequest.Commits; i++ {
 		ps = append(ps, int64(i))
 	}
-	roll := &AutoRollIssue{
-		Closed:            pullRequest.GetState() == github.CLOSED_STATE,
-		Committed:         pullRequest.GetMerged(),
-		CommitQueue:       cq,
-		CommitQueueDryRun: dryRun,
-		Created:           pullRequest.GetCreatedAt(),
-		Issue:             int64(pullRequest.GetNumber()),
-		Modified:          pullRequest.GetUpdatedAt(),
-		Patchsets:         ps,
-		Subject:           pullRequest.GetTitle(),
-	}
-	roll.Result = rollResult(roll)
-	from, to, err := RollRev(ctx, roll.Subject, fullHashFn)
-	if err != nil {
-		return nil, err
-	}
-	roll.RollingFrom = from
-	roll.RollingTo = to
-	return roll, nil
+	i.Closed = pullRequest.GetState() == github.CLOSED_STATE
+	i.Committed = pullRequest.GetMerged()
+	i.CommitQueue = cq
+	i.CommitQueueDryRun = dryRun
+	i.Created = pullRequest.GetCreatedAt()
+	i.Issue = int64(pullRequest.GetNumber())
+	i.Modified = pullRequest.GetUpdatedAt()
+	i.Patchsets = ps
+	i.Subject = pullRequest.GetTitle()
+	i.Result = rollResult(i)
+	return nil
 }
 
-// FromGerritChangeInfo returns an AutoRollIssue instance based on the given
-// gerrit.ChangeInfo.
-func FromGerritChangeInfo(ctx context.Context, i *gerrit.ChangeInfo, fullHashFn FullHashFn, rollIntoAndroid bool) (*AutoRollIssue, error) {
+// UpdateFromGerritChangeInfo updates the AutoRollIssue instance based on the
+// given gerrit.ChangeInfo.
+func (i *AutoRollIssue) UpdateFromGerritChangeInfo(ctx context.Context, ci *gerrit.ChangeInfo, rollIntoAndroid bool) error {
 	cq := false
 	dryRun := false
 	if rollIntoAndroid {
 		rejected := false
-		if _, ok := i.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL]; ok {
-			for _, lb := range i.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL].All {
+		if _, ok := ci.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL]; ok {
+			for _, lb := range ci.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL].All {
 				if lb.Value == gerrit.PRESUBMIT_VERIFIED_LABEL_REJECTED {
 					rejected = true
 					break
@@ -222,8 +197,8 @@ func FromGerritChangeInfo(ctx context.Context, i *gerrit.ChangeInfo, fullHashFn 
 			}
 		}
 		if !rejected {
-			if _, ok := i.Labels[gerrit.AUTOSUBMIT_LABEL]; ok {
-				for _, lb := range i.Labels[gerrit.AUTOSUBMIT_LABEL].All {
+			if _, ok := ci.Labels[gerrit.AUTOSUBMIT_LABEL]; ok {
+				for _, lb := range ci.Labels[gerrit.AUTOSUBMIT_LABEL].All {
 					if lb.Value == gerrit.AUTOSUBMIT_LABEL_NONE {
 						cq = true
 						dryRun = true
@@ -236,8 +211,8 @@ func FromGerritChangeInfo(ctx context.Context, i *gerrit.ChangeInfo, fullHashFn 
 			}
 		}
 	} else {
-		if _, ok := i.Labels[gerrit.COMMITQUEUE_LABEL]; ok {
-			for _, lb := range i.Labels[gerrit.COMMITQUEUE_LABEL].All {
+		if _, ok := ci.Labels[gerrit.COMMITQUEUE_LABEL]; ok {
+			for _, lb := range ci.Labels[gerrit.COMMITQUEUE_LABEL].All {
 				if lb.Value == gerrit.COMMITQUEUE_LABEL_DRY_RUN {
 					cq = true
 					dryRun = true
@@ -248,29 +223,21 @@ func FromGerritChangeInfo(ctx context.Context, i *gerrit.ChangeInfo, fullHashFn 
 		}
 	}
 
-	ps := make([]int64, 0, len(i.Patchsets))
-	for _, p := range i.Patchsets {
+	ps := make([]int64, 0, len(ci.Patchsets))
+	for _, p := range ci.Patchsets {
 		ps = append(ps, p.Number)
 	}
-	roll := &AutoRollIssue{
-		Closed:            i.IsClosed(),
-		Committed:         i.Committed,
-		CommitQueue:       cq,
-		CommitQueueDryRun: dryRun,
-		Created:           i.Created,
-		Issue:             i.Issue,
-		Modified:          i.Updated,
-		Patchsets:         ps,
-		Subject:           i.Subject,
-	}
-	roll.Result = rollResult(roll)
-	from, to, err := RollRev(ctx, roll.Subject, fullHashFn)
-	if err != nil {
-		return nil, err
-	}
-	roll.RollingFrom = from
-	roll.RollingTo = to
-	return roll, nil
+	i.Closed = ci.IsClosed()
+	i.Committed = ci.Committed
+	i.CommitQueue = cq
+	i.CommitQueueDryRun = dryRun
+	i.Created = ci.Created
+	i.Issue = ci.Issue
+	i.Modified = ci.Updated
+	i.Patchsets = ps
+	i.Subject = ci.Subject
+	i.Result = rollResult(i)
+	return nil
 }
 
 // rollResult derives a result string for the roll.
@@ -283,29 +250,6 @@ func rollResult(roll *AutoRollIssue) string {
 		}
 	}
 	return ROLL_RESULT_IN_PROGRESS
-}
-
-// RollRev returns the commit the given roll is rolling from and to.
-func RollRev(ctx context.Context, subject string, fullHashFn FullHashFn) (string, string, error) {
-	matches := ROLL_REV_REGEX.FindStringSubmatch(subject)
-	if matches == nil {
-		return "", "", fmt.Errorf("No roll revision found in %q", subject)
-	}
-	if len(matches) != 3 {
-		return "", "", fmt.Errorf("Unable to parse revisions from issue subject: %q", subject)
-	}
-	if fullHashFn == nil {
-		return matches[1], matches[2], nil
-	}
-	from, err := fullHashFn(ctx, matches[1])
-	if err != nil {
-		return "", "", err
-	}
-	to, err := fullHashFn(ctx, matches[2])
-	if err != nil {
-		return "", "", err
-	}
-	return from, to, nil
 }
 
 // AllTrybotsFinished returns true iff all CQ trybots have finished for the

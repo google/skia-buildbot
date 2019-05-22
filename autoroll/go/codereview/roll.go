@@ -26,19 +26,18 @@ type RollImpl interface {
 	InsertIntoDB(ctx context.Context) error
 }
 
-func retrieveGerritIssue(ctx context.Context, g gerrit.GerritInterface, fullHash autoroll.FullHashFn, rollIntoAndroid bool, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
+func updateGerritIssue(ctx context.Context, a *autoroll.AutoRollIssue, g gerrit.GerritInterface, rollIntoAndroid bool, issueNum int64) (*gerrit.ChangeInfo, error) {
 	info, err := g.GetIssueProperties(ctx, issueNum)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to get issue properties: %s", err)
+		return nil, fmt.Errorf("Failed to get issue properties: %s", err)
 	}
-	a, err := autoroll.FromGerritChangeInfo(ctx, info, fullHash, rollIntoAndroid)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to convert issue format: %s", err)
+	if err := a.UpdateFromGerritChangeInfo(ctx, info, rollIntoAndroid); err != nil {
+		return nil, fmt.Errorf("Failed to convert issue format: %s", err)
 	}
 	if !rollIntoAndroid {
 		// Use try results from the most recent non-trivial patchset.
 		if len(info.Patchsets) == 0 {
-			return nil, nil, fmt.Errorf("Issue %d has no patchsets!", issueNum)
+			return nil, fmt.Errorf("Issue %d has no patchsets!", issueNum)
 		}
 		nontrivial := info.GetNonTrivialPatchSets()
 		if len(nontrivial) == 0 {
@@ -46,19 +45,19 @@ func retrieveGerritIssue(ctx context.Context, g gerrit.GerritInterface, fullHash
 			for _, ps := range info.Patchsets {
 				msg += fmt.Sprintf("  %+v\n", ps)
 			}
-			return nil, nil, errors.New(msg)
+			return nil, errors.New(msg)
 		}
 		tries, err := g.GetTrybotResults(ctx, a.Issue, nontrivial[len(nontrivial)-1].Number)
 		if err != nil {
-			return nil, nil, fmt.Errorf("Failed to retrieve try results: %s", err)
+			return nil, fmt.Errorf("Failed to retrieve try results: %s", err)
 		}
 		tryResults, err := autoroll.TryResultsFromBuildbucket(tries)
 		if err != nil {
-			return nil, nil, fmt.Errorf("Failed to process try results: %s", err)
+			return nil, fmt.Errorf("Failed to process try results: %s", err)
 		}
 		a.TryResults = tryResults
 	}
-	return info, a, nil
+	return info, nil
 }
 
 // gerritRoll is an implementation of RollImpl.
@@ -69,14 +68,14 @@ type gerritRoll struct {
 	finishedCallback func(context.Context, RollImpl) error
 	g                gerrit.GerritInterface
 	recent           *recent_rolls.RecentRolls
-	retrieveRoll     func(context.Context, int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error)
+	retrieveRoll     func(context.Context) (*gerrit.ChangeInfo, error)
 	result           string
 }
 
 // newGerritRoll obtains a gerritRoll instance from the given Gerrit issue
 // number.
-func newGerritRoll(ctx context.Context, g gerrit.GerritInterface, fullHash autoroll.FullHashFn, recent *recent_rolls.RecentRolls, issueNum int64, issueUrlBase string, cb func(context.Context, RollImpl) error) (RollImpl, error) {
-	ci, issue, err := retrieveGerritIssue(ctx, g, fullHash, false, issueNum)
+func newGerritRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, recent *recent_rolls.RecentRolls, issueUrlBase string, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+	ci, err := updateGerritIssue(ctx, issue, g, false, issue.Issue)
 	if err != nil {
 		return nil, err
 	}
@@ -87,8 +86,8 @@ func newGerritRoll(ctx context.Context, g gerrit.GerritInterface, fullHash autor
 		finishedCallback: cb,
 		g:                g,
 		recent:           recent,
-		retrieveRoll: func(ctx context.Context, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
-			return retrieveGerritIssue(ctx, g, fullHash, false, issueNum)
+		retrieveRoll: func(ctx context.Context) (*gerrit.ChangeInfo, error) {
+			return updateGerritIssue(ctx, issue, g, false, issue.Issue)
 		},
 	}, nil
 }
@@ -192,15 +191,14 @@ func (r *gerritRoll) RetryDryRun(ctx context.Context) error {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) Update(ctx context.Context) error {
 	alreadyFinished := r.IsFinished()
-	ci, issue, err := r.retrieveRoll(ctx, r.issue.Issue)
+	ci, err := r.retrieveRoll(ctx)
 	if err != nil {
 		return err
 	}
 	r.ci = ci
 	if r.result != "" {
-		issue.Result = r.result
+		r.issue.Result = r.result
 	}
-	r.issue = issue
 	if err := r.recent.Update(ctx, r.issue); err != nil {
 		return err
 	}
@@ -226,8 +224,8 @@ type gerritAndroidRoll struct {
 }
 
 // newGerritAndroidRoll obtains a gerritAndroidRoll instance from the given Gerrit issue number.
-func newGerritAndroidRoll(ctx context.Context, g gerrit.GerritInterface, fullHash autoroll.FullHashFn, recent *recent_rolls.RecentRolls, issueNum int64, issueUrlBase string, cb func(context.Context, RollImpl) error) (RollImpl, error) {
-	ci, issue, err := retrieveGerritIssue(ctx, g, fullHash, true, issueNum)
+func newGerritAndroidRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, recent *recent_rolls.RecentRolls, issueUrlBase string, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+	ci, err := updateGerritIssue(ctx, issue, g, true, issue.Issue)
 	if err != nil {
 		return nil, err
 	}
@@ -238,8 +236,8 @@ func newGerritAndroidRoll(ctx context.Context, g gerrit.GerritInterface, fullHas
 		finishedCallback: cb,
 		g:                g,
 		recent:           recent,
-		retrieveRoll: func(ctx context.Context, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
-			return retrieveGerritIssue(ctx, g, fullHash, true, issueNum)
+		retrieveRoll: func(ctx context.Context) (*gerrit.ChangeInfo, error) {
+			return updateGerritIssue(ctx, issue, g, true, issue.Issue)
 		},
 	}}, nil
 }
@@ -310,28 +308,27 @@ type githubRoll struct {
 	pullRequest      *github_api.PullRequest
 	recent           *recent_rolls.RecentRolls
 	result           string
-	retrieveRoll     func(context.Context, int64) (*github_api.PullRequest, *autoroll.AutoRollIssue, error)
+	retrieveRoll     func(context.Context) (*github_api.PullRequest, error)
 	t                *travisci.TravisCI
 	checksNum        int
 	checksWaitFor    []string
 	mergeMethodURL   string
 }
 
-func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, fullHash autoroll.FullHashFn, issueNum int64, checksNum int, checksWaitFor []string, mergeMethodURL string) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
+func updateGithubPullRequest(ctx context.Context, a *autoroll.AutoRollIssue, g *github.GitHub, issueNum int64, checksNum int, checksWaitFor []string, mergeMethodURL string) (*github_api.PullRequest, error) {
 
 	// Retrieve the pull request from github.
 	pullRequest, err := g.GetPullRequest(int(issueNum))
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to get pull request for %d: %s", issueNum, err)
+		return nil, fmt.Errorf("Failed to get pull request for %d: %s", issueNum, err)
 	}
-	a, err := autoroll.FromGitHubPullRequest(ctx, pullRequest, g, fullHash)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to convert issue format: %s", err)
+	if err := a.UpdateFromGitHubPullRequest(ctx, pullRequest, g); err != nil {
+		return nil, fmt.Errorf("Failed to convert issue format: %s", err)
 	}
 
 	checks, err := g.GetChecks(pullRequest.Head.GetSHA())
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	tryResults := []*autoroll.TryResult{}
 	for _, check := range checks {
@@ -381,10 +378,10 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, fullHash a
 	if pullRequest.GetMergeableState() == github.MERGEABLE_STATE_DIRTY {
 		// Add a comment and close the roll.
 		if err := g.AddComment(int(issueNum), "PullRequest is not longer mergeable. Closing it."); err != nil {
-			return nil, nil, fmt.Errorf("Could not add comment to %d: %s", issueNum, err)
+			return nil, fmt.Errorf("Could not add comment to %d: %s", issueNum, err)
 		}
 		if _, err := g.ClosePullRequest(int(issueNum)); err != nil {
-			return nil, nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
+			return nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
 		}
 		a.Result = autoroll.ROLL_RESULT_FAILURE
 	} else if len(a.TryResults) >= checksNum && a.AtleastOneTrybotFailure() && pullRequest.GetState() != github.CLOSED_STATE {
@@ -397,45 +394,45 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, fullHash a
 		}
 		failureComment := fmt.Sprintf("Trybots failed. These were the failed builds: %s", strings.Join(linkToFailedJobs, " , "))
 		if err := g.AddComment(int(issueNum), failureComment); err != nil {
-			return nil, nil, fmt.Errorf("Could not add comment to %d: %s", issueNum, err)
+			return nil, fmt.Errorf("Could not add comment to %d: %s", issueNum, err)
 		}
 		if _, err := g.ClosePullRequest(int(issueNum)); err != nil {
-			return nil, nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
+			return nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
 		}
 	} else if !a.CommitQueueDryRun && len(a.TryResults) >= checksNum && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && shouldStateBeMerged(pullRequest.GetMergeableState()) {
 		// Github and travisci do not have a "commit queue". So changes must be
 		// merged via the API after travisci successfully completes.
 		if err := g.AddComment(int(issueNum), "Auto-roller completed checks. About to merge."); err != nil {
-			return nil, nil, fmt.Errorf("Could not add comment to %d: %s", issueNum, err)
+			return nil, fmt.Errorf("Could not add comment to %d: %s", issueNum, err)
 		}
 		// Get the PR's description and use as the commit message.
 		desc, err := g.GetDescription(int(issueNum))
 		if err != nil {
-			return nil, nil, fmt.Errorf("Could not get description of %d: %s", issueNum, err)
+			return nil, fmt.Errorf("Could not get description of %d: %s", issueNum, err)
 		}
 		mergeMethod := github.MERGE_METHOD_SQUASH
 		if mergeMethodURL != "" {
 			client := httputils.NewTimeoutClient()
 			resp, err := client.Get(mergeMethodURL)
 			if err != nil {
-				return nil, nil, fmt.Errorf("Could not GET from %s: %s", mergeMethodURL, err)
+				return nil, fmt.Errorf("Could not GET from %s: %s", mergeMethodURL, err)
 			}
 			defer util.Close(resp.Body)
 			body, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
-				return nil, nil, fmt.Errorf("Could not read response body: %s", err)
+				return nil, fmt.Errorf("Could not read response body: %s", err)
 			}
 			mergeMethod = strings.TrimRight(string(body), "\n")
 		}
 		if mergeMethod != github.MERGE_METHOD_SQUASH && mergeMethod != github.MERGE_METHOD_REBASE {
-			return nil, nil, fmt.Errorf("Unrecognized merge method: %s", mergeMethod)
+			return nil, fmt.Errorf("Unrecognized merge method: %s", mergeMethod)
 		}
 		if err := g.MergePullRequest(int(issueNum), desc, mergeMethod); err != nil {
-			return nil, nil, fmt.Errorf("Could not merge pull request %d: %s", issueNum, err)
+			return nil, fmt.Errorf("Could not merge pull request %d: %s", issueNum, err)
 		}
 	}
 
-	return pullRequest, a, nil
+	return pullRequest, nil
 }
 
 func shouldStateBeMerged(mergeableState string) bool {
@@ -448,8 +445,8 @@ func shouldStateBeMerged(mergeableState string) bool {
 }
 
 // newGithubRoll obtains a githubRoll instance from the given Gerrit issue number.
-func newGithubRoll(ctx context.Context, g *github.GitHub, fullHash func(context.Context, string) (string, error), recent *recent_rolls.RecentRolls, pullRequestNum int64, issueUrlBase string, config *GithubConfig, cb func(context.Context, RollImpl) error) (RollImpl, error) {
-	pullRequest, issue, err := retrieveGithubPullRequest(ctx, g, fullHash, pullRequestNum, config.ChecksNum, config.ChecksWaitFor, config.MergeMethodURL)
+func newGithubRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g *github.GitHub, recent *recent_rolls.RecentRolls, issueUrlBase string, config *GithubConfig, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+	pullRequest, err := updateGithubPullRequest(ctx, issue, g, issue.Issue, config.ChecksNum, config.ChecksWaitFor, config.MergeMethodURL)
 	if err != nil {
 		return nil, err
 	}
@@ -462,8 +459,8 @@ func newGithubRoll(ctx context.Context, g *github.GitHub, fullHash func(context.
 		mergeMethodURL:   config.MergeMethodURL,
 		pullRequest:      pullRequest,
 		recent:           recent,
-		retrieveRoll: func(ctx context.Context, pullRequestNum int64) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
-			return retrieveGithubPullRequest(ctx, g, fullHash, pullRequestNum, config.ChecksNum, config.ChecksWaitFor, config.MergeMethodURL)
+		retrieveRoll: func(ctx context.Context) (*github_api.PullRequest, error) {
+			return updateGithubPullRequest(ctx, issue, g, issue.Issue, config.ChecksNum, config.ChecksWaitFor, config.MergeMethodURL)
 		},
 	}, nil
 }
@@ -514,15 +511,14 @@ func (r *githubRoll) withModify(ctx context.Context, action string, fn func() er
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) Update(ctx context.Context) error {
 	alreadyFinished := r.IsFinished()
-	pullRequest, issue, err := r.retrieveRoll(ctx, int64(r.pullRequest.GetNumber()))
+	pullRequest, err := r.retrieveRoll(ctx)
 	if err != nil {
 		return err
 	}
 	r.pullRequest = pullRequest
 	if r.result != "" {
-		issue.Result = r.result
+		r.issue.Result = r.result
 	}
-	r.issue = issue
 	if err := r.recent.Update(ctx, r.issue); err != nil {
 		return err
 	}

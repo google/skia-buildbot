@@ -13,7 +13,6 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/strategy"
-	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -158,9 +157,6 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 
 	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev())
 	assert.Equal(t, fuchsiaSDKRevBase, rm.NextRollRev())
-	fch, err := rm.FullChildHash(ctx, rm.LastRollRev())
-	assert.NoError(t, err)
-	assert.Equal(t, fch, rm.LastRollRev())
 	rolledPast, err := rm.RolledPast(ctx, fuchsiaSDKRevPrev)
 	assert.NoError(t, err)
 	assert.True(t, rolledPast)
@@ -255,12 +251,6 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, ci.Issue, issue)
-
-	// Ensure that we can parse the commit message.
-	from, to, err = autoroll.RollRev(ctx, subject, rm.FullChildHash)
-	assert.NoError(t, err)
-	assert.Equal(t, fuchsiaSDKRevBase, from)
-	assert.Equal(t, fuchsiaSDKRevNext, to)
 }
 
 func TestFuchsiaSDKAndroidConfigValidation(t *testing.T) {

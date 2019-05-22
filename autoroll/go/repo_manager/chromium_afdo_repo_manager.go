@@ -145,18 +145,6 @@ func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.Next
 }
 
 // See documentation for RepoManager interface.
-func (rm *afdoRepoManager) FullChildHash(ctx context.Context, ver string) (string, error) {
-	rm.infoMtx.RLock()
-	defer rm.infoMtx.RUnlock()
-	for _, v := range rm.versions {
-		if strings.Contains(v, ver) {
-			return v, nil
-		}
-	}
-	return "", fmt.Errorf("Unable to find version: %s", ver)
-}
-
-// See documentation for RepoManager interface.
 func (rm *afdoRepoManager) RolledPast(ctx context.Context, ver string) (bool, error) {
 	verIsNewer, err := strategy.AFDOVersionGreater(ver, rm.LastRollRev())
 	if err != nil {
