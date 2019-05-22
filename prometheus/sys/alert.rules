@@ -76,7 +76,7 @@ ALERT DiskSpaceLow
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     abbr = "{{ $labels.host }}",
-    description = "Free space has fallen below 100MB on {{ $labels.host }} drive {{ $labels.resource}}.",
+    description = "Free space has fallen below 100MB on {{ $labels.host }} drive {{ $labels.resource}}. https://chromium-swarm.appspot.com/bot?id={{ $labels.host }}",
   }
 
 ALERT DirtyPackages
