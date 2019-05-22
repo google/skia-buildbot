@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "39a4d816_e5d4efd4",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 548,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-22T14:56:31Z",
+      "side": 0,
+      "message": "I do not see this r.checksNum logic in autoroll.go. Same for IsDryRunFinished above but maybe this is taken care of by 413 line. Might be more correct to somehow do this logic in autoroll.go for DryRunFinished and DryRunSuccess.",
+      "range": {
+        "startLine": 548,
+        "startChar": 7,
+        "endLine": 548,
+        "endChar": 79
+      },
+      "revId": "a4d37b3030bea3a462780d98914252dc73c490de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

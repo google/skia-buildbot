@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c85057e6_b7431e20",
+        "filename": "autoroll/go/codereview/roll_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-22T14:56:31Z",
+      "side": 1,
+      "message": "Assert for IsDryRun here and everywhere below?",
+      "revId": "5db3a477c26e91e75b817114fd4c6d1177e7eb96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "09628c8c_d7786ac5",
+        "filename": "go/autoroll/autoroll.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-22T14:56:31Z",
+      "side": 1,
+      "message": "I don\u0027t think label is removed after a run finishes so this might never be true.\nExample: https://github.com/flutter/engine/pull/7201",
+      "revId": "5db3a477c26e91e75b817114fd4c6d1177e7eb96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad52ace4_a108da68",
+        "filename": "go/autoroll/autoroll.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-22T14:56:31Z",
+      "side": 1,
+      "message": "UpdateFrom* guys do not have tests in autoroll_test.go, upto you if it will be useful for the new logic.",
+      "range": {
+        "startLine": 200,
+        "startChar": 24,
+        "endLine": 200,
+        "endChar": 50
+      },
+      "revId": "5db3a477c26e91e75b817114fd4c6d1177e7eb96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
