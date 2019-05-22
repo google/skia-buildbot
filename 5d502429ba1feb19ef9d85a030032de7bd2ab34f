@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ca89c36c_3096693c",
+        "filename": "autoroll/go/notifier/notifier.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-22T15:00:05Z",
+      "side": 1,
+      "message": "Hopefully this contains enough information for use cases like license script pre-upload step failures.",
+      "revId": "5d502429ba1feb19ef9d85a030032de7bd2ab34f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
