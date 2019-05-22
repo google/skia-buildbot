@@ -94,34 +94,20 @@ func TestBuildTraceMapper(t *testing.T) {
 }
 
 // The keys of values are structured keys, not encoded keys.
-func addValusAtIndex(store *btts.BigTableTraceStore, index int32, values map[string]float32, filename string, ts time.Time) error {
-	tileKey := store.TileKey(index)
+func addValuesAtIndex(store *btts.BigTableTraceStore, index int32, keyValues map[string]float32, filename string, ts time.Time) error {
 	ps := paramtools.ParamSet{}
-	for structuredKey := range values {
-		p, err := query.ParseKey(structuredKey)
+	params := []paramtools.Params{}
+	values := []float32{}
+	for k, v := range keyValues {
+		p, err := query.ParseKey(k)
 		if err != nil {
 			return err
 		}
 		ps.AddParams(p)
+		params = append(params, p)
+		values = append(values, v)
 	}
-	ops, err := store.UpdateOrderedParamSet(tileKey, ps)
-	if err != nil {
-		return err
-	}
-	encoded := map[string]float32{}
-	for structuredKey, value := range values {
-		p, err := query.ParseKey(structuredKey)
-		if err != nil {
-			return err
-		}
-		encodedKey, err := ops.EncodeParamsAsString(p)
-		if err != nil {
-			return err
-		}
-		encoded[encodedKey] = value
-	}
-
-	return store.WriteTraces(index, encoded, filename, ts)
+	return store.WriteTraces(index, params, values, ps, filename, ts)
 }
 
 func TestBuildNew(t *testing.T) {
@@ -164,19 +150,19 @@ func TestBuildNew(t *testing.T) {
 	assert.Equal(t, 0, df.Skip)
 
 	// Add some points to the first and second tile.
-	err = addValusAtIndex(store, 0, map[string]float32{
+	err = addValuesAtIndex(store, 0, map[string]float32{
 		",arch=x86,config=8888,": 1.2,
 		",arch=x86,config=565,":  2.1,
 		",arch=arm,config=8888,": 100.5,
 	}, "gs://foo.json", time.Now())
 	assert.NoError(t, err)
-	err = addValusAtIndex(store, 1, map[string]float32{
+	err = addValuesAtIndex(store, 1, map[string]float32{
 		",arch=x86,config=8888,": 1.3,
 		",arch=x86,config=565,":  2.2,
 		",arch=arm,config=8888,": 100.6,
 	}, "gs://foo.json", time.Now())
 	assert.NoError(t, err)
-	err = addValusAtIndex(store, 7, map[string]float32{
+	err = addValuesAtIndex(store, 7, map[string]float32{
 		",arch=x86,config=8888,": 1.0,
 		",arch=x86,config=565,":  2.5,
 		",arch=arm,config=8888,": 101.1,
@@ -281,7 +267,7 @@ func TestBuildNew(t *testing.T) {
 	assert.Len(t, df.Header, 8)
 
 	// Add a value that only appears in one of the tiles.
-	err = addValusAtIndex(store, 7, map[string]float32{
+	err = addValuesAtIndex(store, 7, map[string]float32{
 		",config=8888,model=Pixel,": 3.0,
 	}, "gs://foo.json", time.Now())
 	assert.NoError(t, err)
