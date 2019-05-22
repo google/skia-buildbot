@@ -683,6 +683,30 @@
     },
     {
       "key": {
+        "uuid": "6fe7dbb3_28d1f4f6",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T01:43:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "997300f2_3f1733c5",
+      "range": {
+        "startLine": 48,
+        "startChar": 16,
+        "endLine": 48,
+        "endChar": 20
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ad245283_5367d67e",
         "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
         "patchSetId": 13
@@ -694,6 +718,30 @@
       "writtenOn": "2019-05-21T21:10:54Z",
       "side": 1,
       "message": "nit: seems like you should loop over commits/digests in the outer loop and collect entries in the inner loop; then call Put with all entries for a given commit. That seems like it would reflect how it\u0027s used during ingestion better.",
+      "range": {
+        "startLine": 72,
+        "startChar": 21,
+        "endLine": 72,
+        "endChar": 24
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63c21db4_5463f043",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T01:43:28Z",
+      "side": 1,
+      "message": "Maybe.  Might be fine in a different test.",
+      "parentUuid": "ad245283_5367d67e",
       "range": {
         "startLine": 72,
         "startChar": 21,
@@ -729,6 +777,30 @@
     },
     {
       "key": {
+        "uuid": "324ed024_3ff85a42",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T01:43:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3eb0fe0e_c2a6b715",
+      "range": {
+        "startLine": 190,
+        "startChar": 17,
+        "endLine": 190,
+        "endChar": 28
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b6bc6e3d_e194768c",
         "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
         "patchSetId": 13
@@ -740,6 +812,30 @@
       "writtenOn": "2019-05-21T21:10:54Z",
       "side": 1,
       "message": "I would much prefer that this file is checked in to the git repo so that it can be versioned with the code that it\u0027s testing.",
+      "range": {
+        "startLine": 282,
+        "startChar": 0,
+        "endLine": 283,
+        "endChar": 68
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9bee2642_112c2649",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T01:43:28Z",
+      "side": 1,
+      "message": "My response for every comment below this line (was hidden on PS11): \"I\u0027ll be honest, I don\u0027t really understand this test (that Stephan wrote), other than it loads in a bunch of data and then reads it out.\"",
+      "parentUuid": "b6bc6e3d_e194768c",
       "range": {
         "startLine": 282,
         "startChar": 0,
@@ -1071,6 +1167,30 @@
     },
     {
       "key": {
+        "uuid": "9da6b393_3d9bbc48",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T01:43:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e66932c3_e8d3a06e",
+      "range": {
+        "startLine": 106,
+        "startChar": 19,
+        "endLine": 106,
+        "endChar": 21
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7f2be84f_1a4e67b7",
         "filename": "golden/go/tracestore/bt_tracestore/types.go",
         "patchSetId": 13
@@ -1141,6 +1261,30 @@
     },
     {
       "key": {
+        "uuid": "300c432e_de212335",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T01:43:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e7489e79_a45adb29",
+      "range": {
+        "startLine": 152,
+        "startChar": 63,
+        "endLine": 152,
+        "endChar": 65
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b3f29f8d_8555783a",
         "filename": "golden/go/tracestore/bt_tracestore/types.go",
         "patchSetId": 13
@@ -1161,6 +1305,30 @@
       "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38439997_72e642c9",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T01:43:28Z",
+      "side": 1,
+      "message": "I\u0027ll keep it as a map since I don\u0027t have to deal with re-sizing the slice as it grows.  Will reconsider if it becomes a performance bottleneck.",
+      "parentUuid": "b3f29f8d_8555783a",
+      "range": {
+        "startLine": 184,
+        "startChar": 1,
+        "endLine": 184,
+        "endChar": 7
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1187,6 +1355,30 @@
     },
     {
       "key": {
+        "uuid": "4fa6bf13_c5b48366",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T01:43:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "71f0f9b5_f5257058",
+      "range": {
+        "startLine": 188,
+        "startChar": 24,
+        "endLine": 188,
+        "endChar": 27
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bc90ba4d_f8720775",
         "filename": "golden/go/tracestore/bt_tracestore/types.go",
         "patchSetId": 13
@@ -1210,6 +1402,30 @@
     },
     {
       "key": {
+        "uuid": "efb1bad2_05c3f0ec",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T01:43:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bc90ba4d_f8720775",
+      "range": {
+        "startLine": 230,
+        "startChar": 46,
+        "endLine": 230,
+        "endChar": 90
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2b1c925a_81e33d77",
         "filename": "golden/go/tracestore/types.go",
         "patchSetId": 13
@@ -1221,6 +1437,24 @@
       "writtenOn": "2019-05-21T19:02:05Z",
       "side": 1,
       "message": "In the current ingestion code, there is a distinction between the trace id and the trace params. E.g. in idAndParams (https://skia.googlesource.com/buildbot/+/3ddff862228b8a495d878819dfb64b3ab01f102b/golden/go/goldingestion/common.go#18), the trace id does not include \"Options\" but the trace params do.\n\nIs that distinction still relevant? How is it used? How does this interface handle Options?",
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5700b6f_4b17431a",
+        "filename": "golden/go/tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T01:43:28Z",
+      "side": 1,
+      "message": "I think Entry should not have the params not included in Options.  That\u0027s a good thing to make sure actually happens.",
+      "parentUuid": "2b1c925a_81e33d77",
       "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -1250,6 +1484,30 @@
     },
     {
       "key": {
+        "uuid": "dd7bc3ba_ace637f1",
+        "filename": "golden/go/tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T01:43:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "043a72d2_14897a73",
+      "range": {
+        "startLine": 19,
+        "startChar": 26,
+        "endLine": 19,
+        "endChar": 42
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e2d9388c_3adc4b4d",
         "filename": "golden/go/tracestore/types.go",
         "patchSetId": 13
@@ -1261,6 +1519,30 @@
       "writtenOn": "2019-05-21T19:02:05Z",
       "side": 1,
       "message": "I think this is broken and I don\u0027t think there\u0027s a way to fix it. It will create duplicate keys for different params.\n\nE.g.:\ntrace1 params: color_depth\u003d8888, name\u003dcar.svg\nTraceIDFromParams will return 8888:car.svg\n\ntrace2 params: config\u003d8888, name\u003dcar.svg\nTraceIDFromParams will return 8888:car.svg\n\nI discussed with Joe and he confirmed my understanding. Perf uses TraceIds like \",key1\u003dvalue1,key2\u003dvalue2,...,\". See https://skia.googlesource.com/buildbot/+/94104df6f25e4061374660b0f6132d1e104977d1/go/query/query.go",
+      "range": {
+        "startLine": 34,
+        "startChar": 5,
+        "endLine": 34,
+        "endChar": 22
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d77080c4_ffd7f6a5",
+        "filename": "golden/go/tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T01:43:28Z",
+      "side": 1,
+      "message": "I\u0027ll fix this although there may be some very pervasive changes.  I prefer the key1\u003dvalue1",
+      "parentUuid": "e2d9388c_3adc4b4d",
       "range": {
         "startLine": 34,
         "startChar": 5,
@@ -1293,6 +1575,30 @@
       "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3cdcb6a9_c3d17e88",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 391,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T01:43:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "28df1474_5c6e067a",
+      "range": {
+        "startLine": 390,
+        "startChar": 0,
+        "endLine": 391,
+        "endChar": 32
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
