@@ -50,7 +50,6 @@ func makeIssue(num int64, commit string) *autoroll.AutoRollIssue {
 	return &autoroll.AutoRollIssue{
 		Closed:      false,
 		Committed:   false,
-		CommitQueue: true,
 		Created:     now,
 		Issue:       num,
 		Modified:    now,
@@ -74,13 +73,14 @@ func makeIssue(num int64, commit string) *autoroll.AutoRollIssue {
 
 func closeIssue(issue *autoroll.AutoRollIssue, result string) {
 	issue.Closed = true
-	issue.CommitQueue = false
+	issue.CqFinished = true
 	issue.Modified = time.Now().UTC()
 	issue.Result = result
 	issue.TryResults[0].Status = autoroll.TRYBOT_STATUS_COMPLETED
 	issue.TryResults[0].Result = autoroll.TRYBOT_RESULT_FAILURE
 	if result == autoroll.ROLL_RESULT_SUCCESS {
 		issue.Committed = true
+		issue.CqSuccess = true
 		issue.TryResults[0].Result = autoroll.TRYBOT_RESULT_SUCCESS
 	}
 }
@@ -251,7 +251,7 @@ func TestRollAsIssue(t *testing.T) {
 
 	roll.Closed = true
 	expected.Closed = true
-	expected.CommitQueue = false
+	expected.CqFinished = true
 	roll.Result = autoroll.ROLL_RESULT_FAILURE
 	expected.Result = autoroll.ROLL_RESULT_FAILURE
 	roll.TestSummaryUrl = "http://example.com/"
@@ -265,6 +265,7 @@ func TestRollAsIssue(t *testing.T) {
 	roll.Submitted = true
 	roll.Result = autoroll.ROLL_RESULT_SUCCESS
 	expected.Committed = true
+	expected.CqSuccess = true
 	expected.Result = autoroll.ROLL_RESULT_SUCCESS
 	expected.TryResults[0].Result = autoroll.TRYBOT_RESULT_SUCCESS
 	actual, err = roll.AsIssue()
