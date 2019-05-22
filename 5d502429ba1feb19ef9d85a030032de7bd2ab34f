@@ -16,6 +16,24 @@
       "revId": "5d502429ba1feb19ef9d85a030032de7bd2ab34f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c22464f8_6e272c38",
+        "filename": "autoroll/go/notifier/notifier.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-22T15:02:05Z",
+      "side": 1,
+      "message": "If not, we need to plumb those error messages through correctly.",
+      "parentUuid": "ca89c36c_3096693c",
+      "revId": "5d502429ba1feb19ef9d85a030032de7bd2ab34f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
