@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f3361d88_f144e8b3",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 408,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T21:19:57Z",
+      "side": 1,
+      "message": "add function documentation",
+      "revId": "9460941d9d739fd1fb12e1d7aaf119504ab88b58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "62b4593e_4777d348",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T21:19:57Z",
+      "side": 1,
+      "message": "Similar to what I did with https://skia-review.googlesource.com/c/buildbot/+/213426 having a seperate type for tiling.TraceId and encodedTraceID may help documentation/compile time enforcing that the right string goes to the right place.",
+      "range": {
+        "startLine": 409,
+        "startChar": 74,
+        "endLine": 409,
+        "endChar": 80
+      },
+      "revId": "9460941d9d739fd1fb12e1d7aaf119504ab88b58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b0f7fd3f_3b262f93",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 412,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T21:19:57Z",
+      "side": 1,
+      "message": "I like skerr.Fmt instead of fmt.Errorf because it adds line number info which makes it easier to trace where things",
+      "range": {
+        "startLine": 412,
+        "startChar": 13,
+        "endLine": 412,
+        "endChar": 23
+      },
+      "revId": "9460941d9d739fd1fb12e1d7aaf119504ab88b58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92c9659a_523e8859",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 456,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T21:19:57Z",
+      "side": 1,
+      "message": "Errorf?  Warningf?",
+      "range": {
+        "startLine": 456,
+        "startChar": 11,
+        "endLine": 456,
+        "endChar": 16
+      },
+      "revId": "9460941d9d739fd1fb12e1d7aaf119504ab88b58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
