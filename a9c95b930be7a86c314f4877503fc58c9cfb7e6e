@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8943bd2b_e755e196",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T21:12:27Z",
+      "side": 1,
+      "message": "the commit offset into the tile?  (if so, update the docs)",
+      "range": {
+        "startLine": 282,
+        "startChar": 16,
+        "endLine": 282,
+        "endChar": 22
+      },
+      "revId": "a9c95b930be7a86c314f4877503fc58c9cfb7e6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b88f835_2aa1fbe9",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-22T21:12:27Z",
+      "side": 1,
+      "message": "Note that \u0027params\u0027 and \u0027values\u0027 are parallel arrays and thus must line up.",
+      "revId": "a9c95b930be7a86c314f4877503fc58c9cfb7e6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
