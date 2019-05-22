@@ -239,6 +239,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 			return err
 		}
 		if err := s.a.UploadNewRoll(ctx, s.a.GetCurrentRev(), s.a.GetNextRollRev(), false); err != nil {
+			n.SendRollCreationFailed(ctx, err)
 			return err
 		}
 		roll := s.a.GetActiveRoll()
@@ -250,6 +251,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 			return err
 		}
 		if err := s.a.UploadNewRoll(ctx, s.a.GetCurrentRev(), s.a.GetNextRollRev(), true); err != nil {
+			n.SendRollCreationFailed(ctx, err)
 			return err
 		}
 		roll := s.a.GetActiveRoll()
