@@ -187,6 +187,7 @@
                     pt: [tooltipItem.index, tooltipItem.value],
                   };
                   this.dispatchEvent(new CustomEvent('trace_focused', {detail: detail, bubbles: true}));
+
                   return `Value: ${tooltipItem.value}`;
                 }
               },

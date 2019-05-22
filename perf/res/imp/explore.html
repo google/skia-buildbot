@@ -153,6 +153,12 @@
       display: inline-block;
     }
 
+    #trace_id {
+      display: block;
+      padding: 1em;
+      font-size: 12pt;
+    }
+
   </style>
   <template>
     <plot-simple-sk width=1024 height=256 id=plot></plot-simple-sk>
@@ -210,7 +216,10 @@
             <a href="/help/" target=_blank><iron-icon icon="help"></iron-icon></a>
           </div>
         </div>
-        <paramset-sk id=paramset class=hidden clickable-values></paramset-sk>
+        <div>
+          <paper-input floatingLabel label="Trace ID" readonly id=trace_id></paper-input>
+          <paramset-sk id=paramset class=hidden clickable-values></paramset-sk>
+        </div>
         <div id=details class="layout horizontal wrap hidden">
           <paramset-sk id=simple_paramset clickable-values></paramset-sk>
           <div class="layout vertical">
@@ -352,6 +361,7 @@
         this.$.plot.addEventListener("trace_focused", function(e) {
           this.$.paramset.clearHighlight();
           this.$.paramset.setHighlight(sk.key.toObject(e.detail.id));
+          this.$.trace_id.value = e.detail.id;
         }.bind(this));
 
         // User has zoomed in on the graph.
@@ -498,6 +508,10 @@
         }
         if (this.state.formulas.length == 0 && this.state.queries.length == 0 && this.state.keys == "") {
           return
+        }
+
+        if (this.$.trace_id) {
+          this.$.trace_id.value = '';
         }
         var body = this._requestFrameBodyFullFromState();
         var switchToTab = body.formulas.length > 0 || body.queries.length > 0 || body.keys != "";
