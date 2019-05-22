@@ -171,13 +171,6 @@ func TestGithubRepoManager(t *testing.T) {
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
 
-	// Test FullChildHash.
-	for _, c := range childCommits {
-		h, err := rm.FullChildHash(ctx, c[:12])
-		assert.NoError(t, err)
-		assert.Equal(t, c, h)
-	}
-
 	// RolledPast.
 	rp, err := rm.RolledPast(ctx, childCommits[0])
 	assert.NoError(t, err)

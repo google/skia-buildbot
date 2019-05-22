@@ -14,9 +14,7 @@ import (
 	github_api "github.com/google/go-github/github"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/strategy"
-	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/mockhttpclient"
@@ -165,13 +163,6 @@ func TestGithubDEPSRepoManager(t *testing.T) {
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
 
-	// Test FullChildHash.
-	for _, c := range childCommits {
-		h, err := rm.FullChildHash(ctx, c[:12])
-		assert.NoError(t, err)
-		assert.Equal(t, c, h)
-	}
-
 	// Test update.
 	lastCommit := child.CommitGen(context.Background(), "abc.txt")
 	assert.NoError(t, rm.Update(ctx))
@@ -191,7 +182,7 @@ func TestGithubDEPSRepoManager(t *testing.T) {
 func TestCreateNewGithubDEPSRoll(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, child, childCommits, parent, _, cleanup := setupGithubDEPS(t)
+	ctx, wd, _, _, parent, _, cleanup := setupGithubDEPS(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
@@ -208,18 +199,6 @@ func TestCreateNewGithubDEPSRoll(t *testing.T) {
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
-
-	p := git.GitDir(parent.Dir())
-	head, err := p.GetBranchHead(ctx, ROLL_BRANCH)
-	assert.NoError(t, err)
-	lastUpload, err := p.Details(ctx, head)
-	assert.NoError(t, err)
-	from, to, err := autoroll.RollRev(ctx, lastUpload.Subject, func(ctx context.Context, h string) (string, error) {
-		return git.GitDir(child.Dir()).RevParse(ctx, h)
-	})
-	assert.NoError(t, err)
-	assert.Equal(t, childCommits[0], from)
-	assert.Equal(t, childCommits[numChildCommits-1], to)
 }
 
 // Verify that we ran the PreUploadSteps.
