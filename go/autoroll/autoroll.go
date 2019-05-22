@@ -75,20 +75,23 @@ var (
 // AutoRollIssue is a struct containing the information we care about for
 // AutoRoll CLs.
 type AutoRollIssue struct {
-	Closed            bool               `json:"closed"`
-	Comments          []*comment.Comment `json:"comments"`
-	Committed         bool               `json:"committed"`
-	CommitQueue       bool               `json:"commitQueue"`
-	CommitQueueDryRun bool               `json:"cqDryRun"`
-	Created           time.Time          `json:"created"`
-	Issue             int64              `json:"issue"`
-	Modified          time.Time          `json:"modified"`
-	Patchsets         []int64            `json:"patchSets"`
-	Result            string             `json:"result"`
-	RollingFrom       string             `json:"rollingFrom"`
-	RollingTo         string             `json:"rollingTo"`
-	Subject           string             `json:"subject"`
-	TryResults        []*TryResult       `json:"tryResults"`
+	Closed         bool               `json:"closed"`
+	Comments       []*comment.Comment `json:"comments"`
+	Committed      bool               `json:"committed"`
+	Created        time.Time          `json:"created"`
+	IsDryRun       bool               `json:"isDryRun"`
+	DryRunFinished bool               `json:"dryRunFinished"`
+	DryRunSuccess  bool               `json:"dryRunSuccess"`
+	CqFinished     bool               `json:"cqFinished"`
+	CqSuccess      bool               `json:"cqSuccess"`
+	Issue          int64              `json:"issue"`
+	Modified       time.Time          `json:"modified"`
+	Patchsets      []int64            `json:"patchSets"`
+	Result         string             `json:"result"`
+	RollingFrom    string             `json:"rollingFrom"`
+	RollingTo      string             `json:"rollingTo"`
+	Subject        string             `json:"subject"`
+	TryResults     []*TryResult       `json:"tryResults"`
 }
 
 // Validate returns an error iff there is some problem with the issue.
@@ -130,20 +133,23 @@ func (i *AutoRollIssue) Copy() *AutoRollIssue {
 		}
 	}
 	return &AutoRollIssue{
-		Closed:            i.Closed,
-		Comments:          commentsCpy,
-		Committed:         i.Committed,
-		CommitQueue:       i.CommitQueue,
-		CommitQueueDryRun: i.CommitQueueDryRun,
-		Created:           i.Created,
-		Issue:             i.Issue,
-		Modified:          i.Modified,
-		Patchsets:         patchsetsCpy,
-		Result:            i.Result,
-		RollingFrom:       i.RollingFrom,
-		RollingTo:         i.RollingTo,
-		Subject:           i.Subject,
-		TryResults:        tryResultsCpy,
+		Closed:         i.Closed,
+		Comments:       commentsCpy,
+		Committed:      i.Committed,
+		Created:        i.Created,
+		CqFinished:     i.CqFinished,
+		CqSuccess:      i.CqSuccess,
+		DryRunFinished: i.DryRunFinished,
+		DryRunSuccess:  i.DryRunSuccess,
+		IsDryRun:       i.IsDryRun,
+		Issue:          i.Issue,
+		Modified:       i.Modified,
+		Patchsets:      patchsetsCpy,
+		Result:         i.Result,
+		RollingFrom:    i.RollingFrom,
+		RollingTo:      i.RollingTo,
+		Subject:        i.Subject,
+		TryResults:     tryResultsCpy,
 	}
 }
 
@@ -156,12 +162,22 @@ func (i *AutoRollIssue) UpdateFromGitHubPullRequest(ctx context.Context, pullReq
 	}
 	cq := false
 	dryRun := false
-	// If for some reason both COMMIT and DRYRUN labels are on the PR then
-	// give precedence to DRYRUN.
 	if util.In(github.DRYRUN_LABEL, labels) {
 		dryRun = true
-	} else if util.In(github.COMMIT_LABEL, labels) {
+	}
+	if util.In(github.COMMIT_LABEL, labels) {
 		cq = true
+	}
+	if i.IsDryRun {
+		i.CqFinished = false
+		i.CqSuccess = false
+		i.DryRunFinished = !dryRun
+		i.DryRunSuccess = i.AllTrybotsSucceeded()
+	} else {
+		i.CqFinished = pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged() || !cq
+		i.CqSuccess = pullRequest.GetMerged()
+		i.DryRunFinished = false
+		i.DryRunSuccess = false
 	}
 
 	ps := make([]int64, 0, *pullRequest.Commits)
@@ -170,8 +186,6 @@ func (i *AutoRollIssue) UpdateFromGitHubPullRequest(ctx context.Context, pullReq
 	}
 	i.Closed = pullRequest.GetState() == github.CLOSED_STATE
 	i.Committed = pullRequest.GetMerged()
-	i.CommitQueue = cq
-	i.CommitQueueDryRun = dryRun
 	i.Created = pullRequest.GetCreatedAt()
 	i.Issue = int64(pullRequest.GetNumber())
 	i.Modified = pullRequest.GetUpdatedAt()
@@ -184,43 +198,51 @@ func (i *AutoRollIssue) UpdateFromGitHubPullRequest(ctx context.Context, pullReq
 // UpdateFromGerritChangeInfo updates the AutoRollIssue instance based on the
 // given gerrit.ChangeInfo.
 func (i *AutoRollIssue) UpdateFromGerritChangeInfo(ctx context.Context, ci *gerrit.ChangeInfo, rollIntoAndroid bool) error {
-	cq := false
-	dryRun := false
+	cqFinished := false
+	dryRunFinished := false
+	dryRunSuccess := false
 	if rollIntoAndroid {
-		rejected := false
+		sklog.Infof("Is android")
 		if _, ok := ci.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL]; ok {
 			for _, lb := range ci.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL].All {
 				if lb.Value == gerrit.PRESUBMIT_VERIFIED_LABEL_REJECTED {
-					rejected = true
+					cqFinished = true
+					dryRunFinished = true
 					break
-				}
-			}
-		}
-		if !rejected {
-			if _, ok := ci.Labels[gerrit.AUTOSUBMIT_LABEL]; ok {
-				for _, lb := range ci.Labels[gerrit.AUTOSUBMIT_LABEL].All {
-					if lb.Value == gerrit.AUTOSUBMIT_LABEL_NONE {
-						cq = true
-						dryRun = true
-					} else if lb.Value == gerrit.AUTOSUBMIT_LABEL_SUBMIT {
-						cq = true
-						dryRun = false
-						break
-					}
+				} else if lb.Value == gerrit.PRESUBMIT_VERIFIED_LABEL_ACCEPTED {
+					// Not marking cqSuccess or cqFinished
+					// true here; those are only true if the
+					// change is merged.
+					dryRunFinished = true
+					dryRunSuccess = true
 				}
 			}
 		}
 	} else {
 		if _, ok := ci.Labels[gerrit.COMMITQUEUE_LABEL]; ok {
 			for _, lb := range ci.Labels[gerrit.COMMITQUEUE_LABEL].All {
-				if lb.Value == gerrit.COMMITQUEUE_LABEL_DRY_RUN {
-					cq = true
-					dryRun = true
-				} else if lb.Value == gerrit.COMMITQUEUE_LABEL_SUBMIT {
-					cq = true
+				if lb.Value != gerrit.COMMITQUEUE_LABEL_DRY_RUN {
+					dryRunFinished = true
+				} else if lb.Value != gerrit.COMMITQUEUE_LABEL_SUBMIT {
+					cqFinished = true
 				}
 			}
 		}
+		if i.IsDryRun && dryRunFinished {
+			dryRunSuccess = i.AllTrybotsSucceeded()
+		}
+	}
+
+	if i.IsDryRun {
+		i.CqFinished = false
+		i.CqSuccess = false
+		i.DryRunFinished = dryRunFinished
+		i.DryRunSuccess = dryRunSuccess
+	} else {
+		i.CqFinished = ci.IsClosed() || cqFinished
+		i.CqSuccess = ci.Status == gerrit.CHANGE_STATUS_MERGED
+		i.DryRunFinished = false
+		i.DryRunSuccess = false
 	}
 
 	ps := make([]int64, 0, len(ci.Patchsets))
@@ -229,8 +251,6 @@ func (i *AutoRollIssue) UpdateFromGerritChangeInfo(ctx context.Context, ci *gerr
 	}
 	i.Closed = ci.IsClosed()
 	i.Committed = ci.Committed
-	i.CommitQueue = cq
-	i.CommitQueueDryRun = dryRun
 	i.Created = ci.Created
 	i.Issue = ci.Issue
 	i.Modified = ci.Updated
