@@ -131,7 +131,7 @@ func indexToCache(hash string, index int) {
 }
 
 // processSingleFile parses the contents of a single JSON file and writes the values into BigTable.
-func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs vcsinfo.VCS, name string, r io.Reader, timestamp time.Time) error {
+func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs vcsinfo.VCS, filename string, r io.Reader, timestamp time.Time) error {
 	benchData, err := ingestcommon.ParseBenchDataFromReader(r)
 	if err != nil {
 		sklog.Errorf("Failed to read or parse data: %s", err)
@@ -155,21 +155,7 @@ func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs 
 		}
 		indexToCache(benchData.Hash, index)
 	}
-	tileKey := store.TileKey(int32(index))
-	ops, err := store.UpdateOrderedParamSet(tileKey, paramset)
-	if err != nil {
-		return fmt.Errorf("Could not ingest, failed to update OPS: %s", err)
-	}
-	encoded := map[string]float32{}
-	for i, p := range params {
-		key, err := ops.EncodeParamsAsString(p)
-		if err != nil {
-			sklog.Errorf("Could not ingest, failed OPS encoding: %s", err)
-			return NonRecoverableError
-		}
-		encoded[key] = values[i]
-	}
-	return store.WriteTraces(int32(index), encoded, name, timestamp)
+	return store.WriteTraces(int32(index), params, values, paramset, filename, timestamp)
 }
 
 // Event is used to deserialize the PubSub data.
