@@ -23,8 +23,6 @@ func TestAutoRollIssueCopy(t *testing.T) {
 				User:      "me@google.com",
 			},
 		},
-		CommitQueue:       true,
-		CommitQueueDryRun: true,
 		Committed:         true,
 		Created:           time.Now(),
 		Issue:             123,
@@ -52,15 +50,13 @@ func TestTrybotResults(t *testing.T) {
 	unittest.SmallTest(t)
 	// Create a fake roll with one in-progress trybot.
 	roll := &AutoRollIssue{
-		Closed:            false,
-		Committed:         false,
-		CommitQueue:       true,
-		CommitQueueDryRun: true,
-		Created:           time.Now(),
-		Issue:             123,
-		Modified:          time.Now(),
-		Patchsets:         []int64{1},
-		Subject:           "Roll src/third_party/skia abc123..def456 (3 commits).",
+		Closed:    false,
+		Committed: false,
+		Created:   time.Now(),
+		Issue:     123,
+		Modified:  time.Now(),
+		Patchsets: []int64{1},
+		Subject:   "Roll src/third_party/skia abc123..def456 (3 commits).",
 	}
 	roll.Result = rollResult(roll)
 

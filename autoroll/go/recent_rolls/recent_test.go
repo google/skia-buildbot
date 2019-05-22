@@ -33,16 +33,16 @@ func TestRecentRolls(t *testing.T) {
 	// Add one issue.
 	now := time.Now().UTC()
 	ari1 := &autoroll.AutoRollIssue{
-		Closed:      false,
-		Committed:   false,
-		CommitQueue: true,
-		Created:     now,
-		Issue:       1010101,
-		Modified:    now,
-		Patchsets:   []int64{1},
-		Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
-		Subject:     "FAKE DEPS ROLL 1",
-		TryResults:  []*autoroll.TryResult(nil),
+		Closed:     false,
+		Committed:  false,
+		Created:    now,
+		IsDryRun:   false,
+		Issue:      1010101,
+		Modified:   now,
+		Patchsets:  []int64{1},
+		Result:     autoroll.ROLL_RESULT_IN_PROGRESS,
+		Subject:    "FAKE DEPS ROLL 1",
+		TryResults: []*autoroll.TryResult(nil),
 	}
 	expect := []*autoroll.AutoRollIssue{ari1}
 	assert.NoError(t, r.Add(ctx, ari1))
@@ -56,7 +56,8 @@ func TestRecentRolls(t *testing.T) {
 	// instead of the current roll.
 	ari1.Closed = true
 	ari1.Committed = true
-	ari1.CommitQueue = false
+	ari1.CqFinished = true
+	ari1.CqSuccess = true
 	ari1.Result = autoroll.ROLL_RESULT_SUCCESS
 	assert.NoError(t, r.Update(ctx, ari1))
 	check(nil, ari1, expect)
@@ -65,16 +66,15 @@ func TestRecentRolls(t *testing.T) {
 	// previously-added roll as the last roll.
 	now = time.Now().UTC()
 	ari2 := &autoroll.AutoRollIssue{
-		Closed:      false,
-		Committed:   false,
-		CommitQueue: true,
-		Created:     now,
-		Issue:       1010102,
-		Modified:    now,
-		Patchsets:   []int64{1},
-		Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
-		Subject:     "FAKE DEPS ROLL 2",
-		TryResults:  []*autoroll.TryResult(nil),
+		Closed:     false,
+		Committed:  false,
+		Created:    now,
+		Issue:      1010102,
+		Modified:   now,
+		Patchsets:  []int64{1},
+		Result:     autoroll.ROLL_RESULT_IN_PROGRESS,
+		Subject:    "FAKE DEPS ROLL 2",
+		TryResults: []*autoroll.TryResult(nil),
 	}
 	assert.NoError(t, r.Add(ctx, ari2))
 	expect = []*autoroll.AutoRollIssue{ari2, ari1}
@@ -83,16 +83,15 @@ func TestRecentRolls(t *testing.T) {
 	// Try to add another active issue. We should log an error but not fail.
 	now = time.Now().UTC()
 	ari3 := &autoroll.AutoRollIssue{
-		Closed:      false,
-		Committed:   false,
-		CommitQueue: true,
-		Created:     now,
-		Issue:       1010103,
-		Modified:    now,
-		Patchsets:   []int64{1},
-		Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
-		Subject:     "FAKE DEPS ROLL 3",
-		TryResults:  []*autoroll.TryResult(nil),
+		Closed:     false,
+		Committed:  false,
+		Created:    now,
+		Issue:      1010103,
+		Modified:   now,
+		Patchsets:  []int64{1},
+		Result:     autoroll.ROLL_RESULT_IN_PROGRESS,
+		Subject:    "FAKE DEPS ROLL 3",
+		TryResults: []*autoroll.TryResult(nil),
 	}
 	assert.NoError(t, r.Add(ctx, ari3))
 	expect = []*autoroll.AutoRollIssue{ari3, ari2, ari1}
@@ -102,7 +101,8 @@ func TestRecentRolls(t *testing.T) {
 	// instead of the current roll.
 	ari2.Closed = true
 	ari2.Committed = false
-	ari2.CommitQueue = false
+	ari2.CqFinished = true
+	ari2.CqSuccess = false
 	ari2.Result = autoroll.ROLL_RESULT_FAILURE
 	assert.NoError(t, r.Update(ctx, ari2))
 	check(ari3, ari2, expect)
@@ -110,7 +110,8 @@ func TestRecentRolls(t *testing.T) {
 	// Same with ari3.
 	ari3.Closed = true
 	ari3.Committed = false
-	ari3.CommitQueue = false
+	ari3.CqFinished = true
+	ari3.CqSuccess = false
 	ari3.Result = autoroll.ROLL_RESULT_FAILURE
 	assert.NoError(t, r.Update(ctx, ari3))
 	check(nil, ari3, expect)
@@ -118,32 +119,30 @@ func TestRecentRolls(t *testing.T) {
 	// Try to add a bogus issue.
 	now = time.Now().UTC()
 	bad2 := &autoroll.AutoRollIssue{
-		Closed:      false,
-		Committed:   true,
-		CommitQueue: true,
-		Created:     now,
-		Issue:       1010104,
-		Modified:    now,
-		Patchsets:   []int64{1},
-		Result:      autoroll.ROLL_RESULT_FAILURE,
-		Subject:     "FAKE DEPS ROLL 4",
-		TryResults:  []*autoroll.TryResult(nil),
+		Closed:     false,
+		Committed:  true,
+		Created:    now,
+		Issue:      1010104,
+		Modified:   now,
+		Patchsets:  []int64{1},
+		Result:     autoroll.ROLL_RESULT_FAILURE,
+		Subject:    "FAKE DEPS ROLL 4",
+		TryResults: []*autoroll.TryResult(nil),
 	}
 	assert.Error(t, r.Add(ctx, bad2))
 
 	// Add one more roll. Ensure that it's the current roll.
 	now = time.Now().UTC()
 	ari4 := &autoroll.AutoRollIssue{
-		Closed:      false,
-		Committed:   false,
-		CommitQueue: true,
-		Created:     now,
-		Issue:       1010105,
-		Modified:    now,
-		Patchsets:   []int64{1},
-		Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
-		Subject:     "FAKE DEPS ROLL 5",
-		TryResults:  []*autoroll.TryResult(nil),
+		Closed:     false,
+		Committed:  false,
+		Created:    now,
+		Issue:      1010105,
+		Modified:   now,
+		Patchsets:  []int64{1},
+		Result:     autoroll.ROLL_RESULT_IN_PROGRESS,
+		Subject:    "FAKE DEPS ROLL 5",
+		TryResults: []*autoroll.TryResult(nil),
 	}
 	assert.NoError(t, r.Add(ctx, ari4))
 	expect = []*autoroll.AutoRollIssue{ari4, ari3, ari2, ari1}
