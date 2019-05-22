@@ -336,6 +336,8 @@ func (b *BigTableTraceStore) WriteTraces(index int32, values map[string]float32,
 // ReadTraces loads the traces for the given keys.
 //
 // Note that the keys are the structured keys, ReadTraces will convert them into OPS encoded keys.
+//
+// The returned map will be from un-encoded structured traceids.
 func (b *BigTableTraceStore) ReadTraces(tileKey TileKey, keys []string) (map[string][]float32, error) {
 	// First encode all the keys by the OrderedParamSet of the given tile.
 	ops, err := b.GetOrderedParamSet(context.TODO(), tileKey)
