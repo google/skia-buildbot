@@ -33,6 +33,16 @@
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
+  "cqExtraTrybots": [
+    "luci.chromium.try:android_angle_vk32_deqp_rel_ng",
+    "luci.chromium.try:android_angle_vk32_rel_ng",
+    "luci.chromium.try:android_angle_vk64_deqp_rel_ng",
+    "luci.chromium.try:android_angle_vk64_rel_ng",
+    "luci.chromium.try:linux_angle_deqp_rel_ng",
+    "luci.chromium.try:linux-angle-rel",
+    "luci.chromium.try:win-angle-rel",
+    "luci.chromium.try:win_angle_deqp_rel_ng",
+  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
