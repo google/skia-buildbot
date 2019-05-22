@@ -48,7 +48,8 @@ be CC'd on the roll, and stop the roller if necessary.
 // RepoManager is the interface used by different Autoroller implementations
 // to manage checkouts.
 type RepoManager interface {
-	// Return the revisions which have not yet been rolled.
+	// Return the revisions which have not yet been rolled, in reverse
+	// chronological order.
 	NotRolledRevisions() []*revision.Revision
 
 	// Create a new roll attempt.
@@ -71,9 +72,6 @@ type RepoManager interface {
 	// Update the RepoManager's view of the world. Depending on
 	// implementation, this may sync repos and may take some time.
 	Update(context.Context) error
-
-	// Create a new NextRollRevStrategy from the given name.
-	CreateNextRollStrategy(context.Context, string) (strategy.NextRollStrategy, error)
 
 	// Set the RepoManager's NextRollRevStrategy.
 	SetStrategy(strategy.NextRollStrategy)
@@ -236,11 +234,6 @@ func (r *commonRepoManager) NotRolledRevisions() []*revision.Revision {
 	return r.notRolledRevs
 }
 
-// See documentation for RepoManger interface.
-func (r *commonRepoManager) CreateNextRollStrategy(ctx context.Context, s string) (strategy.NextRollStrategy, error) {
-	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_REMOTE, "", []string{}, r.childRepo, nil)
-}
-
 // See documentation for RepoManager interface.
 func (r *commonRepoManager) SetStrategy(s strategy.NextRollStrategy) {
 	r.strategyMtx.Lock()
@@ -254,7 +247,7 @@ func SetStrategy(ctx context.Context, r RepoManager, s string) error {
 	if !util.In(s, valid) {
 		return fmt.Errorf("Invalid strategy %q; valid: %v", s, valid)
 	}
-	strat, err := r.CreateNextRollStrategy(ctx, s)
+	strat, err := strategy.GetNextRollStrategy(s)
 	if err != nil {
 		return err
 	}
