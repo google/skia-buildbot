@@ -110,6 +110,8 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		rm, err = repo_manager.NewFuchsiaSDKRepoManager(ctx, c.FuchsiaSDKRepoManager, workdir, g, serverURL, gitcookiesPath, nil, cr, local)
 	} else if c.GithubRepoManager != nil {
 		rm, err = repo_manager.NewGithubRepoManager(ctx, c.GithubRepoManager, workdir, githubClient, recipesCfgFile, serverURL, client, cr, local)
+	} else if c.GithubCipdDEPSRepoManager != nil {
+		rm, err = repo_manager.NewGithubCipdDEPSRepoManager(ctx, c.GithubCipdDEPSRepoManager, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.GithubDEPSRepoManager != nil {
 		rm, err = repo_manager.NewGithubDEPSRepoManager(ctx, c.GithubDEPSRepoManager, workdir, githubClient, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.ManifestRepoManager != nil {

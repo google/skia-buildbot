@@ -135,6 +135,10 @@ func (sh *StrategyHistory) getHistory(ctx context.Context) ([]*StrategyChange, e
 	if _, err := ds.DS.GetAll(ctx, query, &history); err != nil {
 		return nil, fmt.Errorf("Failed to GetAll: %s", err)
 	}
+	fmt.Println("GOT HISTORY FROM")
+	fmt.Println(sh.roller)
+	fmt.Println(ds.KIND_AUTOROLL_STRATEGY)
+	fmt.Println(history)
 	return history, nil
 }
 
