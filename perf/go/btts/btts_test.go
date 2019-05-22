@@ -44,7 +44,7 @@ func TestBasic(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Create an OPS in a fresh tile.
-	tileKey := TileKeyFromOffset(1)
+	tileKey := tileKeyFromOffset(1)
 	op, err := b.UpdateOrderedParamSet(tileKey, paramtools.ParamSet{
 		"cpu":    []string{"x86", "arm"},
 		"config": []string{"8888", "565"},
@@ -65,7 +65,7 @@ func TestBasic(t *testing.T) {
 	assert.Equal(t, int32(1), latest.Offset())
 
 	// Add an OPS for a new tile.
-	tileKey2 := TileKeyFromOffset(4)
+	tileKey2 := tileKeyFromOffset(4)
 	op, err = b.UpdateOrderedParamSet(tileKey2, paramtools.ParamSet{
 		"os": []string{"win", "linux"},
 	})
@@ -106,7 +106,7 @@ func TestTraces(t *testing.T) {
 	b, err := NewBigTableTraceStoreFromConfig(ctx, cfg, &btts_testutils.MockTS{}, true)
 	assert.NoError(t, err)
 
-	tileKey := TileKeyFromOffset(1)
+	tileKey := tileKeyFromOffset(1)
 	op, err := b.UpdateOrderedParamSet(tileKey, paramtools.ParamSet{
 		"cpu": []string{"x86", "arm"},
 	})
@@ -201,20 +201,20 @@ func TestTileKey(t *testing.T) {
 	unittest.SmallTest(t)
 
 	numShards := int32(3)
-	tileKey := TileKeyFromOffset(0)
+	tileKey := tileKeyFromOffset(0)
 	assert.Equal(t, int32(math.MaxInt32), int32(tileKey))
 	assert.Equal(t, int32(0), tileKey.Offset())
 	assert.Equal(t, "@2147483647", tileKey.OpsRowName())
 	assert.Equal(t, "2:2147483647:", tileKey.TraceRowPrefix(2))
 	assert.Equal(t, "1:2147483647:,0=1,", tileKey.TraceRowName(",0=1,", numShards))
 
-	tileKey = TileKeyFromOffset(1)
+	tileKey = tileKeyFromOffset(1)
 	assert.Equal(t, int32(math.MaxInt32-1), int32(tileKey))
 	assert.Equal(t, "@2147483646", tileKey.OpsRowName())
 	assert.Equal(t, "3:2147483646:", tileKey.TraceRowPrefix(3))
 	assert.Equal(t, "1:2147483646:,0=1,", tileKey.TraceRowName(",0=1,", numShards))
 
-	tileKey = TileKeyFromOffset(-1)
+	tileKey = tileKeyFromOffset(-1)
 	assert.Equal(t, BadTileKey, tileKey)
 
 	var err error
