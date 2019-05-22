@@ -16,27 +16,21 @@ import (
 const (
 	// Types of notification message sent by the roller. These can be
 	// whitelisted in the notifier configs.
-	MSG_TYPE_ISSUE_UPDATE     = "issue update"
-	MSG_TYPE_MODE_CHANGE      = "mode change"
-	MSG_TYPE_STRATEGY_CHANGE  = "strategy change"
-	MSG_TYPE_SAFETY_THROTTLE  = "safety throttle"
-	MSG_TYPE_SUCCESS_THROTTLE = "success throttle"
-	MSG_TYPE_NEW_SUCCESS      = "new success"
-	MSG_TYPE_NEW_FAILURE      = "new failure"
-	MSG_TYPE_LAST_N_FAILED    = "last n failed"
+	MSG_TYPE_ISSUE_UPDATE         = "issue update"
+	MSG_TYPE_LAST_N_FAILED        = "last n failed"
+	MSG_TYPE_MODE_CHANGE          = "mode change"
+	MSG_TYPE_NEW_FAILURE          = "new failure"
+	MSG_TYPE_NEW_SUCCESS          = "new success"
+	MSG_TYPE_ROLL_CREATION_FAILED = "cl creation failed"
+	MSG_TYPE_SAFETY_THROTTLE      = "safety throttle"
+	MSG_TYPE_STRATEGY_CHANGE      = "strategy change"
+	MSG_TYPE_SUCCESS_THROTTLE     = "success throttle"
 
 	// Templates for messages sent by the roller.
 	subjectIssueUpdate = "The {{.ChildName}} into {{.ParentName}} AutoRoller has uploaded issue {{.IssueID}}"
 
 	bodyModeChange    = "{{.User}} changed the mode to \"{{.Mode}}\" with message: {{.Message}}"
 	subjectModeChange = "The {{.ChildName}} into {{.ParentName}} AutoRoller mode was changed"
-
-	bodyStrategyChange    = "{{.User}} changed the next-roll-revision strategy to \"{{.Strategy}}\" with message: {{.Message}}"
-	subjectStrategyChange = "The {{.ChildName}} into {{.ParentName}} AutoRoller next-roll-revision strategy was changed"
-
-	subjectThrottled     = "The {{.ChildName}} into {{.ParentName}} AutoRoller is throttled"
-	bodySafetyThrottled  = "The roller is throttled because it attempted to upload too many CLs in too short a time.  The roller will unthrottle at {{.ThrottledUntil}}."
-	bodySuccessThrottled = "The roller is throttled because it is configured not to land too many rolls within a time period. The roller will unthrottle at {{.ThrottledUntil}}."
 
 	subjectNewFailure = "The {{.ChildName}} into {{.ParentName}} roll has failed (issue {{.IssueID}})"
 	bodyNewFailure    = "The most recent roll attempt failed, while the previous attempt succeeded: {{.IssueURL}}"
@@ -47,6 +41,16 @@ const (
 	subjectLastNFailed = "The last {{.N}} {{.ChildName}} into {{.ParentName}} rolls have failed"
 	bodyLastNFailed    = "The roll is failing consistently. Time to investigate. The most recent roll attempt is here: {{.IssueURL}}"
 
+	bodyRollCreationFailed    = "The roller failed to create a CL with:\n{{.Message}}"
+	subjectRollCreationFailed = "The {{.ChildName}} into {{.ParentName}} AutoRoller failed to create a CL"
+
+	bodyStrategyChange    = "{{.User}} changed the next-roll-revision strategy to \"{{.Strategy}}\" with message: {{.Message}}"
+	subjectStrategyChange = "The {{.ChildName}} into {{.ParentName}} AutoRoller next-roll-revision strategy was changed"
+
+	subjectThrottled     = "The {{.ChildName}} into {{.ParentName}} AutoRoller is throttled"
+	bodySafetyThrottled  = "The roller is throttled because it attempted to upload too many CLs in too short a time.  The roller will unthrottle at {{.ThrottledUntil}}."
+	bodySuccessThrottled = "The roller is throttled because it is configured not to land too many rolls within a time period. The roller will unthrottle at {{.ThrottledUntil}}."
+
 	footer = "\n\nThe AutoRoll server is located here: {{.ServerURL}}"
 )
 
@@ -56,13 +60,6 @@ var (
 	subjectTmplModeChange = template.Must(template.New("subjectModeChange").Parse(subjectModeChange))
 	bodyTmplModeChange    = template.Must(template.New("bodyModeChange").Parse(bodyModeChange))
 
-	subjectTmplStrategyChange = template.Must(template.New("subjectStrategyChange").Parse(subjectStrategyChange))
-	bodyTmplStrategyChange    = template.Must(template.New("bodyStrategyChange").Parse(bodyStrategyChange))
-
-	subjectTmplThrottled     = template.Must(template.New("subjectThrottled").Parse(subjectThrottled))
-	bodyTmplSafetyThrottled  = template.Must(template.New("bodySafetyThrottled").Parse(bodySafetyThrottled))
-	bodyTmplSuccessThrottled = template.Must(template.New("bodySuccessThrottled").Parse(bodySuccessThrottled))
-
 	subjectTmplNewFailure = template.Must(template.New("subjectNewFailure").Parse(subjectNewFailure))
 	bodyTmplNewFailure    = template.Must(template.New("bodyNewFailure").Parse(bodyNewFailure))
 
@@ -71,6 +68,16 @@ var (
 
 	subjectTmplLastNFailed = template.Must(template.New("subjectLastNFailed").Parse(subjectLastNFailed))
 	bodyTmplLastNFailed    = template.Must(template.New("bodyLastNFailed").Parse(bodyLastNFailed))
+
+	bodyTmplRollCreationFailed    = template.Must(template.New("bodyRollCreationFailed").Parse(bodyRollCreationFailed))
+	subjectTmplRollCreationFailed = template.Must(template.New("subjectRollCreationFailed").Parse(subjectRollCreationFailed))
+
+	subjectTmplStrategyChange = template.Must(template.New("subjectStrategyChange").Parse(subjectStrategyChange))
+	bodyTmplStrategyChange    = template.Must(template.New("bodyStrategyChange").Parse(bodyStrategyChange))
+
+	subjectTmplThrottled     = template.Must(template.New("subjectThrottled").Parse(subjectThrottled))
+	bodyTmplSafetyThrottled  = template.Must(template.New("bodySafetyThrottled").Parse(bodySafetyThrottled))
+	bodyTmplSuccessThrottled = template.Must(template.New("bodySuccessThrottled").Parse(bodySuccessThrottled))
 
 	footerTmpl = template.Must(template.New("footer").Parse(footer))
 )
@@ -186,6 +193,13 @@ func (a *AutoRollNotifier) SendModeChange(ctx context.Context, user, mode, messa
 		Mode:    mode,
 		User:    user,
 	}, subjectTmplModeChange, bodyTmplModeChange, notifier.SEVERITY_WARNING, MSG_TYPE_MODE_CHANGE)
+}
+
+// Send a notification that creation of a roll failed.
+func (a *AutoRollNotifier) SendRollCreationFailed(ctx context.Context, err error) {
+	a.send(ctx, &tmplVars{
+		Message: err.Error(),
+	}, subjectTmplRollCreationFailed, bodyTmplRollCreationFailed, notifier.SEVERITY_ERROR, MSG_TYPE_ROLL_CREATION_FAILED)
 }
 
 // Send a strategy change message.
