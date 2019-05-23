@@ -1,7 +1,7 @@
 [Unit]
 Description=Web server for processing and viewing CT Pixel Diff runs
 Wants=network-online.target
-After=etwork-online.target
+After=network-online.target
 
 [Service]
 Environment=DATA_DIR=/mnt/pd0/ct_pixel_diff  \
