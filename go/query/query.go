@@ -413,3 +413,76 @@ func (q *Query) Regexp(ops *paramtools.OrderedParamSet) (*regexp.Regexp, error) 
 	}
 	return regexp.Compile(strings.Join(ret, ""))
 }
+
+// QueryPlan returns a paramtools.ParamSet that can be used run a query using
+// trace indices.
+//
+// That is, if you have a Params:
+//
+//    Params{"config":"8888", "arch":"x86"}
+//
+// And an OrderedParamSet:
+//
+//    ops := &paramtools.OrderedParamSet{
+//    	KeyOrder: []string{"config", "foo", "arch"},
+//    	ParamSet: paramtools.ParamSet{
+//    		"config": []string{"565", "8888", "gpu"},
+//    		"arch":   []string{"x86", "arm", "riscv"},
+//        "foo":    []string{"bar"},
+//    	},
+//    }
+//
+// It would return the ParamSet:
+//
+//    ParamSet{
+//      "config": ["8888"],
+//      "arch":   ["x86"],
+//    }
+//
+// Then a query of the form:
+//
+//    url.Values{"arch": []string{"x86", "risc-v"}, "config": []string{"*"}}
+//
+// Would return:
+//
+//    ParamSet{
+//      "arch": ["x86", "risc-v"],
+//      "config": ["8888", "565", "gpu"],
+//    }
+//
+func (q *Query) QueryPlan(ops *paramtools.OrderedParamSet) (*paramtools.ParamSet, error) {
+	ret := paramtools.NewParamSet()
+	// Loop over KeyOrder, we don't care about the q.params order.
+	for index, key := range ops.KeyOrder {
+		for _, part := range q.params {
+			// Strip the , and = from part.keyMatch.
+			partKey := part.keyMatch[1 : len(part.keyMatch)-1]
+			if partKey == key {
+				// WildCard, Regex and Negative are all mutually exclusive.
+				keyIndex := strconv.Itoa(index)
+				values := ops.ParamSet[key]
+				var err error = nil
+				if part.isWildCard {
+					ret = append(ret, fmt.Sprintf(`,%s=[^,]+\b`, keyIndex))
+				} else if part.isRegex {
+					err = appendRegexForFilter(keyIndex, values, part, &ret, func(value string) bool {
+						return part.reg.MatchString(value)
+					})
+				} else if part.isNegative {
+					err = appendRegexForFilter(keyIndex, values, part, &ret, func(value string) bool {
+						return !util.In(value, part.values)
+					})
+				} else {
+					err = appendRegexForFilter(keyIndex, values, part, &ret, func(value string) bool {
+						return util.In(value, part.values)
+					})
+				}
+				if err != nil {
+					return nil, err
+				}
+				continue
+			}
+		}
+	}
+	return regexp.Compile(strings.Join(ret, ""))
+}
