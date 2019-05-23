@@ -426,7 +426,7 @@ groups:
       description: 'Swarming bot {{ $labels.bot }} is quarantined. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
 
   - alert: DeviceUnhealthy
-    expr: avg(avg_over_time(swarming_bots_quarantined{device_state=~"(too_hot)|(low_battery)",bot!="skia-rpi-template"}[1h])) by (bot, device_state) >= 1
+    expr: avg(avg_over_time(swarming_bots_quarantined{device_state=~"(too_hot)|(low_battery)",bot!="skia-rpi-template"}[1h])) by (swarming, bot, device_state) >= 1
     labels:
       category: infra
       severity: critical
