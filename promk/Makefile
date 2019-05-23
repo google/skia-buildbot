@@ -1,5 +1,5 @@
 
-.PHONY: validate push_config
+.PHONY: validate
 validate: ./tmp/promtool absent
 	promk-absent --input=prometheus/alerts_alert_to_pubsub.yml --output=prometheus/absent_alerts_alert_to_pubsub.yml
 	promk-absent --input=prometheus/alerts_corp.yml --output=prometheus/absent_alerts_corp.yml
@@ -16,6 +16,7 @@ validate: ./tmp/promtool absent
 absent:
 	go install ./go/promk-absent
 
+.PHONY: testgo
 testgo:
 	go test ./go/...
 
@@ -24,7 +25,8 @@ testgo:
 	curl -L https://github.com/prometheus/prometheus/releases/download/v2.2.1/prometheus-2.2.1.linux-amd64.tar.gz | tar zxC ./tmp --overwrite -f -
 	cp ./tmp/prometheus-2.2.1.linux-amd64/promtool ./tmp/promtool
 
-push_config: validate skia-public
+.PHONY: push_config_public
+push_config_public: validate skia-public
 	-rm -rf ./tmpconf
 	mkdir ./tmpconf
 	cp prometheus/prometheus-public.yml ./tmpconf/prometheus.yml
@@ -40,6 +42,7 @@ backup-to-gcs: skia-public
 	./build_backup_to_gcs_release "`git log -n1 --format=%s`"
 	pushk backup-to-gcs
 
+.PHONY: push_config_corp
 push_config_corp: validate skia-corp
 	# Need to use replace so that the configmap gets updated. Change "replace"
 	# to "create" if this is the first time the configmap has been uploaded.
@@ -49,5 +52,8 @@ push_config_corp: validate skia-corp
 	cp prometheus/alerts_*.yml ./tmpconf
 	cp prometheus/absent_alerts_*.yml ./tmpconf
 	kubectl create configmap prometheus-server-conf --from-file=./tmpconf -o yaml --dry-run | kubectl replace -f -
+
+.PHONY: push_config
+push_config: push_config_public push_config_corp
 
 include ../make/clusters.mk
