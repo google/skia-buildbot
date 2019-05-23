@@ -339,6 +339,21 @@ func appendRegexForFilter(keyIndex string, values []string, part queryParam, ret
 	return nil
 }
 
+// appendValueForFilter will return the values that matches the given 'filter'.
+func appendValueForFilter(key string, values []string, part queryParam, ret *paramtools.ParamSet, filter func(string) bool) error {
+	toBeORd := []string{}
+	for _, value := range values {
+		if filter(value) {
+			toBeORd = append(toBeORd, value)
+		}
+	}
+	if len(toBeORd) == 0 {
+		return QueryWillNeverMatch
+	}
+	(*ret)[key] = toBeORd
+	return nil
+}
+
 // Regexp returns a *regexp.Regex that can be used against OrderedParamSet
 // encoded Params, which are structured keys of indicies.
 //
@@ -412,4 +427,76 @@ func (q *Query) Regexp(ops *paramtools.OrderedParamSet) (*regexp.Regexp, error) 
 		}
 	}
 	return regexp.Compile(strings.Join(ret, ""))
+}
+
+// QueryPlan returns a paramtools.ParamSet that can be used run a query using
+// trace indices.
+//
+// That is, if you have a Params:
+//
+//    Params{"config":"8888", "arch":"x86"}
+//
+// And an OrderedParamSet:
+//
+//    ops := &paramtools.OrderedParamSet{
+//    	KeyOrder: []string{"config", "foo", "arch"},
+//    	ParamSet: paramtools.ParamSet{
+//    		"config": []string{"565", "8888", "gpu"},
+//    		"arch":   []string{"x86", "arm", "riscv"},
+//        "foo":    []string{"bar"},
+//    	},
+//    }
+//
+// It would return the ParamSet:
+//
+//    ParamSet{
+//      "config": ["8888"],
+//      "arch":   ["x86"],
+//    }
+//
+// Then a query of the form:
+//
+//    url.Values{"arch": []string{"x86", "risc-v"}, "config": []string{"*"}}
+//
+// Would return:
+//
+//    ParamSet{
+//      "arch": ["x86", "risc-v"],
+//      "config": ["8888", "565", "gpu"],
+//    }
+//
+func (q *Query) QueryPlan(ops *paramtools.OrderedParamSet) (paramtools.ParamSet, error) {
+	ret := paramtools.NewParamSet()
+	// Loop over KeyOrder, we don't care about the q.params order.
+	for _, key := range ops.KeyOrder {
+		for _, part := range q.params {
+			// Strip the , and = from part.keyMatch.
+			partKey := part.keyMatch[1 : len(part.keyMatch)-1]
+			if partKey == key {
+				// WildCard, Regex and Negative are all mutually exclusive.
+				values := ops.ParamSet[key]
+				var err error = nil
+				if part.isWildCard {
+					ret[key] = append([]string{}, ops.ParamSet[key]...)
+				} else if part.isRegex {
+					err = appendValueForFilter(key, values, part, &ret, func(value string) bool {
+						return part.reg.MatchString(value)
+					})
+				} else if part.isNegative {
+					err = appendValueForFilter(key, values, part, &ret, func(value string) bool {
+						return !util.In(value, part.values)
+					})
+				} else {
+					err = appendValueForFilter(key, values, part, &ret, func(value string) bool {
+						return util.In(value, part.values)
+					})
+				}
+				if err != nil {
+					return nil, err
+				}
+				continue
+			}
+		}
+	}
+	return ret, nil
 }
