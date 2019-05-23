@@ -378,8 +378,8 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 		for k, v := range p {
 			mut := bigtable.NewMutation()
 			mut.Set(INDEX_FAMILY, rowKey, ts, EMPTY_VALUE)
-			indexRowKeys = append(indexRowKeys, fmt.Sprintf("%s:%s:%s", tileKey.IndexRowPrefix(), k, v))
 			muts = append(muts, mut)
+			indexRowKeys = append(indexRowKeys, fmt.Sprintf("%s:%s:%s", tileKey.IndexRowPrefix(), k, v))
 			if len(muts) >= MAX_MUTATIONS {
 				if err := b.writeBatchOfIndices(tctx, indexRowKeys, muts); err != nil {
 					return err
