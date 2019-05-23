@@ -4,7 +4,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-Environment=DATA_DIR=/mnt/pd0/ct_pixel_diff  \
+Environment=DATA_DIR=/mnt/pd0/ct_pixel_diff
 
 ExecStart=/usr/local/bin/ct_pixel_diff  \
     -bolt_dir=${DATA_DIR}/diffs  \
