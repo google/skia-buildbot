@@ -182,7 +182,8 @@ groups:
       severity: critical
       owner: jcgregorio@google.com
     annotations:
-      description: 'alert-to-pubsub has failed to send a healthz PubSub event in 90s. https://skia.googlesource.com/buildbot/%2B/master/am/PROD.md#alert_to_pubsub'
+      abbr: '{{ $labels.location }}'
+      description: 'alert-to-pubsub for {{ $labels.location }} has failed to send a healthz PubSub event in 90s. https://skia.googlesource.com/buildbot/%2B/master/am/PROD.md#alert_to_pubsub'
 
 # CT
 # TODO(rmistry): Add error rate alert once logmetrics is ported to skia-public.
