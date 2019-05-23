@@ -22,6 +22,30 @@
       "revId": "694319c8471cd35f303500316d032370b961eb23",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "54d11764_54a31e58",
+        "filename": "promk/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-05-23T15:02:46Z",
+      "side": 1,
+      "message": "backup-to-gcs can be take down now that we run velero:\n\n  https://github.com/google/skia-buildbot/tree/master/velero",
+      "parentUuid": "507dbc13_6bbe5775",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 20
+      },
+      "revId": "694319c8471cd35f303500316d032370b961eb23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
