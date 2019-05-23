@@ -208,7 +208,7 @@ type ByBlameEntry struct {
 type ByBlameEntrySlice []*ByBlameEntry
 
 func (b ByBlameEntrySlice) Len() int           { return len(b) }
-func (b ByBlameEntrySlice) Less(i, j int) bool { return b[i].GroupID < b[j].GroupID }
+func (b ByBlameEntrySlice) Less(i, j int) bool { return b[i].NDigests > b[j].NDigests }
 func (b ByBlameEntrySlice) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
 
 // ByBlame describes a single digest and it's blames.
