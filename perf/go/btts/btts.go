@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigtable"
+	lru "github.com/hashicorp/golang-lru"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
@@ -39,6 +40,10 @@ const (
 	SOURCES_FAMILY = "S"
 	HASHES_FAMILY  = "H"
 	OPS_FAMILY     = "D"
+	INDEX_FAMILY   = "I"
+
+	// Row prefixes.
+	INDEX_PREFIX = "i"
 
 	// Columns in the "H" column family.
 	HASHES_SOURCE_COLUMN        = "S" // Column
@@ -53,8 +58,15 @@ const (
 	// MAX_MUTATIONS is the max number of mutations we can send in a single ApplyBulk call. Can be up to 100,000 according to BigTable docs.
 	MAX_MUTATIONS = 100000
 
+	// MAX_INDEX_LRU_CACHE is the size of the lru cache where we remember if we've already stored indices for a rowKey.
+	MAX_INDEX_LRU_CACHE = 20 * 1000 * 1000
+
 	TIMEOUT       = 4 * time.Minute
 	WRITE_TIMEOUT = 10 * time.Minute
+)
+
+var (
+	EMPTY_VALUE = []byte{}
 )
 
 // TileKey is the identifier for each tile held in BigTable.
@@ -91,7 +103,12 @@ func (t TileKey) TraceRowPrefix(shard int32) string {
 	return fmt.Sprintf("%d:%07d:", shard, t)
 }
 
-// TraceRowPrefix returns the BigTable row name for the given trace, for the given number of shards.
+// IndexRowPrefix returns the prefix of a BigTable row name for any Indices in this tile.
+func (t TileKey) IndexRowPrefix() string {
+	return fmt.Sprintf("%s%07d", INDEX_PREFIX, t)
+}
+
+// TraceRowName returns the BigTable row name for the given trace, for the given number of shards.
 // TraceRowName(",0=1,", 3) -> 2:2147483647:,0=1,
 func (t TileKey) TraceRowName(traceId string, shards int32) string {
 	return fmt.Sprintf("%d:%07d:%s", crc32.ChecksumIEEE([]byte(traceId))%uint32(shards), t, traceId)
@@ -168,10 +185,12 @@ func NewOpsCacheEntryFromRow(row bigtable.Row) (*OpsCacheEntry, error) {
 }
 
 type BigTableTraceStore struct {
-	tileSize      int32 // How many commits we store per tile.
-	shards        int32 // How many shards we break the traces into.
-	writesCounter metrics2.Counter
-	table         *bigtable.Table
+	tileSize           int32 // How many commits we store per tile.
+	shards             int32 // How many shards we break the traces into.
+	writesCounter      metrics2.Counter
+	indexWritesCounter metrics2.Counter
+	table              *bigtable.Table
+	indexed            *lru.Cache // LRU cache of all the trace row keys that have been added to the index.
 
 	// lookup maps column names as strings, "V:2", to the index, 2.
 	// Used to speed up reading values out of rows.
@@ -203,14 +222,20 @@ func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.PerfBigTab
 	for i := 0; int32(i) < cfg.TileSize; i++ {
 		lookup[VALUES_FAMILY+":"+strconv.Itoa(i)] = i
 	}
+	indexed, err := lru.New(MAX_INDEX_LRU_CACHE)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't create index lru cache: %s", err)
+	}
 	ret := &BigTableTraceStore{
-		tileSize:      cfg.TileSize,
-		shards:        cfg.Shards,
-		table:         client.Open(cfg.Table),
-		writesCounter: metrics2.GetCounter("bt_perf_writes", nil),
-		lookup:        lookup,
-		opsCache:      map[string]*OpsCacheEntry{},
-		cacheOps:      cacheOps,
+		tileSize:           cfg.TileSize,
+		shards:             cfg.Shards,
+		table:              client.Open(cfg.Table),
+		indexed:            indexed,
+		writesCounter:      metrics2.GetCounter("bt_perf_writes", nil),
+		indexWritesCounter: metrics2.GetCounter("bt_perf_index_writes", nil),
+		lookup:             lookup,
+		opsCache:           map[string]*OpsCacheEntry{},
+		cacheOps:           cacheOps,
 	}
 
 	return ret, nil
@@ -308,6 +333,9 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 	muts = append(muts, mut)
 	rowKeys = append(rowKeys, fmt.Sprintf("&%x", sourceHash))
 
+	// indices maps rowKeys to Params.
+	indices := map[string]paramtools.Params{}
+
 	tctx, cancel := context.WithTimeout(context.Background(), WRITE_TIMEOUT)
 	defer cancel()
 	for i, v := range values {
@@ -323,31 +351,85 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 			sklog.Warningf("Failed to encode key %q: %s", params[i], err)
 			continue
 		}
-		rowKeys = append(rowKeys, tileKey.TraceRowName(encodedKey, b.shards))
+		rowKey := tileKey.TraceRowName(encodedKey, b.shards)
+		rowKeys = append(rowKeys, rowKey)
+		indices[rowKey] = params[i]
 		if len(muts) >= MAX_MUTATIONS {
-			b.writesCounter.Inc(int64(len(muts)))
-			errs, err := b.getTable().ApplyBulk(tctx, rowKeys, muts)
-			if err != nil {
-				return fmt.Errorf("Failed writing traces: %s", err)
-			}
-			if errs != nil {
-				return fmt.Errorf("Failed writing some traces: %v", errs)
+			if err := b.writeBatchOfTraces(tctx, rowKeys, muts); err != nil {
+				return err
 			}
 			rowKeys = []string{}
 			muts = []*bigtable.Mutation{}
 		}
 	}
 	if len(muts) > 0 {
-		b.writesCounter.Inc(int64(len(muts)))
-		errs, err := b.getTable().ApplyBulk(tctx, rowKeys, muts)
-		if err != nil {
-			return fmt.Errorf("Failed writing traces: %s", err)
-		}
-		if errs != nil {
-			return fmt.Errorf("Failed writing some traces: %v", errs)
+		if err := b.writeBatchOfTraces(tctx, rowKeys, muts); err != nil {
+			return err
 		}
 	}
 
+	// Write indices as batches of mutations.
+	indexRowKeys := []string{}
+	muts = []*bigtable.Mutation{}
+	for rowKey, p := range indices {
+		if _, ok := b.indexed.Get(rowKey); ok {
+			continue
+		}
+		for k, v := range p {
+			mut := bigtable.NewMutation()
+			mut.Set(INDEX_FAMILY, rowKey, ts, EMPTY_VALUE)
+			indexRowKeys = append(indexRowKeys, fmt.Sprintf("%s:%s:%s", tileKey.IndexRowPrefix(), k, v))
+			muts = append(muts, mut)
+			if len(muts) >= MAX_MUTATIONS {
+				if err := b.writeBatchOfIndices(tctx, indexRowKeys, muts); err != nil {
+					return err
+				}
+				indexRowKeys = []string{}
+				muts = []*bigtable.Mutation{}
+			}
+		}
+	}
+	if len(muts) > 0 {
+		if err := b.writeBatchOfIndices(tctx, indexRowKeys, muts); err != nil {
+			return err
+		}
+	}
+	for rowKey := range indices {
+		b.indexed.Add(rowKey, "")
+	}
+
+	return nil
+}
+
+// writeBatchOfTraces writes the traces to BT.
+//
+// Note that 'rowKeys' are the keys for 'muts', so they need to be the
+// same length and be ordered accordingly.
+func (b *BigTableTraceStore) writeBatchOfTraces(ctx context.Context, rowKeys []string, muts []*bigtable.Mutation) error {
+	errs, err := b.getTable().ApplyBulk(ctx, rowKeys, muts)
+	if err != nil {
+		return fmt.Errorf("Failed writing traces: %s", err)
+	}
+	if errs != nil {
+		return fmt.Errorf("Failed writing some traces: %v", errs)
+	}
+	b.writesCounter.Inc(int64(len(muts)))
+	return nil
+}
+
+// writeBatchOfIndices writes the indices to BT.
+//
+// Note that 'indexRowKeys' are the keys for 'muts', so they need to be the
+// same length and be ordered accordingly.
+func (b *BigTableTraceStore) writeBatchOfIndices(ctx context.Context, indexRowKeys []string, muts []*bigtable.Mutation) error {
+	errs, err := b.getTable().ApplyBulk(ctx, indexRowKeys, muts)
+	if err != nil {
+		return fmt.Errorf("Failed writing indices: %s", err)
+	}
+	if errs != nil {
+		return fmt.Errorf("Failed writing some indices: %v", errs)
+	}
+	b.indexWritesCounter.Inc(int64(len(muts)))
 	return nil
 }
 
