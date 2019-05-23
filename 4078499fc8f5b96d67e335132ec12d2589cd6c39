@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b458473d_530bf5c4",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T13:48:31Z",
+      "side": 1,
+      "message": "If it\u0027s useful to have a stable sort order, you might want to use GroupID as the secondary sort.",
+      "revId": "4078499fc8f5b96d67e335132ec12d2589cd6c39",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
