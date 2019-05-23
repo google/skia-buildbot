@@ -1,7 +1,6 @@
 DESIGN
 ======
 
-
 Overview
 --------
 Provides interactive dashboard for Skia performance data.
@@ -24,123 +23,49 @@ The frontend is available at http://skiaperf.com.
                                          
                +-------------+             
                |             |             
-               |   SKFE      |             
+               |   Ingress   |             
                |             |             
                |             |             
                |             |             
-               +----------^--+             
+               +-------------+             
+                          ^
                           |                
-          +--------------------+----+-----+
-          |   GCE Instance| skia-perf     |
-          |               |               |
-          |            ---+               |
-          |            |                  |
-          | +----------+-------------+    |
-          | |        Perf (Go)       |    |
-          | | ^    ^                 |    |
-          | +------------------------+    |
-          |   |    |                      |
-          |   |    |                      |
-          |   |    | +------------------+ |
-          |   |    | |Tile Pipeline (Go)| |
-          |   |    | |            ^     | |
-          |   |    | +--+---------------+ |
-          |   |    |    |         |       |
-          +-------------------------------+
-              |    |    |         |        
-    +---------+-+  |    | +-------+--+     
+              GKE Instance| skia-perf     
+                          |               
+                       ---+
+                       |                  
+            +----------+-------------+    
+            |        Perf (Go)       |    
+            +------------------------+    
+              ^    ^ 
+              |    |                      
+              |    |                      
+              |    | +--------------------+ 
+              |    | | Perf Ingester (Go) | 
+              |    | +--+-----------------+ 
+              |    |    |       ^ 
+              |    |    |       |       
+              v    |    |       |        
+    +---------+-+  |    | +-----+----+     
     | Datastore |  |    | | Google   |     
     |           |  |    | | Storage  |     
-    |           |  |    | |          |     
-    |           |  |    | |          |     
-    |           |  |    | |          |     
-    |           |  |    | |          |     
     +-----------+  |    | +----------+     
-                   |    |                  
-                 +-+----v---+              
+                   |    v                  
+                 +-+--------+              
                  |   Tile   |              
-                 |   Repo   |              
-                 |          |              
-                 |          |              
-                 |          |              
-                 |          |              
+                 |   Store  |              
                  +----------+              
                                          
 ```
 
 Perf is a Go application that serves the HTML, CSS, JS and the JSON representations
-that the JS needs. It loads test results in the form of 'tiles' from the Tile Repo.
+that the JS needs. It loads test results in the form of 'tiles' from the Tile Store.
 It combines that data with data about commits and annotations from Google Datastore
 and serves that the UI.
 
-The Tile Pipeline is a separate application that periodically queries for fresh
-data from Google Storage and then writes Tiles into the Tile Repo.
-
-Tile Repo will be represented internally as an interface, the first
-implemetation will be as files on the local disk, with a directory tree that
-contains Go gob files called tiles.
-
-Each tile contains exactly 128 points of every trace for a dataset.  The one
-exception being the last tile, which may contain less that 128 points; see
-below for an explanation of that.  The Tile Repo directory structure is:
-
-    $TILE_REPO_ROOT/<dataset>/<scale>/<tilenumber>.gob
-
-Where:
-
-  * dataset = {skps|micro}
-  * scale = 0..5 The scale factor of 4^N, so points in the /0/ directory
-                 represent 1:1 with test results, while tiles in the /1/
-                 directory have every fourth commit with data, and /2/
-                 has every 128th commit with data.
-  * tilenumber = The number of the tile, at the given scale, starting at BOT
-                 (Beginning of Time).
-
-When navigating the UI users can select the tiles they are looking at (<, >)
-and also change the scaling factor that they are looking at (+,-).
-
-
-URL Structure
--------------
-
-The URL structure for retrieving Datasets is TBD.
-
-
-Navigating
-----------
-
-For each point if the user wants to zoom out, add 1 to the scale factor and
-divide tilenumber by two. Do the opposite to zoom in.  To move forwards or
-backwards in time add or subtract 1 to the tile number. The actual UI
-mechanisms for navigating around traces are TBD, this is just a description of
-how the tiles are arranged.
-
-
-Tile Pipeline Algorithm
------------------------
-TBD based on new ingestion code.
-
-
-Logs
-----
-
-We use the https://github.com/golang/glog for logging, which puts Google style
-Error, Warning and Info logs in /tmp/glog on the server under the 'perf'
-account.
-
-
-Debugging Tips
---------------
-
-Starting the application is done via /etc/init.d/skiaperf which does the
-backgrounding itself via start-stop-daemon, which means that if the app
-crashes when first starting then nothing will make it to the logs. To debug
-the cause in that case edit /etc/init.d/skiaperf and remove the --background
-flag and then run:
-
-  $ sudo /etc/init.d/skiaperf start
-
-And you should get stdout and stderr output.
+The Perf Ingester is a separate application that periodically queries for fresh
+data from Google Storage and then writes Traces into the Tile Store. The Tile Store
+is currently implemented on top of Google BigTable.
 
 Users
 -----
@@ -164,14 +89,9 @@ res/imp/login.html.
 Monitoring
 ----------
 
-Monitoring of the application is done via Graphite at https://mon.skia.org.
+Monitoring of the application is done via Graphite at https://grafana2.skia.org.
 Both system and application level metrics are monitored.
 
-
-Annotations Database
---------------------
-
-TODO(jcgregorio): Update this to match the new datastore impl.
 
 Clustering
 ----------
@@ -295,21 +215,11 @@ Trace IDs
 
 Normal Trace IDs are of the form:
 
-    foo:bar:baz:quux
+    ,key=value,key2=value2,
 
-Where the names come from the buildbot description, the test name, and the
-configuration under which the test was run.
+See go/query for more details on structured keys.
 
 There are two other forms of trace ids:
-
-  * Calculated traces - A trace that started out with a normal trace id, but
-    then had a calculation performed on it. Calculated trace ids are not
-    stored in shortcuts, but are presumed to be regenerated by any formula
-    traces, which are stored in shortcuts.
-
-    Calculated traces have IDs that begin with !. For example:
-
-      !Arm7:Tegra2:Xoom:Android:ChunkAlloc_PushPop_640_480:nonrendering
 
   * Formula traces - A formula trace contains a formula to be evaluated which
     may generate either a single Formula trace that is added to the plot, such
@@ -319,80 +229,11 @@ There are two other forms of trace ids:
 
     Formula traces have IDs that begin with @. For example:
 
-      @norm(filter("config=8888"))
+      norm(filter("config=8888"))
 
         or
 
-      @norm(filter("#54"))
-
-Comparing bench results across verticals
-----------------------------------------
-The UIs showing line plots of selected traces and the clusterings are good ways
-to examine and diagnose the performance of a small set of traces across the
-commit timeline. However, it is not easy to use them for answering questions
-like: "How does the performance of gpu config compare with 8888 on the SKP
-benches across various platforms?", "What's the worst-performing SKPs on x86 vs.
-x86_64, and are they worst on a specific OS?", and "How do I pinpoint the set of
-potential performance changes introduced by a trybot run with my CL?". In this
-case we care more about comparing the most recent data values by different
-configs and platforms, instead of changes along the commit timeline.
-
-To show overall comparison results across more dimensions, we use a table to
-visualize the data. We use the same query interface for retrieving the set of
-bench data of user's choice, but ask user to specify the search vertical (arch,
-config, os, etc.) and select exactly two configs from it to compare against in
-the query (say, "8888" and "gpu"). We then organize the data to calculate the
-ratio of the benches from the two choices in the criteria (vertical) where all
-other parameters are the same. For instance, we calculate the ratio of benches
-in the "config" vertical from the following two traces:
-
-    x86_64:HD7770:ShuttleA:Win8:gradient_create_opaque_640_480:gpu
-    x86_64:HD7770:ShuttleA:Win8:gradient_create_opaque_640_480:8888
-
-and put the value into the cell in a table that has
-_row_gradient_create_opaque_640_480_ and
-column _x86_64:HD7770:ShuttleA:Win8_. Basically, the table row will be the
-"test" name, and the column will be the rest of the keys. The number of columns
-will be the number of perf bots we run (20+ for now).
-
-The value will then tell us if the performance is better (<1) or worse (>1) for
-gpu against 8888. We can then heatmap-color the table cells by their value
-ranges, to provide a visual way for users to identify the problems in cell
-groups. By sorting the rows with aggregated performance, users will be able to
-pinpoint the benches with worst/best relative performance to look into.
-
-The same visulaization can be used for visualizing trybot results as well. When
-user selects results from a recent trybot run (which is continually polled from
-Google Storage as the ingester does, organized by try issue numbers and buildbot
-/ build numbers), we pair the most recent bench results from regular buildbot
-runs with the corresponding trybot bench results with identical trace keys, and
-show their ratios in the table with heatmap-colored cells. The table row will
-still be the "test" names, but the columns will concatenate all the other
-verticals, such as _x86_64:HD7770:ShuttleA:Win8:gpu_. Users can control which
-set of trybot results to show together with regular data, thus the number of
-table columns is dynamic.
-
-We can also add an option for users to specify a CL, so we use the available
-bench data closest to that CL (either before or after) for visualization.
-
-Another option is to have users provide two CLs and use the UI to show their
-diffs on common traces.
-
-
-Startup and config
-------------------
-Running skia perf is done via push. See ../push for more details.
-
-You can always ssh into the server and start and stop the applications. The
-server is started and stopped via:
-
-    sudo /etc/init.d/skiaperf [start|stop|restart]
-
-But sysv init only handles starting and stopping a program once, so we use
-Monit to monitor the application and restart it if it crashes. The config
-is in:
-
-    /etc/monit/conf.d/perf
+      norm(filter("#54"))
 
 Installation
 ------------

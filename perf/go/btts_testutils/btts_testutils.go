@@ -19,6 +19,7 @@ func CreateTestTable(t sktest.TestingT) {
 			"S": bigtable.MaxVersionsPolicy(1),
 			"D": bigtable.MaxVersionsPolicy(1),
 			"H": bigtable.MaxVersionsPolicy(1),
+			"I": bigtable.MaxVersionsPolicy(1),
 		},
 	})
 	assert.NoError(t, err)
