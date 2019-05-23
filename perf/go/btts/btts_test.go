@@ -3,9 +3,11 @@ package btts
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"math"
 	"net/url"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -88,13 +90,18 @@ func TestBasic(t *testing.T) {
 	assert.Equal(t, op, op2)
 }
 
-func assertIndices(t *testing.T, b *BigTableTraceStore, expectedKeys []string, expectedColumns map[string][]string) {
+func assertIndices(t *testing.T, ops *paramtools.OrderedParamSet, b *BigTableTraceStore, expectedKeys []string, expectedColumns map[string][]string, msg string) {
+
 	err := b.getTable().ReadRows(context.Background(), bigtable.PrefixRange(INDEX_PREFIX), func(row bigtable.Row) bool {
 		assert.Contains(t, expectedKeys, row.Key())
 		for _, col := range row[INDEX_FAMILY] {
 			// Strip off the family name which is prefixed.
-			rowKey := col.Column[2:]
-			assert.Contains(t, expectedColumns[col.Row], rowKey)
+			rowKey := strings.Split(col.Column, ":")[3]
+			p, err := ops.DecodeParamsFromString(rowKey)
+			assert.NoError(t, err)
+			decodedKey, err := query.MakeKeyFast(p)
+			assert.NoError(t, err)
+			assert.Contains(t, expectedColumns[col.Row], decodedKey, fmt.Sprintf("For row: %q", row.Key()))
 		}
 		return true
 	}, bigtable.RowFilter(
@@ -121,6 +128,10 @@ func TestTraces(t *testing.T) {
 	assert.NoError(t, err)
 
 	tileKey := tileKeyFromOffset(1)
+	ops, err := b.GetOrderedParamSet(ctx, tileKey)
+	assert.NoError(t, err)
+	assertIndices(t, ops, b, nil, nil, "Start empty")
+
 	paramset := paramtools.ParamSet{
 		"config": []string{"8888", "565"},
 		"cpu":    []string{"x86", "arm"},
@@ -149,12 +160,14 @@ func TestTraces(t *testing.T) {
 		"i2147483646:cpu:x86",
 	}
 	expectedColumns := map[string][]string{
-		"i2147483646:config:565":  {"4:2147483646:,0=1,1=0,", "5:2147483646:,0=1,1=1,"},
-		"i2147483646:config:8888": {"0:2147483646:,0=0,1=1,", "1:2147483646:,0=0,1=0,"},
-		"i2147483646:cpu:arm":     {"0:2147483646:,0=0,1=1,", "5:2147483646:,0=1,1=1,"},
-		"i2147483646:cpu:x86":     {"1:2147483646:,0=0,1=0,", "4:2147483646:,0=1,1=0,"},
+		"i2147483646:config:565":  {",config=565,cpu=x86,", ",config=565,cpu=arm,"},
+		"i2147483646:config:8888": {",config=8888,cpu=x86,", ",config=8888,cpu=arm,"},
+		"i2147483646:cpu:arm":     {",config=565,cpu=arm,", ",config=8888,cpu=arm,"},
+		"i2147483646:cpu:x86":     {",config=565,cpu=x86,", ",config=8888,cpu=x86,"},
 	}
-	assertIndices(t, b, expectedKeys, expectedColumns)
+	ops, err = b.GetOrderedParamSet(ctx, tileKey)
+	assert.NoError(t, err)
+	assertIndices(t, ops, b, expectedKeys, expectedColumns, "First write")
 
 	q, err := query.New(url.Values{"config": []string{"8888"}})
 	assert.NoError(t, err)
@@ -185,7 +198,9 @@ func TestTraces(t *testing.T) {
 	}
 	err = b.WriteTraces(257, params, values, paramset, "gs://some/other/test/location", now)
 	assert.NoError(t, err)
-	assertIndices(t, b, expectedKeys, expectedColumns)
+	ops, err = b.GetOrderedParamSet(ctx, tileKey)
+	assert.NoError(t, err)
+	assertIndices(t, ops, b, expectedKeys, expectedColumns, "Overwrite")
 
 	// Query again to get the updated value.
 	results, err = b.QueryTraces(context.Background(), tileKey, q)
@@ -223,7 +238,7 @@ func TestTraces(t *testing.T) {
 		",config=8888,cpu=arm,": vec2,
 	}
 	assert.Equal(t, expected, results)
-	assertIndices(t, b, expectedKeys, expectedColumns)
+	assertIndices(t, ops, b, expectedKeys, expectedColumns, "Write new value.")
 
 	// Write to a new trace.
 	params = []paramtools.Params{
@@ -238,9 +253,11 @@ func TestTraces(t *testing.T) {
 
 	// Add new trace to expectations.
 	expectedKeys = append(expectedKeys, "i2147483646:cpu:risc-v")
-	expectedColumns["i2147483646:cpu:risc-v"] = []string{"3:2147483646:,0=0,1=2,"}
-	expectedColumns["i2147483646:config:8888"] = append(expectedColumns["i2147483646:config:8888"], "3:2147483646:,0=0,1=2,")
-	assertIndices(t, b, expectedKeys, expectedColumns)
+	expectedColumns["i2147483646:cpu:risc-v"] = []string{",config=8888,cpu=risc-v,"}
+	expectedColumns["i2147483646:config:8888"] = append(expectedColumns["i2147483646:config:8888"], ",config=8888,cpu=risc-v,")
+	ops, err = b.GetOrderedParamSet(ctx, tileKey)
+	assert.NoError(t, err)
+	assertIndices(t, ops, b, expectedKeys, expectedColumns, "Add new trace")
 
 	// Source
 	traceId, err := query.MakeKey(paramtools.Params{"cpu": "x86", "config": "8888"})
