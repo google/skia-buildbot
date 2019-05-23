@@ -2,6 +2,9 @@ package btts_testutils
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
+	"time"
 
 	"cloud.google.com/go/bigtable"
 	assert "github.com/stretchr/testify/require"
@@ -9,11 +12,16 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func CreateTestTable(t sktest.TestingT) {
+func TableName() string {
+	rand.Seed(time.Now().UnixNano())
+	return fmt.Sprintf("test-%d", rand.Uint64)
+}
+
+func CreateTestTable(t sktest.TestingT, tablename string) {
 	ctx := context.Background()
 	client, _ := bigtable.NewAdminClient(ctx, "test", "test")
 	err := client.CreateTableFromConf(ctx, &bigtable.TableConf{
-		TableID: "test",
+		TableID: tablename,
 		Families: map[string]bigtable.GCPolicy{
 			"V": bigtable.MaxVersionsPolicy(1),
 			"S": bigtable.MaxVersionsPolicy(1),
@@ -25,10 +33,10 @@ func CreateTestTable(t sktest.TestingT) {
 	assert.NoError(t, err)
 }
 
-func CleanUpTestTable(t sktest.TestingT) {
+func CleanUpTestTable(t sktest.TestingT, tablename string) {
 	ctx := context.Background()
 	client, _ := bigtable.NewAdminClient(ctx, "test", "test")
-	err := client.DeleteTable(ctx, "test")
+	err := client.DeleteTable(ctx, tablename)
 	assert.NoError(t, err)
 }
 
