@@ -1,0 +1,1295 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3f03b11e_292ed134",
+        "filename": "golden/go/tracestore/bt_tracestore/BIGTABLE.md",
+        "patchSetId": 18
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "Maybe mention that shard is a function only of key, not tile, so that a given key is on the same shard across all tiles.\n\nAlternatively, rename \"key\" to \"subkey\" to avoid confusion with \"row key\".\n\n(BTW, is there any particular reason that a given key should be on the same shard across tiles? It\u0027s mentioned in the doc for DefaultShards in bt_tracestore/types.go, but I can\u0027t think of a reason that\u0027s necessary or even desirable.)",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 71
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d33c0e5e_eeed6cbf",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: maybe document that Shards can\u0027t be more than 100.",
+      "range": {
+        "startLine": 45,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 7
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bca4a63d_fc4701c0",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "IIUC, once the BTTraceStore is created, the TileSize and Shards can never be changed without corrupting data. Is there any reason to make them config options?",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 17
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98c3f5dc_6e953801",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 62,
+        "startChar": 47,
+        "endLine": 62,
+        "endChar": 53
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84778e49_e548f8ae",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "I don\u0027t understand this.",
+      "range": {
+        "startLine": 116,
+        "startChar": 63,
+        "endLine": 116,
+        "endChar": 74
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c4cfbcb9_1d2f5dc8",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nits: s/EncodedTraceID/tiling.TraceId/, s/foo:bar:baz:gm/,foo\u003dbar,baz\u003dgm,/",
+      "range": {
+        "startLine": 173,
+        "startChar": 39,
+        "endLine": 174,
+        "endChar": 26
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d6b666ff_9c4787e5",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: maybe rename \"traceID\"; alternatively, rename \"tk\" to \"tileKey\" to avoid confusion with \"traceKey\"",
+      "range": {
+        "startLine": 180,
+        "startChar": 2,
+        "endLine": 180,
+        "endChar": 10
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91223d65_fa34ef7a",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: using a binary encoding would probably reduce the number of bytes in each trace by ~half. E.g. https://play.golang.org/p/qIjNiz3U3Zn",
+      "range": {
+        "startLine": 196,
+        "startChar": 44,
+        "endLine": 196,
+        "endChar": 56
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36075134_17d4730e",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "This parameter is ignored.",
+      "range": {
+        "startLine": 205,
+        "startChar": 65,
+        "endLine": 205,
+        "endChar": 79
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92b4be6d_475b495e",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: Would be nice to have a unit test that exercises commits spanning multiple tiles.",
+      "range": {
+        "startLine": 213,
+        "startChar": 4,
+        "endLine": 213,
+        "endChar": 50
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4fd36073_1602f65f",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: endOffset? I can\u0027t figure out what \"ec\" means.",
+      "range": {
+        "startLine": 272,
+        "startChar": 2,
+        "endLine": 272,
+        "endChar": 10
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ff75f2c_5405f0a6",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "I think this could legitimately happen, since BT is only eventually consistent. Maybe try re-reading the OPS a couple more times before giving up?\n\nAlternatively, store a revision number in each OPS that\u0027s incremented at each update. Store the revision of the OPS in each trace. When loading, find the max OPS revision across traces and keep re-reading the OPS until you get a new-enough version. (If you do this, you don\u0027t really need to store the hash of the OPS.)",
+      "range": {
+        "startLine": 283,
+        "startChar": 0,
+        "endLine": 287,
+        "endChar": 4
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c760a0cb_16bf0114",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "Similar to above, this could also happen due to eventual consistency.\n\nFortunately you don\u0027t really need to keep a revision for the digest map, since the max digestID is essentially a revision number.",
+      "range": {
+        "startLine": 302,
+        "startChar": 3,
+        "endLine": 304,
+        "endChar": 4
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "594c120e_dd81ebb8",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: for _, ic :\u003d range idxCommits[commitIDX:commitIDX+segLen]",
+      "range": {
+        "startLine": 309,
+        "startChar": 6,
+        "endLine": 309,
+        "endChar": 53
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4394424d_3e625261",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: seems like it would be a lot simpler and more efficient to move this out of the loop. commits should always have exactly the same commits as idxCommits.",
+      "range": {
+        "startLine": 308,
+        "startChar": 0,
+        "endLine": 325,
+        "endChar": 3
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "721e7682_28524b0f",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "Should be 0 according to https://skia.googlesource.com/buildbot/+/3ddff862228b8a495d878819dfb64b3ab01f102b/go/tiling/tiling.go#169",
+      "range": {
+        "startLine": 340,
+        "startChar": 2,
+        "endLine": 340,
+        "endChar": 14
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b06c187_23b14b59",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "This is incorrect.",
+      "range": {
+        "startLine": 347,
+        "startChar": 3,
+        "endLine": 347,
+        "endChar": 55
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f17d74b5_314ff7e0",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: consider passing in *vcsinfo.IndexCommit rather than commitHash. Half the callers of this function already have an IndexCommit, and calling vcs.IndexOf is potentially expensive.",
+      "range": {
+        "startLine": 348,
+        "startChar": 55,
+        "endLine": 348,
+        "endChar": 72
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b3fef49_97d3d84b",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: tileIndex seems clearer. Also for TileKeyFromOffset.",
+      "range": {
+        "startLine": 356,
+        "startChar": 1,
+        "endLine": 356,
+        "endChar": 11
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e314f63d_57bb2dfe",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: encTile",
+      "range": {
+        "startLine": 361,
+        "startChar": 24,
+        "endLine": 361,
+        "endChar": 25
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38f739e0_e05c26da",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: maybe defer metrics2.FuncTimer().Stop()",
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cff4c204_593f909d",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: maybe defer metrics2.FuncTimer().Stop()",
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92566a8e_2649ae68",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 468,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: This should never happen, according to the docs. A given encodedTraceID will always map to the same shard, so different shards should never have the same encodedTraceID.",
+      "range": {
+        "startLine": 468,
+        "startChar": 34,
+        "endLine": 468,
+        "endChar": 36
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f640d92d_2d6c7bc5",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: very unlikely to matter, but you might consider moving this into the loop so that multiple calls to ApplyBulk don\u0027t share a context. According to Joe, sometimes that causes contention.",
+      "range": {
+        "startLine": 486,
+        "startChar": 0,
+        "endLine": 487,
+        "endChar": 15
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "073c736a_59b1f7d4",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 518,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "last (although it really doesn\u0027t matter if it\u0027s first or last, as long as it\u0027s consistent)",
+      "range": {
+        "startLine": 518,
+        "startChar": 51,
+        "endLine": 518,
+        "endChar": 56
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96ec21d8_4d2122dd",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 518,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "three",
+      "range": {
+        "startLine": 518,
+        "startChar": 57,
+        "endLine": 518,
+        "endChar": 60
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1b76c06_9acdd4dc",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 520,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "3",
+      "range": {
+        "startLine": 520,
+        "startChar": 58,
+        "endLine": 520,
+        "endChar": 59
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea0ebcf3_5299751d",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 521,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "16^3\u003d4096",
+      "range": {
+        "startLine": 521,
+        "startChar": 16,
+        "endLine": 521,
+        "endChar": 21
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed1e7cc8_edde16e5",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: maybe defer metrics2.FuncTimer().Stop()",
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d4141a8_f92c0d06",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 532,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: I don\u0027t see any advantage of using a chan here; would be simpler to use a slice like in loadEncodedTraces.",
+      "range": {
+        "startLine": 532,
+        "startChar": 18,
+        "endLine": 532,
+        "endChar": 22
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9c2553ee_b9b4532f",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 563,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "len(ret)",
+      "range": {
+        "startLine": 563,
+        "startChar": 28,
+        "endLine": 563,
+        "endChar": 29
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d3c1a08_8bb53d06",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 576,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: consider swapping the order of err and dm. dm is likely to be very large, so the error is likely to be truncated, i.e. if err is last, it will be truncated out.",
+      "range": {
+        "startLine": 576,
+        "startChar": 65,
+        "endLine": 576,
+        "endChar": 68
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a50e7f43_b0d09554",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 585,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: maybe defer metrics2.FuncTimer().Stop()",
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98d0422c_b360c8ff",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 605,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: maybe just do \"toRequest +\u003d batchIdRequest\" so that there are always at least that many available for future use.\n\nIf you do that:\n - also maybe rename batchIdRequest to numReservedIds or something like that.\n - remove the toRequest :\u003d missing + 1 since it\u0027s no longer necessary (and it confused me).",
+      "range": {
+        "startLine": 602,
+        "startChar": 0,
+        "endLine": 605,
+        "endChar": 2
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93bda344_e3f1829b",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 615,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "cells",
+      "range": {
+        "startLine": 615,
+        "startChar": 15,
+        "endLine": 615,
+        "endChar": 19
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d84e7707_1084b48d",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 616,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "cell for",
+      "range": {
+        "startLine": 616,
+        "startChar": 21,
+        "endLine": 616,
+        "endChar": 29
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c45b39b_72b8feb3",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 627,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: this cast has no effect",
+      "range": {
+        "startLine": 627,
+        "startChar": 13,
+        "endLine": 627,
+        "endChar": 20
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd17696e_345161e2",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 661,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "Note that this is a helper for updateDigestMap, which reads the mapping from BT immediately before calling this function. (Maybe mention that in the docs for this function.)\n\nBT doesn\u0027t allow batching of conditional mutations, so I don\u0027t think there\u0027s any way to reduce the number of round-trips, although we could do them in parallel.",
+      "range": {
+        "startLine": 660,
+        "startChar": 0,
+        "endLine": 661,
+        "endChar": 58
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76c9ee13_bef45290",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 663,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: maybe defer metrics2.FuncTimer().Stop()",
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6906eb52_c0f5aab5",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 673,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: maybe add a comment \"this should never happen because we we\u0027ve already done this check in updateDigestMap\"",
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07225e8c_c471f54d",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 682,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: https://godoc.org/cloud.google.com/go/bigtable#hdr-Retries says using ServerTime prevents retries; might be more robust to provide a time here.",
+      "range": {
+        "startLine": 682,
+        "startChar": 39,
+        "endLine": 682,
+        "endChar": 58
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4943b93f_1cf5a868",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 711,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "Either way we need to read the rows; Apply does not allow for reading the existing value.",
+      "range": {
+        "startLine": 711,
+        "startChar": 4,
+        "endLine": 711,
+        "endChar": 85
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b5f182e_602b48a4",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 715,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "This may not include the most-recently-added IDs due to eventual consistency.",
+      "range": {
+        "startLine": 715,
+        "startChar": 8,
+        "endLine": 715,
+        "endChar": 27
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6fb15dc1_7d72d48b",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 718,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "Wrong doc.",
+      "range": {
+        "startLine": 718,
+        "startChar": 19,
+        "endLine": 718,
+        "endChar": 56
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92f2888f_0e54a577",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 720,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: maybe defer metrics2.FuncTimer().Stop()",
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd20423e_33dde2bd",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 741,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: maybe defer metrics2.FuncTimer().Stop()",
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56f010db_6c3559f5",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 741,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "I don\u0027t understand what this mutex is protecting.",
+      "range": {
+        "startLine": 741,
+        "startChar": 1,
+        "endLine": 741,
+        "endChar": 18
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aeed9415_64a86633",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 764,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "wrong error message",
+      "range": {
+        "startLine": 764,
+        "startChar": 26,
+        "endLine": 764,
+        "endChar": 56
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d11680a3_a46cffe0",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 785,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: use a single value for time.Now() for all operations in this function",
+      "range": {
+        "startLine": 785,
+        "startChar": 27,
+        "endLine": 785,
+        "endChar": 37
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d241d27_26df3f4d",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 846,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: maybe defer metrics2.FuncTimer().Stop()",
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c408839_10c73a61",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: Would be nice to have more unit tests of the helper functions in bt_tracestore.go.",
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed99b25e_6c1ca006",
+        "filename": "golden/go/tracestore/bt_tracestore/util.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: (repeat from above) \"index\" seems clearer; also for tileKey.Offset",
+      "range": {
+        "startLine": 9,
+        "startChar": 53,
+        "endLine": 9,
+        "endChar": 59
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e2b1a3a_f85a074e",
+        "filename": "golden/go/tracestore/bt_tracestore/util.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: should be lowercase",
+      "range": {
+        "startLine": 10,
+        "startChar": 5,
+        "endLine": 10,
+        "endChar": 22
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a2e2d621_df8bf0ca",
+        "filename": "golden/go/tracestore/bt_tracestore/util.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: unused\n\nnit: if this is removed, there\u0027s only one user of TileKeyFromOffset -- consider inlining",
+      "range": {
+        "startLine": 17,
+        "startChar": 17,
+        "endLine": 17,
+        "endChar": 25
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d5b6ace_b5e7abda",
+        "filename": "golden/go/tracestore/bt_tracestore/util.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: maybe copy to shardedRowName",
+      "range": {
+        "startLine": 33,
+        "startChar": 53,
+        "endLine": 33,
+        "endChar": 81
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea49e97b_f770f27f",
+        "filename": "golden/go/tracestore/bt_tracestore/util.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: maybe rename unshardedRowName and drop the key argument. (That means you wouldn\u0027t be able to use this function in shardedRowName, but that seems ok.)",
+      "range": {
+        "startLine": 35,
+        "startChar": 5,
+        "endLine": 35,
+        "endChar": 12
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "77453079_2dd38e9f",
+        "filename": "golden/go/tracestore/bt_tracestore/util_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: some of this file is testing code in types.go rather than util.go",
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85b7fbf5_03699950",
+        "filename": "golden/go/tracestore/bt_tracestore/util_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: AlphaID, BetaID, GammaID, also elsewhere in this file",
+      "range": {
+        "startLine": 34,
+        "startChar": 15,
+        "endLine": 34,
+        "endChar": 16
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b1f4efcc_a170b0be",
+        "filename": "golden/go/tracestore/types.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "nit: maybe mention in docs that results are undefined if there are multiple Entry\u0027s with the same Params.",
+      "range": {
+        "startLine": 27,
+        "startChar": 45,
+        "endLine": 27,
+        "endChar": 61
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

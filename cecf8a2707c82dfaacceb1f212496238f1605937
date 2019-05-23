@@ -190,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "5759348b_b1bef380",
+        "filename": "golden/go/tracestore/bt_tracestore/BIGTABLE.md",
+        "patchSetId": 13
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "Maybe replace point 3 with \"BT will perform better if each row contains only the columns we are interested in reading. Since we only really want to fetch the last few hundred commits, we would like to limit each row to contain enough data for a single tile. See also https://cloud.google.com/bigtable/docs/performance#slower-perf\"",
+      "parentUuid": "3339c020_ccba59d4",
+      "range": {
+        "startLine": 46,
+        "startChar": 51,
+        "endLine": 47,
+        "endChar": 13
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b4d71a97_720b4365",
         "filename": "golden/go/tracestore/bt_tracestore/BIGTABLE.md",
         "patchSetId": 13
@@ -328,6 +352,30 @@
       "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff0cc6b9_ecdef021",
+        "filename": "golden/go/tracestore/bt_tracestore/BIGTABLE.md",
+        "patchSetId": 13
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "Could you also copy \"(2^32-1) - (tile number)\" from perf/BIGTABLE.md?",
+      "parentUuid": "27c1fe03_f3f026dc",
+      "range": {
+        "startLine": 73,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 62
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
@@ -778,6 +826,30 @@
     },
     {
       "key": {
+        "uuid": "6ead3918_a91a14c1",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f1f28236_e61e1bb7",
+      "range": {
+        "startLine": 72,
+        "startChar": 21,
+        "endLine": 72,
+        "endChar": 24
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3eb0fe0e_c2a6b715",
         "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
         "patchSetId": 13
@@ -1034,6 +1106,30 @@
     },
     {
       "key": {
+        "uuid": "5f19a955_70f64532",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "Yuck. Seems wrong for tests to assert an implementation detail of a completely unrelated package.",
+      "parentUuid": "ff8ce7bb_3639f6fc",
+      "range": {
+        "startLine": 487,
+        "startChar": 31,
+        "endLine": 487,
+        "endChar": 48
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "515585cb_824224be",
         "filename": "golden/go/tracestore/bt_tracestore/types.go",
         "patchSetId": 13
@@ -1207,6 +1303,24 @@
       "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d5b5b32_4181a7d8",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-05-23T22:55:42Z",
+      "side": 1,
+      "message": "Yeah, for private types, methods that fulfill an interface of another package need to be uppercase, but otherwise the choice is mostly for documentation.",
+      "parentUuid": "3e58835c_1821f173",
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
