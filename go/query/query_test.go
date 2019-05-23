@@ -423,3 +423,129 @@ func TestForceValue(t *testing.T) {
 		}
 	}
 }
+
+func TestQueryPlan(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ops := &paramtools.OrderedParamSet{
+		KeyOrder: []string{"arch", "config", "debug", "foo"},
+		ParamSet: paramtools.ParamSet{
+			"config": []string{"8888", "565", "gpu"},
+			"arch":   []string{"x86", "arm"},
+			"debug":  []string{"true", "false"},
+			"foo":    []string{"bar"},
+		},
+	}
+
+	testCases := []struct {
+		query    url.Values
+		want     paramtools.ParamSet
+		hasError bool
+		reason   string
+	}{
+		{
+			query:  url.Values{},
+			want:   paramtools.ParamSet{},
+			reason: "Empty query matches everything.",
+		},
+		{
+			query:  url.Values{"config": []string{"565"}},
+			want:   paramtools.ParamSet{"config": []string{"565"}},
+			reason: "Simple",
+		},
+		{
+			query:  url.Values{"config": []string{"565", "8888"}},
+			want:   paramtools.ParamSet{"config": []string{"8888", "565"}},
+			reason: "Simple OR",
+		},
+		{
+			query: url.Values{"config": []string{"565"}, "debug": []string{"true"}},
+			want: paramtools.ParamSet{
+				"config": []string{"565"},
+				"debug":  []string{"true"},
+			},
+			reason: "Simple AND",
+		},
+		{
+			query:  url.Values{"fizz": []string{"buzz"}},
+			want:   paramtools.ParamSet{},
+			reason: "Unknown param",
+		},
+		{
+			query:    url.Values{"config": []string{"buzz"}},
+			want:     paramtools.ParamSet{},
+			hasError: true,
+			reason:   "Unknown value",
+		},
+		{
+			query:  url.Values{"arch": []string{"*"}},
+			want:   paramtools.ParamSet{"arch": []string{"x86", "arm"}},
+			reason: "Wildcard param value match",
+		},
+		{
+			query:  url.Values{"fizz": []string{"*"}},
+			want:   paramtools.ParamSet{},
+			reason: "Wildcard param value missing",
+		},
+		{
+			query:  url.Values{"foo": []string{"*"}},
+			want:   paramtools.ParamSet{"foo": []string{"bar"}},
+			reason: "Wildcard param value missing",
+		},
+		{
+			query:  url.Values{"config": []string{"!565"}},
+			want:   paramtools.ParamSet{"config": []string{"8888", "gpu"}},
+			reason: "Negative",
+		},
+		{
+			query:  url.Values{"config": []string{"!565", "!8888"}},
+			want:   paramtools.ParamSet{"config": []string{"gpu"}},
+			reason: "Negative multi miss",
+		},
+		{
+			query: url.Values{"config": []string{"!565"}, "debug": []string{"*"}},
+			want: paramtools.ParamSet{
+				"config": []string{"8888", "gpu"},
+				"debug":  []string{"true", "false"},
+			},
+			reason: "Negative and wildcard",
+		},
+		{
+			query:  url.Values{},
+			want:   paramtools.ParamSet{},
+			reason: "Empty query matches everything.",
+		},
+		{
+			query:  url.Values{"config": []string{"~5.5"}},
+			want:   paramtools.ParamSet{"config": []string{"565"}},
+			reason: "Regexp match",
+		},
+		{
+			query:  url.Values{"config": []string{"~8+"}},
+			want:   paramtools.ParamSet{"config": []string{"8888"}},
+			reason: "Regexp match",
+		},
+		{
+			query:  url.Values{"arch": []string{"~^x"}, "config": []string{"!565"}, "debug": []string{"*"}},
+			want:   paramtools.ParamSet{"arch": []string{"x86"}, "config": []string{"8888", "gpu"}, "debug": []string{"true", "false"}},
+			reason: "Negative, wildcard, and regexp",
+		},
+		{
+			query:    url.Values{"arch": []string{"~^y.*"}, "config": []string{"!565"}, "debug": []string{"*"}},
+			hasError: true,
+			reason:   "Negative, wildcard, and miss regexp",
+		},
+	}
+
+	for _, tc := range testCases {
+		q, err := New(tc.query)
+		assert.NoError(t, err, tc.reason)
+		ps, err := q.QueryPlan(ops)
+		if tc.hasError {
+			assert.Error(t, err, tc.reason)
+		} else {
+			assert.NoError(t, err, tc.reason)
+			assert.Equal(t, tc.want, ps, tc.reason)
+		}
+	}
+}
