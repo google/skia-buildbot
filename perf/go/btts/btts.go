@@ -81,8 +81,8 @@ type TileKey int32
 // BadTileKey is returned in error conditions.
 const BadTileKey = TileKey(-1)
 
-// tileKeyFromOffset returns a TileKey from the tile offset.
-func tileKeyFromOffset(tileOffset int32) TileKey {
+// TileKeyFromOffset returns a TileKey from the tile offset.
+func TileKeyFromOffset(tileOffset int32) TileKey {
 	if tileOffset < 0 {
 		return BadTileKey
 	}
@@ -90,7 +90,7 @@ func tileKeyFromOffset(tileOffset int32) TileKey {
 }
 
 func (t TileKey) PrevTile() TileKey {
-	return tileKeyFromOffset(t.Offset() - 1)
+	return TileKeyFromOffset(t.Offset() - 1)
 }
 
 // OpsRowName returns the name of the BigTable row that the OrderedParamSet for this tile is stored at.
@@ -243,7 +243,7 @@ func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.PerfBigTab
 
 // Given the index return the TileKey of the tile that would contain that column.
 func (b *BigTableTraceStore) TileKey(index int32) TileKey {
-	return tileKeyFromOffset(index / b.tileSize)
+	return TileKeyFromOffset(index / b.tileSize)
 }
 
 // Returns the offset within a tile for the given index.
