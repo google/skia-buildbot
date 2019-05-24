@@ -12,8 +12,11 @@ import (
 	"regexp"
 	"strings"
 
+	"cloud.google.com/go/storage"
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/strategy"
+	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/sklog"
@@ -58,24 +61,25 @@ type GithubRepoManagerConfig struct {
 	ChildRepoURL string `json:"childRepoURL"`
 	// The roller will update this file with the child repo's revision.
 	RevisionFile string `json:"revisionFile"`
-	// The default strategy to use.
-	DefaultStrategy string `json:"defaultStrategy"`
-	// GS Bucket and template to use if strategy.ROLL_STRATEGY_STORAGE_FILE is used.
-	StorageBucket        string   `json:"storageBucket"`
+	// GCS bucket to use if filtering revisions by presence of files in GCS.
+	StorageBucket string `json:"storageBucket"`
+	// Templates of GCS files to look for; if provided, revisions to roll
+	// will be filtered by the presence of these files in GCS.
 	StoragePathTemplates []string `json:"storagePathTemplates"`
 }
 
 // githubRepoManager is a struct used by the autoroller for managing checkouts.
 type githubRepoManager struct {
 	*commonRepoManager
-	githubClient    *github.GitHub
-	parentRepo      *git.Checkout
-	parentRepoURL   string
-	childRepoURL    string
-	revisionFile    string
-	defaultStrategy string
-	gsBucket        string
-	gsPathTemplates []string
+	filterRevisionsByGCS []string
+	gcs                  gcs.GCSClient
+	githubClient         *github.GitHub
+	parentRepo           *git.Checkout
+	parentRepoURL        string
+	childRepoURL         string
+	revisionFile         string
+	gsBucket             string
+	gsPathTemplates      []string
 }
 
 // newGithubRepoManager returns a RepoManager instance which operates in the given
@@ -114,14 +118,23 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 		}
 	}
 
+	var gcsClient gcs.GCSClient
+	if len(c.StoragePathTemplates) > 0 {
+		storageClient, err := storage.NewClient(ctx)
+		if err != nil {
+			return nil, err
+		}
+		gcsClient = gcsclient.New(storageClient, c.StorageBucket)
+	}
+
 	gr := &githubRepoManager{
 		commonRepoManager: crm,
+		gcs:               gcsClient,
 		githubClient:      githubClient,
 		parentRepo:        parentRepo,
 		parentRepoURL:     c.ParentRepoURL,
 		childRepoURL:      c.ChildRepoURL,
 		revisionFile:      c.RevisionFile,
-		defaultStrategy:   c.DefaultStrategy,
 		gsBucket:          c.StorageBucket,
 		gsPathTemplates:   c.StoragePathTemplates,
 	}
@@ -177,6 +190,36 @@ func (rm *githubRepoManager) Update(ctx context.Context) error {
 	notRolledRevs, err := rm.getCommitsNotRolled(ctx, lastRollRev)
 	if err != nil {
 		return err
+	}
+
+	// Optionally filter not-rolled revisions by the existence of matching
+	// files in GCS.
+	if len(rm.gsPathTemplates) > 0 {
+		filtered := make([]*revision.Revision, 0, len(notRolledRevs))
+		for _, notRolledRev := range notRolledRevs {
+			// Check to see if this commit exists in the gsPath locations.
+			missingFile := false
+			for _, gsPathTemplate := range rm.gsPathTemplates {
+				gsPath := fmt.Sprintf(gsPathTemplate, notRolledRev.Id)
+				fileExists, err := rm.gcs.DoesFileExist(ctx, gsPath)
+				if err != nil {
+					return err
+				}
+				if fileExists {
+					sklog.Infof("[gcsFileStrategy] Found %s", gsPath)
+					continue
+				} else {
+					sklog.Infof("[gcsFileStrategy] Could not find %s", gsPath)
+					missingFile = true
+					break
+				}
+			}
+			if !missingFile {
+				sklog.Infof("[gcsFileStrategy] Found all %s paths for %s", rm.gsPathTemplates, notRolledRev.Id)
+				filtered = append(filtered, notRolledRev)
+			}
+		}
+		notRolledRevs = filtered
 	}
 
 	// Get the next roll revision.
@@ -359,23 +402,4 @@ func GetUserAndRepo(githubRepo string) (string, string) {
 	user := strings.Split(repoTokens[1], "/")[0]
 	repo := strings.TrimRight(strings.Split(repoTokens[1], "/")[1], ".git")
 	return user, repo
-}
-
-// See documentation for RepoManager interface.
-func (r *githubRepoManager) CreateNextRollStrategy(ctx context.Context, s string) (strategy.NextRollStrategy, error) {
-	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_REMOTE, r.gsBucket, r.gsPathTemplates, r.childRepo, nil)
-}
-
-// See documentation for RepoManager interface.
-func (r *githubRepoManager) DefaultStrategy() string {
-	return r.defaultStrategy
-}
-
-// See documentation for RepoManager interface.
-func (r *githubRepoManager) ValidStrategies() []string {
-	return []string{
-		strategy.ROLL_STRATEGY_GCS_FILE,
-		strategy.ROLL_STRATEGY_SINGLE,
-		strategy.ROLL_STRATEGY_BATCH,
-	}
 }

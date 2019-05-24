@@ -168,11 +168,6 @@ func (rm *noCheckoutRepoManager) RolledPast(ctx context.Context, ver string) (bo
 }
 
 // See documentation for RepoManager interface.
-func (r *noCheckoutRepoManager) CreateNextRollStrategy(ctx context.Context, s string) (strategy.NextRollStrategy, error) {
-	return nil, fmt.Errorf("NOT IMPLEMENTED")
-}
-
-// See documentation for RepoManager interface.
 func (r *noCheckoutRepoManager) DefaultStrategy() string {
 	return "NOT IMPLEMENTED"
 }

@@ -77,7 +77,7 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 		return nil, err
 	}
 	arm := androidRM.(*androidRepoManager)
-	arm.SetStrategy(strategy.StrategyRemoteHead(arm.childBranch, UPSTREAM_REMOTE_NAME, arm.childRepo))
+	arm.SetStrategy(strategy.StrategyHead())
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(authClient))
 	if err != nil {
 		return nil, err

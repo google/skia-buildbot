@@ -64,10 +64,38 @@ func setupAndroid(t *testing.T) (context.Context, string, func()) {
 				if cmd.Args[1] == "--format=format:%H%x20%ci" {
 					output = fmt.Sprintf("%s 2017-03-29 18:29:22 +0000\n%s 2017-03-29 18:29:22 +0000", childCommits[0], childCommits[1])
 				}
+				if cmd.Args[1] == "-n" && cmd.Args[2] == "1" {
+					commit := ""
+					for _, c := range childCommits {
+						if cmd.Args[len(cmd.Args)-1] == c {
+							commit = c
+							break
+						}
+					}
+					assert.NotEqual(t, "", commit)
+					output = fmt.Sprintf("%s\nparent\nMe (me@google.com)\nsome commit\n1558543876\n", commit)
+				}
 			} else if cmd.Args[0] == "ls-remote" {
 				output = childCommits[0]
 			} else if cmd.Args[0] == "merge-base" {
 				output = childCommits[1]
+			} else if cmd.Args[0] == "rev-list" {
+				split := strings.Split(cmd.Args[len(cmd.Args)-1], "..")
+				assert.Equal(t, 2, len(split))
+				startCommit := split[0]
+				endCommit := split[1]
+				start, end := -1, -1
+				for i := 0; i < len(childCommits); i++ {
+					if childCommits[i] == startCommit {
+						start = i
+					}
+					if childCommits[i] == endCommit {
+						end = i
+					}
+				}
+				assert.NotEqual(t, -1, start)
+				assert.NotEqual(t, -1, end)
+				output = strings.Join(childCommits[end:start], "\n")
 			}
 			n, err := cmd.CombinedOutput.Write([]byte(output))
 			assert.NoError(t, err)
@@ -90,7 +118,7 @@ func TestAndroidRepoManager(t *testing.T) {
 	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
 	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_REMOTE_BATCH))
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
 
 	assert.Equal(t, fmt.Sprintf("%s/android_repo/%s", wd, childPath), rm.(*androidRepoManager).childDir)
@@ -107,7 +135,7 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
 	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_REMOTE_BATCH))
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
 
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), androidEmails, "", false)
@@ -175,7 +203,7 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
 	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_REMOTE_BATCH))
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
 
 	ran := false

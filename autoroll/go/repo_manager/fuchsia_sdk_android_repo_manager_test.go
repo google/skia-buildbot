@@ -124,7 +124,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, RepoManager,
 
 	rm, err := NewFuchsiaSDKAndroidRepoManager(ctx, cfg, wd, g, "fake.server.com", "", urlmock.Client(), androidGerrit(t, g), false)
 	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_FUCHSIA_SDK))
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
 
 	cleanup := func() {
@@ -164,7 +164,7 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, rolledPast)
 	assert.Empty(t, rm.PreUploadSteps())
-	assert.Equal(t, 0, len(rm.NotRolledRevisions())) // Always zero.
+	assert.Equal(t, 0, len(rm.NotRolledRevisions()))
 
 	// There's a new version.
 	mockParent.MockGetCommit(ctx, "master")
@@ -191,7 +191,8 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	rolledPast, err = rm.RolledPast(ctx, fuchsiaSDKRevNext)
 	assert.NoError(t, err)
 	assert.False(t, rolledPast)
-	assert.Equal(t, 0, len(rm.NotRolledRevisions())) // Always zero.
+	assert.Equal(t, 1, len(rm.NotRolledRevisions()))
+	assert.Equal(t, fuchsiaSDKRevNext, rm.NotRolledRevisions()[0].Id)
 
 	// Upload a CL.
 

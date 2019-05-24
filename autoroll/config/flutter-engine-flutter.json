@@ -34,7 +34,6 @@
     "childRepoURL": "git@github.com:flutter/engine.git",
     "childRevLinkTmpl": "https://github.com/flutter/engine/commit/%s",
     "revisionFile": "bin/internal/engine.version",
-    "defaultStrategy": "gcs file",
     "storageBucket": "flutter_infra",
     "storagePathTemplates": [
       "flutter/%s/android-javadoc.zip",
