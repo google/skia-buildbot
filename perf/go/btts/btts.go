@@ -58,6 +58,11 @@ const (
 	// MAX_MUTATIONS is the max number of mutations we can send in a single ApplyBulk call. Can be up to 100,000 according to BigTable docs.
 	MAX_MUTATIONS = 100000
 
+	// MAX_ROW_KEYS is the max number of rowKeys we can send in any single
+	// ReadRows request. This should keep the size of the serialized request
+	// object to under the limit of 1MB.
+	MAX_ROW_KEYS = 10000
+
 	// MAX_INDEX_LRU_CACHE is the size of the lru cache where we remember if we've already stored indices for a rowKey.
 	MAX_INDEX_LRU_CACHE = 20 * 1000 * 1000
 
@@ -581,6 +586,191 @@ func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q
 		i := i
 		g.Go(func() error {
 			rowRegex := tileKey.TraceRowPrefix(i) + ".*" + r.String()
+			return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
+				vec := vec32.New(int(b.tileSize))
+				for _, col := range row[VALUES_FAMILY] {
+					vec[b.lookup[col.Column]] = math.Float32frombits(binary.LittleEndian.Uint32(col.Value))
+				}
+				parts := strings.Split(row.Key(), ":")
+				traceId, err := traceIdFromEncoded(ops, parts[2])
+				if err != nil {
+					sklog.Infof("Found encoded key %q that can't be decoded: %s", parts[2], err)
+					return true
+				}
+				mutex.Lock()
+				ret[traceId] = vec
+				mutex.Unlock()
+				return true
+			}, bigtable.RowFilter(
+				bigtable.ChainFilters(
+					bigtable.LatestNFilter(1),
+					bigtable.RowKeyFilter(rowRegex),
+					bigtable.FamilyFilter(VALUES_FAMILY),
+				)))
+		})
+	}
+	if err := g.Wait(); err != nil {
+		return nil, fmt.Errorf("Failed to query: %s", err)
+	}
+
+	return ret, nil
+}
+
+// QueryTracesByIndex returns a map of encoded keys to a slice of floats for all
+// traces that match the given query.
+//
+// It will be a drop-in replacement for QueryTraces once we have indices in all tables.
+func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey TileKey, q *query.Query) (types.TraceSet, error) {
+	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.QueryTracesByIndex")
+	defer span.End()
+
+	ops, err := b.GetOrderedParamSet(ctx, tileKey)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get OPS: %s", err)
+	}
+
+	// We need to differentiate between two cases:
+	//   - The query is empty, which means we want all traces.
+	//   - The query plan is empty, which means it won't match any
+	//     traces in this tile, so pre-emptively return an empty TraceSet.
+	if q.Empty() {
+		return b.allTraces(ctx, tileKey)
+	}
+	plan, err := q.QueryPlan(ops)
+	if err != nil {
+		// Not an error, we just won't match anything in this tile.
+		return nil, nil
+	}
+	if len(plan) == 0 {
+		// We won't match anything in this tile.
+		return nil, nil
+	}
+
+	defer timer.New("btts_query_traces_by_index").Stop()
+	defer metrics2.FuncTimer().Stop()
+	ret := types.TraceSet{}
+	tctx, cancel := context.WithTimeout(ctx, TIMEOUT)
+	defer cancel()
+
+	rowSet := bigtable.RowList{}
+	for key, values := range plan {
+		for _, value := range values {
+			rowSet = append(rowSet, fmt.Sprintf("%s:%s:%s", tileKey.IndexRowPrefix(), key, value))
+		}
+	}
+	// indices maps the plan keys to paramsets, which map plan values to slices of keys.
+	indices := map[string]paramtools.ParamSet{}
+	err = b.getTable().ReadRows(context.Background(), rowSet, func(row bigtable.Row) bool {
+		// rowKey looks like "i2147483646:config:565".
+		rowParts := strings.Split(row.Key(), ":")
+		if len(rowParts) != 3 {
+			sklog.Errorf("Invalid index row key: %s", row.Key())
+			return true
+		}
+		paramKey := rowParts[1]
+		paramValue := rowParts[2]
+		traceKeys := []string{}
+		for _, col := range row[INDEX_FAMILY] {
+			// Strip off the family name which is prefixed.
+			traceKeys = append(traceKeys, col.Column[2:])
+		}
+		var ok bool
+		ps := paramtools.ParamSet{}
+		if ps, ok = indices[paramKey]; !ok {
+			ps = paramtools.NewParamSet()
+		}
+		ps[paramValue] = traceKeys
+		indices[paramKey] = ps
+		return true
+	}, bigtable.RowFilter(
+		bigtable.ChainFilters(
+			bigtable.LatestNFilter(1),
+			bigtable.FamilyFilter(INDEX_FAMILY),
+		),
+	),
+	)
+
+	var ss util.StringSet = nil
+	// Now consolidate the indices into a set of keys to request.
+	for _ /* paramKey */, ps := range indices {
+		valueSS := util.StringSet{}
+		for _ /* paramValue */, traceRowKeys := range ps {
+			// Union across paramKeys.
+			valueSS.AddLists(traceRowKeys)
+		}
+		// Intersect across paramValues.
+		if ss == nil {
+			ss = valueSS
+		} else {
+			ss = ss.Intersect(valueSS)
+		}
+	}
+
+	if len(ss) == 0 {
+		return nil, nil
+	}
+
+	rowSet = bigtable.RowList(ss.Keys())
+	// Break the rowSet into batches of MAX_ROW_KEYS
+	for {
+		if len(rowSet) == 0 {
+			break
+		}
+		sliceSize := MAX_ROW_KEYS
+		if len(rowSet) < MAX_ROW_KEYS {
+			sliceSize = len(rowSet)
+		}
+		rowSetSubset := rowSet[:sliceSize]
+		rowSet = rowSet[sliceSize:]
+
+		err = b.getTable().ReadRows(tctx, rowSetSubset, func(row bigtable.Row) bool {
+			vec := vec32.New(int(b.tileSize))
+			for _, col := range row[VALUES_FAMILY] {
+				vec[b.lookup[col.Column]] = math.Float32frombits(binary.LittleEndian.Uint32(col.Value))
+			}
+			parts := strings.Split(row.Key(), ":")
+			traceId, err := traceIdFromEncoded(ops, parts[2])
+			if err != nil {
+				sklog.Infof("Found encoded key %q that can't be decoded: %s", parts[2], err)
+				return true
+			}
+			ret[traceId] = vec
+			return true
+		}, bigtable.RowFilter(
+			bigtable.ChainFilters(
+				bigtable.LatestNFilter(1),
+				bigtable.FamilyFilter(VALUES_FAMILY),
+			)))
+		if err != nil {
+			return nil, fmt.Errorf("Failed to query: %s", err)
+		}
+	}
+
+	return ret, nil
+}
+
+// allTraces returns a map of encoded keys to a slice of floats for all traces.
+func (b *BigTableTraceStore) allTraces(ctx context.Context, tileKey TileKey) (types.TraceSet, error) {
+	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.allTraces")
+	defer span.End()
+
+	ops, err := b.GetOrderedParamSet(ctx, tileKey)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get OPS: %s", err)
+	}
+
+	defer timer.New("btts_all_traces").Stop()
+	defer metrics2.FuncTimer().Stop()
+	var mutex sync.Mutex
+	ret := types.TraceSet{}
+	var g errgroup.Group
+	tctx, cancel := context.WithTimeout(ctx, TIMEOUT)
+	defer cancel()
+	// Spawn one Go routine for each shard.
+	for i := int32(0); i < b.shards; i++ {
+		i := i
+		g.Go(func() error {
+			rowRegex := tileKey.TraceRowPrefix(i) + ".*"
 			return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
 				vec := vec32.New(int(b.tileSize))
 				for _, col := range row[VALUES_FAMILY] {
