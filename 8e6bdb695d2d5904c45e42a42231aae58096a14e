@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a0add410_9271f442",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 619,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-24T17:45:24Z",
+      "side": 1,
+      "message": "I risk sounding like a broken record, but for Gold I had a specific type for EncodedTraceIDs (which differentiates from tiling.TileId) to make this sort of check at compile time and also require less documentation saying \"this string is a such-and-such\"",
+      "range": {
+        "startLine": 619,
+        "startChar": 79,
+        "endLine": 619,
+        "endChar": 85
+      },
+      "revId": "8e6bdb695d2d5904c45e42a42231aae58096a14e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe70f001_7bf43e46",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 624,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-24T17:45:24Z",
+      "side": 1,
+      "message": "I prefer skerr.Fmt because it adds line numbers",
+      "range": {
+        "startLine": 624,
+        "startChar": 14,
+        "endLine": 624,
+        "endChar": 24
+      },
+      "revId": "8e6bdb695d2d5904c45e42a42231aae58096a14e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a2ac3ba_a93024bd",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 661,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-24T17:45:24Z",
+      "side": 1,
+      "message": "Does this error get eaten?",
+      "range": {
+        "startLine": 661,
+        "startChar": 4,
+        "endLine": 661,
+        "endChar": 12
+      },
+      "revId": "8e6bdb695d2d5904c45e42a42231aae58096a14e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
