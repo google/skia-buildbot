@@ -70,7 +70,7 @@ func TestLoggedInAs(t *testing.T) {
 	delete(activeUserDomainWhiteList, "chromium.org")
 	assert.Equal(t, LoggedInAs(r), "", "Not in the domain whitelist.")
 	url = LoginURL(w, r)
-	assert.Contains(t, url, "approval_prompt=force", "Force into prompt.")
+	assert.Contains(t, url, "prompt=consent", "Force into prompt.")
 
 	activeUserEmailWhiteList["fred@chromium.org"] = true
 	assert.Equal(t, LoggedInAs(r), "fred@chromium.org", "Found in the email whitelist.")
