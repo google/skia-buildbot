@@ -46,6 +46,30 @@
       "revId": "a4d37b3030bea3a462780d98914252dc73c490de",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bdf1d66f_a9da33f0",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 548,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-24T18:42:31Z",
+      "side": 0,
+      "message": "We should not consider it successful if we are missing some checks. I think/hope what you have here will work.",
+      "parentUuid": "4b9f4691_342ea1c0",
+      "range": {
+        "startLine": 548,
+        "startChar": 7,
+        "endLine": 548,
+        "endChar": 79
+      },
+      "revId": "a4d37b3030bea3a462780d98914252dc73c490de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
