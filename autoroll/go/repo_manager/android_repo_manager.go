@@ -525,19 +525,9 @@ func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRe
 }
 
 // See documentation for RepoManager interface.
-func (r *androidRepoManager) CreateNextRollStrategy(ctx context.Context, s string) (strategy.NextRollStrategy, error) {
-	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, UPSTREAM_REMOTE_NAME, "", []string{}, r.childRepo, nil)
-}
-
-// See documentation for RepoManager interface.
-func (r *androidRepoManager) DefaultStrategy() string {
-	return strategy.ROLL_STRATEGY_REMOTE_BATCH
-}
-
-// See documentation for RepoManager interface.
 func (r *androidRepoManager) ValidStrategies() []string {
 	return []string{
-		strategy.ROLL_STRATEGY_REMOTE_BATCH,
+		strategy.ROLL_STRATEGY_BATCH,
 		strategy.ROLL_STRATEGY_N_BATCH,
 	}
 }

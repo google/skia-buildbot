@@ -3,17 +3,25 @@ package repo_manager
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"path"
+	"regexp"
+	"sort"
+	"strconv"
 	"strings"
 
+	"cloud.google.com/go/storage"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
+	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/sklog"
+	"google.golang.org/api/option"
 )
 
 /*
@@ -31,6 +39,12 @@ gbiv@chromium.org. Additional context: https://crbug.com/805539
 Please note that, despite rolling to chrome/android, this profile is
 used for both Linux and Android.
 ` + COMMIT_MSG_FOOTER_TMPL
+
+	AFDO_GS_BUCKET = "chromeos-prebuilt"
+	AFDO_GS_PATH   = "afdo-job/llvm/"
+
+	AFDO_VERSION_LENGTH               = 5
+	AFDO_VERSION_REGEX_EXPECT_MATCHES = AFDO_VERSION_LENGTH + 1
 )
 
 var (
@@ -41,7 +55,76 @@ var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
 	NewAFDORepoManager func(context.Context, *AFDORepoManagerConfig, string, gerrit.GerritInterface, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newAfdoRepoManager
+
+	// Example name: chromeos-chrome-amd64-63.0.3239.57_rc-r1.afdo.bz2
+	AFDO_VERSION_REGEX = regexp.MustCompile(
+		"^chromeos-chrome-amd64-" + // Prefix
+			"(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)" + // Version
+			"_rc-r(\\d+)" + // Revision
+			"-merged\\.afdo\\.bz2$") // Suffix
+
+	// Error used to indicate that a version number is invalid.
+	errInvalidAFDOVersion = errors.New("Invalid AFDO version.")
 )
+
+// Parse the AFDO version.
+func parseAFDOVersion(ver string) ([AFDO_VERSION_LENGTH]int, error) {
+	matches := AFDO_VERSION_REGEX.FindStringSubmatch(ver)
+	var matchInts [AFDO_VERSION_LENGTH]int
+	if len(matches) == AFDO_VERSION_REGEX_EXPECT_MATCHES {
+		for idx, a := range matches[1:] {
+			i, err := strconv.Atoi(a)
+			if err != nil {
+				return matchInts, fmt.Errorf("Failed to parse int from regex match string; is the regex incorrect?")
+			}
+			matchInts[idx] = i
+		}
+		return matchInts, nil
+	} else {
+		return matchInts, errInvalidAFDOVersion
+	}
+}
+
+// Return true iff version a is greater than version b.
+func AFDOVersionGreater(a, b string) (bool, error) {
+	verA, err := parseAFDOVersion(a)
+	if err != nil {
+		return false, err
+	}
+	verB, err := parseAFDOVersion(b)
+	if err != nil {
+		return false, err
+	}
+	for i := 0; i < AFDO_VERSION_LENGTH; i++ {
+		if verA[i] > verB[i] {
+			return true, nil
+		} else if verA[i] < verB[i] {
+			return false, nil
+		}
+	}
+	return false, nil
+}
+
+type afdoVersionSlice []string
+
+func (s afdoVersionSlice) Len() int {
+	return len(s)
+}
+
+func (s afdoVersionSlice) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+// We sort newest to oldest.
+func (s afdoVersionSlice) Less(i, j int) bool {
+	greater, err := AFDOVersionGreater(s[i], s[j])
+	if err != nil {
+		// We should've caught any parsing errors before we inserted the
+		// versions into the slice.
+		sklog.Errorf("Failed to compare AFDO versions: %s", err)
+	}
+	return greater
+}
 
 // Shorten the AFDO version.
 func afdoShortVersion(long string) string {
@@ -60,6 +143,7 @@ type afdoRepoManager struct {
 	*noCheckoutRepoManager
 	afdoVersionFile string
 	authClient      *http.Client
+	gcs             gcs.GCSClient
 	versions        []string // Protected by infoMtx.
 }
 
@@ -68,9 +152,15 @@ func newAfdoRepoManager(ctx context.Context, c *AFDORepoManagerConfig, workdir s
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
+	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(client))
+	if err != nil {
+		return nil, err
+	}
+	gcsClient := gcsclient.New(storageClient, AFDO_GS_BUCKET)
 	rv := &afdoRepoManager{
 		afdoVersionFile: AFDO_VERSION_FILE_PATH,
 		authClient:      client,
+		gcs:             gcsClient,
 	}
 	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, client, cr, rv.createRoll, rv.updateHelper, local)
 	if err != nil {
@@ -103,40 +193,46 @@ func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.Next
 	}
 	lastRollRev := strings.TrimSpace(buf.String())
 
-	// Get the next roll rev, and the list of versions in between the last
-	// and next rolls.
-	nextRollRev, err := strat.GetNextRollRev(ctx, nil)
-	if err != nil {
+	// Find the available AFDO versions, sorted newest to oldest.
+	versions := []string{}
+	if err := rm.gcs.AllFilesInDirectory(ctx, AFDO_GS_PATH, func(item *storage.ObjectAttrs) {
+		name := strings.TrimPrefix(item.Name, AFDO_GS_PATH)
+		if _, err := parseAFDOVersion(name); err == nil {
+			versions = append(versions, name)
+		} else if err == errInvalidAFDOVersion {
+			// There are files we don't care about in this bucket. Just ignore.
+		} else {
+			sklog.Error(err)
+		}
+	}); err != nil {
 		return "", "", nil, err
 	}
-	if nextRollRev == "" {
-		nextRollRev = lastRollRev
+	if len(versions) == 0 {
+		return "", "", nil, fmt.Errorf("No valid AFDO profile names found.")
 	}
+	sort.Sort(afdoVersionSlice(versions))
 
-	versions := strat.(*strategy.AFDOStrategy).GetVersions()
 	lastIdx := -1
-	nextIdx := -1
 	for idx, v := range versions {
 		if v == lastRollRev {
 			lastIdx = idx
-		}
-		if v == nextRollRev {
-			nextIdx = idx
+			break
 		}
 	}
 	if lastIdx == -1 {
-		sklog.Errorf("Last roll rev %q not found in available versions. Not-rolled count will be wrong.", lastRollRev)
+		return "", "", nil, fmt.Errorf("Last roll rev %q not found in available versions. Unable to create revision list.", lastRollRev)
 	}
-	if nextIdx == -1 {
-		sklog.Errorf("Next roll rev %q not found in available versions. Not-rolled count will be wrong.", nextRollRev)
-	}
-	// Get the list of not-yet-rolled revisions. The versions are in
-	// descending order.
-	notRolledRevs := make([]*revision.Revision, 0, lastIdx-nextIdx)
-	for idx := lastIdx - 1; idx >= nextIdx; idx-- {
+
+	// Get the list of not-yet-rolled revisions.
+	notRolledRevs := make([]*revision.Revision, 0, len(versions)-lastIdx)
+	for i := 0; i < lastIdx; i++ {
 		notRolledRevs = append(notRolledRevs, &revision.Revision{
-			Id: versions[idx],
+			Id: versions[i],
 		})
+	}
+	nextRollRev, err := rm.getNextRollRev(ctx, notRolledRevs, lastRollRev)
+	if err != nil {
+		return "", "", nil, err
 	}
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
@@ -146,7 +242,7 @@ func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.Next
 
 // See documentation for RepoManager interface.
 func (rm *afdoRepoManager) RolledPast(ctx context.Context, ver string) (bool, error) {
-	verIsNewer, err := strategy.AFDOVersionGreater(ver, rm.LastRollRev())
+	verIsNewer, err := AFDOVersionGreater(ver, rm.LastRollRev())
 	if err != nil {
 		return false, err
 	}
@@ -154,18 +250,6 @@ func (rm *afdoRepoManager) RolledPast(ctx context.Context, ver string) (bool, er
 }
 
 // See documentation for RepoManager interface.
-func (r *afdoRepoManager) CreateNextRollStrategy(ctx context.Context, s string) (strategy.NextRollStrategy, error) {
-	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_REMOTE, "", []string{}, r.childRepo, r.authClient)
-}
-
-// See documentation for RepoManager interface.
-func (r *afdoRepoManager) DefaultStrategy() string {
-	return strategy.ROLL_STRATEGY_AFDO
-}
-
-// See documentation for RepoManager interface.
 func (r *afdoRepoManager) ValidStrategies() []string {
-	return []string{
-		strategy.ROLL_STRATEGY_AFDO,
-	}
+	return []string{strategy.ROLL_STRATEGY_BATCH}
 }

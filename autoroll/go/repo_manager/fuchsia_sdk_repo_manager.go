@@ -225,8 +225,15 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strateg
 	// Versions should be in reverse chronological order. We cannot compute
 	// notRolledRevs correctly because there are things other than SDKs in
 	// the GS dir, and because they are content-addressed, we can't tell
-	// which ones are relevant to us.
+	// which ones are relevant to us, so we only include the one SDK version
+	// which we know will work.
 	notRolledRevs := []*revision.Revision{}
+	if nextRollRevLinuxStr != lastRollRevLinuxStr {
+		notRolledRevs = append(notRolledRevs, &revision.Revision{
+			Id:      nextRollRevLinuxStr,
+			Display: nextRollRevLinuxStr,
+		})
+	}
 
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
@@ -257,19 +264,8 @@ func (rm *fuchsiaSDKRepoManager) RolledPast(ctx context.Context, ver string) (bo
 }
 
 // See documentation for RepoManager interface.
-func (r *fuchsiaSDKRepoManager) CreateNextRollStrategy(ctx context.Context, s string) (strategy.NextRollStrategy, error) {
-	// fuchsiaSDKRepoManager implements its own strategy.
-	return nil, nil
-}
-
-// See documentation for RepoManager interface.
-func (r *fuchsiaSDKRepoManager) DefaultStrategy() string {
-	return strategy.ROLL_STRATEGY_FUCHSIA_SDK
-}
-
-// See documentation for RepoManager interface.
 func (r *fuchsiaSDKRepoManager) ValidStrategies() []string {
 	return []string{
-		strategy.ROLL_STRATEGY_FUCHSIA_SDK,
+		strategy.ROLL_STRATEGY_BATCH,
 	}
 }
