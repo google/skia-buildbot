@@ -368,9 +368,13 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 		}
 	}
 
+	return b.writeTraceIndices(tctx, tileKey, indices, ts)
+}
+
+func (b *BigTableTraceStore) writeTraceIndices(tctx context.Context, tileKey TileKey, indices map[string]paramtools.Params, ts bigtable.Timestamp) error {
 	// Write indices as batches of mutations.
 	indexRowKeys := []string{}
-	muts = []*bigtable.Mutation{}
+	muts := []*bigtable.Mutation{}
 	for rowKey, p := range indices {
 		if _, ok := b.indexed.Get(rowKey); ok {
 			continue
@@ -397,7 +401,6 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 	for rowKey := range indices {
 		b.indexed.Add(rowKey, "")
 	}
-
 	return nil
 }
 
