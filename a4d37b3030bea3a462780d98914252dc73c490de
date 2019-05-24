@@ -22,6 +22,30 @@
       "revId": "a4d37b3030bea3a462780d98914252dc73c490de",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4b9f4691_342ea1c0",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 548,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-24T14:50:36Z",
+      "side": 0,
+      "message": "Do we want to consider it a success if we\u0027re missing some checks?  I changed the code above to add fake trybot results so that AllTrybotsFinished() and AllTrybotsSucceeded() will do the right thing if we have fewer than the desired number of checks.",
+      "parentUuid": "39a4d816_e5d4efd4",
+      "range": {
+        "startLine": 548,
+        "startChar": 7,
+        "endLine": 548,
+        "endChar": 79
+      },
+      "revId": "a4d37b3030bea3a462780d98914252dc73c490de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
