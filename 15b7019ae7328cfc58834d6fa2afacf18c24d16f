@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "19b719d4_20d822b6",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-24T18:48:44Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "874c0654_44216ec8",
+      "revId": "15b7019ae7328cfc58834d6fa2afacf18c24d16f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f2e5e580_af26d40b",
         "filename": "autoroll/go/codereview/roll_test.go",
         "patchSetId": 5
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "651915f8_d4b74d51",
+        "filename": "autoroll/go/codereview/roll_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-24T18:48:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f2e5e580_af26d40b",
+      "revId": "15b7019ae7328cfc58834d6fa2afacf18c24d16f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bd6b0006_a6bf853e",
         "filename": "go/autoroll/autoroll.go",
         "patchSetId": 5
@@ -47,6 +83,30 @@
       "writtenOn": "2019-05-24T18:42:31Z",
       "side": 1,
       "message": "Should we also do \"|| r.pullRequest.GetState() \u003d\u003d github.CLOSED_STATE\" ? that is what the old code had.",
+      "range": {
+        "startLine": 167,
+        "startChar": 0,
+        "endLine": 167,
+        "endChar": 43
+      },
+      "revId": "15b7019ae7328cfc58834d6fa2afacf18c24d16f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c03ee48_28f722a4",
+        "filename": "go/autoroll/autoroll.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-24T18:48:44Z",
+      "side": 1,
+      "message": "We don\u0027t close the CL when the dry run finishes.  Adding that case might cause us to mark the dry run as finished when it actually did not finish.",
+      "parentUuid": "bd6b0006_a6bf853e",
       "range": {
         "startLine": 167,
         "startChar": 0,
