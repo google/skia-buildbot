@@ -1,0 +1,130 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e0eee1e2_7c095760",
+        "filename": "go/query/query.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 344,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-24T12:22:31Z",
+      "side": 1,
+      "message": "https://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices",
+      "revId": "07f8d9612b0a9fc360cdc64fa03e9f6501e1c970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84c3cddb_662decb4",
+        "filename": "go/query/query.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 468,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-24T12:22:31Z",
+      "side": 1,
+      "message": "I\u0027m not sure I get the name?  This seems familiar to https://golang.org/pkg/os/#Expand so maybe ExpandQuery()",
+      "range": {
+        "startLine": 468,
+        "startChar": 16,
+        "endLine": 468,
+        "endChar": 25
+      },
+      "revId": "07f8d9612b0a9fc360cdc64fa03e9f6501e1c970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7066240b_8f469ac9",
+        "filename": "go/query/query.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 478,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-24T12:22:31Z",
+      "side": 1,
+      "message": "redundant",
+      "range": {
+        "startLine": 478,
+        "startChar": 18,
+        "endLine": 478,
+        "endChar": 23
+      },
+      "revId": "07f8d9612b0a9fc360cdc64fa03e9f6501e1c970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fcd652ec_21258c6e",
+        "filename": "go/query/query.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 495,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-24T12:22:31Z",
+      "side": 1,
+      "message": "augment error with skerr.Fmt(\"query plan failure: %s\", err)",
+      "range": {
+        "startLine": 495,
+        "startChar": 17,
+        "endLine": 495,
+        "endChar": 20
+      },
+      "revId": "07f8d9612b0a9fc360cdc64fa03e9f6501e1c970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54576f5e_41e56e74",
+        "filename": "go/query/query.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 497,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-24T12:22:31Z",
+      "side": 1,
+      "message": "superfluous?",
+      "range": {
+        "startLine": 497,
+        "startChar": 4,
+        "endLine": 497,
+        "endChar": 12
+      },
+      "revId": "07f8d9612b0a9fc360cdc64fa03e9f6501e1c970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "42c284b0_dca4a44f",
+        "filename": "go/query/query_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 443,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-24T12:22:31Z",
+      "side": 1,
+      "message": "https://goto.google.com/tott/572 recommends against having params in your paramaterized tests that require an if statement (see towards the bottom)",
+      "revId": "07f8d9612b0a9fc360cdc64fa03e9f6501e1c970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
