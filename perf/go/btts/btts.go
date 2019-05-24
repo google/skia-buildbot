@@ -574,6 +574,118 @@ func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q
 	return ret, nil
 }
 
+// QueryTracesByIndex returns a map of encoded keys to a slice of floats for all
+// traces that match the given query.
+func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey TileKey, q *query.Query) (types.TraceSet, error) {
+	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.QueryTraces")
+	defer span.End()
+
+	ops, err := b.GetOrderedParamSet(ctx, tileKey)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get OPS: %s", err)
+	}
+
+	plan, err := q.QueryPlan(ops)
+	if err != nil {
+		// Not an error, we just won't match anything in this tile.
+		return nil, nil
+	}
+	if len(plan) == 0 {
+		// Not an error, we just won't match anything in this tile.
+		return nil, nil
+	}
+
+	defer timer.New("btts_query_traces_by_index").Stop()
+	defer metrics2.FuncTimer().Stop()
+	ret := types.TraceSet{}
+	tctx, cancel := context.WithTimeout(ctx, TIMEOUT)
+	defer cancel()
+
+	rowSet := bigtable.RowList{}
+	for key, values := range plan {
+		for _, value := range values {
+			rowSet = append(rowSet, fmt.Sprintf("%s:%s:%s", tileKey.IndexRowPrefix(), key, value))
+		}
+	}
+	// indices maps the plan keys to paramsets, which map plan values to slices of keys.
+	indices := map[string]paramtools.ParamSet{}
+	err = b.getTable().ReadRows(context.Background(), rowSet, func(row bigtable.Row) bool {
+		// rowKey looks like "i2147483646:config:565".
+		rowParts := strings.Split(row.Key(), ":")
+		if len(rowParts) != 3 {
+			sklog.Errorf("Invalid index row key: %s", row.Key())
+			return true
+		}
+		paramKey := rowParts[1]
+		paramValue := rowParts[2]
+		traceKeys := []string{}
+		for _, col := range row[INDEX_FAMILY] {
+			// Strip off the family name which is prefixed.
+			traceKeys = append(traceKeys, col.Column[2:])
+		}
+		var ok bool
+		ps := paramtools.ParamSet{}
+		if ps, ok = indices[paramKey]; !ok {
+			ps = paramtools.NewParamSet()
+		}
+		ps[paramValue] = traceKeys
+		indices[paramKey] = ps
+		return true
+	}, bigtable.RowFilter(
+		bigtable.ChainFilters(
+			bigtable.LatestNFilter(1),
+			bigtable.FamilyFilter(INDEX_FAMILY),
+		),
+	),
+	)
+
+	var ss util.StringSet = nil
+	// Now consolidate the indices into a set of keys to request.
+	for _ /* paramKey */, ps := range indices {
+		valueSS := util.StringSet{}
+		for _ /* paramValue */, traceRowKeys := range ps {
+			// Union across paramKeys.
+			valueSS.AddLists(traceRowKeys)
+		}
+		// Intersect across paramValues.
+		if ss == nil {
+			ss = valueSS
+		} else {
+			ss = ss.Intersect(valueSS)
+		}
+	}
+
+	if len(ss) == 0 {
+		return nil, nil
+	}
+
+	rowSet = bigtable.RowList(ss.Keys())
+
+	err = b.getTable().ReadRows(tctx, rowSet, func(row bigtable.Row) bool {
+		vec := vec32.New(int(b.tileSize))
+		for _, col := range row[VALUES_FAMILY] {
+			vec[b.lookup[col.Column]] = math.Float32frombits(binary.LittleEndian.Uint32(col.Value))
+		}
+		parts := strings.Split(row.Key(), ":")
+		traceId, err := traceIdFromEncoded(ops, parts[2])
+		if err != nil {
+			sklog.Infof("Found encoded key %q that can't be decoded: %s", parts[2], err)
+			return true
+		}
+		ret[traceId] = vec
+		return true
+	}, bigtable.RowFilter(
+		bigtable.ChainFilters(
+			bigtable.LatestNFilter(1),
+			bigtable.FamilyFilter(VALUES_FAMILY),
+		)))
+	if err != nil {
+		return nil, fmt.Errorf("Failed to query: %s", err)
+	}
+
+	return ret, nil
+}
+
 // QueryCount does the same work as QueryTraces but only returns the number of traces
 // that would be returned.
 func (b *BigTableTraceStore) QueryCount(ctx context.Context, tileKey TileKey, q *query.Query) (int64, error) {
