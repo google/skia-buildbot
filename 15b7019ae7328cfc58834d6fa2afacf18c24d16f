@@ -140,6 +140,30 @@
       "revId": "15b7019ae7328cfc58834d6fa2afacf18c24d16f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c96e6d3_60277eea",
+        "filename": "go/autoroll/autoroll.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-24T18:58:06Z",
+      "side": 1,
+      "message": "I\u0027m not sure what the correct behavior is in that case. Options I can think of:\n1. Do nothing, as we currently do.  This will cause the roller to wait until the try jobs finish before it passes judgment.  We may not want this; the person who closed the CL may be expecting the roller to immediately upload a new roll, considering the current roll as a failure.\n2. Mark the dry run as failed, as if the try jobs aren\u0027t going to finish.  This could give us the wrong result if the try jobs do finish and they all succeed.\n3. Add in some new behavior: if a dry run was manually landed or abandoned, then we mark it as not a dry run and label it success or failure as appropriate.",
+      "parentUuid": "7e930678_d67db691",
+      "range": {
+        "startLine": 167,
+        "startChar": 0,
+        "endLine": 167,
+        "endChar": 43
+      },
+      "revId": "15b7019ae7328cfc58834d6fa2afacf18c24d16f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
