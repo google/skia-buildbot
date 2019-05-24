@@ -183,6 +183,9 @@ func TestTraces(t *testing.T) {
 		",config=8888,cpu=arm,": vec2,
 	}
 	assert.Equal(t, expected, results)
+	results, err = b.QueryTracesByIndex(context.Background(), tileKey, q)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, results)
 
 	keys, err := b.TileKeys(tileKey)
 	assert.NoError(t, err)
@@ -215,6 +218,10 @@ func TestTraces(t *testing.T) {
 	}
 	assert.Equal(t, expected, results)
 
+	results, err = b.QueryTracesByIndex(context.Background(), tileKey, q)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, results)
+
 	// Write in the next column.
 	params = []paramtools.Params{
 		{"cpu": "x86", "config": "8888"},
@@ -239,6 +246,10 @@ func TestTraces(t *testing.T) {
 	}
 	assert.Equal(t, expected, results)
 	assertIndices(t, ops, b, expectedKeys, expectedColumns, "Write new value.")
+
+	results, err = b.QueryTracesByIndex(context.Background(), tileKey, q)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, results)
 
 	// Write to a new trace.
 	params = []paramtools.Params{
