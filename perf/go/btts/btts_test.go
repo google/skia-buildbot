@@ -90,9 +90,13 @@ func TestBasic(t *testing.T) {
 	assert.Equal(t, op, op2)
 }
 
-func assertIndices(t *testing.T, ops *paramtools.OrderedParamSet, b *BigTableTraceStore, expectedKeys []string, expectedColumns map[string][]string, msg string) {
-
+// assertIndices asserts that the indices in the table match expectedKeys and expectedColumns.
+//
+// Returns the number of rows actually retrieved.
+func assertIndices(t *testing.T, ops *paramtools.OrderedParamSet, b *BigTableTraceStore, expectedKeys []string, expectedColumns map[string][]string, msg string) int {
+	var count int
 	err := b.getTable().ReadRows(context.Background(), bigtable.PrefixRange(INDEX_PREFIX), func(row bigtable.Row) bool {
+		count += 1
 		assert.Contains(t, expectedKeys, row.Key())
 		for _, col := range row[INDEX_FAMILY] {
 			// Strip off the family name which is prefixed.
@@ -113,6 +117,7 @@ func assertIndices(t *testing.T, ops *paramtools.OrderedParamSet, b *BigTableTra
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, len(expectedKeys), b.indexed.Len())
+	return count
 }
 
 func TestTraces(t *testing.T) {
@@ -167,7 +172,8 @@ func TestTraces(t *testing.T) {
 	}
 	ops, err = b.GetOrderedParamSet(ctx, tileKey)
 	assert.NoError(t, err)
-	assertIndices(t, ops, b, expectedKeys, expectedColumns, "First write")
+	count := assertIndices(t, ops, b, expectedKeys, expectedColumns, "First write")
+	assert.Equal(t, 4, count)
 
 	q, err := query.New(url.Values{"config": []string{"8888"}})
 	assert.NoError(t, err)
@@ -200,7 +206,8 @@ func TestTraces(t *testing.T) {
 	assert.NoError(t, err)
 	ops, err = b.GetOrderedParamSet(ctx, tileKey)
 	assert.NoError(t, err)
-	assertIndices(t, ops, b, expectedKeys, expectedColumns, "Overwrite")
+	count = assertIndices(t, ops, b, expectedKeys, expectedColumns, "Overwrite")
+	assert.Equal(t, 4, count)
 
 	// Query again to get the updated value.
 	results, err = b.QueryTraces(context.Background(), tileKey, q)
@@ -238,7 +245,8 @@ func TestTraces(t *testing.T) {
 		",config=8888,cpu=arm,": vec2,
 	}
 	assert.Equal(t, expected, results)
-	assertIndices(t, ops, b, expectedKeys, expectedColumns, "Write new value.")
+	count = assertIndices(t, ops, b, expectedKeys, expectedColumns, "Write new value.")
+	assert.Equal(t, 4, count)
 
 	// Write to a new trace.
 	params = []paramtools.Params{
@@ -257,7 +265,27 @@ func TestTraces(t *testing.T) {
 	expectedColumns["i2147483646:config:8888"] = append(expectedColumns["i2147483646:config:8888"], ",config=8888,cpu=risc-v,")
 	ops, err = b.GetOrderedParamSet(ctx, tileKey)
 	assert.NoError(t, err)
-	assertIndices(t, ops, b, expectedKeys, expectedColumns, "Add new trace")
+	count = assertIndices(t, ops, b, expectedKeys, expectedColumns, "Add new trace")
+	assert.Equal(t, 5, count)
+
+	// Remove indices and repopulate with WriteIndices.
+	muts := []*bigtable.Mutation{}
+	for range expectedKeys {
+		mut := bigtable.NewMutation()
+		mut.DeleteRow()
+		muts = append(muts, mut)
+	}
+	errs, err := b.getTable().ApplyBulk(ctx, expectedKeys, muts)
+	assert.NoError(t, err)
+	for _, e := range errs {
+		assert.NoError(t, e)
+	}
+	count = assertIndices(t, ops, b, expectedKeys, expectedColumns, "Add new trace")
+	assert.Equal(t, 0, count)
+	err = b.WriteIndices(ctx, tileKey)
+	assert.NoError(t, err)
+	count = assertIndices(t, ops, b, expectedKeys, expectedColumns, "Add new trace")
+	assert.Equal(t, 5, count)
 
 	// Source
 	traceId, err := query.MakeKey(paramtools.Params{"cpu": "x86", "config": "8888"})

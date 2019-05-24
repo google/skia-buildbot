@@ -368,12 +368,22 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 		}
 	}
 
+	return b.writeTraceIndices(tctx, tileKey, indices, ts, false)
+}
+
+// writeTraceIndices writes the indices for the given traces.
+//
+// The 'indices' maps encoded keys to the Params of the unencoded key.
+// If bypassCache is true then we don't look in the lru cache to see if we've already writtin the indices for a given key.
+func (b *BigTableTraceStore) writeTraceIndices(tctx context.Context, tileKey TileKey, indices map[string]paramtools.Params, ts bigtable.Timestamp, bypassCache bool) error {
 	// Write indices as batches of mutations.
 	indexRowKeys := []string{}
-	muts = []*bigtable.Mutation{}
+	muts := []*bigtable.Mutation{}
 	for rowKey, p := range indices {
-		if _, ok := b.indexed.Get(rowKey); ok {
-			continue
+		if !bypassCache {
+			if _, ok := b.indexed.Get(rowKey); ok {
+				continue
+			}
 		}
 		for k, v := range p {
 			mut := bigtable.NewMutation()
@@ -397,8 +407,35 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 	for rowKey := range indices {
 		b.indexed.Add(rowKey, "")
 	}
-
 	return nil
+}
+
+// WriteIndices recalculates the full index for the given tile and writes it back to BigTable.
+func (b *BigTableTraceStore) WriteIndices(ctx context.Context, tileKey TileKey) error {
+	keys, err := b.TileKeys(ctx, tileKey)
+	if err != nil {
+		return fmt.Errorf("Failed reading keys for tile %d: %s", tileKey.Offset(), err)
+	}
+	ops, err := b.GetOrderedParamSet(ctx, tileKey)
+	if err != nil {
+		return fmt.Errorf("Failed to get OPS: %s", err)
+	}
+	indices := map[string]paramtools.Params{}
+	for _, key := range keys {
+		p, err := query.ParseKey(key)
+		if err != nil {
+			sklog.Warningf("Failed to parse key: %s", err)
+			continue
+		}
+		encodedKey, err := ops.EncodeParamsAsString(p)
+		if err != nil {
+			sklog.Warningf("Failed to encode key: %s", err)
+			continue
+		}
+		rowKey := tileKey.TraceRowName(encodedKey, b.shards)
+		indices[rowKey] = p
+	}
+	return b.writeTraceIndices(ctx, tileKey, indices, bigtable.Time(time.Now()), true)
 }
 
 // writeBatchOfTraces writes the traces to BT.
