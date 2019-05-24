@@ -615,9 +615,14 @@ func (b *BigTableTraceStore) QueryCount(ctx context.Context, tileKey TileKey, q 
 	return ret, nil
 }
 
-// TileKeys returns all the keys for the given tile..
-func (b *BigTableTraceStore) TileKeys(tileKey TileKey) ([]string, error) {
+// TileKeys returns all the keys (unencoded) for the given tile..
+func (b *BigTableTraceStore) TileKeys(ctx context.Context, tileKey TileKey) ([]string, error) {
 	var g errgroup.Group
+
+	ops, err := b.GetOrderedParamSet(ctx, tileKey)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get OPS for TileKeys: %s", err)
+	}
 
 	// Track the StringSets, one per shard.
 	stringSets := []*util.StringSet{}
@@ -651,7 +656,13 @@ func (b *BigTableTraceStore) TileKeys(tileKey TileKey) ([]string, error) {
 	total := util.StringSet{}
 	for _, ss := range stringSets {
 		for val := range *ss {
-			total[val] = true
+			p, err := ops.DecodeParamsFromString(val)
+			if err != nil {
+				continue
+			}
+			if key, err := query.MakeKeyFast(p); err == nil {
+				total[key] = true
+			}
 		}
 	}
 

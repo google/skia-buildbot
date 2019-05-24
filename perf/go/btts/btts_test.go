@@ -172,7 +172,7 @@ func TestTraces(t *testing.T) {
 	q, err := query.New(url.Values{"config": []string{"8888"}})
 	assert.NoError(t, err)
 
-	results, err := b.QueryTraces(context.Background(), tileKey, q)
+	results, err := b.QueryTraces(ctx, tileKey, q)
 	assert.NoError(t, err)
 	vec1 := vec32.New(256)
 	vec1[1] = 1.0
@@ -184,10 +184,10 @@ func TestTraces(t *testing.T) {
 	}
 	assert.Equal(t, expected, results)
 
-	keys, err := b.TileKeys(tileKey)
+	keys, err := b.TileKeys(ctx, tileKey)
 	assert.NoError(t, err)
 	sort.Strings(keys)
-	assert.Equal(t, []string{",0=0,1=0,", ",0=0,1=1,", ",0=1,1=0,", ",0=1,1=1,"}, keys)
+	assert.Equal(t, []string{",config=565,cpu=arm,", ",config=565,cpu=x86,", ",config=8888,cpu=arm,", ",config=8888,cpu=x86,"}, keys)
 
 	// Now overwrite a value.
 	params = []paramtools.Params{

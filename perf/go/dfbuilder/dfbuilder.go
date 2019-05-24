@@ -591,19 +591,13 @@ func (b *builder) tracelessStep(tileKey btts.TileKey, keys *util.StringSet, ps *
 		return
 	}
 	(*ps).AddParamSet(ops.ParamSet)
-	encodedKeys, err := b.store.TileKeys(tileKey)
+	newKeys, err := b.store.TileKeys(context.Background(), tileKey)
 	if err != nil {
 		return
 	}
 
-	for _, encodedKey := range encodedKeys {
-		p, err := ops.DecodeParamsFromString(encodedKey)
-		if err != nil {
-			continue
-		}
-		if key, err := query.MakeKeyFast(p); err == nil {
-			(*keys)[key] = true
-		}
+	for _, key := range newKeys {
+		(*keys)[key] = true
 	}
 }
 
