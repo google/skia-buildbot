@@ -209,17 +209,19 @@ ALERT GoldIngestionErrorRate
   }
 
 ALERT GoldCommitTooOldWallTime
-  IF gold_last_commit_age_s{type="wall_time"} > 24*60*60
+  IF gold_last_commit_age_s{type="wall_time",job!="skiacorrectness-pdfium"} > 24*60*60
   LABELS { category = "infra", severity = "critical", owner = "kjlubick@google.com"}
   ANNOTATIONS {
-    description = "It has been at least 24 hours since the last commit made it into Gold. Some process might have hung, or perhaps that repo simply has not seen a commit in that period. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldcommittoooldwalltime",
+    abbr = "{{ $labels.job }}",
+    description = "It has been at least 24 hours since the last commit made it into Gold for {{ $labels.job }}. Some process might have hung, or perhaps that repo simply has not seen a commit in that period. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldcommittoooldwalltime",
   }
 
 ALERT GoldCommitTooOldNewerCommit
   IF gold_last_commit_age_s{type="with_new_commit"} > 1*60*60
   LABELS { category = "infra", severity = "critical", owner = "kjlubick@google.com"}
   ANNOTATIONS {
-    description = "It has been at least 1 hour since a new commit landed, and Gold still hasn't picked it up. Some process might have hung. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldcommittoooldnewercommit",
+    abbr = "{{ $labels.job }}",
+    description = "It has been at least 1 hour since a new commit landed, and Gold for {{ $labels.job }} still hasn't picked it up. Some process might have hung. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldcommittoooldnewercommit",
   }
 
 ALERT GoldStatusStalled
