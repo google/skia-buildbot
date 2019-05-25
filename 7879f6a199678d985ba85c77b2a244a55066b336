@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fc0d911b_aab72321",
+        "filename": "golden/go/tracestore/bt_tracestore/BIGTABLE.md",
+        "patchSetId": 18
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-25T14:41:43Z",
+      "side": 1,
+      "message": "Done, with rename to subkey.\n\nSpeculation as to why follows:\n\nThis is more a factor with perf, which fetches across many tiles, but having the same trace on the same shard means that they will be closer alphabetically. BT says that related entities should be on rows that adjacent (maybe that also means nearby rows?)",
+      "parentUuid": "3f03b11e_292ed134",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 71
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d33c0e5e_eeed6cbf",
         "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
         "patchSetId": 18
@@ -1138,6 +1162,30 @@
     },
     {
       "key": {
+        "uuid": "c4adb6e8_19c3ffe5",
+        "filename": "golden/go/tracestore/bt_tracestore/util.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-25T14:41:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ed99b25e_6c1ca006",
+      "range": {
+        "startLine": 9,
+        "startChar": 53,
+        "endLine": 9,
+        "endChar": 59
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5e2b1a3a_f85a074e",
         "filename": "golden/go/tracestore/bt_tracestore/util.go",
         "patchSetId": 18
@@ -1158,6 +1206,30 @@
       "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de34fd54_9cd8d845",
+        "filename": "golden/go/tracestore/bt_tracestore/util.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-25T14:41:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5e2b1a3a_f85a074e",
+      "range": {
+        "startLine": 10,
+        "startChar": 5,
+        "endLine": 10,
+        "endChar": 22
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1184,6 +1256,30 @@
     },
     {
       "key": {
+        "uuid": "39312e1c_3a127b70",
+        "filename": "golden/go/tracestore/bt_tracestore/util.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-25T14:41:43Z",
+      "side": 1,
+      "message": "Done. Keeping it not inlined for self-documentation purposes.",
+      "parentUuid": "a2e2d621_df8bf0ca",
+      "range": {
+        "startLine": 17,
+        "startChar": 17,
+        "endLine": 17,
+        "endChar": 25
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3d5b6ace_b5e7abda",
         "filename": "golden/go/tracestore/bt_tracestore/util.go",
         "patchSetId": 18
@@ -1207,6 +1303,30 @@
     },
     {
       "key": {
+        "uuid": "16d6d5d1_272eb964",
+        "filename": "golden/go/tracestore/bt_tracestore/util.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-25T14:41:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3d5b6ace_b5e7abda",
+      "range": {
+        "startLine": 33,
+        "startChar": 53,
+        "endLine": 33,
+        "endChar": 81
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ea49e97b_f770f27f",
         "filename": "golden/go/tracestore/bt_tracestore/util.go",
         "patchSetId": 18
@@ -1227,6 +1347,30 @@
       "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d56cb81a_358922cc",
+        "filename": "golden/go/tracestore/bt_tracestore/util.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-25T14:41:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ea49e97b_f770f27f",
+      "range": {
+        "startLine": 35,
+        "startChar": 5,
+        "endLine": 35,
+        "endChar": 12
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1270,6 +1414,30 @@
     },
     {
       "key": {
+        "uuid": "341d586b_fc8022bf",
+        "filename": "golden/go/tracestore/bt_tracestore/util_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-25T14:41:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "85b7fbf5_03699950",
+      "range": {
+        "startLine": 34,
+        "startChar": 15,
+        "endLine": 34,
+        "endChar": 16
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b1f4efcc_a170b0be",
         "filename": "golden/go/tracestore/types.go",
         "patchSetId": 18
@@ -1290,6 +1458,30 @@
       "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "712c87aa_2874268b",
+        "filename": "golden/go/tracestore/types.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-25T14:41:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b1f4efcc_a170b0be",
+      "range": {
+        "startLine": 27,
+        "startChar": 45,
+        "endLine": 27,
+        "endChar": 61
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

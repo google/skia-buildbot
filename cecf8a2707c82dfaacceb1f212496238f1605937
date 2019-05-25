@@ -214,6 +214,30 @@
     },
     {
       "key": {
+        "uuid": "2ef725a4_e25bb0aa",
+        "filename": "golden/go/tracestore/bt_tracestore/BIGTABLE.md",
+        "patchSetId": 13
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-25T14:41:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5759348b_b1bef380",
+      "range": {
+        "startLine": 46,
+        "startChar": 51,
+        "endLine": 47,
+        "endChar": 13
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b4d71a97_720b4365",
         "filename": "golden/go/tracestore/bt_tracestore/BIGTABLE.md",
         "patchSetId": 13
@@ -376,6 +400,30 @@
       "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4136413c_ac514f2d",
+        "filename": "golden/go/tracestore/bt_tracestore/BIGTABLE.md",
+        "patchSetId": 13
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-25T14:41:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ff0cc6b9_ecdef021",
+      "range": {
+        "startLine": 73,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 62
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1130,6 +1178,30 @@
     },
     {
       "key": {
+        "uuid": "93a4e4b9_7f79fdbf",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-25T14:41:43Z",
+      "side": 1,
+      "message": "Yeah.  Hasn\u0027t been an issue thus far - if it is, we can change this to just mock.Anything",
+      "parentUuid": "5f19a955_70f64532",
+      "range": {
+        "startLine": 487,
+        "startChar": 31,
+        "endLine": 487,
+        "endChar": 48
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "515585cb_824224be",
         "filename": "golden/go/tracestore/bt_tracestore/types.go",
         "patchSetId": 13
@@ -1641,6 +1713,24 @@
     },
     {
       "key": {
+        "uuid": "c58f0481_e1d5bdab",
+        "filename": "golden/go/tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-25T14:41:43Z",
+      "side": 1,
+      "message": "I added a todo to remind me of this fact when I integrate this tracestore into the rest of gold",
+      "parentUuid": "b5700b6f_4b17431a",
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "043a72d2_14897a73",
         "filename": "golden/go/tracestore/types.go",
         "patchSetId": 13
@@ -1732,6 +1822,30 @@
       "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95530cd8_338f336b",
+        "filename": "golden/go/tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-25T14:41:43Z",
+      "side": 1,
+      "message": "Done, although I suspect the changes might not be as pervasive as I feared, as nothing in gold appears to actually decode the key (yet).",
+      "parentUuid": "d77080c4_ffd7f6a5",
+      "range": {
+        "startLine": 34,
+        "startChar": 5,
+        "endLine": 34,
+        "endChar": 22
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
