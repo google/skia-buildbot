@@ -86,7 +86,7 @@ func ParseGoldResults(r io.Reader) (*GoldResults, []string, error) {
 	}
 
 	// Extract the embedded Gold result and validate it.
-	if errMsg, err := ret.Validate(false); err != nil {
+	if errMsg, err := ret.Validate(true); err != nil {
 		errMessages = append(errMessages, errMsg...)
 	}
 

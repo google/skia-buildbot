@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/vcsinfo"
@@ -57,7 +58,12 @@ func newGoldProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, clie
 func (g *goldProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
 	dmResults, err := processDMResults(resultsFile)
 	if err != nil {
-		return err
+		return skerr.Fmt("could not process results file: %s", err)
+	}
+
+	if len(dmResults.Results) == 0 {
+		sklog.Infof("ignoring file %s because it has no results", resultsFile.Name())
+		return ingestion.IgnoreResultsFileErr
 	}
 
 	var commit *vcsinfo.LongCommit = nil
@@ -65,12 +71,15 @@ func (g *goldProcessor) Process(ctx context.Context, resultsFile ingestion.Resul
 	// in the secondary that has the primary as a dependency.
 	targetHash, err := g.getCanonicalCommitHash(ctx, dmResults.GitHash)
 	if err != nil {
-		return err
+		if err == ingestion.IgnoreResultsFileErr {
+			return ingestion.IgnoreResultsFileErr
+		}
+		return skerr.Fmt("could not identify canonical commit from %q: %s", dmResults.GitHash, err)
 	}
 
 	commit, err = g.vcs.Details(ctx, targetHash, true)
 	if err != nil {
-		return err
+		return skerr.Fmt("could not get details for git commit %q: %s", targetHash, err)
 	}
 
 	if !commit.Branches["master"] {
@@ -81,18 +90,21 @@ func (g *goldProcessor) Process(ctx context.Context, resultsFile ingestion.Resul
 	// Add the column to the trace db.
 	cid, err := g.getCommitID(commit)
 	if err != nil {
-		return err
+		return skerr.Fmt("could not get trace db id: %s", err)
 	}
 
 	// Get the entries that should be added to the tracedb.
 	entries, err := extractTraceDBEntries(dmResults)
 	if err != nil {
-		return err
+		return skerr.Fmt("could not create entries for results: %s", err)
 	}
 
 	// Write the result to the tracedb.
 	err = g.traceDB.Add(cid, entries)
-	return err
+	if err != nil {
+		return skerr.Fmt("could not add to tracedb: %s", err)
+	}
+	return nil
 }
 
 // See ingestion.Processor interface.
