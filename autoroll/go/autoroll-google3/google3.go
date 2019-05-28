@@ -271,6 +271,28 @@ func (roll Roll) AsIssue() (*autoroll.AutoRollIssue, error) {
 		return nil, errors.New("Unsupported value for result.")
 	}
 
+	isDryRun := false
+	cqFinished := false
+	cqSuccess := false
+	dryRunFinished := false
+	dryRunSuccess := false
+	switch roll.Result {
+	case autoroll.ROLL_RESULT_DRY_RUN_SUCCESS:
+		isDryRun = true
+		dryRunFinished = true
+		dryRunSuccess = true
+	case autoroll.ROLL_RESULT_DRY_RUN_FAILURE:
+		isDryRun = true
+		dryRunFinished = true
+	case autoroll.ROLL_RESULT_DRY_RUN_IN_PROGRESS:
+		isDryRun = true
+	case autoroll.ROLL_RESULT_SUCCESS:
+		cqFinished = true
+		cqSuccess = true
+	case autoroll.ROLL_RESULT_FAILURE:
+		cqFinished = true
+	}
+
 	tryResults := []*autoroll.TryResult{}
 	// TestSummaryUrl is for legacy requests that do not specify CheckResults.
 	if roll.TestSummaryUrl != "" {
@@ -332,18 +354,22 @@ func (roll Roll) AsIssue() (*autoroll.AutoRollIssue, error) {
 		})
 	}
 	return &autoroll.AutoRollIssue{
-		Closed:      roll.Closed,
-		Committed:   roll.Submitted,
-		CommitQueue: !roll.Closed,
-		Created:     time.Time(roll.Created),
-		Issue:       int64(roll.ChangeListNumber),
-		Modified:    time.Time(roll.Modified),
-		Patchsets:   nil,
-		Result:      roll.Result,
-		RollingFrom: roll.RollingFrom,
-		RollingTo:   roll.RollingTo,
-		Subject:     roll.Subject,
-		TryResults:  tryResults,
+		Closed:         roll.Closed,
+		Committed:      roll.Submitted,
+		Created:        time.Time(roll.Created),
+		CqFinished:     cqFinished,
+		CqSuccess:      cqSuccess,
+		DryRunFinished: dryRunFinished,
+		DryRunSuccess:  dryRunSuccess,
+		IsDryRun:       isDryRun,
+		Issue:          int64(roll.ChangeListNumber),
+		Modified:       time.Time(roll.Modified),
+		Patchsets:      nil,
+		Result:         roll.Result,
+		RollingFrom:    roll.RollingFrom,
+		RollingTo:      roll.RollingTo,
+		Subject:        roll.Subject,
+		TryResults:     tryResults,
 	}, nil
 }
 
