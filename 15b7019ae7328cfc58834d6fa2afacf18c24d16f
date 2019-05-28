@@ -188,6 +188,30 @@
       "revId": "15b7019ae7328cfc58834d6fa2afacf18c24d16f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a2d6aaa1_8f584c06",
+        "filename": "go/autoroll/autoroll.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-28T14:14:20Z",
+      "side": 1,
+      "message": "SGTM; if a dry run CL is closed it\u0027s marked as \"dry run failed\", and if it succeeds it\u0027s marked as a \"dry run success\".  Note that we could still do #3: mark the roll as \"failed\" or \"success\" instead of \"dry run failed\" or \"dry run success\".",
+      "parentUuid": "a6b6184f_150e58b3",
+      "range": {
+        "startLine": 167,
+        "startChar": 0,
+        "endLine": 167,
+        "endChar": 43
+      },
+      "revId": "15b7019ae7328cfc58834d6fa2afacf18c24d16f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
