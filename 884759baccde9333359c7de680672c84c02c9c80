@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "48936354_54b46c7e",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 759,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-28T21:03:48Z",
+      "side": 1,
+      "message": "defer mutex.Unlock() preferred",
+      "revId": "884759baccde9333359c7de680672c84c02c9c80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a366ccb5_1c88189f",
+        "filename": "perf/go/perf-tool/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-28T21:03:48Z",
+      "side": 1,
+      "message": "Big?",
+      "range": {
+        "startLine": 1,
+        "startChar": 29,
+        "endLine": 1,
+        "endChar": 32
+      },
+      "revId": "884759baccde9333359c7de680672c84c02c9c80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7faa9742_aa1d07a9",
+        "filename": "perf/go/perf-tool/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-28T21:03:48Z",
+      "side": 1,
+      "message": "Stephan had used github.com/spf13/cobra for flags - I\u0027d like us to decide on one flag manager",
+      "range": {
+        "startLine": 13,
+        "startChar": 1,
+        "endLine": 13,
+        "endChar": 24
+      },
+      "revId": "884759baccde9333359c7de680672c84c02c9c80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b21e8ff5_10b078d7",
+        "filename": "perf/go/perf-tool/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-28T21:03:48Z",
+      "side": 1,
+      "message": "Why fatal with the error instead of just return it?",
+      "range": {
+        "startLine": 228,
+        "startChar": 3,
+        "endLine": 228,
+        "endChar": 19
+      },
+      "revId": "884759baccde9333359c7de680672c84c02c9c80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6cd28df3_640f8577",
+        "filename": "perf/go/perf-tool/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-28T21:03:48Z",
+      "side": 1,
+      "message": "I\u0027m confused about the mix of sklog and fmt.Println",
+      "range": {
+        "startLine": 273,
+        "startChar": 2,
+        "endLine": 273,
+        "endChar": 13
+      },
+      "revId": "884759baccde9333359c7de680672c84c02c9c80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d77c613_f59032b9",
+        "filename": "perf/go/perf-tool/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-28T21:03:48Z",
+      "side": 1,
+      "message": "gofmt -s -w . will clean this up",
+      "range": {
+        "startLine": 301,
+        "startChar": 7,
+        "endLine": 301,
+        "endChar": 10
+      },
+      "revId": "884759baccde9333359c7de680672c84c02c9c80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
