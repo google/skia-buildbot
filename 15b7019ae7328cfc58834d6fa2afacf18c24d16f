@@ -164,6 +164,30 @@
       "revId": "15b7019ae7328cfc58834d6fa2afacf18c24d16f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6b6184f_150e58b3",
+        "filename": "go/autoroll/autoroll.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-28T13:05:01Z",
+      "side": 1,
+      "message": "\u003e I\u0027m not sure what the correct behavior is in that case. Options I can think of:\n\u003e 1. Do nothing, as we currently do.  This will cause the roller to wait until the try jobs finish before it passes judgment.  We may not want this; the person who closed the CL may be expecting the roller to immediately upload a new roll, considering the current roll as a failure.\nI think this sentence is always correct: \"the person who closed the CL may be expecting the roller to immediately upload a new roll, considering the current roll as a failure\".\nClosing a PR should be the same as abandoning a Gerrit change where it is considered a failure?\n\n\n\u003e 2. Mark the dry run as failed, as if the try jobs aren\u0027t going to finish.  This could give us the wrong result if the try jobs do finish and they all succeed.\n\nI don\u0027t know what github checks do if PR is closed before runs finish, it could be that they are abandoned, marking as failed if closed still sounds correct to me.\n\n\u003e 3. Add in some new behavior: if a dry run was manually landed or abandoned, then we mark it as not a dry run and label it success or failure as appropriate.\nI don\u0027t know what currently happens if dry run is merged. But it\u0027s an edge case so not sure if we want to worry too much about that.",
+      "parentUuid": "6c96e6d3_60277eea",
+      "range": {
+        "startLine": 167,
+        "startChar": 0,
+        "endLine": 167,
+        "endChar": 43
+      },
+      "revId": "15b7019ae7328cfc58834d6fa2afacf18c24d16f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
