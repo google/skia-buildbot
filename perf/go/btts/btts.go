@@ -61,7 +61,7 @@ const (
 	// MAX_ROW_KEYS is the max number of rowKeys we can send in any single
 	// ReadRows request. This should keep the size of the serialized request
 	// object to under the limit of 1MB.
-	MAX_ROW_KEYS = 10000
+	MAX_ROW_KEYS = 2000
 
 	// MAX_INDEX_LRU_CACHE is the size of the lru cache where we remember if we've already stored indices for a rowKey.
 	MAX_INDEX_LRU_CACHE = 20 * 1000 * 1000
@@ -86,8 +86,8 @@ type TileKey int32
 // BadTileKey is returned in error conditions.
 const BadTileKey = TileKey(-1)
 
-// tileKeyFromOffset returns a TileKey from the tile offset.
-func tileKeyFromOffset(tileOffset int32) TileKey {
+// TileKeyFromOffset returns a TileKey from the tile offset.
+func TileKeyFromOffset(tileOffset int32) TileKey {
 	if tileOffset < 0 {
 		return BadTileKey
 	}
@@ -95,7 +95,7 @@ func tileKeyFromOffset(tileOffset int32) TileKey {
 }
 
 func (t TileKey) PrevTile() TileKey {
-	return tileKeyFromOffset(t.Offset() - 1)
+	return TileKeyFromOffset(t.Offset() - 1)
 }
 
 // OpsRowName returns the name of the BigTable row that the OrderedParamSet for this tile is stored at.
@@ -248,7 +248,7 @@ func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.PerfBigTab
 
 // Given the index return the TileKey of the tile that would contain that column.
 func (b *BigTableTraceStore) TileKey(index int32) TileKey {
-	return tileKeyFromOffset(index / b.tileSize)
+	return TileKeyFromOffset(index / b.tileSize)
 }
 
 // Returns the offset within a tile for the given index.
@@ -418,6 +418,7 @@ func (b *BigTableTraceStore) writeTraceIndices(tctx context.Context, tileKey Til
 // WriteIndices recalculates the full index for the given tile and writes it back to BigTable.
 func (b *BigTableTraceStore) WriteIndices(ctx context.Context, tileKey TileKey) error {
 	keys, err := b.TileKeys(ctx, tileKey)
+	sklog.Info("WriteIndices - Finished reading keys.")
 	if err != nil {
 		return fmt.Errorf("Failed reading keys for tile %d: %s", tileKey.Offset(), err)
 	}
@@ -425,6 +426,7 @@ func (b *BigTableTraceStore) WriteIndices(ctx context.Context, tileKey TileKey) 
 	if err != nil {
 		return fmt.Errorf("Failed to get OPS: %s", err)
 	}
+	sklog.Info("WriteIndices - OPS Loaded.")
 	indices := map[string]paramtools.Params{}
 	for _, key := range keys {
 		p, err := query.ParseKey(key)
@@ -440,6 +442,7 @@ func (b *BigTableTraceStore) WriteIndices(ctx context.Context, tileKey TileKey) 
 		rowKey := tileKey.TraceRowName(encodedKey, b.shards)
 		indices[rowKey] = p
 	}
+	sklog.Info("WriteIndices - Indices calculated.")
 	return b.writeTraceIndices(ctx, tileKey, indices, bigtable.Time(time.Now()), true)
 }
 
@@ -464,6 +467,7 @@ func (b *BigTableTraceStore) writeBatchOfTraces(ctx context.Context, rowKeys []s
 // Note that 'indexRowKeys' are the keys for 'muts', so they need to be the
 // same length and be ordered accordingly.
 func (b *BigTableTraceStore) writeBatchOfIndices(ctx context.Context, indexRowKeys []string, muts []*bigtable.Mutation) error {
+	sklog.Infof("writeBatchOfIndices", len(indexRowKeys))
 	errs, err := b.getTable().ApplyBulk(ctx, indexRowKeys, muts)
 	if err != nil {
 		return fmt.Errorf("Failed writing indices: %s", err)
@@ -637,6 +641,7 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 		return b.allTraces(ctx, tileKey)
 	}
 	plan, err := q.QueryPlan(ops)
+	sklog.Infof("Plan %#v", plan)
 	if err != nil {
 		// Not an error, we just won't match anything in this tile.
 		return nil, nil
@@ -690,6 +695,8 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 	),
 	)
 
+	sklog.Infof("indices len = %d\n", len(indices))
+
 	var ss util.StringSet = nil
 	// Now consolidate the indices into a set of keys to request.
 	for _ /* paramKey */, ps := range indices {
@@ -710,6 +717,8 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 		return nil, nil
 	}
 
+	sklog.Infof("All traces ids len = %d", len(ss.Keys()))
+
 	rowSet = bigtable.RowList(ss.Keys())
 	// Break the rowSet into batches of MAX_ROW_KEYS
 	for {
@@ -722,6 +731,13 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 		}
 		rowSetSubset := rowSet[:sliceSize]
 		rowSet = rowSet[sliceSize:]
+
+		size := 0
+		for _, rowKey := range rowSetSubset {
+			size += len(rowKey)
+		}
+		sklog.Infof("Total size of request: %d", size)
+		sklog.Infof("Querying for rowSetSubset=%d, rowSet=%d", len(rowSetSubset), len(rowSet))
 
 		err = b.getTable().ReadRows(tctx, rowSetSubset, func(row bigtable.Row) bool {
 			vec := vec32.New(int(b.tileSize))
