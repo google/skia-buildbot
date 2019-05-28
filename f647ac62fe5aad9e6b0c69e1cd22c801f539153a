@@ -22,6 +22,30 @@
       "revId": "f647ac62fe5aad9e6b0c69e1cd22c801f539153a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7719dfab_3c09cbeb",
+        "filename": "golden/go/goldingestion/goldingestion.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-28T15:53:26Z",
+      "side": 1,
+      "message": "I habe a cold today and ab stuffed up.",
+      "parentUuid": "74076a40_29be4ec1",
+      "range": {
+        "startLine": 90,
+        "startChar": 34,
+        "endLine": 90,
+        "endChar": 39
+      },
+      "revId": "f647ac62fe5aad9e6b0c69e1cd22c801f539153a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
