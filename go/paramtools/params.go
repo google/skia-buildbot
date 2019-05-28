@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
 
@@ -378,15 +379,15 @@ func (p *paramsDecoder) decodeStringToParams(s string) (Params, error) {
 		}
 		parts := strings.Split(pair, "=")
 		if len(parts) != 2 {
-			return nil, fmt.Errorf("Failed to parse: %s", pair)
+			return nil, skerr.Fmt("failed to parse: %s", pair)
 		}
 		key, ok := p.keys[parts[0]]
 		if !ok {
-			return nil, fmt.Errorf("Failed to find key: %q", parts[0])
+			return nil, skerr.Fmt("failed to find key: %q", parts[0])
 		}
 		value, ok := p.values[parts[0]][parts[1]]
 		if !ok {
-			return nil, fmt.Errorf("Failed to find value: %q", parts[1])
+			return nil, skerr.Fmt("failed to find value %q in %q (%q)", parts[1], p.values[parts[0]], parts[0])
 		}
 		ret[key] = value
 	}
@@ -450,7 +451,7 @@ func (o *OrderedParamSet) getParamsEncoder() *paramsEncoder {
 	return o.paramsEncoder
 }
 
-// EncodeParamsAsString encodes the Params as a string.
+// EncodeParamsAsString encodes the Params as a string containing indices.
 func (o *OrderedParamSet) EncodeParamsAsString(p Params) (string, error) {
 	return o.getParamsEncoder().encodeAsString(p)
 }

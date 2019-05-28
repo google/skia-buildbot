@@ -454,12 +454,12 @@ func (b *BigTableGitStore) applyBulkBatched(ctx context.Context, rowNames []stri
 		egroup.Go(func() error {
 			rowNames := rowNames[chunkStart:chunkEnd]
 			mutations := mutations[chunkStart:chunkEnd]
-			errs, err := b.table.ApplyBulk(context.TODO(), rowNames, mutations)
+			errs, err := b.table.ApplyBulk(ctx, rowNames, mutations)
 			if err != nil {
-				return skerr.Fmt("Error writing batch: %s", err)
+				return skerr.Fmt("Error writing batch [%d:%d]: %s", chunkStart, chunkEnd, err)
 			}
 			if errs != nil {
-				return skerr.Fmt("Error writing some portions of batch: %s", errs)
+				return skerr.Fmt("Error writing some portions of batch [%d:%d]: %s", chunkStart, chunkEnd, errs)
 			}
 			return nil
 		})
