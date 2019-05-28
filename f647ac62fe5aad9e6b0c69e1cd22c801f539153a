@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "74076a40_29be4ec1",
+        "filename": "golden/go/goldingestion/goldingestion.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-28T13:30:09Z",
+      "side": 1,
+      "message": "trace",
+      "range": {
+        "startLine": 90,
+        "startChar": 34,
+        "endLine": 90,
+        "endChar": 39
+      },
+      "revId": "f647ac62fe5aad9e6b0c69e1cd22c801f539153a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
