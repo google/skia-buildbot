@@ -10,12 +10,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gcs/gcs_testutils"
+	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
-	"go.skia.org/infra/golden/go/expstorage/mem_expstore"
+	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/serialize"
@@ -138,31 +140,58 @@ func getStoragesIndexTile(t *testing.T, bucket, storagePath, outputPath string, 
 	return getStoragesAndIndexerFromTile(t, outputPath, randomize)
 }
 
-func getStoragesAndIndexerFromTile(t assert.TestingT, path string, randomize bool) (*storage.Storage, *indexer.SearchIndex, *tiling.Tile, *indexer.Indexer) {
+func getStoragesAndIndexerFromTile(t sktest.TestingT, path string, randomize bool) (*storage.Storage, *indexer.SearchIndex, *tiling.Tile, *indexer.Indexer) {
 	sample := loadSample(t, path, randomize)
+
+	mds := &mocks.DiffStore{}
+	mes := &mocks.ExpectationsStore{}
+
+	mes.On("Get").Return(sample.Expectations, nil)
+
+	mds.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{})
+	mds.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(mockDiffStoreGet, nil)
 
 	tileBuilder := mocks.NewMockTileBuilderFromTile(t, sample.Tile)
 	eventBus := eventbus.New()
-	expStore := mem_expstore.New(eventBus)
-	err := expStore.AddChange(sample.Expectations, "testuser")
-	assert.NoError(t, err)
 
-	baseliner, err := gcs_baseliner.New(nil, expStore, nil, nil, nil)
+	baseliner, err := gcs_baseliner.New(nil, mes, nil, nil, nil)
 	assert.NoError(t, err)
 
 	storages := &storage.Storage{
-		ExpectationsStore: expStore,
+		ExpectationsStore: mes,
 		MasterTileBuilder: tileBuilder,
-		DiffStore:         mocks.NewMockDiffStore(),
 		EventBus:          eventBus,
 		Baseliner:         baseliner,
+		DiffStore:         mds,
 	}
 
 	ixr, err := indexer.New(storages, warmer.New(), 10*time.Minute)
 	assert.NoError(t, err)
 	idx := ixr.GetIndex()
 	tile := idx.CpxTile().GetTile(types.ExcludeIgnoredTraces)
+
 	return storages, idx, tile, ixr
+}
+
+// mockDiffStoreGet is a simple implementation of the diff comparison that
+// makes some fake data for the given digest and slice of digests to compare to.
+func mockDiffStoreGet(priority int64, dMain types.Digest, dRest types.DigestSlice) map[types.Digest]interface{} {
+	result := map[types.Digest]interface{}{}
+	for _, d := range dRest {
+		if dMain != d {
+			result[d] = &diff.DiffMetrics{
+				NumDiffPixels:    10,
+				PixelDiffPercent: 1.0,
+				MaxRGBADiffs:     []int{5, 3, 4, 0},
+				DimDiffer:        false,
+				Diffs: map[string]float32{
+					diff.METRIC_COMBINED: rand.Float32(),
+					diff.METRIC_PERCENT:  rand.Float32(),
+				},
+			}
+		}
+	}
+	return result
 }
 
 func loadSample(t assert.TestingT, fileName string, randomize bool) *serialize.Sample {

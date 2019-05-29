@@ -6,12 +6,10 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/digest_counter"
-	"go.skia.org/infra/golden/go/expstorage/mem_expstore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
@@ -147,17 +145,11 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// TODO(kjlubick): This test should use mockery-based mocks.
-	eventBus := eventbus.New()
-	storages := &storage.Storage{
-		DiffStore:         mocks.MockDiffStore{},
-		ExpectationsStore: mem_expstore.New(eventBus),
-		IgnoreStore:       ignore.NewMemIgnoreStore(),
-		MasterTileBuilder: mocks.NewMockTileBuilderFromTile(t, tile),
-		NCommits:          50,
-		EventBus:          eventBus,
-	}
 
-	assert.NoError(t, storages.ExpectationsStore.AddChange(types.Expectations{
+	mes := &mocks.ExpectationsStore{}
+	defer mes.AssertExpectations(t)
+
+	mes.On("Get").Return(types.Expectations{
 		FirstTest: map[types.Digest]types.Label{
 			"aaa": types.POSITIVE,
 			"bbb": types.NEGATIVE,
@@ -168,7 +160,14 @@ func TestCalcSummaries(t *testing.T) {
 		SecondTest: map[types.Digest]types.Label{
 			"fff": types.NEGATIVE,
 		},
-	}, "user@example.com"))
+	}, nil)
+
+	storages := &storage.Storage{
+		ExpectationsStore: mes,
+		IgnoreStore:       ignore.NewMemIgnoreStore(),
+		MasterTileBuilder: mocks.NewMockTileBuilderFromTile(t, tile),
+		NCommits:          50,
+	}
 
 	dc := digest_counter.New(tile)
 

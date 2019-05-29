@@ -74,19 +74,6 @@ type TriageLogEntry struct {
 	UndoChangeID int64           `json:"undoChangeId"`
 }
 
-func (t *TriageLogEntry) GetChanges() types.Expectations {
-	ret := types.Expectations{}
-	for _, d := range t.Details {
-		label := types.LabelFromString(d.Label)
-		if found, ok := ret[d.TestName]; !ok {
-			ret[d.TestName] = types.TestClassification{d.Digest: label}
-		} else {
-			found[d.Digest] = label
-		}
-	}
-	return ret
-}
-
 // ExpChange is used to store an expectation change in the database. Each
 // expectation change is an atomic change to expectations for an issue.
 // The actual expectations are captured in instances of TestDigestExp.
@@ -107,10 +94,6 @@ type ExpChange struct {
 type EventExpectationChange struct {
 	IssueID     int64
 	TestChanges types.Expectations
-
-	// waitCh is used by the sender of the event to wait for the event being handled.
-	// It is not serialized and therefore not handled by distributed receivers, only locally.
-	waitCh chan<- bool
 }
 
 // IssueExpStoreFactory creates an ExpectationsStore instance for the given issue id.

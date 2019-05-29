@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"os"
 	"sort"
@@ -19,7 +18,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
-	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -31,42 +29,10 @@ func MockUrlGenerator(path string) string {
 	return path
 }
 
-// Mock the diffstore.
-type MockDiffStore struct{}
-
-func (m MockDiffStore) Get(priority int64, dMain types.Digest, dRest types.DigestSlice) (map[types.Digest]interface{}, error) {
-	result := map[types.Digest]interface{}{}
-	for _, d := range dRest {
-		if dMain != d {
-			result[d] = &diff.DiffMetrics{
-				NumDiffPixels:    10,
-				PixelDiffPercent: 1.0,
-				MaxRGBADiffs:     []int{5, 3, 4, 0},
-				DimDiffer:        false,
-				Diffs: map[string]float32{
-					diff.METRIC_COMBINED: rand.Float32(),
-					diff.METRIC_PERCENT:  rand.Float32(),
-				},
-			}
-		}
-	}
-	return result, nil
-}
-
-func (m MockDiffStore) UnavailableDigests() map[types.Digest]*diff.DigestFailure         { return nil }
-func (m MockDiffStore) PurgeDigests(digests types.DigestSlice, purgeGCS bool) error      { return nil }
-func (m MockDiffStore) ImageHandler(urlPrefix string) (http.Handler, error)              { return nil, nil }
-func (m MockDiffStore) WarmDigests(priority int64, digests types.DigestSlice, sync bool) {}
-func (m MockDiffStore) WarmDiffs(priority int64, leftDigests types.DigestSlice, rightDigests types.DigestSlice) {
-}
-
-func NewMockDiffStore() diff.DiffStore {
-	return MockDiffStore{}
-}
-
-// TraceKey returns the trace key used in MockTileStore generated from the
+// traceKey returns the trace key used in MockTileStore generated from the
 // params map.
-func TraceKey(params map[string]string) tiling.TraceId {
+// TODO(kjlubick): replace with version from tracestore when that lands
+func traceKey(params map[string]string) tiling.TraceId {
 	traceParts := make([]string, 0, len(params))
 	for _, v := range params {
 		traceParts = append(traceParts, v)
@@ -144,7 +110,7 @@ func NewMockTileBuilder(t assert.TestingT, digests []types.DigestSlice, params [
 	traces := map[tiling.TraceId]tiling.Trace{}
 
 	for idx, traceDigests := range digests {
-		traces[TraceKey(params[idx])] = &types.GoldenTrace{
+		traces[traceKey(params[idx])] = &types.GoldenTrace{
 			Keys:    params[idx],
 			Digests: traceDigests,
 		}
