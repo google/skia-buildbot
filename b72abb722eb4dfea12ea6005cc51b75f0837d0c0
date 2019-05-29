@@ -1,0 +1,28 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "58f48648_99252a72",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 24
+      },
+      "lineNbr": 973,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-29T19:39:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0a5f7d1e_5381df01",
+      "range": {
+        "startLine": 973,
+        "startChar": 3,
+        "endLine": 973,
+        "endChar": 16
+      },
+      "revId": "b72abb722eb4dfea12ea6005cc51b75f0837d0c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
