@@ -3,7 +3,8 @@
 {
   "childName": "FreeType",
   "contacts": [
-    "bungeman@google.com"
+    "bungeman@google.com",
+    "drott@google.com"
   ],
   "gerrit": {
     "url": "https://chromium-review.googlesource.com",
@@ -16,7 +17,8 @@
   "rollerName": "freetype-chromium",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "bungeman@google.com"
+    "bungeman@google.com",
+    "drott@google.com"
   ],
   "supportsManualRolls": true,
   "freeTypeRepoManager": {
