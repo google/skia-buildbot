@@ -290,9 +290,6 @@ type MonorailNotifierConfig struct {
 
 // Validate the MonorailNotifierConfig.
 func (c *MonorailNotifierConfig) Validate() error {
-	if c.Owner == "" {
-		return errors.New("Owner is required.")
-	}
 	if c.Project == "" {
 		return errors.New("Project is required.")
 	}

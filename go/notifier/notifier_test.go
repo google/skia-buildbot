@@ -79,20 +79,17 @@ func TestConfigs(t *testing.T) {
 		MsgTypeWhitelist: []string{"filebug"},
 		Monorail:         &MonorailNotifierConfig{},
 	}
-	assert.EqualError(t, c.Validate(), "Owner is required.")
+	assert.EqualError(t, c.Validate(), "Project is required.")
 
 	c = Config{
 		MsgTypeWhitelist: []string{"filebug"},
-		Monorail: &MonorailNotifierConfig{
-			Owner: "me",
-		},
+		Monorail:         &MonorailNotifierConfig{},
 	}
 	assert.EqualError(t, c.Validate(), "Project is required.")
 
 	c = Config{
 		MsgTypeWhitelist: []string{"filebug"},
 		Monorail: &MonorailNotifierConfig{
-			Owner:   "me",
 			Project: "my-project",
 		},
 	}
