@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	tracedb "go.skia.org/infra/go/trace/db"
-	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage/mem_expstore"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
@@ -108,18 +107,4 @@ func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder)
 	// All corpora are ok therefore the overall status should be ok.
 	newStatus := watcher.GetStatus()
 	assert.True(t, newStatus.OK)
-}
-
-type MockDigestStore struct {
-	issueIDs []int
-}
-
-func (m *MockDigestStore) Get(testName, digest string) (*digeststore.DigestInfo, bool, error) {
-	return &digeststore.DigestInfo{
-		IssueIDs: m.issueIDs,
-	}, true, nil
-}
-
-func (m *MockDigestStore) Update([]*digeststore.DigestInfo) error {
-	return nil
 }
