@@ -452,14 +452,19 @@ There are three images that it deals with, called left, top, and diff.
         if (!this._cachedDiffs) {
           // find all the diffs and sort them biggest diff to
           // smallest diff.
-          this._cachedDiffs = [];
-
           var leftColors = this.$.zoomLeft.getImageData();
           var rightColors = this.$.zoomRight.getImageData();
           var width = leftColors.width;
           var height = leftColors.height;
           var lc = leftColors.data;
           var rc = rightColors.data;
+
+          if (!lc || !rc) {
+            // not loaded yet
+            return;
+          }
+
+          this._cachedDiffs = [];
           for (var x=0; x<width; x++) {
             for (var y=0; y<height; y++) {
               var offset = (y*width+x)*4; // Offset into the colors array.
