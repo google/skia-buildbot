@@ -94,8 +94,8 @@ rows we store and they use different column families.
 
 Values used in row names:
 
-    TileKey = 2^22 - (tile number)
-       - With 256 values per tile this let's us store 1 billion values per trace.
+    TileKey = (2^32-1) - (tile number)
+       - With 256 values per tile this lets us store 1 trillion values per trace.
        - Formatted as %07d
        - Note that this reverses the order of the tiles, i.e. new tiles have
          smaller numbers, so that we can do a simple query to find the newest tile.
