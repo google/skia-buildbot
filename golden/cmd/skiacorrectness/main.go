@@ -43,7 +43,7 @@ import (
 	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
-	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/expstorage/ds_expstore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
@@ -361,13 +361,10 @@ func main() {
 		}
 
 		// Set up the cloud expectations store
-		var expStore expstorage.DEPRECATED_ExpectationsStore
-		expStore, issueExpStoreFactory, err := expstorage.NewCloudExpectationsStore(ds.DS, evt)
+		expStore, issueExpStoreFactory, err := ds_expstore.New(ds.DS, evt)
 		if err != nil {
 			sklog.Fatalf("Unable to configure cloud expectations store: %s", err)
 		}
-		// wrap it in a caching layer
-		expStore = expstorage.NewCachingExpectationStore(expStore, evt)
 
 		tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, issueExpStoreFactory, evt)
 		if err != nil {

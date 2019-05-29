@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/digest_counter"
-	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/expstorage/mem_expstore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
@@ -150,7 +150,7 @@ func TestCalcSummaries(t *testing.T) {
 	eventBus := eventbus.New()
 	storages := &storage.Storage{
 		DiffStore:         mocks.MockDiffStore{},
-		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
+		ExpectationsStore: mem_expstore.New(eventBus),
 		IgnoreStore:       ignore.NewMemIgnoreStore(),
 		MasterTileBuilder: mocks.NewMockTileBuilderFromTile(t, tile),
 		NCommits:          50,
