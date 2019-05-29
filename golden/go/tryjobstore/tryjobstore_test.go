@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/expstorage/ds_expstore"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -32,7 +33,7 @@ func TestCloudTryjobStore(t *testing.T) {
 	defer cleanup()
 
 	eventBus := eventbus.New()
-	_, expStoreFactory, err := expstorage.NewCloudExpectationsStore(ds.DS, eventBus)
+	_, expStoreFactory, err := ds_expstore.New(ds.DS, eventBus)
 	assert.NoError(t, err)
 	store, err := NewCloudTryjobStore(ds.DS, expStoreFactory, eventBus)
 	assert.NoError(t, err)

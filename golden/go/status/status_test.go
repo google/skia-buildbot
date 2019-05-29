@@ -13,7 +13,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/golden/go/digeststore"
-	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/expstorage/mem_expstore"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
@@ -62,7 +62,7 @@ func BenchmarkStatusWatcher(b *testing.B) {
 func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder) {
 	eventBus := eventbus.New()
 	storages := &storage.Storage{
-		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
+		ExpectationsStore: mem_expstore.New(eventBus),
 		MasterTileBuilder: tileBuilder,
 		EventBus:          eventBus,
 	}
