@@ -20,6 +20,7 @@ import (
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/expstorage/ds_expstore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/serialize"
 	"go.skia.org/infra/golden/go/storage"
@@ -176,7 +177,7 @@ func load(ctx context.Context, dsNamespace string) (*tiling.Tile, types.Expectat
 	var expStore expstorage.ExpectationsStore
 	var err error
 
-	expStore, _, err = expstorage.NewCloudExpectationsStore(ds.DS, evt)
+	expStore, _, err = ds_expstore.New(ds.DS, evt)
 	if err != nil {
 		sklog.Fatalf("Unable to create cloud expectations store: %s", err)
 	}

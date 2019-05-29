@@ -25,7 +25,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
-	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/expstorage/ds_expstore"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tryjobstore"
@@ -95,7 +95,7 @@ func main() {
 	}
 
 	// Set up the cloud expectations store
-	expStore, issueExpStoreFactory, err := expstorage.NewCloudExpectationsStore(ds.DS, evt)
+	expStore, issueExpStoreFactory, err := ds_expstore.New(ds.DS, evt)
 	if err != nil {
 		sklog.Fatalf("Unable to configure cloud expectations store: %s", err)
 	}
@@ -127,7 +127,7 @@ func main() {
 	}
 
 	// Initialize the Baseliner instance from the values set above.
-	baseliner, err := gcs_baseliner.New(gsClient, expstorage.NewCachingExpectationStore(expStore, evt), issueExpStoreFactory, tryjobStore, vcs)
+	baseliner, err := gcs_baseliner.New(gsClient, expStore, issueExpStoreFactory, tryjobStore, vcs)
 	if err != nil {
 		sklog.Fatalf("Error initializing baseliner: %s", err)
 	}

@@ -1,4 +1,4 @@
-package expstorage
+package ds_expstore
 
 import (
 	"context"
@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -35,13 +36,13 @@ func TestMasterCloudExpectationsStore(t *testing.T) {
 
 	// Test the DS backed store for master.
 	masterEventBus := eventbus.New()
-	cloudStore, _, err := NewCloudExpectationsStore(ds.DS, masterEventBus)
+	cloudStore, _, err := New(ds.DS, masterEventBus)
 	assert.NoError(t, err)
-	testExpectationStore(t, cloudStore, masterEventBus, 0, EV_EXPSTORAGE_CHANGED)
+	testExpectationStore(t, cloudStore, masterEventBus, 0, expstorage.EV_EXPSTORAGE_CHANGED)
 	testCloudExpstoreClear(t, cloudStore)
 }
 
-func testCloudExpstoreClear(t *testing.T, cloudStore ExpectationsStore) {
+func testCloudExpstoreClear(t *testing.T, cloudStore expstorage.ExpectationsStore) {
 	// Make sure the clear works.
 	assert.NoError(t, cloudStore.Clear())
 	assert.NoError(t, testutils.EventuallyConsistent(5*time.Second, func() error {
@@ -56,21 +57,6 @@ func testCloudExpstoreClear(t *testing.T, cloudStore ExpectationsStore) {
 	}))
 }
 
-func TestCachingCloudExpectationsStore(t *testing.T) {
-	unittest.LargeTest(t)
-
-	cleanup := initDS(t)
-	defer cleanup()
-
-	// Test the caching version of the DS store.
-	cachingEventBus := eventbus.New()
-	cloudStore, _, err := NewCloudExpectationsStore(ds.DS, nil)
-	assert.NoError(t, err)
-	cachingStore := NewCachingExpectationStore(cloudStore, cachingEventBus)
-	testExpectationStore(t, cachingStore, cachingEventBus, 0, EV_EXPSTORAGE_CHANGED)
-	testCloudExpstoreClear(t, cachingStore)
-}
-
 func TestIssueCloudExpectationsStore(t *testing.T) {
 	unittest.LargeTest(t)
 
@@ -79,11 +65,11 @@ func TestIssueCloudExpectationsStore(t *testing.T) {
 
 	// Test the expectation store for an individual issue.
 	masterEventBus := eventbus.New()
-	_, issueStoreFactory, err := NewCloudExpectationsStore(ds.DS, masterEventBus)
+	_, issueStoreFactory, err := New(ds.DS, masterEventBus)
 	assert.NoError(t, err)
 	issueID := int64(1234567)
 	issueStore := issueStoreFactory(issueID)
-	testExpectationStore(t, issueStore, masterEventBus, issueID, EV_TRYJOB_EXP_CHANGED)
+	testExpectationStore(t, issueStore, masterEventBus, issueID, expstorage.EV_TRYJOB_EXP_CHANGED)
 	testCloudExpstoreClear(t, issueStore)
 }
 
@@ -120,7 +106,7 @@ func getRandomChange(nTests, nDigests int) types.Expectations {
 }
 
 // Test against the expectation store interface.
-func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, eventBus eventbus.EventBus, issueID int64, eventType string) {
+func testExpectationStore(t *testing.T, store expstorage.ExpectationsStore, eventBus eventbus.EventBus, issueID int64, eventType string) {
 	// Get the initial log size. This is necessary because we
 	// call this function multiple times with the same underlying
 	// ExpectationStore.
@@ -137,7 +123,7 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 	callbackCh := make(chan types.TestNameSlice, 3)
 	if eventBus != nil {
 		eventBus.SubscribeAsync(eventType, func(e interface{}) {
-			evData := e.(*EventExpectationChange)
+			evData := e.(*expstorage.EventExpectationChange)
 			if (issueID > 0) && (evData.IssueID != issueID) {
 				return
 			}
@@ -167,11 +153,11 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 			DIGEST_22: types.NEGATIVE,
 		},
 	}
-	logEntry_1 := []*TriageDetail{
-		{TEST_1, DIGEST_11, "positive"},
-		{TEST_1, DIGEST_12, "negative"},
-		{TEST_2, DIGEST_21, "positive"},
-		{TEST_2, DIGEST_22, "negative"},
+	logEntry_1 := []*expstorage.TriageDetail{
+		{TestName: TEST_1, Digest: DIGEST_11, Label: "positive"},
+		{TestName: TEST_1, Digest: DIGEST_12, Label: "negative"},
+		{TestName: TEST_2, Digest: DIGEST_21, Label: "positive"},
+		{TestName: TEST_2, Digest: DIGEST_22, Label: "negative"},
 	}
 
 	assert.NoError(t, store.AddChange(expChange_1, "user-0"))
@@ -196,9 +182,9 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 			DIGEST_22: types.UNTRIAGED,
 		},
 	}
-	logEntry_2 := []*TriageDetail{
-		{TEST_1, DIGEST_11, "negative"},
-		{TEST_2, DIGEST_22, "untriaged"},
+	logEntry_2 := []*expstorage.TriageDetail{
+		{TestName: TEST_1, Digest: DIGEST_11, Label: "negative"},
+		{TestName: TEST_2, Digest: DIGEST_22, Label: "untriaged"},
 	}
 
 	assert.NoError(t, store.AddChange(expChange_2, "user-1"))
@@ -224,40 +210,6 @@ func testExpectationStore(t *testing.T, store DEPRECATED_ExpectationsStore, even
 
 	foundExps, err = store.Get()
 	assert.NoError(t, err)
-
-	// Remove digests.
-	removeDigests_1 := types.Expectations{
-		TEST_1: {DIGEST_11: types.UNTRIAGED},
-		TEST_2: {DIGEST_22: types.UNTRIAGED},
-	}
-
-	assert.NoError(t, store.RemoveChange(removeDigests_1))
-	if eventBus != nil {
-		found := waitForChanLen(t, callbackCh, 1)
-		assert.Equal(t, types.TestNameSlice{TEST_1, TEST_2}, found[0])
-	}
-
-	foundTestExp, err = store.Get()
-	assert.NoError(t, err)
-	assert.Equal(t, map[types.Digest]types.Label{DIGEST_12: types.NEGATIVE}, foundTestExp[TEST_1])
-	assert.Equal(t, map[types.Digest]types.Label{DIGEST_21: types.POSITIVE}, foundTestExp[TEST_2])
-
-	removeDigests_2 := types.Expectations{TEST_1: {DIGEST_12: types.UNTRIAGED}}
-	assert.NoError(t, store.RemoveChange(removeDigests_2))
-	if eventBus != nil {
-		found := waitForChanLen(t, callbackCh, 1)
-		assert.Equal(t, types.TestNameSlice{TEST_1}, found[0])
-	}
-
-	foundExps, err = store.Get()
-	assert.NoError(t, err)
-	assert.Len(t, foundExps, 1)
-
-	assert.NoError(t, store.RemoveChange(types.Expectations{}))
-	if eventBus != nil {
-		found := waitForChanLen(t, callbackCh, 1)
-		assert.Empty(t, found[0])
-	}
 
 	// Make sure we added the correct number of triage log entries.
 	addedRecs := 3
@@ -338,7 +290,7 @@ func parseID(t *testing.T, idStr string) int64 {
 	return ret
 }
 
-func checkLogEntry(t *testing.T, store ExpectationsStore, changes types.Expectations) {
+func checkLogEntry(t *testing.T, store expstorage.ExpectationsStore, changes types.Expectations) {
 	logEntries, _, err := store.QueryLog(0, 1, true)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(logEntries))

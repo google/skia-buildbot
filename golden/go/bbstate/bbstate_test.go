@@ -14,12 +14,12 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/expstorage/ds_expstore"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	gstorage "google.golang.org/api/storage/v1"
 )
 
-// TODO(stephana): Factor out BuildBucketState into an interface to make it
+// TODO(kjlubick): Factor out BuildBucketState into an interface to make it
 // more testable. Supply a mock version of the interface.
 
 func TestBuildBucketState(t *testing.T) {
@@ -49,7 +49,7 @@ func TestBuildBucketState(t *testing.T) {
 	assert.NoError(t, err)
 
 	evt := eventbus.New()
-	_, expStoreFactory, err := expstorage.NewCloudExpectationsStore(ds.DS, evt)
+	_, expStoreFactory, err := ds_expstore.New(ds.DS, evt)
 	assert.NoError(t, err)
 	tjStore, err := tryjobstore.NewCloudTryjobStore(dsClient, expStoreFactory, evt)
 	assert.NoError(t, err)
