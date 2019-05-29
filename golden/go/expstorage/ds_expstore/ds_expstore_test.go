@@ -2,7 +2,6 @@ package ds_expstore
 
 import (
 	"context"
-	"math/rand"
 	"sort"
 	"strconv"
 	"testing"
@@ -79,30 +78,6 @@ func initDS(t *testing.T, kinds ...ds.Kind) func() {
 	initKinds = append(initKinds, testKinds...)
 	initKinds = append(initKinds, kinds...)
 	return ds_testutil.InitDatastore(t, initKinds...)
-}
-
-const hexLetters = "0123456789abcdef"
-const md5Length = 32
-
-func randomDigest() types.Digest {
-	ret := make([]byte, md5Length)
-	for i := 0; i < md5Length; i++ {
-		ret[i] = hexLetters[rand.Intn(len(hexLetters))]
-	}
-	return types.Digest(ret)
-}
-
-func getRandomChange(nTests, nDigests int) types.Expectations {
-	labels := []types.Label{types.POSITIVE, types.NEGATIVE, types.UNTRIAGED}
-	ret := make(types.Expectations, nTests)
-	for i := 0; i < nTests; i++ {
-		digests := make(map[types.Digest]types.Label, nDigests)
-		for j := 0; j < nDigests; j++ {
-			digests[randomDigest()] = labels[rand.Intn(len(labels))]
-		}
-		ret[types.TestName(util.RandomName())] = digests
-	}
-	return ret
 }
 
 // Test against the expectation store interface.
