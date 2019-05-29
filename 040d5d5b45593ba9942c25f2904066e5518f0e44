@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "52022990_8dd06749",
+        "filename": "golden/frontend/res/imp/multi-zoom-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-29T17:22:45Z",
+      "side": 1,
+      "message": "Would console.logging be useful?",
+      "revId": "040d5d5b45593ba9942c25f2904066e5518f0e44",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
