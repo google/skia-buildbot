@@ -16,6 +16,24 @@
       "revId": "040d5d5b45593ba9942c25f2904066e5518f0e44",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a3bbd40_a5ae5b04",
+        "filename": "golden/frontend/res/imp/multi-zoom-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-29T17:25:17Z",
+      "side": 1,
+      "message": "I don\u0027t think so. Users rarely check that anyway. This would happen regularly, i.e. if the user opens the zoom panel and immediately hits the u before everything loads.  Instead of crashing (like before), it will just require the user to hit u again.",
+      "parentUuid": "52022990_8dd06749",
+      "revId": "040d5d5b45593ba9942c25f2904066e5518f0e44",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
