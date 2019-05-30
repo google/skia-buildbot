@@ -188,11 +188,17 @@ func (g GitDir) IsAncestor(ctx context.Context, a, b string) (bool, error) {
 	out, err := g.Git(ctx, "merge-base", "--is-ancestor", a, b)
 	if err != nil {
 		// Either a is not an ancestor of b, or we got a real error. If
-		// the output is empty, assume it's the former case. Otherwise,
-		// return an error.
+		// the output is empty, assume it's the former case.
 		if out == "" {
 			return false, nil
 		}
+		// "Not a valid commit name" indicates that the given commit does not
+		//  exist and thus history was probably changed upstream.
+		// A non-existent commit cannot be an ancestor of one which does exist.
+		if strings.Contains(out, fmt.Sprintf("Not a valid commit name %s", a)) {
+			return false, nil
+		}
+		// Otherwise, return the presumably real error.
 		return false, fmt.Errorf("%s: %s", err, out)
 	}
 	return true, nil
