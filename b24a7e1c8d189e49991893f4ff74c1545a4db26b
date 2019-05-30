@@ -16,6 +16,24 @@
       "revId": "b24a7e1c8d189e49991893f4ff74c1545a4db26b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a836541_abe4c609",
+        "filename": "golden/go/summary/summary_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T13:50:00Z",
+      "side": 1,
+      "message": "ignore.NewMemIgnoreStore()\nmocks.NewMockTileBuilderFromTile(t, tile)\n\nare still on the list",
+      "parentUuid": "94abfdcb_f59cd696",
+      "revId": "b24a7e1c8d189e49991893f4ff74c1545a4db26b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
