@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5cab7868_c723cf16",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 505,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-30T13:11:55Z",
+      "side": 1,
+      "message": "There are libraries we can use for exponential backoff instead of implementing it from scratch:\n* https://skia.googlesource.com/buildbot/+/master/android_compile/go/android_compile/checkouts.go#19\n* https://skia.googlesource.com/buildbot/+/master/go/httputils/http.go#20",
+      "revId": "acd4c13e7fe86c643d295f749e134c4fb1c0047b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
