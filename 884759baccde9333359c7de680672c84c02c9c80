@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "af76f5b3_32c65345",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 759,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-05-30T16:46:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "48936354_54b46c7e",
+      "revId": "884759baccde9333359c7de680672c84c02c9c80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a366ccb5_1c88189f",
         "filename": "perf/go/perf-tool/main.go",
         "patchSetId": 9
@@ -39,6 +57,30 @@
       "revId": "884759baccde9333359c7de680672c84c02c9c80",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c445bb2_c86b9789",
+        "filename": "perf/go/perf-tool/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-05-30T16:46:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a366ccb5_1c88189f",
+      "range": {
+        "startLine": 1,
+        "startChar": 29,
+        "endLine": 1,
+        "endChar": 32
+      },
+      "revId": "884759baccde9333359c7de680672c84c02c9c80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "8825057f_ac446545",
+        "filename": "perf/go/perf-tool/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-05-30T16:46:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7faa9742_aa1d07a9",
+      "range": {
+        "startLine": 13,
+        "startChar": 1,
+        "endLine": 13,
+        "endChar": 24
+      },
+      "revId": "884759baccde9333359c7de680672c84c02c9c80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b21e8ff5_10b078d7",
         "filename": "perf/go/perf-tool/main.go",
         "patchSetId": 9
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "06e258f6_3b99c248",
+        "filename": "perf/go/perf-tool/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-05-30T16:46:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b21e8ff5_10b078d7",
+      "range": {
+        "startLine": 228,
+        "startChar": 3,
+        "endLine": 228,
+        "endChar": 19
+      },
+      "revId": "884759baccde9333359c7de680672c84c02c9c80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6cd28df3_640f8577",
         "filename": "perf/go/perf-tool/main.go",
         "patchSetId": 9
@@ -99,6 +189,30 @@
       "writtenOn": "2019-05-28T21:03:48Z",
       "side": 1,
       "message": "I\u0027m confused about the mix of sklog and fmt.Println",
+      "range": {
+        "startLine": 273,
+        "startChar": 2,
+        "endLine": 273,
+        "endChar": 13
+      },
+      "revId": "884759baccde9333359c7de680672c84c02c9c80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f75f3c3_26c9d673",
+        "filename": "perf/go/perf-tool/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-05-30T16:46:57Z",
+      "side": 1,
+      "message": "Expected output from commands should be fmt.Print*, which is totally different from logging output which is sklog.*.",
+      "parentUuid": "6cd28df3_640f8577",
       "range": {
         "startLine": 273,
         "startChar": 2,
@@ -131,6 +245,30 @@
       "revId": "884759baccde9333359c7de680672c84c02c9c80",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "964b5384_15df804a",
+        "filename": "perf/go/perf-tool/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-05-30T16:46:57Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "6d77c613_f59032b9",
+      "range": {
+        "startLine": 301,
+        "startChar": 7,
+        "endLine": 301,
+        "endChar": 10
+      },
+      "revId": "884759baccde9333359c7de680672c84c02c9c80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
