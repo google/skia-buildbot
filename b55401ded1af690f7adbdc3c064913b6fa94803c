@@ -1,0 +1,509 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c3ef9858_bde89863",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "prefer using const or let in stand-alone JS. I believe Polymer is ok with const/let also, but we don\u0027t need to change that for legacy reasons.\n\nhttps://engdoc.corp.google.com/eng/doc/devguide/js/styleguide.md?cl\u003dhead#features-use-const-and-let",
+      "range": {
+        "startLine": 6,
+        "startChar": 2,
+        "endLine": 6,
+        "endChar": 5
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13c7aa1f_27143786",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "Do I understand it right that we start drawing the background with a color and then switch to the alternate color at each epoch?",
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ba14d36_904be1e1",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "const task of this._tasks",
+      "range": {
+        "startLine": 43,
+        "startChar": 9,
+        "endLine": 43,
+        "endChar": 47
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "132da6ec_daf55489",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "I take it these values were chosen for aesthetics?",
+      "range": {
+        "startLine": 63,
+        "startChar": 26,
+        "endLine": 63,
+        "endChar": 27
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93f6430c_cb8383f3",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "https://engdoc.corp.google.com/eng/doc/devguide/js/styleguide.md?cl\u003dhead#features-strings-use-single-quotes",
+      "range": {
+        "startLine": 74,
+        "startChar": 25,
+        "endLine": 74,
+        "endChar": 27
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9f1f8b8_bfb95ae0",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "Maybe add a comment that we only use the canvas for measuring, not actual drawing.",
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49e9fca0_706063e1",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "const category of categories",
+      "range": {
+        "startLine": 83,
+        "startChar": 9,
+        "endLine": 83,
+        "endChar": 46
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c27beec_12a05314",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "Maybe make this be Number.MAX_SAFE_INTEGER so we could use this for future charts.",
+      "range": {
+        "startLine": 96,
+        "startChar": 17,
+        "endLine": 96,
+        "endChar": 27
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c9cc0bf0_195db3c7",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "const category of categories",
+      "range": {
+        "startLine": 98,
+        "startChar": 9,
+        "endLine": 98,
+        "endChar": 46
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15438e75_f5ca478a",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "const task of tasks.  and so on.",
+      "range": {
+        "startLine": 101,
+        "startChar": 11,
+        "endLine": 101,
+        "endChar": 43
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5fe05eac_4553e53e",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "console.warn maybe?",
+      "range": {
+        "startLine": 120,
+        "startChar": 6,
+        "endLine": 120,
+        "endChar": 17
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bbc0a94e_30167cbe",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "\u003d\u003d\u003d",
+      "range": {
+        "startLine": 189,
+        "startChar": 21,
+        "endLine": 189,
+        "endChar": 23
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3bdd2853_39783616",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "add comment explaining why we set the hours/minutes to 0",
+      "range": {
+        "startLine": 194,
+        "startChar": 41,
+        "endLine": 194,
+        "endChar": 47
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f022421d_9d8455ba",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "break into two steps / wrap to 100 col",
+      "range": {
+        "startLine": 201,
+        "startChar": 8,
+        "endLine": 201,
+        "endChar": 114
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c43c09a_147d32a3",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "Add comment explaining that we can\u0027t use toLocaleString() or toLocaleTimeString() because it doesn\u0027t show milliseconds.",
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f54ff539_143130d2",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "wrap to 100 col if longer.",
+      "range": {
+        "startLine": 323,
+        "startChar": 175,
+        "endLine": 323,
+        "endChar": 178
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f613b713_caa5bb0f",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "ts.toLocaleDateString()",
+      "range": {
+        "startLine": 323,
+        "startChar": 13,
+        "endLine": 323,
+        "endChar": 78
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "906cedb6_74167f16",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "pad with 0 if less than 10:\nhttps://screenshot.googleplex.com/uGnM4Ac5ZLb\n\nsame for minutes,seconds\n\nmilliseconds may also need padding (to 3 digits)",
+      "range": {
+        "startLine": 323,
+        "startChar": 87,
+        "endLine": 323,
+        "endChar": 99
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea9bb196_6340b4fc",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "if (this._layoutSelectBoxOrigin) or add comment explaining that we are working around _layoutSelectBoxOrigin being 0",
+      "range": {
+        "startLine": 348,
+        "startChar": 10,
+        "endLine": 348,
+        "endChar": 51
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0055dd6a_b9b7aa72",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 428,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "Since you are passing in basic arrays to all these data, you are ok with d3 determining \"uniqueness\" based on index?  It may make updating not work great if things at an index are changed.",
+      "range": {
+        "startLine": 428,
+        "startChar": 56,
+        "endLine": 428,
+        "endChar": 74
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "24859244_50aa67fd",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "I think it\u0027s cannonical d3 to call this variable \"d\"",
+      "range": {
+        "startLine": 432,
+        "startChar": 28,
+        "endLine": 432,
+        "endChar": 32
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "65b90759_488d81e4",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 465,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "It would be nice to have the duration as a mouseover - can you add a \u003ctitle\u003e inside the \u003crect\u003e?\n\nhttps://developer.mozilla.org/en-US/docs/Web/SVG/Element/title",
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f89d3115_d40ac600",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 505,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T16:56:12Z",
+      "side": 1,
+      "message": "Why the negative?  Could we negate rotationDegrees ourselves?",
+      "range": {
+        "startLine": 505,
+        "startChar": 58,
+        "endLine": 505,
+        "endChar": 60
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
