@@ -417,6 +417,24 @@ func (b *BigTableTraceStore) writeTraceIndices(tctx context.Context, tileKey Til
 	return nil
 }
 
+// CountIndices returns the number of index rows that exist for the given tileKey.
+func (b *BigTableTraceStore) CountIndices(ctx context.Context, tileKey TileKey) (int64, error) {
+	ret := int64(0)
+	rowRegex := tileKey.IndexRowPrefix() + ":.*"
+	err := b.getTable().ReadRows(ctx, bigtable.PrefixRange(tileKey.IndexRowPrefix()+":"), func(row bigtable.Row) bool {
+		ret++
+		return true
+	}, bigtable.RowFilter(
+		bigtable.ChainFilters(
+			bigtable.LatestNFilter(1),
+			bigtable.RowKeyFilter(rowRegex),
+			bigtable.FamilyFilter(INDEX_FAMILY),
+			bigtable.CellsPerRowLimitFilter(1),
+			bigtable.StripValueFilter(),
+		)))
+	return ret, err
+}
+
 // WriteIndices recalculates the full index for the given tile and writes it back to BigTable.
 func (b *BigTableTraceStore) WriteIndices(ctx context.Context, tileKey TileKey) error {
 	keys, err := b.TileKeys(ctx, tileKey)

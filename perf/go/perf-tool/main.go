@@ -102,19 +102,37 @@ func main() {
 	cmd.PersistentFlags().StringVar(&bigTableConfig, "big_table_config", "nano", "The name of the config to use when using a BigTable trace store.")
 	cmd.PersistentFlags().BoolVar(&logToStdErr, "logtostderr", false, "Otherwise logs are not produced.")
 
+	configCmd := &cobra.Command{
+		Use: "config [sub]",
+	}
+	configListCmd := &cobra.Command{
+		Use:   "list",
+		Short: "List all the available configs.",
+		Run:   configListAction,
+	}
+	configCmd.AddCommand(configListCmd)
+
 	indicesCmd := &cobra.Command{
 		Use: "indices [sub]",
 	}
+	indicesCmd.PersistentFlags().Int32Var(&tile, "tile", -1, "The tile to query")
 	indicesWriteCmd := &cobra.Command{
-		Use:   "count",
+		Use:   "write",
 		Short: "Write indices",
 		Long:  "Rewrites the indices for the last (most recent) tile, or the tile specified by --tile.",
 		RunE:  indicesWriteAction,
+	}
+	indicesCountCmd := &cobra.Command{
+		Use:   "count",
+		Short: "Counts the number of index rows.",
+		Long:  "Counts the index rows for the last (most recent) tile, or the tile specified by --tile.",
+		RunE:  indicesCountAction,
 	}
 	indicesWriteCmd.Flags().Int32Var(&tile, "tile", -1, "The tile to query")
 
 	indicesCmd.AddCommand(
 		indicesWriteCmd,
+		indicesCountCmd,
 	)
 
 	tilesCmd := &cobra.Command{
@@ -161,6 +179,7 @@ func main() {
 	)
 
 	cmd.AddCommand(
+		configCmd,
 		indicesCmd,
 		tilesCmd,
 		tracesCmd,
@@ -178,7 +197,7 @@ func tilesLastAction(c *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Last Tile: %d\n", tileKey.Offset())
+	fmt.Println(tileKey.Offset())
 	return nil
 }
 
@@ -205,7 +224,7 @@ func tracesCountAction(c *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Tile: %d Num Traces: %d\n", tileKey.Offset(), count)
+	fmt.Println(count)
 	return nil
 }
 
@@ -279,4 +298,28 @@ func indicesWriteAction(c *cobra.Command, args []string) error {
 		tileKey = btts.TileKeyFromOffset(tile)
 	}
 	return store.WriteIndices(context.Background(), tileKey)
+}
+
+func indicesCountAction(c *cobra.Command, args []string) error {
+	var tileKey btts.TileKey
+	if tile == -1 {
+		var err error
+		tileKey, err = store.GetLatestTile()
+		if err != nil {
+			return fmt.Errorf("Failed to get latest tile: %s", err)
+		}
+	} else {
+		tileKey = btts.TileKeyFromOffset(tile)
+	}
+	count, err := store.CountIndices(context.Background(), tileKey)
+	if err == nil {
+		fmt.Println(count)
+	}
+	return err
+}
+
+func configListAction(c *cobra.Command, args []string) {
+	for k := range config.PERF_BIGTABLE_CONFIGS {
+		fmt.Println(k)
+	}
 }
