@@ -84,6 +84,24 @@
     },
     {
       "key": {
+        "uuid": "6b99df81_a57d879b",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T18:31:09Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2c186fe7_7e6d779c",
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ba14d36_904be1e1",
         "filename": "task_scheduler/res/js/gantt.js",
         "patchSetId": 2
@@ -903,6 +921,30 @@
       "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fdbc2e0e_ca16ab2a",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 428,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T18:31:09Z",
+      "side": 1,
+      "message": "Ack. https://bost.ocks.org/mike/constancy/ as an FYI if you make updatable data in the future.",
+      "parentUuid": "b7e34cd5_a1146de5",
+      "range": {
+        "startLine": 428,
+        "startChar": 56,
+        "endLine": 428,
+        "endChar": 74
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {

@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e51e5f6e_5a4ee014",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T18:31:09Z",
+      "side": 1,
+      "message": "nit: const for loop variable (I know, feels weird, but works)",
+      "range": {
+        "startLine": 54,
+        "startChar": 11,
+        "endLine": 54,
+        "endChar": 14
+      },
+      "revId": "998d499591cd64fca2864f6c24e3ee636160a155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
