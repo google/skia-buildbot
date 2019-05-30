@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "01e3e994_a5b4ed51",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 503,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-30T13:39:15Z",
+      "side": 1,
+      "message": "Spl (doing Tricium\u0027s job)",
+      "range": {
+        "startLine": 503,
+        "startChar": 43,
+        "endLine": 503,
+        "endChar": 49
+      },
+      "revId": "acd4c13e7fe86c643d295f749e134c4fb1c0047b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5cab7868_c723cf16",
         "filename": "gold-client/go/goldclient/goldclient.go",
         "patchSetId": 2
@@ -34,6 +57,47 @@
       "revId": "acd4c13e7fe86c643d295f749e134c4fb1c0047b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f28dae69_e37d3b60",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 505,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-30T13:39:15Z",
+      "side": 1,
+      "message": "\u003e looked at the library and it doesn\u0027t really solve what I want to do.\n\nThe library would work for this use case, it\u0027s just retries with configurable sleeps and errors. But that\u0027s fine since you already have something implemented.\n\n\u003e This retry logic is on top of that and is meant to catch issues with the response reading.\n\nWould be useful to keep stacktrace of EOF in the bug for future reference incase we run into it in other places and might want to one day add something to the http library.",
+      "parentUuid": "ad4708ad_80d11234",
+      "revId": "acd4c13e7fe86c643d295f749e134c4fb1c0047b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e769cfd3_818178f2",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 529,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-30T13:39:15Z",
+      "side": 1,
+      "message": "Does the lower case error thingy not complain about this? (it\u0027s good if it doesnt)",
+      "range": {
+        "startLine": 529,
+        "startChar": 27,
+        "endLine": 529,
+        "endChar": 30
+      },
+      "revId": "acd4c13e7fe86c643d295f749e134c4fb1c0047b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
