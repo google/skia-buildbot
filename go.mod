@@ -59,6 +59,8 @@ require (
 	github.com/huandu/xstrings v1.2.0 // indirect
 	github.com/huin/goserial v0.0.0-20121012073615-7b90efdb22b1
 	github.com/imdario/mergo v0.3.7 // indirect
+	github.com/jcgregorio/logger v0.0.0-20190528172559-6fef4ed9e5a9
+	github.com/jcgregorio/slog v0.0.0-20190423190439-e6f2d537f900
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/json-iterator/go v1.1.6 // indirect
 	github.com/kisielk/errcheck v1.2.0 // indirect
@@ -102,6 +104,7 @@ require (
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/texttheater/golang-levenshtein v0.0.0-20180516184445-d188e65d659e
 	github.com/unrolled/secure v1.0.0
+	github.com/urfave/cli v1.20.0
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
