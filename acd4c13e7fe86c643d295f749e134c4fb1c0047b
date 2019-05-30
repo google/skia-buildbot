@@ -16,6 +16,24 @@
       "revId": "acd4c13e7fe86c643d295f749e134c4fb1c0047b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad4708ad_80d11234",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 505,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-30T13:19:49Z",
+      "side": 1,
+      "message": "There\u0027s some confusion here - I\u0027m not re-implementing exponential backoff (nor do I want exponential backoff).  The passed in httpClient is already configured to use exponential backoff because it was created with the httputils.DefaultClient().\n\nThis retry logic is on top of that and is meant to catch issues with the response reading.\n\nI looked at the library and it doesn\u0027t really solve what I want to do.",
+      "parentUuid": "5cab7868_c723cf16",
+      "revId": "acd4c13e7fe86c643d295f749e134c4fb1c0047b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
