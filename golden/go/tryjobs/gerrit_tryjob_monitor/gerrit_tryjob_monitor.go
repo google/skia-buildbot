@@ -138,7 +138,7 @@ func (t *GerritTryjobMonitor) CommitIssueBaseline(issueID int64, user string) er
 	syntheticUser := fmt.Sprintf("%s:%d", user, issueID)
 
 	commitFn := func() error {
-		if err := t.expStore.AddChange(issueChanges, syntheticUser); err != nil {
+		if err := t.expStore.AddChange(context.TODO(), issueChanges, syntheticUser); err != nil {
 			return skerr.Fmt("Unable to add expectations for issue %d: %s", issueID, err)
 		}
 		return nil

@@ -157,19 +157,19 @@ func (c *DSExpStore) Get() (types.Expectations, error) {
 }
 
 // AddChange implements the ExpectationsStore interface.
-func (c *DSExpStore) AddChange(changes types.Expectations, userID string) error {
-	_, err := c.makeChange(changes, userID, c.getUniqueTimeStampMs(), 0, true)
+func (c *DSExpStore) AddChange(ctx context.Context, changes types.Expectations, userID string) error {
+	_, err := c.makeChange(ctx, changes, userID, c.getUniqueTimeStampMs(), 0, true)
 	return err
 }
 
 // ImportChange bypasses the ExpectationStore interface to copy change records directly.
-func (c *DSExpStore) ImportChange(changes types.Expectations, userID string, timeStamp int64) (*datastore.Key, error) {
-	return c.makeChange(changes, userID, timeStamp, 0, false)
+func (c *DSExpStore) ImportChange(ctx context.Context, changes types.Expectations, userID string, timeStamp int64) (*datastore.Key, error) {
+	return c.makeChange(ctx, changes, userID, timeStamp, 0, false)
 }
 
 // QueryLog implements the ExpectationsStore interface.
-func (c *DSExpStore) QueryLog(offset, size int, details bool) ([]*expstorage.TriageLogEntry, int, error) {
-	allKeys, err := c.getExpChangeKeys(0)
+func (c *DSExpStore) QueryLog(ctx context.Context, offset, size int, details bool) ([]*expstorage.TriageLogEntry, int, error) {
+	allKeys, err := c.getExpChangeKeys(ctx, 0)
 	if err != nil {
 		return nil, 0, sklog.FmtErrorf("Error retrieving keys for expectation changes: %s", err)
 	}
@@ -188,7 +188,7 @@ func (c *DSExpStore) QueryLog(offset, size int, details bool) ([]*expstorage.Tri
 
 	ret := make([]*expstorage.TriageLogEntry, 0, len(retKeys))
 	expChanges := make([]*expstorage.ExpChange, len(retKeys))
-	if err := c.client.GetMulti(context.TODO(), retKeys, expChanges); err != nil {
+	if err := c.client.GetMulti(ctx, retKeys, expChanges); err != nil {
 		return nil, 0, sklog.FmtErrorf("Error retrieving expectation changes: %s", err)
 	}
 
@@ -256,7 +256,7 @@ func (c *DSExpStore) QueryLog(offset, size int, details bool) ([]*expstorage.Tri
 }
 
 // UndoChange implements the ExpectationsStore interface.
-func (c *DSExpStore) UndoChange(changeID int64, userID string) (types.Expectations, error) {
+func (c *DSExpStore) UndoChange(ctx context.Context, changeID int64, userID string) (types.Expectations, error) {
 	// Make sure the entity is valid.
 	if changeID <= 0 {
 		return nil, sklog.FmtErrorf("Change with id %d does not exist.", changeID)
@@ -266,7 +266,7 @@ func (c *DSExpStore) UndoChange(changeID int64, userID string) (types.Expectatio
 	expChange := &expstorage.ExpChange{}
 	expChangeKey := ds.NewKey(c.changeKind)
 	expChangeKey.ID = changeID
-	if err := c.client.Get(context.TODO(), expChangeKey, expChange); err != nil {
+	if err := c.client.Get(ctx, expChangeKey, expChange); err != nil {
 		if err == datastore.ErrNoSuchEntity {
 			return nil, sklog.FmtErrorf("Change with id %d does not exist.", changeID)
 		}
@@ -286,13 +286,13 @@ func (c *DSExpStore) UndoChange(changeID int64, userID string) (types.Expectatio
 
 	// Retrieve the keys of all changes prior to the one we want to undo to
 	// build the expectations at the time of the original change
-	prevChangeKeys, err := c.getExpChangeKeys(changeID)
+	prevChangeKeys, err := c.getExpChangeKeys(ctx, changeID)
 	if err != nil {
 		return nil, sklog.FmtErrorf("Error retrieving keys for expectation changes: %s", err)
 	}
 
 	// Build the expectations at that point.
-	prevExp, err := c.CalcExpectations(prevChangeKeys)
+	prevExp, err := c.calcExpectations(ctx, prevChangeKeys)
 	if err != nil {
 		return nil, sklog.FmtErrorf("Unable to get expectations for undo: %s", err)
 	}
@@ -305,16 +305,15 @@ func (c *DSExpStore) UndoChange(changeID int64, userID string) (types.Expectatio
 		}
 	}
 
-	_, err = c.makeChange(changes, userID, c.getUniqueTimeStampMs(), changeID, true)
+	_, err = c.makeChange(ctx, changes, userID, c.getUniqueTimeStampMs(), changeID, true)
 	return changes, err
 }
 
 // Clear implements the ExpectationsStore interface.
-func (c *DSExpStore) Clear() error {
-	ctx := context.TODO()
+func (c *DSExpStore) Clear(ctx context.Context) error {
 	delKeys := []*datastore.Key{c.summaryKey, c.expectationsKey}
 
-	allExpChangeKeys, err := c.getExpChangeKeys(0)
+	allExpChangeKeys, err := c.getExpChangeKeys(ctx, 0)
 	if err != nil {
 		return sklog.FmtErrorf("Error retrieving keys for expectation changes: %s", err)
 	}
@@ -366,10 +365,10 @@ func (c *DSExpStore) PutExpectations(exps types.Expectations) error {
 	return c.updateCurrentExpectations(nil, exps, true, nil)
 }
 
-// CalcExpectations calculates the expectations by accumulating the expectation changes
+// calcExpectations calculates the expectations by accumulating the expectation changes
 // referenced by the given list of keys. keys are assumed to be sorted in
 // reverse chronological order.
-func (c *DSExpStore) CalcExpectations(keys []*datastore.Key) (types.Expectations, error) {
+func (c *DSExpStore) calcExpectations(ctx context.Context, keys []*datastore.Key) (types.Expectations, error) {
 	concurrent := make(chan bool, 10000)
 	changes := make([]types.Expectations, len(keys))
 	var egroup errgroup.Group
@@ -382,7 +381,7 @@ func (c *DSExpStore) CalcExpectations(keys []*datastore.Key) (types.Expectations
 					<-concurrent
 				}()
 
-				exps, err := c.getChanges(key)
+				exps, err := c.getChanges(ctx, key)
 				changes[idx] = exps
 				return err
 			})
@@ -405,9 +404,7 @@ func (c *DSExpStore) CalcExpectations(keys []*datastore.Key) (types.Expectations
 // since this is an undo of an earlier change.
 // If transactional is true it the change will be added in a transaction.
 // This should only be false when we import existing data.
-func (c *DSExpStore) makeChange(changes types.Expectations, userId string, timeStampMs int64, undoChangeID int64, transactional bool) (changeKey *datastore.Key, err error) {
-	ctx := context.TODO()
-
+func (c *DSExpStore) makeChange(ctx context.Context, changes types.Expectations, userId string, timeStampMs int64, undoChangeID int64, transactional bool) (changeKey *datastore.Key, err error) {
 	// Get the total count of changes so we can include it in the change record.
 	count := 0
 	for _, digests := range changes {
@@ -567,11 +564,10 @@ func (c *DSExpStore) updateCurrentExpectations(tx *datastore.Transaction, change
 // an ID that was created via TimeSortableKey and we only want to retrieve keys that are
 // older than the time stamp encoded in beforeID.
 // The time is extracted with the GetTimeFromID function.
-func (c *DSExpStore) getExpChangeKeys(beforeID int64) ([]*datastore.Key, error) {
+func (c *DSExpStore) getExpChangeKeys(ctx context.Context, beforeID int64) ([]*datastore.Key, error) {
 	// Query all changes
 	var egroup errgroup.Group
 	var queryKeys []*datastore.Key
-	ctx := context.TODO()
 	egroup.Go(func() error {
 		q := ds.NewQuery(c.changeKind).
 			Filter("OK =", true).
@@ -639,8 +635,7 @@ func (c *DSExpStore) loadCurrentExpectations(tx *datastore.Transaction) (types.E
 }
 
 // getChanges loads the changes for the given expectations change key.
-func (c *DSExpStore) getChanges(expChangeKey *datastore.Key) (types.Expectations, error) {
-	ctx := context.TODO()
+func (c *DSExpStore) getChanges(ctx context.Context, expChangeKey *datastore.Key) (types.Expectations, error) {
 	expChange := &expstorage.ExpChange{}
 	if err := c.client.Get(ctx, expChangeKey, expChange); err != nil {
 		return nil, err
