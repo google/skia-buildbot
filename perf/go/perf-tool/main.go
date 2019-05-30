@@ -116,23 +116,30 @@ func main() {
 		Use: "indices [sub]",
 	}
 	indicesCmd.PersistentFlags().Int32Var(&tile, "tile", -1, "The tile to query")
-	indicesWriteCmd := &cobra.Command{
-		Use:   "write",
-		Short: "Write indices",
-		Long:  "Rewrites the indices for the last (most recent) tile, or the tile specified by --tile.",
-		RunE:  indicesWriteAction,
-	}
 	indicesCountCmd := &cobra.Command{
 		Use:   "count",
 		Short: "Counts the number of index rows.",
 		Long:  "Counts the index rows for the last (most recent) tile, or the tile specified by --tile.",
 		RunE:  indicesCountAction,
 	}
+	indicesWriteCmd := &cobra.Command{
+		Use:   "write",
+		Short: "Write indices",
+		Long:  "Rewrites the indices for the last (most recent) tile, or the tile specified by --tile.",
+		RunE:  indicesWriteAction,
+	}
+	indicesWriteAllCmd := &cobra.Command{
+		Use:   "write-all",
+		Short: "Write indices for all tiles.",
+		Long:  "Rewrites the indices for all tiles, --tiles is ignored. Starts with latest tile and keeps moving to previous tiles until it finds a tile with no traces.",
+		RunE:  indicesWriteAllAction,
+	}
 	indicesWriteCmd.Flags().Int32Var(&tile, "tile", -1, "The tile to query")
 
 	indicesCmd.AddCommand(
-		indicesWriteCmd,
 		indicesCountCmd,
+		indicesWriteCmd,
+		indicesWriteAllCmd,
 	)
 
 	tilesCmd := &cobra.Command{
@@ -298,6 +305,32 @@ func indicesWriteAction(c *cobra.Command, args []string) error {
 		tileKey = btts.TileKeyFromOffset(tile)
 	}
 	return store.WriteIndices(context.Background(), tileKey)
+}
+
+func indicesWriteAllAction(c *cobra.Command, args []string) error {
+	tileKey, err := store.GetLatestTile()
+	if err != nil {
+		return fmt.Errorf("Failed to get latest tile: %s", err)
+	}
+	// Empty query to match all traces.
+	q, err := query.New(url.Values{})
+	if err != nil {
+		return err
+	}
+	for {
+		if err := store.WriteIndices(context.Background(), tileKey); err != nil {
+			return err
+		}
+		tileKey = tileKey.PrevTile()
+		count, err := store.QueryCount(context.Background(), tileKey, q)
+		if err != nil {
+			return err
+		}
+		if count == 0 {
+			break
+		}
+	}
+	return nil
 }
 
 func indicesCountAction(c *cobra.Command, args []string) error {
