@@ -2,6 +2,7 @@ package goldclient
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"net/http"
 	"path/filepath"
@@ -616,6 +617,53 @@ func TestInitLUCIAuth(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, auth.Luci)
 	assert.NoError(t, auth.Validate())
+}
+
+func TestGetWithRetriesSunnyDay(t *testing.T) {
+	unittest.MediumTest(t)
+
+	mh := &mocks.HTTPClient{}
+	defer mh.AssertExpectations(t)
+
+	url := "example.com"
+
+	mh.On("Get", url).Return(httpResponse([]byte("this is example"), "200 OK", http.StatusOK), nil).Once()
+
+	bytes, err := getWithRetries(mh, url)
+	assert.NoError(t, err)
+	assert.Equal(t, []byte("this is example"), bytes)
+}
+
+func TestGetWithRetriesRecover(t *testing.T) {
+	unittest.MediumTest(t)
+
+	mh := &mocks.HTTPClient{}
+	defer mh.AssertExpectations(t)
+
+	url := "example.com"
+
+	mh.On("Get", url).Return(nil, errors.New("bork")).Once()
+	mh.On("Get", url).Return(httpResponse([]byte("should not see"), "500 oops", http.StatusInternalServerError), nil).Once()
+	mh.On("Get", url).Return(httpResponse([]byte("this is example"), "200 OK", http.StatusOK), nil).Once()
+
+	bytes, err := getWithRetries(mh, url)
+	assert.NoError(t, err)
+	assert.Equal(t, []byte("this is example"), bytes)
+}
+
+func TestGetWithRetriesTooMany(t *testing.T) {
+	unittest.LargeTest(t)
+
+	mh := &mocks.HTTPClient{}
+	defer mh.AssertExpectations(t)
+
+	url := "example.com"
+
+	mh.On("Get", url).Return(httpResponse([]byte("should not see"), "404 Not found", http.StatusNotFound), nil)
+
+	_, err := getWithRetries(mh, url)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "404")
 }
 
 func makeMocks() (*MockAuthOpt, *mocks.HTTPClient, *mocks.GoldUploader) {

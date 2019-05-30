@@ -37,12 +37,6 @@ type GoldUploader interface {
 // gsutilUploader implements the GoldUploader interface.
 type gsutilUploader struct{}
 
-// gsutilAvailable returns true if the 'gsutil' command could be found on the PATH
-func gsutilAvailable() bool {
-	_, err := exec.LookPath("gsutil")
-	return err == nil
-}
-
 // gsUtilUploadJson serializes the given data to JSON and writes the result to the given
 // tempFileName, then it copies the file to the given path in GCS. gcsObjPath is assumed
 // to have the form: <bucket_name>/path/to/object
