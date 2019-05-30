@@ -35,6 +35,8 @@ The following licenses are used in dependent packages.
 | github.com/huandu/xstrings          | MIT              |
 | github.com/huin/goserial            | BSD-3-Clause     |
 | github.com/imdario/mergo            | BSD-3-Clause     |
+| github.com/jcgregorio/logger        | Apache 2.0       |
+| github.com/jcgregorio/slog          | Apache 2.0       |
 | github.com/jmoiron/sqlx             | MIT              |
 | github.com/julienschmidt/httprouter | BSD-3-Clause     |
 | github.com/Masterminds/goutils      | Apache 2.0       |

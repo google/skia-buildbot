@@ -226,24 +226,25 @@ func log(depthOffset int, severity, reportName, payload string) {
 	stackDepth := 3 + depthOffset
 	stacks := skerr.CallStack(5, stackDepth)
 
-	// TODO(kjlubick): After cloud logging has baked in a while, remove the backup logs to glog
-	if severity == ALERT {
-		// Include the stacktrace.
-		payload += "\n\n" + string(debug.Stack())
-
-		// First log directly to glog as an error, in case the write to
-		// cloud logging fails to ensure that the message does get
-		// logged to disk. ALERT, aka, Fatal* will be logged to glog
-		// after the call to CloudLog. If we called logToGlog with
-		// alert, it will die before reporting the fatal to CloudLog.
-		logToGlog(stackDepth, ERROR, fmt.Sprintf("FATAL: %s", payload))
-	} else {
-		// In the non-ALERT case, log using glog before CloudLog, in
-		// case something goes wrong.
-		logToGlog(stackDepth, severity, payload)
-	}
-
 	prettyPayload := fmt.Sprintf("%s %v", stacks[0].String(), payload)
+	if logger == nil {
+		// TODO(kjlubick): After cloud logging has baked in a while, remove the backup logs to glog
+		if severity == ALERT {
+			// Include the stacktrace.
+			payload += "\n\n" + string(debug.Stack())
+
+			// First log directly to glog as an error, in case the write to
+			// cloud logging fails to ensure that the message does get
+			// logged to disk. ALERT, aka, Fatal* will be logged to glog
+			// after the call to CloudLog. If we called logToGlog with
+			// alert, it will die before reporting the fatal to CloudLog.
+			logToGlog(stackDepth, ERROR, fmt.Sprintf("FATAL: %s", payload))
+		} else {
+			// In the non-ALERT case, log using glog before CloudLog, in
+			// case something goes wrong.
+			logToGlog(stackDepth, severity, payload)
+		}
+	}
 
 	if logger != nil {
 		stack := map[string]string{
