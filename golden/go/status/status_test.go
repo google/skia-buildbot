@@ -65,6 +65,7 @@ func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder)
 		MasterTileBuilder: tileBuilder,
 		EventBus:          eventBus,
 	}
+	ctx := context.Background()
 
 	watcher, err := New(storages)
 	assert.NoError(t, err)
@@ -94,9 +95,9 @@ func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder)
 		}
 
 		// Update the expectations and wait for the status to change.
-		assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
+		assert.NoError(t, storages.ExpectationsStore.AddChange(ctx, changes, ""))
 		time.Sleep(1 * time.Second)
-		assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
+		assert.NoError(t, storages.ExpectationsStore.AddChange(ctx, changes, ""))
 		time.Sleep(1 * time.Second)
 
 		// Make sure the current corpus is now ok.

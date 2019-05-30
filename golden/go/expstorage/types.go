@@ -1,6 +1,8 @@
 package expstorage
 
 import (
+	"context"
+
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/util"
@@ -35,23 +37,24 @@ type ExpectationsStore interface {
 
 	// AddChange writes the given classified digests to the database and records the
 	// user that made the change.
-	AddChange(changes types.Expectations, userId string) error
+	AddChange(ctx context.Context, changes types.Expectations, userId string) error
 
 	// QueryLog allows to paginate through the changes in the expectations.
 	// If details is true the result will include a list of triage operations
 	// that were part a change.
-	QueryLog(offset, size int, details bool) ([]*TriageLogEntry, int, error)
+	QueryLog(ctx context.Context, offset, size int, details bool) ([]*TriageLogEntry, int, error)
 
 	// UndoChange reverts a change by setting all testname/digest pairs of the
 	// original change to the label they had before the change was applied.
 	// A new entry is added to the log with a reference to the change that was
 	// undone.
-	UndoChange(changeID int64, userID string) (types.Expectations, error)
+	UndoChange(ctx context.Context, changeID int64, userID string) (types.Expectations, error)
 
 	// Clear deletes all expectations in this ExpectationsStore. This is mostly
 	// used for testing, but also to delete the expectations for a Gerrit issue.
 	// See the tryjobstore package.
-	Clear() error
+	// TODO(kjlubick): I think this should be removed
+	Clear(ctx context.Context) error
 }
 
 // TriageDetails represents one changed digest and the label that was

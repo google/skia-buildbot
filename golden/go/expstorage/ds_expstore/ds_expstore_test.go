@@ -43,10 +43,11 @@ func TestMasterCloudExpectationsStore(t *testing.T) {
 
 func testCloudExpstoreClear(t *testing.T, cloudStore expstorage.ExpectationsStore) {
 	// Make sure the clear works.
-	assert.NoError(t, cloudStore.Clear())
+	ctx := context.Background()
+	assert.NoError(t, cloudStore.Clear(ctx))
 	assert.NoError(t, testutils.EventuallyConsistent(5*time.Second, func() error {
 		for _, kind := range testKinds {
-			count, err := ds.DS.Count(context.TODO(), ds.NewQuery(kind).KeysOnly())
+			count, err := ds.DS.Count(ctx, ds.NewQuery(kind).KeysOnly())
 			assert.NoError(t, err)
 			if count > 0 {
 				return testutils.TryAgainErr
@@ -85,7 +86,8 @@ func testExpectationStore(t *testing.T, store expstorage.ExpectationsStore, even
 	// Get the initial log size. This is necessary because we
 	// call this function multiple times with the same underlying
 	// ExpectationStore.
-	initialLogRecs, initialLogTotal, err := store.QueryLog(0, 100, true)
+	ctx := context.Background()
+	initialLogRecs, initialLogTotal, err := store.QueryLog(ctx, 0, 100, true)
 	assert.NoError(t, err)
 	initialLogRecsLen := len(initialLogRecs)
 
@@ -135,7 +137,7 @@ func testExpectationStore(t *testing.T, store expstorage.ExpectationsStore, even
 		{TestName: TEST_2, Digest: DIGEST_22, Label: "negative"},
 	}
 
-	assert.NoError(t, store.AddChange(expChange_1, "user-0"))
+	assert.NoError(t, store.AddChange(ctx, expChange_1, "user-0"))
 	if eventBus != nil {
 		found := waitForChanLen(t, callbackCh, 1)
 		assert.Equal(t, types.TestNameSlice{TEST_1, TEST_2}, found[0])
@@ -162,7 +164,7 @@ func testExpectationStore(t *testing.T, store expstorage.ExpectationsStore, even
 		{TestName: TEST_2, Digest: DIGEST_22, Label: "untriaged"},
 	}
 
-	assert.NoError(t, store.AddChange(expChange_2, "user-1"))
+	assert.NoError(t, store.AddChange(ctx, expChange_2, "user-1"))
 	if eventBus != nil {
 		found := waitForChanLen(t, callbackCh, 1)
 		assert.Equal(t, types.TestNameSlice{TEST_1, TEST_2}, found[0])
@@ -176,7 +178,7 @@ func testExpectationStore(t *testing.T, store expstorage.ExpectationsStore, even
 
 	// Send empty changes to test the event bus.
 	emptyChanges := types.Expectations{}
-	assert.NoError(t, store.AddChange(emptyChanges, "user-2"))
+	assert.NoError(t, store.AddChange(ctx, emptyChanges, "user-2"))
 	if eventBus != nil {
 		found := waitForChanLen(t, callbackCh, 1)
 		assert.Empty(t, found[0])
@@ -188,7 +190,7 @@ func testExpectationStore(t *testing.T, store expstorage.ExpectationsStore, even
 
 	// Make sure we added the correct number of triage log entries.
 	addedRecs := 3
-	logEntries, total, err := store.QueryLog(0, 5, true)
+	logEntries, total, err := store.QueryLog(ctx, 0, 5, true)
 	assert.NoError(t, err)
 	assert.Equal(t, addedRecs+initialLogTotal, total)
 	assert.Equal(t, util.MinInt(addedRecs+initialLogRecsLen, 5), len(logEntries))
@@ -199,22 +201,22 @@ func testExpectationStore(t *testing.T, store expstorage.ExpectationsStore, even
 	assert.Equal(t, logEntry_2, logEntries[1].Details)
 	assert.Equal(t, logEntry_1, logEntries[2].Details)
 
-	logEntries, total, err = store.QueryLog(100, 5, true)
+	logEntries, total, err = store.QueryLog(ctx, 100, 5, true)
 	assert.NoError(t, err)
 	assert.Equal(t, addedRecs+initialLogTotal, total)
 	assert.Equal(t, 0, len(logEntries))
 
 	// Undo the latest version and make sure the corresponding record is correct.
-	changes, err := store.UndoChange(parseID(t, lastRec.ID), "user-1")
+	changes, err := store.UndoChange(ctx, parseID(t, lastRec.ID), "user-1")
 	assert.NoError(t, err)
 	checkLogEntry(t, store, changes)
 
-	changes, err = store.UndoChange(parseID(t, secondToLastRec.ID), "user-1")
+	changes, err = store.UndoChange(ctx, parseID(t, secondToLastRec.ID), "user-1")
 	assert.NoError(t, err)
 	checkLogEntry(t, store, changes)
 
 	addedRecs += 2
-	logEntries, total, err = store.QueryLog(0, 2, true)
+	logEntries, total, err = store.QueryLog(ctx, 0, 2, true)
 	assert.NoError(t, err)
 	assert.Equal(t, addedRecs+initialLogTotal, total)
 	assert.Equal(t, 0, len(logEntries[1].Details))
@@ -232,10 +234,10 @@ func testExpectationStore(t *testing.T, store expstorage.ExpectationsStore, even
 	}
 
 	// Make sure undoing the previous undo causes an error.
-	logEntries, _, err = store.QueryLog(0, 1, false)
+	logEntries, _, err = store.QueryLog(ctx, 0, 1, false)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(logEntries))
-	_, err = store.UndoChange(parseID(t, logEntries[0].ID), "user-1")
+	_, err = store.UndoChange(ctx, parseID(t, logEntries[0].ID), "user-1")
 	assert.NotNil(t, err)
 }
 
@@ -266,7 +268,7 @@ func parseID(t *testing.T, idStr string) int64 {
 }
 
 func checkLogEntry(t *testing.T, store expstorage.ExpectationsStore, changes types.Expectations) {
-	logEntries, _, err := store.QueryLog(0, 1, true)
+	logEntries, _, err := store.QueryLog(context.Background(), 0, 1, true)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(logEntries))
 

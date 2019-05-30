@@ -585,7 +585,7 @@ func (wh *WebHandlers) JsonTriageHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Add the change.
-	if err := expStore.AddChange(tc, user); err != nil {
+	if err := expStore.AddChange(r.Context(), tc, user); err != nil {
 		httputils.ReportError(w, r, err, "Failed to store the updated expectations.")
 		return
 	}
@@ -904,7 +904,7 @@ func (wh *WebHandlers) JsonTriageLogHandler(w http.ResponseWriter, r *http.Reque
 			expStore = wh.Storages.IssueExpStoreFactory(issue)
 		}
 
-		logEntries, total, err = expStore.QueryLog(offset, size, details)
+		logEntries, total, err = expStore.QueryLog(r.Context(), offset, size, details)
 	}
 
 	if err != nil {
@@ -944,7 +944,7 @@ func (wh *WebHandlers) JsonTriageUndoHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Do the undo procedure.
-	_, err = wh.Storages.ExpectationsStore.UndoChange(changeID, user)
+	_, err = wh.Storages.ExpectationsStore.UndoChange(r.Context(), changeID, user)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to undo.")
 		return

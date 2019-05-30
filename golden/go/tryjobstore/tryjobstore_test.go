@@ -1,6 +1,7 @@
 package tryjobstore
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sort"
@@ -46,6 +47,7 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 	issueID := int64(99)
 	patchsetID := int64(1099)
 	buildBucketID := int64(30099)
+	ctx := context.Background()
 
 	// Note: Cloud datastore only stores up to microseconds correctly, so if we
 	// kept the time down to nanoseconds the test would fail. So we drop everything
@@ -218,7 +220,7 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 				})
 			}
 		}
-		assert.NoError(t, expStore.AddChange(changes, userName))
+		assert.NoError(t, expStore.AddChange(ctx, changes, userName))
 		allChanges.MergeExpectations(changes)
 		expLogEntries = append(expLogEntries, &expstorage.TriageLogEntry{
 			Name: userName, ChangeCount: len(triageDetails), Details: triageDetails,
@@ -236,7 +238,7 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 	}))
 	assert.Equal(t, allChanges, foundTestExp)
 
-	logEntries, total, err := expStore.QueryLog(0, -1, false)
+	logEntries, total, err := expStore.QueryLog(ctx, 0, -1, false)
 	assert.NoError(t, err)
 	assert.Equal(t, 5, total)
 	assert.Equal(t, 5, len(logEntries))
@@ -248,7 +250,7 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 		}
 	}
 
-	assert.NoError(t, expStore.AddChange(foundTestExp, userName))
+	assert.NoError(t, expStore.AddChange(ctx, foundTestExp, userName))
 
 	var untriagedTestExp types.Expectations
 	assert.NoError(t, testutils.EventuallyConsistent(3*time.Second, func() error {
