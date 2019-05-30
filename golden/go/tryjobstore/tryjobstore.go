@@ -63,6 +63,8 @@ type TryjobStore interface {
 	CommitIssueExp(issueID int64, writeFn func() error) error
 
 	// DeleteIssue deletes the given issue and related information.
+	// TODO(kjlubick): This is not called anywhere except tests, I think it
+	// can be removed.
 	DeleteIssue(issueID int64) error
 
 	// GetTryjobs returns the Tryjobs for given issues. If filterDup is true it
@@ -132,7 +134,7 @@ func NewCloudTryjobStore(client *datastore.Client, expStoreFactory expstorage.Is
 
 // ListIssues implements the TryjobStore interface.
 func (c *cloudTryjobStore) ListIssues(offset, size int) ([]*Issue, int, error) {
-	ctx := context.Background()
+	ctx := context.TODO()
 	query := ds.NewQuery(ds.ISSUE).KeysOnly().Order("-Updated")
 
 	keys, err := c.client.GetAll(ctx, query, nil)
@@ -224,13 +226,13 @@ func (c *cloudTryjobStore) CommitIssueExp(issueID int64, commitFn func() error) 
 		return err
 	}
 
-	_, err := c.client.RunInTransaction(context.Background(), setCommittedFn)
+	_, err := c.client.RunInTransaction(context.TODO(), setCommittedFn)
 	return err
 }
 
 // DeleteIssue implements the TryjobStore interface.
 func (c *cloudTryjobStore) DeleteIssue(issueID int64) error {
-	ctx := context.Background()
+	ctx := context.TODO()
 	key := c.getIssueKey(issueID)
 
 	var egroup errgroup.Group
@@ -242,7 +244,7 @@ func (c *cloudTryjobStore) DeleteIssue(issueID int64) error {
 
 	// Remove the expectations for this issue.
 	egroup.Go(func() error {
-		return c.expStoreFactory(issueID).Clear()
+		return c.expStoreFactory(issueID).Clear(ctx)
 	})
 
 	// Make sure all dependents are deleted.
@@ -257,7 +259,7 @@ func (c *cloudTryjobStore) DeleteIssue(issueID int64) error {
 // GetTryjob implements the TryjobStore interface.
 func (c *cloudTryjobStore) GetTryjob(issueID, buildBucketID int64) (*Tryjob, error) {
 	ret := &Tryjob{}
-	if err := c.client.Get(context.Background(), c.getTryjobKey(buildBucketID), ret); err != nil {
+	if err := c.client.Get(context.TODO(), c.getTryjobKey(buildBucketID), ret); err != nil {
 		if err == datastore.ErrNoSuchEntity {
 			return nil, nil
 		}
@@ -325,7 +327,7 @@ func (c *cloudTryjobStore) RunningTryjobs() ([]*Tryjob, error) {
 		Filter("Status <", int(TRYJOB_COMPLETE))
 
 	tryjobs := []*Tryjob{}
-	_, err := c.client.GetAll(context.Background(), query, &tryjobs)
+	_, err := c.client.GetAll(context.TODO(), query, &tryjobs)
 	if err != nil {
 		return nil, sklog.FmtErrorf("Error making GetAll call: %s", err)
 	}
@@ -366,7 +368,7 @@ func (c *cloudTryjobStore) UpdateTryjobResult(results []*TryjobResult) error {
 
 	for i := 0; i < len(keys); i += batchSize {
 		endIdx := util.MinInt(i+batchSize, len(keys))
-		if _, err := c.client.PutMulti(context.Background(), keys[i:endIdx], results[i:endIdx]); err != nil {
+		if _, err := c.client.PutMulti(context.TODO(), keys[i:endIdx], results[i:endIdx]); err != nil {
 			return err
 		}
 	}
@@ -381,7 +383,7 @@ func (c *cloudTryjobStore) deleteTryjobsForIssue(issueID int64) error {
 		return fmt.Errorf("Error retrieving tryjob keys: %s", err)
 	}
 
-	ctx := context.Background()
+	ctx := context.TODO()
 	// Delete all results of the tryjobs.
 	tryjobResultKeys, _, err := c.getResultsForTryjobs(tryjobKeys, true)
 	if err != nil {
@@ -416,7 +418,7 @@ func (c *cloudTryjobStore) getResultsForTryjobs(tryjobKeys []*datastore.Key, key
 	}
 
 	// Get there keys and results.
-	ctx := context.Background()
+	ctx := context.TODO()
 	var egroup errgroup.Group
 	for idx, key := range tryjobKeys {
 		func(idx int, key *datastore.Key) {
@@ -483,7 +485,7 @@ func (c *cloudTryjobStore) getTryjobsForIssue(issueID int64, patchsetIDs []int64
 					query = query.KeysOnly()
 				}
 
-				keys, err := c.client.GetAll(context.Background(), query, &tryjobs)
+				keys, err := c.client.GetAll(context.TODO(), query, &tryjobs)
 				if err != nil {
 					return fmt.Errorf("Error making GetAll call: %s", err)
 				}
@@ -584,7 +586,7 @@ func (c *cloudTryjobStore) updateEntity(key *datastore.Key, item newerInterface,
 	// Run the transaction.
 	var err error
 	if tx == nil {
-		_, err = c.client.RunInTransaction(context.Background(), updateFn)
+		_, err = c.client.RunInTransaction(context.TODO(), updateFn)
 	} else {
 		err = updateFn(tx)
 	}
@@ -596,7 +598,7 @@ func (c *cloudTryjobStore) updateEntity(key *datastore.Key, item newerInterface,
 func (c *cloudTryjobStore) getEntity(key *datastore.Key, target interface{}, tx *datastore.Transaction) (bool, error) {
 	var err error
 	if tx == nil {
-		err = c.client.Get(context.Background(), key, target)
+		err = c.client.Get(context.TODO(), key, target)
 	} else {
 		err = tx.Get(key, target)
 	}

@@ -2,6 +2,7 @@
 
 package mocks
 
+import context "context"
 import expstorage "go.skia.org/infra/golden/go/expstorage"
 import mock "github.com/stretchr/testify/mock"
 import types "go.skia.org/infra/golden/go/types"
@@ -11,13 +12,13 @@ type ExpectationsStore struct {
 	mock.Mock
 }
 
-// AddChange provides a mock function with given fields: changes, userId
-func (_m *ExpectationsStore) AddChange(changes types.Expectations, userId string) error {
-	ret := _m.Called(changes, userId)
+// AddChange provides a mock function with given fields: ctx, changes, userId
+func (_m *ExpectationsStore) AddChange(ctx context.Context, changes types.Expectations, userId string) error {
+	ret := _m.Called(ctx, changes, userId)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(types.Expectations, string) error); ok {
-		r0 = rf(changes, userId)
+	if rf, ok := ret.Get(0).(func(context.Context, types.Expectations, string) error); ok {
+		r0 = rf(ctx, changes, userId)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -25,13 +26,13 @@ func (_m *ExpectationsStore) AddChange(changes types.Expectations, userId string
 	return r0
 }
 
-// Clear provides a mock function with given fields:
-func (_m *ExpectationsStore) Clear() error {
-	ret := _m.Called()
+// Clear provides a mock function with given fields: ctx
+func (_m *ExpectationsStore) Clear(ctx context.Context) error {
+	ret := _m.Called(ctx)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func() error); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -62,13 +63,13 @@ func (_m *ExpectationsStore) Get() (types.Expectations, error) {
 	return r0, r1
 }
 
-// QueryLog provides a mock function with given fields: offset, size, details
-func (_m *ExpectationsStore) QueryLog(offset int, size int, details bool) ([]*expstorage.TriageLogEntry, int, error) {
-	ret := _m.Called(offset, size, details)
+// QueryLog provides a mock function with given fields: ctx, offset, size, details
+func (_m *ExpectationsStore) QueryLog(ctx context.Context, offset int, size int, details bool) ([]*expstorage.TriageLogEntry, int, error) {
+	ret := _m.Called(ctx, offset, size, details)
 
 	var r0 []*expstorage.TriageLogEntry
-	if rf, ok := ret.Get(0).(func(int, int, bool) []*expstorage.TriageLogEntry); ok {
-		r0 = rf(offset, size, details)
+	if rf, ok := ret.Get(0).(func(context.Context, int, int, bool) []*expstorage.TriageLogEntry); ok {
+		r0 = rf(ctx, offset, size, details)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*expstorage.TriageLogEntry)
@@ -76,15 +77,15 @@ func (_m *ExpectationsStore) QueryLog(offset int, size int, details bool) ([]*ex
 	}
 
 	var r1 int
-	if rf, ok := ret.Get(1).(func(int, int, bool) int); ok {
-		r1 = rf(offset, size, details)
+	if rf, ok := ret.Get(1).(func(context.Context, int, int, bool) int); ok {
+		r1 = rf(ctx, offset, size, details)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(int, int, bool) error); ok {
-		r2 = rf(offset, size, details)
+	if rf, ok := ret.Get(2).(func(context.Context, int, int, bool) error); ok {
+		r2 = rf(ctx, offset, size, details)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -92,13 +93,13 @@ func (_m *ExpectationsStore) QueryLog(offset int, size int, details bool) ([]*ex
 	return r0, r1, r2
 }
 
-// UndoChange provides a mock function with given fields: changeID, userID
-func (_m *ExpectationsStore) UndoChange(changeID int64, userID string) (types.Expectations, error) {
-	ret := _m.Called(changeID, userID)
+// UndoChange provides a mock function with given fields: ctx, changeID, userID
+func (_m *ExpectationsStore) UndoChange(ctx context.Context, changeID int64, userID string) (types.Expectations, error) {
+	ret := _m.Called(ctx, changeID, userID)
 
 	var r0 types.Expectations
-	if rf, ok := ret.Get(0).(func(int64, string) types.Expectations); ok {
-		r0 = rf(changeID, userID)
+	if rf, ok := ret.Get(0).(func(context.Context, int64, string) types.Expectations); ok {
+		r0 = rf(ctx, changeID, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(types.Expectations)
@@ -106,8 +107,8 @@ func (_m *ExpectationsStore) UndoChange(changeID int64, userID string) (types.Ex
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int64, string) error); ok {
-		r1 = rf(changeID, userID)
+	if rf, ok := ret.Get(1).(func(context.Context, int64, string) error); ok {
+		r1 = rf(ctx, changeID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -1,6 +1,7 @@
 package mem_expstore
 
 import (
+	"context"
 	"sync"
 
 	"go.skia.org/infra/go/eventbus"
@@ -24,7 +25,6 @@ func New(eventBus eventbus.EventBus) *MemExpectationsStore {
 	ret := &MemExpectationsStore{
 		eventBus: eventBus,
 	}
-	_ = ret.Clear()
 	return ret
 }
 
@@ -37,7 +37,7 @@ func (m *MemExpectationsStore) Get() (types.Expectations, error) {
 }
 
 // AddChange fulfills the ExpectationsStore interface.
-func (m *MemExpectationsStore) AddChange(changedTests types.Expectations, userId string) error {
+func (m *MemExpectationsStore) AddChange(c context.Context, changedTests types.Expectations, userId string) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
@@ -82,19 +82,19 @@ func (m *MemExpectationsStore) TESTING_ONLY_RemoveChange(changedDigests types.Ex
 }
 
 // See ExpectationsStore interface.
-func (m *MemExpectationsStore) QueryLog(offset, size int, details bool) ([]*expstorage.TriageLogEntry, int, error) {
+func (m *MemExpectationsStore) QueryLog(c context.Context, offset, size int, details bool) ([]*expstorage.TriageLogEntry, int, error) {
 	sklog.Fatal("MemExpectation store does not support querying the logs.")
 	return nil, 0, nil
 }
 
 // See ExpectationsStore interface.
-func (m *MemExpectationsStore) UndoChange(changeID int64, userID string) (types.Expectations, error) {
+func (m *MemExpectationsStore) UndoChange(c context.Context, changeID int64, userID string) (types.Expectations, error) {
 	sklog.Fatal("MemExpectation store does not support undo.")
 	return nil, nil
 }
 
 // See  ExpectationsStore interface.
-func (m *MemExpectationsStore) Clear() error {
+func (m *MemExpectationsStore) Clear(c context.Context) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	m.expectations = types.Expectations{}
