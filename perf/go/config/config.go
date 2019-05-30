@@ -33,9 +33,7 @@ type PerfBigTableConfig struct {
 
 const (
 	NANO         = "nano"
-	ANDROID      = "android"
 	ANDROID_PROD = "android-prod"
-	CT           = "ct"
 	CT_PROD      = "ct-prod"
 )
 
@@ -51,16 +49,6 @@ var (
 			Shards:   8,
 			Sources:  []string{"gs://skia-perf/nano-json-v1", "gs://skia-perf/task-duration", "gs://skia-perf/buildstats-json-v1"},
 		},
-		ANDROID: {
-			TileSize: 256,
-			Project:  "skia-public",
-			Instance: "perf-bt",
-			Table:    "android",
-			Topic:    "perf-ingestion-android",
-			GitUrl:   "https://skia.googlesource.com/perf-buildid/android-master",
-			Shards:   8,
-			Sources:  []string{"gs://skia-perf/android-master-ingest"},
-		},
 		ANDROID_PROD: {
 			TileSize: 8192,
 			Project:  "skia-public",
@@ -70,16 +58,6 @@ var (
 			GitUrl:   "https://skia.googlesource.com/perf-buildid/android-master",
 			Shards:   8,
 			Sources:  []string{"gs://skia-perf/android-master-ingest"},
-		},
-		CT: {
-			TileSize: 256,
-			Project:  "skia-public",
-			Instance: "perf-bt",
-			Table:    "ct",
-			Topic:    "perf-ingestion-ct",
-			GitUrl:   "https://skia.googlesource.com/perf-ct",
-			Shards:   8,
-			Sources:  []string{"gs://cluster-telemetry-perf/ingest"},
 		},
 		CT_PROD: {
 			TileSize: 256,
