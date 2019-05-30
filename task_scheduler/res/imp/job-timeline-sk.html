@@ -1,0 +1,97 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <job-timeline-sk>
+
+  Status information about the task scheduler.
+
+  To use this file import it:
+
+    <link href="/res/imp/job-timeline-sk.html" rel="import" />
+
+  Usage:
+
+    <job-timeline-sk job="[[job]]" tasks="[[tasks]]" epochs="[[epochs]]"></job-timeline-sk>
+
+  Properties:
+    job: Job instance, as provided by the Task Scheduler server.
+    tasks: Array of Task instances, as provided by the Task Scheduler server.
+    epochs: Array of Strings; timestamps indicating events, eg. scheduler tick times.
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+<link rel="import" href="/res/imp/bower_components/polymer/polymer.html">
+<dom-module id="job-timeline-sk">
+  <template>
+    <h2>Job <span>[[job.id]]</span></h2>
+    <svg id="svg" width="60%" height="60%"></svg>
+  </template>
+  <script src="/res/imp/bower_components/d3/d3.min.js"></script>
+  <script src="/res/js/gantt.js"></script>
+  <script>
+  (function() {
+    Polymer({
+      is: "job-timeline-sk",
+
+      properties: {
+        job: {
+          type: Object,
+        },
+        tasks: {
+          type: Array,
+        },
+        epochs: {
+          type: Array,
+        },
+        _chart: {
+          type: Object,
+        },
+      },
+
+      observers: [
+        "_draw(job.*, tasks.*, epochs.*)",
+      ],
+
+      ready: function() {
+        this._chart = gantt(this.$.svg);
+        window.addEventListener("resize", this.draw.bind(this));
+      },
+
+      draw: function() {
+        this.debounce("draw", function() {
+          this._draw();
+        }.bind(this));
+      },
+
+      _draw: function() {
+        if (!this._chart || !this.job || !this.tasks || this.epochs === undefined) {
+          return;
+        }
+        var tasks = [{
+          category: this.job.name + " (job)",
+          start: new Date(this.job.created),
+          end: new Date(this.job.finished),
+        }];
+        for (var i = 0; i < this.tasks.length; i++) {
+          var t = this.tasks[i];
+          tasks.push({
+            category: t.name,
+            start: new Date(t.created),
+            end: new Date(t.finished),
+          });
+        }
+        var epochs = [];
+        for (var i = 0; i < this.epochs.length; i++) {
+          epochs.push(new Date(this.epochs[i]));
+        }
+        this._chart.tasks(tasks).epochs(epochs).draw();
+      }
+    });
+  })();
+  </script>
+</dom-module>

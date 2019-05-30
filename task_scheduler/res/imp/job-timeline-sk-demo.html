@@ -1,0 +1,87 @@
+<html>
+<head>
+  <title>job-timeline-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/common/js/common.js"></script>
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script type="text/javascript" charset="utf-8">
+    var job = {
+      "id": "abc123",
+      "name": "Test-Debian9-EMCC-GCE-GPU-AVX2-wasm-Release-All-CanvasKit",
+      "created": "2019-02-19T13:20:50.277737Z",
+      "finished": "2019-02-19T13:39:00.274182Z",
+      "dependencies": {
+        "Build-Debian9-EMCC-wasm-Release-CanvasKit": [
+          "Housekeeper-PerCommit-BundleRecipes"
+        ],
+        "Housekeeper-PerCommit-BundleRecipes": [],
+        "Test-Debian9-EMCC-GCE-GPU-AVX2-wasm-Release-All-CanvasKit": [
+          "Housekeeper-PerCommit-BundleRecipes",
+          "Build-Debian9-EMCC-wasm-Release-CanvasKit"
+        ],
+        "Upload-Test-Debian9-EMCC-GCE-GPU-AVX2-wasm-Release-All-CanvasKit": [
+          "Housekeeper-PerCommit-BundleRecipes",
+          "Test-Debian9-EMCC-GCE-GPU-AVX2-wasm-Release-All-CanvasKit"
+        ]
+      },
+    };
+
+    var tasks = [
+      {
+        "id": "t1",
+        "name": "Housekeeper-PerCommit-BundleRecipes",
+        "created": "2019-02-19T13:20:52.277737Z",
+        "finished": "2019-02-19T13:32:46.274182Z",
+      },
+      {
+        "id": "t2",
+        "name": "Build-Debian9-EMCC-wasm-Release-CanvasKit",
+        "created": "2019-02-19T13:33:52.277737Z",
+        "finished": "2019-02-19T13:34:46.274182Z",
+      },
+      {
+        "id": "t3",
+        "name": "Test-Debian9-EMCC-GCE-GPU-AVX2-wasm-Release-All-CanvasKit",
+        "created": "2019-02-19T13:35:52.277737Z",
+        "finished": "2019-02-19T13:36:46.274182Z",
+      },
+      {
+        "id": "t4",
+        "name": "Upload-Test-Debian9-EMCC-GCE-GPU-AVX2-wasm-Release-All-CanvasKit",
+        "created": "2019-02-19T13:37:52.277737Z",
+        "finished": "2019-02-19T13:38:46.274182Z",
+      },
+    ];
+
+    var epochs = [
+      "2019-02-19T13:20:52.277737Z",
+      "2019-02-19T13:22:52.277737Z",
+      "2019-02-19T13:28:52.277737Z",
+      "2019-02-19T13:32:46.274182Z",
+      "2019-02-19T13:33:52.277737Z",
+      "2019-02-19T13:34:46.274182Z",
+      "2019-02-19T13:35:52.277737Z",
+      "2019-02-19T13:36:46.274182Z",
+      "2019-02-19T13:37:52.277737Z",
+      "2019-02-19T13:38:46.274182Z",
+    ];
+
+  </script>
+  <link rel="import" href="job-timeline-sk.html">
+  <link rel="import" href="/res/common/imp/error-toast-sk.html">
+  <link rel="import" href="/res/imp/bower_components/paper-toggle-button/paper-toggle-button.html" />
+</head>
+<body>
+  <h1>job-timeline-sk demo</h1>
+  <job-timeline-sk id="timeline"></job-timeline-sk>
+  <error-toast-sk></error-toast-sk>
+</body>
+<script>
+var ele = document.getElementById("timeline");
+ele.job = job;
+ele.tasks = tasks;
+ele.epochs = epochs;
+</script>
+</html>
