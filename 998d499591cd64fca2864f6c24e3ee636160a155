@@ -22,6 +22,30 @@
       "revId": "998d499591cd64fca2864f6c24e3ee636160a155",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5bf7f22b_f4f118cf",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:57:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e51e5f6e_5a4ee014",
+      "range": {
+        "startLine": 54,
+        "startChar": 11,
+        "endLine": 54,
+        "endChar": 14
+      },
+      "revId": "998d499591cd64fca2864f6c24e3ee636160a155",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
