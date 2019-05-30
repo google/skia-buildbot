@@ -10,6 +10,7 @@ import (
 	"image/png"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -497,27 +498,65 @@ func loadStateFromJson(fileName string) (*resultState, error) {
 	return ret, nil
 }
 
+const maxAttempts = 5
+
+// getWithRetries makes a get request with retries to work around the rare
+// unexpected EOF error. See https://crbug.com/skia/9108
+// httpClient should do retries with an exponential backoff
+// for transient failures - this covers other failures.
+func getWithRetries(httpClient HTTPClient, url string) ([]byte, error) {
+	var lastErr error
+
+	for attempts := 0; attempts < maxAttempts; attempts++ {
+		if lastErr != nil {
+			fmt.Printf("Retry attempt #%d after error: %s\n", attempts, lastErr)
+			// reset the error
+			lastErr = nil
+
+			// Sleep to give the server time to recover, if needed.
+			time.Sleep(time.Duration(500+rand.Int31n(1000)) * time.Millisecond)
+		}
+
+		// wrap in a function to make sure the defer resp.Body.Close() can
+		// happen before we try again.
+		b, err := func() ([]byte, error) {
+			resp, err := httpClient.Get(url)
+			if err != nil {
+				return nil, skerr.Fmt("error on get %s: %s", url, err)
+			}
+
+			if resp.StatusCode >= http.StatusBadRequest {
+				return nil, skerr.Fmt("GET %s resulted in a %d: %s", url, resp.StatusCode, resp.Status)
+			}
+			defer func() {
+				if err := resp.Body.Close(); err != nil {
+					fmt.Printf("Warning while closing HTTP response for %s: %s", url, err)
+				}
+			}()
+			b, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return nil, skerr.Fmt("error reading body %s: %s", url, err)
+			}
+			return b, nil
+		}()
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		return b, nil
+	}
+	return nil, lastErr
+}
+
 // loadKnownHashes loads the list of known hashes from the Gold instance.
 func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
 	r.KnownHashes = types.DigestSet{}
 
 	// Fetch the known hashes via http
 	hashesURL := fmt.Sprintf("%s/%s", r.GoldURL, knownHashesPath)
-	resp, err := httpClient.Get(hashesURL)
+	body, err := getWithRetries(httpClient, hashesURL)
 	if err != nil {
-		return skerr.Fmt("Error retrieving known hashes file: %s", err)
-	}
-	if resp.StatusCode == http.StatusNotFound {
-		return nil
-	}
-
-	// Retrieve the body and parse the list of known hashes.
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return skerr.Fmt("Error reading body of HTTP response: %s", err)
-	}
-	if err := resp.Body.Close(); err != nil {
-		return skerr.Fmt("Error closing HTTP response: %s", err)
+		return skerr.Fmt("even with retries, got error getting known hashes %s: %s", hashesURL, err)
 	}
 
 	scanner := bufio.NewScanner(bytes.NewBuffer(body))
@@ -529,7 +568,7 @@ func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		return skerr.Fmt("Error scanning response of HTTP request: %s", err)
+		return skerr.Fmt("error scanning response of HTTP request: %s", err)
 	}
 	return nil
 }
@@ -542,17 +581,9 @@ func (r *resultState) loadExpectations(httpClient HTTPClient) error {
 	}
 	url := fmt.Sprintf("%s/%s", r.GoldURL, strings.TrimLeft(urlPath, "/"))
 
-	resp, err := httpClient.Get(url)
+	jsonBytes, err := getWithRetries(httpClient, url)
 	if err != nil {
-		return err
-	}
-
-	jsonBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return skerr.Fmt("Error reading body of request to %s: %s", url, err)
-	}
-	if err := resp.Body.Close(); err != nil {
-		return skerr.Fmt("Error closing response from request to %s: %s", url, err)
+		return skerr.Fmt("even with retries, got error getting expectations %s: %s", url, err)
 	}
 
 	exp := &baseline.Baseline{}
