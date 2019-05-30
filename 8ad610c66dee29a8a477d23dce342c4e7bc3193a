@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c113debe_84652b83",
+        "filename": "go/git/gitdir.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T13:37:51Z",
+      "side": 1,
+      "message": "Note that this function may be used for any number of use cases, so this comment doesn\u0027t necessarily apply.  I might change it to something like:\n\n\"Not a valid commit name\" indicates that the given commit does not exist and thus history was probably changed upstream.  A non-existent commit cannot be an ancestor of one which does exist.",
+      "range": {
+        "startLine": 195,
+        "startChar": 2,
+        "endLine": 196,
+        "endChar": 20
+      },
+      "revId": "8ad610c66dee29a8a477d23dce342c4e7bc3193a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e85bb69_38a57110",
+        "filename": "go/git/gitdir.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T13:37:51Z",
+      "side": 1,
+      "message": "I think we should make this specific to commit A.  If commit B doesn\u0027t exist (remember, this is just the local copy), then we can\u0027t say whether it does or does not have A as an ancestor.",
+      "range": {
+        "startLine": 197,
+        "startChar": 27,
+        "endLine": 197,
+        "endChar": 52
+      },
+      "revId": "8ad610c66dee29a8a477d23dce342c4e7bc3193a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
