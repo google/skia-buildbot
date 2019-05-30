@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9a048d9b_b5e6cfb1",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c3ef9858_bde89863",
+      "range": {
+        "startLine": 6,
+        "startChar": 2,
+        "endLine": 6,
+        "endChar": 5
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "13c7aa1f_27143786",
         "filename": "task_scheduler/res/js/gantt.js",
         "patchSetId": 2
@@ -36,6 +60,24 @@
       "writtenOn": "2019-05-30T16:56:12Z",
       "side": 1,
       "message": "Do I understand it right that we start drawing the background with a color and then switch to the alternate color at each epoch?",
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c186fe7_7e6d779c",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Yep!",
+      "parentUuid": "13c7aa1f_27143786",
       "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "1388c4d0_f382dcfd",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "!",
+      "parentUuid": "3ba14d36_904be1e1",
+      "range": {
+        "startLine": 43,
+        "startChar": 9,
+        "endLine": 43,
+        "endChar": 47
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "132da6ec_daf55489",
         "filename": "task_scheduler/res/js/gantt.js",
         "patchSetId": 2
@@ -76,6 +142,30 @@
       "writtenOn": "2019-05-30T16:56:12Z",
       "side": 1,
       "message": "I take it these values were chosen for aesthetics?",
+      "range": {
+        "startLine": 63,
+        "startChar": 26,
+        "endLine": 63,
+        "endChar": 27
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14b829ec_3eb30faa",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Yes; the equivalent of CSS.  Maybe there\u0027s a more-organized way to do this, but the math that follows requires that they\u0027re JS vars.  I should probably move the constant ones outside of this function.",
+      "parentUuid": "132da6ec_daf55489",
       "range": {
         "startLine": 63,
         "startChar": 26,
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "1cd31753_9fdf34aa",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "93f6430c_cb8383f3",
+      "range": {
+        "startLine": 74,
+        "startChar": 25,
+        "endLine": 74,
+        "endChar": 27
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e9f1f8b8_bfb95ae0",
         "filename": "task_scheduler/res/js/gantt.js",
         "patchSetId": 2
@@ -125,6 +239,24 @@
       "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1856ff81_3a895ebc",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e9f1f8b8_bfb95ae0",
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -151,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "51f24e50_2e48f16e",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "49e9fca0_706063e1",
+      "range": {
+        "startLine": 83,
+        "startChar": 9,
+        "endLine": 83,
+        "endChar": 46
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c27beec_12a05314",
         "filename": "task_scheduler/res/js/gantt.js",
         "patchSetId": 2
@@ -171,6 +327,30 @@
       "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "964731c8_693c3a10",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c27beec_12a05314",
+      "range": {
+        "startLine": 96,
+        "startChar": 17,
+        "endLine": 96,
+        "endChar": 27
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -197,6 +377,30 @@
     },
     {
       "key": {
+        "uuid": "1ef14e5f_95a0c2a4",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c9cc0bf0_195db3c7",
+      "range": {
+        "startLine": 98,
+        "startChar": 9,
+        "endLine": 98,
+        "endChar": 46
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "15438e75_f5ca478a",
         "filename": "task_scheduler/res/js/gantt.js",
         "patchSetId": 2
@@ -217,6 +421,30 @@
       "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb7a6d9b_36ccf635",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Done in all but the cases where I actually need the index for layout reasons.",
+      "parentUuid": "15438e75_f5ca478a",
+      "range": {
+        "startLine": 101,
+        "startChar": 11,
+        "endLine": 101,
+        "endChar": 43
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -243,6 +471,30 @@
     },
     {
       "key": {
+        "uuid": "a29cebaf_09be52ae",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5fe05eac_4553e53e",
+      "range": {
+        "startLine": 120,
+        "startChar": 6,
+        "endLine": 120,
+        "endChar": 17
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bbc0a94e_30167cbe",
         "filename": "task_scheduler/res/js/gantt.js",
         "patchSetId": 2
@@ -263,6 +515,30 @@
       "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "974bfca6_b9425f05",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bbc0a94e_30167cbe",
+      "range": {
+        "startLine": 189,
+        "startChar": 21,
+        "endLine": 189,
+        "endChar": 23
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -289,6 +565,30 @@
     },
     {
       "key": {
+        "uuid": "8a77ae1a_649111b5",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3bdd2853_39783616",
+      "range": {
+        "startLine": 194,
+        "startChar": 41,
+        "endLine": 194,
+        "endChar": 47
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f022421d_9d8455ba",
         "filename": "task_scheduler/res/js/gantt.js",
         "patchSetId": 2
@@ -312,6 +612,30 @@
     },
     {
       "key": {
+        "uuid": "41a99ce0_21a64282",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f022421d_9d8455ba",
+      "range": {
+        "startLine": 201,
+        "startChar": 8,
+        "endLine": 201,
+        "endChar": 114
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c43c09a_147d32a3",
         "filename": "task_scheduler/res/js/gantt.js",
         "patchSetId": 2
@@ -326,6 +650,24 @@
       "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "684a8101_35982271",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c43c09a_147d32a3",
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -398,6 +740,78 @@
     },
     {
       "key": {
+        "uuid": "3b9551e2_7cd3ad53",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "906cedb6_74167f16",
+      "range": {
+        "startLine": 323,
+        "startChar": 87,
+        "endLine": 323,
+        "endChar": 99
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5fc177e1_6bd1747b",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f54ff539_143130d2",
+      "range": {
+        "startLine": 323,
+        "startChar": 175,
+        "endLine": 323,
+        "endChar": 178
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ac97e42_f5fb90b8",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f613b713_caa5bb0f",
+      "range": {
+        "startLine": 323,
+        "startChar": 13,
+        "endLine": 323,
+        "endChar": 78
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ea9bb196_6340b4fc",
         "filename": "task_scheduler/res/js/gantt.js",
         "patchSetId": 2
@@ -421,6 +835,30 @@
     },
     {
       "key": {
+        "uuid": "b6fd9bf6_cf7dbd4f",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ea9bb196_6340b4fc",
+      "range": {
+        "startLine": 348,
+        "startChar": 10,
+        "endLine": 348,
+        "endChar": 51
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0055dd6a_b9b7aa72",
         "filename": "task_scheduler/res/js/gantt.js",
         "patchSetId": 2
@@ -432,6 +870,30 @@
       "writtenOn": "2019-05-30T16:56:12Z",
       "side": 1,
       "message": "Since you are passing in basic arrays to all these data, you are ok with d3 determining \"uniqueness\" based on index?  It may make updating not work great if things at an index are changed.",
+      "range": {
+        "startLine": 428,
+        "startChar": 56,
+        "endLine": 428,
+        "endChar": 74
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7e34cd5_a1146de5",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 428,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "I can\u0027t seem to find docs on how this works.  I think what I\u0027m doing works because these are new arrays every time this function is called; otherwise, I\u0027m not sure how the one-and-two-element arrays for the cursor bar etc are working. The underlying task data is not expected to change.",
+      "parentUuid": "0055dd6a_b9b7aa72",
       "range": {
         "startLine": 428,
         "startChar": 56,
@@ -467,6 +929,30 @@
     },
     {
       "key": {
+        "uuid": "be242350_f3913449",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "24859244_50aa67fd",
+      "range": {
+        "startLine": 432,
+        "startChar": 28,
+        "endLine": 432,
+        "endChar": 32
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "65b90759_488d81e4",
         "filename": "task_scheduler/res/js/gantt.js",
         "patchSetId": 2
@@ -481,6 +967,24 @@
       "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cea816d2_c32973c2",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 465,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "65b90759_488d81e4",
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -504,6 +1008,30 @@
       "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "471efa9f_b1ecb79e",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 505,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-30T18:24:42Z",
+      "side": 1,
+      "message": "Sure, moved to the variable.",
+      "parentUuid": "f89d3115_d40ac600",
+      "range": {
+        "startLine": 505,
+        "startChar": 58,
+        "endLine": 505,
+        "endChar": 60
+      },
+      "revId": "b55401ded1af690f7adbdc3c064913b6fa94803c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
