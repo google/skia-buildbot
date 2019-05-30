@@ -174,6 +174,9 @@ func TestTraces(t *testing.T) {
 	assert.NoError(t, err)
 	count := assertIndices(t, ops, b, expectedKeys, expectedColumns, "First write")
 	assert.Equal(t, 4, count)
+	indexCount, err := b.CountIndices(context.Background(), tileKey)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(4), indexCount)
 
 	q, err := query.New(url.Values{"config": []string{"8888"}})
 	assert.NoError(t, err)
