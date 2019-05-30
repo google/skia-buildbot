@@ -232,6 +232,8 @@ func (m *URLMock) MockOnce(url string, md MockDialogue) {
 		m.mockOnce[url] = []MockDialogue{}
 	}
 	m.mockOnce[url] = append(m.mockOnce[url], md)
+	fmt.Println("ADDED TO MOCKONCE")
+	fmt.Println(m.mockOnce)
 }
 
 // Client returns an http.Client instance which uses the URLMock.
@@ -244,7 +246,11 @@ func (m *URLMock) Client() *http.Client {
 // RoundTrip is an implementation of http.RoundTripper.RoundTrip. It fakes
 // responses for requests to URLs based on past calls to Mock() and MockOnce().
 func (m *URLMock) RoundTrip(r *http.Request) (*http.Response, error) {
+	fmt.Println("ROUNDTRIP ROUNDTRIP ROUNDTRIP ROUNDTRIP")
 	url := r.URL.String()
+	fmt.Println(url)
+	fmt.Println(m.mockOnce)
+	fmt.Println(m.mockOnce[url])
 	var md *MockDialogue
 	// Unlock not deferred because we want to be able to handle multiple
 	// requests simultaneously.
