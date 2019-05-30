@@ -24,8 +24,8 @@ import (
 
 const (
 	ftReadmePath         = "third_party/freetype/README.chromium"
-	ftReadmeVersionTmpl  = "Version: %s"
-	ftReadmeRevisionTmpl = "revision.Revision: %s"
+	ftReadmeVersionTmpl  = "%sVersion: %s"
+	ftReadmeRevisionTmpl = "%sRevision: %s"
 
 	ftIncludeSrc  = "include/freetype/config"
 	ftIncludeDest = "third_party/freetype/include/freetype-custom-config"
@@ -36,8 +36,8 @@ var (
 	// overridden for testing.
 	NewFreeTypeRepoManager func(context.Context, *FreeTypeRepoManagerConfig, string, gerrit.GerritInterface, string, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newFreeTypeRepoManager
 
-	ftReadmeVersionRegex  = regexp.MustCompile(fmt.Sprintf(ftReadmeVersionTmpl, ".*"))
-	ftReadmeRevisionRegex = regexp.MustCompile(fmt.Sprintf(ftReadmeRevisionTmpl, ".*"))
+	ftReadmeVersionRegex  = regexp.MustCompile(fmt.Sprintf(ftReadmeVersionTmpl, "(?m)^", ".*"))
+	ftReadmeRevisionRegex = regexp.MustCompile(fmt.Sprintf(ftReadmeRevisionTmpl, "(?m)^", ".*"))
 
 	ftIncludesToMerge = []string{
 		"ftoption.h",
@@ -168,8 +168,8 @@ func (rm *freetypeRepoManager) createRoll(ctx context.Context, from, to, serverU
 		return "", nil, err
 	}
 	oldReadmeContents := buf.String()
-	newReadmeContents := ftReadmeVersionRegex.ReplaceAllString(oldReadmeContents, fmt.Sprintf(ftReadmeVersionTmpl, ftVersion))
-	newReadmeContents = ftReadmeRevisionRegex.ReplaceAllString(newReadmeContents, fmt.Sprintf(ftReadmeRevisionTmpl, to))
+	newReadmeContents := ftReadmeVersionRegex.ReplaceAllString(oldReadmeContents, fmt.Sprintf(ftReadmeVersionTmpl, "", ftVersion))
+	newReadmeContents = ftReadmeRevisionRegex.ReplaceAllString(newReadmeContents, fmt.Sprintf(ftReadmeRevisionTmpl, "", to))
 	if newReadmeContents != oldReadmeContents {
 		changes[ftReadmePath] = newReadmeContents
 	}

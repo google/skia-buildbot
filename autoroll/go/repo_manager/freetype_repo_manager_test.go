@@ -34,7 +34,7 @@ commit %d
 	ftReadmeTmpl = `Fake README.chromium
 blah blah
 Version: %s
-revision.Revision: %s
+Revision: %s
 blah blah`
 	ftVersionTmpl = "v0.0.%d"
 )
