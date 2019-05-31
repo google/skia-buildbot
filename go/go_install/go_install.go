@@ -5,6 +5,7 @@ package go_install
 */
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"path"
@@ -17,9 +18,9 @@ import (
 // environment variables or any errors which occurred. If includeDeps is true,
 // also installs the go_deps CIPD package which contains all dependencies for
 // the go.skia.org/infra repository as of the last update of that package.
-func EnsureGo(client *http.Client, cipdRoot string) (string, map[string]string, error) {
+func EnsureGo(ctx context.Context, client *http.Client, cipdRoot string) (string, map[string]string, error) {
 	pkgs := []*cipd.Package{cipd.PkgGo}
-	if err := cipd.Ensure(client, cipdRoot, pkgs...); err != nil {
+	if err := cipd.Ensure(ctx, client, cipdRoot, pkgs...); err != nil {
 		return "", nil, fmt.Errorf("Failed to ensure Go CIPD package: %s", err)
 	}
 	goRoot := path.Join(cipdRoot, cipd.PkgGo.Dest, "go")
