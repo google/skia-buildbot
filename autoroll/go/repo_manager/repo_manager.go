@@ -394,10 +394,10 @@ func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig
 
 // cleanParent forces the parent checkout into a clean state.
 func (r *depotToolsRepoManager) cleanParent(ctx context.Context) error {
-	return r.cleanParentWithRemote(ctx, "origin")
+	return r.cleanParentWithRemoteAndBranch(ctx, "origin", ROLL_BRANCH)
 }
 
-func (r *depotToolsRepoManager) cleanParentWithRemote(ctx context.Context, remote string) error {
+func (r *depotToolsRepoManager) cleanParentWithRemoteAndBranch(ctx context.Context, remote, branch string) error {
 	if _, err := exec.RunCwd(ctx, r.parentDir, "git", "clean", "-d", "-f", "-f"); err != nil {
 		return err
 	}
@@ -405,7 +405,7 @@ func (r *depotToolsRepoManager) cleanParentWithRemote(ctx context.Context, remot
 	if _, err := exec.RunCwd(ctx, r.parentDir, "git", "checkout", fmt.Sprintf("%s/%s", remote, r.parentBranch), "-f"); err != nil {
 		return err
 	}
-	_, _ = exec.RunCwd(ctx, r.parentDir, "git", "branch", "-D", ROLL_BRANCH)
+	_, _ = exec.RunCwd(ctx, r.parentDir, "git", "branch", "-D", branch)
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
 		Env:  r.depotToolsEnv,
@@ -418,10 +418,10 @@ func (r *depotToolsRepoManager) cleanParentWithRemote(ctx context.Context, remot
 }
 
 func (r *depotToolsRepoManager) createAndSyncParent(ctx context.Context) error {
-	return r.createAndSyncParentWithRemote(ctx, "origin")
+	return r.createAndSyncParentWithRemoteAndBranch(ctx, "origin", ROLL_BRANCH)
 }
 
-func (r *depotToolsRepoManager) createAndSyncParentWithRemote(ctx context.Context, remote string) error {
+func (r *depotToolsRepoManager) createAndSyncParentWithRemoteAndBranch(ctx context.Context, remote, branch string) error {
 	// Create the working directory if needed.
 	if _, err := os.Stat(r.workdir); err != nil {
 		if err := os.MkdirAll(r.workdir, 0755); err != nil {
@@ -430,7 +430,7 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemote(ctx context.Contex
 	}
 
 	if _, err := os.Stat(path.Join(r.parentDir, ".git")); err == nil {
-		if err := r.cleanParentWithRemote(ctx, remote); err != nil {
+		if err := r.cleanParentWithRemoteAndBranch(ctx, remote, branch); err != nil {
 			return err
 		}
 		// Update the repo.

@@ -34,9 +34,10 @@ type PreUploadStep func(context.Context, []string, *http.Client, string) error
 // Return the PreUploadStep with the given name.
 func GetPreUploadStep(s string) (PreUploadStep, error) {
 	rv, ok := map[string]PreUploadStep{
-		"GoGenerateCipd":        GoGenerateCipd,
-		"TrainInfra":            TrainInfra,
-		"FlutterLicenseScripts": FlutterLicenseScripts,
+		"GoGenerateCipd":                GoGenerateCipd,
+		"TrainInfra":                    TrainInfra,
+		"FlutterLicenseScripts":         FlutterLicenseScripts,
+		"FlutterLicenseScriptsForTools": FlutterLicenseScriptsForTools,
 	}[s]
 	if !ok {
 		return nil, fmt.Errorf("No such pre-upload step: %s", s)
@@ -61,7 +62,7 @@ func GetPreUploadSteps(steps []string) ([]PreUploadStep, error) {
 func TrainInfra(ctx context.Context, env []string, client *http.Client, parentRepoDir string) error {
 	// TODO(borenet): Should we plumb through --local and --workdir?
 	sklog.Info("Installing Go...")
-	_, goEnv, err := go_install.EnsureGo(client, cipdRoot)
+	_, goEnv, err := go_install.EnsureGo(ctx, client, cipdRoot)
 	if err != nil {
 		return err
 	}
@@ -102,12 +103,32 @@ func TrainInfra(ctx context.Context, env []string, client *http.Client, parentRe
 // https://bugs.chromium.org/p/skia/issues/detail?id=7730#c6 and in
 // https://github.com/flutter/engine/blob/master/tools/licenses/README.md
 func FlutterLicenseScripts(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string) error {
-	sklog.Info("Running flutter license scripts.")
 	licenseScriptFailure := int64(1)
 	defer func() {
 		metrics2.GetInt64Metric("flutter_license_script_failure", nil).Update(licenseScriptFailure)
 	}()
+	if err := flutterLicenseScripts(ctx, parentRepoDir, "licenses_skia"); err != nil {
+		return err
+	}
+	licenseScriptFailure = 0
+	return nil
+}
 
+// Run the flutter license scripts for tools.
+func FlutterLicenseScriptsForTools(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string) error {
+	licenseScriptFailure := int64(1)
+	defer func() {
+		metrics2.GetInt64Metric("flutter_license_script_failure", nil).Update(licenseScriptFailure)
+	}()
+	if err := flutterLicenseScripts(ctx, parentRepoDir, "tools_signature"); err != nil {
+		return err
+	}
+	licenseScriptFailure = 0
+	return nil
+}
+
+func flutterLicenseScripts(ctx context.Context, parentRepoDir, licenseFileName string) error {
+	sklog.Info("Running flutter license scripts.")
 	binariesPath := filepath.Join(parentRepoDir, "..", "third_party", "dart", "tools", "sdks", "dart-sdk", "bin")
 
 	// Step1: Run pub get.
@@ -138,21 +159,20 @@ func FlutterLicenseScripts(ctx context.Context, _ []string, _ *http.Client, pare
 		return fmt.Errorf("Error when running dart license script: %s", err)
 	}
 
-	licensesThirdPartyFileName := "licenses_skia"
-	// Step4: Check to see if licenses_third_party was created in the out dir.
-	//        It will be created if the third_party hash changes.
-	if _, err := os.Stat(filepath.Join(licensesOutDir, licensesThirdPartyFileName)); err == nil {
-		sklog.Infof("Found %s", licensesThirdPartyFileName)
+	// Step4: Check to see if the target license file was created in the out dir.
+	//        It will be created if the hash changes.
+	if _, err := os.Stat(filepath.Join(licensesOutDir, licenseFileName)); err == nil {
+		sklog.Infof("Found %s", licenseFileName)
 
 		// Step5: Copy from out dir to goldens dir. This is required for updating
 		//        the release file in sky_engine/LICENSE.
-		if _, err := exec.RunCwd(ctx, licenseToolsDir, "cp", filepath.Join(licensesOutDir, licensesThirdPartyFileName), filepath.Join(licensesGoldenDir, licensesThirdPartyFileName)); err != nil {
-			return fmt.Errorf("Error when copying licenses_third_party from out to golden dir: %s", err)
+		if _, err := exec.RunCwd(ctx, licenseToolsDir, "cp", filepath.Join(licensesOutDir, licenseFileName), filepath.Join(licensesGoldenDir, licenseFileName)); err != nil {
+			return fmt.Errorf("Error when copying %s from out to golden dir: %s", licenseFileName, err)
 		}
-		// Step6: Capture diff of licenses_golden/licenses_third_party.
-		licensesDiffOutput, err := git.GitDir(licenseToolsDir).Git(ctx, "diff", "--no-ext-diff", filepath.Join(licensesGoldenDir, licensesThirdPartyFileName))
+		// Step6: Capture diff of licenses_golden/${licenseFileName}.
+		licensesDiffOutput, err := git.GitDir(licenseToolsDir).Git(ctx, "diff", "--no-ext-diff", filepath.Join(licensesGoldenDir, licenseFileName))
 		if err != nil {
-			return fmt.Errorf("Error when seeing diff of golden licenses_third_party: %s", err)
+			return fmt.Errorf("Error when seeing diff of golden %s: %s", licenseFileName, err)
 		}
 		sklog.Infof("The licenses diff output is:\n%s", licensesDiffOutput)
 
@@ -177,7 +197,6 @@ func FlutterLicenseScripts(ctx context.Context, _ []string, _ *http.Client, pare
 	}
 
 	sklog.Info("Done running flutter license scripts.")
-	licenseScriptFailure = 0
 	return nil
 }
 
@@ -185,7 +204,7 @@ func FlutterLicenseScripts(ctx context.Context, _ []string, _ *http.Client, pare
 func GoGenerateCipd(ctx context.Context, _ []string, client *http.Client, parentRepoDir string) error {
 	// TODO(borenet): Should we plumb through --local and --workdir?
 	sklog.Info("Installing Go...")
-	goExc, goEnv, err := go_install.EnsureGo(client, cipdRoot)
+	goExc, goEnv, err := go_install.EnsureGo(ctx, client, cipdRoot)
 	if err != nil {
 		return err
 	}
@@ -193,7 +212,7 @@ func GoGenerateCipd(ctx context.Context, _ []string, client *http.Client, parent
 	// Also install the protoc asset. Use a different CIPD root dir to
 	// prevent conflicts with the Go packages.
 	protocRoot := path.Join(os.TempDir(), "cipd_protoc")
-	if err := cipd.Ensure(client, protocRoot, cipd.PkgProtoc); err != nil {
+	if err := cipd.Ensure(ctx, client, protocRoot, cipd.PkgProtoc); err != nil {
 		return err
 	}
 
