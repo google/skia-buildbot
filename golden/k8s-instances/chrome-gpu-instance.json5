@@ -2,7 +2,7 @@
     // Gold settings
     "GERRIT_URL":              "https://chromium-review.googlesource.com",
     "GITREPO_URL":             "https://chromium.googlesource.com/chromium/src",
-    "N_COMMITS":               200,
+    "N_COMMITS":               512,
     "SPARSE":                  true,
     "SKCORR_TITLE":            "Chrome GPU Gold",
     "SKCORR_DEFAULT_CORPUS":   "chrome-gpu",
