@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "d416f61f_bff1d8ef",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-31T16:49:57Z",
+      "side": 1,
+      "message": "Ah, gotcha. Yeah, if that works then I\u0027d like to keep this file clean.  If it\u0027s too much trouble, then don\u0027t worry about it.",
+      "parentUuid": "ceddb98b_ca532a6c",
+      "range": {
+        "startLine": 116,
+        "startChar": 0,
+        "endLine": 119,
+        "endChar": 3
+      },
+      "revId": "9a0ad102bbb22aeb97150319c76042436500acae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9edecc9d_ff8a5b4a",
         "filename": "go/cipd/mocks/CIPDClient.go",
         "patchSetId": 14
