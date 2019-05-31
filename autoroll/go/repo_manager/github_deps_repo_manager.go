@@ -124,7 +124,7 @@ func (rm *githubDEPSRepoManager) Update(ctx context.Context) error {
 	}
 	// gclient sync to get latest version of child repo to find the next roll
 	// rev from.
-	if err := rm.createAndSyncParentWithRemote(ctx, GITHUB_UPSTREAM_REMOTE_NAME); err != nil {
+	if err := rm.createAndSyncParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, ROLL_BRANCH); err != nil {
 		return fmt.Errorf("Could not create and sync parent repo: %s", err)
 	}
 
@@ -174,7 +174,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	sklog.Info("Creating a new Github Roll")
 
 	// Clean the checkout, get onto a fresh branch.
-	if err := rm.cleanParentWithRemote(ctx, GITHUB_UPSTREAM_REMOTE_NAME); err != nil {
+	if err := rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, ROLL_BRANCH); err != nil {
 		return 0, err
 	}
 	if _, err := git.GitDir(rm.parentDir).Git(ctx, "checkout", fmt.Sprintf("%s/%s", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch), "-b", ROLL_BRANCH); err != nil {
@@ -182,7 +182,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	}
 	// Defer cleanup.
 	defer func() {
-		util.LogErr(rm.cleanParentWithRemote(ctx, GITHUB_UPSTREAM_REMOTE_NAME))
+		util.LogErr(rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, ROLL_BRANCH))
 	}()
 
 	// Make sure the forked repo is at the same hash as the target repo before

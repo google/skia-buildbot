@@ -56,19 +56,48 @@ type Package struct {
 }
 
 // Run "cipd ensure" to get the correct packages in the given location. Note
-// that any previously-installed packages in the given rootdir will be removed
+// that any previously-installed packages in the given rootDir will be removed
 // if not specified again.
-func Ensure(client *http.Client, rootdir string, packages ...*Package) error {
-	c, err := cipd.NewClient(cipd.ClientOptions{
-		ServiceURL:          SERVICE_URL,
-		Root:                rootdir,
-		AuthenticatedClient: client,
-	})
+func Ensure(ctx context.Context, c *http.Client, rootDir string, packages ...*Package) error {
+	cipdClient, err := NewClient(c, rootDir)
 	if err != nil {
 		return fmt.Errorf("Failed to create CIPD client: %s", err)
 	}
+	return cipdClient.Ensure(ctx, packages...)
+}
 
-	ctx := context.Background()
+// CIPDClient is the interface for interactions with the CIPD API.
+type CIPDClient interface {
+	cipd.Client
+
+	// Ensure runs "cipd ensure" to get the correct packages in the given location. Note
+	// that any previously-installed packages in the given rootDir will be removed
+	// if not specified again.
+	Ensure(ctx context.Context, packages ...*Package) error
+
+	// Describe is a convenience wrapper around cipd.Client.DescribeInstance.
+	Describe(ctx context.Context, pkg, instance string) (*cipd.InstanceDescription, error)
+}
+
+// Client is a struct used for interacting with the CIPD API.
+type Client struct {
+	cipd.Client
+}
+
+// NewClient returns a CIPD client.
+func NewClient(c *http.Client, rootDir string) (*Client, error) {
+	cipdClient, err := cipd.NewClient(cipd.ClientOptions{
+		ServiceURL:          SERVICE_URL,
+		Root:                rootDir,
+		AuthenticatedClient: c,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create CIPD client: %s", err)
+	}
+	return &Client{cipdClient}, nil
+}
+
+func (c *Client) Ensure(ctx context.Context, packages ...*Package) error {
 	pkgs := common.PinSliceBySubdir{}
 	for _, pkg := range packages {
 		pin, err := c.ResolveVersion(ctx, pkg.Name, pkg.Version)
@@ -78,8 +107,20 @@ func Ensure(client *http.Client, rootdir string, packages ...*Package) error {
 		sklog.Infof("Installing version %s (from %s) of %s", pin.InstanceID, pkg.Version, pkg.Name)
 		pkgs[pkg.Dest] = common.PinSlice{pin}
 	}
-	if _, err := c.EnsurePackages(context.Background(), pkgs, cipd.CheckPresence, false); err != nil {
+	if _, err := c.EnsurePackages(ctx, pkgs, cipd.CheckPresence, false); err != nil {
 		return fmt.Errorf("Failed to ensure packages: %s", err)
 	}
 	return nil
+}
+
+func (c *Client) Describe(ctx context.Context, pkg, instance string) (*cipd.InstanceDescription, error) {
+	pin := common.Pin{
+		PackageName: pkg,
+		InstanceID:  instance,
+	}
+	opts := &cipd.DescribeInstanceOpts{
+		DescribeRefs: true,
+		DescribeTags: true,
+	}
+	return c.DescribeInstance(ctx, pin, opts)
 }

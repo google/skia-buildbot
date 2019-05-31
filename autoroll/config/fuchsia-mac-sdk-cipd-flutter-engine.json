@@ -1,0 +1,66 @@
+// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childName": "Skia",
+  "contacts": [
+    "rmistry@google.com"
+  ],
+  "isInternal": false,
+  "parentName": "Flutter",
+  "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
+  "rollerName": "cipd-flutter-engine-autoroll",
+  "serviceAccount": "flutter-engine-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "rmistry@google.com"
+  ],
+  "github": {
+    "repoOwner": "flutter",
+    "repoName": "engine",
+    "checksNum": 4,
+    "checksWaitFor": [
+      "luci-engine"
+    ]
+  },
+  "githubCipdDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "src/fuchsia/sdk/mac",
+    "parentBranch": "master",
+    "preUploadSteps": [
+      "FlutterLicenseScriptsForTools"
+    ],
+    "parentRepo": "git@github.com:flutter/engine.git",
+    "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:rmistry/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"custom_vars\":{\"host_os\":\"mac\"},\"safesync_url\":\"\"}]",
+    "githubParentPath": "src/flutter",
+    "cipdAssetName": "fuchsia/sdk/core/mac-amd64",
+    "cipdAssetTag": "latest"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "8Gi",
+    "disk": "50Gi",
+    "readinessInitialDelaySeconds": "600",
+    "readinessPeriodSeconds": "60",
+    "readinessFailureThreshold": "10",
+    "secrets": [
+      {
+        "name": "flutter-engine-github-token",
+        "mountPath": "/var/secrets/github-token"
+      },
+      {
+        "name": "flutter-engine-ssh-key",
+        "mountPath": "/var/secrets/ssh-key"
+      }
+    ]
+  },
+  "maxRollFrequency": "3h",
+  "notifiers": [
+    {
+      "filter": "warning",
+      "email": {
+        "emails": [
+          "$SHERIFF"
+        ]
+      }
+    }
+  ]
+}
