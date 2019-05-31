@@ -523,6 +523,7 @@
           this.$.plot.removeAll();
           this._lines = [];
           this._addTraces(json, false, switchToTab);
+          this.$.plot.resetAxes();
           this.$.zoom_range.disabled = true;
         }.bind(this));
       },
