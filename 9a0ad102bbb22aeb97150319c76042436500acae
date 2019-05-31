@@ -167,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "b67c80c5_c4740b3c",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-31T17:12:09Z",
+      "side": 1,
+      "message": "Done. I had to do a weird type assertion in the test but not too bad.",
+      "parentUuid": "d416f61f_bff1d8ef",
+      "range": {
+        "startLine": 116,
+        "startChar": 0,
+        "endLine": 119,
+        "endChar": 3
+      },
+      "revId": "9a0ad102bbb22aeb97150319c76042436500acae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9edecc9d_ff8a5b4a",
         "filename": "go/cipd/mocks/CIPDClient.go",
         "patchSetId": 14
