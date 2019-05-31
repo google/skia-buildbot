@@ -108,6 +108,7 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/luci v0.0.0-20190528234648-10857ad44cc9
+	go.chromium.org/luci/cipd/client/cipd/local v0.0.0-20190528234648-10857ad44cc9
 	go.opencensus.io v0.21.0
 	golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f
 	golang.org/x/exp v0.0.0-20190510132918-efd6b22b2522 // indirect
