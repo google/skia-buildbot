@@ -1,0 +1,46 @@
+// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childName": "GoogleTest",
+  "contacts": [
+    "isamsonov@google.com"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
+  "isInternal": false,
+  "parentName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "googletest-chromium-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "isamsonov@google.com"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "src/third_party/googletest/src",
+    "childRepo": "https://chromium.googlesource.com/external/github.com/google/googletest.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/google/googletest.git/+/%s",
+    "includeBugs": false,
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+  },
+  "cqExtraTrybots": [
+    "luci.chromium.try:android_optional_gpu_tests_rel",
+    "luci.chromium.try:mac_optional_gpu_tests_rel",
+    "luci.chromium.try:linux_chromium_cfi_rel_ng",
+    "luci.chrome.try:win_chrome_official"
+  ],
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "24h"
+}
