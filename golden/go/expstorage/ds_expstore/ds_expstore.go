@@ -82,6 +82,20 @@ type DSExpStore struct {
 	tsMutex sync.Mutex
 }
 
+// ExpChange is used to store an expectation change in the database. Each
+// expectation change is an atomic change to expectations for an issue.
+// The actual expectations are captured in instances of TestDigestExp.
+type ExpChange struct {
+	ChangeID         *datastore.Key `datastore:"__key__"`
+	IssueID          int64
+	UserID           string
+	TimeStamp        int64 `datastore:",noindex"`
+	Count            int64 `datastore:",noindex"`
+	UndoChangeID     int64
+	OK               bool
+	ExpectationsBlob *datastore.Key `datastore:",noindex"`
+}
+
 // expectationsState stores the state of expectations for either master or a Gerrit issue.
 type expectationsState struct {
 	ExpectationsBlob *datastore.Key // key of the blob that stores expectations
@@ -187,19 +201,18 @@ func (c *DSExpStore) QueryLog(ctx context.Context, offset, size int, details boo
 	retKeys := allKeys[start:end]
 
 	ret := make([]*expstorage.TriageLogEntry, 0, len(retKeys))
-	expChanges := make([]*expstorage.ExpChange, len(retKeys))
+	expChanges := make([]*ExpChange, len(retKeys))
 	if err := c.client.GetMulti(ctx, retKeys, expChanges); err != nil {
 		return nil, 0, sklog.FmtErrorf("Error retrieving expectation changes: %s", err)
 	}
 
 	for _, change := range expChanges {
 		ret = append(ret, &expstorage.TriageLogEntry{
-			ID:           strconv.FormatInt(change.ChangeID.ID, 10),
-			Name:         change.UserID,
-			TS:           change.TimeStamp,
-			ChangeCount:  int(change.Count),
-			Details:      nil,
-			UndoChangeID: change.UndoChangeID,
+			ID:          strconv.FormatInt(change.ChangeID.ID, 10),
+			Name:        change.UserID,
+			TS:          change.TimeStamp,
+			ChangeCount: int(change.Count),
+			Details:     nil,
 		})
 	}
 
@@ -263,7 +276,7 @@ func (c *DSExpStore) UndoChange(ctx context.Context, changeID int64, userID stri
 	}
 
 	// Fetch the change record of the change we want to undo.
-	expChange := &expstorage.ExpChange{}
+	expChange := &ExpChange{}
 	expChangeKey := ds.NewKey(c.changeKind)
 	expChangeKey.ID = changeID
 	if err := c.client.Get(ctx, expChangeKey, expChange); err != nil {
@@ -327,7 +340,7 @@ func (c *DSExpStore) Clear(ctx context.Context) error {
 
 	// Extract the keys of the blobs storing the expectations.
 	for _, key := range allExpChangeKeys {
-		expChange := &expstorage.ExpChange{}
+		expChange := &ExpChange{}
 		if err := c.client.Get(ctx, key, expChange); err != nil {
 			return sklog.FmtErrorf("Error retrieving expectations change %d: %s", key.ID, err)
 		}
@@ -358,11 +371,6 @@ func (c *DSExpStore) Clear(ctx context.Context) error {
 
 	// Wait until it's all done.
 	return egroup.Wait()
-}
-
-// PutExpectations writes the expectations directly to the datastore
-func (c *DSExpStore) PutExpectations(exps types.Expectations) error {
-	return c.updateCurrentExpectations(nil, exps, true, nil)
 }
 
 // calcExpectations calculates the expectations by accumulating the expectation changes
@@ -431,7 +439,7 @@ func (c *DSExpStore) makeChange(ctx context.Context, changes types.Expectations,
 	// transaction. The change record is not valid (= included in
 	// searches until the OK flag is set to true inside the transaction below).
 	changeKey = dsutil.TimeSortableKey(c.changeKind, timeStampMs)
-	expChange := &expstorage.ExpChange{
+	expChange := &ExpChange{
 		IssueID:          c.issueID,
 		UserID:           userId,
 		UndoChangeID:     undoChangeID,
@@ -636,7 +644,7 @@ func (c *DSExpStore) loadCurrentExpectations(tx *datastore.Transaction) (types.E
 
 // getChanges loads the changes for the given expectations change key.
 func (c *DSExpStore) getChanges(ctx context.Context, expChangeKey *datastore.Key) (types.Expectations, error) {
-	expChange := &expstorage.ExpChange{}
+	expChange := &ExpChange{}
 	if err := c.client.Get(ctx, expChangeKey, expChange); err != nil {
 		return nil, err
 	}

@@ -3,7 +3,6 @@ package expstorage
 import (
 	"context"
 
-	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
@@ -69,26 +68,11 @@ type TriageDetail struct {
 type TriageLogEntry struct {
 	// Note: The ID is a string because an int64 cannot be passed back and
 	// forth to the JS frontend.
-	ID           string          `json:"id"`
-	Name         string          `json:"name"`
-	TS           int64           `json:"ts"`
-	ChangeCount  int             `json:"changeCount"`
-	Details      []*TriageDetail `json:"details"`
-	UndoChangeID int64           `json:"undoChangeId"`
-}
-
-// ExpChange is used to store an expectation change in the database. Each
-// expectation change is an atomic change to expectations for an issue.
-// The actual expectations are captured in instances of TestDigestExp.
-type ExpChange struct {
-	ChangeID         *datastore.Key `datastore:"__key__"`
-	IssueID          int64
-	UserID           string
-	TimeStamp        int64 `datastore:",noindex"`
-	Count            int64 `datastore:",noindex"`
-	UndoChangeID     int64
-	OK               bool
-	ExpectationsBlob *datastore.Key `datastore:",noindex"`
+	ID          string          `json:"id"`
+	Name        string          `json:"name"`
+	TS          int64           `json:"ts"`
+	ChangeCount int             `json:"changeCount"`
+	Details     []*TriageDetail `json:"details"`
 }
 
 // EventExpectationChange is the structure that is sent in expectation change events.

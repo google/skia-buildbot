@@ -19,7 +19,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/expstorage/ds_expstore"
 	"go.skia.org/infra/golden/go/tryjobstore"
 )
 
@@ -54,8 +54,8 @@ var (
 	// touchRegisteredEntities maps the entities to the types that should be
 	// used to load and save the entities for the touch operation.
 	touchRegisteredEntities = map[ds.Kind]interface{}{
-		ds.MASTER_EXP_CHANGE: &expstorage.ExpChange{},
-		ds.TRYJOB_EXP_CHANGE: &expstorage.ExpChange{},
+		ds.MASTER_EXP_CHANGE: &ds_expstore.ExpChange{},
+		ds.TRYJOB_EXP_CHANGE: &ds_expstore.ExpChange{},
 		ds.TRYJOB_RESULT:     &tryjobstore.TryjobResult{},
 	}
 )
