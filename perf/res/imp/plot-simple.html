@@ -197,14 +197,22 @@
                 type: 'time',
                 position: 'bottom',
                 time: {
-                  round: 'second',
                   source: 'labels',
+                  displayFormats: {
+                    'millisecond': 'h:mm:ss.SSS A',
+                    'second': 'h:mm:ss A',
+                    'minute': 'h:mm A',
+                    'hour': 'ddd h A',
+                    'day': 'ddd h A',
+                    'week': 'D MMM',
+                    'month': 'D MMM',
+                  },
                 },
                 distribution: 'series',
                 ticks: {
                   autoSkip: true,
                   autoSkipPadding: 10,
-                  source: 'auto',
+                  source: 'data',
                   minRotation: 60,
                   autoSkip: true,
                   maxTicksLimit: 10,
@@ -288,11 +296,49 @@
         });
       },
 
+      // Convert the different in time between d1 and d2 into the units to
+      // when displaying ticks. See https://www.chartjs.org/docs/latest/axes/cartesian/time.html#display-formats
+      // and https://momentjs.com/docs/#/displaying/format/
+      //
+      // This works in coordination with the values set in time.dispayFormats.
+      _diffDateToUnits: function(d1, d2) {
+        let diff = d2 - d1;
+        diff = diff / 1000;
+        if (diff < 1) {
+          return 'millisecond';
+        }
+        diff = diff / 60;
+        if (diff < 1) {
+          return 'second';
+        }
+        diff = diff / 60;
+        if (diff < 1) {
+          return 'minute';
+        }
+        diff = diff / 24;
+        if (diff < 1) {
+          return 'hour';
+        }
+        diff = diff / 7;
+        if (diff < 1) {
+          return 'day';
+        }
+        diff = diff / 365;
+        if (diff < 1) {
+          return 'week';
+        }
+        return 'month';
+      },
+
       // lines is a map to the line data.
       addLines: function(lines, labels) {
         if (labels) {
           this._chart.data.labels = labels;
         }
+
+        let unit = this._diffDateToUnits(labels[0], labels[labels.length-1]);
+        this._chart.options.scales.xAxes[0].time.unit = unit;
+
         Object.keys(lines).forEach((id) => {
           let data = lines[id].map(arr => arr[1]);
           this._chart.data.datasets.push({
