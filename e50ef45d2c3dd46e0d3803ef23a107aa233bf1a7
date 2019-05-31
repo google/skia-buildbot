@@ -22,6 +22,30 @@
       "revId": "e50ef45d2c3dd46e0d3803ef23a107aa233bf1a7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ceb40b7b_78b2903a",
+        "filename": "golden/go/expstorage/fs_expstore/FIRESTORE.md",
+        "patchSetId": 8
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-31T14:22:27Z",
+      "side": 1,
+      "message": "write-through cache is what I meant even though my words indicated otherwise.",
+      "parentUuid": "152f4e96_8f6ec62a",
+      "range": {
+        "startLine": 80,
+        "startChar": 40,
+        "endLine": 80,
+        "endChar": 81
+      },
+      "revId": "e50ef45d2c3dd46e0d3803ef23a107aa233bf1a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
