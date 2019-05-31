@@ -206,7 +206,6 @@
     "name": "git diff go.mod"
   },
   {
-    "jsonResult": null,
     "name": "$result"
   }
 ]
