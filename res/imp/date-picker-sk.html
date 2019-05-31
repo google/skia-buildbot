@@ -125,6 +125,11 @@
     _setMonth: function(month) {
       this._month = month;
       this._days = Array(days[month]).fill(0).map((_, i) => i+1)
+      // Fix up the day if necessary.
+      if (this._day > days[month]) {
+        this._day = days[month];
+      }
+
     },
 
     _monthChange: function(e) {
@@ -147,8 +152,9 @@
     _syncDate() {
       let d = new Date();
       d.setYear(this._year);
-      d.setMonth(this._month);
+      // Always set day before month. Otherwise Apr 31 => May 1.
       d.setDate(this._day);
+      d.setMonth(this._month);
       this.date = Math.floor(d.getTime()/1000);
       this.fire("date-changed", {date: this.date, bubbles: true});
     },
