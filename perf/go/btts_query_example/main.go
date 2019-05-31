@@ -50,7 +50,7 @@ func main() {
 
 	// Time a Query.
 	sklog.Infof("Loading all the data.")
-	results, err := store.QueryTraces(ctx, tileKey, q)
+	results, err := store.QueryTracesByIndex(ctx, tileKey, q)
 	if err != nil {
 		sklog.Fatal(err)
 	}
