@@ -16,6 +16,24 @@
       "revId": "95babeaf558e7bbb1dd87f4a70ab6a218d8ea56a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "33b83abf_a29a53b4",
+        "filename": "golden/k8s-instances/chrome-gpu-instance.json5",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-05-31T14:06:09Z",
+      "side": 1,
+      "message": "At the moment, yes, Gold is limited to 1 tile.  I have grand dreams where that is not the case.",
+      "parentUuid": "3bed629e_deb0040c",
+      "revId": "95babeaf558e7bbb1dd87f4a70ab6a218d8ea56a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
