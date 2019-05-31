@@ -72,12 +72,13 @@ var (
 	repos repograph.Map
 
 	// HTML templates.
-	blacklistTemplate *template.Template = nil
-	jobTemplate       *template.Template = nil
-	jobSearchTemplate *template.Template = nil
-	mainTemplate      *template.Template = nil
-	taskTemplate      *template.Template = nil
-	triggerTemplate   *template.Template = nil
+	blacklistTemplate   *template.Template = nil
+	jobTemplate         *template.Template = nil
+	jobSearchTemplate   *template.Template = nil
+	jobTimelineTemplate *template.Template = nil
+	mainTemplate        *template.Template = nil
+	taskTemplate        *template.Template = nil
+	triggerTemplate     *template.Template = nil
 
 	// Flags.
 	btInstance        = flag.String("bigtable_instance", "", "BigTable instance to use.")
@@ -133,6 +134,11 @@ func reloadTemplates() {
 	))
 	jobSearchTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/job_search.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/footer.html"),
+	))
+	jobTimelineTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/job_timeline.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/footer.html"),
 	))
@@ -386,6 +392,59 @@ func jobSearchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func jobTimelineHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in testing mode.
+	if *local {
+		reloadTemplates()
+	}
+
+	jobId, ok := mux.Vars(r)["id"]
+	if !ok {
+		httputils.ReportError(w, r, nil, "Job ID is required.")
+		return
+	}
+
+	job, err := tsDb.GetJobById(jobId)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to retrieve Job.")
+		return
+	}
+	var tasks = make([]*types.Task, 0, len(job.Tasks))
+	for _, summaries := range job.Tasks {
+		for _, t := range summaries {
+			task, err := tsDb.GetTaskById(t.Id)
+			if err != nil {
+				httputils.ReportError(w, r, err, "Failed to retrieve Task.")
+				return
+			}
+			tasks = append(tasks, task)
+		}
+	}
+	enc, err := json.Marshal(&struct {
+		Job    *types.Job    `json:"job"`
+		Tasks  []*types.Task `json:"tasks"`
+		Epochs []time.Time   `json:"epochs"`
+	}{
+		Job:    job,
+		Tasks:  tasks,
+		Epochs: []time.Time{}, // TODO(borenet): Record tick timestamps.
+	})
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode JSON.")
+		return
+	}
+	if err := jobTimelineTemplate.Execute(w, struct {
+		Data string
+	}{
+		Data: string(enc),
+	}); err != nil {
+		httputils.ReportError(w, r, err, "Failed to execute template.")
+		return
+	}
+}
+
 func taskHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
@@ -502,6 +561,7 @@ func runServer(serverURL string, taskDb db.RemoteDB) {
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/blacklist", blacklistHandler)
 	r.HandleFunc("/job/{id}", jobHandler)
+	r.HandleFunc("/job/{id}/timeline", jobTimelineHandler)
 	r.HandleFunc("/jobs/search", jobSearchHandler)
 	r.HandleFunc("/task/{id}", taskHandler)
 	r.HandleFunc("/trigger", triggerHandler)
