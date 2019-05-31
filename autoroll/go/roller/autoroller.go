@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -24,6 +25,7 @@ import (
 	"go.skia.org/infra/autoroll/go/unthrottle"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/chatbot"
+	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/comment"
 	"go.skia.org/infra/go/email"
@@ -110,6 +112,12 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		rm, err = repo_manager.NewFuchsiaSDKRepoManager(ctx, c.FuchsiaSDKRepoManager, workdir, g, serverURL, gitcookiesPath, nil, cr, local)
 	} else if c.GithubRepoManager != nil {
 		rm, err = repo_manager.NewGithubRepoManager(ctx, c.GithubRepoManager, workdir, githubClient, recipesCfgFile, serverURL, client, cr, local)
+	} else if c.GithubCipdDEPSRepoManager != nil {
+		cipdClient, err := cipd.NewClient(client, path.Join(workdir, "cipd"))
+		if err != nil {
+			return nil, err
+		}
+		rm, err = repo_manager.NewGithubCipdDEPSRepoManager(ctx, c.GithubCipdDEPSRepoManager, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cipdClient, cr, local)
 	} else if c.GithubDEPSRepoManager != nil {
 		rm, err = repo_manager.NewGithubDEPSRepoManager(ctx, c.GithubDEPSRepoManager, workdir, githubClient, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.ManifestRepoManager != nil {
