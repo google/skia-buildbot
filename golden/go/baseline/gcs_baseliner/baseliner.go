@@ -109,7 +109,7 @@ func (b *BaselinerImpl) PushMasterBaselines(tileInfo baseline.TileInfo, targetHa
 	tileCommits := tileInfo.AllCommits()
 	extraCommits, err := b.getCommitsSince(tileCommits[len(tileCommits)-1])
 	if err != nil {
-		return nil, err
+		return nil, skerr.Fmt("error getting commits since %v: %s", tileCommits[len(tileCommits)-1], err)
 	}
 
 	perCommitBaselines, err := baseline.GetBaselinesPerCommit(exps, tileInfo, extraCommits)
