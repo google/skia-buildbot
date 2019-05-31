@@ -115,8 +115,10 @@ func setupFakeGithub(t *testing.T, childCommits []string) (*github.GitHub, *mock
 	assert.NoError(t, err)
 	urlMock.MockOnce(githubApiUrl+"/user", mockhttpclient.MockGetDialogue(serializedUser))
 
-	// Mock getRawFile.
-	urlMock.MockOnce("https://raw.githubusercontent.com/superman/krypton/master/dummy-file.txt", mockhttpclient.MockGetDialogue([]byte(childCommits[0])))
+	if childCommits != nil && len(childCommits) > 0 {
+		// Mock getRawFile.
+		urlMock.MockOnce("https://raw.githubusercontent.com/superman/krypton/master/dummy-file.txt", mockhttpclient.MockGetDialogue([]byte(childCommits[0])))
+	}
 
 	// Mock /issues endpoint for get and patch requests.
 	serializedIssue, err := json.Marshal(&github_api.Issue{
