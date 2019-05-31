@@ -17,6 +17,7 @@ import (
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
+	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
@@ -70,6 +71,9 @@ var (
 
 	// Git repo objects.
 	repos repograph.Map
+
+	// Swarming API client.
+	swarm swarming.ApiClient
 
 	// HTML templates.
 	blacklistTemplate   *template.Template = nil
@@ -411,7 +415,11 @@ func jobTimelineHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to retrieve Job.")
 		return
 	}
-	var tasks = make([]*types.Task, 0, len(job.Tasks))
+	type unifiedTask struct {
+		*types.Task
+		Swarming *swarming_api.SwarmingRpcsTaskResult `json:"swarming"`
+	}
+	var tasks = make([]*unifiedTask, 0, len(job.Tasks))
 	for _, summaries := range job.Tasks {
 		for _, t := range summaries {
 			task, err := tsDb.GetTaskById(t.Id)
@@ -419,13 +427,21 @@ func jobTimelineHandler(w http.ResponseWriter, r *http.Request) {
 				httputils.ReportError(w, r, err, "Failed to retrieve Task.")
 				return
 			}
-			tasks = append(tasks, task)
+			swarmingTask, err := swarm.GetTask(task.SwarmingTaskId, true)
+			if err != nil {
+				httputils.ReportError(w, r, err, "Failed to retrieve Swarming task.")
+				return
+			}
+			tasks = append(tasks, &unifiedTask{
+				Task:     task,
+				Swarming: swarmingTask,
+			})
 		}
 	}
 	enc, err := json.Marshal(&struct {
-		Job    *types.Job    `json:"job"`
-		Tasks  []*types.Task `json:"tasks"`
-		Epochs []time.Time   `json:"epochs"`
+		Job    *types.Job     `json:"job"`
+		Tasks  []*unifiedTask `json:"tasks"`
+		Epochs []time.Time    `json:"epochs"`
 	}{
 		Job:    job,
 		Tasks:  tasks,
@@ -683,7 +699,6 @@ func main() {
 	}
 
 	// Initialize Swarming client.
-	var swarm swarming.ApiClient
 	if *local {
 		wd := filepath.Join(wdAbs, "local_git_repos")
 		gitRepos := make(map[string]*git.Repo, len(repos))

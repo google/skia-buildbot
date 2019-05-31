@@ -137,15 +137,31 @@ function gantt(svg) {
         fontSize: labelFontSize,
       });
       for (const task of tasksByCategory[category]) {
-        const start = task.start.getTime();
-        const end = task.end.getTime();
-        blocks.push({
-          x: blockStartX + blocksWidth * (start - tStart) / duration,
-          y: blockStartY + i * rowHeight + blockMarginY,
-          width: blocksWidth * (end - start) / duration,
-          height: blockHeight,
-          title: sk.human.strDuration((end - start) / 1000),
-        });
+        let segments = task.segments;
+        if (!segments) {
+          segments = [{
+            start: task.start,
+            end: task.end,
+            color: task.color || "#000000",
+          }];
+        }
+        for (const seg of segments) {
+          const start = seg.start.getTime();
+          const end = seg.end.getTime();
+          let title = "";
+          if (seg.label) {
+            title = seg.label + " ";
+          }
+          title += sk.human.strDuration((end - start) / 1000);
+          blocks.push({
+            x: blockStartX + blocksWidth * (start - tStart) / duration,
+            y: blockStartY + i * rowHeight + blockMarginY,
+            width: blocksWidth * (end - start) / duration,
+            height: blockHeight,
+            title: title,
+            color: seg.color,
+          });
+        }
       }
     }
     this._layoutCategories = labels;
@@ -460,13 +476,15 @@ function gantt(svg) {
     const taskRects = d3svg.selectAll('rect.task').data(this._layoutTasks);
     taskRects.enter().append('svg:rect')
         .attr('class', 'task')
+        .attr('stroke', 'none')
         .append('svg:title')
           .attr('class', 'task');
     taskRects
         .attr('x', function(d) { return d.x; })
         .attr('y', function(d) { return d.y; })
         .attr('width', function(d) { return d.width; })
-        .attr('height', function(d) { return d.height; });
+        .attr('height', function(d) { return d.height; })
+        .attr('fill', function(d) { return d.color });
     taskRects.exit().remove();
     const taskTexts = d3svg.selectAll('title.task').data(this._layoutTasks);
     taskTexts.text(function(d) { return d.title; });

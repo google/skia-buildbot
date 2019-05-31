@@ -87,22 +87,50 @@
         if (!this.job || !this.tasks || this.epochs === undefined || !this._chart) {
           return;
         }
-        var tasks = [{
+        const tasks = [{
           category: this.job.name + " (job)",
           start: new Date(this.job.created),
           end: new Date(this.job.finished),
+          color: "#0072b2",
         }];
-        for (var i = 0; i < this.tasks.length; i++) {
-          var t = this.tasks[i];
+        for (const t of this.tasks) {
+          const segments = [];
+          let lastSegmentEnd = new Date(t.created);
+          const seg = function(label, end, color) {
+            const s = {
+              label: label,
+              start: lastSegmentEnd,
+              end: new Date(end),
+              color: color,
+            };
+            lastSegmentEnd = s.end;
+            segments.push(s);
+          };
+          if (t.started) {
+            seg("pending", t.started, "#e69f00");
+          }
+          if (t.swarming && t.swarming.performance_stats && t.swarming.performance_stats.isolated_upload) {
+            const overheadTotal = t.swarming.performance_stats.bot_overhead * 1000;
+            const overheadUpload = t.swarming.performance_stats.isolated_upload.duration * 1000;
+            const overheadDownload = overheadTotal - overheadUpload;
+            const startTs = Date.parse(t.started);
+            const finishTs = Date.parse(t.finished);
+            seg("overhead", startTs + overheadDownload, "#d55e00");
+            seg("running", finishTs - overheadUpload, "#0072b2");
+            seg("overhead", t.finished, "#d55e00");
+          } else {
+            seg("running", t.finished, "#0072b2");
+          }
           tasks.push({
             category: t.name,
             start: new Date(t.created),
             end: new Date(t.finished),
+            segments: segments,
           });
         }
-        var epochs = [];
-        for (var i = 0; i < this.epochs.length; i++) {
-          epochs.push(new Date(this.epochs[i]));
+        const epochs = [];
+        for (const epoch of this.epochs) {
+          epochs.push(new Date(epoch));
         }
         this._chart.tasks(tasks).epochs(epochs).draw();
       }
