@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "66cdd0df_877ec465",
+        "filename": "autoroll/go/repo_manager/github_cipd_deps_repo_manager.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-31T16:00:37Z",
+      "side": 1,
+      "message": "CipdAssetName and CipdAssetTag need to be checked here.",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 60
+      },
+      "revId": "9a0ad102bbb22aeb97150319c76042436500acae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef6a9532_5237cfdd",
+        "filename": "autoroll/go/repo_manager/github_cipd_deps_repo_manager.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-31T16:00:37Z",
+      "side": 1,
+      "message": "Because of the fact that we can\u0027t know whether the tag we\u0027re tracking was ever applied to any of the intermediate revisions, we should restrict this roller to only using the batch strategy.",
+      "range": {
+        "startLine": 347,
+        "startChar": 0,
+        "endLine": 347,
+        "endChar": 32
+      },
+      "revId": "9a0ad102bbb22aeb97150319c76042436500acae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b230f7b9_e12cc30a",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-31T16:00:37Z",
+      "side": 1,
+      "message": "We could keep this file cleaner by instantiating the CIPD client inside NewGithubCipdDEPSRepoManager",
+      "range": {
+        "startLine": 116,
+        "startChar": 0,
+        "endLine": 119,
+        "endChar": 3
+      },
+      "revId": "9a0ad102bbb22aeb97150319c76042436500acae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9edecc9d_ff8a5b4a",
         "filename": "go/cipd/mocks/CIPDClient.go",
         "patchSetId": 14
@@ -13,6 +82,24 @@
       "writtenOn": "2019-05-31T14:49:27Z",
       "side": 1,
       "message": "Tests are failing with:\ngo/cipd/mocks/CIPDClient.go:10:8: unknown import path \"go.chromium.org/luci/cipd/client/cipd/local\": import lookup disabled by -mod\u003dreadonly\n\nDo I need to add that to go.mod?\nIt\u0027s strange that that package does not seem to exist but was created by mockery: https://godoc.org/go.chromium.org/luci/cipd/client/cipd/local",
+      "revId": "9a0ad102bbb22aeb97150319c76042436500acae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc11854f_ce4e44d2",
+        "filename": "go/cipd/mocks/CIPDClient.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-31T16:00:37Z",
+      "side": 1,
+      "message": "Yes, run \"go get go.chromium.org/luci/cipd/client/cipd/local\" on your machine and it\u0027ll get added to go.mod.",
+      "parentUuid": "9edecc9d_ff8a5b4a",
       "revId": "9a0ad102bbb22aeb97150319c76042436500acae",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
