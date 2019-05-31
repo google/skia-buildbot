@@ -94,6 +94,30 @@
       "revId": "ca32992b38bf66ad89028cb99a61c1f5614cfca7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0174d9e2_d488d9ca",
+        "filename": "golden/go/expstorage/fs_expstore/FIRESTORE.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-05-31T14:17:06Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "eaafc5c2_7ebfc785",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 3
+      },
+      "revId": "ca32992b38bf66ad89028cb99a61c1f5614cfca7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
