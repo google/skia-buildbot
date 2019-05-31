@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3bed629e_deb0040c",
+        "filename": "golden/k8s-instances/chrome-gpu-instance.json5",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-05-31T14:05:03Z",
+      "side": 1,
+      "message": "This only works because Gold never accesses data beyond a single tile?",
+      "revId": "95babeaf558e7bbb1dd87f4a70ab6a218d8ea56a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
