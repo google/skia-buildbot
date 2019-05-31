@@ -16,6 +16,24 @@
       "revId": "35ecba72282c4e29a47083b2b5e15e4a9ece7ac5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "82031c28_06babaf1",
+        "filename": "task_scheduler/res/imp/job-timeline-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-05-31T18:46:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "22ed58d7_18a4f127",
+      "revId": "35ecba72282c4e29a47083b2b5e15e4a9ece7ac5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
