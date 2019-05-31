@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c3a89215_d50af5b2",
+        "filename": "autoroll/go/repo_manager/github_cipd_deps_repo_manager.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-31T16:47:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "66cdd0df_877ec465",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 60
+      },
+      "revId": "9a0ad102bbb22aeb97150319c76042436500acae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ef6a9532_5237cfdd",
         "filename": "autoroll/go/repo_manager/github_cipd_deps_repo_manager.go",
         "patchSetId": 14
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "11aaf32b_2930ec28",
+        "filename": "autoroll/go/repo_manager/github_cipd_deps_repo_manager.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-31T16:47:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ef6a9532_5237cfdd",
+      "range": {
+        "startLine": 347,
+        "startChar": 0,
+        "endLine": 347,
+        "endChar": 32
+      },
+      "revId": "9a0ad102bbb22aeb97150319c76042436500acae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b230f7b9_e12cc30a",
         "filename": "autoroll/go/roller/autoroller.go",
         "patchSetId": 14
@@ -59,6 +107,30 @@
       "writtenOn": "2019-05-31T16:00:37Z",
       "side": 1,
       "message": "We could keep this file cleaner by instantiating the CIPD client inside NewGithubCipdDEPSRepoManager",
+      "range": {
+        "startLine": 116,
+        "startChar": 0,
+        "endLine": 119,
+        "endChar": 3
+      },
+      "revId": "9a0ad102bbb22aeb97150319c76042436500acae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ceddb98b_ca532a6c",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-31T16:47:13Z",
+      "side": 1,
+      "message": "I had it like that before but did not know how to pass in cipdClient mock.\nI guess I could just override it from the test with \"rm.CipdClient \u003d ....\" ?",
+      "parentUuid": "b230f7b9_e12cc30a",
       "range": {
         "startLine": 116,
         "startChar": 0,
@@ -103,6 +175,24 @@
       "revId": "9a0ad102bbb22aeb97150319c76042436500acae",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5365ae9_f40aa420",
+        "filename": "go/cipd/mocks/CIPDClient.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-05-31T16:47:13Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "bc11854f_ce4e44d2",
+      "revId": "9a0ad102bbb22aeb97150319c76042436500acae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
