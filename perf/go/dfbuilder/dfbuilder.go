@@ -190,7 +190,7 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 			defer timer.New("dfbuilder_by_tile").Stop()
 
 			// Query for matching traces in the given tile.
-			traces, err := b.store.QueryTraces(ctx, tileKey, q)
+			traces, err := b.store.QueryTracesByIndex(ctx, tileKey, q)
 			if err != nil {
 				return err
 			}
