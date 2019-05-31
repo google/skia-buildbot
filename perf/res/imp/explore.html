@@ -645,6 +645,7 @@
         });
 
         this.$.plot.addLines(this._lines, labels);
+        this.$.plot.resetAxes();
 
         // Always add in the last index so we draw a band if there's an odd
         // number of skp updates.
