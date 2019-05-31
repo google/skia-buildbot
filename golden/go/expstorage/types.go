@@ -32,7 +32,7 @@ func init() {
 type ExpectationsStore interface {
 	// Get the current classifications for image digests. The keys of the
 	// expectations map are the test names.
-	Get() (exp types.Expectations, err error)
+	Get() (types.Expectations, error)
 
 	// AddChange writes the given classified digests to the database and records the
 	// user that made the change.
