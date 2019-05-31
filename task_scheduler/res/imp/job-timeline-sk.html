@@ -28,8 +28,22 @@
 <link rel="import" href="/res/imp/bower_components/polymer/polymer.html">
 <dom-module id="job-timeline-sk">
   <template>
+    <style>
+    :host{
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    #svg {
+      flex-grow: 1;
+      min-width: 600px;
+      min-height: 300px;
+      max-width: 1800px;
+      max-height: 800px;
+    }
+    </style>
     <h2>Job <span>[[job.id]]</span></h2>
-    <svg id="svg" width="60%" height="60%"></svg>
+    <svg id="svg"></svg>
   </template>
   <script src="/res/imp/bower_components/d3/d3.min.js"></script>
   <script src="/res/js/gantt.js"></script>
@@ -57,9 +71,10 @@
         "_draw(job.*, tasks.*, epochs.*)",
       ],
 
-      ready: function() {
+      attached: function() {
         this._chart = gantt(this.$.svg);
         window.addEventListener("resize", this.draw.bind(this));
+        this.draw();
       },
 
       draw: function() {
@@ -69,7 +84,7 @@
       },
 
       _draw: function() {
-        if (!this._chart || !this.job || !this.tasks || this.epochs === undefined) {
+        if (!this.job || !this.tasks || this.epochs === undefined || !this._chart) {
           return;
         }
         var tasks = [{

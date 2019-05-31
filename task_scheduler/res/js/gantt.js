@@ -57,8 +57,9 @@ function gantt(svg) {
     }
 
     // Calculate label offset.
-    const totalWidth = this._svg.getBoundingClientRect().width;
-    const totalHeight = this._svg.getBoundingClientRect().height;
+    const boundingRect = this._svg.getBoundingClientRect();
+    const totalWidth = boundingRect.width;
+    const totalHeight = boundingRect.height;
     const chartMarginLeft = 5;
     const chartMarginRight = 110;
     const chartMarginY = 5;
@@ -279,9 +280,7 @@ function gantt(svg) {
     // event.
     this._layoutGetMouseX = function(e) {
       // Convert event x-coordinate to a coordinate within the chart area.
-      // TODO(borenet): Without subtracting 10px here, x is on the right side of
-      // the cursor. Why?
-      let x = e.clientX - 10;
+      let x = e.clientX - boundingRect.x;
       if (x < blockStartX) {
         x = blockStartX;
       } else if (x > totalWidth - chartMarginRight) {
@@ -398,7 +397,7 @@ function gantt(svg) {
     };
 
     // Set the mouse line location.
-    if (this._layoutMouseLine) {
+    if (this._layoutMouseLine && this._layoutMouseLine.length > 0) {
       this._layoutMouseLine[0].y2 = blockStartY + blocksHeight;
     } else {
       this._layoutMouseLine = [];
@@ -406,12 +405,12 @@ function gantt(svg) {
     this._layoutMouseTime = this._layoutMouseTime || [];
 
     // Set the layout selection box location.
-    if (this._layoutSelectBox) {
+    if (this._layoutSelectBox && this._layoutSelectBox.length > 0) {
       this._layoutSelectBox[0].height = blocksHeight;
     } else {
       this._layoutSelectBox = [];
     }
-    if (this._layoutSelectedTimeRange) {
+    if (this._layoutSelectedTimeRange && this._layoutSelectedTimeRange.length > 0) {
       this._layoutSelectedTimeRange[0].y1 = blockStartY - 10;
       this._layoutSelectedTimeRange[0].y2 = blockStartY;
     } else {
@@ -600,7 +599,9 @@ function gantt(svg) {
    * Handler for mousemove events.
    */
   rv._mouseMove = function(e) {
-    this._layoutUpdateMouse(e);
+    if (this._layoutUpdateMouse) {
+      this._layoutUpdateMouse(e);
+    }
   };
   rv._svg.addEventListener('mousemove', rv._mouseMove.bind(rv));
 
@@ -608,7 +609,9 @@ function gantt(svg) {
    * Handler for mousedown events.
    */
   rv._mouseDown = function(e) {
-    this._layoutStartSelection(e);
+    if (this._layoutStartSelection) {
+      this._layoutStartSelection(e);
+    }
   };
   rv._svg.addEventListener('mousedown', rv._mouseDown.bind(rv));
 
