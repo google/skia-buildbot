@@ -32,10 +32,14 @@ func init() {
 type ExpectationsStore interface {
 	// Get the current classifications for image digests. The keys of the
 	// expectations map are the test names.
-	Get() (exp types.Expectations, err error)
+	Get() (types.Expectations, error)
 
 	// AddChange writes the given classified digests to the database and records the
 	// user that made the change.
+	// TODO(kjlubick): This interface leads to a potential race condition if two
+	// users on the front-end click Positive and Negative for the same testname/digest.
+	//  A less racy interface would take an "old value"/"new value" so that if the
+	// old value didn't match, we could reject the change.
 	AddChange(ctx context.Context, changes types.Expectations, userId string) error
 
 	// QueryLog allows to paginate through the changes in the expectations.
