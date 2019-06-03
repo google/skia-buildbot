@@ -44,14 +44,6 @@ const (
 	DELETE_CAPTURE_SKPS_TASK_POST_URI = "_/delete_capture_skps_task"
 	REDO_CAPTURE_SKPS_TASK_POST_URI   = "_/redo_capture_skps_task"
 
-	PIXEL_DIFF_URI                  = "pixel_diff/"
-	PIXEL_DIFF_RUNS_URI             = "pixel_diff_runs/"
-	ADD_PIXEL_DIFF_TASK_POST_URI    = "_/add_pixel_diff_task"
-	GET_PIXEL_DIFF_TASKS_POST_URI   = "_/get_pixel_diff_tasks"
-	UPDATE_PIXEL_DIFF_TASK_POST_URI = "_/update_pixel_diff_task"
-	DELETE_PIXEL_DIFF_TASK_POST_URI = "_/delete_pixel_diff_task"
-	REDO_PIXEL_DIFF_TASK_POST_URI   = "_/redo_pixel_diff_task"
-
 	METRICS_ANALYSIS_URI                  = "metrics_analysis/"
 	METRICS_ANALYSIS_RUNS_URI             = "metrics_analysis_runs/"
 	ADD_METRICS_ANALYSIS_TASK_POST_URI    = "_/add_metrics_analysis_task"

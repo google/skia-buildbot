@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/ctfe/metrics_analysis"
-	"go.skia.org/infra/ct/go/ctfe/pixel_diff"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 )
 
@@ -27,6 +26,5 @@ func Prototypes() []task_common.Task {
 		&chromium_perf.DatastoreTask{},
 		&lua_scripts.DatastoreTask{},
 		&metrics_analysis.DatastoreTask{},
-		&pixel_diff.DatastoreTask{},
 	}
 }
