@@ -52,12 +52,6 @@ type ExpectationsStore interface {
 	// A new entry is added to the log with a reference to the change that was
 	// undone.
 	UndoChange(ctx context.Context, changeID int64, userID string) (types.Expectations, error)
-
-	// Clear deletes all expectations in this ExpectationsStore. This is mostly
-	// used for testing, but also to delete the expectations for a Gerrit issue.
-	// See the tryjobstore package.
-	// TODO(kjlubick): I think this should be removed
-	Clear(ctx context.Context) error
 }
 
 // TriageDetails represents one changed digest and the label that was

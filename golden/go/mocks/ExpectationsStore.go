@@ -26,20 +26,6 @@ func (_m *ExpectationsStore) AddChange(ctx context.Context, changes types.Expect
 	return r0
 }
 
-// Clear provides a mock function with given fields: ctx
-func (_m *ExpectationsStore) Clear(ctx context.Context) error {
-	ret := _m.Called(ctx)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
-		r0 = rf(ctx)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // Get provides a mock function with given fields:
 func (_m *ExpectationsStore) Get() (types.Expectations, error) {
 	ret := _m.Called()
