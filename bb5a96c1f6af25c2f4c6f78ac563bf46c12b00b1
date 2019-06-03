@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b2661af7_f6c9608d",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-03T19:22:57Z",
+      "side": 1,
+      "message": "Of note: this is not called anywhere except for one test",
+      "revId": "bb5a96c1f6af25c2f4c6f78ac563bf46c12b00b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
