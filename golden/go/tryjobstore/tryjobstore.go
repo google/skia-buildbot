@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gevent"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -233,25 +234,13 @@ func (c *cloudTryjobStore) CommitIssueExp(issueID int64, commitFn func() error) 
 // DeleteIssue implements the TryjobStore interface.
 func (c *cloudTryjobStore) DeleteIssue(issueID int64) error {
 	ctx := context.TODO()
-	key := c.getIssueKey(issueID)
 
-	var egroup errgroup.Group
-
-	egroup.Go(func() error {
-		// Delete any tryjobs that are still there.
-		return c.deleteTryjobsForIssue(issueID)
-	})
-
-	// Remove the expectations for this issue.
-	egroup.Go(func() error {
-		return c.expStoreFactory(issueID).Clear(ctx)
-	})
-
-	// Make sure all dependents are deleted.
-	if err := egroup.Wait(); err != nil {
-		return err
+	// Delete any tryjobs that are still there.
+	if err := c.deleteTryjobsForIssue(issueID); err != nil {
+		return skerr.Fmt("could not delete tryjobs for issue %d: %s", issueID, err)
 	}
 
+	key := c.getIssueKey(issueID)
 	// Delete the entity.
 	return c.client.Delete(ctx, key)
 }

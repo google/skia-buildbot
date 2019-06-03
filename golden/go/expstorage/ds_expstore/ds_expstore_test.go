@@ -41,7 +41,7 @@ func TestMasterCloudExpectationsStore(t *testing.T) {
 	testCloudExpstoreClear(t, cloudStore)
 }
 
-func testCloudExpstoreClear(t *testing.T, cloudStore expstorage.ExpectationsStore) {
+func testCloudExpstoreClear(t *testing.T, cloudStore *DSExpStore) {
 	// Make sure the clear works.
 	ctx := context.Background()
 	assert.NoError(t, cloudStore.Clear(ctx))
@@ -70,7 +70,7 @@ func TestIssueCloudExpectationsStore(t *testing.T) {
 	issueID := int64(1234567)
 	issueStore := issueStoreFactory(issueID)
 	testExpectationStore(t, issueStore, masterEventBus, issueID, expstorage.EV_TRYJOB_EXP_CHANGED)
-	testCloudExpstoreClear(t, issueStore)
+	testCloudExpstoreClear(t, issueStore.(*DSExpStore))
 }
 
 // initDS initializes the datastore for testing.
