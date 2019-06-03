@@ -116,6 +116,7 @@ github.com/elazarl/goproxy v0.0.0-20190421051319-9d40249d3c2f/go.mod h1:/Zj4wYkg
 github.com/emicklei/go-restful v0.0.0-20170410110728-ff4f55a20633/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=
 github.com/emicklei/go-restful v2.9.3+incompatible/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=
 github.com/emicklei/go-restful v2.9.5+incompatible/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=
+github.com/emicklei/go-restful v2.9.6+incompatible/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=
 github.com/evanphx/json-patch v0.0.0-20190203023257-5858425f7550/go.mod h1:50XU6AFN0ol/bzJsmQLiYLvXMP4fmwYFNcr97nuDLSk=
 github.com/evanphx/json-patch v4.2.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLiYLvXMP4fmwYFNcr97nuDLSk=
 github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966 h1:P/Czr+qFBdKELw4nys0x2e5nkT9niVq/2FS63ArJzm4=
@@ -633,12 +634,15 @@ golang.org/x/tools v0.0.0-20190525145741-7be61e1b0e51 h1:RhYYBLDB5MoVkvoNGMNk+DS
 golang.org/x/tools v0.0.0-20190525145741-7be61e1b0e51/go.mod h1:RgjU9mgBXZiqYHBnxXauZ1Gv1EHHAz9KjViQ78xBX0Q=
 golang.org/x/tools v0.0.0-20190529010454-aa71c3f32488 h1:vBgi/AgEje1rNScpWGJqe+RPHHZvBqrk9UH+LOXWN6Q=
 golang.org/x/tools v0.0.0-20190529010454-aa71c3f32488/go.mod h1:RgjU9mgBXZiqYHBnxXauZ1Gv1EHHAz9KjViQ78xBX0Q=
+golang.org/x/tools v0.0.0-20190530171427-2b03ca6e44eb/go.mod h1:/rFqwRUd4F7ZHNgwSSTFct+R/Kf4OFW1sUzUTQQTgfc=
 golang.org/x/tools v0.0.0-20190530215528-75312fb06703 h1:hWZbwSZGNRstOAFCxoof73JLIo3O4N6UiBNKX73eJ8Q=
 golang.org/x/tools v0.0.0-20190530215528-75312fb06703/go.mod h1:/rFqwRUd4F7ZHNgwSSTFct+R/Kf4OFW1sUzUTQQTgfc=
 golang.org/x/tools v0.0.0-20190531223538-26e35f15edef h1:tvvUBWZ5+WFnfcokh8TavIRxYRxUtmB+gQgCytJckhs=
 golang.org/x/tools v0.0.0-20190531223538-26e35f15edef/go.mod h1:/rFqwRUd4F7ZHNgwSSTFct+R/Kf4OFW1sUzUTQQTgfc=
 golang.org/x/tools v0.0.0-20190601110225-0abef6e9ecb8 h1:KFgOV120pDm8h0MBnt26wwMmwdhSXE+K+G9jg1ZjxbE=
 golang.org/x/tools v0.0.0-20190601110225-0abef6e9ecb8/go.mod h1:/rFqwRUd4F7ZHNgwSSTFct+R/Kf4OFW1sUzUTQQTgfc=
+golang.org/x/tools v0.0.0-20190602112858-2de7f9bf822c h1:8QARbM77BTyoVvSaGaoQPCYgZlVROYX1uKApKK98b+8=
+golang.org/x/tools v0.0.0-20190602112858-2de7f9bf822c/go.mod h1:/rFqwRUd4F7ZHNgwSSTFct+R/Kf4OFW1sUzUTQQTgfc=
 google.golang.org/api v0.3.1/go.mod h1:6wY9I6uQWHQ8EM57III9mq/AjF+i8G65rmVagqKMtkk=
 google.golang.org/api v0.3.2/go.mod h1:6wY9I6uQWHQ8EM57III9mq/AjF+i8G65rmVagqKMtkk=
 google.golang.org/api v0.4.0 h1:KKgc1aqhV8wDPbDzlDtpvyjZFY3vjz85FP7p4wcQUyI=
@@ -703,6 +707,7 @@ honnef.co/go/tools v0.0.0-20190418001031-e561f6794a2a/go.mod h1:rf3lG4BRIbNafJWh
 honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.0-20190530170028-a1efa522b896/go.mod h1:wtc9q0E9zm8PjdRMh29DPlTlCCHVzKDwnkT4GskQVzg=
 honnef.co/go/tools v0.0.0-20190531162725-42df64e2171a/go.mod h1:wtc9q0E9zm8PjdRMh29DPlTlCCHVzKDwnkT4GskQVzg=
+honnef.co/go/tools v0.0.0-20190602125119-5a4a2f4a438d/go.mod h1:JlmFZigtG9vBVR3QGIQ9g/Usz4BzH+Xm6Z8iHQWRYUw=
 k8s.io/api v0.0.0-20190425012535-181e1f9c52c1/go.mod h1:AhUc3Ph6fhRc0SCpt0Hwv0E+Q8QiEAASkXKwfmT2JwU=
 k8s.io/api v0.0.0-20190430012547-97d6bb8ea5f4 h1:dvZWnvi47rbTIOzJp6btN9yqGVDTzYBjwSO7ZIGSUW0=
 k8s.io/api v0.0.0-20190430012547-97d6bb8ea5f4/go.mod h1:a8In9/nr3+MCLEah7ICqKQl+2hN7XkJx64ugf8c+hws=
@@ -712,6 +717,8 @@ k8s.io/api v0.0.0-20190528154508-67ef80593b24 h1:TwyMB9T00LsJtzef9i/YG2M2qeWoCci
 k8s.io/api v0.0.0-20190528154508-67ef80593b24/go.mod h1:aCWu6byTIKt+TeO2ZJ48xnOrYgDq0jqxbxmzfjXbNqw=
 k8s.io/api v0.0.0-20190531161417-40a36c6fb216 h1:td1gOZ/VufYenzfxvAowlooFwytC5IB253EfJ7Jo+5U=
 k8s.io/api v0.0.0-20190531161417-40a36c6fb216/go.mod h1:d5u8CK3NOXNN6UzOSp9m83FYJ1dZS6IX5KwNAEFM7Go=
+k8s.io/api v0.0.0-20190602205700-9b8cae951d65 h1:40FQDY33wlusGmkLvg90RBF2AFRWJiX06E/WZcXug5k=
+k8s.io/api v0.0.0-20190602205700-9b8cae951d65/go.mod h1:03pQc5o/sznCJkBfM5JE6PDBnpHKi/bUmvwz1jotxkE=
 k8s.io/apimachinery v0.0.0-20190424212440-527a9d33701e/go.mod h1:5CBnzrKYGHzv9ZsSKmQ8wHt4XI4/TUBPDwYM9FlZMyw=
 k8s.io/apimachinery v0.0.0-20190425132440-17f84483f500 h1:WP0qwo6Cks8BJpy/B2EOUWOyuVoGEYu3x9kVpON7wTs=
 k8s.io/apimachinery v0.0.0-20190425132440-17f84483f500/go.mod h1:5CBnzrKYGHzv9ZsSKmQ8wHt4XI4/TUBPDwYM9FlZMyw=
@@ -724,6 +731,9 @@ k8s.io/apimachinery v0.0.0-20190528154326-e59c2fb0a8e5/go.mod h1:I4A+glKBHiTgiEj
 k8s.io/apimachinery v0.0.0-20190531025030-97c9a3e58b4c/go.mod h1:u/2VL7tgEMV0FFTV9q0JO+7cnTsV44LP8Pmx41R4AQ4=
 k8s.io/apimachinery v0.0.0-20190531161113-d9689afd32c1 h1:9KWWbUiVx29bUgvbFrKYEe8D9x+SSwSdwc7KBbbBQIw=
 k8s.io/apimachinery v0.0.0-20190531161113-d9689afd32c1/go.mod h1:u/2VL7tgEMV0FFTV9q0JO+7cnTsV44LP8Pmx41R4AQ4=
+k8s.io/apimachinery v0.0.0-20190602113612-63a6072eb563/go.mod h1:u/2VL7tgEMV0FFTV9q0JO+7cnTsV44LP8Pmx41R4AQ4=
+k8s.io/apimachinery v0.0.0-20190602183612-63a6072eb563 h1:FqK+g186du3W9peHKCV2GPqMSNEIHz1QUrfYggvaseU=
+k8s.io/apimachinery v0.0.0-20190602183612-63a6072eb563/go.mod h1:u/2VL7tgEMV0FFTV9q0JO+7cnTsV44LP8Pmx41R4AQ4=
 k8s.io/client-go v0.0.0-20190425172711-65184652c889 h1:pWRBXbVKnn/NYm4uGk3If9XmXaaWxwJ9J+fSok8LmME=
 k8s.io/client-go v0.0.0-20190425172711-65184652c889/go.mod h1:PeVFCnjeDy6EwLN+wdDIZd1DwDY6jnkpQt9psMo5YRU=
 k8s.io/gengo v0.0.0-20190128074634-0689ccc1d7d6/go.mod h1:ezvh/TsK7cY6rbqRK0oQQ8IAqLxYwwyPxAX1Pzy0ii0=

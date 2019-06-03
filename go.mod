@@ -25,7 +25,7 @@ require (
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/elazarl/goproxy v0.0.0-20190421051319-9d40249d3c2f // indirect
-	github.com/emicklei/go-restful v2.9.5+incompatible // indirect
+	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
 	github.com/evanphx/json-patch v4.2.0+incompatible // indirect
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
@@ -120,7 +120,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20190523182746-aaccbc9213b0
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	golang.org/x/sys v0.0.0-20190602015325-4c4f7f33c9ed // indirect
-	golang.org/x/tools v0.0.0-20190601110225-0abef6e9ecb8 // indirect
+	golang.org/x/tools v0.0.0-20190602112858-2de7f9bf822c // indirect
 	google.golang.org/api v0.5.0
 	google.golang.org/appengine v1.6.0 // indirect
 	google.golang.org/genproto v0.0.0-20190530194941-fb225487d101
@@ -131,9 +131,9 @@ require (
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/unrolled/secure.v1 v1.0.0
 	gopkg.in/yaml.v2 v2.2.2
-	honnef.co/go/tools v0.0.0-20190531162725-42df64e2171a // indirect
-	k8s.io/api v0.0.0-20190531161417-40a36c6fb216 // indirect
-	k8s.io/apimachinery v0.0.0-20190531161113-d9689afd32c1
+	honnef.co/go/tools v0.0.0-20190602125119-5a4a2f4a438d // indirect
+	k8s.io/api v0.0.0-20190602205700-9b8cae951d65 // indirect
+	k8s.io/apimachinery v0.0.0-20190602183612-63a6072eb563
 	k8s.io/client-go v0.0.0-20190425172711-65184652c889
 	k8s.io/gengo v0.0.0-20190327210449-e17681d19d3a // indirect
 	k8s.io/kube-openapi v0.0.0-20190530181030-b52b5b0f5a7c // indirect
