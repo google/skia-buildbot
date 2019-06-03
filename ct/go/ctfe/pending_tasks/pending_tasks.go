@@ -21,7 +21,6 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/ctfe/metrics_analysis"
-	"go.skia.org/infra/ct/go/ctfe/pixel_diff"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/ctfe/task_types"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
@@ -140,7 +139,6 @@ type oldestPendingTask struct {
 	ChromiumPerf            *chromium_perf.DatastoreTask
 	LuaScript               *lua_scripts.DatastoreTask
 	MetricsAnalysis         *metrics_analysis.DatastoreTask
-	PixelDiff               *pixel_diff.DatastoreTask
 	RecreatePageSets        *admin_tasks.RecreatePageSetsDatastoreTask
 	RecreateWebpageArchives *admin_tasks.RecreateWebpageArchivesDatastoreTask
 }
@@ -169,8 +167,6 @@ func EncodeTask(taskJson io.Writer, oldestTask task_common.Task) error {
 		oldestTaskJsonRepr.LuaScript = task
 	case *metrics_analysis.DatastoreTask:
 		oldestTaskJsonRepr.MetricsAnalysis = task
-	case *pixel_diff.DatastoreTask:
-		oldestTaskJsonRepr.PixelDiff = task
 	default:
 		return fmt.Errorf("Missing case for %T", oldestTask)
 	}
@@ -198,8 +194,6 @@ func DecodeTask(taskJson io.Reader) (task_common.Task, error) {
 		return pending.LuaScript, nil
 	case pending.MetricsAnalysis != nil:
 		return pending.MetricsAnalysis, nil
-	case pending.PixelDiff != nil:
-		return pending.PixelDiff, nil
 	case pending.RecreatePageSets != nil:
 		return pending.RecreatePageSets, nil
 	case pending.RecreateWebpageArchives != nil:
