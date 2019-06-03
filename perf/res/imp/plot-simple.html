@@ -334,10 +334,9 @@
       addLines: function(lines, labels) {
         if (labels) {
           this._chart.data.labels = labels;
+          let unit = this._diffDateToUnits(labels[0], labels[labels.length-1]);
+          this._chart.options.scales.xAxes[0].time.unit = unit;
         }
-
-        let unit = this._diffDateToUnits(labels[0], labels[labels.length-1]);
-        this._chart.options.scales.xAxes[0].time.unit = unit;
 
         Object.keys(lines).forEach((id) => {
           let data = lines[id].map(arr => arr[1]);
