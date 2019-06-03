@@ -21,10 +21,6 @@ scrape_configs:
     static_configs:
       - targets: ['skia-proxy:20000']
 
-  - job_name: 'ct_pixel_diff'
-    static_configs:
-      - targets: ['skia-ct-pixel-diff:20000']
-
   - job_name: 'diffserver-prod'
     static_configs:
       - targets: ['skia-diffserver-prod:20000']
@@ -100,7 +96,6 @@ scrape_configs:
 # pulld for every server.
   - job_name: 'pulld'
     static_configs:
-      - targets: ['skia-ct-pixel-diff:11000']
       - targets: ['skia-diffserver-prod:11000']
       - targets: ['skia-gold-pdfium:11000']
       - targets: ['skia-gold-prod:11000']
