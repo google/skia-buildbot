@@ -7,6 +7,7 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/patrickmn/go-cache"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -27,6 +28,9 @@ import (
 const (
 	// issueCacheSize is the size of the baselines cache for issue.
 	issueCacheSize = 10000
+
+	// baselineExpirationTime is how long the baselines should be cached for reading.
+	baselineExpirationTime = time.Minute
 )
 
 // BaselinerImpl is a helper type that provides functions to write baselines (expectations) to
@@ -47,7 +51,7 @@ type BaselinerImpl struct {
 	lastWrittenBaselines map[string]string
 
 	// baselineCache caches the baselines of all commits of the current tile.
-	baselineCache map[string]*baseline.Baseline
+	baselineCache *cache.Cache // map[string]*baseline.Baseline
 
 	// currTileInfo is the latest tileInfo we have.
 	currTileInfo baseline.TileInfo
@@ -58,7 +62,7 @@ type BaselinerImpl struct {
 
 // New creates a new instance of baseliner.Baseliner that interacts with baselines in GCS.
 func New(gStorageClient storage.GCSClient, expectationsStore expstorage.ExpectationsStore, issueExpStoreFactory expstorage.IssueExpStoreFactory, tryjobStore tryjobstore.TryjobStore, vcs vcsinfo.VCS) (*BaselinerImpl, error) {
-	cache, err := lru.New(issueCacheSize)
+	c, err := lru.New(issueCacheSize)
 	if err != nil {
 		return nil, skerr.Fmt("Error allocating cache: %s", err)
 	}
@@ -69,9 +73,9 @@ func New(gStorageClient storage.GCSClient, expectationsStore expstorage.Expectat
 		issueExpStoreFactory: issueExpStoreFactory,
 		tryjobStore:          tryjobStore,
 		vcs:                  vcs,
-		issueBaselineCache:   cache,
+		issueBaselineCache:   c,
 		lastWrittenBaselines: map[string]string{},
-		baselineCache:        map[string]*baseline.Baseline{},
+		baselineCache:        cache.New(baselineExpirationTime, baselineExpirationTime),
 	}, nil
 }
 
@@ -165,8 +169,10 @@ func (b *BaselinerImpl) PushMasterBaselines(tileInfo baseline.TileInfo, targetHa
 	}
 
 	// Swap out the baseline cache and the list of last written files.
+	for c, bl := range perCommitBaselines {
+		b.baselineCache.Set(c, bl, cache.DefaultExpiration)
+	}
 	b.currTileInfo = tileInfo
-	b.baselineCache = perCommitBaselines
 	b.lastWrittenBaselines = written
 	return ret, nil
 }
@@ -334,8 +340,8 @@ func (b *BaselinerImpl) getMasterExpectations(commitHash string) (*baseline.Base
 			commitHash = allCommits[len(allCommits)-1].Hash
 		}
 
-		if base, ok := b.baselineCache[commitHash]; ok {
-			return base.Copy()
+		if base, ok := b.baselineCache.Get(commitHash); ok {
+			return base.(*baseline.Baseline).Copy()
 		}
 		return nil
 	}()
@@ -371,11 +377,7 @@ func (b *BaselinerImpl) getMasterExpectations(commitHash string) (*baseline.Base
 	// Since we fetched from GCS - go ahead and store to cache.
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
-	// Check that someone else didn't overwrite this already. It's probably
-	// not horrible if they did, but this should prevent any issues that might cause.
-	if _, ok := b.baselineCache[commitHash]; !ok {
-		b.baselineCache[commitHash] = ret
-	}
+	b.baselineCache.Set(commitHash, ret, cache.DefaultExpiration)
 	return ret, nil
 }
 
