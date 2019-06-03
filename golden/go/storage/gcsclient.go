@@ -147,7 +147,7 @@ func (g *ClientImpl) ReadBaseline(commitHash string, issueID int64) (*baseline.B
 func (g *ClientImpl) getBaselinePath(commitHash string, issueID int64) string {
 	// Change the output file based on whether it's the master branch or a Gerrit issue.
 	var outPath string
-	if issueID > 0 {
+	if issueID > baseline.MasterBranch {
 		outPath = fmt.Sprintf("issue_%d.json", issueID)
 	} else if commitHash != "" {
 		outPath = fmt.Sprintf("master_%s.json", commitHash)

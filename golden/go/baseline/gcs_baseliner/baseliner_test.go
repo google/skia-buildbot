@@ -20,17 +20,16 @@ func TestFetchBaselineSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	testCommitHash := "abcd12345"
-	testIssueID := int64(0)
 
 	mgs := makeMockGCSStorage()
 	defer mgs.AssertExpectations(t)
 
-	mgs.On("ReadBaseline", testCommitHash, testIssueID).Return(three_devices.MakeTestBaseline(), nil).Once()
+	mgs.On("ReadBaseline", testCommitHash, baseline.MasterBranch).Return(three_devices.MakeTestBaseline(), nil).Once()
 
 	baseliner, err := New(mgs, nil, nil, nil, nil)
 	assert.NoError(t, err)
 
-	b, err := baseliner.FetchBaseline(testCommitHash, testIssueID, false)
+	b, err := baseliner.FetchBaseline(testCommitHash, baseline.MasterBranch, false)
 	assert.NoError(t, err)
 
 	deepequal.AssertDeepEqual(t, three_devices.MakeTestBaseline(), b)
@@ -85,10 +84,10 @@ func TestFetchBaselineIssueSunnyDay(t *testing.T) {
 	b, err := baseliner.FetchBaseline(testCommitHash, testIssueID, false)
 	assert.NoError(t, err)
 
-	deepequal.AssertDeepEqual(t, testIssueID, b.Issue)
+	assert.Equal(t, testIssueID, b.Issue)
 	// The expectation should be the master baseline merged in with the additionalTriages
 	// with additionalTriages overwriting existing expectations, if applicable.
-	deepequal.AssertDeepEqual(t, types.Expectations{
+	assert.Equal(t, types.Expectations{
 		"brand-new-test": map[types.Digest]types.Label{
 			IotaNewDigest:  types.POSITIVE,
 			KappaNewDigest: types.NEGATIVE,
@@ -107,25 +106,29 @@ func TestFetchBaselineIssueSunnyDay(t *testing.T) {
 			three_devices.BetaUntriaged1Digest: types.POSITIVE,
 		},
 	}, b.Expectations)
+
+	// Ensure that reading the issue branch does not impact the master branch
+	b, err = baseliner.FetchBaseline(testCommitHash, baseline.MasterBranch, false)
+	assert.NoError(t, err)
+	assert.Equal(t, three_devices.MakeTestBaseline(), b)
 }
 
 func TestFetchBaselineCachingSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	testCommitHash := "abcd12345"
-	testIssueID := int64(0)
 
 	mgs := makeMockGCSStorage()
 	defer mgs.AssertExpectations(t)
 
 	// ReadBaseline should only be called once despite multiple requests below
-	mgs.On("ReadBaseline", testCommitHash, testIssueID).Return(three_devices.MakeTestBaseline(), nil).Once()
+	mgs.On("ReadBaseline", testCommitHash, baseline.MasterBranch).Return(three_devices.MakeTestBaseline(), nil).Once()
 
 	baseliner, err := New(mgs, nil, nil, nil, nil)
 	assert.NoError(t, err)
 
 	for i := 0; i < 10; i++ {
-		b, err := baseliner.FetchBaseline(testCommitHash, testIssueID, false)
+		b, err := baseliner.FetchBaseline(testCommitHash, baseline.MasterBranch, false)
 		assert.NoError(t, err)
 		assert.NotNil(t, b)
 		deepequal.AssertDeepEqual(t, three_devices.MakeTestBaseline(), b)
