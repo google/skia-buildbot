@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8db7faec_5d7e4850",
+        "filename": "go/testutils/unittest/unittest.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-06-03T13:37:36Z",
+      "side": 1,
+      "message": "Is there a gcloud bug# we can link here?",
+      "revId": "2e0c06e038640817336eb212c44a1c748f17e680",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c213c187_691d7818",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-06-03T13:37:36Z",
+      "side": 1,
+      "message": "This comment is confusing, \u0027this struct\u0027, but it is about a const string?",
+      "range": {
+        "startLine": 36,
+        "startChar": 4,
+        "endLine": 36,
+        "endChar": 85
+      },
+      "revId": "2e0c06e038640817336eb212c44a1c748f17e680",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b21afc3d_bf7b47a5",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-06-03T13:37:36Z",
+      "side": 1,
+      "message": "by.",
+      "range": {
+        "startLine": 44,
+        "startChar": 41,
+        "endLine": 44,
+        "endChar": 42
+      },
+      "revId": "2e0c06e038640817336eb212c44a1c748f17e680",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
