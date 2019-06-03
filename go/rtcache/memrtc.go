@@ -6,7 +6,7 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
-	ttlcache "github.com/robfig/go-cache"
+	ttlcache "github.com/patrickmn/go-cache"
 )
 
 // TODO(stephana): Add the ability to purge items from the cache and
