@@ -107,6 +107,8 @@ func ManualTest(t sktest.TestingT) {
 	}
 }
 
+// RequiresBigTableEmulator is a function that documents a unittest requires the
+// BigTable Emulator and checks that the appropriate environment variable is set.
 func RequiresBigTableEmulator(t sktest.TestingT) {
 	s := os.Getenv("BIGTABLE_EMULATOR_HOST")
 	if s == "" {
@@ -114,6 +116,28 @@ func RequiresBigTableEmulator(t sktest.TestingT) {
 Follow the instructions at:
 	https://cloud.google.com/bigtable/docs/emulator#using_the_emulator
 and make sure the environment variable BIGTABLE_EMULATOR_HOST is set.
+`)
+	}
+}
+
+// RequiresFirestoreEmulator is a function that documents a unittest requires the
+// Firestore Emulator and checks that the appropriate environment variable is set.
+func RequiresFirestoreEmulator(t sktest.TestingT) {
+	s := os.Getenv("FIRESTORE_EMULATOR_HOST")
+	if s == "" {
+		t.Fatal(`This test requires the Firestore emulator, which requires some manual setup:
+gcloud beta emulators firestore start
+# The above will install the emulator and fail with an error like:
+#   [firestore] Error trying to exec /path/to/cloud-firestore-emulator.jar
+# See b/134379774
+chmod +x /path/to/cloud-firestore-emulator.jar
+# The default params try to use IPv6, which doesn't work great for our clients, so
+# we need to start it manually like:
+/path/to/cloud-firestore-emulator.jar --host=localhost --port=8151
+
+# Once the emulator is running, we need to run the following in the terminal
+# that we are running the tests in:
+export FIRESTORE_EMULATOR_HOST=localhost:8151
 `)
 	}
 }
