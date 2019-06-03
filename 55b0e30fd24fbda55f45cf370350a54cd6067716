@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "20e3e7de_129d1475",
+        "filename": "golden/go/baseline/gcs_baseliner/baseliner.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-03T14:01:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "29f50a8c_9ee94829",
+      "range": {
+        "startLine": 54,
+        "startChar": 28,
+        "endLine": 54,
+        "endChar": 60
+      },
+      "revId": "55b0e30fd24fbda55f45cf370350a54cd6067716",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7b516b34_9dfbcd8b",
         "filename": "golden/go/baseline/gcs_baseliner/baseliner.go",
         "patchSetId": 5
