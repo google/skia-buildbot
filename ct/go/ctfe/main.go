@@ -25,7 +25,6 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/ctfe/metrics_analysis"
 	"go.skia.org/infra/ct/go/ctfe/pending_tasks"
-	"go.skia.org/infra/ct/go/ctfe/pixel_diff"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/ctfe/task_types"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
@@ -81,7 +80,6 @@ func reloadTemplates() {
 	lua_scripts.ReloadTemplates(*resourcesDir)
 	metrics_analysis.ReloadTemplates(*resourcesDir)
 	pending_tasks.ReloadTemplates(*resourcesDir)
-	pixel_diff.ReloadTemplates(*resourcesDir)
 }
 
 func Init() {
@@ -116,7 +114,6 @@ func runServer(serverURL string) {
 	lua_scripts.AddHandlers(externalRouter, internalRouter)
 	metrics_analysis.AddHandlers(externalRouter, internalRouter)
 	pending_tasks.AddHandlers(externalRouter, internalRouter)
-	pixel_diff.AddHandlers(externalRouter, internalRouter)
 
 	task_common.AddHandlers(externalRouter, internalRouter)
 
