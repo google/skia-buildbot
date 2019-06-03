@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -22,7 +21,6 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/ctfe/metrics_analysis"
-	"go.skia.org/infra/ct/go/ctfe/pixel_diff"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/frontend"
@@ -126,55 +124,6 @@ func TestChromiumPerfExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 	expect.Equal(t, 5, getPatchCalls)
-}
-
-func pendingPixelDiffTask() PixelDiffTask {
-	return PixelDiffTask{
-		DatastoreTask: pixel_diff.DatastoreTask{
-			CommonCols:           pendingCommonCols(ds.PIXEL_DIFF_TASKS),
-			PageSets:             "All",
-			BenchmarkArgs:        "benchmarkargs",
-			BrowserArgsNoPatch:   "banp",
-			BrowserArgsWithPatch: "bawp",
-			Description:          "description",
-			ChromiumPatchGSPath:  "patches/abc.patch",
-			SkiaPatchGSPath:      "patches/xyz.patch",
-		},
-	}
-}
-
-func TestPixelDiffExecute(t *testing.T) {
-	unittest.SmallTest(t)
-	mockRun := exec.CommandCollector{}
-	ctx := exec.NewContext(context.Background(), mockRun.Run)
-
-	getPatchCalls := 0
-	mockGetPatchFromStorageFunc := func(patchId string) (string, error) {
-		getPatchCalls++
-		return patchId, nil
-	}
-
-	task := pendingPixelDiffTask()
-	err := task.Execute(ctx, mockGetPatchFromStorageFunc)
-	assert.NoError(t, err)
-	assert.Len(t, mockRun.Commands(), 1)
-	cmd := mockRun.Commands()[0]
-	expect.Equal(t, "pixel_diff_on_workers", cmd.Name)
-	expect.Equal(t, len(cmd.Args), 14)
-	expect.Contains(t, cmd.Args, "--task_id=42")
-	expect.Contains(t, cmd.Args, "--description=description")
-	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
-	expect.Contains(t, cmd.Args, "--pageset_type=All")
-	expect.Contains(t, cmd.Args, "--benchmark_extra_args=benchmarkargs")
-	expect.Contains(t, cmd.Args, "--browser_extra_args_nopatch=banp")
-	expect.Contains(t, cmd.Args, "--browser_extra_args_withpatch=bawp")
-	expect.Contains(t, cmd.Args, "--logtostderr")
-	expect.Contains(t, cmd.Args, "--local=false")
-	expect.Contains(t, cmd.Args, "--run_on_gce="+strconv.FormatBool(task.RunsOnGCEWorkers()))
-	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--run_id="+runId)
-	expect.NotNil(t, cmd.Timeout)
-	expect.Equal(t, 3, getPatchCalls)
 }
 
 func pendingMetricsAnalysisTask() MetricsAnalysisTask {

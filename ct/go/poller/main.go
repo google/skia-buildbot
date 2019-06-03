@@ -29,7 +29,6 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/ctfe/metrics_analysis"
-	"go.skia.org/infra/ct/go/ctfe/pixel_diff"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
@@ -269,51 +268,6 @@ func (task *MetricsAnalysisTask) Execute(ctx context.Context, getPatchFunc GetPa
 	return executeAndPrintTaskOutput(ctx, "metrics_analysis_on_workers", runId, args)
 }
 
-// Define frontend.PixelDiffDatastoreTask here so we can add methods.
-type PixelDiffTask struct {
-	pixel_diff.DatastoreTask
-}
-
-func (task *PixelDiffTask) Execute(ctx context.Context, getPatchFunc GetPatchFunc) error {
-	runId := runId(task)
-	for fileSuffix, patchGSPath := range map[string]string{
-		".chromium.patch":      task.ChromiumPatchGSPath,
-		".skia.patch":          task.SkiaPatchGSPath,
-		".custom_webpages.csv": task.CustomWebpagesGSPath,
-	} {
-		patch, err := getPatchFunc(patchGSPath)
-		if err != nil {
-			return err
-		}
-		// Add an extra newline at the end because git sometimes rejects patches due to
-		// missing newlines.
-		patch = patch + "\n"
-		patchPath := filepath.Join(os.TempDir(), runId+fileSuffix)
-		if err := ioutil.WriteFile(patchPath, []byte(patch), 0666); err != nil {
-			return err
-		}
-		defer skutil.Remove(patchPath)
-	}
-
-	args := []string{
-		"--emails=" + task.Username,
-		"--description=" + task.Description,
-		"--task_id=" + strconv.FormatInt(task.DatastoreKey.ID, 10),
-		"--pageset_type=" + task.PageSets,
-		"--benchmark_extra_args=" + task.BenchmarkArgs,
-		"--browser_extra_args_nopatch=" + task.BrowserArgsNoPatch,
-		"--browser_extra_args_withpatch=" + task.BrowserArgsWithPatch,
-		"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
-		"--run_id=" + runId,
-		"--logtostderr",
-		"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
-		"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
-		"--service_account_file=" + *master_common.ServiceAccountFile,
-		fmt.Sprintf("--local=%t", *master_common.Local),
-	}
-	return executeAndPrintTaskOutput(ctx, "pixel_diff_on_workers", runId, args)
-}
-
 // Define frontend.CaptureSkpsDatastoreTask here so we can add methods.
 type CaptureSkpsTask struct {
 	capture_skps.DatastoreTask
@@ -474,8 +428,6 @@ func asPollerTask(ctx context.Context, otherTask task_common.Task) Task {
 		return &LuaScriptTask{DatastoreTask: *t}
 	case *metrics_analysis.DatastoreTask:
 		return &MetricsAnalysisTask{DatastoreTask: *t}
-	case *pixel_diff.DatastoreTask:
-		return &PixelDiffTask{DatastoreTask: *t}
 	default:
 		sklog.Errorf("Missing case for %T in asPollerTask", otherTask)
 		return nil

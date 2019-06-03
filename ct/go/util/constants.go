@@ -26,7 +26,6 @@ const (
 	BINARIES_DIR_NAME                = "binaries"
 	LUA_TASKS_DIR_NAME               = "lua_runs"
 	BENCHMARK_TASKS_DIR_NAME         = "benchmark_runs"
-	PIXEL_DIFF_TASKS_DIR_NAME        = "pixel_diff_runs"
 	CHROMIUM_PERF_TASKS_DIR_NAME     = "chromium_perf_runs"
 	CHROMIUM_ANALYSIS_TASKS_DIR_NAME = "chromium_analysis_runs"
 	FIX_ARCHIVE_TASKS_DIR_NAME       = "fix_archive_runs"
@@ -166,7 +165,6 @@ const (
 	RUN_LUA_ISOLATE           = "run_lua.isolate"
 	CHROMIUM_ANALYSIS_ISOLATE = "chromium_analysis.isolate"
 	CHROMIUM_PERF_ISOLATE     = "chromium_perf.isolate"
-	PIXEL_DIFF_ISOLATE        = "pixel_diff.isolate"
 	METRICS_ANALYSIS_ISOLATE  = "metrics_analysis.isolate"
 	BUILD_REPO_ISOLATE        = "build_repo.isolate"
 	ISOLATE_TELEMETRY_ISOLATE = "isolate_telemetry.isolate"
@@ -193,7 +191,6 @@ type PagesetTypeInfo struct {
 	CaptureArchivesTimeoutSecs int
 	CreatePagesetsTimeoutSecs  int
 	CaptureSKPsTimeoutSecs     int
-	PixelDiffTimeoutSecs       int
 	RunChromiumPerfTimeoutSecs int
 	Description                string
 }
@@ -234,7 +231,6 @@ var (
 	LuaRunsDir                     = filepath.Join(TASKS_DIR_NAME, LUA_TASKS_DIR_NAME)
 	BenchmarkRunsDir               = filepath.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
 	BenchmarkRunsStorageDir        = path.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
-	PixelDiffRunsDir               = filepath.Join(TASKS_DIR_NAME, PIXEL_DIFF_TASKS_DIR_NAME)
 	ChromiumPerfRunsDir            = filepath.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)
 	ChromiumPerfRunsStorageDir     = path.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)
 	ChromiumAnalysisRunsStorageDir = path.Join(TASKS_DIR_NAME, CHROMIUM_ANALYSIS_TASKS_DIR_NAME)
@@ -250,7 +246,6 @@ var (
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
-			PixelDiffTimeoutSecs:       300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1M (with desktop user-agent)",
 		},
@@ -261,7 +256,6 @@ var (
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
-			PixelDiffTimeoutSecs:       300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 100K (with desktop user-agent)",
 		},
@@ -272,7 +266,6 @@ var (
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
-			PixelDiffTimeoutSecs:       300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 100K (with mobile user-agent)",
 		},
@@ -283,7 +276,6 @@ var (
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
-			PixelDiffTimeoutSecs:       300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 10K (with desktop user-agent)",
 		},
@@ -294,7 +286,6 @@ var (
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
-			PixelDiffTimeoutSecs:       300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 10K (with mobile user-agent)",
 		},
@@ -305,7 +296,6 @@ var (
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
-			PixelDiffTimeoutSecs:       300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1K (used for testing, hidden from Runs History by default)",
 		},

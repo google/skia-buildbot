@@ -31,8 +31,6 @@ var (
 	UpdateLuaTasksWebapp                     string
 	CaptureSKPsTasksWebapp                   string
 	UpdateCaptureSKPsTasksWebapp             string
-	PixelDiffTasksWebapp                     string
-	UpdatePixelDiffTasksWebapp               string
 	MetricsAnalysisTasksWebapp               string
 	UpdateMetricsAnalysisTasksWebapp         string
 	ChromiumPerfTasksWebapp                  string
@@ -52,7 +50,6 @@ func MustInit(webapp_root, internal_webapp_root string) {
 	AdminTasksWebapp = webapp_root + ctfeutil.ADMIN_TASK_URI
 	LuaTasksWebapp = webapp_root + ctfeutil.LUA_SCRIPT_URI
 	CaptureSKPsTasksWebapp = webapp_root + ctfeutil.CAPTURE_SKPS_URI
-	PixelDiffTasksWebapp = webapp_root + ctfeutil.PIXEL_DIFF_URI
 	MetricsAnalysisTasksWebapp = webapp_root + ctfeutil.METRICS_ANALYSIS_URI
 	ChromiumPerfTasksWebapp = webapp_root + ctfeutil.CHROMIUM_PERF_URI
 	ChromiumAnalysisTasksWebapp = webapp_root + ctfeutil.CHROMIUM_ANALYSIS_URI
