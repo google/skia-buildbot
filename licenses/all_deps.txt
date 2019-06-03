@@ -93,9 +93,9 @@ github.com/matttproud/golang_protobuf_extensions/pbutil
 github.com/modern-go/concurrent
 github.com/modern-go/reflect2
 github.com/nfnt/resize
+github.com/patrickmn/go-cache
 github.com/pkg/errors
 github.com/pmezard/go-difflib/difflib
-github.com/robfig/go-cache
 github.com/russross/blackfriday/v2
 github.com/shurcooL/sanitized_anchor_name
 github.com/skia-dev/go-systemd/dbus

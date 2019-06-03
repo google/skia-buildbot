@@ -60,6 +60,8 @@ func EmptyBaseline(startCommit, endCommit *tiling.Commit) *Baseline {
 	}
 }
 
+const MasterBranch = int64(0)
+
 // Baseliner is an interface wrapping the functionality to save and fetch baselines.
 type Baseliner interface {
 	// CanWriteBaseline returns true if this instance was configured to write baseline files.
@@ -81,7 +83,8 @@ type Baseliner interface {
 	// loading the master baseline and the issue baseline from GCS and combining
 	// them. If either of them doesn't exist an empty baseline is assumed.
 	// If issueOnly is true and issueID > 0 then only the expectations attached to the issue are
-	// returned (omitting the baselines of the master branch). This is primarily used for debugging.
+	// returned (omitting the baselines of the master branch).
+	// issueOnly is primarily used for debugging.
 	FetchBaseline(commitHash string, issueID int64, issueOnly bool) (*Baseline, error)
 }
 
