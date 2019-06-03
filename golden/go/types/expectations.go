@@ -43,14 +43,7 @@ func (e Expectations) MergeExpectations(other Expectations) {
 			e[testName] = map[Digest]Label{}
 		}
 		for digest, label := range digests {
-			// UNTRIAGED is the default value, so if the passed in version
-			// is explicitly setting a label to UNTRIAGED, we delete what
-			// was already there.
-			if label == UNTRIAGED {
-				delete(e[testName], digest)
-			} else {
-				e[testName][digest] = label
-			}
+			e[testName][digest] = label
 		}
 		// In case we had only assigned UNTRIAGED values
 		if len(e[testName]) == 0 {
