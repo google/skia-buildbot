@@ -50,15 +50,15 @@ func (_m *ExpectationsStore) Get() (types.Expectations, error) {
 }
 
 // QueryLog provides a mock function with given fields: ctx, offset, size, details
-func (_m *ExpectationsStore) QueryLog(ctx context.Context, offset int, size int, details bool) ([]*expstorage.TriageLogEntry, int, error) {
+func (_m *ExpectationsStore) QueryLog(ctx context.Context, offset int, size int, details bool) ([]expstorage.TriageLogEntry, int, error) {
 	ret := _m.Called(ctx, offset, size, details)
 
-	var r0 []*expstorage.TriageLogEntry
-	if rf, ok := ret.Get(0).(func(context.Context, int, int, bool) []*expstorage.TriageLogEntry); ok {
+	var r0 []expstorage.TriageLogEntry
+	if rf, ok := ret.Get(0).(func(context.Context, int, int, bool) []expstorage.TriageLogEntry); ok {
 		r0 = rf(ctx, offset, size, details)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*expstorage.TriageLogEntry)
+			r0 = ret.Get(0).([]expstorage.TriageLogEntry)
 		}
 	}
 
