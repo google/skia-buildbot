@@ -3,7 +3,6 @@ package ds_expstore
 import (
 	"context"
 	"sort"
-	"strconv"
 	"testing"
 	"time"
 
@@ -207,11 +206,11 @@ func testExpectationStore(t *testing.T, store expstorage.ExpectationsStore, even
 	assert.Equal(t, 0, len(logEntries))
 
 	// Undo the latest version and make sure the corresponding record is correct.
-	changes, err := store.UndoChange(ctx, parseID(t, lastRec.ID), "user-1")
+	changes, err := store.UndoChange(ctx, lastRec.ID, "user-1")
 	assert.NoError(t, err)
 	checkLogEntry(t, store, changes)
 
-	changes, err = store.UndoChange(ctx, parseID(t, secondToLastRec.ID), "user-1")
+	changes, err = store.UndoChange(ctx, secondToLastRec.ID, "user-1")
 	assert.NoError(t, err)
 	checkLogEntry(t, store, changes)
 
@@ -237,7 +236,7 @@ func testExpectationStore(t *testing.T, store expstorage.ExpectationsStore, even
 	logEntries, _, err = store.QueryLog(ctx, 0, 1, false)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(logEntries))
-	_, err = store.UndoChange(ctx, parseID(t, logEntries[0].ID), "user-1")
+	_, err = store.UndoChange(ctx, logEntries[0].ID, "user-1")
 	assert.NotNil(t, err)
 }
 
@@ -258,12 +257,6 @@ func waitForChanLen(t *testing.T, ch chan types.TestNameSlice, targetLen int) []
 		}
 		return nil
 	}))
-	return ret
-}
-
-func parseID(t *testing.T, idStr string) int64 {
-	ret, err := strconv.ParseInt(idStr, 10, 64)
-	assert.NoError(t, err)
 	return ret
 }
 
