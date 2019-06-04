@@ -203,11 +203,11 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 	// Add changes to the issue
 	allChanges := types.Expectations{}
 	// TODO(kjlubick): assert something with expLogEntries - it is only added to.
-	expLogEntries := []*expstorage.TriageLogEntry{}
+	expLogEntries := []expstorage.TriageLogEntry{}
 	userName := "jdoe@example.com"
 	expStore := expStoreFactory(issueID)
 	for i := 0; i < 5; i++ {
-		triageDetails := []*expstorage.TriageDetail{}
+		triageDetails := []expstorage.TriageDetail{}
 		changes := types.Expectations{}
 		for testCount := 0; testCount < 5; testCount++ {
 			testName := types.TestName(fmt.Sprintf("test-%04d", testCount))
@@ -215,14 +215,14 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 				digest := types.Digest(fmt.Sprintf("digest-%04d-%04d", testCount, digestCount))
 				label := types.Label((i + testCount + digestCount) % 3)
 				changes.AddDigest(testName, digest, label)
-				triageDetails = append(triageDetails, &expstorage.TriageDetail{
+				triageDetails = append(triageDetails, expstorage.TriageDetail{
 					TestName: testName, Digest: digest, Label: label.String(),
 				})
 			}
 		}
 		assert.NoError(t, expStore.AddChange(ctx, changes, userName))
 		allChanges.MergeExpectations(changes)
-		expLogEntries = append(expLogEntries, &expstorage.TriageLogEntry{
+		expLogEntries = append(expLogEntries, expstorage.TriageLogEntry{
 			Name: userName, ChangeCount: len(triageDetails), Details: triageDetails,
 		})
 	}
