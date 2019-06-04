@@ -376,7 +376,7 @@ func cleanSkiaCheckout(ctx context.Context, skiaCheckout *git.Checkout, checkout
 	}
 	// Checkout Android's built in remote "goog/master" incase the checkout is
 	// tracking something else.
-	if _, err := skiaCheckout.Git(ctx, "checkout", fmt.Sprintf("%s/master", android_skia_checkout.BUILT_IN_REMOTE)); err != nil {
+	if _, err := skiaCheckout.Git(ctx, "checkout", fmt.Sprintf("%s/master", android_skia_checkout.BUILT_IN_REMOTE), "-f"); err != nil {
 		return fmt.Errorf("Failed to checkout goog/master in %s: %s", checkoutPath, err)
 	}
 	if err := deleteTryBranch(ctx, skiaCheckout); err != nil {
