@@ -885,7 +885,7 @@ func (wh *WebHandlers) purgeDigests(w http.ResponseWriter, r *http.Request) bool
 func (wh *WebHandlers) JsonTriageLogHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	// Get the pagination params.
-	var logEntries []*expstorage.TriageLogEntry
+	var logEntries []expstorage.TriageLogEntry
 	var total int
 
 	q := r.URL.Query()

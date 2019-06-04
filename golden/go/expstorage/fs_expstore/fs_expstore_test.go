@@ -3,13 +3,16 @@ package fs_expstore
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/golden/go/expstorage"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -232,6 +235,89 @@ func TestReadOnly(t *testing.T) {
 	}, userOne)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "read-only")
+}
+
+func TestQueryLog(t *testing.T) {
+	unittest.ManualTest(t)
+	unittest.RequiresFirestoreEmulator(t)
+
+	c := getTestFirestoreInstance(t)
+	f := New(c, MasterBranch, ReadWrite)
+	ctx := context.Background()
+
+	assert.NoError(t, f.AddChange(context.Background(), types.Expectations{
+		data.AlphaTest: {
+			data.AlphaGood1Digest: types.NEGATIVE,
+		},
+	}, userOne))
+	assert.NoError(t, f.AddChange(context.Background(), types.Expectations{
+		data.AlphaTest: {
+			data.AlphaGood1Digest: types.POSITIVE,
+		},
+	}, userTwo))
+	assert.NoError(t, f.AddChange(context.Background(), types.Expectations{
+		data.BetaTest: {
+			data.BetaGood1Digest: types.POSITIVE,
+		},
+	}, userOne))
+	assert.NoError(t, f.AddChange(context.Background(), types.Expectations{
+		data.AlphaTest: {
+			data.AlphaBad1Digest: types.NEGATIVE,
+		},
+		data.BetaTest: {
+			data.BetaUntriaged1Digest: types.UNTRIAGED,
+		},
+	}, userTwo))
+
+	entries, n, err := f.QueryLog(ctx, 0, 100, false)
+	assert.NoError(t, err)
+	assert.Equal(t, 4, n) // 4 operations
+
+	now := time.Now()
+
+	// Some parts of the entries (timestamp and id) are non-deterministic
+	// Make sure they are valid, then replace them with deterministic values
+	// for an easier comparison.
+	for i, te := range entries {
+		assert.NotEqual(t, "", te.ID)
+		te.ID = "was_random_" + strconv.Itoa(i)
+		ts := time.Unix(te.TS, 0)
+		assert.False(t, ts.IsZero())
+		assert.True(t, now.After(ts))
+		te.TS = now.Unix()
+		entries[i] = te
+	}
+	assert.Equal(t, []expstorage.TriageLogEntry{
+		{
+			ID:          "was_random_0",
+			Name:        userTwo,
+			TS:          now.Unix(),
+			ChangeCount: 2,
+			Details:     nil,
+		},
+		{
+			ID:          "was_random_1",
+			Name:        userOne,
+			TS:          now.Unix(),
+			ChangeCount: 1,
+			Details:     nil,
+		},
+		{
+			ID:          "was_random_2",
+			Name:        userTwo,
+			TS:          now.Unix(),
+			ChangeCount: 1,
+			Details:     nil,
+		},
+		{
+			ID:          "was_random_3",
+			Name:        userOne,
+			TS:          now.Unix(),
+			ChangeCount: 1,
+			Details:     nil,
+		},
+	}, entries)
+
 }
 
 // Creates an empty firestore instance. The emulator keeps the tables in ram, but

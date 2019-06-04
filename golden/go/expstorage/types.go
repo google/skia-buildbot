@@ -45,7 +45,7 @@ type ExpectationsStore interface {
 	// QueryLog allows to paginate through the changes in the expectations.
 	// If details is true the result will include a list of triage operations
 	// that were part a change.
-	QueryLog(ctx context.Context, offset, size int, details bool) ([]*TriageLogEntry, int, error)
+	QueryLog(ctx context.Context, offset, size int, details bool) ([]TriageLogEntry, int, error)
 
 	// UndoChange reverts a change by setting all testname/digest pairs of the
 	// original change to the label they had before the change was applied.
@@ -66,11 +66,11 @@ type TriageDetail struct {
 type TriageLogEntry struct {
 	// Note: The ID is a string because an int64 cannot be passed back and
 	// forth to the JS frontend.
-	ID          string          `json:"id"`
-	Name        string          `json:"name"`
-	TS          int64           `json:"ts"`
-	ChangeCount int             `json:"changeCount"`
-	Details     []*TriageDetail `json:"details"`
+	ID          string         `json:"id"`
+	Name        string         `json:"name"`
+	TS          int64          `json:"ts"`
+	ChangeCount int            `json:"changeCount"`
+	Details     []TriageDetail `json:"details"`
 }
 
 // EventExpectationChange is the structure that is sent in expectation change events.

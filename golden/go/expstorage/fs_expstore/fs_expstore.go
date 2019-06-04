@@ -5,6 +5,7 @@ package fs_expstore
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/cenkalti/backoff"
 	ifirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -42,7 +44,9 @@ const (
 	triageChangesCollection = "triage_changes"
 
 	// Columns in the Collections we query by.
-	issueCol = "issue"
+	issueCol     = "issue"
+	tsCol        = "ts"
+	committedCol = "committed"
 
 	maxOperationTime = 2 * time.Minute
 )
@@ -257,4 +261,30 @@ func (f *Store) flatten(now time.Time, newExp types.Expectations) ([]expectation
 		}
 	}
 	return entries, changes
+}
+
+// QueryLog implements the ExpectationsStore interface.
+func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([]expstorage.TriageLogEntry, int, error) {
+	q := f.client.Collection(triageRecordsCollection).OrderBy(tsCol, firestore.Desc).Offset(offset).Limit(size)
+	q = q.Where(issueCol, "==", MasterBranch).Where(committedCol, "==", true)
+	var rv []expstorage.TriageLogEntry
+	d := fmt.Sprintf("offset: %d, size %d", offset, size)
+	err := f.client.IterDocs("query_log", d, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+		if doc == nil {
+			return nil
+		}
+		tr := triageRecord{}
+		if err := doc.DataTo(&tr); err != nil {
+			id := doc.Ref.ID
+			return skerr.Fmt("corrupt data in firestore, could not unmarshal triage record with id %s: %s", id, err)
+		}
+		rv = append(rv, expstorage.TriageLogEntry{
+			ID:          doc.Ref.ID,
+			Name:        tr.UserName,
+			TS:          tr.TS.Unix(),
+			ChangeCount: tr.Changes,
+		})
+		return nil
+	})
+	return rv, len(rv), err
 }

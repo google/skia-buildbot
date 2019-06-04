@@ -182,7 +182,7 @@ func (c *DSExpStore) ImportChange(ctx context.Context, changes types.Expectation
 }
 
 // QueryLog implements the ExpectationsStore interface.
-func (c *DSExpStore) QueryLog(ctx context.Context, offset, size int, details bool) ([]*expstorage.TriageLogEntry, int, error) {
+func (c *DSExpStore) QueryLog(ctx context.Context, offset, size int, details bool) ([]expstorage.TriageLogEntry, int, error) {
 	allKeys, err := c.getExpChangeKeys(ctx, 0)
 	if err != nil {
 		return nil, 0, sklog.FmtErrorf("Error retrieving keys for expectation changes: %s", err)
@@ -200,14 +200,14 @@ func (c *DSExpStore) QueryLog(ctx context.Context, offset, size int, details boo
 	end := util.MinInt(start+size, len(allKeys))
 	retKeys := allKeys[start:end]
 
-	ret := make([]*expstorage.TriageLogEntry, 0, len(retKeys))
+	ret := make([]expstorage.TriageLogEntry, 0, len(retKeys))
 	expChanges := make([]*ExpChange, len(retKeys))
 	if err := c.client.GetMulti(ctx, retKeys, expChanges); err != nil {
 		return nil, 0, sklog.FmtErrorf("Error retrieving expectation changes: %s", err)
 	}
 
 	for _, change := range expChanges {
-		ret = append(ret, &expstorage.TriageLogEntry{
+		ret = append(ret, expstorage.TriageLogEntry{
 			ID:          strconv.FormatInt(change.ChangeID.ID, 10),
 			Name:        change.UserID,
 			TS:          change.TimeStamp,
@@ -218,9 +218,9 @@ func (c *DSExpStore) QueryLog(ctx context.Context, offset, size int, details boo
 
 	// If we want details fetch them in parallel.
 	var egroup errgroup.Group
-	var detailRecs [][]*expstorage.TriageDetail
+	var detailRecs [][]expstorage.TriageDetail
 	if details {
-		detailRecs = make([][]*expstorage.TriageDetail, len(retKeys))
+		detailRecs = make([][]expstorage.TriageDetail, len(retKeys))
 		for idx, expChange := range expChanges {
 			func(idx int, blobKey *datastore.Key) {
 				egroup.Go(func() error {
@@ -229,10 +229,10 @@ func (c *DSExpStore) QueryLog(ctx context.Context, offset, size int, details boo
 						return err
 					}
 
-					triageDetails := make([]*expstorage.TriageDetail, 0, len(exp))
+					triageDetails := make([]expstorage.TriageDetail, 0, len(exp))
 					for testName, digests := range exp {
 						for digest, label := range digests {
-							triageDetails = append(triageDetails, &expstorage.TriageDetail{
+							triageDetails = append(triageDetails, expstorage.TriageDetail{
 								TestName: testName,
 								Digest:   digest,
 								Label:    label.String(),

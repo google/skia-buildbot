@@ -84,7 +84,7 @@ func (m *MemExpectationsStore) TESTING_ONLY_RemoveChange(changedDigests types.Ex
 }
 
 // See ExpectationsStore interface.
-func (m *MemExpectationsStore) QueryLog(c context.Context, offset, size int, details bool) ([]*expstorage.TriageLogEntry, int, error) {
+func (m *MemExpectationsStore) QueryLog(c context.Context, offset, size int, details bool) ([]expstorage.TriageLogEntry, int, error) {
 	sklog.Fatal("MemExpectation store does not support querying the logs.")
 	return nil, 0, nil
 }
