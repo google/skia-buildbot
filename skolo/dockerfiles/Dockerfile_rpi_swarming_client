@@ -1,0 +1,8 @@
+FROM arm32v7/debian:testing-slim
+
+RUN apt-get update;\
+    apt-get install -y python2.7;
+
+COPY . /
+
+CMD ["/start_swarming"]

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: rpi-swarming-client
+spec:
+  selector:
+    matchLabels:
+      name: rpi-swarming-client
+  template:
+    metadata:
+      labels:
+        name: rpi-swarming-client
+    spec:
+      containers:
+        - name: rpi-swarming-client
+          env:
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          image: gcr.io/skia-public/rpi-swarming-client:2019-06-04T20_33_13Z-jcgregorio-ea83271-dirty
+          securityContext:
+            privileged: true
