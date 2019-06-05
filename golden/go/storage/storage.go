@@ -45,22 +45,21 @@ type TileSource interface {
 // Storage is a container struct for the various storage objects we are using.
 // It is intended to reduce parameter lists as we pass around storage objects.
 type Storage struct {
-	DiffStore            diff.DiffStore
-	ExpectationsStore    expstorage.ExpectationsStore
-	IssueExpStoreFactory expstorage.IssueExpStoreFactory
-	IgnoreStore          ignore.IgnoreStore
-	TraceDB              tracedb.DB
-	MasterTileBuilder    TileSource
-	EventBus             eventbus.EventBus
-	TryjobStore          tryjobstore.TryjobStore
-	TryjobMonitor        tryjobs.TryjobMonitor
-	GerritAPI            gerrit.GerritInterface
-	GCSClient            GCSClient
-	Baseliner            baseline.Baseliner
-	VCS                  vcsinfo.VCS
-	WhiteListQuery       paramtools.ParamSet
-	IsAuthoritative      bool
-	SiteURL              string
+	DiffStore         diff.DiffStore
+	ExpectationsStore expstorage.ExpectationsStore
+	IgnoreStore       ignore.IgnoreStore
+	TraceDB           tracedb.DB
+	MasterTileBuilder TileSource
+	EventBus          eventbus.EventBus
+	TryjobStore       tryjobstore.TryjobStore
+	TryjobMonitor     tryjobs.TryjobMonitor
+	GerritAPI         gerrit.GerritInterface
+	GCSClient         GCSClient
+	Baseliner         baseline.Baseliner
+	VCS               vcsinfo.VCS
+	WhiteListQuery    paramtools.ParamSet
+	IsAuthoritative   bool
+	SiteURL           string
 
 	// IsSparseTile indicates that new tiles should be condensed by removing commits that have no data.
 	IsSparseTile bool

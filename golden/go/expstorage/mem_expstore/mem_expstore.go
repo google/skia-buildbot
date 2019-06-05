@@ -30,6 +30,12 @@ func New(eventBus eventbus.EventBus) *MemExpectationsStore {
 	return ret
 }
 
+// See ExpectationsStore interface.
+func (m *MemExpectationsStore) ForIssue(id int64) expstorage.ExpectationsStore {
+	sklog.Fatal("MemExpectation store does not support ForIssue.")
+	return nil
+}
+
 // Get fulfills the ExpectationsStore interface.
 func (m *MemExpectationsStore) Get() (types.Expectations, error) {
 	m.mutex.RLock()
