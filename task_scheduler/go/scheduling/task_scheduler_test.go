@@ -526,17 +526,11 @@ func TestFilterTaskCandidates(t *testing.T) {
 
 	// Check the initial set of task candidates. The two Build tasks
 	// should be the only ones available.
-	c, err := s.filterTaskCandidates(candidates)
+	c, err := s.filterTaskCandidates(ctx, candidates)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(c))
-	assert.Equal(t, 1, len(c[gb.RepoUrl()]))
-	assert.Equal(t, 2, len(c[gb.RepoUrl()][tcc_testutils.BuildTaskName]))
-	for _, byRepo := range c {
-		for _, byName := range byRepo {
-			for _, candidate := range byName {
-				assert.Equal(t, candidate.Name, tcc_testutils.BuildTaskName)
-			}
-		}
+	for _, candidate := range c {
+		assert.Equal(t, candidate.Name, tcc_testutils.BuildTaskName)
 	}
 	// Check filtering diagnostics. Non-Build tasks have unmet dependencies.
 	for _, candidate := range candidates {
@@ -548,14 +542,10 @@ func TestFilterTaskCandidates(t *testing.T) {
 	// Insert a the Build task at c1 (1 dependent) into the database,
 	// transition through various states.
 	var t1 *types.Task
-	for _, byRepo := range c { // Order not guaranteed, find the right candidate.
-		for _, byName := range byRepo {
-			for _, candidate := range byName {
-				if candidate.Revision == c1 {
-					t1 = makeTask(candidate.Name, candidate.Repo, candidate.Revision)
-					break
-				}
-			}
+	for _, candidate := range c {
+		if candidate.Revision == c1 {
+			t1 = makeTask(candidate.Name, candidate.Repo, candidate.Revision)
+			break
 		}
 	}
 	assert.NotNil(t, t1)
@@ -568,16 +558,12 @@ func TestFilterTaskCandidates(t *testing.T) {
 		assert.NoError(t, d.PutTask(t1))
 		assert.NoError(t, s.tCache.Update())
 
-		c, err = s.filterTaskCandidates(candidates)
+		c, err = s.filterTaskCandidates(ctx, candidates)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(c))
-		for _, byRepo := range c {
-			for _, byName := range byRepo {
-				for _, candidate := range byName {
-					assert.Equal(t, candidate.Name, tcc_testutils.BuildTaskName)
-					assert.Equal(t, c2, candidate.Revision)
-				}
-			}
+		for _, candidate := range c {
+			assert.Equal(t, candidate.Name, tcc_testutils.BuildTaskName)
+			assert.Equal(t, c2, candidate.Revision)
 		}
 		// Check filtering diagnostics.
 		for _, candidate := range candidates {
@@ -600,17 +586,11 @@ func TestFilterTaskCandidates(t *testing.T) {
 	assert.NoError(t, d.PutTask(t1))
 	assert.NoError(t, s.tCache.Update())
 
-	c, err = s.filterTaskCandidates(candidates)
+	c, err = s.filterTaskCandidates(ctx, candidates)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(c))
-	for _, byRepo := range c {
-		assert.Equal(t, 1, len(byRepo))
-		for _, byName := range byRepo {
-			assert.Equal(t, 2, len(byName))
-			for _, candidate := range byName {
-				assert.Equal(t, candidate.Name, tcc_testutils.BuildTaskName)
-			}
-		}
+	assert.Equal(t, 2, len(c))
+	for _, candidate := range c {
+		assert.Equal(t, candidate.Name, tcc_testutils.BuildTaskName)
 	}
 	// Check filtering diagnostics.
 	for _, candidate := range candidates {
@@ -629,16 +609,10 @@ func TestFilterTaskCandidates(t *testing.T) {
 	assert.NoError(t, d.PutTask(t1))
 	assert.NoError(t, s.tCache.Update())
 
-	c, err = s.filterTaskCandidates(candidates)
+	c, err = s.filterTaskCandidates(ctx, candidates)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(c))
-	for _, byRepo := range c {
-		assert.Equal(t, 2, len(byRepo))
-		for _, byName := range byRepo {
-			for _, candidate := range byName {
-				assert.False(t, t1.Name == candidate.Name && t1.Revision == candidate.Revision)
-			}
-		}
+	for _, candidate := range c {
+		assert.False(t, t1.Name == candidate.Name && t1.Revision == candidate.Revision)
 	}
 	// Candidate with k1 is blocked by t1.
 	assert.Equal(t, candidates[k1].Diagnostics.Filtering.SupersededByTask, t1.Id)
@@ -647,14 +621,10 @@ func TestFilterTaskCandidates(t *testing.T) {
 
 	// Create the other Build task.
 	var t2 *types.Task
-	for _, byRepo := range c {
-		for _, byName := range byRepo {
-			for _, candidate := range byName {
-				if candidate.Revision == c2 && strings.HasPrefix(candidate.Name, "Build-") {
-					t2 = makeTask(candidate.Name, candidate.Repo, candidate.Revision)
-					break
-				}
-			}
+	for _, candidate := range c {
+		if candidate.Revision == c2 && strings.HasPrefix(candidate.Name, "Build-") {
+			t2 = makeTask(candidate.Name, candidate.Repo, candidate.Revision)
+			break
 		}
 	}
 	assert.NotNil(t, t2)
@@ -664,17 +634,11 @@ func TestFilterTaskCandidates(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 
 	// All test and perf tasks are now candidates, no build tasks.
-	c, err = s.filterTaskCandidates(candidates)
+	c, err = s.filterTaskCandidates(ctx, candidates)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(c))
-	assert.Equal(t, 2, len(c[gb.RepoUrl()][tcc_testutils.TestTaskName]))
-	assert.Equal(t, 1, len(c[gb.RepoUrl()][tcc_testutils.PerfTaskName]))
-	for _, byRepo := range c {
-		for _, byName := range byRepo {
-			for _, candidate := range byName {
-				assert.NotEqual(t, candidate.Name, tcc_testutils.BuildTaskName)
-			}
-		}
+	for _, candidate := range c {
+		assert.NotEqual(t, candidate.Name, tcc_testutils.BuildTaskName)
 	}
 	// Build candidates are blocked by completed tasks.
 	assert.Equal(t, candidates[k1].Diagnostics.Filtering.SupersededByTask, t1.Id)
@@ -693,18 +657,12 @@ func TestFilterTaskCandidates(t *testing.T) {
 			Dependencies: []string{tcc_testutils.BuildTaskName},
 		},
 	}
-	c, err = s.filterTaskCandidates(candidates)
+	c, err = s.filterTaskCandidates(ctx, candidates)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(c))
-	assert.Equal(t, 2, len(c[gb.RepoUrl()][tcc_testutils.TestTaskName]))
-	assert.Equal(t, 1, len(c[gb.RepoUrl()][tcc_testutils.PerfTaskName]))
-	for _, byRepo := range c {
-		for _, byName := range byRepo {
-			for _, candidate := range byName {
-				assert.NotEqual(t, candidate.Name, tcc_testutils.BuildTaskName)
-				assert.False(t, candidate.IsTryJob())
-			}
-		}
+	for _, candidate := range c {
+		assert.NotEqual(t, candidate.Name, tcc_testutils.BuildTaskName)
+		assert.False(t, candidate.IsTryJob())
 	}
 	// Check diagnostics for tryKey
 	assert.Equal(t, candidates[tryKey].Diagnostics.Filtering.UnmetDependencies, []string{tcc_testutils.BuildTaskName})

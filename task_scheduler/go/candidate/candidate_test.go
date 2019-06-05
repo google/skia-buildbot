@@ -19,7 +19,6 @@ func fullTaskCandidate() *TaskCandidate {
 		Commits:            []string{"a", "b"},
 		Diagnostics:        &TaskCandidateDiagnostics{},
 		IsolatedInput:      "lonely-parameter",
-		IsolatedHashes:     []string{"browns"},
 		Jobs: []*types.Job{{
 			Id: "dummy",
 		}},

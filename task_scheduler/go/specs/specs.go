@@ -213,6 +213,11 @@ type TaskSpec struct {
 	// ExtraTags are extra tags to add to the Swarming task.
 	ExtraTags map[string]string `json:"extra_tags,omitempty"`
 
+	// Idempotent indicates that a subsequent identical invocation of this
+	// task will have the same result, and no other side effects. This
+	// enables de-duplication of tasks when the inputs are the same.
+	Idempotent bool `json:"idempotent"`
+
 	// IoTimeout is the maximum amount of time which the task may take to
 	// communicate with the server.
 	IoTimeout time.Duration `json:"io_timeout_ns,omitempty"`
@@ -308,6 +313,7 @@ func (t *TaskSpec) Copy() *TaskSpec {
 		Expiration:       t.Expiration,
 		ExtraArgs:        extraArgs,
 		ExtraTags:        extraTags,
+		Idempotent:       t.Idempotent,
 		IoTimeout:        t.IoTimeout,
 		Isolate:          t.Isolate,
 		MaxAttempts:      t.MaxAttempts,

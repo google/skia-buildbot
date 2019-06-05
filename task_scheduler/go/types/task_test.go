@@ -452,6 +452,7 @@ func TestCopyTask(t *testing.T) {
 		Commits:        []string{"a", "b"},
 		Created:        now.Add(time.Nanosecond),
 		DbModified:     now.Add(time.Millisecond),
+		DedupedFrom:    "someothertask",
 		Finished:       now.Add(time.Second),
 		Id:             "42",
 		IsolatedOutput: "lonely-result",
