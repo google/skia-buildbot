@@ -56,10 +56,9 @@ func (c *GithubCipdDEPSRepoManagerConfig) Validate() error {
 // githubCipdDEPSRepoManager is a struct used by the autoroller for managing checkouts.
 type githubCipdDEPSRepoManager struct {
 	*githubDEPSRepoManager
-	rollBranchName string
-	cipdAssetName  string
-	cipdAssetTag   string
-	CipdClient     cipd.CIPDClient
+	cipdAssetName string
+	cipdAssetTag  string
+	CipdClient    cipd.CIPDClient
 }
 
 // newGithubCipdDEPSRepoManager returns a RepoManager instance which operates in the given
@@ -82,6 +81,7 @@ func newGithubCipdDEPSRepoManager(ctx context.Context, c *GithubCipdDEPSRepoMana
 	gr := &githubDEPSRepoManager{
 		depsRepoManager: dr,
 		githubClient:    githubClient,
+		rollBranchName:  rollerName,
 	}
 	sklog.Infof("Roller name is: %s\n", rollerName)
 	cipdClient, err := cipd.NewClient(httpClient, path.Join(workdir, "cipd"))
@@ -90,7 +90,6 @@ func newGithubCipdDEPSRepoManager(ctx context.Context, c *GithubCipdDEPSRepoMana
 	}
 	gcr := &githubCipdDEPSRepoManager{
 		githubDEPSRepoManager: gr,
-		rollBranchName:        rollerName,
 		cipdAssetName:         c.CipdAssetName,
 		cipdAssetTag:          c.CipdAssetTag,
 		CipdClient:            cipdClient,
