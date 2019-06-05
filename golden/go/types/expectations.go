@@ -45,10 +45,6 @@ func (e Expectations) MergeExpectations(other Expectations) {
 		for digest, label := range digests {
 			e[testName][digest] = label
 		}
-		// In case we had only assigned UNTRIAGED values
-		if len(e[testName]) == 0 {
-			delete(e, testName)
-		}
 	}
 }
 
