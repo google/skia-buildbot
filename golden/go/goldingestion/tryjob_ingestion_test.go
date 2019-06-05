@@ -75,9 +75,9 @@ func TestTryjobGoldProcessor(t *testing.T) {
 
 	// Set up the TryjobStore.
 	eventBus := eventbus.New()
-	_, expStoreFactory, err := ds_expstore.New(ds.DS, eventBus)
+	_, err = ds_expstore.DeprecatedNew(ds.DS, eventBus)
 	assert.NoError(t, err)
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, expStoreFactory, eventBus)
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, eventBus)
 	assert.NoError(t, err)
 
 	// Map the path of the file to it's content

@@ -17,29 +17,27 @@ import (
 // GerritTryjobMonitor offers a higher level api to handle tryjob-related tasks on top
 // of the tryjobstore package.
 type GerritTryjobMonitor struct {
-	expStore             expstorage.ExpectationsStore
-	issueExpStoreFactory expstorage.IssueExpStoreFactory
-	gerritAPI            gerrit.GerritInterface
-	tryjobStore          tryjobstore.TryjobStore
-	siteURL              string
-	eventBus             eventbus.EventBus
-	writeGerritMonitor   *util.CondMonitor
-	isAuthoritative      bool
+	expStore           expstorage.ExpectationsStore
+	gerritAPI          gerrit.GerritInterface
+	tryjobStore        tryjobstore.TryjobStore
+	siteURL            string
+	eventBus           eventbus.EventBus
+	writeGerritMonitor *util.CondMonitor
+	isAuthoritative    bool
 }
 
 // New creates a new instance of GerritTryjobMonitor.
 // siteURL is URL under which the current site it served. It is used to
 // generate URLs that are written to Gerrit CLs.
-func New(tryjobStore tryjobstore.TryjobStore, expStore expstorage.ExpectationsStore, iesFactory expstorage.IssueExpStoreFactory, gerritAPI gerrit.GerritInterface, siteURL string, eventBus eventbus.EventBus, isAuthoritative bool) *GerritTryjobMonitor {
+func New(tryjobStore tryjobstore.TryjobStore, expStore expstorage.ExpectationsStore, gerritAPI gerrit.GerritInterface, siteURL string, eventBus eventbus.EventBus, isAuthoritative bool) *GerritTryjobMonitor {
 	ret := &GerritTryjobMonitor{
-		expStore:             expStore,
-		issueExpStoreFactory: iesFactory,
-		tryjobStore:          tryjobStore,
-		gerritAPI:            gerritAPI,
-		siteURL:              strings.TrimRight(siteURL, "/"),
-		eventBus:             eventBus,
-		writeGerritMonitor:   util.NewCondMonitor(1),
-		isAuthoritative:      isAuthoritative,
+		expStore:           expStore,
+		tryjobStore:        tryjobStore,
+		gerritAPI:          gerritAPI,
+		siteURL:            strings.TrimRight(siteURL, "/"),
+		eventBus:           eventBus,
+		writeGerritMonitor: util.NewCondMonitor(1),
+		isAuthoritative:    isAuthoritative,
 	}
 
 	// Subscribe to events that a tryjob has been updated.
@@ -122,7 +120,7 @@ func (t *GerritTryjobMonitor) WriteGoldLinkAsComment(issueID int64) error {
 // CommitIssueBaseline commits the expectations for the given issue to the master baseline.
 func (t *GerritTryjobMonitor) CommitIssueBaseline(issueID int64, user string) error {
 	// Get the issue expecations.
-	issueExpStore := t.issueExpStoreFactory(issueID)
+	issueExpStore := t.expStore.ForIssue(issueID)
 	issueChanges, err := issueExpStore.Get()
 	if err != nil {
 		return sklog.FmtErrorf("Unable to retrieve expecations for issue %d: %s", issueID, err)

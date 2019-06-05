@@ -95,12 +95,12 @@ func main() {
 	}
 
 	// Set up the cloud expectations store
-	expStore, issueExpStoreFactory, err := ds_expstore.New(ds.DS, evt)
+	expStore, err := ds_expstore.DeprecatedNew(ds.DS, evt)
 	if err != nil {
 		sklog.Fatalf("Unable to configure cloud expectations store: %s", err)
 	}
 
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, issueExpStoreFactory, evt)
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, evt)
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
 	}
@@ -127,7 +127,7 @@ func main() {
 	}
 
 	// Initialize the Baseliner instance from the values set above.
-	baseliner, err := gcs_baseliner.New(gsClient, expStore, issueExpStoreFactory, tryjobStore, vcs)
+	baseliner, err := gcs_baseliner.New(gsClient, expStore, tryjobStore, vcs)
 	if err != nil {
 		sklog.Fatalf("Error initializing baseliner: %s", err)
 	}

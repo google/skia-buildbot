@@ -30,6 +30,12 @@ func New(eventBus eventbus.EventBus) *MemExpectationsStore {
 	return ret
 }
 
+// See ExpectationsStore interface.
+func (m *MemExpectationsStore) ForIssue(id int64) expstorage.ExpectationsStore {
+	sklog.Fatal("MemExpectation store does not support ForIssue.")
+	return nil
+}
+
 // Get fulfills the ExpectationsStore interface.
 func (m *MemExpectationsStore) Get() (types.Expectations, error) {
 	m.mutex.RLock()
@@ -47,7 +53,7 @@ func (m *MemExpectationsStore) AddChange(c context.Context, changedTests types.E
 	if m.eventBus != nil {
 		m.eventBus.Publish(expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
 			TestChanges: changedTests,
-			IssueID:     expstorage.MasterIssueID,
+			IssueID:     expstorage.MasterBranch,
 		}, true)
 	}
 
@@ -75,7 +81,7 @@ func (m *MemExpectationsStore) TESTING_ONLY_RemoveChange(changedDigests types.Ex
 	if m.eventBus != nil {
 		m.eventBus.Publish(expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
 			TestChanges: changedDigests,
-			IssueID:     expstorage.MasterIssueID,
+			IssueID:     expstorage.MasterBranch,
 		}, true)
 	}
 
