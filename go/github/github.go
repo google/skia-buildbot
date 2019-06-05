@@ -43,7 +43,7 @@ const (
 	MERGEABLE_STATE_UNSTABLE = "unstable" // Failing or pending commit status.
 
 	COMMIT_LABEL = "autoroller: commit"
-	DRYRUN_LABEL = "autoroller: dyrun"
+	DRYRUN_LABEL = "autoroller: dryrun"
 
 	CHECK_STATE_PENDING = "pending"
 	CHECK_STATE_SUCCESS = "success"
