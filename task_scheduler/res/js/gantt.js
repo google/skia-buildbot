@@ -330,17 +330,6 @@ function gantt(svg) {
       return new Date(tStart + ((x - blockStartX) / blocksWidth) * duration);
     };
 
-    // Helper function for creating a human-readable timestamp string. The
-    // built-in toLocaleString() and toLocaleTimeString() functions do not
-    // include milliseconds, which we want to see here.
-    this._layoutFormatTime = function(ts) {
-      return ts.toLocaleDateString() + ' ' +
-          ts.getHours().toString().padStart(2, "0") + ':' +
-          ts.getMinutes().toString().padStart(2, "0") + ':' +
-          ts.getSeconds().toString().padStart(2, "0") + '.' +
-          ts.getMilliseconds();
-    };
-
     // Create a vertical line used on mouseover. This is a helper function used
     // by the mousemove callback function.
     this._layoutUpdateMouse = function(e) {
@@ -356,7 +345,7 @@ function gantt(svg) {
         y: mouseLine.y1 - 10,
         fontFamily: labelFontFamily,
         fontSize: labelFontSize,
-        text: this._layoutFormatTime(ts),
+        text: ts.toLocaleTimeString(),
       };
 
       this._layoutMouseLine = [mouseLine];

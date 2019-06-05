@@ -49,6 +49,14 @@
   <script src="/res/js/gantt.js"></script>
   <script>
   (function() {
+    function ts(tsStr) {
+      // If the timestamp is zero-ish, return the current datetime.
+      if (Date.parse(tsStr) <= 0) {
+        return new Date();
+      }
+      return new Date(tsStr);
+    }
+
     Polymer({
       is: "job-timeline-sk",
 
@@ -89,18 +97,18 @@
         }
         const tasks = [{
           category: this.job.name + " (job)",
-          start: new Date(this.job.created),
-          end: new Date(this.job.finished),
+          start: ts(this.job.created),
+          end: ts(this.job.finished),
           color: "#0072b2",
         }];
         for (const t of this.tasks) {
           const segments = [];
-          let lastSegmentEnd = new Date(t.created);
+          let lastSegmentEnd = ts(t.created);
           const seg = function(label, end, color) {
             const s = {
               label: label,
               start: lastSegmentEnd,
-              end: new Date(end),
+              end: ts(end),
               color: color,
             };
             lastSegmentEnd = s.end;
@@ -113,8 +121,8 @@
             const overheadTotal = t.swarming.performance_stats.bot_overhead * 1000;
             const overheadUpload = t.swarming.performance_stats.isolated_upload.duration * 1000;
             const overheadDownload = overheadTotal - overheadUpload;
-            const startTs = Date.parse(t.started);
-            const finishTs = Date.parse(t.finished);
+            const startTs = ts(t.started).getTime();
+            const finishTs = ts(t.finished).getTime();
             seg("overhead", startTs + overheadDownload, "#d55e00");
             seg("running", finishTs - overheadUpload, "#0072b2");
             seg("overhead", t.finished, "#d55e00");
@@ -123,14 +131,14 @@
           }
           tasks.push({
             category: t.name,
-            start: new Date(t.created),
-            end: new Date(t.finished),
+            start: ts(t.created),
+            end: ts(t.finished),
             segments: segments,
           });
         }
         const epochs = [];
         for (const epoch of this.epochs) {
-          epochs.push(new Date(epoch));
+          epochs.push(ts(epoch));
         }
         this._chart.tasks(tasks).epochs(epochs).draw();
       }
