@@ -34,7 +34,7 @@ func TestMasterCloudExpectationsStore(t *testing.T) {
 
 	// Test the DS backed store for master.
 	masterEventBus := eventbus.New()
-	cloudStore, _, err := New(ds.DS, masterEventBus)
+	cloudStore, err := DeprecatedNew(ds.DS, masterEventBus)
 	assert.NoError(t, err)
 	testExpectationStore(t, cloudStore, masterEventBus, 0, expstorage.EV_EXPSTORAGE_CHANGED)
 	testCloudExpstoreClear(t, cloudStore)
@@ -64,10 +64,10 @@ func TestIssueCloudExpectationsStore(t *testing.T) {
 
 	// Test the expectation store for an individual issue.
 	masterEventBus := eventbus.New()
-	_, issueStoreFactory, err := New(ds.DS, masterEventBus)
+	e, err := DeprecatedNew(ds.DS, masterEventBus)
 	assert.NoError(t, err)
 	issueID := int64(1234567)
-	issueStore := issueStoreFactory(issueID)
+	issueStore := e.ForIssue(issueID)
 	testExpectationStore(t, issueStore, masterEventBus, issueID, expstorage.EV_TRYJOB_EXP_CHANGED)
 	testCloudExpstoreClear(t, issueStore.(*DSExpStore))
 }

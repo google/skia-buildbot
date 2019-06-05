@@ -275,7 +275,7 @@ func (s *SearchAPI) getExpectationsFromQuery(q *Query) (ExpSlice, error) {
 	ret := make(ExpSlice, 0, 2)
 
 	if (q != nil) && (q.Issue > 0) {
-		issueExpStore := s.storages.IssueExpStoreFactory(q.Issue)
+		issueExpStore := s.storages.ExpectationsStore.ForIssue(q.Issue)
 		tjExp, err := issueExpStore.Get()
 		if err != nil {
 			return nil, sklog.FmtErrorf("Unable to load expectations for issue %d from tryjobstore: %s", q.Issue, err)
