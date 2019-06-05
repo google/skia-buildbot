@@ -1,0 +1,18 @@
+FROM arm32v7/debian:buster-slim
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt-get update && apt-get install -y \
+      python2.7 \
+      curl \
+      apt-transport-https \
+      ca-certificates \
+      --no-install-recommends
+
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=923479
+RUN touch /etc/ssl/certs/ca-certificates.crt
+RUN openssl rehash -v /etc/ssl/certs
+
+COPY . /
+
+CMD ["/start_swarming"]
