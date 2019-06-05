@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/sync/errgroup"
 )
@@ -111,13 +110,12 @@ const (
 
 // cloudTryjobStore implements the TryjobStore interface on top of cloud datastore.
 type cloudTryjobStore struct {
-	client          *datastore.Client
-	eventBus        eventbus.EventBus
-	expStoreFactory expstorage.IssueExpStoreFactory
+	client   *datastore.Client
+	eventBus eventbus.EventBus
 }
 
 // NewCloudTryjobStore creates a new instance of TryjobStore based on cloud datastore.
-func NewCloudTryjobStore(client *datastore.Client, expStoreFactory expstorage.IssueExpStoreFactory, eventBus eventbus.EventBus) (TryjobStore, error) {
+func NewCloudTryjobStore(client *datastore.Client, eventBus eventbus.EventBus) (TryjobStore, error) {
 	if client == nil {
 		return nil, sklog.FmtErrorf("Received nil for datastore client.")
 	}
@@ -127,9 +125,8 @@ func NewCloudTryjobStore(client *datastore.Client, expStoreFactory expstorage.Is
 	}
 
 	return &cloudTryjobStore{
-		client:          client,
-		eventBus:        eventBus,
-		expStoreFactory: expStoreFactory,
+		client:   client,
+		eventBus: eventBus,
 	}, nil
 }
 
