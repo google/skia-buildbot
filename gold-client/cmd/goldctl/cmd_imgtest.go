@@ -172,11 +172,12 @@ func (i *imgTestEnv) runImgTestInitCmd(cmd *cobra.Command, args []string) {
 	ifErrLogExit(cmd, validation.Errors())
 
 	config := goldclient.GoldClientConfig{
+		FailureFile:     i.flagFailureFile,
 		InstanceID:      i.flagInstanceID,
-		WorkDir:         i.flagWorkDir,
-		PassFailStep:    i.flagPassFailStep,
 		OverrideGoldURL: i.flagURL,
+		PassFailStep:    i.flagPassFailStep,
 		UploadOnly:      i.flagUploadOnly,
+		WorkDir:         i.flagWorkDir,
 	}
 	goldClient, err := goldclient.NewCloudClient(auth, config)
 	ifErrLogExit(cmd, err)
@@ -233,11 +234,12 @@ func (i *imgTestEnv) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 		}
 
 		config := goldclient.GoldClientConfig{
+			FailureFile:     i.flagFailureFile,
 			InstanceID:      i.flagInstanceID,
-			WorkDir:         i.flagWorkDir,
-			PassFailStep:    i.flagPassFailStep,
 			OverrideGoldURL: i.flagURL,
+			PassFailStep:    i.flagPassFailStep,
 			UploadOnly:      i.flagUploadOnly,
+			WorkDir:         i.flagWorkDir,
 		}
 		goldClient, err = goldclient.NewCloudClient(auth, config)
 		ifErrLogExit(cmd, err)

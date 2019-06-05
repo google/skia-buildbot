@@ -132,6 +132,10 @@ type GoldClientConfig struct {
 	// PassFailStep indicates whether each call to Test(...) should return a pass/fail value.
 	PassFailStep bool
 
+	// FailureFile is a file on disk that will contain newline-seperated links to triage
+	// any failures. Only written to if PassFailStep is true
+	FailureFile string
+
 	// OverrideGoldURL is optional and allows to override the GoldURL for testing.
 	OverrideGoldURL string
 
@@ -147,6 +151,7 @@ type resultState struct {
 	// keys about this machine (e.g. GPU, OS).
 	SharedConfig    *jsonio.GoldResults
 	PerTestPassFail bool
+	FailureFile     string
 	UploadOnly      bool
 	InstanceID      string
 	GoldURL         string
@@ -161,16 +166,16 @@ type resultState struct {
 func NewCloudClient(authOpt AuthOpt, config GoldClientConfig) (*CloudClient, error) {
 	// Make sure the workdir was given and exists.
 	if config.WorkDir == "" {
-		return nil, skerr.Fmt("No 'workDir' provided to NewCloudClient")
+		return nil, skerr.Fmt("no 'workDir' provided to NewCloudClient")
 	}
 
 	workDir, err := fileutil.EnsureDirExists(config.WorkDir)
 	if err != nil {
-		return nil, skerr.Fmt("Error setting up workdir: %s", err)
+		return nil, skerr.Fmt("error setting up workdir: %s", err)
 	}
 
 	if config.InstanceID == "" {
-		return nil, skerr.Fmt("Can't have empty config")
+		return nil, skerr.Fmt("empty config passed into NewCloudClient")
 	}
 
 	ret := CloudClient{
@@ -182,7 +187,17 @@ func NewCloudClient(authOpt AuthOpt, config GoldClientConfig) (*CloudClient, err
 		resultState: newResultState(nil, &config),
 	}
 	if err := ret.setHttpClient(); err != nil {
-		return nil, skerr.Fmt("Error setting http client: %s", err)
+		return nil, skerr.Fmt("error setting http client: %s", err)
+	}
+
+	if config.FailureFile != "" {
+		if f, err := os.Create(config.FailureFile); err != nil {
+			return nil, skerr.Fmt("could not make failure file %s: %s", config.FailureFile, err)
+		} else {
+			if err := f.Close(); err != nil {
+				return nil, skerr.Fmt("could not close failure file %s: %s", config.FailureFile, err)
+			}
+		}
 	}
 
 	// write it to disk
@@ -226,6 +241,7 @@ func (c *CloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults) error {
 	if c.resultState != nil {
 		existingConfig.InstanceID = c.resultState.InstanceID
 		existingConfig.PassFailStep = c.resultState.PerTestPassFail
+		existingConfig.FailureFile = c.resultState.FailureFile
 		existingConfig.OverrideGoldURL = c.resultState.GoldURL
 		existingConfig.UploadOnly = c.resultState.UploadOnly
 	}
@@ -305,7 +321,24 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 
 		ret = c.resultState.Expectations[name][imgHash] == types.POSITIVE
 		if !ret {
-			fmt.Printf("Untriaged or negative image: %s/detail?test=%s&digest=%s\n", c.resultState.GoldURL, name, imgHash)
+			link := fmt.Sprintf("%s/detail?test=%s&digest=%s\n", c.resultState.GoldURL, name, imgHash)
+			fmt.Printf("Untriaged or negative image: %s", link)
+			ff := c.resultState.FailureFile
+			if ff != "" {
+				egroup.Go(func() error {
+					f, err := os.OpenFile(ff, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+					if err != nil {
+						return skerr.Fmt("could not open failure file %s: %s", ff, err)
+					}
+					if _, err := f.WriteString(link); err != nil {
+						return skerr.Fmt("could not write to failure file %s: %s", ff, err)
+					}
+					if err := f.Close(); err != nil {
+						return skerr.Fmt("could not close failure file %s: %s", ff, err)
+					}
+					return nil
+				})
+			}
 		}
 	}
 
@@ -475,6 +508,7 @@ func newResultState(sharedConfig *jsonio.GoldResults, config *GoldClientConfig) 
 	ret := &resultState{
 		SharedConfig:    sharedConfig,
 		PerTestPassFail: config.PassFailStep,
+		FailureFile:     config.FailureFile,
 		InstanceID:      config.InstanceID,
 		UploadOnly:      config.UploadOnly,
 		GoldURL:         goldURL,

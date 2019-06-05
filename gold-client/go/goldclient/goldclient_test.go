@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"testing"
@@ -396,8 +397,9 @@ func TestInitAddFinalize(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+// TestNewReportPassFail ensures that a brand new test/digest returns false in pass-fail mode.
 func TestNewReportPassFail(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
@@ -456,10 +458,15 @@ func TestNewReportPassFail(t *testing.T) {
 	// Returns false because the test name has never been seen before
 	// (and the digest is brand new)
 	assert.False(t, pass)
+
+	bytes, err := ioutil.ReadFile(filepath.Join(wd, failureLog))
+	assert.NoError(t, err)
+	assert.Equal(t, "https://testing-gold.skia.org/detail?test=TestNotSeenBefore&digest=9d0568469d206c1aedf1b71f12f474bc\n", string(bytes))
 }
 
+// TestNegativePassFail ensures that a digest marked negative returns false in pass-fail mode.
 func TestNegativePassFail(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
@@ -499,10 +506,23 @@ func TestNegativePassFail(t *testing.T) {
 	assert.NoError(t, err)
 	// Returns false because the test is negative
 	assert.False(t, pass)
+
+	// Run it again to make sure the failure log isn't truncated
+	pass, err = goldClient.Test(testName, testImgPath, nil)
+	assert.NoError(t, err)
+	// Returns false because the test is negative
+	assert.False(t, pass)
+
+	bytes, err := ioutil.ReadFile(filepath.Join(wd, failureLog))
+	assert.NoError(t, err)
+	assert.Equal(t, `https://testing-gold.skia.org/detail?test=ThisIsTheOnlyTest&digest=badbadbad1325855590527db196112e0
+https://testing-gold.skia.org/detail?test=ThisIsTheOnlyTest&digest=badbadbad1325855590527db196112e0
+`, string(bytes))
 }
 
+// TestPositivePassFail ensures that a positively marked digest returns true in pass-fail mode.
 func TestPositivePassFail(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
@@ -543,6 +563,11 @@ func TestPositivePassFail(t *testing.T) {
 	// Returns true because this test has been seen before and the digest was
 	// previously triaged positive.
 	assert.True(t, pass)
+
+	// Failure file exists, but is empty if no failures
+	bytes, err := ioutil.ReadFile(filepath.Join(wd, failureLog))
+	assert.NoError(t, err)
+	assert.Equal(t, "", string(bytes))
 }
 
 // Tests service account authentication is properly setup in the working directory.
@@ -696,6 +721,7 @@ func makeGoldClient(auth AuthOpt, passFail bool, uploadOnly bool, workDir string
 	config := GoldClientConfig{
 		InstanceID:   testInstanceID,
 		WorkDir:      workDir,
+		FailureFile:  filepath.Join(workDir, failureLog),
 		PassFailStep: passFail,
 		UploadOnly:   uploadOnly,
 	}
@@ -739,6 +765,8 @@ const (
 	testPatchsetID    = int64(5309)
 	testBuildBucketID = int64(117)
 	testImgPath       = "/path/to/images/fake.png"
+
+	failureLog = "failures.log"
 )
 
 // An example baseline that has a single test at a single commit with a good
