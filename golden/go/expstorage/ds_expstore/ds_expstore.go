@@ -182,7 +182,7 @@ func (c *DSExpStore) ImportChange(ctx context.Context, changes types.Expectation
 }
 
 // QueryLog implements the ExpectationsStore interface.
-func (c *DSExpStore) QueryLog(ctx context.Context, offset, size int, details bool) ([]*expstorage.TriageLogEntry, int, error) {
+func (c *DSExpStore) QueryLog(ctx context.Context, offset, size int, details bool) ([]expstorage.TriageLogEntry, int, error) {
 	allKeys, err := c.getExpChangeKeys(ctx, 0)
 	if err != nil {
 		return nil, 0, sklog.FmtErrorf("Error retrieving keys for expectation changes: %s", err)
@@ -200,14 +200,14 @@ func (c *DSExpStore) QueryLog(ctx context.Context, offset, size int, details boo
 	end := util.MinInt(start+size, len(allKeys))
 	retKeys := allKeys[start:end]
 
-	ret := make([]*expstorage.TriageLogEntry, 0, len(retKeys))
+	ret := make([]expstorage.TriageLogEntry, 0, len(retKeys))
 	expChanges := make([]*ExpChange, len(retKeys))
 	if err := c.client.GetMulti(ctx, retKeys, expChanges); err != nil {
 		return nil, 0, sklog.FmtErrorf("Error retrieving expectation changes: %s", err)
 	}
 
 	for _, change := range expChanges {
-		ret = append(ret, &expstorage.TriageLogEntry{
+		ret = append(ret, expstorage.TriageLogEntry{
 			ID:          strconv.FormatInt(change.ChangeID.ID, 10),
 			Name:        change.UserID,
 			TS:          change.TimeStamp,
@@ -218,9 +218,9 @@ func (c *DSExpStore) QueryLog(ctx context.Context, offset, size int, details boo
 
 	// If we want details fetch them in parallel.
 	var egroup errgroup.Group
-	var detailRecs [][]*expstorage.TriageDetail
+	var detailRecs [][]expstorage.TriageDetail
 	if details {
-		detailRecs = make([][]*expstorage.TriageDetail, len(retKeys))
+		detailRecs = make([][]expstorage.TriageDetail, len(retKeys))
 		for idx, expChange := range expChanges {
 			func(idx int, blobKey *datastore.Key) {
 				egroup.Go(func() error {
@@ -229,10 +229,10 @@ func (c *DSExpStore) QueryLog(ctx context.Context, offset, size int, details boo
 						return err
 					}
 
-					triageDetails := make([]*expstorage.TriageDetail, 0, len(exp))
+					triageDetails := make([]expstorage.TriageDetail, 0, len(exp))
 					for testName, digests := range exp {
 						for digest, label := range digests {
-							triageDetails = append(triageDetails, &expstorage.TriageDetail{
+							triageDetails = append(triageDetails, expstorage.TriageDetail{
 								TestName: testName,
 								Digest:   digest,
 								Label:    label.String(),
@@ -245,7 +245,6 @@ func (c *DSExpStore) QueryLog(ctx context.Context, offset, size int, details boo
 							((triageDetails[i].TestName == triageDetails[j].TestName) &&
 								(triageDetails[i].Digest < triageDetails[j].Digest))
 					})
-
 					detailRecs[idx] = triageDetails
 					return nil
 				})
@@ -260,8 +259,8 @@ func (c *DSExpStore) QueryLog(ctx context.Context, offset, size int, details boo
 
 	// Fill in the details.
 	if details {
-		for idx, triageEntry := range ret {
-			triageEntry.Details = detailRecs[idx]
+		for i := range ret {
+			ret[i].Details = detailRecs[i]
 		}
 	}
 
@@ -269,10 +268,11 @@ func (c *DSExpStore) QueryLog(ctx context.Context, offset, size int, details boo
 }
 
 // UndoChange implements the ExpectationsStore interface.
-func (c *DSExpStore) UndoChange(ctx context.Context, changeID int64, userID string) (types.Expectations, error) {
+func (c *DSExpStore) UndoChange(ctx context.Context, changeIDStr, userID string) (types.Expectations, error) {
+	changeID, err := strconv.ParseInt(changeIDStr, 10, 64)
 	// Make sure the entity is valid.
-	if changeID <= 0 {
-		return nil, sklog.FmtErrorf("Change with id %d does not exist.", changeID)
+	if err != nil || changeID <= 0 {
+		return nil, sklog.FmtErrorf("Change with id %s does not exist.", changeIDStr)
 	}
 
 	// Fetch the change record of the change we want to undo.
