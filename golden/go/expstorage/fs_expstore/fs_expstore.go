@@ -5,13 +5,16 @@ package fs_expstore
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
 	"cloud.google.com/go/firestore"
 	"github.com/cenkalti/backoff"
 	ifirestore "go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -42,7 +45,12 @@ const (
 	triageChangesCollection = "triage_changes"
 
 	// Columns in the Collections we query by.
-	issueCol = "issue"
+	committedCol = "committed"
+	digestCol    = "digest"
+	groupingCol  = "grouping"
+	issueCol     = "issue"
+	recordIDCol  = "record_id"
+	tsCol        = "ts"
 
 	maxOperationTime = 2 * time.Minute
 )
@@ -104,6 +112,7 @@ func New(client *ifirestore.Client, issue int64, mode AccessMode) *Store {
 
 // Get implements the ExpectationsStore interface.
 func (f *Store) Get() (types.Expectations, error) {
+	defer metrics2.FuncTimer().Stop()
 	f.cacheMutex.RLock()
 	defer f.cacheMutex.RUnlock()
 	if f.cache == nil {
@@ -119,6 +128,7 @@ func (f *Store) Get() (types.Expectations, error) {
 // loadExpectations reads the entire Expectations from the expectationsCollection,
 // matching the configured branch.
 func (f *Store) loadExpectations() (types.Expectations, error) {
+	defer metrics2.FuncTimer().Stop()
 	e := types.Expectations{}
 	q := f.client.Collection(expectationsCollection).Where(issueCol, "==", MasterBranch)
 	maxRetries := 3
@@ -138,7 +148,8 @@ func (f *Store) loadExpectations() (types.Expectations, error) {
 }
 
 // AddChange implements the ExpectationsStore interface.
-func (f *Store) AddChange(ctx context.Context, newExp types.Expectations, userId string) error {
+func (f *Store) AddChange(ctx context.Context, newExp types.Expectations, userID string) error {
+	defer metrics2.FuncTimer().Stop()
 	if f.mode == ReadOnly {
 		return ReadOnlyErr
 	}
@@ -172,7 +183,7 @@ func (f *Store) AddChange(ctx context.Context, newExp types.Expectations, userId
 	// First write the triage record, with Committed being false (i.e. in progress)
 	tr := f.client.Collection(triageRecordsCollection).NewDoc()
 	record := triageRecord{
-		UserName:  userId,
+		UserName:  userID,
 		TS:        now,
 		Issue:     f.issue,
 		Changes:   len(entries),
@@ -258,3 +269,117 @@ func (f *Store) flatten(now time.Time, newExp types.Expectations) ([]expectation
 	}
 	return entries, changes
 }
+
+// QueryLog implements the ExpectationsStore interface.
+func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([]expstorage.TriageLogEntry, int, error) {
+	if offset <= 0 || size <= 0 {
+		return nil, 0, fmt.Errorf("offset: %d and size: %d must be positive", offset, size)
+	}
+	tags := map[string]string{
+		"with_details": "false",
+	}
+	if details {
+		tags["with_details"] = "true"
+	}
+	defer metrics2.NewTimer("gold_query_log", tags).Stop()
+
+	// Fetch the records, which have everything except the details.
+	q := f.client.Collection(triageRecordsCollection).OrderBy(tsCol, firestore.Desc).Offset(offset).Limit(size)
+	q = q.Where(issueCol, "==", MasterBranch).Where(committedCol, "==", true)
+	var rv []expstorage.TriageLogEntry
+	d := fmt.Sprintf("offset: %d, size %d", offset, size)
+	err := f.client.IterDocs("query_log", d, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+		if doc == nil {
+			return nil
+		}
+		tr := triageRecord{}
+		if err := doc.DataTo(&tr); err != nil {
+			id := doc.Ref.ID
+			return skerr.Fmt("corrupt data in firestore, could not unmarshal triage record with id %s: %s", id, err)
+		}
+		rv = append(rv, expstorage.TriageLogEntry{
+			ID:          doc.Ref.ID,
+			Name:        tr.UserName,
+			TS:          tr.TS.Unix(),
+			ChangeCount: tr.Changes,
+		})
+		return nil
+	})
+	if err != nil {
+		return nil, 0, skerr.Fmt("could not request triage records [%d: %d]: %s", offset, size, err)
+	}
+
+	if len(rv) == 0 || !details {
+		return rv, len(rv), nil
+	}
+
+	// Make a query for each of the records to fetch the changes belonging to that record.
+	qs := make([]firestore.Query, 0, len(rv))
+	for _, r := range rv {
+		q := f.client.Collection(triageChangesCollection).Where(recordIDCol, "==", r.ID)
+		// Sort them by grouping, then Digest for determinism
+		q = q.OrderBy(groupingCol, firestore.Asc).OrderBy(digestCol, firestore.Asc)
+		qs = append(qs, q)
+	}
+
+	// Then fire them all off in parallel.
+	err = f.client.IterDocsInParallel("query_log_details", d, qs, 3, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
+		if doc == nil {
+			return nil
+		}
+		tc := triageChanges{}
+		if err := doc.DataTo(&tc); err != nil {
+			id := doc.Ref.ID
+			return skerr.Fmt("corrupt data in firestore, could not unmarshal triage changes with id %s: %s", id, err)
+		}
+		rv[i].Details = append(rv[i].Details, expstorage.TriageDetail{
+			TestName: tc.Grouping,
+			Digest:   tc.Digest,
+			Label:    tc.LabelAfter.String(),
+		})
+		return nil
+	})
+	if err != nil {
+		return nil, 0, skerr.Fmt("could not query details: %s", err)
+	}
+
+	return rv, len(rv), nil
+}
+
+// UndoChange implements the ExpectationsStore interface.
+func (f *Store) UndoChange(ctx context.Context, changeID, userID string) (types.Expectations, error) {
+	defer metrics2.FuncTimer().Stop()
+	// Verify the original change id exists.
+	dr := f.client.Collection(triageRecordsCollection).Doc(changeID)
+	doc, err := f.client.Get(dr, 3, maxOperationTime)
+	if err != nil || !doc.Exists() {
+		return nil, skerr.Fmt("could not find change to undo with id %s: %s", changeID, err)
+	}
+
+	q := f.client.Collection(triageChangesCollection).Where(recordIDCol, "==", changeID)
+	delta := types.Expectations{}
+	err = f.client.IterDocs("undo_query", changeID, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+		if doc == nil {
+			return nil
+		}
+		tc := triageChanges{}
+		if err := doc.DataTo(&tc); err != nil {
+			id := doc.Ref.ID
+			return skerr.Fmt("corrupt data in firestore, could not unmarshal triage changes with id %s: %s", id, err)
+		}
+		delta.AddDigest(tc.Grouping, tc.Digest, tc.LabelBefore)
+		return nil
+	})
+	if err != nil {
+		return nil, skerr.Fmt("could not get delta to undo %s: %s", changeID, err)
+	}
+
+	if err = f.AddChange(ctx, delta, userID); err != nil {
+		return nil, skerr.Fmt("could not apply delta to undo %s: %s", changeID, err)
+	}
+
+	return delta, nil
+}
+
+// Make sure Store fulfills the ExpectationsStore interface
+var _ expstorage.ExpectationsStore = (*Store)(nil)

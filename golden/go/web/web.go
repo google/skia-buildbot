@@ -885,7 +885,7 @@ func (wh *WebHandlers) purgeDigests(w http.ResponseWriter, r *http.Request) bool
 func (wh *WebHandlers) JsonTriageLogHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	// Get the pagination params.
-	var logEntries []*expstorage.TriageLogEntry
+	var logEntries []expstorage.TriageLogEntry
 	var total int
 
 	q := r.URL.Query()
@@ -937,14 +937,10 @@ func (wh *WebHandlers) JsonTriageUndoHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Extract the id to undo.
-	changeID, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Invalid change id.")
-		return
-	}
+	changeID := r.URL.Query().Get("id")
 
 	// Do the undo procedure.
-	_, err = wh.Storages.ExpectationsStore.UndoChange(r.Context(), changeID, user)
+	_, err := wh.Storages.ExpectationsStore.UndoChange(r.Context(), changeID, user)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to undo.")
 		return

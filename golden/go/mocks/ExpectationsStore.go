@@ -50,15 +50,15 @@ func (_m *ExpectationsStore) Get() (types.Expectations, error) {
 }
 
 // QueryLog provides a mock function with given fields: ctx, offset, size, details
-func (_m *ExpectationsStore) QueryLog(ctx context.Context, offset int, size int, details bool) ([]*expstorage.TriageLogEntry, int, error) {
+func (_m *ExpectationsStore) QueryLog(ctx context.Context, offset int, size int, details bool) ([]expstorage.TriageLogEntry, int, error) {
 	ret := _m.Called(ctx, offset, size, details)
 
-	var r0 []*expstorage.TriageLogEntry
-	if rf, ok := ret.Get(0).(func(context.Context, int, int, bool) []*expstorage.TriageLogEntry); ok {
+	var r0 []expstorage.TriageLogEntry
+	if rf, ok := ret.Get(0).(func(context.Context, int, int, bool) []expstorage.TriageLogEntry); ok {
 		r0 = rf(ctx, offset, size, details)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*expstorage.TriageLogEntry)
+			r0 = ret.Get(0).([]expstorage.TriageLogEntry)
 		}
 	}
 
@@ -80,11 +80,11 @@ func (_m *ExpectationsStore) QueryLog(ctx context.Context, offset int, size int,
 }
 
 // UndoChange provides a mock function with given fields: ctx, changeID, userID
-func (_m *ExpectationsStore) UndoChange(ctx context.Context, changeID int64, userID string) (types.Expectations, error) {
+func (_m *ExpectationsStore) UndoChange(ctx context.Context, changeID string, userID string) (types.Expectations, error) {
 	ret := _m.Called(ctx, changeID, userID)
 
 	var r0 types.Expectations
-	if rf, ok := ret.Get(0).(func(context.Context, int64, string) types.Expectations); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) types.Expectations); ok {
 		r0 = rf(ctx, changeID, userID)
 	} else {
 		if ret.Get(0) != nil {
@@ -93,7 +93,7 @@ func (_m *ExpectationsStore) UndoChange(ctx context.Context, changeID int64, use
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, int64, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
 		r1 = rf(ctx, changeID, userID)
 	} else {
 		r1 = ret.Error(1)
