@@ -6,11 +6,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
 	"cloud.google.com/go/firestore"
 	"github.com/cenkalti/backoff"
+	"go.skia.org/infra/go/eventbus"
 	ifirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
@@ -25,10 +27,6 @@ type AccessMode int
 const (
 	ReadOnly AccessMode = iota
 	ReadWrite
-)
-
-const (
-	MasterBranch = int64(0)
 )
 
 var (
@@ -61,6 +59,16 @@ type Store struct {
 	client *ifirestore.Client
 	mode   AccessMode
 	issue  int64 // Gerrit or GitHub issue, or MasterBranch
+
+	// eventBus allows this Store to communicate with the outside world when
+	// expectations change.
+	eventBus eventbus.EventBus
+	// globalEvent keeps track whether we want to send events within this instance
+	// or on the global eventbus.
+	globalEvent bool
+	// eventExpChange keeps track of which event to fire when the expectations change.
+	// This will be for either the MasterExpectations or for an IssueExpectations.
+	eventExpChange string
 
 	// cacheMutex protects the write-through cache object.
 	cacheMutex sync.RWMutex
@@ -99,40 +107,99 @@ type triageChanges struct {
 	LabelAfter  types.Label    `firestore:"after"`
 }
 
-// New returns a new Store using the given firestore client. The issue param is used
-// to indicate if this Store is configured to read/write the baselines for a given CL
-// or if it is on MasterBranch.
-func New(client *ifirestore.Client, issue int64, mode AccessMode) *Store {
+// New returns a new Store using the given firestore client. The Store will track
+// MasterBranch- see ForIssue() for getting Stores that track ChangeLists.
+func New(client *ifirestore.Client, eventBus eventbus.EventBus, mode AccessMode) *Store {
 	return &Store{
-		client: client,
-		issue:  issue,
-		mode:   mode,
+		client:         client,
+		eventBus:       eventBus,
+		eventExpChange: expstorage.EV_EXPSTORAGE_CHANGED,
+		globalEvent:    true,
+		issue:          expstorage.MasterBranch,
+		mode:           mode,
+	}
+}
+
+// ForIssue implements the ExpectationsStore interface.
+func (f *Store) ForIssue(id int64) expstorage.ExpectationsStore {
+	if id == expstorage.MasterBranch {
+		// This should likely never happen, but if it does, lock the master branch
+		// down to read-only to prevent multiple threads writing to it at once.
+		// One of the core assumptions of this implementation is that there is only
+		// ever one process writing to the master branch.
+		return New(f.client, f.eventBus, ReadOnly)
+	}
+	return &Store{
+		client:         f.client,
+		eventBus:       f.eventBus,
+		eventExpChange: expstorage.EV_TRYJOB_EXP_CHANGED,
+		globalEvent:    false,
+		issue:          id,
+		mode:           f.mode,
 	}
 }
 
 // Get implements the ExpectationsStore interface.
 func (f *Store) Get() (types.Expectations, error) {
-	defer metrics2.FuncTimer().Stop()
-	f.cacheMutex.RLock()
-	defer f.cacheMutex.RUnlock()
-	if f.cache == nil {
-		c, err := f.loadExpectations()
+	if f.issue == expstorage.MasterBranch {
+		defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "true"}).Stop()
+		// On the initial load, we need to make sure we have write-access
+		// to the mutex. Otherwise, read access is sufficient.
+		if f.cache == nil {
+			f.cacheMutex.Lock()
+			defer f.cacheMutex.Unlock()
+		} else {
+			f.cacheMutex.RLock()
+			defer f.cacheMutex.RUnlock()
+		}
+		return f.getMasterExpectations(true)
+	}
+	defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "false"}).Stop()
+	return f.getIssueExpectations()
+}
+
+// getMasterExpectations returns an Expectations object which is safe to mutate
+// based on the current state. In cases where caching is fine (e.g. the MasterBranch).
+// If caching it is used, it is expected the caller has taken care of any mutex grabbing.
+func (f *Store) getMasterExpectations(useCache bool) (types.Expectations, error) {
+	if f.cache == nil || !useCache {
+		c, err := f.loadExpectations(expstorage.MasterBranch)
 		if err != nil {
-			return nil, skerr.Fmt("could not load expectations from firestore: %s", err)
+			return nil, skerr.Fmt("could not load master expectations from firestore: %s", err)
+		}
+		if !useCache {
+			return c, nil
 		}
 		f.cache = c
 	}
 	return f.cache.DeepCopy(), nil
 }
 
-// loadExpectations reads the entire Expectations from the expectationsCollection,
-// matching the configured branch.
-func (f *Store) loadExpectations() (types.Expectations, error) {
+// getIssueExpectations returns an Expectations object which is safe to mutate
+// that has all issue-specific Expectations applied to the master Expectations.
+// It fetches everything from firestore every time, as there could be multiple
+// readers and writers and thus caching isn't safe.
+func (f *Store) getIssueExpectations() (types.Expectations, error) {
+	masterExp, err := f.getMasterExpectations(false)
+	if err != nil {
+		return nil, skerr.Fmt("could not load master expectations: %s", err)
+	}
+	issueExp, err := f.loadExpectations(f.issue)
+	if err != nil {
+		return nil, skerr.Fmt("could not load expectations delta for issue %d from firestore: %s", f.issue, err)
+	}
+	masterExp.MergeExpectations(issueExp)
+	return masterExp, nil
+}
+
+// loadExpectations returns an Expectations object from the expectationsCollection,
+// with all Expectations belonging to the passed in issue (can be MasterBranch).
+func (f *Store) loadExpectations(issue int64) (types.Expectations, error) {
 	defer metrics2.FuncTimer().Stop()
 	e := types.Expectations{}
-	q := f.client.Collection(expectationsCollection).Where(issueCol, "==", MasterBranch)
+	q := f.client.Collection(expectationsCollection).Where(issueCol, "==", issue)
 	maxRetries := 3
-	err := f.client.IterDocs("loadExpectations", "", q, maxRetries, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+	err := f.client.IterDocs("loadExpectations", strconv.FormatInt(issue, 10), q, maxRetries, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
@@ -169,6 +236,13 @@ func (f *Store) AddChange(ctx context.Context, newExp types.Expectations, userID
 		}
 		return now, entries, changes
 	}()
+
+	if f.eventBus != nil {
+		f.eventBus.Publish(f.eventExpChange, &expstorage.EventExpectationChange{
+			TestChanges: newExp,
+			IssueID:     f.issue,
+		}, f.globalEvent)
+	}
 
 	// Nothing to add
 	if len(entries) == 0 {
@@ -272,7 +346,7 @@ func (f *Store) flatten(now time.Time, newExp types.Expectations) ([]expectation
 
 // QueryLog implements the ExpectationsStore interface.
 func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([]expstorage.TriageLogEntry, int, error) {
-	if offset <= 0 || size <= 0 {
+	if offset < 0 || size <= 0 {
 		return nil, 0, fmt.Errorf("offset: %d and size: %d must be positive", offset, size)
 	}
 	tags := map[string]string{
@@ -285,7 +359,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 
 	// Fetch the records, which have everything except the details.
 	q := f.client.Collection(triageRecordsCollection).OrderBy(tsCol, firestore.Desc).Offset(offset).Limit(size)
-	q = q.Where(issueCol, "==", MasterBranch).Where(committedCol, "==", true)
+	q = q.Where(issueCol, "==", f.issue).Where(committedCol, "==", true)
 	var rv []expstorage.TriageLogEntry
 	d := fmt.Sprintf("offset: %d, size %d", offset, size)
 	err := f.client.IterDocs("query_log", d, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
