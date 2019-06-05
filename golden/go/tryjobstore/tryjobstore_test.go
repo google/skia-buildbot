@@ -34,15 +34,15 @@ func TestCloudTryjobStore(t *testing.T) {
 	defer cleanup()
 
 	eventBus := eventbus.New()
-	_, expStoreFactory, err := ds_expstore.New(ds.DS, eventBus)
+	estore, err := ds_expstore.DeprecatedNew(ds.DS, eventBus)
 	assert.NoError(t, err)
-	store, err := NewCloudTryjobStore(ds.DS, expStoreFactory, eventBus)
+	store, err := NewCloudTryjobStore(ds.DS, eventBus)
 	assert.NoError(t, err)
 
-	testTryjobStore(t, store, expStoreFactory)
+	testTryjobStore(t, store, estore)
 }
 
-func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage.IssueExpStoreFactory) {
+func testTryjobStore(t *testing.T, store TryjobStore, estore expstorage.ExpectationsStore) {
 	// Add the issue and two tryjobs to the store.
 	issueID := int64(99)
 	patchsetID := int64(1099)
@@ -205,7 +205,7 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 	// TODO(kjlubick): assert something with expLogEntries - it is only added to.
 	expLogEntries := []expstorage.TriageLogEntry{}
 	userName := "jdoe@example.com"
-	expStore := expStoreFactory(issueID)
+	expStore := estore.ForIssue(issueID)
 	for i := 0; i < 5; i++ {
 		triageDetails := []expstorage.TriageDetail{}
 		changes := types.Expectations{}

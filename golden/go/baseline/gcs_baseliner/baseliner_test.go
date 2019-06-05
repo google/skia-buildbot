@@ -26,7 +26,7 @@ func TestFetchBaselineSunnyDay(t *testing.T) {
 
 	mgs.On("ReadBaseline", testCommitHash, baseline.MasterBranch).Return(three_devices.MakeTestBaseline(), nil).Once()
 
-	baseliner, err := New(mgs, nil, nil, nil, nil)
+	baseliner, err := New(mgs, nil, nil, nil)
 	assert.NoError(t, err)
 
 	b, err := baseliner.FetchBaseline(testCommitHash, baseline.MasterBranch, false)
@@ -78,7 +78,7 @@ func TestFetchBaselineIssueSunnyDay(t *testing.T) {
 	// are not live on master yet).
 	mgs.On("ReadBaseline", "", testIssueID).Return(additionalTriages, nil).Once()
 
-	baseliner, err := New(mgs, nil, nil, nil, nil)
+	baseliner, err := New(mgs, nil, nil, nil)
 	assert.NoError(t, err)
 
 	b, err := baseliner.FetchBaseline(testCommitHash, testIssueID, false)
@@ -124,7 +124,7 @@ func TestFetchBaselineCachingSunnyDay(t *testing.T) {
 	// ReadBaseline should only be called once despite multiple requests below
 	mgs.On("ReadBaseline", testCommitHash, baseline.MasterBranch).Return(three_devices.MakeTestBaseline(), nil).Once()
 
-	baseliner, err := New(mgs, nil, nil, nil, nil)
+	baseliner, err := New(mgs, nil, nil, nil)
 	assert.NoError(t, err)
 
 	for i := 0; i < 10; i++ {
@@ -186,7 +186,7 @@ func TestPushMasterBaselineSunnyDay(t *testing.T) {
 		}
 	}).Return("gs://test-bucket/baselines/foo-baseline.json", nil).Times(3) // once per commit
 
-	baseliner, err := New(mgs, mes, nil, nil, nil)
+	baseliner, err := New(mgs, mes, nil, nil)
 	assert.NoError(t, err)
 
 	b, err := baseliner.PushMasterBaselines(mcs, "")
