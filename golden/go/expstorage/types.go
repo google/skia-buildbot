@@ -18,9 +18,9 @@ const (
 	// for an issue change. It sends an instance of *TryjobExpChange.
 	EV_TRYJOB_EXP_CHANGED = "expstorage:tryjob-exp-change"
 
-	// MasterIssueID is the value used for IssueID when we dealing with the
-	// master branch. Any IssueID < 0 should be ignored.
-	MasterIssueID = -1
+	// MasterBranch is the value used for IssueID when we dealing with the
+	// master branch. Any other IssueID < 0 should be ignored.
+	MasterBranch = int64(-1)
 )
 
 func init() {
@@ -53,6 +53,12 @@ type ExpectationsStore interface {
 	// undone. The expectations returned are the expectations that were changed,
 	// with the newly reverted values.
 	UndoChange(ctx context.Context, changeID, userID string) (types.Expectations, error)
+
+	// Returns a new ExpectationStore that will deal with the Expectations for an issue
+	// with the given id (aka an IssueExpectations). Any expectations sent to the returned
+	// ExpectationStore will be kept separate from the master branch.
+	// This issue id is the Gerrit id or GitHub id.
+	ForIssue(id int64) ExpectationsStore
 }
 
 // TriageDetails represents one changed digest and the label that was
@@ -79,6 +85,3 @@ type EventExpectationChange struct {
 	IssueID     int64
 	TestChanges types.Expectations
 }
-
-// IssueExpStoreFactory creates an ExpectationsStore instance for the given issue id.
-type IssueExpStoreFactory func(issueID int64) ExpectationsStore

@@ -101,13 +101,13 @@ type expectationsState struct {
 	ExpectationsBlob *datastore.Key // key of the blob that stores expectations
 }
 
-// NewCloudExpectationsStore returns an ExpectationsStore implementation based on
+// DeprecatedNew returns an ExpectationsStore implementation based on
 // Cloud Datastore for the master branch and a factory to create ExpectationsStore
 // instances for Gerrit issues. The factory uses the same datastore client as the
 // master store.
-func New(client *datastore.Client, eventBus eventbus.EventBus) (*DSExpStore, expstorage.IssueExpStoreFactory, error) {
+func DeprecatedNew(client *datastore.Client, eventBus eventbus.EventBus) (*DSExpStore, error) {
 	if client == nil {
-		return nil, nil, sklog.FmtErrorf("Received nil for datastore client.")
+		return nil, sklog.FmtErrorf("Received nil for datastore client.")
 	}
 
 	// Create the instance for the master and set the target entities for the
@@ -119,7 +119,7 @@ func New(client *datastore.Client, eventBus eventbus.EventBus) (*DSExpStore, exp
 	blobStore := dsutil.NewBlobStore(client, ds.EXPECTATIONS_BLOB_ROOT, ds.EXPECTATIONS_BLOB)
 
 	store := &DSExpStore{
-		issueID:         expstorage.MasterIssueID,
+		issueID:         expstorage.MasterBranch,
 		changeKind:      ds.MASTER_EXP_CHANGE,
 		eventExpChange:  expstorage.EV_EXPSTORAGE_CHANGED,
 		globalEvent:     true,
@@ -131,34 +131,33 @@ func New(client *datastore.Client, eventBus eventbus.EventBus) (*DSExpStore, exp
 		blobStore:       blobStore,
 	}
 
-	// The factory allows to create an isolated ExpectationStore instance for the
-	// given issue.
-	factory := func(issueID int64) expstorage.ExpectationsStore {
-		summaryKey := ds.NewKey(ds.HELPER_RECENT_KEYS)
-		summaryKey.Name = fmt.Sprintf("expstorage-issue-%d", issueID)
-		expectationsKey := ds.NewKey(ds.EXPECTATIONS_BLOB_ROOT)
-		expectationsKey.Name = fmt.Sprintf("expstorage-expectations-issue-%d", issueID)
-		return &DSExpStore{
-			issueID:         issueID,
-			changeKind:      ds.TRYJOB_EXP_CHANGE,
-			eventExpChange:  expstorage.EV_TRYJOB_EXP_CHANGED,
-			globalEvent:     false,
-			client:          client,
-			eventBus:        eventBus,
-			summaryKey:      summaryKey,
-			expectationsKey: expectationsKey,
-			recentKeysList:  dsutil.NewRecentKeysList(client, summaryKey, dsutil.DefaultConsistencyDelta),
-			blobStore:       blobStore,
-		}
-	}
-
 	// Check the connection to the cloud datastore and if we could load the
 	// expectations successfully.
 	_, _, err := store.loadCurrentExpectations(nil)
 	if err != nil {
-		return nil, nil, sklog.FmtErrorf("Error in test call to the cloud datastore: %s", err)
+		return nil, sklog.FmtErrorf("Error in test call to the cloud datastore: %s", err)
 	}
-	return store, factory, nil
+	return store, nil
+}
+
+// ForIssue implements the ExpectationsStore interface.
+func (c *DSExpStore) ForIssue(issueID int64) expstorage.ExpectationsStore {
+	summaryKey := ds.NewKey(ds.HELPER_RECENT_KEYS)
+	summaryKey.Name = fmt.Sprintf("expstorage-issue-%d", issueID)
+	expectationsKey := ds.NewKey(ds.EXPECTATIONS_BLOB_ROOT)
+	expectationsKey.Name = fmt.Sprintf("expstorage-expectations-issue-%d", issueID)
+	return &DSExpStore{
+		issueID:         issueID,
+		changeKind:      ds.TRYJOB_EXP_CHANGE,
+		eventExpChange:  expstorage.EV_TRYJOB_EXP_CHANGED,
+		globalEvent:     false,
+		client:          c.client,
+		eventBus:        c.eventBus,
+		summaryKey:      summaryKey,
+		expectationsKey: expectationsKey,
+		recentKeysList:  dsutil.NewRecentKeysList(c.client, summaryKey, dsutil.DefaultConsistencyDelta),
+		blobStore:       c.blobStore,
+	}
 }
 
 // Get implements the ExpectationsStore interface.

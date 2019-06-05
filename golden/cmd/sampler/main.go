@@ -177,7 +177,7 @@ func load(ctx context.Context, dsNamespace string) (*tiling.Tile, types.Expectat
 	var expStore expstorage.ExpectationsStore
 	var err error
 
-	expStore, _, err = ds_expstore.New(ds.DS, evt)
+	expStore, err = ds_expstore.DeprecatedNew(ds.DS, evt)
 	if err != nil {
 		sklog.Fatalf("Unable to create cloud expectations store: %s", err)
 	}

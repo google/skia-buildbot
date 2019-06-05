@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/eventbus/mocks"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -29,7 +30,7 @@ func TestGetExpectations(t *testing.T) {
 
 	c := getTestFirestoreInstance(t)
 
-	f := New(c, MasterBranch, ReadWrite)
+	f := New(c, nil, ReadWrite)
 
 	// Brand new instance should have no expectations
 	e, err := f.Get()
@@ -73,7 +74,7 @@ func TestGetExpectations(t *testing.T) {
 
 	// Make sure that if we create a new view, we can read the results
 	// from the table to make the expectations
-	fr := New(c, MasterBranch, ReadOnly)
+	fr := New(c, nil, ReadOnly)
 	e, err = fr.Get()
 	assert.NoError(t, err)
 	assert.Equal(t, expected, e)
@@ -87,7 +88,7 @@ func TestGetExpectationsRace(t *testing.T) {
 
 	c := getTestFirestoreInstance(t)
 
-	f := New(c, MasterBranch, ReadWrite)
+	f := New(c, nil, ReadWrite)
 
 	type entry struct {
 		Grouping types.TestName
@@ -171,7 +172,7 @@ func TestGetExpectationsBig(t *testing.T) {
 
 	c := getTestFirestoreInstance(t)
 
-	f := New(c, MasterBranch, ReadWrite)
+	f := New(c, nil, ReadWrite)
 
 	// Write the expectations in two, non-overlapping blocks.
 	exp1 := makeBigExpectations(0, 16)
@@ -203,7 +204,7 @@ func TestGetExpectationsBig(t *testing.T) {
 
 	// Make sure that if we create a new view, we can read the results
 	// from the table to make the expectations
-	fr := New(c, MasterBranch, ReadOnly)
+	fr := New(c, nil, ReadOnly)
 	e, err = fr.Get()
 	assert.NoError(t, err)
 	assert.Equal(t, expected, e)
@@ -213,7 +214,7 @@ func TestGetExpectationsBig(t *testing.T) {
 func TestReadOnly(t *testing.T) {
 	unittest.SmallTest(t)
 
-	f := New(nil, MasterBranch, ReadOnly)
+	f := New(nil, nil, ReadOnly)
 
 	err := f.AddChange(context.Background(), types.Expectations{
 		data.AlphaTest: {
@@ -230,11 +231,11 @@ func TestQueryLog(t *testing.T) {
 	unittest.RequiresFirestoreEmulator(t)
 
 	c := getTestFirestoreInstance(t)
-	f := New(c, MasterBranch, ReadWrite)
-	ctx := context.Background()
+	f := New(c, nil, ReadWrite)
 
 	fillWith4Entries(t, f)
 
+	ctx := context.Background()
 	entries, n, err := f.QueryLog(ctx, 0, 100, false)
 	assert.NoError(t, err)
 	assert.Equal(t, 4, n) // 4 operations
@@ -306,11 +307,11 @@ func TestQueryLogDetails(t *testing.T) {
 	unittest.RequiresFirestoreEmulator(t)
 
 	c := getTestFirestoreInstance(t)
-	f := New(c, MasterBranch, ReadWrite)
-	ctx := context.Background()
+	f := New(c, nil, ReadWrite)
 
 	fillWith4Entries(t, f)
 
+	ctx := context.Background()
 	entries, n, err := f.QueryLog(ctx, 0, 100, true)
 	assert.NoError(t, err)
 	assert.Equal(t, 4, n) // 4 operations
@@ -356,10 +357,11 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 	unittest.RequiresFirestoreEmulator(t)
 
 	c := getTestFirestoreInstance(t)
-	f := New(c, MasterBranch, ReadWrite)
-	ctx := context.Background()
+	f := New(c, nil, ReadWrite)
 
 	fillWith4Entries(t, f)
+
+	ctx := context.Background()
 	entries, n, err := f.QueryLog(ctx, 0, 4, false)
 	assert.NoError(t, err)
 	assert.Equal(t, 4, n)
@@ -401,7 +403,7 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 
 	// Make sure that if we create a new view, we can read the results
 	// from the table to make the expectations
-	fr := New(c, MasterBranch, ReadOnly)
+	fr := New(c, nil, ReadOnly)
 	exp, err = fr.Get()
 	assert.NoError(t, err)
 	assert.Equal(t, expected, exp)
@@ -413,44 +415,299 @@ func TestUndoChangeNoExist(t *testing.T) {
 	unittest.RequiresFirestoreEmulator(t)
 
 	c := getTestFirestoreInstance(t)
-	f := New(c, MasterBranch, ReadWrite)
-	ctx := context.Background()
+	f := New(c, nil, ReadWrite)
 
-	_, err := f.UndoChange(ctx, "doesnotexist", "userTwo")
+	_, err := f.UndoChange(context.Background(), "doesnotexist", "userTwo")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not find change")
 }
 
-// TODO(kjlubick): implement tests for branch expectations.
-// func TestBranchExpectationsGet(t *testing.T) {
-// 	unittest.ManualTest(t)
-// 	unittest.RequiresFirestoreEmulator(t)
+// TestEventBusAddMaster makes sure proper eventbus signals are sent
+// when changes are made to the master branch.
+func TestEventBusAddMaster(t *testing.T) {
+	unittest.ManualTest(t)
+	unittest.RequiresFirestoreEmulator(t)
 
-// 	c := getTestFirestoreInstance(t)
-// 	m := New(c, MasterBranch, ReadWrite)
-// 	b := New(c, 117, ReadWrite) // arbitrary branch id
-// 	ctx := context.Background()
+	meb := &mocks.EventBus{}
+	defer meb.AssertExpectations(t)
 
-// }
+	c := getTestFirestoreInstance(t)
+	f := New(c, meb, ReadWrite)
 
-// fillWith4Entries fills a given Store with 4 triaged records of a few digests.
-func fillWith4Entries(t *testing.T, f *Store) {
-	assert.NoError(t, f.AddChange(context.Background(), types.Expectations{
+	change1 := types.Expectations{
+		data.AlphaTest: {
+			data.AlphaGood1Digest: types.POSITIVE,
+		},
+	}
+	change2 := types.Expectations{
+		data.AlphaTest: {
+			data.AlphaBad1Digest: types.NEGATIVE,
+		},
+		data.BetaTest: {
+			data.BetaGood1Digest: types.POSITIVE,
+		},
+	}
+
+	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
+		TestChanges: change1,
+		IssueID:     expstorage.MasterBranch,
+	}, /*global=*/ true).Once()
+	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
+		TestChanges: change2,
+		IssueID:     expstorage.MasterBranch,
+	}, /*global=*/ true).Once()
+
+	ctx := context.Background()
+	assert.NoError(t, f.AddChange(ctx, change1, userOne))
+	assert.NoError(t, f.AddChange(ctx, change2, userTwo))
+}
+
+// TestEventBusAddIssue makes sure proper eventbus signals are sent
+// when changes are made to an IssueExpectations.
+func TestEventBusAddIssue(t *testing.T) {
+	unittest.ManualTest(t)
+	unittest.RequiresFirestoreEmulator(t)
+
+	meb := &mocks.EventBus{}
+	defer meb.AssertExpectations(t)
+
+	c := getTestFirestoreInstance(t)
+	e := New(c, meb, ReadWrite)
+	issue := int64(117)
+	f := e.ForIssue(issue) // arbitrary issue
+
+	change1 := types.Expectations{
+		data.AlphaTest: {
+			data.AlphaGood1Digest: types.POSITIVE,
+		},
+	}
+	change2 := types.Expectations{
+		data.AlphaTest: {
+			data.AlphaBad1Digest: types.NEGATIVE,
+		},
+		data.BetaTest: {
+			data.BetaGood1Digest: types.POSITIVE,
+		},
+	}
+
+	meb.On("Publish", expstorage.EV_TRYJOB_EXP_CHANGED, &expstorage.EventExpectationChange{
+		TestChanges: change1,
+		IssueID:     issue,
+	}, /*global=*/ false).Once()
+	meb.On("Publish", expstorage.EV_TRYJOB_EXP_CHANGED, &expstorage.EventExpectationChange{
+		TestChanges: change2,
+		IssueID:     issue,
+	}, /*global=*/ false).Once()
+
+	ctx := context.Background()
+	assert.NoError(t, f.AddChange(ctx, change1, userOne))
+	assert.NoError(t, f.AddChange(ctx, change2, userTwo))
+}
+
+// TestEventBusUndo tests that eventbus signals are properly sent during Undo.
+func TestEventBusUndo(t *testing.T) {
+	unittest.ManualTest(t)
+	unittest.RequiresFirestoreEmulator(t)
+
+	meb := &mocks.EventBus{}
+	defer meb.AssertExpectations(t)
+
+	c := getTestFirestoreInstance(t)
+	f := New(c, meb, ReadWrite)
+
+	change := types.Expectations{
 		data.AlphaTest: {
 			data.AlphaGood1Digest: types.NEGATIVE,
 		},
-	}, userOne))
-	assert.NoError(t, f.AddChange(context.Background(), types.Expectations{
+	}
+	expectedUndo := types.Expectations{
 		data.AlphaTest: {
-			data.AlphaGood1Digest: types.POSITIVE, // overwrites previous value
+			data.AlphaGood1Digest: types.UNTRIAGED,
+		},
+	}
+
+	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
+		TestChanges: change,
+		IssueID:     expstorage.MasterBranch,
+	}, /*global=*/ true).Once()
+	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
+		TestChanges: expectedUndo,
+		IssueID:     expstorage.MasterBranch,
+	}, /*global=*/ true).Once()
+
+	ctx := context.Background()
+	assert.NoError(t, f.AddChange(ctx, change, userOne))
+
+	entries, n, err := f.QueryLog(ctx, 0, 1, false)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, n)
+
+	exp, err := f.UndoChange(ctx, entries[0].ID, userOne)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedUndo, exp)
+}
+
+// TestIssueExpectationsAddGet tests the separation of the MasterExpectations
+// and the IssueExpectations. It starts with a shared history, then
+// adds some expectations to both, before asserting that they are properly dealt
+// with. Specifically, the IssueExpectations should be applied as a delta to
+// the MasterExpectations.
+func TestIssueExpectationsAddGet(t *testing.T) {
+	unittest.ManualTest(t)
+	unittest.RequiresFirestoreEmulator(t)
+
+	c := getTestFirestoreInstance(t)
+	mb := New(c, nil, ReadWrite)
+
+	ctx := context.Background()
+	assert.NoError(t, mb.AddChange(ctx, types.Expectations{
+		data.AlphaTest: {
+			data.AlphaGood1Digest: types.NEGATIVE,
 		},
 	}, userTwo))
-	assert.NoError(t, f.AddChange(context.Background(), types.Expectations{
+
+	ib := mb.ForIssue(117) // arbitrary issue id
+
+	masterE, err := mb.Get()
+	assert.NoError(t, err)
+	issueE, err := ib.Get()
+	assert.NoError(t, err)
+	assert.Equal(t, masterE, issueE)
+
+	// Add to the IssueExpectations
+	assert.NoError(t, ib.AddChange(ctx, types.Expectations{
+		data.AlphaTest: {
+			data.AlphaGood1Digest: types.POSITIVE, // overwrites previous
+		},
 		data.BetaTest: {
 			data.BetaGood1Digest: types.POSITIVE,
 		},
 	}, userOne))
-	assert.NoError(t, f.AddChange(context.Background(), types.Expectations{
+
+	// Add to the MasterExpectations
+	assert.NoError(t, mb.AddChange(ctx, types.Expectations{
+		data.AlphaTest: {
+			data.AlphaBad1Digest: types.NEGATIVE,
+		},
+	}, userOne))
+
+	masterE, err = mb.Get()
+	assert.NoError(t, err)
+	issueE, err = ib.Get()
+	assert.NoError(t, err)
+
+	// Make sure the IssueExpectations did not leak to the MasterExpectations
+	assert.Equal(t, types.Expectations{
+		data.AlphaTest: {
+			data.AlphaGood1Digest: types.NEGATIVE,
+			data.AlphaBad1Digest:  types.NEGATIVE,
+		},
+	}, masterE)
+
+	// Make sure the IssueExpectations are applied on top of the updated
+	// MasterExpectations.
+	assert.Equal(t, types.Expectations{
+		data.AlphaTest: {
+			data.AlphaGood1Digest: types.POSITIVE,
+			data.AlphaBad1Digest:  types.NEGATIVE,
+		},
+		data.BetaTest: {
+			data.BetaGood1Digest: types.POSITIVE,
+		},
+	}, issueE)
+}
+
+// TestIssueExpectationsQueryLog makes sure the QueryLogs interacts
+// with the IssueExpectations as expected. Which is to say, the two
+// logs are separate.
+func TestIssueExpectationsQueryLog(t *testing.T) {
+	unittest.ManualTest(t)
+	unittest.RequiresFirestoreEmulator(t)
+
+	c := getTestFirestoreInstance(t)
+	mb := New(c, nil, ReadWrite)
+
+	ctx := context.Background()
+	assert.NoError(t, mb.AddChange(ctx, types.Expectations{
+		data.AlphaTest: {
+			data.AlphaGood1Digest: types.POSITIVE,
+		},
+	}, userTwo))
+
+	ib := mb.ForIssue(117) // arbitrary issue id
+
+	assert.NoError(t, ib.AddChange(ctx, types.Expectations{
+		data.BetaTest: {
+			data.BetaGood1Digest: types.POSITIVE,
+		},
+	}, userOne))
+
+	// Make sure the master logs are separate from the issue logs.
+	// request up to 10 to make sure we would get the issue
+	// change (if the filtering was wrong).
+	entries, n, err := mb.QueryLog(ctx, 0, 10, true)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, n)
+
+	now := time.Now()
+	normalizeEntries(t, now, entries)
+	assert.Equal(t, expstorage.TriageLogEntry{
+		ID:          "was_random_0",
+		Name:        userTwo,
+		TS:          now.Unix(),
+		ChangeCount: 1,
+		Details: []expstorage.TriageDetail{
+			{
+				TestName: data.AlphaTest,
+				Digest:   data.AlphaGood1Digest,
+				Label:    types.POSITIVE.String(),
+			},
+		},
+	}, entries[0])
+
+	// Make sure the issue logs are separate from the master logs.
+	// Unlike when getting the expectations, the issue logs are
+	// *only* those logs that affected this issue. Not, for example,
+	// all the master logs with the issue logs tacked on.
+	entries, n, err = ib.QueryLog(ctx, 0, 10, true)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, n) // only one change on this branch
+
+	normalizeEntries(t, now, entries)
+	assert.Equal(t, expstorage.TriageLogEntry{
+		ID:          "was_random_0",
+		Name:        userOne,
+		TS:          now.Unix(),
+		ChangeCount: 1,
+		Details: []expstorage.TriageDetail{
+			{
+				TestName: data.BetaTest,
+				Digest:   data.BetaGood1Digest,
+				Label:    types.POSITIVE.String(),
+			},
+		},
+	}, entries[0])
+}
+
+// fillWith4Entries fills a given Store with 4 triaged records of a few digests.
+func fillWith4Entries(t *testing.T, f *Store) {
+	ctx := context.Background()
+	assert.NoError(t, f.AddChange(ctx, types.Expectations{
+		data.AlphaTest: {
+			data.AlphaGood1Digest: types.NEGATIVE,
+		},
+	}, userOne))
+	assert.NoError(t, f.AddChange(ctx, types.Expectations{
+		data.AlphaTest: {
+			data.AlphaGood1Digest: types.POSITIVE, // overwrites previous value
+		},
+	}, userTwo))
+	assert.NoError(t, f.AddChange(ctx, types.Expectations{
+		data.BetaTest: {
+			data.BetaGood1Digest: types.POSITIVE,
+		},
+	}, userOne))
+	assert.NoError(t, f.AddChange(ctx, types.Expectations{
 		data.AlphaTest: {
 			data.AlphaBad1Digest: types.NEGATIVE,
 		},

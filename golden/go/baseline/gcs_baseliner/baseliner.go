@@ -37,11 +37,10 @@ const (
 // GCS and retrieve them. Other packages use it to continuously write expectations to GCS
 // as they become available.
 type BaselinerImpl struct {
-	gStorageClient       storage.GCSClient
-	expectationsStore    expstorage.ExpectationsStore
-	issueExpStoreFactory expstorage.IssueExpStoreFactory
-	tryjobStore          tryjobstore.TryjobStore
-	vcs                  vcsinfo.VCS
+	gStorageClient    storage.GCSClient
+	expectationsStore expstorage.ExpectationsStore
+	tryjobStore       tryjobstore.TryjobStore
+	vcs               vcsinfo.VCS
 
 	// mutex protects lastWrittenBaselines, baselineCache and currentTile
 	mutex sync.RWMutex
@@ -62,7 +61,7 @@ type BaselinerImpl struct {
 }
 
 // New creates a new instance of baseliner.Baseliner that interacts with baselines in GCS.
-func New(gStorageClient storage.GCSClient, expectationsStore expstorage.ExpectationsStore, issueExpStoreFactory expstorage.IssueExpStoreFactory, tryjobStore tryjobstore.TryjobStore, vcs vcsinfo.VCS) (*BaselinerImpl, error) {
+func New(gStorageClient storage.GCSClient, expectationsStore expstorage.ExpectationsStore, tryjobStore tryjobstore.TryjobStore, vcs vcsinfo.VCS) (*BaselinerImpl, error) {
 	c, err := lru.New(issueCacheSize)
 	if err != nil {
 		return nil, skerr.Fmt("Error allocating cache: %s", err)
@@ -71,7 +70,6 @@ func New(gStorageClient storage.GCSClient, expectationsStore expstorage.Expectat
 	return &BaselinerImpl{
 		gStorageClient:       gStorageClient,
 		expectationsStore:    expectationsStore,
-		issueExpStoreFactory: issueExpStoreFactory,
 		tryjobStore:          tryjobStore,
 		vcs:                  vcs,
 		issueBaselineCache:   c,
@@ -180,7 +178,7 @@ func (b *BaselinerImpl) PushMasterBaselines(tileInfo baseline.TileInfo, targetHa
 
 // PushIssueBaseline implements the baseline.Baseliner interface.
 func (b *BaselinerImpl) PushIssueBaseline(issueID int64, tileInfo baseline.TileInfo, dCounter digest_counter.DigestCounter) error {
-	issueExpStore := b.issueExpStoreFactory(issueID)
+	issueExpStore := b.expectationsStore.ForIssue(issueID)
 	exp, err := issueExpStore.Get()
 	if err != nil {
 		return skerr.Fmt("Unable to get issue expectations: %s", err)

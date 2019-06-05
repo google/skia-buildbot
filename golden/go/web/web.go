@@ -581,7 +581,7 @@ func (wh *WebHandlers) JsonTriageHandler(w http.ResponseWriter, r *http.Request)
 	// in the request, then get the expectations store for the issue.
 	expStore := wh.Storages.ExpectationsStore
 	if req.Issue > 0 {
-		expStore = wh.Storages.IssueExpStoreFactory(req.Issue)
+		expStore = wh.Storages.ExpectationsStore.ForIssue(req.Issue)
 	}
 
 	// Add the change.
@@ -901,7 +901,7 @@ func (wh *WebHandlers) JsonTriageLogHandler(w http.ResponseWriter, r *http.Reque
 		details := q.Get("details") == "true"
 		expStore := wh.Storages.ExpectationsStore
 		if issue > 0 {
-			expStore = wh.Storages.IssueExpStoreFactory(issue)
+			expStore = wh.Storages.ExpectationsStore.ForIssue(issue)
 		}
 
 		logEntries, total, err = expStore.QueryLog(r.Context(), offset, size, details)

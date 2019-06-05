@@ -361,41 +361,40 @@ func main() {
 		}
 
 		// Set up the cloud expectations store
-		expStore, issueExpStoreFactory, err := ds_expstore.New(ds.DS, evt)
+		expStore, err := ds_expstore.DeprecatedNew(ds.DS, evt)
 		if err != nil {
 			sklog.Fatalf("Unable to configure cloud expectations store: %s", err)
 		}
 
-		tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, issueExpStoreFactory, evt)
+		tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, evt)
 		if err != nil {
 			sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
 		}
-		tryjobMonitor := gerrit_tryjob_monitor.New(tryjobStore, expStore, issueExpStoreFactory, gerritAPI, *siteURL, evt, *authoritative)
+		tryjobMonitor := gerrit_tryjob_monitor.New(tryjobStore, expStore, gerritAPI, *siteURL, evt, *authoritative)
 
 		// Initialize the Baseliner instance from the values set above.
-		baseliner, err := gcs_baseliner.New(gsClient, expStore, issueExpStoreFactory, tryjobStore, vcs)
+		baseliner, err := gcs_baseliner.New(gsClient, expStore, tryjobStore, vcs)
 		if err != nil {
 			sklog.Fatalf("Error initializing baseliner: %s", err)
 		}
 
 		// Extract the site URL
 		storages := &storage.Storage{
-			DiffStore:            diffStore,
-			ExpectationsStore:    expStore,
-			IssueExpStoreFactory: issueExpStoreFactory,
-			TraceDB:              db,
-			MasterTileBuilder:    masterTileBuilder,
-			NCommits:             *nCommits,
-			EventBus:             evt,
-			TryjobStore:          tryjobStore,
-			TryjobMonitor:        tryjobMonitor,
-			GerritAPI:            gerritAPI,
-			GCSClient:            gsClient,
-			VCS:                  vcs,
-			IsAuthoritative:      *authoritative,
-			SiteURL:              *siteURL,
-			IsSparseTile:         *sparseInput,
-			Baseliner:            baseliner,
+			DiffStore:         diffStore,
+			ExpectationsStore: expStore,
+			TraceDB:           db,
+			MasterTileBuilder: masterTileBuilder,
+			NCommits:          *nCommits,
+			EventBus:          evt,
+			TryjobStore:       tryjobStore,
+			TryjobMonitor:     tryjobMonitor,
+			GerritAPI:         gerritAPI,
+			GCSClient:         gsClient,
+			VCS:               vcs,
+			IsAuthoritative:   *authoritative,
+			SiteURL:           *siteURL,
+			IsSparseTile:      *sparseInput,
+			Baseliner:         baseliner,
 		}
 
 		// Load the whitelist if there is one and disable querying for issues.

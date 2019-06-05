@@ -154,7 +154,7 @@ func getStoragesAndIndexerFromTile(t sktest.TestingT, path string, randomize boo
 	tileBuilder := mocks.NewMockTileBuilderFromTile(t, sample.Tile)
 	eventBus := eventbus.New()
 
-	baseliner, err := gcs_baseliner.New(nil, mes, nil, nil, nil)
+	baseliner, err := gcs_baseliner.New(nil, mes, nil, nil)
 	assert.NoError(t, err)
 
 	storages := &storage.Storage{

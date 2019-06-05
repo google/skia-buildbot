@@ -26,6 +26,22 @@ func (_m *ExpectationsStore) AddChange(ctx context.Context, changes types.Expect
 	return r0
 }
 
+// ForIssue provides a mock function with given fields: id
+func (_m *ExpectationsStore) ForIssue(id int64) expstorage.ExpectationsStore {
+	ret := _m.Called(id)
+
+	var r0 expstorage.ExpectationsStore
+	if rf, ok := ret.Get(0).(func(int64) expstorage.ExpectationsStore); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(expstorage.ExpectationsStore)
+		}
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields:
 func (_m *ExpectationsStore) Get() (types.Expectations, error) {
 	ret := _m.Called()

@@ -49,7 +49,7 @@ See image differences at: https://gold.skia.org/search?issue=12345`
 		assert.True(t, storeIssue.CommentAdded)
 	}).Return(nil)
 
-	tryjobMonitor := New(mtjs, nil, nil, mg, siteURL, meb, isAuthoritative)
+	tryjobMonitor := New(mtjs, nil, mg, siteURL, meb, isAuthoritative)
 
 	assert.NoError(t, tryjobMonitor.WriteGoldLinkAsComment(mockIssueID))
 }
@@ -71,7 +71,7 @@ func TestWriteCommentNoIssue(t *testing.T) {
 
 	mtjs.On("GetIssue", mockIssueID, false).Return(nil, nil)
 
-	tryjobMonitor := New(mtjs, nil, nil, mg, siteURL, meb, isAuthoritative)
+	tryjobMonitor := New(mtjs, nil, mg, siteURL, meb, isAuthoritative)
 
 	err := tryjobMonitor.WriteGoldLinkAsComment(mockIssueID)
 	assert.Error(t, err)

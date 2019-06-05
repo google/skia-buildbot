@@ -11,12 +11,12 @@ encapsulated by the type Expectations. If a given (Grouping, Digest) doesn't hav
 it is assumed to be Untriaged.
 
 There is the idea of the MasterExpectations, which is the Expectations belonging to the
-git branch "master". Additionally, there can be smaller BranchExpectations that belong
+git branch "master". Additionally, there can be smaller IssueExpectations that belong
 to a ChangeList (CL) and stay separate from the MasterExpectations until the CL lands.
 
 We'd like to be able to do the following:
 
-  - Store and retrieve Expectations (both MasterExpectations and BranchExpectations).
+  - Store and retrieve Expectations (both MasterExpectations and IssueExpectations).
   - Update the Label for a (Grouping, Digest).
   - Keep an audit record of what user updated the Label for a given (Grouping, Digest).
   - Undo a previous change.
@@ -82,7 +82,7 @@ To create the MasterExpectations map (at startup), we simply query all `expectat
 Documents with Issue==0 and assemble them together. The implementation will have an Expectations
 map in RAM that acts as a write-through cache.
 
-BranchExpectations will have their changed Expectations (essentially their delta from the
+IssueExpectations will have their changed Expectations (essentially their delta from the
 MasterExpectations) stored in the `expectations` Collection with nonzero
 Issue fields. When the tryjob monitor notes that a CL has landed, it can make a transaction
 to change all the Issue fields of the associated Documents in the `expectations` Collection to 0.
