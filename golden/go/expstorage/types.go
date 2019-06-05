@@ -53,6 +53,12 @@ type ExpectationsStore interface {
 	// undone. The expectations returned are the expectations that were changed,
 	// with the newly reverted values.
 	UndoChange(ctx context.Context, changeID, userID string) (types.Expectations, error)
+
+	// Returns a new ExpectationStore that will deal with the Expectations for a branch
+	// with the given id. This branch id is the Gerrit id or GitHub id.
+	// Any expectations sent to this ExpectationStore will be kept separate from the
+	// master branch.
+	ForIssue(id int64) ExpectationsStore
 }
 
 // TriageDetails represents one changed digest and the label that was
@@ -79,6 +85,3 @@ type EventExpectationChange struct {
 	IssueID     int64
 	TestChanges types.Expectations
 }
-
-// IssueExpStoreFactory creates an ExpectationsStore instance for the given issue id.
-type IssueExpStoreFactory func(issueID int64) ExpectationsStore

@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/eventbus/mocks"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -28,8 +29,10 @@ func TestGetExpectations(t *testing.T) {
 	unittest.RequiresFirestoreEmulator(t)
 
 	c := getTestFirestoreInstance(t)
+	meb := &mocks.EventBus{}
+	defer meb.AssertExpectations(t)
 
-	f := New(c, MasterBranch, ReadWrite)
+	f := New(c, meb, ReadWrite)
 
 	// Brand new instance should have no expectations
 	e, err := f.Get()
@@ -73,7 +76,7 @@ func TestGetExpectations(t *testing.T) {
 
 	// Make sure that if we create a new view, we can read the results
 	// from the table to make the expectations
-	fr := New(c, MasterBranch, ReadOnly)
+	fr := New(c, meb, ReadOnly)
 	e, err = fr.Get()
 	assert.NoError(t, err)
 	assert.Equal(t, expected, e)
@@ -86,8 +89,10 @@ func TestGetExpectationsRace(t *testing.T) {
 	unittest.RequiresFirestoreEmulator(t)
 
 	c := getTestFirestoreInstance(t)
+	meb := &mocks.EventBus{}
+	defer meb.AssertExpectations(t)
 
-	f := New(c, MasterBranch, ReadWrite)
+	f := New(c, meb, ReadWrite)
 
 	type entry struct {
 		Grouping types.TestName
@@ -170,8 +175,10 @@ func TestGetExpectationsBig(t *testing.T) {
 	unittest.RequiresFirestoreEmulator(t)
 
 	c := getTestFirestoreInstance(t)
+	meb := &mocks.EventBus{}
+	defer meb.AssertExpectations(t)
 
-	f := New(c, MasterBranch, ReadWrite)
+	f := New(c, meb, ReadWrite)
 
 	// Write the expectations in two, non-overlapping blocks.
 	exp1 := makeBigExpectations(0, 16)
@@ -203,7 +210,7 @@ func TestGetExpectationsBig(t *testing.T) {
 
 	// Make sure that if we create a new view, we can read the results
 	// from the table to make the expectations
-	fr := New(c, MasterBranch, ReadOnly)
+	fr := New(c, meb, ReadOnly)
 	e, err = fr.Get()
 	assert.NoError(t, err)
 	assert.Equal(t, expected, e)
@@ -213,7 +220,10 @@ func TestGetExpectationsBig(t *testing.T) {
 func TestReadOnly(t *testing.T) {
 	unittest.SmallTest(t)
 
-	f := New(nil, MasterBranch, ReadOnly)
+	meb := &mocks.EventBus{}
+	defer meb.AssertExpectations(t)
+
+	f := New(nil, meb, ReadOnly)
 
 	err := f.AddChange(context.Background(), types.Expectations{
 		data.AlphaTest: {
@@ -230,9 +240,12 @@ func TestQueryLog(t *testing.T) {
 	unittest.RequiresFirestoreEmulator(t)
 
 	c := getTestFirestoreInstance(t)
-	f := New(c, MasterBranch, ReadWrite)
-	ctx := context.Background()
+	meb := &mocks.EventBus{}
+	defer meb.AssertExpectations(t)
 
+	f := New(c, meb, ReadWrite)
+
+	ctx := context.Background()
 	fillWith4Entries(t, f)
 
 	entries, n, err := f.QueryLog(ctx, 0, 100, false)
@@ -306,7 +319,10 @@ func TestQueryLogDetails(t *testing.T) {
 	unittest.RequiresFirestoreEmulator(t)
 
 	c := getTestFirestoreInstance(t)
-	f := New(c, MasterBranch, ReadWrite)
+	meb := &mocks.EventBus{}
+	defer meb.AssertExpectations(t)
+
+	f := New(c, meb, ReadWrite)
 	ctx := context.Background()
 
 	fillWith4Entries(t, f)
@@ -356,7 +372,10 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 	unittest.RequiresFirestoreEmulator(t)
 
 	c := getTestFirestoreInstance(t)
-	f := New(c, MasterBranch, ReadWrite)
+	meb := &mocks.EventBus{}
+	defer meb.AssertExpectations(t)
+
+	f := New(c, meb, ReadWrite)
 	ctx := context.Background()
 
 	fillWith4Entries(t, f)
@@ -401,7 +420,7 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 
 	// Make sure that if we create a new view, we can read the results
 	// from the table to make the expectations
-	fr := New(c, MasterBranch, ReadOnly)
+	fr := New(c, meb, ReadOnly)
 	exp, err = fr.Get()
 	assert.NoError(t, err)
 	assert.Equal(t, expected, exp)
@@ -413,7 +432,10 @@ func TestUndoChangeNoExist(t *testing.T) {
 	unittest.RequiresFirestoreEmulator(t)
 
 	c := getTestFirestoreInstance(t)
-	f := New(c, MasterBranch, ReadWrite)
+	meb := &mocks.EventBus{}
+	defer meb.AssertExpectations(t)
+
+	f := New(c, meb, ReadWrite)
 	ctx := context.Background()
 
 	_, err := f.UndoChange(ctx, "doesnotexist", "userTwo")

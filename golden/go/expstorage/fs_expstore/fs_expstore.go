@@ -11,6 +11,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"github.com/cenkalti/backoff"
+	"go.skia.org/infra/go/eventbus"
 	ifirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
@@ -99,14 +100,24 @@ type triageChanges struct {
 	LabelAfter  types.Label    `firestore:"after"`
 }
 
-// New returns a new Store using the given firestore client. The issue param is used
-// to indicate if this Store is configured to read/write the baselines for a given CL
-// or if it is on MasterBranch.
-func New(client *ifirestore.Client, issue int64, mode AccessMode) *Store {
+// New returns a new Store using the given firestore client. The Store will track
+// MasterBranch by default - see ForIssue().
+func New(client *ifirestore.Client, eventBus eventbus.EventBus, mode AccessMode) *Store {
 	return &Store{
 		client: client,
-		issue:  issue,
+		issue:  MasterBranch,
 		mode:   mode,
+	}
+}
+
+func (f *Store) ForIssue(id int64) expstorage.ExpectationsStore {
+	if id == MasterBranch {
+		return f
+	}
+	return &Store{
+		client: f.client,
+		issue:  id,
+		mode:   f.mode,
 	}
 }
 

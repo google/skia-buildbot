@@ -25,7 +25,6 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/bbstate"
 	"go.skia.org/infra/golden/go/config"
-	"go.skia.org/infra/golden/go/expstorage/ds_expstore"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	gstorage "google.golang.org/api/storage/v1"
@@ -95,14 +94,8 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 	// bot uploads results. Currently only applies to the Skia repo.
 	cfgFile := config.ExtraParams[CONFIG_JOB_CFG_FILE]
 
-	_, expStoreFactory, err := ds_expstore.New(ds.DS, eventBus)
-	if err != nil {
-		return nil, sklog.FmtErrorf("Unable to create cloud expectations store: %s", err)
-	}
-	sklog.Infof("Cloud Expectations Store created")
-
 	// Create the cloud tryjob store.
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, expStoreFactory, eventBus)
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, eventBus)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating tryjob store: %s", err)
 	}
