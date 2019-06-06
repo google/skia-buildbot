@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "64c50622_f33e33ec",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 7787
+      },
+      "writtenOn": "2019-06-06T18:05:24Z",
+      "side": 1,
+      "message": "It should work if you land only this file, right?",
+      "revId": "5313bcb4187f9b303d6a364ae51fbfcc3ec47d06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
