@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8e0c00fc_83f32c1c",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-06-06T15:35:46Z",
+      "side": 1,
+      "message": "or loads from metadata? Or is there someplace that sets GOOGLE_APPLICATION_CREDENTIALS for gold in prod?",
+      "range": {
+        "startLine": 371,
+        "startChar": 0,
+        "endLine": 371,
+        "endChar": 76
+      },
+      "revId": "763eb6f32b811dc556ebed862c27d689c6e73649",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
