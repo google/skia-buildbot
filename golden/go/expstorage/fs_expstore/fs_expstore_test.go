@@ -550,8 +550,8 @@ func TestEventBusUndo(t *testing.T) {
 // TestIssueExpectationsAddGet tests the separation of the MasterExpectations
 // and the IssueExpectations. It starts with a shared history, then
 // adds some expectations to both, before asserting that they are properly dealt
-// with. Specifically, the IssueExpectations should be applied as a delta to
-// the MasterExpectations.
+// with. Specifically, the IssueExpectations should be treated as a delta to
+// the MasterExpectations (but doesn't actually contain MasterExpectations).
 func TestIssueExpectationsAddGet(t *testing.T) {
 	unittest.ManualTest(t)
 	unittest.RequiresFirestoreEmulator(t)
@@ -568,16 +568,15 @@ func TestIssueExpectationsAddGet(t *testing.T) {
 
 	ib := mb.ForIssue(117) // arbitrary issue id
 
-	masterE, err := mb.Get()
-	assert.NoError(t, err)
+	// Check that it starts out blank.
 	issueE, err := ib.Get()
 	assert.NoError(t, err)
-	assert.Equal(t, masterE, issueE)
+	assert.Equal(t, types.Expectations{}, issueE)
 
 	// Add to the IssueExpectations
 	assert.NoError(t, ib.AddChange(ctx, types.Expectations{
 		data.AlphaTest: {
-			data.AlphaGood1Digest: types.POSITIVE, // overwrites previous
+			data.AlphaGood1Digest: types.POSITIVE,
 		},
 		data.BetaTest: {
 			data.BetaGood1Digest: types.POSITIVE,
@@ -591,7 +590,7 @@ func TestIssueExpectationsAddGet(t *testing.T) {
 		},
 	}, userOne))
 
-	masterE, err = mb.Get()
+	masterE, err := mb.Get()
 	assert.NoError(t, err)
 	issueE, err = ib.Get()
 	assert.NoError(t, err)
@@ -604,12 +603,10 @@ func TestIssueExpectationsAddGet(t *testing.T) {
 		},
 	}, masterE)
 
-	// Make sure the IssueExpectations are applied on top of the updated
-	// MasterExpectations.
+	// Make sure the IssueExpectations are separate from the MasterExpectations.
 	assert.Equal(t, types.Expectations{
 		data.AlphaTest: {
 			data.AlphaGood1Digest: types.POSITIVE,
-			data.AlphaBad1Digest:  types.NEGATIVE,
 		},
 		data.BetaTest: {
 			data.BetaGood1Digest: types.POSITIVE,
