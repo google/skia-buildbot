@@ -34,13 +34,10 @@ var (
 )
 
 const (
-	// Should be used to create the firestore.NewClient that is passed into New.
-	ExpectationStoreCollection = "expstore"
-
 	// These are the collections in Firestore.
-	expectationsCollection  = "expectations"
-	triageRecordsCollection = "triage_records"
-	triageChangesCollection = "triage_changes"
+	expectationsCollection  = "expstore_expectations"
+	triageRecordsCollection = "expstore_triage_records"
+	triageChangesCollection = "expstore_triage_changes"
 
 	// Columns in the Collections we query by.
 	committedCol = "committed"
@@ -152,23 +149,19 @@ func (f *Store) Get() (types.Expectations, error) {
 			f.cacheMutex.RLock()
 			defer f.cacheMutex.RUnlock()
 		}
-		return f.getMasterExpectations(true)
+		return f.getMasterExpectations()
 	}
 	defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "false"}).Stop()
 	return f.getIssueExpectations()
 }
 
 // getMasterExpectations returns an Expectations object which is safe to mutate
-// based on the current state. In cases where caching is fine (e.g. the MasterBranch).
-// If caching it is used, it is expected the caller has taken care of any mutex grabbing.
-func (f *Store) getMasterExpectations(useCache bool) (types.Expectations, error) {
-	if f.cache == nil || !useCache {
+// based on the current state. It is expected the caller has taken care of any mutex grabbing.
+func (f *Store) getMasterExpectations() (types.Expectations, error) {
+	if f.cache == nil {
 		c, err := f.loadExpectations(expstorage.MasterBranch)
 		if err != nil {
 			return nil, skerr.Fmt("could not load master expectations from firestore: %s", err)
-		}
-		if !useCache {
-			return c, nil
 		}
 		f.cache = c
 	}
@@ -176,20 +169,15 @@ func (f *Store) getMasterExpectations(useCache bool) (types.Expectations, error)
 }
 
 // getIssueExpectations returns an Expectations object which is safe to mutate
-// that has all issue-specific Expectations applied to the master Expectations.
+// that has all issue-specific Expectations.
 // It fetches everything from firestore every time, as there could be multiple
 // readers and writers and thus caching isn't safe.
 func (f *Store) getIssueExpectations() (types.Expectations, error) {
-	masterExp, err := f.getMasterExpectations(false)
-	if err != nil {
-		return nil, skerr.Fmt("could not load master expectations: %s", err)
-	}
 	issueExp, err := f.loadExpectations(f.issue)
 	if err != nil {
 		return nil, skerr.Fmt("could not load expectations delta for issue %d from firestore: %s", f.issue, err)
 	}
-	masterExp.MergeExpectations(issueExp)
-	return masterExp, nil
+	return issueExp, nil
 }
 
 // loadExpectations returns an Expectations object from the expectationsCollection,
@@ -374,7 +362,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 		rv = append(rv, expstorage.TriageLogEntry{
 			ID:          doc.Ref.ID,
 			Name:        tr.UserName,
-			TS:          tr.TS.Unix(),
+			TS:          tr.TS.Unix() * 1000,
 			ChangeCount: tr.Changes,
 		})
 		return nil
@@ -423,6 +411,9 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 // UndoChange implements the ExpectationsStore interface.
 func (f *Store) UndoChange(ctx context.Context, changeID, userID string) (types.Expectations, error) {
 	defer metrics2.FuncTimer().Stop()
+	if f.mode == ReadOnly {
+		return nil, ReadOnlyErr
+	}
 	// Verify the original change id exists.
 	dr := f.client.Collection(triageRecordsCollection).Doc(changeID)
 	doc, err := f.client.Get(dr, 3, maxOperationTime)

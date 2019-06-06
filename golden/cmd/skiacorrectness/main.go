@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/git/gitinfo"
@@ -43,7 +44,7 @@ import (
 	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
-	"go.skia.org/infra/golden/go/expstorage/ds_expstore"
+	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
@@ -88,6 +89,8 @@ func main() {
 		dsNamespace         = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
 		eventTopic          = flag.String("event_topic", "", "The pubsub topic to use for distributed events.")
 		forceLogin          = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
+		fsNamespace         = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
+		fsProjectID         = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
 		gerritURL           = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
 		gitBTInstanceID     = flag.String("git_bt_instance", "", "ID of the BigTable instance that contains Git metadata")
 		gitBTTableID        = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
@@ -212,12 +215,12 @@ func main() {
 
 		// Get the token source for the service account with access to GCS, the Monorail issue tracker,
 		// cloud pubsub, and datastore.
-		tokenSource, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+		deprecatedTS, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
 		if err != nil {
 			sklog.Fatalf("Failed to authenticate service account: %s", err)
 		}
 		// TODO(dogben): Ok to add request/dial timeouts?
-		client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithoutRetries().Client()
+		client := httputils.DefaultClientConfig().WithTokenSource(deprecatedTS).WithoutRetries().Client()
 
 		// serviceName uniquely identifies this host and app and is used as ID for other services.
 		nodeName, err := gevent.GetNodeName(appName, *local)
@@ -261,7 +264,7 @@ func main() {
 		// depending whether an PubSub topic was defined.
 		var evt eventbus.EventBus = nil
 		if *eventTopic != "" {
-			evt, err = gevent.New(*projectID, *eventTopic, nodeName, option.WithTokenSource(tokenSource))
+			evt, err = gevent.New(*projectID, *eventTopic, nodeName, option.WithTokenSource(deprecatedTS))
 			if err != nil {
 				sklog.Fatalf("Unable to create global event client. Got error: %s", err)
 			}
@@ -356,15 +359,24 @@ func main() {
 			sklog.Fatalf("Unable to create GCSClient: %s", err)
 		}
 
-		if err := ds.InitWithOpt(*projectID, *dsNamespace, option.WithTokenSource(tokenSource)); err != nil {
+		if err := ds.InitWithOpt(*projectID, *dsNamespace, option.WithTokenSource(deprecatedTS)); err != nil {
 			sklog.Fatalf("Unable to configure cloud datastore: %s", err)
 		}
 
-		// Set up the cloud expectations store
-		expStore, err := ds_expstore.DeprecatedNew(ds.DS, evt)
-		if err != nil {
-			sklog.Fatalf("Unable to configure cloud expectations store: %s", err)
+		if *fsNamespace == "" {
+			sklog.Fatalf("--fs_namespace must be set")
 		}
+
+		// Auth note: the underlying firestore.NewClient looks at the
+		// GOOGLE_APPLICATION_CREDENTIALS env variable, so we don't need to supply
+		// a token source.
+		fsClient, err := firestore.NewClient(context.Background(), *fsProjectID, "gold", *fsNamespace, nil)
+		if err != nil {
+			sklog.Fatalf("Unable to configure Firestore: %s", err)
+		}
+
+		// Set up the cloud expectations store
+		expStore := fs_expstore.New(fsClient, evt, fs_expstore.ReadWrite)
 
 		tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, evt)
 		if err != nil {

@@ -55,8 +55,9 @@ type ExpectationsStore interface {
 	UndoChange(ctx context.Context, changeID, userID string) (types.Expectations, error)
 
 	// Returns a new ExpectationStore that will deal with the Expectations for an issue
-	// with the given id (aka an IssueExpectations). Any expectations sent to the returned
-	// ExpectationStore will be kept separate from the master branch.
+	// with the given id (aka an IssueExpectations). Any Expectations added to the returned
+	// ExpectationStore will be kept separate from the master branch. Any Expectations
+	// returned should be treated as the delta between the MasterBranch and the given issue.
 	// This issue id is the Gerrit id or GitHub id.
 	ForIssue(id int64) ExpectationsStore
 }
@@ -73,7 +74,7 @@ type TriageDetail struct {
 type TriageLogEntry struct {
 	ID          string         `json:"id"`
 	Name        string         `json:"name"`
-	TS          int64          `json:"ts"`
+	TS          int64          `json:"ts"` // is milliseconds since the epoch
 	ChangeCount int            `json:"changeCount"`
 	Details     []TriageDetail `json:"details"`
 }

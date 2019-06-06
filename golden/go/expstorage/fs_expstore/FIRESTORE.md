@@ -13,6 +13,7 @@ it is assumed to be Untriaged.
 There is the idea of the MasterExpectations, which is the Expectations belonging to the
 git branch "master". Additionally, there can be smaller IssueExpectations that belong
 to a ChangeList (CL) and stay separate from the MasterExpectations until the CL lands.
+These IssueExpectations are the "delta" compared to the MasterExpectations.
 
 We'd like to be able to do the following:
 
