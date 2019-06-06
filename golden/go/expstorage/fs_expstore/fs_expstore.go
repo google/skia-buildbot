@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 	ifirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -34,13 +36,10 @@ var (
 )
 
 const (
-	// Should be used to create the firestore.NewClient that is passed into New.
-	ExpectationStoreCollection = "expstore"
-
 	// These are the collections in Firestore.
-	expectationsCollection  = "expectations"
-	triageRecordsCollection = "triage_records"
-	triageChangesCollection = "triage_changes"
+	expectationsCollection  = "expstore_expectations"
+	triageRecordsCollection = "expstore_triage_records"
+	triageChangesCollection = "expstore_triage_changes"
 
 	// Columns in the Collections we query by.
 	committedCol = "committed"
@@ -86,7 +85,9 @@ type expectationEntry struct {
 
 // ID returns the deterministic ID that lets us update existing entries.
 func (e *expectationEntry) ID() string {
-	return string(e.Grouping) + "|" + string(e.Digest)
+	s := string(e.Grouping) + "|" + string(e.Digest)
+	// firestore gets cranky if there are / in key names
+	return strings.Replace(s, "/", "-", -1)
 }
 
 // triageRecord is the document type stored in the triageRecordsCollection.
@@ -262,7 +263,7 @@ func (f *Store) AddChange(ctx context.Context, newExp types.Expectations, userID
 		if stop > len(entries) {
 			stop = len(entries)
 		}
-
+		sklog.Debugf("Storing new expectations [%d, %d]", i, stop)
 		for idx, entry := range entries[i:stop] {
 			e := f.client.Collection(expectationsCollection).Doc(entry.ID())
 			b.Set(e, entry)
@@ -365,7 +366,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 		rv = append(rv, expstorage.TriageLogEntry{
 			ID:          doc.Ref.ID,
 			Name:        tr.UserName,
-			TS:          tr.TS.Unix(),
+			TS:          tr.TS.Unix() * 1000,
 			ChangeCount: tr.Changes,
 		})
 		return nil
@@ -414,6 +415,9 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 // UndoChange implements the ExpectationsStore interface.
 func (f *Store) UndoChange(ctx context.Context, changeID, userID string) (types.Expectations, error) {
 	defer metrics2.FuncTimer().Stop()
+	if f.mode == ReadOnly {
+		return nil, ReadOnlyErr
+	}
 	// Verify the original change id exists.
 	dr := f.client.Collection(triageRecordsCollection).Doc(changeID)
 	doc, err := f.client.Get(dr, 3, maxOperationTime)
