@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore"
@@ -25,7 +26,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
-	"go.skia.org/infra/golden/go/expstorage/ds_expstore"
+	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tryjobstore"
@@ -39,6 +40,8 @@ func main() {
 	var (
 		baselineGSPath     = flag.String("baseline_gs_path", "", "GS path, where the baseline file are stored. This should match the same flag in skiacorrectness which writes the baselines. Format: <bucket>/<path>.")
 		dsNamespace        = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
+		fsNamespace        = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
+		fsProjectID        = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
 		gitBTInstanceID    = flag.String("git_bt_instance", "", "ID of the BigTable instance that contains Git metadata")
 		gitBTTableID       = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
 		gitRepoDir         = flag.String("git_repo_dir", "", "Directory location for the Skia repo.")
@@ -94,11 +97,13 @@ func main() {
 		sklog.Fatalf("Unable to configure cloud datastore: %s", err)
 	}
 
-	// Set up the cloud expectations store
-	expStore, err := ds_expstore.DeprecatedNew(ds.DS, evt)
+	fsClient, err := firestore.NewClient(context.Background(), *fsProjectID, "gold", *fsNamespace, tokenSource)
 	if err != nil {
-		sklog.Fatalf("Unable to configure cloud expectations store: %s", err)
+		sklog.Fatalf("Unable to configure Firestore: %s", err)
 	}
+
+	// Set up the cloud expectations store
+	expStore := fs_expstore.New(fsClient, evt, fs_expstore.ReadOnly)
 
 	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, evt)
 	if err != nil {
