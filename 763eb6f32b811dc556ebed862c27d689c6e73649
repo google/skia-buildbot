@@ -22,6 +22,30 @@
       "revId": "763eb6f32b811dc556ebed862c27d689c6e73649",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cdc163fd_7ba4fbcf",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-06T16:05:42Z",
+      "side": 1,
+      "message": "https://skia.googlesource.com/skia-public-config/+/refs/heads/master/gold-flutter-skiacorrectness.yaml#87\n\nYou bring up a good point about metadata for the Skia gold server that still isn\u0027t on k8s",
+      "parentUuid": "8e0c00fc_83f32c1c",
+      "range": {
+        "startLine": 371,
+        "startChar": 0,
+        "endLine": 371,
+        "endChar": 76
+      },
+      "revId": "763eb6f32b811dc556ebed862c27d689c6e73649",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
