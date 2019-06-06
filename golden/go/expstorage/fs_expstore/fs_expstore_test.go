@@ -241,33 +241,34 @@ func TestQueryLog(t *testing.T) {
 	assert.Equal(t, 4, n) // 4 operations
 
 	now := time.Now()
+	nowMS := now.Unix() * 1000
 	normalizeEntries(t, now, entries)
 	assert.Equal(t, []expstorage.TriageLogEntry{
 		{
 			ID:          "was_random_0",
 			Name:        userTwo,
-			TS:          now.Unix(),
+			TS:          nowMS,
 			ChangeCount: 2,
 			Details:     nil,
 		},
 		{
 			ID:          "was_random_1",
 			Name:        userOne,
-			TS:          now.Unix(),
+			TS:          nowMS,
 			ChangeCount: 1,
 			Details:     nil,
 		},
 		{
 			ID:          "was_random_2",
 			Name:        userTwo,
-			TS:          now.Unix(),
+			TS:          nowMS,
 			ChangeCount: 1,
 			Details:     nil,
 		},
 		{
 			ID:          "was_random_3",
 			Name:        userOne,
-			TS:          now.Unix(),
+			TS:          nowMS,
 			ChangeCount: 1,
 			Details:     nil,
 		},
@@ -281,14 +282,14 @@ func TestQueryLog(t *testing.T) {
 		{
 			ID:          "was_random_0",
 			Name:        userOne,
-			TS:          now.Unix(),
+			TS:          nowMS,
 			ChangeCount: 1,
 			Details:     nil,
 		},
 		{
 			ID:          "was_random_1",
 			Name:        userTwo,
-			TS:          now.Unix(),
+			TS:          nowMS,
 			ChangeCount: 1,
 			Details:     nil,
 		},
@@ -647,11 +648,12 @@ func TestIssueExpectationsQueryLog(t *testing.T) {
 	assert.Equal(t, 1, n)
 
 	now := time.Now()
+	nowMS := now.Unix() * 1000
 	normalizeEntries(t, now, entries)
 	assert.Equal(t, expstorage.TriageLogEntry{
 		ID:          "was_random_0",
 		Name:        userTwo,
-		TS:          now.Unix(),
+		TS:          nowMS,
 		ChangeCount: 1,
 		Details: []expstorage.TriageDetail{
 			{
@@ -674,7 +676,7 @@ func TestIssueExpectationsQueryLog(t *testing.T) {
 	assert.Equal(t, expstorage.TriageLogEntry{
 		ID:          "was_random_0",
 		Name:        userOne,
-		TS:          now.Unix(),
+		TS:          nowMS,
 		ChangeCount: 1,
 		Details: []expstorage.TriageDetail{
 			{
@@ -721,10 +723,10 @@ func normalizeEntries(t *testing.T, now time.Time, entries []expstorage.TriageLo
 	for i, te := range entries {
 		assert.NotEqual(t, "", te.ID)
 		te.ID = "was_random_" + strconv.Itoa(i)
-		ts := time.Unix(te.TS, 0)
+		ts := time.Unix(te.TS/1000, 0)
 		assert.False(t, ts.IsZero())
 		assert.True(t, now.After(ts))
-		te.TS = now.Unix()
+		te.TS = now.Unix() * 1000
 		entries[i] = te
 	}
 }
@@ -733,7 +735,7 @@ func normalizeEntries(t *testing.T, now time.Time, entries []expstorage.TriageLo
 // by appending a random nonce, we can be assured the collection we get is empty.
 func getTestFirestoreInstance(t *testing.T) *firestore.Client {
 	randInstance := uuid.New().String()
-	c, err := firestore.NewClient(context.Background(), "should-use-emulator", "gold-test", ExpectationStoreCollection+randInstance, nil)
+	c, err := firestore.NewClient(context.Background(), "emulated-project", "gold", "test-"+randInstance, nil)
 	assert.NoError(t, err)
 	return c
 }
