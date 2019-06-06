@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -583,4 +584,13 @@ func (c *Client) RecursiveDelete(ref *firestore.DocumentRef, attempts int, timeo
 		_, err := c.Delete(ref, attempts, timeout)
 		return err
 	})
+}
+
+func EnsureNotEmulator() {
+	s := os.Getenv("FIRESTORE_EMULATOR_HOST")
+	if s != "" {
+		panic(`Firestore Emulator detected. Be sure to unset the following environment variables:
+FIRESTORE_EMULATOR_HOST
+`)
+	}
 }
