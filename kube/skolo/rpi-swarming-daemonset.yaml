@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: rpi-swarming-client
+spec:
+  selector:
+    matchLabels:
+      name: rpi-swarming-client
+  template:
+    metadata:
+      labels:
+        name: rpi-swarming-client
+    spec:
+      containers:
+        - name: rpi-swarming-client
+          image: gcr.io/skia-public/rpi-swarming-client:2019-06-06T17_28_35Z-jcgregorio-a10610c-dirty
+          env:
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - SYS_ADMIN
+          volumeMounts:
+          - mountPath: /b
+            name: local-swarming-workingset
+          - mountPath: /dev/ttyAMA0
+            name: usb
+      volumes:
+      - name: local-swarming-workingset
+        hostPath:
+          # directory location on host
+          path: /var/swarming
+          # this field is optional
+          type: Directory
+      - name: usb
+        hostPath:
+          path: /dev/ttyAMA0
