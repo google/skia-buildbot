@@ -436,6 +436,8 @@ func getCommitIDs(indexCommits []*vcsinfo.IndexCommit) []*tracedb.CommitID {
 
 // checkCommitableIssues checks all commits of the current tile whether
 // the associated expectations have been added to the baseline of the master.
+// TODO(kjlubick): This should not be here, but likely in tryjobMonitor, named
+// something like "CatchUpIssues" or something.
 func (s *Storage) checkCommitableIssues(cpxTile types.ComplexTile) {
 	go func() {
 		var egroup errgroup.Group
@@ -443,6 +445,8 @@ func (s *Storage) checkCommitableIssues(cpxTile types.ComplexTile) {
 		for _, commit := range cpxTile.AllCommits() {
 			func(commit *tiling.Commit) {
 				egroup.Go(func() error {
+					// TODO(kjlubick): We probably don't need to run this individually, we could
+					// use DetailsMulti instead.
 					longCommit, err := s.VCS.Details(context.Background(), commit.Hash, false)
 					if err != nil {
 						return sklog.FmtErrorf("Error retrieving details for commit %s. Got error: %s", commit.Hash, err)
