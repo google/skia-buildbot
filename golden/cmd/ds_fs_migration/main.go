@@ -1,0 +1,91 @@
+// This executable will transfer a datastore-backed ExpectationsStore to a
+// firestore-backed one.
+// Example usage:
+// ds_fs_migration -alsologtostderr -fs_namespace flutter -ds_namespace gold-flutter \
+// -service_account_file /path/to/service-account.json -ds_project_id skia-public
+
+package main
+
+import (
+	"context"
+	"flag"
+	"fmt"
+
+	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/expstorage/ds_expstore"
+	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
+	"google.golang.org/api/option"
+	gstorage "google.golang.org/api/storage/v1"
+)
+
+var (
+	dsNamespace        = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
+	dsProjectID        = flag.String("ds_project_id", common.PROJECT_ID, "GCP project ID.")
+	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
+
+	fsNamespace = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
+	fsProjectID = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
+)
+
+const (
+	userID = "gold-migrator"
+)
+
+func main() {
+	flag.Parse()
+
+	if *fsNamespace == "" || *dsNamespace == "" {
+		sklog.Fatal("Must provide --fs_namespace and --ds_namespace")
+	}
+
+	fes := initFirestore()
+	des := initOldDatastore()
+
+	sklog.Infof("Both stores loaded")
+
+	exp, err := des.Get()
+	fmt.Printf("exp: %#v, err: %v\n", exp, err)
+
+	fes.AddChange(context.Background(), exp, userID)
+}
+
+func initFirestore() expstorage.ExpectationsStore {
+	firestore.EnsureNotEmulator()
+	ts, err := auth.NewDefaultTokenSource( /*local=*/ true)
+	if err != nil {
+		sklog.Fatalf("Could not get token source: %s", err)
+	}
+
+	fsClient, err := firestore.NewClient(context.Background(), *fsProjectID, "gold", *fsNamespace, ts)
+	if err != nil {
+		sklog.Fatalf("Unable to configure Firestore: %s", err)
+	}
+
+	return fs_expstore.New(fsClient, nil, fs_expstore.ReadWrite)
+}
+
+func initOldDatastore() expstorage.ExpectationsStore {
+	ds.EnsureNotEmulator()
+	// Get the token source for the service account with access to GCS, the Monorail issue tracker,
+	// cloud pubsub, and datastore.
+	tokenSource, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	if err != nil {
+		sklog.Fatalf("Failed to authenticate service account: %s", err)
+	}
+
+	if err := ds.InitWithOpt(*dsProjectID, *dsNamespace, option.WithTokenSource(tokenSource)); err != nil {
+		sklog.Fatalf("Unable to configure cloud datastore: %s", err)
+	}
+
+	// Set up the cloud expectations store
+	expStore, err := ds_expstore.DeprecatedNew(ds.DS, nil)
+	if err != nil {
+		sklog.Fatalf("Unable to configure cloud expectations store: %s", err)
+	}
+	return expStore
+}
