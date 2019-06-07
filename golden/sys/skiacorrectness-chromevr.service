@@ -15,6 +15,8 @@ ExecStart=/usr/local/bin/skiacorrectness-chromevr  \
     --default_corpus=chromevr \
     --ds_namespace=gold-chromevr \
     --event_topic=gold-chromevr-eventbus \
+    --fs_namespace chromevr \
+    --fs_legacy_auth=true \
     --force_login=false \
     --gerrit_url=https://chromium-review.googlesource.com \
     --git_repo_dir=${DATA_DIR}/gold/chromevr_repo \
