@@ -43,30 +43,31 @@ func ReloadTemplates(resourcesDir string) {
 type DatastoreTask struct {
 	task_common.CommonCols
 
-	Benchmark            string
-	Platform             string
-	RunOnGCE             bool
-	PageSets             string
-	IsTestPageSet        bool
-	RepeatRuns           int64
-	RunInParallel        bool
-	BenchmarkArgs        string
-	BrowserArgsNoPatch   string
-	BrowserArgsWithPatch string
-	Description          string
-	CustomWebpagesGSPath string
-	ChromiumPatchGSPath  string
-	BlinkPatchGSPath     string
-	SkiaPatchGSPath      string
-	CatapultPatchGSPath  string
-	BenchmarkPatchGSPath string
-	V8PatchGSPath        string
-	Results              string
-	NoPatchRawOutput     string
-	WithPatchRawOutput   string
-	CCList               []string
-	TaskPriority         int
-	GroupName            string
+	Benchmark                    string
+	Platform                     string
+	RunOnGCE                     bool
+	PageSets                     string
+	IsTestPageSet                bool
+	RepeatRuns                   int64
+	RunInParallel                bool
+	BenchmarkArgs                string
+	BrowserArgsNoPatch           string
+	BrowserArgsWithPatch         string
+	Description                  string
+	CustomWebpagesGSPath         string
+	ChromiumPatchGSPath          string
+	BlinkPatchGSPath             string
+	SkiaPatchGSPath              string
+	CatapultPatchGSPath          string
+	BenchmarkPatchGSPath         string
+	ChromiumPatchBaseBuildGSPath string
+	V8PatchGSPath                string
+	Results                      string
+	NoPatchRawOutput             string
+	WithPatchRawOutput           string
+	CCList                       []string
+	TaskPriority                 int
+	GroupName                    string
 }
 
 func (task DatastoreTask) GetTaskName() string {
@@ -120,6 +121,10 @@ func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, er
 	taskVars.V8Patch, err = ctutil.GetPatchFromStorage(task.V8PatchGSPath)
 	if err != nil {
 		return nil, fmt.Errorf("Could not read from %s: %s", task.V8PatchGSPath, err)
+	}
+	taskVars.ChromiumPatchBaseBuild, err = ctutil.GetPatchFromStorage(task.ChromiumPatchBaseBuildGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.ChromiumPatchBaseBuildGSPath, err)
 	}
 
 	return taskVars, nil
@@ -189,12 +194,13 @@ type AddTaskVars struct {
 	TaskPriority         string   `json:"task_priority"`
 	GroupName            string   `json:"group_name"`
 
-	ChromiumPatch  string `json:"chromium_patch"`
-	BlinkPatch     string `json:"blink_patch"`
-	SkiaPatch      string `json:"skia_patch"`
-	CatapultPatch  string `json:"catapult_patch"`
-	BenchmarkPatch string `json:"benchmark_patch"`
-	V8Patch        string `json:"v8_patch"`
+	ChromiumPatch          string `json:"chromium_patch"`
+	BlinkPatch             string `json:"blink_patch"`
+	SkiaPatch              string `json:"skia_patch"`
+	CatapultPatch          string `json:"catapult_patch"`
+	BenchmarkPatch         string `json:"benchmark_patch"`
+	V8Patch                string `json:"v8_patch"`
+	ChromiumPatchBaseBuild string `json:"chromium_patch_base_build"`
 }
 
 func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
@@ -248,6 +254,10 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 	if err != nil {
 		return nil, fmt.Errorf("Could not save v8 patch to storage: %s", err)
 	}
+	chromiumPatchBaseBuildGSPath, err := ctutil.SavePatchToStorage(task.ChromiumPatchBaseBuild)
+	if err != nil {
+		return nil, fmt.Errorf("Could not save chromium patch for base build to storage: %s", err)
+	}
 
 	t := &DatastoreTask{
 		Benchmark:            task.Benchmark,
@@ -261,13 +271,14 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		CCList:               task.CCList,
 		GroupName:            task.GroupName,
 
-		CustomWebpagesGSPath: customWebpagesGSPath,
-		ChromiumPatchGSPath:  chromiumPatchGSPath,
-		BlinkPatchGSPath:     blinkPatchGSPath,
-		SkiaPatchGSPath:      skiaPatchGSPath,
-		CatapultPatchGSPath:  catapultPatchGSPath,
-		BenchmarkPatchGSPath: benchmarkPatchGSPath,
-		V8PatchGSPath:        v8PatchGSPath,
+		CustomWebpagesGSPath:         customWebpagesGSPath,
+		ChromiumPatchGSPath:          chromiumPatchGSPath,
+		BlinkPatchGSPath:             blinkPatchGSPath,
+		SkiaPatchGSPath:              skiaPatchGSPath,
+		CatapultPatchGSPath:          catapultPatchGSPath,
+		BenchmarkPatchGSPath:         benchmarkPatchGSPath,
+		V8PatchGSPath:                v8PatchGSPath,
+		ChromiumPatchBaseBuildGSPath: chromiumPatchBaseBuildGSPath,
 	}
 	runOnGCE, err := strconv.ParseBool(task.RunOnGCE)
 	if err != nil {
