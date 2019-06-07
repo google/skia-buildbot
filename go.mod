@@ -14,7 +14,7 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/VividCortex/godaemon v0.0.0-20150910212227-3d9f6e0b234f
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.19.44 // indirect
+	github.com/aws/aws-sdk-go v1.19.45 // indirect
 	github.com/boltdb/bolt v1.3.1
 	github.com/cenkalti/backoff v2.1.1+incompatible
 	github.com/codegangsta/negroni v1.0.0 // indirect
@@ -26,7 +26,7 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/elazarl/goproxy v0.0.0-20190421051319-9d40249d3c2f // indirect
 	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
-	github.com/evanphx/json-patch v4.2.0+incompatible // indirect
+	github.com/evanphx/json-patch v4.4.0+incompatible // indirect
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
 	github.com/fortytw2/leaktest v1.3.0 // indirect
@@ -109,21 +109,20 @@ require (
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
-	go.chromium.org/luci v0.0.0-20190606012421-a8f08c689aeb
+	go.chromium.org/luci v0.0.0-20190606220332-0df5e2710c9a
 	go.opencensus.io v0.22.0
 	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 	golang.org/x/exp v0.0.0-20190510132918-efd6b22b2522 // indirect
 	golang.org/x/image v0.0.0-20190523035834-f03afa92d3ff // indirect
-	golang.org/x/lint v0.0.0-20190409202823-959b441ac422 // indirect
 	golang.org/x/mobile v0.0.0-20190509164839-32b2708ab171 // indirect
 	golang.org/x/mod v0.1.0 // indirect
-	golang.org/x/net v0.0.0-20190603091049-60506f45cf65
+	golang.org/x/net v0.0.0-20190606173856-1492cefac77f
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	golang.org/x/sys v0.0.0-20190602015325-4c4f7f33c9ed // indirect
-	golang.org/x/tools v0.0.0-20190606044431-596a85b56b49 // indirect
-	google.golang.org/api v0.5.0
-	google.golang.org/appengine v1.6.0 // indirect
+	golang.org/x/sys v0.0.0-20190606203320-7fc4e5ec1444 // indirect
+	golang.org/x/tools v0.0.0-20190606174628-0139d5756a7d // indirect
+	google.golang.org/api v0.6.0
+	google.golang.org/appengine v1.6.1 // indirect
 	google.golang.org/genproto v0.0.0-20190605220351-eb0b1bdb6ae6
 	google.golang.org/grpc v1.21.1
 	gopkg.in/fsnotify.v1 v1.4.7
@@ -132,9 +131,9 @@ require (
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/unrolled/secure.v1 v1.0.0
 	gopkg.in/yaml.v2 v2.2.2
-	honnef.co/go/tools v0.0.0-20190605142022-0a11fc526260 // indirect
+	honnef.co/go/tools v0.0.0-20190607002114-91b34a6dad6c // indirect
 	k8s.io/api v0.0.0-20190602205700-9b8cae951d65 // indirect
-	k8s.io/apimachinery v0.0.0-20190602183612-63a6072eb563
+	k8s.io/apimachinery v0.0.0-20190606174813-5a6182816fbf
 	k8s.io/client-go v0.0.0-20190425172711-65184652c889
 	k8s.io/gengo v0.0.0-20190327210449-e17681d19d3a // indirect
 	k8s.io/kube-openapi v0.0.0-20190603182131-db7b694dc208 // indirect
