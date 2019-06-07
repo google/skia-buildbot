@@ -202,11 +202,11 @@ func (c *cloudTryjobStore) CommitIssueExp(issueID int64, commitFn func() error) 
 		key := c.getIssueKey(issueID)
 		ok, err := c.getEntity(key, issue, nil)
 		if err != nil {
-			return sklog.FmtErrorf("Error in getEntity for %s: %s", key, err)
+			return skerr.Fmt("Error in getEntity for %s: %s", key, err)
 		}
 
 		if !ok {
-			return sklog.FmtErrorf("Unable to find issue %d.", issueID)
+			return skerr.Fmt("Unable to find issue %d.", issueID)
 		}
 
 		// If this is already committed then we are done.
@@ -216,6 +216,7 @@ func (c *cloudTryjobStore) CommitIssueExp(issueID int64, commitFn func() error) 
 
 		// Execute the commit function to commit the actual expectations.
 		if err := commitFn(); err != nil {
+			sklog.Warningf("Ran into error committing the expectations: %s", err)
 			return err
 		}
 

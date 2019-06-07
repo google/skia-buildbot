@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -554,7 +555,7 @@ func (c *Client) recurseDocs(ref *firestore.DocumentRef, attempts int, timeout t
 }
 
 // GetAllDescendantDocuments returns a slice of DocumentRefs for every
-// descendent of the given Document. This includes missing documents, ie. those
+// descendant of the given Document. This includes missing documents, ie. those
 // which do not exist but have sub-documents. This function does nothing to
 // account for documents which may be added or modified while it is running.
 func (c *Client) GetAllDescendantDocuments(ref *firestore.DocumentRef, attempts int, timeout time.Duration) ([]*firestore.DocumentRef, error) {
@@ -583,4 +584,17 @@ func (c *Client) RecursiveDelete(ref *firestore.DocumentRef, attempts int, timeo
 		_, err := c.Delete(ref, attempts, timeout)
 		return err
 	})
+}
+
+// EnsureNotEmulator will panic if it detects the Firestore Emulator is configured.
+// Trying to authenticate to the emulator results in errors like:
+// "Failed to initialize Cloud Datastore: dialing: options.WithoutAuthentication
+// is incompatible with any option that provides credentials"
+func EnsureNotEmulator() {
+	s := os.Getenv("FIRESTORE_EMULATOR_HOST")
+	if s != "" {
+		panic(`Firestore Emulator detected. Be sure to unset the following environment variables:
+FIRESTORE_EMULATOR_HOST
+`)
+	}
 }

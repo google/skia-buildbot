@@ -4,10 +4,12 @@ package ds
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/sync/errgroup"
@@ -163,14 +165,14 @@ var (
 // opt     - Options to pass to the client.
 func InitWithOpt(project string, ns string, opts ...option.ClientOption) error {
 	if ns == "" {
-		return sklog.FmtErrorf("Datastore namespace cannot be empty.")
+		return skerr.Fmt("Datastore namespace cannot be empty.")
 	}
 
 	Namespace = ns
 	var err error
 	DS, err = datastore.NewClient(context.Background(), project, opts...)
 	if err != nil {
-		return fmt.Errorf("Failed to initialize Cloud Datastore: %s", err)
+		return skerr.Fmt("Failed to initialize Cloud Datastore: %s", err)
 	}
 	return nil
 }
@@ -420,4 +422,16 @@ func (k *keySliceIterator) next() ([]*datastore.Key, bool, error) {
 
 	// We are not officially done while we have results to return.
 	return retKeys, !(len(retKeys) > 0), nil
+}
+
+// EnsureNotEmulator will panic if it detects the Datastore Emulator is configured.
+func EnsureNotEmulator() {
+	s := os.Getenv("DATASTORE_EMULATOR_HOST")
+	if s != "" {
+		panic(`Datastore Emulator detected. Be sure to unset the following environment variables:
+DATASTORE_EMULATOR_HOST
+DATASTORE_EMULATOR_HOST_PATH
+DATASTORE_HOST
+`)
+	}
 }

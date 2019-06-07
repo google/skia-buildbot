@@ -50,7 +50,7 @@ func (t *GerritTryjobMonitor) ForceRefresh(issueID int64) error {
 	// Load the issue from the database
 	issue, err := t.tryjobStore.GetIssue(issueID, false)
 	if err != nil {
-		return sklog.FmtErrorf("Error loading issue %d: %s", issueID, err)
+		return skerr.Fmt("Error loading issue %d: %s", issueID, err)
 	}
 
 	if !issue.Committed {
@@ -77,7 +77,7 @@ func (t *GerritTryjobMonitor) ForceRefresh(issueID int64) error {
 func (t *GerritTryjobMonitor) WriteGoldLinkAsComment(issueID int64) error {
 	// Make sure this instance is allowed to write the Gerrit comment.
 	if !t.isAuthoritative {
-		sklog.Info("Not writing gold link because configured not to.")
+		sklog.Infof("Not writing gold link for issue %d because configured not to.", issueID)
 		return nil
 	}
 
@@ -87,12 +87,12 @@ func (t *GerritTryjobMonitor) WriteGoldLinkAsComment(issueID int64) error {
 	// Load the issue from the database
 	issue, err := t.tryjobStore.GetIssue(issueID, false)
 	if err != nil {
-		return sklog.FmtErrorf("Error loading issue %d: %s", issueID, err)
+		return skerr.Fmt("Error loading issue %d: %s", issueID, err)
 	}
 
 	// If the issue doesn't exist we return an error
 	if issue == nil {
-		return sklog.FmtErrorf("Issue %d does not exist", issueID)
+		return skerr.Fmt("Issue %d does not exist", issueID)
 	}
 
 	// If it's already been added we are done
@@ -102,11 +102,11 @@ func (t *GerritTryjobMonitor) WriteGoldLinkAsComment(issueID int64) error {
 
 	gerritIssue, err := t.gerritAPI.GetIssueProperties(context.TODO(), issueID)
 	if err != nil {
-		return sklog.FmtErrorf("Error retrieving Gerrit issue %d: %s", issueID, err)
+		return skerr.Fmt("Error retrieving Gerrit issue %d: %s", issueID, err)
 	}
 
 	if err := t.gerritAPI.AddComment(context.TODO(), gerritIssue, t.getGerritMsg(issueID)); err != nil {
-		return sklog.FmtErrorf("Error adding Gerrit comment to issue %d: %s", issueID, err)
+		return skerr.Fmt("Error adding Gerrit comment to issue %d: %s", issueID, err)
 	}
 
 	// Write the updated issue to the datastore.
@@ -119,11 +119,11 @@ func (t *GerritTryjobMonitor) WriteGoldLinkAsComment(issueID int64) error {
 
 // CommitIssueBaseline commits the expectations for the given issue to the master baseline.
 func (t *GerritTryjobMonitor) CommitIssueBaseline(issueID int64, user string) error {
-	// Get the issue expecations.
+	// Get the issue expectations.
 	issueExpStore := t.expStore.ForIssue(issueID)
 	issueChanges, err := issueExpStore.Get()
 	if err != nil {
-		return sklog.FmtErrorf("Unable to retrieve expecations for issue %d: %s", issueID, err)
+		return skerr.Fmt("Unable to retrieve expectations for issue %d: %s", issueID, err)
 	}
 	if len(issueChanges) == 0 {
 		return nil

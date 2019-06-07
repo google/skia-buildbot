@@ -74,7 +74,7 @@ type TriageDetail struct {
 type TriageLogEntry struct {
 	ID          string         `json:"id"`
 	Name        string         `json:"name"`
-	TS          int64          `json:"ts"`
+	TS          int64          `json:"ts"` // is milliseconds since the epoch
 	ChangeCount int            `json:"changeCount"`
 	Details     []TriageDetail `json:"details"`
 }

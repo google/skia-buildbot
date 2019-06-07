@@ -6,7 +6,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -16,6 +18,7 @@ import (
 	ifirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -34,13 +37,10 @@ var (
 )
 
 const (
-	// Should be used to create the firestore.NewClient that is passed into New.
-	ExpectationStoreCollection = "expstore"
-
 	// These are the collections in Firestore.
-	expectationsCollection  = "expectations"
-	triageRecordsCollection = "triage_records"
-	triageChangesCollection = "triage_changes"
+	expectationsCollection  = "expstore_expectations"
+	triageRecordsCollection = "expstore_triage_records"
+	triageChangesCollection = "expstore_triage_changes"
 
 	// Columns in the Collections we query by.
 	committedCol = "committed"
@@ -51,6 +51,19 @@ const (
 	tsCol        = "ts"
 
 	maxOperationTime = 2 * time.Minute
+	// loadShards was determined empirically on a data set of about 550k expectationEntry
+	// 1 shard -> ???
+	// 10 shards -> 215s
+	// 100 shards -> 21s
+	// 256 shards -> 10s
+	// 512 shards -> 9s
+	// 4096 shards -> 9s
+	masterShards = 512
+
+	// There will not be very many shards on issues, relative to the MasterBranch, so
+	// we can get away with many fewer shards to avoid the overhead of so many
+	// simultaneous queries.
+	issueShards = 4
 )
 
 // Store implements expstorage.ExpectationsStore backed by
@@ -86,7 +99,9 @@ type expectationEntry struct {
 
 // ID returns the deterministic ID that lets us update existing entries.
 func (e *expectationEntry) ID() string {
-	return string(e.Grouping) + "|" + string(e.Digest)
+	s := string(e.Grouping) + "|" + string(e.Digest)
+	// firestore gets cranky if there are / in key names
+	return strings.Replace(s, "/", "-", -1)
 }
 
 // triageRecord is the document type stored in the triageRecordsCollection.
@@ -109,8 +124,9 @@ type triageChanges struct {
 
 // New returns a new Store using the given firestore client. The Store will track
 // MasterBranch- see ForIssue() for getting Stores that track ChangeLists.
-func New(client *ifirestore.Client, eventBus eventbus.EventBus, mode AccessMode) *Store {
-	return &Store{
+func New(client *ifirestore.Client, eventBus eventbus.EventBus, mode AccessMode) (*Store, error) {
+	defer metrics2.FuncTimer().Stop()
+	f := &Store{
 		client:         client,
 		eventBus:       eventBus,
 		eventExpChange: expstorage.EV_EXPSTORAGE_CHANGED,
@@ -118,16 +134,19 @@ func New(client *ifirestore.Client, eventBus eventbus.EventBus, mode AccessMode)
 		issue:          expstorage.MasterBranch,
 		mode:           mode,
 	}
+	// pre-load the cache. This simplifies the mutex handling in Get().
+	_, err := f.getMasterExpectations()
+	if err != nil {
+		return nil, skerr.Fmt("could not perform initial get")
+	}
+	return f, nil
 }
 
 // ForIssue implements the ExpectationsStore interface.
 func (f *Store) ForIssue(id int64) expstorage.ExpectationsStore {
 	if id == expstorage.MasterBranch {
-		// This should likely never happen, but if it does, lock the master branch
-		// down to read-only to prevent multiple threads writing to it at once.
-		// One of the core assumptions of this implementation is that there is only
-		// ever one process writing to the master branch.
-		return New(f.client, f.eventBus, ReadOnly)
+		// It is invalid to re-request the master branch
+		return nil
 	}
 	return &Store{
 		client:         f.client,
@@ -143,15 +162,8 @@ func (f *Store) ForIssue(id int64) expstorage.ExpectationsStore {
 func (f *Store) Get() (types.Expectations, error) {
 	if f.issue == expstorage.MasterBranch {
 		defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "true"}).Stop()
-		// On the initial load, we need to make sure we have write-access
-		// to the mutex. Otherwise, read access is sufficient.
-		if f.cache == nil {
-			f.cacheMutex.Lock()
-			defer f.cacheMutex.Unlock()
-		} else {
-			f.cacheMutex.RLock()
-			defer f.cacheMutex.RUnlock()
-		}
+		f.cacheMutex.RLock()
+		defer f.cacheMutex.RUnlock()
 		return f.getMasterExpectations()
 	}
 	defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "false"}).Stop()
@@ -162,7 +174,7 @@ func (f *Store) Get() (types.Expectations, error) {
 // based on the current state. It is expected the caller has taken care of any mutex grabbing.
 func (f *Store) getMasterExpectations() (types.Expectations, error) {
 	if f.cache == nil {
-		c, err := f.loadExpectations(expstorage.MasterBranch)
+		c, err := f.loadExpectationsSharded(expstorage.MasterBranch, masterShards)
 		if err != nil {
 			return nil, skerr.Fmt("could not load master expectations from firestore: %s", err)
 		}
@@ -176,21 +188,24 @@ func (f *Store) getMasterExpectations() (types.Expectations, error) {
 // It fetches everything from firestore every time, as there could be multiple
 // readers and writers and thus caching isn't safe.
 func (f *Store) getIssueExpectations() (types.Expectations, error) {
-	issueExp, err := f.loadExpectations(f.issue)
+	issueExp, err := f.loadExpectationsSharded(f.issue, issueShards)
 	if err != nil {
 		return nil, skerr.Fmt("could not load expectations delta for issue %d from firestore: %s", f.issue, err)
 	}
 	return issueExp, nil
 }
 
-// loadExpectations returns an Expectations object from the expectationsCollection,
+// loadExpectationsSharded returns an Expectations object from the expectationsCollection,
 // with all Expectations belonging to the passed in issue (can be MasterBranch).
-func (f *Store) loadExpectations(issue int64) (types.Expectations, error) {
+func (f *Store) loadExpectationsSharded(issue int64, shards int) (types.Expectations, error) {
 	defer metrics2.FuncTimer().Stop()
-	e := types.Expectations{}
 	q := f.client.Collection(expectationsCollection).Where(issueCol, "==", issue)
+
+	es := make([]types.Expectations, shards)
+	queries := shardQueryOnDigest(q, shards)
+
 	maxRetries := 3
-	err := f.client.IterDocs("loadExpectations", strconv.FormatInt(issue, 10), q, maxRetries, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+	err := f.client.IterDocsInParallel("loadExpectations", strconv.FormatInt(issue, 10), queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
@@ -199,10 +214,43 @@ func (f *Store) loadExpectations(issue int64) (types.Expectations, error) {
 			id := doc.Ref.ID
 			return skerr.Fmt("corrupt data in firestore, could not unmarshal entry with id %s: %s", id, err)
 		}
-		e.AddDigest(entry.Grouping, entry.Digest, entry.Label)
+		if es[i] == nil {
+			es[i] = types.Expectations{}
+		}
+		es[i].AddDigest(entry.Grouping, entry.Digest, entry.Label)
 		return nil
 	})
+
+	e := types.Expectations{}
+	for _, ne := range es {
+		e.MergeExpectations(ne)
+	}
 	return e, err
+}
+
+// shardQueryOnDigest splits a query up to work on a subset of the data based on
+// the digests. We split the MD5 space up into N shards by making N-1 shard points
+// and adding Where clauses to make N queries that are between those points.
+func shardQueryOnDigest(baseQuery firestore.Query, shards int) []firestore.Query {
+	queries := make([]firestore.Query, 0, shards)
+	zeros := strings.Repeat("0", 16)
+	s := uint64(0)
+	for i := 0; i < shards-1; i++ {
+		// An MD5 hash is 128 bits, which we encode to hexadecimal (32 chars).
+		// We can produce an MD5 hash by taking a 64 bit unsigned int, turning
+		// that to hexadecimal (16 chars), then appending 16 zeros.
+		startHash := fmt.Sprintf("%016x\n", s) + zeros
+
+		s += (math.MaxUint64/uint64(shards) + 1)
+		endHash := fmt.Sprintf("%016x\n", s) + zeros
+
+		// The first n queries are formulated to be between two shard points
+		queries = append(queries, baseQuery.Where(digestCol, ">=", startHash).Where(digestCol, "<", endHash))
+	}
+	lastHash := fmt.Sprintf("%016x\n", s) + zeros
+	// The last query is just a greater than the last shard point
+	queries = append(queries, baseQuery.Where(digestCol, ">=", lastHash))
+	return queries
 }
 
 // AddChange implements the ExpectationsStore interface.
@@ -262,7 +310,7 @@ func (f *Store) AddChange(ctx context.Context, newExp types.Expectations, userID
 		if stop > len(entries) {
 			stop = len(entries)
 		}
-
+		sklog.Debugf("Storing new expectations [%d, %d]", i, stop)
 		for idx, entry := range entries[i:stop] {
 			e := f.client.Collection(expectationsCollection).Doc(entry.ID())
 			b.Set(e, entry)
@@ -365,7 +413,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 		rv = append(rv, expstorage.TriageLogEntry{
 			ID:          doc.Ref.ID,
 			Name:        tr.UserName,
-			TS:          tr.TS.Unix(),
+			TS:          tr.TS.Unix() * 1000,
 			ChangeCount: tr.Changes,
 		})
 		return nil
@@ -414,6 +462,9 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 // UndoChange implements the ExpectationsStore interface.
 func (f *Store) UndoChange(ctx context.Context, changeID, userID string) (types.Expectations, error) {
 	defer metrics2.FuncTimer().Stop()
+	if f.mode == ReadOnly {
+		return nil, ReadOnlyErr
+	}
 	// Verify the original change id exists.
 	dr := f.client.Collection(triageRecordsCollection).Doc(changeID)
 	doc, err := f.client.Get(dr, 3, maxOperationTime)

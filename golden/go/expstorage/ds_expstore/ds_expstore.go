@@ -10,6 +10,7 @@ import (
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/dsutil"
@@ -135,7 +136,7 @@ func DeprecatedNew(client *datastore.Client, eventBus eventbus.EventBus) (*DSExp
 	// expectations successfully.
 	_, _, err := store.loadCurrentExpectations(nil)
 	if err != nil {
-		return nil, sklog.FmtErrorf("Error in test call to the cloud datastore: %s", err)
+		return nil, skerr.Fmt("Error in test call to the cloud datastore: %s", err)
 	}
 	return store, nil
 }

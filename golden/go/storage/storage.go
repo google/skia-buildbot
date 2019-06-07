@@ -264,7 +264,7 @@ func FilterIgnored(inputTile *tiling.Tile, ignoreStore ignore.IgnoreStore) (*til
 }
 
 func (s *Storage) GetExpectationsForCommit(parentCommit string) (types.Expectations, error) {
-	return nil, sklog.FmtErrorf("Not implemented yet !")
+	return nil, skerr.Fmt("Not implemented yet !")
 }
 
 // getWhiteListedTile creates a new tile from the given tile that contains
@@ -449,16 +449,16 @@ func (s *Storage) checkCommitableIssues(cpxTile types.ComplexTile) {
 					// use DetailsMulti instead.
 					longCommit, err := s.VCS.Details(context.Background(), commit.Hash, false)
 					if err != nil {
-						return sklog.FmtErrorf("Error retrieving details for commit %s. Got error: %s", commit.Hash, err)
+						return skerr.Fmt("Error retrieving details for commit %s. Got error: %s", commit.Hash, err)
 					}
 
 					issueID, err := s.GerritAPI.ExtractIssueFromCommit(longCommit.Body)
 					if err != nil {
-						return sklog.FmtErrorf("Unable to extract gerrit issue from commit %s. Got error: %s", commit.Hash, err)
+						return skerr.Fmt("Unable to extract gerrit issue from commit %s. Got error: %s", commit.Hash, err)
 					}
 
 					if err := s.TryjobMonitor.CommitIssueBaseline(issueID, longCommit.Author); err != nil {
-						return sklog.FmtErrorf("Error commiting tryjob results for commit %s. Got error: %s", commit.Hash, err)
+						return skerr.Fmt("Error commiting tryjob results for commit %s. Got error: %s", commit.Hash, err)
 					}
 					return nil
 				})

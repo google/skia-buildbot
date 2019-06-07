@@ -1,6 +1,7 @@
 // This program serves content that is mostly static and needs to be highly
 // available. The content comes from highly available backend services like
 // GCS. It needs to be deployed in a redundant way to ensure high uptime.
+// It is read-only; it does not create new baselines or update expectations.
 package main
 
 import (
@@ -13,8 +14,6 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/ds"
-	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore"
@@ -25,12 +24,9 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
-	"go.skia.org/infra/golden/go/expstorage/ds_expstore"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
-	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/web"
-	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
 )
 
@@ -38,7 +34,6 @@ func main() {
 	// Command line flags.
 	var (
 		baselineGSPath     = flag.String("baseline_gs_path", "", "GS path, where the baseline file are stored. This should match the same flag in skiacorrectness which writes the baselines. Format: <bucket>/<path>.")
-		dsNamespace        = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
 		gitBTInstanceID    = flag.String("git_bt_instance", "", "ID of the BigTable instance that contains Git metadata")
 		gitBTTableID       = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
 		gitRepoDir         = flag.String("git_repo_dir", "", "Directory location for the Skia repo.")
@@ -75,7 +70,6 @@ func main() {
 
 	// TODO(dogben): Ok to add request/dial timeouts?
 	client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithoutRetries().Client()
-	evt := eventbus.New()
 	ctx := context.Background()
 
 	// TODO(stephana): There is a lot of overlap with code in skiacorrectness/main.go. This should
@@ -88,21 +82,6 @@ func main() {
 	gsClient, err := storage.NewGCSClient(client, gsClientOpt)
 	if err != nil {
 		sklog.Fatalf("Unable to create GCSClient: %s", err)
-	}
-
-	if err := ds.InitWithOpt(*projectID, *dsNamespace, option.WithTokenSource(tokenSource)); err != nil {
-		sklog.Fatalf("Unable to configure cloud datastore: %s", err)
-	}
-
-	// Set up the cloud expectations store
-	expStore, err := ds_expstore.DeprecatedNew(ds.DS, evt)
-	if err != nil {
-		sklog.Fatalf("Unable to configure cloud expectations store: %s", err)
-	}
-
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, evt)
-	if err != nil {
-		sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
 	}
 
 	var vcs vcsinfo.VCS
@@ -127,7 +106,9 @@ func main() {
 	}
 
 	// Initialize the Baseliner instance from the values set above.
-	baseliner, err := gcs_baseliner.New(gsClient, expStore, tryjobStore, vcs)
+	// expectationsStore and tryjobStore can both be nil, since they are only used
+	// when pushing baselines, and we read baselines.
+	baseliner, err := gcs_baseliner.New(gsClient, nil, nil, vcs)
 	if err != nil {
 		sklog.Fatalf("Error initializing baseliner: %s", err)
 	}

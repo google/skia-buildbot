@@ -10,17 +10,18 @@ import (
 	"reflect"
 	"time"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/expstorage/ds_expstore"
+	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/serialize"
 	"go.skia.org/infra/golden/go/storage"
@@ -28,7 +29,8 @@ import (
 )
 
 var (
-	dsNamespace  = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
+	fsNamespace  = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
+	fsProjectID  = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
 	gitRepoDir   = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	gitRepoURL   = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 	nCommits     = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
@@ -40,8 +42,9 @@ var (
 )
 
 func main() {
+	flag.Parse()
 	// Load the data that make up the state of the system.
-	tile, expectations, ignoreStore := load(context.Background(), *dsNamespace)
+	tile, expectations, ignoreStore := load()
 	tile = sampleTile(tile, *sampleSize, *query, *nTests)
 	writeSample(*outputFile, tile, expectations, ignoreStore)
 	sklog.Infof("Finished.")
@@ -127,7 +130,7 @@ func writeSample(outputFileName string, tile *tiling.Tile, expectations types.Ex
 
 	file, err := os.Create(outputFileName)
 	if err != nil {
-		sklog.Fatalf("Unable to create file %s:  %s", outputFileName, err)
+		sklog.Fatalf("Unable to create file %s: %s", outputFileName, err)
 	}
 	outputBuf := buf.Bytes()
 	_, err = file.Write(outputBuf)
@@ -169,17 +172,23 @@ func writeSample(outputFileName string, tile *tiling.Tile, expectations types.Ex
 }
 
 // load retrieves the last tile, the expectations and the ignore store.
-func load(ctx context.Context, dsNamespace string) (*tiling.Tile, types.Expectations, ignore.IgnoreStore) {
+func load() (*tiling.Tile, types.Expectations, ignore.IgnoreStore) {
+	ctx := context.Background()
 	// Set up flags
 	common.Init()
 
 	evt := eventbus.New()
-	var expStore expstorage.ExpectationsStore
-	var err error
+	ts, err := auth.NewDefaultTokenSource(true)
 
-	expStore, err = ds_expstore.DeprecatedNew(ds.DS, evt)
+	fsClient, err := firestore.NewClient(ctx, *fsProjectID, "gold", *fsNamespace, ts)
 	if err != nil {
-		sklog.Fatalf("Unable to create cloud expectations store: %s", err)
+		sklog.Fatalf("Unable to configure Firestore: %s", err)
+	}
+
+	// Set up the cloud expectations store
+	expStore, err := fs_expstore.New(fsClient, evt, fs_expstore.ReadOnly)
+	if err != nil {
+		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
 	}
 
 	// Check out the repository.
