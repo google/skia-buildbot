@@ -70,6 +70,30 @@
       "revId": "a38cd630dfe914a07069a78c69994b321e539895",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "de1c81fb_530c79d1",
+        "filename": "autoroll/go/revision/revision.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-06-07T18:17:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a9a4103f_13cab9f0",
+      "range": {
+        "startLine": 44,
+        "startChar": 9,
+        "endLine": 44,
+        "endChar": 12
+      },
+      "revId": "a38cd630dfe914a07069a78c69994b321e539895",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
