@@ -323,7 +323,6 @@ func (n *monorailNotifier) Send(ctx context.Context, subject string, msg *Messag
 func MonorailNotifier(c *http.Client, project, owner string, cc, components, labels []string) (Notifier, error) {
 	var personCC []issues.MonorailPerson
 	if cc != nil {
-		personCC := make([]issues.MonorailPerson, 0, len(cc))
 		for _, name := range cc {
 			personCC = append(personCC, issues.MonorailPerson{
 				Name: name,
