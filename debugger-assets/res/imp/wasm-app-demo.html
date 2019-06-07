@@ -17,6 +17,10 @@
 <body class='fullbleed layout vertical'>
   <h1>Local App Demo</h1>
   <wasm-debugger-app-sk> </wasm-debugger-app-sk>
+  <!-- Iframe a locally running instance of the web usb skp capture app.
+       The capture app must also be served with a content security policy allowing this-->
+  <iframe src="http://localhost:8000/" allow="usb http://localhost:8000/"
+    style="width:100%; height:150px"></iframe>
 </body>
 </html>
 <html>

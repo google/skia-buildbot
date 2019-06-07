@@ -10,6 +10,10 @@
 </head>
 <body class='fullbleed layout vertical'>
   <wasm-debugger-app-sk> </wasm-debugger-app-sk>
+  <!-- Iframe the production instance of the web usb skp capture app.
+       The capture app must also be served with a content security policy allowing this-->
+  <iframe src="https://webskpcapture.googleplex.com/" allow="usb https://webskpcapture.googleplex.com/"
+    style="width:100%; height:150px"></iframe>
 </body>
 </html>
 <html>
