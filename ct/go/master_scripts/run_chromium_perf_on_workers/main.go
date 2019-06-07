@@ -48,14 +48,15 @@ var (
 
 	taskCompletedSuccessfully = false
 
-	htmlOutputLink      = util.MASTER_LOGSERVER_LINK
-	skiaPatchLink       = util.MASTER_LOGSERVER_LINK
-	chromiumPatchLink   = util.MASTER_LOGSERVER_LINK
-	v8PatchLink         = util.MASTER_LOGSERVER_LINK
-	catapultPatchLink   = util.MASTER_LOGSERVER_LINK
-	customWebpagesLink  = util.MASTER_LOGSERVER_LINK
-	noPatchOutputLink   = util.MASTER_LOGSERVER_LINK
-	withPatchOutputLink = util.MASTER_LOGSERVER_LINK
+	htmlOutputLink             = util.MASTER_LOGSERVER_LINK
+	skiaPatchLink              = util.MASTER_LOGSERVER_LINK
+	chromiumPatchLink          = util.MASTER_LOGSERVER_LINK
+	v8PatchLink                = util.MASTER_LOGSERVER_LINK
+	catapultPatchLink          = util.MASTER_LOGSERVER_LINK
+	chromiumPatchBaseBuildLink = util.MASTER_LOGSERVER_LINK
+	customWebpagesLink         = util.MASTER_LOGSERVER_LINK
+	noPatchOutputLink          = util.MASTER_LOGSERVER_LINK
+	withPatchOutputLink        = util.MASTER_LOGSERVER_LINK
 )
 
 func sendEmail(recipients []string) {
@@ -87,7 +88,7 @@ func sendEmail(recipients []string) {
 	%s
 	The HTML output with differences between the base run and the patch run is <a href='%s'>here</a>.<br/>
 	The patch(es) you specified are here:
-	<a href='%s'>chromium</a>/<a href='%s'>skia</a>/<a href='%s'>v8</a>/<a href='%s'>catapult</a>
+	<a href='%s'>chromium</a>/<a href='%s'>skia</a>/<a href='%s'>v8</a>/<a href='%s'>catapult</a>/<a href='%s'>chromium (base build)</a>
 	<br/>
 	Custom webpages (if specified) are <a href='%s'>here</a>.
 	<br/><br/>
@@ -95,7 +96,7 @@ func sendEmail(recipients []string) {
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, ctPerfHtml, htmlOutputLink, chromiumPatchLink, skiaPatchLink, v8PatchLink, catapultPatchLink, customWebpagesLink, frontend.ChromiumPerfTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, ctPerfHtml, htmlOutputLink, chromiumPatchLink, skiaPatchLink, v8PatchLink, catapultPatchLink, chromiumPatchBaseBuildLink, customWebpagesLink, frontend.ChromiumPerfTasksWebapp)
 	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		sklog.Errorf("Error while sending email: %s", err)
 		return
@@ -165,8 +166,9 @@ func main() {
 	chromiumPatchName := *runID + ".chromium.patch"
 	v8PatchName := *runID + ".v8.patch"
 	catapultPatchName := *runID + ".catapult.patch"
+	chromiumPatchNameBaseBuild := *runID + ".chromium_base_build.patch"
 	customWebpagesName := *runID + ".custom_webpages.csv"
-	for _, patchName := range []string{skiaPatchName, chromiumPatchName, v8PatchName, catapultPatchName, customWebpagesName} {
+	for _, patchName := range []string{skiaPatchName, chromiumPatchName, v8PatchName, catapultPatchName, chromiumPatchNameBaseBuild, customWebpagesName} {
 		if err := gs.UploadFile(patchName, os.TempDir(), remoteOutputDir); err != nil {
 			sklog.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
 			return
@@ -176,11 +178,12 @@ func main() {
 	chromiumPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, chromiumPatchName)
 	v8PatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, v8PatchName)
 	catapultPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, catapultPatchName)
+	chromiumPatchBaseBuildLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, chromiumPatchNameBaseBuild)
 	customWebpagesLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, customWebpagesName)
 
 	// Check if the patches have any content to decide if we need one or two chromium builds.
-	localPatches := []string{filepath.Join(os.TempDir(), chromiumPatchName), filepath.Join(os.TempDir(), skiaPatchName), filepath.Join(os.TempDir(), v8PatchName)}
-	remotePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
+	localPatches := []string{filepath.Join(os.TempDir(), chromiumPatchName), filepath.Join(os.TempDir(), skiaPatchName), filepath.Join(os.TempDir(), v8PatchName), filepath.Join(os.TempDir(), chromiumPatchNameBaseBuild)}
+	remotePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName), filepath.Join(remoteOutputDir, chromiumPatchNameBaseBuild)}
 
 	// Find which chromium hash the workers should use.
 	chromiumHash, err := util.GetChromiumHash(ctx)

@@ -123,7 +123,7 @@ func TestChromiumPerfExecute(t *testing.T) {
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
-	expect.Equal(t, 5, getPatchCalls)
+	expect.Equal(t, 6, getPatchCalls)
 }
 
 func pendingMetricsAnalysisTask() MetricsAnalysisTask {
@@ -567,7 +567,7 @@ func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 	expect.Equal(t, "run_chromium_perf_on_workers", commands[1].Name)
 	// No updates expected when commands succeed.
 	expect.Empty(t, mockServer.UpdateTaskReqs())
-	expect.Equal(t, 5, getPatchCalls)
+	expect.Equal(t, 6, getPatchCalls)
 }
 
 func TestPollAndExecOnceError(t *testing.T) {

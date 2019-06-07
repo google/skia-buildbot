@@ -174,11 +174,12 @@ func (task *ChromiumPerfTask) Execute(ctx context.Context, getPatchFunc GetPatch
 	// upload to Google Storage, eventually we should move the upload step here to avoid writing
 	// to disk.
 	for fileSuffix, patchGSPath := range map[string]string{
-		".chromium.patch":      task.ChromiumPatchGSPath,
-		".skia.patch":          task.SkiaPatchGSPath,
-		".v8.patch":            task.V8PatchGSPath,
-		".catapult.patch":      task.CatapultPatchGSPath,
-		".custom_webpages.csv": task.CustomWebpagesGSPath,
+		".chromium.patch":            task.ChromiumPatchGSPath,
+		".skia.patch":                task.SkiaPatchGSPath,
+		".v8.patch":                  task.V8PatchGSPath,
+		".catapult.patch":            task.CatapultPatchGSPath,
+		".chromium_base_build.patch": task.ChromiumPatchBaseBuildGSPath,
+		".custom_webpages.csv":       task.CustomWebpagesGSPath,
 	} {
 		patch, err := getPatchFunc(patchGSPath)
 		if err != nil {

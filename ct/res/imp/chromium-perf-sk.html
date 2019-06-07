@@ -194,6 +194,20 @@
       </tr>
 
       <tr>
+        <td>
+          Chromium Git metrics patch (optional)<br/>
+          Applied to Chromium ToT<br/>
+          Used to create the base build (See <a href="http://skbug.com/9029">skbug/9029</a>)
+        </td>
+        <td>
+          <patch-sk id="chromium_patch_base_build"
+                    patch-type="chromium"
+                    cl-description="{{chromiumBaseBuildClDescription}}">
+          </patch-sk>
+        </td>
+      </tr>
+
+      <tr>
         <td>Repeat this task</td>
         <td>
           <repeat-after-days-sk id="repeat_after_days"></repeat-after-days-sk>
@@ -287,11 +301,12 @@
        skiaClDescription: String,
        v8ClDescription: String,
        catapultClDescription: String,
+       chromiumBaseBuildClDescription: String,
        selectedBenchmarkName: String,
      },
 
      observers: [
-       "clDescriptionChanged(chromiumClDescription, skiaClDescription, v8ClDescription, catapultClDescription)"
+       "clDescriptionChanged(chromiumClDescription, skiaClDescription, v8ClDescription, catapultClDescription, chromiumBaseBuildClDescription)"
      ],
 
      ready: function() {
@@ -360,15 +375,16 @@
        }
      },
 
-     clDescriptionChanged: function(chromiumClDesc, skiaClDesc, v8ClDesc, catapultClDesc) {
-       this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, skiaClDesc, v8ClDesc, catapultClDesc)
+     clDescriptionChanged: function(chromiumClDesc, skiaClDesc, v8ClDesc, catapultClDesc, chromiumBaseBuildClDesc) {
+       this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, skiaClDesc, v8ClDesc, catapultClDesc, chromiumBaseBuildClDesc)
      },
 
      validateTask: function() {
        if (!this.$.chromium_patch.validate() ||
            !this.$.skia_patch.validate() ||
            !this.$.v8_patch.validate() ||
-           !this.$.catapult_patch.validate()) {
+           !this.$.catapult_patch.validate() ||
+           !this.$.chromium_patch_base_build.validate()) {
          return;
        }
        if (! this.$.desc.value) {
@@ -423,6 +439,7 @@
        params["skia_patch"] = this.$.skia_patch.patch;
        params["v8_patch"] = this.$.v8_patch.patch;
        params["catapult_patch"] = this.$.catapult_patch.patch;
+       params["chromium_patch_base_build"] = this.$.chromium_patch_base_build.patch;
        params["repeat_after_days"] = this.$.repeat_after_days.selected;
        params["task_priority"] = this.$.task_priority.selected;
        // Run on GCE if it is Windows. This will change in the future if we

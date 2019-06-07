@@ -270,6 +270,9 @@
             <template is="dom-if" if="{{ !isEmptyPatch(chromiumPerfTask.BenchmarkPatchGSPath) }}">
               <a href="{{ getGSLink(chromiumPerfTask.BenchmarkPatchGSPath) }}" target="_blank">Telemetry</a>
             </template>
+            <template is="dom-if" if="{{ !isEmptyPatch(chromiumPerfTask.ChromiumPatchBaseBuildGSPath) }}">
+              <a href="{{ getGSLink(chromiumPerfTask.ChromiumPatchBaseBuildGSPath) }}" target="_blank" class="nowrap">Chromium(base_build)</a>
+            </template>
           </td>
 
           <!-- Task Repeats -->
