@@ -7,6 +7,7 @@
     "SKCORR_TITLE":            "Chrome GPU Gold",
     "SKCORR_DEFAULT_CORPUS":   "chrome-gpu",
     "PROJECT_ID":              "skia-public",
+    "FIRESTORE_PROJECT":       "skia-firestore",
     "SITE_URL":                "https://chrome-gpu-gold.skia.org",
     "FORCE_LOGIN":             "false",
 

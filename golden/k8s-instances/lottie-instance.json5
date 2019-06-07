@@ -1,14 +1,14 @@
 {
     // Gold settings
-    "GERRIT_URL":              "",
-    "GITREPO_URL":             "https://github.com/flutter/flutter",
+    "GERRIT_URL":              "https://skia-review.googlesource.com",
+    "GITREPO_URL":             "https://skia.googlesource.com/lottie-ci",
     "N_COMMITS":               200,
     "SPARSE":                  true,
-    "SKCORR_TITLE":            "Flutter Gold",
-    "SKCORR_DEFAULT_CORPUS":   "flutter",
+    "SKCORR_TITLE":            "Lottie Gold",
+    "SKCORR_DEFAULT_CORPUS":   "lottie",
     "PROJECT_ID":              "skia-public",
     "FIRESTORE_PROJECT":       "skia-firestore",
-    "SITE_URL":                "https://flutter-gold.skia.org",
+    "SITE_URL":                "https://lottie-gold.skia.org",
     "FORCE_LOGIN":             "false",
 
     // Git BigTable settings
@@ -31,7 +31,7 @@
     "ING_TRY_MIN_DAYS":        20,
     "ING_TRY_N_COMMITS":       10,
     "ING_TRY_BUILDBUCKET_URL": "",
-    "ING_TRY_BUILDBUCKET":     "chromium/try",
+    "ING_TRY_BUILDBUCKET":     "",
     "ING_TRY_BB_INTERVAL":     "10s",
     "ING_TRY_BB_WINDOW":       "5h",
     "ING_TRY_BUILDER_REGEX":   "",
