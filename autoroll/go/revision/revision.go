@@ -39,6 +39,14 @@ func (r *Revision) Copy() *Revision {
 	}
 }
 
+// Implement the Stringer interface for prettier printing.
+func (r *Revision) String() string {
+	if r.Display != "" {
+		return r.Display
+	}
+	return r.Id
+}
+
 // FromLongCommit converts a vcsinfo.LongCommit to a Revision. If revLinkTmpl is
 // not provided, the Revision will have no URL.
 func FromLongCommit(revLinkTmpl string, c *vcsinfo.LongCommit) *Revision {
