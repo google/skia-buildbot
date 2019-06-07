@@ -16,6 +16,24 @@
       "revId": "5313bcb4187f9b303d6a364ae51fbfcc3ec47d06",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7929b24a_0b0c8eaf",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-07T11:08:28Z",
+      "side": 1,
+      "message": "Yes, would you prefer that?",
+      "parentUuid": "64c50622_f33e33ec",
+      "revId": "5313bcb4187f9b303d6a364ae51fbfcc3ec47d06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
