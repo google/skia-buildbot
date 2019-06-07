@@ -17,6 +17,8 @@ skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com" \
     --diff_server_http=skia-diffserver-prod:8001 \
     --ds_namespace=gold-skia-prod \
     --event_topic=gold-prod-eventbus \
+    --fs_namespace skia \
+    --fs_legacy_auth=true \
     --force_login \
     --git_repo_dir=${DATA_DIR}/gold/skia \
     --hashes_gs_path=skia-infra-gm/hash_files/gold-prod-hashes.txt \
