@@ -15,15 +15,16 @@ import (
 	"runtime"
 	"runtime/pprof"
 	"strings"
-	"sync"
 	"time"
 
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/git/gitinfo"
@@ -43,7 +44,7 @@ import (
 	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
-	"go.skia.org/infra/golden/go/expstorage/ds_expstore"
+	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
@@ -88,6 +89,9 @@ func main() {
 		dsNamespace         = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
 		eventTopic          = flag.String("event_topic", "", "The pubsub topic to use for distributed events.")
 		forceLogin          = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
+		fsNamespace         = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
+		fsProjectID         = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
+		fsLegacyAuth        = flag.Bool("fs_legacy_auth", false, "use legacy credentials to auth Firestore")
 		gerritURL           = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
 		gitBTInstanceID     = flag.String("git_bt_instance", "", "ID of the BigTable instance that contains Git metadata")
 		gitBTTableID        = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
@@ -139,325 +143,328 @@ func main() {
 	common.InitWithMust(appName, logOpts...)
 	skiaversion.MustLogVersion()
 
-	// TODO(stephana): Running the setup process in the a parallel go-routine is an ugly hack and
-	// should be removed as soon as the setup process is fast enough to complete within 10 seconds.
+	ctx := context.Background()
+	skiaversion.MustLogVersion()
 
-	// Run the setup process in the background so we can quickly expose a URL for health checks.
-	// This is currently necessary to ease deployment on Kubernetes. It renders the initial
-	// readyness check meaningless, but not subsequent health checks once the setup is completed.
-	var openSite bool
-	var handlers web.WebHandlers
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
-		ctx := context.Background()
-		skiaversion.MustLogVersion()
-
-		// Enable the memory profiler if memProfile was set.
-		// TODO(stephana): This should be moved to a HTTP endpoint that
-		// only responds to internal IP addresses/ports.
-		if *memProfile > 0 {
-			time.AfterFunc(*memProfile, func() {
-				sklog.Infof("Writing Memory Profile")
-				f, err := ioutil.TempFile("./", "memory-profile")
-				if err != nil {
-					sklog.Fatalf("Unable to create memory profile file: %s", err)
-				}
-				if err := pprof.WriteHeapProfile(f); err != nil {
-					sklog.Fatalf("Unable to write memory profile file: %v", err)
-				}
-				util.Close(f)
-				sklog.Infof("Memory profile written to %s", f.Name())
-
-				os.Exit(0)
-			})
-		}
-
-		if *cpuProfile > 0 {
-			sklog.Infof("Writing CPU Profile")
-			f, err := ioutil.TempFile("./", "cpu-profile")
+	// Enable the memory profiler if memProfile was set.
+	// TODO(stephana): This should be moved to a HTTP endpoint that
+	// only responds to internal IP addresses/ports.
+	if *memProfile > 0 {
+		time.AfterFunc(*memProfile, func() {
+			sklog.Infof("Writing Memory Profile")
+			f, err := ioutil.TempFile("./", "memory-profile")
 			if err != nil {
-				sklog.Fatalf("Unable to create cpu profile file: %s", err)
+				sklog.Fatalf("Unable to create memory profile file: %s", err)
 			}
-
-			if err := pprof.StartCPUProfile(f); err != nil {
-				sklog.Fatalf("Unable to write cpu profile file: %v", err)
+			if err := pprof.WriteHeapProfile(f); err != nil {
+				sklog.Fatalf("Unable to write memory profile file: %v", err)
 			}
-			time.AfterFunc(*cpuProfile, func() {
-				pprof.StopCPUProfile()
-				util.Close(f)
-				sklog.Infof("CPU profile written to %s", f.Name())
-				os.Exit(0)
-			})
-		}
+			util.Close(f)
+			sklog.Infof("Memory profile written to %s", f.Name())
 
-		// Set the resource directory if it's empty. Useful for running locally.
-		if *resourcesDir == "" {
-			_, filename, _, _ := runtime.Caller(0)
-			*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
-			*resourcesDir += "/frontend"
-		}
+			os.Exit(0)
+		})
+	}
 
-		// Set up login
-		useRedirectURL := *redirectURL
-		if *local {
-			useRedirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
-		}
-		sklog.Infof("The allowed list of users is: %q", *authorizedUsers)
-		if err := login.Init(useRedirectURL, *authorizedUsers, *clientSecretFile); err != nil {
-			sklog.Fatalf("Failed to initialize the login system: %s", err)
-		}
-
-		// Get the token source for the service account with access to GCS, the Monorail issue tracker,
-		// cloud pubsub, and datastore.
-		tokenSource, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	if *cpuProfile > 0 {
+		sklog.Infof("Writing CPU Profile")
+		f, err := ioutil.TempFile("./", "cpu-profile")
 		if err != nil {
-			sklog.Fatalf("Failed to authenticate service account: %s", err)
+			sklog.Fatalf("Unable to create cpu profile file: %s", err)
 		}
-		// TODO(dogben): Ok to add request/dial timeouts?
-		client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithoutRetries().Client()
 
-		// serviceName uniquely identifies this host and app and is used as ID for other services.
-		nodeName, err := gevent.GetNodeName(appName, *local)
+		if err := pprof.StartCPUProfile(f); err != nil {
+			sklog.Fatalf("Unable to write cpu profile file: %v", err)
+		}
+		time.AfterFunc(*cpuProfile, func() {
+			pprof.StopCPUProfile()
+			util.Close(f)
+			sklog.Infof("CPU profile written to %s", f.Name())
+			os.Exit(0)
+		})
+	}
+
+	// Set the resource directory if it's empty. Useful for running locally.
+	if *resourcesDir == "" {
+		_, filename, _, _ := runtime.Caller(0)
+		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
+		*resourcesDir += "/frontend"
+	}
+
+	// Set up login
+	useRedirectURL := *redirectURL
+	if *local {
+		useRedirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
+	}
+	sklog.Infof("The allowed list of users is: %q", *authorizedUsers)
+	if err := login.Init(useRedirectURL, *authorizedUsers, *clientSecretFile); err != nil {
+		sklog.Fatalf("Failed to initialize the login system: %s", err)
+	}
+
+	// Get the token source for the service account with access to GCS, the Monorail issue tracker,
+	// cloud pubsub, and datastore.
+	deprecatedTS, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, datastore.ScopeDatastore, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	if err != nil {
+		sklog.Fatalf("Failed to authenticate service account: %s", err)
+	}
+	// TODO(dogben): Ok to add request/dial timeouts?
+	client := httputils.DefaultClientConfig().WithTokenSource(deprecatedTS).WithoutRetries().Client()
+
+	// serviceName uniquely identifies this host and app and is used as ID for other services.
+	nodeName, err := gevent.GetNodeName(appName, *local)
+	if err != nil {
+		sklog.Fatalf("Error getting unique service name: %s", err)
+	}
+
+	// If the addresses for a remote DiffStore were given, then set it up
+	// otherwise create an embedded DiffStore instance.
+	var diffStore diff.DiffStore = nil
+	if (*diffServerGRPCAddr != "") || (*diffServerImageAddr != "") {
+		// Create the client connection and connect to the server.
+		conn, err := grpc.Dial(*diffServerGRPCAddr,
+			grpc.WithInsecure(),
+			grpc.WithDefaultCallOptions(
+				grpc.MaxCallSendMsgSize(diffstore.MAX_MESSAGE_SIZE),
+				grpc.MaxCallRecvMsgSize(diffstore.MAX_MESSAGE_SIZE)))
 		if err != nil {
-			sklog.Fatalf("Error getting unique service name: %s", err)
+			sklog.Fatalf("Unable to connect to grpc service: %s", err)
 		}
 
-		// If the addresses for a remote DiffStore were given, then set it up
-		// otherwise create an embedded DiffStore instance.
-		var diffStore diff.DiffStore = nil
-		if (*diffServerGRPCAddr != "") || (*diffServerImageAddr != "") {
-			// Create the client connection and connect to the server.
-			conn, err := grpc.Dial(*diffServerGRPCAddr,
-				grpc.WithInsecure(),
-				grpc.WithDefaultCallOptions(
-					grpc.MaxCallSendMsgSize(diffstore.MAX_MESSAGE_SIZE),
-					grpc.MaxCallRecvMsgSize(diffstore.MAX_MESSAGE_SIZE)))
-			if err != nil {
-				sklog.Fatalf("Unable to connect to grpc service: %s", err)
-			}
-
-			codec := diffstore.MetricMapCodec{}
-			diffStore, err = diffstore.NewNetDiffStore(conn, *diffServerImageAddr, codec)
-			if err != nil {
-				sklog.Fatalf("Unable to initialize NetDiffStore: %s", err)
-			}
-			sklog.Infof("DiffStore: NetDiffStore initiated.")
-		} else {
-			if *gsBucketNames == "" {
-				sklog.Fatalf("Must specify --gs_buckets or (--diff_server_http and --diff_server_grpc)")
-			}
-			mapper := diffstore.NewGoldDiffStoreMapper(&diff.DiffMetrics{})
-			diffStore, err = diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize, mapper)
-			if err != nil {
-				sklog.Fatalf("Allocating local DiffStore failed: %s", err)
-			}
-			sklog.Infof("DiffStore: MemDiffStore initiated.")
-		}
-
-		// Set up the event bus which can either be in-process or distributed
-		// depending whether an PubSub topic was defined.
-		var evt eventbus.EventBus = nil
-		if *eventTopic != "" {
-			evt, err = gevent.New(*projectID, *eventTopic, nodeName, option.WithTokenSource(tokenSource))
-			if err != nil {
-				sklog.Fatalf("Unable to create global event client. Got error: %s", err)
-			}
-			sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created.", *eventTopic, nodeName)
-		} else {
-			evt = eventbus.New()
-		}
-
-		var vcs vcsinfo.VCS
-		if *gitBTInstanceID != "" && *gitBTTableID != "" {
-			btConf := &bt_gitstore.BTConfig{
-				ProjectID:  *projectID,
-				InstanceID: *gitBTInstanceID,
-				TableID:    *gitBTTableID,
-			}
-
-			// If the repoURL is numeric then it is treated like the numeric ID of a repository and
-			// we look up the corresponding repo URL.
-			useRepoURL := *gitRepoURL
-			if foundRepoURL, ok := bt_gitstore.RepoURLFromID(ctx, btConf, *gitRepoURL); ok {
-				useRepoURL = foundRepoURL
-			}
-			var gitStore gitstore.GitStore
-			gitStore, err = bt_gitstore.New(ctx, btConf, useRepoURL)
-			if err != nil {
-				sklog.Fatalf("Error instantiating gitstore: %s", err)
-			}
-
-			gitilesRepo := gitiles.NewRepo("", "", nil)
-
-			trackNCommits := *nCommits
-			if *sparseInput {
-				// If the input is sparse we watch a magnitude more commits to make sure we don't miss any
-				// commit.
-				trackNCommits *= 10
-			}
-			vcs, err = bt_vcs.New(gitStore, "master", gitilesRepo, evt, trackNCommits)
-		} else {
-			vcs, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
-		}
+		codec := diffstore.MetricMapCodec{}
+		diffStore, err = diffstore.NewNetDiffStore(conn, *diffServerImageAddr, codec)
 		if err != nil {
-			sklog.Fatalf("Error creating VCS instance: %s", err)
+			sklog.Fatalf("Unable to initialize NetDiffStore: %s", err)
 		}
-
-		// If this is an authoritative instance we need an authenticated Gerrit client
-		// because it needs to write.
-		gitcookiesPath := ""
-		if *authoritative {
-			// Set up an authenticated Gerrit client.
-			gitcookiesPath = gerrit.DefaultGitCookiesPath()
-			if !*local {
-				if gitcookiesPath, err = gerrit.GitCookieAuthDaemonPath(); err != nil {
-					sklog.Fatalf("Error retrieving git_cookie_authdaemon path: %s", err)
-				}
-			}
+		sklog.Infof("DiffStore: NetDiffStore initiated.")
+	} else {
+		if *gsBucketNames == "" {
+			sklog.Fatalf("Must specify --gs_buckets or (--diff_server_http and --diff_server_grpc)")
 		}
-		gerritAPI, err := gerrit.NewGerrit(*gerritURL, gitcookiesPath, nil)
+		mapper := diffstore.NewGoldDiffStoreMapper(&diff.DiffMetrics{})
+		diffStore, err = diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize, mapper)
 		if err != nil {
-			sklog.Fatalf("Failed to create Gerrit client: %s", err)
+			sklog.Fatalf("Allocating local DiffStore failed: %s", err)
 		}
+		sklog.Infof("DiffStore: MemDiffStore initiated.")
+	}
 
-		// Connect to traceDB and create the builders.
-		db, err := tracedb.NewTraceServiceDBFromAddress(*traceservice, types.GoldenTraceBuilder)
+	// Set up the event bus which can either be in-process or distributed
+	// depending whether an PubSub topic was defined.
+	var evt eventbus.EventBus = nil
+	if *eventTopic != "" {
+		evt, err = gevent.New(*projectID, *eventTopic, nodeName, option.WithTokenSource(deprecatedTS))
 		if err != nil {
-			sklog.Fatalf("Failed to connect to tracedb: %s", err)
+			sklog.Fatalf("Unable to create global event client. Got error: %s", err)
+		}
+		sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created.", *eventTopic, nodeName)
+	} else {
+		evt = eventbus.New()
+	}
+
+	var vcs vcsinfo.VCS
+	if *gitBTInstanceID != "" && *gitBTTableID != "" {
+		btConf := &bt_gitstore.BTConfig{
+			ProjectID:  *projectID,
+			InstanceID: *gitBTInstanceID,
+			TableID:    *gitBTTableID,
 		}
 
-		// TODO(stephana): All dependencies on storageDir should be removed once we have landed
-		// all instances in K8s.
-
-		// If a storage directory was provided we can use it to cache tiles.
-		mtbCache := ""
-		if *storageDir != "" {
-			if _, err := fileutil.EnsureDirExists(*storageDir); err != nil {
-				sklog.Fatalf("Failed to make storageDir: %s", err)
-			}
-			mtbCache = filepath.Join(*storageDir, "cached-last-tile")
+		// If the repoURL is numeric then it is treated like the numeric ID of a repository and
+		// we look up the corresponding repo URL.
+		useRepoURL := *gitRepoURL
+		if foundRepoURL, ok := bt_gitstore.RepoURLFromID(ctx, btConf, *gitRepoURL); ok {
+			useRepoURL = foundRepoURL
 		}
-
-		masterTileBuilder, err := tracedb.NewMasterTileBuilder(ctx, db, vcs, *nCommits, evt, mtbCache)
+		var gitStore gitstore.GitStore
+		gitStore, err = bt_gitstore.New(ctx, btConf, useRepoURL)
 		if err != nil {
-			sklog.Fatalf("Failed to build trace/db.DB: %s", err)
+			sklog.Fatalf("Error instantiating gitstore: %s", err)
 		}
 
-		gsClientOpt := storage.GCSClientOptions{
-			HashesGSPath:   *hashesGSPath,
-			BaselineGSPath: *baselineGSPath,
-		}
+		gitilesRepo := gitiles.NewRepo("", "", nil)
 
-		gsClient, err := storage.NewGCSClient(client, gsClientOpt)
-		if err != nil {
-			sklog.Fatalf("Unable to create GCSClient: %s", err)
+		trackNCommits := *nCommits
+		if *sparseInput {
+			// If the input is sparse we watch a magnitude more commits to make sure we don't miss any
+			// commit.
+			trackNCommits *= 10
 		}
+		vcs, err = bt_vcs.New(gitStore, "master", gitilesRepo, evt, trackNCommits)
+	} else {
+		vcs, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
+	}
+	if err != nil {
+		sklog.Fatalf("Error creating VCS instance: %s", err)
+	}
 
-		if err := ds.InitWithOpt(*projectID, *dsNamespace, option.WithTokenSource(tokenSource)); err != nil {
-			sklog.Fatalf("Unable to configure cloud datastore: %s", err)
-		}
-
-		// Set up the cloud expectations store
-		expStore, err := ds_expstore.DeprecatedNew(ds.DS, evt)
-		if err != nil {
-			sklog.Fatalf("Unable to configure cloud expectations store: %s", err)
-		}
-
-		tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, evt)
-		if err != nil {
-			sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
-		}
-		tryjobMonitor := gerrit_tryjob_monitor.New(tryjobStore, expStore, gerritAPI, *siteURL, evt, *authoritative)
-
-		// Initialize the Baseliner instance from the values set above.
-		baseliner, err := gcs_baseliner.New(gsClient, expStore, tryjobStore, vcs)
-		if err != nil {
-			sklog.Fatalf("Error initializing baseliner: %s", err)
-		}
-
-		// Extract the site URL
-		storages := &storage.Storage{
-			DiffStore:         diffStore,
-			ExpectationsStore: expStore,
-			TraceDB:           db,
-			MasterTileBuilder: masterTileBuilder,
-			NCommits:          *nCommits,
-			EventBus:          evt,
-			TryjobStore:       tryjobStore,
-			TryjobMonitor:     tryjobMonitor,
-			GerritAPI:         gerritAPI,
-			GCSClient:         gsClient,
-			VCS:               vcs,
-			IsAuthoritative:   *authoritative,
-			SiteURL:           *siteURL,
-			IsSparseTile:      *sparseInput,
-			Baseliner:         baseliner,
-		}
-
-		// Load the whitelist if there is one and disable querying for issues.
-		if *pubWhiteList != "" && *pubWhiteList != WHITELIST_ALL {
-			if err := storages.LoadWhiteList(*pubWhiteList); err != nil {
-				sklog.Fatalf("Empty or invalid white list file. A non-empty white list must be provided if force_login=false.")
+	// If this is an authoritative instance we need an authenticated Gerrit client
+	// because it needs to write.
+	gitcookiesPath := ""
+	if *authoritative {
+		// Set up an authenticated Gerrit client.
+		gitcookiesPath = gerrit.DefaultGitCookiesPath()
+		if !*local {
+			if gitcookiesPath, err = gerrit.GitCookieAuthDaemonPath(); err != nil {
+				sklog.Fatalf("Error retrieving git_cookie_authdaemon path: %s", err)
 			}
 		}
+	}
+	gerritAPI, err := gerrit.NewGerrit(*gerritURL, gitcookiesPath, nil)
+	if err != nil {
+		sklog.Fatalf("Failed to create Gerrit client: %s", err)
+	}
 
-		// Check if this is public instance. If so make sure there is a white list.
-		if !*forceLogin && (*pubWhiteList == "") {
-			sklog.Fatalf("Empty whitelist file. A non-empty white list must be provided if force_login=false.")
+	// Connect to traceDB and create the builders.
+	db, err := tracedb.NewTraceServiceDBFromAddress(*traceservice, types.GoldenTraceBuilder)
+	if err != nil {
+		sklog.Fatalf("Failed to connect to tracedb: %s", err)
+	}
+
+	// TODO(stephana): All dependencies on storageDir should be removed once we have landed
+	// all instances in K8s.
+
+	// If a storage directory was provided we can use it to cache tiles.
+	mtbCache := ""
+	if *storageDir != "" {
+		if _, err := fileutil.EnsureDirExists(*storageDir); err != nil {
+			sklog.Fatalf("Failed to make storageDir: %s", err)
 		}
+		mtbCache = filepath.Join(*storageDir, "cached-last-tile")
+	}
 
-		// openSite indicates whether this can expose all end-points. The user still has to be authenticated.
-		openSite = (*pubWhiteList == WHITELIST_ALL) || *forceLogin
+	masterTileBuilder, err := tracedb.NewMasterTileBuilder(ctx, db, vcs, *nCommits, evt, mtbCache)
+	if err != nil {
+		sklog.Fatalf("Failed to build trace/db.DB: %s", err)
+	}
 
-		// TODO(kjlubick): storage.Storage contains an IgnoreStore, so we can't pass ignore
-		// a storage.Storage directly. There probably shouldn't be one monolithic storage object,
-		// but each package could define its own.
-		if storages.IgnoreStore, err = ignore.NewCloudIgnoreStore(ds.DS, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute, "gold-ignore-store")); err != nil {
-			sklog.Fatalf("Unable to create cloud ignorestore: %s", err)
-		}
+	gsClientOpt := storage.GCSClientOptions{
+		HashesGSPath:   *hashesGSPath,
+		BaselineGSPath: *baselineGSPath,
+	}
 
-		if err := ignore.Init(storages.IgnoreStore); err != nil {
-			sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
-		}
+	gsClient, err := storage.NewGCSClient(client, gsClientOpt)
+	if err != nil {
+		sklog.Fatalf("Unable to create GCSClient: %s", err)
+	}
 
-		// Rebuild the index every few minutes.
-		sklog.Infof("Starting indexer to run every %s", *indexInterval)
-		ixr, err := indexer.New(storages, warmer.New(), *indexInterval)
+	if err := ds.InitWithOpt(*projectID, *dsNamespace, option.WithTokenSource(deprecatedTS)); err != nil {
+		sklog.Fatalf("Unable to configure cloud datastore: %s", err)
+	}
+
+	if *fsNamespace == "" {
+		sklog.Fatalf("--fs_namespace must be set")
+	}
+
+	var fsClient *firestore.Client
+	if *fsLegacyAuth {
+		fsClient, err = firestore.NewClient(context.Background(), *fsProjectID, "gold", *fsNamespace, deprecatedTS)
 		if err != nil {
-			sklog.Fatalf("Failed to create indexer: %s", err)
+			sklog.Fatalf("Unable to configure Firestore: %s", err)
 		}
-		sklog.Infof("Indexer created.")
-
-		searchAPI, err := search.NewSearchAPI(storages, ixr)
+	} else {
+		// Auth note: the underlying firestore.NewClient looks at the
+		// GOOGLE_APPLICATION_CREDENTIALS env variable, so we don't need to supply
+		// a token source.
+		fsClient, err = firestore.NewClient(context.Background(), *fsProjectID, "gold", *fsNamespace, nil)
 		if err != nil {
-			sklog.Fatalf("Failed to create instance of search API: %s", err)
+			sklog.Fatalf("Unable to configure Firestore: %s", err)
 		}
-		sklog.Infof("Search API created")
+	}
 
-		issueTracker := issues.NewMonorailIssueTracker(client, issues.PROJECT_SKIA)
+	// Set up the cloud expectations store
+	expStore, err := fs_expstore.New(fsClient, evt, fs_expstore.ReadWrite)
+	if err != nil {
+		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
+	}
 
-		statusWatcher, err := status.New(storages)
-		if err != nil {
-			sklog.Fatalf("Failed to initialize status watcher: %s", err)
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, evt)
+	if err != nil {
+		sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
+	}
+	tryjobMonitor := gerrit_tryjob_monitor.New(tryjobStore, expStore, gerritAPI, *siteURL, evt, *authoritative)
+
+	// Initialize the Baseliner instance from the values set above.
+	baseliner, err := gcs_baseliner.New(gsClient, expStore, tryjobStore, vcs)
+	if err != nil {
+		sklog.Fatalf("Error initializing baseliner: %s", err)
+	}
+
+	// Extract the site URL
+	storages := &storage.Storage{
+		DiffStore:         diffStore,
+		ExpectationsStore: expStore,
+		TraceDB:           db,
+		MasterTileBuilder: masterTileBuilder,
+		NCommits:          *nCommits,
+		EventBus:          evt,
+		TryjobStore:       tryjobStore,
+		TryjobMonitor:     tryjobMonitor,
+		GerritAPI:         gerritAPI,
+		GCSClient:         gsClient,
+		VCS:               vcs,
+		IsAuthoritative:   *authoritative,
+		SiteURL:           *siteURL,
+		IsSparseTile:      *sparseInput,
+		Baseliner:         baseliner,
+	}
+
+	// Load the whitelist if there is one and disable querying for issues.
+	if *pubWhiteList != "" && *pubWhiteList != WHITELIST_ALL {
+		if err := storages.LoadWhiteList(*pubWhiteList); err != nil {
+			sklog.Fatalf("Empty or invalid white list file. A non-empty white list must be provided if force_login=false.")
 		}
-		sklog.Infof("statusWatcher created")
+	}
 
-		handlers = web.WebHandlers{
-			Storages:      storages,
-			StatusWatcher: statusWatcher,
-			Indexer:       ixr,
-			IssueTracker:  issueTracker,
-			SearchAPI:     searchAPI,
-		}
+	// Check if this is public instance. If so make sure there is a white list.
+	if !*forceLogin && (*pubWhiteList == "") {
+		sklog.Fatalf("Empty whitelist file. A non-empty white list must be provided if force_login=false.")
+	}
 
-		mainTimer.Stop()
-	}()
+	// openSite indicates whether this can expose all end-points. The user still has to be authenticated.
+	openSite := (*pubWhiteList == WHITELIST_ALL) || *forceLogin
 
-	// Wait until the various storage objects are set up correctly.
-	wg.Wait()
+	// TODO(kjlubick): storage.Storage contains an IgnoreStore, so we can't pass ignore
+	// a storage.Storage directly. There probably shouldn't be one monolithic storage object,
+	// but each package could define its own.
+	if storages.IgnoreStore, err = ignore.NewCloudIgnoreStore(ds.DS, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute, "gold-ignore-store")); err != nil {
+		sklog.Fatalf("Unable to create cloud ignorestore: %s", err)
+	}
+
+	if err := ignore.Init(storages.IgnoreStore); err != nil {
+		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
+	}
+
+	// Rebuild the index every few minutes.
+	sklog.Infof("Starting indexer to run every %s", *indexInterval)
+	ixr, err := indexer.New(storages, warmer.New(), *indexInterval)
+	if err != nil {
+		sklog.Fatalf("Failed to create indexer: %s", err)
+	}
+	sklog.Infof("Indexer created.")
+
+	searchAPI, err := search.NewSearchAPI(storages, ixr)
+	if err != nil {
+		sklog.Fatalf("Failed to create instance of search API: %s", err)
+	}
+	sklog.Infof("Search API created")
+
+	issueTracker := issues.NewMonorailIssueTracker(client, issues.PROJECT_SKIA)
+
+	statusWatcher, err := status.New(storages)
+	if err != nil {
+		sklog.Fatalf("Failed to initialize status watcher: %s", err)
+	}
+	sklog.Infof("statusWatcher created")
+
+	handlers := web.WebHandlers{
+		Storages:      storages,
+		StatusWatcher: statusWatcher,
+		Indexer:       ixr,
+		IssueTracker:  issueTracker,
+		SearchAPI:     searchAPI,
+	}
+
+	mainTimer.Stop()
 
 	// loggedRouter contains all the endpoints that are logged. See the call below to
 	// LoggingGzipRequestResponse.
