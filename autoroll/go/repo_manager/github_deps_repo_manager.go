@@ -238,7 +238,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to str
 		return 0, err
 	}
 	logStr = strings.TrimSpace(logStr)
-	childRepoCompareURL := fmt.Sprintf("%s/%%2Blog/%s..%s", rm.childRepoUrl, from[:12], to[:12])
+	childRepoCompareURL := fmt.Sprintf("%s/compare/%s..%s", rm.childRepoUrl, from[:12], to[:12])
 	commitMsg, err := GetGithubCommitMsg(logStr, childRepoCompareURL, rm.childPath, from, to, rm.serverURL, logCmd, emails)
 	if err != nil {
 		return 0, fmt.Errorf("Could not build github commit message: %s", err)
