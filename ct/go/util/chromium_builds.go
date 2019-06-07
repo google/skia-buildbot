@@ -216,11 +216,16 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 	}
 
 	// Create and upload another chromium build if the uploadSingleBuild flag is false. This build
-	// will be created without applying patches.
+	// will be created without applying any patches except the chromium_base_build patch if specified.
 	if !uploadSingleBuild {
 		// Make sure we are starting from a clean slate.
 		if err := ResetChromiumCheckout(ctx, filepath.Join(chromiumBuildDir, "src")); err != nil {
 			return "", "", fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
+		}
+		if applyPatches {
+			if err := applyBaseBuildRepoPatches(ctx, filepath.Join(chromiumBuildDir, "src"), runID); err != nil {
+				return "", "", fmt.Errorf("Could not apply patches in the chromium checkout in %s: %s", chromiumBuildDir, err)
+			}
 		}
 		// Build chromium.
 		if err := buildChromium(ctx, chromiumBuildDir, targetPlatform, useWhitelistedFonts); err != nil {
@@ -347,6 +352,21 @@ func ResetChromiumCheckout(ctx context.Context, chromiumSrcDir string) error {
 	// Reset Chromium.
 	if err := ResetCheckout(ctx, chromiumSrcDir, "HEAD"); err != nil {
 		return fmt.Errorf("Could not reset Chromium's checkout in %s: %s", chromiumSrcDir, err)
+	}
+	return nil
+}
+
+func applyBaseBuildRepoPatches(ctx context.Context, chromiumSrcDir, runID string) error {
+	// Apply Chromium patch for the base build if it exists.
+	chromiumPatch := filepath.Join(os.TempDir(), runID+".chromium_base_build.patch")
+	if _, err := os.Stat(chromiumPatch); err == nil {
+		chromiumPatchFile, _ := os.Open(chromiumPatch)
+		chromiumPatchFileInfo, _ := chromiumPatchFile.Stat()
+		if chromiumPatchFileInfo.Size() > 10 {
+			if err := ApplyPatch(ctx, chromiumPatch, chromiumSrcDir); err != nil {
+				return fmt.Errorf("Could not apply Chromium's patch for the base build in %s: %s", chromiumSrcDir, err)
+			}
+		}
 	}
 	return nil
 }
