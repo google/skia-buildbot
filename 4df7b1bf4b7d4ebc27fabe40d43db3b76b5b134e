@@ -22,6 +22,30 @@
       "revId": "4df7b1bf4b7d4ebc27fabe40d43db3b76b5b134e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "064d0854_b020e4f8",
+        "filename": "autoroll/config/effcee-shaderc.json",
+        "patchSetId": 7
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-06-07T18:40:46Z",
+      "side": 1,
+      "message": "Yea, for now.",
+      "parentUuid": "9df8b987_3c27bc8d",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 24
+      },
+      "revId": "4df7b1bf4b7d4ebc27fabe40d43db3b76b5b134e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
