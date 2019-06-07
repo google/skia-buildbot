@@ -52,6 +52,24 @@
       "revId": "5313bcb4187f9b303d6a364ae51fbfcc3ec47d06",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e059866_abe9a0d9",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 7787
+      },
+      "writtenOn": "2019-06-07T15:49:31Z",
+      "side": 1,
+      "message": "Yes, thanks!",
+      "parentUuid": "41459245_134e3630",
+      "revId": "5313bcb4187f9b303d6a364ae51fbfcc3ec47d06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
