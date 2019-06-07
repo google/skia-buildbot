@@ -51,6 +51,8 @@ spec:
             - "--diff_server_http=gold-{{.INSTANCE_ID}}-diffserver:8001"
             - "--ds_namespace=gold-{{.INSTANCE_ID}}"
             - "--event_topic=gold-{{.INSTANCE_ID}}-eventbus"
+            - "--fs_namespace={{.INSTANCE_ID}}"
+            - "--fs_project_id={{.FIRESTORE_PROJECT}}"
             - "--force_login={{.FORCE_LOGIN}}"
             - "--gerrit_url={{.GERRIT_URL}}"
             - "--git_bt_instance={{.GIT_BT_INSTANCE}}"
