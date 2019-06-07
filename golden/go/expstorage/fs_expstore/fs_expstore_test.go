@@ -30,7 +30,8 @@ func TestGetExpectations(t *testing.T) {
 
 	c := getTestFirestoreInstance(t)
 
-	f := New(c, nil, ReadWrite)
+	f, err := New(c, nil, ReadWrite)
+	assert.NoError(t, err)
 
 	// Brand new instance should have no expectations
 	e, err := f.Get()
@@ -74,7 +75,8 @@ func TestGetExpectations(t *testing.T) {
 
 	// Make sure that if we create a new view, we can read the results
 	// from the table to make the expectations
-	fr := New(c, nil, ReadOnly)
+	fr, err := New(c, nil, ReadOnly)
+	assert.NoError(t, err)
 	e, err = fr.Get()
 	assert.NoError(t, err)
 	assert.Equal(t, expected, e)
@@ -88,7 +90,8 @@ func TestGetExpectationsRace(t *testing.T) {
 
 	c := getTestFirestoreInstance(t)
 
-	f := New(c, nil, ReadWrite)
+	f, err := New(c, nil, ReadWrite)
+	assert.NoError(t, err)
 
 	type entry struct {
 		Grouping types.TestName
@@ -172,7 +175,8 @@ func TestGetExpectationsBig(t *testing.T) {
 
 	c := getTestFirestoreInstance(t)
 
-	f := New(c, nil, ReadWrite)
+	f, err := New(c, nil, ReadWrite)
+	assert.NoError(t, err)
 
 	// Write the expectations in two, non-overlapping blocks.
 	exp1 := makeBigExpectations(0, 16)
@@ -204,7 +208,8 @@ func TestGetExpectationsBig(t *testing.T) {
 
 	// Make sure that if we create a new view, we can read the results
 	// from the table to make the expectations
-	fr := New(c, nil, ReadOnly)
+	fr, err := New(c, nil, ReadOnly)
+	assert.NoError(t, err)
 	e, err = fr.Get()
 	assert.NoError(t, err)
 	assert.Equal(t, expected, e)
@@ -212,11 +217,15 @@ func TestGetExpectationsBig(t *testing.T) {
 
 // TestReadOnly ensures a read-only instance fails to write data.
 func TestReadOnly(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.ManualTest(t)
+	unittest.RequiresFirestoreEmulator(t)
 
-	f := New(nil, nil, ReadOnly)
+	c := getTestFirestoreInstance(t)
 
-	err := f.AddChange(context.Background(), types.Expectations{
+	f, err := New(c, nil, ReadOnly)
+	assert.NoError(t, err)
+
+	err = f.AddChange(context.Background(), types.Expectations{
 		data.AlphaTest: {
 			data.AlphaGood1Digest: types.POSITIVE,
 		},
@@ -231,7 +240,8 @@ func TestQueryLog(t *testing.T) {
 	unittest.RequiresFirestoreEmulator(t)
 
 	c := getTestFirestoreInstance(t)
-	f := New(c, nil, ReadWrite)
+	f, err := New(c, nil, ReadWrite)
+	assert.NoError(t, err)
 
 	fillWith4Entries(t, f)
 
@@ -241,33 +251,34 @@ func TestQueryLog(t *testing.T) {
 	assert.Equal(t, 4, n) // 4 operations
 
 	now := time.Now()
+	nowMS := now.Unix() * 1000
 	normalizeEntries(t, now, entries)
 	assert.Equal(t, []expstorage.TriageLogEntry{
 		{
 			ID:          "was_random_0",
 			Name:        userTwo,
-			TS:          now.Unix(),
+			TS:          nowMS,
 			ChangeCount: 2,
 			Details:     nil,
 		},
 		{
 			ID:          "was_random_1",
 			Name:        userOne,
-			TS:          now.Unix(),
+			TS:          nowMS,
 			ChangeCount: 1,
 			Details:     nil,
 		},
 		{
 			ID:          "was_random_2",
 			Name:        userTwo,
-			TS:          now.Unix(),
+			TS:          nowMS,
 			ChangeCount: 1,
 			Details:     nil,
 		},
 		{
 			ID:          "was_random_3",
 			Name:        userOne,
-			TS:          now.Unix(),
+			TS:          nowMS,
 			ChangeCount: 1,
 			Details:     nil,
 		},
@@ -281,14 +292,14 @@ func TestQueryLog(t *testing.T) {
 		{
 			ID:          "was_random_0",
 			Name:        userOne,
-			TS:          now.Unix(),
+			TS:          nowMS,
 			ChangeCount: 1,
 			Details:     nil,
 		},
 		{
 			ID:          "was_random_1",
 			Name:        userTwo,
-			TS:          now.Unix(),
+			TS:          nowMS,
 			ChangeCount: 1,
 			Details:     nil,
 		},
@@ -307,7 +318,8 @@ func TestQueryLogDetails(t *testing.T) {
 	unittest.RequiresFirestoreEmulator(t)
 
 	c := getTestFirestoreInstance(t)
-	f := New(c, nil, ReadWrite)
+	f, err := New(c, nil, ReadWrite)
+	assert.NoError(t, err)
 
 	fillWith4Entries(t, f)
 
@@ -357,7 +369,8 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 	unittest.RequiresFirestoreEmulator(t)
 
 	c := getTestFirestoreInstance(t)
-	f := New(c, nil, ReadWrite)
+	f, err := New(c, nil, ReadWrite)
+	assert.NoError(t, err)
 
 	fillWith4Entries(t, f)
 
@@ -403,7 +416,8 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 
 	// Make sure that if we create a new view, we can read the results
 	// from the table to make the expectations
-	fr := New(c, nil, ReadOnly)
+	fr, err := New(c, nil, ReadOnly)
+	assert.NoError(t, err)
 	exp, err = fr.Get()
 	assert.NoError(t, err)
 	assert.Equal(t, expected, exp)
@@ -415,9 +429,10 @@ func TestUndoChangeNoExist(t *testing.T) {
 	unittest.RequiresFirestoreEmulator(t)
 
 	c := getTestFirestoreInstance(t)
-	f := New(c, nil, ReadWrite)
+	f, err := New(c, nil, ReadWrite)
+	assert.NoError(t, err)
 
-	_, err := f.UndoChange(context.Background(), "doesnotexist", "userTwo")
+	_, err = f.UndoChange(context.Background(), "doesnotexist", "userTwo")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not find change")
 }
@@ -432,7 +447,8 @@ func TestEventBusAddMaster(t *testing.T) {
 	defer meb.AssertExpectations(t)
 
 	c := getTestFirestoreInstance(t)
-	f := New(c, meb, ReadWrite)
+	f, err := New(c, meb, ReadWrite)
+	assert.NoError(t, err)
 
 	change1 := types.Expectations{
 		data.AlphaTest: {
@@ -472,9 +488,11 @@ func TestEventBusAddIssue(t *testing.T) {
 	defer meb.AssertExpectations(t)
 
 	c := getTestFirestoreInstance(t)
-	e := New(c, meb, ReadWrite)
+	e, err := New(c, meb, ReadWrite)
+	assert.NoError(t, err)
 	issue := int64(117)
 	f := e.ForIssue(issue) // arbitrary issue
+	assert.NotNil(t, f)
 
 	change1 := types.Expectations{
 		data.AlphaTest: {
@@ -513,7 +531,8 @@ func TestEventBusUndo(t *testing.T) {
 	defer meb.AssertExpectations(t)
 
 	c := getTestFirestoreInstance(t)
-	f := New(c, meb, ReadWrite)
+	f, err := New(c, meb, ReadWrite)
+	assert.NoError(t, err)
 
 	change := types.Expectations{
 		data.AlphaTest: {
@@ -557,7 +576,8 @@ func TestIssueExpectationsAddGet(t *testing.T) {
 	unittest.RequiresFirestoreEmulator(t)
 
 	c := getTestFirestoreInstance(t)
-	mb := New(c, nil, ReadWrite)
+	mb, err := New(c, nil, ReadWrite)
+	assert.NoError(t, err)
 
 	ctx := context.Background()
 	assert.NoError(t, mb.AddChange(ctx, types.Expectations{
@@ -622,7 +642,8 @@ func TestIssueExpectationsQueryLog(t *testing.T) {
 	unittest.RequiresFirestoreEmulator(t)
 
 	c := getTestFirestoreInstance(t)
-	mb := New(c, nil, ReadWrite)
+	mb, err := New(c, nil, ReadWrite)
+	assert.NoError(t, err)
 
 	ctx := context.Background()
 	assert.NoError(t, mb.AddChange(ctx, types.Expectations{
@@ -647,11 +668,12 @@ func TestIssueExpectationsQueryLog(t *testing.T) {
 	assert.Equal(t, 1, n)
 
 	now := time.Now()
+	nowMS := now.Unix() * 1000
 	normalizeEntries(t, now, entries)
 	assert.Equal(t, expstorage.TriageLogEntry{
 		ID:          "was_random_0",
 		Name:        userTwo,
-		TS:          now.Unix(),
+		TS:          nowMS,
 		ChangeCount: 1,
 		Details: []expstorage.TriageDetail{
 			{
@@ -674,7 +696,7 @@ func TestIssueExpectationsQueryLog(t *testing.T) {
 	assert.Equal(t, expstorage.TriageLogEntry{
 		ID:          "was_random_0",
 		Name:        userOne,
-		TS:          now.Unix(),
+		TS:          nowMS,
 		ChangeCount: 1,
 		Details: []expstorage.TriageDetail{
 			{
@@ -684,6 +706,18 @@ func TestIssueExpectationsQueryLog(t *testing.T) {
 			},
 		},
 	}, entries[0])
+}
+
+// TestExpectationEntryID tests edge cases for malformed names
+func TestExpectationEntryID(t *testing.T) {
+	unittest.SmallTest(t)
+	// Based on real data
+	e := expectationEntry{
+		Grouping: "downsample/images/mandrill_512.png",
+		Digest:   "36bc7da524f2869c97f0a0f1d7042110",
+	}
+	assert.Equal(t, "downsample-images-mandrill_512.png|36bc7da524f2869c97f0a0f1d7042110",
+		e.ID())
 }
 
 // fillWith4Entries fills a given Store with 4 triaged records of a few digests.
@@ -721,10 +755,10 @@ func normalizeEntries(t *testing.T, now time.Time, entries []expstorage.TriageLo
 	for i, te := range entries {
 		assert.NotEqual(t, "", te.ID)
 		te.ID = "was_random_" + strconv.Itoa(i)
-		ts := time.Unix(te.TS, 0)
+		ts := time.Unix(te.TS/1000, 0)
 		assert.False(t, ts.IsZero())
 		assert.True(t, now.After(ts))
-		te.TS = now.Unix()
+		te.TS = now.Unix() * 1000
 		entries[i] = te
 	}
 }
@@ -733,7 +767,7 @@ func normalizeEntries(t *testing.T, now time.Time, entries []expstorage.TriageLo
 // by appending a random nonce, we can be assured the collection we get is empty.
 func getTestFirestoreInstance(t *testing.T) *firestore.Client {
 	randInstance := uuid.New().String()
-	c, err := firestore.NewClient(context.Background(), "should-use-emulator", "gold-test", ExpectationStoreCollection+randInstance, nil)
+	c, err := firestore.NewClient(context.Background(), "emulated-project", "gold", "test-"+randInstance, nil)
 	assert.NoError(t, err)
 	return c
 }
