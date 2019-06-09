@@ -11,6 +11,7 @@ import (
 	"os"
 	"unsafe"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
@@ -277,7 +278,7 @@ func GetNRGBA(img image.Image) *image.NRGBA {
 // PixelDiff is a utility function that calculates the DiffMetrics and the image of the
 // difference for the provided images.
 func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
-
+	defer metrics2.FuncTimer().Stop()
 	img1Bounds := img1.Bounds()
 	img2Bounds := img2.Bounds()
 
@@ -302,7 +303,7 @@ func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 	p1 := GetNRGBA(img1).Pix
 	p2 := GetNRGBA(img2).Pix
 	// Compare the bounds, if they are the same then use this fast path.
-	// We pun to uint64 to compare 2 pixels at a time, so we also require
+	// We cast to uint64 to compare 2 pixels at a time, so we also require
 	// an even number of pixels here.  If that's a big deal, we can easily
 	// fix that up, handling the straggler pixel separately at the end.
 	if img1Bounds.Eq(img2Bounds) && len(p1)%8 == 0 {
