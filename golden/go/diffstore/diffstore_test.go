@@ -2,7 +2,6 @@ package diffstore
 
 import (
 	"fmt"
-	"image"
 	"net"
 	"net/http/httptest"
 	"path"
@@ -17,6 +16,9 @@ import (
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/diffstore/mapper"
+	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
+	d_utils "go.skia.org/infra/golden/go/diffstore/testutils"
 	"go.skia.org/infra/golden/go/types"
 	"google.golang.org/grpc"
 )
@@ -34,46 +36,15 @@ func TestMemDiffStore(t *testing.T) {
 	// Get a small tile and get them cached.
 	w, cleanup := testutils.TempDir(t)
 	defer cleanup()
-	baseDir := path.Join(w, TEST_DATA_BASE_DIR+"-diffstore")
-	client, tile := getSetupAndTile(t, baseDir)
+	baseDir := path.Join(w, d_utils.TEST_DATA_BASE_DIR+"-diffstore")
+	client, tile := d_utils.GetSetupAndTile(t, baseDir)
 
-	mapper := NewGoldDiffStoreMapper(&diff.DiffMetrics{})
-	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, mapper)
+	m := disk_mapper.New(&diff.DiffMetrics{})
+	diffStore, err := NewMemDiffStore(client, baseDir, []string{d_utils.TEST_GCS_BUCKET_NAME}, d_utils.TEST_GCS_IMAGE_DIR, 10, m)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
 	testDiffStore(t, tile, baseDir, diffStore, memDiffStore)
-}
-
-type DummyDiffStoreMapper struct {
-	GoldDiffStoreMapper
-}
-
-func (d DummyDiffStoreMapper) DiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) (interface{}, *image.NRGBA) {
-	return 42, nil
-}
-
-func TestDiffFn(t *testing.T) {
-	unittest.LargeTest(t)
-
-	w, cleanup := testutils.TempDir(t)
-	defer cleanup()
-	baseDir := path.Join(w, TEST_DATA_BASE_DIR+"-difffn")
-	client, _ := getSetupAndTile(t, baseDir)
-
-	// Instantiate a new MemDiffStore with the DummyDiffFn.
-	mapper := DummyDiffStoreMapper{GoldDiffStoreMapper: NewGoldDiffStoreMapper(&diff.DiffMetrics{}).(GoldDiffStoreMapper)}
-	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, mapper)
-
-	assert.NoError(t, err)
-	memDiffStore := diffStore.(*MemDiffStore)
-	img1 := image.NewNRGBA(image.Rect(1, 2, 3, 4))
-	img2 := image.NewNRGBA(image.Rect(9, 8, 7, 6))
-
-	// Check that proper values are returned by the diff function.
-	diffMetrics, diffImg := memDiffStore.mapper.DiffFn(img1, img2)
-	assert.Equal(t, 42, diffMetrics)
-	assert.Nil(t, diffImg)
 }
 
 func TestNetDiffStore(t *testing.T) {
@@ -81,11 +52,11 @@ func TestNetDiffStore(t *testing.T) {
 
 	w, cleanup := testutils.TempDir(t)
 	defer cleanup()
-	baseDir := path.Join(w, TEST_DATA_BASE_DIR+"-netdiffstore")
-	client, tile := getSetupAndTile(t, baseDir)
+	baseDir := path.Join(w, d_utils.TEST_DATA_BASE_DIR+"-netdiffstore")
+	client, tile := d_utils.GetSetupAndTile(t, baseDir)
 
-	mapper := NewGoldDiffStoreMapper(&diff.DiffMetrics{})
-	memDiffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, mapper)
+	m := disk_mapper.New(&diff.DiffMetrics{})
+	memDiffStore, err := NewMemDiffStore(client, baseDir, []string{d_utils.TEST_GCS_BUCKET_NAME}, d_utils.TEST_GCS_IMAGE_DIR, 10, m)
 	assert.NoError(t, err)
 
 	// Start the server that wraps around the MemDiffStore.
@@ -159,7 +130,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	for _, d1 := range digests {
 		for _, d2 := range digests {
 			if d1 != d2 {
-				id := memDiffStore.mapper.DiffID(d1, d2)
+				id := mapper.DiffID(d1, d2)
 				diffIDs = append(diffIDs, id)
 				assert.True(t, memDiffStore.diffMetricsCache.Contains(id))
 			}
@@ -176,7 +147,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 
 		// Load the diff from disk and compare.
 		for twoDigest, dr := range found {
-			id := memDiffStore.mapper.DiffID(oneDigest, twoDigest)
+			id := mapper.DiffID(oneDigest, twoDigest)
 			loadedDr, err := memDiffStore.metricsStore.loadDiffMetrics(id)
 			assert.NoError(t, err)
 			assert.Equal(t, dr, loadedDr, "Comparing: %s", id)
@@ -212,9 +183,33 @@ func testDiffs(t *testing.T, baseDir string, diffStore *MemDiffStore, leftDigest
 	}
 }
 
-type DummyDiffMetrics struct {
-	NumDiffPixels     int
-	PercentDiffPixels float32
+func TestCodec(t *testing.T) {
+	unittest.MediumTest(t)
+
+	w, cleanup := testutils.TempDir(t)
+	defer cleanup()
+	baseDir := path.Join(w, d_utils.TEST_DATA_BASE_DIR+"-codec")
+	client, _ := d_utils.GetSetupAndTile(t, baseDir)
+
+	// Instantiate a new MemDiffStore with a codec for the test struct defined above.
+	m := disk_mapper.New(&d_utils.DummyDiffMetrics{})
+	diffStore, err := NewMemDiffStore(client, baseDir, []string{d_utils.TEST_GCS_BUCKET_NAME}, d_utils.TEST_GCS_IMAGE_DIR, 10, m)
+	assert.NoError(t, err)
+	memDiffStore := diffStore.(*MemDiffStore)
+
+	diffID := mapper.DiffID(types.Digest("abc"), types.Digest("def"))
+	diffMetrics := &d_utils.DummyDiffMetrics{
+		NumDiffPixels:     100,
+		PercentDiffPixels: 0.5,
+	}
+	err = memDiffStore.metricsStore.saveDiffMetrics(diffID, diffMetrics)
+	assert.NoError(t, err)
+
+	// Verify the returned diff metrics object has the same type and same contents
+	// as the object that was saved to the metricsStore.
+	metrics, err := memDiffStore.metricsStore.loadDiffMetrics(diffID)
+	assert.NoError(t, err)
+	assert.Equal(t, diffMetrics, metrics)
 }
 
 // Allows for sorting slices of digests by the length (longer slices first)

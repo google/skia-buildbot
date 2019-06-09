@@ -8,6 +8,8 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
+	d_utils "go.skia.org/infra/golden/go/diffstore/testutils"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -17,11 +19,11 @@ func TestFailureHandling(t *testing.T) {
 	// Get a small tile and get them cached.
 	w, cleanup := testutils.TempDir(t)
 	defer cleanup()
-	baseDir := path.Join(w, TEST_DATA_BASE_DIR+"-diffstore-failure")
-	client, tile := getSetupAndTile(t, baseDir)
+	baseDir := path.Join(w, d_utils.TEST_DATA_BASE_DIR+"-diffstore-failure")
+	client, tile := d_utils.GetSetupAndTile(t, baseDir)
 
-	mapper := NewGoldDiffStoreMapper(&diff.DiffMetrics{})
-	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, mapper)
+	m := disk_mapper.New(&diff.DiffMetrics{})
+	diffStore, err := NewMemDiffStore(client, baseDir, []string{d_utils.TEST_GCS_BUCKET_NAME}, d_utils.TEST_GCS_IMAGE_DIR, 10, m)
 	assert.NoError(t, err)
 
 	validDigestSet := types.DigestSet{}
