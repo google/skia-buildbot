@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/diffstore/mapper"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -33,10 +34,6 @@ type metricsStore struct {
 
 	// codec is used to encode/decode the DiffMetrics field of a metricsRec struct
 	codec util.LRUCodec
-
-	// TODO(stephana): Remove mapper field once we don't need the legacy code anymore.
-	// mapper is an instance of DiffStoreMapper.
-	mapper DiffStoreMapper
 
 	// factory acts as the codec for metrics and is used to create instances of metricsRec.
 	factory *metricsRecFactory
@@ -90,7 +87,7 @@ func (m *metricsRecFactory) Decode(data []byte) (interface{}, error) {
 }
 
 // newMetricsStore returns a new instance of metricsStore.
-func newMetricsStore(baseDir string, mapper DiffStoreMapper, codec util.LRUCodec) (*metricsStore, error) {
+func newMetricsStore(baseDir string, codec util.LRUCodec) (*metricsStore, error) {
 	db, err := openBoltDB(baseDir, METRICSDB_NAME+".db")
 	if err != nil {
 		return nil, err
@@ -120,7 +117,6 @@ func newMetricsStore(baseDir string, mapper DiffStoreMapper, codec util.LRUCodec
 	return &metricsStore{
 		store:   store,
 		codec:   codec,
-		mapper:  mapper,
 		factory: factoryCodec,
 	}, nil
 }
@@ -231,7 +227,7 @@ func (m *metricsStore) fixLegacyRecord(id string, recBytes []byte) *diff.DiffMet
 		newRec = legRec.DiffMetrics
 	}
 	// Regenerate the diffID to filter out the old format.
-	newID := m.mapper.DiffID(m.mapper.SplitDiffID(id))
+	newID := mapper.DiffID(mapper.SplitDiffID(id))
 
 	// Write the new record to the database in the background.
 	go func() {

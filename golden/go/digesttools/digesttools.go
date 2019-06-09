@@ -121,6 +121,7 @@ func ClosestFromDiffMetrics(diff *diff.DiffMetrics) *Closest {
 
 // combinedDiffMetric returns a value in [0, 1] that represents how large
 // the diff is between two images.
+// TODO(kjlubick): This algorithm should be deduplicated with diff.combinedDiffMetric.
 func combinedDiffMetric(pixelDiffPercent float32, maxRGBA []int) float32 {
 	if len(maxRGBA) == 0 {
 		return 1.0

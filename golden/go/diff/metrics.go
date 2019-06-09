@@ -3,6 +3,8 @@ package diff
 import (
 	"image"
 	"math"
+
+	"go.skia.org/infra/go/metrics2"
 )
 
 const (
@@ -40,6 +42,7 @@ func GetDiffMetricIDs() []string {
 // DefaultDiffFn implements the DiffFn function type. Calculates the basic
 // image difference along with custom diff metrics.
 func DefaultDiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) (interface{}, *image.NRGBA) {
+	defer metrics2.FuncTimer().Stop()
 	ret, diffImg := PixelDiff(leftImg, rightImg)
 
 	// Calculate the metrics.
@@ -54,8 +57,8 @@ func DefaultDiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) (interface{}, *i
 
 // combinedDiffMetric returns a value in [0, 1] that represents how large
 // the diff is between two images. Implements the MetricFn signature.
+// TODO(kjlubick): This algorithm should be deduplicated with digesttools.combinedDiffMetric.
 func combinedDiffMetric(basic *DiffMetrics, one *image.NRGBA, two *image.NRGBA) float32 {
-	//
 	// pixelDiffPercent float32, maxRGBA []int) float32 {
 	if len(basic.MaxRGBADiffs) == 0 {
 		return 1.0

@@ -11,6 +11,7 @@ import (
 	"os"
 	"unsafe"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
@@ -277,7 +278,7 @@ func GetNRGBA(img image.Image) *image.NRGBA {
 // PixelDiff is a utility function that calculates the DiffMetrics and the image of the
 // difference for the provided images.
 func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
-
+	defer metrics2.FuncTimer().Stop()
 	img1Bounds := img1.Bounds()
 	img2Bounds := img2.Bounds()
 
