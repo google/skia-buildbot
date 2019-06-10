@@ -3,6 +3,7 @@
 {
   "childName": "google/effcee",
   "contacts": [
+    "rharrison@google.com",
     "rmistry@google.com"
   ],
   "isInternal": false,
@@ -11,7 +12,7 @@
   "rollerName": "effcee-shaderc-autoroll",
   "serviceAccount": "effcee-shaderc-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "rmistry@google.com"
+    "radial-bots+shaderc-roll@google.com"
   ],
   "github": {
     "repoOwner": "google",
