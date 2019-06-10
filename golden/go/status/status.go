@@ -176,7 +176,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 					liveness.Reset()
 				}
 			case <-expChanges:
-				storage.DrainChangeChannel(expChanges)
+				drainChangeChannel(expChanges)
 				if err := s.calcStatus(lastCpxTile); err != nil {
 					sklog.Errorf("Error calculating tile after expectation update: %s", err)
 				}
@@ -294,4 +294,17 @@ func (s *StatusWatcher) calcStatus(cpxTile types.ComplexTile) error {
 	s.current = result
 
 	return nil
+}
+
+// drainChangeChannel removes everything from the channel thats currently
+// buffered or ready to be read.
+func drainChangeChannel(ch <-chan types.Expectations) {
+Loop:
+	for {
+		select {
+		case <-ch:
+		default:
+			break Loop
+		}
+	}
 }
