@@ -98,7 +98,7 @@ func (i *Impl) ClosestDigest(test types.TestName, digest types.Digest, label typ
 	} else {
 		for digest, diffs := range diffMetrics {
 			dm := diffs.(*diff.DiffMetrics)
-			if delta := combinedDiffMetric(dm.PixelDiffPercent, dm.MaxRGBADiffs); delta < ret.Diff {
+			if delta := diff.CombinedDiffMetric(dm, nil, nil); delta < ret.Diff {
 				ret.Digest = digest
 				ret.Diff = delta
 				ret.DiffPixels = dm.PixelDiffPercent
@@ -111,31 +111,12 @@ func (i *Impl) ClosestDigest(test types.TestName, digest types.Digest, label typ
 
 // ClosestFromDiffMetrics returns an instance of Closest with the values of the
 // given diff.DiffMetrics. The Digest field will be left empty.
-func ClosestFromDiffMetrics(diff *diff.DiffMetrics) *Closest {
+func ClosestFromDiffMetrics(dm *diff.DiffMetrics) *Closest {
 	return &Closest{
-		Diff:       combinedDiffMetric(diff.PixelDiffPercent, diff.MaxRGBADiffs),
-		DiffPixels: diff.PixelDiffPercent,
-		MaxRGBA:    diff.MaxRGBADiffs,
+		Diff:       diff.CombinedDiffMetric(dm, nil, nil),
+		DiffPixels: dm.PixelDiffPercent,
+		MaxRGBA:    dm.MaxRGBADiffs,
 	}
-}
-
-// combinedDiffMetric returns a value in [0, 1] that represents how large
-// the diff is between two images.
-func combinedDiffMetric(pixelDiffPercent float32, maxRGBA []int) float32 {
-	if len(maxRGBA) == 0 {
-		return 1.0
-	}
-	// Turn maxRGBA into a percent by taking the root mean square difference from
-	// [0, 0, 0, 0].
-	sum := 0.0
-	for _, c := range maxRGBA {
-		sum += float64(c) * float64(c)
-	}
-	normalizedRGBA := math.Sqrt(sum/float64(len(maxRGBA))) / 255.0
-	// We take the sqrt of (pixelDiffPercent * normalizedRGBA) to straigten out
-	// the curve, i.e. think about what a plot of x^2 would look like in the
-	// range [0, 1].
-	return float32(math.Sqrt(float64(pixelDiffPercent) * normalizedRGBA))
 }
 
 // Make sure Impl fulfills the ClosestDiffFinder interface

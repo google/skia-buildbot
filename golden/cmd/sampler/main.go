@@ -179,6 +179,9 @@ func load() (*tiling.Tile, types.Expectations, ignore.IgnoreStore) {
 
 	evt := eventbus.New()
 	ts, err := auth.NewDefaultTokenSource(true)
+	if err != nil {
+		sklog.Fatalf("Cannot get token source: %s", err)
+	}
 
 	fsClient, err := firestore.NewClient(ctx, *fsProjectID, "gold", *fsNamespace, ts)
 	if err != nil {

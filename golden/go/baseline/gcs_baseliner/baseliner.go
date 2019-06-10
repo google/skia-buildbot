@@ -263,7 +263,7 @@ func (b *BaselinerImpl) FetchBaseline(commitHash string, issueID int64, issueOnl
 		} else {
 			// Clone the retrieved baseline before we inject the issue information.
 			masterBaseline = masterBaseline.Copy()
-			masterBaseline.Expectations.Update(issueBaseline.Expectations)
+			masterBaseline.Expectations.MergeExpectations(issueBaseline.Expectations)
 			masterBaseline.Issue = issueID
 		}
 	}

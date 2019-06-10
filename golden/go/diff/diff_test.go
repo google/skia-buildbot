@@ -3,6 +3,7 @@ package diff
 import (
 	"bytes"
 	"image"
+	"math"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -341,4 +342,23 @@ func BenchmarkDiff(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		PixelDiff(img1, img2)
 	}
+}
+
+func TestCombinedDiffMetric(t *testing.T) {
+	unittest.SmallTest(t)
+	dm := &DiffMetrics{
+		MaxRGBADiffs:     []int{},
+		PixelDiffPercent: 0.0,
+	}
+	assert.InDelta(t, 1.0, CombinedDiffMetric(dm, nil, nil), 0.000001)
+	dm = &DiffMetrics{
+		MaxRGBADiffs:     []int{255, 255, 255, 255},
+		PixelDiffPercent: 1.0,
+	}
+	assert.InDelta(t, 1.0, CombinedDiffMetric(dm, nil, nil), 0.000001)
+	dm = &DiffMetrics{
+		MaxRGBADiffs:     []int{255, 255, 255, 255},
+		PixelDiffPercent: 0.5,
+	}
+	assert.InDelta(t, math.Sqrt(0.5), CombinedDiffMetric(dm, nil, nil), 0.000001)
 }
