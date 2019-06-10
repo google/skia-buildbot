@@ -40,14 +40,6 @@ func asDigests(xs []string) types.DigestSlice {
 	return d
 }
 
-func asStrings(xd types.DigestSlice) []string {
-	s := make([]string, 0, len(xd))
-	for _, d := range xd {
-		s = append(s, string(d))
-	}
-	return s
-}
-
 // GetDiffs wraps around the Get method of the underlying DiffStore.
 func (d *DiffServiceImpl) GetDiffs(ctx context.Context, req *GetDiffsRequest) (*GetDiffsResponse, error) {
 	diffs, err := d.diffStore.Get(req.Priority, types.Digest(req.MainDigest), asDigests(req.RightDigests))
