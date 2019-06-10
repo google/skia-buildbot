@@ -119,7 +119,7 @@ require (
 	golang.org/x/net v0.0.0-20190607181551-461777fb6f67
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	golang.org/x/sys v0.0.0-20190608050228-5b15430b70e3 // indirect
+	golang.org/x/sys v0.0.0-20190609082536-301114b31cce // indirect
 	golang.org/x/tools v0.0.0-20190608022120-eacb66d2a7c3 // indirect
 	google.golang.org/api v0.6.0
 	google.golang.org/appengine v1.6.1 // indirect
