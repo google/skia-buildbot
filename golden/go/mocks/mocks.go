@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
-	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -39,25 +38,6 @@ func traceKey(params map[string]string) tiling.TraceId {
 	}
 	sort.Strings(traceParts)
 	return tiling.TraceId(strings.Join(traceParts, ":"))
-}
-
-type MockDigestStore struct {
-	IssueIDs  []int
-	FirstSeen int64
-	OkValue   bool
-}
-
-func (m *MockDigestStore) Get(testName, digest string) (*digeststore.DigestInfo, bool, error) {
-	return &digeststore.DigestInfo{
-		TestName: testName,
-		Digest:   digest,
-		First:    m.FirstSeen,
-	}, m.OkValue, nil
-}
-
-func (m *MockDigestStore) Update([]*digeststore.DigestInfo) error {
-	m.OkValue = true
-	return nil
 }
 
 type MockTileBuilder struct {
