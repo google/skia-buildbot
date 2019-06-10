@@ -44,6 +44,7 @@ import (
 	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
+	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
 	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
@@ -240,7 +241,7 @@ func main() {
 		if *gsBucketNames == "" {
 			sklog.Fatalf("Must specify --gs_buckets or (--diff_server_http and --diff_server_grpc)")
 		}
-		mapper := diffstore.NewGoldDiffStoreMapper(&diff.DiffMetrics{})
+		mapper := disk_mapper.New(&diff.DiffMetrics{})
 		diffStore, err = diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize, mapper)
 		if err != nil {
 			sklog.Fatalf("Allocating local DiffStore failed: %s", err)

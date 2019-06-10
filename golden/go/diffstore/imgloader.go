@@ -21,6 +21,10 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/diffstore/common"
+	"go.skia.org/infra/golden/go/diffstore/failurestore"
+	"go.skia.org/infra/golden/go/diffstore/failurestore/bolt_failurestore"
+	"go.skia.org/infra/golden/go/diffstore/mapper"
 	"go.skia.org/infra/golden/go/types"
 	"google.golang.org/api/option"
 )
@@ -51,24 +55,23 @@ type ImageLoader struct {
 	imageCache rtcache.ReadThroughCache
 
 	// failureStore persists failures in retrieving images.
-	failureStore *failureStore
+	failureStore failurestore.FailureStore
 
 	// mapper contains various functions for creating image IDs and paths.
-	mapper DiffStoreMapper
+	mapper mapper.Mapper
 }
 
 // Creates a new instance of ImageLoader.
-func NewImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []string, gsImageBaseDir string, maxCacheSize int, mapper DiffStoreMapper) (*ImageLoader, error) {
+func NewImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []string, gsImageBaseDir string, maxCacheSize int, m mapper.Mapper) (*ImageLoader, error) {
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, err
 	}
-	fsPath := filepath.Join(baseDir, FAILUREDB_NAME)
-	fStore, err := newFailureStore(fsPath)
+	fStore, err := bolt_failurestore.New(baseDir)
 	if err != nil {
 		return nil, err
 	}
-	sklog.Infof("failure store created at %s", fsPath)
+	sklog.Infof("failure store created at %s", baseDir)
 
 	ret := &ImageLoader{
 		storageClient:  storageClient,
@@ -76,7 +79,7 @@ func NewImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []s
 		gsBucketNames:  gsBucketNames,
 		gsImageBaseDir: gsImageBaseDir,
 		failureStore:   fStore,
-		mapper:         mapper,
+		mapper:         m,
 	}
 
 	// Set up the work queues that balance the load.
@@ -162,7 +165,7 @@ func (il *ImageLoader) Get(priority int64, images types.DigestSlice) ([]*image.N
 			_, _ = msg.WriteString("\n")
 
 			// This captures the edge case when the error is cached in the image loader.
-			util.LogErr(il.failureStore.addDigestFailureIfNew(diff.NewDigestFailure(errRet.id, diff.OTHER)))
+			util.LogErr(il.failureStore.AddDigestFailureIfNew(diff.NewDigestFailure(errRet.id, diff.OTHER)))
 		}
 		return nil, nil, errors.New(msg.String())
 	}
@@ -172,14 +175,14 @@ func (il *ImageLoader) Get(priority int64, images types.DigestSlice) ([]*image.N
 
 // IsOnDisk returns true if the image that corresponds to the given imageID is in the disk cache.
 func (il *ImageLoader) IsOnDisk(imageID types.Digest) bool {
-	localRelPath, _, _ := il.mapper.ImagePaths(imageID)
+	localRelPath, _ := il.mapper.ImagePaths(imageID)
 	return fileutil.FileExists(filepath.Join(il.localImgDir, localRelPath))
 }
 
 // PurgeImages removes the images that correspond to the given images.
 func (il *ImageLoader) PurgeImages(images types.DigestSlice, purgeGCS bool) error {
 	for _, id := range images {
-		localRelPath, bucket, gsRelPath := il.mapper.ImagePaths(id)
+		localRelPath, gsRelPath := il.mapper.ImagePaths(id)
 		localPath := filepath.Join(il.localImgDir, localRelPath)
 		if fileutil.FileExists(localPath) {
 			if err := os.Remove(localPath); err != nil {
@@ -188,7 +191,7 @@ func (il *ImageLoader) PurgeImages(images types.DigestSlice, purgeGCS bool) erro
 		}
 
 		if purgeGCS {
-			il.removeImg(bucket, gsRelPath)
+			il.removeImg(gsRelPath)
 		}
 	}
 	return nil
@@ -198,32 +201,31 @@ func (il *ImageLoader) PurgeImages(images types.DigestSlice, purgeGCS bool) erro
 // It loads an image file either from disk or from Google storage.
 func (il *ImageLoader) imageLoadWorker(priority int64, imageID types.Digest) (interface{}, error) {
 	// Check if the image is in the disk cache.
-	localRelPath, bucket, gsRelPath := il.mapper.ImagePaths(imageID)
+	localRelPath, gsRelPath := il.mapper.ImagePaths(imageID)
 	localPath := filepath.Join(il.localImgDir, localRelPath)
 	sklog.Debugf("Looking for image with id %s", imageID)
 	if fileutil.FileExists(localPath) {
-		img, err := loadImg(localPath)
+		img, err := common.LoadImg(localPath)
 		if err != nil {
-			util.LogErr(il.failureStore.addDigestFailure(diff.NewDigestFailure(imageID, diff.CORRUPTED)))
+			util.LogErr(il.failureStore.AddDigestFailure(diff.NewDigestFailure(imageID, diff.CORRUPTED)))
 			return nil, skerr.Fmt("Could not load %s from disk: %s", localPath, err)
 		}
 		sklog.Debugf("Found it on disk at %s", localPath)
-		util.LogErr(il.failureStore.purgeDigestFailures(types.DigestSlice{imageID}))
+		util.LogErr(il.failureStore.PurgeDigestFailures(types.DigestSlice{imageID}))
 		return &imgRet{img: img}, nil
 	}
 
-	sklog.Debugf("%s is not on disk yet, going to download from gs://%s", imageID, bucket)
 	// Download the image from GCS
-	imgBytes, err := il.downloadImg(bucket, gsRelPath)
+	imgBytes, err := il.downloadImg(gsRelPath)
 	if err != nil {
-		util.LogErr(il.failureStore.addDigestFailure(diff.NewDigestFailure(imageID, diff.HTTP)))
+		util.LogErr(il.failureStore.AddDigestFailure(diff.NewDigestFailure(imageID, diff.HTTP)))
 		return nil, err
 	}
 
 	// Decode it and return it.
-	img, err := decodeImg(bytes.NewBuffer(imgBytes))
+	img, err := common.DecodeImg(bytes.NewBuffer(imgBytes))
 	if err != nil {
-		util.LogErr(il.failureStore.addDigestFailure(diff.NewDigestFailure(imageID, diff.CORRUPTED)))
+		util.LogErr(il.failureStore.AddDigestFailure(diff.NewDigestFailure(imageID, diff.CORRUPTED)))
 		return nil, err
 	}
 
@@ -236,9 +238,9 @@ func (il *ImageLoader) saveImgInfoAsync(imageID types.Digest, imgBytes []byte) <
 	writeDoneCh := make(chan bool)
 	go func() {
 		defer close(writeDoneCh)
-		localRelPath, _, _ := il.mapper.ImagePaths(imageID)
+		localRelPath, _ := il.mapper.ImagePaths(imageID)
 		p := filepath.Join(il.localImgDir, localRelPath)
-		if err := saveFilePath(p, bytes.NewBuffer(imgBytes)); err != nil {
+		if err := common.SaveFilePath(p, bytes.NewBuffer(imgBytes)); err != nil {
 			sklog.Errorf("Could not write file to disk at %s: %s", p, err)
 		}
 	}()
@@ -248,16 +250,9 @@ func (il *ImageLoader) saveImgInfoAsync(imageID types.Digest, imgBytes []byte) <
 // downloadImg retrieves the given image from Google storage. If bucket is not empty
 // the gsPath is considered absolute within the bucket, otherwise it is relative to gsImageBaseDir.
 // We will look in every bucket we are configured for.
-func (il *ImageLoader) downloadImg(bucket, gsPath string) ([]byte, error) {
-	var bucketNames []string
-	var objLocation string
-	if bucket != "" {
-		objLocation = gsPath
-		bucketNames = []string{bucket}
-	} else {
-		objLocation = filepath.Join(il.gsImageBaseDir, gsPath)
-		bucketNames = il.gsBucketNames
-	}
+func (il *ImageLoader) downloadImg(gsPath string) ([]byte, error) {
+	bucketNames := il.gsBucketNames
+	objLocation := filepath.Join(il.gsImageBaseDir, gsPath)
 
 	var err error
 	var imgData []byte
@@ -329,13 +324,10 @@ func (il *ImageLoader) downloadImgFromBucket(objLocation, bucketName string) ([]
 }
 
 // removeImg removes the image that corresponds to the given relative path from GCS.
-func (il *ImageLoader) removeImg(bucket, gsRelPath string) {
+func (il *ImageLoader) removeImg(gsRelPath string) {
 	// If the bucket is not empty then look there otherwise use the default buckets.
 	objLocation := filepath.Join(il.gsImageBaseDir, gsRelPath)
 	bucketNames := il.gsBucketNames
-	if bucket != "" {
-		bucketNames = []string{bucket}
-	}
 
 	ctx := context.Background()
 	for _, bucketName := range bucketNames {
