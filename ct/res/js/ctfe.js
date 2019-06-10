@@ -190,12 +190,12 @@ this.ctfe = this.ctfe || function() {
   }
 
   /**
-   * Returns whether the patch's SHA1 digest in the specified google storage
-   * path is for an empty string or not.
+   * Returns true if gsPath is not set or if the patch's SHA1 digest in the specified
+   * google storage path is for an empty string.
    */
   ctfe.isEmptyPatch = function(gsPath) {
-    // This is the SHA1 digest of an empty string.
-    return gsPath === "patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch";
+    // Compare against empty string and against the SHA1 digest of an empty string.
+    return gsPath === "" || gsPath === "patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch";
   }
 
   /**
