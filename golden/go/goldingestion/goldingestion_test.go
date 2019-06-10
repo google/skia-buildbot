@@ -41,6 +41,8 @@ const (
 
 var (
 	// trace ids and values that are contained in the test file.
+	// These trace ids are the old format, new ones are like:
+	//   ,key1=value1,key2=value2
 	TEST_ENTRIES = []struct {
 		key   tiling.TraceId
 		value types.Digest
