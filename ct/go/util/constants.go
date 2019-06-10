@@ -302,16 +302,16 @@ var (
 	}
 
 	// Frontend constants below.
-	SupportedBenchmarks = []string{
-		BENCHMARK_RR,
-		BENCHMARK_REPAINT,
-		BENCHMARK_LOADING,
-		BENCHMARK_USECOUNTER,
-		BENCHMARK_LEAK_DETECTION,
-		BENCHMARK_RENDERING,
-		BENCHMARK_MEMORY,
-		BENCHMARK_V8_LOADING,
-		BENCHMARK_V8_LOADING_RUNTIME_STATS,
+	SupportedBenchmarksToDoc = map[string]string{
+		BENCHMARK_RR:                       "https://cs.chromium.org/chromium/src/tools/perf/contrib/cluster_telemetry/rasterize_and_record_micro_ct.py",
+		BENCHMARK_REPAINT:                  "https://cs.chromium.org/chromium/src/tools/perf/contrib/cluster_telemetry/repaint.py",
+		BENCHMARK_LOADING:                  "https://cs.chromium.org/chromium/src/tools/perf/contrib/cluster_telemetry/v8_loading_ct.py",
+		BENCHMARK_USECOUNTER:               "https://docs.google.com/document/d/1FSzJm2L2ow6pZTM_CuyHNJecXuX7Mx3XmBzL4SFHyLA/",
+		BENCHMARK_LEAK_DETECTION:           "https://docs.google.com/document/d/1wUWa7dWUdvr6dLdYHFfMQdnvgzt7lrrvzYfpAK-_6e0/",
+		BENCHMARK_RENDERING:                "https://cs.chromium.org/chromium/src/tools/perf/contrib/cluster_telemetry/rendering_ct.py",
+		BENCHMARK_MEMORY:                   "https://cs.chromium.org/chromium/src/tools/perf/contrib/cluster_telemetry/memory_ct.py",
+		BENCHMARK_V8_LOADING:               "https://cs.chromium.org/chromium/src/tools/perf/contrib/cluster_telemetry/v8_loading_ct.py",
+		BENCHMARK_V8_LOADING_RUNTIME_STATS: "https://cs.chromium.org/chromium/src/tools/perf/contrib/cluster_telemetry/v8_loading_runtime_stats_ct.py",
 	}
 
 	SupportedPlatformsToDesc = map[string]string{

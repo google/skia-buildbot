@@ -37,7 +37,8 @@
     <script type="text/javascript" charset="utf-8">
        (function() {
          sk.post('/_/benchmarks_platforms/').then(JSON.parse).then(function(json) {
-           $$$('chromium-perf-sk').benchmarks = json["benchmarks"];
+           $$$('chromium-perf-sk').benchmarksToDoc = json["benchmarks"];
+           $$$('chromium-perf-sk').benchmarks = Object.keys(json["benchmarks"]);
            $$$('chromium-perf-sk').platformsToDesc = json["platforms"];
            $$$('chromium-perf-sk').platforms = Object.keys(json["platforms"]);
          }).catch(sk.errorMessage);
