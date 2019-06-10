@@ -78,6 +78,8 @@ const (
 	BENCHMARK_MEMORY                   = "memory.cluster_telemetry"
 	BENCHMARK_V8_LOADING               = "v8.loading.cluster_telemetry"
 	BENCHMARK_V8_LOADING_RUNTIME_STATS = "v8.loading_runtime_stats.cluster_telemetry"
+  // Ad hoc metrics based on generic trace collection: https://bit.ly/2DIOVy3
+  BENCHMARK_GENERIC_TRACE            = "generic_trace_ct"
 
 	// Logserver link. This is only accessible from Google corp.
 	MASTER_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
@@ -312,6 +314,7 @@ var (
 		BENCHMARK_MEMORY,
 		BENCHMARK_V8_LOADING,
 		BENCHMARK_V8_LOADING_RUNTIME_STATS,
+    BENCHMARK_GENERIC_TRACE,
 	}
 
 	SupportedPlatformsToDesc = map[string]string{
