@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: rpi-swarming-client
+spec:
+  selector:
+    matchLabels:
+      name: rpi-swarming-client
+  template:
+    metadata:
+      labels:
+        name: rpi-swarming-client
+    spec:
+      containers:
+        - name: rpi-swarming-client
+          image: gcr.io/skia-public/rpi-swarming-client:2019-06-07T21_00_07Z-jcgregorio-507e102-dirty
+          env:
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: ADB_KEYS_PATH
+              value: /etc/swarming/adbkeys
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - SYS_ADMIN
+          volumeMounts:
+          - mountPath: /b
+            name: local-swarming-workingset
+          - mountPath: /dev/ttyAMA0
+            name: usb
+          - mountPath: /etc/swarming/adbkeys
+            name: skolo-rpi-adb-key
+      volumes:
+      - name: local-swarming-workingset
+        hostPath:
+          # directory location on host
+          path: /var/swarming
+          # this field is optional
+          type: Directory
+      - name: usb
+        hostPath:
+          path: /dev/ttyAMA0
+      - name: skolo-rpi-adb-key
+        secret:
+          secretName: skolo-rpi-adb-key

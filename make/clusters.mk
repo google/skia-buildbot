@@ -7,3 +7,6 @@ skia-public:
 skia-corp:
 	gcloud config set project google.com:skia-corp
 	gcloud container clusters get-credentials skia-corp --zone us-central1-a --project google.com:skia-corp
+
+skolo-rpi2:
+	kubectl config use-context skolo_rpi2
