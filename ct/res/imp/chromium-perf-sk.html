@@ -3,6 +3,7 @@
   task to test Chromium/Skia performance.
 
   Attributes:
+    benchmarksToDoc: Map of benchmarks to their descriptions. Must be set.
     benchmarks: Which benchmarks to show. Must be set.
     platformsToDesc: Map of platforms to their descriptions. Must be set.
     platforms: List of all supported platforms. Must be set.
@@ -82,6 +83,9 @@
             accept-custom-value="true"
             label="Hit <enter> at end if entering custom benchmark"
           ></autocomplete-input-sk>
+          <template is="dom-if" if="{{getBenchmarkDoc(selectedBenchmarkName)}}">
+            <div><a href="{{getBenchmarkDoc(selectedBenchmarkName)}}">Documentation</a></div>
+          </template>
         </td>
       </tr>
 
@@ -277,6 +281,10 @@
          type: Array,
          value: [],
        },
+       benchmarksToDoc: {
+         type: Object,
+         value: {},
+       },
        platforms: {
          type: Array,
          value: [],
@@ -331,6 +339,13 @@
        });
        this.platformChanged();
        this.setRunInParallel();
+     },
+
+     getBenchmarkDoc: function(benchmarkName) {
+       if (! benchmarkName || ! this.benchmarksToDoc[benchmarkName]) {
+         return "";
+       }
+       return this.benchmarksToDoc[benchmarkName];
      },
 
      getPlatformDesc: function(platform) {
