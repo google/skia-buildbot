@@ -3,6 +3,8 @@ package diff
 import (
 	"image"
 	"math"
+
+	"go.skia.org/infra/go/metrics2"
 )
 
 const (
@@ -16,7 +18,7 @@ type MetricFn func(*DiffMetrics, *image.NRGBA, *image.NRGBA) float32
 
 // metrics contains the custom diff metrics.
 var metrics = map[string]MetricFn{
-	METRIC_COMBINED: combinedDiffMetric,
+	METRIC_COMBINED: CombinedDiffMetric,
 	METRIC_PERCENT:  percentDiffMetric,
 	METRIC_PIXEL:    pixelDiffMetric,
 }
@@ -40,6 +42,7 @@ func GetDiffMetricIDs() []string {
 // DefaultDiffFn implements the DiffFn function type. Calculates the basic
 // image difference along with custom diff metrics.
 func DefaultDiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) (interface{}, *image.NRGBA) {
+	defer metrics2.FuncTimer().Stop()
 	ret, diffImg := PixelDiff(leftImg, rightImg)
 
 	// Calculate the metrics.
@@ -54,23 +57,22 @@ func DefaultDiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) (interface{}, *i
 
 // combinedDiffMetric returns a value in [0, 1] that represents how large
 // the diff is between two images. Implements the MetricFn signature.
-func combinedDiffMetric(basic *DiffMetrics, one *image.NRGBA, two *image.NRGBA) float32 {
-	//
+func CombinedDiffMetric(dm *DiffMetrics, _ *image.NRGBA, _ *image.NRGBA) float32 {
 	// pixelDiffPercent float32, maxRGBA []int) float32 {
-	if len(basic.MaxRGBADiffs) == 0 {
+	if len(dm.MaxRGBADiffs) == 0 {
 		return 1.0
 	}
 	// Turn maxRGBA into a percent by taking the root mean square difference from
 	// [0, 0, 0, 0].
 	sum := 0.0
-	for _, c := range basic.MaxRGBADiffs {
+	for _, c := range dm.MaxRGBADiffs {
 		sum += float64(c) * float64(c)
 	}
-	normalizedRGBA := math.Sqrt(sum/float64(len(basic.MaxRGBADiffs))) / 255.0
+	normalizedRGBA := math.Sqrt(sum/float64(len(dm.MaxRGBADiffs))) / 255.0
 	// We take the sqrt of (pixelDiffPercent * normalizedRGBA) to straigten out
 	// the curve, i.e. think about what a plot of x^2 would look like in the
 	// range [0, 1].
-	return float32(math.Sqrt(float64(basic.PixelDiffPercent) * normalizedRGBA))
+	return float32(math.Sqrt(float64(dm.PixelDiffPercent) * normalizedRGBA))
 }
 
 // percentDiffMetric returns pixel percent as the metric. Implements the MetricFn signature.

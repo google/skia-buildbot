@@ -121,8 +121,7 @@ func (r *Recently) Combine(queried []*datastore.Key) []*datastore.Key {
 
 	// The Added and Deleted keys are mutually exclusive, so we can only have to
 	// check the queried keys for recently added and deleted keys.
-	var ret []*datastore.Key
-	ret = make([]*datastore.Key, 0, len(r.Added)+len(queried))
+	ret := make([]*datastore.Key, 0, len(r.Added)+len(queried))
 	ret = append(ret, r.Added...)
 	for _, k := range queried {
 		if addMap[k.ID] == nil && delMap[k.ID] == nil {

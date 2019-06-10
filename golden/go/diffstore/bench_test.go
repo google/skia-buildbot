@@ -8,6 +8,8 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
+	d_utils "go.skia.org/infra/golden/go/diffstore/testutils"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/serialize"
@@ -22,7 +24,7 @@ const (
 func BenchmarkMemDiffStore(b *testing.B) {
 	sample := loadSample(b)
 
-	baseDir := TEST_DATA_BASE_DIR + "-bench-diffstore"
+	baseDir := d_utils.TEST_DATA_BASE_DIR + "-bench-diffstore"
 	client := mocks.GetHTTPClient(b)
 	defer testutils.RemoveAll(b, baseDir)
 
@@ -47,8 +49,8 @@ func BenchmarkMemDiffStore(b *testing.B) {
 		}
 	}
 
-	mapper := NewGoldDiffStoreMapper(&diff.DiffMetrics{})
-	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, mapper)
+	mapper := disk_mapper.New(&diff.DiffMetrics{})
+	diffStore, err := NewMemDiffStore(client, baseDir, []string{d_utils.TEST_GCS_BUCKET_NAME}, d_utils.TEST_GCS_IMAGE_DIR, 10, mapper)
 	assert.NoError(b, err)
 	allDigests := make([]types.DigestSlice, 0, PROCESS_N_TESTS)
 	processed := 0

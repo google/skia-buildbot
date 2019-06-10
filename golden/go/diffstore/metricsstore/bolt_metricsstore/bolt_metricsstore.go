@@ -1,4 +1,4 @@
-package diffstore
+package bolt_metricsstore
 
 import (
 	"encoding/json"
@@ -10,6 +10,8 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/diffstore/common"
+	"go.skia.org/infra/golden/go/diffstore/mapper"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -26,17 +28,13 @@ var (
 	metricsRecIndices = []string{METRICS_DIGEST_INDEX}
 )
 
-// metricsStore stores diff metrics on disk.
-type metricsStore struct {
+// BoltImpl stores diff metrics on disk.
+type BoltImpl struct {
 	// store stores the diff metrics in a boltdb database.
 	store *boltutil.IndexedBucket
 
 	// codec is used to encode/decode the DiffMetrics field of a metricsRec struct
 	codec util.LRUCodec
-
-	// TODO(stephana): Remove mapper field once we don't need the legacy code anymore.
-	// mapper is an instance of DiffStoreMapper.
-	mapper DiffStoreMapper
 
 	// factory acts as the codec for metrics and is used to create instances of metricsRec.
 	factory *metricsRecFactory
@@ -89,9 +87,9 @@ func (m *metricsRecFactory) Decode(data []byte) (interface{}, error) {
 	return ret, nil
 }
 
-// newMetricsStore returns a new instance of metricsStore.
-func newMetricsStore(baseDir string, mapper DiffStoreMapper, codec util.LRUCodec) (*metricsStore, error) {
-	db, err := openBoltDB(baseDir, METRICSDB_NAME+".db")
+// New returns a new instance of BoltImpl.
+func New(baseDir string, codec util.LRUCodec) (*BoltImpl, error) {
+	db, err := common.OpenBoltDB(baseDir, METRICSDB_NAME+".db")
 	if err != nil {
 		return nil, err
 	}
@@ -117,16 +115,15 @@ func newMetricsStore(baseDir string, mapper DiffStoreMapper, codec util.LRUCodec
 		return nil, err
 	}
 
-	return &metricsStore{
+	return &BoltImpl{
 		store:   store,
 		codec:   codec,
-		mapper:  mapper,
 		factory: factoryCodec,
 	}, nil
 }
 
-// loadDiffMetrics loads diff metrics from disk.
-func (m *metricsStore) loadDiffMetrics(id string) (interface{}, error) {
+// LoadDiffMetrics loads diff metrics from disk.
+func (m *BoltImpl) LoadDiffMetrics(id string) (interface{}, error) {
 	recs, err := m.store.Read([]string{id})
 	if err != nil {
 		return nil, err
@@ -153,8 +150,8 @@ func (m *metricsStore) loadDiffMetrics(id string) (interface{}, error) {
 	return diffMetrics, nil
 }
 
-// saveDiffMetrics stores diff metrics to disk.
-func (m *metricsStore) saveDiffMetrics(id string, diffMetrics interface{}) error {
+// SaveDiffMetrics stores diff metrics to disk.
+func (m *BoltImpl) SaveDiffMetrics(id string, diffMetrics interface{}) error {
 	// Serialize the diffMetrics.
 	bytes, err := m.codec.Encode(diffMetrics)
 	if err != nil {
@@ -169,10 +166,10 @@ func (m *metricsStore) saveDiffMetrics(id string, diffMetrics interface{}) error
 	return m.store.Insert([]boltutil.Record{rec})
 }
 
-// purgeDiffMetrics removes all diff metrics based on specific digests.
-func (m *metricsStore) purgeDiffMetrics(digests types.DigestSlice) error {
+// PurgeDiffMetrics removes all diff metrics based on specific digests.
+func (m *BoltImpl) PurgeDiffMetrics(digests types.DigestSlice) error {
 	updateFn := func(tx *bolt.Tx) error {
-		metricIDMap, err := m.store.ReadIndexTx(tx, METRICS_DIGEST_INDEX, asStrings(digests))
+		metricIDMap, err := m.store.ReadIndexTx(tx, METRICS_DIGEST_INDEX, common.AsStrings(digests))
 		if err != nil {
 			return err
 		}
@@ -195,7 +192,7 @@ type legacyMetricsRec struct {
 	*diff.DiffMetrics
 }
 
-func (m *metricsStore) fixLegacyRecord(id string, recBytes []byte) *diff.DiffMetrics {
+func (m *BoltImpl) fixLegacyRecord(id string, recBytes []byte) *diff.DiffMetrics {
 	var newRec *diff.DiffMetrics = nil
 	// If we have data bytes then we just have to deserialize.
 	if len(recBytes) > 0 {
@@ -231,7 +228,7 @@ func (m *metricsStore) fixLegacyRecord(id string, recBytes []byte) *diff.DiffMet
 		newRec = legRec.DiffMetrics
 	}
 	// Regenerate the diffID to filter out the old format.
-	newID := m.mapper.DiffID(m.mapper.SplitDiffID(id))
+	newID := mapper.DiffID(mapper.SplitDiffID(id))
 
 	// Write the new record to the database in the background.
 	go func() {
@@ -241,7 +238,7 @@ func (m *metricsStore) fixLegacyRecord(id string, recBytes []byte) *diff.DiffMet
 			}
 		}()
 
-		if err := m.saveDiffMetrics(newID, newRec); err != nil {
+		if err := m.SaveDiffMetrics(newID, newRec); err != nil {
 			sklog.Errorf("Error writing legacy record to DB: %s", err)
 		}
 
@@ -256,59 +253,4 @@ func (m *metricsStore) fixLegacyRecord(id string, recBytes []byte) *diff.DiffMet
 	}()
 
 	return newRec
-}
-
-// convertDatabaseFromLegacy iterates over the entire database in the background
-// and loads every entry, implicitly forcing a conversion to the new serialization format.
-func (m *metricsStore) convertDatabaseFromLegacy() {
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				sklog.Errorf("Recovered panic: %s", r)
-			}
-		}()
-
-		ids, err := m.listIDs()
-		if err != nil {
-			sklog.Errorf("Unable to get the database ids. Got error: %s", err)
-		}
-
-		sklog.Infof("Processing %d diffmetric records.", len(ids))
-
-		for _, id := range ids {
-			// The call to loadDiffMetrics will also convert a legacy record to the new record if necessary.
-			if _, err := m.loadDiffMetrics(id); err != nil {
-				sklog.Errorf("Error trying to convert legacy record: %s", err)
-			}
-		}
-		sklog.Infof("Legacy conversion: Loaded %d records.", len(ids))
-		if err := m.store.ReIndex(); err != nil {
-			sklog.Errorf("Error re-indexing data store: %s", err)
-		}
-		sklog.Infof("Legacy conversion completed.")
-	}()
-}
-
-// listIDs returns a slice with all the ids in the database.
-func (m *metricsStore) listIDs() ([]string, error) {
-	ret := []string{}
-	viewFn := func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(METRICSDB_NAME))
-		if b == nil {
-			return nil
-		}
-
-		ret = make([]string, 0, b.Stats().KeyN)
-		c := b.Cursor()
-
-		for k, _ := c.First(); k != nil; k, _ = c.Next() {
-			ret = append(ret, string(append([]byte(nil), k...)))
-		}
-		return nil
-	}
-
-	if err := m.store.DB.View(viewFn); err != nil {
-		return nil, err
-	}
-	return ret, nil
 }

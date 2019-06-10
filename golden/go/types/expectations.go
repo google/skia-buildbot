@@ -39,19 +39,6 @@ func (e Expectations) AddDigests(testName TestName, digests map[Digest]Label) {
 // the ones provided by the passed in parameter overwrite any existing data.
 func (e Expectations) MergeExpectations(other Expectations) {
 	for testName, digests := range other {
-		if _, ok := e[testName]; !ok {
-			e[testName] = map[Digest]Label{}
-		}
-		for digest, label := range digests {
-			e[testName][digest] = label
-		}
-	}
-}
-
-// Update updates the current expectations with the expectations in 'right'. Any existing
-// test_name/digest pair will be overwritten.
-func (e Expectations) Update(right Expectations) {
-	for testName, digests := range right {
 		e.AddDigests(testName, digests)
 	}
 }
@@ -59,9 +46,7 @@ func (e Expectations) Update(right Expectations) {
 // DeepCopy makes a deep copy of the current expectations/baseline.
 func (e Expectations) DeepCopy() Expectations {
 	ret := make(Expectations, len(e))
-	for testName, digests := range e {
-		ret.AddDigests(testName, digests)
-	}
+	ret.MergeExpectations(e)
 	return ret
 }
 
