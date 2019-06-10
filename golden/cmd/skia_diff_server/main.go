@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
+	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
 	gstorage "google.golang.org/api/storage/v1"
 	"google.golang.org/grpc"
 )
@@ -69,14 +70,10 @@ func main() {
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Get the DiffStore that does the work loading and diffing images.
-	mapper := diffstore.NewGoldDiffStoreMapper(&diff.DiffMetrics{})
+	mapper := disk_mapper.New(&diff.DiffMetrics{})
 	memDiffStore, err := diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), *gsBaseDir, *cacheSize, mapper)
 	if err != nil {
 		sklog.Fatalf("Allocating DiffStore failed: %s", err)
-	}
-
-	if *convertLegacy {
-		memDiffStore.(*diffstore.MemDiffStore).ConvertLegacy()
 	}
 
 	// Create the server side instance of the DiffService.

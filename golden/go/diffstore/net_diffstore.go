@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/diffstore/common"
 	"go.skia.org/infra/golden/go/types"
 	"google.golang.org/grpc"
 )
@@ -44,7 +45,7 @@ func NewNetDiffStore(conn *grpc.ClientConn, diffServerImageAddress string, codec
 
 // Get, see the diff.DiffStore interface.
 func (n *NetDiffStore) Get(priority int64, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]interface{}, error) {
-	req := &GetDiffsRequest{Priority: priority, MainDigest: string(mainDigest), RightDigests: asStrings(rightDigests)}
+	req := &GetDiffsRequest{Priority: priority, MainDigest: string(mainDigest), RightDigests: common.AsStrings(rightDigests)}
 	resp, err := n.serviceClient.GetDiffs(context.Background(), req)
 	if err != nil {
 		return nil, err
@@ -74,7 +75,7 @@ func (n *NetDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 
 // WarmDigests, see the diff.DiffStore interface.
 func (n *NetDiffStore) WarmDigests(priority int64, digests types.DigestSlice, sync bool) {
-	req := &WarmDigestsRequest{Priority: priority, Digests: asStrings(digests), Sync: sync}
+	req := &WarmDigestsRequest{Priority: priority, Digests: common.AsStrings(digests), Sync: sync}
 	_, err := n.serviceClient.WarmDigests(context.Background(), req)
 	if err != nil {
 		sklog.Errorf("Error warming digests: %s", err)
@@ -83,7 +84,7 @@ func (n *NetDiffStore) WarmDigests(priority int64, digests types.DigestSlice, sy
 
 // WarmDiffs, see the diff.DiffStore interface.
 func (n *NetDiffStore) WarmDiffs(priority int64, leftDigests types.DigestSlice, rightDigests types.DigestSlice) {
-	req := &WarmDiffsRequest{Priority: priority, LeftDigests: asStrings(leftDigests), RightDigests: asStrings(rightDigests)}
+	req := &WarmDiffsRequest{Priority: priority, LeftDigests: common.AsStrings(leftDigests), RightDigests: common.AsStrings(rightDigests)}
 	_, err := n.serviceClient.WarmDiffs(context.Background(), req)
 	if err != nil {
 		sklog.Errorf("Error warming diffs: %s", err)
@@ -110,7 +111,7 @@ func (n *NetDiffStore) UnavailableDigests() map[types.Digest]*diff.DigestFailure
 
 // PurgeDigests, see the diff.DiffStore interface.
 func (n *NetDiffStore) PurgeDigests(digests types.DigestSlice, purgeGCS bool) error {
-	req := &PurgeDigestsRequest{Digests: asStrings(digests), PurgeGCS: purgeGCS}
+	req := &PurgeDigestsRequest{Digests: common.AsStrings(digests), PurgeGCS: purgeGCS}
 	_, err := n.serviceClient.PurgeDigests(context.Background(), req)
 	if err != nil {
 		return fmt.Errorf("Error purging digests: %s", err)
