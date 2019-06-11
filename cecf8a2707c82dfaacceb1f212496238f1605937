@@ -992,6 +992,30 @@
     },
     {
       "key": {
+        "uuid": "077da9b1_7107b826",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "IMO, you should either understand the code you\u0027re checking in or remove it.",
+      "parentUuid": "9bee2642_112c2649",
+      "range": {
+        "startLine": 282,
+        "startChar": 0,
+        "endLine": 283,
+        "endChar": 68
+      },
+      "revId": "cecf8a2707c82dfaacceb1f212496238f1605937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b1e958d2_0b065a9a",
         "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
         "patchSetId": 13

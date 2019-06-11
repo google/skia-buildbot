@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "94d36075_8ff9ce00",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: I don\u0027t really see how this could happen, unless it\u0027s also true for GetTile. If an entire tile is empty, then its ParamSet should also be empty. Otherwise, each trace that contributes to the ParamSet should have at least one non-empty commit; i.e. that trace will be included in the sparse tile.",
+      "range": {
+        "startLine": 363,
+        "startChar": 0,
+        "endLine": 364,
+        "endChar": 90
+      },
+      "revId": "ca6b6fae656b0ca03fcdabf05d201ad2d8ebe630",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dcdd50f7_a2bbf798",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 378,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: maybe tileStartCommitIdx",
+      "range": {
+        "startLine": 378,
+        "startChar": 1,
+        "endLine": 378,
+        "endChar": 13
+      },
+      "revId": "ca6b6fae656b0ca03fcdabf05d201ad2d8ebe630",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a110e52_7024a69c",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: I wonder if the following would be cleaner:\n - getTracesInRange returns tiling.Tile (i.e. move commit lookup from GetTile to getTracesInRange; probably also rename to getTileForTileKey)\n - move logic of CommitsWithData and MakeFromCommitIndexes to a method AsSparseTile on tiling.Tile\n - make this loop something like:\n   1. load tile\n   2. call tiling.Tile.AsSparseTile\n   3. call tiling.Merge to add new data to the result\n   4. If enough data, call tiling.Tile.Trim; otherwise, loop.",
+      "revId": "ca6b6fae656b0ca03fcdabf05d201ad2d8ebe630",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "45d67e47_01580f6f",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 403,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: unnecessary parens",
+      "range": {
+        "startLine": 403,
+        "startChar": 33,
+        "endLine": 403,
+        "endChar": 34
+      },
+      "revId": "ca6b6fae656b0ca03fcdabf05d201ad2d8ebe630",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1fb57770_4573b004",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: the name suggests it returns []*tiling.Commit, like the Commits field of tiling.Tile.",
+      "range": {
+        "startLine": 307,
+        "startChar": 18,
+        "endLine": 307,
+        "endChar": 35
+      },
+      "revId": "ca6b6fae656b0ca03fcdabf05d201ad2d8ebe630",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "62b86a4e_74b73c70",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: This seems to duplicate tiling.Merge.",
+      "range": {
+        "startLine": 357,
+        "startChar": 18,
+        "endLine": 357,
+        "endChar": 31
+      },
+      "revId": "ca6b6fae656b0ca03fcdabf05d201ad2d8ebe630",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

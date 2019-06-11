@@ -1,0 +1,343 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "110235ba_6378ceac",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 456,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: this arg is unused",
+      "range": {
+        "startLine": 456,
+        "startChar": 34,
+        "endLine": 456,
+        "endChar": 53
+      },
+      "revId": "a871e41fe742a4a67ccef99450fe3ae4332163b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f31a9b0_4b7c0cd1",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 456,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: this RV is always nil",
+      "range": {
+        "startLine": 456,
+        "startChar": 85,
+        "endLine": 456,
+        "endChar": 90
+      },
+      "revId": "a871e41fe742a4a67ccef99450fe3ae4332163b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a89eb2d5_1a375ffa",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 607,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: \"shard for the given subkey\"",
+      "range": {
+        "startLine": 607,
+        "startChar": 50,
+        "endLine": 607,
+        "endChar": 62
+      },
+      "revId": "a871e41fe742a4a67ccef99450fe3ae4332163b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de028b62_5d6b0636",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: You might consider running this test multiple times with a few different arrangements of commits:\n - dense commits\n - dense commits spanning two BT tiles\n - all commits are the last commit in their respective BT tiles\n - all commits are the first commit in their respective BT tiles\n - no data in most recent tile\n - no data in a tile between two tiles with data\n\nThis should be pretty easy to do by just changing the mock VCS. Not sure about the tradeoff of testing time, but it seems like this test should be fairly fast.",
+      "range": {
+        "startLine": 308,
+        "startChar": 19,
+        "endLine": 308,
+        "endChar": 52
+      },
+      "revId": "a871e41fe742a4a67ccef99450fe3ae4332163b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5489340_ece825af",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 505,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: not needed?\n\nSame Q for other tests that say \"Leaving other things blank because we won\u0027t actually hit BT\"",
+      "revId": "a871e41fe742a4a67ccef99450fe3ae4332163b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5587999d_6753251a",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 882,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: seems to not agree with the code",
+      "range": {
+        "startLine": 879,
+        "startChar": 35,
+        "endLine": 882,
+        "endChar": 39
+      },
+      "revId": "a871e41fe742a4a67ccef99450fe3ae4332163b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe101fd0_3846f672",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 918,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: index",
+      "range": {
+        "startLine": 918,
+        "startChar": 14,
+        "endLine": 918,
+        "endChar": 34
+      },
+      "revId": "a871e41fe742a4a67ccef99450fe3ae4332163b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd36ae74_30e1f78a",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 930,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: firstRealCommitIdx",
+      "range": {
+        "startLine": 930,
+        "startChar": 25,
+        "endLine": 930,
+        "endChar": 45
+      },
+      "revId": "a871e41fe742a4a67ccef99450fe3ae4332163b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ecede9a_8e4c1ebd",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 938,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: This seems to assume a lot about the implementation. The tests will break if the implementation changes in trivial ways.",
+      "range": {
+        "startLine": 928,
+        "startChar": 0,
+        "endLine": 938,
+        "endChar": 113
+      },
+      "revId": "a871e41fe742a4a67ccef99450fe3ae4332163b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "be475099_219348b4",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: It\u0027s not clear from the docs on encoding.BinaryUnmarshaler whether we should return an error if we don\u0027t consume all of data, but it seems like that would be a good idea for our use.",
+      "range": {
+        "startLine": 124,
+        "startChar": 6,
+        "endLine": 124,
+        "endChar": 7
+      },
+      "revId": "a871e41fe742a4a67ccef99450fe3ae4332163b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0c6f51d4_536519e4",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit:\nnumOtherCommits \u003d trace.Len()\noriginal, ok :\u003d t[id]\nif ok {\n  t[id] \u003d trace.Merge(original)\n} else {\n  trace.Grow(numCommits, FILL_AFTER) // Assumes we can modify other\n  t[id] \u003d trace\n}",
+      "range": {
+        "startLine": 367,
+        "startChar": 0,
+        "endLine": 384,
+        "endChar": 3
+      },
+      "revId": "a871e41fe742a4a67ccef99450fe3ae4332163b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "697eda09_0a463d2a",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 395,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: trace.Grow(numOtherCommits, FILL_BEFORE)",
+      "range": {
+        "startLine": 390,
+        "startChar": 0,
+        "endLine": 395,
+        "endChar": 46
+      },
+      "revId": "a871e41fe742a4a67ccef99450fe3ae4332163b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ac211a14_20efdb8b",
+        "filename": "golden/go/tracestore/types.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "return value",
+      "range": {
+        "startLine": 34,
+        "startChar": 15,
+        "endLine": 34,
+        "endChar": 24
+      },
+      "revId": "a871e41fe742a4a67ccef99450fe3ae4332163b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5fa35d7a_cc32f677",
+        "filename": "golden/go/tracestore/types.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: maybe rephrase\nGetDenseTile constructs a tile containing only commits that have data for at least one trace. The returned tile will always have length exactly nCommits unless there are fewer than nCommits commits with data. The second return value contains all commits starting with the first commit of the tile and ending with the most recent commit, in order; i.e. it includes all commits in the tile as well as the omitted commits.",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 16
+      },
+      "revId": "a871e41fe742a4a67ccef99450fe3ae4332163b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f38d1f53_b6056c8d",
+        "filename": "golden/go/tracestore/types.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: it might be better to just error out on invalid params; otherwise, what will we do if we have the following?\nparams1: {\"foo\", \"bar\u003dbaz\"}\nparams2: {\"foo\", \"bar_baz\"}\n\nAlternatively, just use url.QueryEscape.",
+      "range": {
+        "startLine": 51,
+        "startChar": 1,
+        "endLine": 51,
+        "endChar": 28
+      },
+      "revId": "a871e41fe742a4a67ccef99450fe3ae4332163b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

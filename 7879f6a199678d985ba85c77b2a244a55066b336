@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "97dd5796_9098d249",
+        "filename": "golden/go/tracestore/bt_tracestore/BIGTABLE.md",
+        "patchSetId": 18
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "commentary: Definitely makes sense for perf, which sometimes loads data for a single trace across many tiles, but gold always loads all data for a single tile, and never loads historical data.",
+      "parentUuid": "fc0d911b_aab72321",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 71
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d33c0e5e_eeed6cbf",
         "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
         "patchSetId": 18
@@ -563,6 +587,30 @@
       "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5899a9d9_0ea87838",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "nit: I think it would be useful to document that this implementation assumes that BT is configured to be strongly consistent.",
+      "parentUuid": "cc6bd383_477c4445",
+      "range": {
+        "startLine": 283,
+        "startChar": 0,
+        "endLine": 287,
+        "endChar": 4
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
@@ -1188,6 +1236,30 @@
       "side": 1,
       "message": "It is first.",
       "parentUuid": "073c736a_59b1f7d4",
+      "range": {
+        "startLine": 518,
+        "startChar": 51,
+        "endLine": 518,
+        "endChar": 56
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "49c5839e_4e32dced",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 518,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "Oops, sorry.",
+      "parentUuid": "ca037fbd_949dc10c",
       "range": {
         "startLine": 518,
         "startChar": 51,
@@ -2112,6 +2184,30 @@
       "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "adecc560_865dce38",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 741,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-11T18:26:26Z",
+      "side": 1,
+      "message": "If that happens within the same process, it will also happen across processes, which a mutex can\u0027t solve. Maybe we can debug together?",
+      "parentUuid": "f3591e09_551469a1",
+      "range": {
+        "startLine": 741,
+        "startChar": 1,
+        "endLine": 741,
+        "endChar": 18
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
