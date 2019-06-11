@@ -9,5 +9,5 @@ package mocks
 //go:generate mockery -name ExpectationsStore -dir ../expstorage -output .
 //go:generate mockery -name GCSClient -dir ../storage -output .
 //go:generate mockery -name TileInfo -dir ../baseline -output .
-//go:generate mockery -name TileSource -dir ../storage -output .
+//go:generate mockery -name TileSource -dir ../tilesource -output .
 //go:generate mockery -name TryjobStore -dir ../tryjobstore -output .

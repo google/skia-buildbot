@@ -9,12 +9,12 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gcs/gcs_testutils"
+	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/golden/go/expstorage/mem_expstore"
 	"go.skia.org/infra/golden/go/mocks"
-	"go.skia.org/infra/golden/go/storage"
+	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -36,33 +36,15 @@ func TestStatusWatcher(t *testing.T) {
 	assert.NoError(t, err, "Unable to download testdata.")
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
-	tileBuilder := mocks.NewMockTileBuilderFromJson(t, TEST_DATA_PATH)
-	testStatusWatcher(t, tileBuilder)
+	ts := mocks.NewMockTileSourceFromJson(t, TEST_DATA_PATH)
+	testStatusWatcher(t, ts)
 }
 
-func BenchmarkStatusWatcher(b *testing.B) {
-	ctx := context.Background()
-	// Get the TEST_TILE environment variable that points to the
-	// tile to read.
-	tileBuilder := mocks.GetTileBuilderFromEnv(b, ctx)
-
-	storages := &storage.Storage{
-		MasterTileBuilder: tileBuilder,
-	}
-
-	// Load the tile into memory and reset the timer to avoid measuring
-	// disk load time.
-	_, err := storages.GetLastTileTrimmed()
-	assert.NoError(b, err)
-	b.ResetTimer()
-	testStatusWatcher(b, tileBuilder)
-}
-
-func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder) {
+func testStatusWatcher(t sktest.TestingT, ts tilesource.TileSource) {
 	eventBus := eventbus.New()
-	storages := &storage.Storage{
+	storages := StatusWatcherConfig{
 		ExpectationsStore: mem_expstore.New(eventBus),
-		MasterTileBuilder: tileBuilder,
+		TileSource:        ts,
 		EventBus:          eventBus,
 	}
 	ctx := context.Background()
@@ -76,7 +58,7 @@ func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder)
 
 	for idx, corpStatus := range status.CorpStatus {
 		assert.False(t, corpStatus.OK)
-		cpxTile, err := storages.GetLastTileTrimmed()
+		cpxTile, err := ts.GetTile()
 		assert.NoError(t, err)
 
 		changes := types.Expectations{}
