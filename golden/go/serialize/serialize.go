@@ -61,14 +61,16 @@ func (s *Sample) Serialize(w io.Writer) error {
 // problems like https://crbug.com/skia/9070
 // TODO(kjlubick): regenerate/replace test data and remove this struct
 type legacyIgnoreRule struct {
-	ID             int64     `json:"id"`
-	Name           string    `json:"name"`
-	UpdatedBy      string    `json:"updatedBy"`
-	Expires        time.Time `json:"expires"`
-	Query          string    `json:"query"`
-	Note           string    `json:"note"`
-	Count          int       `json:"count"          datastore:"-"`
-	ExclusiveCount int       `json:"exclusiveCount" datastore:"-"`
+	ID        int64     `json:"id"`
+	Name      string    `json:"name"`
+	UpdatedBy string    `json:"updatedBy"`
+	Expires   time.Time `json:"expires"`
+	Query     string    `json:"query"`
+	Note      string    `json:"note"`
+	// Count and ExclusiveCount were removed to simplify the ignorestore (and remove
+	// a noxious cyclical dependency.)
+	Count          int `json:"count"          datastore:"-"`
+	ExclusiveCount int `json:"exclusiveCount" datastore:"-"`
 }
 
 // DeserializeSample returns a new instance of Sample from the given reader. It
@@ -116,14 +118,12 @@ func DeserializeSample(r io.Reader) (*Sample, error) {
 		ret.IgnoreRules = make([]*ignore.IgnoreRule, 0, len(legacyRules))
 		for _, ir := range legacyRules {
 			ret.IgnoreRules = append(ret.IgnoreRules, &ignore.IgnoreRule{
-				ID:             ir.ID,
-				Name:           ir.Name,
-				UpdatedBy:      ir.UpdatedBy,
-				Expires:        ir.Expires,
-				Query:          ir.Query,
-				Note:           ir.Note,
-				Count:          ir.Count,
-				ExclusiveCount: ir.ExclusiveCount,
+				ID:        ir.ID,
+				Name:      ir.Name,
+				UpdatedBy: ir.UpdatedBy,
+				Expires:   ir.Expires,
+				Query:     ir.Query,
+				Note:      ir.Note,
 			})
 		}
 

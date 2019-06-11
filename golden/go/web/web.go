@@ -414,7 +414,9 @@ func (wh *WebHandlers) JsonIgnoresHandler(w http.ResponseWriter, r *http.Request
 	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "application/json")
 
-	ignores, err := wh.Storages.IgnoreStore.List(true)
+	// TODO(kjlubick): these ignore structs used to have counts of how often they were applied
+	// in the file - Fix that after the Storages refactoring.
+	ignores, err := wh.Storages.IgnoreStore.List()
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to retrieve ignore rules, there may be none.")
 		return
