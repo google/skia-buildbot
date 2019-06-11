@@ -1,7 +1,7 @@
 // See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#13
 // for documentation of the autoroller config.
 {
-  "childName": "google/effcee",
+  "childName": "google/re2",
   "contacts": [
     "rharrison@google.com",
     "rmistry@google.com"
@@ -9,7 +9,7 @@
   "isInternal": false,
   "parentName": "google/shaderc",
   "parentWaterfall": "https://fusion.corp.google.com/projectanalysis/summary/KOKORO/prod%3Agraphics_shader_compiler%2Fshaderc%2Flinux%2Fcontinuous_clang_release",
-  "rollerName": "effcee-shaderc-autoroll",
+  "rollerName": "re2-shaderc-autoroll",
   "serviceAccount": "shaderc-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "radial-bots+shaderc-roll@google.com"
@@ -21,9 +21,9 @@
   },
   "githubDEPSRepoManager": {
     "childBranch": "master",
-    "childPath": "third_party/effcee",
+    "childPath": "third_party/re2",
     "childSubdir": "shaderc",
-    "childRevLinkTmpl": "https://github.com/google/effcee/commit/%s",
+    "childRevLinkTmpl": "https://github.com/google/re2/commit/%s",
     "parentBranch": "master",
     "parentRepo": "git@github.com:google/shaderc.git",
     "githubParentPath": "shaderc",
