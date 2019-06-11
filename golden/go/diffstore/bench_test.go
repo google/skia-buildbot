@@ -11,7 +11,6 @@ import (
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
 	d_utils "go.skia.org/infra/golden/go/diffstore/testutils"
 	"go.skia.org/infra/golden/go/ignore/mem_ignorestore"
-	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/serialize"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -25,7 +24,7 @@ func BenchmarkMemDiffStore(b *testing.B) {
 	sample := loadSample(b)
 
 	baseDir := d_utils.TEST_DATA_BASE_DIR + "-bench-diffstore"
-	client := mocks.GetHTTPClient(b)
+	client := d_utils.GetHTTPClient(b)
 	defer testutils.RemoveAll(b, baseDir)
 
 	memIgnoreStore := mem_ignorestore.New()

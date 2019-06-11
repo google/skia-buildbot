@@ -8,7 +8,6 @@ import (
 	"os"
 	"sort"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
@@ -21,7 +20,6 @@ import (
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/serialize"
-	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/warmer"
 )
@@ -134,43 +132,51 @@ func getTargetDigests(t assert.TestingT, q *Query, tile *tiling.Tile, exp types.
 	return result
 }
 
-func getStoragesIndexTile(t *testing.T, bucket, storagePath, outputPath string, randomize bool) (*storage.Storage, *indexer.SearchIndex, *tiling.Tile, *indexer.Indexer) {
+func getAPIIndexTile(t *testing.T, bucket, storagePath, outputPath string, randomize bool) (SearchAPI, *indexer.SearchIndex, *tiling.Tile) {
 	err := gcs_testutils.DownloadTestDataFile(t, bucket, storagePath, outputPath)
 	assert.NoError(t, err, "Unable to download testdata.")
-	return getStoragesAndIndexerFromTile(t, outputPath, randomize)
+	return getAPIAndIndexerFromTile(t, outputPath, randomize)
 }
 
-func getStoragesAndIndexerFromTile(t sktest.TestingT, path string, randomize bool) (*storage.Storage, *indexer.SearchIndex, *tiling.Tile, *indexer.Indexer) {
+func getAPIAndIndexerFromTile(t sktest.TestingT, path string, randomize bool) (SearchAPI, *indexer.SearchIndex, *tiling.Tile) {
 	sample := loadSample(t, path, randomize)
 
 	mds := &mocks.DiffStore{}
 	mes := &mocks.ExpectationsStore{}
+	mts := &mocks.TileSource{}
 
 	mes.On("Get").Return(sample.Expectations, nil)
 
 	mds.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{})
 	mds.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(mockDiffStoreGet, nil)
+	mts.On("GetTile").Return(sample.Tile, nil)
 
-	tileBuilder := mocks.NewMockTileBuilderFromTile(t, sample.Tile)
 	eventBus := eventbus.New()
 
 	baseliner, err := gcs_baseliner.New(nil, mes, nil, nil)
 	assert.NoError(t, err)
 
-	storages := &storage.Storage{
+	ic := indexer.IndexerConfig{
 		ExpectationsStore: mes,
-		MasterTileBuilder: tileBuilder,
+		TileSource:        mts,
 		EventBus:          eventBus,
 		Baseliner:         baseliner,
 		DiffStore:         mds,
+		Warmer:            warmer.New(),
 	}
 
-	ixr, err := indexer.New(storages, warmer.New(), 10*time.Minute)
+	ixr, err := indexer.New(ic, 0)
 	assert.NoError(t, err)
 	idx := ixr.GetIndex()
 	tile := idx.CpxTile().GetTile(types.ExcludeIgnoredTraces)
 
-	return storages, idx, tile, ixr
+	api := SearchAPI{
+		DiffStore:         mds,
+		ExpectationsStore: mes,
+		Indexer:           ixr,
+	}
+
+	return api, idx, tile
 }
 
 // mockDiffStoreGet is a simple implementation of the diff comparison that
