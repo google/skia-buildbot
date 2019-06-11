@@ -73,7 +73,7 @@ func TestFetchBaselineIssueSunnyDay(t *testing.T) {
 	defer mgs.AssertExpectations(t)
 
 	// mock the master baseline
-	mgs.On("ReadBaseline", testCommitHash, int64(0)).Return(three_devices.MakeTestBaseline(), nil).Once()
+	mgs.On("ReadBaseline", testCommitHash, baseline.MasterBranch).Return(three_devices.MakeTestBaseline(), nil).Once()
 	// mock the expectations that a user would have applied to their CL (that
 	// are not live on master yet).
 	mgs.On("ReadBaseline", "", testIssueID).Return(additionalTriages, nil).Once()
