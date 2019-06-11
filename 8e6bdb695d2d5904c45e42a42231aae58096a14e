@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "10df70e4_eb61a11e",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 624,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-06-11T19:37:02Z",
+      "side": 1,
+      "message": "I really wish it were renamed to skfmt.Errorf(), that would really help in remembering to use it.",
+      "parentUuid": "fe70f001_7bf43e46",
+      "range": {
+        "startLine": 624,
+        "startChar": 14,
+        "endLine": 624,
+        "endChar": 24
+      },
+      "revId": "8e6bdb695d2d5904c45e42a42231aae58096a14e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9a2ac3ba_a93024bd",
         "filename": "perf/go/btts/btts.go",
         "patchSetId": 2
@@ -59,6 +83,30 @@
       "writtenOn": "2019-05-24T17:45:24Z",
       "side": 1,
       "message": "Does this error get eaten?",
+      "range": {
+        "startLine": 661,
+        "startChar": 4,
+        "endLine": 661,
+        "endChar": 12
+      },
+      "revId": "8e6bdb695d2d5904c45e42a42231aae58096a14e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c4b89d2c_84938833",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 661,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-06-11T19:37:02Z",
+      "side": 1,
+      "message": "It\u0027s always possible our OPS is out of date and we get a paramset we can\u0027t decode, so we just ignore it.",
+      "parentUuid": "9a2ac3ba_a93024bd",
       "range": {
         "startLine": 661,
         "startChar": 4,
