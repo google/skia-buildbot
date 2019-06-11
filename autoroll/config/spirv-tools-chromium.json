@@ -41,7 +41,7 @@
     "luci.chromium.try:linux_angle_deqp_rel_ng",
     "luci.chromium.try:linux-angle-rel",
     "luci.chromium.try:win-angle-rel",
-    "luci.chromium.try:win_angle_deqp_rel_ng",
+    "luci.chromium.try:win_angle_deqp_rel_ng"
   ],
   "kubernetes": {
     "cpu": "1",
@@ -51,5 +51,6 @@
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"
   },
-  "maxRollFrequency": "0m"
+  "maxRollFrequency": "6h",
+  "timeWindow": "M-F 08:00-09:00"
 }
