@@ -1046,6 +1046,7 @@ func (b *BigTableTraceStore) updateOrderedParamSet(tileKey TileKey, p paramtools
 		if existsInBT {
 			// Create an update that avoids the lost update problem.
 			cond := bigtable.ChainFilters(
+				bigtable.LatestNFilter(1),
 				bigtable.FamilyFilter(OPS_FAMILY),
 				bigtable.ColumnFilter(OPS_HASH_COLUMN),
 				bigtable.ValueFilter(string(entry.hash)),

@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -88,6 +89,50 @@ func TestBasic(t *testing.T) {
 		"os": []string{"linux", "win"},
 	})
 	assert.Equal(t, op, op2)
+}
+
+func TestOPSThreaded(t *testing.T) {
+	unittest.LargeTest(t)
+	unittest.RequiresBigTableEmulator(t)
+
+	ctx := context.Background()
+	btts_testutils.CreateTestTable(t)
+	defer btts_testutils.CleanUpTestTable(t)
+
+	b, err := NewBigTableTraceStoreFromConfig(ctx, cfg, &btts_testutils.MockTS{}, true)
+	assert.NoError(t, err)
+
+	tileKey := TileKeyFromOffset(1)
+
+	expected := paramtools.ParamSet{}
+	// Add multiple params to the OPS in goroutines.
+	wg := sync.WaitGroup{}
+	for _, cpu := range []string{"x86", "arm"} {
+		for _, config := range []string{"8888", "565"} {
+			for _, os := range []string{"linux", "win"} {
+				paramset := paramtools.ParamSet{
+					"cpu":    []string{cpu},
+					"config": []string{config},
+					"os":     []string{os},
+				}
+				expected.AddParamSet(paramset)
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					_, err := b.updateOrderedParamSet(tileKey, paramset)
+					assert.NoError(t, err)
+				}()
+			}
+		}
+	}
+	wg.Wait()
+
+	// read current OPS
+	entry, _, err := b.getOPS(tileKey)
+	assert.NoError(t, err)
+	expected.Normalize()
+	entry.ops.ParamSet.Normalize()
+	assert.Equal(t, expected, entry.ops.ParamSet)
 }
 
 // assertIndices asserts that the indices in the table match expectedKeys and expectedColumns.
