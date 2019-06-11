@@ -49,11 +49,8 @@ func BenchmarkNewSearchAPI(b *testing.B) {
 	}
 
 	// Load the storage layer.
-	storages, idx, tile, ixr := getStoragesAndIndexerFromTile(b, localTilePath, true)
-	exp, err := storages.ExpectationsStore.Get()
-	assert.NoError(b, err)
-
-	api, err := NewSearchAPI(storages, ixr)
+	api, idx, tile := getAPIAndIndexerFromTile(b, localTilePath, true)
+	exp, err := api.ExpectationsStore.Get()
 	assert.NoError(b, err)
 
 	qStrings, err := fileutil.ReadLines(localQueriesPath)
@@ -63,7 +60,7 @@ func BenchmarkNewSearchAPI(b *testing.B) {
 	nonEmpty := 0
 	total := 0
 	for _, qStr := range qStrings {
-		nonEmpty += checkQuery(b, api, idx, qStr, exp, &buf)
+		nonEmpty += checkQuery(b, &api, idx, qStr, exp, &buf)
 		total++
 		fmt.Printf("Queries (non-empty / total): %d / %d\n", nonEmpty, total)
 
@@ -80,8 +77,8 @@ func BenchmarkNewSearchAPI(b *testing.B) {
 	fBegin := commits[beginIdx].Hash
 	fEnd := commits[endIdx].Hash
 
-	testQueryCommitRange(b, api, idx, tile, exp, fBegin, fEnd)
+	testQueryCommitRange(b, &api, idx, tile, exp, fBegin, fEnd)
 	for i := 0; i < tile.LastCommitIndex(); i++ {
-		testQueryCommitRange(b, api, idx, tile, exp, commits[i].Hash, commits[i].Hash)
+		testQueryCommitRange(b, &api, idx, tile, exp, commits[i].Hash, commits[i].Hash)
 	}
 }
