@@ -8,7 +8,7 @@ source ../../kube/config.sh
 source ../../bash/ramdisk.sh
 
 # New service account we will create.
-SA_NAME="effcee-shaderc-autoroll"
+SA_NAME="shaderc-autoroll"
 SA_EMAIL="${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com"
 
 cd /tmp/ramdisk
