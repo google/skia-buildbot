@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1f43ab94_8af29281",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-11T21:22:57Z",
+      "side": 1,
+      "message": "Added an example - GetTile is also susceptible to that \"problem\" for the same reason GetDenseTile is.",
+      "parentUuid": "94d36075_8ff9ce00",
+      "range": {
+        "startLine": 363,
+        "startChar": 0,
+        "endLine": 364,
+        "endChar": 90
+      },
+      "revId": "ca6b6fae656b0ca03fcdabf05d201ad2d8ebe630",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dcdd50f7_a2bbf798",
         "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
         "patchSetId": 26
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "36ad89f1_d5091e4b",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 378,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-11T21:22:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dcdd50f7_a2bbf798",
+      "range": {
+        "startLine": 378,
+        "startChar": 1,
+        "endLine": 378,
+        "endChar": 13
+      },
+      "revId": "ca6b6fae656b0ca03fcdabf05d201ad2d8ebe630",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8a110e52_7024a69c",
         "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
         "patchSetId": 26
@@ -59,6 +107,24 @@
       "writtenOn": "2019-06-11T18:26:26Z",
       "side": 1,
       "message": "nit: I wonder if the following would be cleaner:\n - getTracesInRange returns tiling.Tile (i.e. move commit lookup from GetTile to getTracesInRange; probably also rename to getTileForTileKey)\n - move logic of CommitsWithData and MakeFromCommitIndexes to a method AsSparseTile on tiling.Tile\n - make this loop something like:\n   1. load tile\n   2. call tiling.Tile.AsSparseTile\n   3. call tiling.Merge to add new data to the result\n   4. If enough data, call tiling.Tile.Trim; otherwise, loop.",
+      "revId": "ca6b6fae656b0ca03fcdabf05d201ad2d8ebe630",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "74b532b1_e717ea4d",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-11T21:22:57Z",
+      "side": 1,
+      "message": "I\u0027d prefer not to mess with tiling.Tile for now.",
+      "parentUuid": "8a110e52_7024a69c",
       "revId": "ca6b6fae656b0ca03fcdabf05d201ad2d8ebe630",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "234c8533_3417f456",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 403,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-11T21:22:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "45d67e47_01580f6f",
+      "range": {
+        "startLine": 403,
+        "startChar": 33,
+        "endLine": 403,
+        "endChar": 34
+      },
+      "revId": "ca6b6fae656b0ca03fcdabf05d201ad2d8ebe630",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1fb57770_4573b004",
         "filename": "golden/go/tracestore/bt_tracestore/types.go",
         "patchSetId": 26
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "d6413684_e0876807",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-11T21:22:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1fb57770_4573b004",
+      "range": {
+        "startLine": 307,
+        "startChar": 18,
+        "endLine": 307,
+        "endChar": 35
+      },
+      "revId": "ca6b6fae656b0ca03fcdabf05d201ad2d8ebe630",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "62b86a4e_74b73c70",
         "filename": "golden/go/tracestore/bt_tracestore/types.go",
         "patchSetId": 26
@@ -131,6 +245,30 @@
       "revId": "ca6b6fae656b0ca03fcdabf05d201ad2d8ebe630",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3d08180_38a1fa12",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-11T21:22:57Z",
+      "side": 1,
+      "message": "Ack. I\u0027d rather not have to deduplicate that right now.",
+      "parentUuid": "62b86a4e_74b73c70",
+      "range": {
+        "startLine": 357,
+        "startChar": 18,
+        "endLine": 357,
+        "endChar": 31
+      },
+      "revId": "ca6b6fae656b0ca03fcdabf05d201ad2d8ebe630",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

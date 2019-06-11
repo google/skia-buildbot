@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "cd20fb8f_be1dcfe6",
+        "filename": "golden/go/tracestore/bt_tracestore/BIGTABLE.md",
+        "patchSetId": 18
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-11T21:22:57Z",
+      "side": 1,
+      "message": "Not yet, at least.  I\u0027d like Gold to reach past one tile some day, if possible.",
+      "parentUuid": "97dd5796_9098d249",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 71
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d33c0e5e_eeed6cbf",
         "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
         "patchSetId": 18
@@ -611,6 +635,30 @@
       "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a88a442_9155ac4b",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-11T21:22:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5899a9d9_0ea87838",
+      "range": {
+        "startLine": 283,
+        "startChar": 0,
+        "endLine": 287,
+        "endChar": 4
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
