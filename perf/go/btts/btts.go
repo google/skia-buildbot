@@ -311,14 +311,14 @@ func (b *BigTableTraceStore) GetOrderedParamSet(ctx context.Context, tileKey Til
 
 // WriteTraces writes the given values into the store.
 //
-// index is the offset of the values to write.
+// index is the offset of the values to write, not offset with a Tile.
 // params is a slice of Params, where each one represents a single trace.
 // values are the values to write, for each trace in params, at the offset given in index.
 // paramset is the ParamSet of all the params to be written.
 // source is the filename where the data came from.
 // timestamp is the timestamp when the data was generated.
 //
-// Note that the order of 'params' and 'values' need to match.
+// Note that 'params' and 'values' are parallel slices and thus need to match.
 func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params, values []float32, paramset paramtools.ParamSet, source string, timestamp time.Time) error {
 	tileKey := b.TileKey(index)
 	ops, err := b.updateOrderedParamSet(tileKey, paramset)
