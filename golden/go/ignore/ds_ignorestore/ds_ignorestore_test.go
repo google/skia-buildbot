@@ -13,7 +13,7 @@ import (
 func TestCloudIgnoreStore(t *testing.T) {
 	unittest.LargeTest(t)
 
-	// Run to the locally running emulator.
+	// Run against the locally running emulator.
 	cleanup := ds_testutil.InitDatastore(t, ds.IGNORE_RULE, ds.HELPER_RECENT_KEYS)
 	defer cleanup()
 
