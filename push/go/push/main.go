@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"html/template"
 	"io"
 	"net/http"
 	"path/filepath"
@@ -32,10 +31,29 @@ import (
 	storage "google.golang.org/api/storage/v1"
 )
 
-var (
-	// indexTemplate is the main index.html page we serve.
-	indexTemplate *template.Template = nil
+const (
+	CHAT_MSG = `%s pushed %s to %s`
+)
 
+// flags
+var (
+	bucketName     = flag.String("bucket_name", "skia-push", "The name of the Google Storage bucket that contains push packages and info.")
+	configFilename = flag.String("config_filename", "skiapush.json5", "Config filename.")
+	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	project        = flag.String("project", "google.com:skia-buildbots", "The Google Compute Engine project.")
+	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+)
+
+// NewTimeoutClient creates a new http.Client with both a dial timeout and a
+// request timeout.
+func NewFastTimeoutClient() *http.Client {
+	return httputils.NewConfiguredTimeoutClient(10*time.Second, 2*time.Second)
+}
+
+// Server is the state of the application.
+type Server struct {
 	// config is the configuration of what servers and apps we are managing.
 	config packages.PackageConfig
 
@@ -66,42 +84,22 @@ var (
 
 	// The current status of all the units.
 	currentStatus map[string]*systemd.UnitStatus
-)
-
-const (
-	CHAT_MSG = `%s pushed %s to %s`
-)
-
-// flags
-var (
-	bucketName     = flag.String("bucket_name", "skia-push", "The name of the Google Storage bucket that contains push packages and info.")
-	configFilename = flag.String("config_filename", "skiapush.json5", "Config filename.")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	project        = flag.String("project", "google.com:skia-buildbots", "The Google Compute Engine project.")
-	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-)
-
-// NewTimeoutClient creates a new http.Client with both a dial timeout and a
-// request timeout.
-func NewFastTimeoutClient() *http.Client {
-	return httputils.NewConfiguredTimeoutClient(10*time.Second, 2*time.Second)
 }
 
-func Init() {
+// newServer creates a new *Server object.
+func newServer() *Server {
 	if *resourcesDir == "" {
 		_, filename, _, _ := runtime.Caller(0)
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../../dist")
 	}
 
 	var err error
-	config, err = packages.LoadPackageConfig(*configFilename)
+	config, err := packages.LoadPackageConfig(*configFilename)
 	if err != nil {
 		sklog.Fatalf("Failed to load PackageConfig file: %s", err)
 	}
 
-	serverNames = config.AllServerNames()
+	serverNames := config.AllServerNames()
 
 	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_FULL_CONTROL, auth.SCOPE_GCE)
 	if err != nil {
@@ -109,26 +107,41 @@ func Init() {
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
-	fastClient = NewFastTimeoutClient()
+	fastClient := NewFastTimeoutClient()
 
-	if store, err = storage.New(client); err != nil {
+	store, err := storage.New(client)
+	if err != nil {
 		sklog.Fatalf("Failed to create storage service client: %s", err)
 	}
-	if comp, err = compute.New(client); err != nil {
+	comp, err := compute.New(client)
+	if err != nil {
 		sklog.Fatalf("Failed to create compute service client: %s", err)
 	}
-	ip, err = NewZones(comp)
+	ip, err := NewZones(comp)
 	if err != nil {
 		sklog.Fatalf("Failed to load IP addresses at startup: %s", err)
 	}
 
 	packages.SetBucketName(*bucketName)
-	packageInfo, err = packages.NewAllInfo(client, store, serverNames)
+	packageInfo, err := packages.NewAllInfo(client, store, serverNames)
 	if err != nil {
 		sklog.Fatalf("Failed to create packages.AllInfo at startup: %s", err)
 	}
 
 	chatbot.Init("push.skia.org")
+
+	return &Server{
+		config:        config,
+		ip:            ip,
+		serverNames:   serverNames,
+		client:        client,
+		fastClient:    fastClient,
+		store:         store,
+		comp:          comp,
+		packageInfo:   packageInfo,
+		currentStatus: map[string]*systemd.UnitStatus{},
+	}
+
 }
 
 // Zones keeps track of the zone of each server.
@@ -140,13 +153,13 @@ type Zones struct {
 
 func (i *Zones) load() error {
 	zoneMap := map[string]string{}
-	zones, err := comp.Zones.List(*project).Do()
+	zones, err := i.comp.Zones.List(*project).Do()
 	if err != nil {
 		return fmt.Errorf("Failed to list zones: %s", err)
 	}
 	for _, zone := range zones.Items {
 		sklog.Infof("Zone: %s", zone.Name)
-		list, err := comp.Instances.List(*project, zone.Name).Do()
+		list, err := i.comp.Instances.List(*project, zone.Name).Do()
 		if err != nil {
 			return fmt.Errorf("Failed to list instances: %s", err)
 		}
@@ -208,8 +221,8 @@ type PushNewPackage struct {
 
 // getStatus returns a populated []*systemd.UnitStatus for the given server, one for each
 // push managed service, and nil if the information wasn't able to be retrieved.
-func getStatus(server string) []*systemd.UnitStatus {
-	resp, err := fastClient.Get(fmt.Sprintf("http://%s:10000/_/list", server))
+func (s *Server) getStatus(server string) []*systemd.UnitStatus {
+	resp, err := s.fastClient.Get(fmt.Sprintf("http://%s:10000/_/list", server))
 	if err != nil {
 		sklog.Infof("Failed to get status of: %s", server)
 		return nil
@@ -232,7 +245,7 @@ func getStatus(server string) []*systemd.UnitStatus {
 // serviceStatus returns a map[string]*systemd.UnitStatus, with one entry for each service running on each
 // server. The keys for the return value are "<server_name>:<service_name>", for example,
 // "skia-push:logserverd.service".
-func serviceStatus(servers ServersUI) map[string]*systemd.UnitStatus {
+func (s *Server) serviceStatus(servers ServersUI) map[string]*systemd.UnitStatus {
 	var mutex sync.Mutex
 	var wg sync.WaitGroup
 	ret := map[string]*systemd.UnitStatus{}
@@ -240,7 +253,7 @@ func serviceStatus(servers ServersUI) map[string]*systemd.UnitStatus {
 		wg.Add(1)
 		go func(server string) {
 			defer wg.Done()
-			allServices := getStatus(server)
+			allServices := s.getStatus(server)
 			mutex.Lock()
 			defer mutex.Unlock()
 			for _, status := range allServices {
@@ -281,16 +294,16 @@ type AllUI struct {
 }
 
 // stateHandler handles the GET of the JSON.
-func stateHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) stateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if r.FormValue("refresh") == "true" {
-		if err := packageInfo.ForceRefresh(); err != nil {
+		if err := s.packageInfo.ForceRefresh(); err != nil {
 			httputils.ReportError(w, r, err, "Failed to refresh.")
 		}
 	}
-	allAvailable := packageInfo.AllAvailable()
-	allInstalled := packageInfo.AllInstalled()
+	allAvailable := s.packageInfo.AllAvailable()
+	allInstalled := s.packageInfo.AllInstalled()
 
 	// Update allInstalled to add in missing applications.
 	//
@@ -302,7 +315,7 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 	serversSeen := map[string]bool{}
 	for name, installed := range allInstalled {
 		installedNames := appNames(installed.Names)
-		for _, expected := range config.Servers[name].AppNames {
+		for _, expected := range s.config.Servers[name].AppNames {
 			if !util.In(expected, installedNames) {
 				installed.Names = append(installed.Names, expected+"/")
 			}
@@ -313,7 +326,7 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Now loop over config.Servers and find servers that don't have
 	// any installed applications. Add them to allInstalled.
-	for name, expected := range config.Servers {
+	for name, expected := range s.config.Servers {
 		if _, ok := serversSeen[name]; ok {
 			continue
 		}
@@ -352,7 +365,7 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 				newInstalled = append(newInstalled, goodName)
 			}
 			sklog.Infof("Updating %s with %#v giving %#v", push.Server, push.Name, newInstalled)
-			if err := packageInfo.PutInstalled(push.Server, newInstalled, installedPackages.Generation); err != nil {
+			if err := s.packageInfo.PutInstalled(push.Server, newInstalled, installedPackages.Generation); err != nil {
 				httputils.ReportError(w, r, err, "Failed to update server.")
 				return
 			}
@@ -361,7 +374,7 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 				sklog.Warningf("Failed to send chat notification: %s", err)
 			}
 
-			if err := trigger.ByMetadata(comp, *project, push.Name, push.Server, ip.Zone(push.Server)); err != nil {
+			if err := trigger.ByMetadata(s.comp, *project, push.Name, push.Server, s.ip.Zone(push.Server)); err != nil {
 				sklog.Warningf("Could not trigger package load via metadata: %s", err)
 			}
 			allInstalled[push.Server].Names = newInstalled
@@ -374,7 +387,7 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 	err := enc.Encode(AllUI{
 		Servers:  servers,
 		Packages: allAvailable,
-		Status:   serviceStatus(servers),
+		Status:   s.serviceStatus(servers),
 	})
 	if err != nil {
 		sklog.Errorf("Failed to write or encode output: %s", err)
@@ -400,34 +413,34 @@ func serversFromAllInstalled(allInstalled map[string]*packages.Installed) Server
 }
 
 // statusHandler handles the GET of the JSON for each service's status.
-func statusHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) statusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	err := enc.Encode(getCurrentStatus())
+	err := enc.Encode(s.getCurrentStatus())
 	if err != nil {
 		sklog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
 }
 
-func getCurrentStatus() map[string]*systemd.UnitStatus {
-	mutex.Lock()
-	defer mutex.Unlock()
-	return currentStatus
+func (s *Server) getCurrentStatus() map[string]*systemd.UnitStatus {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.currentStatus
 }
 
-func stepStatus() {
-	servers := serversFromAllInstalled(packageInfo.AllInstalled())
-	updatedStatus := serviceStatus(servers)
-	mutex.Lock()
-	defer mutex.Unlock()
-	currentStatus = updatedStatus
+func (s *Server) stepStatus() {
+	servers := serversFromAllInstalled(s.packageInfo.AllInstalled())
+	updatedStatus := s.serviceStatus(servers)
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.currentStatus = updatedStatus
 }
 
-func startStatusUpdate() {
-	stepStatus()
+func (s *Server) startStatusUpdate() {
+	s.stepStatus()
 	for range time.Tick(5 * time.Second) {
-		stepStatus()
+		s.stepStatus()
 	}
 }
 
@@ -435,7 +448,7 @@ func startStatusUpdate() {
 //
 // The actions are forwarded off to the pulld service
 // running on the machine hosting that service.
-func changeHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) changeHandler(w http.ResponseWriter, r *http.Request) {
 	if !login.IsAdmin(r) {
 		httputils.ReportError(w, r, nil, "You must be logged on as an admin to push.")
 		return
@@ -454,7 +467,7 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	url := fmt.Sprintf("http://%s:10000/_/change?name=%s&action=%s", machine, name, action)
-	resp, err := fastClient.Post(url, "", nil)
+	resp, err := s.fastClient.Post(url, "", nil)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to reach %s: %v %s", machine, resp, err))
 		return
@@ -479,10 +492,10 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 // oneStep does a single step of startDirtyMonitoring().
-func oneStep() {
+func (s *Server) oneStep() {
 	count := int64(0)
-	allInstalled := packageInfo.AllInstalled()
-	allAvailable := packageInfo.AllAvailable()
+	allInstalled := s.packageInfo.AllInstalled()
+	allAvailable := s.packageInfo.AllAvailable()
 	for serverName, installed := range allInstalled {
 		// Don't warn about dirty packages on staging instances.
 		if strings.HasSuffix(serverName, "-stage") {
@@ -513,10 +526,10 @@ func oneStep() {
 // used in prod and reports that number to metrics.
 //
 // This function doesn't return and should be launched as a Go routine.
-func startDirtyMonitoring() {
-	oneStep()
+func (s *Server) startDirtyMonitoring() {
+	s.oneStep()
 	for range time.Tick(time.Minute) {
-		oneStep()
+		s.oneStep()
 	}
 }
 
@@ -529,14 +542,14 @@ func main() {
 	if !*local {
 		login.SimpleInitMust(*port, *local)
 	}
-	Init()
+	s := newServer()
 
-	go startDirtyMonitoring()
-	go startStatusUpdate()
+	go s.startDirtyMonitoring()
+	go s.startStatusUpdate()
 	r := mux.NewRouter()
-	r.HandleFunc("/_/change", changeHandler)
-	r.HandleFunc("/_/state", stateHandler)
-	r.HandleFunc("/_/status", statusHandler)
+	r.HandleFunc("/_/change", s.changeHandler)
+	r.HandleFunc("/_/state", s.stateHandler)
+	r.HandleFunc("/_/status", s.statusHandler)
 	if !*local {
 		r.HandleFunc("/loginstatus/", login.StatusHandler)
 		r.HandleFunc("/logout/", login.LogoutHandler)
