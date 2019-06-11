@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c2148fc3_6775e303",
+        "filename": "autoroll/bin/create-autoroll-be-glslang-shaderc-sa.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-11T12:58:06Z",
+      "side": 1,
+      "message": "Can\u0027t we collapse these into a single shaderc-autoroll account?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 10
+      },
+      "revId": "2aa5abe24ee60f2c90a07bf40bf144afa575b41e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
