@@ -26,7 +26,7 @@ func oneStep(store IgnoreStore, metric metrics2.Int64Metric) error {
 // StartMonitoring starts a new monitoring routine for the given
 // ignore store that counts expired ignore rules and pushes
 // that info into a metric.
-func Init(store IgnoreStore) error {
+func StartMonitoring(store IgnoreStore, interval time.Duration) error {
 	numExpired := metrics2.GetInt64Metric("gold_num_expired_ignore_rules", nil)
 	liveness := metrics2.NewLiveness("gold_expired_ignore_rules_monitoring")
 
@@ -35,7 +35,7 @@ func Init(store IgnoreStore) error {
 		return fmt.Errorf("Unable to start monitoring ignore rules: %s", err)
 	}
 	go func() {
-		for range time.Tick(time.Minute) {
+		for range time.Tick(interval) {
 			err = oneStep(store, numExpired)
 			if err != nil {
 				sklog.Errorf("Failed one step of monitoring ignore rules: %s", err)
