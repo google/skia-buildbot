@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d53c558d_3a784e2e",
+        "filename": "push/go/push/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-06-11T20:02:19Z",
+      "side": 1,
+      "message": "nit: doc",
+      "range": {
+        "startLine": 49,
+        "startChar": 3,
+        "endLine": 49,
+        "endChar": 19
+      },
+      "revId": "7162a450e4d4679cc742dd3362e53af460dc7bdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
