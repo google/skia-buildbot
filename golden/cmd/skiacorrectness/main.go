@@ -47,6 +47,7 @@ import (
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
 	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/ignore/ds_ignorestore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/shared"
@@ -424,10 +425,7 @@ func main() {
 	// openSite indicates whether this can expose all end-points. The user still has to be authenticated.
 	openSite := (*pubWhiteList == WHITELIST_ALL) || *forceLogin
 
-	// TODO(kjlubick): storage.Storage contains an IgnoreStore, so we can't pass ignore
-	// a storage.Storage directly. There probably shouldn't be one monolithic storage object,
-	// but each package could define its own.
-	if storages.IgnoreStore, err = ignore.NewCloudIgnoreStore(ds.DS, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute, "gold-ignore-store")); err != nil {
+	if storages.IgnoreStore, err = ds_ignorestore.New(ds.DS); err != nil {
 		sklog.Fatalf("Unable to create cloud ignorestore: %s", err)
 	}
 

@@ -2,8 +2,8 @@ package ignore
 
 import "net/url"
 
-func buildRuleMatcher(store IgnoreStore) (RuleMatcher, error) {
-	rulesList, err := store.List(false)
+func BuildRuleMatcher(store IgnoreStore) (RuleMatcher, error) {
+	rulesList, err := store.List()
 	if err != nil {
 		return noopRuleMatcher, err
 	}
