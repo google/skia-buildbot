@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"
@@ -540,7 +541,7 @@ func main() {
 		common.CloudLoggingDefaultAuthOpt(local),
 	)
 	if !*local {
-		login.SimpleInitMust(*port, *local)
+		login.SimpleInitWithAllow(*port, *local, nil, nil, allowed.Googlers())
 	}
 	s := newServer()
 
