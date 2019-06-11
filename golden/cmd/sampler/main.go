@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"os"
 	"reflect"
-	"time"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -23,6 +22,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/ignore/ds_ignorestore"
 	"go.skia.org/infra/golden/go/serialize"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
@@ -115,7 +115,7 @@ func writeSample(outputFileName string, tile *tiling.Tile, expectations types.Ex
 
 	// Get the ignore rules.
 	var err error
-	if sample.IgnoreRules, err = ignoreStore.List(false); err != nil {
+	if sample.IgnoreRules, err = ignoreStore.List(); err != nil {
 		sklog.Fatalf("Error retrieving ignore rules: %s", err)
 	}
 
@@ -219,7 +219,7 @@ func load() (*tiling.Tile, types.Expectations, ignore.IgnoreStore) {
 		EventBus:          evt,
 	}
 
-	storages.IgnoreStore, err = ignore.NewCloudIgnoreStore(ds.DS, expStore, storages.GetTileStreamNow(time.Minute*20, "sampler-ignore-store"))
+	storages.IgnoreStore, err = ds_ignorestore.New(ds.DS)
 	if err != nil {
 		sklog.Fatalf("Unable to create cloud ignorestore: %s", err)
 	}

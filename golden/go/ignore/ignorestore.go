@@ -3,7 +3,6 @@ package ignore
 import (
 	"fmt"
 	"net/url"
-	"sync"
 	"time"
 )
 
@@ -19,12 +18,7 @@ type IgnoreStore interface {
 	Create(*IgnoreRule) error
 
 	// List returns all ignore rules in the ignore store.
-	// 'addCounts' indicates whether to include counts how often an ignore
-	// rule appears in the current tile.
-	// TODO(kjlubick): Remove the addCounts flag in the signature of the List function
-	// and expose the AddIgnoreCounts function. This would remove the expsStore and
-	// tileStream members of the cloudIgnoreStore struct and simplify the interface.
-	List(addCounts bool) ([]*IgnoreRule, error)
+	List() ([]*IgnoreRule, error)
 
 	// Updates an IgnoreRule.
 	Update(id int64, rule *IgnoreRule) error
@@ -46,14 +40,12 @@ type IgnoreStore interface {
 
 // IgnoreRule is the GUI struct for dealing with Ignore rules.
 type IgnoreRule struct {
-	ID             int64     `json:"id,string"`
-	Name           string    `json:"name"`
-	UpdatedBy      string    `json:"updatedBy"`
-	Expires        time.Time `json:"expires"`
-	Query          string    `json:"query"`
-	Note           string    `json:"note"`
-	Count          int       `json:"count"          datastore:"-"`
-	ExclusiveCount int       `json:"exclusiveCount" datastore:"-"`
+	ID        int64     `json:"id,string"`
+	Name      string    `json:"name"`
+	UpdatedBy string    `json:"updatedBy"`
+	Expires   time.Time `json:"expires"`
+	Query     string    `json:"query"`
+	Note      string    `json:"note"`
 }
 
 // ToQuery makes a slice of url.Values from the given slice of IngoreRules.
@@ -77,102 +69,6 @@ func NewIgnoreRule(createdByUser string, expires time.Time, queryStr string, not
 		Query:     queryStr,
 		Note:      note,
 	}
-}
-
-// MemIgnoreStore is an in-memory implementation of IgnoreStore.
-type MemIgnoreStore struct {
-	rules    []*IgnoreRule
-	mutex    sync.Mutex
-	nextId   int64
-	revision int64
-}
-
-func NewMemIgnoreStore() IgnoreStore {
-	return &MemIgnoreStore{
-		rules: []*IgnoreRule{},
-	}
-}
-
-func (m *MemIgnoreStore) inc() {
-	m.revision += 1
-}
-
-// Create, see IgnoreStore interface.
-func (m *MemIgnoreStore) Create(rule *IgnoreRule) error {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
-	rule.ID = m.nextId
-	m.nextId++
-	m.rules = append(m.rules, rule)
-	m.inc()
-	return nil
-}
-
-// List, see IgnoreStore interface.
-func (m *MemIgnoreStore) List(addCounts bool) ([]*IgnoreRule, error) {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
-	m.expire()
-	result := make([]*IgnoreRule, len(m.rules))
-	copy(result, m.rules)
-	return result, nil
-}
-
-// Update, see IgnoreStore interface.
-func (m *MemIgnoreStore) Update(id int64, updated *IgnoreRule) error {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
-	for i := range m.rules {
-		if updated.ID == id {
-			m.rules[i] = updated
-			m.inc()
-			return nil
-		}
-	}
-
-	return fmt.Errorf("Did not find an IgnoreRule with id: %d", id)
-}
-
-// Delete, see IgnoreStore interface.
-func (m *MemIgnoreStore) Delete(id int64) (int, error) {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
-	for idx, rule := range m.rules {
-		if rule.ID == id {
-			m.rules = append(m.rules[:idx], m.rules[idx+1:]...)
-			m.inc()
-			return 1, nil
-		}
-	}
-
-	return 0, nil
-}
-
-func (m *MemIgnoreStore) Revision() int64 {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
-	return m.revision
-}
-
-func (m *MemIgnoreStore) expire() {
-	newrules := make([]*IgnoreRule, 0, len(m.rules))
-	now := time.Now()
-	for _, rule := range m.rules {
-		if rule.Expires.After(now) {
-			newrules = append(newrules, rule)
-		}
-	}
-	m.rules = newrules
-}
-
-// BuildRuleMatcher, see IgnoreStore interface.
-func (m *MemIgnoreStore) BuildRuleMatcher() (RuleMatcher, error) {
-	return buildRuleMatcher(m)
 }
 
 // TODO(stephana): Factor out QueryRule into the shared library and consolidate

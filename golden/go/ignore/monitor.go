@@ -9,7 +9,7 @@ import (
 )
 
 func oneStep(store IgnoreStore, metric metrics2.Int64Metric) error {
-	list, err := store.List(false)
+	list, err := store.List()
 	if err != nil {
 		return err
 	}

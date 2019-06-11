@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/ignore/mem_ignorestore"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
@@ -164,7 +165,7 @@ func TestCalcSummaries(t *testing.T) {
 
 	storages := &storage.Storage{
 		ExpectationsStore: mes,
-		IgnoreStore:       ignore.NewMemIgnoreStore(),
+		IgnoreStore:       mem_ignorestore.New(),
 		MasterTileBuilder: mocks.NewMockTileBuilderFromTile(t, tile),
 		NCommits:          50,
 	}
@@ -178,6 +179,8 @@ func TestCalcSummaries(t *testing.T) {
 		Query:   "config=565",
 	}))
 
+	// TODO(kjlubick): FilterIgnored should be tested elsewhere. This would let us
+	// remove the dependency on MasterTileBuilder and IgnoreStore.
 	tileWithIgnoreApplied, _, err := storage.FilterIgnored(tile, storages.IgnoreStore)
 	assert.NoError(t, err)
 

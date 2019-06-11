@@ -234,7 +234,7 @@ func (s *Storage) GetLastTileTrimmed() (types.ComplexTile, error) {
 // that match the ignore rules in the given ignore store. It also returns the
 // ignore rules for later matching.
 func FilterIgnored(inputTile *tiling.Tile, ignoreStore ignore.IgnoreStore) (*tiling.Tile, paramtools.ParamMatcher, error) {
-	ignores, err := ignoreStore.List(false)
+	ignores, err := ignoreStore.List()
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to get ignores to filter tile: %s", err)
 	}
