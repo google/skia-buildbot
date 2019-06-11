@@ -14,7 +14,7 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/VividCortex/godaemon v0.0.0-20150910212227-3d9f6e0b234f
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.19.46 // indirect
+	github.com/aws/aws-sdk-go v1.19.47 // indirect
 	github.com/boltdb/bolt v1.3.1
 	github.com/cenkalti/backoff v2.1.1+incompatible
 	github.com/codegangsta/negroni v1.0.0 // indirect
@@ -27,7 +27,7 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/elazarl/goproxy v0.0.0-20190421051319-9d40249d3c2f // indirect
 	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
-	github.com/evanphx/json-patch v4.4.0+incompatible // indirect
+	github.com/evanphx/json-patch v4.5.0+incompatible // indirect
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
 	github.com/fortytw2/leaktest v1.3.0 // indirect
@@ -108,7 +108,7 @@ require (
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
-	go.chromium.org/luci v0.0.0-20190608012655-63788bccc4fc
+	go.chromium.org/luci v0.0.0-20190611034626-3c27a189b349
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.opencensus.io v0.22.0
 	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
@@ -119,8 +119,8 @@ require (
 	golang.org/x/net v0.0.0-20190607181551-461777fb6f67
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	golang.org/x/sys v0.0.0-20190609082536-301114b31cce // indirect
-	golang.org/x/tools v0.0.0-20190608022120-eacb66d2a7c3 // indirect
+	golang.org/x/sys v0.0.0-20190610200419-93c9922d18ae // indirect
+	golang.org/x/tools v0.0.0-20190610231749-f8d1dee965f7 // indirect
 	google.golang.org/api v0.6.0
 	google.golang.org/appengine v1.6.1 // indirect
 	google.golang.org/genproto v0.0.0-20190605220351-eb0b1bdb6ae6
