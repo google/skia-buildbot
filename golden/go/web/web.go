@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -1151,7 +1152,7 @@ func (wh *WebHandlers) JsonCompareTestHandler(w http.ResponseWriter, r *http.Req
 func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	commitHash := ""
-	issueID := int64(0)
+	issueID := baseline.MasterBranch
 	issueOnly := false
 	var err error
 
