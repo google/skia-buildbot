@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "882f7409_f1dbd16b",
+        "filename": "golden/go/baseline/baseline_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-12T12:59:45Z",
+      "side": 1,
+      "message": "Yes",
+      "parentUuid": "66bf48ce_302e2863",
+      "range": {
+        "startLine": 123,
+        "startChar": 69,
+        "endLine": 123,
+        "endChar": 70
+      },
+      "revId": "72345c301169083a04dce06476d338a3eef2f7c2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4dc732f5_0f503754",
         "filename": "golden/go/baseline/types.go",
         "patchSetId": 6
@@ -39,6 +63,24 @@
       "revId": "72345c301169083a04dce06476d338a3eef2f7c2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d956fc5_4ba0aba8",
+        "filename": "golden/go/baseline/types.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-12T12:59:45Z",
+      "side": 1,
+      "message": "Updated goldctl and any other consumers of it I could find.  Magic numbers.  Magic numbers everywhere.",
+      "parentUuid": "4dc732f5_0f503754",
+      "revId": "72345c301169083a04dce06476d338a3eef2f7c2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
