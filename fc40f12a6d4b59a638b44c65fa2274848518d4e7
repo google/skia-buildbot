@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d431e4c0_5e906e6d",
+        "filename": "golden/go/expstorage/ds_expstore/ds_expstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T18:55:18Z",
+      "side": 1,
+      "message": "nit: wrong function name",
+      "range": {
+        "startLine": 90,
+        "startChar": 3,
+        "endLine": 90,
+        "endChar": 28
+      },
+      "revId": "fc40f12a6d4b59a638b44c65fa2274848518d4e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
