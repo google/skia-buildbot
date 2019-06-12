@@ -14,7 +14,7 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/VividCortex/godaemon v0.0.0-20150910212227-3d9f6e0b234f
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.19.47 // indirect
+	github.com/aws/aws-sdk-go v1.19.48 // indirect
 	github.com/boltdb/bolt v1.3.1
 	github.com/cenkalti/backoff v2.1.1+incompatible
 	github.com/codegangsta/negroni v1.0.0 // indirect
@@ -55,7 +55,7 @@ require (
 	github.com/gorilla/csrf v1.5.1
 	github.com/gorilla/mux v1.7.2
 	github.com/gorilla/securecookie v1.1.1
-	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect
+	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/golang-lru v0.5.1
 	github.com/huandu/xstrings v1.2.0 // indirect
@@ -66,7 +66,7 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/kr/pty v1.1.4 // indirect
+	github.com/kr/pty v1.1.5 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/lib/pq v1.1.1 // indirect
 	github.com/magiconair/properties v1.8.1 // indirect
@@ -108,22 +108,22 @@ require (
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
-	go.chromium.org/luci v0.0.0-20190611034626-3c27a189b349
+	go.chromium.org/luci v0.0.0-20190612041351-8cb8f730e5d4
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.opencensus.io v0.22.0
-	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
+	golang.org/x/crypto v0.0.0-20190611184440-5c40567a22f8
 	golang.org/x/exp v0.0.0-20190510132918-efd6b22b2522 // indirect
 	golang.org/x/image v0.0.0-20190523035834-f03afa92d3ff // indirect
 	golang.org/x/mobile v0.0.0-20190607214518-6fa95d984e88 // indirect
 	golang.org/x/mod v0.1.0 // indirect
-	golang.org/x/net v0.0.0-20190607181551-461777fb6f67
+	golang.org/x/net v0.0.0-20190611141213-3f473d35a33a
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	golang.org/x/sys v0.0.0-20190610200419-93c9922d18ae // indirect
-	golang.org/x/tools v0.0.0-20190610231749-f8d1dee965f7 // indirect
+	golang.org/x/tools v0.0.0-20190611222205-d73e1c7e250b // indirect
 	google.golang.org/api v0.6.0
 	google.golang.org/appengine v1.6.1 // indirect
-	google.golang.org/genproto v0.0.0-20190605220351-eb0b1bdb6ae6
+	google.golang.org/genproto v0.0.0-20190611190212-a7e196e89fd3
 	google.golang.org/grpc v1.21.1
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/inf.v0 v0.9.1 // indirect
