@@ -1,0 +1,228 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b291e5d4_113d318e",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 675,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T18:02:23Z",
+      "side": 1,
+      "message": "typo the",
+      "range": {
+        "startLine": 675,
+        "startChar": 57,
+        "endLine": 675,
+        "endChar": 61
+      },
+      "revId": "d0bf46179aabb2b9c9d2cc567f0acff4f6b8b293",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c7985de_4a1f6425",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 683,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T18:02:23Z",
+      "side": 1,
+      "message": "This is already checked above. Moreover, the docs say it returns an error in this case.",
+      "range": {
+        "startLine": 680,
+        "startChar": 0,
+        "endLine": 683,
+        "endChar": 2
+      },
+      "revId": "d0bf46179aabb2b9c9d2cc567f0acff4f6b8b293",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f72929b6_7f0ca40b",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 706,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T18:02:23Z",
+      "side": 1,
+      "message": "intentional?",
+      "range": {
+        "startLine": 706,
+        "startChar": 1,
+        "endLine": 706,
+        "endChar": 28
+      },
+      "revId": "d0bf46179aabb2b9c9d2cc567f0acff4f6b8b293",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ba386a0_346cf30f",
+        "filename": "golden/go/ignore/ds_ignorestore/ds_ignorestore_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T18:02:23Z",
+      "side": 1,
+      "message": "nit: ISTM FilterIgnored could take []*IgnoreRule as a param instead of IgnoreStore, then this test could be in golden/go/ignore/common_test.go instead of depending on DS.\n\nAlternatively, could use a mock IgnoreStore.",
+      "revId": "d0bf46179aabb2b9c9d2cc567f0acff4f6b8b293",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dabf8637_fa011ee7",
+        "filename": "golden/go/status/status.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T18:02:23Z",
+      "side": 1,
+      "message": "nit: \"return\" is a bit simpler",
+      "range": {
+        "startLine": 316,
+        "startChar": 3,
+        "endLine": 316,
+        "endChar": 13
+      },
+      "revId": "d0bf46179aabb2b9c9d2cc567f0acff4f6b8b293",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c87a9da2_8a153e86",
+        "filename": "golden/go/summary/summary.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T18:02:23Z",
+      "side": 1,
+      "message": "nit: delete",
+      "range": {
+        "startLine": 37,
+        "startChar": 40,
+        "endLine": 38,
+        "endChar": 14
+      },
+      "revId": "d0bf46179aabb2b9c9d2cc567f0acff4f6b8b293",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a197c6cd_c6e6d1c9",
+        "filename": "golden/go/testutils/data_three_devices/three_devices.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T18:02:23Z",
+      "side": 1,
+      "message": "These are the wrong ID format -- maybe add a TODO?",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 53
+      },
+      "revId": "d0bf46179aabb2b9c9d2cc567f0acff4f6b8b293",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2b9ee88_69d5a1fc",
+        "filename": "golden/go/testutils/data_three_devices/three_devices.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T18:02:23Z",
+      "side": 1,
+      "message": "nit: maybe AnglerAlphaTraceID, AnglerBetaTraceID, etc.?",
+      "range": {
+        "startLine": 47,
+        "startChar": 1,
+        "endLine": 47,
+        "endChar": 15
+      },
+      "revId": "d0bf46179aabb2b9c9d2cc567f0acff4f6b8b293",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bcce424d_18686d90",
+        "filename": "golden/go/tilesource/tilesource.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T18:02:23Z",
+      "side": 1,
+      "message": "nit: CachedTileSourceImpl?",
+      "range": {
+        "startLine": 66,
+        "startChar": 5,
+        "endLine": 66,
+        "endChar": 19
+      },
+      "revId": "d0bf46179aabb2b9c9d2cc567f0acff4f6b8b293",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68ce074f_54aabeb9",
+        "filename": "golden/go/tilesource/tilesource.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T18:02:23Z",
+      "side": 1,
+      "message": "nit: doc doesn\u0027t really make sense anymore",
+      "range": {
+        "startLine": 293,
+        "startChar": 30,
+        "endLine": 293,
+        "endChar": 63
+      },
+      "revId": "d0bf46179aabb2b9c9d2cc567f0acff4f6b8b293",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
