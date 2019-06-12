@@ -542,7 +542,7 @@ func main() {
 		common.SLogLoggingOpt(logging),
 	)
 	if !*local {
-		login.SimpleInitWithAllow(*port, *local, nil, nil, allowed.Googlers())
+		login.SimpleInitWithAllow(*port, *local, allowed.Googlers(), allowed.Googlers(), allowed.Googlers())
 	}
 	s := newServer()
 
