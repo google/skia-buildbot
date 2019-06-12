@@ -28,7 +28,7 @@ const (
 
 {{.ChildRepo}}/+log/{{.From}}..{{.To}}
 
-{{.LogStr}}
+{{.LogStr}}{{.ExtraStr}}
 Created with:
   gclient setdep -r {{.ChildPath}}@{{.To}}
 
@@ -162,10 +162,14 @@ func (dr *depsRepoManager) getLastRollRev(ctx context.Context) (string, error) {
 }
 
 // Helper function for building the commit message.
-func buildCommitMsg(from, to, childPath, cqExtraTrybots, childRepo, serverURL, logStr string, bugs []string, numCommits int, includeLog bool) (string, error) {
+func buildCommitMsg(from, to, childPath, cqExtraTrybots, childRepo, serverURL, logStr, extraStr string, bugs []string, numCommits int, includeLog bool) (string, error) {
+	if extraStr != "" {
+		extraStr = "\n" + extraStr + "\n"
+	}
 	data := struct {
 		ChildPath  string
 		ChildRepo  string
+		ExtraStr   string
 		From       string
 		To         string
 		NumCommits int
@@ -176,6 +180,7 @@ func buildCommitMsg(from, to, childPath, cqExtraTrybots, childRepo, serverURL, l
 	}{
 		ChildPath:  childPath,
 		ChildRepo:  childRepo,
+		ExtraStr:   extraStr,
 		From:       from[:12],
 		To:         to[:12],
 		NumCommits: numCommits,
@@ -209,7 +214,7 @@ func (dr *depsRepoManager) buildCommitMsg(ctx context.Context, from, to, cqExtra
 	}
 	logStr = strings.TrimSpace(logStr)
 	numCommits := len(strings.Split(logStr, "\n"))
-	return buildCommitMsg(from, to, dr.childPath, cqExtraTrybots, dr.childRepoUrl, dr.serverURL, logStr, bugs, numCommits, dr.includeLog)
+	return buildCommitMsg(from, to, dr.childPath, cqExtraTrybots, dr.childRepoUrl, dr.serverURL, logStr, "", bugs, numCommits, dr.includeLog)
 }
 
 // See documentation for RepoManager interface.
