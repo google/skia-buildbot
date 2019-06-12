@@ -22,6 +22,30 @@
       "revId": "43db07c55177228cf31a20801a088025c1dca2f0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f19aa0a_46fcee8a",
+        "filename": "golden/go/ignore/testutils/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-12T13:02:10Z",
+      "side": 1,
+      "message": "I just copied this test from its original home.  I renamed it to All because it tests everything.  Not my favorite, but I didn\u0027t want to get further mired down in fixing these tests.",
+      "parentUuid": "456302a7_5eb6cf0c",
+      "range": {
+        "startLine": 11,
+        "startChar": 5,
+        "endLine": 11,
+        "endChar": 19
+      },
+      "revId": "43db07c55177228cf31a20801a088025c1dca2f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

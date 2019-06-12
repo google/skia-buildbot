@@ -22,6 +22,30 @@
       "revId": "aeef4642b5131e930945e5b4d2c058be7f75e9e2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "55a7bf65_38c35777",
+        "filename": "golden/go/ignore/ignorestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-12T13:02:10Z",
+      "side": 0,
+      "message": "See TODO in web.go  I intend to put them back after the refactoring/removal of storage.Storages",
+      "parentUuid": "4fec2fcc_554f5f70",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 63
+      },
+      "revId": "aeef4642b5131e930945e5b4d2c058be7f75e9e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
