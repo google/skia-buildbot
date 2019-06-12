@@ -21,6 +21,8 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -31,6 +33,8 @@ import (
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
+	"go.skia.org/infra/golden/go/tilesource"
+	"go.skia.org/infra/golden/go/tryjobs"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/validation"
@@ -47,11 +51,19 @@ const (
 // WebHandlers holds the environment needed by the various http hander functions
 // that have WebHandlers as its receiver.
 type WebHandlers struct {
-	Storages      *storage.Storage
-	StatusWatcher *status.StatusWatcher
-	Indexer       *indexer.Indexer
-	IssueTracker  issues.IssueTracker
-	SearchAPI     *search.SearchAPI
+	Baseliner         baseline.Baseliner
+	DiffStore         diff.DiffStore
+	ExpectationsStore expstorage.ExpectationsStore
+	GCSClient         storage.GCSClient
+	IgnoreStore       ignore.IgnoreStore
+	Indexer           *indexer.Indexer
+	IssueTracker      issues.IssueTracker
+	SearchAPI         *search.SearchAPI
+	StatusWatcher     *status.StatusWatcher
+	TileSource        tilesource.TileSource
+	TryjobMonitor     tryjobs.TryjobMonitor
+	TryjobStore       tryjobstore.TryjobStore
+	VCS               vcsinfo.VCS
 }
 
 // TODO(stephana): once the byBlameHandler is removed, refactor this to
@@ -242,7 +254,7 @@ func (wh *WebHandlers) JsonTryjobListHandler(w http.ResponseWriter, r *http.Requ
 
 	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
 	if err == nil {
-		tryjobRuns, total, err = wh.Storages.TryjobStore.ListIssues(offset, size)
+		tryjobRuns, total, err = wh.TryjobStore.ListIssues(offset, size)
 	}
 
 	if err != nil {
@@ -393,7 +405,7 @@ func (wh *WebHandlers) JsonDiffHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ret, err := search.CompareDigests(types.TestName(test), types.Digest(left), types.Digest(right), wh.Storages, wh.Indexer.GetIndex())
+	ret, err := wh.SearchAPI.CompareDigests(types.TestName(test), types.Digest(left), types.Digest(right))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to compare digests")
 		return
@@ -416,7 +428,7 @@ func (wh *WebHandlers) JsonIgnoresHandler(w http.ResponseWriter, r *http.Request
 
 	// TODO(kjlubick): these ignore structs used to have counts of how often they were applied
 	// in the file - Fix that after the Storages refactoring.
-	ignores, err := wh.Storages.IgnoreStore.List()
+	ignores, err := wh.IgnoreStore.List()
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to retrieve ignore rules, there may be none.")
 		return
@@ -463,7 +475,7 @@ func (wh *WebHandlers) JsonIgnoresUpdateHandler(w http.ResponseWriter, r *http.R
 	}
 	ignoreRule.ID = id
 
-	err = wh.Storages.IgnoreStore.Update(id, ignoreRule)
+	err = wh.IgnoreStore.Update(id, ignoreRule)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to update ignore rule.")
 		return
@@ -487,7 +499,7 @@ func (wh *WebHandlers) JsonIgnoresDeleteHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if numDeleted, err := wh.Storages.IgnoreStore.Delete(id); err != nil {
+	if numDeleted, err := wh.IgnoreStore.Delete(id); err != nil {
 		httputils.ReportError(w, r, err, "Unable to delete ignore rule.")
 	} else if numDeleted == 1 {
 		sklog.Infof("Successfully deleted ignore with id %d", id)
@@ -528,7 +540,7 @@ func (wh *WebHandlers) JsonIgnoresAddHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if err = wh.Storages.IgnoreStore.Create(ignoreRule); err != nil {
+	if err = wh.IgnoreStore.Create(ignoreRule); err != nil {
 		httputils.ReportError(w, r, err, "Failed to create ignore rule.")
 		return
 	}
@@ -581,9 +593,9 @@ func (wh *WebHandlers) JsonTriageHandler(w http.ResponseWriter, r *http.Request)
 
 	// Use the expectations store for the master branch, unless an issue was given
 	// in the request, then get the expectations store for the issue.
-	expStore := wh.Storages.ExpectationsStore
-	if req.Issue > 0 {
-		expStore = wh.Storages.ExpectationsStore.ForIssue(req.Issue)
+	expStore := wh.ExpectationsStore
+	if !types.IsMasterBranch(req.Issue) {
+		expStore = wh.ExpectationsStore.ForIssue(req.Issue)
 	}
 
 	// Add the change.
@@ -659,7 +671,7 @@ func (wh *WebHandlers) JsonClusterDiffHandler(w http.ResponseWriter, r *http.Req
 			Status: d.Status,
 		})
 		remaining := digests[i:]
-		diffs, err := wh.Storages.DiffStore.Get(diff.PRIORITY_NOW, d.Digest, remaining)
+		diffs, err := wh.DiffStore.Get(diff.PRIORITY_NOW, d.Digest, remaining)
 		if err != nil {
 			sklog.Errorf("Failed to calculate differences: %s", err)
 			continue
@@ -820,7 +832,7 @@ type FailureList struct {
 // JsonListFailureHandler returns the digests that have failed to load.
 func (wh *WebHandlers) JsonListFailureHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	unavailable := wh.Storages.DiffStore.UnavailableDigests()
+	unavailable := wh.DiffStore.UnavailableDigests()
 	ret := FailureList{
 		DigestFailures: make([]*diff.DigestFailure, 0, len(unavailable)),
 		Count:          len(unavailable),
@@ -875,7 +887,7 @@ func (wh *WebHandlers) purgeDigests(w http.ResponseWriter, r *http.Request) bool
 	}
 	purgeGCS := r.URL.Query().Get("purge") == "true"
 
-	if err := wh.Storages.DiffStore.PurgeDigests(digests, purgeGCS); err != nil {
+	if err := wh.DiffStore.PurgeDigests(digests, purgeGCS); err != nil {
 		httputils.ReportError(w, r, err, "Unable to clear digests.")
 		return false
 	}
@@ -901,9 +913,9 @@ func (wh *WebHandlers) JsonTriageLogHandler(w http.ResponseWriter, r *http.Reque
 		}
 
 		details := q.Get("details") == "true"
-		expStore := wh.Storages.ExpectationsStore
-		if issue > 0 {
-			expStore = wh.Storages.ExpectationsStore.ForIssue(issue)
+		expStore := wh.ExpectationsStore
+		if !types.IsMasterBranch(issue) {
+			expStore = wh.ExpectationsStore.ForIssue(issue)
 		}
 
 		logEntries, total, err = expStore.QueryLog(r.Context(), offset, size, details)
@@ -942,7 +954,7 @@ func (wh *WebHandlers) JsonTriageUndoHandler(w http.ResponseWriter, r *http.Requ
 	changeID := r.URL.Query().Get("id")
 
 	// Do the undo procedure.
-	_, err := wh.Storages.ExpectationsStore.UndoChange(r.Context(), changeID, user)
+	_, err := wh.ExpectationsStore.UndoChange(r.Context(), changeID, user)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to undo.")
 		return
@@ -967,7 +979,7 @@ func (wh *WebHandlers) JsonParamsHandler(w http.ResponseWriter, r *http.Request)
 // like the message. For a fuller commit, see JsonGitLogHandler.
 func (wh *WebHandlers) JsonCommitsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	cpxTile, err := wh.Storages.GetLastTileTrimmed()
+	cpxTile, err := wh.TileSource.GetTile()
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load tile")
 		return
@@ -1015,7 +1027,7 @@ func (wh *WebHandlers) JsonGitLogHandler(w http.ResponseWriter, r *http.Request)
 
 	if start == end {
 		// Single commit
-		c, err := wh.Storages.VCS.Details(ctx, start, false)
+		c, err := wh.VCS.Details(ctx, start, false)
 		if err != nil || c == nil {
 			sklog.Infof("Could not find commit with hash %s: %v", start, err)
 			http.Error(w, "invalid start and end hash", http.StatusBadRequest)
@@ -1030,7 +1042,7 @@ func (wh *WebHandlers) JsonGitLogHandler(w http.ResponseWriter, r *http.Request)
 		}
 	} else {
 		// range of commits
-		details, err := wh.Storages.VCS.DetailsMulti(ctx, []string{start, end}, false)
+		details, err := wh.VCS.DetailsMulti(ctx, []string{start, end}, false)
 		if err != nil || len(details) < 2 || details[0] == nil || details[1] == nil {
 			sklog.Infof("Invalid gitlog request start=%s end=%s: %#v %v", start, end, details, err)
 			http.Error(w, "invalid start or end hash", http.StatusBadRequest)
@@ -1040,7 +1052,7 @@ func (wh *WebHandlers) JsonGitLogHandler(w http.ResponseWriter, r *http.Request)
 		first, second := details[0].Timestamp, details[1].Timestamp
 		// Add one nanosecond because range is exclusive on the end and we want to include that
 		// last commit
-		indexCommits := wh.Storages.VCS.Range(first, second.Add(time.Nanosecond))
+		indexCommits := wh.VCS.Range(first, second.Add(time.Nanosecond))
 		if indexCommits == nil {
 			// indexCommit should never be nil, but just in case...
 			http.Error(w, "no commits found between hashes", http.StatusBadRequest)
@@ -1052,7 +1064,7 @@ func (wh *WebHandlers) JsonGitLogHandler(w http.ResponseWriter, r *http.Request)
 			hashes = append(hashes, c.Hash)
 		}
 
-		commits, err := wh.Storages.VCS.DetailsMulti(ctx, hashes, false)
+		commits, err := wh.VCS.DetailsMulti(ctx, hashes, false)
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to look up commit data.")
 			return
@@ -1079,7 +1091,7 @@ func (wh *WebHandlers) JsonGitLogHandler(w http.ResponseWriter, r *http.Request)
 // Endpoint used by the buildbots to avoid transferring already known images.
 func (wh *WebHandlers) TextAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	unavailableDigests := wh.Storages.DiffStore.UnavailableDigests()
+	unavailableDigests := wh.DiffStore.UnavailableDigests()
 
 	idx := wh.Indexer.GetIndex()
 	byTest := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
@@ -1111,7 +1123,7 @@ func (wh *WebHandlers) TextAllHashesHandler(w http.ResponseWriter, r *http.Reque
 func (wh *WebHandlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "text/plain")
-	if err := wh.Storages.GCSClient.LoadKnownDigests(w); err != nil {
+	if err := wh.GCSClient.LoadKnownDigests(w); err != nil {
 		sklog.Errorf("Failed to copy the known hashes from GCS: %s", err)
 		return
 	}
@@ -1134,7 +1146,7 @@ func (wh *WebHandlers) JsonCompareTestHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	compareResult, err := search.CompareTest(&ctQuery, wh.Storages, wh.Indexer.GetIndex())
+	compareResult, err := wh.SearchAPI.CompareTest(&ctQuery)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
@@ -1185,7 +1197,7 @@ func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	baseline, err := wh.Storages.Baseliner.FetchBaseline(commitHash, issueID, issueOnly)
+	baseline, err := wh.Baseliner.FetchBaseline(commitHash, issueID, issueOnly)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fetching baselines failed.")
 		return
@@ -1215,7 +1227,7 @@ func (wh *WebHandlers) JsonRefreshIssue(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	if err := wh.Storages.TryjobMonitor.ForceRefresh(issueID); err != nil {
+	if err := wh.TryjobMonitor.ForceRefresh(issueID); err != nil {
 		httputils.ReportError(w, r, err, "Refreshing issue failed.")
 		return
 	}

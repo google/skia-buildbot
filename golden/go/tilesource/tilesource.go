@@ -1,17 +1,13 @@
-package storage
+package tilesource
 
 import (
 	"context"
-	"fmt"
 	"net/url"
-	"os"
 	"sync"
 	"time"
 
-	"github.com/flynn/json5"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -19,15 +15,21 @@ import (
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/golden/go/baseline"
-	"go.skia.org/infra/golden/go/diff"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/tryjobs"
-	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/sync/errgroup"
 )
+
+type DeprecatedTileSource interface {
+	// GetTile returns the most recently loaded Tile.
+	GetTile() *tiling.Tile
+}
+
+type TileSource interface {
+	// GetTile returns the most recently loaded Tile.
+	GetTile() (types.ComplexTile, error)
+}
 
 const (
 	// maxNSparseCommits is the maximum number of commits we are considering when condensing a
@@ -35,31 +37,23 @@ const (
 	// This should be changed or made a config option when we consider going back more commits makes
 	// sense.
 	maxNSparseCommits = 3000
+
+	// How long to cache the tile
+	tileCacheTime = 3 * time.Minute
 )
 
-type TileSource interface {
-	// GetTile returns the most recently loaded Tile.
-	GetTile() *tiling.Tile
-}
-
-// Storage is a container struct for the various storage objects we are using.
-// It is intended to reduce parameter lists as we pass around storage objects.
-type Storage struct {
-	DiffStore         diff.DiffStore
-	ExpectationsStore expstorage.ExpectationsStore
-	IgnoreStore       ignore.IgnoreStore
-	TraceDB           tracedb.DB
-	MasterTileBuilder TileSource
+type CachedTileSourceConfig struct {
 	EventBus          eventbus.EventBus
-	TryjobStore       tryjobstore.TryjobStore
-	TryjobMonitor     tryjobs.TryjobMonitor
 	GerritAPI         gerrit.GerritInterface
-	GCSClient         GCSClient
-	Baseliner         baseline.Baseliner
+	IgnoreStore       ignore.IgnoreStore
+	MasterTileBuilder DeprecatedTileSource
+	TraceDB           tracedb.DB
+	TryjobMonitor     tryjobs.TryjobMonitor
 	VCS               vcsinfo.VCS
-	WhiteListQuery    paramtools.ParamSet
-	IsAuthoritative   bool
-	SiteURL           string
+
+	// optional. If specified, will only show the params that match this query. This is
+	// opt-in, to avoid leaking.
+	PubliclyViewableParams paramtools.ParamSet
 
 	// IsSparseTile indicates that new tiles should be condensed by removing commits that have no data.
 	IsSparseTile bool
@@ -67,98 +61,22 @@ type Storage struct {
 	// NCommits is the number of commits we should consider. If NCommits is
 	// 0 or smaller all commits in the last tile will be considered.
 	NCommits int
+}
 
-	// Internal variables used to cache tiles.
+type CachedTileSourceImpl struct {
+	CachedTileSourceConfig
+
 	lastCpxTile   types.ComplexTile
 	lastTimeStamp time.Time
 	mutex         sync.Mutex
 }
 
-// LoadWhiteList loads the given JSON5 file that defines that query to
-// whitelist traces. If the given path is empty or the file cannot be parsed
-// an error will be returned.
-func (s *Storage) LoadWhiteList(fName string) error {
-	if fName == "" {
-		return fmt.Errorf("No white list file provided.")
+func New(c CachedTileSourceConfig) *CachedTileSourceImpl {
+	cti := &CachedTileSourceImpl{
+		CachedTileSourceConfig: c,
 	}
-
-	f, err := os.Open(fName)
-	if err != nil {
-		return fmt.Errorf("Unable open file %s. Got error: %s", fName, err)
-	}
-	defer util.Close(f)
-
-	if err := json5.NewDecoder(f).Decode(&s.WhiteListQuery); err != nil {
-		return err
-	}
-
-	// Make sure the whitelist is not empty.
-	empty := true
-	for _, values := range s.WhiteListQuery {
-		if empty = len(values) == 0; !empty {
-			break
-		}
-	}
-	if empty {
-		return fmt.Errorf("Whitelist in %s cannot be empty.", fName)
-	}
-	sklog.Infof("Whitelist loaded from %s", fName)
-	return nil
+	return cti
 }
-
-// GetTileStreamNow is a utility function that reads tiles in the given
-// interval and sends them on the returned channel.
-// The first tile is sent immediately.
-// Should the call to read a new tile fail it will send that last
-// successfully read tile. Thus it guarantees to send a tile in the provided
-// interval, assuming at least one tile could be read.
-// The metricsTag allows for us to monitor how long individual tile streams
-// take, in the unlikely event there are multiple failures of the tile in a row.
-func (s *Storage) GetTileStreamNow(interval time.Duration, metricsTag string) <-chan types.ComplexTile {
-	retCh := make(chan types.ComplexTile)
-	lastTileStreamed := metrics2.NewLiveness("last_tile_streamed", map[string]string{
-		"source": metricsTag,
-	})
-	go func() {
-		var lastTile types.ComplexTile = nil
-
-		readOneTile := func() {
-			if tile, err := s.GetLastTileTrimmed(); err != nil {
-				// Log the error and send the best tile we have right now.
-				sklog.Errorf("Error reading tile: %s", err)
-				if lastTile != nil {
-					retCh <- lastTile
-				}
-			} else {
-				lastTile = tile
-				lastTileStreamed.Reset()
-				retCh <- tile
-			}
-		}
-
-		readOneTile()
-		for range time.Tick(interval) {
-			readOneTile()
-		}
-	}()
-
-	return retCh
-}
-
-// DrainChangeChannel removes everything from the channel thats currently
-// buffered or ready to be read.
-func DrainChangeChannel(ch <-chan types.Expectations) {
-Loop:
-	for {
-		select {
-		case <-ch:
-		default:
-			break Loop
-		}
-	}
-}
-
-var tileCacheTime = 3 * time.Minute
 
 // TODO(stephana): Expand the Tile type to make querying faster.
 // i.e. add traces as an array so that iteration can be done in parallel and
@@ -167,7 +85,7 @@ var tileCacheTime = 3 * time.Minute
 // GetLastTrimmed returns the last tile as read-only trimmed to contain at
 // most NCommits. It caches trimmed tiles as long as the underlying tiles
 // do not change.
-func (s *Storage) GetLastTileTrimmed() (types.ComplexTile, error) {
+func (s *CachedTileSourceImpl) GetTile() (types.ComplexTile, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -196,7 +114,7 @@ func (s *Storage) GetLastTileTrimmed() (types.ComplexTile, error) {
 	}
 
 	// Get the tile with everything that needs to be whitelisted.
-	rawTile = s.getWhiteListedTile(rawTile)
+	rawTile = s.filterTile(rawTile)
 	if s.NCommits <= 0 {
 		cpxTile := types.NewComplexTile(rawTile)
 		cpxTile.SetSparse(nil, nil)
@@ -215,9 +133,13 @@ func (s *Storage) GetLastTileTrimmed() (types.ComplexTile, error) {
 	cpxTile.SetSparse(sparseCommits, cardinalities)
 
 	// Get the tile without the ignored traces and update the complex tile.
-	retIgnoredTile, ignoreRules, err := FilterIgnored(rawTile, s.IgnoreStore)
+	ignores, err := s.IgnoreStore.List()
 	if err != nil {
-		return nil, err
+		return nil, skerr.Fmt("could not fetch ignore rules: %s", err)
+	}
+	retIgnoredTile, ignoreRules, err := ignore.FilterIgnored(rawTile, ignores)
+	if err != nil {
+		return nil, skerr.Fmt("could not apply ignore rules to tile: %s", err)
 	}
 	cpxTile.SetIgnoreRules(retIgnoredTile, ignoreRules, currentIgnoreRev)
 
@@ -230,74 +152,11 @@ func (s *Storage) GetLastTileTrimmed() (types.ComplexTile, error) {
 	return cpxTile, nil
 }
 
-// FilterIgnored returns a copy of the given tile with all traces removed
-// that match the ignore rules in the given ignore store. It also returns the
-// ignore rules for later matching.
-func FilterIgnored(inputTile *tiling.Tile, ignoreStore ignore.IgnoreStore) (*tiling.Tile, paramtools.ParamMatcher, error) {
-	ignores, err := ignoreStore.List()
-	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to get ignores to filter tile: %s", err)
-	}
-
-	// Now copy the tile by value.
-	ret := inputTile.Copy()
-
-	// Then remove traces that should be ignored.
-	ignoreQueries, err := ignore.ToQuery(ignores)
-	if err != nil {
-		return nil, nil, err
-	}
-	for id, tr := range ret.Traces {
-		for _, q := range ignoreQueries {
-			if tiling.Matches(tr, q) {
-				delete(ret.Traces, id)
-				continue
-			}
-		}
-	}
-
-	ignoreRules := make([]paramtools.ParamSet, len(ignoreQueries))
-	for idx, q := range ignoreQueries {
-		ignoreRules[idx] = paramtools.ParamSet(q)
-	}
-	return ret, ignoreRules, nil
-}
-
-func (s *Storage) GetExpectationsForCommit(parentCommit string) (types.Expectations, error) {
-	return nil, skerr.Fmt("Not implemented yet !")
-}
-
-// getWhiteListedTile creates a new tile from the given tile that contains
-// only traces that match the whitelist that was loaded earlier.
-func (s *Storage) getWhiteListedTile(tile *tiling.Tile) *tiling.Tile {
-	if s.WhiteListQuery == nil {
-		return tile
-	}
-
-	// filter tile.
-	ret := &tiling.Tile{
-		Traces:  make(map[tiling.TraceId]tiling.Trace, len(tile.Traces)),
-		Commits: tile.Commits,
-	}
-
-	// Iterate over the tile and copy the whitelisted traces over.
-	// Build the paramset in the process.
-	paramSet := paramtools.ParamSet{}
-	for traceID, trace := range tile.Traces {
-		if tiling.Matches(trace, url.Values(s.WhiteListQuery)) {
-			ret.Traces[traceID] = trace
-			paramSet.AddParams(trace.Params())
-		}
-	}
-	ret.ParamSet = paramSet
-	sklog.Infof("Whitelisted %d of %d traces.", len(ret.Traces), len(tile.Traces))
-	return ret
-}
-
 // getCondensedTile returns a tile that contains only commits that have at least one
 // nonempty entry. If lastTile is not nil, its first commit is used as a starting point to
 // fetch the tiles necessary to build the condensed tile (from several "sparse" tiles.)
-func (s *Storage) getCondensedTile(ctx context.Context, lastCpxTile types.ComplexTile) (*tiling.Tile, []*tiling.Commit, []int, error) {
+// TODO(kjlubick): delete this when we have the BT-based tracestore, which will compute this.
+func (s *CachedTileSourceImpl) getCondensedTile(ctx context.Context, lastCpxTile types.ComplexTile) (*tiling.Tile, []*tiling.Commit, []int, error) {
 	if s.NCommits <= 0 {
 		ret := tiling.NewTile()
 		ret.Commits = ret.Commits[:0]
@@ -434,11 +293,38 @@ func getCommitIDs(indexCommits []*vcsinfo.IndexCommit) []*tracedb.CommitID {
 	return commitIDs
 }
 
+// filterTile creates a new tile from the given tile that contains
+// only traces that match the publicly viewable params.
+func (s *CachedTileSourceImpl) filterTile(tile *tiling.Tile) *tiling.Tile {
+	if len(s.PubliclyViewableParams) == 0 {
+		return tile
+	}
+
+	// filter tile.
+	ret := &tiling.Tile{
+		Traces:  make(map[tiling.TraceId]tiling.Trace, len(tile.Traces)),
+		Commits: tile.Commits,
+	}
+
+	// Iterate over the tile and copy the whitelisted traces over.
+	// Build the paramset in the process.
+	paramSet := paramtools.ParamSet{}
+	for traceID, trace := range tile.Traces {
+		if tiling.Matches(trace, url.Values(s.PubliclyViewableParams)) {
+			ret.Traces[traceID] = trace
+			paramSet.AddParams(trace.Params())
+		}
+	}
+	ret.ParamSet = paramSet
+	sklog.Infof("Whitelisted %d of %d traces.", len(ret.Traces), len(tile.Traces))
+	return ret
+}
+
 // checkCommitableIssues checks all commits of the current tile whether
 // the associated expectations have been added to the baseline of the master.
 // TODO(kjlubick): This should not be here, but likely in tryjobMonitor, named
 // something like "CatchUpIssues" or something.
-func (s *Storage) checkCommitableIssues(cpxTile types.ComplexTile) {
+func (s *CachedTileSourceImpl) checkCommitableIssues(cpxTile types.ComplexTile) {
 	go func() {
 		var egroup errgroup.Group
 

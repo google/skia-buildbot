@@ -11,8 +11,8 @@ import (
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
-	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -82,16 +82,13 @@ type SRDigestDetails struct {
 // SearchAPI is type that exposes a search API to query the
 // current tile (all images for the most recent commits).
 type SearchAPI struct {
-	storages *storage.Storage
-	ixr      *indexer.Indexer
-}
-
-// Create a new instance of SearchAPI.
-func NewSearchAPI(storages *storage.Storage, ixr *indexer.Indexer) (*SearchAPI, error) {
-	return &SearchAPI{
-		storages: storages,
-		ixr:      ixr,
-	}, nil
+	DiffStore         diff.DiffStore
+	ExpectationsStore expstorage.ExpectationsStore
+	Indexer           *indexer.Indexer
+	TryjobStore       tryjobstore.TryjobStore
+	// optional. If specified, will only show the params that match this query. This is
+	// opt-in, to avoid leaking.
+	PubliclyViewableParams paramtools.ParamSet
 }
 
 // Search queries the current tile based on the parameters specified in
@@ -112,7 +109,7 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 	if err != nil {
 		return nil, err
 	}
-	idx := s.ixr.GetIndex()
+	idx := s.Indexer.GetIndex()
 
 	var inter srInterMap = nil
 	var issue *tryjobstore.Issue = nil
@@ -216,7 +213,7 @@ func (s *SearchAPI) Summary(issueID int64) (*IssueSummary, error) {
 // GetDigestDetails returns details about a digest as an instance of SRDigestDetails.
 func (s *SearchAPI) GetDigestDetails(test types.TestName, digest types.Digest) (*SRDigestDetails, error) {
 	ctx := context.Background()
-	idx := s.ixr.GetIndex()
+	idx := s.Indexer.GetIndex()
 	tile := idx.CpxTile().GetTile(types.IncludeIgnoredTraces)
 
 	exp, err := s.getExpectationsFromQuery(nil)
@@ -275,7 +272,7 @@ func (s *SearchAPI) getExpectationsFromQuery(q *Query) (ExpSlice, error) {
 	ret := make(ExpSlice, 0, 2)
 
 	if q != nil && !types.IsMasterBranch(q.Issue) {
-		issueExpStore := s.storages.ExpectationsStore.ForIssue(q.Issue)
+		issueExpStore := s.ExpectationsStore.ForIssue(q.Issue)
 		tjExp, err := issueExpStore.Get()
 		if err != nil {
 			return nil, sklog.FmtErrorf("Unable to load expectations for issue %d from tryjobstore: %s", q.Issue, err)
@@ -283,7 +280,7 @@ func (s *SearchAPI) getExpectationsFromQuery(q *Query) (ExpSlice, error) {
 		ret = append(ret, tjExp)
 	}
 
-	exp, err := s.storages.ExpectationsStore.Get()
+	exp, err := s.ExpectationsStore.Get()
 	if err != nil {
 		return nil, sklog.FmtErrorf("Unable to load expectations for master: %s", err)
 	}
@@ -329,7 +326,7 @@ func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx *inde
 	defer span.End()
 
 	// Get the issue.
-	issue, err := s.storages.TryjobStore.GetIssue(q.Issue, true)
+	issue, err := s.TryjobStore.GetIssue(q.Issue, true)
 	if err != nil {
 		return nil, err
 	}
@@ -363,7 +360,7 @@ func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx *inde
 	}
 
 	// Get the results
-	tjResults, err := s.storages.TryjobStore.GetTryjobResults(tryjobs)
+	tjResults, err := s.TryjobStore.GetTryjobResults(tryjobs)
 	if err != nil {
 		return nil, err
 	}
@@ -381,10 +378,10 @@ func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx *inde
 	}
 
 	// If we have a white list filter out anything that is not on the white list.
-	if len(s.storages.WhiteListQuery) > 0 {
+	if len(s.PubliclyViewableParams) > 0 {
 		for _, oneTryjob := range tjResults {
 			for idx, trj := range oneTryjob {
-				if (trj != nil) && !s.storages.WhiteListQuery.Matches(trj.Params) {
+				if (trj != nil) && !s.PubliclyViewableParams.Matches(trj.Params) {
 					oneTryjob[idx] = nil
 				}
 			}
@@ -411,8 +408,8 @@ func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx *inde
 	return issue, nil
 }
 
-// TODO(stephana): The filterTile function should be merged with the
-// function of the same name at the module level (see search.go).
+// TODO(kjlubick): The filterTile function should be merged with the
+// filterTileCompare (see search.go).
 
 // filterTile iterates over the tile and accumulates the traces
 // that match the given query creating the initial search result.
@@ -476,7 +473,7 @@ func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDi
 	_, span := trace.StartSpan(ctx, "search/getReferenceDiffs")
 	defer span.End()
 
-	refDiffer := NewRefDiffer(exp, s.storages.DiffStore, idx)
+	refDiffer := NewRefDiffer(exp, s.DiffStore, idx)
 	var wg sync.WaitGroup
 	wg.Add(len(resultDigests))
 	for _, retDigest := range resultDigests {

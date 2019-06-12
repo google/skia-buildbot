@@ -3,24 +3,21 @@ package summary_test
 import (
 	"net/url"
 	"testing"
-	"time"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/digest_counter"
-	"go.skia.org/infra/golden/go/ignore"
-	"go.skia.org/infra/golden/go/ignore/mem_ignorestore"
 	"go.skia.org/infra/golden/go/mocks"
-	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/types"
 )
 
 /**
-  Conditions to test.
+  Test outline
 
+  We create the following trace data:
   Traces
   ------
   id   | config  | test name  | corpus(source_type) |  digests
@@ -45,7 +42,7 @@ import (
 
   Note no entry for test_third or ggg, meaning untriaged.
 
-  Test the following conditions and make sure you get
+  Then, we test the following conditions and make sure we get
   the expected test summaries.
 
   source_type=gm
@@ -84,113 +81,25 @@ import (
 */
 func TestCalcSummaries(t *testing.T) {
 	unittest.SmallTest(t)
-	tile := &tiling.Tile{
-		Traces: map[tiling.TraceId]tiling.Trace{
-			// These trace ids have been shortened for test terseness.
-			// A real trace id would be like ",config=8888,source_type=gm,name=foo,"
-			"a": &types.GoldenTrace{
-				Digests: types.DigestSlice{"aaa", "bbb"},
-				Keys: map[string]string{
-					"config":                "8888",
-					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: string(FirstTest),
-				},
-			},
-			"b": &types.GoldenTrace{
-				Digests: types.DigestSlice{"ccc", "ddd"},
-				Keys: map[string]string{
-					"config":                "565",
-					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: string(FirstTest),
-				},
-			},
-			"c": &types.GoldenTrace{
-				Digests: types.DigestSlice{"eee", types.MISSING_DIGEST},
-				Keys: map[string]string{
-					"config":                "gpu",
-					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: string(FirstTest),
-				},
-			},
-			"d": &types.GoldenTrace{
-				Digests: types.DigestSlice{"fff", "ggg"},
-				Keys: map[string]string{
-					"config":                "8888",
-					types.CORPUS_FIELD:      "gm",
-					types.PRIMARY_KEY_FIELD: string(SecondTest),
-				},
-			},
-			"e": &types.GoldenTrace{
-				Digests: types.DigestSlice{"jjj", types.MISSING_DIGEST},
-				Keys: map[string]string{
-					"config":                "8888",
-					types.CORPUS_FIELD:      "image",
-					types.PRIMARY_KEY_FIELD: string(ThirdTest),
-				},
-			},
-		},
-		Commits: []*tiling.Commit{
-			{
-				CommitTime: 42,
-				Hash:       "ffffffffffffffffffffffffffffffffffffffff",
-				Author:     "test@test.cz",
-			},
-			{
-				CommitTime: 45,
-				Hash:       "gggggggggggggggggggggggggggggggggggggggg",
-				Author:     "test@test.cz",
-			},
-		},
-		Scale:     0,
-		TileIndex: 0,
-	}
-
-	// TODO(kjlubick): This test should use mockery-based mocks.
 
 	mes := &mocks.ExpectationsStore{}
 	defer mes.AssertExpectations(t)
 
-	mes.On("Get").Return(types.Expectations{
-		FirstTest: map[types.Digest]types.Label{
-			"aaa": types.POSITIVE,
-			"bbb": types.NEGATIVE,
-			"ccc": types.UNTRIAGED,
-			"ddd": types.UNTRIAGED,
-			"eee": types.POSITIVE,
-		},
-		SecondTest: map[types.Digest]types.Label{
-			"fff": types.NEGATIVE,
-		},
-	}, nil)
+	mes.On("Get").Return(makeExpectations(), nil)
 
-	storages := &storage.Storage{
+	dc := digest_counter.New(makeFullTile())
+	blamer, err := blame.New(makeFullTile(), makeExpectations())
+	assert.NoError(t, err)
+
+	smc := summary.SummaryMapConfig{
 		ExpectationsStore: mes,
-		IgnoreStore:       mem_ignorestore.New(),
-		MasterTileBuilder: mocks.NewMockTileBuilderFromTile(t, tile),
-		NCommits:          50,
+		DiffStore:         nil, // diameter is disabled, so this can be nil.
+		DigestCounter:     dc,
+		Blamer:            blamer,
 	}
 
-	dc := digest_counter.New(tile)
-
-	assert.NoError(t, storages.IgnoreStore.Create(&ignore.IgnoreRule{
-		ID:      1,
-		Name:    "user@example.com",
-		Expires: time.Now().Add(time.Hour),
-		Query:   "config=565",
-	}))
-
-	// TODO(kjlubick): FilterIgnored should be tested elsewhere. This would let us
-	// remove the dependency on MasterTileBuilder and IgnoreStore.
-	tileWithIgnoreApplied, _, err := storage.FilterIgnored(tile, storages.IgnoreStore)
-	assert.NoError(t, err)
-
-	exp, err := storages.ExpectationsStore.Get()
-	assert.NoError(t, err)
-	blamer, err := blame.New(tile, exp)
-	assert.NoError(t, err)
-
 	// Query all gms with ignores
-	if sum, err := summary.NewSummaryMap(storages, tileWithIgnoreApplied, dc, blamer, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
+	if sum, err := summary.NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 2, len(sum))
@@ -203,7 +112,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Query all gms with full tile.
-	if sum, err := summary.NewSummaryMap(storages, tile, dc, blamer, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
+	if sum, err := summary.NewSummaryMap(smc, makeFullTile(), nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 2, len(sum))
@@ -215,7 +124,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Query gms belonging to test FirstTest from full tile
-	if sum, err := summary.NewSummaryMap(storages, tile, dc, blamer, types.TestNameSet{FirstTest: true}, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
+	if sum, err := summary.NewSummaryMap(smc, makeFullTile(), types.TestNameSet{FirstTest: true}, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 1, len(sum))
@@ -226,7 +135,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Query all digests belonging to test FirstTest from tile with ignores applied
-	if sum, err := summary.NewSummaryMap(storages, tileWithIgnoreApplied, dc, blamer, types.TestNameSet{FirstTest: true}, nil, false); err != nil {
+	if sum, err := summary.NewSummaryMap(smc, makeTileWithIgnores(), types.TestNameSet{FirstTest: true}, nil, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 1, len(sum))
@@ -238,7 +147,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// query any digest in 8888 OR 565 from tile with ignores applied
-	if sum, err := summary.NewSummaryMap(storages, tileWithIgnoreApplied, dc, blamer, nil, url.Values{"config": {"8888", "565"}}, false); err != nil {
+	if sum, err := summary.NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"8888", "565"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 3, len(sum))
@@ -252,7 +161,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// query any digest in 8888 OR 565 from tile with ignores applied at Head
-	if sum, err := summary.NewSummaryMap(storages, tileWithIgnoreApplied, dc, blamer, nil, url.Values{"config": {"8888", "565"}}, true); err != nil {
+	if sum, err := summary.NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"8888", "565"}}, true); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 3, len(sum))
@@ -267,7 +176,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Query any digest with the gpu config
-	if sum, err := summary.NewSummaryMap(storages, tileWithIgnoreApplied, dc, blamer, nil, url.Values{"config": {"gpu"}}, false); err != nil {
+	if sum, err := summary.NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"gpu"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 1, len(sum))
@@ -277,13 +186,15 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Nothing should show up from an unknown query
-	if sum, err := summary.NewSummaryMap(storages, tileWithIgnoreApplied, dc, blamer, nil, url.Values{"config": {"unknown"}}, false); err != nil {
+	if sum, err := summary.NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"unknown"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 0, len(sum))
 	}
 }
 
+// TestCombine ensures we can combine two summaries to make sure
+// the Blames and test names are properly combined.
 func TestCombine(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -389,3 +300,139 @@ const (
 	BetaDigest  = types.Digest("bbb9ee4a034fdeddd1b65be92debe731")
 	GammaDigest = types.Digest("ccc8f073f388469e0193300623691a36")
 )
+
+// makeFullTile returns a tile that matches the description at the top of the file.
+func makeFullTile() *tiling.Tile {
+	return &tiling.Tile{
+		Traces: map[tiling.TraceId]tiling.Trace{
+			// These trace ids have been shortened for test terseness.
+			// A real trace id would be like "8888:gm:test_first"
+			"a": &types.GoldenTrace{
+				Digests: types.DigestSlice{"aaa", "bbb"},
+				Keys: map[string]string{
+					"config":                "8888",
+					types.CORPUS_FIELD:      "gm",
+					types.PRIMARY_KEY_FIELD: string(FirstTest),
+				},
+			},
+			"b": &types.GoldenTrace{
+				Digests: types.DigestSlice{"ccc", "ddd"},
+				Keys: map[string]string{
+					"config":                "565",
+					types.CORPUS_FIELD:      "gm",
+					types.PRIMARY_KEY_FIELD: string(FirstTest),
+				},
+			},
+			"c": &types.GoldenTrace{
+				Digests: types.DigestSlice{"eee", types.MISSING_DIGEST},
+				Keys: map[string]string{
+					"config":                "gpu",
+					types.CORPUS_FIELD:      "gm",
+					types.PRIMARY_KEY_FIELD: string(FirstTest),
+				},
+			},
+			"d": &types.GoldenTrace{
+				Digests: types.DigestSlice{"fff", "ggg"},
+				Keys: map[string]string{
+					"config":                "8888",
+					types.CORPUS_FIELD:      "gm",
+					types.PRIMARY_KEY_FIELD: string(SecondTest),
+				},
+			},
+			"e": &types.GoldenTrace{
+				Digests: types.DigestSlice{"jjj", types.MISSING_DIGEST},
+				Keys: map[string]string{
+					"config":                "8888",
+					types.CORPUS_FIELD:      "image",
+					types.PRIMARY_KEY_FIELD: string(ThirdTest),
+				},
+			},
+		},
+		Commits: []*tiling.Commit{
+			{
+				CommitTime: 42,
+				Hash:       "ffffffffffffffffffffffffffffffffffffffff",
+				Author:     "test@example.com",
+			},
+			{
+				CommitTime: 45,
+				Hash:       "gggggggggggggggggggggggggggggggggggggggg",
+				Author:     "test@example.com",
+			},
+		},
+		Scale:     0,
+		TileIndex: 0,
+	}
+}
+
+// makeTileWithIgnores() returns a tile with the ignore rule
+// "config=565" applied (which as removed one trace compared to makeFullTile()).
+func makeTileWithIgnores() *tiling.Tile {
+	return &tiling.Tile{
+		Traces: map[tiling.TraceId]tiling.Trace{
+			// These trace ids have been shortened for test terseness.
+			// A real trace id would be like "8888:gm:test_first"
+			"a": &types.GoldenTrace{
+				Digests: types.DigestSlice{"aaa", "bbb"},
+				Keys: map[string]string{
+					"config":                "8888",
+					types.CORPUS_FIELD:      "gm",
+					types.PRIMARY_KEY_FIELD: string(FirstTest),
+				},
+			},
+			"c": &types.GoldenTrace{
+				Digests: types.DigestSlice{"eee", types.MISSING_DIGEST},
+				Keys: map[string]string{
+					"config":                "gpu",
+					types.CORPUS_FIELD:      "gm",
+					types.PRIMARY_KEY_FIELD: string(FirstTest),
+				},
+			},
+			"d": &types.GoldenTrace{
+				Digests: types.DigestSlice{"fff", "ggg"},
+				Keys: map[string]string{
+					"config":                "8888",
+					types.CORPUS_FIELD:      "gm",
+					types.PRIMARY_KEY_FIELD: string(SecondTest),
+				},
+			},
+			"e": &types.GoldenTrace{
+				Digests: types.DigestSlice{"jjj", types.MISSING_DIGEST},
+				Keys: map[string]string{
+					"config":                "8888",
+					types.CORPUS_FIELD:      "image",
+					types.PRIMARY_KEY_FIELD: string(ThirdTest),
+				},
+			},
+		},
+		Commits: []*tiling.Commit{
+			{
+				CommitTime: 42,
+				Hash:       "ffffffffffffffffffffffffffffffffffffffff",
+				Author:     "test@example.com",
+			},
+			{
+				CommitTime: 45,
+				Hash:       "gggggggggggggggggggggggggggggggggggggggg",
+				Author:     "test@example.com",
+			},
+		},
+		Scale:     0,
+		TileIndex: 0,
+	}
+}
+
+func makeExpectations() types.Expectations {
+	return types.Expectations{
+		FirstTest: map[types.Digest]types.Label{
+			"aaa": types.POSITIVE,
+			"bbb": types.NEGATIVE,
+			"ccc": types.UNTRIAGED,
+			"ddd": types.UNTRIAGED,
+			"eee": types.POSITIVE,
+		},
+		SecondTest: map[types.Digest]types.Label{
+			"fff": types.NEGATIVE,
+		},
+	}
+}

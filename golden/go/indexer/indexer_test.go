@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/mocks"
-	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/testutils"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
@@ -43,12 +42,13 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 
 	ct, _, _ := makeComplexTileWithCrosshatchIgnores()
 
-	storages := &storage.Storage{
-		ExpectationsStore: mes,
+	ic := IndexerConfig{
+		Baseliner:         mb,
 		DiffStore:         mds,
 		EventBus:          meb,
+		ExpectationsStore: mes,
 		GCSClient:         mgc,
-		Baseliner:         mb,
+		Warmer:            mdw,
 	}
 	wg, isAsync, asyncWrapper := testutils.AsyncHelpers()
 
@@ -120,7 +120,7 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 		}, dCounter.ByTest())
 	}))
 
-	ixr, err := New(storages, mdw, 0)
+	ixr, err := New(ic, 0)
 	assert.NoError(t, err)
 
 	err = ixr.executePipeline(ct)
@@ -153,6 +153,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	defer mes.AssertExpectations(t)
 
 	ct, fullTile, partialTile := makeComplexTileWithCrosshatchIgnores()
+	assert.NotEqual(t, fullTile, partialTile)
 
 	wg, isAsync, asyncWrapper := testutils.AsyncHelpers()
 
@@ -172,13 +173,14 @@ func TestIndexerPartialUpdate(t *testing.T) {
 		assert.NotNil(t, dCounter)
 	}))
 
-	storages := &storage.Storage{
-		ExpectationsStore: mes,
-		EventBus:          meb,
+	ic := IndexerConfig{
 		Baseliner:         mb,
+		EventBus:          meb,
+		ExpectationsStore: mes,
+		Warmer:            mdw,
 	}
 
-	ixr, err := New(storages, mdw, 0)
+	ixr, err := New(ic, 0)
 	assert.NoError(t, err)
 
 	alphaOnly := summary.SummaryMap{
@@ -190,7 +192,11 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	}
 
 	ixr.lastIndex = &SearchIndex{
-		storages:  storages,
+		searchIndexConfig: searchIndexConfig{
+			baseliner:         mb,
+			expectationsStore: mes,
+			warmer:            mdw,
+		},
 		summaries: []summary.SummaryMap{alphaOnly, alphaOnly},
 		dCounters: []digest_counter.DigestCounter{
 			digest_counter.New(partialTile),
@@ -247,8 +253,8 @@ const (
 func makeComplexTileWithCrosshatchIgnores() (types.ComplexTile, *tiling.Tile, *tiling.Tile) {
 	fullTile := data.MakeTestTile()
 	partialTile := data.MakeTestTile()
-	delete(partialTile.Traces, ",device=crosshatch,name=test_alpha,source_type=gm,")
-	delete(partialTile.Traces, ",device=crosshatch,name=test_beta,source_type=gm,")
+	delete(partialTile.Traces, data.CrosshatchAlphaTraceID)
+	delete(partialTile.Traces, data.CrosshatchBetaTraceID)
 
 	ct := types.NewComplexTile(fullTile)
 	ct.SetIgnoreRules(partialTile, []paramtools.ParamSet{

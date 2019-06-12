@@ -13,7 +13,7 @@ import (
 func TestTraceViewFn(t *testing.T) {
 	unittest.MediumTest(t)
 
-	_, _, tile, _ := getStoragesIndexTile(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH, false)
+	_, _, tile := getAPIIndexTile(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH, false)
 
 	commits := tile.Commits[0 : tile.LastCommitIndex()+1]
 	middle := len(commits) / 2
