@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4cac343d_2050356c",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-12T19:20:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fb389823_49d1714a",
+      "range": {
+        "startLine": 31,
+        "startChar": 14,
+        "endLine": 31,
+        "endChar": 22
+      },
+      "revId": "44929eb662b2532c62fa39d8d96d7857b0f5b4f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "64910965_0b435fbd",
         "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
         "patchSetId": 3
@@ -39,6 +63,24 @@
       "revId": "44929eb662b2532c62fa39d8d96d7857b0f5b4f1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04f4cd17_cbf1832c",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-12T19:20:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "64910965_0b435fbd",
+      "revId": "44929eb662b2532c62fa39d8d96d7857b0f5b4f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
