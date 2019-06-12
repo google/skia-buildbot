@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ffeb1242_519fc1d7",
+        "filename": "go/sklog/slog.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-06-12T14:08:05Z",
+      "side": 1,
+      "message": "There\u0027s already a global \u0027logger\u0027 variable in sklog.",
+      "parentUuid": "28b9db71_a64cb3eb",
+      "range": {
+        "startLine": 6,
+        "startChar": 1,
+        "endLine": 6,
+        "endChar": 8
+      },
+      "revId": "dd5b95d5186f4e9fbe19717b8b5be06d083ee4b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "691df783_c77d0870",
         "filename": "go/sklog/slog.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "dd5b95d5186f4e9fbe19717b8b5be06d083ee4b9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bee1f10d_38fc89c9",
+        "filename": "go/sklog/slog.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-06-12T14:08:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "691df783_c77d0870",
+      "range": {
+        "startLine": 32,
+        "startChar": 27,
+        "endLine": 32,
+        "endChar": 37
+      },
+      "revId": "dd5b95d5186f4e9fbe19717b8b5be06d083ee4b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
