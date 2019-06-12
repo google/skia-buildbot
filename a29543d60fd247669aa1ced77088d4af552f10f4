@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb747b9b_ba1cb163",
+        "filename": "go/common/with.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-12T14:38:54Z",
+      "side": 1,
+      "message": "consider logToStdErr instead of enabled",
+      "range": {
+        "startLine": 96,
+        "startChar": 1,
+        "endLine": 96,
+        "endChar": 8
+      },
+      "revId": "a29543d60fd247669aa1ced77088d4af552f10f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
