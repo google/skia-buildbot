@@ -31,7 +31,10 @@ func NewSLogCloudLogger(l slog.Logger) *CloudLoggerSLogImpl {
 //
 func NewStdErrCloudLogger(enable bool) *CloudLoggerSLogImpl {
 	if enable {
-		return NewSLogCloudLogger(_logger.NewFromOptions(&_logger.Options{SyncWriter: os.Stderr}))
+		return NewSLogCloudLogger(_logger.NewFromOptions(&_logger.Options{
+			SyncWriter: os.Stderr,
+			DepthDelta: 3,
+		}))
 	} else {
 		return NewSLogCloudLogger(_logger.NewNopLogger())
 	}
