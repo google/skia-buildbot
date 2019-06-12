@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3d7347fa_3390e301",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 408,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-06-12T12:35:38Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f3361d88_f144e8b3",
+      "revId": "9460941d9d739fd1fb12e1d7aaf119504ab88b58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "62b4593e_4777d348",
         "filename": "perf/go/btts/btts.go",
         "patchSetId": 4
@@ -30,6 +48,30 @@
       "writtenOn": "2019-05-22T21:19:57Z",
       "side": 1,
       "message": "Similar to what I did with https://skia-review.googlesource.com/c/buildbot/+/213426 having a seperate type for tiling.TraceId and encodedTraceID may help documentation/compile time enforcing that the right string goes to the right place.",
+      "range": {
+        "startLine": 409,
+        "startChar": 74,
+        "endLine": 409,
+        "endChar": 80
+      },
+      "revId": "9460941d9d739fd1fb12e1d7aaf119504ab88b58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e3960043_6acadf82",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-06-12T12:35:38Z",
+      "side": 1,
+      "message": "By the time I got to the last CL in this series I had contained all encoded trace id\u0027s to btts.go, they are no longer littered throughout the rest of Perf.",
+      "parentUuid": "62b4593e_4777d348",
       "range": {
         "startLine": 409,
         "startChar": 74,
