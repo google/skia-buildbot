@@ -8,8 +8,6 @@ import (
 	"os"
 
 	"cloud.google.com/go/bigtable"
-	"github.com/jcgregorio/logger"
-	"github.com/jcgregorio/slog"
 	"github.com/spf13/cobra"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/query"
@@ -21,53 +19,6 @@ import (
 var (
 	store *btts.BigTableTraceStore
 )
-
-// TODO(jcgregorio) Migrate this into its own module that we can use everywhere
-// once we're happy with the design.
-//
-// cloudLoggerImpl implements sklog.CloudLogger.
-type cloudLoggerImpl struct {
-	stdLog slog.Logger
-}
-
-// newLogger creates a new cloudLoggerImpl that either logs to stdout, or does
-// no logging, depending upon the value of enable.
-func newLogger(enable bool) *cloudLoggerImpl {
-	if enable {
-		return &cloudLoggerImpl{
-			stdLog: logger.NewFromOptions(&logger.Options{SyncWriter: os.Stderr}),
-		}
-	} else {
-		return &cloudLoggerImpl{
-			stdLog: logger.NewNopLogger(),
-		}
-	}
-}
-
-func (c *cloudLoggerImpl) CloudLog(reportName string, payload *sklog.LogPayload) {
-	switch payload.Severity {
-	case sklog.DEBUG:
-		c.stdLog.Debug(payload.Payload)
-	case sklog.INFO, sklog.NOTICE:
-		c.stdLog.Info(payload.Payload)
-	case sklog.WARNING:
-		c.stdLog.Warning(payload.Payload)
-	case sklog.ERROR:
-		c.stdLog.Error(payload.Payload)
-	case sklog.CRITICAL, sklog.ALERT:
-		c.stdLog.Fatal(payload.Payload)
-	}
-}
-
-func (c *cloudLoggerImpl) BatchCloudLog(reportName string, payloads ...*sklog.LogPayload) {
-	for _, payload := range payloads {
-		c.CloudLog(reportName, payload)
-	}
-}
-
-func (c *cloudLoggerImpl) Flush() {
-	_ = os.Stdout.Sync()
-}
 
 // flags
 var (
@@ -83,7 +34,11 @@ func main() {
 	cmd := cobra.Command{
 		Use: "perf-tool [sub]",
 		PersistentPreRunE: func(c *cobra.Command, args []string) error {
-			sklog.SetLogger(newLogger(logToStdErr))
+			logMode := sklog.SLogNone
+			if logToStdErr {
+				logMode = sklog.SLogStderr
+			}
+			sklog.SetLogger(sklog.NewStdErrCloudLogger(logMode))
 
 			ts, err := auth.NewDefaultTokenSource(true, bigtable.Scope)
 			if err != nil {
