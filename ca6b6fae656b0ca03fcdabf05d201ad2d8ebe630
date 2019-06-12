@@ -97,6 +97,30 @@
     },
     {
       "key": {
+        "uuid": "cfb79ad8_32e8187b",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 26
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T13:53:34Z",
+      "side": 1,
+      "message": "I meant BTTraceStore.GetTile",
+      "parentUuid": "28a643b2_fc2aba76",
+      "range": {
+        "startLine": 363,
+        "startChar": 0,
+        "endLine": 364,
+        "endChar": 90
+      },
+      "revId": "ca6b6fae656b0ca03fcdabf05d201ad2d8ebe630",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dcdd50f7_a2bbf798",
         "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
         "patchSetId": 26
