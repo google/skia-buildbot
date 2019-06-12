@@ -10,8 +10,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 )
 
-// TODO(stephana): Make the GetFile function support lookup with a combination
-// of fileName and commitHash to truly reflect the functionality of the VCS interface.
+// TODO(kjlubick): replace usages of this with the mockery based versions.
 
 type MockVCSImpl struct {
 	commits            []*vcsinfo.LongCommit
