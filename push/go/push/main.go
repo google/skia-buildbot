@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"
@@ -541,7 +542,7 @@ func main() {
 		common.SLogLoggingOpt(logging),
 	)
 	if !*local {
-		login.SimpleInitMust(*port, *local)
+		login.SimpleInitWithAllow(*port, *local, nil, nil, allowed.Googlers())
 	}
 	s := newServer()
 
@@ -557,7 +558,7 @@ func main() {
 		r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	}
 	r.PathPrefix("/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
-	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
+	http.Handle("/", httputils.HealthzAndHTTPS(httputils.LoggingGzipRequestResponse(r)))
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
