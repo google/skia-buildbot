@@ -86,7 +86,7 @@ func TestCalcSummaries(t *testing.T) {
 	tile := &tiling.Tile{
 		Traces: map[tiling.TraceId]tiling.Trace{
 			// These trace ids have been shortened for test terseness.
-			// A real trace id would be like "8888:gm:test_first"
+			// A real trace id would be like ",config=8888,source_type=gm,name=foo,"
 			"a": &types.GoldenTrace{
 				Digests: types.DigestSlice{"aaa", "bbb"},
 				Keys: map[string]string{
