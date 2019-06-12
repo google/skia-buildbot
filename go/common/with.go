@@ -33,6 +33,7 @@ import (
 //  0 - base
 //  1 - cloudlogging
 //  3 - prometheus
+//  4 - slog
 //
 // Construct the Opts that are desired and pass them to common.InitWith(), i.e.:
 //
@@ -88,6 +89,30 @@ func (b *baseInitOpt) init(appName string) error {
 
 func (b *baseInitOpt) order() int {
 	return 0
+}
+
+// slogLoggingInitOpt implements Opt for slog logging.
+type slogLoggingInitOpt struct {
+	enabled *bool
+}
+
+func SLogLoggingOpt(enabled *bool) Opt {
+	return &slogLoggingInitOpt{
+		enabled: enabled,
+	}
+}
+
+func (o *slogLoggingInitOpt) preinit(appName string) error {
+	return nil
+}
+
+func (o *slogLoggingInitOpt) init(appName string) error {
+	sklog.SetLogger(sklog.NewStdErrCloudLogger(*o.enabled))
+	return nil
+}
+
+func (o *slogLoggingInitOpt) order() int {
+	return 4
 }
 
 // cloudLoggingInitOpt implements Opt for cloud logging.
