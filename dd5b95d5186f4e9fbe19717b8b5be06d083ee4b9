@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "28b9db71_a64cb3eb",
+        "filename": "go/sklog/slog.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-12T13:35:22Z",
+      "side": 1,
+      "message": "Why the underscore?",
+      "range": {
+        "startLine": 6,
+        "startChar": 1,
+        "endLine": 6,
+        "endChar": 8
+      },
+      "revId": "dd5b95d5186f4e9fbe19717b8b5be06d083ee4b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "691df783_c77d0870",
+        "filename": "go/sklog/slog.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-12T13:35:22Z",
+      "side": 1,
+      "message": "I think this would be more readable (on instantiation) if you had a small enum like \ntype LogMode int\nvar (\n   NoLogging LogMode itoa\n   MirrorToStdErr\n)",
+      "range": {
+        "startLine": 32,
+        "startChar": 27,
+        "endLine": 32,
+        "endChar": 37
+      },
+      "revId": "dd5b95d5186f4e9fbe19717b8b5be06d083ee4b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
