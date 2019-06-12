@@ -466,11 +466,11 @@ func TestEventBusAddMaster(t *testing.T) {
 
 	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
 		TestChanges: change1,
-		IssueID:     expstorage.MasterBranch,
+		IssueID:     types.MasterBranch,
 	}, /*global=*/ true).Once()
 	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
 		TestChanges: change2,
-		IssueID:     expstorage.MasterBranch,
+		IssueID:     types.MasterBranch,
 	}, /*global=*/ true).Once()
 
 	ctx := context.Background()
@@ -547,11 +547,11 @@ func TestEventBusUndo(t *testing.T) {
 
 	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
 		TestChanges: change,
-		IssueID:     expstorage.MasterBranch,
+		IssueID:     types.MasterBranch,
 	}, /*global=*/ true).Once()
 	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
 		TestChanges: expectedUndo,
-		IssueID:     expstorage.MasterBranch,
+		IssueID:     types.MasterBranch,
 	}, /*global=*/ true).Once()
 
 	ctx := context.Background()

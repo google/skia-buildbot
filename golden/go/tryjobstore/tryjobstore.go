@@ -262,7 +262,7 @@ func (c *cloudTryjobStore) UpdateTryjob(buildBucketID int64, tryjob *Tryjob, new
 	if tryjob == nil {
 		// make sure we have the necessary information if there are no data to be written directly.
 		if (buildBucketID == 0) || (newValFn == nil) {
-			return sklog.FmtErrorf("Id and newValFn cannot be nil when no tryjob is provided. Update not possible")
+			return skerr.Fmt("ID and newValFn cannot be nil when no tryjob is provided. Update not possible")
 		}
 		tryjob = &Tryjob{}
 	} else {
@@ -283,7 +283,7 @@ func (c *cloudTryjobStore) UpdateTryjob(buildBucketID int64, tryjob *Tryjob, new
 func (c *cloudTryjobStore) GetTryjobs(issueID int64, patchsetIDs []int64, filterDup bool, loadResults bool) ([]*Tryjob, [][]*TryjobResult, error) {
 	flatTryjobKeys, tryjobsMap, err := c.getTryjobsForIssue(issueID, patchsetIDs, false, filterDup)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, skerr.Fmt("could not locate tryjobs for issue %d: %s", issueID, err)
 	}
 
 	// Flatten the Tryjobs map and make sure the element in keys matches.
@@ -301,7 +301,7 @@ func (c *cloudTryjobStore) GetTryjobs(issueID int64, patchsetIDs []int64, filter
 		var err error
 		results, err = c.GetTryjobResults(tryjobs)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, skerr.Fmt("could not get tryjob results for issue %d: %s", issueID, err)
 		}
 	}
 

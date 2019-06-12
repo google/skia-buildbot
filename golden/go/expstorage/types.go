@@ -17,10 +17,6 @@ const (
 	// EV_TRYJOB_EXP_CHANGED is the event type that is fired when the expectations
 	// for an issue change. It sends an instance of *TryjobExpChange.
 	EV_TRYJOB_EXP_CHANGED = "expstorage:tryjob-exp-change"
-
-	// MasterBranch is the value used for IssueID when we dealing with the
-	// master branch. Any other IssueID < 0 should be ignored.
-	MasterBranch = int64(-1)
 )
 
 func init() {

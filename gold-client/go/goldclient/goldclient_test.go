@@ -55,7 +55,8 @@ func TestLoadKnownHashes(t *testing.T) {
 	assert.NotContains(t, knownHashes, "notInThere")
 }
 
-// Test data processing of the baseline input
+// TestLoadBaseline loads a baseline for an issue (testSharedConfig defaults to being
+// an configured for a tryjob).
 func TestLoadBaseline(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -79,12 +80,58 @@ func TestLoadBaseline(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Check that the baseline was loaded correctly
-	baseline := goldClient.resultState.Expectations
-	assert.Len(t, baseline, 1, "only one test")
-	digests := baseline["ThisIsTheOnlyTest"]
+	bl := goldClient.resultState.Expectations
+	assert.Len(t, bl, 1, "only one test")
+	digests := bl["ThisIsTheOnlyTest"]
 	assert.Len(t, digests, 2, "two previously seen images")
 	assert.Equal(t, types.NEGATIVE, digests["badbadbad1325855590527db196112e0"])
 	assert.Equal(t, types.POSITIVE, digests["beef00d3a1527db19619ec12a4e0df68"])
+
+	assert.Equal(t, testIssueID, goldClient.resultState.SharedConfig.Issue)
+
+	knownHashes := goldClient.resultState.KnownHashes
+	assert.Empty(t, knownHashes, "No hashes loaded")
+}
+
+// TestLoadBaselineMaster loads the baseline for the master branch.
+func TestLoadBaselineMaster(t *testing.T) {
+	unittest.SmallTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	auth, httpClient, uploader := makeMocks()
+	defer auth.AssertExpectations(t)
+	defer httpClient.AssertExpectations(t)
+	defer uploader.AssertExpectations(t)
+
+	hashesResp := httpResponse([]byte("none"), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+
+	expectations := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations/commit/abcd1234").Return(expectations, nil)
+
+	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
+	assert.NoError(t, err)
+	err = goldClient.SetSharedConfig(jsonio.GoldResults{
+		GitHash: "abcd1234",
+		Key: map[string]string{
+			"os":  "WinTest",
+			"gpu": "GPUTest",
+		},
+		Issue: types.MasterBranch,
+	})
+	assert.NoError(t, err)
+
+	// Check that the baseline was loaded correctly
+	bl := goldClient.resultState.Expectations
+	assert.Len(t, bl, 1, "only one test")
+	digests := bl["ThisIsTheOnlyTest"]
+	assert.Len(t, digests, 2, "two previously seen images")
+	assert.Equal(t, types.NEGATIVE, digests["badbadbad1325855590527db196112e0"])
+	assert.Equal(t, types.POSITIVE, digests["beef00d3a1527db19619ec12a4e0df68"])
+
+	assert.Equal(t, types.MasterBranch, goldClient.resultState.SharedConfig.Issue)
 
 	knownHashes := goldClient.resultState.KnownHashes
 	assert.Empty(t, knownHashes, "No hashes loaded")

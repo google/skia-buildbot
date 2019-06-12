@@ -25,7 +25,18 @@ const (
 
 	// MAXIMUM_NAME_LENGTH is the maximum length in bytes a test name can be.
 	MAXIMUM_NAME_LENGTH = 256
+
+	MasterBranch = int64(-1)
+	// There was a time when 0 meant MasterBranch in some places and -1 was used in others.
+	// It should all be -1 now, but we have this in place to work around some old code.
+	// TODO(kjlubick): remove this on/after Aug 2019 once the 0 has faded away from the
+	// latest and greatest.
+	LegacyMasterBranch = int64(0)
 )
+
+func IsMasterBranch(b int64) bool {
+	return b == MasterBranch || b == LegacyMasterBranch
+}
 
 // Label for classifying digests.
 type Label int

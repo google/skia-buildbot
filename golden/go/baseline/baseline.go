@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/tryjobstore"
@@ -24,8 +23,6 @@ func init() {
 		panic(fmt.Sprintf("Could not get the MD5 sum of an empty expectation: %s", err))
 	}
 }
-
-// TODO(kjlubick): Add tests for GetBaselinesPerCommit.
 
 // GetBaselinesPerCommit calculates the baselines for each commit in the tile.
 // Of note, it only fills out the Positive matches - everything not seen is either untriaged
@@ -76,7 +73,7 @@ func GetBaselinesPerCommit(exps types.Expectations, tileInfo TileInfo, extraComm
 	}
 
 	// Iterate over all commits. If the tile is sparse we substitute the expectations with the
-	// expectations of the closest ancestor that has expecations. We also add the commits that
+	// expectations of the closest ancestor that has expectations. We also add the commits that
 	// have landed already, but are not captured in the current tile.
 	combined := allCommits
 	if len(extraCommits) > 0 {
@@ -86,7 +83,7 @@ func GetBaselinesPerCommit(exps types.Expectations, tileInfo TileInfo, extraComm
 	}
 
 	ret := make(map[string]*Baseline, len(combined))
-	var currBL *Baseline = nil
+	var currBL *Baseline
 	for _, commit := range combined {
 		bl, ok := denseBaselines[commit.Hash]
 		if ok {
@@ -102,19 +99,15 @@ func GetBaselinesPerCommit(exps types.Expectations, tileInfo TileInfo, extraComm
 				Filled:       len(bl),
 				Expectations: bl,
 				MD5:          md5Sum,
+				Issue:        types.MasterBranch,
 			}
 			currBL = ret[commit.Hash]
-		} else if currBL != nil {
+		} else {
 			// Make a copy of the baseline of the previous commit and update the commit information.
-			cpBL := *currBL
+			cpBL := currBL.Copy()
 			cpBL.StartCommit = commit
 			cpBL.EndCommit = commit
-			ret[commit.Hash] = &cpBL
-		} else {
-			// Reaching this point means the first in the dense tile does not align with the first
-			// commit of the sparse portion of the tile. This a sanity test and should only happen
-			// in the presence of a programming error or data corruption.
-			sklog.Errorf("Unable to get baseline for commit %s. It has not commits for immediate ancestors in tile.", commit.Hash)
+			ret[commit.Hash] = cpBL
 		}
 	}
 
@@ -123,7 +116,7 @@ func GetBaselinesPerCommit(exps types.Expectations, tileInfo TileInfo, extraComm
 
 // GetBaselineForIssue returns the baseline for the given issue. This baseline
 // contains all triaged digests that are not in the master tile.
-// Note: CommitDelta, Total and Filled are not relevant for an issue baseline since
+// Note: Total and Filled are not relevant for an issue baseline since
 // the concept of traces doesn't really make sense for a single commit.
 func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobResults [][]*tryjobstore.TryjobResult, exp types.Expectations, commits []*tiling.Commit) (*Baseline, error) {
 	startCommit := commits[len(commits)-1]

@@ -131,7 +131,10 @@ type rawGoldResults struct {
 func (r *rawGoldResults) parseValidate() (*GoldResults, []string) {
 	jn := rawGoldResultsJsonMap
 	var errs []string
-	issueValid := (r.Issue == "") || (r.Issue != "" && r.BuildBucketID != "" && r.Patchset != "")
+	mb := strconv.FormatInt(types.MasterBranch, 10)
+	lmb := strconv.FormatInt(types.LegacyMasterBranch, 10)
+	issueValid := (r.Issue == "") || (r.Issue == mb) || (r.Issue == lmb) ||
+		(r.Issue != "" && r.BuildBucketID != "" && r.Patchset != "")
 	addErrMessage(&errs, issueValid, "fields '%s', '%s' must not be empty if field '%s' contains a value", jn["Patchset"], jn["BuildBucketID"], jn["Issue"])
 
 	f := []string{"Issue", r.Issue, "Patchset", r.Patchset, "BuildBucketID", r.BuildBucketID}
@@ -149,10 +152,15 @@ func (r *rawGoldResults) parseValidate() (*GoldResults, []string) {
 			Builder: r.Builder,
 			TaskID:  r.TaskID,
 		}
-		// If there was no error we can just parse the strings to int64.
-		ret.Issue, _ = strconv.ParseInt(r.Issue, 10, 64)
-		ret.BuildBucketID, _ = strconv.ParseInt(r.BuildBucketID, 10, 64)
-		ret.Patchset, _ = strconv.ParseInt(r.Patchset, 10, 64)
+		if r.Issue == "" {
+			ret.Issue = types.MasterBranch
+		} else {
+			// If there was no error we can just parse the strings to int64.
+			ret.Issue, _ = strconv.ParseInt(r.Issue, 10, 64)
+			ret.BuildBucketID, _ = strconv.ParseInt(r.BuildBucketID, 10, 64)
+			ret.Patchset, _ = strconv.ParseInt(r.Patchset, 10, 64)
+		}
+
 	}
 	return ret, errs
 }
@@ -174,8 +182,9 @@ func (g *GoldResults) Validate(ignoreResults bool) ([]string, error) {
 	addErrMessage(&errMsg, regExHexadecimal.MatchString(g.GitHash), "field '%s' must be hexadecimal. Received '%s'", jn["GitHash"], g.GitHash)
 	addErrMessage(&errMsg, len(g.Key) > 0 && hasNonEmptyKV(g.Key), "field '%s' must not be empty and must not have empty keys or values", jn["Key"])
 
-	validIssue := g.Issue == 0 || (g.Issue > 0 && g.Patchset > 0 && g.BuildBucketID > 0)
-	addErrMessage(&errMsg, validIssue, "fields '%s', '%s', '%s' must all be zero or all not be zero", jn["Issue"], jn["Patchset"], jn["BuildBucketID"])
+	validIssue := types.IsMasterBranch(g.Issue) ||
+		(!types.IsMasterBranch(g.Issue) && g.Patchset > 0 && g.BuildBucketID > 0)
+	addErrMessage(&errMsg, validIssue, "fields '%s', '%s', '%s' must all be set or all not be set", jn["Issue"], jn["Patchset"], jn["BuildBucketID"])
 
 	if !ignoreResults {
 		addErrMessage(&errMsg, len(g.Results) > 0, "field '%s' must not be empty.", jn["Results"])

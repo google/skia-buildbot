@@ -268,7 +268,7 @@ func (wh *WebHandlers) JsonTryjobSummaryHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if issueID <= 0 {
+	if types.IsMasterBranch(issueID) || issueID < 0 {
 		httputils.ReportError(w, r, fmt.Errorf("Issue id is <= 0"), "Valid issue ID required.")
 		return
 	}
@@ -308,7 +308,7 @@ func (wh *WebHandlers) JsonExportHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if (query.Issue > 0) || (query.BlameGroupID != "") {
+	if !types.IsMasterBranch(query.Issue) || (query.BlameGroupID != "") {
 		msg := "Search query cannot contain blame or issue information."
 		httputils.ReportError(w, r, errors.New(msg), msg)
 		return
@@ -1153,7 +1153,7 @@ func (wh *WebHandlers) JsonCompareTestHandler(w http.ResponseWriter, r *http.Req
 func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	commitHash := ""
-	issueID := int64(0)
+	issueID := types.MasterBranch
 	issueOnly := false
 	var err error
 
@@ -1204,7 +1204,7 @@ func (wh *WebHandlers) JsonRefreshIssue(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	issueID := int64(0)
+	issueID := types.MasterBranch
 	var err error
 	issueIDStr, ok := mux.Vars(r)["id"]
 	if ok {

@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tryjobstore"
+	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -212,7 +213,7 @@ func (b *BaselinerImpl) PushIssueBaseline(issueID int64, tileInfo baseline.TileI
 
 // FetchBaseline implements the baseline.Baseliner interface.
 func (b *BaselinerImpl) FetchBaseline(commitHash string, issueID int64, issueOnly bool) (*baseline.Baseline, error) {
-	isIssue := issueID > baseline.MasterBranch
+	isIssue := !types.IsMasterBranch(issueID)
 
 	var masterBaseline *baseline.Baseline
 	var issueBaseline *baseline.Baseline
@@ -350,7 +351,7 @@ func (b *BaselinerImpl) getMasterExpectations(commitHash string) (*baseline.Base
 	}
 
 	// We did not find it in the cache so lets load it from GCS.
-	ret, err := b.gStorageClient.ReadBaseline(commitHash, baseline.MasterBranch)
+	ret, err := b.gStorageClient.ReadBaseline(commitHash, types.MasterBranch)
 	if err != nil {
 		return nil, err
 	}

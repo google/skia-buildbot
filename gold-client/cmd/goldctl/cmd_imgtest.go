@@ -166,7 +166,7 @@ func (i *imgTestEnv) runImgTestInitCmd(cmd *cobra.Command, args []string) {
 	ifErrLogExit(cmd, err)
 
 	validation := shared.Validation{}
-	issueID := validation.Int64Value("issue", i.flagIssueID, 0)
+	issueID := validation.Int64Value("issue", i.flagIssueID, types.MasterBranch)
 	patchsetID := validation.Int64Value("patchset", i.flagPatchsetID, 0)
 	jobID := validation.Int64Value("jobid", i.flagJobID, 0)
 	ifErrLogExit(cmd, validation.Errors())
