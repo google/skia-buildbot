@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "98257f5f_24a1fa2a",
+        "filename": "go/sklog/slog.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-12T14:35:27Z",
+      "side": 1,
+      "message": "nit: https://golang.org/doc/effective_go.html#mixed-caps\n\nSlogNone\nSlogStderr",
+      "revId": "d076d7c7a55e7b05dc121a375e35a4c400fb4a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76e68c76_ca47c6be",
+        "filename": "go/sklog/slog.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-12T14:35:27Z",
+      "side": 1,
+      "message": "\"on mode\"",
+      "range": {
+        "startLine": 32,
+        "startChar": 25,
+        "endLine": 32,
+        "endChar": 49
+      },
+      "revId": "d076d7c7a55e7b05dc121a375e35a4c400fb4a50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
