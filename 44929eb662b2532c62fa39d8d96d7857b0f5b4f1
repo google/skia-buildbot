@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fb389823_49d1714a",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-06-12T18:58:17Z",
+      "side": 1,
+      "message": "nit: Can be more descriptive here since it is only used for one thing: .OptionalTransitiveLog (or something better)",
+      "range": {
+        "startLine": 31,
+        "startChar": 14,
+        "endLine": 31,
+        "endChar": 22
+      },
+      "revId": "44929eb662b2532c62fa39d8d96d7857b0f5b4f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "64910965_0b435fbd",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-06-12T18:58:17Z",
+      "side": 1,
+      "message": "super duper nit: I normally like adding the newlines when the string is constructed, looking at the template I know it is {{.LogStr}}{{.ExtraStr}} so would not have expected any other place to add it\u0027s own newlines.",
+      "revId": "44929eb662b2532c62fa39d8d96d7857b0f5b4f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
