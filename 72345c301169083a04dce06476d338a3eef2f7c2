@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "66bf48ce_302e2863",
+        "filename": "golden/go/baseline/baseline_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T01:00:15Z",
+      "side": 1,
+      "message": "nit: is this gofmt\u0027d?",
+      "range": {
+        "startLine": 123,
+        "startChar": 69,
+        "endLine": 123,
+        "endChar": 70
+      },
+      "revId": "72345c301169083a04dce06476d338a3eef2f7c2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4dc732f5_0f503754",
+        "filename": "golden/go/baseline/types.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T01:00:15Z",
+      "side": 1,
+      "message": "It looks like this type is serialized as JSON and stored in GCS. Existing data in GCS will have Issue\u003d0 for master. If we read the existing data back from GCS, we would need to handle both Issue\u003d-1 and Issue\u003d0 indicating master.",
+      "revId": "72345c301169083a04dce06476d338a3eef2f7c2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
