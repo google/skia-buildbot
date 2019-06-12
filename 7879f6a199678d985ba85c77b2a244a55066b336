@@ -2259,6 +2259,30 @@
     },
     {
       "key": {
+        "uuid": "097a4315_e6e9c7d0",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 741,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T02:27:24Z",
+      "side": 1,
+      "message": "Discussed offline; fixed.",
+      "parentUuid": "adecc560_865dce38",
+      "range": {
+        "startLine": 741,
+        "startChar": 1,
+        "endLine": 741,
+        "endChar": 18
+      },
+      "revId": "7879f6a199678d985ba85c77b2a244a55066b336",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aeed9415_64a86633",
         "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
         "patchSetId": 18

@@ -413,6 +413,30 @@
     },
     {
       "key": {
+        "uuid": "f56adba4_f0741c0a",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 938,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T02:27:24Z",
+      "side": 1,
+      "message": "The exact timestamp passed to From was what bothers me the most.",
+      "parentUuid": "9afb53ef_c7d48c09",
+      "range": {
+        "startLine": 928,
+        "startChar": 0,
+        "endLine": 938,
+        "endChar": 113
+      },
+      "revId": "a871e41fe742a4a67ccef99450fe3ae4332163b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "be475099_219348b4",
         "filename": "golden/go/tracestore/bt_tracestore/types.go",
         "patchSetId": 27

@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "edb9f10b_4389aa8e",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T02:27:24Z",
+      "side": 1,
+      "message": "nit: There\u0027s no guarantee that there isn\u0027t another commit at the same timestamp as oldestCommit, which could cause hashes to have extra elements at the front and cause denseCommits to be wrong.",
+      "range": {
+        "startLine": 420,
+        "startChar": 1,
+        "endLine": 420,
+        "endChar": 72
+      },
+      "revId": "a979b2a388f23dfd23af56c098af5f8d32caa1b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9a434f0_67b28003",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T02:27:24Z",
+      "side": 1,
+      "message": "intentional change?",
+      "range": {
+        "startLine": 251,
+        "startChar": 37,
+        "endLine": 251,
+        "endChar": 42
+      },
+      "revId": "a979b2a388f23dfd23af56c098af5f8d32caa1b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
