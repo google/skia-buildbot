@@ -275,6 +275,10 @@ github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NH
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/jcgregorio/logger v0.0.0-20190528172559-6fef4ed9e5a9 h1:NuEHvfu3DDXJkOSjRSqGTDfh86VvD7bfDoctxNngs3g=
 github.com/jcgregorio/logger v0.0.0-20190528172559-6fef4ed9e5a9/go.mod h1:a1MmUykXJr+dI02wwT/CcnJbflFsX/sHP1bAKRPZFsU=
+github.com/jcgregorio/logger v0.1.0 h1:CUpKwiuX2KoSieInj+NgOPxKNb9+G0NHBOrEX19XV5Y=
+github.com/jcgregorio/logger v0.1.0/go.mod h1:a1MmUykXJr+dI02wwT/CcnJbflFsX/sHP1bAKRPZFsU=
+github.com/jcgregorio/logger v0.1.2 h1:kHiF857oOObzlUer5ANZ95U08A7k2INjivnss4IyMCg=
+github.com/jcgregorio/logger v0.1.2/go.mod h1:a1MmUykXJr+dI02wwT/CcnJbflFsX/sHP1bAKRPZFsU=
 github.com/jcgregorio/slog v0.0.0-20190423190439-e6f2d537f900 h1:H8hiPQr5PtkrB5z3Do/9iR5tEwuAFNim68cqcoAlHeY=
 github.com/jcgregorio/slog v0.0.0-20190423190439-e6f2d537f900/go.mod h1:YT3uVwwZ2P4vmZcM3xICUNJ6dqBwoiSgVAqxHu3rcoo=
 github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af h1:pmfjZENx5imkbgOkpRUYLnmbU7UEFbjtDA2hxJ1ichM=
