@@ -28,7 +28,7 @@ const (
 
 {{.ChildRepo}}/+log/{{.From}}..{{.To}}
 
-{{.LogStr}}
+{{.LogStr}}{{.TransitiveDeps}}
 Created with:
   gclient setdep -r {{.ChildPath}}@{{.To}}
 
@@ -162,26 +162,28 @@ func (dr *depsRepoManager) getLastRollRev(ctx context.Context) (string, error) {
 }
 
 // Helper function for building the commit message.
-func buildCommitMsg(from, to, childPath, cqExtraTrybots, childRepo, serverURL, logStr string, bugs []string, numCommits int, includeLog bool) (string, error) {
+func buildCommitMsg(from, to, childPath, cqExtraTrybots, childRepo, serverURL, logStr, transitiveDeps string, bugs []string, numCommits int, includeLog bool) (string, error) {
 	data := struct {
-		ChildPath  string
-		ChildRepo  string
-		From       string
-		To         string
-		NumCommits int
-		LogURL     string
-		LogStr     string
-		ServerURL  string
-		Footer     string
+		ChildPath      string
+		ChildRepo      string
+		From           string
+		To             string
+		NumCommits     int
+		LogURL         string
+		LogStr         string
+		ServerURL      string
+		TransitiveDeps string
+		Footer         string
 	}{
-		ChildPath:  childPath,
-		ChildRepo:  childRepo,
-		From:       from[:12],
-		To:         to[:12],
-		NumCommits: numCommits,
-		LogStr:     "",
-		ServerURL:  serverURL,
-		Footer:     "",
+		ChildPath:      childPath,
+		ChildRepo:      childRepo,
+		From:           from[:12],
+		To:             to[:12],
+		NumCommits:     numCommits,
+		LogStr:         "",
+		ServerURL:      serverURL,
+		TransitiveDeps: transitiveDeps,
+		Footer:         "",
 	}
 	if cqExtraTrybots != "" {
 		data.Footer += fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
@@ -209,7 +211,7 @@ func (dr *depsRepoManager) buildCommitMsg(ctx context.Context, from, to, cqExtra
 	}
 	logStr = strings.TrimSpace(logStr)
 	numCommits := len(strings.Split(logStr, "\n"))
-	return buildCommitMsg(from, to, dr.childPath, cqExtraTrybots, dr.childRepoUrl, dr.serverURL, logStr, bugs, numCommits, dr.includeLog)
+	return buildCommitMsg(from, to, dr.childPath, cqExtraTrybots, dr.childRepoUrl, dr.serverURL, logStr, "", bugs, numCommits, dr.includeLog)
 }
 
 // See documentation for RepoManager interface.
