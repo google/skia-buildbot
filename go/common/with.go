@@ -33,6 +33,7 @@ import (
 //  0 - base
 //  1 - cloudlogging
 //  3 - prometheus
+//  4 - slog
 //
 // Construct the Opts that are desired and pass them to common.InitWith(), i.e.:
 //
@@ -88,6 +89,42 @@ func (b *baseInitOpt) init(appName string) error {
 
 func (b *baseInitOpt) order() int {
 	return 0
+}
+
+// slogLoggingInitOpt implements Opt for slog logging.
+type slogLoggingInitOpt struct {
+	enabled *bool
+}
+
+// SLogLoggingOpt creates an Opt to initialize logging when passed to InitWith().
+//
+// Uses logger.Logger for logging to stderr.
+//
+// No logging is done if enabled is false.
+func SLogLoggingOpt(enabled *bool) Opt {
+	return &slogLoggingInitOpt{
+		enabled: enabled,
+	}
+}
+
+// See Opt.
+func (o *slogLoggingInitOpt) preinit(appName string) error {
+	return nil
+}
+
+// See Opt.
+func (o *slogLoggingInitOpt) init(appName string) error {
+	logMode := sklog.SLogNone
+	if *o.enabled {
+		logMode = sklog.SLogStderr
+	}
+	sklog.SetLogger(sklog.NewStdErrCloudLogger(logMode))
+	return nil
+}
+
+// See Opt.
+func (o *slogLoggingInitOpt) order() int {
+	return 4
 }
 
 // cloudLoggingInitOpt implements Opt for cloud logging.

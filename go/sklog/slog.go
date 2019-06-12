@@ -40,7 +40,10 @@ const (
 //
 func NewStdErrCloudLogger(mode SLogLogMode) *CloudLoggerSLogImpl {
 	if mode == SLogStderr {
-		return NewSLogCloudLogger(_logger.NewFromOptions(&_logger.Options{SyncWriter: os.Stderr}))
+		return NewSLogCloudLogger(_logger.NewFromOptions(&_logger.Options{
+			SyncWriter: os.Stderr,
+			DepthDelta: 3,
+		}))
 	} else {
 		return NewSLogCloudLogger(_logger.NewNopLogger())
 	}

@@ -44,6 +44,7 @@ var (
 	project        = flag.String("project", "google.com:skia-buildbots", "The Google Compute Engine project.")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	logging        = flag.Bool("logging", true, "If true then log to stderr.")
 )
 
 // NewTimeoutClient creates a new http.Client with both a dial timeout and a
@@ -537,7 +538,7 @@ func main() {
 	common.InitWithMust(
 		"push",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingDefaultAuthOpt(local),
+		common.SLogLoggingOpt(logging),
 	)
 	if !*local {
 		login.SimpleInitMust(*port, *local)
