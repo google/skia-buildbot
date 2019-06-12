@@ -15,19 +15,20 @@ test: core
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run --no-colors
 
 release: core
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/push
 	npx webpack --mode=production
+	./build_push_release "`git log -n1 --format=%s`"
 
 watch: core
 	npx webpack --watch --mode=development
 
 push: release
-	./build_pushd_release "`git log -n1 --format=%s`"
-	pushcli pushd skia-push
+	pushk push
 
 docs:
 	npx jsdoc -c jsdoc.config.js `find modules -name "*.js"`
 
-.PHONY: build core release push
+.PHONY: build serve core test release watch push docs
 
 package-lock.json: package.json
 	npm install
