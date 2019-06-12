@@ -9,7 +9,6 @@
       RunEvery: "5m",
       NCommits: 75,
       MinDays: 20,
-      StatusDir: "/mnt/pd0/pdfium-gold-ingestion/ingest_status",
       MetricName: "pdfium-gold-ingest",
       Sources: [
         {
@@ -27,7 +26,6 @@
       RunEvery: "5m",
       NCommits: 10,
       MinDays: 20,
-      StatusDir: "/mnt/pd0/pdfium-gold-ingestion/tryjobs/ingest_status",
       MetricName: "pdfium-gold-ingest-trybot",
       Sources: [
         {
