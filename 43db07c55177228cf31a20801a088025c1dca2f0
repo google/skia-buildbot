@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "456302a7_5eb6cf0c",
+        "filename": "golden/go/ignore/testutils/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T01:26:14Z",
+      "side": 1,
+      "message": "nit: maybe TestIgnoreStore? Not sure what \"All\" indicates here.",
+      "range": {
+        "startLine": 11,
+        "startChar": 5,
+        "endLine": 11,
+        "endChar": 19
+      },
+      "revId": "43db07c55177228cf31a20801a088025c1dca2f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

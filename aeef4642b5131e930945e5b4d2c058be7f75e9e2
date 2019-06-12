@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4fec2fcc_554f5f70",
+        "filename": "golden/go/ignore/ignorestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T01:26:14Z",
+      "side": 0,
+      "message": "It seems these fields are still used in JS. At least exclusiveCount is used in golden/frontend/res/imp/ignore-summary-sk.html; it\u0027s harder to grep for count.",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 63
+      },
+      "revId": "aeef4642b5131e930945e5b4d2c058be7f75e9e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
