@@ -120,19 +120,17 @@ const (
 	AlphaTest = types.TestName("test_alpha")
 	BetaTest  = types.TestName("test_beta")
 
-	x86TestAlphaTraceID = tiling.TraceId("x86:test_alpha:gm")
-	x64TestAlphaTraceID = tiling.TraceId("x86_64:test_alpha:image")
+	// TraceIDs are created like tracestore.TraceIDFromParams
+	x86TestAlphaTraceID = tiling.TraceId(",config=x86,source_type=test_alpha,name=gm")
+	x64TestAlphaTraceID = tiling.TraceId(",config=x86_64,source_type=test_alpha,name=image")
 
-	x64TestBetaTraceID = tiling.TraceId("x86_64:test_beta:image")
+	x64TestBetaTraceID = tiling.TraceId(",config=x86_64,source_type=test_beta,name=image")
 )
 
 func makePartialTileOne() *tiling.Tile {
 	return &tiling.Tile{
 		// Commits, Scale and Tile Index omitted (should not affect things)
-
 		Traces: map[tiling.TraceId]tiling.Trace{
-			// Reminder that the ids for the traces are created by concatenating
-			// all the values in alphabetical order of the keys.
 			x86TestAlphaTraceID: &types.GoldenTrace{
 				Digests: types.DigestSlice{FirstDigest, FirstDigest, SecondDigest},
 				Keys: map[string]string{

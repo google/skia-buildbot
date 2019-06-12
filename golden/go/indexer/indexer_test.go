@@ -247,8 +247,8 @@ const (
 func makeComplexTileWithCrosshatchIgnores() (types.ComplexTile, *tiling.Tile, *tiling.Tile) {
 	fullTile := data.MakeTestTile()
 	partialTile := data.MakeTestTile()
-	delete(partialTile.Traces, "crosshatch:test_alpha:gm")
-	delete(partialTile.Traces, "crosshatch:test_beta:gm")
+	delete(partialTile.Traces, ",device=crosshatch,name=test_alpha,source_type=gm,")
+	delete(partialTile.Traces, ",device=crosshatch,name=test_beta,source_type=gm,")
 
 	ct := types.NewComplexTile(fullTile)
 	ct.SetIgnoreRules(partialTile, []paramtools.ParamSet{

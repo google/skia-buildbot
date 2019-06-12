@@ -83,7 +83,7 @@ type VCS interface {
 	// includes 'begin' and excludes 'end'.
 	Range(begin, end time.Time) []*IndexCommit
 
-	// IndexOf returns the index of the commit hash, where 0 is the index of the first hash.
+	// IndexOf returns the index of the commit hash, where 0 is the index of the first commit.
 	IndexOf(ctx context.Context, hash string) (int, error)
 
 	// ByIndex returns a LongCommit describing the commit
