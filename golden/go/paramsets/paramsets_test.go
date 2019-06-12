@@ -158,7 +158,7 @@ func makePartialTestTile() *tiling.Tile {
 		// Commits, Scale and Tile Index omitted (should not affect things)
 		Traces: map[tiling.TraceId]tiling.Trace{
 			// These trace ids have been shortened for test terseness.
-			// A real trace id would be like "8888:gm:foo"
+			// A real trace id would be like ",config=8888,source_type=gm,name=foo,"
 			"a": &types.GoldenTrace{
 				Digests: types.DigestSlice{DigestA, DigestB},
 				Keys: map[string]string{
