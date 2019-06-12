@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "37324d2e_52cb6e7b",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 613,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-12T13:48:45Z",
+      "side": 1,
+      "message": "nit: consider replacing \"x \u003e types.LegacyMasterBranch\" and \"x \u003c\u003d types.LegacyMasterBranch\" with \"types.IsMasterBranch(x)\" and \"!types.IsMasterBranch(x)\"",
+      "range": {
+        "startLine": 613,
+        "startChar": 4,
+        "endLine": 613,
+        "endChar": 51
+      },
+      "revId": "0ce46f3cc1ea89568a1b9b644d50117afe85d068",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
