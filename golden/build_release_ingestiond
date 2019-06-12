@@ -38,7 +38,7 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
      INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
      ${INSTALL_DIR} --mode=777                                          ${ROOT}/mnt/pd0/${APPNAME}/repo
      ${INSTALL}     --mode=644 -T ${SERVICE_FILE}                       ${ROOT}/etc/systemd/system/${SYSTEMD}
-     ${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion          ${ROOT}/usr/local/bin/${APPNAME}
+     ${INSTALL}     --mode=755 -T ${GOPATH}/bin/gold_ingestion          ${ROOT}/usr/local/bin/${APPNAME}
      ${INSTALL}     --mode=644 -T ./sys/${APPNAME}.json5                ${ROOT}/etc/${APPNAME}/config.json5
     }
 

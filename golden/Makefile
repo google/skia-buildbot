@@ -45,6 +45,10 @@ k8s-release-diff-server: build-static-diffserver
 k8s-release-baseline-server: build-static-baseline-server
 	./k8s_release_baseline_server
 
+.PHONY: k8s-release-ingestion
+k8s-release-ingestion: build-static-ingestion
+	./k8s_release_ingestion
+
 .PHONY: build-static-skiacorrectness
 build-static-skiacorrectness: skiaversion
 	mkdir -p ./build
@@ -62,6 +66,12 @@ build-static-diffserver: skiaversion
 	mkdir -p ./build
 	rm -f ./build/diff_server_k8s
 	$(KGO) -o build/diff_server_k8s -a ./cmd/skia_diff_server/main.go
+
+.PHONY: build-static-ingestion
+build-static-ingestion: skiaversion
+	mkdir -p ./build
+	rm -f ./build/gold_ingestion_k8s
+	$(KGO) -o build/gold_ingestion_k8s -a ./cmd/gold_ingestion/main.go
 
 .PHONY: release
 release: allgo frontend
