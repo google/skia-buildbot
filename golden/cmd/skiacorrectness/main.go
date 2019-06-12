@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
+	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -34,6 +35,8 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
@@ -53,6 +56,7 @@ import (
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
+	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/tryjobs/gerrit_tryjob_monitor"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
@@ -70,8 +74,8 @@ const (
 	// OAUTH2_CALLBACK_PATH is callback endpoint used for the Oauth2 flow
 	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
 
-	// WHITELIST_ALL can be provided as the value for the whitelist file to whitelist all configurations
-	WHITELIST_ALL = "all"
+	// EVERYTHING_PUBLIC can be provided as the value for the whitelist file to whitelist all configurations
+	EVERYTHING_PUBLIC = "all"
 )
 
 func main() {
@@ -111,7 +115,7 @@ func main() {
 		port                = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
 		projectID           = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
 		promPort            = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-		pubWhiteList        = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", WHITELIST_ALL))
+		pubWhiteList        = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", EVERYTHING_PUBLIC))
 		redirectURL         = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 		resourcesDir        = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
 		serviceAccountFile  = flag.String("service_account_file", "", "Credentials file for service account.")
@@ -391,76 +395,103 @@ func main() {
 		sklog.Fatalf("Error initializing baseliner: %s", err)
 	}
 
-	// Extract the site URL
-	storages := &storage.Storage{
-		DiffStore:         diffStore,
-		ExpectationsStore: expStore,
-		TraceDB:           db,
-		MasterTileBuilder: masterTileBuilder,
-		NCommits:          *nCommits,
-		EventBus:          evt,
-		TryjobStore:       tryjobStore,
-		TryjobMonitor:     tryjobMonitor,
-		GerritAPI:         gerritAPI,
-		GCSClient:         gsClient,
-		VCS:               vcs,
-		IsAuthoritative:   *authoritative,
-		SiteURL:           *siteURL,
-		IsSparseTile:      *sparseInput,
-		Baseliner:         baseliner,
-	}
-
-	// Load the whitelist if there is one and disable querying for issues.
-	if *pubWhiteList != "" && *pubWhiteList != WHITELIST_ALL {
-		if err := storages.LoadWhiteList(*pubWhiteList); err != nil {
-			sklog.Fatalf("Empty or invalid white list file. A non-empty white list must be provided if force_login=false.")
+	publiclyViewableParams := paramtools.ParamSet{}
+	// Load the publiclyViewable params if configured and disable querying for issues.
+	if *pubWhiteList != "" && *pubWhiteList != EVERYTHING_PUBLIC {
+		if publiclyViewableParams, err = loadParamFile(*pubWhiteList); err != nil {
+			sklog.Fatalf("Could not load list of public params: %s", err)
 		}
 	}
 
-	// Check if this is public instance. If so make sure there is a white list.
+	// Check if this is public instance. If so, make sure a list of public params
+	// has been specified - can be EVERYTHING_PUBLIC.
 	if !*forceLogin && (*pubWhiteList == "") {
 		sklog.Fatalf("Empty whitelist file. A non-empty white list must be provided if force_login=false.")
 	}
 
 	// openSite indicates whether this can expose all end-points. The user still has to be authenticated.
-	openSite := (*pubWhiteList == WHITELIST_ALL) || *forceLogin
+	openSite := (*pubWhiteList == EVERYTHING_PUBLIC) || *forceLogin
 
-	if storages.IgnoreStore, err = ds_ignorestore.New(ds.DS); err != nil {
-		sklog.Fatalf("Unable to create cloud ignorestore: %s", err)
+	ignoreStore, err := ds_ignorestore.New(ds.DS)
+	if err != nil {
+		sklog.Fatalf("Unable to create ignorestore: %s", err)
 	}
 
-	if err := ignore.Init(storages.IgnoreStore); err != nil {
+	if err := ignore.StartMonitoring(ignoreStore, time.Minute); err != nil {
 		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
+	}
+
+	ctc := tilesource.CachedTileSourceConfig{
+		EventBus:               evt,
+		GerritAPI:              gerritAPI,
+		IgnoreStore:            ignoreStore,
+		IsSparseTile:           *sparseInput,
+		MasterTileBuilder:      masterTileBuilder,
+		NCommits:               *nCommits,
+		PubliclyViewableParams: publiclyViewableParams,
+		TraceDB:                db,
+		TryjobMonitor:          tryjobMonitor,
+		VCS:                    vcs,
+	}
+
+	tileSource := tilesource.New(ctc)
+
+	ic := indexer.IndexerConfig{
+		Baseliner:         baseliner,
+		DiffStore:         diffStore,
+		EventBus:          evt,
+		ExpectationsStore: expStore,
+		GCSClient:         gsClient,
+		TileSource:        tileSource,
+		Warmer:            warmer.New(),
 	}
 
 	// Rebuild the index every few minutes.
 	sklog.Infof("Starting indexer to run every %s", *indexInterval)
-	ixr, err := indexer.New(storages, warmer.New(), *indexInterval)
+	ixr, err := indexer.New(ic, *indexInterval)
 	if err != nil {
 		sklog.Fatalf("Failed to create indexer: %s", err)
 	}
 	sklog.Infof("Indexer created.")
 
-	searchAPI, err := search.NewSearchAPI(storages, ixr)
-	if err != nil {
-		sklog.Fatalf("Failed to create instance of search API: %s", err)
+	searchAPI := &search.SearchAPI{
+		DiffStore:              diffStore,
+		ExpectationsStore:      expStore,
+		Indexer:                ixr,
+		PubliclyViewableParams: publiclyViewableParams,
 	}
+
 	sklog.Infof("Search API created")
 
 	issueTracker := issues.NewMonorailIssueTracker(client, issues.PROJECT_SKIA)
 
-	statusWatcher, err := status.New(storages)
+	swc := status.StatusWatcherConfig{
+		VCS:               vcs,
+		EventBus:          evt,
+		TileSource:        tileSource,
+		ExpectationsStore: expStore,
+	}
+
+	statusWatcher, err := status.New(swc)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize status watcher: %s", err)
 	}
 	sklog.Infof("statusWatcher created")
 
 	handlers := web.WebHandlers{
-		Storages:      storages,
-		StatusWatcher: statusWatcher,
-		Indexer:       ixr,
-		IssueTracker:  issueTracker,
-		SearchAPI:     searchAPI,
+		Baseliner:         baseliner,
+		DiffStore:         diffStore,
+		ExpectationsStore: expStore,
+		GCSClient:         gsClient,
+		IgnoreStore:       ignoreStore,
+		Indexer:           ixr,
+		IssueTracker:      issueTracker,
+		SearchAPI:         searchAPI,
+		StatusWatcher:     statusWatcher,
+		TileSource:        tileSource,
+		TryjobMonitor:     tryjobMonitor,
+		TryjobStore:       tryjobStore,
+		VCS:               vcs,
 	}
 
 	mainTimer.Stop()
@@ -470,7 +501,7 @@ func main() {
 	loggedRouter := mux.NewRouter()
 
 	// Set up the resource to serve the image files.
-	imgHandler, err := handlers.Storages.DiffStore.ImageHandler(IMAGE_URL_PREFIX)
+	imgHandler, err := diffStore.ImageHandler(IMAGE_URL_PREFIX)
 	if err != nil {
 		sklog.Fatalf("Unable to get image handler: %s", err)
 	}
@@ -620,4 +651,35 @@ func main() {
 	// Start the server
 	sklog.Infof("Serving on http://127.0.0.1" + *port)
 	sklog.Fatal(http.ListenAndServe(*port, rootRouter))
+}
+
+// loadParamFile loads the given JSON5 file that defines the query to
+// make traces publicly viewable. If the given file is empty or otherwise
+// cannot be parsed an error will be returned.
+func loadParamFile(fName string) (paramtools.ParamSet, error) {
+	params := paramtools.ParamSet{}
+
+	f, err := os.Open(fName)
+	if err != nil {
+		return params, skerr.Fmt("unable open file %s: %s", fName, err)
+	}
+	defer util.Close(f)
+
+	if err := json5.NewDecoder(f).Decode(&params); err != nil {
+		return params, skerr.Fmt("invalid JSON5 in %s: %s", fName, err)
+	}
+
+	// Make sure the param file is not empty.
+	empty := true
+	for _, values := range params {
+		if empty = len(values) == 0; !empty {
+			break
+		}
+	}
+	if empty {
+		return params, fmt.Errorf("publicly viewable params in %s cannot be empty.", fName)
+	}
+	sklog.Infof("publicly viewable params loaded from %s", fName)
+	sklog.Debugf("%#v", params)
+	return params, nil
 }

@@ -113,15 +113,11 @@ func main() {
 		sklog.Fatalf("Error initializing baseliner: %s", err)
 	}
 
-	// We only need to fill in the Storage struct with the following subset, since the baseline
+	// We only need to fill in the WebHandlers struct with the following subset, since the baseline
 	// server only supplies a subset of the functionality.
-	storages := &storage.Storage{
+	handlers := web.WebHandlers{
 		GCSClient: gsClient,
 		Baseliner: baseliner,
-	}
-
-	handlers := web.WebHandlers{
-		Storages: storages,
 	}
 
 	// Set up a router for all the application endpoints which are part of the Gold API.

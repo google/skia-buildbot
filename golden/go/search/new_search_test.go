@@ -28,18 +28,16 @@ const (
 func TestSearch(t *testing.T) {
 	unittest.MediumTest(t)
 
-	storages, idx, tile, ixr := getStoragesIndexTile(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH, false)
+	api, idx, tile := getAPIIndexTile(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH, false)
 
-	api, err := NewSearchAPI(storages, ixr)
-	assert.NoError(t, err)
-	exp, err := storages.ExpectationsStore.Get()
+	exp, err := api.ExpectationsStore.Get()
 	assert.NoError(t, err)
 	var buf bytes.Buffer
 
 	// test basic search
 	paramQuery := url.QueryEscape("source_type=gm")
 	qStr := fmt.Sprintf("query=%s&unt=true&pos=true&neg=true&head=true", paramQuery)
-	checkQuery(t, api, idx, qStr, exp, &buf)
+	checkQuery(t, &api, idx, qStr, exp, &buf)
 
 	// test restricting to a commit range.
 	commits := tile.Commits[0 : tile.LastCommitIndex()+1]
@@ -49,9 +47,9 @@ func TestSearch(t *testing.T) {
 	fBegin := commits[beginIdx].Hash
 	fEnd := commits[endIdx].Hash
 
-	testQueryCommitRange(t, api, idx, tile, exp, fBegin, fEnd)
+	testQueryCommitRange(t, &api, idx, tile, exp, fBegin, fEnd)
 	for i := 0; i < tile.LastCommitIndex(); i++ {
-		testQueryCommitRange(t, api, idx, tile, exp, commits[i].Hash, commits[i].Hash)
+		testQueryCommitRange(t, &api, idx, tile, exp, commits[i].Hash, commits[i].Hash)
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
@@ -14,6 +15,7 @@ import (
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
+	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
@@ -24,6 +26,7 @@ import (
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
+	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/warmer"
 )
@@ -42,6 +45,7 @@ const (
 // considered as immutable. Whenever the underlying data changes,
 // a new index is calculated via a pdag.
 type SearchIndex struct {
+	searchIndexConfig
 	// The indices of these slices are the int values of types.IgnoreState
 	dCounters         []digest_counter.DigestCounter
 	summaries         []summary.SummaryMap
@@ -49,27 +53,31 @@ type SearchIndex struct {
 
 	cpxTile types.ComplexTile
 	blamer  blame.Blamer
-	warmer  warmer.DiffWarmer
 
 	// This is set by the indexing pipeline when we just want to update
 	// individual tests that have changed.
 	testNames types.TestNameSet
-	storages  *storage.Storage
+}
+
+type searchIndexConfig struct {
+	baseliner         baseline.Baseliner
+	diffStore         diff.DiffStore
+	expectationsStore expstorage.ExpectationsStore
+	gcsClient         storage.GCSClient
+	warmer            warmer.DiffWarmer
 }
 
 // newSearchIndex creates a new instance of SearchIndex. It is not intended to
 // be used outside of this package. SearchIndex instances are created by the
 // Indexer and retrieved via GetIndex().
-func newSearchIndex(storages *storage.Storage, cpxTile types.ComplexTile, w warmer.DiffWarmer) *SearchIndex {
+func newSearchIndex(sic searchIndexConfig, cpxTile types.ComplexTile) *SearchIndex {
 	return &SearchIndex{
+		searchIndexConfig: sic,
 		// The indices of these slices are the int values of types.IgnoreState
 		dCounters:         make([]digest_counter.DigestCounter, 2),
 		summaries:         make([]summary.SummaryMap, 2),
 		paramsetSummaries: make([]paramsets.ParamSummary, 2),
 		cpxTile:           cpxTile,
-		blamer:            nil,
-		warmer:            w,
-		storages:          storages,
 	}
 }
 
@@ -113,7 +121,13 @@ func (idx *SearchIndex) GetSummaries(is types.IgnoreState) summary.SummaryMap {
 // Proxy to summary.CalcSummaries.
 func (idx *SearchIndex) CalcSummaries(testNames types.TestNameSet, query url.Values, is types.IgnoreState, head bool) (summary.SummaryMap, error) {
 	dCounter := idx.dCounters[is]
-	return summary.NewSummaryMap(idx.storages, idx.cpxTile.GetTile(is), dCounter, idx.blamer, testNames, query, head)
+	smc := summary.SummaryMapConfig{
+		ExpectationsStore: idx.expectationsStore,
+		DiffStore:         idx.diffStore,
+		DigestCounter:     dCounter,
+		Blamer:            idx.blamer,
+	}
+	return summary.NewSummaryMap(smc, idx.cpxTile.GetTile(is), testNames, query, head)
 }
 
 // Proxy to paramsets.Get
@@ -136,13 +150,23 @@ func (idx *SearchIndex) GetBlame(test types.TestName, digest types.Digest, commi
 	return idx.blamer.GetBlame(test, digest, commits)
 }
 
-// Indexer is the type that drive continously indexing as the underlying
+type IndexerConfig struct {
+	Baseliner         baseline.Baseliner
+	DiffStore         diff.DiffStore
+	EventBus          eventbus.EventBus
+	ExpectationsStore expstorage.ExpectationsStore
+	GCSClient         storage.GCSClient
+	TileSource        tilesource.TileSource
+	Warmer            warmer.DiffWarmer
+}
+
+// Indexer is the type that continuously processes data as the underlying
 // data change. It uses a DAG that encodes the dependencies of the
 // different components of an index and creates a processing pipeline on top
 // of it.
 type Indexer struct {
-	storages          *storage.Storage
-	warmer            warmer.DiffWarmer
+	IndexerConfig
+
 	pipeline          *pdag.Node
 	indexTestsNode    *pdag.Node
 	writeBaselineNode *pdag.Node
@@ -153,10 +177,9 @@ type Indexer struct {
 // New returns a new Indexer instance. It synchronously indexes the initially
 // available tile. If the indexing fails an error is returned.
 // The provided interval defines how often the index should be refreshed.
-func New(storages *storage.Storage, w warmer.DiffWarmer, interval time.Duration) (*Indexer, error) {
+func New(ic IndexerConfig, interval time.Duration) (*Indexer, error) {
 	ret := &Indexer{
-		storages: storages,
-		warmer:   w,
+		IndexerConfig: ic,
 	}
 
 	// Set up the processing pipeline.
@@ -214,23 +237,23 @@ func New(storages *storage.Storage, w warmer.DiffWarmer, interval time.Duration)
 // background. The returned instances of SearchIndex can be considered immutable
 // and is not going to change. It should be used to handle an entire request
 // to provide consistent information.
-func (ixr *Indexer) GetIndex() *SearchIndex {
-	ixr.mutex.RLock()
-	defer ixr.mutex.RUnlock()
-	return ixr.lastIndex
+func (ix *Indexer) GetIndex() *SearchIndex {
+	ix.mutex.RLock()
+	defer ix.mutex.RUnlock()
+	return ix.lastIndex
 }
 
 // start builds the initial index and starts the background
 // process to continuously build indices.
-func (ixr *Indexer) start(interval time.Duration) error {
+func (ix *Indexer) start(interval time.Duration) error {
 	if interval == 0 {
 		sklog.Warning("Not starting indexer because duration was 0")
 		return nil
 	}
 	defer shared.NewMetricsTimer("initial_synchronous_index").Stop()
 	// Build the first index synchronously.
-	tileStream := ixr.storages.GetTileStreamNow(interval, "gold-indexer")
-	if err := ixr.executePipeline(<-tileStream); err != nil {
+	tileStream := tilesource.GetTileStreamNow(ix.TileSource, interval, "gold-indexer")
+	if err := ix.executePipeline(<-tileStream); err != nil {
 		return err
 	}
 
@@ -238,19 +261,19 @@ func (ixr *Indexer) start(interval time.Duration) error {
 	// 100 because that is plenty capture an unlikely torrent of changes (they are usually triggered
 	// by a user).
 	expCh := make(chan types.Expectations, 100)
-	ixr.storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
+	ix.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
 		// Schedule the list of test names to be recalculated.
 		expCh <- e.(*expstorage.EventExpectationChange).TestChanges
 	})
 
 	// When the expectations of a Gerrit issue change then trigger pushing the
 	// new expectations to GCS.
-	ixr.storages.EventBus.SubscribeAsync(expstorage.EV_TRYJOB_EXP_CHANGED, ixr.writeIssueBaseline)
+	ix.EventBus.SubscribeAsync(expstorage.EV_TRYJOB_EXP_CHANGED, ix.writeIssueBaseline)
 
 	// When new commits have become available trigger writing the baselines. We choose size 100
 	// because that is large enough to handle an unlikely torrent of commits being added to the repo.
 	commitCh := make(chan []*vcsinfo.IndexCommit, 100)
-	ixr.storages.EventBus.SubscribeAsync(bt_vcs.EV_NEW_GIT_COMMIT, func(e interface{}) {
+	ix.EventBus.SubscribeAsync(bt_vcs.EV_NEW_GIT_COMMIT, func(e interface{}) {
 		commitCh <- e.([]*vcsinfo.IndexCommit)
 	})
 
@@ -294,16 +317,16 @@ func (ixr *Indexer) start(interval time.Duration) error {
 			// If there is a tile, re-index everything and forget the
 			// individual tests that changed.
 			if cpxTile != nil {
-				if err := ixr.executePipeline(cpxTile); err != nil {
+				if err := ix.executePipeline(cpxTile); err != nil {
 					sklog.Errorf("Unable to index tile: %s", err)
 				}
 			} else if len(testChanges) > 0 {
 				// Only index the tests that have changed.
-				ixr.indexTests(testChanges)
+				ix.indexTests(testChanges)
 			} else {
 				// At this point new commits have been discovered and we
 				// just want to write the baselines.
-				ixr.writeBaselines()
+				ix.writeBaselines()
 			}
 		}
 	}()
@@ -313,22 +336,29 @@ func (ixr *Indexer) start(interval time.Duration) error {
 
 // executePipeline runs the given tile through the the indexing pipeline.
 // pipeline.Trigger blocks until everything is done, so this function will as well.
-func (ixr *Indexer) executePipeline(cpxTile types.ComplexTile) error {
+func (ix *Indexer) executePipeline(cpxTile types.ComplexTile) error {
 	defer shared.NewMetricsTimer("indexer_execute_pipeline").Stop()
 	// Create a new index from the given tile.
-	return ixr.pipeline.Trigger(newSearchIndex(ixr.storages, cpxTile, ixr.warmer))
+	sic := searchIndexConfig{
+		baseliner:         ix.Baseliner,
+		diffStore:         ix.DiffStore,
+		expectationsStore: ix.ExpectationsStore,
+		gcsClient:         ix.GCSClient,
+		warmer:            ix.Warmer,
+	}
+	return ix.pipeline.Trigger(newSearchIndex(sic, cpxTile))
 }
 
 // writeBaselines triggers the node that causes baselines to be written to GCS.
-func (ixr *Indexer) writeBaselines() {
-	idx := ixr.cloneLastIndex()
-	if err := ixr.writeBaselineNode.Trigger(idx); err != nil {
+func (ix *Indexer) writeBaselines() {
+	idx := ix.cloneLastIndex()
+	if err := ix.writeBaselineNode.Trigger(idx); err != nil {
 		sklog.Errorf("Error writing baselines: %s", err)
 	}
 }
 
 // indexTest creates an updated index by indexing the given list of expectation changes.
-func (ixr *Indexer) indexTests(testChanges []types.Expectations) {
+func (ix *Indexer) indexTests(testChanges []types.Expectations) {
 	// Get all the test names that had expectations changed.
 	testNames := types.TestNameSet{}
 	for _, testChange := range testChanges {
@@ -343,18 +373,26 @@ func (ixr *Indexer) indexTests(testChanges []types.Expectations) {
 	sklog.Infof("Going to re-index %d tests", len(testNames))
 
 	defer shared.NewMetricsTimer("index_tests").Stop()
-	newIdx := ixr.cloneLastIndex()
+	newIdx := ix.cloneLastIndex()
 	// Set the testNames such that we only recompute those tests.
 	newIdx.testNames = testNames
-	if err := ixr.indexTestsNode.Trigger(newIdx); err != nil {
+	if err := ix.indexTestsNode.Trigger(newIdx); err != nil {
 		sklog.Errorf("Error indexing tests: %v \n\n Got error: %s", testNames.Keys(), err)
 	}
 }
 
 // cloneLastIndex returns a copy of the most recent index.
-func (ixr *Indexer) cloneLastIndex() *SearchIndex {
-	lastIdx := ixr.GetIndex()
+func (ix *Indexer) cloneLastIndex() *SearchIndex {
+	lastIdx := ix.GetIndex()
+	sic := searchIndexConfig{
+		baseliner:         ix.Baseliner,
+		diffStore:         ix.DiffStore,
+		expectationsStore: ix.ExpectationsStore,
+		gcsClient:         ix.GCSClient,
+		warmer:            ix.Warmer,
+	}
 	return &SearchIndex{
+		searchIndexConfig: sic,
 		cpxTile:           lastIdx.cpxTile,
 		dCounters:         lastIdx.dCounters,         // stay the same even if expectations change.
 		paramsetSummaries: lastIdx.paramsetSummaries, // stay the same even if expectations change.
@@ -364,9 +402,7 @@ func (ixr *Indexer) cloneLastIndex() *SearchIndex {
 			lastIdx.summaries[types.IncludeIgnoredTraces], // expectations change
 		},
 
-		blamer:   nil, // This will need to be recomputed if expectations change.
-		warmer:   ixr.warmer,
-		storages: lastIdx.storages,
+		blamer: nil, // This will need to be recomputed if expectations change.
 
 		// Force testNames to be empty, just to be sure we re-compute everything by default
 		testNames: nil,
@@ -374,21 +410,21 @@ func (ixr *Indexer) cloneLastIndex() *SearchIndex {
 }
 
 // setIndex sets the lastIndex value at the very end of the pipeline.
-func (ixr *Indexer) setIndex(state interface{}) error {
+func (ix *Indexer) setIndex(state interface{}) error {
 	newIndex := state.(*SearchIndex)
-	ixr.mutex.Lock()
-	defer ixr.mutex.Unlock()
-	ixr.lastIndex = newIndex
-	if ixr.storages.EventBus != nil {
-		ixr.storages.EventBus.Publish(EV_INDEX_UPDATED, state, false)
+	ix.mutex.Lock()
+	defer ix.mutex.Unlock()
+	ix.lastIndex = newIndex
+	if ix.EventBus != nil {
+		ix.EventBus.Publish(EV_INDEX_UPDATED, state, false)
 	}
 	return nil
 }
 
 // writeIssueBaseline handles changes to baselines for Gerrit issues and dumps
 // the updated baseline to disk.
-func (ixr *Indexer) writeIssueBaseline(evData interface{}) {
-	if !ixr.storages.Baseliner.CanWriteBaseline() {
+func (ix *Indexer) writeIssueBaseline(evData interface{}) {
+	if !ix.Baseliner.CanWriteBaseline() {
 		return
 	}
 
@@ -398,8 +434,8 @@ func (ixr *Indexer) writeIssueBaseline(evData interface{}) {
 		return
 	}
 
-	idx := ixr.GetIndex()
-	if err := ixr.storages.Baseliner.PushIssueBaseline(issueID, idx.cpxTile, idx.dCounters[types.ExcludeIgnoredTraces]); err != nil {
+	idx := ix.GetIndex()
+	if err := ix.Baseliner.PushIssueBaseline(issueID, idx.cpxTile, idx.dCounters[types.ExcludeIgnoredTraces]); err != nil {
 		sklog.Errorf("Unable to push baseline for issue %d to GCS: %s", issueID, err)
 		return
 	}
@@ -428,7 +464,13 @@ func calcSummaries(state interface{}) error {
 	idx := state.(*SearchIndex)
 	for _, is := range types.IgnoreStates {
 		dCounter := idx.dCounters[is]
-		sum, err := summary.NewSummaryMap(idx.storages, idx.cpxTile.GetTile(is), dCounter, idx.blamer, idx.testNames, nil, true)
+		smc := summary.SummaryMapConfig{
+			ExpectationsStore: idx.expectationsStore,
+			DiffStore:         idx.diffStore,
+			DigestCounter:     dCounter,
+			Blamer:            idx.blamer,
+		}
+		sum, err := summary.NewSummaryMap(smc, idx.cpxTile.GetTile(is), idx.testNames, nil, true)
 		if err != nil {
 			return skerr.Fmt("Could not calculate summaries with ignore state %d: %s", is, err)
 		}
@@ -463,7 +505,7 @@ func calcParamsetsExclude(state interface{}) error {
 // calcBlame is the pipeline function to calculate the blame.
 func calcBlame(state interface{}) error {
 	idx := state.(*SearchIndex)
-	exp, err := idx.storages.ExpectationsStore.Get()
+	exp, err := idx.expectationsStore.Get()
 	if err != nil {
 		return skerr.Fmt("Could not fetch expectaions needed to calculate blame: %s", err)
 	}
@@ -480,14 +522,14 @@ func writeKnownHashesList(state interface{}) error {
 	idx := state.(*SearchIndex)
 
 	// Only write the hash file if a storage client is available.
-	if idx.storages.GCSClient == nil {
+	if idx.gcsClient == nil {
 		return nil
 	}
 
 	// Trigger writing the hashes list.
 	go func() {
 		byTest := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
-		unavailableDigests := idx.storages.DiffStore.UnavailableDigests()
+		unavailableDigests := idx.diffStore.UnavailableDigests()
 		// Collect all hashes in the tile that haven't been marked as unavailable yet.
 		hashes := types.DigestSet{}
 		for _, test := range byTest {
@@ -500,8 +542,8 @@ func writeKnownHashesList(state interface{}) error {
 
 		// Make sure they all fetched already. This will block until all digests
 		// are on disk or have failed to load repeatedly.
-		idx.storages.DiffStore.WarmDigests(diff.PRIORITY_NOW, hashes.Keys(), true)
-		unavailableDigests = idx.storages.DiffStore.UnavailableDigests()
+		idx.diffStore.WarmDigests(diff.PRIORITY_NOW, hashes.Keys(), true)
+		unavailableDigests = idx.diffStore.UnavailableDigests()
 		for h := range hashes {
 			if _, ok := unavailableDigests[h]; ok {
 				delete(hashes, h)
@@ -511,7 +553,7 @@ func writeKnownHashesList(state interface{}) error {
 		// Keep track of the number of known hashes since this directly affects how
 		// many images the bots have to upload.
 		metrics2.GetInt64Metric(METRIC_KNOWN_HASHES).Update(int64(len(hashes)))
-		if err := idx.storages.GCSClient.WriteKnownDigests(hashes.Keys()); err != nil {
+		if err := idx.gcsClient.WriteKnownDigests(hashes.Keys()); err != nil {
 			sklog.Errorf("Error writing known digests list: %s", err)
 		}
 	}()
@@ -522,7 +564,7 @@ func writeKnownHashesList(state interface{}) error {
 func writeMasterBaseline(state interface{}) error {
 	idx := state.(*SearchIndex)
 
-	if !idx.storages.Baseliner.CanWriteBaseline() {
+	if !idx.baseliner.CanWriteBaseline() {
 		sklog.Warning("Indexer tried to write baselines, but was not allowed to")
 		return nil
 	}
@@ -530,7 +572,7 @@ func writeMasterBaseline(state interface{}) error {
 	// Write the baseline asynchronously.
 	// TODO(kjlubick): Does this being asynchronous cause problems?
 	go func() {
-		if _, err := idx.storages.Baseliner.PushMasterBaselines(idx.cpxTile, ""); err != nil {
+		if _, err := idx.baseliner.PushMasterBaselines(idx.cpxTile, ""); err != nil {
 			sklog.Errorf("Error pushing master baseline to GCS: %s", err)
 		}
 	}()
@@ -547,11 +589,11 @@ func runWarmer(state interface{}) error {
 	// traces with higher priority.
 
 	is := types.IncludeIgnoredTraces
-	exp, err := idx.storages.ExpectationsStore.Get()
+	exp, err := idx.expectationsStore.Get()
 	if err != nil {
 		return skerr.Fmt("Could not run warmer - expectations failure: %s", err)
 	}
-	d := digesttools.NewClosestDiffFinder(exp, idx.dCounters[is], idx.storages.DiffStore)
+	d := digesttools.NewClosestDiffFinder(exp, idx.dCounters[is], idx.diffStore)
 
 	go idx.warmer.PrecomputeDiffs(idx.summaries[is], idx.testNames, idx.dCounters[is], d)
 	return nil

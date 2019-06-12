@@ -5,12 +5,14 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/shared"
-	"go.skia.org/infra/golden/go/storage"
+	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -64,10 +66,17 @@ func (c CorpusStatusSorter) Len() int           { return len(c) }
 func (c CorpusStatusSorter) Less(i, j int) bool { return c[i].Name < c[j].Name }
 func (c CorpusStatusSorter) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
 
+type StatusWatcherConfig struct {
+	EventBus          eventbus.EventBus
+	ExpectationsStore expstorage.ExpectationsStore
+	TileSource        tilesource.TileSource
+	VCS               vcsinfo.VCS
+}
+
 type StatusWatcher struct {
-	storages *storage.Storage
-	current  *GUIStatus
-	mutex    sync.Mutex
+	StatusWatcherConfig
+	current *GUIStatus
+	mutex   sync.Mutex
 
 	// Gauges to track overall digests with different labels.
 	allUntriagedGauge metrics2.Int64Metric
@@ -79,14 +88,14 @@ type StatusWatcher struct {
 	corpusGauges map[string]map[types.Label]metrics2.Int64Metric
 }
 
-func New(storages *storage.Storage) (*StatusWatcher, error) {
+func New(swc StatusWatcherConfig) (*StatusWatcher, error) {
 	ret := &StatusWatcher{
-		storages:          storages,
-		allUntriagedGauge: metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.UNTRIAGED.String()}),
-		allPositiveGauge:  metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.POSITIVE.String()}),
-		allNegativeGauge:  metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.NEGATIVE.String()}),
-		totalGauge:        metrics2.GetInt64Metric(METRIC_TOTAL, nil),
-		corpusGauges:      map[string]map[types.Label]metrics2.Int64Metric{},
+		StatusWatcherConfig: swc,
+		allUntriagedGauge:   metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.UNTRIAGED.String()}),
+		allPositiveGauge:    metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.POSITIVE.String()}),
+		allNegativeGauge:    metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.NEGATIVE.String()}),
+		totalGauge:          metrics2.GetInt64Metric(METRIC_TOTAL, nil),
+		corpusGauges:        map[string]map[types.Label]metrics2.Int64Metric{},
 	}
 
 	if err := ret.calcAndWatchStatus(); err != nil {
@@ -125,11 +134,11 @@ func (s *StatusWatcher) updateLastCommitAge() {
 	lastCommitUnix := st.LastCommit.CommitTime // already in seconds since epoch
 	lastCommitAge.Update(time.Now().Unix() - lastCommitUnix)
 
-	if s.storages == nil || s.storages.VCS == nil {
-		sklog.Warningf("skipping with_new_commit becaues VCS not set up")
+	if s.VCS == nil {
+		sklog.Warningf("skipping updateLastCommitAge because VCS not set up")
 		return
 	}
-	commitsFromLast := s.storages.VCS.Range(time.Unix(st.LastCommit.CommitTime, 0), time.Now())
+	commitsFromLast := s.VCS.Range(time.Unix(st.LastCommit.CommitTime, 0), time.Now())
 	uningestedCommitAgeMetric := metrics2.GetInt64Metric("gold_last_commit_age_s", map[string]string{
 		"type": "with_new_commit",
 	})
@@ -143,11 +152,11 @@ func (s *StatusWatcher) updateLastCommitAge() {
 func (s *StatusWatcher) calcAndWatchStatus() error {
 	sklog.Infof("Starting status watcher")
 	expChanges := make(chan types.Expectations)
-	s.storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
+	s.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
 		expChanges <- e.(*expstorage.EventExpectationChange).TestChanges
 	})
 
-	tileStream := s.storages.GetTileStreamNow(2*time.Minute, "status-watcher")
+	tileStream := tilesource.GetTileStreamNow(s.TileSource, 2*time.Minute, "status-watcher")
 	sklog.Infof("Got tile stream for status watcher")
 
 	lastCpxTile := <-tileStream
@@ -163,7 +172,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 		for {
 			select {
 			case <-tileStream:
-				cpxTile, err := s.storages.GetLastTileTrimmed()
+				cpxTile, err := s.TileSource.GetTile()
 				if err != nil {
 					sklog.Errorf("Error retrieving tile: %s", err)
 					continue
@@ -176,7 +185,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 					liveness.Reset()
 				}
 			case <-expChanges:
-				storage.DrainChangeChannel(expChanges)
+				drainChangeChannel(expChanges)
 				if err := s.calcStatus(lastCpxTile); err != nil {
 					sklog.Errorf("Error calculating tile after expectation update: %s", err)
 				}
@@ -194,7 +203,7 @@ func (s *StatusWatcher) calcStatus(cpxTile types.ComplexTile) error {
 	defer shared.NewMetricsTimer("calculate_status").Stop()
 
 	okByCorpus := map[string]bool{}
-	expectations, err := s.storages.ExpectationsStore.Get()
+	expectations, err := s.ExpectationsStore.Get()
 	if err != nil {
 		return err
 	}
@@ -294,4 +303,16 @@ func (s *StatusWatcher) calcStatus(cpxTile types.ComplexTile) error {
 	s.current = result
 
 	return nil
+}
+
+// drainChangeChannel removes everything from the channel that's currently
+// buffered or ready to be read.
+func drainChangeChannel(ch <-chan types.Expectations) {
+	for {
+		select {
+		case <-ch:
+		default:
+			return
+		}
+	}
 }

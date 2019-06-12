@@ -42,6 +42,16 @@ const (
 	SecondCommitAuthor = "beta@example.com"
 	ThirdCommitAuthor  = "gamma@example.com"
 
+	// Reminder that the ids for the traces are created using the
+	// logic in query.MakeKeyFast
+
+	AnglerAlphaTraceID     = ",device=angler,name=test_alpha,source_type=gm,"
+	AnglerBetaTraceID      = ",device=angler,name=test_beta,source_type=gm,"
+	BullheadAlphaTraceID   = ",device=bullhead,name=test_alpha,source_type=gm,"
+	BullheadBetaTraceID    = ",device=bullhead,name=test_beta,source_type=gm,"
+	CrosshatchAlphaTraceID = ",device=crosshatch,name=test_alpha,source_type=gm,"
+	CrosshatchBetaTraceID  = ",device=crosshatch,name=test_beta,source_type=gm,"
+
 	AlphaTest = types.TestName("test_alpha")
 	BetaTest  = types.TestName("test_beta")
 
@@ -103,9 +113,7 @@ func MakeTestTile() *tiling.Tile {
 		TileIndex: 0,
 
 		Traces: map[tiling.TraceId]tiling.Trace{
-			// Reminder that the ids for the traces are created using the
-			// logic in query.MakeKeyFast
-			",device=angler,name=test_alpha,source_type=gm,": &types.GoldenTrace{
+			AnglerAlphaTraceID: &types.GoldenTrace{
 				Digests: types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaGood1Digest},
 				Keys: map[string]string{
 					"device":                AnglerDevice,
@@ -113,7 +121,7 @@ func MakeTestTile() *tiling.Tile {
 					types.CORPUS_FIELD:      "gm",
 				},
 			},
-			",device=angler,name=test_beta,source_type=gm,": &types.GoldenTrace{
+			AnglerBetaTraceID: &types.GoldenTrace{
 				Digests: types.DigestSlice{BetaGood1Digest, BetaGood1Digest, BetaGood1Digest},
 				Keys: map[string]string{
 					"device":                AnglerDevice,
@@ -122,7 +130,7 @@ func MakeTestTile() *tiling.Tile {
 				},
 			},
 
-			",device=bullhead,name=test_alpha,source_type=gm,": &types.GoldenTrace{
+			BullheadAlphaTraceID: &types.GoldenTrace{
 				Digests: types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaUntriaged1Digest},
 				Keys: map[string]string{
 					"device":                BullheadDevice,
@@ -130,7 +138,7 @@ func MakeTestTile() *tiling.Tile {
 					types.CORPUS_FIELD:      "gm",
 				},
 			},
-			",device=bullhead,name=test_beta,source_type=gm,": &types.GoldenTrace{
+			BullheadBetaTraceID: &types.GoldenTrace{
 				Digests: types.DigestSlice{BetaGood1Digest, BetaGood1Digest, BetaGood1Digest},
 				Keys: map[string]string{
 					"device":                BullheadDevice,
@@ -139,7 +147,7 @@ func MakeTestTile() *tiling.Tile {
 				},
 			},
 
-			",device=crosshatch,name=test_alpha,source_type=gm,": &types.GoldenTrace{
+			CrosshatchAlphaTraceID: &types.GoldenTrace{
 				Digests: types.DigestSlice{AlphaBad1Digest, AlphaBad1Digest, AlphaGood1Digest},
 				Keys: map[string]string{
 					"device":                CrosshatchDevice,
@@ -147,7 +155,7 @@ func MakeTestTile() *tiling.Tile {
 					types.CORPUS_FIELD:      "gm",
 				},
 			},
-			",device=crosshatch,name=test_beta,source_type=gm,": &types.GoldenTrace{
+			CrosshatchBetaTraceID: &types.GoldenTrace{
 				Digests: types.DigestSlice{BetaUntriaged1Digest, types.MISSING_DIGEST, types.MISSING_DIGEST},
 				Keys: map[string]string{
 					"device":                CrosshatchDevice,

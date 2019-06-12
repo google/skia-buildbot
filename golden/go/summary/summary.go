@@ -12,8 +12,8 @@ import (
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/shared"
-	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -33,21 +33,22 @@ type Summary struct {
 	Blame     []*blame.WeightedBlame `json:"blame"`
 }
 
-// summaries is a helper struct for calculating SummaryMap.
-type summaries struct {
-	storages *storage.Storage
-	dCounter digest_counter.DigestCounter
-	blamer   blame.Blamer
+// TODO(jcgregorio) Make diameter faster, and also make the actual diameter
+// metric better. Until then disable it.
+const computeDiameter = false
+
+// SummaryMapConfig is a helper struct for calculating SummaryMap.
+type SummaryMapConfig struct {
+	ExpectationsStore expstorage.ExpectationsStore
+	DiffStore         diff.DiffStore // only needed if computeDiameter = true
+
+	DigestCounter digest_counter.DigestCounter
+	Blamer        blame.Blamer
 }
 
 // New creates a new instance of Summaries.
-func NewSummaryMap(storages *storage.Storage, tile *tiling.Tile, dCounter digest_counter.DigestCounter, blamer blame.Blamer, testNames types.TestNameSet, query url.Values, head bool) (SummaryMap, error) {
-	s := summaries{
-		storages: storages,
-		dCounter: dCounter,
-		blamer:   blamer,
-	}
-	return s.calcSummaries(tile, testNames, query, head)
+func NewSummaryMap(smc SummaryMapConfig, tile *tiling.Tile, testNames types.TestNameSet, query url.Values, head bool) (SummaryMap, error) {
+	return smc.calcSummaries(tile, testNames, query, head)
 }
 
 // Combine creates a new SummaryMap from this and the passed
@@ -75,14 +76,14 @@ type tracePair struct {
 // then restrict the results to only tests with those names. If query is not empty,
 // it will be used as an additional filter. Finally, if head is true, only consider
 // the single most recent digest per trace.
-func (s *summaries) calcSummaries(tile *tiling.Tile, testNames types.TestNameSet, query url.Values, head bool) (SummaryMap, error) {
+func (s *SummaryMapConfig) calcSummaries(tile *tiling.Tile, testNames types.TestNameSet, query url.Values, head bool) (SummaryMap, error) {
 	defer shared.NewMetricsTimer("calc_summaries_total").Stop()
 	sklog.Infof("CalcSummaries: head %v", head)
 
 	ret := SummaryMap{}
 
 	t := shared.NewMetricsTimer("calc_summaries_expectations")
-	e, err := s.storages.ExpectationsStore.Get()
+	e, err := s.ExpectationsStore.Get()
 	t.Stop()
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't get expectations: %s", err)
@@ -106,7 +107,7 @@ func (s *summaries) calcSummaries(tile *tiling.Tile, testNames types.TestNameSet
 	}
 	t.Stop()
 
-	digestsByTrace := s.dCounter.ByTrace()
+	digestsByTrace := s.DigestCounter.ByTrace()
 
 	// Now create summaries for each test using the filtered set of traces.
 	t = shared.NewMetricsTimer("calc_summaries_tally")
@@ -145,7 +146,7 @@ func (s *summaries) calcSummaries(tile *tiling.Tile, testNames types.TestNameSet
 				}
 			}
 		}
-		ret[name] = s.makeSummary(name, e, s.storages.DiffStore, corpus, digestMap.Keys())
+		ret[name] = s.makeSummary(name, e, corpus, digestMap.Keys())
 	}
 	t.Stop()
 
@@ -159,7 +160,7 @@ type DigestInfo struct {
 }
 
 // makeSummary returns a Summary for the given digests.
-func (s *summaries) makeSummary(name types.TestName, exp types.Expectations, diffStore diff.DiffStore, corpus string, digests types.DigestSlice) *Summary {
+func (s *SummaryMapConfig) makeSummary(name types.TestName, exp types.Expectations, corpus string, digests types.DigestSlice) *Summary {
 	pos := 0
 	neg := 0
 	unt := 0
@@ -192,19 +193,21 @@ func (s *summaries) makeSummary(name types.TestName, exp types.Expectations, dif
 	}
 	sort.Sort(diamDigests)
 	sort.Sort(untHashes)
+
+	d := 0
+	if computeDiameter {
+		d = diameter(diamDigests, s.DiffStore)
+	}
 	return &Summary{
-		Name: name,
-		// TODO(jcgregorio) Make diameter faster, and also make the actual diameter
-		// metric better. Until then disable it.  Diameter:  diameter(diamDigests,
-		// diffStore),
-		Diameter:  0,
+		Name:      name,
+		Diameter:  d,
 		Pos:       pos,
 		Neg:       neg,
 		Untriaged: unt,
 		UntHashes: untHashes,
 		Num:       pos + neg + unt,
 		Corpus:    corpus,
-		Blame:     s.blamer.GetBlamesForTest(name),
+		Blame:     s.Blamer.GetBlamesForTest(name),
 	}
 }
 
