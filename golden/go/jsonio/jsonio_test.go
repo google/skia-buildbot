@@ -9,11 +9,126 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/golden/go/types"
 )
 
-var (
-	testJSON = `
-	{
+func TestValidate(t *testing.T) {
+	unittest.SmallTest(t)
+
+	empty := &GoldResults{}
+	errMsgs, err := empty.Validate(false)
+	assert.Error(t, err)
+	assertErrorFields(t, errMsgs,
+		"gitHash",
+		"key",
+		"results")
+	assert.NotNil(t, errMsgs)
+
+	wrongResults := &GoldResults{
+		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:     map[string]string{"param1": "value1"},
+	}
+	errMsgs, err = wrongResults.Validate(false)
+	assert.Error(t, err)
+	assertErrorFields(t, errMsgs, "results")
+
+	wrongResults.Results = []*Result{}
+	errMsgs, err = wrongResults.Validate(false)
+	assert.Error(t, err)
+	assertErrorFields(t, errMsgs, "results")
+
+	wrongResults.Results = []*Result{
+		{Key: map[string]string{}},
+	}
+	errMsgs, err = wrongResults.Validate(false)
+	assert.Error(t, err)
+	assertErrorFields(t, errMsgs, "results")
+
+	// Now ignore the results in the validation.
+	errMsgs, err = wrongResults.Validate(true)
+	assert.NoError(t, err)
+	assert.Equal(t, []string(nil), errMsgs)
+
+	// Check that the Validate accounts for both MasterBranch and
+	// LegacyMasterBranch values.
+	legacyMaster := &GoldResults{
+		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:     map[string]string{"param1": "value1"},
+
+		Issue: types.LegacyMasterBranch,
+	}
+	_, err = legacyMaster.Validate(true)
+	assert.NoError(t, err)
+
+	master := &GoldResults{
+		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:     map[string]string{"param1": "value1"},
+
+		Issue: types.MasterBranch,
+	}
+	_, err = master.Validate(true)
+	assert.NoError(t, err)
+}
+
+func TestParseGoldResults(t *testing.T) {
+	unittest.SmallTest(t)
+	r := testParse(t, testJSON)
+
+	// Make sure some key fields come out correctly, i.e. are converted correctly from string to int.
+	assert.Equal(t, "c4711517219f333c1116f47706eb57b51b5f8fc7", r.GitHash)
+	assert.Equal(t, "Xb0VhENPSRFGnf2elVQd", r.TaskID)
+	assert.Equal(t, int64(12345), r.Issue)
+	assert.Equal(t, int64(10), r.Patchset)
+	assert.Equal(t, int64(549340494940393), r.BuildBucketID)
+
+	r = testParse(t, legacyMasterBranchJSON)
+	assert.Equal(t, types.LegacyMasterBranch, r.Issue)
+
+	r = testParse(t, masterBranchJSON)
+	assert.Equal(t, types.MasterBranch, r.Issue)
+
+	r = testParse(t, emptyMasterBranchJSON)
+	assert.Equal(t, types.MasterBranch, r.Issue)
+}
+
+func TestGenJson(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Test parsing the test JSON.
+	goldResults := testParse(t, testJSON)
+
+	// For good measure we validate.
+	_, err := goldResults.Validate(false)
+	assert.NoError(t, err)
+
+	// Encode and decode the results.
+	var buf bytes.Buffer
+	assert.NoError(t, json.NewEncoder(&buf).Encode(goldResults))
+	newGoldResults := testParse(t, buf.String())
+	assert.Equal(t, goldResults, newGoldResults)
+}
+
+func testParse(t *testing.T, jsonStr string) *GoldResults {
+	buf := bytes.NewBuffer([]byte(jsonStr))
+
+	ret, errMsg, err := ParseGoldResults(buf)
+	assert.NoError(t, err)
+	assert.Nil(t, errMsg)
+	return ret
+}
+
+func assertErrorFields(t *testing.T, errMsgs []string, expectedFields ...string) {
+	for _, msg := range errMsgs {
+		found := false
+		for _, ef := range expectedFields {
+			found = found || strings.Contains(msg, ef)
+		}
+		assert.True(t, found, fmt.Sprintf("Could not find %v in msg: %s", expectedFields, msg))
+	}
+}
+
+const (
+	testJSON = `{
 		"gitHash" : "c4711517219f333c1116f47706eb57b51b5f8fc7",
 		"key" : {
 			 "arch" : "arm64",
@@ -69,91 +184,29 @@ var (
 					}
 			 }
 		]
- }`
+}`
+
+	legacyMasterBranchJSON = `{
+		"gitHash" : "c4711517219f333c1116f47706eb57b51b5f8fc7",
+		"key" : {
+			"arch" : "arm64"
+		},
+		"issue": "0"
+	}`
+
+	masterBranchJSON = `{
+		"gitHash" : "c4711517219f333c1116f47706eb57b51b5f8fc7",
+		"key" : {
+			"arch" : "arm64"
+		},
+		"issue": "-1"
+	}`
+
+	emptyMasterBranchJSON = `{
+		"gitHash" : "c4711517219f333c1116f47706eb57b51b5f8fc7",
+		"key" : {
+			"arch" : "arm64"
+		},
+		"issue": ""
+	}`
 )
-
-func TestValidate(t *testing.T) {
-	unittest.SmallTest(t)
-
-	empty := &GoldResults{}
-	errMsgs, err := empty.Validate(false)
-	assert.Error(t, err)
-	assertErrorFields(t, errMsgs,
-		"gitHash",
-		"key",
-		"results")
-	assert.NotNil(t, errMsgs)
-
-	wrongResults := &GoldResults{
-		GitHash: "a1b2c3d4e5f6a7b8c9d0e1f2",
-		Key:     map[string]string{"param1": "value1"},
-	}
-	errMsgs, err = wrongResults.Validate(false)
-	assert.Error(t, err)
-	assertErrorFields(t, errMsgs, "results")
-
-	wrongResults.Results = []*Result{}
-	errMsgs, err = wrongResults.Validate(false)
-	assert.Error(t, err)
-	assertErrorFields(t, errMsgs, "results")
-
-	wrongResults.Results = []*Result{
-		{Key: map[string]string{}},
-	}
-	errMsgs, err = wrongResults.Validate(false)
-	assert.Error(t, err)
-	assertErrorFields(t, errMsgs, "results")
-
-	// Now ignore the results in the validation.
-	errMsgs, err = wrongResults.Validate(true)
-	assert.NoError(t, err)
-	assert.Equal(t, []string(nil), errMsgs)
-}
-
-func TestParseGoldResults(t *testing.T) {
-	unittest.SmallTest(t)
-	r := testParse(t, testJSON)
-
-	// Make sure some key fields come out correctly, i.e. are converted correctly from string to int.
-	assert.Equal(t, "c4711517219f333c1116f47706eb57b51b5f8fc7", r.GitHash)
-	assert.Equal(t, "Xb0VhENPSRFGnf2elVQd", r.TaskID)
-	assert.Equal(t, int64(12345), r.Issue)
-	assert.Equal(t, int64(10), r.Patchset)
-	assert.Equal(t, int64(549340494940393), r.BuildBucketID)
-}
-
-func TestGenJson(t *testing.T) {
-	unittest.SmallTest(t)
-
-	// Test parsing the test JSON.
-	goldResults := testParse(t, testJSON)
-
-	// For good measure we validate.
-	_, err := goldResults.Validate(false)
-	assert.NoError(t, err)
-
-	// Encode and decode the results.
-	var buf bytes.Buffer
-	assert.NoError(t, json.NewEncoder(&buf).Encode(goldResults))
-	newGoldResults := testParse(t, buf.String())
-	assert.Equal(t, goldResults, newGoldResults)
-}
-
-func testParse(t *testing.T, jsonStr string) *GoldResults {
-	buf := bytes.NewBuffer([]byte(jsonStr))
-
-	ret, errMsg, err := ParseGoldResults(buf)
-	assert.NoError(t, err)
-	assert.Nil(t, errMsg)
-	return ret
-}
-
-func assertErrorFields(t *testing.T, errMsgs []string, expectedFields ...string) {
-	for _, msg := range errMsgs {
-		found := false
-		for _, ef := range expectedFields {
-			found = found || strings.Contains(msg, ef)
-		}
-		assert.True(t, found, fmt.Sprintf("Could not find %v in msg: %s", expectedFields, msg))
-	}
-}

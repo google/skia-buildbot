@@ -104,7 +104,7 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 	// for the majority of queries.
 	getRefDiffs := !q.NoDiff
 
-	isTryjobSearch := q.Issue > 0
+	isTryjobSearch := !types.IsMasterBranch(q.Issue)
 
 	// Get the expectations and the current index, which we assume constant
 	// for the duration of this query.
@@ -274,7 +274,7 @@ func (s *SearchAPI) GetDigestDetails(test types.TestName, digest types.Digest) (
 func (s *SearchAPI) getExpectationsFromQuery(q *Query) (ExpSlice, error) {
 	ret := make(ExpSlice, 0, 2)
 
-	if (q != nil) && (q.Issue > 0) {
+	if q != nil && !types.IsMasterBranch(q.Issue) {
 		issueExpStore := s.storages.ExpectationsStore.ForIssue(q.Issue)
 		tjExp, err := issueExpStore.Get()
 		if err != nil {

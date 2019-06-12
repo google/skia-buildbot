@@ -53,7 +53,7 @@ func (m *MemExpectationsStore) AddChange(c context.Context, changedTests types.E
 	if m.eventBus != nil {
 		m.eventBus.Publish(expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
 			TestChanges: changedTests,
-			IssueID:     expstorage.MasterBranch,
+			IssueID:     types.MasterBranch,
 		}, true)
 	}
 
@@ -81,7 +81,7 @@ func (m *MemExpectationsStore) TESTING_ONLY_RemoveChange(changedDigests types.Ex
 	if m.eventBus != nil {
 		m.eventBus.Publish(expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
 			TestChanges: changedDigests,
-			IssueID:     expstorage.MasterBranch,
+			IssueID:     types.MasterBranch,
 		}, true)
 	}
 

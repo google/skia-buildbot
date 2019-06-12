@@ -120,7 +120,7 @@ func DeprecatedNew(client *datastore.Client, eventBus eventbus.EventBus) (*DSExp
 	blobStore := dsutil.NewBlobStore(client, ds.EXPECTATIONS_BLOB_ROOT, ds.EXPECTATIONS_BLOB)
 
 	store := &DSExpStore{
-		issueID:         expstorage.MasterBranch,
+		issueID:         types.MasterBranch,
 		changeKind:      ds.MASTER_EXP_CHANGE,
 		eventExpChange:  expstorage.EV_EXPSTORAGE_CHANGED,
 		globalEvent:     true,
@@ -581,7 +581,7 @@ func (c *DSExpStore) getExpChangeKeys(ctx context.Context, beforeID int64) ([]*d
 			Filter("OK =", true).
 			KeysOnly()
 
-		if c.issueID > 0 {
+		if !types.IsMasterBranch(c.issueID) {
 			q = q.Filter("IssueID =", c.issueID)
 		}
 

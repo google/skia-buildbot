@@ -131,7 +131,7 @@ func New(client *ifirestore.Client, eventBus eventbus.EventBus, mode AccessMode)
 		eventBus:       eventBus,
 		eventExpChange: expstorage.EV_EXPSTORAGE_CHANGED,
 		globalEvent:    true,
-		issue:          expstorage.MasterBranch,
+		issue:          types.MasterBranch,
 		mode:           mode,
 	}
 	// pre-load the cache. This simplifies the mutex handling in Get().
@@ -144,7 +144,7 @@ func New(client *ifirestore.Client, eventBus eventbus.EventBus, mode AccessMode)
 
 // ForIssue implements the ExpectationsStore interface.
 func (f *Store) ForIssue(id int64) expstorage.ExpectationsStore {
-	if id == expstorage.MasterBranch {
+	if types.IsMasterBranch(id) {
 		// It is invalid to re-request the master branch
 		return nil
 	}
@@ -160,7 +160,7 @@ func (f *Store) ForIssue(id int64) expstorage.ExpectationsStore {
 
 // Get implements the ExpectationsStore interface.
 func (f *Store) Get() (types.Expectations, error) {
-	if f.issue == expstorage.MasterBranch {
+	if f.issue == types.MasterBranch {
 		defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "true"}).Stop()
 		f.cacheMutex.RLock()
 		defer f.cacheMutex.RUnlock()
@@ -174,7 +174,7 @@ func (f *Store) Get() (types.Expectations, error) {
 // based on the current state. It is expected the caller has taken care of any mutex grabbing.
 func (f *Store) getMasterExpectations() (types.Expectations, error) {
 	if f.cache == nil {
-		c, err := f.loadExpectationsSharded(expstorage.MasterBranch, masterShards)
+		c, err := f.loadExpectationsSharded(types.MasterBranch, masterShards)
 		if err != nil {
 			return nil, skerr.Fmt("could not load master expectations from firestore: %s", err)
 		}

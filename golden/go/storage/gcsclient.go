@@ -100,7 +100,7 @@ func (g *ClientImpl) WriteBaseline(b *baseline.Baseline) (string, error) {
 	}
 
 	// We need a valid end commit or issue.
-	if b.EndCommit == nil && b.Issue <= 0 {
+	if b.EndCommit == nil && types.IsMasterBranch(b.Issue) {
 		return "", skerr.Fmt("Received empty end commit and no issue. Cannot write baseline")
 	}
 
@@ -143,11 +143,11 @@ func (g *ClientImpl) ReadBaseline(commitHash string, issueID int64) (*baseline.B
 }
 
 // getBaselinePath returns the baseline path in GCS for the given issueID.
-// If issueID <= 0 it returns the path for the master baseline.
+// This can also return the master baseline.
 func (g *ClientImpl) getBaselinePath(commitHash string, issueID int64) string {
 	// Change the output file based on whether it's the master branch or a Gerrit issue.
 	var outPath string
-	if issueID > baseline.MasterBranch {
+	if !types.IsMasterBranch(issueID) {
 		outPath = fmt.Sprintf("issue_%d.json", issueID)
 	} else if commitHash != "" {
 		outPath = fmt.Sprintf("master_%s.json", commitHash)

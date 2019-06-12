@@ -610,7 +610,7 @@ func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
 // loadExpectations fetches the expectations from Gold to compare to tests.
 func (r *resultState) loadExpectations(httpClient HTTPClient) error {
 	urlPath := strings.Replace(shared.EXPECTATIONS_ROUTE, "{commit_hash}", r.SharedConfig.GitHash, 1)
-	if r.SharedConfig.Issue > 0 {
+	if !types.IsMasterBranch(r.SharedConfig.Issue) {
 		urlPath = fmt.Sprintf("%s?issue=%d", urlPath, r.SharedConfig.Issue)
 	}
 	url := fmt.Sprintf("%s/%s", r.GoldURL, strings.TrimLeft(urlPath, "/"))
@@ -665,7 +665,7 @@ func (r *resultState) getResultFilePath(now time.Time) string {
 		fileName}
 	path := fmt.Sprintf("%s/%04d/%02d/%02d/%02d/%s/%d/%d/%s", segments...)
 
-	if r.SharedConfig.Issue > 0 {
+	if !types.IsMasterBranch(r.SharedConfig.Issue) {
 		path = "trybot/" + path
 	}
 	return fmt.Sprintf("%s/%s", r.Bucket, path)
