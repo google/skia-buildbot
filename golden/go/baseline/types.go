@@ -18,10 +18,6 @@ type Baseline struct {
 	// EndCommit is the commit for which this baseline was collected.
 	EndCommit *tiling.Commit `json:"endCommit"`
 
-	// CommitDelta is the difference in index within the commits of a tile.
-	// TODO(kjlubick) Appears to be unread and unwritten to.
-	CommitDelta int `json:"commitDelta"`
-
 	// Total is the total number of traces that were iterated when generating the baseline.
 	Total int `json:"total"`
 
@@ -35,7 +31,7 @@ type Baseline struct {
 	// with only the positive digests of the current commit.
 	Expectations types.Expectations `json:"master"`
 
-	// Issue indicates the Gerrit issue of this baseline. 0 indicates the master branch.
+	// Issue indicates the Gerrit issue of this baseline. -1 indicates the master branch.
 	Issue int64
 }
 
@@ -59,8 +55,6 @@ func EmptyBaseline(startCommit, endCommit *tiling.Commit) *Baseline {
 		MD5:          md5SumEmptyExp,
 	}
 }
-
-const MasterBranch = int64(0)
 
 // Baseliner is an interface wrapping the functionality to save and fetch baselines.
 type Baseliner interface {

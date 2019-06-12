@@ -40,7 +40,7 @@ func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qSt
 	// issues. This requires to refresh the set of input queries.
 
 	// Ignore queries for gerrit issues right now.
-	if q.Issue > 0 {
+	if q.Issue > types.LegacyMasterBranch {
 		return 0
 	}
 
