@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ff24495_be249560",
+        "filename": "autoroll/config/spirv-headers-shaderc.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-06-13T17:14:36Z",
+      "side": 1,
+      "message": "Feel free to delete a few more github rollers.",
+      "revId": "4ef4eadc4684b6aba36e03b7aafb134178ad491f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
