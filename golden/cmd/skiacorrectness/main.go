@@ -24,7 +24,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gevent"
@@ -40,7 +39,6 @@ import (
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
-	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
@@ -57,9 +55,9 @@ import (
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tilesource"
+	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
 	"go.skia.org/infra/golden/go/tryjobs/gerrit_tryjob_monitor"
 	"go.skia.org/infra/golden/go/tryjobstore"
-	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/warmer"
 	"go.skia.org/infra/golden/go/web"
 	"google.golang.org/api/option"
@@ -85,6 +83,8 @@ func main() {
 		authoritative       = flag.Bool("authoritative", false, "Indicates that this instance should write changes that could be triggered on multiple instances running in parallel.")
 		authorizedUsers     = flag.String("auth_users", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 		baselineGSPath      = flag.String("baseline_gs_path", "", "GS path, where the baseline file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
+		btInstanceID        = flag.String("bt_instance", "production", "ID of the BigTable instance that contains Git metadata")
+		btProjectID         = flag.String("bt_project_id", "skia-public", "BigTable table ID for the traces.")
 		cacheSize           = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
 		clientSecretFile    = flag.String("client_secret", "", "Client secret file for OAuth2 authentication.")
 		cpuProfile          = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
@@ -95,11 +95,10 @@ func main() {
 		dsNamespace         = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
 		eventTopic          = flag.String("event_topic", "", "The pubsub topic to use for distributed events.")
 		forceLogin          = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
+		fsLegacyAuth        = flag.Bool("fs_legacy_auth", false, "use legacy credentials to auth Firestore")
 		fsNamespace         = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
 		fsProjectID         = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
-		fsLegacyAuth        = flag.Bool("fs_legacy_auth", false, "use legacy credentials to auth Firestore")
 		gerritURL           = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
-		gitBTInstanceID     = flag.String("git_bt_instance", "", "ID of the BigTable instance that contains Git metadata")
 		gitBTTableID        = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
 		gitRepoDir          = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 		gitRepoURL          = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
@@ -121,9 +120,7 @@ func main() {
 		serviceAccountFile  = flag.String("service_account_file", "", "Credentials file for service account.")
 		showBotProgress     = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
 		siteURL             = flag.String("site_url", "https://gold.skia.org", "URL where this app is hosted.")
-		sparseInput         = flag.Bool("sparse", false, "Sparse input expected. Filter out 'empty' commits.")
-		storageDir          = flag.String("storage_dir", "", "Directory to store reproducible application data. [DEPRECATED]")
-		traceservice        = flag.String("trace_service", "localhost:10000", "The address of the traceservice endpoint.")
+		traceBTTableID      = flag.String("trace_bt_table", "", "BigTable table ID for the traces.")
 	)
 
 	var err error
@@ -268,10 +265,10 @@ func main() {
 	}
 
 	var vcs vcsinfo.VCS
-	if *gitBTInstanceID != "" && *gitBTTableID != "" {
+	if *btInstanceID != "" && *gitBTTableID != "" {
 		btConf := &bt_gitstore.BTConfig{
-			ProjectID:  *projectID,
-			InstanceID: *gitBTInstanceID,
+			ProjectID:  *btProjectID,
+			InstanceID: *btInstanceID,
 			TableID:    *gitBTTableID,
 		}
 
@@ -289,12 +286,9 @@ func main() {
 
 		gitilesRepo := gitiles.NewRepo("", "", nil)
 
-		trackNCommits := *nCommits
-		if *sparseInput {
-			// If the input is sparse we watch a magnitude more commits to make sure we don't miss any
-			// commit.
-			trackNCommits *= 10
-		}
+		// If the input is sparse we watch a magnitude more commits to make sure we don't
+		//  miss any commits.
+		trackNCommits := *nCommits * 10
 		vcs, err = bt_vcs.New(gitStore, "master", gitilesRepo, evt, trackNCommits)
 	} else {
 		vcs, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
@@ -320,28 +314,27 @@ func main() {
 		sklog.Fatalf("Failed to create Gerrit client: %s", err)
 	}
 
-	// Connect to traceDB and create the builders.
-	db, err := tracedb.NewTraceServiceDBFromAddress(*traceservice, types.GoldenTraceBuilder)
+	btc := bt_tracestore.BTConfig{
+		ProjectID:  *btProjectID,
+		InstanceID: *btInstanceID,
+		TableID:    *traceBTTableID,
+		VCS:        vcs,
+	}
+
+	err = bt_tracestore.InitBT(btc)
 	if err != nil {
-		sklog.Fatalf("Failed to connect to tracedb: %s", err)
+		sklog.Fatalf("Could not initialize bigtable tracestore with config %#v: %s", err)
 	}
 
-	// TODO(stephana): All dependencies on storageDir should be removed once we have landed
-	// all instances in K8s.
-
-	// If a storage directory was provided we can use it to cache tiles.
-	mtbCache := ""
-	if *storageDir != "" {
-		if _, err := fileutil.EnsureDirExists(*storageDir); err != nil {
-			sklog.Fatalf("Failed to make storageDir: %s", err)
-		}
-		mtbCache = filepath.Join(*storageDir, "cached-last-tile")
-	}
-
-	masterTileBuilder, err := tracedb.NewMasterTileBuilder(ctx, db, vcs, *nCommits, evt, mtbCache)
+	traceStore, err := bt_tracestore.New(context.Background(), btc, false)
 	if err != nil {
-		sklog.Fatalf("Failed to build trace/db.DB: %s", err)
+		sklog.Fatalf("Could not instantiate BT tracestore: %s", err)
 	}
+
+	sklog.Infof("hello")
+	tile, _, err := traceStore.GetDenseTile(context.Background(), *nCommits)
+	sklog.Infof("num traces: %d: err %v", len(tile.Traces), err)
+	sklog.Infof("params: %#v", tile.ParamSet)
 
 	gsClientOpt := storage.GCSClientOptions{
 		HashesGSPath:   *hashesGSPath,
@@ -425,11 +418,9 @@ func main() {
 		EventBus:               evt,
 		GerritAPI:              gerritAPI,
 		IgnoreStore:            ignoreStore,
-		IsSparseTile:           *sparseInput,
-		MasterTileBuilder:      masterTileBuilder,
 		NCommits:               *nCommits,
 		PubliclyViewableParams: publiclyViewableParams,
-		TraceDB:                db,
+		TraceStore:             traceStore,
 		TryjobMonitor:          tryjobMonitor,
 		VCS:                    vcs,
 	}
