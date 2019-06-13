@@ -65,8 +65,16 @@ func setupGithubDEPS(t *testing.T) (context.Context, string, *git_testutils.GitB
 	assert.NoError(t, err)
 
 	// Create child and parent repos.
-	child := git_testutils.GitInit(t, context.Background())
+	grandchild := git_testutils.GitInit(t, context.Background())
 	f := "somefile.txt"
+	grandchildA := grandchild.CommitGen(context.Background(), f)
+	grandchildB := grandchild.CommitGen(context.Background(), f)
+
+	child := git_testutils.GitInit(t, context.Background())
+	child.Add(context.Background(), "DEPS", fmt.Sprintf(`deps = {
+  "child/dep": "%s@%s"
+}`, grandchild.RepoUrl(), grandchildB))
+	child.Commit(context.Background())
 	childCommits := make([]string, 0, 10)
 	for i := 0; i < numChildCommits; i++ {
 		childCommits = append(childCommits, child.CommitGen(context.Background(), f))
@@ -75,7 +83,8 @@ func setupGithubDEPS(t *testing.T) (context.Context, string, *git_testutils.GitB
 	parent := git_testutils.GitInit(t, context.Background())
 	parent.Add(context.Background(), "DEPS", fmt.Sprintf(`deps = {
   "%s": "%s@%s",
-}`, childPath, child.RepoUrl(), childCommits[0]))
+  "parent/dep": "%s@%s",
+}`, childPath, child.RepoUrl(), childCommits[0], grandchild.RepoUrl(), grandchildA))
 	parent.Commit(context.Background())
 
 	mockRun := &exec.CommandCollector{}
@@ -189,6 +198,31 @@ func TestCreateNewGithubDEPSRoll(t *testing.T) {
 	g, urlMock := setupFakeGithubDEPS(t)
 	cfg := githubDEPSCfg()
 	cfg.ParentRepo = parent.RepoUrl()
+	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	assert.NoError(t, rm.Update(ctx))
+
+	// Create a roll, assert that it's at tip of tree.
+	mockGithubDEPSRequests(t, urlMock, rm.LastRollRev(), rm.NextRollRev(), len(rm.NotRolledRevisions()))
+	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
+	assert.NoError(t, err)
+	assert.Equal(t, issueNum, issue)
+}
+
+func TestCreateNewGithubDEPSRollTransitive(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, wd, _, _, parent, _, cleanup := setupGithubDEPS(t)
+	defer cleanup()
+	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
+
+	g, urlMock := setupFakeGithubDEPS(t)
+	cfg := githubDEPSCfg()
+	cfg.ParentRepo = parent.RepoUrl()
+	cfg.TransitiveDeps = map[string]string{
+		"child/dep": "parent/dep",
+	}
 	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))

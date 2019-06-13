@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/github"
@@ -32,6 +34,14 @@ type GithubDEPSRepoManagerConfig struct {
 	// Optional config to use if parent path is different than
 	// workdir + parent repo.
 	GithubParentPath string `json:"githubParentPath,omitempty"`
+
+	// Optional; transitive dependencies to roll. This is a mapping of
+	// dependencies of the child repo which are also dependencies of the
+	// parent repo and should be rolled at the same time. Keys are paths
+	// to transitive dependencies within the child repo (as specified in
+	// DEPS), and values are paths to those dependencies within the parent
+	// repo.
+	TransitiveDeps map[string]string `json:"transitiveDeps"`
 }
 
 // Validate the config.
@@ -45,6 +55,7 @@ type githubDEPSRepoManager struct {
 	githubClient   *github.GitHub
 	githubConfig   *codereview.GithubConfig
 	rollBranchName string
+	transitiveDeps map[string]string
 }
 
 // newGithubDEPSRepoManager returns a RepoManager instance which operates in the given
@@ -68,9 +79,34 @@ func newGithubDEPSRepoManager(ctx context.Context, c *GithubDEPSRepoManagerConfi
 		depsRepoManager: dr,
 		githubClient:    githubClient,
 		rollBranchName:  rollerName,
+		transitiveDeps:  c.TransitiveDeps,
 	}
 
 	return gr, nil
+}
+
+func (rm *githubDEPSRepoManager) getdep(ctx context.Context, depsFile, depPath string) (string, error) {
+	output, err := exec.RunCwd(ctx, path.Dir(depsFile), "python", rm.gclient, "getdep", "-r", depPath)
+	if err != nil {
+		return "", err
+	}
+	splitGetdep := strings.Split(strings.TrimSpace(output), "\n")
+	rev := strings.TrimSpace(splitGetdep[len(splitGetdep)-1])
+	if len(rev) != 40 {
+		return "", fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
+	}
+	return rev, nil
+}
+
+func (rm *githubDEPSRepoManager) setdep(ctx context.Context, depsFile, depPath, rev string) error {
+	args := []string{"setdep", "-r", fmt.Sprintf("%s@%s", depPath, rev)}
+	_, err := exec.RunCommand(ctx, &exec.Command{
+		Dir:  path.Dir(depsFile),
+		Env:  depot_tools.Env(rm.depotTools),
+		Name: rm.gclient,
+		Args: args,
+	})
+	return err
 }
 
 // See documentation for RepoManager interface.
@@ -131,7 +167,7 @@ func (rm *githubDEPSRepoManager) Update(ctx context.Context) error {
 	}
 
 	// Get the last roll revision.
-	lastRollRev, err := rm.getLastRollRev(ctx)
+	lastRollRev, err := rm.getdep(ctx, filepath.Join(rm.parentDir, "DEPS"), rm.childPath)
 	if err != nil {
 		return err
 	}
@@ -204,14 +240,35 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	}
 
 	// Run "gclient setdep".
-	args := []string{"setdep", "-r", fmt.Sprintf("%s@%s", rm.childPath, to)}
-	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  rm.parentDir,
-		Env:  rm.depotToolsEnv,
-		Name: rm.gclient,
-		Args: args,
-	}); err != nil {
+	depsFile := filepath.Join(rm.parentDir, "DEPS")
+	if err := rm.setdep(ctx, depsFile, rm.childPath, to); err != nil {
 		return 0, err
+	}
+
+	// Update any transitive DEPS.
+	transitiveDepsStr := ""
+	if len(rm.transitiveDeps) > 0 {
+		childDepsFile := filepath.Join(rm.childDir, "DEPS")
+		updated := []string{}
+		for childPath, parentPath := range rm.transitiveDeps {
+			newRev, err := rm.getdep(ctx, childDepsFile, childPath)
+			if err != nil {
+				return 0, err
+			}
+			oldRev, err := rm.getdep(ctx, filepath.Join(rm.parentDir, "DEPS"), parentPath)
+			if err != nil {
+				return 0, err
+			}
+			if oldRev != newRev {
+				if err := rm.setdep(ctx, depsFile, parentPath, newRev); err != nil {
+					return 0, err
+				}
+				updated = append(updated, fmt.Sprintf("  %s %s..%s", parentPath, oldRev[:12], newRev[:12]))
+			}
+		}
+		if len(updated) > 0 {
+			transitiveDepsStr = fmt.Sprintf("\nAlso rolling transitive DEPS:\n%s\n", strings.Join(updated, "\n"))
+		}
 	}
 
 	// Make third_party/ match the new DEPS.
@@ -239,7 +296,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	}
 	logStr = strings.TrimSpace(logStr)
 	childRepoCompareURL := fmt.Sprintf("%s/compare/%s..%s", rm.childRepoUrl, from[:12], to[:12])
-	commitMsg, err := GetGithubCommitMsg(logStr, childRepoCompareURL, rm.childPath, from, to, rm.serverURL, logCmd, emails)
+	commitMsg, err := GetGithubCommitMsg(logStr, childRepoCompareURL, rm.childPath, from, to, rm.serverURL, transitiveDepsStr, logCmd, emails)
 	if err != nil {
 		return 0, fmt.Errorf("Could not build github commit message: %s", err)
 	}
