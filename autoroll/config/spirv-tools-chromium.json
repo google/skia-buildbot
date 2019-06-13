@@ -31,7 +31,10 @@
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
+    "transitiveDeps": {
+      "external/spirv-headers": "src/third_party/spirv-headers/src"
+    }
   },
   "cqExtraTrybots": [
     "luci.chromium.try:android_angle_vk32_deqp_rel_ng",

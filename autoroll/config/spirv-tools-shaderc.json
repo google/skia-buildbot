@@ -27,7 +27,10 @@
     "parentBranch": "master",
     "parentRepo": "git@github.com:google/shaderc.git",
     "githubParentPath": "shaderc",
-    "gclientSpec": "solutions=[{\"name\":\"shaderc\",\"url\":\"git@github.com:google-shaderc-autoroll/shaderc.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]"
+    "gclientSpec": "solutions=[{\"name\":\"shaderc\",\"url\":\"git@github.com:google-shaderc-autoroll/shaderc.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
+    "transitiveDeps": {
+      "external/spirv-headers": "third_party/spirv-headers"
+    }
   },
   "kubernetes": {
     "cpu": "1",
