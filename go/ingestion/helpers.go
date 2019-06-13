@@ -14,8 +14,10 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	"cloud.google.com/go/storage"
+	"github.com/cenkalti/backoff"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/fileutil"
@@ -33,8 +35,8 @@ import (
 )
 
 const (
-	// Limit the number of times the ingester tries to get a file before giving up.
-	MAX_URI_GET_TRIES = 4
+	// Limit the ingester's attempts to get a file before giving up.
+	maxReadTime = 30 * time.Second
 
 	// maxConcurrentDirPollers is the maximum number of concurrent go-routines that
 	// read from GCS and the file system when polling a range of directories.
@@ -289,29 +291,46 @@ func (g *gsResultFileLocation) Open() (io.ReadCloser, error) {
 		return ioutil.NopCloser(bytes.NewBuffer(g.content)), nil
 	}
 
-	if g.content == nil {
-		var reader io.Reader
-		var err error
-		for i := 0; i < MAX_URI_GET_TRIES; i++ {
-			reader, err = g.storageClient.Bucket(g.bucket).Object(g.name).NewReader(context.Background())
-			if err != nil {
-				sklog.Errorf("New reader failed for %s/%s: %s", g.bucket, g.name, err)
-				continue
-			}
+	exp := &backoff.ExponentialBackOff{
+		InitialInterval:     time.Second,
+		RandomizationFactor: 0.5,
+		Multiplier:          2,
+		MaxInterval:         maxReadTime / 4,
+		MaxElapsedTime:      maxReadTime,
+		Clock:               backoff.SystemClock,
+	}
 
-			// Read the entire file into memory and return a buffer.
-			if g.content, err = ioutil.ReadAll(reader); err != nil {
-				sklog.Errorf("Error reading content of %s/%s: %s", g.bucket, g.name, err)
-				g.content = nil
-				continue
-			}
-
-			sklog.Infof("GCSFILE READ %s/%s", g.bucket, g.name)
-			break
-		}
+	o := func() error {
+		obj := g.storageClient.Bucket(g.bucket).Object(g.name)
+		reader, err := obj.NewReader(context.Background())
 		if err != nil {
-			return nil, fmt.Errorf("Failed fetching %s/%s after %d attempts", g.bucket, g.name, MAX_URI_GET_TRIES)
+			return skerr.Fmt("accessing %s/%s failed: %s", g.bucket, g.name, err)
 		}
+		defer util.Close(reader)
+
+		// Read the entire file into memory and return a buffer.
+		if g.content, err = ioutil.ReadAll(reader); err != nil {
+			g.content = nil
+			return skerr.Fmt("error reading content of %s/%s: %s", g.bucket, g.name, err)
+		}
+
+		if oa, err := obj.Attrs(context.Background()); err != nil {
+			g.content = nil
+			return skerr.Fmt("error reading attributes of %s/%s: %s", g.bucket, g.name, err)
+		} else {
+			g.md5 = fmt.Sprintf("%x", oa.MD5)
+			g.lastUpdated = oa.Updated.Unix()
+		}
+
+		sklog.Debugf("Ingester read %s/%s", g.bucket, g.name)
+		return nil
+	}
+
+	if g.content == nil {
+		if err := backoff.Retry(o, exp); err != nil {
+			return nil, skerr.Fmt("could not read gcs://%s/%s with retries: %s", g.bucket, g.name, err)
+		}
+
 	}
 
 	return ioutil.NopCloser(bytes.NewBuffer(g.content)), nil
