@@ -29,7 +29,7 @@ const (
 {{.ChildRepoCompareUrl}}
 
 git {{.GitLogCmd}}
-{{.LogStr}}
+{{.LogStr}}{{.TransitiveDeps}}
 
 The AutoRoll server is located here: {{.ServerURL}}
 
@@ -299,7 +299,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	// Github autolinks PR numbers to be of the same repository in logStr. Fix this by
 	// explicitly adding the child repo to the PR number.
 	logStr = pullRequestInLogRE.ReplaceAllString(logStr, fmt.Sprintf(" (%s/%s$1)", user, repo))
-	commitMsg, err := GetGithubCommitMsg(logStr, childRepoCompareURL, rm.childPath, from, to, rm.serverURL, logCmd, emails)
+	commitMsg, err := GetGithubCommitMsg(logStr, childRepoCompareURL, rm.childPath, from, to, rm.serverURL, "", logCmd, emails)
 	if err != nil {
 		return 0, fmt.Errorf("Could not build github commit message: %s", err)
 	}
@@ -367,7 +367,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 }
 
 // GetGithubCommitMsg is a utility that returns a commit message that can be used in github rolls.
-func GetGithubCommitMsg(logStr, childRepoCompareURL, childPath, from, to, serverURL string, logCmd, emails []string) (string, error) {
+func GetGithubCommitMsg(logStr, childRepoCompareURL, childPath, from, to, serverURL, transitiveDeps string, logCmd, emails []string) (string, error) {
 	data := struct {
 		ChildPath           string
 		ChildRepoCompareUrl string
@@ -379,6 +379,7 @@ func GetGithubCommitMsg(logStr, childRepoCompareURL, childPath, from, to, server
 		LogStr              string
 		ServerURL           string
 		SheriffEmails       string
+		TransitiveDeps      string
 	}{
 		ChildPath:           childPath,
 		ChildRepoCompareUrl: childRepoCompareURL,
@@ -389,6 +390,7 @@ func GetGithubCommitMsg(logStr, childRepoCompareURL, childPath, from, to, server
 		LogStr:              logStr,
 		ServerURL:           serverURL,
 		SheriffEmails:       strings.Join(emails, ","),
+		TransitiveDeps:      transitiveDeps,
 	}
 	var buf bytes.Buffer
 	if err := githubCommitMsgTmpl.Execute(&buf, data); err != nil {
