@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9d833ff1_ac9d3446",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-13T16:19:51Z",
+      "side": 1,
+      "message": "nit: update doc",
+      "range": {
+        "startLine": 38,
+        "startChar": 4,
+        "endLine": 38,
+        "endChar": 80
+      },
+      "revId": "7e0ea8d2d57a59cc80862ae21a1a0b971523a678",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "94808fd5_d9e5b7be",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-13T16:19:51Z",
+      "side": 1,
+      "message": "nit: (not related to these changes) Open should return an error if the ObjectAttrs (specifically lastUpdated and md5) don\u0027t match, i.e. the file has been updated since we obtained the ObjectAttrs passed to newGCSResultFileLocation.",
+      "range": {
+        "startLine": 304,
+        "startChar": 17,
+        "endLine": 304,
+        "endChar": 64
+      },
+      "revId": "7e0ea8d2d57a59cc80862ae21a1a0b971523a678",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
