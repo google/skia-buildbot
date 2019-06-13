@@ -556,3 +556,38 @@ func (TraceStepFunc) Describe() string {
 }
 
 var traceStepFunc = TraceStepFunc{}
+
+type ScaleByAveFunc struct{}
+
+// ScaleByAveFunc implements Func and Computes a new trace that is scaled by 1/(average of all values in the trace).
+//
+// vec32.MISSING_DATA_SENTINEL values are not taken into account for the ave. If the entire vector is vec32.MISSING_DATA_SENTINEL then
+// the result is also all vec32.MISSING_DATA_SENTINEL.
+func (ScaleByAveFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+	if len(node.Args) != 1 {
+		return nil, fmt.Errorf("scale_by_ave() takes a single argument.")
+	}
+	if node.Args[0].Typ != NodeFunc {
+		return nil, fmt.Errorf("scale_by_ave() takes a function argument.")
+	}
+	rows, err := node.Args[0].Eval(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("scale_by_ave() failed evaluating argument: %s", err)
+	}
+
+	ret := Rows{}
+	for key, r := range rows {
+		row := vec32.Dup(r)
+		mean := vec32.Mean(row)
+		vec32.ScaleBy(row, mean)
+		ret["scale_by_ave("+key+")"] = row
+	}
+
+	return ret, nil
+}
+
+func (ScaleByAveFunc) Describe() string {
+	return `Computes a new trace that is scaled by 1/(ave) where ave is the average of the input trace.`
+}
+
+var scaleByAveFunc = ScaleByAveFunc{}
