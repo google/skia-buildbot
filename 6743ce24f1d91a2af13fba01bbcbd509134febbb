@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ae92333_479ba2a6",
+        "filename": "autoroll/go/repo_manager/github_deps_repo_manager_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-13T15:15:21Z",
+      "side": 1,
+      "message": "This goes through the motions but doesn\u0027t actually verify that we made the expected change to DEPS or included the right information in the commit message...",
+      "range": {
+        "startLine": 213,
+        "startChar": 5,
+        "endLine": 213,
+        "endChar": 42
+      },
+      "revId": "6743ce24f1d91a2af13fba01bbcbd509134febbb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
