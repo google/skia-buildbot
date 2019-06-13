@@ -1,4 +1,4 @@
-Storing Expectations on Firestore
+Storing Expectations in Firestore
 =================================
 
 Gold Expectations are essentially a map of (Grouping, Digest) to Label where Grouping is
@@ -74,7 +74,13 @@ across thousands of groups/digests, which would surpass the 10Mb firestore limit
 Indexing
 --------
 Firebase has pretty generous indexing limits, so we should be fine with the default single-field
-indexes and will add any composite indexes as needed (and will update this section).
+indexes. In addition, we need the following composite indexes:
+
+Collection ID           | Fields
+------------------------------------------------------------------
+expstore_expectations   | issue: ASC digest: ASC
+expstore_triage_changes | record_id: ASC grouping: ASC digest: ASC
+expstore_triage_records | committed: ASC issue: ASC ts: DESC
 
 Usage
 -----

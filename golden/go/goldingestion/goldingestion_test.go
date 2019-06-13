@@ -18,6 +18,7 @@ import (
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/go/vcsinfo/mocks"
 	trace_utils "go.skia.org/infra/golden/go/testutils"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -120,7 +121,7 @@ func TestGoldProcessor(t *testing.T) {
 
 	// Set up mock VCS and run a servcer with the given data directory.
 	ctx := context.Background()
-	vcs := ingestion.MockVCS(TEST_COMMITS, nil, nil)
+	vcs := mocks.DeprecatedMockVCS(TEST_COMMITS, nil, nil)
 	server, serverAddr := trace_utils.StartTraceDBTestServer(t, TRACE_DB_FILENAME, "")
 	defer server.Stop()
 	defer testutils.Remove(t, TRACE_DB_FILENAME)
@@ -144,9 +145,9 @@ func TestGoldProcessor(t *testing.T) {
 	assert.Equal(t, err, ingestion.IgnoreResultsFileErr)
 
 	// Inject a secondary repo and test its use.
-	secVCS := ingestion.MockVCS(SECONDARY_TEST_COMMITS, SECONDARY_DEPS_FILE_MAP, nil)
+	secVCS := mocks.DeprecatedMockVCS(SECONDARY_TEST_COMMITS, SECONDARY_DEPS_FILE_MAP, nil)
 	extractor := depot_tools.NewRegExDEPSExtractor(depot_tools.DEPSSkiaVarRegEx)
-	vcs.(ingestion.MockVCSImpl).SetSecondaryRepo(secVCS, extractor)
+	vcs.(mocks.MockVCSImpl).SetSecondaryRepo(secVCS, extractor)
 
 	_ = testProcessor(t, ctx, processor, TEST_SECONDARY_FILE)
 	err = testProcessor(t, ctx, processor, TEST_SECONDARY_FILE_INVALID)
