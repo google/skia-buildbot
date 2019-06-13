@@ -46,7 +46,7 @@ const (
 // Constructor is the signature that has to be implemented to register a
 // Processor implementation to be instantiated by name from a config struct.
 //   vcs is an instance that might be shared across multiple ingesters.
-//   config is ususally parsed from a JSON5 file.
+//   config is usually parsed from a JSON5 file.
 //   client can be assumed to be ready to serve the needs of the resulting Processor.
 //   eventBus is the eventbus to be used by the ingester (optional).
 type Constructor func(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, eventBus eventbus.EventBus) (Processor, error)
@@ -95,22 +95,23 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		// Set up VCS instance to track master.
 		gitilesRepo := gitiles.NewRepo(config.GitRepoURL, "", client)
 		if vcs, err = bt_vcs.New(gitStore, "master", gitilesRepo, nil, 0); err != nil {
-			return nil, err
+			return nil, skerr.Fmt("could not create new bt_vcs: %s", err)
 		}
 		sklog.Infof("Created vcs client based on BigTable.")
 	} else {
 		if vcs, err = gitinfo.CloneOrUpdate(ctx, config.GitRepoURL, config.GitRepoDir, true); err != nil {
-			return nil, err
+			return nil, skerr.Fmt("could not clone %s locally to %s: %s", config.GitRepoURL, config.GitRepoDir, err)
 		}
 		sklog.Infof("Created vcs client based on local checkout.")
 	}
 
 	// Instantiate the secondary repo if one was specified.
+	// TODO(kjlubick): make this support bigtable git also.
 	var secondaryVCS vcsinfo.VCS
 	var extractor depot_tools.DEPSExtractor
 	if config.SecondaryRepoURL != "" {
 		if secondaryVCS, err = gitinfo.CloneOrUpdate(ctx, config.SecondaryRepoURL, config.SecondaryRepoDir, true); err != nil {
-			return nil, err
+			return nil, skerr.Fmt("could not set up secondary repo %s in %s: %s", config.SecondaryRepoURL, config.SecondaryRepoDir, err)
 		}
 		extractor = depot_tools.NewRegExDEPSExtractor(config.SecondaryRegEx)
 		vcs.(*gitinfo.GitInfo).SetSecondaryRepo(secondaryVCS, extractor)
@@ -121,7 +122,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		sklog.Infof("Starting to instantiate ingester: %s", id)
 		processorConstructor, ok := constructors[id]
 		if !ok {
-			return nil, fmt.Errorf("Unknown ingester: '%s'", id)
+			return nil, skerr.Fmt("unknown ingester: '%s'", id)
 		}
 
 		// Instantiate the sources
@@ -129,7 +130,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		for _, dataSource := range ingesterConf.Sources {
 			oneSource, err := getSource(id, dataSource, client, eventBus)
 			if err != nil {
-				return nil, fmt.Errorf("Error instantiating sources for ingester '%s': %s", id, err)
+				return nil, skerr.Fmt("Error instantiating sources for ingester '%s': %s", id, err)
 			}
 			sources = append(sources, oneSource)
 			sklog.Infof("Source %s created for ingester %s", oneSource.ID(), id)
@@ -138,14 +139,14 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		// instantiate the processor
 		processor, err := processorConstructor(vcs, ingesterConf, client, eventBus)
 		if err != nil {
-			return nil, err
+			return nil, skerr.Fmt("could not create processor: %s", err)
 		}
 		sklog.Infof("Processor constructor for ingester %s created", id)
 
 		// create the ingester and add it to the result.
 		ingester, err := NewIngester(id, ingesterConf, vcs, sources, processor, ingestionStore, eventBus)
 		if err != nil {
-			return nil, err
+			return nil, skerr.Fmt("could not create ingester: %s", err)
 		}
 		ret = append(ret, ingester)
 		sklog.Infof("Ingester %s created successfully", id)

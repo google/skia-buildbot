@@ -9,7 +9,6 @@
       RunEvery: "5m",
       NCommits: 75,
       MinDays: 20,
-      StatusDir: "/data/ingest_status",
       MetricName: "gold-lottie-ingestion",
       Sources: [
         {

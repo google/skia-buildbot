@@ -15,7 +15,6 @@ type IngesterConfig struct {
 	RunEvery    config.Duration   // How often the ingester should pull data from Google Storage.
 	NCommits    int               // Minimum number of commits that should be ingested.
 	MinDays     int               // Minimum number of days that should be covered by the ingested commits.
-	StatusDir   string            // Path where the ingest process keeps its status between restarts.
 	MetricName  string            // What to call this ingester's data when imported to Graphite
 	Sources     []*DataSource     // Input sources where the ingester reads from.
 	ExtraParams map[string]string // Any additional needed parameters (ingester specific)

@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/go/vcsinfo/mocks"
 )
 
 var (
@@ -39,7 +39,7 @@ func TestCommitID(t *testing.T) {
 func TestFromHash(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := context.Background()
-	vcs := ingestion.MockVCS(TEST_COMMITS, nil, nil)
+	vcs := mocks.DeprecatedMockVCS(TEST_COMMITS, nil, nil)
 	commitID, err := FromHash(ctx, vcs, "fe4a4029a080bc955e9588d05a6cd9eb490845d4")
 	assert.NoError(t, err)
 

@@ -12,7 +12,6 @@
       RunEvery: "5m",
       NCommits: 75,
       MinDays: 3,
-      StatusDir: "/mnt/pd0/skia-gold-ingestion/ingest_status",
       MetricName: "gold-ingest",
       Sources: [
         {
@@ -34,7 +33,6 @@
       RunEvery: "5m",
       NCommits: 10,
       MinDays: 10,
-      StatusDir: "/mnt/pd0/skia-gold-ingestion/tryjobs/ingest_status",
       MetricName: "gold-ingest-tryjob",
       Sources: [
         {

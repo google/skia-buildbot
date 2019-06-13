@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/go/vcsinfo/mocks"
 	"go.skia.org/infra/golden/go/tryjobstore"
 )
 
@@ -98,7 +99,7 @@ func TestTryjobGoldProcessor(t *testing.T) {
 			]
 		}`,
 	}
-	mockVCS := ingestion.MockVCS([]*vcsinfo.LongCommit{}, nil, fileContentMap)
+	mockVCS := mocks.DeprecatedMockVCS([]*vcsinfo.LongCommit{}, nil, fileContentMap)
 
 	// Make sure the issue is removed.
 	assert.NoError(t, tryjobStore.DeleteIssue(testIssue.ID))

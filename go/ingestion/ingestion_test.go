@@ -11,19 +11,19 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/ingestion/mocks"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	mockvcs "go.skia.org/infra/go/vcsinfo/mocks"
 )
 
 const (
-	LOCAL_STATUS_DIR   = "./ingestion_status"
 	RFLOCATION_CONTENT = "result file content"
 
 	PROJECT_ID      = "test-project-ingestion"
@@ -35,34 +35,17 @@ const (
 
 func TestPollingIngester(t *testing.T) {
 	unittest.LargeTest(t)
-	testIngester(t, LOCAL_STATUS_DIR+"-polling", nil)
-}
-
-func TestPollingIngesterWithStore(t *testing.T) {
-	unittest.LargeTest(t)
-
-	// Delete and recreate the BT tables to make sure there are no residual data.
-	assert.NoError(t, bt.DeleteTables(projectID, instanceID, TABLE_FILES_PROCESSED))
-	assert.NoError(t, InitBT(projectID, instanceID, TABLE_FILES_PROCESSED))
-
-	// Create the BT ingestion store.
-	store, err := NewBTIStore(projectID, instanceID, nameSpace)
-	assert.NoError(t, err)
-	assert.NotNil(t, store)
-
-	testIngester(t, LOCAL_STATUS_DIR+"-polling", store)
-}
-
-// testIngester test an ingester by using a polling source. Since the implementation
-// generates (synthetic) storage events, we are also testing the event driven ingester.
-func testIngester(t *testing.T, statusDir string, ingestionStore IngestionStore) {
-	defer util.RemoveAll(statusDir)
 
 	eventBus := eventbus.New()
 	ctx := context.Background()
 	now := time.Now()
 	beginningOfTime := now.Add(-time.Hour * 24 * 10).Unix()
 	const totalCommits = 100
+
+	mis := &mocks.IngestionStore{}
+	defer mis.AssertExpectations(t)
+	mis.On("ContainsResultFileHash", mock.Anything, mock.Anything).Return(false, nil)
+	mis.On("SetResultFileHash", mock.Anything, mock.Anything).Return(nil)
 
 	// Instantiate mock VCS and the source.
 	vcs := getVCS(beginningOfTime, now.Unix(), totalCommits)
@@ -91,14 +74,13 @@ func testIngester(t *testing.T, statusDir string, ingestionStore IngestionStore)
 
 	// Instantiate ingesterConf
 	conf := &sharedconfig.IngesterConfig{
-		RunEvery:  config.Duration{Duration: 5 * time.Second},
-		NCommits:  totalCommits / 2,
-		MinDays:   3,
-		StatusDir: statusDir,
+		RunEvery: config.Duration{Duration: 5 * time.Second},
+		NCommits: totalCommits / 2,
+		MinDays:  3,
 	}
 
 	// Instantiate ingester and start it.
-	ingester, err := NewIngester("test-ingester", conf, vcs, sources, processor, ingestionStore, eventBus)
+	ingester, err := NewIngester("test-ingester", conf, vcs, sources, processor, mis, eventBus)
 	assert.NoError(t, err)
 	assert.NoError(t, ingester.Start(ctx))
 
@@ -239,5 +221,5 @@ func getVCS(start, end int64, nCommits int) vcsinfo.VCS {
 		})
 		t += inc
 	}
-	return MockVCS(commits, nil, nil)
+	return mockvcs.DeprecatedMockVCS(commits, nil, nil)
 }
