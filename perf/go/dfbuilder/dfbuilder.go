@@ -281,6 +281,11 @@ func (b *builder) NewFromKeysAndRange(keys []string, begin, end time.Time, downs
 					trace[dstIndex] = tileTrace[srcIndex]
 				}
 				traceSet[key] = trace
+				p, err := query.ParseKey(key)
+				if err != nil {
+					continue
+				}
+				paramSet.AddParams(p)
 			}
 			return nil
 		})
