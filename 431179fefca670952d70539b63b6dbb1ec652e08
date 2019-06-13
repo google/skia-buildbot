@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e37d7997_45ed1103",
+        "filename": "go/ingestion/fs_ingestionstore/FIRESTORE.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-13T16:37:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c1f88e55_3d1d9f8f",
+      "range": {
+        "startLine": 19,
+        "startChar": 26,
+        "endLine": 19,
+        "endChar": 42
+      },
+      "revId": "431179fefca670952d70539b63b6dbb1ec652e08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "faf4a582_2a1e9220",
         "filename": "go/ingestion/fs_ingestionstore/FIRESTORE.md",
         "patchSetId": 4
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "bb663ac4_65bf1d92",
+        "filename": "go/ingestion/fs_ingestionstore/FIRESTORE.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-13T16:37:26Z",
+      "side": 1,
+      "message": "Empty documents should be avoided, but I agree that I can combine the two fields. \nhttps://stackoverflow.com/a/48758665",
+      "parentUuid": "faf4a582_2a1e9220",
+      "revId": "431179fefca670952d70539b63b6dbb1ec652e08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a512fec_c140a1d7",
         "filename": "go/ingestion/fs_ingestionstore/fs_ingestionstore.go",
         "patchSetId": 4
@@ -56,6 +98,24 @@
       "revId": "431179fefca670952d70539b63b6dbb1ec652e08",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9687c733_8ab1583a",
+        "filename": "go/ingestion/fs_ingestionstore/fs_ingestionstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-13T16:37:26Z",
+      "side": 1,
+      "message": "I disagree - ingestion is a boolean operation, did it happen or not.  One of gold\u0027s core assumptions is that a files is not modified after upload.  I only really include the filename to avoid md5 collisions",
+      "parentUuid": "5a512fec_c140a1d7",
+      "revId": "431179fefca670952d70539b63b6dbb1ec652e08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -82,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "eb2eebf6_20e08fb3",
+        "filename": "go/ingestion/fs_ingestionstore/fs_ingestionstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-13T16:37:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "191a2f21_1d1474a9",
+      "range": {
+        "startLine": 18,
+        "startChar": 18,
+        "endLine": 18,
+        "endChar": 25
+      },
+      "revId": "431179fefca670952d70539b63b6dbb1ec652e08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "27fdc9b1_69d6166c",
         "filename": "go/ingestion/ingestion.go",
         "patchSetId": 4
@@ -105,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "2299c50e_1d591799",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-13T16:37:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "27fdc9b1_69d6166c",
+      "range": {
+        "startLine": 190,
+        "startChar": 1,
+        "endLine": 190,
+        "endChar": 29
+      },
+      "revId": "431179fefca670952d70539b63b6dbb1ec652e08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "00a989a1_c220030b",
         "filename": "golden/cmd/gold_ingestion/main.go",
         "patchSetId": 4
@@ -125,6 +233,30 @@
       "revId": "431179fefca670952d70539b63b6dbb1ec652e08",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69a10834_3c86418e",
+        "filename": "golden/cmd/gold_ingestion/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-13T16:37:26Z",
+      "side": 1,
+      "message": "No, that\u0027s not how the naming scheme goes.  This is the name of the app (e.g. \"gold\", \"autoroll\", \"task-scheduler\"). Apps should remain relatively few (according to Eric). The namespace is the instance name (e.g. flutter, chrome-gpu), and then in that we have a namespaced collection \"ingestionstore_entries\")\n\nhttps://pantheon.corp.google.com/firestore/data/gold/flutter/ingestionstore_entries?project\u003dskia-firestore",
+      "parentUuid": "00a989a1_c220030b",
+      "range": {
+        "startLine": 83,
+        "startChar": 75,
+        "endLine": 83,
+        "endChar": 79
+      },
+      "revId": "431179fefca670952d70539b63b6dbb1ec652e08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
