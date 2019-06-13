@@ -1,4 +1,4 @@
-package ingestion
+package mocks
 
 import (
 	"context"
@@ -10,8 +10,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 )
 
-// TODO(stephana): Make the GetFile function support lookup with a combination
-// of fileName and commitHash to truly reflect the functionality of the VCS interface.
+// TODO(kjlubick): replace usages of this with the mockery based versions.
 
 type MockVCSImpl struct {
 	commits            []*vcsinfo.LongCommit
@@ -28,7 +27,7 @@ type MockVCSImpl struct {
 //    pathContentMap maps file names to string content.
 // Currently the GetFile function will only consider the fileName or the hash
 // but not a combination of both. The fileName has priority.
-func MockVCS(commits []*vcsinfo.LongCommit, depsContentMap map[string]string, pathContentMap map[string]string) vcsinfo.VCS {
+func DeprecatedMockVCS(commits []*vcsinfo.LongCommit, depsContentMap map[string]string, pathContentMap map[string]string) vcsinfo.VCS {
 	return MockVCSImpl{
 		commits:        commits,
 		depsFileMap:    depsContentMap,

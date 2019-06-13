@@ -42,13 +42,13 @@ const (
 	triageRecordsCollection = "expstore_triage_records"
 	triageChangesCollection = "expstore_triage_changes"
 
-	// Columns in the Collections we query by.
-	committedCol = "committed"
-	digestCol    = "digest"
-	groupingCol  = "grouping"
-	issueCol     = "issue"
-	recordIDCol  = "record_id"
-	tsCol        = "ts"
+	// Fields in the Collections we query by.
+	committedField = "committed"
+	digestField    = "digest"
+	groupingField  = "grouping"
+	issueField     = "issue"
+	recordIDField  = "record_id"
+	tsField        = "ts"
 
 	maxOperationTime = 2 * time.Minute
 	// loadShards was determined empirically on a data set of about 550k expectationEntry
@@ -199,7 +199,7 @@ func (f *Store) getIssueExpectations() (types.Expectations, error) {
 // with all Expectations belonging to the passed in issue (can be MasterBranch).
 func (f *Store) loadExpectationsSharded(issue int64, shards int) (types.Expectations, error) {
 	defer metrics2.FuncTimer().Stop()
-	q := f.client.Collection(expectationsCollection).Where(issueCol, "==", issue)
+	q := f.client.Collection(expectationsCollection).Where(issueField, "==", issue)
 
 	es := make([]types.Expectations, shards)
 	queries := shardQueryOnDigest(q, shards)
@@ -245,11 +245,11 @@ func shardQueryOnDigest(baseQuery firestore.Query, shards int) []firestore.Query
 		endHash := fmt.Sprintf("%016x\n", s) + zeros
 
 		// The first n queries are formulated to be between two shard points
-		queries = append(queries, baseQuery.Where(digestCol, ">=", startHash).Where(digestCol, "<", endHash))
+		queries = append(queries, baseQuery.Where(digestField, ">=", startHash).Where(digestField, "<", endHash))
 	}
 	lastHash := fmt.Sprintf("%016x\n", s) + zeros
 	// The last query is just a greater than the last shard point
-	queries = append(queries, baseQuery.Where(digestCol, ">=", lastHash))
+	queries = append(queries, baseQuery.Where(digestField, ">=", lastHash))
 	return queries
 }
 
@@ -397,8 +397,8 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 	defer metrics2.NewTimer("gold_query_log", tags).Stop()
 
 	// Fetch the records, which have everything except the details.
-	q := f.client.Collection(triageRecordsCollection).OrderBy(tsCol, firestore.Desc).Offset(offset).Limit(size)
-	q = q.Where(issueCol, "==", f.issue).Where(committedCol, "==", true)
+	q := f.client.Collection(triageRecordsCollection).OrderBy(tsField, firestore.Desc).Offset(offset).Limit(size)
+	q = q.Where(issueField, "==", f.issue).Where(committedField, "==", true)
 	var rv []expstorage.TriageLogEntry
 	d := fmt.Sprintf("offset: %d, size %d", offset, size)
 	err := f.client.IterDocs("query_log", d, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
@@ -429,9 +429,9 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 	// Make a query for each of the records to fetch the changes belonging to that record.
 	qs := make([]firestore.Query, 0, len(rv))
 	for _, r := range rv {
-		q := f.client.Collection(triageChangesCollection).Where(recordIDCol, "==", r.ID)
+		q := f.client.Collection(triageChangesCollection).Where(recordIDField, "==", r.ID)
 		// Sort them by grouping, then Digest for determinism
-		q = q.OrderBy(groupingCol, firestore.Asc).OrderBy(digestCol, firestore.Asc)
+		q = q.OrderBy(groupingField, firestore.Asc).OrderBy(digestField, firestore.Asc)
 		qs = append(qs, q)
 	}
 
@@ -472,7 +472,7 @@ func (f *Store) UndoChange(ctx context.Context, changeID, userID string) (types.
 		return nil, skerr.Fmt("could not find change to undo with id %s: %s", changeID, err)
 	}
 
-	q := f.client.Collection(triageChangesCollection).Where(recordIDCol, "==", changeID)
+	q := f.client.Collection(triageChangesCollection).Where(recordIDField, "==", changeID)
 	delta := types.Expectations{}
 	err = f.client.IterDocs("undo_query", changeID, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
