@@ -298,6 +298,7 @@ func (g *gsResultFileLocation) Open() (io.ReadCloser, error) {
 				sklog.Errorf("New reader failed for %s/%s: %s", g.bucket, g.name, err)
 				continue
 			}
+			defer util.Close(reader)
 
 			// Read the entire file into memory and return a buffer.
 			if g.content, err = ioutil.ReadAll(reader); err != nil {
