@@ -50,6 +50,21 @@ func MeanAndStdDev(a []float32) (float32, float32, error) {
 	return mean, stddev, nil
 }
 
+// ScaleBy divides each non-sentinel value in the slice by 'b', converting
+// resulting NaNs and Infs into sentinel values.
+func ScaleBy(a []float32, b float32) {
+	for i, x := range a {
+		if x != MISSING_DATA_SENTINEL {
+			scaled := a[i] / b
+			if math.IsNaN(float64(scaled)) || math.IsInf(float64(scaled), 0) {
+				a[i] = MISSING_DATA_SENTINEL
+			} else {
+				a[i] = scaled
+			}
+		}
+	}
+}
+
 // Norm normalizes the slice to a mean of 0 and a standard deviation of 1.0.
 // The minStdDev is the minimum standard deviation that is normalized. Slices
 // with a standard deviation less than that are not normalized for variance.

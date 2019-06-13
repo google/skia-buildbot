@@ -335,6 +335,38 @@ func TestFillCov(t *testing.T) {
 	}
 }
 
+func TestScaleBy(t *testing.T) {
+	unittest.SmallTest(t)
+	testCases := []struct {
+		Slice    []float32
+		Scale    float32
+		Expected []float32
+	}{
+		{
+			Slice:    []float32{e, 0, 2, 3},
+			Scale:    math.SmallestNonzeroFloat32,
+			Expected: []float32{e, 0, e, e},
+		},
+		{
+			Slice:    []float32{e, 0, -1, 2},
+			Scale:    0,
+			Expected: []float32{e, e, e, e},
+		},
+		{
+			Slice:    []float32{e, 0, -2, 2},
+			Scale:    2,
+			Expected: []float32{e, 0, -1, 1},
+		},
+	}
+	for _, tc := range testCases {
+		v := Dup(tc.Slice)
+		ScaleBy(v, tc.Scale)
+		if got, want := v, tc.Expected; !vecNear(got, want) {
+			t.Errorf("Mean(%v) Got %v Want %v", tc.Slice, got, want)
+		}
+	}
+}
+
 func TestFillStep(t *testing.T) {
 	unittest.SmallTest(t)
 	testCases := []struct {
