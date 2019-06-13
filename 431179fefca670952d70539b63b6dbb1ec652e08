@@ -1,0 +1,130 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c1f88e55_3d1d9f8f",
+        "filename": "go/ingestion/fs_ingestionstore/FIRESTORE.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-13T15:27:16Z",
+      "side": 1,
+      "message": "typo straightforward",
+      "range": {
+        "startLine": 19,
+        "startChar": 26,
+        "endLine": 19,
+        "endChar": 42
+      },
+      "revId": "431179fefca670952d70539b63b6dbb1ec652e08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "faf4a582_2a1e9220",
+        "filename": "go/ingestion/fs_ingestionstore/FIRESTORE.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-13T15:27:16Z",
+      "side": 1,
+      "message": "It probably doesn\u0027t matter much, but it\u0027s probably more efficient to use FileName + sep + MD5Hash as the doc ID with empty content.",
+      "revId": "431179fefca670952d70539b63b6dbb1ec652e08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a512fec_c140a1d7",
+        "filename": "go/ingestion/fs_ingestionstore/fs_ingestionstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-13T15:27:16Z",
+      "side": 1,
+      "message": "Not sure if this is worth mentioning: the following edge case is not correctly handled by this implementation:\n1. GCS file A is added with contents \"foo\" and ingested\n2. GCS file A is modified to have contents \"bar\" and ingested; new data overwrites the data from step 1.\n3. GCS file A is modified to have contents \"foo\" again. Ingester ignores this update, and Gold continues to use the data from step 2.",
+      "revId": "431179fefca670952d70539b63b6dbb1ec652e08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "191a2f21_1d1474a9",
+        "filename": "go/ingestion/fs_ingestionstore/fs_ingestionstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-13T15:27:16Z",
+      "side": 1,
+      "message": "nit: use Firestore terminology: fields\n\nAlso s/Col/FieldName/",
+      "range": {
+        "startLine": 18,
+        "startChar": 18,
+        "endLine": 18,
+        "endChar": 25
+      },
+      "revId": "431179fefca670952d70539b63b6dbb1ec652e08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "27fdc9b1_69d6166c",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-13T15:27:16Z",
+      "side": 1,
+      "message": "nit: no longer needed?",
+      "range": {
+        "startLine": 190,
+        "startChar": 1,
+        "endLine": 190,
+        "endChar": 29
+      },
+      "revId": "431179fefca670952d70539b63b6dbb1ec652e08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00a989a1_c220030b",
+        "filename": "golden/cmd/gold_ingestion/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-13T15:27:16Z",
+      "side": 1,
+      "message": "nit: gold_ingestion?",
+      "range": {
+        "startLine": 83,
+        "startChar": 75,
+        "endLine": 83,
+        "endChar": 79
+      },
+      "revId": "431179fefca670952d70539b63b6dbb1ec652e08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
