@@ -61,5 +61,9 @@ tags:
 	-rm tags
 	find . -name "*.go" -print -or -name "*.js" -or -name "*.html" | xargs ctags --append
 
+start_bigtable_emulator:
+	docker run -ti -p 8000:8000 google/cloud-sdk:latest gcloud beta emulators bigtable start \
+		  --project test-project --host-port 0.0.0.0:8000
+
 include ../webtools/webtools.mk
 include ../make/clusters.mk

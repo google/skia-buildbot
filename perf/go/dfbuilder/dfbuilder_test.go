@@ -231,6 +231,7 @@ func TestBuildNew(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 2)
 	assert.Len(t, df.Header, 8)
+	assert.Len(t, df.ParamSet, 2)
 	assert.Len(t, df.TraceSet[",arch=x86,config=8888,"], 8)
 	assert.Len(t, df.TraceSet[",arch=x86,config=565,"], 8)
 
@@ -239,6 +240,7 @@ func TestBuildNew(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 2)
 	assert.Len(t, df.Header, 2)
+	assert.Len(t, df.ParamSet, 2)
 	assert.Len(t, df.TraceSet[",arch=x86,config=8888,"], 2)
 	assert.Len(t, df.TraceSet[",arch=x86,config=565,"], 2)
 
