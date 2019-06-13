@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ca8380b6_e29dc745",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-13T16:51:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9d833ff1_ac9d3446",
+      "range": {
+        "startLine": 38,
+        "startChar": 4,
+        "endLine": 38,
+        "endChar": 80
+      },
+      "revId": "7e0ea8d2d57a59cc80862ae21a1a0b971523a678",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "94808fd5_d9e5b7be",
         "filename": "go/ingestion/helpers.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "7e0ea8d2d57a59cc80862ae21a1a0b971523a678",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2916a8b4_d0321617",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-13T16:51:38Z",
+      "side": 1,
+      "message": "Rather than rejecting it (as I mentioned before, Gold fundamentally expects JSON files not to change), I updated the fields with the ObjectAttrs.",
+      "parentUuid": "94808fd5_d9e5b7be",
+      "range": {
+        "startLine": 304,
+        "startChar": 17,
+        "endLine": 304,
+        "endChar": 64
+      },
+      "revId": "7e0ea8d2d57a59cc80862ae21a1a0b971523a678",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
