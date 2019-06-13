@@ -34,6 +34,24 @@
       "revId": "4ef4eadc4684b6aba36e03b7aafb134178ad491f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5f3e36b3_1d484717",
+        "filename": "autoroll/config/spirv-headers-shaderc.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-06-13T17:23:17Z",
+      "side": 1,
+      "message": "I was joking. But then I wondered if spirv-cross is in spriv-tools too, does not look like it is.",
+      "parentUuid": "dbb29a65_7321b948",
+      "revId": "4ef4eadc4684b6aba36e03b7aafb134178ad491f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
