@@ -12,6 +12,7 @@ import (
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/jsonio"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -128,6 +129,7 @@ func ParseDMResultsFromReader(r io.ReadCloser, name string) (*DMResults, error) 
 // processDMResults opens the given JSON input file and processes it, converting
 // it into a goldingestion.DMResults object and returning it.
 func processDMResults(resultsFile ingestion.ResultFileLocation) (*DMResults, error) {
+	defer shared.NewMetricsTimer("read_dm_results").Stop()
 	r, err := resultsFile.Open()
 	if err != nil {
 		return nil, err

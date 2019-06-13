@@ -189,7 +189,7 @@ type GoogleStorageSource struct {
 func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Client, eventBus eventbus.EventBus) (Source, error) {
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create a Google Storage API client: %s", err)
+		return nil, skerr.Fmt("Failed to create a Google Storage API client: %s", err)
 	}
 
 	return &GoogleStorageSource{
@@ -250,7 +250,7 @@ func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- ResultFileLocation
 	if g.eventBus != nil {
 		eventType, err := g.eventBus.RegisterStorageEvents(g.bucket, g.rootDir, targetFileRegExp, g.storageClient)
 		if err != nil {
-			return sklog.FmtErrorf("Unable to register storage event: %s", err)
+			return skerr.Fmt("Unable to register storage event: %s", err)
 		}
 
 		g.eventBus.SubscribeAsync(eventType, func(evData interface{}) {
