@@ -32,7 +32,10 @@
     "includeBugs": false,
     "includeLog": false,
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/angle/angle.git"
+    "parentRepo": "https://chromium.googlesource.com/angle/angle.git",
+    "transitiveDeps": {
+      "external/spirv-headers": "./third_party/spirv-headers/src"
+    }
   },
   "kubernetes": {
     "cpu": "1",
