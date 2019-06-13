@@ -16,6 +16,24 @@
       "revId": "4ef4eadc4684b6aba36e03b7aafb134178ad491f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dbb29a65_7321b948",
+        "filename": "autoroll/config/spirv-headers-shaderc.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-13T17:19:50Z",
+      "side": 1,
+      "message": "Not sure if you\u0027re joking, or if there are some of these rollers which can actually be merged...",
+      "parentUuid": "1ff24495_be249560",
+      "revId": "4ef4eadc4684b6aba36e03b7aafb134178ad491f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
