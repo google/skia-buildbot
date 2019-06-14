@@ -158,6 +158,10 @@ func (b *BlamerImpl) getBlame(blameDistribution *BlameDistribution, blameCommits
 func (b *BlamerImpl) calculate(tile *tiling.Tile, exp types.Expectations) error {
 	defer shared.NewMetricsTimer("blame_calculate").Stop()
 
+	if len(tile.Commits) == 0 {
+		return nil
+	}
+
 	// Note: blameStart and blameEnd are continuously updated to contain the
 	// smallest start and end index of the ranges for a testName/digest pair.
 	blameStart := map[types.TestName]map[types.Digest]int{}

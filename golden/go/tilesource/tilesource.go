@@ -245,6 +245,12 @@ func (s *CachedTileSourceImpl) getCondensedTile(ctx context.Context, lastCpxTile
 		}
 	}
 
+	if sparseStart == -1 {
+		ret := tiling.NewTile()
+		ret.Commits = ret.Commits[:0]
+		return ret, nil, nil, nil
+	}
+
 	// Trim the prefix of the sparse commits
 	sparseCommits = sparseCommits[sparseStart:]
 	cardinalities = cardinalities[sparseStart:]

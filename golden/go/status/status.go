@@ -213,6 +213,10 @@ func (s *StatusWatcher) calcStatus(cpxTile types.ComplexTile) error {
 
 	// Iterate over the current traces
 	dataTile := cpxTile.GetTile(types.ExcludeIgnoredTraces)
+	if len(dataTile.Commits) == 0 {
+		sklog.Warningf("Empty tile, doing nothing")
+		return nil
+	}
 	tileLen := dataTile.LastCommitIndex() + 1
 	for _, trace := range dataTile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
