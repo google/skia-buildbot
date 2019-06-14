@@ -3836,3 +3836,63 @@ func TestIsolateTaskFailed(t *testing.T) {
 	// Should be one task that failed
 	assert.Equal(t, 1, failedIsolate)
 }
+
+func TestTriggerTaskDeduped(t *testing.T) {
+	// Verify that we properly handle de-duplicated tasks.
+	ctx, gb, _, s, swarmingClient, commits, _, cleanup := testMultipleCandidatesBackfillingEachOtherSetup(t)
+	defer cleanup()
+
+	// Trigger three tasks. We should attempt to trigger tasks at
+	// commits[0], commits[4], and either commits[2] or commits[6]. Mock
+	// deduplication of the task at commits[4] and ensure that the other
+	// two tasks are not deduped.
+	bot1 := makeBot("bot1", map[string]string{"pool": "Skia"})
+	bot2 := makeBot("bot2", map[string]string{"pool": "Skia"})
+	bot3 := makeBot("bot3", map[string]string{"pool": "Skia"})
+	makeTags := func(commit string) []string {
+		return []string{
+			"luci_project:",
+			"milo_host:https://ci.chromium.org/raw/build/%s",
+			"sk_attempt:0",
+			"sk_dim_pool:Skia",
+			"sk_retry_of:",
+			fmt.Sprintf("source_revision:%s", commit),
+			fmt.Sprintf("source_repo:%s/+/%%s", gb.RepoUrl()),
+			fmt.Sprintf("sk_repo:%s", gb.RepoUrl()),
+			fmt.Sprintf("sk_revision:%s", commit),
+			"sk_forced_job_id:",
+			"sk_name:dummytask",
+		}
+	}
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3})
+	swarmingClient.MockTriggerTaskDeduped(makeTags(commits[4]))
+	assert.NoError(t, s.MainLoop(ctx))
+	s.testWaitGroup.Wait()
+	assert.NoError(t, s.tCache.Update())
+	assert.Equal(t, 5, len(s.queue))
+	tasks, err := s.tCache.GetTasksForCommits(gb.RepoUrl(), commits)
+	assert.NoError(t, err)
+
+	var t1, t2, t3 *types.Task
+	for _, byName := range tasks {
+		for _, task := range byName {
+			if task.Revision == commits[0] {
+				t1 = task
+			} else if task.Revision == commits[4] {
+				t2 = task
+			} else if task.Revision == commits[2] || task.Revision == commits[6] {
+				t3 = task
+			} else {
+				assert.FailNow(t, fmt.Sprintf("Task has unknown revision: %v", task))
+			}
+		}
+	}
+	assert.NotNil(t, t1)
+	assert.NotNil(t, t2)
+	assert.NotNil(t, t3)
+
+	// Ensure that t2 was correctly deduped, and the others weren't.
+	assert.Equal(t, types.TASK_STATUS_PENDING, t1.Status)
+	assert.Equal(t, types.TASK_STATUS_SUCCESS, t2.Status)
+	assert.Equal(t, types.TASK_STATUS_PENDING, t3.Status)
+}
