@@ -1,0 +1,35 @@
+FROM arm32v7/debian:buster-slim
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt-get update && apt-get install -y \
+      python2.7 \
+      curl \
+      apt-transport-https \
+      ca-certificates \
+      libusb-1.0-0 \
+      android-tools-adb \
+      usbutils \
+      --no-install-recommends
+
+
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=923479
+RUN touch /etc/ssl/certs/ca-certificates.crt
+RUN openssl rehash -v /etc/ssl/certs
+
+RUN ln `which adb` /usr/bin/adb.1.0.35
+RUN ln `which python2.7` /usr/bin/python
+
+RUN groupadd --gid 2000 chrome-bot \
+  && useradd -m --uid 2000 --gid 2000 chrome-bot \
+  && usermod -a -G plugdev chrome-bot
+
+COPY . /
+
+USER chrome-bot:chrome-bot
+
+RUN touch /home/chrome-bot/.boto
+
+USER root:root
+
+CMD ["/start_swarming"]
