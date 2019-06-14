@@ -21,6 +21,7 @@ type TestClient struct {
 	taskList    []*swarming_api.SwarmingRpcsTaskRequestMetadata
 	taskListMtx sync.RWMutex
 
+	triggerDedupe  map[string]bool
 	triggerFailure map[string]bool
 	triggerMtx     sync.Mutex
 }
@@ -29,6 +30,7 @@ func NewTestClient() *TestClient {
 	return &TestClient{
 		botList:        []*swarming_api.SwarmingRpcsBotInfo{},
 		taskList:       []*swarming_api.SwarmingRpcsTaskRequestMetadata{},
+		triggerDedupe:  map[string]bool{},
 		triggerFailure: map[string]bool{},
 	}
 }
@@ -195,10 +197,15 @@ func (c *TestClient) TriggerTask(t *swarming_api.SwarmingRpcsNewTaskRequest) (*s
 		TaskResult: &swarming_api.SwarmingRpcsTaskResult{
 			CreatedTs: createdTs,
 			Name:      t.Name,
-			State:     "PENDING",
+			State:     swarming.TASK_STATE_PENDING,
 			TaskId:    id,
 			Tags:      t.Tags,
 		},
+	}
+	if c.triggerDedupe[md5] {
+		delete(c.triggerDedupe, md5)
+		rv.TaskResult.State = swarming.TASK_STATE_COMPLETED // No deduplicated state.
+		rv.TaskResult.DedupedFrom = uuid.New().String()
 	}
 	c.taskListMtx.Lock()
 	defer c.taskListMtx.Unlock()
@@ -269,4 +276,12 @@ func (c *TestClient) MockTriggerTaskFailure(tags []string) {
 	c.triggerMtx.Lock()
 	defer c.triggerMtx.Unlock()
 	c.triggerFailure[md5Tags(tags)] = true
+}
+
+// MockTriggerTaskDeduped forces the next call to TriggerTask which matches
+// the given tags to result in a deduplicated task.
+func (c *TestClient) MockTriggerTaskDeduped(tags []string) {
+	c.triggerMtx.Lock()
+	defer c.triggerMtx.Unlock()
+	c.triggerDedupe[md5Tags(tags)] = true
 }
