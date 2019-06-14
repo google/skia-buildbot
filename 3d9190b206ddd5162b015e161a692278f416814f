@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ff3e7cd1_b934605c",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1342,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-14T13:39:08Z",
+      "side": 1,
+      "message": "Note: we don\u0027t store anything to indicate that this task was deduplicated as opposed to actually having run.  I don\u0027t know that we care.",
+      "range": {
+        "startLine": 1342,
+        "startChar": 3,
+        "endLine": 1342,
+        "endChar": 43
+      },
+      "revId": "3d9190b206ddd5162b015e161a692278f416814f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
