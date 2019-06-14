@@ -26,6 +26,12 @@ testgo:
 run_server_local: build
 	debugger-assets --port=localhost:9000 --local --logtostderr
 
+.PHONY: run_server_local_wasm
+run_server_local_wasm: build
+	debugger-assets --port=localhost:9000 --local --logtostderr --v2_at_root
+
+# this makes two docker apps, one called debugger-assets with the legacy behavior and one
+# called debugger-assets-wasm which include the wasm app and serves debugger v2 at /
 .PHONY: release
 release: build
 	docker pull gcr.io/skia-public/skia-wasm-release:prod

@@ -33,7 +33,10 @@ WASM Debugger
 =============
 
 There is also a version of the debugger that uses a wasm module instead of the skiaserve backend.
-It is served at http://debugger-assets.skia.org/res/v2.html
+It is always served at http://debugger-assets.skia.org/res/v2.html.
+When debugger-assets is run with --v2_at_root it is also served at /.
+A version of debugger-assets running this flag is served at debugger.skia.org, as this version of
+the debugger has become the primary one as of June 2019.
 
 This application is in res/imp/wasm-app.html and its wasm code is in
 experimental/wasm-skp-debugger in the skia repo.
@@ -59,7 +62,7 @@ an http server rather than opening the file directly because wasm-loading code r
 type to be correct. To start this server:
 
     cd ~/go/src/go.skia.org/infra/debugger-assets
-    make run_server_local
+    make run_server_local_wasm
 
 then visit <http://localhost:9000/res/imp/wasm-app-demo.html>
 
@@ -73,4 +76,4 @@ and debugger.js from `gcr.io/skia-public/skia-wasm-release:prod` instead of your
     SKIP_UPLOAD=1 make release
     docker run --expose=8000 -p 8000:8000 debugger-assets:latest
 
-then visit <http://localhost:8000/res/v2.html>
+then visit <http://localhost:8000/>
