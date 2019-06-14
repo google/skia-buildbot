@@ -1339,6 +1339,13 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- e
 			}
 			t.Created = created
 			t.SwarmingTaskId = resp.TaskId
+			// The task may have been de-duplicated.
+			if resp.TaskResult != nil && resp.TaskResult.State == swarming.TASK_STATE_COMPLETED {
+				if _, err := t.UpdateFromSwarming(resp.TaskResult); err != nil {
+					recordErr("Failed to update de-duplicated task", err)
+					return
+				}
+			}
 			triggered <- t
 		}(candidate)
 	}
