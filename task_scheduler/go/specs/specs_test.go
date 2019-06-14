@@ -41,6 +41,7 @@ func TestCopyTaskSpec(t *testing.T) {
 		ExtraTags: map[string]string{
 			"dummy_tag": "dummy_val",
 		},
+		Idempotent:     true,
 		IoTimeout:      10 * time.Minute,
 		Isolate:        "abc123",
 		MaxAttempts:    5,
