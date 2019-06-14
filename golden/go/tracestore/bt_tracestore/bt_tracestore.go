@@ -4,7 +4,6 @@ package bt_tracestore
 
 import (
 	"context"
-	"encoding/binary"
 	"hash/crc32"
 	"sort"
 	"strconv"
@@ -57,9 +56,6 @@ type BTTraceStore struct {
 	cacheOps bool
 	// maps rowName (string) -> *OpsCacheEntry
 	opsCache sync.Map
-
-	availIDsMutex sync.Mutex
-	availIDs      []digestID
 }
 
 // New implements the TraceStore interface backed by BigTable. If cache is true,
@@ -77,7 +73,6 @@ func New(ctx context.Context, conf BTConfig, cache bool) (*BTTraceStore, error) 
 		shards:   DefaultShards,
 		table:    client.Open(conf.TableID),
 		cacheOps: cache,
-		availIDs: []digestID{},
 	}
 	return ret, nil
 }
@@ -114,26 +109,8 @@ func (b *BTTraceStore) Put(ctx context.Context, commitHash string, entries []*tr
 		return skerr.Fmt("cannot update paramset: %s", err)
 	}
 
-	// Similarly, if we have some new digests (almost certainly), we need to update
-	// the digestMap with them in there. Of note, we store this
-	// map of string (types.Digest) -> int64(DigestId) in big table, then refer to
-	// the DigestID elsewhere in the table. DigestIds are essentially a monotonically
-	// increasing arbitrary number.
-	digestMap, err := b.updateDigestMap(ctx, digestSet)
-	if err != nil {
-		sklog.Warningf("Bad digestSet: %#v", digestSet)
-		return skerr.Fmt("cannot update digest map: %s", err)
-	}
-
-	metrics2.GetInt64Metric("gold_digest_map_size").Update(int64(digestMap.Len()))
-
-	if len(digestMap.Delta(digestSet)) != 0 {
-		// Should never happen
-		return skerr.Fmt("delta should be empty at this point: %v", digestMap.Delta(digestSet))
-	}
-
 	// These are two parallel arrays. mutations[i] should be applied to rowNames[i] for all i.
-	rowNames, mutations, err := b.createPutMutations(entries, ts, tileKey, commitIndex, ops, digestMap)
+	rowNames, mutations, err := b.createPutMutations(entries, ts, tileKey, commitIndex, ops)
 	if err != nil {
 		return skerr.Fmt("could not create mutations to put data: %s", err)
 	}
@@ -149,7 +126,7 @@ func (b *BTTraceStore) Put(ctx context.Context, commitHash string, entries []*tr
 // the rows that need updating and the mutations to apply to those rows.
 // Specifically, the mutations will add the given entries to BT, clearing out
 // anything that was there previously.
-func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, ts time.Time, tk tileKey, commitIndex int, ops *paramtools.OrderedParamSet, dm *digestMap) ([]string, []*bigtable.Mutation, error) {
+func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, ts time.Time, tk tileKey, commitIndex int, ops *paramtools.OrderedParamSet) ([]string, []*bigtable.Mutation, error) {
 	// These mutations...
 	mutations := make([]*bigtable.Mutation, 0, len(entries))
 	// .. should be applied to these rows.
@@ -171,23 +148,13 @@ func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, ts time.T
 		rowName := b.calcShardedRowName(tk, typeTrace, string(traceID))
 		rowNames = append(rowNames, rowName)
 
-		dID, err := dm.ID(entry.Digest)
-		if err != nil {
-			// this should never happen, the digest map should know about every digest already.
-			return nil, nil, skerr.Fmt("could not fetch id for digest %s: %s", entry.Digest, err)
-		}
-
 		// Create a mutation that puts the given digest at the given row
 		// (i.e. the trace combined with the tile), at the given column
 		// (i.e. the commit offset into this tile).
 		mut := bigtable.NewMutation()
 		column := strconv.Itoa(commitIndex)
-		dBytes, err := dID.MarshalBinary()
-		if err != nil {
-			// this should never happen, we are just marshalling an int to binary
-			return nil, nil, skerr.Fmt("could not encode digest id %d to bytes: %s", dID, err)
-		}
-		mut.Set(traceFamily, column, btTS, dBytes)
+
+		mut.Set(traceFamily, column, btTS, toBytes(entry.Digest))
 		// Delete anything that existed at this cell before now.
 		mut.DeleteTimestampRange(traceFamily, column, 0, before)
 		mutations = append(mutations, mut)
@@ -283,16 +250,6 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 		tk--
 	}
 
-	var digestMap *digestMap
-	egroup.Go(func() error {
-		var err error
-		digestMap, err = b.getDigestMap(ctx)
-		if err != nil {
-			return skerr.Fmt("could not load digestMap: %s", err)
-		}
-		return nil
-	})
-
 	if err := egroup.Wait(); err != nil {
 		return nil, nil, skerr.Fmt("could not load %d tiles: %s", nTiles, err)
 	}
@@ -330,12 +287,7 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 			// Build up the total set of params
 			paramSet.AddParams(params)
 
-			// Convert the digests from integer IDs to strings.
-			digestIDs := encValues[startCommitIndex : startCommitIndex+segLen]
-			digests, err := digestMap.DecodeIDs(digestIDs)
-			if err != nil {
-				return nil, nil, skerr.Fmt("corrupted digest id - could not decode: %s", err)
-			}
+			digests := encValues[startCommitIndex : startCommitIndex+segLen]
 			copy(gt.Digests[commitIDX:commitIDX+segLen], digests)
 		}
 
@@ -473,7 +425,7 @@ func (b *BTTraceStore) loadTile(ctx context.Context, tileKey tileKey) (*encTile,
 		return nil
 	})
 
-	var traces map[encodedTraceID][]digestID
+	var traces map[encodedTraceID][]types.Digest
 	egroup.Go(func() error {
 		var err error
 		traces, err = b.loadEncodedTraces(ctx, tileKey)
@@ -496,10 +448,10 @@ func (b *BTTraceStore) loadTile(ctx context.Context, tileKey tileKey) (*encTile,
 // loadEncodedTraces returns all traces belonging to the given tileKey.
 // As outlined in BIGTABLE.md, the trace ids and the digest ids they
 // map to are in an encoded form and will need to be expanded prior to use.
-func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (map[encodedTraceID][]digestID, error) {
+func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (map[encodedTraceID][]types.Digest, error) {
 	defer metrics2.FuncTimer().Stop()
 	var egroup errgroup.Group
-	shardResults := make([]map[encodedTraceID][]digestID, b.shards)
+	shardResults := make([]map[encodedTraceID][]types.Digest, b.shards)
 	traceCount := int64(0)
 
 	// Query all shards in parallel.
@@ -509,16 +461,16 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 				// This prefix will match all traces belonging to the
 				// current shard in the current tile.
 				prefixRange := bigtable.PrefixRange(shardedRowName(shard, typeTrace, tileKey, ""))
-				target := map[encodedTraceID][]digestID{}
+				target := map[encodedTraceID][]types.Digest{}
 				shardResults[shard] = target
 				var parseErr error
 				err := b.table.ReadRows(ctx, prefixRange, func(row bigtable.Row) bool {
 					// The encoded trace id is the "subkey" part of the row name.
 					traceKey := encodedTraceID(extractSubkey(row.Key()))
 					// If this is the first time we've seen the trace, initialize the
-					// slice of digest ids for it.
+					// slice of digests for it.
 					if _, ok := target[traceKey]; !ok {
-						target[traceKey] = make([]digestID, b.tileSize)
+						target[traceKey] = make([]types.Digest, b.tileSize)
 						atomic.AddInt64(&traceCount, 1)
 					}
 
@@ -532,12 +484,6 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 							parseErr = err
 							return false
 						}
-						var dID digestID
-						if err := dID.UnmarshalBinary(col.Value); err != nil {
-							// This should never happen
-							parseErr = err
-							return false
-						}
 						if idx < 0 || idx >= int(b.tileSize) {
 							// This would happen if the tile size changed from a past
 							// value. It shouldn't be changed, even if the Gold tile size
@@ -545,7 +491,8 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 							parseErr = skerr.Fmt("got index %d that is outside of the target slice of length %d", idx, len(target))
 							return false
 						}
-						target[traceKey][idx] = dID
+						digest := fromBytes(col.Value)
+						target[traceKey][idx] = digest
 					}
 					return true
 				}, bigtable.RowFilter(bigtable.LatestNFilter(1)))
@@ -562,12 +509,12 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 	}
 
 	// Merge all the results together
-	ret := make(map[encodedTraceID][]digestID, traceCount)
+	ret := make(map[encodedTraceID][]types.Digest, traceCount)
 	for _, r := range shardResults {
-		for traceKey, digestIDs := range r {
+		for traceKey, digests := range r {
 			// different shards should never share results for a tracekey
 			// since a trace always maps to the same shard.
-			ret[traceKey] = digestIDs
+			ret[traceKey] = digests
 		}
 	}
 
@@ -608,226 +555,6 @@ func (b *BTTraceStore) applyBulkBatched(ctx context.Context, rowNames []string, 
 func (b *BTTraceStore) calcShardedRowName(tileKey tileKey, rowType, subkey string) string {
 	shard := int32(crc32.ChecksumIEEE([]byte(subkey)) % uint32(b.shards))
 	return shardedRowName(shard, rowType, tileKey, subkey)
-}
-
-// To avoid having one monolithic row, we take the first three characters of the digest
-// and use it as a subkey in the row. Then, what remains is used as the column name.
-// In practice this means our digests will be split using three hexadecimal characters, so
-// we will have 16^3 = 4096 rows for our digest map.
-func (b *BTTraceStore) rowAndColNameFromDigest(digest types.Digest) (string, string) {
-	subkey := string(digest[:3])
-	colName := string(digest[3:])
-	return b.calcShardedRowName(digestMapTile, typeDigestMap, subkey), colName
-}
-
-// getDigestMap gets the global (i.e. same for all tiles) digestMap.
-func (b *BTTraceStore) getDigestMap(ctx context.Context) (*digestMap, error) {
-	defer metrics2.FuncTimer().Stop()
-	// Query all shards in parallel.
-	var egroup errgroup.Group
-	shardResults := make([]map[types.Digest]digestID, b.shards)
-	total := int64(0)
-	for shard := int32(0); shard < b.shards; shard++ {
-		func(shard int32) {
-			egroup.Go(func() error {
-				prefRange := bigtable.PrefixRange(shardedRowName(shard, typeDigestMap, digestMapTile, ""))
-				var idx int64
-				var parseErr error = nil
-				ret := map[types.Digest]digestID{}
-				err := b.table.ReadRows(ctx, prefRange, func(row bigtable.Row) bool {
-					digestPrefix := extractSubkey(row.Key())
-					for _, col := range row[digestMapFamily] {
-						idx, parseErr = strconv.ParseInt(string(col.Value), 10, 64)
-						if parseErr != nil {
-							// Should never happen
-							return false
-						}
-						digest := types.Digest(digestPrefix + strings.TrimPrefix(col.Column, digestMapFamilyPrefix))
-						ret[digest] = digestID(idx)
-					}
-					return true
-				}, bigtable.RowFilter(bigtable.LatestNFilter(1)))
-
-				if err != nil {
-					return skerr.Fmt("problem fetching shard %d of digestmap: %s", shard, err)
-				}
-				if parseErr != nil {
-					return parseErr
-				}
-
-				shardResults[shard] = ret
-				atomic.AddInt64(&total, int64(len(ret)))
-				return nil
-			})
-		}(shard)
-	}
-	if err := egroup.Wait(); err != nil {
-		return nil, skerr.Fmt("problem fetching digestmap: %s", err)
-	}
-
-	ret := newDigestMap(int(total))
-	for _, dm := range shardResults {
-		if err := ret.Add(dm); err != nil {
-			// put the digest map latter in case it gets truncated
-			return nil, skerr.Fmt("could not build DigestMap: %s \nresults %#v", err, dm)
-		}
-	}
-	return ret, nil
-}
-
-// getIDs returns a []DigestID of length n where each of the
-// digestIDs are unique (even between processes).
-func (b *BTTraceStore) getIDs(ctx context.Context, n int) ([]digestID, error) {
-	defer metrics2.FuncTimer().Stop()
-	// Extract up to n ids from those we have already cached.
-	b.availIDsMutex.Lock()
-	defer b.availIDsMutex.Unlock()
-	toExtract := util.MinInt(len(b.availIDs), n)
-
-	ids := make([]digestID, 0, n)
-	ids = append(ids, b.availIDs[:toExtract]...)
-	b.availIDs = b.availIDs[toExtract:]
-
-	// missing is how many ids we are short
-	missing := int64(n - len(ids))
-	if missing == 0 {
-		return ids, nil
-	}
-	// For performance reasons, make a few big requests for ids instead of many small ones.
-	// That is, always request numReservedIds extra.
-	toRequest := missing + numReservedIds
-	// Reserve new IDs via the ID counter
-	rmw := bigtable.NewReadModifyWrite()
-	rmw.Increment(idCounterFamily, idCounterColumn, toRequest)
-	row, err := b.table.ApplyReadModifyWrite(ctx, idCounterRow, rmw)
-	if err != nil {
-		return nil, skerr.Fmt("could not fetch counter from BT: %s", err)
-	}
-
-	// ri are the cells in Row of the given counter family
-	// This should be 1 cell belonging to 1 column.
-	ri, ok := row[idCounterFamily]
-	if !ok {
-		// should never happen
-		return nil, skerr.Fmt("malformed response - no id counter family: %#v", ri)
-	}
-	if len(ri) != 1 {
-		// should never happen
-		return nil, skerr.Fmt("malformed response - expected 1 cell: %#v", ri)
-	}
-
-	maxID := digestID(binary.BigEndian.Uint64(ri[0].Value))
-
-	lastID := maxID - digestID(toRequest)
-	// ID of 0 is a special case - it's already assigned to MISSING_DIGEST, so skip it.
-	if lastID == missingDigestID {
-		lastID++
-	}
-	for i := lastID; i < maxID; i++ {
-		// Give the first ids to the current allocation request...
-		if missing > 0 {
-			ids = append(ids, i)
-		} else {
-			// ... and put the remainder in the store for later.
-			b.availIDs = append(b.availIDs, i)
-		}
-		missing--
-	}
-
-	return ids, nil
-}
-
-// returnIDs can be called with a []DigestID of ids that were not actually
-// assigned to digests. This allows them to be used by future requests to
-// getIDs.
-func (b *BTTraceStore) returnIDs(unusedIDs []digestID) {
-	b.availIDsMutex.Lock()
-	defer b.availIDsMutex.Unlock()
-	b.availIDs = append(b.availIDs, unusedIDs...)
-}
-
-// getOrAddDigests fills the given digestMap with the given digests
-// assigned to a DigestID if they don't already have an assignment.
-// This is a helper function for updateDigestMap
-// TODO(kjlubick): This currently makes a lot of requests to BT -
-// Should there be some caching done here to prevent that?
-func (b *BTTraceStore) getOrAddDigests(ctx context.Context, digests []types.Digest, digestMap *digestMap) (*digestMap, error) {
-	defer metrics2.FuncTimer().Stop()
-	availIDs, err := b.getIDs(ctx, len(digests))
-	if err != nil {
-		return nil, err
-	}
-
-	now := bigtable.Time(time.Now())
-	newIDMapping := make(map[types.Digest]digestID, len(digests))
-	unusedIDs := make([]digestID, 0, len(availIDs))
-	for idx, digest := range digests {
-		idVal := availIDs[idx]
-		if _, err := digestMap.ID(digest); err == nil {
-			// digestMap already has a mapping for this digest, no need to check
-			// if BT has seen it yet (because it has).
-			// Should never happen because we we've already done this check in updateDigestMap.
-			unusedIDs = append(unusedIDs, idVal)
-			continue
-		}
-		rowName, colName := b.rowAndColNameFromDigest(digest)
-		// This mutation says "Add an entry to the map for digest -> idVal iff
-		// the digest doesn't already have a mapping".
-		addMut := bigtable.NewMutation()
-		addMut.Set(digestMapFamily, colName, now, []byte(strconv.FormatInt(int64(idVal), 10)))
-		filter := bigtable.ColumnFilter(colName)
-		// Note that we only add the value if filter is false, i.e. the column does not
-		// already exist.
-		condMut := bigtable.NewCondMutation(filter, nil, addMut)
-		var digestAlreadyHadId bool
-		if err := b.table.Apply(ctx, rowName, condMut, bigtable.GetCondMutationResult(&digestAlreadyHadId)); err != nil {
-			return nil, skerr.Fmt("could not check if row %s col %s already had a DigestID: %s", rowName, colName, err)
-		}
-
-		// We didn't need this ID so let's re-use it later.
-		if digestAlreadyHadId {
-			unusedIDs = append(unusedIDs, idVal)
-		} else {
-			newIDMapping[digest] = idVal
-		}
-	}
-
-	// If all ids were added to BT, then we know our newIDMapping can simply be added
-	// to what we already have, since there were no collisions between digests and what
-	// was in the table already.
-	if len(unusedIDs) == 0 {
-		if err := digestMap.Add(newIDMapping); err != nil {
-			return nil, err
-		}
-		return digestMap, nil
-	}
-	// At this point, some of the digests already had ids, so we should reload
-	// the entire digestMap to make sure we have the full picture.
-	// TODO(kjlubick): Can we not just add what new ones we saw to what we already have?
-
-	// Return the unused IDs for later use.
-	b.returnIDs(unusedIDs)
-	return b.getDigestMap(ctx)
-}
-
-// updateDigestMap returns the current global DigestMap after making sure the given
-// digests are a part of it.
-func (b *BTTraceStore) updateDigestMap(ctx context.Context, digests types.DigestSet) (*digestMap, error) {
-	defer metrics2.FuncTimer().Stop()
-	// Load the digest map from BT.
-	// TODO(kjlubick): should we cache this map and first check to see if the digests
-	// are all in there?
-	digestMap, err := b.getDigestMap(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	delta := digestMap.Delta(digests)
-	if len(delta) == 0 {
-		return digestMap, nil
-	}
-
-	return b.getOrAddDigests(ctx, delta, digestMap)
 }
 
 // Copied from btts.go in infra/perf
