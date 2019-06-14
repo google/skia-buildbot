@@ -134,7 +134,7 @@ func TestGoldProcessor(t *testing.T) {
 
 	// Set up the processor.
 	eventBus := eventbus.New()
-	processor, err := newGoldProcessor(vcs, ingesterConf, nil, eventBus)
+	processor, err := newTraceDBProcessor(vcs, ingesterConf, nil, eventBus)
 	assert.NoError(t, err)
 	defer util.Close(processor.(*goldProcessor).traceDB)
 

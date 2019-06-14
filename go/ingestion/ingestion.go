@@ -142,6 +142,10 @@ func (i *Ingester) getInputChannel(ctx context.Context) (<-chan ResultFileLocati
 // scheduled intervals (controlled by i.runEvery) and generates synthetic
 // storage events if the files in the source have not been ingested yet.
 func (i *Ingester) watchSource(source Source) {
+	if i.minDuration == 0 {
+		sklog.Infof("Not going to do polling because minDays = 0")
+		return
+	}
 	sklog.Infof("Watching source %s", source.ID())
 
 	// Repeat will run the function right away and then in intervals of 'runEvery'.
@@ -207,6 +211,7 @@ func (i *Ingester) processResult(ctx context.Context, rfl ResultFileLocation) {
 		}
 	}
 	i.addToProcessedFiles(name, md5)
+
 	i.eventProcessMetrics.liveness.Reset()
 }
 
