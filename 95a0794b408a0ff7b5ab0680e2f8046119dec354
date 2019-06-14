@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cf3c1e7c_cfd79127",
+        "filename": "golden/go/baseline/gcs_baseliner/baseliner.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-14T17:17:29Z",
+      "side": 1,
+      "message": "nit: maybe move these lines to line 98\n\n(The comment really applies to line 119, so it\u0027s confusing to have this code between.)",
+      "range": {
+        "startLine": 113,
+        "startChar": 0,
+        "endLine": 118,
+        "endChar": 0
+      },
+      "revId": "95a0794b408a0ff7b5ab0680e2f8046119dec354",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
