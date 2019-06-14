@@ -111,6 +111,11 @@ func (b *BaselinerImpl) PushMasterBaselines(tileInfo baseline.TileInfo, targetHa
 	// extrapolate the baselines of the new commits to be identical to the last commit in the tile.
 	// As new data arrive in the next tile, we update the baselines for these commits.
 	tileCommits := tileInfo.AllCommits()
+	if len(tileCommits) == 0 {
+		sklog.Warningf("tile is empty, doing nothing")
+		return nil, nil
+	}
+
 	extraCommits, err := b.getCommitsSince(tileCommits[len(tileCommits)-1])
 	if err != nil {
 		return nil, skerr.Fmt("error getting commits since %v: %s", tileCommits[len(tileCommits)-1], err)
