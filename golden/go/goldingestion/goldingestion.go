@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/ingestion"
@@ -13,41 +14,47 @@ import (
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/config"
+	"go.skia.org/infra/golden/go/shared"
+	"go.skia.org/infra/golden/go/tracestore"
+	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
 	"go.skia.org/infra/golden/go/types"
 )
 
 const (
 	// Configuration option that identifies the address of the traceDB service.
-	CONFIG_TRACESERVICE = "TraceService"
+	tracedbServiceConfig = "TraceService"
 
 	// Configuration option for the secondary repository.
-	CONFIG_SECONDARY_REPO = "SecondaryRepoURL"
+	secondaryRepoConfig = "SecondaryRepoURL"
 
 	// Configuration option to define the regular expression to extract the
 	// commit from the secondary repo. The provided regular expression must
 	// contain exactly one group which maps to the commit in the DEPS file.
-	CONFIG_SECONDARY_REG_EX = "SecondaryRegEx"
+	secondaryRepoRegexConfig = "SecondaryRegEx"
+
+	btGoldIngester = "gold-bt"
 )
 
 // Register the processor with the ingestion framework.
 func init() {
-	ingestion.Register(config.CONSTRUCTOR_GOLD, newGoldProcessor)
+	ingestion.Register(config.CONSTRUCTOR_GOLD, newTraceDBProcessor)
+	ingestion.Register(btGoldIngester, newTraceStoreProcessor)
 }
 
-// goldProcessor implements the ingestion.Processor interface for gold.
-type goldProcessor struct {
+// traceDBProcessor implements the ingestion.Processor interface for gold.
+type traceDBProcessor struct {
 	traceDB tracedb.DB
 	vcs     vcsinfo.VCS
 }
 
 // implements the ingestion.Constructor signature.
-func newGoldProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, eventBus eventbus.EventBus) (ingestion.Processor, error) {
-	traceDB, err := tracedb.NewTraceServiceDBFromAddress(config.ExtraParams[CONFIG_TRACESERVICE], types.GoldenTraceBuilder)
+func newTraceDBProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, _ *http.Client, _ eventbus.EventBus) (ingestion.Processor, error) {
+	traceDB, err := tracedb.NewTraceServiceDBFromAddress(config.ExtraParams[tracedbServiceConfig], types.GoldenTraceBuilder)
 	if err != nil {
 		return nil, err
 	}
 
-	ret := &goldProcessor{
+	ret := &traceDBProcessor{
 		traceDB: traceDB,
 		vcs:     vcs,
 	}
@@ -55,7 +62,7 @@ func newGoldProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, clie
 }
 
 // See ingestion.Processor interface.
-func (g *goldProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
+func (g *traceDBProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
 	dmResults, err := processDMResults(resultsFile)
 	if err != nil {
 		return skerr.Fmt("could not process results file: %s", err)
@@ -69,7 +76,7 @@ func (g *goldProcessor) Process(ctx context.Context, resultsFile ingestion.Resul
 	var commit *vcsinfo.LongCommit = nil
 	// If the target commit is not in the primary repository we look it up
 	// in the secondary that has the primary as a dependency.
-	targetHash, err := g.getCanonicalCommitHash(ctx, dmResults.GitHash)
+	targetHash, err := getCanonicalCommitHash(ctx, g.vcs, dmResults.GitHash)
 	if err != nil {
 		if err == ingestion.IgnoreResultsFileErr {
 			return ingestion.IgnoreResultsFileErr
@@ -108,10 +115,10 @@ func (g *goldProcessor) Process(ctx context.Context, resultsFile ingestion.Resul
 }
 
 // See ingestion.Processor interface.
-func (g *goldProcessor) BatchFinished() error { return nil }
+func (g *traceDBProcessor) BatchFinished() error { return nil }
 
 // getCommitID extracts the commitID from the given commit.
-func (g *goldProcessor) getCommitID(commit *vcsinfo.LongCommit) (*tracedb.CommitID, error) {
+func (g *traceDBProcessor) getCommitID(commit *vcsinfo.LongCommit) (*tracedb.CommitID, error) {
 	return &tracedb.CommitID{
 		Timestamp: commit.Timestamp.Unix(),
 		ID:        commit.Hash,
@@ -122,11 +129,11 @@ func (g *goldProcessor) getCommitID(commit *vcsinfo.LongCommit) (*tracedb.Commit
 // getCanonicalCommitHash returns the commit hash in the primary repository. If the given
 // target hash is not in the primary repository it will try and find it in the secondary
 // repository which has the primary as a dependency.
-func (g *goldProcessor) getCanonicalCommitHash(ctx context.Context, targetHash string) (string, error) {
+func getCanonicalCommitHash(ctx context.Context, vcs vcsinfo.VCS, targetHash string) (string, error) {
 	// If it is not in the primary repo.
-	if !isCommit(ctx, g.vcs, targetHash) {
+	if !isCommit(ctx, vcs, targetHash) {
 		// Extract the commit.
-		foundCommit, err := g.vcs.ResolveCommit(ctx, targetHash)
+		foundCommit, err := vcs.ResolveCommit(ctx, targetHash)
 		if err != nil && err != vcsinfo.NoSecondaryRepo {
 			return "", fmt.Errorf("Unable to resolve commit %s in primary or secondary repo. Got err: %s", targetHash, err)
 		}
@@ -142,7 +149,7 @@ func (g *goldProcessor) getCanonicalCommitHash(ctx context.Context, targetHash s
 
 		// Check if the found commit is actually in the primary repository. This could indicate misconfiguration
 		// of the secondary repo.
-		if !isCommit(ctx, g.vcs, foundCommit) {
+		if !isCommit(ctx, vcs, foundCommit) {
 			return "", fmt.Errorf("Found invalid commit %s in secondary repo at commit %s. Not contained in primary repo.", foundCommit, targetHash)
 		}
 		sklog.Infof("Commit translation: %s -> %s", targetHash, foundCommit)
@@ -155,4 +162,116 @@ func (g *goldProcessor) getCanonicalCommitHash(ctx context.Context, targetHash s
 func isCommit(ctx context.Context, vcs vcsinfo.VCS, commitHash string) bool {
 	ret, err := vcs.Details(ctx, commitHash, false)
 	return (err == nil) && (ret != nil)
+}
+
+const (
+	btProjectConfig  = "BTProjectID"
+	btInstanceConfig = "BTInstance"
+	btTableConfig    = "BTTable"
+)
+
+func newTraceStoreProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, _ *http.Client, _ eventbus.EventBus) (ingestion.Processor, error) {
+	btc := bt_tracestore.BTConfig{
+		ProjectID:  config.ExtraParams[btProjectConfig],
+		InstanceID: config.ExtraParams[btInstanceConfig],
+		TableID:    config.ExtraParams[btTableConfig],
+		VCS:        vcs,
+	}
+
+	return NewTraceStoreProcessor(btc)
+}
+
+func NewTraceStoreProcessor(btc bt_tracestore.BTConfig) (ingestion.Processor, error) {
+	bts, err := bt_tracestore.New(context.Background(), btc, true)
+	if err != nil {
+		return nil, skerr.Fmt("could not instantiate BT tracestore: %s", err)
+	}
+	return &btProcessor{
+		ts:  bts,
+		vcs: btc.VCS,
+	}, nil
+}
+
+// btProcessor implements the ingestion.Processor interface for gold using
+// the BigTable TraceStore
+type btProcessor struct {
+	ts  tracestore.TraceStore
+	vcs vcsinfo.VCS
+}
+
+// Process implements the ingestion.Processor interface.
+func (b *btProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
+	dmResults, err := processDMResults(resultsFile)
+	if err != nil {
+		return skerr.Fmt("could not process results file: %s", err)
+	}
+
+	if len(dmResults.Results) == 0 {
+		sklog.Infof("ignoring file %s because it has no results", resultsFile.Name())
+		return ingestion.IgnoreResultsFileErr
+	}
+
+	var commit *vcsinfo.LongCommit = nil
+	// If the target commit is not in the primary repository we look it up
+	// in the secondary that has the primary as a dependency.
+	targetHash, err := getCanonicalCommitHash(ctx, b.vcs, dmResults.GitHash)
+	if err != nil {
+		if err == ingestion.IgnoreResultsFileErr {
+			return ingestion.IgnoreResultsFileErr
+		}
+		return skerr.Fmt("could not identify canonical commit from %q: %s", dmResults.GitHash, err)
+	}
+
+	commit, err = b.vcs.Details(ctx, targetHash, true)
+	if err != nil {
+		return skerr.Fmt("could not get details for git commit %q: %s", targetHash, err)
+	}
+
+	if !commit.Branches["master"] {
+		sklog.Warningf("Commit %s is not in master branch. Got branches: %v", commit.Hash, commit.Branches)
+		return ingestion.IgnoreResultsFileErr
+	}
+
+	// Get the entries that should be added to the tracestore.
+	entries, err := extractTraceStoreEntries(dmResults)
+	if err != nil {
+		return skerr.Fmt("could not create entries for results: %s", err)
+	}
+
+	t := time.Unix(resultsFile.TimeStamp(), 0)
+
+	defer shared.NewMetricsTimer("put_tracestore_entry").Stop()
+
+	sklog.Infof("tracestore.Put(%s, %d entries, %s)", targetHash, len(entries), t)
+	// Write the result to the tracestore.
+	err = b.ts.Put(ctx, targetHash, entries, t)
+	if err != nil {
+		return skerr.Fmt("could not add to tracedb: %s", err)
+	}
+	return nil
+}
+
+// Process implements the ingestion.Processor interface.
+func (b *btProcessor) BatchFinished() error { return nil }
+
+func extractTraceStoreEntries(dm *DMResults) ([]*tracestore.Entry, error) {
+	ret := make([]*tracestore.Entry, 0, len(dm.Results))
+	for _, result := range dm.Results {
+		_, params := idAndParams(dm, result)
+		if ignoreResult(dm, params) {
+			continue
+		}
+
+		ret = append(ret, &tracestore.Entry{
+			Params: params,
+			Digest: result.Digest,
+		})
+	}
+
+	// If all results were ignored then we return an error.
+	if len(ret) == 0 {
+		return nil, fmt.Errorf("No valid results in file %s.", dm.name)
+	}
+
+	return ret, nil
 }

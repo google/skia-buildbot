@@ -33,6 +33,10 @@ import (
 	"google.golang.org/api/option"
 )
 
+const (
+	subscriptionId = "gold-ingestion"
+)
+
 func main() {
 	// Command line flags.
 	var (
@@ -41,6 +45,7 @@ func main() {
 		fsProjectID     = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
 		gitBTInstanceID = flag.String("git_bt_instance", "", "ID of the BigTable instance that contains Git metadata")
 		gitBTTableID    = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
+		hang            = flag.Bool("hang", false, "If true, just hang and do nothing.")
 		httpPort        = flag.String("http_port", ":9091", "The http port where ready-ness endpoints are served.")
 		local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 		memProfile      = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
@@ -51,6 +56,11 @@ func main() {
 
 	// Parse the options. So we can configure logging.
 	flag.Parse()
+
+	if *hang {
+		sklog.Infof("--hang provided; doing nothing.")
+		httputils.RunHealthCheckServer(*httpPort)
+	}
 
 	_, appName := filepath.Split(os.Args[0])
 
@@ -95,15 +105,13 @@ func main() {
 	// Set up the eventbus.
 	var eventBus eventbus.EventBus
 	if config.EventTopic != "" {
-		nodeName, err := gevent.GetNodeName(appName, *local)
-		if err != nil {
-			sklog.Fatalf("Error getting node name: %s", err)
-		}
-		eventBus, err = gevent.New(*projectID, config.EventTopic, nodeName, option.WithTokenSource(tokenSrc))
+		// by setting the subscriber name to be the same, we can have multiple
+		// ingesters and only one will get each event.
+		eventBus, err = gevent.New(*projectID, config.EventTopic, subscriptionId, option.WithTokenSource(tokenSrc))
 		if err != nil {
 			sklog.Fatalf("Error creating global eventbus: %s", err)
 		}
-		sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created. %v", config.EventTopic, nodeName, eventBus == nil)
+		sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created. %v", config.EventTopic, subscriptionId, eventBus == nil)
 	} else {
 		eventBus = eventbus.New()
 	}
