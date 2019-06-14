@@ -179,6 +179,7 @@
       <paper-checkbox on-click=_zeroChanged checked="{{state.show_zero}}" title="Toggle the presence of the zero line.">Zero</paper-checkbox>
       <paper-checkbox on-click=_autoRefreshChanged checked="{{state.auto_refresh}}" title="Auto-refresh the data displayed in the graph.">Auto-Refresh</paper-checkbox>
       <button on-click="_normalize" title="Apply norm() to all the traces.">Normalize</button>
+      <button on-click="_scale_by_ave" title="Apply scale_by_ave() to all the traces.">Scale By Ave</button>
       <button on-click="_csv" title="Download all displayed data as a CSV file.">CSV</button>
       <a href="" target=_blank download="traces.csv" id=csv_download></a>
       <div id=spin-container>
@@ -782,6 +783,27 @@
         }
         promise.then(() => {
           let f = `norm(shortcut("${this.state.keys}"))`
+          this._removeAll();
+          var body = this._requestFrameBodyFromState();
+          Object.assign(body, {
+            formulas: [f],
+          });
+          this.state.formulas.push(f);
+          this._requestFrame(body, (json) => {
+            this._addTraces(json, true, false);
+          });
+        });
+      },
+
+      // Apply scale_by_ave() to all the traces currently being displayed.
+      _scale_by_ave: function() {
+        let promise = this._shortcutAll();
+        if (!promise) {
+          sk.errorMessage("No traces to scale.");
+          return
+        }
+        promise.then(() => {
+          let f = `scale_by_ave(shortcut("${this.state.keys}"))`
           this._removeAll();
           var body = this._requestFrameBodyFromState();
           Object.assign(body, {
