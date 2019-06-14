@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	mock_vcs "go.skia.org/infra/go/vcsinfo/mocks"
 	"go.skia.org/infra/golden/go/serialize"
@@ -448,119 +447,6 @@ func testDenseTile(t *testing.T, tile *tiling.Tile, mvcs *mock_vcs.VCS, commits 
 	assert.Equal(t, tile, actualTile)
 }
 
-// TestBTDigestMap tests the internal workings of storing the
-// DigestMap. See BIGTABLE.md for more about the schemas for
-// the DigestMap family and the id counter family.
-func TestBTDigestMap(t *testing.T) {
-	unittest.LargeTest(t)
-	unittest.RequiresBigTableEmulator(t)
-
-	btConf := BTConfig{
-		ProjectID:  "should-use-the-emulator",
-		InstanceID: "testinstance",
-		TableID:    "digest_map_test",
-		VCS:        nil,
-	}
-
-	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(btConf))
-
-	ctx := context.Background()
-	traceStore, err := New(ctx, btConf, true)
-	assert.NoError(t, err)
-
-	dm, err := traceStore.getDigestMap(ctx)
-	assert.NoError(t, err)
-	assert.NotNil(t, dm)
-	// should be empty, except for the initial mapping.
-	assert.Equal(t, 1, dm.Len())
-	i, err := dm.ID(types.MISSING_DIGEST)
-	assert.NoError(t, err)
-	assert.Equal(t, missingDigestID, i)
-
-	digests := makeTestDigests(0, 100)
-
-	// add 90 of the 100 digests using update
-	ninety := make(types.DigestSet, 90)
-	for _, d := range digests[0:90] {
-		ninety[d] = true
-	}
-	dm, err = traceStore.updateDigestMap(ctx, ninety)
-	assert.NoError(t, err)
-	assert.NotNil(t, dm)
-	assert.Equal(t, 91, dm.Len())
-	// We can't check to see if our known digests map to
-	// a specific id because the digest map could present
-	// the digests in a non-deterministic order.
-	// We can spot check one of the ids though
-	_, err = dm.Digest(88)
-	assert.NoError(t, err)
-
-	ids, err := traceStore.getIDs(ctx, 3)
-	// The next 3 numbers should be 91, 92, 93 because they are
-	// monotonically increasing
-	assert.NoError(t, err)
-	assert.Equal(t, []digestID{91, 92, 93}, ids)
-	func() {
-		traceStore.availIDsMutex.Lock()
-		defer traceStore.availIDsMutex.Unlock()
-		assert.NotContains(t, traceStore.availIDs, digestID(92))
-		assert.NotContains(t, traceStore.availIDs, digestID(93))
-		assert.Contains(t, traceStore.availIDs, digestID(94))
-	}()
-
-	// give two ids back (pretend we used id 92)
-	traceStore.returnIDs([]digestID{91, 93})
-
-	func() {
-		traceStore.availIDsMutex.Lock()
-		defer traceStore.availIDsMutex.Unlock()
-		assert.NotContains(t, traceStore.availIDs, digestID(92))
-		assert.Contains(t, traceStore.availIDs, digestID(93))
-		assert.Contains(t, traceStore.availIDs, digestID(94))
-	}()
-
-	// call update with an overlap of new and old
-	twenty := make(types.DigestSet, 90)
-	for _, d := range digests[80:] {
-		twenty[d] = true
-	}
-	dm, err = traceStore.updateDigestMap(ctx, twenty)
-	assert.NoError(t, err)
-	assert.NotNil(t, dm)
-	assert.Equal(t, 101, dm.Len())
-
-	// Get it again and make sure it matches the last update phase.
-	dm2, err := traceStore.getDigestMap(ctx)
-	assert.NoError(t, err)
-	assert.NotNil(t, dm2)
-	assert.Equal(t, dm, dm2)
-
-	// Add a lot more digests to make sure the bulk requesting works
-	for i := 1; i < 10; i++ {
-		// 113 is an arbitrary prime number that does not divide batchIdRequest.
-		ds := make(types.DigestSet, 113)
-		ds.AddLists(makeTestDigests(113*i, 113))
-
-		dm, err := traceStore.updateDigestMap(ctx, ds)
-		assert.NoError(t, err)
-		assert.NotNil(t, dm)
-	}
-}
-
-// makeTestDigests returns n valid digests. These digests are easy
-// for humans to understand, as they are just the hex values [0, 99]
-// reversed and 0-padded to 32 chars long (a valid md5 hash).
-func makeTestDigests(start, n int) []types.Digest {
-	xd := make([]types.Digest, n)
-	for i := 0; i < n; i++ {
-		// Reverse them to exercise the prefixing of the digestMap.
-		s := util.ReverseString(fmt.Sprintf("%032x", start+i))
-		xd[i] = types.Digest(s)
-	}
-	return xd
-}
-
 // TestGetTileKey tests the internal workings of deriving a
 // tileKey from the commit index. See BIGTABLE.md for more.
 func TestGetTileKey(t *testing.T) {
@@ -650,72 +536,11 @@ func TestCalcShardedRowName(t *testing.T) {
 
 			ExpectedRowName: "13:ts:t:2147483647:,0=1,1=3,9=0,",
 		},
-		{
-			InputKey:     tileKey(2147483540),
-			InputRowType: typeDigestMap,
-			InputSubKey:  "abc",
-
-			ExpectedRowName: "02:ts:d:2147483540:abc",
-		},
-		{
-			InputKey:     tileKey(2147483540),
-			InputRowType: typeDigestMap,
-			InputSubKey:  "bcd",
-
-			ExpectedRowName: "25:ts:d:2147483540:bcd",
-		},
 	}
 
 	for _, test := range tests {
 		row := traceStore.calcShardedRowName(test.InputKey, test.InputRowType, test.InputSubKey)
 		assert.Equal(t, test.ExpectedRowName, row)
-	}
-}
-
-// TestRowAndColNameFromDigest tests the internal workings of sharding
-// a digest for use in the digest map
-func TestRowAndColNameFromDigest(t *testing.T) {
-	unittest.LargeTest(t)
-	unittest.RequiresBigTableEmulator(t)
-
-	btConf := BTConfig{
-		// Leaving other things blank because we won't actually hit BT
-		// or use the VCS.
-	}
-
-	ctx := context.Background()
-	traceStore, err := New(ctx, btConf, true)
-	assert.NoError(t, err)
-
-	type testStruct struct {
-		InputDigest types.Digest
-
-		ExpectedRowName string
-		ExpectedColName string
-	}
-	// test data is valid, but arbitrary.
-	tests := []testStruct{
-		{
-			InputDigest:     types.Digest("9e1d402515193304cafbdf02b8fd751b"),
-			ExpectedRowName: "21:ts:d:0000000000:9e1",
-			ExpectedColName: "d402515193304cafbdf02b8fd751b",
-		},
-		{
-			InputDigest:     types.Digest("e30a49351a7e45b9591a989073e755b2"),
-			ExpectedRowName: "05:ts:d:0000000000:e30",
-			ExpectedColName: "a49351a7e45b9591a989073e755b2",
-		},
-		{
-			InputDigest:     types.Digest("60b5e978d116cccc0ef12278d724245b"),
-			ExpectedRowName: "23:ts:d:0000000000:60b",
-			ExpectedColName: "5e978d116cccc0ef12278d724245b",
-		},
-	}
-
-	for _, test := range tests {
-		row, col := traceStore.rowAndColNameFromDigest(test.InputDigest)
-		assert.Equal(t, test.ExpectedRowName, row)
-		assert.Equal(t, test.ExpectedColName, col)
 	}
 }
 
@@ -777,20 +602,6 @@ func TestBTTraceStoreLargeTile(t *testing.T) {
 		entries = append(entries, &tracestore.Entry{Digest: digest, Params: t.Params()})
 	}
 	assert.NoError(t, traceStore.Put(ctx, tile.Commits[maxIndex].Hash, entries, time.Now()))
-
-	foundDigestMap, err := traceStore.getDigestMap(ctx)
-	assert.NoError(t, err)
-	assert.Equal(t, len(allDigests), foundDigestMap.Len())
-
-	for digest := range allDigests {
-		id, err := foundDigestMap.ID(digest)
-		assert.NoError(t, err)
-		if digest == "" {
-			assert.Equal(t, missingDigestID, id)
-		} else {
-			assert.NotEqual(t, missingDigestID, id)
-		}
-	}
 
 	traceIDsPerCommit[maxIndex] = []tiling.TraceId{}
 
