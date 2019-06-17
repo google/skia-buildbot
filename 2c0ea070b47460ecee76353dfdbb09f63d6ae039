@@ -67,6 +67,24 @@
       "revId": "2c0ea070b47460ecee76353dfdbb09f63d6ae039",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d259389_4646ce6f",
+        "filename": "debugger/go/debugger/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-06-17T15:10:18Z",
+      "side": 1,
+      "message": "Thanks I hadn\u0027t realized this was still in the CL.",
+      "parentUuid": "00eadceb_3718da2e",
+      "revId": "2c0ea070b47460ecee76353dfdbb09f63d6ae039",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
