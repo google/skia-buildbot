@@ -39,6 +39,26 @@ func (c *TestClient) SwarmingService() *swarming_api.Service {
 	return nil
 }
 
+func (c *TestClient) GetStates(ids []string) ([]string, error) {
+	rv := make([]string, 0, len(ids))
+	c.taskListMtx.RLock()
+	defer c.taskListMtx.RUnlock()
+	for _, id := range ids {
+		found := false
+		for _, t := range c.taskList {
+			if t.TaskId == id {
+				rv = append(rv, t.TaskResult.State)
+				found = true
+				break
+			}
+		}
+		if !found {
+			return nil, fmt.Errorf("Unknown task %q", id)
+		}
+	}
+	return rv, nil
+}
+
 func (c *TestClient) ListBots(dimensions map[string]string) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
 	c.botListMtx.RLock()
 	defer c.botListMtx.RUnlock()
