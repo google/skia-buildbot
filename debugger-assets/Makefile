@@ -26,6 +26,10 @@ testgo:
 run_server_local: build
 	debugger-assets --port=localhost:9000 --local --logtostderr
 
+.PHONY: run_server_local_wasm
+run_server_local_wasm: build
+	debugger-assets --port=localhost:9000 --local --logtostderr --v2_at_root
+
 .PHONY: release
 release: build
 	docker pull gcr.io/skia-public/skia-wasm-release:prod

@@ -19,10 +19,16 @@ var (
 	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	v2AtRoot     = flag.Bool("v2_at_root", false, "Serves /res/v2.html as / (the new dubugger)")
 )
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "https://debugger.skia.org", http.StatusPermanentRedirect)
+	if *v2AtRoot {
+		// Serve new debugger at root when configured to do so.
+		http.ServeFile(w, r, filepath.Join(*resourcesDir, "/res/v2.html"))
+	} else {
+		http.Redirect(w, r, "https://legacy-debugger.skia.org", http.StatusPermanentRedirect)
+	}
 }
 
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
