@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ed9d0e78_ec6bf3f6",
+        "filename": "debugger-assets/build_docker_release",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-06-17T14:49:39Z",
+      "side": 1,
+      "message": "Why are there two images if they aren\u0027t different? Any difference in flags will show up in the kubernetes config files.",
+      "revId": "2c0ea070b47460ecee76353dfdbb09f63d6ae039",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b9d9763f_201b5117",
+        "filename": "debugger-assets/go/debugger-assets/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-06-17T14:49:39Z",
+      "side": 1,
+      "message": "gofmt",
+      "revId": "2c0ea070b47460ecee76353dfdbb09f63d6ae039",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17ae0278_de2e74e7",
+        "filename": "debugger-assets/go/debugger-assets/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-06-17T14:49:39Z",
+      "side": 1,
+      "message": "So once this lands we can run debugger-assets at both debugger-assets.skia.org and also at debugger.skia.org with the --v2_at_root flag?",
+      "revId": "2c0ea070b47460ecee76353dfdbb09f63d6ae039",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00eadceb_3718da2e",
+        "filename": "debugger/go/debugger/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-06-17T14:49:39Z",
+      "side": 1,
+      "message": "debugger/main.go should not need any changes. We\u0027ll just change the kubernetes yaml so that it\u0027s served from legacy-debugger.skia.org.",
+      "revId": "2c0ea070b47460ecee76353dfdbb09f63d6ae039",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
