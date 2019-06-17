@@ -17,6 +17,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/sktest"
+	"go.skia.org/infra/go/util"
 )
 
 var (
@@ -120,7 +121,7 @@ func RemoveAll(t sktest.TestingT, fp string) {
 
 // TempDir is a wrapper for ioutil.TempDir. Returns the path to the directory and a cleanup
 // function to defer.
-func TempDir(t sktest.TestingT) (string, func()) {
+func TempDir(t sktest.TestingT) (string, util.CleanupFunc) {
 	d, err := ioutil.TempDir("", "testutils")
 	assert.NoError(t, err)
 	return d, func() {

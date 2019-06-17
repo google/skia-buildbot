@@ -236,7 +236,7 @@ func main() {
 	}
 
 	sklog.Info("Creating manual roll DB.")
-	manualRolls, err := manual.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts)
+	manualRolls, err := manual.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts)
 	if err != nil {
 		sklog.Fatalf("Failed to create manual roll DB: %s", err)
 	}
