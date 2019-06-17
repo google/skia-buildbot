@@ -184,7 +184,7 @@ func (rm *githubCipdDEPSRepoManager) Update(ctx context.Context) error {
 
 	sklog.Infof("lastRollRev is: %s", rm.lastRollRev)
 	sklog.Infof("nextRollRev is: %s", nextRollRev)
-	sklog.Infof("notRolledRevs: %v", rm.notRolledRevs)
+	sklog.Infof("len(notRolledRevs): %v", len(rm.notRolledRevs))
 	return nil
 }
 
