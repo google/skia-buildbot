@@ -670,7 +670,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 	mod = modified.NewMuxModifiedData(modified.NewModifiedData(), mod)
-	tsDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource, mod)
+	tsDb, err = firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource, mod)
 	if err != nil {
 		sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 	}
@@ -679,7 +679,7 @@ func main() {
 	})
 
 	// Blacklist DB.
-	bl, err = blacklist.New(ctx, firestore.FIRESTORE_PROJECT, *pubsubTopicSet, tokenSource)
+	bl, err = blacklist.NewWithParams(ctx, firestore.FIRESTORE_PROJECT, *pubsubTopicSet, tokenSource)
 	if err != nil {
 		sklog.Fatal(err)
 	}
