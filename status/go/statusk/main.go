@@ -735,7 +735,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to initialize pubsub: %s", err)
 	}
-	taskDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts, mod)
+	taskDb, err = firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts, mod)
 	if err != nil {
 		sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 	}
