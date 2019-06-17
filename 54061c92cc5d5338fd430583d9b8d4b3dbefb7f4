@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "959faa0f_a2bccdd7",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-17T17:07:51Z",
+      "side": 1,
+      "message": "This API is quite confusing. You want to do:\nif resp, err :\u003d c.s.Tasks.GetStates().TaskId(ids).Do(); err !\u003d nil {",
+      "range": {
+        "startLine": 218,
+        "startChar": 0,
+        "endLine": 220,
+        "endChar": 2
+      },
+      "revId": "54061c92cc5d5338fd430583d9b8d4b3dbefb7f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
