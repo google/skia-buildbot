@@ -34,7 +34,8 @@ func TestWithTimeout(t *testing.T) {
 }
 
 func TestWithTimeoutAndRetries(t *testing.T) {
-	c, cleanup := setup(t)
+	unittest.LargeTest(t)
+	c, cleanup := NewClientForTesting(t)
 	defer cleanup()
 
 	maxAttempts := 3
@@ -69,20 +70,6 @@ func TestWithTimeoutAndRetries(t *testing.T) {
 	assert.Equal(t, 1, attempted)
 }
 
-func setup(t *testing.T) (*Client, func()) {
-	unittest.ManualTest(t)
-
-	project := "skia-firestore"
-	app := "firestore_pkg_tests"
-	instance := fmt.Sprintf("test-%s", uuid.New())
-	c, err := NewClient(context.Background(), project, app, instance, nil)
-	assert.NoError(t, err)
-	return c, func() {
-		assert.NoError(t, c.RecursiveDelete(c.ParentDoc, 5, 30*time.Second))
-		assert.NoError(t, c.Close())
-	}
-}
-
 type testEntry struct {
 	Id    string
 	Index int
@@ -102,7 +89,8 @@ func (s testEntrySlice) Swap(i, j int) {
 }
 
 func TestIterDocs(t *testing.T) {
-	c, cleanup := setup(t)
+	unittest.LargeTest(t)
+	c, cleanup := NewClientForTesting(t)
 	defer cleanup()
 
 	attempts := 3
@@ -223,7 +211,8 @@ func TestIterDocs(t *testing.T) {
 }
 
 func TestGetAllDescendants(t *testing.T) {
-	c, cleanup := setup(t)
+	unittest.LargeTest(t)
+	c, cleanup := NewClientForTesting(t)
 	defer cleanup()
 
 	attempts := 3
@@ -276,8 +265,53 @@ func TestGetAllDescendants(t *testing.T) {
 	_, err = c.Delete(nyc, attempts, timeout)
 	assert.NoError(t, err)
 	check(topLevelDoc, []*firestore.DocumentRef{ca, la, sf, fl, nc, ch})
+}
 
-	// Also test RecursiveDelete.
+func TestRecursiveDelete(t *testing.T) {
+	// The emulator does not support the query used in RecursiveDelete, so this
+	// must test against a real firestore instance; hence it is a manual test.
+	unittest.ManualTest(t)
+	EnsureNotEmulator()
+
+	project := "skia-firestore"
+	app := "firestore_pkg_tests"
+	instance := fmt.Sprintf("test-%s", uuid.New())
+	c, err := NewClient(context.Background(), project, app, instance, nil)
+	defer func() {
+		assert.NoError(t, c.RecursiveDelete(c.ParentDoc, 5, 30*time.Second))
+		assert.NoError(t, c.Close())
+	}()
+
+	attempts := 3
+	timeout := 5 * time.Second
+
+	// Create some documents.
+	add := func(coll *firestore.CollectionRef, name string) *firestore.DocumentRef {
+		doc := coll.Doc(name)
+		_, err := c.Create(doc, map[string]string{"name": name}, attempts, timeout)
+		assert.NoError(t, err)
+		return doc
+	}
+
+	container := c.Collection("container")
+	topLevelDoc := add(container, "TopLevel")
+
+	states := topLevelDoc.Collection("states")
+	ny := add(states, "NewYork")
+	ca := add(states, "California")
+	nc := add(states, "NorthCarolina")
+	fl := add(states, "Florida")
+
+	addCity := func(state *firestore.DocumentRef, name string) *firestore.DocumentRef {
+		cities := state.Collection("cities")
+		return add(cities, name)
+	}
+	nyc := addCity(ny, "NewYork")
+	la := addCity(ca, "LosAngeles")
+	sf := addCity(ca, "SanFrancisco")
+	ch := addCity(nc, "ChapelHill")
+
+	// Test RecursiveDelete.
 	del := func(doc *firestore.DocumentRef, expect []*firestore.DocumentRef) {
 		assert.NoError(t, c.RecursiveDelete(doc, attempts, timeout))
 		check(topLevelDoc, expect)
