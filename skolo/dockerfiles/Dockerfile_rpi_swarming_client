@@ -1,0 +1,25 @@
+FROM arm32v7/python:2.7-alpine
+
+RUN addgroup -g 2000 -S chrome-bot && \
+    adduser -u 2000 -S chrome-bot -G chrome-bot -s /bin/sh && \
+    apk update && apk add --no-cache \
+    --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing \
+    --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
+    ca-certificates \
+    curl \
+    ca-certificates \
+    libusb \
+    android-tools
+
+#RUN ln `which adb` /usr/bin/adb.1.0.35
+#RUN ln `which python2.7` /usr/bin/python
+
+COPY . /
+
+USER chrome-bot:chrome-bot
+
+RUN touch /home/chrome-bot/.boto
+
+USER root:root
+
+CMD ["/start_swarming"]
