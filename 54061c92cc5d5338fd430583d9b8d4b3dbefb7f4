@@ -22,6 +22,30 @@
       "revId": "54061c92cc5d5338fd430583d9b8d4b3dbefb7f4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3aadc9fa_ab476f41",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-17T17:09:30Z",
+      "side": 1,
+      "message": "(See https://chromium.googlesource.com/infra/luci/luci-go/+/master/common/api/swarming/swarming/v1/swarming-gen.go#5073 and https://godoc.org/google.golang.org/api/gensupport#URLParams.SetMulti)",
+      "parentUuid": "959faa0f_a2bccdd7",
+      "range": {
+        "startLine": 218,
+        "startChar": 0,
+        "endLine": 220,
+        "endChar": 2
+      },
+      "revId": "54061c92cc5d5338fd430583d9b8d4b3dbefb7f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
