@@ -46,6 +46,30 @@
       "revId": "54061c92cc5d5338fd430583d9b8d4b3dbefb7f4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e31b0ef_e5b25ce8",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-17T17:12:08Z",
+      "side": 1,
+      "message": "Err, that should be \"TaskId(ids...)\"",
+      "parentUuid": "3aadc9fa_ab476f41",
+      "range": {
+        "startLine": 218,
+        "startChar": 0,
+        "endLine": 220,
+        "endChar": 2
+      },
+      "revId": "54061c92cc5d5338fd430583d9b8d4b3dbefb7f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
