@@ -34,6 +34,29 @@ func (_m *MockApiClient) CancelTask(id string) error {
 	return r0
 }
 
+// GetStates provides a mock function with given fields: ids
+func (_m *MockApiClient) GetStates(ids []string) ([]string, error) {
+	ret := _m.Called(ids)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func([]string) []string); ok {
+		r0 = rf(ids)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
+		r1 = rf(ids)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetStdoutOfTask provides a mock function with given fields: id
 func (_m *MockApiClient) GetStdoutOfTask(id string) (*v1.SwarmingRpcsTaskOutput, error) {
 	ret := _m.Called(id)

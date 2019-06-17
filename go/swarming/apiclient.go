@@ -80,6 +80,10 @@ type ApiClient interface {
 	// instances corresponding to the Swarming bots in the given pool.
 	ListBotsForPool(pool string) ([]*swarming.SwarmingRpcsBotInfo, error)
 
+	// GetStates returns a slice of states corresponding to the given task
+	// IDs.
+	GetStates(ids []string) ([]string, error)
+
 	GetStdoutOfTask(id string) (*swarming.SwarmingRpcsTaskOutput, error)
 
 	GracefullyShutdownBot(id string) (*swarming.SwarmingRpcsTerminateResponse, error)
@@ -207,6 +211,18 @@ func ProcessBotsListCall(call *swarming.BotsListCall) ([]*swarming.SwarmingRpcsB
 	}
 
 	return bots, nil
+}
+
+func (c *apiClient) GetStates(ids []string) ([]string, error) {
+	call := c.s.Tasks.GetStates()
+	for _, id := range ids {
+		call.TaskId(id)
+	}
+	resp, err := call.Do()
+	if err != nil {
+		return nil, err
+	}
+	return resp.States, nil
 }
 
 func (c *apiClient) GetStdoutOfTask(id string) (*swarming.SwarmingRpcsTaskOutput, error) {

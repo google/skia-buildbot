@@ -1906,33 +1906,51 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 	sort.Sort(types.TaskSlice(tasks))
 
 	// Query Swarming for all unfinished tasks.
-	// TODO(borenet): This would be faster if Swarming had a
-	// get-multiple-tasks-by-ID endpoint.
-	sklog.Infof("Querying Swarming for %d unfinished tasks.", len(tasks))
-	var wg sync.WaitGroup
-	errs := make([]error, len(tasks))
-	for i, t := range tasks {
-		wg.Add(1)
-		go func(idx int, t *types.Task) {
-			defer wg.Done()
-			swarmTask, err := s.swarming.GetTask(t.SwarmingTaskId, false)
-			if err != nil {
-				errs[idx] = fmt.Errorf("Failed to update unfinished task; failed to get updated task from swarming: %s", err)
-				return
-			}
-			modified, err := db.UpdateDBFromSwarmingTask(s.db, swarmTask)
-			if err != nil {
-				errs[idx] = fmt.Errorf("Failed to update unfinished task: %s", err)
-				return
-			} else if modified {
-				s.updateUnfinishedCount.Inc(1)
-			}
-		}(i, t)
+	sklog.Infof("Querying states of %d unfinished tasks.", len(tasks))
+	ids := make([]string, 0, len(tasks))
+	for _, t := range tasks {
+		ids = append(ids, t.SwarmingTaskId)
 	}
-	wg.Wait()
-	for _, err := range errs {
-		if err != nil {
-			return err
+	states, err := s.swarming.GetStates(ids)
+	if err != nil {
+		return err
+	}
+	finished := make([]*types.Task, 0, len(states))
+	for idx, task := range tasks {
+		state := states[idx]
+		if state != swarming.TASK_STATE_PENDING && state != swarming.TASK_STATE_RUNNING {
+			finished = append(finished, task)
+		}
+	}
+
+	// Update any newly-finished tasks.
+	if len(finished) > 0 {
+		sklog.Infof("Updating %d newly-finished tasks.", len(finished))
+		var wg sync.WaitGroup
+		errs := make([]error, len(tasks))
+		for i, t := range finished {
+			wg.Add(1)
+			go func(idx int, t *types.Task) {
+				defer wg.Done()
+				swarmTask, err := s.swarming.GetTask(t.SwarmingTaskId, false)
+				if err != nil {
+					errs[idx] = fmt.Errorf("Failed to update unfinished task; failed to get updated task from swarming: %s", err)
+					return
+				}
+				modified, err := db.UpdateDBFromSwarmingTask(s.db, swarmTask)
+				if err != nil {
+					errs[idx] = fmt.Errorf("Failed to update unfinished task: %s", err)
+					return
+				} else if modified {
+					s.updateUnfinishedCount.Inc(1)
+				}
+			}(i, t)
+		}
+		wg.Wait()
+		for _, err := range errs {
+			if err != nil {
+				return err
+			}
 		}
 	}
 
