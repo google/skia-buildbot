@@ -276,7 +276,7 @@ func main() {
 	assertDeepEqual([]string{head}, commits)
 
 	ts, err := auth.NewDefaultTokenSource(true, datastore.ScopeDatastore)
-	d, err := firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *fsInstance, ts, nil)
+	d, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *fsInstance, ts, nil)
 	assertNoError(err)
 	w, err := window.New(time.Hour, 0, nil)
 	assertNoError(err)
