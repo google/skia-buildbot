@@ -1345,6 +1345,15 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- e
 					recordErr("Failed to update de-duplicated task", err)
 					return
 				}
+				// Override the timestamps. For de-duplicated
+				// tasks, the Started and Finished timestamps
+				// will be *before* the Created timestamp, which
+				// would be misleading. Setting them to equal
+				// the Created timestamp makes it appear that
+				// the task took no time, which is effectively
+				// the case.
+				t.Started = t.Created
+				t.Finished = t.Created
 			}
 			triggered <- t
 		}(candidate)
