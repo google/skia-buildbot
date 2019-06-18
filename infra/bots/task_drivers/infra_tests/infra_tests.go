@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_driver/go/lib/dirs"
 	"go.skia.org/infra/task_driver/go/lib/golang"
@@ -45,6 +44,11 @@ func main() {
 
 	// Initialize the Git repo. We receive the code via Isolate, but it
 	// doesn't include the .git dir.
+	git, err := os_steps.Which(ctx, "git")
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+	sklog.Infof("Using git from %s", git)
 	gd := git.GitDir(infraDir)
 	if _, err := gd.Git(ctx, "init"); err != nil {
 		td.Fatal(ctx, err)
