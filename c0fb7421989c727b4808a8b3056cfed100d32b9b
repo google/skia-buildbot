@@ -22,6 +22,30 @@
       "revId": "c0fb7421989c727b4808a8b3056cfed100d32b9b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11c81c95_287f5571",
+        "filename": "go/repo_root/repo_root.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-18T18:07:30Z",
+      "side": 1,
+      "message": "Yes. The short story is that I have several checkouts of https://skia.googlesource.com/buildbot with different names. I think my choices are:\n1. Rearrange my checkouts so that they are in subdirectories called \"buildbot\", with the parent dir being a container for that single subdir.\n2. Change this function so that it works for my setup.\n3. Not run Task Scheduler tests locally.",
+      "parentUuid": "8666c095_495a317c",
+      "range": {
+        "startLine": 22,
+        "startChar": 20,
+        "endLine": 22,
+        "endChar": 33
+      },
+      "revId": "c0fb7421989c727b4808a8b3056cfed100d32b9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
