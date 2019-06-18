@@ -46,6 +46,30 @@
       "revId": "c0fb7421989c727b4808a8b3056cfed100d32b9b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43c20f3f_f42adc73",
+        "filename": "go/repo_root/repo_root.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-18T18:10:09Z",
+      "side": 1,
+      "message": "Gotcha. I have a slight preference for #1, but this is fine.\n\nGit branches are an excellent alternative to multiple clones :P",
+      "parentUuid": "11c81c95_287f5571",
+      "range": {
+        "startLine": 22,
+        "startChar": 20,
+        "endLine": 22,
+        "endChar": 33
+      },
+      "revId": "c0fb7421989c727b4808a8b3056cfed100d32b9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
