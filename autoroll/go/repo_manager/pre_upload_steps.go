@@ -34,10 +34,10 @@ type PreUploadStep func(context.Context, []string, *http.Client, string) error
 // Return the PreUploadStep with the given name.
 func GetPreUploadStep(s string) (PreUploadStep, error) {
 	rv, ok := map[string]PreUploadStep{
-		"GoGenerateCipd":                GoGenerateCipd,
-		"TrainInfra":                    TrainInfra,
-		"FlutterLicenseScripts":         FlutterLicenseScripts,
-		"FlutterLicenseScriptsForTools": FlutterLicenseScriptsForTools,
+		"GoGenerateCipd":                  GoGenerateCipd,
+		"TrainInfra":                      TrainInfra,
+		"FlutterLicenseScripts":           FlutterLicenseScripts,
+		"FlutterLicenseScriptsForFuchsia": FlutterLicenseScriptsForFuchsia,
 	}[s]
 	if !ok {
 		return nil, fmt.Errorf("No such pre-upload step: %s", s)
@@ -114,13 +114,13 @@ func FlutterLicenseScripts(ctx context.Context, _ []string, _ *http.Client, pare
 	return nil
 }
 
-// Run the flutter license scripts for tools.
-func FlutterLicenseScriptsForTools(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string) error {
+// Run the flutter license scripts for fuchsia.
+func FlutterLicenseScriptsForFuchsia(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string) error {
 	licenseScriptFailure := int64(1)
 	defer func() {
 		metrics2.GetInt64Metric("flutter_license_script_failure", nil).Update(licenseScriptFailure)
 	}()
-	if err := flutterLicenseScripts(ctx, parentRepoDir, "tools_signature"); err != nil {
+	if err := flutterLicenseScripts(ctx, parentRepoDir, "licenses_fuchsia"); err != nil {
 		return err
 	}
 	licenseScriptFailure = 0
