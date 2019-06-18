@@ -19,5 +19,9 @@ func Get() (string, error) {
 			return strings.Split(dir, prefix)[0] + prefix, nil
 		}
 	}
+	// If this function is used outside of tests, please remove the following.
+	if d := os.Getenv("WORKSPACE_DIR"); d != "" {
+		return d, nil
+	}
 	return "", fmt.Errorf("No repo root found; are we running inside a checkout?")
 }
