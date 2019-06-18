@@ -1,26 +1,19 @@
 package fs_ingestionstore
 
 import (
-	"context"
 	"testing"
 
-	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-// TODO(kjlubick): These tests are marked as manual because the
-// Firestore Emulator is not yet on the bots, due to some more complicated
-// setup (e.g. chmod)
-
 // TestGetExpectations writes some changes and then reads back the
 // aggregated results.
 func TestSetContains(t *testing.T) {
-	unittest.ManualTest(t)
-	unittest.RequiresFirestoreEmulator(t)
-
-	c := getTestFirestoreInstance(t)
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
 
 	f := New(c)
 
@@ -50,13 +43,4 @@ func TestSetContains(t *testing.T) {
 	b, err = f.ContainsResultFileHash("skia-gold-flutter/dm-json-v1/2019/foo.json", "versionA")
 	assert.NoError(t, err)
 	assert.False(t, b)
-}
-
-// Creates an empty firestore instance. The emulator keeps the tables in ram, but
-// by appending a random nonce, we can be assured the collection we get is empty.
-func getTestFirestoreInstance(t *testing.T) *firestore.Client {
-	randInstance := uuid.New().String()
-	c, err := firestore.NewClient(context.Background(), "emulated-project", "gold", "test-"+randInstance, nil)
-	assert.NoError(t, err)
-	return c
 }

@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus/mocks"
 	"go.skia.org/infra/go/firestore"
@@ -18,17 +17,12 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-// TODO(kjlubick): These tests are marked as manual because the
-// Firestore Emulator is not yet on the bots, due to some more complicated
-// setup (e.g. chmod)
-
 // TestGetExpectations writes some changes and then reads back the
 // aggregated results.
 func TestGetExpectations(t *testing.T) {
-	unittest.ManualTest(t)
-	unittest.RequiresFirestoreEmulator(t)
-
-	c := getTestFirestoreInstance(t)
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
 
 	f, err := New(c, nil, ReadWrite)
 	assert.NoError(t, err)
@@ -85,10 +79,9 @@ func TestGetExpectations(t *testing.T) {
 // TestGetExpectationsRace writes a bunch of data from many go routines
 // in an effort to catch any race conditions in the caching layer.
 func TestGetExpectationsRace(t *testing.T) {
-	unittest.ManualTest(t)
-	unittest.RequiresFirestoreEmulator(t)
-
-	c := getTestFirestoreInstance(t)
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
 
 	f, err := New(c, nil, ReadWrite)
 	assert.NoError(t, err)
@@ -170,10 +163,9 @@ func TestGetExpectationsRace(t *testing.T) {
 // TestGetExpectationsBig writes 32^2=1024 entries
 // to test the batch writing.
 func TestGetExpectationsBig(t *testing.T) {
-	unittest.ManualTest(t)
-	unittest.RequiresFirestoreEmulator(t)
-
-	c := getTestFirestoreInstance(t)
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
 
 	f, err := New(c, nil, ReadWrite)
 	assert.NoError(t, err)
@@ -217,10 +209,9 @@ func TestGetExpectationsBig(t *testing.T) {
 
 // TestReadOnly ensures a read-only instance fails to write data.
 func TestReadOnly(t *testing.T) {
-	unittest.ManualTest(t)
-	unittest.RequiresFirestoreEmulator(t)
-
-	c := getTestFirestoreInstance(t)
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
 
 	f, err := New(c, nil, ReadOnly)
 	assert.NoError(t, err)
@@ -236,10 +227,9 @@ func TestReadOnly(t *testing.T) {
 
 // TestQueryLog tests that we can query logs at a given place
 func TestQueryLog(t *testing.T) {
-	unittest.ManualTest(t)
-	unittest.RequiresFirestoreEmulator(t)
-
-	c := getTestFirestoreInstance(t)
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
 	f, err := New(c, nil, ReadWrite)
 	assert.NoError(t, err)
 
@@ -314,10 +304,9 @@ func TestQueryLog(t *testing.T) {
 
 // TestQueryLogDetails checks that the details are filled in when requested.
 func TestQueryLogDetails(t *testing.T) {
-	unittest.ManualTest(t)
-	unittest.RequiresFirestoreEmulator(t)
-
-	c := getTestFirestoreInstance(t)
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
 	f, err := New(c, nil, ReadWrite)
 	assert.NoError(t, err)
 
@@ -365,10 +354,9 @@ func TestQueryLogDetails(t *testing.T) {
 
 // TestUndoChangeSunnyDay checks undoing entries that exist.
 func TestUndoChangeSunnyDay(t *testing.T) {
-	unittest.ManualTest(t)
-	unittest.RequiresFirestoreEmulator(t)
-
-	c := getTestFirestoreInstance(t)
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
 	f, err := New(c, nil, ReadWrite)
 	assert.NoError(t, err)
 
@@ -425,10 +413,9 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 
 // TestUndoChangeNoExist checks undoing an entry that does not exist.
 func TestUndoChangeNoExist(t *testing.T) {
-	unittest.ManualTest(t)
-	unittest.RequiresFirestoreEmulator(t)
-
-	c := getTestFirestoreInstance(t)
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
 	f, err := New(c, nil, ReadWrite)
 	assert.NoError(t, err)
 
@@ -440,13 +427,13 @@ func TestUndoChangeNoExist(t *testing.T) {
 // TestEventBusAddMaster makes sure proper eventbus signals are sent
 // when changes are made to the master branch.
 func TestEventBusAddMaster(t *testing.T) {
-	unittest.ManualTest(t)
-	unittest.RequiresFirestoreEmulator(t)
+	unittest.LargeTest(t)
 
 	meb := &mocks.EventBus{}
 	defer meb.AssertExpectations(t)
 
-	c := getTestFirestoreInstance(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
 	f, err := New(c, meb, ReadWrite)
 	assert.NoError(t, err)
 
@@ -481,13 +468,13 @@ func TestEventBusAddMaster(t *testing.T) {
 // TestEventBusAddIssue makes sure proper eventbus signals are sent
 // when changes are made to an IssueExpectations.
 func TestEventBusAddIssue(t *testing.T) {
-	unittest.ManualTest(t)
-	unittest.RequiresFirestoreEmulator(t)
+	unittest.LargeTest(t)
 
 	meb := &mocks.EventBus{}
 	defer meb.AssertExpectations(t)
 
-	c := getTestFirestoreInstance(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
 	e, err := New(c, meb, ReadWrite)
 	assert.NoError(t, err)
 	issue := int64(117)
@@ -524,13 +511,13 @@ func TestEventBusAddIssue(t *testing.T) {
 
 // TestEventBusUndo tests that eventbus signals are properly sent during Undo.
 func TestEventBusUndo(t *testing.T) {
-	unittest.ManualTest(t)
-	unittest.RequiresFirestoreEmulator(t)
+	unittest.LargeTest(t)
 
 	meb := &mocks.EventBus{}
 	defer meb.AssertExpectations(t)
 
-	c := getTestFirestoreInstance(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
 	f, err := New(c, meb, ReadWrite)
 	assert.NoError(t, err)
 
@@ -572,10 +559,9 @@ func TestEventBusUndo(t *testing.T) {
 // with. Specifically, the IssueExpectations should be treated as a delta to
 // the MasterExpectations (but doesn't actually contain MasterExpectations).
 func TestIssueExpectationsAddGet(t *testing.T) {
-	unittest.ManualTest(t)
-	unittest.RequiresFirestoreEmulator(t)
-
-	c := getTestFirestoreInstance(t)
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
 	mb, err := New(c, nil, ReadWrite)
 	assert.NoError(t, err)
 
@@ -638,10 +624,9 @@ func TestIssueExpectationsAddGet(t *testing.T) {
 // with the IssueExpectations as expected. Which is to say, the two
 // logs are separate.
 func TestIssueExpectationsQueryLog(t *testing.T) {
-	unittest.ManualTest(t)
-	unittest.RequiresFirestoreEmulator(t)
-
-	c := getTestFirestoreInstance(t)
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
 	mb, err := New(c, nil, ReadWrite)
 	assert.NoError(t, err)
 
@@ -761,15 +746,6 @@ func normalizeEntries(t *testing.T, now time.Time, entries []expstorage.TriageLo
 		te.TS = now.Unix() * 1000
 		entries[i] = te
 	}
-}
-
-// Creates an empty firestore instance. The emulator keeps the tables in ram, but
-// by appending a random nonce, we can be assured the collection we get is empty.
-func getTestFirestoreInstance(t *testing.T) *firestore.Client {
-	randInstance := uuid.New().String()
-	c, err := firestore.NewClient(context.Background(), "emulated-project", "gold", "test-"+randInstance, nil)
-	assert.NoError(t, err)
-	return c
 }
 
 // makeBigExpectations makes n tests named from start to end that each have 32 digests.

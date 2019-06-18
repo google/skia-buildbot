@@ -15,12 +15,12 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/deepequal"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
+	skfs "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -35,7 +35,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
-	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -2639,9 +2638,9 @@ func TestBlacklist(t *testing.T) {
 	// actually integrated into the scheduler.
 	ctx, gb, _, swarmingClient, s, _, cleanup := setup(t)
 	defer cleanup()
-	unittest.ManualTest(t)
-	instance := fmt.Sprintf("task-scheduler-test-%s", uuid.New())
-	bl, err := blacklist.New(context.Background(), firestore.FIRESTORE_PROJECT, instance, nil)
+	c, cleanupfs := skfs.NewClientForTesting(t)
+	defer cleanupfs()
+	bl, err := blacklist.New(context.Background(), c)
 	assert.NoError(t, err)
 	s.bl = bl
 

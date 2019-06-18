@@ -190,17 +190,22 @@ type firestoreDB struct {
 	coll   *fs.CollectionRef
 }
 
-// NewDB returns a DB instance backed by Firestore.
-func NewDB(ctx context.Context, project, instance string, ts oauth2.TokenSource) (DB, error) {
-	client, err := firestore.NewClient(ctx, project, FS_APP, instance, ts)
-	if err != nil {
-		return nil, err
-	}
+// NewDB returns a DB instance backed by the given firestore.Client.
+func NewDB(ctx context.Context, client *firestore.Client) (DB, error) {
 	db := &firestoreDB{
 		client: client,
 		coll:   client.Collection(COLLECTION_REQUESTS),
 	}
 	return db, nil
+}
+
+// NewDB returns a DB instance backed by Firestore, using the given params.
+func NewDBWithParams(ctx context.Context, project, instance string, ts oauth2.TokenSource) (DB, error) {
+	client, err := firestore.NewClient(ctx, project, FS_APP, instance, ts)
+	if err != nil {
+		return nil, err
+	}
+	return NewDB(ctx, client)
 }
 
 // See documentation for DB interface.
