@@ -2,12 +2,10 @@ package manual
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/firestore"
@@ -218,13 +216,10 @@ func TestMemoryDB(t *testing.T) {
 }
 
 func TestFirestoreDB(t *testing.T) {
-	unittest.ManualTest(t)
-	instance := fmt.Sprintf("test-%s", uuid.New())
-	db, err := NewDB(context.Background(), firestore.FIRESTORE_PROJECT, instance, nil)
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+	db, err := NewDB(context.Background(), c)
 	assert.NoError(t, err)
-	defer func() {
-		assert.NoError(t, db.(*firestoreDB).client.RecursiveDelete(db.(*firestoreDB).client.ParentDoc, 5, 30*time.Second))
-		assert.NoError(t, db.Close())
-	}()
 	testDB(t, db)
 }
