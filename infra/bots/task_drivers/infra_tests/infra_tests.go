@@ -58,17 +58,18 @@ func main() {
 
 	// For Large/Race, start the Cloud Datastore emulator.
 	if strings.Contains(*taskName, "Large") || strings.Contains(*taskName, "Race") {
-		d := path.Join(infraDir, "go", "ds", "emulator")
-		if _, err := exec.RunCwd(ctx, d, "./run_emulator", "start"); err != nil {
+		d := path.Join(infraDir, "scripts")
+		if _, err := exec.RunCwd(ctx, d, "./run_emulators", "start"); err != nil {
 			td.Fatal(ctx, err)
 		}
 		ctx = td.WithEnv(ctx, []string{
 			"DATASTORE_EMULATOR_HOST=localhost:8891",
 			"BIGTABLE_EMULATOR_HOST=localhost:8892",
 			"PUBSUB_EMULATOR_HOST=localhost:8893",
+			"FIRESTORE_EMULATOR_HOST=localhost:8894",
 		})
 		defer func() {
-			if _, err := exec.RunCwd(ctx, d, "./run_emulator", "stop"); err != nil {
+			if _, err := exec.RunCwd(ctx, d, "./run_emulators", "stop"); err != nil {
 				td.Fatal(ctx, err)
 			}
 		}()
