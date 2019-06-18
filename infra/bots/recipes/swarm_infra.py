@@ -88,13 +88,14 @@ def RunSteps(api):
           cmd=['sudo', 'npm', 'i', '-g', 'bower@1.8.2'])
 
   if ('Large' in builder) or ('Race' in builder):
-    with api.context(cwd=infra_dir.join('go', 'ds', 'emulator'), env=env):
+    with api.context(cwd=infra_dir.join('scripts'), env=env):
       api.step(
-          'start the cloud data store emulator',
-           cmd=['./run_emulator', 'start'])
+          'start the cloud emulators',
+           cmd=['./run_emulators', 'start'])
     env['DATASTORE_EMULATOR_HOST'] = 'localhost:8891'
     env['BIGTABLE_EMULATOR_HOST'] = 'localhost:8892'
     env['PUBSUB_EMULATOR_HOST'] = 'localhost:8893'
+    env['FIRESTORE_EMULATOR_HOST'] = 'localhost:8894'
 
   # Run tests.
   env['SKIABOT_TEST_DEPOT_TOOLS'] = api.path['depot_tools']
@@ -119,9 +120,9 @@ def RunSteps(api):
         api.step('run_unittests', cmd)
     finally:
       if ('Large' in builder) or ('Race' in builder):
-        with api.context(cwd=infra_dir.join('go', 'ds', 'emulator'), env=env):
-          api.step('stop the cloud data store emulator',
-              cmd=['./run_emulator', 'stop'])
+        with api.context(cwd=infra_dir.join('scripts'), env=env):
+          api.step('stop the cloud emulators',
+              cmd=['./run_emulators', 'stop'])
 
   # Sanity check; none of the above should have modified the go.mod file.
   with api.context(cwd=infra_dir):

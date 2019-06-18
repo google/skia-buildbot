@@ -15,8 +15,10 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"github.com/google/uuid"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/iterator"
@@ -176,6 +178,50 @@ func NewClient(ctx context.Context, project, app, instance string, ts oauth2.Tok
 	return c, nil
 }
 
+// NewClientForTesting returns a Client and ensures that it will connect to the
+// Firestore emulator. The Client's instance name will be randomized to ensure
+// concurrent tests don't interfere with each other. It also returns a
+// CleanupFunc that closes the Client.
+func NewClientForTesting(t sktest.TestingT) (*Client, util.CleanupFunc) {
+	if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
+		t.Fatal(`This test requires the Firestore emulator, which you can start with
+./scripts/run_emulators start
+and then set the environment variables it prints out.
+
+# If you need to set up the Firestore emulator:
+gcloud beta emulators firestore start
+# The above will install the emulator and fail with an error like:
+#   [firestore] Error trying to exec /path/to/cloud-firestore-emulator.jar
+# See b/134379774
+chmod +x /path/to/cloud-firestore-emulator.jar
+
+# If you want to start only the Firestore emulator, the default params
+# try to use IPv6, which doesn't work great for our clients, so we need to start
+# it manually like:
+/path/to/cloud-firestore-emulator.jar --host=localhost --port=8894
+
+# Once the emulator is running, we need to run the following in the terminal
+# that we are running the tests in:
+export FIRESTORE_EMULATOR_HOST=localhost:8894
+`)
+		return nil, nil
+	}
+
+	project := "test-project"
+	app := "NewClientForTesting"
+	instance := fmt.Sprintf("test-%s", uuid.New())
+	c, err := NewClient(context.Background(), project, app, instance, nil)
+	if err != nil {
+		t.Fatalf("Error creating test firestore.Client: %s", err)
+		return nil, nil
+	}
+	return c, func() {
+		if err := c.Close(); err != nil {
+			t.Fatalf("Error closing test firestore.Client: %s", err)
+		}
+	}
+}
+
 // recordOp adds a transaction to the active transactions map. Returns
 // a func which should be deferred until the transaction is finished.
 func (c *Client) recordOp(opName, detail string) func() {
@@ -309,11 +355,11 @@ func (c *Client) withTimeoutAndRetries(attempts int, timeout time.Duration, fn f
 			if !retry {
 				return err
 			}
-		} else if err != nil {
+		} else if err != nil && err != context.DeadlineExceeded {
 			return err
 		}
 		wait := BACKOFF_WAIT * time.Duration(2^i)
-		sklog.Errorf("Encountered Firestore error; retrying in %s: %s;\n", wait, err)
+		sklog.Errorf("Encountered Firestore error; retrying in %s: %s", wait, err)
 		time.Sleep(wait)
 	}
 	// Note that we could collect the errors using multierror, but that
@@ -511,6 +557,8 @@ func (c *Client) RecurseDocs(name string, ref *firestore.DocumentRef, attempts i
 
 // recurseDocs is a recursive helper function used by RecurseDocs.
 func (c *Client) recurseDocs(ref *firestore.DocumentRef, attempts int, timeout time.Duration, fn func(*firestore.DocumentRef) error) error {
+	// The Firestore emulator does not correctly handle subcollection queries.
+	EnsureNotEmulator()
 	// TODO(borenet): Should we pause and resume like we do in IterDocs?
 	colls := map[string]*firestore.CollectionRef{}
 	if err := c.withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {

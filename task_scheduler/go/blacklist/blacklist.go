@@ -43,12 +43,17 @@ type Blacklist struct {
 	rules  map[string]*Rule
 }
 
-// New returns a Blacklist instance.
-func New(ctx context.Context, project, instance string, ts oauth2.TokenSource) (*Blacklist, error) {
+// NewWithParams returns a Blacklist instance backed by Firestore, using the given params.
+func NewWithParams(ctx context.Context, project, instance string, ts oauth2.TokenSource) (*Blacklist, error) {
 	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, instance, ts)
 	if err != nil {
 		return nil, err
 	}
+	return New(ctx, client)
+}
+
+// New returns a Blacklist instance backed by the given firestore.Client.
+func New(ctx context.Context, client *firestore.Client) (*Blacklist, error) {
 	b := &Blacklist{
 		client: client,
 		coll:   client.Collection(COLLECTION_BLACKLISTS),

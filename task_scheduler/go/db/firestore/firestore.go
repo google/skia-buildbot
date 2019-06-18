@@ -56,12 +56,17 @@ type firestoreDB struct {
 	db.ModifiedData
 }
 
-// NewDB returns a db.DB which uses Cloud Firestore for storage.
-func NewDB(ctx context.Context, project, instance string, ts oauth2.TokenSource, mod db.ModifiedData) (db.BackupDBCloser, error) {
+// NewDB returns a db.DB which uses Cloud Firestore for storage, using the given params.
+func NewDBWithParams(ctx context.Context, project, instance string, ts oauth2.TokenSource, mod db.ModifiedData) (db.BackupDBCloser, error) {
 	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, instance, ts)
 	if err != nil {
 		return nil, err
 	}
+	return NewDB(ctx, client, mod)
+}
+
+// NewDB returns a db.DB which uses the given firestore.Client for storage.
+func NewDB(ctx context.Context, client *firestore.Client, mod db.ModifiedData) (db.BackupDBCloser, error) {
 	if mod == nil {
 		mod = modified.NewModifiedData()
 	}

@@ -34,7 +34,8 @@ func TestWithTimeout(t *testing.T) {
 }
 
 func TestWithTimeoutAndRetries(t *testing.T) {
-	c, cleanup := setup(t)
+	unittest.LargeTest(t)
+	c, cleanup := NewClientForTesting(t)
 	defer cleanup()
 
 	maxAttempts := 3
@@ -69,20 +70,6 @@ func TestWithTimeoutAndRetries(t *testing.T) {
 	assert.Equal(t, 1, attempted)
 }
 
-func setup(t *testing.T) (*Client, func()) {
-	unittest.ManualTest(t)
-
-	project := "skia-firestore"
-	app := "firestore_pkg_tests"
-	instance := fmt.Sprintf("test-%s", uuid.New())
-	c, err := NewClient(context.Background(), project, app, instance, nil)
-	assert.NoError(t, err)
-	return c, func() {
-		assert.NoError(t, c.RecursiveDelete(c.ParentDoc, 5, 30*time.Second))
-		assert.NoError(t, c.Close())
-	}
-}
-
 type testEntry struct {
 	Id    string
 	Index int
@@ -102,7 +89,8 @@ func (s testEntrySlice) Swap(i, j int) {
 }
 
 func TestIterDocs(t *testing.T) {
-	c, cleanup := setup(t)
+	unittest.LargeTest(t)
+	c, cleanup := NewClientForTesting(t)
 	defer cleanup()
 
 	attempts := 3
@@ -223,8 +211,21 @@ func TestIterDocs(t *testing.T) {
 }
 
 func TestGetAllDescendants(t *testing.T) {
-	c, cleanup := setup(t)
-	defer cleanup()
+	// The emulator does not support the query used in RecursiveDelete and
+	// GetAllDescendantDocuments, so this must test against a real firestore
+	// instance; hence it is a manual test.
+	unittest.ManualTest(t)
+	EnsureNotEmulator()
+
+	project := "skia-firestore"
+	app := "firestore_pkg_tests"
+	instance := fmt.Sprintf("test-%s", uuid.New())
+	c, err := NewClient(context.Background(), project, app, instance, nil)
+	assert.NoError(t, err)
+	defer func() {
+		assert.NoError(t, c.RecursiveDelete(c.ParentDoc, 5, 30*time.Second))
+		assert.NoError(t, c.Close())
+	}()
 
 	attempts := 3
 	timeout := 5 * time.Second
@@ -270,7 +271,7 @@ func TestGetAllDescendants(t *testing.T) {
 	check(topLevelDoc, []*firestore.DocumentRef{ca, la, sf, fl, ny, nyc, nc, ch})
 
 	// Check that we can find descendants of missing documents.
-	_, err := c.Delete(ny, attempts, timeout)
+	_, err = c.Delete(ny, attempts, timeout)
 	assert.NoError(t, err)
 	check(topLevelDoc, []*firestore.DocumentRef{ca, la, sf, fl, ny, nyc, nc, ch})
 	_, err = c.Delete(nyc, attempts, timeout)
