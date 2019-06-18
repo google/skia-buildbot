@@ -45,6 +45,11 @@ func main() {
 
 	// Initialize the Git repo. We receive the code via Isolate, but it
 	// doesn't include the .git dir.
+	gitExe, err := os_steps.Which(ctx, "git")
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+	sklog.Infof("Using git from %s", gitExe)
 	gd := git.GitDir(infraDir)
 	if _, err := gd.Git(ctx, "init"); err != nil {
 		td.Fatal(ctx, err)
