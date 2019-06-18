@@ -27,6 +27,7 @@ const (
 
 	DEFAULT_OS       = DEFAULT_OS_LINUX
 	DEFAULT_OS_LINUX = "Debian-9.8"
+	DEFAULT_OS_WIN   = "Windows-2016Server-14393"
 
 	// Small is a 2-core machine.
 	MACHINE_TYPE_SMALL = "n1-highmem-2"
@@ -59,7 +60,8 @@ var (
 		"Infra-PerCommit-Medium",
 		"Infra-PerCommit-Large",
 		"Infra-PerCommit-Race",
-		"Infra-Experimental-Small",
+		"Infra-Experimental-Small-Linux",
+		"Infra-Experimental-Small-Win",
 	}
 
 	// Versions of the following copied from
@@ -156,6 +158,17 @@ func linuxGceDimensions(machineType string) []string {
 	}
 }
 
+// Dimensions for Windows GCE instances.
+func winGceDimensions(machineType string) []string {
+	return []string{
+		"pool:Skia",
+		fmt.Sprintf("os:%s", DEFAULT_OS_WIN),
+		"gpu:none",
+		"cpu:x86-64-Haswell_GCE",
+		fmt.Sprintf("machine_type:%s", machineType),
+	}
+}
+
 // Apply the default CIPD packages.
 func cipd(pkgs []*specs.CipdPackage) []*specs.CipdPackage {
 	// We also need Git.
@@ -201,21 +214,36 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 }
 
 // buildTaskDrivers generates the task to compile the task driver code to run on
-// all platforms.
-func buildTaskDrivers(b *specs.TasksCfgBuilder) string {
-	b.MustAddTask(BUILD_TASK_DRIVERS_NAME, &specs.TaskSpec{
+// a given platform.
+func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
+	// TODO(borenet): Add support for RPI.
+	goos := map[string]string{
+		"Linux": "linux",
+		"Mac":   "darwin",
+		"Win":   "windows",
+	}[os]
+	goarch := map[string]string{
+		"x86":    "386",
+		"x86_64": "amd64",
+	}[arch]
+	name := fmt.Sprintf("%s-%s-%s", BUILD_TASK_DRIVERS_NAME, os, arch)
+	b.MustAddTask(name, &specs.TaskSpec{
 		Caches:       CACHES_GO,
 		CipdPackages: append(CIPD_PKGS_GIT, b.MustGetCipdPackageFromAsset("go")),
 		Command: []string{
 			"/bin/bash", "buildbot/infra/bots/build_task_drivers.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
 		},
 		Dimensions: linuxGceDimensions(MACHINE_TYPE_SMALL),
+		Environment: map[string]string{
+			"GOOS":   goos,
+			"GOARCH": goarch,
+		},
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
 		Isolate: "whole_repo.isolate",
 	})
-	return BUILD_TASK_DRIVERS_NAME
+	return name
 
 }
 
@@ -364,6 +392,15 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 		cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
 	}
 
+	var dims []string
+	var deps []string
+	if strings.Contains(name, "Win") {
+		dims = winGceDimensions(machineType)
+		deps = append(deps, buildTaskDrivers(b, "Win", "x86_64"))
+	} else if strings.Contains(name, "Linux") {
+		dims = linuxGceDimensions(machineType)
+		deps = append(deps, buildTaskDrivers(b, "Linux", "x86_64"))
+	}
 	t := &specs.TaskSpec{
 		Caches:       CACHES_GO,
 		CipdPackages: cipd,
@@ -375,8 +412,8 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 			"--workdir", ".",
 			"--alsologtostderr",
 		},
-		Dependencies: []string{BUILD_TASK_DRIVERS_NAME},
-		Dimensions:   linuxGceDimensions(machineType),
+		Dependencies: deps,
+		Dimensions:   dims,
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
@@ -412,7 +449,7 @@ func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
 			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
 			"--alsologtostderr",
 		},
-		Dependencies: []string{BUILD_TASK_DRIVERS_NAME},
+		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:   linuxGceDimensions(machineType),
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
@@ -467,7 +504,6 @@ func main() {
 
 	// Create Tasks and Jobs.
 	bundleRecipes(b)
-	buildTaskDrivers(b)
 	for _, name := range JOBS {
 		process(b, name)
 	}
