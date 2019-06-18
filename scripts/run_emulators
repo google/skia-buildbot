@@ -6,6 +6,8 @@ function kill_emulators()
   kill -9 `ps aux | grep "[c]loud_datastore_emulator" | awk '{print $2}'`
   kill -9 `ps aux | grep "[C]loudDatastore.jar" | awk '{print $2}'`
   kill -9 `ps aux | grep "[c]btemulator" | awk '{print $2}'`
+  kill -9 `ps aux | grep "[c]loud-pubsub-emulator" | awk '{print $2}'`
+  kill -9 `ps aux | grep "[c]loud-firestore-emulator" | awk '{print $2}'`
 }
 
 # Starts and stops the cloud datastore emulator.
@@ -27,17 +29,26 @@ case "$1" in
                 --host-port=localhost:8893 \
                 --project=test-project > /tmp/pubsub_emulator.log 2>&1 &
 
+    gcloud beta emulators firestore start \
+                --host-port=localhost:8894 > /tmp/firestore_emulator.log 2>&1 &
+
     set -e
     sleep 5s
     cat /tmp/datastore_emulator.log
     cat /tmp/bigtable_emulator.log
     cat /tmp/pubsub_emulator.log
+    cat /tmp/firestore_emulator.log
 
-    echo "Cloud datastore,Bigtable and PubSub emulators started."
+    echo "Cloud Datastore, Bigtable, PubSub, and Firestore emulators started."
+    echo "Set environment variables as follows:"
+    echo "export DATASTORE_EMULATOR_HOST=localhost:8891"
+    echo "export BIGTABLE_EMULATOR_HOST=localhost:8892"
+    echo "export PUBSUB_EMULATOR_HOST=localhost:8893"
+    echo "export FIRESTORE_EMULATOR_HOST=localhost:8894"
     ;;
   "stop")
     kill_emulators
-    echo "Cloud datastore and Bigtable emulators stopped."
+    echo "Cloud Datastore, Bigtable, PubSub, and Firestore emulators stopped."
     ;;
   *)
     echo "Error: argument must be {start|stop}"
