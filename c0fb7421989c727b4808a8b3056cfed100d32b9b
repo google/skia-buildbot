@@ -70,6 +70,30 @@
       "revId": "c0fb7421989c727b4808a8b3056cfed100d32b9b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "435fb6b9_d77b2c5a",
+        "filename": "go/repo_root/repo_root.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-18T18:54:43Z",
+      "side": 1,
+      "message": "If this weren\u0027t a test-only package, I would try harder to conform.\n\nI mostly work in one clone of the repo, but it\u0027s very useful to have a clean clone for running scripts in the repo or building clean binaries.",
+      "parentUuid": "43c20f3f_f42adc73",
+      "range": {
+        "startLine": 22,
+        "startChar": 20,
+        "endLine": 22,
+        "endChar": 33
+      },
+      "revId": "c0fb7421989c727b4808a8b3056cfed100d32b9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
