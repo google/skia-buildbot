@@ -519,6 +519,10 @@ func KeysOfParamSet(set map[string][]string) []string {
 	return ret
 }
 
+// CleanupFunc is a function return value that can be deferred by the caller to
+// clean up any resources created/acquired by the function.
+type CleanupFunc func()
+
 // Close wraps an io.Closer and logs an error if one is returned.
 func Close(c io.Closer) {
 	if err := c.Close(); err != nil {
