@@ -175,6 +175,9 @@ if (!(Test-Path ($swarm_slave_dir))) {
   if ($hostname.StartsWith("skia-i-") -Or $hostname.StartsWith("ct-")) {
     $swarming = "https://chrome-swarming.appspot.com"
   }
+  if ($hostname.StartsWith("skia-d-")) {
+    $swarming = "https://chromium-swarm-dev.appspot.com"
+  }
   $metadataJson = Invoke-WebRequest -Uri http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token -Headers @{"Metadata-Flavor"="Google"} -UseBasicParsing | ConvertFrom-Json
   curl $swarming/bot_code?bot_id=$hostname -Headers @{"Authorization"="Bearer " + $metadataJson.access_token} -OutFile $swarm_slave_dir/swarming_bot.zip
 }
