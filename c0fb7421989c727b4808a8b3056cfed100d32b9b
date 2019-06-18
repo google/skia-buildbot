@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8666c095_495a317c",
+        "filename": "go/repo_root/repo_root.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-18T17:30:26Z",
+      "side": 1,
+      "message": "Is this something you\u0027ve defined on your machine?  I\u0027m curious why the other prefixes don\u0027t work for you.",
+      "range": {
+        "startLine": 22,
+        "startChar": 20,
+        "endLine": 22,
+        "endChar": 33
+      },
+      "revId": "c0fb7421989c727b4808a8b3056cfed100d32b9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
