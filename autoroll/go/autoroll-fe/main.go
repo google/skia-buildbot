@@ -418,7 +418,7 @@ func main() {
 
 	ctx := context.Background()
 
-	manualRollDB, err = manual.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts)
+	manualRollDB, err = manual.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
