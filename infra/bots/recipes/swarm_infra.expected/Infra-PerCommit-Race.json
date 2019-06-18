@@ -158,10 +158,10 @@
   },
   {
     "cmd": [
-      "./run_emulator",
+      "./run_emulators",
       "start"
     ],
-    "cwd": "[START_DIR]/buildbot/go/ds/emulator",
+    "cwd": "[START_DIR]/buildbot/scripts",
     "env": {
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
@@ -171,7 +171,7 @@
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
     },
-    "name": "start the cloud data store emulator"
+    "name": "start the cloud emulators"
   },
   {
     "cmd": [
@@ -189,6 +189,7 @@
       "BIGTABLE_EMULATOR_HOST": "localhost:8892",
       "CHROME_HEADLESS": "1",
       "DATASTORE_EMULATOR_HOST": "localhost:8891",
+      "FIRESTORE_EMULATOR_HOST": "localhost:8894",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
       "GOFLAGS": "-mod=readonly",
@@ -202,14 +203,15 @@
   },
   {
     "cmd": [
-      "./run_emulator",
+      "./run_emulators",
       "stop"
     ],
-    "cwd": "[START_DIR]/buildbot/go/ds/emulator",
+    "cwd": "[START_DIR]/buildbot/scripts",
     "env": {
       "BIGTABLE_EMULATOR_HOST": "localhost:8892",
       "CHROME_HEADLESS": "1",
       "DATASTORE_EMULATOR_HOST": "localhost:8891",
+      "FIRESTORE_EMULATOR_HOST": "localhost:8894",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
       "GOFLAGS": "-mod=readonly",
@@ -219,7 +221,7 @@
       "PUBSUB_EMULATOR_HOST": "localhost:8893",
       "SKIABOT_TEST_DEPOT_TOOLS": "[DEPOT_TOOLS]"
     },
-    "name": "stop the cloud data store emulator"
+    "name": "stop the cloud emulators"
   },
   {
     "cmd": [
