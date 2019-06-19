@@ -13,7 +13,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -256,7 +255,7 @@ func goTestLarge(cwd string) *test {
 // pythonTest returns a test which runs the given Python script and fails if
 // the script fails.
 func pythonTest(testPath string) *test {
-	return cmdTest([]string{"python", testPath}, ".", path.Base(testPath), unittest.SMALL_TEST)
+	return cmdTest([]string{"python", testPath}, ".", filepath.Base(testPath), unittest.SMALL_TEST)
 }
 
 // Verify that "go generate ./..." produces no diffs.
@@ -368,7 +367,7 @@ func main() {
 	defer timer.New("Finished").Stop()
 
 	_, filename, _, _ := runtime.Caller(0)
-	rootDir := path.Dir(filename)
+	rootDir := filepath.Dir(filename)
 
 	if *race {
 		// Use alternative timeouts when --race is enabled because the tests
@@ -392,7 +391,7 @@ func main() {
 		"json_summary_combiner_test.py": true,
 	}
 	if err := filepath.Walk(rootDir, func(p string, info os.FileInfo, err error) error {
-		basename := path.Base(p)
+		basename := filepath.Base(p)
 		if info.IsDir() {
 			// Skip some directories.
 			for _, skip := range NO_CRAWL_DIR_NAMES {
@@ -401,15 +400,15 @@ func main() {
 				}
 			}
 			for _, skip := range NO_CRAWL_REL_PATHS {
-				if p == path.Join(rootDir, skip) {
+				if p == filepath.Join(rootDir, skip) {
 					return filepath.SkipDir
 				}
 			}
 
 			if basename == "go" {
-				gotests = append(gotests, goTestSmall(path.Dir(p)))
-				gotests = append(gotests, goTestMedium(path.Dir(p)))
-				gotests = append(gotests, goTestLarge(path.Dir(p)))
+				gotests = append(gotests, goTestSmall(filepath.Dir(p)))
+				gotests = append(gotests, goTestMedium(filepath.Dir(p)))
+				gotests = append(gotests, goTestLarge(filepath.Dir(p)))
 			}
 		}
 		if strings.HasSuffix(basename, "_test.py") && !pythonTestBlacklist[basename] {
