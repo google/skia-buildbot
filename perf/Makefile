@@ -4,12 +4,11 @@
 CORE_SOURCE_FILES = node_modules/chart.js/dist/Chart.bundle.min.js \
 										node_modules/chartjs-plugin-annotation/chartjs-plugin-annotation.min.js \
 										node_modules/chartjs-plugin-zoom/chartjs-plugin-zoom.min.js	 \
-										third_party/bower_components/webcomponentsjs/webcomponents-lite.min.js \
+										node_modules/webcomponents-lite/webcomponents-lite.js \
 										../res/js/common.js
 
-BOWER_DIR=third_party/bower_components
-
 VULCANIZE1=true
+NOBOWER=true
 
 .PHONY: build
 build: web ingest_json_validator
