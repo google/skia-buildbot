@@ -37,7 +37,7 @@ release: build
 	./build_docker_release
 
 .PHONY: release_ci
-release_ci:
+release_ci: build
 	# Don't docker pull here, as we are in the CI pipeline and it already has
 	# done the pull.
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/debugger-assets
