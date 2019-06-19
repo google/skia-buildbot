@@ -33,7 +33,7 @@ func (t *testTokenSource) Token() (*oauth2.Token, error) {
 
 func TestNew(t *testing.T) {
 	unittest.SmallTest(t)
-	dir, err := ioutil.TempDir("/tmp", "gitauth")
+	dir, err := ioutil.TempDir("", "gitauth")
 	filename := filepath.Join(dir, "cookie")
 	assert.NoError(t, err)
 	defer util.RemoveAll(dir)
