@@ -36,6 +36,13 @@ release: build
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/debugger-assets
 	./build_docker_release
 
+.PHONY: release_ci
+release_ci:
+	# Don't docker pull here, as we are in the CI pipeline and it already has
+	# done the pull.
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/debugger-assets
+	./build_docker_release
+
 .PHONY: push
 push: release skia-public
 	go install ../kube/go/pushk
