@@ -181,6 +181,7 @@ func TestTaskDB(t sktest.TestingT, db TaskDB) {
 	t2LastModified := t2.DbModified
 	t1.Status = types.TASK_STATUS_RUNNING
 	t2.Status = types.TASK_STATUS_SUCCESS
+	time.Sleep(2 * TS_RESOLUTION)
 	assert.NoError(t, db.PutTasks([]*types.Task{t1, t2}))
 	assert.False(t, t1.DbModified.Equal(t1LastModified))
 	assert.False(t, t2.DbModified.Equal(t2LastModified))
@@ -263,6 +264,7 @@ func TestTaskDBConcurrentUpdate(t sktest.TestingT, db TaskDB) {
 	AssertDeepEqual(t, t1, t1Cached)
 
 	// Update the original task.
+	time.Sleep(TS_RESOLUTION)
 	t1.Commits = []string{"a", "b"}
 	assert.NoError(t, db.PutTask(t1))
 
@@ -362,10 +364,12 @@ func testUpdateTasksWithRetriesSuccess(t sktest.TestingT, db TaskDB) {
 	t1Cached := t1.Copy()
 
 	// Update original.
+	time.Sleep(TS_RESOLUTION)
 	t1.Status = types.TASK_STATUS_RUNNING
 	assert.NoError(t, db.PutTask(t1))
 
 	// Attempt update.
+	time.Sleep(TS_RESOLUTION)
 	callCount := 0
 	tasks, err := UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
 		callCount++
@@ -460,10 +464,12 @@ func testUpdateTasksWithRetriesExhausted(t sktest.TestingT, db TaskDB) {
 	t1Cached := t1.Copy()
 
 	// Update original.
+	time.Sleep(TS_RESOLUTION)
 	t1.Status = types.TASK_STATUS_RUNNING
 	assert.NoError(t, db.PutTask(t1))
 
 	// Attempt update.
+	time.Sleep(TS_RESOLUTION)
 	callCount := 0
 	tasks, err := UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
 		callCount++
@@ -494,6 +500,7 @@ func testUpdateTaskWithRetriesSimple(t sktest.TestingT, db TaskDB) {
 	assert.NoError(t, db.PutTask(t1))
 
 	// Update t1.
+	time.Sleep(TS_RESOLUTION)
 	t1Updated, err := UpdateTaskWithRetries(db, t1.Id, func(task *types.Task) error {
 		task.Status = types.TASK_STATUS_RUNNING
 		return nil
@@ -524,6 +531,7 @@ func testUpdateTaskWithRetriesSuccess(t sktest.TestingT, db TaskDB) {
 	assert.NoError(t, db.PutTask(t1))
 
 	// Attempt update.
+	time.Sleep(TS_RESOLUTION)
 	callCount := 0
 	t1Updated, err := UpdateTaskWithRetries(db, t1.Id, func(task *types.Task) error {
 		callCount++
@@ -531,6 +539,7 @@ func testUpdateTaskWithRetriesSuccess(t sktest.TestingT, db TaskDB) {
 			// Sneakily make an update in the background.
 			t1.Commits = append(t1.Commits, fmt.Sprintf("z%d", callCount))
 			assert.NoError(t, db.PutTask(t1))
+			time.Sleep(TS_RESOLUTION)
 		}
 		task.Status = types.TASK_STATUS_SUCCESS
 		return nil
@@ -595,16 +604,19 @@ func testUpdateTaskWithRetriesExhausted(t sktest.TestingT, db TaskDB) {
 	assert.NoError(t, db.PutTask(t1))
 
 	// Update original.
+	time.Sleep(TS_RESOLUTION)
 	t1.Status = types.TASK_STATUS_RUNNING
 	assert.NoError(t, db.PutTask(t1))
 
 	// Attempt update.
+	time.Sleep(TS_RESOLUTION)
 	callCount := 0
 	noTask, err := UpdateTaskWithRetries(db, t1.Id, func(task *types.Task) error {
 		callCount++
 		// Sneakily make an update in the background.
 		t1.Commits = append(t1.Commits, fmt.Sprintf("z%d", callCount))
 		assert.NoError(t, db.PutTask(t1))
+		time.Sleep(TS_RESOLUTION)
 
 		task.Status = types.TASK_STATUS_SUCCESS
 		return nil
@@ -653,14 +665,23 @@ func testUpdateTaskWithRetriesTaskNotFound(t sktest.TestingT, db TaskDB) {
 // Test UpdateTasksWithRetries and UpdateTaskWithRetries.
 func TestUpdateTasksWithRetries(t sktest.TestingT, db TaskDB) {
 	testUpdateTasksWithRetriesSimple(t, db)
+	time.Sleep(TS_RESOLUTION)
 	testUpdateTasksWithRetriesSuccess(t, db)
+	time.Sleep(TS_RESOLUTION)
 	testUpdateTasksWithRetriesErrorInFunc(t, db)
+	time.Sleep(TS_RESOLUTION)
 	testUpdateTasksWithRetriesErrorInPutTasks(t, db)
+	time.Sleep(TS_RESOLUTION)
 	testUpdateTasksWithRetriesExhausted(t, db)
+	time.Sleep(TS_RESOLUTION)
 	testUpdateTaskWithRetriesSimple(t, db)
+	time.Sleep(TS_RESOLUTION)
 	testUpdateTaskWithRetriesSuccess(t, db)
+	time.Sleep(TS_RESOLUTION)
 	testUpdateTaskWithRetriesErrorInFunc(t, db)
+	time.Sleep(TS_RESOLUTION)
 	testUpdateTaskWithRetriesExhausted(t, db)
+	time.Sleep(TS_RESOLUTION)
 	testUpdateTaskWithRetriesTaskNotFound(t, db)
 }
 
@@ -833,10 +854,12 @@ func TestJobDBConcurrentUpdate(t sktest.TestingT, db JobDB) {
 	AssertDeepEqual(t, j1, j1Cached)
 
 	// Update the original job.
+	time.Sleep(TS_RESOLUTION)
 	j1.Repo = "another-repo"
 	assert.NoError(t, db.PutJob(j1))
 
 	// Update the cached copy; should get concurrent update error.
+	time.Sleep(TS_RESOLUTION)
 	j1Cached.Status = types.JOB_STATUS_IN_PROGRESS
 	err = db.PutJob(j1Cached)
 	assert.True(t, IsConcurrentUpdate(err))
