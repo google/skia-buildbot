@@ -54,7 +54,8 @@ def _GetLocalConfig():
     checkout_root = os.path.abspath(os.path.join(checkout_root, os.pardir))
     depth -= 1
   config_vars = {}
-  exec(open(os.path.join(checkout_root, GCLIENT_FILE)).read(), config_vars)
+  with open(os.path.join(checkout_root, GCLIENT_FILE), 'rb') as f:
+    exec(f.read(), config_vars)
   return checkout_root, config_vars['solutions']
 
 
