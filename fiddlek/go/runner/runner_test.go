@@ -15,6 +15,7 @@ import (
 
 func TestPrep(t *testing.T) {
 	unittest.SmallTest(t)
+	unittest.LinuxOnlyTest(t)
 	opts := &types.Options{
 		Width:  128,
 		Height: 256,
