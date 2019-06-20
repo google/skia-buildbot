@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "84b12e28_e0381d38",
+        "filename": "gold-client/go/goldclient/golduploader.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-20T19:46:02Z",
+      "side": 1,
+      "message": "Seems like this will only work if gsutil.py is in CWD. Or does python look up this file in PATH?\n\nI also wonder why we would prefer the gsutilUploader instead of the httpUploader; seems like whatever auth gsutil is using should also work for the GCS API client.",
+      "range": {
+        "startLine": 70,
+        "startChar": 35,
+        "endLine": 70,
+        "endChar": 46
+      },
+      "revId": "f6fec5a9509e1149f8ec4567f0e1888ec8541df2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef637b35_a1603211",
+        "filename": "gold-client/go/goldclient/golduploader.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-20T19:46:02Z",
+      "side": 1,
+      "message": "This should be in the else clause.",
+      "revId": "f6fec5a9509e1149f8ec4567f0e1888ec8541df2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
