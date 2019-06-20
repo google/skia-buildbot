@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -48,7 +49,7 @@ func TestHappyCase(t *testing.T) {
 	assert.NoError(t, cw.Close())
 	assert.NoError(t, err)
 
-	ms.On("SetFileContents", ctx, "/foobar/2017/09/01/13/MyTest-Debug/testprefix_b7e46f46f13e9ddfa40cdb44f921efd1_1504273020000.json", gcs.FileWriteOptions{
+	ms.On("SetFileContents", ctx, filepath.Join("/foobar", "2017", "09", "01", "13", "MyTest-Debug", "testprefix_b7e46f46f13e9ddfa40cdb44f921efd1_1504273020000.json"), gcs.FileWriteOptions{
 		ContentEncoding: "gzip",
 		ContentType:     "application/json",
 	}, compressed.Bytes()).Return(nil)

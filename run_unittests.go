@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/common"
+	skexec "go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -256,7 +257,7 @@ func goTestLarge(cwd string) *test {
 // pythonTest returns a test which runs the given Python script and fails if
 // the script fails.
 func pythonTest(testPath string) *test {
-	return cmdTest([]string{"python", testPath}, ".", path.Base(testPath), unittest.SMALL_TEST)
+	return cmdTest([]string{skexec.PYTHON_EXE, testPath}, ".", path.Base(testPath), unittest.SMALL_TEST)
 }
 
 // Verify that "go generate ./..." produces no diffs.
@@ -424,17 +425,21 @@ func main() {
 	tests = append(tests, cmdTest([]string{"go", "vet", "./..."}, ".", "go vet", unittest.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"errcheck", "-ignore", ":Close", "go.skia.org/infra/..."}, ".", "errcheck", unittest.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"go", "run", "prober/go/build_probers_json5/main.go", "--srcdir=.", "--dest=/tmp/allprobers.json5"}, ".", "probers test", unittest.MEDIUM_TEST))
-	tests = append(tests, cmdTest([]string{"python", "infra/bots/recipes.py", "test", "run"}, ".", "recipes test", unittest.MEDIUM_TEST))
+	tests = append(tests, cmdTest([]string{skexec.PYTHON_EXE, "infra/bots/recipes.py", "test", "run"}, ".", "recipes test", unittest.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"go", "run", "infra/bots/gen_tasks.go", "--test"}, ".", "gen_tasks.go --test", unittest.SMALL_TEST))
-	tests = append(tests, cmdTest([]string{"python", "go/testutils/unittest/uncategorized_tests.py"}, ".", "uncategorized tests", unittest.SMALL_TEST))
-	tests = append(tests, cmdTest([]string{"make", "testci"}, "common-sk", "common-sk elements", unittest.MEDIUM_TEST))
-	tests = append(tests, cmdTest([]string{"make", "testci"}, "named-fiddles", "named-fiddles elements", unittest.MEDIUM_TEST))
-	tests = append(tests, cmdTest([]string{"make", "test"}, "push", "push elements", unittest.MEDIUM_TEST))
-	tests = append(tests, cmdTest([]string{"make"}, "licenses", "check go package licenses", unittest.MEDIUM_TEST))
+	tests = append(tests, cmdTest([]string{skexec.PYTHON_EXE, "go/testutils/unittest/uncategorized_tests.py"}, ".", "uncategorized tests", unittest.SMALL_TEST))
+	if runtime.GOOS == "linux" {
+		tests = append(tests, cmdTest([]string{"make", "testci"}, "common-sk", "common-sk elements", unittest.MEDIUM_TEST))
+		tests = append(tests, cmdTest([]string{"make", "testci"}, "named-fiddles", "named-fiddles elements", unittest.MEDIUM_TEST))
+		tests = append(tests, cmdTest([]string{"make", "test"}, "push", "push elements", unittest.MEDIUM_TEST))
+		tests = append(tests, cmdTest([]string{"make"}, "licenses", "check go package licenses", unittest.MEDIUM_TEST))
+	}
 
 	if !*race {
-		// put this behind a flag because polylintTests trys to build the polymer files
-		tests = append(tests, polylintTests()...)
+		if runtime.GOOS == "linux" {
+			// put this behind a flag because polylintTests trys to build the polymer files
+			tests = append(tests, polylintTests()...)
+		}
 	}
 
 	goimportsCmd := []string{"goimports", "-l", "."}
