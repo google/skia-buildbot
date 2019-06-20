@@ -8,10 +8,12 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
-    "sinon": "^1.17.2",
+    "@polymer/paper-elements": "3.0.0-pre.4",
+    "@webcomponents/webcomponentsjs": "^2.2.10",
     "Polymer": "^1",
+    "moment": "^1.1.0",
     "npm-polymer-elements": "0.0.1",
-    "webcomponents-lite": "^0.6.0",
-    "moment": "^1.1.0"
+    "sinon": "^1.17.2",
+    "webcomponents-lite": "^0.6.0"
   }
 }
