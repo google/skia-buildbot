@@ -1,0 +1,46 @@
+
+<html>
+<head>
+  <title>date-picker-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/common/js/common.js"></script>
+  <script src="/node_modules/npm-polymer-elements/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel=import href="/node_modules/npm-polymer-elements/polymer/polymer.html">
+  <link rel=import href="date-picker-sk.html">
+  <link rel=import href="error-toast-sk.html">
+  <style type="text/css" media="screen">
+    body {
+      font-family:Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>date</h1>
+
+  <div>
+    With default:
+    <date-picker-sk id=picker date=1477428018></date-picker-sk>
+  </div>
+  <div>
+    Without default:
+    <date-picker-sk id=picker2></date-picker-sk>
+  </div>
+
+  <h3>Event</h3>
+  <div id=event></div>
+
+  <script type="text/javascript" charset="utf-8">
+    $$$('#picker').addEventListener('date-changed', function(e) {
+      $$$('#event').textContent = JSON.stringify(e.detail);
+    });
+    $$$('#picker2').addEventListener('date-changed', function(e) {
+      $$$('#event').textContent = JSON.stringify(e.detail);
+    });
+  </script>
+
+  <error-toast-sk></error-toast-sk>
+</body>
+</html>
