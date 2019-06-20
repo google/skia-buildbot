@@ -102,7 +102,7 @@ func TestExec(t *testing.T) {
 		// Ensure that we collect stdout.
 		out, err := exec.RunCwd(ctx, ".", "python", "-c", "print 'hello world'")
 		assert.NoError(t, err)
-		assert.Equal(t, "hello world\n", out)
+		assert.True(t, strings.Contains(out, "hello world"))
 		assert.Equal(t, 2, *counter) // Not using the mock for this test case.
 
 		// Ensure that we collect stdout and stderr.

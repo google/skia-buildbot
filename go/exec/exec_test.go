@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	expect "github.com/stretchr/testify/assert"
 	assert "github.com/stretchr/testify/require"
@@ -98,79 +97,70 @@ func TestBasic(t *testing.T) {
 	assert.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
+	prog := fmt.Sprintf("with open(r'%s', 'wb') as f: f.write('')", file)
 	assert.NoError(t, Run(context.Background(), &Command{
-		Name: "touch",
-		Args: []string{file},
+		Name: PYTHON_EXE,
+		Args: []string{"-c", prog},
 	}))
 	_, err = os.Stat(file)
 	expect.NoError(t, err)
 }
-
-func WriteScript(path, script string) error {
-	return ioutil.WriteFile(path, []byte(script), 0777)
-}
-
-const SimpleScript = `#!/bin/bash
-touch "${EXEC_TEST_FILE}"
-`
 
 func TestEnv(t *testing.T) {
 	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
 	assert.NoError(t, err)
 	defer RemoveAll(dir)
-	script := filepath.Join(dir, "simple_script.sh")
-	assert.NoError(t, WriteScript(script, SimpleScript))
 	file := filepath.Join(dir, "ran")
 	assert.NoError(t, Run(context.Background(), &Command{
-		Name: script,
-		Env:  []string{fmt.Sprintf("EXEC_TEST_FILE=%s", file)},
+		Name: PYTHON_EXE,
+		Args: []string{"-c", `
+import os
+with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
+  f.write('')
+`},
+		Env: []string{fmt.Sprintf("EXEC_TEST_FILE=%s", file)},
 	}))
 	_, err = os.Stat(file)
 	expect.NoError(t, err)
 }
-
-const PathScript = `#!/bin/bash
-echo "${PATH}" > "${EXEC_TEST_FILE}"
-`
 
 func TestInheritPath(t *testing.T) {
 	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
 	assert.NoError(t, err)
 	defer RemoveAll(dir)
-	script := filepath.Join(dir, "path_script.sh")
-	assert.NoError(t, WriteScript(script, PathScript))
 	file := filepath.Join(dir, "ran")
 	assert.NoError(t, Run(context.Background(), &Command{
-		Name:        script,
+		Name: PYTHON_EXE,
+		Args: []string{"-c", `
+import os
+with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
+  f.write(os.environ['PATH'])
+`},
 		Env:         []string{fmt.Sprintf("EXEC_TEST_FILE=%s", file)},
 		InheritPath: true,
 	}))
 	contents, err := ioutil.ReadFile(file)
 	assert.NoError(t, err)
-	expect.Equal(t, os.Getenv("PATH"), strings.TrimSpace(string(contents)))
+	// Python may append site_packages dir to PATH.
+	expect.True(t, strings.Contains(strings.TrimSpace(string(contents)), os.Getenv("PATH")))
 }
-
-// Add x before variable to ensure no blank lines.
-const EnvScript = `#!/bin/bash
-echo "x${PATH}" > "${EXEC_TEST_FILE}"
-echo "x${USER}" >> "${EXEC_TEST_FILE}"
-echo "x${PWD}" >> "${EXEC_TEST_FILE}"
-echo "${HOME}" >> "${EXEC_TEST_FILE}"
-echo "x${GOPATH}" >> "${EXEC_TEST_FILE}"
-`
 
 func TestInheritEnv(t *testing.T) {
 	unittest.SmallTest(t)
 	dir, err := ioutil.TempDir("", "exec_test")
 	assert.NoError(t, err)
 	defer RemoveAll(dir)
-	script := filepath.Join(dir, "path_script.sh")
-	assert.NoError(t, WriteScript(script, EnvScript))
 	file := filepath.Join(dir, "ran")
 	assert.NoError(t, Run(context.Background(), &Command{
-		Name: script,
+		Name: PYTHON_EXE,
+		Args: []string{"-c", `
+import os
+with open(os.environ['EXEC_TEST_FILE'], 'wb') as f:
+  for var in ('PATH', 'USER', 'PWD', 'HOME', 'GOPATH'):
+    f.write('x%s\n' % os.environ.get(var, ''))
+`},
 		Env: []string{
 			fmt.Sprintf("EXEC_TEST_FILE=%s", file),
 			fmt.Sprintf("HOME=%s", dir),
@@ -182,29 +172,25 @@ func TestInheritEnv(t *testing.T) {
 	assert.NoError(t, err)
 	lines := strings.Split(strings.TrimSpace(string(contents)), "\n")
 	assert.Equal(t, 5, len(lines))
-	expect.Equal(t, "x"+os.Getenv("PATH"), lines[0])
+	// Python may append site_packages dir to PATH.
+	expect.True(t, strings.Contains(lines[0], "x"+os.Getenv("PATH")))
 	expect.Equal(t, "x"+os.Getenv("USER"), lines[1])
 	expect.Equal(t, "x"+os.Getenv("PWD"), lines[2])
-	expect.Equal(t, dir, lines[3])
+	expect.Equal(t, "x"+dir, lines[3])
 	expect.Equal(t, "x"+os.Getenv("GOPATH"), lines[4])
 }
-
-const HelloScript = `#!/bin/bash
-echo "Hello World!" > output.txt
-`
 
 func TestDir(t *testing.T) {
 	unittest.SmallTest(t)
 	dir1, err := ioutil.TempDir("", "exec_test1")
 	assert.NoError(t, err)
 	defer RemoveAll(dir1)
-	script := filepath.Join(dir1, "hello_script.sh")
-	assert.NoError(t, WriteScript(script, HelloScript))
 	dir2, err := ioutil.TempDir("", "exec_test2")
 	assert.NoError(t, err)
 	defer RemoveAll(dir2)
 	assert.NoError(t, Run(context.Background(), &Command{
-		Name: script,
+		Name: PYTHON_EXE,
+		Args: []string{"-c", "with open('output.txt', 'wb') as f: f.write('Hello World!')"},
 		Dir:  dir2,
 	}))
 	file := filepath.Join(dir2, "output.txt")
@@ -217,8 +203,8 @@ func TestSimpleIO(t *testing.T) {
 	inputString := "foo\nbar\nbaz\n"
 	output := bytes.Buffer{}
 	assert.NoError(t, Run(context.Background(), &Command{
-		Name:   "grep",
-		Args:   []string{"-e", "^ba"},
+		Name:   PYTHON_EXE,
+		Args:   []string{"-u", "-c", "import sys; sys.stdout.write(sys.stdin.read()[4:])"},
 		Stdin:  bytes.NewReader([]byte(inputString)),
 		Stdout: &output,
 	}))
@@ -232,9 +218,12 @@ func TestError(t *testing.T) {
 	defer RemoveAll(dir)
 	output := bytes.Buffer{}
 	err = Run(context.Background(), &Command{
-		Name: "cp",
-		Args: []string{filepath.Join(dir, "doesnt_exist"),
-			filepath.Join(dir, "dest")},
+		Name: PYTHON_EXE,
+		Args: []string{"-u", "-c", `
+import sys
+sys.stderr.write('No such file or directory')
+sys.exit(1)
+`},
 		Stderr: &output,
 	})
 	expect.Error(t, err)
@@ -254,16 +243,22 @@ func TestCombinedOutput(t *testing.T) {
 	dir, err := ioutil.TempDir("", "exec_test")
 	assert.NoError(t, err)
 	defer RemoveAll(dir)
-	script := filepath.Join(dir, "combined_output_script.sh")
-	assert.NoError(t, WriteScript(script, CombinedOutputScript))
 	combined := bytes.Buffer{}
 	assert.NoError(t, Run(context.Background(), &Command{
-		Name:           script,
+		Name: PYTHON_EXE,
+		Args: []string{"-u", "-c", `
+import sys
+sys.stdout.write(r'roses\n')
+sys.stderr.write(r'red\n')
+sys.stdout.write(r'violets\n')
+sys.stderr.write(r'blue\n')
+`},
 		CombinedOutput: &combined,
 	}))
 	expect.Equal(t, "roses\nred\nviolets\nblue\n", string(combined.Bytes()))
 }
 
+/*
 // Previously there was a bug due to code like:
 // var outputFile *os.File
 // if outputToFile {
@@ -426,3 +421,4 @@ func TestRunCommand(t *testing.T) {
 	assert.Equal(t, "hello world\n", output)
 	assert.Equal(t, output, buf.String())
 }
+*/
