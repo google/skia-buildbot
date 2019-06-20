@@ -145,9 +145,14 @@ func (rm *githubCipdDEPSRepoManager) Update(ctx context.Context) error {
 			return err
 		}
 	}
-	// Pull from upstream.
-	if _, err := git.GitDir(rm.parentDir).Git(ctx, "pull", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch); err != nil {
+	// Fetch upstream.
+	if _, err := git.GitDir(rm.parentDir).Git(ctx, "fetch", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch); err != nil {
 		return err
+	}
+	// gclient sync to get latest version of child repo to find the next roll
+	// rev from.
+	if err := rm.createAndSyncParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName); err != nil {
+		return fmt.Errorf("Could not create and sync parent repo: %s", err)
 	}
 
 	// Get the last roll revision.
@@ -267,7 +272,10 @@ func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	}()
 
 	// Make sure the forked repo is at the same hash as the target repo before
-	// creating the pull request on the rm.rollBranchName.
+	// creating the pull request on both parentBranch and rm.rollBranchName.
+	if _, err := git.GitDir(rm.parentDir).Git(ctx, "push", "origin", rm.parentBranch, "-f"); err != nil {
+		return 0, err
+	}
 	if _, err := git.GitDir(rm.parentDir).Git(ctx, "push", "origin", rm.rollBranchName, "-f"); err != nil {
 		return 0, err
 	}
