@@ -1,0 +1,275 @@
+<!-- The <query2-sk> custom element declaration.
+
+  Starting from a serialized paramtools.ParamSet, this control allows the user
+  to build up a query, suitable for passing to query.New.
+
+  Attributes:
+    current_query - The current query formatted as a URL formatted query string.
+
+  Events:
+    'query-change'
+      The 'query2-sk' element will produce 'query-change' events when the query
+      parameters chosen have changed. The event contains the current
+      selections formatted as a URL query, found in e.detail.q.
+
+    'query-change-delayed'
+      The same exact event as query-change, but with a 500ms delay after
+      the query stops changing.
+
+  Methods:
+    setCurrentQuery(s) - Sets the query selections of the control, where 's'
+      is a URL formatted query string, as returned from current_query.
+
+    setParamset(p) -  A serialized paramtools.ParamSet, that is the source
+      of the options for the query.
+
+    setKeyOrder(s) - An array of strings, the keys in the order they should
+      appear. All keys not in the key order will be present after and in
+      alphabetical order.
+-->
+
+<link rel="stylesheet" href="/res/common/css/md.css">
+<link rel="import" href="/node_modules/npm-polymer-elements/iron-flex-layout/classes/iron-flex-layout.html">
+<link rel="import" href="/node_modules/npm-polymer-elements/paper-input/paper-input.html">
+<link rel="import" href="/node_modules/npm-polymer-elements/iron-selector/iron-selector.html">
+
+<link rel="import" href="query2-values-sk.html">
+
+<dom-module id="query2-sk">
+  <style include="iron-flex iron-flex-alignment iron-positioning">
+    input {
+      margin: 0 1em;
+    }
+
+    iron-selector {
+      cursor: pointer;
+      border: solid 1px #A6CEE3;
+      margin-top: 6px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    iron-selector div {
+      padding: 0.4em 1.2em;
+      background-color: white;
+      border: none;
+      outline: none;
+      line-height: 20px;
+      vertical-align: middle;
+    }
+
+    iron-selector div:hover {
+      background-color: #A6CEE3;
+    }
+
+    iron-selector div.iron-selected {
+      background: #eee;
+    }
+
+    iron-selector div.iron-selected:hover {
+      background: #1F78B4;
+      color: white;
+    }
+
+  </style>
+  <template>
+    <div class="horizontal layout">
+      <div class="vertical layout">
+        <div class="horizontal layout">
+          <paper-input id="fast" label="Filter" on-input="_fastFilter"></paper-input>
+          <button on-tap="_clearFilter">Clear Filter</button>
+        </div>
+        <iron-selector id=keys size=12
+          on-selected-items-changed="_keyChange"
+          attr-for-selected=value
+          >
+          <template is="dom-repeat" items="[[_keys]]">
+            <div value="[[item]]">[[item]]</div>
+          </template>
+        </iron-selector>
+        <button on-tap="_clear">Clear Selections</button>
+      </div>
+      <query2-values-sk id=values on-query2-values-changed="_valuesChanged"></query2-values-sk>
+    </div>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "query2-sk",
+
+    properties: {
+      // The serialized form of _query.
+      current_query: {
+        type: String,
+        value: "",
+        reflectToAttribute: true,
+        notify: true,
+        observer: "_currentQueryChanged",
+      },
+
+      // A serialized paramtools.ParamSet, which we are building a query around.
+      //
+      // Might contain a subset of _originalParamset if filtering has been applied.
+      _paramset: {
+        type: Object,
+        value: function() { return {}; },
+      },
+
+      // A serialized paramtools.ParamSet, which we are building a query around.
+      _originalParamset: {
+        type: Object,
+        value: function() { return {}; },
+      },
+
+      // The keys of paramset.
+      _keys: {
+        type: Array,
+        value: function() { return []; },
+      },
+
+      // The currently selected key from _keys.
+      _selectedKey: {
+        type: String,
+        value: "",
+      },
+
+      // The current set of user selections.
+      _query: {
+        type: Object,
+        value: function() { return {}; },
+      },
+      // The order for some or all of the keys. An array of strings.
+      _key_order: {
+        type: Array,
+        value: [],
+      },
+      _delayedTimeout: {
+        type: Number,
+        value: null,
+      },
+    },
+
+    setCurrentQuery: function(s) {
+      this._query = sk.query.toParamSet(s);
+      this._queryChanged();
+    },
+
+    _currentQueryChanged: function(s) {
+      this.setCurrentQuery(s)
+    },
+
+    setParamset: function(paramset) {
+      this._originalParamset = paramset;
+      this._paramset = paramset;
+      this._recalcKeys();
+    },
+
+    setKeyOrder: function(key_order) {
+      this._key_order = key_order;
+    },
+
+    _recalcKeys: function() {
+      var keys = Object.keys(this._paramset);
+      keys.sort();
+      // Pull out all the keys that appear in _key_order to be pushed
+      // to the front of the list, store them in 'pre'.
+      var pre = [];
+      this._key_order.forEach(function(key) {
+        var index = keys.indexOf(key);
+        if (index != -1) {
+          pre.push(keys.splice(index, 1)[0]);
+        }
+      }.bind(this));
+      keys = pre.concat(keys);
+
+      var key = this.$.keys.selected;
+
+      this.set("_keys", keys);
+      this.$.keys.selectedIndex = -1;
+      this.$.keys.selected = key;
+      this._keyChange();
+    },
+
+    _fastFilter: function() {
+      var filters = this.$.fast.value.trim().toLowerCase().split(/\s+/);
+
+      // Create a closure that returns true if the given label
+      // matches the filter.
+      var matches = function(s) {
+        s = s.toLowerCase();
+        for (var i = 0; i < filters.length; i++) {
+          if (s.indexOf(filters[i]) >= 0) {
+            return true;
+          }
+        }
+        return false;
+      };
+
+      // Loop over this._originalParamset.
+      var filtered = {};
+      Object.keys(this._originalParamset).forEach(function(paramkey) {
+        // If the param key matches, then all the values go over.
+        if (matches(paramkey)) {
+          filtered[paramkey] = this._originalParamset[paramkey];
+        } else {
+          // Look for matches in the param values.
+          var valueMatches = [];
+          this._originalParamset[paramkey].forEach(function(paramvalue) {
+            if (matches(paramvalue)) {
+              valueMatches.push(paramvalue);
+            }
+          }.bind(this));
+          if (valueMatches.length > 0) {
+            filtered[paramkey] = valueMatches;
+          }
+        }
+      }.bind(this));
+
+      this._paramset = filtered;
+      this._recalcKeys();
+    },
+
+    _clearFilter: function() {
+      this._paramset = this._originalParamset;
+      this._recalcKeys();
+      this.$.fast.value = "";
+    },
+
+    _keyChange: function() {
+      var key = this.$.keys.selected;
+      this.$.values.setOptions(this._paramset[key], this._query[key]);
+    },
+
+    _valuesChanged: function(e) {
+      var key = this.$.keys.selected;
+      this._query[key] = e.detail;
+      this._queryChanged();
+    },
+
+    _queryChanged: function() {
+      var prev_query = this.current_query;
+      this.current_query = sk.query.fromParamSet(this._query);
+      if (prev_query !== this.current_query) {
+        this.dispatchEvent(new CustomEvent('query-change', {
+          detail: {q: this.current_query},
+          bubbles: true,
+        }));
+        clearTimeout(this._delayedTimeout);
+        this._delayedTimeout = setTimeout(function() {
+          this.dispatchEvent(new CustomEvent('query-change-delayed', {
+            detail: {q: this.current_query},
+            bubbles: true,
+          }));
+        }.bind(this), 500);
+      }
+    },
+
+    _clear: function() {
+      this._query = {};
+      this._recalcKeys();
+      this._queryChanged();
+    },
+
+  });
+</script>

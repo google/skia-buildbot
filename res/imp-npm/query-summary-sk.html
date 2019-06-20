@@ -1,0 +1,66 @@
+<!-- The <query-summary-sk> custom element declaration.
+
+  Displays a summary of a selection made using query-sk.
+
+  Attributes:
+    url - If supplied, the displayed summary will be a link to the given URL.
+
+    selection - A query-sk selection formatted as query parameters to be
+      displayed.
+  Events:
+    None.
+
+  Methods:
+    None.
+-->
+<dom-module id="query-summary-sk">
+  <style>
+    #query,
+    a[href] {
+      max-width: 30em;
+      overflow: auto;
+      color: #1f78b4;
+      font-weight: bold;
+      word-wrap: break-word;
+      vertical-align: middle;
+    }
+  </style>
+  <template>
+    <pre id=query><template is="dom-if" if="{{url}}"><a href="{{url}}">{{_display(selection)}}</a></template><template is="dom-if" if="{{!url}}">{{_display(selection)}}</template></pre>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "query-summary-sk",
+
+    properties: {
+      url: {
+        type: String,
+        value: "",
+        reflectToAttribute: true,
+      },
+      selection: {
+        type: String,
+        value: "",
+        reflectToAttribute: true,
+      },
+    },
+
+    _display: function(s) {
+      if (!s) {
+        return "[No filters applied]";
+      }
+      var p = sk.query.toParamSet(s);
+      var keys = Object.keys(p);
+      keys.sort();
+      var ret = [];
+      keys.forEach(function(key) {
+        p[key].forEach(function(value) {
+          ret.push(key + "=" + value);
+        });
+      });
+      return ret.join("\n");
+    },
+  });
+</script>

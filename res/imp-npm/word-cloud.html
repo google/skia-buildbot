@@ -1,0 +1,70 @@
+<!--
+  This in an HTML Import-able file that contains the definitions
+  for the following elements:
+
+    <word-cloud-sk>
+
+  Properties:
+    None.
+
+  Methods:
+    setItems(items) - Where items is a serialized [][]types.ValueWeight representing the weights
+      of all the parameter values, grouped by parameter key.
+
+      For example:
+
+      [
+        [
+          {"Value":"CPU","Weight":19},
+          {"Value":"GPU","Weight":7},
+        ], [
+          ...
+        ],
+        ...
+      ]
+
+  Events:
+      None.
+
+-->
+<link rel="import" href="/node_modules/npm-polymer-elements/polymer/polymer.html">
+<link rel="import" href="/node_modules/npm-polymer-elements/iron-flex-layout/classes/iron-flex-layout.html">
+<dom-module id="word-cloud-sk">
+  <style include="iron-flex iron-flex-alignment">
+    .param {
+      margin:  10px;
+      border:  solid #eee 1px;
+      padding: 10px;
+    }
+  </style>
+  <template>
+    <div class="layout horizontal wrap">
+      <template is="dom-repeat" items="{{_items}}" as="item">
+        <div class="param layout vertical">
+          <template is="dom-repeat" items="{{item}}" as="entry">
+            <div style$="{{computeStyle(entry)}}">{{entry.Value}}</div>
+          </template>
+        </div>
+      </template>
+    </div>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: 'word-cloud-sk',
+
+    ready: function () {
+      this._items = [];
+    },
+
+    setItems: function(items) {
+      this._items = items;
+    },
+
+    computeStyle: function (entry) {
+      return 'font-size: ' + entry.Weight + 'px;';
+    },
+  });
+</script>
+

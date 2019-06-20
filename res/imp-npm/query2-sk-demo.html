@@ -1,0 +1,78 @@
+<html>
+<head>
+  <title>query2-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/common/js/common.js"></script>
+  <script src="/node_modules/npm-polymer-elements/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel=import href="query2-sk.html">
+  <link rel=import href="query-summary-sk.html">
+</head>
+<body>
+  <h1>Query2</h1>
+
+  <query2-sk id=basic></query2-sk>
+  <p>
+    <b>Query String:</b>
+    <query-summary-sk id=q selection=""></query-summary-sk>
+    <query-summary-sk id=q-delayed selection=""></query-summary-sk>
+    <button id=swap>Swap Paramset</button>
+  </p>
+
+  <script type="text/javascript" charset="utf-8">
+    var n = 0;
+    var paramset = {
+        "config": ["565", "8888"],
+        "type": ["CPU", "GPU"],
+        "units": ["ms", "bytes"],
+        "test": [
+          "DeferredSurfaceCopy_discardable",
+          "DeferredSurfaceCopy_nonDiscardable",
+          "GLInstancedArraysBench_instance",
+          "GLInstancedArraysBench_one_0",
+          "GLInstancedArraysBench_one_1",
+          "GLInstancedArraysBench_one_2",
+          "GLInstancedArraysBench_one_4",
+          "GLInstancedArraysBench_one_8",
+          "GLInstancedArraysBench_two_0",
+          "GLInstancedArraysBench_two_1",
+          "GLInstancedArraysBench_two_2",
+          "GLInstancedArraysBench_two_4",
+          "GLInstancedArraysBench_two_8",
+          "GLVec4ScalarBench_scalar_1_stage",
+          "GLVec4ScalarBench_scalar_2_stage",
+        ],
+      };
+    var paramset2 = {
+        "config": ["565"],
+        "type": ["CPU", "GPU"],
+        "test": [
+          "DeferredSurfaceCopy_discardable",
+          "DeferredSurfaceCopy_nonDiscardable",
+        ],
+      };
+    $$$('#basic').setParamset(paramset);
+    setTimeout(function() {
+      $$$('#basic').setCurrentQuery("config=565&type=GPU");
+      $$$('#q').selection = $$$('#basic').current_query;
+    }, 10);
+
+    $$$('#basic').addEventListener('query-change', function(e){
+      $$$('#q').selection = e.detail.q;
+      console.log('query-change');
+    });
+
+    $$$('#basic').addEventListener('query-change-delayed', function(e){
+      $$$('#q-delayed').selection = e.detail.q;
+      console.log('query-change-delayed');
+    });
+
+    $$$('#swap').addEventListener('click', function(e){
+      n = (n + 1) % 2;
+      $$$('#basic').setParamset([paramset, paramset2][n]);
+    });
+
+  </script>
+</body>
+</html>
