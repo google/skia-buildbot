@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "cc0a5639_cd0b2f70",
+        "filename": "gold-client/go/goldclient/golduploader.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-20T20:05:18Z",
+      "side": 1,
+      "message": "The catapult code you linked uses an absolute path to gsutil.py, which is included via a third_party dep. I\u0027m not aware of any such dep for goldctl. If we can assume that gsutil.py is installed and that \u0027python gsutil.py\u0027 will find gsutil.py based on the environment or CWD, then that seems OK to me.",
+      "parentUuid": "7d006d05_a8896b13",
+      "range": {
+        "startLine": 70,
+        "startChar": 35,
+        "endLine": 70,
+        "endChar": 46
+      },
+      "revId": "f6fec5a9509e1149f8ec4567f0e1888ec8541df2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ef637b35_a1603211",
         "filename": "gold-client/go/goldclient/golduploader.go",
         "patchSetId": 1
