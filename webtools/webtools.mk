@@ -48,9 +48,16 @@ debug_core_js: res/js/core-debug.js
 res/js/core.js: res/js/core-debug.js ./node_modules/.bin/uglifyjs
 	./node_modules/.bin/uglifyjs res/js/core-debug.js -o res/js/core.js
 
+ifeq ($(NOBOWER),true)
+res/js/core-debug.js: Makefile $(CORE_SOURCE_FILES)
+	-mkdir res/js
+	awk 'FNR==1{print ""}{print}' $(CORE_SOURCE_FILES) > res/js/core-debug.js
+else
 res/js/core-debug.js: Makefile $(BOWER_DIR)/lastupdate $(CORE_SOURCE_FILES)
 	-mkdir res/js
 	awk 'FNR==1{print ""}{print}' $(CORE_SOURCE_FILES) > res/js/core-debug.js
+endif
+
 
 $(BOWER_DIR)/lastupdate: bower.json ./node_modules/.bin/bower
 	./node_modules/.bin/bower --allow-root update
