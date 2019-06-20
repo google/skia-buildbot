@@ -1,0 +1,125 @@
+<html>
+<head>
+  <title>commits-panel-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/common/js/common.js"></script>
+  <script src="/node_modules/npm-polymer-elements/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel=import href="/node_modules/npm-polymer-elements/polymer/polymer.html">
+  <link rel=import href="commit-panel.html">
+  <link rel=import href="error-toast-sk.html">
+  <script src="node_modules/sinon/pkg/sinon.js"></script>
+
+  <script>
+    // We have a /json/gitlog that offers a subset of gittile's API
+    //
+    // Gittiles would return something like:
+    // {
+    //   "commit": "bb886749feb444edfd8fbf053a9ea815e3605f8a",
+    //   "tree": "9e706bbbffd860ee22390c3599ebb32154ad596f",
+    //   "parents": [
+    //     "e02716908fe82c7c4ae9b415793277620a22bcd6"
+    //   ],
+    //   "author": {
+    //     "name": "reed",
+    //     "email": "reed@chromium.org",
+    //     "time": "Sat Aug 15 07:42:31 2015 -0700"
+    //   },
+    //   "committer": {
+    //     "name": "Commit bot",
+    //     "email": "commit-bot@chromium.org",
+    //     "time": "Sat Aug 15 07:42:31 2015 -0700"
+    //   },
+    //   "message": "Fetched because origin was set"
+    // },
+    // for a given commit. The structure below reflects what
+    // /json/gitlog returns (since we only need the message)
+    var remoteCommitInfo = {
+      log: [
+        {
+          "commit": "bb886749feb444edfd8fbf053a9ea815e3605f8a",
+          "message": "Fetched because origin was set"
+        },
+        {
+          "commit": "e02716908fe82c7c4ae9b415793277620a22bcd6",
+          "message": "Not from googlesource, the default behavior"
+        }
+      ]
+    };
+
+    var server = sinon.fakeServer.create();
+
+    // Let the requests to http://skia.googlesource go through to do a real request.
+    sinon.FakeXMLHttpRequest.useFilters = true;
+    sinon.FakeXMLHttpRequest.addFilter(function(method, url, async, username, password) {
+      return url.startsWith("http");
+    });
+
+
+    server.autoRespond = true;
+    server.autoRespondAfter = 1000;
+
+    server.respondWith("GET", /\/json\/gitlog.*/, function(request) {
+      console.log("Called  " + JSON.stringify(request));
+      request.respond(200, {"Content-Type":"application/json"},
+        JSON.stringify(remoteCommitInfo));
+    });
+
+  </script>
+
+
+  <style type="text/css" media="screen">
+    body {
+      font-family:Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+    }
+
+    commits-panel-sk {
+      margin-top: 3em;
+      display: block;
+    }
+
+    a {
+      color: #FF7F00;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Commits</h1>
+
+  <commits-panel-sk></commits-panel-sk>
+
+  <commits-panel-sk progress id=panel2></commits-panel-sk>
+
+  <h2>Allow selections</h2>
+  <commits-panel-sk mailbox=foo selection id=panel3></commits-panel-sk>
+
+  <br>
+  <h2>Origin repo</h2>
+  <commits-panel-sk commits=foo id=panel4 origin></commits-panel-sk>
+
+  <script type="text/javascript" charset="utf-8">
+    var commitinfo = [
+      {
+        commit_time: 1439649751,
+        author: "reed (reed@chromium.org)",
+        hash: "bb886749feb444edfd8fbf053a9ea815e3605f8a",
+        message: "",
+      },
+      {
+        author: "reed (reed@chromium.org)",
+        commit_time: 1439648914,
+        hash: "e02716908fe82c7c4ae9b415793277620a22bcd6",
+        message: "",
+      },
+    ]
+    sk.Mailbox.send("commits", commitinfo);
+    $$$('#panel2').setCommitInfo(commitinfo);
+
+    $$$('#panel4').setCommitInfo(commitinfo);
+  </script>
+
+  <error-toast-sk></error-toast-sk>
+</body>
+</html>
