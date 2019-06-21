@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d455c90b_042b1b98",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-21T18:42:38Z",
+      "side": 1,
+      "message": "nit: all of these should probably use the constants here: https://skia.googlesource.com/buildbot/+/refs/heads/master/task_scheduler/go/types/task.go\n\nnit2: Should probably include colon; i.e. strings.HasPrefix(tag, types.SWARMING_TAG_ISSUE+\":\")",
+      "revId": "c4f751337d0fc5c08b55bb8ca298045455c2fac9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
