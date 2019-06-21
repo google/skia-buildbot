@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "cb6e1e02_e300b2c4",
+        "filename": "autoroll/config/fuchsia-mac-sdk-cipd-flutter-engine.json",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-21T14:47:38Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "1b8b13b9_2869f6e4",
+      "revId": "9fcf7aba141fdd9d6cd96450ad85b89e4fb20fe6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c76966c7_db6d9660",
         "filename": "autoroll/go/repo_manager/github_cipd_deps_repo_manager.go",
         "patchSetId": 7
@@ -30,6 +48,24 @@
       "writtenOn": "2019-06-21T14:44:33Z",
       "side": 1,
       "message": "Making the steps in this repo manager match github_deps_repo_manager.go, I had taken some things out hoping it would not matter but seems to interfere with flutter dependencies so making things match more closely.",
+      "revId": "9fcf7aba141fdd9d6cd96450ad85b89e4fb20fe6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "51c3b1ce_88e1909a",
+        "filename": "autoroll/go/repo_manager/github_cipd_deps_repo_manager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-21T14:47:38Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "c76966c7_db6d9660",
       "revId": "9fcf7aba141fdd9d6cd96450ad85b89e4fb20fe6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "0fded080_70d0e51c",
+        "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-21T14:47:38Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0daadf59_ecb93c39",
+      "revId": "9fcf7aba141fdd9d6cd96450ad85b89e4fb20fe6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a67db5fc_3f25b8ab",
         "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
         "patchSetId": 7
@@ -64,6 +118,30 @@
       "writtenOn": "2019-06-21T14:44:33Z",
       "side": 1,
       "message": "I originally had it looking at the wrong license file.",
+      "range": {
+        "startLine": 117,
+        "startChar": 39,
+        "endLine": 117,
+        "endChar": 46
+      },
+      "revId": "9fcf7aba141fdd9d6cd96450ad85b89e4fb20fe6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "59403fea_06b34ed2",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-21T14:47:38Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "a67db5fc_3f25b8ab",
       "range": {
         "startLine": 117,
         "startChar": 39,
