@@ -13,7 +13,7 @@
         "skia-rpi-055-device": 7,
         "skia-rpi-056-device": 8,
       }
-    }
+    },
     "mpower.02": {
       address: "192.168.1.58:22",
       user: "ubnt",
