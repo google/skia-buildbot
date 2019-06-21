@@ -2,7 +2,8 @@
   "dependencies": {
     "common-sk": "^3.1.0",
     "elements-sk": "~2.7.0",
-    "jsdoc": "^3.5.5",
-    "webpack-cli": "^3.1.2"
+    "infra-sk": "^0.8.2",
+    "jsdoc": "^3.6.2",
+    "webpack-cli": "^3.3.4"
   }
 }
