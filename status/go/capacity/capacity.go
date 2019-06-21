@@ -14,7 +14,9 @@ import (
 
 	"go.skia.org/infra/go/cq"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -55,8 +57,8 @@ type BotConfig struct {
 }
 
 // getTaskDurations fetches Tasks from the TaskCache and generates a taskData for each completed
-// Swarming Task, grouped by TaskSpec name.
-func (c *CapacityClient) getTaskDurations() (map[string][]taskData, error) {
+// Swarming Task, grouped by repo and TaskSpec name.
+func (c *CapacityClient) getTaskDurations() (map[string]map[string][]taskData, error) {
 	// Fetch last 72 hours worth of tasks that TaskScheduler created.
 	now := time.Now()
 	before := now.Add(-72 * time.Hour)
@@ -67,7 +69,8 @@ func (c *CapacityClient) getTaskDurations() (map[string][]taskData, error) {
 	sklog.Infof("Found %d tasks in last 72 hours", len(tasks))
 
 	// Go through all the tasks and group the durations and bot ids by task name
-	durations := make(map[string][]taskData)
+	durations := make(map[string]map[string][]taskData)
+	count := 0
 	for _, task := range tasks {
 		// Skip any task that didn't finish or didn't run.  Finished and Started are
 		// the same if the task never ran.
@@ -77,15 +80,21 @@ func (c *CapacityClient) getTaskDurations() (map[string][]taskData, error) {
 		if task.Fake() {
 			continue
 		}
+		// TODO(dogben): Need to consider deduplicated tasks also.
 		duration := task.Finished.Sub(task.Started)
-		// TODO(benjaminwagner): We're assuming here that Task names are unique across repos.
-		durations[task.Name] = append(durations[task.Name], taskData{
+		if len(durations[task.Repo]) == 0 {
+			durations[task.Repo] = map[string][]taskData{}
+		}
+		if len(durations[task.Repo][task.Name]) == 0 {
+			count++
+		}
+		durations[task.Repo][task.Name] = append(durations[task.Repo][task.Name], taskData{
 			Duration: duration,
 			BotId:    task.SwarmingBotId,
 		})
 	}
 
-	sklog.Infof("From %d tasks, we saw %d unique task names", len(tasks), len(durations))
+	sklog.Infof("From %d tasks, we saw %d unique task names over %d repos", len(tasks), count, len(durations))
 	return durations, nil
 }
 
@@ -99,7 +108,7 @@ func (c *CapacityClient) getCQTaskSpecs() ([]string, error) {
 	}
 	infraCQTasks, err := cq.GetSkiaInfraCQTryBots()
 	if err != nil {
-		sklog.Warningf("Could not get Skia CQ bots.  Continuing anyway.  %s", err)
+		sklog.Warningf("Could not get Infra CQ bots.  Continuing anyway.  %s", err)
 		infraCQTasks = []string{}
 	}
 	cqTasks = append(cqTasks, infraCQTasks...)
@@ -113,76 +122,115 @@ func botConfigKey(dims []string) string {
 	return strings.Join(dims, "|")
 }
 
+// getTasksCfg finds the most recent cached TasksCfg for the master branch of the given repo. Also
+// returns the commit hash where the TasksCfg was found.
+func (c *CapacityClient) getTasksCfg(ctx context.Context, repo string) (*specs.TasksCfg, string, error) {
+	repoGraph, ok := c.repos[repo]
+	if !ok {
+		return nil, "", skerr.Fmt("Unknown repo %q", repo)
+	}
+	commit := repoGraph.Get("master")
+	if commit == nil {
+		return nil, "", skerr.Fmt("Unable to find master branch in %q", repo)
+	}
+	const lookback = 5
+	for i := 0; i < lookback; i++ {
+		rs := types.RepoState{
+			Repo:     repo,
+			Revision: commit.Hash,
+		}
+		tasksCfg, err := c.tcc.Get(ctx, rs)
+		if err == nil {
+			return tasksCfg, commit.Hash, nil
+		}
+		sklog.Warningf("Error getting TasksCfg for %s: %s", rs, err)
+		if p := commit.GetParents(); len(p) == 0 {
+			return nil, "", skerr.Fmt("Unable to find TasksCfg for any revision in %q", repo)
+		} else {
+			commit = p[0]
+		}
+	}
+	return nil, "", skerr.Fmt("Unable to find any TasksCfg for %s looking back %d commits.", repo, lookback)
+}
+
 // computeBotConfigs groups TaskSpecs by identical dimensions and returns a BotConfig for each
 // dimension set. Arguments are getTaskDurations() and getCQTaskSpecs(). The returned map is keyed
 // by botConfigKey(BotConfig.Dimensions).
-func (c *CapacityClient) computeBotConfigs(ctx context.Context, durations map[string][]taskData, cqTasks []string) (map[string]BotConfig, error) {
-	// The db.Task structs don't have their dimensions, so we pull those off of the master
-	// branches of all the repos. If the dimensions were updated recently, this may lead
-	// to some inaccuracies. In practice, this probably won't happen because updates
-	// tend to update, say, all the Nexus10s to a new OS version, which is effectively no change.
-	tips := []types.RepoState{}
-	for name, graph := range c.repos {
-		master := graph.Get("master")
-		tips = append(tips, types.RepoState{
-			Repo:     name,
-			Revision: master.Hash,
-		})
-	}
-
-	sklog.Infof("About to look up those tasks in %+v", tips)
-
+func (c *CapacityClient) computeBotConfigs(ctx context.Context, durations map[string]map[string][]taskData, cqTasks []string) (map[string]BotConfig, error) {
 	// botConfigs coalesces all dimension groups together. For example, all tests
 	// that require "device_type:flounder|device_os:N12345" will be grouped together,
 	// letting us determine our actual use and theoretical capacity of that config.
 	botConfigs := make(map[string]BotConfig)
 
-	for taskName, taskRuns := range durations {
-		var taskSpec *specs.TaskSpec
-		var err error
-		// Look up the TaskSpec for the dimensions.
-		for _, rs := range tips {
-			taskSpec, err = c.tcc.GetTaskSpec(ctx, rs, taskName)
-			if err == nil {
-				// no err means we found it
-				break
-			}
-		}
+	for repo, repoDurations := range durations {
+		// The db.Task structs don't have their dimensions, so we pull those off of the master
+		// branches of the repo. If the dimensions were updated recently, this may lead
+		// to some inaccuracies. In practice, this probably won't happen because updates
+		// tend to update, say, all the Nexus10s to a new OS version, which is effectively no change.
+		tasksCfg, hash, err := c.getTasksCfg(ctx, repo)
 		if err != nil {
-			sklog.Warningf("Could not find taskspec for %s: %s (taskSpec %#v)", taskName, err, taskSpec)
+			sklog.Errorf("Skipping repo %s: %s", repo, err)
 			continue
 		}
-		dims := taskSpec.Dimensions
-		key := botConfigKey(dims)
-		config, ok := botConfigs[key]
-		if !ok {
-			config = BotConfig{
-				Dimensions:           dims,
-				Bots:                 make(map[string]bool),
-				TaskAverageDurations: make([]TaskDuration, 0),
+
+		for taskName, taskRuns := range repoDurations {
+			// Look up the TaskSpec to get the dimensions.
+			taskSpec, ok := tasksCfg.Tasks[taskName]
+			if !ok {
+				sklog.Warningf("Could not find taskspec for %s at %s@%s.", taskName, repo, hash)
+				continue
 			}
+			dims := taskSpec.Dimensions
+			key := botConfigKey(dims)
+			config, ok := botConfigs[key]
+			if !ok {
+				config = BotConfig{
+					Dimensions:           dims,
+					Bots:                 make(map[string]bool),
+					TaskAverageDurations: make([]TaskDuration, 0),
+				}
+			}
+			// Compute average duration and add all the bots we've seen on this task
+			avgDuration := time.Duration(0)
+			for _, td := range taskRuns {
+				avgDuration += td.Duration
+				config.Bots[td.BotId] = true
+			}
+			if len(taskRuns) != 0 {
+				avgDuration /= time.Duration(len(taskRuns))
+			}
+			config.TaskAverageDurations = append(config.TaskAverageDurations, TaskDuration{
+				Name:            taskName,
+				AverageDuration: avgDuration,
+				OnCQ:            util.In(taskName, cqTasks),
+			})
+			botConfigs[key] = config
 		}
-		// Compute average duration and add all the bots we've seen on this task
-		avgDuration := time.Duration(0)
-		for _, td := range taskRuns {
-			avgDuration += td.Duration
-			config.Bots[td.BotId] = true
-		}
-		if len(taskRuns) != 0 {
-			avgDuration /= time.Duration(len(taskRuns))
-		}
-		config.TaskAverageDurations = append(config.TaskAverageDurations, TaskDuration{
-			Name:            taskName,
-			AverageDuration: avgDuration,
-			OnCQ:            util.In(taskName, cqTasks),
-		})
-		botConfigs[key] = config
 	}
 	return botConfigs, nil
 }
 
 // mergeBotConfigs replaces overlapping BotConfigs in the given map by a combined BotConfig.
 func mergeBotConfigs(botConfigs map[string]BotConfig) {
+	// okToMerge returns true if the BotConfigs referenced by configKeys do not have conflicting
+	// dimensions.
+	okToMerge := func(configKeys []string) bool {
+		combinedDims := map[string]string{}
+		for _, configKey := range configKeys {
+			nextDims, err := swarming.ParseDimensionsSingleValue(botConfigs[configKey].Dimensions)
+			if err != nil {
+				return false
+			}
+			for k, v := range nextDims {
+				if other, ok := combinedDims[k]; ok && v != other {
+					return false
+				}
+				combinedDims[k] = v
+			}
+		}
+		return true
+	}
+
 	botIdToConfigs := map[string][]string{}
 	configsToMerge := util.NewStringSet()
 	for key, config := range botConfigs {
@@ -190,7 +238,7 @@ func mergeBotConfigs(botConfigs map[string]BotConfig) {
 			if !util.In(key, botIdToConfigs[botId]) {
 				botIdToConfigs[botId] = append(botIdToConfigs[botId], key)
 			}
-			if len(botIdToConfigs[botId]) > 1 {
+			if len(botIdToConfigs[botId]) > 1 && okToMerge(botIdToConfigs[botId]) {
 				configsToMerge[key] = true
 			}
 		}
