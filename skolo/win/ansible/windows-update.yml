@@ -1,0 +1,36 @@
+---
+# Install all available updates from Windows Update. See "Windows new bot setup" doc for full
+# instructions.
+# Requires Ansible 2.5.
+- hosts: all
+  tasks:
+  - name: Enable Windows Update
+    win_service:
+      name: wuauserv
+      start_mode: manual
+  - name: Install updates and reboot
+    win_updates:
+      category_names:
+        # All categories.
+        - Application
+        - Connectors
+        - DefinitionUpdates
+        - DeveloperKits
+        - FeaturePacks
+        - Guidance
+        - ServicePacks
+        - Tools
+        - UpdateRollups
+        - CriticalUpdates
+        - SecurityUpdates
+      reboot: yes
+    register: result
+    # Note that Ansible will say “FAILED - RETRYING: Install updates and reboot,” even though we're
+    # just checking for additional updates.
+    until: result.found_update_count == 0
+    retries: 5
+  - name: Disable Windows Update
+    win_service:
+      name: wuauserv
+      start_mode: disabled
+      state: stopped
