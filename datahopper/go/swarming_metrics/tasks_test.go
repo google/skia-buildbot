@@ -163,6 +163,7 @@ func TestMetrics(t *testing.T) {
 	swarm := swarming.NewMockApiClient()
 	defer swarm.AssertExpectations(t)
 	pc := perfclient.NewMockPerfClient()
+	//	pc.On("PushToPerf", mock.Anything, "foo", "bar", mock.Anything)
 	defer pc.AssertExpectations(t)
 	mp := taskname.NewMockTaskNameParser()
 	defer mp.AssertExpectations(t)
