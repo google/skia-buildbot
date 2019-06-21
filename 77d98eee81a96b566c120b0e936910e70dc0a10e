@@ -1,0 +1,46 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f2db4278_de0b9fc0",
+        "filename": "ct/py/csv_comparer.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-21T12:56:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "00666a21_8a7bbd35",
+      "revId": "77d98eee81a96b566c120b0e936910e70dc0a10e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9e1b29e6_0a1fc39a",
+        "filename": "run_unittests.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-21T12:56:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b49ba0e_d5b89f96",
+      "range": {
+        "startLine": 440,
+        "startChar": 51,
+        "endLine": 440,
+        "endChar": 55
+      },
+      "revId": "77d98eee81a96b566c120b0e936910e70dc0a10e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
