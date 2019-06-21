@@ -14,6 +14,18 @@
         "skia-rpi-056-device": 8,
       }
     }
+    "mpower.02": {
+      address: "192.168.1.58:22",
+      user: "ubnt",
+      ports: {
+        "skia-rpi-065-device": 1,
+        "skia-rpi-066-device": 2,
+        "skia-rpi-067-device": 3,
+        "skia-rpi-068-device": 4,
+        "skia-rpi-069-device": 5,
+        "skia-rpi-070-device": 6,
+      }
+    }
   },
   edgeswitch: {
     "edgeswitch.01": {
