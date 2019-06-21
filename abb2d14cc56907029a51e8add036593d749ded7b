@@ -225,6 +225,30 @@
     },
     {
       "key": {
+        "uuid": "bb1bd770_5d5d60b4",
+        "filename": "go/exec/exec_windows.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-21T16:34:25Z",
+      "side": 1,
+      "message": "golang should be paying attention to PATHEXT. Python doesn\u0027t, but instead it just assumes PATHEXT\u003dexe, which should work for this case. The only way I can see that this shouldn\u0027t work is if we\u0027re not passing through the PATHEXT correctly, so it\u0027s interpreted as empty.",
+      "parentUuid": "3b3c5ff1_917f70b0",
+      "range": {
+        "startLine": 6,
+        "startChar": 15,
+        "endLine": 6,
+        "endChar": 25
+      },
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fea9842b_a203c395",
         "filename": "infra/bots/task_drivers/infra_tests/infra_tests.go",
         "patchSetId": 21
@@ -359,6 +383,24 @@
       "side": 1,
       "message": "I suspect it\u0027s the same for all of these tests.  From what I can tell, we have no code to mitigate this problem in our DB implementations.  What\u0027s the right fix?  Detect when the new DbModified timestamp is the same as the old and... increment it by the timestamp resolution?  What happens when we do this repeatedly and DbModified is pushed into the future?",
       "parentUuid": "29b7ef3a_95669695",
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f2a1550_82cc6640",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-21T16:34:25Z",
+      "side": 1,
+      "message": "Yes. DbModified being a timestamp is just a convenience; it could easily be an int.",
+      "parentUuid": "4fb1c47c_e8a76ba3",
       "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
