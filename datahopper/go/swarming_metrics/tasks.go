@@ -118,6 +118,7 @@ func reportDurationToPerf(t *swarming_api.SwarmingRpcsTaskRequestMetadata, perfC
 	taskName := ""
 	taskRevision := ""
 	repo := ""
+	issue := ""
 	for _, tag := range t.Request.Tags {
 		if strings.HasPrefix(tag, "sk_revision") {
 			taskRevision = strings.SplitN(tag, ":", 2)[1]
@@ -128,6 +129,13 @@ func reportDurationToPerf(t *swarming_api.SwarmingRpcsTaskRequestMetadata, perfC
 		if strings.HasPrefix(tag, "sk_repo") {
 			repo = strings.SplitN(tag, ":", 2)[1]
 		}
+		if strings.HasPrefix(tag, "sk_issue") {
+			issue = strings.SplitN(tag, ":", 2)[1]
+		}
+	}
+	if issue != "" {
+		// Don't report durations for trybots.
+		return nil
 	}
 	if repo != common.REPO_SKIA {
 		// The schema parser only supports the Skia repo, not, for example, the Infra repo
@@ -168,6 +176,8 @@ func reportDurationToPerf(t *swarming_api.SwarmingRpcsTaskRequestMetadata, perfC
 		Results: map[string]ingestcommon.BenchResults{
 			taskName: durations,
 		},
+		SwarmingTaskId: t.TaskId,
+		SwarmingBotId:  t.TaskResult.BotId,
 	}
 
 	sklog.Debugf("Reporting that %s had these durations: %#v ms", taskName, durations)

@@ -50,6 +50,7 @@ func makeTask(id, name string, created, started, completed time.Time, dims map[s
 		},
 		TaskId: id,
 		TaskResult: &swarming_api.SwarmingRpcsTaskResult{
+			BotId:       "abcd1234",
 			CreatedTs:   created.UTC().Format(swarming.TIMESTAMP_FORMAT),
 			CompletedTs: completed.UTC().Format(swarming.TIMESTAMP_FORMAT),
 			DedupedFrom: "",
@@ -304,6 +305,8 @@ func TestPerfUpload(t *testing.T) {
 				},
 			},
 		},
+		SwarmingTaskId: "1",
+		SwarmingBotId:  "abcd1234",
 	}).Return(nil)
 
 	// Load Swarming tasks.
@@ -349,6 +352,8 @@ func TestPerfUpload(t *testing.T) {
 				},
 			},
 		},
+		SwarmingTaskId: "2",
+		SwarmingBotId:  "abcd1234",
 	}).Return(nil)
 
 	// Load Swarming tasks again.
