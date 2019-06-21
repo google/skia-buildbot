@@ -375,6 +375,8 @@ func updateGithubPullRequest(ctx context.Context, a *autoroll.AutoRollIssue, g *
 		sklog.Warningf("len(tryResults) != checksNum: %d != %d", len(tryResults), checksNum)
 	}
 
+	// Entering any one of the below blocks modifies the PR. Keep track of if this happens.
+	pullRequestModified := false
 	if pullRequest.GetMergeableState() == github.MERGEABLE_STATE_DIRTY {
 		// Add a comment and close the roll.
 		if err := g.AddComment(int(issueNum), "PullRequest is not longer mergeable. Closing it."); err != nil {
@@ -384,6 +386,7 @@ func updateGithubPullRequest(ctx context.Context, a *autoroll.AutoRollIssue, g *
 			return nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
 		}
 		a.Result = autoroll.ROLL_RESULT_FAILURE
+		pullRequestModified = true
 	} else if len(a.TryResults) >= checksNum && a.AtleastOneTrybotFailure() && pullRequest.GetState() != github.CLOSED_STATE {
 		// Atleast one trybot failed. Close the roll.
 		linkToFailedJobs := []string{}
@@ -399,6 +402,7 @@ func updateGithubPullRequest(ctx context.Context, a *autoroll.AutoRollIssue, g *
 		if _, err := g.ClosePullRequest(int(issueNum)); err != nil {
 			return nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
 		}
+		pullRequestModified = true
 	} else if !a.CommitQueueDryRun && len(a.TryResults) >= checksNum && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && shouldStateBeMerged(pullRequest.GetMergeableState()) {
 		// Github and travisci do not have a "commit queue". So changes must be
 		// merged via the API after travisci successfully completes.
@@ -429,6 +433,14 @@ func updateGithubPullRequest(ctx context.Context, a *autoroll.AutoRollIssue, g *
 		}
 		if err := g.MergePullRequest(int(issueNum), desc, mergeMethod); err != nil {
 			return nil, fmt.Errorf("Could not merge pull request %d: %s", issueNum, err)
+		}
+		pullRequestModified = true
+	}
+
+	if pullRequestModified {
+		// Update Autoroll issue to show the current state of the PR.
+		if err := a.UpdateFromGitHubPullRequest(ctx, pullRequest, g); err != nil {
+			return nil, fmt.Errorf("Failed to convert issue format: %s", err)
 		}
 	}
 
