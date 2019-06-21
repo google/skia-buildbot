@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "511402c5_6de87d9d",
+        "filename": "autoroll/config/fuchsia-linux-sdk-cipd-flutter-engine.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-21T17:09:56Z",
+      "side": 1,
+      "message": "nit: \"cipd\" is in the config file name but not in rollerName; let\u0027s remove it from the file name or add it to the rollerName.  Personally, I don\u0027 think it\u0027s needed.",
+      "range": {
+        "startLine": 11,
+        "startChar": 17,
+        "endLine": 11,
+        "endChar": 49
+      },
+      "revId": "b9d60a995f2d3a96dd8d69ffdbb4a983278b4d0b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
