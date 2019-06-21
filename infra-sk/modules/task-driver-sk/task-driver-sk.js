@@ -1,5 +1,5 @@
 /**
- * @module task-driver-sk
+ * @module infra-sk/modules/task-driver-sk
  * @description <h2><code>task-driver-sk</code></h2>
  *
  * <p>
