@@ -1,0 +1,181 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c7b65cb9_c4f145fc",
+        "filename": "android_ingest/go/upload/upload_test.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-21T15:07:48Z",
+      "side": 1,
+      "message": "This is wrong. GCS paths always use forward slashes.",
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c248706_14995585",
+        "filename": "go/exec/exec_test.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-21T15:07:48Z",
+      "side": 1,
+      "message": "I don\u0027t understand why this is only needed for this test and not others.",
+      "range": {
+        "startLine": 119,
+        "startChar": 0,
+        "endLine": 124,
+        "endChar": 35
+      },
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "722de02c_0c56164a",
+        "filename": "go/exec/exec_test.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-21T15:07:48Z",
+      "side": 1,
+      "message": "nit: maybe change this to something more distinctive to help with debugging",
+      "range": {
+        "startLine": 236,
+        "startChar": 18,
+        "endLine": 236,
+        "endChar": 43
+      },
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "392a2e81_e9f6671a",
+        "filename": "go/exec/exec_test.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-21T15:07:48Z",
+      "side": 1,
+      "message": "nit: delete",
+      "range": {
+        "startLine": 246,
+        "startChar": 0,
+        "endLine": 252,
+        "endChar": 0
+      },
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "760979f6_1fac1544",
+        "filename": "go/exec/exec_windows.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-21T15:07:48Z",
+      "side": 1,
+      "message": "nit: Just \"python\" is supposed to work, unless the PATHEXT env var is messed up.",
+      "range": {
+        "startLine": 6,
+        "startChar": 15,
+        "endLine": 6,
+        "endChar": 25
+      },
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fea9842b_a203c395",
+        "filename": "infra/bots/task_drivers/infra_tests/infra_tests.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-21T15:07:48Z",
+      "side": 1,
+      "message": "intentional change? If this isn\u0027t needed, please delete.",
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fbca06b8_5d22bfcc",
+        "filename": "perf/go/perfclient/perf_client_test.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-21T15:07:48Z",
+      "side": 1,
+      "message": "Similar to above, this is also a GCS path, so it always uses forward slashes.",
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da7bb434_183ad2a1",
+        "filename": "task_driver/go/lib/golang/golang_windows.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-21T15:07:48Z",
+      "side": 1,
+      "message": "Similar comment to PYTHON_EXE.",
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29b7ef3a_95669695",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-21T15:07:48Z",
+      "side": 1,
+      "message": "This test should pass without the sleep. It\u0027s critical that DbModified is increased on every PutTasks call, otherwise it\u0027s susceptible to the \"lost update\" problem.\n\nI didn\u0027t look closely at the other tests here to see if it\u0027s the same situation.",
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
