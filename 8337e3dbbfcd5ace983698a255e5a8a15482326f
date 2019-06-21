@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "13745d19_2c2293fc",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-21T16:28:56Z",
+      "side": 1,
+      "message": "Nit: any reason this shouldn\u0027t be an error?",
+      "range": {
+        "startLine": 172,
+        "startChar": 9,
+        "endLine": 172,
+        "endChar": 17
+      },
+      "revId": "8337e3dbbfcd5ace983698a255e5a8a15482326f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
