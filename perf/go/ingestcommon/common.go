@@ -22,13 +22,15 @@ type BenchResults map[string]BenchResult
 
 // BenchData is the top level struct for decoding the nanobench JSON format.
 type BenchData struct {
-	Hash         string                  `json:"gitHash"`
-	Issue        string                  `json:"issue"`
-	PatchSet     string                  `json:"patchset"`
-	Key          map[string]string       `json:"key"`
-	Options      map[string]string       `json:"options"`
-	Results      map[string]BenchResults `json:"results"`
-	PatchStorage string                  `json:"patch_storage"`
+	Hash           string                  `json:"gitHash"`
+	Issue          string                  `json:"issue"`
+	PatchSet       string                  `json:"patchset"`
+	Key            map[string]string       `json:"key"`
+	Options        map[string]string       `json:"options"`
+	Results        map[string]BenchResults `json:"results"`
+	PatchStorage   string                  `json:"patch_storage"`
+	SwarmingBotId  string                  `json:"swarming_bot_id"`
+	SwarmingTaskId string                  `json:"swarming_task_id"`
 }
 
 // parseBenchDataFromReader parses the stream out of the io.Reader into
