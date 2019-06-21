@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -100,13 +101,13 @@ func TestExec(t *testing.T) {
 		assert.Equal(t, 2, *counter)
 
 		// Ensure that we collect stdout.
-		out, err := exec.RunCwd(ctx, ".", "python", "-c", "print 'hello world'")
+		out, err := exec.RunCwd(ctx, ".", exec.PYTHON_EXE, "-c", "print 'hello world'")
 		assert.NoError(t, err)
-		assert.Equal(t, "hello world\n", out)
+		assert.True(t, strings.Contains(out, "hello world"))
 		assert.Equal(t, 2, *counter) // Not using the mock for this test case.
 
 		// Ensure that we collect stdout and stderr.
-		out, err = exec.RunCwd(ctx, ".", "python", "-c", "import sys; print 'stdout'; print >> sys.stderr, 'stderr'")
+		out, err = exec.RunCwd(ctx, ".", exec.PYTHON_EXE, "-c", "import sys; print 'stdout'; print >> sys.stderr, 'stderr'")
 		assert.NoError(t, err)
 		assert.True(t, strings.Contains(out, "stdout"))
 		assert.True(t, strings.Contains(out, "stderr"))
@@ -209,7 +210,7 @@ func TestEnv(t *testing.T) {
 		return Do(ctx, Props("a").Env([]string{"a=a"}), func(ctx context.Context) error {
 			return Do(ctx, Props("b").Env([]string{"b=b"}), func(ctx context.Context) error {
 				_, err := exec.RunCommand(ctx, &exec.Command{
-					Name: "python",
+					Name: exec.PYTHON_EXE,
 					Args: []string{"-c", "print 'hello world'"},
 					Env:  []string{"c=c"},
 				})
@@ -226,7 +227,8 @@ func TestEnv(t *testing.T) {
 		return true
 	})
 	assert.NotNil(t, leaf)
-	expect := append(BASE_ENV, "a=a", "b=b", "c=c")
+	expect := MergeEnv(os.Environ(), BASE_ENV)
+	expect = append(expect, "a=a", "b=b", "c=c")
 	deepequal.AssertDeepEqual(t, expect, leaf.StepProperties.Environ)
 
 	var data *ExecData
@@ -316,7 +318,8 @@ func TestEnvInheritance(t *testing.T) {
 
 	// Set up exec mock and expectations.
 	runCount := 0
-	expect := append(BASE_ENV, "a=a", "b=b", "c=c", "d=d")
+	expect := MergeEnv(os.Environ(), BASE_ENV)
+	expect = append(expect, "a=a", "b=b", "c=c", "d=d")
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
 		runCount++

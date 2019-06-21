@@ -31,6 +31,7 @@ func TestGetPreUploadStep(t *testing.T) {
 
 func TestFlutterLicenseScripts(t *testing.T) {
 	unittest.SmallTest(t)
+	unittest.LinuxOnlyTest(t)
 
 	pubErr := error(nil)
 	dartErr := error(nil)
