@@ -1,14 +1,14 @@
 // See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "Fuchsia Mac SDK",
+  "childName": "Fuchsia Linux SDK",
   "contacts": [
     "rmistry@google.com"
   ],
   "isInternal": false,
   "parentName": "Flutter",
   "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
-  "rollerName": "fuchsia-mac-sdk-flutter-engine",
+  "rollerName": "fuchsia-linux-sdk-flutter-engine",
   "serviceAccount": "flutter-engine-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "rmistry@google.com"
@@ -23,15 +23,15 @@
   },
   "githubCipdDEPSRepoManager": {
     "childBranch": "master",
-    "childPath": "src/fuchsia/sdk/mac",
+    "childPath": "src/fuchsia/sdk/linux",
     "parentBranch": "master",
     "preUploadSteps": [
       "FlutterLicenseScriptsForFuchsia"
     ],
     "parentRepo": "git@github.com:flutter/engine.git",
-    "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:skia-flutter-autoroll/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"custom_vars\":{\"host_os\":\"mac\"},\"safesync_url\":\"\"}]",
+    "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:skia-flutter-autoroll/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
     "githubParentPath": "src/flutter",
-    "cipdAssetName": "fuchsia/sdk/core/mac-amd64",
+    "cipdAssetName": "fuchsia/sdk/core/linux-amd64",
     "cipdAssetTag": "latest"
   },
   "kubernetes": {
