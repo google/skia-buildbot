@@ -20,5 +20,8 @@
     "postcss-cli": "~6.1.2",
     "uglify-js": "",
     "vulcanize": "^1.16.0"
+  },
+  "dependencies": {
+    "pulito": "^4.2.0"
   }
 }
