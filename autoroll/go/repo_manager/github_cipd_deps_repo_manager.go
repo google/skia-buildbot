@@ -110,7 +110,7 @@ func (rm *githubCipdDEPSRepoManager) Update(ctx context.Context) error {
 	// populate it.
 	if _, err := os.Stat(rm.parentDir); err != nil {
 		if os.IsNotExist(err) {
-			if err := rm.createAndSyncParent(ctx); err != nil {
+			if err := rm.createAndSyncParentWithRemoteAndBranch(ctx, "origin", rm.rollBranchName, rm.rollBranchName); err != nil {
 				return fmt.Errorf("Could not create and sync %s: %s", rm.parentDir, err)
 			}
 			// Run gclient hooks to bring in any required binaries.
@@ -145,9 +145,14 @@ func (rm *githubCipdDEPSRepoManager) Update(ctx context.Context) error {
 			return err
 		}
 	}
-	// Pull from upstream.
-	if _, err := git.GitDir(rm.parentDir).Git(ctx, "pull", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch); err != nil {
+	// Fetch upstream.
+	if _, err := git.GitDir(rm.parentDir).Git(ctx, "fetch", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch); err != nil {
 		return err
+	}
+	// gclient sync to get latest version of child repo to find the next roll
+	// rev from.
+	if err := rm.createAndSyncParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch); err != nil {
+		return fmt.Errorf("Could not create and sync parent repo: %s", err)
 	}
 
 	// Get the last roll revision.
@@ -255,7 +260,7 @@ func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	sklog.Info("Creating a new Github Roll")
 
 	// Clean the checkout, get onto a fresh branch.
-	if err := rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName); err != nil {
+	if err := rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch); err != nil {
 		return 0, err
 	}
 	if _, err := git.GitDir(rm.parentDir).Git(ctx, "checkout", fmt.Sprintf("%s/%s", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch), "-b", rm.rollBranchName); err != nil {
@@ -263,11 +268,14 @@ func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	}
 	// Defer cleanup.
 	defer func() {
-		util.LogErr(rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName))
+		util.LogErr(rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch))
 	}()
 
 	// Make sure the forked repo is at the same hash as the target repo before
-	// creating the pull request on the rm.rollBranchName.
+	// creating the pull request on both parentBranch and rm.rollBranchName.
+	if _, err := git.GitDir(rm.parentDir).Git(ctx, "push", "origin", rm.parentBranch, "-f"); err != nil {
+		return 0, err
+	}
 	if _, err := git.GitDir(rm.parentDir).Git(ctx, "push", "origin", rm.rollBranchName, "-f"); err != nil {
 		return 0, err
 	}
