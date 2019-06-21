@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	gstorage "cloud.google.com/go/storage"
@@ -65,7 +66,15 @@ func (g *gsutilUploader) UploadBytes(data []byte, fileName, dst string) error {
 	runCmd := exec.Command("gsutil", "cp", fileName, dst)
 	outBytes, err := runCmd.CombinedOutput()
 	if err != nil {
-		return skerr.Fmt("Error running gsutil. Got output \n%s\n and error: %s", outBytes, err)
+		if runtime.GOOS == "windows" {
+			runCmd = exec.Command("python", "gsutil.py", "cp", fileName, dst)
+			outBytes, err = runCmd.CombinedOutput()
+			if err != nil {
+				return skerr.Fmt("Error running gsutil. Got output \n%s\n and error: %s", outBytes, err)
+			}
+		} else {
+			return skerr.Fmt("Error running gsutil. Got output \n%s\n and error: %s", outBytes, err)
+		}
 	}
 	return nil
 }
