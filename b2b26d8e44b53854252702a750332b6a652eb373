@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b84dbda2_3583f187",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 405,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-06-21T14:44:33Z",
+      "side": 0,
+      "message": "This was assuming that we always want to run this on r.parentBranch which might not always be true, especially with the way flutter checkout is setup with an origin that points to pull request and remote that points to the target repository.",
+      "range": {
+        "startLine": 405,
+        "startChar": 92,
+        "endLine": 405,
+        "endChar": 105
+      },
+      "revId": "b2b26d8e44b53854252702a750332b6a652eb373",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
