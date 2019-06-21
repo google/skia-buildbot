@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "dfedb162_96f64184",
+        "filename": "android_ingest/go/upload/upload_test.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-21T15:31:23Z",
+      "side": 1,
+      "message": "Changed upload.go to use \"path\" instead of \"filepath\".",
+      "parentUuid": "c7b65cb9_c4f145fc",
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4c248706_14995585",
         "filename": "go/exec/exec_test.go",
         "patchSetId": 21
@@ -30,6 +48,30 @@
       "writtenOn": "2019-06-21T15:07:48Z",
       "side": 1,
       "message": "I don\u0027t understand why this is only needed for this test and not others.",
+      "range": {
+        "startLine": 119,
+        "startChar": 0,
+        "endLine": 124,
+        "endChar": 35
+      },
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7bb57889_55957af4",
+        "filename": "go/exec/exec_test.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-21T15:31:23Z",
+      "side": 1,
+      "message": "The other tests either don\u0027t import anything or include PATH either explicitly or via InheritEnv or InheritPath.",
+      "parentUuid": "4c248706_14995585",
       "range": {
         "startLine": 119,
         "startChar": 0,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "ba77beb8_68ae2447",
+        "filename": "go/exec/exec_test.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-21T15:31:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "722de02c_0c56164a",
+      "range": {
+        "startLine": 236,
+        "startChar": 18,
+        "endLine": 236,
+        "endChar": 43
+      },
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "392a2e81_e9f6671a",
         "filename": "go/exec/exec_test.go",
         "patchSetId": 21
@@ -85,6 +151,30 @@
       "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e144bda8_2bc90b06",
+        "filename": "go/exec/exec_test.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-21T15:31:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "392a2e81_e9f6671a",
+      "range": {
+        "startLine": 246,
+        "startChar": 0,
+        "endLine": 252,
+        "endChar": 0
+      },
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "3b3c5ff1_917f70b0",
+        "filename": "go/exec/exec_windows.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-21T15:31:23Z",
+      "side": 1,
+      "message": "That only works when running in a shell, ie. \"cmd /C python ...\" as opposed to \"python ...\".  Unfortunately we have to do this dance in all of our bot code.",
+      "parentUuid": "760979f6_1fac1544",
+      "range": {
+        "startLine": 6,
+        "startChar": 15,
+        "endLine": 6,
+        "endChar": 25
+      },
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fea9842b_a203c395",
         "filename": "infra/bots/task_drivers/infra_tests/infra_tests.go",
         "patchSetId": 21
@@ -125,6 +239,24 @@
       "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd40b21c_1cbb1be6",
+        "filename": "infra/bots/task_drivers/infra_tests/infra_tests.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-21T15:31:23Z",
+      "side": 1,
+      "message": "Hrm, I forgot I\u0027d commented this out.  It obviously fails on Windows, which was the reason for doing so, but the bots are green.  I suspect that our makefiles and package.json files install bower properly for all of our apps, so I\u0027ll go ahead and delete this, but it could also be working simply because this installs bower *globally* and it\u0027s already run once on every bot.  At any rate, we should not be installing things in recipes.",
+      "parentUuid": "fea9842b_a203c395",
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -145,6 +277,24 @@
     },
     {
       "key": {
+        "uuid": "6faa9fd1_6db8157f",
+        "filename": "perf/go/perfclient/perf_client_test.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-21T15:31:23Z",
+      "side": 1,
+      "message": "Changed perf_client.go to use \"path\" instead of \"filepath\".",
+      "parentUuid": "fbca06b8_5d22bfcc",
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da7bb434_183ad2a1",
         "filename": "task_driver/go/lib/golang/golang_windows.go",
         "patchSetId": 21
@@ -162,6 +312,24 @@
     },
     {
       "key": {
+        "uuid": "ffb49b61_c39afc20",
+        "filename": "task_driver/go/lib/golang/golang_windows.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-21T15:31:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "da7bb434_183ad2a1",
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "29b7ef3a_95669695",
         "filename": "task_scheduler/go/db/testutil.go",
         "patchSetId": 21
@@ -173,6 +341,24 @@
       "writtenOn": "2019-06-21T15:07:48Z",
       "side": 1,
       "message": "This test should pass without the sleep. It\u0027s critical that DbModified is increased on every PutTasks call, otherwise it\u0027s susceptible to the \"lost update\" problem.\n\nI didn\u0027t look closely at the other tests here to see if it\u0027s the same situation.",
+      "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4fb1c47c_e8a76ba3",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-21T15:31:23Z",
+      "side": 1,
+      "message": "I suspect it\u0027s the same for all of these tests.  From what I can tell, we have no code to mitigate this problem in our DB implementations.  What\u0027s the right fix?  Detect when the new DbModified timestamp is the same as the old and... increment it by the timestamp resolution?  What happens when we do this repeatedly and DbModified is pushed into the future?",
+      "parentUuid": "29b7ef3a_95669695",
       "revId": "abb2d14cc56907029a51e8add036593d749ded7b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true

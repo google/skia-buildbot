@@ -22,6 +22,30 @@
       "revId": "6094afcf20f22f698fc51d5f0af9347c3e49b1c1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa992362_d6457f5d",
+        "filename": "go/exec/exec_test.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-21T15:31:23Z",
+      "side": 0,
+      "message": "For some reason, shelling out to Python feels better to me than relying on the fact that the two commands are named the same on the different OS\u0027s.",
+      "parentUuid": "4b22b288_3aed178c",
+      "range": {
+        "startLine": 102,
+        "startChar": 8,
+        "endLine": 102,
+        "endChar": 15
+      },
+      "revId": "6094afcf20f22f698fc51d5f0af9347c3e49b1c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
