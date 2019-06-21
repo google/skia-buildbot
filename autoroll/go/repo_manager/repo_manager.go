@@ -394,18 +394,18 @@ func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig
 
 // cleanParent forces the parent checkout into a clean state.
 func (r *depotToolsRepoManager) cleanParent(ctx context.Context) error {
-	return r.cleanParentWithRemoteAndBranch(ctx, "origin", ROLL_BRANCH)
+	return r.cleanParentWithRemoteAndBranch(ctx, "origin", ROLL_BRANCH, r.parentBranch)
 }
 
-func (r *depotToolsRepoManager) cleanParentWithRemoteAndBranch(ctx context.Context, remote, branch string) error {
+func (r *depotToolsRepoManager) cleanParentWithRemoteAndBranch(ctx context.Context, remote, localBranch, remoteBranch string) error {
 	if _, err := exec.RunCwd(ctx, r.parentDir, "git", "clean", "-d", "-f", "-f"); err != nil {
 		return err
 	}
 	_, _ = exec.RunCwd(ctx, r.parentDir, "git", "rebase", "--abort")
-	if _, err := exec.RunCwd(ctx, r.parentDir, "git", "checkout", fmt.Sprintf("%s/%s", remote, r.parentBranch), "-f"); err != nil {
+	if _, err := exec.RunCwd(ctx, r.parentDir, "git", "checkout", fmt.Sprintf("%s/%s", remote, remoteBranch), "-f"); err != nil {
 		return err
 	}
-	_, _ = exec.RunCwd(ctx, r.parentDir, "git", "branch", "-D", branch)
+	_, _ = exec.RunCwd(ctx, r.parentDir, "git", "branch", "-D", localBranch)
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
 		Env:  r.depotToolsEnv,
@@ -418,10 +418,10 @@ func (r *depotToolsRepoManager) cleanParentWithRemoteAndBranch(ctx context.Conte
 }
 
 func (r *depotToolsRepoManager) createAndSyncParent(ctx context.Context) error {
-	return r.createAndSyncParentWithRemoteAndBranch(ctx, "origin", ROLL_BRANCH)
+	return r.createAndSyncParentWithRemoteAndBranch(ctx, "origin", ROLL_BRANCH, r.parentBranch)
 }
 
-func (r *depotToolsRepoManager) createAndSyncParentWithRemoteAndBranch(ctx context.Context, remote, branch string) error {
+func (r *depotToolsRepoManager) createAndSyncParentWithRemoteAndBranch(ctx context.Context, remote, localBranch, remoteBranch string) error {
 	// Create the working directory if needed.
 	if _, err := os.Stat(r.workdir); err != nil {
 		if err := os.MkdirAll(r.workdir, 0755); err != nil {
@@ -430,14 +430,14 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemoteAndBranch(ctx conte
 	}
 
 	if _, err := os.Stat(path.Join(r.parentDir, ".git")); err == nil {
-		if err := r.cleanParentWithRemoteAndBranch(ctx, remote, branch); err != nil {
+		if err := r.cleanParentWithRemoteAndBranch(ctx, remote, localBranch, remoteBranch); err != nil {
 			return err
 		}
 		// Update the repo.
 		if _, err := exec.RunCwd(ctx, r.parentDir, "git", "fetch", remote); err != nil {
 			return err
 		}
-		if _, err := exec.RunCwd(ctx, r.parentDir, "git", "reset", "--hard", fmt.Sprintf("%s/%s", remote, r.parentBranch)); err != nil {
+		if _, err := exec.RunCwd(ctx, r.parentDir, "git", "reset", "--hard", fmt.Sprintf("%s/%s", remote, remoteBranch)); err != nil {
 			return err
 		}
 	}
