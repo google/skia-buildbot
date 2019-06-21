@@ -50,6 +50,7 @@ func makeTask(id, name string, created, started, completed time.Time, dims map[s
 		},
 		TaskId: id,
 		TaskResult: &swarming_api.SwarmingRpcsTaskResult{
+			BotId:       "abcd1234",
 			CreatedTs:   created.UTC().Format(swarming.TIMESTAMP_FORMAT),
 			CompletedTs: completed.UTC().Format(swarming.TIMESTAMP_FORMAT),
 			DedupedFrom: "",
@@ -274,8 +275,14 @@ func TestPerfUpload(t *testing.T) {
 	t2.TaskResult.State = swarming.TASK_STATE_RUNNING
 	t3 := makeTask("3", "my-task", cr.Add(2*time.Second), st, now.Add(-time.Minute), d, nil, 47*time.Second, 3*time.Second, 34*time.Second)
 	t3.TaskResult.State = swarming.TASK_STATE_BOT_DIED
+	t4 := makeTask("4", "Perf-MyOS trybot", cr.Add(time.Minute), st, util.TimeZero, d, map[string]string{
+		"sk_issue":    "222460", // A trybot, so this should never appear in a call to PushToPerf.
+		"sk_revision": "secondRevision",
+		"sk_name":     "Perf-MyOS",
+		"sk_repo":     common.REPO_SKIA,
+	}, 73*time.Second, 32*time.Second, 5*time.Second)
 
-	swarm.On("ListTasks", lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2, t3}, nil)
+	swarm.On("ListTasks", lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2, t3, t4}, nil)
 
 	btProject, btInstance, cleanup := bt_testutil.SetupBigTable(t, events.BT_TABLE, events.BT_COLUMN_FAMILY)
 	defer cleanup()
@@ -304,6 +311,8 @@ func TestPerfUpload(t *testing.T) {
 				},
 			},
 		},
+		SwarmingTaskId: "1",
+		SwarmingBotId:  "abcd1234",
 	}).Return(nil)
 
 	// Load Swarming tasks.
@@ -349,6 +358,8 @@ func TestPerfUpload(t *testing.T) {
 				},
 			},
 		},
+		SwarmingTaskId: "2",
+		SwarmingBotId:  "abcd1234",
 	}).Return(nil)
 
 	// Load Swarming tasks again.
