@@ -240,6 +240,17 @@ func getNotRolledRevs(ctx context.Context, cipdClient cipd.CIPDClient, lastRollR
 }
 
 // See documentation for RepoManager interface.
+func (r *githubCipdDEPSRepoManager) RolledPast(ctx context.Context, hash string) (bool, error) {
+	r.repoMtx.RLock()
+	defer r.repoMtx.RUnlock()
+	hashInRepo, err := rm.getLastRollRev(ctx)
+	if err != nil {
+		return false, err
+	}
+	return hashInRepo != hash
+}
+
+// See documentation for RepoManager interface.
 func (rm *githubCipdDEPSRepoManager) getLastRollRev(ctx context.Context) (string, error) {
 	output, err := exec.RunCwd(ctx, rm.parentDir, "python", rm.gclient, "getdep", "-r", fmt.Sprintf("%s:%s", rm.childPath, rm.cipdAssetName))
 	if err != nil {
