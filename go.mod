@@ -115,7 +115,6 @@ require (
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	golang.org/x/sys v0.0.0-20190621203818-d432491b9138 // indirect
-	golang.org/x/tools v0.0.0-20190621195816-6e04913cbbac // indirect
 	google.golang.org/api v0.6.0
 	google.golang.org/appengine v1.6.1 // indirect
 	google.golang.org/genproto v0.0.0-20190620144150-6af8c5fc6601
@@ -126,7 +125,7 @@ require (
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/unrolled/secure.v1 v1.0.0
 	gopkg.in/yaml.v2 v2.2.2
-	honnef.co/go/tools v0.0.0-20190614002413-cb51c254f01b // indirect
+	honnef.co/go/tools v0.0.0-20190622161425-0d05180ad8c0 // indirect
 	k8s.io/api v0.0.0-20190620073856-dcce3486da33 // indirect
 	k8s.io/apimachinery v0.0.0-20190620073744-d16981aedf33
 	k8s.io/client-go v0.0.0-20190425172711-65184652c889
