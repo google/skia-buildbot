@@ -58,7 +58,10 @@ func TestFileSystemResultFileLocations(t *testing.T) {
 }
 
 func TestCompareSources(t *testing.T) {
-	unittest.LargeTest(t)
+	// This test often times out after 5m on the Race bot, causing flaky failures.
+	// Since https://bugs.chromium.org/p/skia/issues/detail?id=8692 is marked Low
+	// Priority, I'm disabling the test until it's fixed or removed.
+	unittest.ManualTest(t)
 
 	gsSource, err := NewGoogleStorageSource("gs-test-src", gcs_testutils.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient, nil)
 	assert.NoError(t, err)
