@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"go.skia.org/infra/go/exec"
@@ -38,7 +38,7 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 	ctx = golang.WithEnv(ctx, wd)
-	infraDir := path.Join(wd, "buildbot")
+	infraDir := filepath.Join(wd, "buildbot")
 
 	// We get depot_tools via isolate. It's required for some tests.
 	ctx = td.WithEnv(ctx, []string{fmt.Sprintf("SKIABOT_TEST_DEPOT_TOOLS=%s", dirs.DepotTools(*workdir))})
@@ -58,7 +58,7 @@ func main() {
 
 	// For Large/Race, start the Cloud Datastore emulator.
 	if strings.Contains(*taskName, "Large") || strings.Contains(*taskName, "Race") {
-		d := path.Join(infraDir, "scripts")
+		d := filepath.Join(infraDir, "scripts", "run_emulators")
 		if _, err := exec.RunCwd(ctx, d, "./run_emulators", "start"); err != nil {
 			td.Fatal(ctx, err)
 		}

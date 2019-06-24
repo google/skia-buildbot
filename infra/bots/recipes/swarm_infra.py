@@ -88,7 +88,7 @@ def RunSteps(api):
           cmd=['sudo', 'npm', 'i', '-g', 'bower@1.8.2'])
 
   if ('Large' in builder) or ('Race' in builder):
-    with api.context(cwd=infra_dir.join('scripts'), env=env):
+    with api.context(cwd=infra_dir.join('scripts', 'run_emulators'), env=env):
       api.step(
           'start the cloud emulators',
            cmd=['./run_emulators', 'start'])
