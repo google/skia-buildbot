@@ -86,6 +86,7 @@ func (d *inMemoryTaskDB) PutTasks(tasks []*types.Task) error {
 	}
 
 	// Insert.
+	now := time.Now()
 	for _, task := range tasks {
 		if task.Id == "" {
 			if err := d.AssignId(task); err != nil {
@@ -94,7 +95,14 @@ func (d *inMemoryTaskDB) PutTasks(tasks []*types.Task) error {
 			}
 		}
 
-		task.DbModified = time.Now()
+		// We can't use the same DbModified timestamp for two updates,
+		// or we risk losing updates. Increment the timestamp if
+		// necessary.
+		if task.DbModified == now {
+			task.DbModified = task.DbModified.Add(time.Nanosecond)
+		} else {
+			task.DbModified = now
+		}
 
 		// TODO(borenet): Keep tasks in a sorted slice.
 		d.tasks[task.Id] = task.Copy()
@@ -194,6 +202,7 @@ func (d *inMemoryJobDB) PutJobs(jobs []*types.Job) error {
 	}
 
 	// Insert.
+	now := time.Now()
 	for _, job := range jobs {
 		if job.Id == "" {
 			if err := d.assignId(job); err != nil {
@@ -201,7 +210,15 @@ func (d *inMemoryJobDB) PutJobs(jobs []*types.Job) error {
 				return err
 			}
 		}
-		job.DbModified = time.Now()
+
+		// We can't use the same DbModified timestamp for two updates,
+		// or we risk losing updates. Increment the timestamp if
+		// necessary.
+		if job.DbModified == now {
+			job.DbModified = job.DbModified.Add(time.Nanosecond)
+		} else {
+			job.DbModified = now
+		}
 
 		// TODO(borenet): Keep jobs in a sorted slice.
 		d.jobs[job.Id] = job.Copy()

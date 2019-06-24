@@ -179,9 +179,6 @@ func (d *firestoreDB) PutTasks(tasks []*types.Task) (rvErr error) {
 		if util.TimeIsZero(task.Created) {
 			return fmt.Errorf("Created not set. Task %s created time is %s. %v", task.Id, task.Created, task)
 		}
-		if !now.After(task.DbModified) {
-			return fmt.Errorf("Task modification time is in the future: %s (current time is %s)", task.DbModified, now)
-		}
 		isNew[idx] = util.TimeIsZero(task.DbModified)
 		prevId[idx] = task.Id
 		prevModified[idx] = task.DbModified
@@ -202,7 +199,14 @@ func (d *firestoreDB) PutTasks(tasks []*types.Task) (rvErr error) {
 				return err
 			}
 		}
-		task.DbModified = now
+		if !now.After(task.DbModified) {
+			// We can't use the same DbModified timestamp for two updates,
+			// or we risk losing updates. Increment the timestamp if
+			// necessary.
+			task.DbModified = task.DbModified.Add(firestore.TS_RESOLUTION)
+		} else {
+			task.DbModified = now
+		}
 		fixTaskTimestamps(task)
 	}
 
