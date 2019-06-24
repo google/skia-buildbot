@@ -36,6 +36,9 @@ TBR=some-sheriff
 		Created:       now,
 	}
 	cqLabel := gerrit.COMMITQUEUE_LABEL_SUBMIT
+	if android {
+		cqLabel = gerrit.AUTOSUBMIT_LABEL_SUBMIT
+	}
 	if dryRun {
 		if android {
 			cqLabel = gerrit.AUTOSUBMIT_LABEL_NONE
@@ -68,7 +71,7 @@ TBR=some-sheriff
 			gerrit.AUTOSUBMIT_LABEL: {
 				All: []*gerrit.LabelDetail{
 					{
-						Value: gerrit.AUTOSUBMIT_LABEL_SUBMIT,
+						Value: cqLabel,
 					},
 				},
 			},
@@ -92,6 +95,7 @@ TBR=some-sheriff
 		}
 	}
 	return roll, &autoroll.AutoRollIssue{
+		IsDryRun:    dryRun,
 		Issue:       issueNum,
 		RollingFrom: from,
 		RollingTo:   to,
@@ -120,8 +124,11 @@ func TestGerritRoll(t *testing.T) {
 	g.MockGetTrybotResults(ci, 1, nil)
 	gr, err := newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", nil)
 	assert.NoError(t, err)
+	assert.False(t, issue.IsDryRun)
 	assert.False(t, gr.IsFinished())
 	assert.False(t, gr.IsSuccess())
+	assert.False(t, gr.IsDryRunFinished())
+	assert.False(t, gr.IsDryRunSuccess())
 	g.AssertEmpty()
 	assert.Equal(t, to, gr.RollingTo())
 
@@ -139,20 +146,49 @@ func TestGerritRoll(t *testing.T) {
 	g.MockAddComment(ci, msg)
 	assert.NoError(t, gr.AddComment(ctx, msg))
 	g.AssertEmpty()
+	assert.False(t, issue.IsDryRun)
+	assert.False(t, gr.IsFinished())
+	assert.False(t, gr.IsSuccess())
+	assert.False(t, gr.IsDryRunFinished())
+	assert.False(t, gr.IsDryRunSuccess())
 
 	// Set dry run.
 	g.MockSetDryRun(ci, "Mode was changed to dry run")
+	ci.Labels[gerrit.COMMITQUEUE_LABEL] = &gerrit.LabelEntry{
+		All: []*gerrit.LabelDetail{
+			{
+				Value: gerrit.COMMITQUEUE_LABEL_DRY_RUN,
+			},
+		},
+	}
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
 	assert.NoError(t, gr.SwitchToDryRun(ctx))
 	g.AssertEmpty()
+	assert.True(t, issue.IsDryRun)
+	assert.False(t, gr.IsFinished())
+	assert.False(t, gr.IsSuccess())
+	assert.False(t, gr.IsDryRunFinished())
+	assert.False(t, gr.IsDryRunSuccess())
 
 	// Set normal.
 	g.MockSetCQ(ci, "Mode was changed to normal")
+	ci.Labels[gerrit.COMMITQUEUE_LABEL] = &gerrit.LabelEntry{
+		All: []*gerrit.LabelDetail{
+			{
+				Value: gerrit.COMMITQUEUE_LABEL_SUBMIT,
+			},
+		},
+	}
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
 	assert.NoError(t, gr.SwitchToNormal(ctx))
 	g.AssertEmpty()
+	assert.False(t, issue.IsDryRun)
+	assert.False(t, gr.IsFinished())
+	assert.False(t, gr.IsSuccess())
+	assert.False(t, gr.IsDryRunFinished())
+	assert.False(t, gr.IsDryRunSuccess())
 
 	// Update.
 	ci.Status = gerrit.CHANGE_STATUS_MERGED
@@ -167,8 +203,11 @@ func TestGerritRoll(t *testing.T) {
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
 	assert.NoError(t, gr.Update(ctx))
+	assert.False(t, issue.IsDryRun)
 	assert.True(t, gr.IsFinished())
 	assert.True(t, gr.IsSuccess())
+	assert.False(t, gr.IsDryRunFinished())
+	assert.False(t, gr.IsDryRunSuccess())
 	assert.Nil(t, recent.CurrentRoll())
 
 	// Upload and retrieve another roll, dry run this time.
@@ -189,6 +228,9 @@ func TestGerritRoll(t *testing.T) {
 	g.MockGetTrybotResults(ci, 1, []*buildbucket.Build{tryjob})
 	gr, err = newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", nil)
 	assert.NoError(t, err)
+	assert.True(t, issue.IsDryRun)
+	assert.False(t, gr.IsFinished())
+	assert.False(t, gr.IsSuccess())
 	assert.False(t, gr.IsDryRunFinished())
 	assert.False(t, gr.IsDryRunSuccess())
 	g.AssertEmpty()
@@ -216,6 +258,9 @@ func TestGerritRoll(t *testing.T) {
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, []*buildbucket.Build{tryjob})
 	assert.NoError(t, gr.Update(ctx))
+	assert.True(t, issue.IsDryRun)
+	assert.False(t, gr.IsFinished())
+	assert.False(t, gr.IsSuccess())
 	assert.True(t, gr.IsDryRunFinished())
 	assert.True(t, gr.IsDryRunSuccess())
 	g.AssertEmpty()
@@ -329,8 +374,11 @@ func TestGerritAndroidRoll(t *testing.T) {
 	g.MockGetIssueProperties(ci)
 	gr, err := newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", nil)
 	assert.NoError(t, err)
+	assert.False(t, issue.IsDryRun)
 	assert.False(t, gr.IsFinished())
 	assert.False(t, gr.IsSuccess())
+	assert.False(t, gr.IsDryRunFinished())
+	assert.False(t, gr.IsDryRunSuccess())
 	g.AssertEmpty()
 	assert.Equal(t, to, gr.RollingTo())
 
@@ -348,25 +396,43 @@ func TestGerritAndroidRoll(t *testing.T) {
 	g.MockAddComment(ci, msg)
 	assert.NoError(t, gr.AddComment(ctx, msg))
 	g.AssertEmpty()
+	assert.False(t, issue.IsDryRun)
+	assert.False(t, gr.IsFinished())
+	assert.False(t, gr.IsSuccess())
+	assert.False(t, gr.IsDryRunFinished())
+	assert.False(t, gr.IsDryRunSuccess())
 
 	// Set dry run.
 	g.MockSetDryRun(ci, "Mode was changed to dry run")
 	g.MockGetIssueProperties(ci)
 	assert.NoError(t, gr.SwitchToDryRun(ctx))
 	g.AssertEmpty()
+	assert.True(t, issue.IsDryRun)
+	assert.False(t, gr.IsFinished())
+	assert.False(t, gr.IsSuccess())
+	assert.False(t, gr.IsDryRunFinished())
+	assert.False(t, gr.IsDryRunSuccess())
 
 	// Set normal.
 	g.MockSetCQ(ci, "Mode was changed to normal")
 	g.MockGetIssueProperties(ci)
 	assert.NoError(t, gr.SwitchToNormal(ctx))
 	g.AssertEmpty()
+	assert.False(t, issue.IsDryRun)
+	assert.False(t, gr.IsFinished())
+	assert.False(t, gr.IsSuccess())
+	assert.False(t, gr.IsDryRunFinished())
+	assert.False(t, gr.IsDryRunSuccess())
 
 	// Update.
 	ci.Status = gerrit.CHANGE_STATUS_MERGED
 	g.MockGetIssueProperties(ci)
 	assert.NoError(t, gr.Update(ctx))
+	assert.False(t, issue.IsDryRun)
 	assert.True(t, gr.IsFinished())
 	assert.True(t, gr.IsSuccess())
+	assert.False(t, gr.IsDryRunFinished())
+	assert.False(t, gr.IsDryRunSuccess())
 	assert.Nil(t, recent.CurrentRoll())
 
 	// Upload and retrieve another roll, dry run this time.
@@ -374,6 +440,9 @@ func TestGerritAndroidRoll(t *testing.T) {
 	g.MockGetIssueProperties(ci)
 	gr, err = newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", nil)
 	assert.NoError(t, err)
+	assert.True(t, issue.IsDryRun)
+	assert.False(t, gr.IsFinished())
+	assert.False(t, gr.IsSuccess())
 	assert.False(t, gr.IsDryRunFinished())
 	assert.False(t, gr.IsDryRunSuccess())
 	g.AssertEmpty()
@@ -398,6 +467,9 @@ func TestGerritAndroidRoll(t *testing.T) {
 	}
 	g.MockGetIssueProperties(ci)
 	assert.NoError(t, gr.Update(ctx))
+	assert.True(t, issue.IsDryRun)
+	assert.False(t, gr.IsFinished())
+	assert.False(t, gr.IsSuccess())
 	assert.True(t, gr.IsDryRunFinished())
 	assert.True(t, gr.IsDryRunSuccess())
 	g.AssertEmpty()
