@@ -17,6 +17,8 @@ ${INSTALL} --mode=644 ./res/img/icon-512x512.png  ${ROOT}/usr/local/share/skiape
 ${INSTALL} --mode=644 ./res/manifest.json         ${ROOT}/usr/local/share/skiaperf/res/manifest.json
 ${INSTALL} --mode=644 ./res/js/core.js            ${ROOT}/usr/local/share/skiaperf/res/js/core.js
 ${INSTALL} --mode=644 ./res/vul/elements.html     ${ROOT}/usr/local/share/skiaperf/res/vul/elements.html
+${INSTALL_DIR} --mode=755                         ${ROOT}/usr/local/share/skiaperf/dist
+${INSTALL} --mode=644 ./dist/*                    ${ROOT}/usr/local/share/skiaperf/dist
 }
 
 source ../bash/docker_build.sh
