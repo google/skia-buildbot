@@ -65,12 +65,12 @@ func TestLoggedInAs(t *testing.T) {
 	assert.Equal(t, LoggedInAs(r), "fred@chromium.org", "Correctly get logged in email.")
 	w := httptest.NewRecorder()
 	url := LoginURL(w, r)
-	assert.Contains(t, url, "approval_prompt=auto", "Not forced into prompt.")
+	assert.Contains(t, url, "prompt=consent", "Not forced into prompt.")
 
 	delete(activeUserDomainWhiteList, "chromium.org")
 	assert.Equal(t, LoggedInAs(r), "", "Not in the domain whitelist.")
 	url = LoginURL(w, r)
-	assert.Contains(t, url, "prompt=consent", "Force into prompt.")
+	assert.Contains(t, url, "approval_prompt=force", "Force into prompt.")
 
 	activeUserEmailWhiteList["fred@chromium.org"] = true
 	assert.Equal(t, LoggedInAs(r), "fred@chromium.org", "Found in the email whitelist.")
