@@ -125,7 +125,7 @@ require (
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/unrolled/secure.v1 v1.0.0
 	gopkg.in/yaml.v2 v2.2.2
-	honnef.co/go/tools v0.0.0-20190622161425-0d05180ad8c0 // indirect
+	honnef.co/go/tools v0.0.0-20190623190502-86b08b5391b7 // indirect
 	k8s.io/api v0.0.0-20190620073856-dcce3486da33 // indirect
 	k8s.io/apimachinery v0.0.0-20190620073744-d16981aedf33
 	k8s.io/client-go v0.0.0-20190425172711-65184652c889
