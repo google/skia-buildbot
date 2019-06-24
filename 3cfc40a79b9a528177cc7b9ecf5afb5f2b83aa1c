@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4a65e3a7_c6fc152d",
+        "filename": "task_scheduler/go/db/firestore/tasks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-24T18:44:06Z",
+      "side": 1,
+      "message": "Do we need the same change for Jobs?",
+      "revId": "3cfc40a79b9a528177cc7b9ecf5afb5f2b83aa1c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
