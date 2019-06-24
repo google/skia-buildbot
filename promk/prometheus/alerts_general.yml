@@ -484,6 +484,7 @@ groups:
 
   - alert: DirtyCommittedK8sImage
     expr: dirty_committed_image_metric == 1
+    for: 2h
     labels:
       category: infra
       severity: warning
@@ -493,6 +494,7 @@ groups:
 
   - alert: DirtyRunningK8sConfig
     expr: dirty_config_metric == 1
+    for: 2h
     labels:
       category: infra
       severity: warning
