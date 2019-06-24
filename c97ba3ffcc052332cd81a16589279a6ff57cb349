@@ -16,6 +16,24 @@
       "revId": "c97ba3ffcc052332cd81a16589279a6ff57cb349",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b023681_f2cd92d6",
+        "filename": "task_scheduler/go/db/firestore/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-24T17:46:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3eaeb700_ea70160a",
+      "revId": "c97ba3ffcc052332cd81a16589279a6ff57cb349",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
