@@ -368,7 +368,7 @@ func main() {
 	defer timer.New("Finished").Stop()
 
 	_, filename, _, _ := runtime.Caller(0)
-	rootDir := path.Dir(filename)
+	rootDir := filepath.Dir(filename)
 
 	if *race {
 		// Use alternative timeouts when --race is enabled because the tests
@@ -390,9 +390,10 @@ func main() {
 	pythonTestBlacklist := map[string]bool{
 		"csv_comparer_test.py":          true,
 		"json_summary_combiner_test.py": true,
+		"make_test.py":                  runtime.GOOS == "windows",
 	}
 	if err := filepath.Walk(rootDir, func(p string, info os.FileInfo, err error) error {
-		basename := path.Base(p)
+		basename := filepath.Base(p)
 		if info.IsDir() {
 			// Skip some directories.
 			for _, skip := range NO_CRAWL_DIR_NAMES {
@@ -401,15 +402,15 @@ func main() {
 				}
 			}
 			for _, skip := range NO_CRAWL_REL_PATHS {
-				if p == path.Join(rootDir, skip) {
+				if p == filepath.Join(rootDir, skip) {
 					return filepath.SkipDir
 				}
 			}
 
 			if basename == "go" {
-				gotests = append(gotests, goTestSmall(path.Dir(p)))
-				gotests = append(gotests, goTestMedium(path.Dir(p)))
-				gotests = append(gotests, goTestLarge(path.Dir(p)))
+				gotests = append(gotests, goTestSmall(filepath.Dir(p)))
+				gotests = append(gotests, goTestMedium(filepath.Dir(p)))
+				gotests = append(gotests, goTestLarge(filepath.Dir(p)))
 			}
 		}
 		if strings.HasSuffix(basename, "_test.py") && !pythonTestBlacklist[basename] {
@@ -427,14 +428,18 @@ func main() {
 	tests = append(tests, cmdTest([]string{"python", "infra/bots/recipes.py", "test", "run"}, ".", "recipes test", unittest.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"go", "run", "infra/bots/gen_tasks.go", "--test"}, ".", "gen_tasks.go --test", unittest.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"python", "go/testutils/unittest/uncategorized_tests.py"}, ".", "uncategorized tests", unittest.SMALL_TEST))
-	tests = append(tests, cmdTest([]string{"make", "testci"}, "common-sk", "common-sk elements", unittest.MEDIUM_TEST))
-	tests = append(tests, cmdTest([]string{"make", "testci"}, "named-fiddles", "named-fiddles elements", unittest.MEDIUM_TEST))
-	tests = append(tests, cmdTest([]string{"make", "test"}, "push", "push elements", unittest.MEDIUM_TEST))
-	tests = append(tests, cmdTest([]string{"make"}, "licenses", "check go package licenses", unittest.MEDIUM_TEST))
+	if runtime.GOOS == "linux" {
+		tests = append(tests, cmdTest([]string{"make", "testci"}, "common-sk", "common-sk elements", unittest.MEDIUM_TEST))
+		tests = append(tests, cmdTest([]string{"make", "testci"}, "named-fiddles", "named-fiddles elements", unittest.MEDIUM_TEST))
+		tests = append(tests, cmdTest([]string{"make", "test"}, "push", "push elements", unittest.MEDIUM_TEST))
+		tests = append(tests, cmdTest([]string{"make"}, "licenses", "check go package licenses", unittest.MEDIUM_TEST))
+	}
 
 	if !*race {
-		// put this behind a flag because polylintTests trys to build the polymer files
-		tests = append(tests, polylintTests()...)
+		if runtime.GOOS == "linux" {
+			// put this behind a flag because polylintTests tries to build the polymer files
+			tests = append(tests, polylintTests()...)
+		}
 	}
 
 	goimportsCmd := []string{"goimports", "-l", "."}
