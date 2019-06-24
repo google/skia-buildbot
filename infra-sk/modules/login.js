@@ -21,3 +21,8 @@ export var Login = fetch('https://skia.org/loginstatus/', {
   }
   throw new Error('Problem reading /loginstatus/:' + res.statusText);
 });
+
+// Add to the global sk namespace while we migrate away from Polymer.
+if (window.sk !== undefined) {
+  window.sk.Login = Login;
+}
