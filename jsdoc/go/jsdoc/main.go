@@ -26,9 +26,11 @@ func main() {
 	docsDir := "/usr/local/share/jsdoc/docs"
 	elementsDemoDir := "/usr/local/share/jsdoc/elements-sk"
 	commonDemoDir := "/usr/local/share/jsdoc/common-sk"
+	infraDemoDir := "/usr/local/share/jsdoc/infra-sk"
 	r := mux.NewRouter()
 	r.PathPrefix("/common-sk/").Handler(http.StripPrefix("/common-sk/", http.HandlerFunc(httputils.MakeResourceHandler(commonDemoDir))))
 	r.PathPrefix("/elements-sk/").Handler(http.StripPrefix("/elements-sk/", http.HandlerFunc(httputils.MakeResourceHandler(elementsDemoDir))))
+	r.PathPrefix("/infra-sk/").Handler(http.StripPrefix("/infra-sk/", http.HandlerFunc(httputils.MakeResourceHandler(infraDemoDir))))
 	r.PathPrefix("/").Handler(http.HandlerFunc(httputils.MakeResourceHandler(docsDir)))
 
 	h := httputils.LoggingGzipRequestResponse(r)
