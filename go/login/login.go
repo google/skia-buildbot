@@ -606,7 +606,9 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, r, err, "Invalid Origin")
 			return
 		}
-		if strings.HasSuffix(u.Host, "."+COOKIE_DOMAIN_SKIA_ORG) || strings.HasSuffix(u.Host, "."+COOKIE_DOMAIN_SKIA_CORP) {
+		if strings.HasSuffix(u.Host, "."+COOKIE_DOMAIN_SKIA_ORG) ||
+			strings.HasSuffix(u.Host, "."+COOKIE_DOMAIN_SKIA_CORP) ||
+			strings.HasPrefix("localhost:", u.Host) {
 			w.Header().Add("Access-Control-Allow-Origin", "https://"+u.Host)
 			w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 			w.Header().Add("Access-Control-Allow-Credentials", "true")
