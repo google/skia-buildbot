@@ -400,7 +400,7 @@ func domainFromHost(fullhost string) string {
 	// Split host and port.
 	parts := strings.Split(fullhost, ":")
 	host := parts[0]
-	if host == "localhost" {
+	if strings.HasPrefix(fullhost, "localhost") {
 		return host
 	} else if strings.HasSuffix(fullhost, "."+COOKIE_DOMAIN_SKIA_CORP) {
 		return COOKIE_DOMAIN_SKIA_CORP
