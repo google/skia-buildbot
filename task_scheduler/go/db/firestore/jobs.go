@@ -172,9 +172,6 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 		if util.TimeIsZero(job.Created) {
 			return fmt.Errorf("Created not set. Job %s created time is %s. %v", job.Id, job.Created, job)
 		}
-		if !now.After(job.DbModified) {
-			return fmt.Errorf("Job modification time is in the future: %s (current time is %s)", job.DbModified, now)
-		}
 		isNew[idx] = util.TimeIsZero(job.DbModified)
 		prevId[idx] = job.Id
 		prevModified[idx] = job.DbModified
@@ -193,7 +190,14 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 		if job.Id == "" {
 			job.Id = d.jobs().NewDoc().ID
 		}
-		job.DbModified = now
+		if !now.After(job.DbModified) {
+			// We can't use the same DbModified timestamp for two updates,
+			// or we risk losing updates. Increment the timestamp if
+			// necessary.
+			job.DbModified = job.DbModified.Add(firestore.TS_RESOLUTION)
+		} else {
+			job.DbModified = now
+		}
 		fixJobTimestamps(job)
 	}
 
