@@ -916,6 +916,7 @@ honnef.co/go/tools v0.0.0-20190607002114-91b34a6dad6c/go.mod h1:JlmFZigtG9vBVR3Q
 honnef.co/go/tools v0.0.0-20190607181801-497c8f037f5a/go.mod h1:JlmFZigtG9vBVR3QGIQ9g/Usz4BzH+Xm6Z8iHQWRYUw=
 honnef.co/go/tools v0.0.0-20190614002413-cb51c254f01b/go.mod h1:JlmFZigtG9vBVR3QGIQ9g/Usz4BzH+Xm6Z8iHQWRYUw=
 honnef.co/go/tools v0.0.0-20190622161425-0d05180ad8c0/go.mod h1:a3bituU0lyd329TUQxRnasdCoJDkEUEAqEt0JzvZhAg=
+honnef.co/go/tools v0.0.0-20190623190502-86b08b5391b7/go.mod h1:a3bituU0lyd329TUQxRnasdCoJDkEUEAqEt0JzvZhAg=
 k8s.io/api v0.0.0-20190425012535-181e1f9c52c1/go.mod h1:AhUc3Ph6fhRc0SCpt0Hwv0E+Q8QiEAASkXKwfmT2JwU=
 k8s.io/api v0.0.0-20190430012547-97d6bb8ea5f4 h1:dvZWnvi47rbTIOzJp6btN9yqGVDTzYBjwSO7ZIGSUW0=
 k8s.io/api v0.0.0-20190430012547-97d6bb8ea5f4/go.mod h1:a8In9/nr3+MCLEah7ICqKQl+2hN7XkJx64ugf8c+hws=
