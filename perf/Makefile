@@ -40,6 +40,7 @@ start_datastore_emulator:
 
 .PHONY: web
 web: clean_webtools elements_html core_js
+	npx webpack-cli --mode=production
 
 .PHONY: test
 test: testgo
@@ -52,6 +53,7 @@ testgo:
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html
+	npx webpack-cli --mode=development
 
 .PHONY: all
 all: build

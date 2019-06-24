@@ -1519,6 +1519,7 @@ func main() {
 	router := mux.NewRouter()
 
 	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
+	router.PathPrefix("/dist/").HandlerFunc(makeResourceHandler())
 
 	// Redirects for the old Perf URLs.
 	router.HandleFunc("/", oldMainHandler)
