@@ -340,7 +340,11 @@ groups:
 # Swarming
 
   - alert: WindowsSkoloOSVersion
-    expr: round(avg_over_time(windows_skolo_os_version_count{pool="Skia"}[1h])) > 1
+    # The device on the rpi-01 rack is likely to be out-of-sync with the bots on
+    # the win-02 and win-03 racks. Therefore, only alert if there are more than
+    # two versions in use.
+    expr: windows_skolo_os_version_count{pool="Skia"} > 2
+    for: 24h
     labels:
       category: infra
       severity: warning
