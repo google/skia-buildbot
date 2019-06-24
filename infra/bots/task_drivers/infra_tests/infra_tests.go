@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"go.skia.org/infra/go/exec"
@@ -38,7 +38,7 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 	ctx = golang.WithEnv(ctx, wd)
-	infraDir := path.Join(wd, "buildbot")
+	infraDir := filepath.Join(wd, "buildbot")
 
 	// We get depot_tools via isolate. It's required for some tests.
 	ctx = td.WithEnv(ctx, []string{fmt.Sprintf("SKIABOT_TEST_DEPOT_TOOLS=%s", dirs.DepotTools(*workdir))})
@@ -46,7 +46,18 @@ func main() {
 	// Initialize the Git repo. We receive the code via Isolate, but it
 	// doesn't include the .git dir.
 	gd := git.GitDir(infraDir)
+	if gitVer, err := gd.Git(ctx, "version"); err != nil {
+		td.Fatal(ctx, err)
+	} else {
+		sklog.Infof("Git version %s", gitVer)
+	}
 	if _, err := gd.Git(ctx, "init"); err != nil {
+		td.Fatal(ctx, err)
+	}
+	if _, err := gd.Git(ctx, "config", "--local", "user.name", "Skia bots"); err != nil {
+		td.Fatal(ctx, err)
+	}
+	if _, err := gd.Git(ctx, "config", "--local", "user.email", "fake@skia.bots"); err != nil {
 		td.Fatal(ctx, err)
 	}
 	if _, err := gd.Git(ctx, "add", "."); err != nil {
@@ -58,7 +69,7 @@ func main() {
 
 	// For Large/Race, start the Cloud Datastore emulator.
 	if strings.Contains(*taskName, "Large") || strings.Contains(*taskName, "Race") {
-		d := path.Join(infraDir, "scripts")
+		d := filepath.Join(infraDir, "scripts")
 		if _, err := exec.RunCwd(ctx, d, "./run_emulators", "start"); err != nil {
 			td.Fatal(ctx, err)
 		}
@@ -89,13 +100,6 @@ func main() {
 	}
 	if err := golang.InstallCommonDeps(ctx, infraDir); err != nil {
 		td.Fatal(ctx, err)
-	}
-
-	// More prerequisites.
-	if !strings.Contains(*taskName, "Race") {
-		if _, err := exec.RunCwd(ctx, ".", "sudo", "npm", "i", "-g", "bower@1.8.2"); err != nil {
-			td.Fatal(ctx, err)
-		}
 	}
 
 	// Run the tests.
