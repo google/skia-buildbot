@@ -3,7 +3,6 @@ package fileutil
 import (
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"testing"
 
@@ -19,10 +18,10 @@ const (
 func TestTwoLevelRadixPath(t *testing.T) {
 	unittest.SmallTest(t)
 	assert.Equal(t, "", TwoLevelRadixPath(""))
-	assert.Equal(t, "ab/cd/abcdefgh.txt", TwoLevelRadixPath("abcdefgh.txt"))
-	assert.Equal(t, "/etc/xyz/ab.txt", TwoLevelRadixPath("/etc", "xyz/ab.txt"))
-	assert.Equal(t, "/etc/xyz/ab/cd/abcdefg.txt", TwoLevelRadixPath("/etc", "xyz/abcdefg.txt"))
-	assert.Equal(t, "so/me/somefile_no_ext", TwoLevelRadixPath("somefile_no_ext"))
+	assert.Equal(t, filepath.Join("ab", "cd", "abcdefgh.txt"), TwoLevelRadixPath("abcdefgh.txt"))
+	assert.Equal(t, filepath.Join("/etc", "xyz", "ab.txt"), TwoLevelRadixPath("/etc", "xyz/ab.txt"))
+	assert.Equal(t, filepath.Join("/etc", "xyz", "ab", "cd", "abcdefg.txt"), TwoLevelRadixPath("/etc", "xyz/abcdefg.txt"))
+	assert.Equal(t, filepath.Join("so", "me", "somefile_no_ext"), TwoLevelRadixPath("somefile_no_ext"))
 }
 
 func TestCountLines(t *testing.T) {
@@ -52,11 +51,11 @@ func TestReadAllFilesRecursive(t *testing.T) {
 		wd, err := ioutil.TempDir("", "")
 		assert.NoError(t, err)
 		for k, v := range write {
-			dir := path.Dir(k)
+			dir := filepath.Dir(k)
 			if dir != "" {
-				assert.NoError(t, os.MkdirAll(path.Join(wd, dir), os.ModePerm))
+				assert.NoError(t, os.MkdirAll(filepath.Join(wd, dir), os.ModePerm))
 			}
-			assert.NoError(t, ioutil.WriteFile(path.Join(wd, k), []byte(v), os.ModePerm))
+			assert.NoError(t, ioutil.WriteFile(filepath.Join(wd, k), []byte(v), os.ModePerm))
 		}
 		actual, err := ReadAllFilesRecursive(wd, excludeDirs)
 		assert.NoError(t, err)
@@ -73,14 +72,14 @@ func TestReadAllFilesRecursive(t *testing.T) {
 		"somefile": "contents",
 	}, nil)
 	test(map[string]string{
-		"a/b/c": "contents",
+		filepath.Join("a", "b", "c"): "contents",
 	}, map[string]string{
-		"a/b/c": "contents",
+		filepath.Join("a", "b", "c"): "contents",
 	}, nil)
 	test(map[string]string{
-		"a/file": "contents",
-		"b/file": "contents",
+		filepath.Join("a", "file"): "contents",
+		filepath.Join("b", "file"): "contents",
 	}, map[string]string{
-		"b/file": "contents",
+		filepath.Join("b", "file"): "contents",
 	}, []string{"a"})
 }
