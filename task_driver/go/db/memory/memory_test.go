@@ -12,7 +12,7 @@ import (
 
 func setup(t *testing.T) (db.DB, func()) {
 	// Medium because we use the disk, and the test downloads from GCS.
-	unittest.MediumTest(t)
+	unittest.LargeTest(t)
 	wd, cleanup := testutils.TempDir(t)
 	d, err := NewInMemoryDB(path.Join(wd, "db.gob"))
 	assert.NoError(t, err)
