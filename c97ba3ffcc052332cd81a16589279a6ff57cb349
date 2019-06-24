@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3eaeb700_ea70160a",
+        "filename": "task_scheduler/go/db/firestore/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-24T16:32:08Z",
+      "side": 1,
+      "message": "This will be overwritten below.",
+      "revId": "c97ba3ffcc052332cd81a16589279a6ff57cb349",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
