@@ -50,10 +50,11 @@ class CsvMerger(object):
   def _GetFieldNames(self):
     field_names = set()
     for csv_file in self._input_csv_files:
-      dict_reader = csv.DictReader(open(csv_file, 'r'))
-      for row in dict_reader:
-        field_name = self._GetFieldNameFromRow(row)
-        field_names.add(field_name)
+      with open(csv_file, 'rb') as f:
+        dict_reader = csv.DictReader(f)
+        for row in dict_reader:
+          field_name = self._GetFieldNameFromRow(row)
+          field_names.add(field_name)
     # We use 'page_name' in the output CSV to ID the webpage.
     field_names.add(OUTPUT_PAGE_NAME_KEY);
     field_names.add(TELEMETRY_TRACE_URLS_KEY);
@@ -144,14 +145,15 @@ class CsvMerger(object):
     page_names_to_rows = {}
 
     for csv_file in self._input_csv_files:
-      dict_reader = csv.DictReader(open(csv_file, 'r'))
-      for row in dict_reader:
-        # Ensure that the row contains page name and that is not empty.
-        if TELEMETRY_PAGE_NAME_KEY in row and row[TELEMETRY_PAGE_NAME_KEY]:
-          if row[TELEMETRY_PAGE_NAME_KEY] in page_names_to_rows:
-            page_names_to_rows[row[TELEMETRY_PAGE_NAME_KEY]].append(row)
-          else:
-            page_names_to_rows[row[TELEMETRY_PAGE_NAME_KEY]] = [row]
+      with open(csv_file, 'rb') as f:
+        dict_reader = csv.DictReader(f)
+        for row in dict_reader:
+          # Ensure that the row contains page name and that is not empty.
+          if TELEMETRY_PAGE_NAME_KEY in row and row[TELEMETRY_PAGE_NAME_KEY]:
+            if row[TELEMETRY_PAGE_NAME_KEY] in page_names_to_rows:
+              page_names_to_rows[row[TELEMETRY_PAGE_NAME_KEY]].append(row)
+            else:
+              page_names_to_rows[row[TELEMETRY_PAGE_NAME_KEY]] = [row]
 
     if page_names_to_rows:
       for page_name in page_names_to_rows:
@@ -162,12 +164,13 @@ class CsvMerger(object):
         csv_rows.append(avg_row)
 
     # Write all rows in csv_rows to the specified output CSV.
-    dict_writer = csv.DictWriter(open(self._output_csv_name, 'w'), field_names)
-    dict_writer.writeheader()
-    total_rows = 0
-    for row in csv_rows:
-      dict_writer.writerow(row)
-      total_rows += 1
+    with open(self._output_csv_name, 'wb') as f:
+      dict_writer = csv.DictWriter(f, field_names)
+      dict_writer.writeheader()
+      total_rows = 0
+      for row in csv_rows:
+        dict_writer.writerow(row)
+        total_rows += 1
 
     print 'Successfully merged %d rows' % total_rows
 
