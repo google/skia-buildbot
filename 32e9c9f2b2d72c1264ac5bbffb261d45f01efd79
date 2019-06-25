@@ -45,6 +45,30 @@
       "revId": "32e9c9f2b2d72c1264ac5bbffb261d45f01efd79",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04e41b1b_8038ad2c",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 656,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-25T20:58:37Z",
+      "side": 1,
+      "message": "Yuck.",
+      "parentUuid": "2c50686d_5e1efbd4",
+      "range": {
+        "startLine": 656,
+        "startChar": 0,
+        "endLine": 656,
+        "endChar": 26
+      },
+      "revId": "32e9c9f2b2d72c1264ac5bbffb261d45f01efd79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
