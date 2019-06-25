@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4740354c_e736061e",
+        "filename": "autoroll/go/repo_manager/github_cipd_deps_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-25T18:04:39Z",
+      "side": 1,
+      "message": "Looks like this needs to break the outer loop, or just return notRolledRevs.",
+      "range": {
+        "startLine": 235,
+        "startChar": 4,
+        "endLine": 235,
+        "endChar": 9
+      },
+      "revId": "ee23d7e0a2932f21e364ec3e4e3e361053c4e6cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
