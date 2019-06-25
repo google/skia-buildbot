@@ -13,9 +13,14 @@
       ],
       "trigger": "on demand"
     },
-    "Infra-Experimental-Small": {
+    "Infra-Experimental-Small-Linux": {
       "tasks": [
-        "Infra-Experimental-Small"
+        "Infra-Experimental-Small-Linux"
+      ]
+    },
+    "Infra-Experimental-Small-Win": {
+      "tasks": [
+        "Infra-Experimental-Small-Win"
       ]
     },
     "Infra-PerCommit-Build": {
@@ -112,7 +117,7 @@
         "--alsologtostderr"
       ],
       "dependencies": [
-        "Housekeeper-PerCommit-BuildTaskDrivers"
+        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
       ],
       "dimensions": [
         "pool:Skia",
@@ -254,7 +259,7 @@
       "isolate": "empty.isolate",
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
-    "Housekeeper-PerCommit-BuildTaskDrivers": {
+    "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64": {
       "caches": [
         {
           "name": "go_cache",
@@ -299,6 +304,68 @@
         "cpu:x86-64-Haswell_GCE",
         "machine_type:n1-highmem-2"
       ],
+      "environment": {
+        "GOARCH": "amd64",
+        "GOOS": "linux"
+      },
+      "env_prefixes": {
+        "PATH": [
+          "cipd_bin_packages",
+          "cipd_bin_packages/bin",
+          "go/go/bin"
+        ]
+      },
+      "isolate": "whole_repo.isolate"
+    },
+    "Housekeeper-PerCommit-BuildTaskDrivers-Win-x86_64": {
+      "caches": [
+        {
+          "name": "go_cache",
+          "path": "cache/go_cache"
+        },
+        {
+          "name": "gopath",
+          "path": "cache/gopath"
+        }
+      ],
+      "cipd_packages": [
+        {
+          "name": "infra/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.17.1.chromium15"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:c9c8a52bfeaf8bc00ece22fdfd447822c8fcad77"
+        },
+        {
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+        },
+        {
+          "name": "skia/bots/go",
+          "path": "go",
+          "version": "version:7"
+        }
+      ],
+      "command": [
+        "/bin/bash",
+        "buildbot/infra/bots/build_task_drivers.sh",
+        "${ISOLATED_OUTDIR}"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-9.8",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-highmem-2"
+      ],
+      "environment": {
+        "GOARCH": "amd64",
+        "GOOS": "windows"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -356,7 +423,7 @@
       },
       "isolate": "infrabots.isolate"
     },
-    "Infra-Experimental-Small": {
+    "Infra-Experimental-Small-Linux": {
       "caches": [
         {
           "name": "go_cache",
@@ -389,13 +456,108 @@
           "version": "version:4.28"
         },
         {
-          "name": "skia/bots/go",
-          "path": "go",
-          "version": "version:7"
+          "name": "infra/python/cpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.7.14.chromium14"
+        },
+        {
+          "name": "infra/tools/luci/vpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:96f81e737868d43124b4661cf1c325296ca04944"
         },
         {
           "name": "skia/bots/node",
           "path": "node",
+          "version": "version:0"
+        },
+        {
+          "name": "skia/bots/go",
+          "path": "go",
+          "version": "version:7"
+        }
+      ],
+      "command": [
+        "./infra_tests",
+        "--project_id",
+        "skia-swarming-bots",
+        "--task_id",
+        "<(TASK_ID)",
+        "--task_name",
+        "Infra-Experimental-Small-Linux",
+        "--workdir",
+        ".",
+        "--alsologtostderr"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-9.8",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-standard-16"
+      ],
+      "env_prefixes": {
+        "PATH": [
+          "cipd_bin_packages",
+          "cipd_bin_packages/bin",
+          "go/go/bin"
+        ]
+      },
+      "isolate": "whole_repo.isolate",
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-Experimental-Small-Win": {
+      "caches": [
+        {
+          "name": "go_cache",
+          "path": "cache/go_cache"
+        },
+        {
+          "name": "gopath",
+          "path": "cache/gopath"
+        }
+      ],
+      "cipd_packages": [
+        {
+          "name": "infra/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.17.1.chromium15"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:c9c8a52bfeaf8bc00ece22fdfd447822c8fcad77"
+        },
+        {
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+        },
+        {
+          "name": "infra/gsutil",
+          "path": "cipd_bin_packages",
+          "version": "version:4.28"
+        },
+        {
+          "name": "infra/python/cpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.7.14.chromium14"
+        },
+        {
+          "name": "infra/tools/luci/vpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:96f81e737868d43124b4661cf1c325296ca04944"
+        },
+        {
+          "name": "skia/bots/node",
+          "path": "node",
+          "version": "version:0"
+        },
+        {
+          "name": "skia/bots/go_win",
+          "path": "go",
           "version": "version:0"
         }
       ],
@@ -406,17 +568,17 @@
         "--task_id",
         "<(TASK_ID)",
         "--task_name",
-        "Infra-Experimental-Small",
+        "Infra-Experimental-Small-Win",
         "--workdir",
         ".",
         "--alsologtostderr"
       ],
       "dependencies": [
-        "Housekeeper-PerCommit-BuildTaskDrivers"
+        "Housekeeper-PerCommit-BuildTaskDrivers-Win-x86_64"
       ],
       "dimensions": [
         "pool:Skia",
-        "os:Debian-9.8",
+        "os:Windows-2016Server-14393",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
         "machine_type:n1-standard-16"
