@@ -98,7 +98,7 @@ func (d *inMemoryTaskDB) PutTasks(tasks []*types.Task) error {
 		// We can't use the same DbModified timestamp for two updates,
 		// or we risk losing updates. Increment the timestamp if
 		// necessary.
-		if task.DbModified == now {
+		if !now.After(task.DbModified) {
 			task.DbModified = task.DbModified.Add(time.Nanosecond)
 		} else {
 			task.DbModified = now

@@ -110,12 +110,14 @@ class CsvComparer(object):
 
   def _GetSortedCSV(self, unsorted_csv_reader):
     """Sorts the specified CSV by page_name into a new CSV file."""
-    _, sorted_csv_file = tempfile.mkstemp()
     result = sorted(unsorted_csv_reader, key=lambda d: d['page_name'])
-    writer = csv.DictWriter(open(sorted_csv_file, 'w'),
-                            unsorted_csv_reader.fieldnames)
-    writer.writeheader()
-    writer.writerows(result)
+    fd, sorted_csv_file = tempfile.mkstemp()
+    # Close the fd.
+    os.close(fd)
+    with open(sorted_csv_file, 'wb') as f:
+      writer = csv.DictWriter(f, unsorted_csv_reader.fieldnames)
+      writer.writeheader()
+      writer.writerows(result)
     return sorted_csv_file
 
   def Compare(self):
@@ -126,101 +128,98 @@ class CsvComparer(object):
     # Whether the same page exists in the 1st CSV (the pages are ordered the
     # same way in both files but some could be missing from each file).
     csv1_page_names = {}
-    csv1_reader = csv.DictReader(open(self._csv_file1, 'r'))
-    for row in csv1_reader:
-      csv1_page_names[row['page_name']] = 1
+    with open(self._csv_file1, 'rb') as f1:
+      csv1_reader = csv.DictReader(f1)
+      for row in csv1_reader:
+        csv1_page_names[row['page_name']] = 1
 
     # Sort both CSVs.
-    unsorted_csv1_reader = csv.DictReader(open(self._csv_file1, 'r'))
-    sorted_csv1_filepath = self._GetSortedCSV(unsorted_csv1_reader)
-    sorted_csv1 = open(sorted_csv1_filepath, 'r')
-    csv1_reader = csv.DictReader(sorted_csv1)
+    with open(self._csv_file1, 'rb') as f1, open(self._csv_file2, 'rb') as f2:
+      sorted_csv1_filepath = self._GetSortedCSV(csv.DictReader(f1))
+      sorted_csv2_filepath = self._GetSortedCSV(csv.DictReader(f2))
+      with open(sorted_csv1_filepath, 'rb') as sorted_csv1, \
+           open(sorted_csv2_filepath, 'rb') as sorted_csv2:
+        csv1_reader = csv.DictReader(sorted_csv1)
+        csv2_reader = csv.DictReader(sorted_csv2)
 
-    unsorted_csv2_reader = csv.DictReader(open(self._csv_file2, 'r'))
-    sorted_csv2_filepath = self._GetSortedCSV(unsorted_csv2_reader)
-    sorted_csv2 = open(sorted_csv2_filepath, 'r')
-    csv2_reader = csv.DictReader(sorted_csv2)
+        # Dictionary that holds the fieldname to the ongoing total on both CSVs.
+        fieldnames_to_totals = {}
+        # Map of a fieldname to list of tuples containing (page_name,
+        # csv_value1, csv_value2, percentage_difference).
+        fieldnames_to_page_values = {}
+        # Map of a fieldname to the discarded page value.
+        fieldnames_to_discards = {}
 
-    # Dictionary that holds the fieldname to the ongoing total on both CSVs.
-    fieldnames_to_totals = {}
-    # Map of a fieldname to list of tuples containing (page_name, csv_value1,
-    # csv_value2, percentage_difference).
-    fieldnames_to_page_values = {}
-    # Map of a fieldname to the discarded page value.
-    fieldnames_to_discards = {}
-
-    try:
-      # Now walk through both CSV files with a pointer at each one and collect
-      # the value totals.
-      for csv2_row in csv2_reader:
-        # Make sure the CSV2 page_name existings in CSV1 else skip it (move CSV2
-        # pointer down).
-        page_name2 = csv2_row['page_name']
-        if not csv1_page_names.has_key(page_name2):
-          continue
-        # Reach the right page_name in CSV1 (move CSV1 pointer down).
-        try:
-          csv1_row = csv1_reader.next()
-          while csv1_row['page_name'] != page_name2:
+        # Now walk through both CSV files with a pointer at each one and collect
+        # the value totals.
+        for csv2_row in csv2_reader:
+          # Make sure the CSV2 page_name existings in CSV1 else skip it (move
+          # CSV2 pointer down).
+          page_name2 = csv2_row['page_name']
+          if not csv1_page_names.has_key(page_name2):
+            continue
+          # Reach the right page_name in CSV1 (move CSV1 pointer down).
+          try:
             csv1_row = csv1_reader.next()
-        except StopIteration:
-          # Reached the end of CSV1, break out of the row loop.
-          break
+            while csv1_row['page_name'] != page_name2:
+              csv1_row = csv1_reader.next()
+          except StopIteration:
+            # Reached the end of CSV1, break out of the row loop.
+            break
 
-        # Store values for all fieldnames (except page_name).
-        for fieldname in csv2_reader.fieldnames:
-          if fieldname != 'page_name' and csv1_row.has_key(fieldname):
-            if csv1_row[fieldname] == '' or csv2_row[fieldname] == '':
-              # TODO(rmistry): Check with tonyg about what the algorithm should
-              # be doing when one CSV has an empty value and the other does not.
-              continue
-            try:
-              if csv1_row[fieldname] == '-':
-                csv1_value = 0
-              else:
-                csv1_value = float(csv1_row.get(fieldname))
-              if csv2_row[fieldname] == '-':
-                csv2_value = 0
-              else:
-                csv2_value = float(csv2_row.get(fieldname))
-            except ValueError:
-              # We expected only floats, cannot compare strings. Skip field.
-              continue
+          # Store values for all fieldnames (except page_name).
+          for fieldname in csv2_reader.fieldnames:
+            if fieldname != 'page_name' and csv1_row.has_key(fieldname):
+              if csv1_row[fieldname] == '' or csv2_row[fieldname] == '':
+                # TODO(rmistry): Check with tonyg about what the algorithm
+                # should be doing when one CSV has an empty value and the other
+                # does not.
+                continue
+              try:
+                if csv1_row[fieldname] == '-':
+                  csv1_value = 0
+                else:
+                  csv1_value = float(csv1_row.get(fieldname))
+                if csv2_row[fieldname] == '-':
+                  csv2_value = 0
+                else:
+                  csv2_value = float(csv2_row.get(fieldname))
+              except ValueError:
+                # We expected only floats, cannot compare strings. Skip field.
+                continue
 
-            # Update the total in the dict.
-            fieldname_values = fieldnames_to_totals.get(
-                fieldname, FieldNameValues(0, 0, 0, 0))
-            fieldname_values.value1 += csv1_value
-            fieldname_values.value2 += csv2_value
-            fieldnames_to_totals[fieldname] = fieldname_values
+              # Update the total in the dict.
+              fieldname_values = fieldnames_to_totals.get(
+                  fieldname, FieldNameValues(0, 0, 0, 0))
+              fieldname_values.value1 += csv1_value
+              fieldname_values.value2 += csv2_value
+              fieldnames_to_totals[fieldname] = fieldname_values
 
-            perc_diff = _GetPercentageDiff(csv1_value, csv2_value)
-            if self._IsPercDiffSameOrAboveThreshold(perc_diff):
-              rank = 1
-              slave_num = 1
-              m = re.match(r".* \(#([0-9]+)\)", page_name2)
-              if m and m.group(1):
-                rank = int(m.group(1))
-                while rank > slave_num * 100:
-                  slave_num += 1
-              pageset_link = (
-                  '%s/swarming/page_sets/%s/%s/%s.py' % (
-                      GS_HTML_DIRECT_LINK, self._pageset_type, rank, rank))
-              archive_link = (
-                  '%s/swarming/webpage_archives/%s/%s' % (
-                      GS_HTML_BROWSER_LINK, self._pageset_type, rank))
-              # Add this page only if its diff is above the threshold.
-              l = fieldnames_to_page_values.get(fieldname, [])
-              l.append(PageValues(page_name2, csv1_value, csv2_value, perc_diff,
-                                  _GetPercentageChange(csv1_value, csv2_value),
-                                  pageset_link, archive_link,
-                                  csv1_row.get('traceUrls'),
-                                  csv2_row.get('traceUrls')))
-              fieldnames_to_page_values[fieldname] = l
-    finally:
-      sorted_csv1.close()
+              perc_diff = _GetPercentageDiff(csv1_value, csv2_value)
+              if self._IsPercDiffSameOrAboveThreshold(perc_diff):
+                rank = 1
+                slave_num = 1
+                m = re.match(r".* \(#([0-9]+)\)", page_name2)
+                if m and m.group(1):
+                  rank = int(m.group(1))
+                  while rank > slave_num * 100:
+                    slave_num += 1
+                pageset_link = (
+                    '%s/swarming/page_sets/%s/%s/%s.py' % (
+                        GS_HTML_DIRECT_LINK, self._pageset_type, rank, rank))
+                archive_link = (
+                    '%s/swarming/webpage_archives/%s/%s' % (
+                        GS_HTML_BROWSER_LINK, self._pageset_type, rank))
+                # Add this page only if its diff is above the threshold.
+                l = fieldnames_to_page_values.get(fieldname, [])
+                pv = PageValues(
+                    page_name2, csv1_value, csv2_value, perc_diff,
+                    _GetPercentageChange(csv1_value, csv2_value), pageset_link,
+                    archive_link, csv1_row.get('traceUrls'),
+                    csv2_row.get('traceUrls'))
+                l.append(pv)
+                fieldnames_to_page_values[fieldname] = l
       os.remove(sorted_csv1_filepath)
-      sorted_csv2.close()
       os.remove(sorted_csv2_filepath)
 
     # Calculate and add the percentage differences for each fieldname.
@@ -325,8 +324,9 @@ class CsvComparer(object):
          'logs_link_prefix': self._logs_link_prefix,
          'description': self._description,
         })
-    index_html = open(os.path.join(self._output_html_dir, 'index.html'), 'w')
-    index_html.write(rendered)
+    index_html_path = os.path.join(self._output_html_dir, 'index.html')
+    with open(index_html_path, 'wb') as index_html:
+      index_html.write(rendered)
 
     # Output the different per-fieldname HTML pages.
     fieldname_count = 0
@@ -342,10 +342,10 @@ class CsvComparer(object):
            'discarded_webpages': fieldnames_to_discards.get(fieldname, []),
            'total_archives': self._total_archives,
            'absolute_url': self._absolute_url})
-      fieldname_html = open(
+      with open(
           os.path.join(self._output_html_dir,
-          'fieldname%s.html' % fieldname_count), 'w')
-      fieldname_html.write(rendered)
+          'fieldname%s.html' % fieldname_count), 'wb') as fieldname_html:
+        fieldname_html.write(rendered)
 
 
 if '__main__' == __name__:

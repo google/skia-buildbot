@@ -653,14 +653,23 @@ func testUpdateTaskWithRetriesTaskNotFound(t sktest.TestingT, db TaskDB) {
 // Test UpdateTasksWithRetries and UpdateTaskWithRetries.
 func TestUpdateTasksWithRetries(t sktest.TestingT, db TaskDB) {
 	testUpdateTasksWithRetriesSimple(t, db)
+	time.Sleep(TS_RESOLUTION)
 	testUpdateTasksWithRetriesSuccess(t, db)
+	time.Sleep(TS_RESOLUTION)
 	testUpdateTasksWithRetriesErrorInFunc(t, db)
+	time.Sleep(TS_RESOLUTION)
 	testUpdateTasksWithRetriesErrorInPutTasks(t, db)
+	time.Sleep(TS_RESOLUTION)
 	testUpdateTasksWithRetriesExhausted(t, db)
+	time.Sleep(TS_RESOLUTION)
 	testUpdateTaskWithRetriesSimple(t, db)
+	time.Sleep(TS_RESOLUTION)
 	testUpdateTaskWithRetriesSuccess(t, db)
+	time.Sleep(TS_RESOLUTION)
 	testUpdateTaskWithRetriesErrorInFunc(t, db)
+	time.Sleep(TS_RESOLUTION)
 	testUpdateTaskWithRetriesExhausted(t, db)
+	time.Sleep(TS_RESOLUTION)
 	testUpdateTaskWithRetriesTaskNotFound(t, db)
 }
 

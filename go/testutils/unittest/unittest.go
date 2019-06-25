@@ -3,6 +3,7 @@ package unittest
 import (
 	"flag"
 	"os"
+	"runtime"
 
 	"go.skia.org/infra/go/sktest"
 )
@@ -119,5 +120,13 @@ If you need to set up the Bigtable emulator, follow the instructions at:
 	https://cloud.google.com/bigtable/docs/emulator#using_the_emulator
 and make sure the environment variable BIGTABLE_EMULATOR_HOST is set.
 `)
+	}
+}
+
+// LinuxOnlyTest is a function which should be called at the beginning of a test
+// which should only run on Linux.
+func LinuxOnlyTest(t sktest.TestingT) {
+	if runtime.GOOS != "linux" {
+		t.Skip("Not running Linux-only tests.")
 	}
 }

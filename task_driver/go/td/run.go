@@ -47,7 +47,6 @@ var (
 	BASE_ENV = []string{
 		"CHROME_HEADLESS=1",
 		"GIT_USER_AGENT=git/1.9.1", // I don't think this version matters.
-		fmt.Sprintf("%s=%s", PATH_VAR, os.Getenv(PATH_VAR)),
 	}
 
 	// Auth scopes required for all task_drivers.
@@ -260,7 +259,8 @@ func newRun(ctx context.Context, rec Receiver, taskId, taskName string, props *R
 		run:     r,
 		execRun: exec.DefaultRun,
 	})
-	ctx = newStep(ctx, STEP_ID_ROOT, nil, Props(taskName).Env(BASE_ENV))
+	env := MergeEnv(os.Environ(), BASE_ENV)
+	ctx = newStep(ctx, STEP_ID_ROOT, nil, Props(taskName).Env(env))
 	return ctx
 }
 

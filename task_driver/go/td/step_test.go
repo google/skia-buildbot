@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -102,7 +103,7 @@ func TestExec(t *testing.T) {
 		// Ensure that we collect stdout.
 		out, err := exec.RunCwd(ctx, ".", "python", "-c", "print 'hello world'")
 		assert.NoError(t, err)
-		assert.Equal(t, "hello world\n", out)
+		assert.True(t, strings.Contains(out, "hello world"))
 		assert.Equal(t, 2, *counter) // Not using the mock for this test case.
 
 		// Ensure that we collect stdout and stderr.
@@ -226,7 +227,8 @@ func TestEnv(t *testing.T) {
 		return true
 	})
 	assert.NotNil(t, leaf)
-	expect := append(BASE_ENV, "a=a", "b=b", "c=c")
+	expect := MergeEnv(os.Environ(), BASE_ENV)
+	expect = append(expect, "a=a", "b=b", "c=c")
 	deepequal.AssertDeepEqual(t, expect, leaf.StepProperties.Environ)
 
 	var data *ExecData
@@ -316,7 +318,8 @@ func TestEnvInheritance(t *testing.T) {
 
 	// Set up exec mock and expectations.
 	runCount := 0
-	expect := append(BASE_ENV, "a=a", "b=b", "c=c", "d=d")
+	expect := MergeEnv(os.Environ(), BASE_ENV)
+	expect = append(expect, "a=a", "b=b", "c=c", "d=d")
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
 		runCount++

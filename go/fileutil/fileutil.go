@@ -7,7 +7,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -210,7 +209,7 @@ func ReadAllFilesRecursive(dir string, excludeDirs []string) (map[string][]byte,
 			return fmt.Errorf("Failed to walk filesystem: %s", err)
 		}
 		if info.IsDir() {
-			base := path.Base(fp)
+			base := filepath.Base(fp)
 			if util.In(base, excludeDirs) {
 				return filepath.SkipDir
 			}
@@ -220,7 +219,7 @@ func ReadAllFilesRecursive(dir string, excludeDirs []string) (map[string][]byte,
 		if err != nil {
 			return fmt.Errorf("Failed to read file: %s", err)
 		}
-		relpath := strings.TrimPrefix(strings.TrimPrefix(fp, dir), "/")
+		relpath := strings.TrimPrefix(strings.TrimPrefix(fp, dir), string(filepath.Separator))
 		contents[relpath] = b
 		return nil
 	}); err != nil {

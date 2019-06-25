@@ -155,7 +155,7 @@ def OutputToHTML(slave_name_to_info, output_html_dir, absolute_url,
        WITHPATCH_GPU_TEMPLATE_VAR: withpatch_gpu,
        TOTAL_FAILING_FILES_TEMPLATE_VAR: total_failing_files}
   )
-  with open(os.path.join(output_html_dir, 'index.html'), 'w') as index_html:
+  with open(os.path.join(output_html_dir, 'index.html'), 'wb') as index_html:
     index_html.write(rendered)
 
   rendered = loader.render_to_string(
@@ -164,7 +164,7 @@ def OutputToHTML(slave_name_to_info, output_html_dir, absolute_url,
        ABSOLUTE_URL_TEMPLATE_VAR: absolute_url}
   )
   with open(os.path.join(output_html_dir,
-                         'list_of_all_files.html'), 'w') as files_html:
+                         'list_of_all_files.html'), 'wb') as files_html:
     files_html.write(rendered)
 
   for slave_info in slave_name_to_info.values():
@@ -187,7 +187,7 @@ def OutputToHTML(slave_name_to_info, output_html_dir, absolute_url,
              slave_info.files_location_whitediffs.lstrip('gs://'))}
       )
       with open(os.path.join(output_html_dir, '%s.html' % file_info.file_name),
-                'w') as per_file_html:
+                'wb') as per_file_html:
         per_file_html.write(rendered)
 
 

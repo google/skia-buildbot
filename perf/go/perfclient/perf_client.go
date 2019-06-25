@@ -10,7 +10,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"path/filepath"
+	"path"
 	"time"
 
 	"go.skia.org/infra/go/gcs"
@@ -89,5 +89,5 @@ func objectPath(benchData *ingestcommon.BenchData, gcsPath, folderName, filePref
 		}
 	}
 	filename := fmt.Sprintf("%s_%s_%d.json", filePrefix, hash, now.UnixNano()/int64(time.Millisecond))
-	return filepath.Join(gcsPath, now.Format("2006/01/02/15/"), folderName, filename)
+	return path.Join(gcsPath, now.Format("2006/01/02/15/"), folderName, filename)
 }
