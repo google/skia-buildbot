@@ -185,7 +185,7 @@ func NewClient(ctx context.Context, project, app, instance string, ts oauth2.Tok
 func NewClientForTesting(t sktest.TestingT) (*Client, util.CleanupFunc) {
 	if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
 		t.Fatal(`This test requires the Firestore emulator, which you can start with
-./scripts/run_emulators start
+./scripts/run_emulators/run_emulators start
 and then set the environment variables it prints out.
 
 # If you need to set up the Firestore emulator:
