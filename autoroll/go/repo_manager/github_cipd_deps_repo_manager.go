@@ -209,6 +209,9 @@ func getNotRolledRevs(ctx context.Context, cipdClient cipd.CIPDClient, lastRollR
 	if err != nil {
 		return nil, err
 	}
+	if lastRollRev == head.InstanceID {
+		return []*revision.Revision{}, nil
+	}
 	iter, err := cipdClient.ListInstances(ctx, cipdAssetName)
 	if err != nil {
 		return nil, err
