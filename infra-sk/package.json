@@ -1,6 +1,6 @@
 {
   "name": "infra-sk",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Common Skia Infra elements and JS.",
   "homepage": "https://github.com/google/skia-buildbot/tree/master/infra-sk",
   "main": "index.js",
