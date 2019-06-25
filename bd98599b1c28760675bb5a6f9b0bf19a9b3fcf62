@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "77300e3a_1d6cc619",
+        "filename": "jsdoc/build_docker_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-06-25T11:18:55Z",
+      "side": 1,
+      "message": "Not needed",
+      "revId": "bd98599b1c28760675bb5a6f9b0bf19a9b3fcf62",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
