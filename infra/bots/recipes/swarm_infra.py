@@ -87,11 +87,10 @@ def RunSteps(api):
           'install bower',
           cmd=['sudo', 'npm', 'i', '-g', 'bower@1.8.2'])
 
+  run_emulators = infra_dir.join('scripts', 'run_emulators', 'run_emulators')
   if ('Large' in builder) or ('Race' in builder):
-    with api.context(cwd=infra_dir.join('scripts'), env=env):
-      api.step(
-          'start the cloud emulators',
-           cmd=['./run_emulators', 'start'])
+    with api.context(cwd=infra_dir, env=env):
+      api.step('start the cloud emulators', cmd=[run_emulators, 'start'])
     env['DATASTORE_EMULATOR_HOST'] = 'localhost:8891'
     env['BIGTABLE_EMULATOR_HOST'] = 'localhost:8892'
     env['PUBSUB_EMULATOR_HOST'] = 'localhost:8893'
@@ -120,9 +119,8 @@ def RunSteps(api):
         api.step('run_unittests', cmd)
     finally:
       if ('Large' in builder) or ('Race' in builder):
-        with api.context(cwd=infra_dir.join('scripts'), env=env):
-          api.step('stop the cloud emulators',
-              cmd=['./run_emulators', 'stop'])
+        with api.context(cwd=infra_dir, env=env):
+          api.step('stop the cloud emulators', cmd=[run_emulators, 'stop'])
 
   # Sanity check; none of the above should have modified the go.mod file.
   with api.context(cwd=infra_dir):
