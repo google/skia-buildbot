@@ -158,10 +158,9 @@
   },
   {
     "cmd": [
-      "./run_emulators",
+      "[START_DIR]/buildbot/scripts/run_emulators/run_emulators",
       "start"
     ],
-    "cwd": "[START_DIR]/buildbot/scripts",
     "env": {
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
@@ -203,10 +202,9 @@
   },
   {
     "cmd": [
-      "./run_emulators",
+      "[START_DIR]/buildbot/scripts/run_emulators/run_emulators",
       "stop"
     ],
-    "cwd": "[START_DIR]/buildbot/scripts",
     "env": {
       "BIGTABLE_EMULATOR_HOST": "localhost:8892",
       "CHROME_HEADLESS": "1",
