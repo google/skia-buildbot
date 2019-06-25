@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "658590e0_b93092e7",
+        "filename": "scripts/run_emulators/run_emulators",
+        "patchSetId": 12
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-25T20:56:11Z",
+      "side": 1,
+      "message": "nit: We can probably do some \u0027nc\u0027 command to see if the emulators are running and sleep only if they are not yet running.",
+      "revId": "81ea721ca2addbd009bea9e2008d5ad6c27dfb6d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
