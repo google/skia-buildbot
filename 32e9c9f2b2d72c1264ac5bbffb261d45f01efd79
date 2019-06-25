@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0dddba7a_9ae50b84",
+        "filename": "task_scheduler/go/db/memory/memory.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-25T17:19:42Z",
+      "side": 1,
+      "message": "Drive-by bug fix.",
+      "range": {
+        "startLine": 101,
+        "startChar": 3,
+        "endLine": 101,
+        "endChar": 34
+      },
+      "revId": "32e9c9f2b2d72c1264ac5bbffb261d45f01efd79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c50686d_5e1efbd4",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 656,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-25T17:19:42Z",
+      "side": 1,
+      "message": "This is independent of bugs in the DB implementation: we search tasks by time range in the DB, starting with a timestamp taken when the test begins.  The low clock resolution on Windows sometimes causes tasks from the previous test to leak into the current test unless we sleep between tests.",
+      "range": {
+        "startLine": 656,
+        "startChar": 0,
+        "endLine": 656,
+        "endChar": 26
+      },
+      "revId": "32e9c9f2b2d72c1264ac5bbffb261d45f01efd79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
