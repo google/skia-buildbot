@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d8d8dcc3_4963eff2",
+        "filename": "scripts/run_emulators/run_emulators",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-25T12:02:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a54df99_91ae4193",
+      "range": {
+        "startLine": 4,
+        "startChar": 29,
+        "endLine": 4,
+        "endChar": 31
+      },
+      "revId": "36fdd4bf619076394ddd03a84e9149e426e7a28b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "35e1a1e3_188bd6dc",
         "filename": "scripts/run_emulators/run_emulators.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "36fdd4bf619076394ddd03a84e9149e426e7a28b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c6734330_1d444122",
+        "filename": "scripts/run_emulators/run_emulators.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-25T12:02:19Z",
+      "side": 1,
+      "message": "Removed, although this is what the script was doing before.",
+      "parentUuid": "35e1a1e3_188bd6dc",
+      "range": {
+        "startLine": 74,
+        "startChar": 64,
+        "endLine": 74,
+        "endChar": 68
+      },
+      "revId": "36fdd4bf619076394ddd03a84e9149e426e7a28b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
