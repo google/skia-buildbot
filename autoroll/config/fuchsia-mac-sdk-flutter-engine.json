@@ -3,6 +3,7 @@
 {
   "childName": "Fuchsia Mac SDK",
   "contacts": [
+    "liyuqian@google.com",
     "rmistry@google.com"
   ],
   "isInternal": false,
@@ -11,7 +12,7 @@
   "rollerName": "fuchsia-mac-sdk-flutter-engine",
   "serviceAccount": "flutter-engine-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "rmistry@google.com"
+    "https://rota-ng.appspot.com/legacy/sheriff_flutter_engine.json"
   ],
   "github": {
     "repoOwner": "flutter",
