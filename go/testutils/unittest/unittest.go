@@ -113,7 +113,7 @@ func RequiresBigTableEmulator(t sktest.TestingT) {
 	s := os.Getenv("BIGTABLE_EMULATOR_HOST")
 	if s == "" {
 		t.Fatal(`This test requires the Bigtable emulator, which you can start with
-./scripts/run_emulators start
+./scripts/run_emulators/run_emulators start
 and then set the environment variables it prints out.
 If you need to set up the Bigtable emulator, follow the instructions at:
 	https://cloud.google.com/bigtable/docs/emulator#using_the_emulator

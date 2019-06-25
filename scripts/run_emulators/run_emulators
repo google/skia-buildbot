@@ -1,0 +1,5 @@
+#!/bin/bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+nohup go run $DIR/run_emulators.go "$@" > /tmp/cloud_emulators.log 2>&1 &
+sleep 5 # Give the emulators time to start up before exiting.
