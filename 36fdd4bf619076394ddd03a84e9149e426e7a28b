@@ -93,6 +93,30 @@
       "revId": "36fdd4bf619076394ddd03a84e9149e426e7a28b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "450ad932_7179f847",
+        "filename": "scripts/run_emulators/run_emulators.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-25T12:59:47Z",
+      "side": 1,
+      "message": "Ack; I\u0027m sure some people say \"\u0027kill -9\u0027 always works, so why would I use anything else?\" but unless the program is poorly-behaved, it\u0027s better to allow it to save state, clean up resources, etc., which -9 doesn\u0027t allow.",
+      "parentUuid": "c6734330_1d444122",
+      "range": {
+        "startLine": 74,
+        "startChar": 64,
+        "endLine": 74,
+        "endChar": 68
+      },
+      "revId": "36fdd4bf619076394ddd03a84e9149e426e7a28b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
