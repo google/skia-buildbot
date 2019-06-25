@@ -27,8 +27,6 @@ const (
 	cipdCommitMsgTmpl   = cipdGithubTitleTmpl + `
 
 ` + COMMIT_MSG_FOOTER_TMPL
-
-	NOT_ROLLED_LIMIT = 200
 )
 
 var (
@@ -192,10 +190,6 @@ func (rm *githubCipdDEPSRepoManager) Update(ctx context.Context) error {
 	sklog.Infof("lastRollRev is: %s", rm.lastRollRev)
 	sklog.Infof("nextRollRev is: %s", nextRollRev)
 	sklog.Infof("len(notRolledRevs): %v", len(rm.notRolledRevs))
-	if len(rm.notRolledRevs) > NOT_ROLLED_LIMIT {
-		sklog.Infof("Truncating notRolledRevs to the last %d", NOT_ROLLED_LIMIT)
-		rm.notRolledRevs = rm.notRolledRevs[(len(rm.notRolledRevs) - NOT_ROLLED_LIMIT):]
-	}
 	return nil
 }
 
