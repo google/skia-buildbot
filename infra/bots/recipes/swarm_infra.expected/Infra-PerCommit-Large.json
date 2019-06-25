@@ -181,7 +181,7 @@
       "./run_emulators",
       "start"
     ],
-    "cwd": "[START_DIR]/buildbot/scripts",
+    "cwd": "[START_DIR]/buildbot/scripts/run_emulators",
     "env": {
       "CHROME_HEADLESS": "1",
       "GIT_USER_AGENT": "git/1.9.1",
