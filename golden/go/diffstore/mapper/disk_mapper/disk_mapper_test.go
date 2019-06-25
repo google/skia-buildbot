@@ -1,6 +1,7 @@
 package disk_mapper
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,7 +27,7 @@ func TestDiffPath(t *testing.T) {
 	dm := New(&testutils.DummyDiffMetrics{})
 
 	actualDiffPath := dm.DiffPath(imgOne, imgTwo)
-	expectedPath := "09/8f/" + exampleDiffId + png
+	expectedPath := filepath.Join("09", "8f", exampleDiffId+png)
 	assert.Equal(t, expectedPath, actualDiffPath)
 }
 
@@ -35,7 +36,7 @@ func TestImagePaths(t *testing.T) {
 
 	dm := New(&testutils.DummyDiffMetrics{})
 
-	expectedLocalPath := "09/8f/" + string(imgOne) + png
+	expectedLocalPath := filepath.Join("09", "8f", string(imgOne)+png)
 	expectedGSPath := string(imgOne + png)
 	localPath, gsPath := dm.ImagePaths(imgOne)
 	assert.Equal(t, expectedLocalPath, localPath)

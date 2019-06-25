@@ -46,7 +46,18 @@ func main() {
 	// Initialize the Git repo. We receive the code via Isolate, but it
 	// doesn't include the .git dir.
 	gd := git.GitDir(infraDir)
+	if gitVer, err := gd.Git(ctx, "version"); err != nil {
+		td.Fatal(ctx, err)
+	} else {
+		sklog.Infof("Git version %s", gitVer)
+	}
 	if _, err := gd.Git(ctx, "init"); err != nil {
+		td.Fatal(ctx, err)
+	}
+	if _, err := gd.Git(ctx, "config", "--local", "user.name", "Skia bots"); err != nil {
+		td.Fatal(ctx, err)
+	}
+	if _, err := gd.Git(ctx, "config", "--local", "user.email", "fake@skia.bots"); err != nil {
 		td.Fatal(ctx, err)
 	}
 	if _, err := gd.Git(ctx, "add", "."); err != nil {
@@ -89,13 +100,6 @@ func main() {
 	}
 	if err := golang.InstallCommonDeps(ctx, infraDir); err != nil {
 		td.Fatal(ctx, err)
-	}
-
-	// More prerequisites.
-	if !strings.Contains(*taskName, "Race") {
-		if _, err := exec.RunCwd(ctx, ".", "sudo", "npm", "i", "-g", "bower@1.8.2"); err != nil {
-			td.Fatal(ctx, err)
-		}
 	}
 
 	// Run the tests.

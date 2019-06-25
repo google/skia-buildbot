@@ -9,6 +9,7 @@ import (
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/task_driver/go/lib/dirs"
+	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
@@ -59,7 +60,7 @@ func Go(ctx context.Context, cwd string, args ...string) (string, error) {
 
 // Info executes commands to find the path to the Go executable and its version.
 func Info(ctx context.Context) (string, string, error) {
-	goExc, err := exec.RunCwd(ctx, ".", "which", "go")
+	goExc, err := os_steps.Which(ctx, "go")
 	if err != nil {
 		return "", "", err
 	}
