@@ -39,7 +39,7 @@ import (
 
 const (
 	AUTOROLL_URL_PUBLIC  = "https://autoroll.skia.org"
-	AUTOROLL_URL_PRIVATE = "https://autoroll-internal.skia.org"
+	AUTOROLL_URL_PRIVATE = "https://skia-autoroll.corp.goog"
 
 	// We'll send a notification if this many rolls fail in a row.
 	NOTIFY_IF_LAST_N_FAILED = 3
