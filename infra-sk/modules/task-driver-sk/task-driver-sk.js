@@ -78,7 +78,12 @@ const stepProperties = (ele, s) => html`
     ${propLine("Finished", ele._displayTime(s.finished))}
     ${s.environment
         ? propLine("Environment", html`
-            ${s.environment.map((env) => tr(td(env)))}
+            <a id="button_env_${s.id}" @click=${ev => ele._toggleEnv(s)}>
+              ${expando(s.expandEnv)}
+            </a>
+            <collapse-sk id="env_${s.id}" ?closed="${!s.expandEnv}">
+              ${s.environment.map(env => tr(td(env)))}
+            </collapse-sk>
           `)
         : ""
     }
@@ -188,6 +193,13 @@ window.customElements.define('task-driver-sk', class extends HTMLElement {
     this._render();
   }
 
+  _toggleEnv(step) {
+    let collapse = document.getElementById("env_" + step.id);
+    collapse.closed = !collapse.closed;
+    step.expandEnv = !collapse.closed;
+    this._render();
+  }
+
   _toggleProps(step) {
     let collapse = document.getElementById("props_" + step.id);
     collapse.closed = !collapse.closed;
@@ -256,6 +268,7 @@ window.customElements.define('task-driver-sk', class extends HTMLElement {
     if (isInteresting && anyChildInteresting) {
       step.expandChildren = true;
     }
+    step.expandEnv = false;
 
     // Step properties take up a lot of space on the screen. Only display them
     // if the step is interesting AND it has no interesting children.
