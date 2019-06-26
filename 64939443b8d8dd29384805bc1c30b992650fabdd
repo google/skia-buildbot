@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "99aebc77_4ec46203",
+        "filename": "status/res/imp/task-popup-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-26T15:30:20Z",
+      "side": 1,
+      "message": "There *might* be an API in Swarming for this?  ie. when we trigger a task, rather than using the task summary ID we get back, we immediately query to find the instance ID?  I\u0027m not sure.  Seems like it\u0027d add a lot of overhead.",
+      "parentUuid": "bae488e5_16706528",
+      "range": {
+        "startLine": 153,
+        "startChar": 39,
+        "endLine": 153,
+        "endChar": 74
+      },
+      "revId": "64939443b8d8dd29384805bc1c30b992650fabdd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7325a5f8_e743b783",
         "filename": "task_scheduler/res/imp/task-graph-sk.html",
         "patchSetId": 3
