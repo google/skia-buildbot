@@ -102,7 +102,7 @@ func (p *RunProperties) Copy() *RunProperties {
 
 // StartRunWithErr begins a new test automation run, returning any error which
 // occurs.
-func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (context.Context, error) {
+func StartRunWithErr(projectId, taskName, output *string, local *bool) (context.Context, error) {
 	common.Init()
 
 	// TODO(borenet): Catch SIGINT, SIGKILL and report.
@@ -121,6 +121,7 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 		swarmingServer = ""
 		swarmingTask = ""
 	}
+	taskId := swarmingTask
 	if *local {
 		// Check to make sure we're not actually running in production.
 		// Note that the presence of SWARMING_SERVER does not indicate
@@ -138,7 +139,7 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 		if err != nil {
 			return nil, err
 		}
-		*taskId = fmt.Sprintf("%s_%s", hostname, uuid.New())
+		taskId = fmt.Sprintf("%s_%s", hostname, uuid.New())
 	} else {
 		// Check to make sure that we're not running locally and the
 		// user forgot to use --local.
@@ -164,9 +165,6 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 	}
 	if *projectId == "" {
 		return nil, fmt.Errorf("Project ID is required.")
-	}
-	if *taskId == "" {
-		return nil, fmt.Errorf("Task ID is required.")
 	}
 	if *taskName == "" {
 		return nil, fmt.Errorf("Task name is required.")
