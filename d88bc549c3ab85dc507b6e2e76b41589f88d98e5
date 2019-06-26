@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "b9ace266_f5073467",
+        "filename": "leasing/go/leasing/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-06-26T18:03:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0a27ec85_4bf24245",
+      "revId": "d88bc549c3ab85dc507b6e2e76b41589f88d98e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "13a5826c_7412fb19",
         "filename": "leasing/go/leasing/main.go",
         "patchSetId": 5
@@ -39,6 +57,30 @@
       "revId": "d88bc549c3ab85dc507b6e2e76b41589f88d98e5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "089193d4_39499053",
+        "filename": "leasing/go/leasing/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 546,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-06-26T18:03:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "13a5826c_7412fb19",
+      "range": {
+        "startLine": 546,
+        "startChar": 3,
+        "endLine": 546,
+        "endChar": 16
+      },
+      "revId": "d88bc549c3ab85dc507b6e2e76b41589f88d98e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
