@@ -121,7 +121,7 @@ type PoolDetails struct {
 	DeviceTypes map[string]int
 }
 
-func GetPoolDetails(pool string) (*PoolDetails, error) {
+func getPoolDetails(pool string) (*PoolDetails, error) {
 	swarmingClient := *GetSwarmingClient(pool)
 	bots, err := swarmingClient.ListBotsForPool(pool)
 	if err != nil {
@@ -157,6 +157,18 @@ func GetPoolDetails(pool string) (*PoolDetails, error) {
 		OsTypes:     osTypes,
 		DeviceTypes: deviceTypes,
 	}, nil
+}
+
+func GetDetailsOfAllPools() (map[string]*PoolDetails, error) {
+	poolToDetails := map[string]*PoolDetails{}
+	for pool := range PoolsToSwarmingInstance {
+		details, err := getPoolDetails(pool)
+		if err != nil {
+			return nil, err
+		}
+		poolToDetails[pool] = details
+	}
+	return poolToDetails, nil
 }
 
 type IsolateDetails struct {
