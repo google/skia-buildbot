@@ -28,6 +28,16 @@ type SwarmingInstanceClients struct {
 	IsolateClient **isolate.Client
 }
 
+const (
+	// Supported Pools. Every supported pool requires an entry in PoolsToSwarmingInstance.
+	SKIA_POOL               = "Skia"
+	SKIA_CT_POOL            = "SkiaCT"
+	SKIA_INTERNAL_POOL      = "SkiaInternal"
+	CT_POOL                 = "CT"
+	CT_ANDROID_BUILDER_POOL = "CTAndroidBuilder"
+	CT_LINUX_BUILDER_POOL   = "CTLinuxBuilder"
+)
+
 var (
 	isolateClientPublic  *isolate.Client
 	isolateClientPrivate *isolate.Client
@@ -50,12 +60,12 @@ var (
 	}
 
 	PoolsToSwarmingInstance = map[string]*SwarmingInstanceClients{
-		"Skia":             PublicSwarming,
-		"SkiaCT":           PublicSwarming,
-		"SkiaInternal":     InternalSwarming,
-		"CT":               InternalSwarming,
-		"CTAndroidBuilder": InternalSwarming,
-		"CTLinuxBuilder":   InternalSwarming,
+		SKIA_POOL:               PublicSwarming,
+		SKIA_CT_POOL:            PublicSwarming,
+		SKIA_INTERNAL_POOL:      InternalSwarming,
+		CT_POOL:                 InternalSwarming,
+		CT_ANDROID_BUILDER_POOL: InternalSwarming,
+		CT_LINUX_BUILDER_POOL:   InternalSwarming,
 	}
 
 	isolateServerPath string
@@ -121,7 +131,7 @@ type PoolDetails struct {
 	DeviceTypes map[string]int
 }
 
-func GetPoolDetails(pool string) (*PoolDetails, error) {
+func getPoolDetails(pool string) (*PoolDetails, error) {
 	swarmingClient := *GetSwarmingClient(pool)
 	bots, err := swarmingClient.ListBotsForPool(pool)
 	if err != nil {
@@ -157,6 +167,18 @@ func GetPoolDetails(pool string) (*PoolDetails, error) {
 		OsTypes:     osTypes,
 		DeviceTypes: deviceTypes,
 	}, nil
+}
+
+func GetDetailsOfAllPools() (map[string]*PoolDetails, error) {
+	poolToDetails := map[string]*PoolDetails{}
+	for pool, _ := range PoolsToSwarmingInstance {
+		details, err := getPoolDetails(pool)
+		if err != nil {
+			return nil, err
+		}
+		poolToDetails[pool] = details
+	}
+	return poolToDetails, nil
 }
 
 type IsolateDetails struct {
