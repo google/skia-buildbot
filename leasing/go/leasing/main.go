@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/go/allowed"
+	//"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
@@ -54,16 +54,17 @@ const (
 
 var (
 	// Flags
-	host                  = flag.String("host", "localhost", "HTTP service host")
-	promPort              = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
-	port                  = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
-	local                 = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	workdir               = flag.String("workdir", ".", "Directory to use for scratch work.")
-	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files.  If blank then the directory two directories up from this source file will be used.")
-	pollInterval          = flag.Duration("poll_interval", 1*time.Minute, "How often the leasing server will check if tasks have expired.")
-	emailClientSecretFile = flag.String("email_client_secret_file", "/etc/leasing-email-secrets/client_secret.json", "OAuth client secret JSON file for sending email.")
-	emailTokenCacheFile   = flag.String("email_token_cache_file", "/etc/leasing-email-secrets/client_token.json", "OAuth token cache file for sending email.")
-	serviceAccountFile    = flag.String("service_account_file", "/var/secrets/google/key.json", "Service account JSON file.")
+	host                       = flag.String("host", "localhost", "HTTP service host")
+	promPort                   = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	port                       = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
+	local                      = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	workdir                    = flag.String("workdir", ".", "Directory to use for scratch work.")
+	resourcesDir               = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files.  If blank then the directory two directories up from this source file will be used.")
+	pollInterval               = flag.Duration("poll_interval", 1*time.Minute, "How often the leasing server will check if tasks have expired.")
+	emailClientSecretFile      = flag.String("email_client_secret_file", "/etc/leasing-email-secrets/client_secret.json", "OAuth client secret JSON file for sending email.")
+	emailTokenCacheFile        = flag.String("email_token_cache_file", "/etc/leasing-email-secrets/client_token.json", "OAuth token cache file for sending email.")
+	serviceAccountFile         = flag.String("service_account_file", "/var/secrets/google/key.json", "Service account JSON file.")
+	poolDetailsUpdateFrequency = flag.Duration("pool_details_update_freq", 5*time.Minute, "How often to call swarming API to refresh the details of supported pools.")
 
 	// Datastore params
 	namespace   = flag.String("namespace", "leasing-server", "The Cloud Datastore namespace, such as 'leasing-server'.")
@@ -79,6 +80,8 @@ var (
 	leasesListTemplate *template.Template = nil
 
 	serverURL string
+
+	poolToDetails map[string]*PoolDetails
 )
 
 func reloadTemplates() {
@@ -162,11 +165,7 @@ func poolDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, nil, "Missing pool parameter")
 		return
 	}
-	poolDetails, err := GetPoolDetails(poolParam)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Error getting pool details from swarming: %v", err))
-		return
-	}
+	poolDetails := poolToDetails[poolParam]
 	if err := json.NewEncoder(w).Encode(poolDetails); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
 		return
@@ -448,7 +447,7 @@ func runServer() {
 
 	h := httputils.LoggingGzipRequestResponse(r)
 	h = login.RestrictViewer(h)
-	h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
+	//h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
 	h = httputils.HealthzAndHTTPS(h)
 
 	http.Handle("/", h)
@@ -515,13 +514,14 @@ func main() {
 		sklog.Fatalf("Failed to init mail library: %s", err)
 	}
 
-	var allow allowed.Allow
-	if !*local {
-		allow = allowed.NewAllowedFromList([]string{*authWhiteList})
-	} else {
-		allow = allowed.NewAllowedFromList([]string{"fred@example.org", "barney@example.org", "wilma@example.org"})
-	}
-	login.SimpleInitWithAllow(*port, *local, nil, nil, allow)
+	//var allow allowed.Allow
+	//if !*local {
+	//	allow = allowed.NewAllowedFromList([]string{*authWhiteList})
+	//} else {
+	//	allow = allowed.NewAllowedFromList([]string{"fred@example.org", "barney@example.org", "wilma@example.org"})
+	//}
+	// login.SimpleInitWithAllow(*port, *local, nil, nil, allow)
+	login.SimpleInitWithAllow(*port, *local, nil, nil, nil)
 
 	// Initialize isolate and swarming.
 	if err := SwarmingInit(*serviceAccountFile); err != nil {
@@ -537,6 +537,20 @@ func main() {
 	if err := DebuggerInit(); err != nil {
 		sklog.Fatalf("Failed to init debugger setup helper: %s", err)
 	}
+
+	poolToDetails, err = GetDetailsOfAllPools()
+	if err != nil {
+		sklog.Fatalf("Could not get details of all pools: %s", err)
+	}
+	go func() {
+		for range time.Tick(*poolDetailsUpdateFrequency) {
+			fmt.Println("REFRESHING THE LIST!!!!!!!!!!!")
+			poolToDetails, err = GetDetailsOfAllPools()
+			if err != nil {
+				sklog.Errorf("Could not get details of all pools: %s", err)
+			}
+		}
+	}()
 
 	healthyGauge := metrics2.GetInt64Metric("healthy")
 	go func() {
