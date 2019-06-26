@@ -16,6 +16,24 @@
       "revId": "81ea721ca2addbd009bea9e2008d5ad6c27dfb6d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da1c8436_fd5030c0",
+        "filename": "scripts/run_emulators/run_emulators",
+        "patchSetId": 12
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-26T11:05:59Z",
+      "side": 1,
+      "message": "They actually start quickly enough; the reason I added the sleep was so that the recipe step had a chance to see some of the logs before it finished.  Otherwise the step is just silent :-/  I really wish the recipe could just launch run_emulators.go in a background thread and then kill it.",
+      "parentUuid": "658590e0_b93092e7",
+      "revId": "81ea721ca2addbd009bea9e2008d5ad6c27dfb6d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
