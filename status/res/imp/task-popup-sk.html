@@ -150,7 +150,7 @@
       },
 
       showCallback: function() {
-        sk.get("/json/td/" + this.task.id).then(JSON.parse).then(function(td) {
+        sk.get("/json/td/" + this.task.swarming_task_id.replace(/0$/, "1")).then(JSON.parse).then(function(td) {
           this.$.tdStatus.data = td;
           this.$.tdStatus.style = "display: block";
           this.$.nonTaskDriverHeader.style = "display: none";

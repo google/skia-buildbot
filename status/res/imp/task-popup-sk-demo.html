@@ -25,6 +25,17 @@
     var taskSpecName = taskSpecNameNonExperimental;
     var taskId = "dummy123";
 
+    var task = {
+      name: taskSpecName,
+      colorClass: "bg-success",
+      comments: comments,
+      commits: ["abc123"],
+      id: taskId,
+      revision: "abc123",
+      swarming_task_id: "fake123",
+      status: "SUCCESS",
+    }
+
     function update(request, newComments) {
       var popup = document.getElementById("popup");
       popup.set("task.comments", newComments);
@@ -57,7 +68,7 @@
       }
       return update(request, newComments);
     });
-    server.respondWith("GET", "/json/td/"+taskId, function(request) {
+    server.respondWith("GET", "/json/td/"+task.swarming_task_id, function(request) {
       console.log("requested task driver");
       return request.respond(200, {}, `{
   "id": "20181022T152846.098672800Z_000000000095d900",
@@ -826,16 +837,7 @@
         popup.repo_base = "https://skia.googlesource.com/dummy";
         popup.swarming_url = swarming_url;
         popup.task_scheduler_url = task_scheduler_url;
-        popup.set("task", {
-          name: taskSpecName,
-          colorClass: "bg-success",
-          comments: comments,
-          commits: ["abc123"],
-          id: taskId,
-          revision: "abc123",
-          swarming_task_id: "fake123",
-          status: "SUCCESS",
-        });
+        popup.set("task", task);
         this.$.popupContainer.appendChild(popup);
         window.setTimeout(function() { popup.show() }, 0);
       },
