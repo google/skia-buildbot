@@ -17,6 +17,7 @@ import (
 	"runtime"
 	"sort"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -54,16 +55,17 @@ const (
 
 var (
 	// Flags
-	host                  = flag.String("host", "localhost", "HTTP service host")
-	promPort              = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
-	port                  = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
-	local                 = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	workdir               = flag.String("workdir", ".", "Directory to use for scratch work.")
-	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files.  If blank then the directory two directories up from this source file will be used.")
-	pollInterval          = flag.Duration("poll_interval", 1*time.Minute, "How often the leasing server will check if tasks have expired.")
-	emailClientSecretFile = flag.String("email_client_secret_file", "/etc/leasing-email-secrets/client_secret.json", "OAuth client secret JSON file for sending email.")
-	emailTokenCacheFile   = flag.String("email_token_cache_file", "/etc/leasing-email-secrets/client_token.json", "OAuth token cache file for sending email.")
-	serviceAccountFile    = flag.String("service_account_file", "/var/secrets/google/key.json", "Service account JSON file.")
+	host                       = flag.String("host", "localhost", "HTTP service host")
+	promPort                   = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	port                       = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
+	local                      = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	workdir                    = flag.String("workdir", ".", "Directory to use for scratch work.")
+	resourcesDir               = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files.  If blank then the directory two directories up from this source file will be used.")
+	pollInterval               = flag.Duration("poll_interval", 1*time.Minute, "How often the leasing server will check if tasks have expired.")
+	emailClientSecretFile      = flag.String("email_client_secret_file", "/etc/leasing-email-secrets/client_secret.json", "OAuth client secret JSON file for sending email.")
+	emailTokenCacheFile        = flag.String("email_token_cache_file", "/etc/leasing-email-secrets/client_token.json", "OAuth token cache file for sending email.")
+	serviceAccountFile         = flag.String("service_account_file", "/var/secrets/google/key.json", "Service account JSON file.")
+	poolDetailsUpdateFrequency = flag.Duration("pool_details_update_freq", 5*time.Minute, "How often to call swarming API to refresh the details of supported pools.")
 
 	// Datastore params
 	namespace   = flag.String("namespace", "leasing-server", "The Cloud Datastore namespace, such as 'leasing-server'.")
@@ -79,6 +81,9 @@ var (
 	leasesListTemplate *template.Template = nil
 
 	serverURL string
+
+	poolToDetails      map[string]*PoolDetails
+	poolToDetailsMutex sync.Mutex
 )
 
 func reloadTemplates() {
@@ -162,9 +167,11 @@ func poolDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, nil, "Missing pool parameter")
 		return
 	}
-	poolDetails, err := GetPoolDetails(poolParam)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Error getting pool details from swarming: %v", err))
+	poolToDetailsMutex.Lock()
+	defer poolToDetailsMutex.Unlock()
+	poolDetails, ok := poolToDetails[poolParam]
+	if !ok {
+		httputils.ReportError(w, r, nil, "No such pool")
 		return
 	}
 	if err := json.NewEncoder(w).Encode(poolDetails); err != nil {
@@ -537,6 +544,21 @@ func main() {
 	if err := DebuggerInit(); err != nil {
 		sklog.Fatalf("Failed to init debugger setup helper: %s", err)
 	}
+
+	poolToDetails, err = GetDetailsOfAllPools()
+	if err != nil {
+		sklog.Fatalf("Could not get details of all pools: %s", err)
+	}
+	go func() {
+		for range time.Tick(*poolDetailsUpdateFrequency) {
+			poolToDetailsMutex.Lock()
+			poolToDetails, err = GetDetailsOfAllPools()
+			poolToDetailsMutex.Unlock()
+			if err != nil {
+				sklog.Errorf("Could not get details of all pools: %s", err)
+			}
+		}
+	}()
 
 	healthyGauge := metrics2.GetInt64Metric("healthy")
 	go func() {
