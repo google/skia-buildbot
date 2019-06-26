@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bae488e5_16706528",
+        "filename": "status/res/imp/task-popup-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-26T15:28:35Z",
+      "side": 1,
+      "message": "Hmm, this seems like the wrong place to do this. Can we do this calculation server-side? Specifically, can we search for all TD tasks with the same base Swarming task ID and then return the last one?",
+      "range": {
+        "startLine": 153,
+        "startChar": 39,
+        "endLine": 153,
+        "endChar": 74
+      },
+      "revId": "64939443b8d8dd29384805bc1c30b992650fabdd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7325a5f8_e743b783",
+        "filename": "task_scheduler/res/imp/task-graph-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-26T15:28:35Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "64939443b8d8dd29384805bc1c30b992650fabdd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
