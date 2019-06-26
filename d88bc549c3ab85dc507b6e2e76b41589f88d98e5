@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0a27ec85_4bf24245",
+        "filename": "leasing/go/leasing/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-26T17:42:02Z",
+      "side": 1,
+      "message": "nit: maybe ReportError if poolParam isn\u0027t found in poolToDetails",
+      "revId": "d88bc549c3ab85dc507b6e2e76b41589f88d98e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13a5826c_7412fb19",
+        "filename": "leasing/go/leasing/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 546,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-26T17:42:02Z",
+      "side": 1,
+      "message": "nit: potential race condition: write here, read in poolDetailsHandler",
+      "range": {
+        "startLine": 546,
+        "startChar": 3,
+        "endLine": 546,
+        "endChar": 16
+      },
+      "revId": "d88bc549c3ab85dc507b6e2e76b41589f88d98e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
