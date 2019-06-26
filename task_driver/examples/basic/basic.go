@@ -24,7 +24,6 @@ import (
 var (
 	// Required flags for all Task Drivers.
 	projectId = flag.String("project_id", "", "ID of the Google Cloud project.")
-	taskId    = flag.String("task_id", "", "ID of this task. This is overridden when --local is used.")
 	taskName  = flag.String("task_name", "", "Name of the task.")
 	output    = flag.String("o", "", "If provided, dump a JSON blob of step data to the given file. Prints to stdout if '-' is given.")
 	local     = flag.Bool("local", false, "True if running locally (as opposed to in production). This causes --task_id to be overridden.")
@@ -36,7 +35,7 @@ func main() {
 	// Start a new Task Driver run. The returned Context represents the
 	// root-level step, from which all other steps stem. EndRun must be
 	// deferred, passing in the Context returned from StartRun.
-	ctx := td.StartRun(projectId, taskId, taskName, output, local)
+	ctx := td.StartRun(projectId, taskName, output, local)
 	defer td.EndRun(ctx)
 
 	// Technically, a Task Driver doesn't have to do anything more with
