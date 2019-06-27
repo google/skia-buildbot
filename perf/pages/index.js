@@ -1,2 +1,3 @@
 import '../node_modules/@webcomponents/custom-elements/custom-elements.min.js'
-import '../node_modules/infra-sk/modules/login-sk'
+import 'infra-sk/modules/login-sk'
+import 'elements-sk/collapse-sk'
