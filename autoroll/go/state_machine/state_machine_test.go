@@ -56,6 +56,11 @@ func (r *TestRollCLImpl) AssertClosed(status string) {
 	assert.Equal(r.t, status, r.closedStatus)
 }
 
+// See documentation for state_machine.RollCLImpl interface.
+func (r *TestRollCLImpl) IsClosed() bool {
+	return r.closedStatus != ""
+}
+
 // See documentation for RollCLImpl.
 func (r *TestRollCLImpl) IsFinished() bool {
 	return r.normalResult != ""
@@ -385,6 +390,7 @@ func TestNormal(t *testing.T) {
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
 	roll.AssertDryRun()
 	r.SetMode(ctx, modes.MODE_RUNNING)
+	assert.NoError(t, roll.RetryCQ(ctx))
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	roll.SetFailed()
 	checkNextState(t, sm, S_NORMAL_FAILURE)
@@ -590,6 +596,26 @@ func TestDryRun(t *testing.T) {
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 	r.rollWindowOpen = true
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+
+	// Somebody landed the CL.
+	roll = r.GetActiveRoll().(*TestRollCLImpl)
+	assert.NoError(t, roll.SwitchToNormal(ctx))
+	roll.SetSucceeded()
+	r.SetRolledPast(roll.RollingTo(), true)
+	checkNextState(t, sm, S_NORMAL_SUCCESS)
+	checkNextState(t, sm, S_NORMAL_IDLE)
+	checkNextState(t, sm, S_DRY_RUN_IDLE)
+
+	// Somebody abandoned the CL.
+	r.SetNextRollRev("HEAD+6")
+	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+	roll = r.GetActiveRoll().(*TestRollCLImpl)
+	assert.NoError(t, roll.SwitchToNormal(ctx))
+	roll.SetFailed()
+	assert.NoError(t, roll.Close(ctx, autoroll.ROLL_RESULT_FAILURE, "abandoned"))
+	checkNextState(t, sm, S_NORMAL_FAILURE)
+	checkNextState(t, sm, S_NORMAL_IDLE)
+	checkNextState(t, sm, S_DRY_RUN_IDLE)
 }
 
 func TestNormalToDryRun(t *testing.T) {
