@@ -44,7 +44,8 @@ web: clean_webtools elements_html core_js
 
 .PHONY: test
 test: testgo
-	echo
+	# Run the generated tests just once under Xvfb.
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
 .PHONY: testgo
 testgo:
