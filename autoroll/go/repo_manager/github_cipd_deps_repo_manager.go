@@ -321,7 +321,7 @@ func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 		Dir:  rm.depsRepoManager.parentDir,
 		Env:  rm.depotToolsEnv,
 		Name: rm.gclient,
-		Args: []string{"sync", "-D", "--process-all-deps", "-f"},
+		Args: []string{"sync", "-D", "-f"},
 	}); err != nil {
 		return 0, fmt.Errorf("Error when running gclient sync to make checkout match the new DEPS: %s", err)
 	}
