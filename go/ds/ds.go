@@ -42,17 +42,11 @@ const (
 	ALERT      Kind = "Alert"
 
 	// Gold
-	ISSUE                  Kind = "Issue"
-	TRYJOB                 Kind = "Tryjob"
-	TRYJOB_RESULT          Kind = "TryjobResult"
-	TRYJOB_EXP_CHANGE      Kind = "TryjobExpChange"
-	TEST_DIGEST_EXP        Kind = "TryjobTestDigestExp" // TODO(stephana): Remove after migration to consolidated expectations store
-	TRYJOB_TEST_DIGEST_EXP Kind = "TryjobTestDigestExp"
-	MASTER_EXP_CHANGE      Kind = "MasterExpChange"
-	IGNORE_RULE            Kind = "IgnoreRule"
-	HELPER_RECENT_KEYS     Kind = "HelperRecentKeys"
-	EXPECTATIONS_BLOB      Kind = "ExpectationsBlob"
-	EXPECTATIONS_BLOB_ROOT Kind = "ExpectationsBlobRoot"
+	ISSUE              Kind = "Issue"
+	TRYJOB             Kind = "Tryjob"
+	TRYJOB_RESULT      Kind = "TryjobResult"
+	IGNORE_RULE        Kind = "IgnoreRule"
+	HELPER_RECENT_KEYS Kind = "HelperRecentKeys"
 
 	// Android Compile
 	COMPILE_TASK Kind = "CompileTask"
@@ -124,7 +118,7 @@ const (
 
 var (
 	// goldKinds are the DS kinds used by Gold.
-	goldKinds = []Kind{ISSUE, TRYJOB, TRYJOB_RESULT, TRYJOB_EXP_CHANGE, TRYJOB_TEST_DIGEST_EXP, MASTER_EXP_CHANGE, IGNORE_RULE, HELPER_RECENT_KEYS, EXPECTATIONS_BLOB, EXPECTATIONS_BLOB_ROOT}
+	goldKinds = []Kind{ISSUE, TRYJOB, TRYJOB_RESULT, IGNORE_RULE, HELPER_RECENT_KEYS}
 
 	// KindsToBackup is a map from namespace to the list of Kinds to backup.
 	// If this value is changed then remember to push a new version of /ds/go/datastore_backup.
