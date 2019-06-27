@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "13795c2a_1a277f0b",
+        "filename": "golden/go/tracestore/bt_tracestore/BIGTABLE.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-27T17:51:34Z",
+      "side": 1,
+      "message": "Meant to say: If you think it\u0027s worth pointing out that we also sometimes store a single null byte (to simplify the implementation), and that a single null byte will be treated the same as a blank cell, maybe say it in a parenthetical.",
+      "parentUuid": "890d2ed4_d4ec08f5",
+      "range": {
+        "startLine": 149,
+        "startChar": 0,
+        "endLine": 149,
+        "endChar": 95
+      },
+      "revId": "8409be59bf971c5e9c3f17ae75cda02230b31b6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "23a84728_67449b83",
         "filename": "golden/go/tracestore/bt_tracestore/util_test.go",
         "patchSetId": 5
