@@ -1,14 +1,14 @@
 {
   GitRepoDir: "/data/repo",
   GitRepoURL: "{{.GITREPO_URL}}",
-  EventTopic: "gold-{{.INSTANCE_ID}}-eventbus",
+  EventTopic: "gold-{{.INSTANCE_ID}}-eventbus-bt",
 
   Ingesters: {
     // Primary Ingester
-    gold: {
+    "gold-bt": {
       RunEvery: "5m",
       NCommits: 75,
-      MinDays: 20,
+      MinDays: 0,
       MetricName: "gold-{{.INSTANCE_ID}}-ingestion",
       Sources: [
         {
@@ -17,7 +17,9 @@
         }
       ],
       ExtraParams: {
-        TraceService: "gold-{{.INSTANCE_ID}}-traceservice:9090"
+        BTProjectID: "skia-public",
+        BTInstance: "production",
+        BTTable: "gold-chrome-gpu"
       }
     {{if .ING_TRY_ENABLED}}
     },
