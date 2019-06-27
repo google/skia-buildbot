@@ -681,7 +681,7 @@ func (b *BTTraceStore) getOPS(ctx context.Context, tileKey tileKey) (*opsCacheEn
 	}
 	// If there is no entry in BigTable then return an empty OPS.
 	if len(row) == 0 {
-		sklog.Warningf("Failed to read OPS from BT for %s.", tileKey.OpsRowName())
+		sklog.Warningf("Failed to read OPS from BT for %s. - the tile could be empty", tileKey.OpsRowName())
 		entry, err := newOpsCacheEntry()
 		return entry, false, err
 	}
