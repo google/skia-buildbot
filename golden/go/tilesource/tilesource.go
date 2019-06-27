@@ -350,7 +350,7 @@ func (s *CachedTileSourceImpl) checkCommitableIssues(cpxTile types.ComplexTile) 
 					}
 
 					if err := s.TryjobMonitor.CommitIssueBaseline(issueID, longCommit.Author); err != nil {
-						return skerr.Fmt("Error commiting tryjob results for commit %s. Got error: %s", commit.Hash, err)
+						return skerr.Fmt("Error committing tryjob results for commit %s. Got error: %s", commit.Hash, err)
 					}
 					return nil
 				})
