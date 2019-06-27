@@ -120,6 +120,12 @@ func FlutterLicenseScriptsForFuchsia(ctx context.Context, _ []string, _ *http.Cl
 	defer func() {
 		metrics2.GetInt64Metric("flutter_license_script_failure", nil).Update(licenseScriptFailure)
 	}()
+	// Remove "fuchsia/sdk/mac" directory if it exists. It is currently unsupported for license scripts,
+	// it may be supported in the future (http://skbug.com/9078#c37).
+	fuchsiaMacSDK := filepath.Join(parentRepoDir, "..", "fuchsia", "sdk", "mac")
+	if err := os.RemoveAll(fuchsiaMacSDK); err != nil {
+		sklog.Warningf("Could not delete %s: %s", fuchsiaMacSDK, err)
+	}
 	if err := flutterLicenseScripts(ctx, parentRepoDir, "licenses_fuchsia"); err != nil {
 		return err
 	}
