@@ -30,14 +30,11 @@ const (
 // Tests the processor in conjunction with the vcs.
 func TestTryjobGoldProcessor(t *testing.T) {
 	unittest.LargeTest(t)
-	// t.Skip()
 
 	cleanup := testutil.InitDatastore(t,
 		ds.ISSUE,
 		ds.TRYJOB,
-		ds.TRYJOB_RESULT,
-		ds.TRYJOB_EXP_CHANGE,
-		ds.TEST_DIGEST_EXP)
+		ds.TRYJOB_RESULT)
 	defer cleanup()
 
 	issueUpdated, err := time.Parse("2006-01-02 15:04:05 MST", "2017-12-07 14:54:05 EST")
@@ -78,7 +75,7 @@ func TestTryjobGoldProcessor(t *testing.T) {
 	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, eventBus)
 	assert.NoError(t, err)
 
-	// Map the path of the file to it's content
+	// Map the path of the file to its content
 	cfgFile := "infra/bots/cfg.json"
 	fileContentMap := map[string]string{
 		cfgFile: `{

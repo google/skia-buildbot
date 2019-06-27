@@ -1,7 +1,6 @@
 package tryjobstore
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"sort"
@@ -16,8 +15,6 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/expstorage/ds_expstore"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -28,26 +25,17 @@ func TestCloudTryjobStore(t *testing.T) {
 	cleanup := testutil.InitDatastore(t,
 		ds.ISSUE,
 		ds.TRYJOB,
-		ds.TRYJOB_RESULT,
-		ds.TRYJOB_EXP_CHANGE,
-		ds.TEST_DIGEST_EXP)
+		ds.TRYJOB_RESULT)
 	defer cleanup()
 
 	eventBus := eventbus.New()
-	estore, err := ds_expstore.DeprecatedNew(ds.DS, eventBus)
-	assert.NoError(t, err)
 	store, err := NewCloudTryjobStore(ds.DS, eventBus)
 	assert.NoError(t, err)
 
-	testTryjobStore(t, store, estore)
-}
-
-func testTryjobStore(t *testing.T, store TryjobStore, estore expstorage.ExpectationsStore) {
 	// Add the issue and two tryjobs to the store.
 	issueID := int64(99)
 	patchsetID := int64(1099)
 	buildBucketID := int64(30099)
-	ctx := context.Background()
 
 	// Note: Cloud datastore only stores up to microseconds correctly, so if we
 	// kept the time down to nanoseconds the test would fail. So we drop everything
@@ -200,73 +188,7 @@ func testTryjobStore(t *testing.T, store TryjobStore, estore expstorage.Expectat
 		assert.Equal(t, allTryjobs[idx], foundTJs[idx])
 	}
 
-	// Add changes to the issue
-	allChanges := types.Expectations{}
-	// TODO(kjlubick): assert something with expLogEntries - it is only added to.
-	expLogEntries := []expstorage.TriageLogEntry{}
-	userName := "jdoe@example.com"
-	expStore := estore.ForIssue(issueID)
-	for i := 0; i < 5; i++ {
-		triageDetails := []expstorage.TriageDetail{}
-		changes := types.Expectations{}
-		for testCount := 0; testCount < 5; testCount++ {
-			testName := types.TestName(fmt.Sprintf("test-%04d", testCount))
-			for digestCount := 0; digestCount < 5; digestCount++ {
-				digest := types.Digest(fmt.Sprintf("digest-%04d-%04d", testCount, digestCount))
-				label := types.Label((i + testCount + digestCount) % 3)
-				changes.AddDigest(testName, digest, label)
-				triageDetails = append(triageDetails, expstorage.TriageDetail{
-					TestName: testName, Digest: digest, Label: label.String(),
-				})
-			}
-		}
-		assert.NoError(t, expStore.AddChange(ctx, changes, userName))
-		allChanges.MergeExpectations(changes)
-		expLogEntries = append(expLogEntries, expstorage.TriageLogEntry{
-			Name: userName, ChangeCount: len(triageDetails), Details: triageDetails,
-		})
-	}
-
-	var foundTestExp types.Expectations
-	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
-		foundTestExp, err = expStore.Get()
-		assert.NoError(t, err)
-		if !deepequal.DeepEqual(allChanges, foundTestExp) {
-			return testutils.TryAgainErr
-		}
-		return nil
-	}))
-	assert.Equal(t, allChanges, foundTestExp)
-
-	logEntries, total, err := expStore.QueryLog(ctx, 0, -1, false)
-	assert.NoError(t, err)
-	assert.Equal(t, 5, total)
-	assert.Equal(t, 5, len(logEntries))
-
-	// Flip all expectations to untriaged.
-	for _, digests := range foundTestExp {
-		for digest := range digests {
-			digests[digest] = types.UNTRIAGED
-		}
-	}
-
-	assert.NoError(t, expStore.AddChange(ctx, foundTestExp, userName))
-
-	var untriagedTestExp types.Expectations
-	assert.NoError(t, testutils.EventuallyConsistent(3*time.Second, func() error {
-		untriagedTestExp, err = expStore.Get()
-		assert.NoError(t, err)
-		for testName, digests := range foundTestExp {
-			for digest, label := range digests {
-				if label != untriagedTestExp[testName][digest] {
-					return testutils.TryAgainErr
-				}
-			}
-		}
-		return nil
-	}))
-
-	// Test commiting where the commit fails.
+	// Test committing where the commit fails.
 	assert.Error(t, store.CommitIssueExp(issueID, func() error {
 		return errors.New("Write failed")
 	}))
@@ -274,7 +196,7 @@ func testTryjobStore(t *testing.T, store TryjobStore, estore expstorage.Expectat
 	assert.NoError(t, err)
 	assert.False(t, foundIssue.Committed)
 
-	// Test commiting the changes.
+	// Test committing the changes.
 	assert.NoError(t, store.CommitIssueExp(issueID, func() error {
 		// Assume that writing the master baseline works.
 		return nil

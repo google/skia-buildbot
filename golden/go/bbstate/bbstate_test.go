@@ -38,9 +38,7 @@ func TestBuildBucketState(t *testing.T) {
 	cleanup := ds_testutil.InitDatastore(t,
 		ds.ISSUE,
 		ds.TRYJOB,
-		ds.TRYJOB_RESULT,
-		ds.TRYJOB_EXP_CHANGE,
-		ds.TEST_DIGEST_EXP)
+		ds.TRYJOB_RESULT)
 	defer cleanup()
 	dsClient := ds.DS
 
