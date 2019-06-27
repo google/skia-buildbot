@@ -5,7 +5,6 @@ package autoroll
 */
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"regexp"
@@ -75,35 +74,47 @@ var (
 // AutoRollIssue is a struct containing the information we care about for
 // AutoRoll CLs.
 type AutoRollIssue struct {
-	Closed            bool               `json:"closed"`
-	Comments          []*comment.Comment `json:"comments"`
-	Committed         bool               `json:"committed"`
-	CommitQueue       bool               `json:"commitQueue"`
-	CommitQueueDryRun bool               `json:"cqDryRun"`
-	Created           time.Time          `json:"created"`
-	Issue             int64              `json:"issue"`
-	Modified          time.Time          `json:"modified"`
-	Patchsets         []int64            `json:"patchSets"`
-	Result            string             `json:"result"`
-	RollingFrom       string             `json:"rollingFrom"`
-	RollingTo         string             `json:"rollingTo"`
-	Subject           string             `json:"subject"`
-	TryResults        []*TryResult       `json:"tryResults"`
+	Closed         bool               `json:"closed"`
+	Comments       []*comment.Comment `json:"comments"`
+	Committed      bool               `json:"committed"`
+	Created        time.Time          `json:"created"`
+	IsDryRun       bool               `json:"isDryRun"`
+	DryRunFinished bool               `json:"dryRunFinished"`
+	DryRunSuccess  bool               `json:"dryRunSuccess"`
+	CqFinished     bool               `json:"cqFinished"`
+	CqSuccess      bool               `json:"cqSuccess"`
+	Issue          int64              `json:"issue"`
+	Modified       time.Time          `json:"modified"`
+	Patchsets      []int64            `json:"patchSets"`
+	Result         string             `json:"result"`
+	RollingFrom    string             `json:"rollingFrom"`
+	RollingTo      string             `json:"rollingTo"`
+	Subject        string             `json:"subject"`
+	TryResults     []*TryResult       `json:"tryResults"`
 }
 
 // Validate returns an error iff there is some problem with the issue.
 func (i *AutoRollIssue) Validate() error {
 	if i.Closed {
-		if i.Result == ROLL_RESULT_IN_PROGRESS {
-			return fmt.Errorf("AutoRollIssue cannot have a Result of %q if it is Closed.", ROLL_RESULT_IN_PROGRESS)
+		if i.Result == ROLL_RESULT_DRY_RUN_IN_PROGRESS || i.Result == ROLL_RESULT_IN_PROGRESS {
+			return fmt.Errorf("AutoRollIssue cannot have a Result of %q if it is Closed.", i.Result)
 		}
 	} else {
 		if i.Committed {
 			return errors.New("AutoRollIssue cannot be Committed without being Closed.")
 		}
-		if !util.In(i.Result, OPEN_ROLL_VALID_RESULTS) {
-			return fmt.Errorf("AutoRollIssue which is not Closed must have as a Result one of: %v", OPEN_ROLL_VALID_RESULTS)
-		}
+	}
+	if i.CqFinished && i.IsDryRun {
+		return errors.New("CqFinished cannot be true for dry runs.")
+	}
+	if i.DryRunFinished && !i.IsDryRun {
+		return errors.New("DryRunFinished cannot be true unless the roll is a dry run.")
+	}
+	if i.CqSuccess && !i.CqFinished {
+		return errors.New("CqSuccess cannot be true if CqFinished is not true.")
+	}
+	if i.DryRunSuccess && !i.DryRunFinished {
+		return errors.New("DryRunSuccess cannot be true if DryRunFinished is not true.")
 	}
 	return nil
 }
@@ -130,38 +141,45 @@ func (i *AutoRollIssue) Copy() *AutoRollIssue {
 		}
 	}
 	return &AutoRollIssue{
-		Closed:            i.Closed,
-		Comments:          commentsCpy,
-		Committed:         i.Committed,
-		CommitQueue:       i.CommitQueue,
-		CommitQueueDryRun: i.CommitQueueDryRun,
-		Created:           i.Created,
-		Issue:             i.Issue,
-		Modified:          i.Modified,
-		Patchsets:         patchsetsCpy,
-		Result:            i.Result,
-		RollingFrom:       i.RollingFrom,
-		RollingTo:         i.RollingTo,
-		Subject:           i.Subject,
-		TryResults:        tryResultsCpy,
+		Closed:         i.Closed,
+		Comments:       commentsCpy,
+		Committed:      i.Committed,
+		Created:        i.Created,
+		CqFinished:     i.CqFinished,
+		CqSuccess:      i.CqSuccess,
+		DryRunFinished: i.DryRunFinished,
+		DryRunSuccess:  i.DryRunSuccess,
+		IsDryRun:       i.IsDryRun,
+		Issue:          i.Issue,
+		Modified:       i.Modified,
+		Patchsets:      patchsetsCpy,
+		Result:         i.Result,
+		RollingFrom:    i.RollingFrom,
+		RollingTo:      i.RollingTo,
+		Subject:        i.Subject,
+		TryResults:     tryResultsCpy,
 	}
 }
 
 // UpdateFromGitHubPullRequest updates the AutoRollIssue instance based on the
-// given PullRequest.
-func (i *AutoRollIssue) UpdateFromGitHubPullRequest(ctx context.Context, pullRequest *github_api.PullRequest, g *github.GitHub) error {
-	labels, err := g.GetLabels(pullRequest.GetNumber())
-	if err != nil {
-		return err
+// given PullRequest. If an error is returned, the AutoRollIssue is not changed.
+func (i *AutoRollIssue) UpdateFromGitHubPullRequest(pullRequest *github_api.PullRequest) error {
+	prNum := int64(pullRequest.GetNumber())
+	if i.Issue == 0 {
+		i.Issue = prNum
+	} else if i.Issue != prNum {
+		return fmt.Errorf("Pull request number %d differs from existing issue number %d!", prNum, i.Issue)
 	}
-	cq := false
-	dryRun := false
-	// If for some reason both COMMIT and DRYRUN labels are on the PR then
-	// give precedence to DRYRUN.
-	if util.In(github.DRYRUN_LABEL, labels) {
-		dryRun = true
-	} else if util.In(github.COMMIT_LABEL, labels) {
-		cq = true
+	if i.IsDryRun {
+		i.CqFinished = false
+		i.CqSuccess = false
+		i.DryRunFinished = i.AllTrybotsFinished() || pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged()
+		i.DryRunSuccess = (i.DryRunFinished && i.AllTrybotsSucceeded()) || pullRequest.GetMerged()
+	} else {
+		i.CqFinished = pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged()
+		i.CqSuccess = pullRequest.GetMerged()
+		i.DryRunFinished = false
+		i.DryRunSuccess = false
 	}
 
 	ps := make([]int64, 0, *pullRequest.Commits)
@@ -170,57 +188,75 @@ func (i *AutoRollIssue) UpdateFromGitHubPullRequest(ctx context.Context, pullReq
 	}
 	i.Closed = pullRequest.GetState() == github.CLOSED_STATE
 	i.Committed = pullRequest.GetMerged()
-	i.CommitQueue = cq
-	i.CommitQueueDryRun = dryRun
 	i.Created = pullRequest.GetCreatedAt()
-	i.Issue = int64(pullRequest.GetNumber())
 	i.Modified = pullRequest.GetUpdatedAt()
 	i.Patchsets = ps
 	i.Subject = pullRequest.GetTitle()
 	i.Result = rollResult(i)
-	return nil
+	return i.Validate()
 }
 
 // UpdateFromGerritChangeInfo updates the AutoRollIssue instance based on the
-// given gerrit.ChangeInfo.
-func (i *AutoRollIssue) UpdateFromGerritChangeInfo(ctx context.Context, ci *gerrit.ChangeInfo, rollIntoAndroid bool) error {
-	cq := false
-	dryRun := false
+// given gerrit.ChangeInfo. If an error is returned, the AutoRollIssue is not
+// changed.
+func (i *AutoRollIssue) UpdateFromGerritChangeInfo(ci *gerrit.ChangeInfo, rollIntoAndroid bool) error {
+	if i.Issue == 0 {
+		i.Issue = ci.Issue
+	} else if i.Issue != ci.Issue {
+		return fmt.Errorf("CL ID %d differs from existing issue number %d!", ci.Issue, i.Issue)
+	}
+	cqFinished := false
+	dryRunFinished := false
+	dryRunSuccess := false
 	if rollIntoAndroid {
-		rejected := false
 		if _, ok := ci.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL]; ok {
 			for _, lb := range ci.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL].All {
 				if lb.Value == gerrit.PRESUBMIT_VERIFIED_LABEL_REJECTED {
-					rejected = true
+					cqFinished = true
+					dryRunFinished = true
 					break
-				}
-			}
-		}
-		if !rejected {
-			if _, ok := ci.Labels[gerrit.AUTOSUBMIT_LABEL]; ok {
-				for _, lb := range ci.Labels[gerrit.AUTOSUBMIT_LABEL].All {
-					if lb.Value == gerrit.AUTOSUBMIT_LABEL_NONE {
-						cq = true
-						dryRun = true
-					} else if lb.Value == gerrit.AUTOSUBMIT_LABEL_SUBMIT {
-						cq = true
-						dryRun = false
-						break
-					}
+				} else if lb.Value == gerrit.PRESUBMIT_VERIFIED_LABEL_ACCEPTED {
+					// Not marking cqSuccess or cqFinished
+					// true here; those are only true if the
+					// change is merged.
+					dryRunFinished = true
+					dryRunSuccess = true
 				}
 			}
 		}
 	} else {
+		foundCqLabel := false
+		foundDryRunLabel := false
 		if _, ok := ci.Labels[gerrit.COMMITQUEUE_LABEL]; ok {
 			for _, lb := range ci.Labels[gerrit.COMMITQUEUE_LABEL].All {
 				if lb.Value == gerrit.COMMITQUEUE_LABEL_DRY_RUN {
-					cq = true
-					dryRun = true
+					foundDryRunLabel = true
 				} else if lb.Value == gerrit.COMMITQUEUE_LABEL_SUBMIT {
-					cq = true
+					foundCqLabel = true
 				}
 			}
 		}
+		if !foundCqLabel {
+			cqFinished = true
+		}
+		if !foundDryRunLabel {
+			dryRunFinished = true
+		}
+		if i.IsDryRun && dryRunFinished {
+			dryRunSuccess = i.AllTrybotsSucceeded()
+		}
+	}
+
+	if i.IsDryRun {
+		i.CqFinished = false
+		i.CqSuccess = false
+		i.DryRunFinished = dryRunFinished || ci.IsClosed()
+		i.DryRunSuccess = dryRunSuccess || ci.Status == gerrit.CHANGE_STATUS_MERGED
+	} else {
+		i.CqFinished = ci.IsClosed() || cqFinished
+		i.CqSuccess = ci.Status == gerrit.CHANGE_STATUS_MERGED
+		i.DryRunFinished = false
+		i.DryRunSuccess = false
 	}
 
 	ps := make([]int64, 0, len(ci.Patchsets))
@@ -229,21 +265,29 @@ func (i *AutoRollIssue) UpdateFromGerritChangeInfo(ctx context.Context, ci *gerr
 	}
 	i.Closed = ci.IsClosed()
 	i.Committed = ci.Committed
-	i.CommitQueue = cq
-	i.CommitQueueDryRun = dryRun
 	i.Created = ci.Created
-	i.Issue = ci.Issue
 	i.Modified = ci.Updated
 	i.Patchsets = ps
 	i.Subject = ci.Subject
 	i.Result = rollResult(i)
-	return nil
+	return i.Validate()
 }
 
 // rollResult derives a result string for the roll.
 func rollResult(roll *AutoRollIssue) string {
-	if roll.Closed {
-		if roll.Committed {
+	if roll.IsDryRun {
+		if roll.DryRunFinished {
+			if roll.DryRunSuccess {
+				return ROLL_RESULT_DRY_RUN_SUCCESS
+			} else {
+				return ROLL_RESULT_DRY_RUN_FAILURE
+			}
+		} else {
+			return ROLL_RESULT_DRY_RUN_IN_PROGRESS
+		}
+	}
+	if roll.CqFinished {
+		if roll.CqSuccess {
 			return ROLL_RESULT_SUCCESS
 		} else {
 			return ROLL_RESULT_FAILURE
