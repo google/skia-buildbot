@@ -1,9 +1,14 @@
 package bt_tracestore
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"math"
 	"strings"
+
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/golden/go/types"
 )
 
 // tileKeyFromIndex converts the tile index to the tileKey.
@@ -42,4 +47,27 @@ func extractSubkey(rowName string) string {
 		return ""
 	}
 	return parts[len(parts)-1]
+}
+
+// toBytes turns a Digest into the bytes that will be stored in the table.
+func toBytes(d types.Digest) []byte {
+	if d == types.MISSING_DIGEST {
+		return missingDigestBytes
+	}
+	b, err := hex.DecodeString(string(d))
+	if err != nil || len(b) != md5.Size {
+		sklog.Errorf("Invalid digest %q: %v", d, err)
+		return missingDigestBytes
+	}
+	return b
+}
+
+// fromBytes does the opposite of toBytes.
+func fromBytes(b []byte) types.Digest {
+	// Be extra cautious - if we don't have enough bytes for an md5 hash,
+	// just assume it's corrupted or something and say missing.
+	if len(b) != md5.Size {
+		return types.MISSING_DIGEST
+	}
+	return types.Digest(hex.EncodeToString(b))
 }
