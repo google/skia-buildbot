@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e9b4a588_230a7ccd",
+        "filename": "golden/go/tracestore/bt_tracestore/BIGTABLE.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-27T17:49:59Z",
+      "side": 1,
+      "message": "nit: awkward, consider editing",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 63,
+        "endChar": 50
+      },
+      "revId": "8409be59bf971c5e9c3f17ae75cda02230b31b6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "890d2ed4_d4ec08f5",
+        "filename": "golden/go/tracestore/bt_tracestore/BIGTABLE.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-27T17:49:59Z",
+      "side": 1,
+      "message": "nit: \u0027Blank cells will be decoded to MISSING_DIGEST (\"\").\u0027",
+      "range": {
+        "startLine": 149,
+        "startChar": 0,
+        "endLine": 149,
+        "endChar": 95
+      },
+      "revId": "8409be59bf971c5e9c3f17ae75cda02230b31b6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23a84728_67449b83",
+        "filename": "golden/go/tracestore/bt_tracestore/util_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-27T17:49:59Z",
+      "side": 1,
+      "message": "nit: Should also test fromBytes(nil) and fromBytes([]bytes{})",
+      "revId": "8409be59bf971c5e9c3f17ae75cda02230b31b6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2306c43f_c83a9725",
+        "filename": "golden/go/tracestore/bt_tracestore/util_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-27T17:49:59Z",
+      "side": 1,
+      "message": "odd that this is uppercase",
+      "range": {
+        "startLine": 77,
+        "startChar": 49,
+        "endLine": 77,
+        "endChar": 50
+      },
+      "revId": "8409be59bf971c5e9c3f17ae75cda02230b31b6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c130829_0fcba5ae",
+        "filename": "golden/go/tracestore/bt_tracestore/util_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-27T17:49:59Z",
+      "side": 1,
+      "message": "This doesn\u0027t match truncatedDigest; not sure if that was intentional or not.",
+      "range": {
+        "startLine": 84,
+        "startChar": 73,
+        "endLine": 84,
+        "endChar": 77
+      },
+      "revId": "8409be59bf971c5e9c3f17ae75cda02230b31b6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
