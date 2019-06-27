@@ -72,6 +72,10 @@ type RollCLImpl interface {
 	// and the second is the message to add to the CL on closing.
 	Close(context.Context, string, string) error
 
+	// IsClosed returns true iff the roll has been closed (ie. abandoned
+	// or landed).
+	IsClosed() bool
+
 	// Return true iff the roll has finished (ie. succeeded or failed).
 	IsFinished() bool
 
@@ -427,6 +431,8 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_DRY_RUN_ACTIVE, S_DRY_RUN_SUCCESS, F_NOOP)
 	b.T(S_DRY_RUN_ACTIVE, S_DRY_RUN_FAILURE, F_NOOP)
 	b.T(S_DRY_RUN_ACTIVE, S_STOPPED, F_CLOSE_STOPPED)
+	b.T(S_DRY_RUN_ACTIVE, S_NORMAL_SUCCESS, F_NOOP)
+	b.T(S_DRY_RUN_ACTIVE, S_NORMAL_FAILURE, F_NOOP)
 	b.T(S_DRY_RUN_SUCCESS, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_OUTDATED)
 	b.T(S_DRY_RUN_SUCCESS, S_DRY_RUN_SUCCESS_LEAVING_OPEN, F_NOOP)
 	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_DRY_RUN_SUCCESS_LEAVING_OPEN, F_UPDATE_REPOS)
@@ -532,6 +538,10 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		}
 		return S_NORMAL_IDLE, nil
 	case S_NORMAL_FAILURE:
+		currentRoll := s.a.GetActiveRoll()
+		if currentRoll.IsClosed() {
+			return S_NORMAL_IDLE, nil
+		}
 		throttle := s.a.FailureThrottle()
 		if err := throttle.Inc(ctx); err != nil {
 			return "", err
@@ -597,6 +607,14 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 				return S_DRY_RUN_SUCCESS, nil
 			} else {
 				return S_DRY_RUN_FAILURE, nil
+			}
+		} else if currentRoll.IsFinished() {
+			if currentRoll.IsSuccess() {
+				// Someone manually landed the roll.
+				return S_NORMAL_SUCCESS, nil
+			} else {
+				// Someone manually closed the roll.
+				return S_NORMAL_FAILURE, nil
 			}
 		} else {
 			desiredMode := s.a.GetMode()

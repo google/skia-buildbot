@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
+	"time"
 
 	github_api "github.com/google/go-github/github"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
@@ -26,22 +27,19 @@ type RollImpl interface {
 	InsertIntoDB(ctx context.Context) error
 }
 
-func updateGerritIssue(ctx context.Context, a *autoroll.AutoRollIssue, g gerrit.GerritInterface, rollIntoAndroid bool, issueNum int64) (*gerrit.ChangeInfo, error) {
-	info, err := g.GetIssueProperties(ctx, issueNum)
+func updateGerritIssue(ctx context.Context, a *autoroll.AutoRollIssue, g gerrit.GerritInterface, rollIntoAndroid bool) (*gerrit.ChangeInfo, error) {
+	info, err := g.GetIssueProperties(ctx, a.Issue)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get issue properties: %s", err)
-	}
-	if err := a.UpdateFromGerritChangeInfo(ctx, info, rollIntoAndroid); err != nil {
-		return nil, fmt.Errorf("Failed to convert issue format: %s", err)
 	}
 	if !rollIntoAndroid {
 		// Use try results from the most recent non-trivial patchset.
 		if len(info.Patchsets) == 0 {
-			return nil, fmt.Errorf("Issue %d has no patchsets!", issueNum)
+			return nil, fmt.Errorf("Issue %d has no patchsets!", a.Issue)
 		}
 		nontrivial := info.GetNonTrivialPatchSets()
 		if len(nontrivial) == 0 {
-			msg := fmt.Sprintf("No non-trivial patchsets for %d; trivial patchsets:\n", issueNum)
+			msg := fmt.Sprintf("No non-trivial patchsets for %d; trivial patchsets:\n", a.Issue)
 			for _, ps := range info.Patchsets {
 				msg += fmt.Sprintf("  %+v\n", ps)
 			}
@@ -56,6 +54,9 @@ func updateGerritIssue(ctx context.Context, a *autoroll.AutoRollIssue, g gerrit.
 			return nil, fmt.Errorf("Failed to process try results: %s", err)
 		}
 		a.TryResults = tryResults
+	}
+	if err := a.UpdateFromGerritChangeInfo(info, rollIntoAndroid); err != nil {
+		return nil, fmt.Errorf("Failed to convert issue format: %s", err)
 	}
 	return info, nil
 }
@@ -75,7 +76,7 @@ type gerritRoll struct {
 // newGerritRoll obtains a gerritRoll instance from the given Gerrit issue
 // number.
 func newGerritRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, recent *recent_rolls.RecentRolls, issueUrlBase string, cb func(context.Context, RollImpl) error) (RollImpl, error) {
-	ci, err := updateGerritIssue(ctx, issue, g, false, issue.Issue)
+	ci, err := updateGerritIssue(ctx, issue, g, false)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +88,7 @@ func newGerritRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g gerrit.
 		g:                g,
 		recent:           recent,
 		retrieveRoll: func(ctx context.Context) (*gerrit.ChangeInfo, error) {
-			return updateGerritIssue(ctx, issue, g, false, issue.Issue)
+			return updateGerritIssue(ctx, issue, g, false)
 		},
 	}, nil
 }
@@ -132,27 +133,28 @@ func (r *gerritRoll) Close(ctx context.Context, result, msg string) error {
 }
 
 // See documentation for state_machine.RollCLImpl interface.
+func (r *gerritRoll) IsClosed() bool {
+	return r.issue.Closed
+}
+
+// See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) IsFinished() bool {
-	return r.ci.IsClosed() || !r.issue.CommitQueue
+	return r.issue.CqFinished
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) IsSuccess() bool {
-	return r.ci.Status == gerrit.CHANGE_STATUS_MERGED
+	return r.issue.CqSuccess
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) IsDryRunFinished() bool {
-	// The CQ removes the CQ+1 label when the dry run finishes, regardless
-	// of success or failure. Since we uploaded with the dry run label set,
-	// we know the roll is in progress if the label is still set, and done
-	// otherwise.
-	return !r.issue.CommitQueueDryRun
+	return r.issue.DryRunFinished
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) IsDryRunSuccess() bool {
-	return r.issue.AllTrybotsSucceeded()
+	return r.issue.DryRunSuccess
 }
 
 // See documentation for state_machine.RollCLImpl interface.
@@ -163,28 +165,44 @@ func (r *gerritRoll) RollingTo() string {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) SwitchToDryRun(ctx context.Context) error {
 	return r.withModify(ctx, "switch the CL to dry run", func() error {
-		return r.g.SendToDryRun(ctx, r.ci, "Mode was changed to dry run")
+		if err := r.g.SendToDryRun(ctx, r.ci, "Mode was changed to dry run"); err != nil {
+			return err
+		}
+		r.issue.IsDryRun = true
+		return nil
 	})
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) SwitchToNormal(ctx context.Context) error {
 	return r.withModify(ctx, "switch the CL out of dry run", func() error {
-		return r.g.SendToCQ(ctx, r.ci, "Mode was changed to normal")
+		if err := r.g.SendToCQ(ctx, r.ci, "Mode was changed to normal"); err != nil {
+			return err
+		}
+		r.issue.IsDryRun = false
+		return nil
 	})
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) RetryCQ(ctx context.Context) error {
 	return r.withModify(ctx, "retry the CQ", func() error {
-		return r.g.SendToCQ(ctx, r.ci, "CQ failed but there are no new commits. Retrying...")
+		if err := r.g.SendToCQ(ctx, r.ci, "CQ failed but there are no new commits. Retrying..."); err != nil {
+			return err
+		}
+		r.issue.IsDryRun = false
+		return nil
 	})
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) RetryDryRun(ctx context.Context) error {
 	return r.withModify(ctx, "retry the CQ (dry run)", func() error {
-		return r.g.SendToDryRun(ctx, r.ci, "Dry run failed but there are no new commits. Retrying...")
+		if err := r.g.SendToDryRun(ctx, r.ci, "Dry run failed but there are no new commits. Retrying..."); err != nil {
+			return err
+		}
+		r.issue.IsDryRun = true
+		return nil
 	})
 }
 
@@ -225,7 +243,7 @@ type gerritAndroidRoll struct {
 
 // newGerritAndroidRoll obtains a gerritAndroidRoll instance from the given Gerrit issue number.
 func newGerritAndroidRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, recent *recent_rolls.RecentRolls, issueUrlBase string, cb func(context.Context, RollImpl) error) (RollImpl, error) {
-	ci, err := updateGerritIssue(ctx, issue, g, true, issue.Issue)
+	ci, err := updateGerritIssue(ctx, issue, g, true)
 	if err != nil {
 		return nil, err
 	}
@@ -237,56 +255,51 @@ func newGerritAndroidRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g 
 		g:                g,
 		recent:           recent,
 		retrieveRoll: func(ctx context.Context) (*gerrit.ChangeInfo, error) {
-			return updateGerritIssue(ctx, issue, g, true, issue.Issue)
+			return updateGerritIssue(ctx, issue, g, true)
 		},
 	}}, nil
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritAndroidRoll) IsDryRunFinished() bool {
-	if _, ok := r.ci.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL]; ok {
-		for _, lb := range r.ci.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL].All {
-			if lb.Value != gerrit.PRESUBMIT_VERIFIED_LABEL_RUNNING {
-				return true
-			}
-		}
-	}
-	return false
+	return r.issue.DryRunFinished
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritAndroidRoll) IsDryRunSuccess() bool {
-	presubmit, ok := r.ci.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL]
-	if !ok || len(presubmit.All) == 0 {
-		// Not done yet.
-		return false
-	}
-	for _, lb := range presubmit.All {
-		if lb.Value == gerrit.PRESUBMIT_VERIFIED_LABEL_ACCEPTED {
-			return true
-		}
-	}
-	return false
+	return r.issue.DryRunSuccess
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritAndroidRoll) SwitchToDryRun(ctx context.Context) error {
 	return r.withModify(ctx, "switch the CL to dry run", func() error {
-		return r.g.SetReview(ctx, r.ci, "Mode was changed to dry run", map[string]interface{}{gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_NONE}, nil)
+		if err := r.g.SetReview(ctx, r.ci, "Mode was changed to dry run", map[string]interface{}{gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_NONE}, nil); err != nil {
+			return err
+		}
+		r.issue.IsDryRun = true
+		return nil
 	})
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritAndroidRoll) SwitchToNormal(ctx context.Context) error {
 	return r.withModify(ctx, "switch the CL out of dry run", func() error {
-		return r.g.SetReview(ctx, r.ci, "Mode was changed to normal", map[string]interface{}{gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_SUBMIT}, nil)
+		if err := r.g.SetReview(ctx, r.ci, "Mode was changed to normal", map[string]interface{}{gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_SUBMIT}, nil); err != nil {
+			return err
+		}
+		r.issue.IsDryRun = false
+		return nil
 	})
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritAndroidRoll) RetryCQ(ctx context.Context) error {
 	return r.withModify(ctx, "retry TH", func() error {
-		return r.g.SetReview(ctx, r.ci, "TH failed but there are no new commits. Retrying...", map[string]interface{}{gerrit.PRESUBMIT_READY_LABEL: "1"}, nil)
+		if err := r.g.SetReview(ctx, r.ci, "TH failed but there are no new commits. Retrying...", map[string]interface{}{gerrit.PRESUBMIT_READY_LABEL: "1"}, nil); err != nil {
+			return err
+		}
+		r.issue.IsDryRun = false
+		return nil
 
 	})
 }
@@ -294,7 +307,11 @@ func (r *gerritAndroidRoll) RetryCQ(ctx context.Context) error {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritAndroidRoll) RetryDryRun(ctx context.Context) error {
 	return r.withModify(ctx, "retry the TH (dry run)", func() error {
-		return r.g.SetReview(ctx, r.ci, "Dry run failed but there are no new commits. Retrying...", map[string]interface{}{gerrit.PRESUBMIT_READY_LABEL: "1"}, nil)
+		if err := r.g.SetReview(ctx, r.ci, "Dry run failed but there are no new commits. Retrying...", map[string]interface{}{gerrit.PRESUBMIT_READY_LABEL: "1"}, nil); err != nil {
+			return err
+		}
+		r.issue.IsDryRun = true
+		return nil
 	})
 }
 
@@ -315,15 +332,12 @@ type githubRoll struct {
 	mergeMethodURL   string
 }
 
-func updateGithubPullRequest(ctx context.Context, a *autoroll.AutoRollIssue, g *github.GitHub, issueNum int64, checksNum int, checksWaitFor []string, mergeMethodURL string) (*github_api.PullRequest, error) {
+func updateGithubPullRequest(ctx context.Context, a *autoroll.AutoRollIssue, g *github.GitHub, checksNum int, checksWaitFor []string, mergeMethodURL string) (*github_api.PullRequest, error) {
 
 	// Retrieve the pull request from github.
-	pullRequest, err := g.GetPullRequest(int(issueNum))
+	pullRequest, err := g.GetPullRequest(int(a.Issue))
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get pull request for %d: %s", issueNum, err)
-	}
-	if err := a.UpdateFromGitHubPullRequest(ctx, pullRequest, g); err != nil {
-		return nil, fmt.Errorf("Failed to convert issue format: %s", err)
+		return nil, fmt.Errorf("Failed to get pull request for %d: %s", a.Issue, err)
 	}
 
 	checks, err := g.GetChecks(pullRequest.Head.GetSHA())
@@ -369,21 +383,34 @@ func updateGithubPullRequest(ctx context.Context, a *autoroll.AutoRollIssue, g *
 			tryResults = append(tryResults, tryResult)
 		}
 	}
-	a.TryResults = tryResults
-
 	if len(tryResults) != checksNum {
 		sklog.Warningf("len(tryResults) != checksNum: %d != %d", len(tryResults), checksNum)
+		// Add fake try results so that we don't incorrectly mark the
+		// roll as having succeeded all of the tryjobs.
+		for i := len(tryResults); i < checksNum; i++ {
+			tryResults = append(tryResults, &autoroll.TryResult{
+				Builder:  fmt.Sprintf("Missing check #%d", i+1),
+				Category: autoroll.TRYBOT_CATEGORY_CQ,
+				Created:  time.Now(),
+				Status:   autoroll.TRYBOT_STATUS_STARTED,
+			})
+		}
+	}
+	a.TryResults = tryResults
+
+	if err := a.UpdateFromGitHubPullRequest(pullRequest); err != nil {
+		return nil, fmt.Errorf("Failed to convert issue format: %s", err)
 	}
 
 	// Entering any one of the below blocks modifies the PR. Keep track of if this happens.
 	pullRequestModified := false
 	if pullRequest.GetMergeableState() == github.MERGEABLE_STATE_DIRTY {
 		// Add a comment and close the roll.
-		if err := g.AddComment(int(issueNum), "PullRequest is not longer mergeable. Closing it."); err != nil {
-			return nil, fmt.Errorf("Could not add comment to %d: %s", issueNum, err)
+		if err := g.AddComment(int(a.Issue), "PullRequest is not longer mergeable. Closing it."); err != nil {
+			return nil, fmt.Errorf("Could not add comment to %d: %s", a.Issue, err)
 		}
-		if _, err := g.ClosePullRequest(int(issueNum)); err != nil {
-			return nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
+		if _, err := g.ClosePullRequest(int(a.Issue)); err != nil {
+			return nil, fmt.Errorf("Could not close %d: %s", a.Issue, err)
 		}
 		a.Result = autoroll.ROLL_RESULT_FAILURE
 		pullRequestModified = true
@@ -396,23 +423,23 @@ func updateGithubPullRequest(ctx context.Context, a *autoroll.AutoRollIssue, g *
 			}
 		}
 		failureComment := fmt.Sprintf("Trybots failed. These were the failed builds: %s", strings.Join(linkToFailedJobs, " , "))
-		if err := g.AddComment(int(issueNum), failureComment); err != nil {
-			return nil, fmt.Errorf("Could not add comment to %d: %s", issueNum, err)
+		if err := g.AddComment(int(a.Issue), failureComment); err != nil {
+			return nil, fmt.Errorf("Could not add comment to %d: %s", a.Issue, err)
 		}
-		if _, err := g.ClosePullRequest(int(issueNum)); err != nil {
-			return nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
+		if _, err := g.ClosePullRequest(int(a.Issue)); err != nil {
+			return nil, fmt.Errorf("Could not close %d: %s", a.Issue, err)
 		}
 		pullRequestModified = true
-	} else if !a.CommitQueueDryRun && len(a.TryResults) >= checksNum && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && shouldStateBeMerged(pullRequest.GetMergeableState()) {
+	} else if a.DryRunFinished && a.DryRunSuccess && len(a.TryResults) >= checksNum && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && shouldStateBeMerged(pullRequest.GetMergeableState()) {
 		// Github and travisci do not have a "commit queue". So changes must be
 		// merged via the API after travisci successfully completes.
-		if err := g.AddComment(int(issueNum), "Auto-roller completed checks. About to merge."); err != nil {
-			return nil, fmt.Errorf("Could not add comment to %d: %s", issueNum, err)
+		if err := g.AddComment(int(a.Issue), "Auto-roller completed checks. About to merge."); err != nil {
+			return nil, fmt.Errorf("Could not add comment to %d: %s", a.Issue, err)
 		}
 		// Get the PR's description and use as the commit message.
-		desc, err := g.GetDescription(int(issueNum))
+		desc, err := g.GetDescription(int(a.Issue))
 		if err != nil {
-			return nil, fmt.Errorf("Could not get description of %d: %s", issueNum, err)
+			return nil, fmt.Errorf("Could not get description of %d: %s", a.Issue, err)
 		}
 		mergeMethod := github.MERGE_METHOD_SQUASH
 		if mergeMethodURL != "" {
@@ -431,15 +458,15 @@ func updateGithubPullRequest(ctx context.Context, a *autoroll.AutoRollIssue, g *
 		if mergeMethod != github.MERGE_METHOD_SQUASH && mergeMethod != github.MERGE_METHOD_REBASE {
 			return nil, fmt.Errorf("Unrecognized merge method: %s", mergeMethod)
 		}
-		if err := g.MergePullRequest(int(issueNum), desc, mergeMethod); err != nil {
-			return nil, fmt.Errorf("Could not merge pull request %d: %s", issueNum, err)
+		if err := g.MergePullRequest(int(a.Issue), desc, mergeMethod); err != nil {
+			return nil, fmt.Errorf("Could not merge pull request %d: %s", a.Issue, err)
 		}
 		pullRequestModified = true
 	}
 
 	if pullRequestModified {
 		// Update Autoroll issue to show the current state of the PR.
-		if err := a.UpdateFromGitHubPullRequest(ctx, pullRequest, g); err != nil {
+		if err := a.UpdateFromGitHubPullRequest(pullRequest); err != nil {
 			return nil, fmt.Errorf("Failed to convert issue format: %s", err)
 		}
 	}
@@ -458,7 +485,7 @@ func shouldStateBeMerged(mergeableState string) bool {
 
 // newGithubRoll obtains a githubRoll instance from the given Gerrit issue number.
 func newGithubRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g *github.GitHub, recent *recent_rolls.RecentRolls, issueUrlBase string, config *GithubConfig, cb func(context.Context, RollImpl) error) (RollImpl, error) {
-	pullRequest, err := updateGithubPullRequest(ctx, issue, g, issue.Issue, config.ChecksNum, config.ChecksWaitFor, config.MergeMethodURL)
+	pullRequest, err := updateGithubPullRequest(ctx, issue, g, config.ChecksNum, config.ChecksWaitFor, config.MergeMethodURL)
 	if err != nil {
 		return nil, err
 	}
@@ -472,7 +499,7 @@ func newGithubRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g *github
 		pullRequest:      pullRequest,
 		recent:           recent,
 		retrieveRoll: func(ctx context.Context) (*github_api.PullRequest, error) {
-			return updateGithubPullRequest(ctx, issue, g, issue.Issue, config.ChecksNum, config.ChecksWaitFor, config.MergeMethodURL)
+			return updateGithubPullRequest(ctx, issue, g, config.ChecksNum, config.ChecksWaitFor, config.MergeMethodURL)
 		},
 	}, nil
 }
@@ -541,23 +568,28 @@ func (r *githubRoll) Update(ctx context.Context) error {
 }
 
 // See documentation for state_machine.RollCLImpl interface.
+func (r *githubRoll) IsClosed() bool {
+	return r.issue.Closed
+}
+
+// See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IsFinished() bool {
-	return r.pullRequest.GetState() == github.CLOSED_STATE || r.pullRequest.GetMerged() || !r.issue.CommitQueue
+	return r.issue.CqFinished
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IsSuccess() bool {
-	return r.pullRequest.GetMerged()
+	return r.issue.CqSuccess
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IsDryRunFinished() bool {
-	return len(r.issue.TryResults) >= r.checksNum && r.issue.AllTrybotsFinished() || r.pullRequest.GetState() == github.CLOSED_STATE || !r.issue.CommitQueueDryRun
+	return r.issue.DryRunFinished
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IsDryRunSuccess() bool {
-	return len(r.issue.TryResults) >= r.checksNum && r.issue.AllTrybotsSucceeded()
+	return r.issue.DryRunSuccess
 }
 
 // See documentation for state_machine.RollCLImpl interface.
@@ -568,14 +600,22 @@ func (r *githubRoll) RollingTo() string {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) SwitchToDryRun(ctx context.Context) error {
 	return r.withModify(ctx, "switch the CL to dry run", func() error {
-		return r.g.ReplaceLabel(r.pullRequest.GetNumber(), github.COMMIT_LABEL, github.DRYRUN_LABEL)
+		if err := r.g.ReplaceLabel(r.pullRequest.GetNumber(), github.COMMIT_LABEL, github.DRYRUN_LABEL); err != nil {
+			return err
+		}
+		r.issue.IsDryRun = true
+		return nil
 	})
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) SwitchToNormal(ctx context.Context) error {
 	return r.withModify(ctx, "switch the CL out of dry run", func() error {
-		return r.g.ReplaceLabel(r.pullRequest.GetNumber(), github.DRYRUN_LABEL, github.COMMIT_LABEL)
+		if err := r.g.ReplaceLabel(r.pullRequest.GetNumber(), github.DRYRUN_LABEL, github.COMMIT_LABEL); err != nil {
+			return err
+		}
+		r.issue.IsDryRun = false
+		return nil
 	})
 }
 
