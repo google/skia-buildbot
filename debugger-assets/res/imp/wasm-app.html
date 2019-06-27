@@ -25,6 +25,7 @@ The main application element for the Skia Debugger.
 <link rel=import href="/res/imp/bower_components/paper-input/paper-input.html">
 <link rel=import href="/res/imp/bower_components/paper-toolbar/paper-toolbar.html">
 <link rel=import href="/res/imp/bower_components/paper-tabs/paper-tabs.html">
+<link rel=import href="/res/imp/bower_components/paper-slider/paper-slider.html">
 <link rel=import href="/res/imp/bower_components/iron-pages/iron-pages.html">
 
 <link rel=import href="/res/common/imp/canvas-layers.html">
@@ -302,6 +303,16 @@ The main application element for the Skia Debugger.
       width: 6em;
       margin-top: -1em;
     }
+
+    #frames_slider {
+      width: 100%;
+    }
+
+    #frame_number {
+      font-weight: bold;
+      font-family: sans-serif;
+      width: 1em;
+    }
   </style>
   <template>
     <header class="horizontal layout center">
@@ -312,6 +323,11 @@ The main application element for the Skia Debugger.
       <div class="layout horizontal center">
         <label>SKP to open:</label>
         <input type="file" id="file_input" disabled />
+      </div>
+      <div id="multi_frame_controls" class="layout horizontal center" hidden>
+        <paper-icon-button id="frame_play_button" title="play/pause frames (p)" icon="av:play-circle-outline"  on-tap="_toggleFramePlay"></paper-icon-button>
+        <span id="frame_number"></span>
+        <paper-slider id="frames_slider" pin max="10" max-markers="10" step="1" value="{{ frameIndex }}" on-tap="_pauseFrames"></paper-slider>
       </div>
       <div class="layout horizontal">
         <div id=left class$="layout vertical flex-{{ _leftRatio }}">
@@ -326,7 +342,7 @@ The main application element for the Skia Debugger.
           </div>
           <div class="layout horizontal">
             <play-sk id=play></play-sk>
-            <paper-input label="Delay in ms" value="{{ _minPlaybackDelay }}" class=delay-input></paper-input>
+            <paper-input label="Delay in ms" value="{{ minPlaybackDelay }}" class=delay-input></paper-input>
           </div>
           <commands-sk id=commands grouping=50></commands-sk>
         </div>
@@ -479,11 +495,18 @@ The main application element for the Skia Debugger.
           value: function() { return []; },
           reflectToAttribute: false,
         },
-        _minPlaybackDelay: {
+        // this timeout value in ms can control the speed of command or frame playback
+        // 0 means as fast as possible.
+        minPlaybackDelay: {
           type: Number,
           value: 0,
           reflectToAttribute: false,
         },
+        frameIndex: {
+          type: Number,
+          value: 0,
+          observer: "_moveFrameTo",
+        }
       },
 
       ready: function() {
@@ -502,10 +525,6 @@ The main application element for the Skia Debugger.
         // That is, we've requested to move to this op, but the image might not
         // be loaded yet.
         this._targetItem = 0;
-
-        // this timeout value in ms can control the speed of playback
-        // 0 means as fast as possible.
-        this._minPlaybackDelay = 0;
 
         // The original JSON response from the server.
         this._cmd = {
@@ -528,6 +547,13 @@ The main application element for the Skia Debugger.
           version: 1,
           commands: [],
         };
+
+        // When a multi frame SKP is loaded, this id refers to the timeout id of the _nextFrame()
+        // call when playback is active. it serves both to indicate the state of frame playback
+        // and to keep track of the timeout for the purpose of cancelling it.
+        // command playback makes sense only within a single frame, and is managed by the play-sk
+        // element. it is automatically paused when the frame is changed.
+        this.nextFrameTimeout = 0; // currently paused
 
         // debugger.js (a file compiled by emscripten) defines DebuggerInit.
         // It accepts a method to help it locate the .wasm file, and returns a promise
@@ -626,7 +652,7 @@ The main application element for the Skia Debugger.
         });
 
         this.$.file_input.addEventListener('change', (e) => {
-          this._openSkpFile(e);
+          this._fileInputChanged(e);
         });
       },
 
@@ -642,7 +668,7 @@ The main application element for the Skia Debugger.
         // instead continuing from where the player thinks it is.
         setTimeout(() => {
           this.$.play.movedTo(this._targetItem);
-        }, this._minPlaybackDelay);
+        }, this.minPlaybackDelay);
       },
 
       attached: function() {
@@ -650,7 +676,7 @@ The main application element for the Skia Debugger.
       },
 
       // Called when the filename in the file input element changs
-      _openSkpFile: function(e) {
+      _fileInputChanged: function(e) {
         // Did the change event result in the file-input element specifing a file?
         // (user might have cancelled the dialog)
         const file = e.target.files[0];
@@ -662,30 +688,50 @@ The main application element for the Skia Debugger.
         reader.onload = (e) => {
           // Create the instance of SkpDebugPlayer and load the file.
           // This function is provided by helper.js in the JS bundled with the wasm module.
-          this._player = this._debugwasm.SkpFilePlayer(e.target.result);
-          // From the loaded SKP, player now knows how large its picture is.
-          let bounds = this._player.getBounds();
-          // Resize our canvas to match
-          this._dvcanvas.width = bounds.fRight - bounds.fLeft;
-          this._dvcanvas.height = bounds.fBottom - bounds.fTop;
-          // Make GPU or CPU selection match UI toggle.
-          if (this.render_mode_gpu) {
-            this._surface = this._debugwasm.MakeWebGLCanvasSurface(this._dvcanvas);
-          } else {
-            this._surface = this._debugwasm.MakeSWCanvasSurface(this._dvcanvas);
-          }
-          // Set player clip and overdraw setting to match UI selection, but don't update view yet.
-          this._clipHandler(false);
-          this._overdrawHandler(false);
-          this._gpuOpBounds();
-          // Request and parse command list for this file.
-          json = this._player.jsonCommandList(this._surface);
-          this._setCommands(JSON.parse(json));
-          this.$.zoom.allow_draw = true;
-
-          window.dispatchEvent(new CustomEvent('partial-resize'));
+          this._openSkpFile(e.target.result);
         };
         reader.readAsArrayBuffer(file);
+      },
+
+      // Open an SKP or MSKP file. fileContents is expected to be an arraybuffer
+      // with the file's contents
+      _openSkpFile: function(fileContents) {
+        // Create the instance of SkpDebugPlayer and load the file.
+        // This function is provided by helper.js in the JS bundled with the wasm module.
+        this._player = this._debugwasm.SkpFilePlayer(fileContents);
+        // From the loaded SKP, player now knows how large its picture is.
+        let bounds = this._player.getBounds();
+        // Resize our canvas to match
+        this._dvcanvas.width = bounds.fRight - bounds.fLeft;
+        this._dvcanvas.height = bounds.fBottom - bounds.fTop;
+        // Make GPU or CPU selection match UI toggle.
+        if (this.render_mode_gpu) {
+          this._surface = this._debugwasm.MakeWebGLCanvasSurface(this._dvcanvas);
+        } else {
+          this._surface = this._debugwasm.MakeSWCanvasSurface(this._dvcanvas);
+        }
+        // Set player clip and overdraw setting to match UI selection, but don't update view yet.
+        this._clipHandler(false);
+        this._overdrawHandler(false);
+        this._gpuOpBounds();
+        // Determine if we loaded a single-frame or multi-frame SKP.
+        if (this._player.getFrameCount() > 1) {
+          this._pauseFrames();
+          const frames_count = this._player.getFrameCount();
+          this.$.frames_slider.max = frames_count;
+          this.$.frames_slider.max_markers = frames_count;
+          this.$.frames_slider.value = 0;
+          this.$.multi_frame_controls.hidden = false;
+        } else {
+          this.$.multi_frame_controls.hidden = true;
+        }
+        // Request and parse command list for this file.
+        json = this._player.jsonCommandList(this._surface);
+        this._setCommands(JSON.parse(json));
+        this._moveToLastFilteredCommand();
+        this.$.zoom.allow_draw = true;
+
+        window.dispatchEvent(new CustomEvent('partial-resize'));
       },
 
       // Called when any of the fit buttons are pressed.
@@ -875,7 +921,10 @@ The main application element for the Skia Debugger.
         this.$.commands.cmd = filtered;
         this._filtered = filtered;
         this.$.play.size = filtered.commands.length;
-        this._targetItem = filtered.commands.length - 1;
+      },
+
+      _moveToLastFilteredCommand: function() {
+        this._targetItem = this._filtered.commands.length - 1;
         this._moveToTargetItem();
       },
 
@@ -962,10 +1011,78 @@ The main application element for the Skia Debugger.
             this._targetItem = (flen + this._targetItem - 1) % flen;
             this._moveToTargetItem();
             break;
+          case 87: // w
+            this._moveFrameTo(this.frameIndex-1);
+            break;
+          case 83: // s
+            this._moveFrameTo(this.frameIndex+1);
+            break;
+          case 80: // p
+            this._toggleFramePlay();
+            break;
           default:
             return;
         }
         e.stopPropagation();
+      },
+
+      // Toggle the playback of frames in a multiskp file.
+      _toggleFramePlay: function() {
+        if (this.nextFrameTimeout) {
+          this._pauseFrames();
+        } else {
+          this._playFrames();
+        }
+      },
+
+      _pauseFrames: function() {
+        if (!this.nextFrameTimeout) { return; }
+        this.$.frame_play_button.icon = "av:play-circle-outline";
+        clearTimeout(this.nextFrameTimeout);
+        this.nextFrameTimeout = 0;
+        json = this._player.jsonCommandList(this._surface);
+        this._setCommands(JSON.parse(json));
+        this._moveToTargetItem();
+      },
+
+      _playFrames: function() {
+          // Pause command playback if necessary
+          this.$.play.mode = "pause";
+          // begin frame playback.
+          this.$.frame_play_button.icon = "av:pause-circle-outline";
+          this._nextFrame();
+      },
+
+      // Advance to the next frame in a multiskp file (or loop back to the beginning)
+      _nextFrame: function() {
+        this._moveFrameTo(this.frameIndex+1);
+        this.nextFrameTimeout = setTimeout(() => {
+          this._nextFrame();
+           // It doesn't really matter that we use minPlaybackDelay for two purposes, since we
+           // never perform both kinds of playback at the same time.
+        }, this.minPlaybackDelay);
+      },
+
+      // Move to a specific frame
+      _moveFrameTo: function(pos) {
+        if (!this._player) { return };
+        this.frameIndex = pos;
+        if (this.frameIndex === -1) {
+          this.frameIndex = this._player.getFrameCount() - 1;
+        }
+        if (this.frameIndex >= this._player.getFrameCount()) {
+          this.frameIndex = 0;
+        }
+        this.$.frame_number.textContent = this.frameIndex;
+        this._player.changeFrame(this.frameIndex);
+        // If the frame moved and the state is paused, also update the command list
+        if (!this.nextFrameTimeout) {
+          json = this._player.jsonCommandList(this._surface);
+          this._setCommands(JSON.parse(json));
+          this._moveToTargetItem();
+        } else {
+          this._updateDebuggerView();
+        }
       },
 
       _deepCopy: function(o) {
