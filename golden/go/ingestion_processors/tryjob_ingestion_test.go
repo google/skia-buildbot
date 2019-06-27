@@ -1,4 +1,4 @@
-package goldingestion
+package ingestion_processors
 
 import (
 	"context"
