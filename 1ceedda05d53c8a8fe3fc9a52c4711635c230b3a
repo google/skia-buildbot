@@ -1,0 +1,130 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba446c2c_df1af58f",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 556,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-27T14:29:06Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 556,
+        "startChar": 38,
+        "endLine": 556,
+        "endChar": 46
+      },
+      "revId": "1ceedda05d53c8a8fe3fc9a52c4711635c230b3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f703e21e_ed3c4a65",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 696,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-27T14:29:06Z",
+      "side": 1,
+      "message": "Maybe comment what type fileContents is supposed to be",
+      "revId": "1ceedda05d53c8a8fe3fc9a52c4711635c230b3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01cdf5e1_80fb4687",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 718,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-27T14:29:06Z",
+      "side": 1,
+      "message": "const",
+      "range": {
+        "startLine": 718,
+        "startChar": 10,
+        "endLine": 718,
+        "endChar": 13
+      },
+      "revId": "1ceedda05d53c8a8fe3fc9a52c4711635c230b3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45a04efe_dd18a53c",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 1012,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-27T14:29:06Z",
+      "side": 1,
+      "message": "Seems kind of arbitrary for W and S. I would find it more natural to have two keys adjacent to each other, like W and E or maybe something on the home row like S and D",
+      "range": {
+        "startLine": 1012,
+        "startChar": 21,
+        "endLine": 1012,
+        "endChar": 23
+      },
+      "revId": "1ceedda05d53c8a8fe3fc9a52c4711635c230b3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b762876_d26b2e2a",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 1022,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-27T14:29:06Z",
+      "side": 1,
+      "message": "Delete",
+      "revId": "1ceedda05d53c8a8fe3fc9a52c4711635c230b3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f49ca65a_b7cc63cc",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 1069,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-06-27T14:29:06Z",
+      "side": 1,
+      "message": "\u003d\u003d\u003d",
+      "range": {
+        "startLine": 1069,
+        "startChar": 28,
+        "endLine": 1069,
+        "endChar": 30
+      },
+      "revId": "1ceedda05d53c8a8fe3fc9a52c4711635c230b3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
