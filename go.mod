@@ -13,7 +13,7 @@ require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/VividCortex/godaemon v0.0.0-20150910212227-3d9f6e0b234f
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.20.8 // indirect
+	github.com/aws/aws-sdk-go v1.20.10 // indirect
 	github.com/boltdb/bolt v1.3.1
 	github.com/cenkalti/backoff v2.1.1+incompatible
 	github.com/codegangsta/negroni v1.0.0 // indirect
@@ -68,7 +68,7 @@ require (
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/lib/pq v1.1.1 // indirect
 	github.com/magiconair/properties v1.8.1 // indirect
-	github.com/mailru/easyjson v0.0.0-20190620125010-da37f6c1e481 // indirect
+	github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e // indirect
 	github.com/maruel/subcommands v0.0.0-20181220013616-967e945be48b // indirect
 	github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
@@ -105,7 +105,7 @@ require (
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
-	go.chromium.org/luci v0.0.0-20190625233447-d9189479527c
+	go.chromium.org/luci v0.0.0-20190626234502-04475b07da13
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.opencensus.io v0.22.0
 	golang.org/x/crypto v0.0.0-20190621222207-cc06ce4a13d4
@@ -116,11 +116,11 @@ require (
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	golang.org/x/sys v0.0.0-20190624142023-c5567b49c5d0 // indirect
-	golang.org/x/tools v0.0.0-20190625160430-252024b82959 // indirect
+	golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb // indirect
+	golang.org/x/tools v0.0.0-20190627033414-4874f863e654 // indirect
 	google.golang.org/api v0.7.0
 	google.golang.org/appengine v1.6.1 // indirect
-	google.golang.org/genproto v0.0.0-20190620144150-6af8c5fc6601
+	google.golang.org/genproto v0.0.0-20190626174449-989357319d63
 	google.golang.org/grpc v1.21.1
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/inf.v0 v0.9.1 // indirect
