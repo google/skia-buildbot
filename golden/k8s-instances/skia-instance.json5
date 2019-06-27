@@ -1,0 +1,39 @@
+{
+    // Gold settings
+    "GERRIT_URL":              "https://skia-review.googlesource.com",
+    "GITREPO_URL":             "https://skia.googlesource.com/skia.git",
+    "N_COMMITS":               256,
+    "SPARSE":                  true,
+    "SKCORR_TITLE":            "Skia Gold",
+    "SKCORR_DEFAULT_CORPUS":   "gm",
+    "PROJECT_ID":              "skia-public",
+    "FIRESTORE_PROJECT":       "skia-firestore",
+    "SITE_URL":                "https://gold.skia.org",
+    "FORCE_LOGIN":             "true",
+    "BUCKET":                  "skia-infra-gm",
+
+    // Git BigTable settings
+    "GIT_BT_INSTANCE":         "production",
+    "GIT_BT_TABLE":            "git-repos",
+
+    // Traceserver settings.
+    "TRACESERVER_MEMORY":      "500Mi",
+    "TRACESERVER_CPU":         "1",
+
+    // Settings for the main ingester.
+    "ING_RUN_EVERY":           "5m",
+    "ING_N_COMMITS":           200,
+    "ING_MIN_DAYS":            20,
+
+    // Settings for the Tryjob ingester. If ING_TRY_ENABLED is false no ingester for
+    // tryjobs will be configured.
+    "ING_TRY_ENABLED":         false,
+    "ING_TRY_RUN_EVERY":       "5m",
+    "ING_TRY_MIN_DAYS":        20,
+    "ING_TRY_N_COMMITS":       10,
+    "ING_TRY_BUILDBUCKET_URL": "",
+    "ING_TRY_BUILDBUCKET":     "chromium/try",
+    "ING_TRY_BB_INTERVAL":     "10s",
+    "ING_TRY_BB_WINDOW":       "5h",
+    "ING_TRY_BUILDER_REGEX":   "",
+}
