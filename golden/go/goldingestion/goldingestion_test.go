@@ -128,15 +128,15 @@ func TestGoldProcessor(t *testing.T) {
 
 	ingesterConf := &sharedconfig.IngesterConfig{
 		ExtraParams: map[string]string{
-			CONFIG_TRACESERVICE: serverAddr,
+			tracedbServiceConfig: serverAddr,
 		},
 	}
 
 	// Set up the processor.
 	eventBus := eventbus.New()
-	processor, err := newGoldProcessor(vcs, ingesterConf, nil, eventBus)
+	processor, err := newTraceDBProcessor(vcs, ingesterConf, nil, eventBus)
 	assert.NoError(t, err)
-	defer util.Close(processor.(*goldProcessor).traceDB)
+	defer util.Close(processor.(*traceDBProcessor).traceDB)
 
 	_ = testProcessor(t, ctx, processor, TEST_INGESTION_FILE)
 
@@ -167,7 +167,7 @@ func testProcessor(t *testing.T, ctx context.Context, processor ingestion.Proces
 	assert.NoError(t, err)
 
 	// Steal the traceDB used by the processor to verify the results.
-	traceDB := processor.(*goldProcessor).traceDB
+	traceDB := processor.(*traceDBProcessor).traceDB
 
 	startTime := time.Now().Add(-time.Hour * 24 * 10)
 	commitIDs, err := traceDB.List(startTime, time.Now())

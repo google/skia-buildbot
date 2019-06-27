@@ -343,7 +343,7 @@ func (b *BigTableVCS) Range(begin, end time.Time) []*vcsinfo.IndexCommit {
 // IndexOf implements the vcsinfo.VCS interface
 func (b *BigTableVCS) IndexOf(ctx context.Context, hash string) (int, error) {
 	b.mutex.RLock()
-	defer b.mutex.Unlock()
+	defer b.mutex.RUnlock()
 
 	for i := len(b.indexCommits) - 1; i >= 0; i-- {
 		if hash == b.indexCommits[i].Hash {
@@ -372,16 +372,18 @@ func (b *BigTableVCS) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, 
 		return commits[i].Hash
 	}
 
-	var hash string
-	b.mutex.RLock()
-	if len(b.indexCommits) > 0 {
-		firstIdx := b.indexCommits[0].Index
-		lastIdx := b.indexCommits[len(b.indexCommits)-1].Index
-		if (N >= firstIdx) && (N <= lastIdx) {
-			hash = findFn(b.indexCommits)
+	hash := func() string {
+		b.mutex.RLock()
+		defer b.mutex.RUnlock()
+		if len(b.indexCommits) > 0 {
+			firstIdx := b.indexCommits[0].Index
+			lastIdx := b.indexCommits[len(b.indexCommits)-1].Index
+			if (N >= firstIdx) && (N <= lastIdx) {
+				return findFn(b.indexCommits)
+			}
 		}
-	}
-	b.mutex.RUnlock()
+		return ""
+	}()
 
 	// Fetch the hash
 	if hash == "" {
