@@ -60,7 +60,6 @@
 
 <link rel="stylesheet" href="/res/common/css/md.css">
 
-<link rel="import" href="/res/common/imp/toggle.html">
 <link rel="import" href="/res/common/imp/triage-sk.html">
 
 <link rel="import" href="/res/imp/commit-detail-panel.html" />
@@ -109,11 +108,11 @@
       opacity: 0.3;
     }
 
-    word-cloud2-sk {
+    #wordCloudCollapse[closed] {
       display: none;
     }
 
-    word-cloud2-sk.display {
+    #wordCloudCollapse {
       display: block;
     }
 
@@ -182,9 +181,11 @@
           <button id="shortcut" on-click="_openShortcut">View on dashboard</button>
           <a id="permalink" class$="[[_hiddenClass(triage.status)]]" href$="[[_permaLink(_summary)]]">Permlink</a>
           <a id=rangelink href="" target=_blank></a>
+          <button on-click="_toggleWordCloud">Word Cloud</button>
         </div>
-        <toggle-display-sk>Word Cloud</toggle-display-sk>
-        <word-cloud2-sk id=wordcloud items="[[_summary.param_summaries]]"></word-cloud2-sk>
+        <collapse-sk id=wordCloudCollapse closed>
+          <word-cloud2-sk id=wordcloud items="[[_summary.param_summaries]]"></word-cloud2-sk>
+        </collapse-sk>
       </div>
       <div>
       </div>
@@ -330,6 +331,10 @@
         sk.post("/_/cid/", JSON.stringify([h])).then(JSON.parse).then(function(json){
           this.$.commits.setCommitDetail(json);
         }.bind(this)).catch(sk.errorMessage);
+      },
+
+      _toggleWordCloud: function() {
+        this.$.wordCloudCollapse.closed = !this.$.wordCloudCollapse.closed;
       },
 
       // Below are filters used in template expansion:
