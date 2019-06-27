@@ -7,11 +7,13 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/ingestion"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/jsonio"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -74,7 +76,7 @@ func extractTraceDBEntries(dm *DMResults) (map[tiling.TraceId]*tracedb.Entry, er
 // ignored.
 func ignoreResult(dm *DMResults, params map[string]string) bool {
 	// Ignore anything that is not a png.
-	if ext, ok := params["ext"]; !ok || (ext != "png") {
+	if ext, ok := params["ext"]; ok && (ext != "png") {
 		return true
 	}
 
@@ -117,7 +119,7 @@ func ParseDMResultsFromReader(r io.ReadCloser, name string) (*DMResults, error) 
 
 	goldResults, _, err := jsonio.ParseGoldResults(r)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to decode JSON: %s", err)
+		return nil, skerr.Fmt("Failed to decode JSON: %s", err)
 	}
 
 	dmResults := &DMResults{GoldResults: goldResults}
@@ -127,11 +129,12 @@ func ParseDMResultsFromReader(r io.ReadCloser, name string) (*DMResults, error) 
 
 // processDMResults opens the given JSON input file and processes it, converting
 // it into a goldingestion.DMResults object and returning it.
-func processDMResults(resultsFile ingestion.ResultFileLocation) (*DMResults, error) {
-	r, err := resultsFile.Open()
+func processDMResults(rf ingestion.ResultFileLocation) (*DMResults, error) {
+	defer shared.NewMetricsTimer("read_dm_results").Stop()
+	r, err := rf.Open()
 	if err != nil {
-		return nil, err
+		return nil, skerr.Fmt("could not open file %s: %s", rf.Name(), err)
 	}
 
-	return ParseDMResultsFromReader(r, resultsFile.Name())
+	return ParseDMResultsFromReader(r, rf.Name())
 }
