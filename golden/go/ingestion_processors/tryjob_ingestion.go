@@ -1,4 +1,4 @@
-package goldingestion
+package ingestion_processors
 
 import (
 	"context"
@@ -223,7 +223,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 	return nil
 }
 
-func (g *goldTryjobProcessor) syncIssueAndTryjob(issueID int64, tryjob *tryjobstore.Tryjob, dmResults *DMResults, resultFileName string) (*tryjobstore.Tryjob, error) {
+func (g *goldTryjobProcessor) syncIssueAndTryjob(issueID int64, tryjob *tryjobstore.Tryjob, dmResults *dmResults, resultFileName string) (*tryjobstore.Tryjob, error) {
 	// Only let one thread in at time for each issueID. In most cases they will follow the fast
 	// path of finding the issue and having an non-nil tryjob.
 	defer g.syncMonitor.Enter(issueID).Release()

@@ -1,4 +1,4 @@
-package goldingestion
+package ingestion_processors
 
 import (
 	"context"
@@ -24,10 +24,7 @@ import (
 )
 
 const (
-	// name of the input file containing test data.
-	TEST_INGESTION_FILE = "testdata/dm.json"
-
-	// Same information as the ingestio file above but through a secondary repository.
+	// Same information as testdata/dm.json but uses a secondary repository.
 	TEST_SECONDARY_FILE = "testdata/dm-secondary.json"
 
 	// Ingestion file that contains a commit that is neither in the primary nor the secondary repo.
@@ -96,12 +93,12 @@ var (
 )
 
 // Tests parsing and processing of a single file.
-func TestDMResults(t *testing.T) {
+func TestExtractTraceDBEntries(t *testing.T) {
 	unittest.SmallTest(t)
 	f, err := os.Open(TEST_INGESTION_FILE)
 	assert.NoError(t, err)
 
-	dmResults, err := ParseDMResultsFromReader(f, TEST_INGESTION_FILE)
+	dmResults, err := parseDMResultsFromReader(f, TEST_INGESTION_FILE)
 	assert.NoError(t, err)
 
 	entries, err := extractTraceDBEntries(dmResults)
@@ -116,10 +113,10 @@ func TestDMResults(t *testing.T) {
 }
 
 // Tests the processor in conjunction with the vcs.
-func TestGoldProcessor(t *testing.T) {
+func TestTraceDBProcessor(t *testing.T) {
 	unittest.MediumTest(t)
 
-	// Set up mock VCS and run a servcer with the given data directory.
+	// Set up mock VCS and run a server with the given data directory.
 	ctx := context.Background()
 	vcs := mocks.DeprecatedMockVCS(TEST_COMMITS, nil, nil)
 	server, serverAddr := trace_utils.StartTraceDBTestServer(t, TRACE_DB_FILENAME, "")
@@ -128,20 +125,20 @@ func TestGoldProcessor(t *testing.T) {
 
 	ingesterConf := &sharedconfig.IngesterConfig{
 		ExtraParams: map[string]string{
-			CONFIG_TRACESERVICE: serverAddr,
+			tracedbServiceConfig: serverAddr,
 		},
 	}
 
 	// Set up the processor.
 	eventBus := eventbus.New()
-	processor, err := newGoldProcessor(vcs, ingesterConf, nil, eventBus)
+	processor, err := newDeprecatedTraceDBProcessor(vcs, ingesterConf, nil, eventBus)
 	assert.NoError(t, err)
-	defer util.Close(processor.(*goldProcessor).traceDB)
+	defer util.Close(processor.(*traceDBProcessor).traceDB)
 
-	_ = testProcessor(t, ctx, processor, TEST_INGESTION_FILE)
+	_ = testTraceDBProcessor(t, ctx, processor, TEST_INGESTION_FILE)
 
 	// Fail when there is not secondary repo defined.
-	err = testProcessor(t, ctx, processor, TEST_SECONDARY_FILE)
+	err = testTraceDBProcessor(t, ctx, processor, TEST_SECONDARY_FILE)
 	assert.Equal(t, err, ingestion.IgnoreResultsFileErr)
 
 	// Inject a secondary repo and test its use.
@@ -149,14 +146,14 @@ func TestGoldProcessor(t *testing.T) {
 	extractor := depot_tools.NewRegExDEPSExtractor(depot_tools.DEPSSkiaVarRegEx)
 	vcs.(mocks.MockVCSImpl).SetSecondaryRepo(secVCS, extractor)
 
-	_ = testProcessor(t, ctx, processor, TEST_SECONDARY_FILE)
-	err = testProcessor(t, ctx, processor, TEST_SECONDARY_FILE_INVALID)
+	_ = testTraceDBProcessor(t, ctx, processor, TEST_SECONDARY_FILE)
+	err = testTraceDBProcessor(t, ctx, processor, TEST_SECONDARY_FILE_INVALID)
 	assert.Equal(t, err, ingestion.IgnoreResultsFileErr)
-	err = testProcessor(t, ctx, processor, TEST_SECONDARY_FILE_NO_DEPS)
+	err = testTraceDBProcessor(t, ctx, processor, TEST_SECONDARY_FILE_NO_DEPS)
 	assert.Equal(t, err, ingestion.IgnoreResultsFileErr)
 }
 
-func testProcessor(t *testing.T, ctx context.Context, processor ingestion.Processor, testFileName string) error {
+func testTraceDBProcessor(t *testing.T, ctx context.Context, processor ingestion.Processor, testFileName string) error {
 	// Load the example file and process it.
 	fsResult, err := ingestion.FileSystemResult(testFileName, "./")
 	assert.NoError(t, err)
@@ -167,7 +164,7 @@ func testProcessor(t *testing.T, ctx context.Context, processor ingestion.Proces
 	assert.NoError(t, err)
 
 	// Steal the traceDB used by the processor to verify the results.
-	traceDB := processor.(*goldProcessor).traceDB
+	traceDB := processor.(*traceDBProcessor).traceDB
 
 	startTime := time.Now().Add(-time.Hour * 24 * 10)
 	commitIDs, err := traceDB.List(startTime, time.Now())
