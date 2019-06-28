@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e5f6dec3_56a34a39",
+        "filename": "golden/go/ingestion_processors/common.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-28T19:30:28Z",
+      "side": 1,
+      "message": "See TODO here: https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/go/tracestore/types.go#16",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 2
+      },
+      "revId": "fab25f241042bae245c391caab11b02e4d8c91c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "751e671e_e4156036",
+        "filename": "golden/go/ingestion_processors/tracedb_impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-28T19:30:28Z",
+      "side": 1,
+      "message": "nit: traceDBServiceConfig",
+      "range": {
+        "startLine": 22,
+        "startChar": 1,
+        "endLine": 22,
+        "endChar": 8
+      },
+      "revId": "fab25f241042bae245c391caab11b02e4d8c91c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "411a360b_9e32164d",
+        "filename": "golden/go/ingestion_processors/tracestore_impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-28T19:30:28Z",
+      "side": 1,
+      "message": "nit: should be context.TODO(), or pass in the context",
+      "range": {
+        "startLine": 44,
+        "startChar": 39,
+        "endLine": 44,
+        "endChar": 51
+      },
+      "revId": "fab25f241042bae245c391caab11b02e4d8c91c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d59cac22_b5e9be6d",
+        "filename": "golden/go/ingestion_processors/tracestore_impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-28T19:30:28Z",
+      "side": 1,
+      "message": "nit: skerr.Wrapf(err, \"When instantiating BT tracestore\")\n\nMany in this file, and others.\n\n(With skerr.Fmt, if err was also created with skerr, you\u0027ll get multiple stack traces and it will be hard to read.)\n\n(If you want to add logic to skerr.Fmt to do this automatically, be my guest.)",
+      "range": {
+        "startLine": 46,
+        "startChar": 14,
+        "endLine": 46,
+        "endChar": 71
+      },
+      "revId": "fab25f241042bae245c391caab11b02e4d8c91c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d8a874a1_bb73ef8e",
+        "filename": "golden/go/ingestion_processors/tracestore_impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-28T19:30:28Z",
+      "side": 1,
+      "message": "nit: sklog.Debugf or remove",
+      "revId": "fab25f241042bae245c391caab11b02e4d8c91c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1afa08c_92d25e3b",
+        "filename": "golden/go/ingestion_processors/tracestore_impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-06-28T19:30:28Z",
+      "side": 1,
+      "message": "BatchFinished",
+      "range": {
+        "startLine": 113,
+        "startChar": 3,
+        "endLine": 113,
+        "endChar": 10
+      },
+      "revId": "fab25f241042bae245c391caab11b02e4d8c91c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
