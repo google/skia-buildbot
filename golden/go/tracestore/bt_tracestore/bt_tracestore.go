@@ -273,8 +273,11 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 			// See params.paramsEncoder
 			params, err := encTile.ops.DecodeParamsFromString(string(encodedKey))
 			if err != nil {
-				sklog.Warningf("Incomplete OPS: %#v\n", encTile.ops)
-				return nil, nil, skerr.Fmt("corrupted trace key - could not decode %s: %s", encodedKey, err)
+				// This trace might have been added after we started scanning
+				// and thus added something to the OPS that we don't know about.
+				// It should be safe to skip this trace.
+				sklog.Warningf("Unreadable trace key - could not decode %s: %s", encodedKey, err)
+				continue
 			}
 
 			// Turn the params into the tiling.TraceId we expect elsewhere.
@@ -681,7 +684,7 @@ func (b *BTTraceStore) getOPS(ctx context.Context, tileKey tileKey) (*opsCacheEn
 	}
 	// If there is no entry in BigTable then return an empty OPS.
 	if len(row) == 0 {
-		sklog.Warningf("Failed to read OPS from BT for %s.", tileKey.OpsRowName())
+		sklog.Warningf("Failed to read OPS from BT for %s. - the tile could be empty", tileKey.OpsRowName())
 		entry, err := newOpsCacheEntry()
 		return entry, false, err
 	}
