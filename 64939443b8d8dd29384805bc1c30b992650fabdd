@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "b2706fce_e95a3f2c",
+        "filename": "status/res/imp/task-popup-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-28T15:07:34Z",
+      "side": 1,
+      "message": "I\u0027m conflicted about this.  In this code, we know that we\u0027re manipulating a *swarming* task ID, in which case the substitution of the zero makes some kind of sense.  In the task driver code, we have no knowledge of how the ID was constructed, so IMO it makes less sense to mess with it.  I\u0027m tempted to make the change in task scheduler: when we trigger a task and get its ID back, just substitute the trailing zero for a one. Alternatively, when we load the data for the task, there\u0027s a RunId field we can use, but that only shows up after the fact, ie. task.SwarmingTaskId would change.",
+      "parentUuid": "9d8cec6f_138eae78",
+      "range": {
+        "startLine": 153,
+        "startChar": 39,
+        "endLine": 153,
+        "endChar": 74
+      },
+      "revId": "64939443b8d8dd29384805bc1c30b992650fabdd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7325a5f8_e743b783",
         "filename": "task_scheduler/res/imp/task-graph-sk.html",
         "patchSetId": 3
