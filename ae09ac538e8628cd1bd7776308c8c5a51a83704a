@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2acc83b5_85e55882",
+        "filename": "perf/modules/triage2-sk/triage2-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-28T11:21:20Z",
+      "side": 1,
+      "message": "I suspect Kevin would say this should be \u003d\u003d\u003d, but I don\u0027t think it matters in this case.",
+      "range": {
+        "startLine": 23,
+        "startChar": 35,
+        "endLine": 23,
+        "endChar": 37
+      },
+      "revId": "ae09ac538e8628cd1bd7776308c8c5a51a83704a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9909dc9e_4db2f514",
+        "filename": "perf/modules/triage2-sk/triage2-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-28T11:21:20Z",
+      "side": 1,
+      "message": "There\u0027s no default constructor which does this?",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 3
+      },
+      "revId": "ae09ac538e8628cd1bd7776308c8c5a51a83704a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "954d9347_f28b523d",
+        "filename": "perf/modules/triage2-sk/triage2-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-06-28T11:21:20Z",
+      "side": 1,
+      "message": "nit: tab?",
+      "range": {
+        "startLine": 14,
+        "startChar": 58,
+        "endLine": 14,
+        "endChar": 59
+      },
+      "revId": "ae09ac538e8628cd1bd7776308c8c5a51a83704a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
