@@ -42,9 +42,13 @@ start_datastore_emulator:
 web: clean_webtools elements_html core_js
 	npx webpack-cli --mode=production
 
+.PHONY: testjs
+testjs:
+	# Run the generated tests just once under Xvfb.
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
 .PHONY: test
-test: testgo
-	echo
+test: testgo testjs
 
 .PHONY: testgo
 testgo:
