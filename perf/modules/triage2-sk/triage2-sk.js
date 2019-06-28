@@ -11,7 +11,7 @@
  *    "untriaged".
  *
  * @example
- *   <triage-sk value=positive></triage-sk>
+ *   <triage2-sk value=positive></triage2-sk>
  */
 import { html, render } from 'lit-html';
 import 'elements-sk/icon/check-circle-icon-sk';

@@ -60,8 +60,6 @@
 
 <link rel="stylesheet" href="/res/common/css/md.css">
 
-<link rel="import" href="/res/common/imp/triage-sk.html">
-
 <link rel="import" href="/res/imp/commit-detail-panel.html" />
 <link rel="import" href="/res/imp/plot-simple.html">
 <link rel="import" href="/res/imp/word-cloud2.html">
@@ -171,7 +169,7 @@
           <plot-simple-sk specialevents on-trace_selected="_traceSelected" id=graph width=400 height=150></plot-simple-sk>
           <div id=status class$="[[_hiddenClass(triage.status)]]">
             <p class="disabledMessage">You must be logged in to change the status.</p>
-            <triage-sk value="{{triage.status}}"></triage-sk>
+            <triage2-sk value="[[triage.status]]" on-change="_triageChange"></triage2-sk>
             <paper-input value="{{triage.message}}" label="Message"></paper-input>
             <button class="action layout self end" id=update on-click="_update">Update</button>
           </div>
@@ -229,6 +227,10 @@
         sk.Login.then(function(status) {
           this.$.status.classList.toggle('disabled', status['Email'] == '');
         }.bind(this)).catch(sk.errorMessage);
+      },
+
+      _triageChange: function(e) {
+        this.triage.status = e.detail;
       },
 
       _fullSummaryChange: function () {
