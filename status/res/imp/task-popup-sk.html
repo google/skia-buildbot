@@ -66,7 +66,7 @@
   <template>
     <div class="horizontal layout wrap">
       <div class="flex">
-        <task-driver-sk id="tdStatus" style="display: none;"></task-driver-sk>
+        <task-driver-sk id="tdStatus" style="display: none;" embedded></task-driver-sk>
         <h3 id="nonTaskDriverHeader">
           <a target="_blank" href$="[[swarming_url]]/task?id=[[task.swarming_task_id]]">
             <span>{{task.name}}</span><iron-icon icon="launch"></iron-icon>
