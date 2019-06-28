@@ -1,0 +1,15 @@
+@import '~elements-sk/colors';
+
+word-cloud-sk {
+  display: flex;
+
+  .param {
+    margin:  0.6em;
+    border:  solid var(--dark-white) 1px;
+    padding: 0.6em;
+  }
+
+  .item {
+    margin: 0.6em;
+  }
+}

@@ -1,61 +1,21 @@
 @import '~elements-sk/colors';
 
-.positive {
-  fill: var(--green);
-}
-
-.negative {
-  fill: var(--red);
-}
-
-.untriaged {
-  fill: var(--brown);
-}
-
-button:not([selected]) {
-  fill: #bbb;
-  background: #fff;
-}
-
-button[selected] {
-  box-shadow: none;
-}
-
-.positive:hover,
-.negative:hover,
-.untriaged:hover,
-.positive[raised]:hover,
-.negative[raised]:hover,
-.untriaged[raised]:hover {
-  background: #ddd;
-}
-
-.darkmode {
-  background: var(--gray);
-
-  button {
-    box-shadow: 2px 2px 8px 0 var(--black);
-    background: var(--gray);
-  }
-
+triage2-sk {
   .positive {
-    background:: var(--green);
-    fill: var(--white);
+    fill: var(--green);
   }
 
   .negative {
-    background: var(--red);
-    fill: var(--white);
+    fill: var(--red);
   }
 
   .untriaged {
-    background: var(--brown);
-    fill: var(--white);
+    fill: var(--brown);
   }
 
   button:not([selected]) {
-    fill: var(--white);
-    background: var(--gray);
+    fill: #bbb;
+    background: #fff;
   }
 
   button[selected] {
@@ -68,6 +28,48 @@ button[selected] {
   .positive[raised]:hover,
   .negative[raised]:hover,
   .untriaged[raised]:hover {
-    background: var(--light-gray);
+    background: #ddd;
+  }
+
+  .darkmode {
+    background: var(--gray);
+
+    button {
+      box-shadow: 2px 2px 8px 0 var(--black);
+      background: var(--gray);
+    }
+
+    .positive {
+      background:: var(--green);
+      fill: var(--white);
+    }
+
+    .negative {
+      background: var(--red);
+      fill: var(--white);
+    }
+
+    .untriaged {
+      background: var(--brown);
+      fill: var(--white);
+    }
+
+    button:not([selected]) {
+      fill: var(--white);
+      background: var(--gray);
+    }
+
+    button[selected] {
+      box-shadow: none;
+    }
+
+    .positive:hover,
+    .negative:hover,
+    .untriaged:hover,
+    .positive[raised]:hover,
+    .negative[raised]:hover,
+    .untriaged[raised]:hover {
+      background: var(--light-gray);
+    }
   }
 }
