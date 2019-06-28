@@ -4,7 +4,7 @@ Storing Gold traces in BigTable
 This implementation is based on the original btts.go made for Perf.
 See perf/BIGTABLE.md for an overview of that schema.
 
-Note that we assume our Big Table instance is strongly consistent, which is
+Note that we assume our BigTable instance is strongly consistent, which is
 only valid if there is no replication (which we shouldn't need for now).
 
 Data we want to store
