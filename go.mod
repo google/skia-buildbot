@@ -13,7 +13,7 @@ require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/VividCortex/godaemon v0.0.0-20150910212227-3d9f6e0b234f
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.20.10 // indirect
+	github.com/aws/aws-sdk-go v1.20.11 // indirect
 	github.com/boltdb/bolt v1.3.1
 	github.com/cenkalti/backoff v2.1.1+incompatible
 	github.com/codegangsta/negroni v1.0.0 // indirect
@@ -32,6 +32,7 @@ require (
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
 	github.com/fortytw2/leaktest v1.3.0 // indirect
+	github.com/go-kit/kit v0.9.0 // indirect
 	github.com/go-openapi/spec v0.19.2 // indirect
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
@@ -105,11 +106,11 @@ require (
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
-	go.chromium.org/luci v0.0.0-20190626234502-04475b07da13
+	go.chromium.org/luci v0.0.0-20190628025021-f2e1c935d448
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.opencensus.io v0.22.0
 	golang.org/x/crypto v0.0.0-20190621222207-cc06ce4a13d4
-	golang.org/x/exp v0.0.0-20190510132918-efd6b22b2522 // indirect
+	golang.org/x/exp v0.0.0-20190627132806-fd42eb6b336f // indirect
 	golang.org/x/image v0.0.0-20190622003408-7e034cad6442 // indirect
 	golang.org/x/mobile v0.0.0-20190607214518-6fa95d984e88 // indirect
 	golang.org/x/mod v0.1.0 // indirect
@@ -117,10 +118,11 @@ require (
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb // indirect
-	golang.org/x/tools v0.0.0-20190627033414-4874f863e654 // indirect
+	golang.org/x/tools v0.0.0-20190628034336-212fb13d595e // indirect
+	golang.org/x/tools/gopls v0.1.0 // indirect
 	google.golang.org/api v0.7.0
 	google.golang.org/appengine v1.6.1 // indirect
-	google.golang.org/genproto v0.0.0-20190626174449-989357319d63
+	google.golang.org/genproto v0.0.0-20190627203621-eb59cef1c072
 	google.golang.org/grpc v1.21.1
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/inf.v0 v0.9.1 // indirect
@@ -129,11 +131,12 @@ require (
 	gopkg.in/unrolled/secure.v1 v1.0.0
 	gopkg.in/yaml.v2 v2.2.2
 	honnef.co/go/tools v0.0.0-20190623190502-86b08b5391b7 // indirect
-	k8s.io/api v0.0.0-20190626000116-b178a738ed00 // indirect
-	k8s.io/apimachinery v0.0.0-20190624085041-961b39a1baa0
+	k8s.io/api v0.0.0-20190627205229-acea843d18eb // indirect
+	k8s.io/apimachinery v0.0.0-20190627205106-bc5732d141a8
 	k8s.io/client-go v0.0.0-20190425172711-65184652c889
 	k8s.io/gengo v0.0.0-20190327210449-e17681d19d3a // indirect
 	k8s.io/klog v0.3.3 // indirect
 	k8s.io/kube-openapi v0.0.0-20190603182131-db7b694dc208 // indirect
 	k8s.io/utils v0.0.0-20190607212802-c55fbcfc754a // indirect
+	sigs.k8s.io/structured-merge-diff v0.0.0-20190627180121-0cb33202b0c3 // indirect
 )
