@@ -133,7 +133,7 @@
           "go/go/bin"
         ]
       },
-      "isolate": "empty.isolate",
+      "isolate": "run_recipe.isolate",
       "service_account": "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Housekeeper-OnDemand-Presubmit": {
@@ -194,48 +194,12 @@
         }
       ],
       "command": [
-        "./kitchen${EXECUTABLE_SUFFIX}",
-        "cook",
-        "-checkout-dir",
-        "recipe_bundle",
-        "-mode",
-        "swarming",
-        "-luci-system-account",
-        "system",
-        "-cache-dir",
-        "cache",
-        "-temp-dir",
-        "tmp",
-        "-known-gerrit-host",
-        "android.googlesource.com",
-        "-known-gerrit-host",
-        "boringssl.googlesource.com",
-        "-known-gerrit-host",
-        "chromium.googlesource.com",
-        "-known-gerrit-host",
-        "dart.googlesource.com",
-        "-known-gerrit-host",
-        "fuchsia.googlesource.com",
-        "-known-gerrit-host",
-        "go.googlesource.com",
-        "-known-gerrit-host",
-        "llvm.googlesource.com",
-        "-known-gerrit-host",
-        "pdfium.googlesource.com",
-        "-known-gerrit-host",
-        "skia.googlesource.com",
-        "-known-gerrit-host",
-        "webrtc.googlesource.com",
-        "-output-result-json",
-        "${ISOLATED_OUTDIR}/build_result_filename",
-        "-workdir",
-        ".",
-        "-recipe",
+        "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "buildbot/infra/bots/run_recipe.py",
+        "${ISOLATED_OUTDIR}",
         "run_presubmit",
-        "-properties",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Housekeeper-OnDemand-Presubmit\",\"category\":\"cq\",\"patch_gerrit_url\":\"https://skia-review.googlesource.com\",\"patch_issue\":\"<(ISSUE)\",\"patch_project\":\"buildbot\",\"patch_ref\":\"refs/changes/<(ISSUE_SHORT)/<(ISSUE)/<(PATCHSET)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"reason\":\"CQ\",\"repo_name\":\"skia_buildbot\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
-        "-logdog-annotation-url",
-        "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildbucket_build_id\":\"<(BUILDBUCKET_BUILD_ID)\",\"buildername\":\"Housekeeper-OnDemand-Presubmit\",\"category\":\"cq\",\"patch_gerrit_url\":\"https://skia-review.googlesource.com\",\"patch_issue\":\"<(ISSUE)\",\"patch_project\":\"buildbot\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"reason\":\"CQ\",\"repo_name\":\"skia_buildbot\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\",\"task_id\":\"<(TASK_ID)\"}",
+        "skia"
       ],
       "dimensions": [
         "pool:Skia",
@@ -254,9 +218,9 @@
         ]
       },
       "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
-      "isolate": "empty.isolate",
+      "isolate": "run_recipe.isolate",
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64": {
@@ -315,6 +279,7 @@
           "go/go/bin"
         ]
       },
+      "idempotent": true,
       "isolate": "whole_repo.isolate"
     },
     "Housekeeper-PerCommit-BuildTaskDrivers-Win-x86_64": {
@@ -373,6 +338,7 @@
           "go/go/bin"
         ]
       },
+      "idempotent": true,
       "isolate": "whole_repo.isolate"
     },
     "Housekeeper-PerCommit-BundleRecipes": {
@@ -421,7 +387,8 @@
           "cipd_bin_packages/bin"
         ]
       },
-      "isolate": "infrabots.isolate"
+      "idempotent": true,
+      "isolate": "recipes.isolate"
     },
     "Infra-Experimental-Small-Linux": {
       "caches": [
@@ -666,48 +633,12 @@
         }
       ],
       "command": [
-        "./kitchen${EXECUTABLE_SUFFIX}",
-        "cook",
-        "-checkout-dir",
-        "recipe_bundle",
-        "-mode",
-        "swarming",
-        "-luci-system-account",
-        "system",
-        "-cache-dir",
-        "cache",
-        "-temp-dir",
-        "tmp",
-        "-known-gerrit-host",
-        "android.googlesource.com",
-        "-known-gerrit-host",
-        "boringssl.googlesource.com",
-        "-known-gerrit-host",
-        "chromium.googlesource.com",
-        "-known-gerrit-host",
-        "dart.googlesource.com",
-        "-known-gerrit-host",
-        "fuchsia.googlesource.com",
-        "-known-gerrit-host",
-        "go.googlesource.com",
-        "-known-gerrit-host",
-        "llvm.googlesource.com",
-        "-known-gerrit-host",
-        "pdfium.googlesource.com",
-        "-known-gerrit-host",
-        "skia.googlesource.com",
-        "-known-gerrit-host",
-        "webrtc.googlesource.com",
-        "-output-result-json",
-        "${ISOLATED_OUTDIR}/build_result_filename",
-        "-workdir",
-        ".",
-        "-recipe",
+        "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "buildbot/infra/bots/run_recipe.py",
+        "${ISOLATED_OUTDIR}",
         "swarm_infra",
-        "-properties",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Build\",\"patch_issue\":\"<(ISSUE)\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
-        "-logdog-annotation-url",
-        "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Build\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
+        "skia"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BundleRecipes"
@@ -729,7 +660,7 @@
         ]
       },
       "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
       "isolate": "whole_repo.isolate",
       "max_attempts": 2,
@@ -813,48 +744,12 @@
         }
       ],
       "command": [
-        "./kitchen${EXECUTABLE_SUFFIX}",
-        "cook",
-        "-checkout-dir",
-        "recipe_bundle",
-        "-mode",
-        "swarming",
-        "-luci-system-account",
-        "system",
-        "-cache-dir",
-        "cache",
-        "-temp-dir",
-        "tmp",
-        "-known-gerrit-host",
-        "android.googlesource.com",
-        "-known-gerrit-host",
-        "boringssl.googlesource.com",
-        "-known-gerrit-host",
-        "chromium.googlesource.com",
-        "-known-gerrit-host",
-        "dart.googlesource.com",
-        "-known-gerrit-host",
-        "fuchsia.googlesource.com",
-        "-known-gerrit-host",
-        "go.googlesource.com",
-        "-known-gerrit-host",
-        "llvm.googlesource.com",
-        "-known-gerrit-host",
-        "pdfium.googlesource.com",
-        "-known-gerrit-host",
-        "skia.googlesource.com",
-        "-known-gerrit-host",
-        "webrtc.googlesource.com",
-        "-output-result-json",
-        "${ISOLATED_OUTDIR}/build_result_filename",
-        "-workdir",
-        ".",
-        "-recipe",
+        "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "buildbot/infra/bots/run_recipe.py",
+        "${ISOLATED_OUTDIR}",
         "swarm_infra",
-        "-properties",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Large\",\"patch_issue\":\"<(ISSUE)\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
-        "-logdog-annotation-url",
-        "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Large\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
+        "skia"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BundleRecipes"
@@ -876,7 +771,7 @@
         ]
       },
       "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
       "isolate": "whole_repo.isolate",
       "max_attempts": 2,
@@ -950,48 +845,12 @@
         }
       ],
       "command": [
-        "./kitchen${EXECUTABLE_SUFFIX}",
-        "cook",
-        "-checkout-dir",
-        "recipe_bundle",
-        "-mode",
-        "swarming",
-        "-luci-system-account",
-        "system",
-        "-cache-dir",
-        "cache",
-        "-temp-dir",
-        "tmp",
-        "-known-gerrit-host",
-        "android.googlesource.com",
-        "-known-gerrit-host",
-        "boringssl.googlesource.com",
-        "-known-gerrit-host",
-        "chromium.googlesource.com",
-        "-known-gerrit-host",
-        "dart.googlesource.com",
-        "-known-gerrit-host",
-        "fuchsia.googlesource.com",
-        "-known-gerrit-host",
-        "go.googlesource.com",
-        "-known-gerrit-host",
-        "llvm.googlesource.com",
-        "-known-gerrit-host",
-        "pdfium.googlesource.com",
-        "-known-gerrit-host",
-        "skia.googlesource.com",
-        "-known-gerrit-host",
-        "webrtc.googlesource.com",
-        "-output-result-json",
-        "${ISOLATED_OUTDIR}/build_result_filename",
-        "-workdir",
-        ".",
-        "-recipe",
+        "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "buildbot/infra/bots/run_recipe.py",
+        "${ISOLATED_OUTDIR}",
         "swarm_infra",
-        "-properties",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Medium\",\"patch_issue\":\"<(ISSUE)\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
-        "-logdog-annotation-url",
-        "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Medium\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
+        "skia"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BundleRecipes"
@@ -1013,7 +872,7 @@
         ]
       },
       "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
       "isolate": "whole_repo.isolate",
       "max_attempts": 2,
@@ -1092,48 +951,12 @@
         }
       ],
       "command": [
-        "./kitchen${EXECUTABLE_SUFFIX}",
-        "cook",
-        "-checkout-dir",
-        "recipe_bundle",
-        "-mode",
-        "swarming",
-        "-luci-system-account",
-        "system",
-        "-cache-dir",
-        "cache",
-        "-temp-dir",
-        "tmp",
-        "-known-gerrit-host",
-        "android.googlesource.com",
-        "-known-gerrit-host",
-        "boringssl.googlesource.com",
-        "-known-gerrit-host",
-        "chromium.googlesource.com",
-        "-known-gerrit-host",
-        "dart.googlesource.com",
-        "-known-gerrit-host",
-        "fuchsia.googlesource.com",
-        "-known-gerrit-host",
-        "go.googlesource.com",
-        "-known-gerrit-host",
-        "llvm.googlesource.com",
-        "-known-gerrit-host",
-        "pdfium.googlesource.com",
-        "-known-gerrit-host",
-        "skia.googlesource.com",
-        "-known-gerrit-host",
-        "webrtc.googlesource.com",
-        "-output-result-json",
-        "${ISOLATED_OUTDIR}/build_result_filename",
-        "-workdir",
-        ".",
-        "-recipe",
+        "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "buildbot/infra/bots/run_recipe.py",
+        "${ISOLATED_OUTDIR}",
         "swarm_infra",
-        "-properties",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Race\",\"patch_issue\":\"<(ISSUE)\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
-        "-logdog-annotation-url",
-        "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Race\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
+        "skia"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BundleRecipes"
@@ -1155,7 +978,7 @@
         ]
       },
       "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
       "io_timeout_ns": 3600000000000,
       "isolate": "whole_repo.isolate",
@@ -1230,48 +1053,12 @@
         }
       ],
       "command": [
-        "./kitchen${EXECUTABLE_SUFFIX}",
-        "cook",
-        "-checkout-dir",
-        "recipe_bundle",
-        "-mode",
-        "swarming",
-        "-luci-system-account",
-        "system",
-        "-cache-dir",
-        "cache",
-        "-temp-dir",
-        "tmp",
-        "-known-gerrit-host",
-        "android.googlesource.com",
-        "-known-gerrit-host",
-        "boringssl.googlesource.com",
-        "-known-gerrit-host",
-        "chromium.googlesource.com",
-        "-known-gerrit-host",
-        "dart.googlesource.com",
-        "-known-gerrit-host",
-        "fuchsia.googlesource.com",
-        "-known-gerrit-host",
-        "go.googlesource.com",
-        "-known-gerrit-host",
-        "llvm.googlesource.com",
-        "-known-gerrit-host",
-        "pdfium.googlesource.com",
-        "-known-gerrit-host",
-        "skia.googlesource.com",
-        "-known-gerrit-host",
-        "webrtc.googlesource.com",
-        "-output-result-json",
-        "${ISOLATED_OUTDIR}/build_result_filename",
-        "-workdir",
-        ".",
-        "-recipe",
+        "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "buildbot/infra/bots/run_recipe.py",
+        "${ISOLATED_OUTDIR}",
         "swarm_infra",
-        "-properties",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Small\",\"patch_issue\":\"<(ISSUE)\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
-        "-logdog-annotation-url",
-        "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Small\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
+        "skia"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BundleRecipes"
@@ -1293,7 +1080,7 @@
         ]
       },
       "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
       "isolate": "whole_repo.isolate",
       "max_attempts": 2,
