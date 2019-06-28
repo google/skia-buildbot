@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "bc51c60c_94f600dd",
+        "filename": "perf/modules/triage2-sk/triage2-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-06-28T13:07:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2acc83b5_85e55882",
+      "range": {
+        "startLine": 23,
+        "startChar": 35,
+        "endLine": 23,
+        "endChar": 37
+      },
+      "revId": "ae09ac538e8628cd1bd7776308c8c5a51a83704a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9909dc9e_4db2f514",
         "filename": "perf/modules/triage2-sk/triage2-sk.js",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2019-06-28T11:21:20Z",
       "side": 1,
       "message": "There\u0027s no default constructor which does this?",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 3
+      },
+      "revId": "ae09ac538e8628cd1bd7776308c8c5a51a83704a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4553256_4f4f0aa6",
+        "filename": "perf/modules/triage2-sk/triage2-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-06-28T13:07:37Z",
+      "side": 1,
+      "message": "No. https://html.spec.whatwg.org/multipage/custom-elements.html#custom-element-conformance",
+      "parentUuid": "9909dc9e_4db2f514",
       "range": {
         "startLine": 38,
         "startChar": 0,
@@ -68,6 +116,30 @@
       "revId": "ae09ac538e8628cd1bd7776308c8c5a51a83704a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60a774d7_a671fe03",
+        "filename": "perf/modules/triage2-sk/triage2-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-06-28T13:07:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "954d9347_f28b523d",
+      "range": {
+        "startLine": 14,
+        "startChar": 58,
+        "endLine": 14,
+        "endChar": 59
+      },
+      "revId": "ae09ac538e8628cd1bd7776308c8c5a51a83704a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
