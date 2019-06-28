@@ -29,6 +29,8 @@ const (
 	DEFAULT_OS_LINUX = "Debian-9.8"
 	DEFAULT_OS_WIN   = "Windows-2016Server-14393"
 
+	LOGDOG_ANNOTATION_URL = "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
+
 	// Small is a 2-core machine.
 	MACHINE_TYPE_SMALL = "n1-highmem-2"
 	// Medium is a 16-core machine
@@ -41,8 +43,6 @@ const (
 
 	// Pool for Skia bots.
 	POOL_SKIA = "Skia"
-
-	PROJECT = "skia"
 
 	SERVICE_ACCOUNT_COMPILE       = "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
 	SERVICE_ACCOUNT_RECREATE_SKPS = "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com"
@@ -133,7 +133,20 @@ var (
 		},
 	}
 
-	LOGDOG_ANNOTATION_URL = fmt.Sprintf("logdog://logs.chromium.org/%s/%s/+/annotations", PROJECT, specs.PLACEHOLDER_TASK_ID)
+	// These properties are required by some tasks, eg. for running
+	// bot_update, but they prevent de-duplication, so they should only be
+	// used where necessary.
+	EXTRA_PROPS = map[string]string{
+		"buildbucket_build_id": specs.PLACEHOLDER_BUILDBUCKET_BUILD_ID,
+		"patch_issue":          specs.PLACEHOLDER_ISSUE,
+		"patch_ref":            specs.PLACEHOLDER_PATCH_REF,
+		"patch_repo":           specs.PLACEHOLDER_PATCH_REPO,
+		"patch_set":            specs.PLACEHOLDER_PATCHSET,
+		"patch_storage":        specs.PLACEHOLDER_PATCH_STORAGE,
+		"repository":           specs.PLACEHOLDER_REPO,
+		"revision":             specs.PLACEHOLDER_REVISION,
+		"task_id":              specs.PLACEHOLDER_TASK_ID,
+	}
 )
 
 // relpath returns the relative path to the given file from the config file.
@@ -208,7 +221,8 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin"},
 		},
-		Isolate: "infrabots.isolate",
+		Idempotent: true,
+		Isolate:    "recipes.isolate",
 	})
 	return BUNDLE_RECIPES_NAME
 }
@@ -241,7 +255,10 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
-		Isolate: "whole_repo.isolate",
+		// This task is idempotent but unlikely to ever be deduped
+		// because it depends on the entire repo...
+		Idempotent: true,
+		Isolate:    "whole_repo.isolate",
 	})
 	return name
 
@@ -253,13 +270,6 @@ func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []stri
 	cipd := append([]*specs.CipdPackage{}, CIPD_PKGS_KITCHEN...)
 	properties := map[string]string{
 		"buildername":   name,
-		"patch_issue":   specs.PLACEHOLDER_ISSUE,
-		"patch_ref":     specs.PLACEHOLDER_PATCH_REF,
-		"patch_repo":    specs.PLACEHOLDER_PATCH_REPO,
-		"patch_set":     specs.PLACEHOLDER_PATCHSET,
-		"patch_storage": specs.PLACEHOLDER_PATCH_STORAGE,
-		"repository":    specs.PLACEHOLDER_REPO,
-		"revision":      specs.PLACEHOLDER_REVISION,
 		"swarm_out_dir": specs.PLACEHOLDER_ISOLATED_OUTDIR,
 	}
 	for k, v := range extraProps {
@@ -269,6 +279,7 @@ func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []stri
 	if outputDir != OUTPUT_NONE {
 		outputs = []string{outputDir}
 	}
+	python := "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}"
 	return &specs.TaskSpec{
 		Caches: []*specs.Cache{
 			{
@@ -277,29 +288,7 @@ func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []stri
 			},
 		},
 		CipdPackages: cipd,
-		Command: []string{
-			"./kitchen${EXECUTABLE_SUFFIX}", "cook",
-			"-checkout-dir", "recipe_bundle",
-			"-mode", "swarming",
-			"-luci-system-account", "system",
-			"-cache-dir", "cache",
-			"-temp-dir", "tmp",
-			"-known-gerrit-host", "android.googlesource.com",
-			"-known-gerrit-host", "boringssl.googlesource.com",
-			"-known-gerrit-host", "chromium.googlesource.com",
-			"-known-gerrit-host", "dart.googlesource.com",
-			"-known-gerrit-host", "fuchsia.googlesource.com",
-			"-known-gerrit-host", "go.googlesource.com",
-			"-known-gerrit-host", "llvm.googlesource.com",
-			"-known-gerrit-host", "pdfium.googlesource.com",
-			"-known-gerrit-host", "skia.googlesource.com",
-			"-known-gerrit-host", "webrtc.googlesource.com",
-			"-output-result-json", "${ISOLATED_OUTDIR}/build_result_filename",
-			"-workdir", ".",
-			"-recipe", recipe,
-			"-properties", props(properties),
-			"-logdog-annotation-url", LOGDOG_ANNOTATION_URL,
-		},
+		Command:      []string{python, "buildbot/infra/bots/run_recipe.py", "${ISOLATED_OUTDIR}", recipe, props(properties), "skia"},
 		Dependencies: []string{BUNDLE_RECIPES_NAME},
 		Dimensions:   dimensions,
 		EnvPrefixes: map[string][]string{
@@ -358,7 +347,10 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 		"reason":           "CQ",
 		"repo_name":        "skia_buildbot",
 	}
-	task := kitchenTask(name, "run_presubmit", "empty.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(MACHINE_TYPE_MEDIUM), extraProps, OUTPUT_NONE)
+	for k, v := range EXTRA_PROPS {
+		extraProps[k] = v
+	}
+	task := kitchenTask(name, "run_presubmit", "run_recipe.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(MACHINE_TYPE_MEDIUM), extraProps, OUTPUT_NONE)
 	task.Caches = append(task.Caches, []*specs.Cache{
 		{
 			Name: "git",
@@ -459,7 +451,7 @@ func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
-		Isolate:        "empty.isolate",
+		Isolate:        "run_recipe.isolate",
 		ServiceAccount: SERVICE_ACCOUNT_RECREATE_SKPS,
 	}
 	b.MustAddTask(name, t)
