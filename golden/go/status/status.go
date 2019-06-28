@@ -138,11 +138,13 @@ func (s *StatusWatcher) updateLastCommitAge() {
 		sklog.Warningf("skipping updateLastCommitAge because VCS not set up")
 		return
 	}
-	commitsFromLast := s.VCS.Range(time.Unix(st.LastCommit.CommitTime, 0), time.Now())
+	// Start looking one second after the commit we know about to avoid erroneously
+	// alerting when two commits land in the same second.
+	commitsFromLast := s.VCS.Range(time.Unix(st.LastCommit.CommitTime+1, 0), time.Now())
 	uningestedCommitAgeMetric := metrics2.GetInt64Metric("gold_last_commit_age_s", map[string]string{
 		"type": "with_new_commit",
 	})
-	if len(commitsFromLast) <= 1 {
+	if len(commitsFromLast) == 0 {
 		uningestedCommitAgeMetric.Update(0)
 	} else {
 		uningestedCommitAgeMetric.Update(time.Now().Unix() - commitsFromLast[1].Timestamp.Unix())
