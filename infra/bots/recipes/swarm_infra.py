@@ -68,7 +68,16 @@ def RunSteps(api):
   }
   with api.context(cwd=infra_dir, env=env):
     api.step('which go', cmd=['which', 'go'])
-    api.step('go mod download', cmd=['go', 'mod', 'download'])
+    downloadExc = None
+    for _ in range(3):
+      try:
+        api.step('go mod download', cmd=['go', 'mod', 'download'])
+        break
+      except api.step.StepFailure as e:
+        downloadExc = e
+    else:  # pragma: nocover
+      raise downloadExc  # pylint:disable=raising-bad-type
+
     install_targets = [
       'github.com/golang/protobuf/protoc-gen-go',
       'github.com/kisielk/errcheck',
@@ -132,7 +141,8 @@ def GenTests(api):
   yield (
       api.test('Infra-PerCommit') +
       api.properties(buildername='Infra-PerCommit-Small',
-                     path_config='kitchen')
+                     path_config='kitchen') +
+      api.step_data('go mod download', retcode=1)
   )
   yield (
       api.test('Infra-PerCommit_initialcheckout') +

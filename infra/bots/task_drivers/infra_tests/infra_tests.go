@@ -95,7 +95,14 @@ func main() {
 	sklog.Infof("Go version %s", goVer)
 
 	// Sync dependencies.
-	if err := golang.ModDownload(ctx, infraDir); err != nil {
+	var modErr error
+	for i := 0; i < 3; i++ {
+		modErr = golang.ModDownload(ctx, infraDir)
+		if modErr == nil {
+			break
+		}
+	}
+	if modErr != nil {
 		td.Fatal(ctx, err)
 	}
 	if err := golang.InstallCommonDeps(ctx, infraDir); err != nil {
