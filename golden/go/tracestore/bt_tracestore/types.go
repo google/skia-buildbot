@@ -89,8 +89,13 @@ type encodedTraceID string
 type encTile struct {
 	// maps a trace id to the list of digests. The list corresponds to the commits, with index
 	// 0 being the oldest commit and the last commit being the most recent.
-	traces map[encodedTraceID][]types.Digest
+	traces []encodedTracePair
 	ops    *paramtools.OrderedParamSet
+}
+
+type encodedTracePair struct {
+	ID      encodedTraceID
+	Digests [DefaultTileSize]types.Digest
 }
 
 // When ingesting we keep a cache of the OrderedParamSets we have seen per-tile.
@@ -168,12 +173,27 @@ func (t traceMap) CommitIndicesWithData() []int {
 		numCommits = len(gt.Digests)
 		break
 	}
-	var haveData []int
+	haveData := make([]int, 0, numCommits)
 	for i := 0; i < numCommits; i++ {
 		for _, trace := range t {
 			gt := trace.(*types.GoldenTrace)
-			if !gt.IsMissing(i) {
+			// The naive approach of simply checking commit i
+			// for each trace doesn't scale well. kjlubick believes
+			// this is because each time a new trace is iterated over,
+			// it requires loading the entire trace (array of digests)
+			// from RAM to L1 cache, and when those get big, there is
+			// a lot of cache thrashing. A simple optimization is to
+			// check for streaks of non-missing data, which makes use
+			// of the trace already in cache.
+			// Benchmarks show this improves the dense case by 5x and
+			// the sparse case by 2x.
+			foundOne := false
+			for i < numCommits && !gt.IsMissing(i) {
 				haveData = append(haveData, i)
+				foundOne = true
+				i++
+			}
+			if foundOne {
 				break
 			}
 		}
