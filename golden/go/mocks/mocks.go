@@ -18,7 +18,7 @@ func NewMockTileSourceFromJson(t assert.TestingT, fname string) *TileSource {
 
 	mts := &TileSource{}
 	cpxTile := types.NewComplexTile(tile)
-	cpxTile.SetSparse(tile.Commits, nil)
+	cpxTile.SetSparse(tile.Commits)
 	mts.On("GetTile").Return(cpxTile, nil)
 	return mts
 }

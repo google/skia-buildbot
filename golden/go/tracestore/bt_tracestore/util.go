@@ -62,12 +62,24 @@ func toBytes(d types.Digest) []byte {
 	return b
 }
 
-// fromBytes does the opposite of toBytes.
-func fromBytes(b []byte) types.Digest {
+// encodeToHex transforms the given bytes into a hex-encoded byte stream in the
+// allocated bytes. This allows us to allocate all the digests at once instead of
+// individually.
+func encodeToHex(src, dst []byte) {
 	// Be extra cautious - if we don't have enough bytes for an md5 hash,
 	// just assume it's corrupted or something and say missing.
-	if len(b) != md5.Size {
-		return types.MISSING_DIGEST
+	if len(src) != md5.Size {
+		copy(dst, missingDigestBytes)
+		return
 	}
-	return types.Digest(hex.EncodeToString(b))
+	hex.Encode(dst, src)
+}
+
+func hexToDigest(db digestBytes) types.Digest {
+	for _, b := range db {
+		if b != 0 {
+			return types.Digest(db[:])
+		}
+	}
+	return types.MISSING_DIGEST
 }

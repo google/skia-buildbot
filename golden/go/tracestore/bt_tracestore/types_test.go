@@ -1,10 +1,13 @@
 package bt_tracestore
 
 import (
+	"crypto/md5"
+	"math/rand"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -39,9 +42,9 @@ func TestTraceMapCommitIndicesWithData(t *testing.T) {
 			},
 		},
 	}
-	assert.Nil(t, empty.CommitIndicesWithData())
+	assert.Empty(t, empty.CommitIndicesWithData())
 
-	assert.Nil(t, traceMap{}.CommitIndicesWithData())
+	assert.Empty(t, traceMap{}.CommitIndicesWithData())
 }
 
 func TestTraceMapMakeFromCommitIndexes(t *testing.T) {
@@ -152,3 +155,55 @@ const (
 	BetaDigest  = types.Digest("bbb15c047d150d961573062854f35a55")
 	GammaDigest = types.Digest("cccd42f3ee0b02687f63963adb36a580")
 )
+
+var benchResult []int
+
+func BenchmarkCommitIndicesWithDataDense(b *testing.B) {
+	tm := makeRandomTraceMap(0.9)
+	b.ResetTimer()
+	var r []int
+	for n := 0; n < b.N; n++ {
+		r = tm.CommitIndicesWithData()
+	}
+	benchResult = r
+}
+
+func BenchmarkCommitIndicesWithDataSparse(b *testing.B) {
+	tm := makeRandomTraceMap(0.1)
+	b.ResetTimer()
+	var r []int
+	for n := 0; n < b.N; n++ {
+		r = tm.CommitIndicesWithData()
+	}
+	benchResult = r
+}
+
+const numTraces = 10000
+const numCommits = 500
+
+func makeRandomTraceMap(density float32) traceMap {
+	rand.Seed(0)
+	tm := make(traceMap, numTraces)
+	for i := 0; i < numTraces; i++ {
+		traceID := tiling.TraceId(randomDigest()) // any string should do
+		gt := &types.GoldenTrace{
+			// Keys can be blank for the CommitIndicesWithData bench
+			Digests: make([]types.Digest, numCommits),
+		}
+		for j := 0; j < numCommits; j++ {
+			if rand.Float32() < density {
+				gt.Digests[j] = randomDigest()
+			} else {
+				gt.Digests[j] = types.MISSING_DIGEST
+			}
+		}
+		tm[traceID] = gt
+	}
+	return tm
+}
+
+func randomDigest() types.Digest {
+	b := make([]byte, md5.Size)
+	_, _ = rand.Read(b)
+	return fromBytesHelper(b)
+}
