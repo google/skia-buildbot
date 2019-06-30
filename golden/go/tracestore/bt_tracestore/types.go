@@ -3,6 +3,8 @@ package bt_tracestore
 import (
 	"crypto/md5"
 	"fmt"
+	"runtime"
+	"sync"
 	"time"
 
 	"cloud.google.com/go/bigtable"
@@ -64,7 +66,7 @@ const (
 
 var (
 	// missingDigestBytes is the sentinel for types.MISSING_DIGEST
-	missingDigestBytes = []byte{0}
+	missingDigestBytes = []byte("")
 )
 
 // List of families (conceptually similar to tables) we are creating in BT.
@@ -85,12 +87,21 @@ type tileKey int32
 // See params.paramsEncoder
 type encodedTraceID string
 
+// The number of bytes required to store the hex encoded md5 digest are
+// twice the normal bytes for the hash.
+type digestBytes [md5.Size * 2]byte
+
 // encTile contains an encoded tile.
 type encTile struct {
 	// maps a trace id to the list of digests. The list corresponds to the commits, with index
 	// 0 being the oldest commit and the last commit being the most recent.
-	traces map[encodedTraceID][]types.Digest
+	traces []encodedTracePair
 	ops    *paramtools.OrderedParamSet
+}
+
+type encodedTracePair struct {
+	ID      encodedTraceID
+	Digests [DefaultTileSize]digestBytes
 }
 
 // When ingesting we keep a cache of the OrderedParamSets we have seen per-tile.
@@ -158,6 +169,22 @@ type traceMap map[tiling.TraceId]tiling.Trace
 
 // CommitIndicesWithData returns the indexes of the commits with at least one non-missing
 // digest in at least one trace.
+// This is pretty expensive, as in the worst case, it will have to go through all digests of
+// all traces. There are two primary optimizations going on here, one for the dense case (i.e
+// most traces have data), and one for the sparse case (most traces are empty).
+//
+// The dense case optimization is: once a trace has been found with data, keep checking that
+// trace's digests to see if they are full until we find one w/o data, then restart from the
+// top of the iteration. This increased performance by 60x (!) over the naive implementation in
+// benchmarks for the dense case (1.5x for the sparse case). kjlubick theorizes each time a new
+// trace is iterated over, it requires loading a large number of digests from RAM to
+// L1 cache, and when those get big, there is a lot of cache thrashing.
+//
+// The sparse case optimization is: break the work up into chunks and run each chunk on a
+// goroutine. That way all the CPUs can get involved searching every trace (if needed).
+// Finding the best params for breaking the data up is potentially tricky, so right now we do
+// the naive thing and break it up based on the number of CPUs. On a 4 core laptop, this improved
+// the sparse case by 2x and the dense case by 1.5x over the naive implementation.
 func (t traceMap) CommitIndicesWithData() []int {
 	if len(t) == 0 {
 		return nil
@@ -168,17 +195,40 @@ func (t traceMap) CommitIndicesWithData() []int {
 		numCommits = len(gt.Digests)
 		break
 	}
-	var haveData []int
-	for i := 0; i < numCommits; i++ {
-		for _, trace := range t {
-			gt := trace.(*types.GoldenTrace)
-			if !gt.IsMissing(i) {
-				haveData = append(haveData, i)
-				break
+	chunkSize := numCommits / runtime.NumCPU()
+	wg := sync.WaitGroup{}
+	// store data to a slice of bools so we can safely share it between the goroutines without
+	// a mutex (which had some contention problems in the dense case).
+	haveData := make([]bool, numCommits)
+	for i := 0; i < numCommits; i += chunkSize {
+		wg.Add(1)
+		go func(start int) {
+			defer wg.Done()
+			for i := start; i < start+chunkSize; i++ {
+				for _, trace := range t {
+					gt := trace.(*types.GoldenTrace)
+					foundOne := false
+					for i < (start+chunkSize) && i < numCommits && !gt.IsMissing(i) {
+						haveData[i] = true
+						foundOne = true
+						i++
+					}
+					if foundOne {
+						// restart from the top of the traces to look for a digest at index i.
+						break
+					}
+				}
 			}
+		}(i)
+	}
+	wg.Wait()
+	var indices []int
+	for i, b := range haveData {
+		if b {
+			indices = append(indices, i)
 		}
 	}
-	return haveData
+	return indices
 }
 
 // MakeFromCommitIndexes creates a new traceMap from the data in this one that
