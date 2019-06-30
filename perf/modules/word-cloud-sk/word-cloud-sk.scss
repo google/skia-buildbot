@@ -2,6 +2,7 @@
 
 word-cloud-sk {
   display: flex;
+  flex-flow: row wrap;
 
   .param {
     margin:  0.6em;

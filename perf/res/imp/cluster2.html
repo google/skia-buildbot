@@ -61,7 +61,6 @@
 <link rel="stylesheet" href="/res/common/css/md.css">
 
 <link rel="import" href="/res/imp/commit-detail-panel.html" />
-<link rel="import" href="/res/imp/word-cloud2.html">
 
 <dom-module id="cluster-summary2-sk">
   <style include="iron-flex iron-flex-alignment">
@@ -181,7 +180,7 @@
           <button on-click="_toggleWordCloud">Word Cloud</button>
         </div>
         <collapse-sk id=wordCloudCollapse closed>
-          <word-cloud2-sk id=wordcloud items="[[_summary.param_summaries]]"></word-cloud2-sk>
+          <word-cloud-sk id=wordcloud items="[[_summary.param_summaries]]"></word-cloud-sk>
         </collapse-sk>
       </div>
       <div>

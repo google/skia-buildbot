@@ -22,6 +22,59 @@ const template = (ele) => ele._items.map((item) => html`
   </div>
   `);
 
+/**
+ * Converts from the Object format to the Array format for word clouds.
+ * I.e. converts:
+ *
+ *
+ * From:
+ *
+ *   {
+ *     "config": [
+ *       {value:"565", weight: 20},
+ *       {value:"8888", weight: 11},
+ *     ],
+ *     "cpu_or_gpu": [
+ *       {value:"cpu", weight: 24},
+ *       {value:"gpu", weight: 8},
+ *     ]
+ *   }
+ *
+ * To:
+ *
+ *   [
+ *     {
+ *       name: "config",
+ *       values: [
+ *         {value:"565", weight: 20},
+ *         {value:"8888", weight: 11},
+ *       ],
+ *     },
+ *     {
+ *       name: "cpu_or_gpu",
+ *       values: [
+ *         {value:"cpu", weight: 24},
+ *         {value:"gpu", weight: 8},
+ *       ],
+ *     },
+ *   ];
+ *
+ *
+ */
+export function _convertToArray(val) {
+  let ret = [];
+  Object.keys(val).forEach((key) => {
+    ret.push(
+      {
+        name: key,
+        values: val[key],
+      }
+    )
+  });
+  ret.sort((a,b) => b.values[0].weight - a.values[0].weight);
+  return ret;
+}
+
 window.customElements.define('word-cloud-sk', class extends HTMLElement {
   constructor() {
     super();
@@ -58,6 +111,12 @@ window.customElements.define('word-cloud-sk', class extends HTMLElement {
   */
   get items() { return this._items }
   set items(val) {
+    if (val === undefined) { // Polymer might set to undefined. ::shrug::
+      return
+    }
+    if (!Array.isArray(val)){
+      val = _convertToArray(val);
+    }
     this._items = val;
     this._render();
   }
