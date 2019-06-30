@@ -1,27 +1,20 @@
+<!DOCTYPE html>
 <html>
-<head>
-  <title>plot-simple-sk demo</title>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
-  <script src="/res/common/js/common.js"></script>
-  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
-  <script src="/nm/chart.js/dist/Chart.bundle.min.js"></script>
-  <script src="/nm/chartjs-plugin-annotation/chartjs-plugin-annotation.js"></script>
-  <script src="/nm/chartjs-plugin-zoom/chartjs-plugin-zoom.js"></script>
-  <link rel="stylesheet" href="/res/common/css/md.css">
-  <link rel="import" href="/res/imp/bower_components/polymer/polymer.html">
-  <link rel="import" href="plot-simple.html">
-  <style type="text/css" media="screen">
-    button {
-      display: inline-block;
-    }
+  <head>
+    <title>plot-simple</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style type="text/css" media="screen">
+      button {
+        display: inline-block;
+      }
 
-    plot-simple-sk {
-      display: block;
-    }
-  </style>
-</head>
+      plot-simple-sk {
+        display: block;
+      }
+    </style>
+  </head>
 <body>
   <h1>Plot</h1>
   <div>
@@ -45,8 +38,9 @@
   </table>
 
   <script type="text/javascript" charset="utf-8">
-    (function () {
-      var ele = $$$('#plot');
+    window.customElements.whenDefined('plot-simple-sk').then(() => {
+      const $$ = (query, ele = document) => ele.querySelector(query);
+      var ele = $$('#plot');
       var n = 0;
 
       function add() {
@@ -70,60 +64,58 @@
 
       add();
 
-      $$$('#add').addEventListener('click', function() {
+      $$('#add').addEventListener('click', function() {
         add();
       });
 
-      $$$('#clear').addEventListener('click', function() {
+      $$('#clear').addEventListener('click', function() {
         ele.removeAll();
       });
 
-      $$$('#reset').addEventListener('click', function() {
+      $$('#reset').addEventListener('click', function() {
         ele.resetAxes();
       });
 
-      $$$('#high').addEventListener('click', function(e) {
+      $$('#high').addEventListener('click', function(e) {
         ele.setHighlight(["trace" + n, "trace" + (n-1)]);
       });
 
-      $$$('#clearhigh').addEventListener('click', function(e) {
+      $$('#clearhigh').addEventListener('click', function(e) {
         ele.clearHighlight();
       });
 
-      $$$('#xbar').addEventListener('click', function(e) {
+      $$('#xbar').addEventListener('click', function(e) {
         ele.setXBar(3);
       });
 
-      $$$('#clearxbar').addEventListener('click', function(e) {
+      $$('#clearxbar').addEventListener('click', function(e) {
         ele.clearXBar();
       });
 
-      $$$('#plot').addEventListener('trace_selected', function(e) {
-        $$$('#selected').textContent = JSON.stringify(e.detail);
+      $$('#plot').addEventListener('trace_selected', function(e) {
+        $$('#selected').textContent = JSON.stringify(e.detail);
       });
 
-      $$$('#plot').addEventListener('trace_focused', function(e) {
-        $$$('#focused').textContent = JSON.stringify(e.detail);
+      $$('#plot').addEventListener('trace_focused', function(e) {
+        $$('#focused').textContent = JSON.stringify(e.detail);
       });
 
-      $$$('#plot').addEventListener('zoom', function(e) {
-        $$$('#zoom').textContent = JSON.stringify(e.detail);
+      $$('#plot').addEventListener('zoom', function(e) {
+        $$('#zoom').textContent = JSON.stringify(e.detail);
       });
 
-      $$$('#bands').addEventListener('click', function(e) {
+      $$('#bands').addEventListener('click', function(e) {
         ele.setBanding([[1, 4], [20, 30]]);
       });
 
-      $$$('#special').addEventListener('click', function(e) {
+      $$('#special').addEventListener('click', function(e) {
         var trace = [];
         for (var i = 0; i < 50; i++) {
           trace.push([i, 0]);
         }
         ele.addLines({"specialZero": trace});
       });
-
-    })();
+    })
   </script>
-
 </body>
 </html>

@@ -61,7 +61,6 @@
 <link rel="stylesheet" href="/res/common/css/md.css">
 
 <link rel="import" href="/res/imp/commit-detail-panel.html" />
-<link rel="import" href="/res/imp/plot-simple.html">
 <link rel="import" href="/res/imp/word-cloud2.html">
 
 <dom-module id="cluster-summary2-sk">
@@ -230,7 +229,9 @@
       },
 
       _triageChange: function(e) {
-        this.triage.status = e.detail;
+        if (this.triage) {
+          this.triage.status = e.detail;
+        }
       },
 
       _fullSummaryChange: function () {
