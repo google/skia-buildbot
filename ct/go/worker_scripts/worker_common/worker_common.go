@@ -13,8 +13,7 @@ import (
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/skexec"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -41,7 +40,7 @@ func Init(ctx context.Context) {
 			// Add adb to the PATH.
 			skutil.LogErr(os.Setenv("PATH", os.Getenv("PATH")+string(os.PathListSeparator)+"/home/chrome-bot/KOT49H-hammerhead-userdebug-insecure"))
 			// Bring up Xvfb on workers (for GCE instances).
-			if _, _, err := exec.RunIndefinitely(&exec.Command{
+			_ := skexec.RunAsync(&skexec.Command{
 				Name:        "sudo",
 				Args:        []string{"Xvfb", ":0", "-screen", "0", "1280x1024x24"},
 				Env:         []string{},
@@ -51,10 +50,7 @@ func Init(ctx context.Context) {
 				Stdout:      nil,
 				LogStderr:   true,
 				Stderr:      nil,
-			}); err != nil {
-				// CT's baremetal machines will already have an active display 0.
-				sklog.Infof("Could not run Xvfb on Display 0: %s", err)
-			}
+			})
 		}
 	}
 }

@@ -91,7 +91,7 @@ func setup(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []
 				return nil
 			}
 		}
-		return exec.DefaultRun(cmd)
+		return skexec.DefaultRun(cmd)
 	})
 
 	cleanup := func() {
