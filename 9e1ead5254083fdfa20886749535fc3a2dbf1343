@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "35fe4b11_4e6febf8",
+        "filename": "perf/modules/commit-detail-sk/commit-detail-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-01T11:39:17Z",
+      "side": 1,
+      "message": "nit: is this id used?",
+      "range": {
+        "startLine": 16,
+        "startChar": 24,
+        "endLine": 16,
+        "endChar": 30
+      },
+      "revId": "9e1ead5254083fdfa20886749535fc3a2dbf1343",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
