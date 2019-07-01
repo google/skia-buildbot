@@ -1293,7 +1293,7 @@
         ]
       },
       "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
       "isolate": "whole_repo.isolate",
       "max_attempts": 2,
