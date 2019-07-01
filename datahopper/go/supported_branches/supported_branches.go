@@ -176,7 +176,14 @@ func cycle(repos []*gitiles.Repo, oldMetrics map[metrics2.Int64Metric]struct{}, 
 	// Get all of the Swarming bots.
 	bots := []*swarming_api.SwarmingRpcsBotInfo{}
 	for _, pool := range pools {
-		b, err := swarm.ListBotsForPool(pool)
+		call := swarm.SwarmingService().Bots.List()
+		// Copied from apiClient.ListFreeBots. We don't want to count dead or
+		// quarantined bots, but it doesn't matter if they are busy or free at the
+		// moment.
+		call.Dimensions(fmt.Sprintf("%s:%s", swarming.DIMENSION_POOL_KEY, pool))
+		call.IsDead("FALSE")
+		call.Quarantined("FALSE")
+		b, err := swarming.ProcessBotsListCall(call)
 		if err != nil {
 			return nil, err
 		}
