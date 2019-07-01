@@ -1,0 +1,25 @@
+@import '~elements-sk/colors';
+
+commit-detail-sk {
+  a,
+  .linkish {
+    text-decoration: underline;
+    color: var(--blue);
+  }
+
+  pre {
+    font-family: 'Roboto Mono', monospace;
+    margin: 0;
+  }
+
+  .tip {
+    padding: 0.41em;
+    border: solid var(--dark-white) 1px;
+    margin: 0.6em;
+    display: inline-block;
+  }
+
+  .hidden {
+    display: none;
+  }
+}

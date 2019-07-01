@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>word-cloud-sk</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <word-cloud-sk></word-cloud-sk>
+  <script type="text/javascript" charset="utf-8">
+    let items = [
+      {
+        name: "config",
+        values: [
+          {value:"565", weight: 20},
+          {value:"8888", weight: 11},
+        ],
+      },
+      {
+        name: "cpu_or_gpu",
+        values: [
+          {value:"cpu", weight: 24},
+          {value:"gpu", weight: 8},
+        ],
+      },
+      {
+        name: "arch",
+        values: [
+          {value:"x86", weight: 24},
+          {value:"arm", weight: 8},
+        ],
+      },
+    ];
+    document.querySelector('word-cloud-sk').items = items;
+  </script>
+</body>
+</html>

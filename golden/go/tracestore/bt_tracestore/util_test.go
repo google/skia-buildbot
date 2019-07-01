@@ -1,6 +1,7 @@
 package bt_tracestore
 
 import (
+	"crypto/md5"
 	"math"
 	"testing"
 
@@ -54,12 +55,12 @@ func TestDigestBytesSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	assert.Equal(t, missingDigestBytes, toBytes(types.MISSING_DIGEST))
-	assert.Equal(t, types.MISSING_DIGEST, fromBytes(missingDigestBytes))
-	assert.Equal(t, types.MISSING_DIGEST, fromBytes(nil))
-	assert.Equal(t, types.MISSING_DIGEST, fromBytes([]byte{}))
+	assert.Equal(t, types.MISSING_DIGEST, fromBytesHelper(missingDigestBytes))
+	assert.Equal(t, types.MISSING_DIGEST, fromBytesHelper(nil))
+	assert.Equal(t, types.MISSING_DIGEST, fromBytesHelper([]byte{}))
 
 	assert.Equal(t, arbitraryDigestBytes, toBytes(arbitraryDigest))
-	assert.Equal(t, arbitraryDigest, fromBytes(arbitraryDigestBytes))
+	assert.Equal(t, arbitraryDigest, fromBytesHelper(arbitraryDigestBytes))
 }
 
 func TestDigestBytesBadData(t *testing.T) {
@@ -69,7 +70,13 @@ func TestDigestBytesBadData(t *testing.T) {
 	assert.Equal(t, missingDigestBytes, toBytes(corruptDigest))
 
 	assert.Equal(t, missingDigestBytes, toBytes(truncatedDigest))
-	assert.Equal(t, types.MISSING_DIGEST, fromBytes(truncatedDigestBytes))
+	assert.Equal(t, types.MISSING_DIGEST, fromBytesHelper(truncatedDigestBytes))
+}
+
+func fromBytesHelper(input []byte) types.Digest {
+	tmp := [md5.Size * 2]byte{}
+	encodeToHex(input, tmp[:])
+	return hexToDigest(tmp)
 }
 
 const (

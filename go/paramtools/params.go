@@ -29,7 +29,7 @@ func NewParams(key string) Params {
 	parts := strings.Split(key, ",")
 	parts = parts[1 : len(parts)-1]
 	for _, s := range parts {
-		pair := strings.Split(s, "=")
+		pair := strings.SplitN(s, "=", 2)
 		ret[pair[0]] = pair[1]
 	}
 	return ret
@@ -114,7 +114,7 @@ func (p ParamSet) AddParamsFromKey(key string) {
 	parts := strings.Split(key, ",")
 	parts = parts[1 : len(parts)-1]
 	for _, s := range parts {
-		pair := strings.Split(s, "=")
+		pair := strings.SplitN(s, "=", 2)
 		params := p[pair[0]]
 		if !util.In(pair[1], params) {
 			p[pair[0]] = append(params, pair[1])
@@ -372,12 +372,13 @@ type paramsDecoder struct {
 //   ,0=1,1=3,3=0,
 //
 func (p *paramsDecoder) decodeStringToParams(s string) (Params, error) {
-	ret := Params{}
-	for _, pair := range strings.Split(s, ",") {
+	pairs := strings.Split(s, ",")
+	ret := make(Params, len(pairs))
+	for _, pair := range pairs {
 		if pair == "" {
 			continue
 		}
-		parts := strings.Split(pair, "=")
+		parts := strings.SplitN(pair, "=", 2)
 		if len(parts) != 2 {
 			return nil, skerr.Fmt("failed to parse: %s", pair)
 		}
