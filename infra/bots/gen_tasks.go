@@ -269,6 +269,10 @@ func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []stri
 	if outputDir != OUTPUT_NONE {
 		outputs = []string{outputDir}
 	}
+	tempDir := "tmp"
+	if !strings.Contains(name, "Win") {
+		tempDir = "/dev/shm/${SWARMING_TASK_ID}"
+	}
 	return &specs.TaskSpec{
 		Caches: []*specs.Cache{
 			{
@@ -283,7 +287,7 @@ func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []stri
 			"-mode", "swarming",
 			"-luci-system-account", "system",
 			"-cache-dir", "cache",
-			"-temp-dir", "tmp",
+			"-temp-dir", tempDir,
 			"-known-gerrit-host", "android.googlesource.com",
 			"-known-gerrit-host", "boringssl.googlesource.com",
 			"-known-gerrit-host", "chromium.googlesource.com",
