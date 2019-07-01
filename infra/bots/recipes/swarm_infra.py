@@ -7,6 +7,7 @@
 
 
 import json
+import os
 import re
 
 
@@ -49,7 +50,6 @@ def RunSteps(api):
     api.step('git commit',
              cmd=['git', 'commit', '-m', 'Fake commit to satisfy recipe tests'])
 
-  # Fetch Go dependencies.
   env = {
       'CHROME_HEADLESS': '1',
       'GOCACHE': go_cache,
@@ -66,6 +66,13 @@ def RunSteps(api):
           '%(PATH)s',
       ]),
   }
+  if os.path.isdir('/dev/shm'):
+    # Debian provides /dev/shm, a directory writeable by anyone backed by a
+    # tmpfs. Since persistent disks are very slow on GCE, use /dev/shm
+    # as TMPDIR instead.
+    env['TMPDIR'] = '/dev/shm'
+
+  # Fetch Go dependencies.
   with api.context(cwd=infra_dir, env=env):
     api.step('which go', cmd=['which', 'go'])
     api.step('go mod download', cmd=['go', 'mod', 'download'])

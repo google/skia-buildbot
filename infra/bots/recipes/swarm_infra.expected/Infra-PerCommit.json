@@ -39,7 +39,8 @@
       "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>",
+      "TMPDIR": "/dev/shm"
     },
     "name": "which go"
   },
@@ -57,7 +58,8 @@
       "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>",
+      "TMPDIR": "/dev/shm"
     },
     "name": "go mod download"
   },
@@ -76,7 +78,8 @@
       "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>",
+      "TMPDIR": "/dev/shm"
     },
     "name": "go install github.com/golang/protobuf/protoc-gen-go"
   },
@@ -95,7 +98,8 @@
       "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>",
+      "TMPDIR": "/dev/shm"
     },
     "name": "go install github.com/kisielk/errcheck"
   },
@@ -114,7 +118,8 @@
       "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>",
+      "TMPDIR": "/dev/shm"
     },
     "name": "go install golang.org/x/tools/cmd/goimports"
   },
@@ -133,7 +138,8 @@
       "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>",
+      "TMPDIR": "/dev/shm"
     },
     "name": "go install golang.org/x/tools/cmd/stringer"
   },
@@ -152,7 +158,8 @@
       "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>",
+      "TMPDIR": "/dev/shm"
     },
     "name": "go install github.com/vektra/mockery/..."
   },
@@ -172,7 +179,8 @@
       "GOFLAGS": "-mod=readonly",
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>",
+      "TMPDIR": "/dev/shm"
     },
     "name": "install bower"
   },
@@ -193,7 +201,8 @@
       "GOPATH": "[START_DIR]/cache/gopath",
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>:[DEPOT_TOOLS]",
-      "SKIABOT_TEST_DEPOT_TOOLS": "[DEPOT_TOOLS]"
+      "SKIABOT_TEST_DEPOT_TOOLS": "[DEPOT_TOOLS]",
+      "TMPDIR": "/dev/shm"
     },
     "name": "run_unittests"
   },
