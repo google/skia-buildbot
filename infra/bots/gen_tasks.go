@@ -288,7 +288,7 @@ func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []stri
 			},
 		},
 		CipdPackages: cipd,
-		Command:      []string{python, "buildbot/infra/bots/run_recipe.py", "${ISOLATED_OUTDIR}", recipe, props(properties), "skia"},
+		Command:      []string{python, "-u", "buildbot/infra/bots/run_recipe.py", "${ISOLATED_OUTDIR}", recipe, props(properties), "skia"},
 		Dependencies: []string{BUNDLE_RECIPES_NAME},
 		Dimensions:   dimensions,
 		EnvPrefixes: map[string][]string{

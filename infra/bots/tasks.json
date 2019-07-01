@@ -195,6 +195,7 @@
       ],
       "command": [
         "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "-u",
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
         "run_presubmit",
@@ -634,6 +635,7 @@
       ],
       "command": [
         "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "-u",
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
         "swarm_infra",
@@ -745,6 +747,7 @@
       ],
       "command": [
         "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "-u",
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
         "swarm_infra",
@@ -846,6 +849,7 @@
       ],
       "command": [
         "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "-u",
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
         "swarm_infra",
@@ -952,6 +956,7 @@
       ],
       "command": [
         "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "-u",
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
         "swarm_infra",
@@ -1054,6 +1059,7 @@
       ],
       "command": [
         "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}",
+        "-u",
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
         "swarm_infra",
