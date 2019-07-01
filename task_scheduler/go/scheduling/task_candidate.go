@@ -280,6 +280,11 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 		ioTimeoutSecs = int64(swarming.RECOMMENDED_IO_TIMEOUT.Seconds())
 	}
 	outputs := util.CopyStringSlice(c.TaskSpec.Outputs)
+	idempotent := c.TaskSpec.Idempotent
+	if c.ForcedJobId != "" {
+		// Don't allow deduplication for forced jobs.
+		idempotent = false
+	}
 	return &swarming_api.SwarmingRpcsNewTaskRequest{
 		ExpirationSecs: expirationSecs,
 		Name:           c.Name,
@@ -293,7 +298,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 			EnvPrefixes:          envPrefixes,
 			ExecutionTimeoutSecs: executionTimeoutSecs,
 			ExtraArgs:            extraArgs,
-			Idempotent:           c.TaskSpec.Idempotent,
+			Idempotent:           idempotent,
 			InputsRef: &swarming_api.SwarmingRpcsFilesRef{
 				Isolated:       c.IsolatedInput,
 				Isolatedserver: isolateServer,
