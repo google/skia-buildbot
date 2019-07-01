@@ -1,0 +1,26 @@
+@import '~elements-sk/colors';
+
+commit-detail-panel-sk {
+    pre,
+    span {
+      margin: 0;
+    }
+
+    a {
+      color: var(--blue);
+      font-weight: bold;
+    }
+
+    td {
+      padding: 0.2em;
+      border: none;
+    }
+
+    tr[selected] {
+      background: var(--light-gray);
+    }
+}
+
+commit-detail-panel-sk[selectable] td {
+  cursor: pointer;
+}
