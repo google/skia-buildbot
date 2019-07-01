@@ -19,6 +19,8 @@ func (u *repoRefresher) refresh(...*vcsinfo.LongCommit) {}
 
 // setupRepo performs common setup for git.Repo based Graphs.
 func setupRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph, refresher, func()) {
+	// git seems really slow on GCE bots.
+	unittest.LargeTest(t)
 	ctx, g, cleanup := commonSetup(t)
 
 	tmp, err := ioutil.TempDir("", "")
@@ -34,42 +36,36 @@ func setupRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph
 }
 
 func TestGraphRepo(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx, g, repo, ud, cleanup := setupRepo(t)
 	defer cleanup()
 	testGraph(t, ctx, g, repo, ud)
 }
 
 func TestRecurseRepo(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx, g, repo, ud, cleanup := setupRepo(t)
 	defer cleanup()
 	testRecurse(t, ctx, g, repo, ud)
 }
 
 func TestRecurseAllBranchesRepo(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx, g, repo, ud, cleanup := setupRepo(t)
 	defer cleanup()
 	testRecurseAllBranches(t, ctx, g, repo, ud)
 }
 
 func TestUpdateHistoryChangedRepo(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx, g, repo, ud, cleanup := setupRepo(t)
 	defer cleanup()
 	testUpdateHistoryChanged(t, ctx, g, repo, ud)
 }
 
 func TestUpdateAndReturnCommitDiffsRepo(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx, g, repo, ud, cleanup := setupRepo(t)
 	defer cleanup()
 	testUpdateAndReturnCommitDiffs(t, ctx, g, repo, ud)
 }
 
 func TestRevListRepo(t *testing.T) {
-	unittest.MediumTest(t)
 	ctx, g, repo, ud, cleanup := setupRepo(t)
 	defer cleanup()
 	testRevList(t, ctx, g, repo, ud)
