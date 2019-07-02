@@ -97,6 +97,30 @@
     },
     {
       "key": {
+        "uuid": "5f9659f5_a5ceb76f",
+        "filename": "status/res/imp/task-popup-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-02T20:12:25Z",
+      "side": 1,
+      "message": "Thoughts:\nA. If we have a Swarming RunId, it\u0027s trivial to get the Swarming task ID.\nB. If we have a task ID, it\u0027s not clear how to get the RunId. If we assume Swarming never retries tasks, then it\u0027s simple, just replace 0 with 1 at the end. But I think in certain cases Swarming will retry tasks even when they are not idempotent; specifically, I believe I\u0027ve seen this happen when the assigned bot dies before starting the task. (Not 100% sure if that assigns a second task ID, but I think it does.)\nC. We could probably figure out the RunId from the task ID if we have access to all TD logs; i.e. on the TD server. But like you said, TD server doesn\u0027t know that it\u0027s dealing with a Swarming task ID.\nD. I mentioned in https://skia-review.googlesource.com/c/buildbot/+/223921/3#message-f67c82b5b52ab428c212e74898b91a1621f310bb we could possibly add an identifier to TD IDs to indicate how they were derived. Not sure if (C) is a good enough reason to do that.\nE. Setting the Swarming RunId as the TS Task.SwarmingTaskId would probably be ok, but our code expects it to be a Task ID, including JavaScript. The Task ID is used for Swarming URLs and in Swarming APIs. Might be more trouble than it\u0027s worth to change all that.\nF. Saving the latest RunId as another field in TS Task probably makes sense. There probably aren\u0027t many places that we would want the RunId.\nG. Just in case you were in doubt, I think it\u0027s a good idea for TD to be based on the Swarming RunId rather than TaskId, just in case we get data from multiple RunIds.",
+      "parentUuid": "b2706fce_e95a3f2c",
+      "range": {
+        "startLine": 153,
+        "startChar": 39,
+        "endLine": 153,
+        "endChar": 74
+      },
+      "revId": "64939443b8d8dd29384805bc1c30b992650fabdd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7325a5f8_e743b783",
         "filename": "task_scheduler/res/imp/task-graph-sk.html",
         "patchSetId": 3
