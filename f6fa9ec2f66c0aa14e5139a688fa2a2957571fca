@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a4f27cd_f67567e3",
+        "filename": "infra/bots/recipes/swarm_infra.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-02T19:58:46Z",
+      "side": 1,
+      "message": "nit: \"# Try up to three times in case of transient network issues.\"",
+      "revId": "f6fa9ec2f66c0aa14e5139a688fa2a2957571fca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1016a5e1_0ab6767d",
+        "filename": "infra/bots/task_drivers/infra_tests/infra_tests.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-02T19:58:46Z",
+      "side": 1,
+      "message": "nit: \"// Sync dependencies. Try up to three times in case of transient network issues.\"",
+      "revId": "f6fa9ec2f66c0aa14e5139a688fa2a2957571fca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
