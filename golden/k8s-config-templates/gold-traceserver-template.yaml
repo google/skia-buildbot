@@ -1,3 +1,4 @@
+# TODO(kjlubick): delete this once tracestore lands.
 kind: Service
 apiVersion: v1
 metadata:
