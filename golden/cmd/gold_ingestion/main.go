@@ -29,8 +29,11 @@ import (
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	_ "go.skia.org/infra/golden/go/goldingestion"
 	"google.golang.org/api/option"
+
+	// The init() of this package register several ingestion.Processors to
+	// handle the files we locate in GCS (e.g. master branch, tryjobs, etc).
+	_ "go.skia.org/infra/golden/go/ingestion_processors"
 )
 
 func main() {
