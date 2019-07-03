@@ -60,8 +60,6 @@
 
 <link rel="stylesheet" href="/res/common/css/md.css">
 
-<link rel="import" href="/res/imp/commit-detail-panel.html" />
-
 <dom-module id="cluster-summary2-sk">
   <style include="iron-flex iron-flex-alignment">
     #status.disabled {
@@ -331,7 +329,7 @@
       _traceSelected: function(e) {
         var h = this._frame.dataframe.header[e.detail.pt[0]];
         sk.post("/_/cid/", JSON.stringify([h])).then(JSON.parse).then(function(json){
-          this.$.commits.setCommitDetail(json);
+          this.$.commits.details = json;
         }.bind(this)).catch(sk.errorMessage);
       },
 

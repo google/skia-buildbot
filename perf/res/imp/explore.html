@@ -25,7 +25,6 @@
 <link rel="import" href="/res/common/imp/query-summary-sk.html" />
 <link rel="stylesheet" href="/res/common/css/md.css">
 
-<link rel="import" href="/res/imp/commit-detail-panel.html" />
 <link rel="import" href="/res/imp/highlight.html" />
 <link rel="import" href="/res/imp/domain-picker-sk.html" />
 <link rel="import" href="/res/imp/json-source.html" />
@@ -374,7 +373,7 @@
         this.$.plot.addEventListener("trace_selected", function(e) {
           this.$.plot.clearHighlight();
           this.$.plot.setHighlight(e.detail.id);
-          this.$.commits.setCommitDetail([]);
+          this.$.commits.details = [];
 
           var x = +e.detail.pt[0]|0;
           // loop backwards from x until you get the next
@@ -395,7 +394,7 @@
           });
           // Request populated commits from the server.
           sk.post("/_/cid/", JSON.stringify(commits)).then(JSON.parse).then(function(json){
-            this.$.commits.setCommitDetail(json);
+            this.$.commits.details = json;
             this.$.commitsTab.disabled = false;
             this.$.simple_paramset.setParamSets([paramset]);
             this.$.detailtab.selected = 2;
