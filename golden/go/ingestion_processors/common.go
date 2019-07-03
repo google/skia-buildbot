@@ -4,15 +4,80 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"sort"
+	"strings"
 
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/shared"
+	"go.skia.org/infra/golden/go/types"
 )
+
+// idAndParams constructs the Trace ID and the Trace params from the keys and options.
+// It returns the id as a string of all the values, in the alphabetic order of the
+// keys, separated by a colon. The trace params returned are a single map of
+// key-> values. "Options" are omitted from the trace id, as per design.
+func idAndParams(dm *dmResults, r *jsonio.Result) (tiling.TraceId, map[string]string) {
+	combinedLen := len(dm.Key) + len(r.Key)
+	traceIdParts := make(map[string]string, combinedLen)
+	params := make(map[string]string, combinedLen+len(r.Options))
+	for k, v := range dm.Key {
+		traceIdParts[k] = v
+		params[k] = v
+	}
+	for k, v := range r.Key {
+		traceIdParts[k] = v
+		params[k] = v
+	}
+	for k, v := range r.Options {
+		params[k] = v
+	}
+
+	keys := []string{}
+	for k := range traceIdParts {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	values := []string{}
+	for _, k := range keys {
+		values = append(values, traceIdParts[k])
+	}
+	return tiling.TraceId(strings.Join(values, ":")), params
+}
+
+// ignoreResult returns true if the result with the given parameters should be
+// ignored.
+func ignoreResult(dm *dmResults, params map[string]string) bool {
+	// Ignore anything that is not a png. In the early days (pre-2015), ext was omitted
+	// but implied to be "png". Thus if ext is not provided, it will be ingested.
+	// New entries (created by goldctl) will always have ext set.
+	if ext, ok := params["ext"]; ok && (ext != "png") {
+		return true
+	}
+
+	// Make sure the test name meets basic requirements.
+	testName := params[types.PRIMARY_KEY_FIELD]
+
+	// Ignore results that don't have a test given and log an error since that
+	// should not happen. But we want to keep other results in the same input file.
+	if testName == "" {
+		sklog.Errorf("Missing test name in %s", dm.name)
+		return true
+	}
+
+	// Make sure the test name does not exceed the allowed length.
+	if len(testName) > types.MAXIMUM_NAME_LENGTH {
+		sklog.Errorf("Received test name which is longer than the allowed %d bytes: %s", types.MAXIMUM_NAME_LENGTH, testName)
+		return true
+	}
+
+	return false
+}
 
 // dmResults enhances GoldResults with fields used for internal processing.
 type dmResults struct {

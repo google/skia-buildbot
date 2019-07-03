@@ -296,6 +296,67 @@ func TestBTTraceStorePutGetThreaded(t *testing.T) {
 	assert.Equal(t, commits, actualCommits)
 }
 
+func TestBTTraceStorePutDuplicates(t *testing.T) {
+	unittest.LargeTest(t)
+	unittest.RequiresBigTableEmulator(t)
+
+	commits := data.MakeTestCommits()
+	mvcs := MockVCSWithCommits(commits, 0)
+	defer mvcs.AssertExpectations(t)
+
+	btConf := BTConfig{
+		ProjectID:  "should-use-the-emulator",
+		InstanceID: "testinstance",
+		TableID:    "three_devices_test_duplicates",
+		VCS:        mvcs,
+	}
+
+	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	assert.NoError(t, InitBT(btConf))
+
+	ctx := context.Background()
+	traceStore, err := New(ctx, btConf, true)
+	assert.NoError(t, err)
+
+	wg := sync.WaitGroup{}
+
+	now := time.Date(2019, time.May, 5, 1, 3, 4, 0, time.UTC)
+
+	// Build a tile up from the individual data points, one at a time
+	traces := data.MakeTestTile().Traces
+	for _, trace := range traces {
+		gTrace, ok := trace.(*types.GoldenTrace)
+		assert.True(t, ok)
+
+		// Put them in backwards, just to test that order doesn't matter
+		for i := len(gTrace.Digests) - 1; i >= 0; i-- {
+			for j := 0; j < 3; j++ {
+				wg.Add(1)
+				go func(now time.Time, i int) {
+					defer wg.Done()
+					e := tracestore.Entry{
+						Digest: gTrace.Digests[i],
+						Params: gTrace.Keys,
+					}
+					err := traceStore.Put(ctx, commits[i].Hash, []*tracestore.Entry{&e}, now)
+					assert.NoError(t, err)
+				}(now, i)
+			}
+			now = now.Add(7 * time.Second)
+		}
+	}
+
+	wg.Wait()
+
+	// Get the tile back and make sure it exactly matches the tile
+	// we hand-crafted for the test data.
+	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
+	assert.NoError(t, err)
+
+	assert.Equal(t, data.MakeTestTile(), actualTile)
+	assert.Equal(t, commits, actualCommits)
+}
+
 // TestBTTraceStoreGetDenseTile makes sure we get an empty tile
 func TestBTTraceStoreGetDenseTileEmpty(t *testing.T) {
 	unittest.LargeTest(t)

@@ -2,7 +2,6 @@ package ingestion_processors
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -13,11 +12,9 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tracestore"
 	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
-	"go.skia.org/infra/golden/go/types"
 )
 
 const (
@@ -44,7 +41,7 @@ func newBTTraceStoreProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConf
 		VCS:        vcs,
 	}
 
-	bts, err := bt_tracestore.New(context.TODO(), btc, true)
+	bts, err := bt_tracestore.New(context.Background(), btc, true)
 	if err != nil {
 		return nil, skerr.Fmt("could not instantiate BT tracestore: %s", err)
 	}
@@ -104,7 +101,7 @@ func (b *btProcessor) Process(ctx context.Context, resultsFile ingestion.ResultF
 
 	defer shared.NewMetricsTimer("put_tracestore_entry").Stop()
 
-	sklog.Debugf("tracestore.Put(%s, %d entries, %s)", targetHash, len(entries), t)
+	sklog.Infof("tracestore.Put(%s, %d entries, %s)", targetHash, len(entries), t)
 	// Write the result to the tracestore.
 	err = b.ts.Put(ctx, targetHash, entries, t)
 	if err != nil {
@@ -113,25 +110,20 @@ func (b *btProcessor) Process(ctx context.Context, resultsFile ingestion.ResultF
 	return nil
 }
 
-// BatchFinished implements the ingestion.Processor interface.
+// Process implements the ingestion.Processor interface.
 func (b *btProcessor) BatchFinished() error { return nil }
 
-// extractTraceStoreEntries creates a slice of tracestore.Entry for the given
-// file. It will omit any entries that should be ignored. It returns an
-// error if there were no un-ignored entries in the file.
 func extractTraceStoreEntries(dm *dmResults) ([]*tracestore.Entry, error) {
 	ret := make([]*tracestore.Entry, 0, len(dm.Results))
 	for _, result := range dm.Results {
-		params, options := paramsAndOptions(dm, result)
-		if err := shouldIngest(params, options); err != nil {
-			sklog.Infof("Not ingesting %s : %s", dm.name, err)
+		_, params := idAndParams(dm, result)
+		if ignoreResult(dm, params) {
 			continue
 		}
 
 		ret = append(ret, &tracestore.Entry{
-			Params:  params,
-			Options: options,
-			Digest:  result.Digest,
+			Params: params,
+			Digest: result.Digest,
 		})
 	}
 
@@ -141,43 +133,4 @@ func extractTraceStoreEntries(dm *dmResults) ([]*tracestore.Entry, error) {
 	}
 
 	return ret, nil
-}
-
-// paramsAndOptions creates the params and options maps from a given file and entry.
-func paramsAndOptions(dm *dmResults, r *jsonio.Result) (map[string]string, map[string]string) {
-	params := make(map[string]string, len(dm.Key)+len(r.Key))
-	for k, v := range dm.Key {
-		params[k] = v
-	}
-	for k, v := range r.Key {
-		params[k] = v
-	}
-	return params, r.Options
-}
-
-// shouldIngest returns a descriptive error if we should ignore an entry
-// with these params/options.
-func shouldIngest(params, options map[string]string) error {
-	// Ignore anything that is not a png. In the early days (pre-2015), ext was omitted
-	// but implied to be "png". Thus if ext is not provided, it will be ingested.
-	// New entries (created by goldctl) will always have ext set.
-	if ext, ok := options["ext"]; ok && (ext != "png") {
-		return errors.New("ignoring non-png entry")
-	}
-
-	// Make sure the test name meets basic requirements.
-	testName := params[types.PRIMARY_KEY_FIELD]
-
-	// Ignore results that don't have a test given and log an error since that
-	// should not happen. But we want to keep other results in the same input file.
-	if testName == "" {
-		return errors.New("missing test name")
-	}
-
-	// Make sure the test name does not exceed the allowed length.
-	if len(testName) > types.MAXIMUM_NAME_LENGTH {
-		return fmt.Errorf("Received test name which is longer than the allowed %d bytes: %s", types.MAXIMUM_NAME_LENGTH, testName)
-	}
-
-	return nil
 }
