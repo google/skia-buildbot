@@ -4,6 +4,7 @@ package bt_tracestore
 
 import (
 	"context"
+	"errors"
 	"hash/crc32"
 	"sort"
 	"strconv"
@@ -30,6 +31,9 @@ import (
 // to get auth information from the environment and must be called with an account that has
 // admin rights.
 func InitBT(conf BTConfig) error {
+	if conf.ProjectID == "" || conf.InstanceID == "" || conf.TableID == "" {
+		return errors.New("invalid config: must specify all parts of BTConfig")
+	}
 	return bt.InitBigtable(conf.ProjectID, conf.InstanceID, conf.TableID, btColumnFamilies)
 }
 
