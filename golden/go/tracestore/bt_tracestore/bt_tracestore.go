@@ -4,6 +4,7 @@ package bt_tracestore
 
 import (
 	"context"
+	"crypto/md5"
 	"errors"
 	"hash/crc32"
 	"sort"
@@ -52,9 +53,6 @@ type BTTraceStore struct {
 	client *bigtable.Client
 	table  *bigtable.Table
 
-	tileSize int32
-	shards   int32
-
 	// if cacheOps is true, then cache the OrderedParamSets between calls
 	// where possible.
 	cacheOps bool
@@ -73,8 +71,6 @@ func New(ctx context.Context, conf BTConfig, cache bool) (*BTTraceStore, error) 
 	ret := &BTTraceStore{
 		vcs:      conf.VCS,
 		client:   client,
-		tileSize: DefaultTileSize,
-		shards:   DefaultShards,
 		table:    client.Open(conf.TableID),
 		cacheOps: cache,
 	}
@@ -236,7 +232,7 @@ func (b *BTTraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile,
 func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTileKey tileKey, startCommitIndex, endCommitIndex int) (traceMap, paramtools.ParamSet, error) {
 	// Query those tiles.
 	nTiles := int(startTileKey - endTileKey + 1)
-	nCommits := int(startTileKey-endTileKey)*int(b.tileSize) + (endCommitIndex - startCommitIndex) + 1
+	nCommits := int(startTileKey-endTileKey)*int(DefaultTileSize) + (endCommitIndex - startCommitIndex) + 1
 	encTiles := make([]*encTile, nTiles)
 	var egroup errgroup.Group
 	tk := startTileKey
@@ -265,24 +261,24 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 	commitIDX := 0
 	for idx, encTile := range encTiles {
 		// Determine the offset within the tile that we should consider.
-		endOffset := int(b.tileSize - 1)
+		endOffset := int(DefaultTileSize - 1)
 		if idx == (len(encTiles) - 1) {
 			// If we are on the last tile, stop early (that is, at endCommitIndex)
 			endOffset = endCommitIndex
 		}
 		segLen := endOffset - startCommitIndex + 1
 
-		for encodedKey, encValues := range encTile.traces {
+		for _, pair := range encTile.traces {
 			// at this point, the encodedKey looks like ,0=1,1=3,3=0,
 			// See params.paramsEncoder
-			params, err := encTile.ops.DecodeParamsFromString(string(encodedKey))
+			params, err := encTile.ops.DecodeParamsFromString(string(pair.ID))
 			if err != nil {
 				// This can occur because we read the tile's OPS and the tile's
 				// traces concurrently. If Put adds a new trace to the tile after
 				// we have read the OPS, we may see the new trace, which may contain
 				// params that are not in our copy of the OPS. We don't promise that
 				// Put is atomic, so it's fine to just skip this trace.
-				sklog.Warningf("Unreadable trace key - could not decode %s: %s", encodedKey, err)
+				sklog.Warningf("Unreadable trace key - could not decode %s: %s", pair.ID, err)
 				continue
 			}
 
@@ -296,7 +292,7 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 			// Build up the total set of params
 			paramSet.AddParams(params)
 
-			digests := encValues[startCommitIndex : startCommitIndex+segLen]
+			digests := pair.Digests[startCommitIndex : startCommitIndex+segLen]
 			copy(gt.Digests[commitIDX:commitIDX+segLen], digests)
 		}
 
@@ -345,7 +341,23 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 		// filledCommits are the indexes in the traces that have data.
 		// That is, they are the indexes of commits in this tile.
 		// It will be sorted from low indexes to high indexes
-		filledCommits := traces.CommitIndicesWithData()
+		filledCommits := traces.CommitIndicesWithData(endIdx)
+
+		// FIXME(kjlubick)
+		// sklog.Infof("Filled Commits: %d\n", filledCommits)
+		// for id, trace := range traces {
+		// 	gt := trace.(*types.GoldenTrace)
+		// 	sklog.Infof("Trace: %s: %#v", id, gt.Keys)
+		// 	for i, d := range gt.Digests {
+		// 		if i > endIdx {
+		// 			break
+		// 		}
+		// 		ci := tileStartCommitIdx + i
+		// 		lc, err := b.vcs.ByIndex(context.Background(), ci)
+		// 		sklog.Infof("commit %s by %s on %s had digest: %q [%v]", lc.Hash, lc.Author, lc.Timestamp, d, err)
+		// 	}
+		// 	break
+		// }
 
 		if len(filledCommits)+len(commitsWithData) > nCommits {
 			targetLength := nCommits - len(commitsWithData)
@@ -363,9 +375,9 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 			break
 		}
 
-		tKey++                       // go backwards in time one tile
-		endIdx = int(b.tileSize - 1) // fetch the whole previous tile
-		tileStartCommitIdx -= int(b.tileSize)
+		tKey++                            // go backwards in time one tile
+		endIdx = int(DefaultTileSize - 1) // fetch the whole previous tile
+		tileStartCommitIdx -= int(DefaultTileSize)
 	}
 
 	if len(commitsWithData) == 0 {
@@ -413,8 +425,8 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 // given the index of a commit in the repo (repoIndex).
 // commitIndex starts at 0 for the oldest commit in the tile.
 func (b *BTTraceStore) getTileKey(repoIndex int) (tileKey, int) {
-	tileIndex := int32(repoIndex) / b.tileSize
-	commitIndex := repoIndex % int(b.tileSize)
+	tileIndex := int32(repoIndex) / DefaultTileSize
+	commitIndex := repoIndex % int(DefaultTileSize)
 	return tileKeyFromIndex(tileIndex), commitIndex
 }
 
@@ -434,7 +446,7 @@ func (b *BTTraceStore) loadTile(ctx context.Context, tileKey tileKey) (*encTile,
 		return nil
 	})
 
-	var traces map[encodedTraceID][]types.Digest
+	var traces []encodedTracePair
 	egroup.Go(func() error {
 		var err error
 		traces, err = b.loadEncodedTraces(ctx, tileKey)
@@ -457,31 +469,56 @@ func (b *BTTraceStore) loadTile(ctx context.Context, tileKey tileKey) (*encTile,
 // loadEncodedTraces returns all traces belonging to the given tileKey.
 // As outlined in BIGTABLE.md, the trace ids and the digest ids they
 // map to are in an encoded form and will need to be expanded prior to use.
-func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (map[encodedTraceID][]types.Digest, error) {
+func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) ([]encodedTracePair, error) {
+	sklog.Infof("Getting tile %d\n", tileKey)
 	defer metrics2.FuncTimer().Stop()
 	var egroup errgroup.Group
-	shardResults := make([]map[encodedTraceID][]types.Digest, b.shards)
+	shardResults := [DefaultShards][]encodedTracePair{}
 	traceCount := int64(0)
 
 	// Query all shards in parallel.
-	for shard := int32(0); shard < b.shards; shard++ {
+	for shard := int32(0); shard < DefaultShards; shard++ {
 		func(shard int32) {
+			// Most of the strings aren't unique. For example, in a single, stable trace,
+			// the same digest may be used for all commits in the row. Thus, we don't want
+			// to have to allocate memory on the heap for each of those strings, we can
+			// just reuse those (immutable) strings.
+			uniqueDigests := make(map[[md5.Size]byte]types.Digest, 1000)
+			fromBytesCached := func(b []byte) types.Digest {
+				if len(b) != md5.Size {
+					return types.MISSING_DIGEST
+				}
+				// Allocate a small array on the stack, then copy the bytes
+				// into it and use that as the key in the map.
+				// This is faster than k := string(b), maybe because of
+				// extra copies or simply that runtime.mapaccess2_faststr is faster
+				// than runtime.mapaccess2 (used by array).
+				k := [md5.Size]byte{}
+				copy(k[:], b)
+				d, ok := uniqueDigests[k]
+				if ok {
+					return d
+				}
+				d = fromBytes(b)
+				uniqueDigests[k] = d
+				return d
+			}
+
 			egroup.Go(func() error {
 				// This prefix will match all traces belonging to the
 				// current shard in the current tile.
 				prefixRange := bigtable.PrefixRange(shardedRowName(shard, typeTrace, tileKey, ""))
-				target := map[encodedTraceID][]types.Digest{}
-				shardResults[shard] = target
+				shardResults[shard] = make([]encodedTracePair, 0, 50000)
 				var parseErr error
 				err := b.table.ReadRows(ctx, prefixRange, func(row bigtable.Row) bool {
 					// The encoded trace id is the "subkey" part of the row name.
 					traceKey := encodedTraceID(extractSubkey(row.Key()))
-					// If this is the first time we've seen the trace, initialize the
-					// slice of digests for it.
-					if _, ok := target[traceKey]; !ok {
-						target[traceKey] = make([]types.Digest, b.tileSize)
-						atomic.AddInt64(&traceCount, 1)
+
+					pair := encodedTracePair{
+						ID:      traceKey,
+						Digests: [DefaultTileSize]types.Digest{},
 					}
+					atomic.AddInt64(&traceCount, 1)
 
 					for _, col := range row[traceFamily] {
 						// The columns are something like T:35 where the part
@@ -493,16 +530,18 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 							parseErr = err
 							return false
 						}
-						if idx < 0 || idx >= int(b.tileSize) {
+						if idx < 0 || idx >= int(DefaultTileSize) {
 							// This would happen if the tile size changed from a past
 							// value. It shouldn't be changed, even if the Gold tile size
 							// (n_commits) changes.
-							parseErr = skerr.Fmt("got index %d that is outside of the target slice of length %d", idx, len(target))
+							parseErr = skerr.Fmt("got index %d that is outside of the target slice of length %d", idx, DefaultTileSize)
 							return false
 						}
-						digest := fromBytes(col.Value)
-						target[traceKey][idx] = digest
+						d := fromBytesCached(col.Value)
+						pair.Digests[idx] = d
+						//uniqueDigests.Store(d, true)
 					}
+					shardResults[shard] = append(shardResults[shard], pair)
 					return true
 				}, bigtable.RowFilter(bigtable.LatestNFilter(1)))
 				if err != nil {
@@ -518,13 +557,11 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 	}
 
 	// Merge all the results together
-	ret := make(map[encodedTraceID][]types.Digest, traceCount)
+	ret := make([]encodedTracePair, 0, traceCount)
 	for _, r := range shardResults {
-		for traceKey, digests := range r {
-			// different shards should never share results for a tracekey
-			// since a trace always maps to the same shard.
-			ret[traceKey] = digests
-		}
+		// different shards should never share results for a tracekey
+		// since a trace always maps to the same shard.
+		ret = append(ret, r...)
 	}
 
 	return ret, nil
@@ -562,7 +599,7 @@ func (b *BTTraceStore) applyBulkBatched(ctx context.Context, rowNames []string, 
 // Once this is done, the shard, rowtype, tileKey and the subkey are combined into a
 // single string to be used as a row name in BT.
 func (b *BTTraceStore) calcShardedRowName(tileKey tileKey, rowType, subkey string) string {
-	shard := int32(crc32.ChecksumIEEE([]byte(subkey)) % uint32(b.shards))
+	shard := int32(crc32.ChecksumIEEE([]byte(subkey)) % uint32(DefaultShards))
 	return shardedRowName(shard, rowType, tileKey, subkey)
 }
 
@@ -674,29 +711,29 @@ func (b *BTTraceStore) updateOrderedParamSet(ctx context.Context, tileKey tileKe
 // Note that it will create a new OpsCacheEntry if none exists.
 //
 // getOps returns false if the OPS in BT was empty, true otherwise (even if cached).
-func (b *BTTraceStore) getOPS(ctx context.Context, tileKey tileKey) (*opsCacheEntry, bool, error) {
+func (b *BTTraceStore) getOPS(ctx context.Context, tk tileKey) (*opsCacheEntry, bool, error) {
 	defer metrics2.FuncTimer().Stop()
 	if b.cacheOps {
-		entry, ok := b.opsCache.Load(tileKey.OpsRowName())
+		entry, ok := b.opsCache.Load(tk.OpsRowName())
 		if ok {
 			return entry.(*opsCacheEntry), true, nil
 		}
 	}
 	tctx, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
-	row, err := b.table.ReadRow(tctx, tileKey.OpsRowName(), bigtable.RowFilter(bigtable.LatestNFilter(1)))
+	row, err := b.table.ReadRow(tctx, tk.OpsRowName(), bigtable.RowFilter(bigtable.LatestNFilter(1)))
 	if err != nil {
-		return nil, false, skerr.Fmt("failed to read OPS from BigTable for %s: %s", tileKey.OpsRowName(), err)
+		return nil, false, skerr.Fmt("failed to read OPS from BigTable for %s: %s", tk.OpsRowName(), err)
 	}
 	// If there is no entry in BigTable then return an empty OPS.
 	if len(row) == 0 {
-		sklog.Warningf("Failed to read OPS from BT for %s. - the tile could be empty", tileKey.OpsRowName())
+		sklog.Warningf("Failed to read OPS from BT for %s. - the tile could be empty", tk.OpsRowName())
 		entry, err := newOpsCacheEntry()
 		return entry, false, err
 	}
 	entry, err := newOpsCacheEntryFromRow(row)
 	if err == nil && b.cacheOps {
-		b.opsCache.Store(tileKey.OpsRowName(), entry)
+		b.opsCache.Store(tk.OpsRowName(), entry)
 	}
 	return entry, true, err
 }
