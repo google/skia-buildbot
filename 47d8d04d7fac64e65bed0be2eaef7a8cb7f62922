@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "08130157_2520f3d1",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-03T18:46:45Z",
+      "side": 1,
+      "message": "😲 Was this causing deadlocks?",
+      "revId": "47d8d04d7fac64e65bed0be2eaef7a8cb7f62922",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
