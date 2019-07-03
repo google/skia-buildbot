@@ -16,6 +16,24 @@
       "revId": "47d8d04d7fac64e65bed0be2eaef7a8cb7f62922",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36d922ba_5397a325",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-03T18:52:59Z",
+      "side": 1,
+      "message": "This panics, actually. It makes me think it wasn\u0027t used.",
+      "parentUuid": "08130157_2520f3d1",
+      "revId": "47d8d04d7fac64e65bed0be2eaef7a8cb7f62922",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
