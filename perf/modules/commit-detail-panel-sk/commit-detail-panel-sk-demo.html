@@ -1,41 +1,32 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <title>commit-detail-panel-sk demo</title>
-  <meta charset="utf-8">
+  <title>commit-detail-panel-sk</title>
+  <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
-  <script src="/res/common/js/common.js"></script>
-  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
-  <link rel=import href="/res/imp/bower_components/polymer/polymer.html">
-  <link rel=import href="commit-detail-panel.html">
-  <link rel=import href="/res/common/imp/error-toast-sk.html">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style type="text/css" media="screen">
-    body {
-      font-family:Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
-    }
-
     commit-detail-panel-sk {
       margin: 2em;
       display: block;
-    }
-
-    a {
-      color: #FF7F00;
-      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <h1>Commits</h1>
 
+  <h2>Unselectable</h2>
+  <commit-detail-panel-sk id=panel2></commit-detail-panel-sk>
+
+  <h2>Selectable</h2>
   <commit-detail-panel-sk selectable id=panel></commit-detail-panel-sk>
 
   <div>
-    Event: <code id=evt></code>
+    Event: <pre id=evt></pre>
   </div>
 
   <script type="text/javascript" charset="utf-8">
-    var commitinfo = [
+    const commitinfo = [
       {
         ts: 1439649751,
         author: "foo (foo@example.org)",
@@ -61,12 +52,14 @@
         message: "Another whitespace change",
       },
     ];
-    $$$('#panel').setCommitDetail(commitinfo);
-    $$$('#panel').addEventListener('commit-selected', function(e) {
-      $$$('#evt').textContent = JSON.stringify(e.detail);
+    let panel = document.querySelector('#panel');
+    let panel2 = document.querySelector('#panel2');
+    let evt = document.querySelector('#evt');
+    panel.details = commitinfo;
+    panel2.details = commitinfo;
+    panel.addEventListener('commit-selected', function(e) {
+      evt.textContent = JSON.stringify(e.detail, null, '  ');
     });
   </script>
-
-  <error-toast-sk></error-toast-sk>
 </body>
 </html>
