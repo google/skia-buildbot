@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b450222d_7a1c0345",
+        "filename": "perf/modules/commit-detail-panel-sk/commit-detail-panel-sk-demo.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-03T16:26:37Z",
+      "side": 1,
+      "message": "const",
+      "range": {
+        "startLine": 29,
+        "startChar": 4,
+        "endLine": 29,
+        "endChar": 7
+      },
+      "revId": "283d26a4dfb3a25a22a2a6a9e4ee62ebc91cafd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45963380_8b18661f",
+        "filename": "perf/modules/commit-detail-panel-sk/commit-detail-panel-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-03T16:26:37Z",
+      "side": 1,
+      "message": "!\u003d\u003d",
+      "range": {
+        "startLine": 60,
+        "startChar": 13,
+        "endLine": 60,
+        "endChar": 15
+      },
+      "revId": "283d26a4dfb3a25a22a2a6a9e4ee62ebc91cafd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e445047d_9eeb7254",
+        "filename": "perf/modules/commit-detail-panel-sk/commit-detail-panel-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-03T16:26:37Z",
+      "side": 1,
+      "message": "\u003d\u003d\u003d",
+      "range": {
+        "startLine": 61,
+        "startChar": 21,
+        "endLine": 61,
+        "endChar": 23
+      },
+      "revId": "283d26a4dfb3a25a22a2a6a9e4ee62ebc91cafd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17d9257a_f8a6a0c5",
+        "filename": "perf/modules/commit-detail-panel-sk/commit-detail-panel-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-03T16:26:37Z",
+      "side": 1,
+      "message": "let/const instead of var. here and other places.",
+      "range": {
+        "startLine": 105,
+        "startChar": 4,
+        "endLine": 105,
+        "endChar": 7
+      },
+      "revId": "283d26a4dfb3a25a22a2a6a9e4ee62ebc91cafd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "beb478bd_20cd6ae4",
+        "filename": "perf/modules/commit-detail-panel-sk/commit-detail-panel-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-03T16:26:37Z",
+      "side": 1,
+      "message": "render(template(this), this, {eventContext: this});\n\nWhich allows you to make the change on line 41 to:\n\u003ctable @click\u003d${ele._click}\u003e",
+      "revId": "283d26a4dfb3a25a22a2a6a9e4ee62ebc91cafd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
