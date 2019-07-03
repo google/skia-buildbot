@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5c8e6aa6_be36a179",
+        "filename": "golden/go/ingestion_processors/common.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-03T14:32:35Z",
+      "side": 1,
+      "message": "Done. Will need a followup CL to update BT schema to use options.",
+      "parentUuid": "e5f6dec3_56a34a39",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 2
+      },
+      "revId": "fab25f241042bae245c391caab11b02e4d8c91c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "751e671e_e4156036",
         "filename": "golden/go/ingestion_processors/tracedb_impl.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "fab25f241042bae245c391caab11b02e4d8c91c5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6e96ef2_767cfc44",
+        "filename": "golden/go/ingestion_processors/tracedb_impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-03T14:32:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "751e671e_e4156036",
+      "range": {
+        "startLine": 22,
+        "startChar": 1,
+        "endLine": 22,
+        "endChar": 8
+      },
+      "revId": "fab25f241042bae245c391caab11b02e4d8c91c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "e416fb86_61d276a3",
+        "filename": "golden/go/ingestion_processors/tracestore_impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-03T14:32:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "411a360b_9e32164d",
+      "range": {
+        "startLine": 44,
+        "startChar": 39,
+        "endLine": 44,
+        "endChar": 51
+      },
+      "revId": "fab25f241042bae245c391caab11b02e4d8c91c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d59cac22_b5e9be6d",
         "filename": "golden/go/ingestion_processors/tracestore_impl.go",
         "patchSetId": 4
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "a1000faf_91798776",
+        "filename": "golden/go/ingestion_processors/tracestore_impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-03T14:32:35Z",
+      "side": 1,
+      "message": "Will address en masse in followup CL.",
+      "parentUuid": "d59cac22_b5e9be6d",
+      "range": {
+        "startLine": 46,
+        "startChar": 14,
+        "endLine": 46,
+        "endChar": 71
+      },
+      "revId": "fab25f241042bae245c391caab11b02e4d8c91c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d8a874a1_bb73ef8e",
         "filename": "golden/go/ingestion_processors/tracestore_impl.go",
         "patchSetId": 4
@@ -108,6 +204,24 @@
       "revId": "fab25f241042bae245c391caab11b02e4d8c91c5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f038ad9_793b4651",
+        "filename": "golden/go/ingestion_processors/tracestore_impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-03T14:32:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d8a874a1_bb73ef8e",
+      "revId": "fab25f241042bae245c391caab11b02e4d8c91c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -131,6 +245,30 @@
       "revId": "fab25f241042bae245c391caab11b02e4d8c91c5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a40be9c_f7986d86",
+        "filename": "golden/go/ingestion_processors/tracestore_impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-03T14:32:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a1afa08c_92d25e3b",
+      "range": {
+        "startLine": 113,
+        "startChar": 3,
+        "endLine": 113,
+        "endChar": 10
+      },
+      "revId": "fab25f241042bae245c391caab11b02e4d8c91c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
