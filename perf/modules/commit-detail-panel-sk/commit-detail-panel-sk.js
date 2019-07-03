@@ -25,6 +25,7 @@
  * @attr {Number} selected - The index of the selected commit.
  */
 import { html, render } from 'lit-html'
+import { findParent } from 'common-sk/modules/dom'
 import { upgradeProperty } from 'elements-sk/upgradeProperty'
 import '../commit-detail-sk'
 
@@ -42,29 +43,6 @@ const template = (ele) => html`
     ${rows(ele)}
   </table>
 `;
-
-/**
- * Find the first parent of 'ele' with the given 'nodeName'.
- *
- * @param {HTMLElement} ele - The element to start searching a.
- * @param {string} nodeName - The node name we are looking for.
- * @returns {HTMLElement} Either 'ele' or the first parent of 'ele' that has the nodeName of 'nodeName'.
- *
- * @example
- *
- *   findParent(ele, 'DIV')
- *
- * TODO(jcgregorio) Move to common-sk/dom.
- */
-function findParent(ele, nodeName) {
-  while (ele !== null) {
-    if (ele.nodeName === nodeName) {
-      return ele;
-    }
-    ele = ele.parentElement;
-  }
-  return null;
-}
 
 window.customElements.define('commit-detail-panel-sk', class extends HTMLElement {
   constructor() {
