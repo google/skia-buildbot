@@ -35,3 +35,24 @@ export const $ = (query, ele = document) => {
  */
 export const $$ = (query, ele = document) => ele.querySelector(query);
 
+/**
+ * Find the first parent of 'ele' with the given 'nodeName'.
+ *
+ * @param {HTMLElement} ele - The element to start searching a.
+ * @param {string} nodeName - The node name we are looking for.
+ * @returns {HTMLElement} Either 'ele' or the first parent of 'ele' that has the nodeName of 'nodeName'.
+ *
+ * @example
+ *
+ *   findParent(ele, 'DIV')
+ *
+ */
+export function findParent(ele, nodeName) {
+  while (ele !== null) {
+    if (ele.nodeName === nodeName) {
+      return ele;
+    }
+    ele = ele.parentElement;
+  }
+  return null;
+}

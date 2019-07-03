@@ -1,4 +1,4 @@
-import { $, $$ } from './dom.js'
+import { $, $$, findParent } from './dom.js'
 
 let container = document.createElement('div');
 document.body.appendChild(container);
@@ -83,4 +83,46 @@ describe('$$ aka querySelector', function() {
     assert.equal('delta', ele.id);
   });
 
+});
+
+describe('findParent', function() {
+  it('identifies the correct parent element', function() {
+    // Add an HTML tree to the document.
+    var div = document.createElement('div');
+    div.innerHTML =
+      '<div id=a>' +
+      '  <p id=aa>' +
+      '    <span id=aaa>span</span>' +
+      '    <span id=aab>span</span>' +
+      '  </p>' +
+      '  <span id=ab>' +
+      '    <p id=aba>para</p>' +
+      '  </span>' +
+      '  <div id=ac>' +
+      '    <p id=aca>para</p>' +
+      '  </div>' +
+      '</div>' +
+      '<div id=b>' +
+      '  <p id=ba>para</p>' +
+      '</div>' +
+      '<span id=c>' +
+      '  <span id=ca>' +
+      '    <p id=caa>para</p>' +
+      '  </span>' +
+      '</span>';
+    assert.equal(findParent($$('#a', div), 'DIV'), $$('#a', div), 'Top level');
+    assert.equal(findParent($$('#a', div), 'SPAN'), null);
+    assert.equal(findParent($$('#aa', div), 'DIV'), $$('#a', div));
+    assert.equal(findParent($$('#aaa', div), 'DIV'), $$('#a', div));
+    assert.equal(findParent($$('#aaa', div), 'P'), $$('#aa', div));
+    assert.equal(findParent($$('#aab', div), 'SPAN'), $$('#aab', div));
+    assert.equal(findParent($$('#ab', div), 'P'), null);
+    assert.equal(findParent($$('#aba', div), 'SPAN'), $$('#ab', div));
+    assert.equal(findParent($$('#ac', div), 'DIV'), $$('#ac', div));
+    assert.equal(findParent($$('#aca', div), 'DIV'), $$('#ac', div));
+    assert.equal(findParent($$('#ba', div), 'DIV'), $$('#b', div));
+    assert.equal(findParent($$('#caa', div), 'DIV'), div);
+    assert.equal(findParent($$('#ca', div), 'SPAN'), $$('#ca', div));
+    assert.equal(findParent($$('#caa', div), 'SPAN'), $$('#ca', div));
+  });
 });
