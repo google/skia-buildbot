@@ -115,19 +115,27 @@ func MakeKey(m map[string]string) (string, error) {
 // keys from a large number of go routines, as regexp doesn't handle that case
 // very well. See https://github.com/golang/go/issues/8232.
 func MakeKeyFast(m map[string]string) (string, error) {
-	ret := []string{","}
 	if len(m) == 0 {
 		return "", fmt.Errorf("Map must have at least one entry.")
 	}
+	ret := strings.Builder{}
+	// Give a heuristic for the size based on the number of entries
+	// most real-world entries are tens of bytes long, but this is a good
+	// starting point.
+	ret.Grow(len(m) * 20)
+	ret.WriteRune(',')
 	keys := make([]string, 0, len(m))
 	for k := range m {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		ret = append(ret, k, "=", m[k], ",")
+		ret.WriteString(k)
+		ret.WriteRune('=')
+		ret.WriteString(m[k])
+		ret.WriteRune(',')
 	}
-	return strings.Join(ret, ""), nil
+	return ret.String(), nil
 }
 
 // ParseKey parses the structured key, and if valid, returns the parsed values

@@ -2,7 +2,7 @@ package tracestore
 
 import (
 	"context"
-	"regexp"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/paramtools"
@@ -60,12 +60,35 @@ func TraceIDFromParams(params paramtools.Params) tiling.TraceId {
 	return tiling.TraceId(s)
 }
 
-var (
-	invalidChar = regexp.MustCompile("([,=])")
-)
-
+// clean replaces any special runes (',', '=') in a string such that
+// they can be turned into a trace id, which uses those special runes
+// as dividers.
 func clean(s string) string {
-	return invalidChar.ReplaceAllLiteralString(s, "_")
+	// In most cases, traces will be valid, so check that first.
+	// Allocating the string buffer and copying the runes can be expensive
+	// when done for no reason.
+	bad := false
+	for _, c := range s {
+		if c == ',' || c == '=' {
+			bad = true
+			break
+		}
+	}
+	if !bad {
+		return s
+	}
+	sb := strings.Builder{}
+	sb.Grow(len(s))
+	// Regexp doesn't handle being run from a large number of go routines
+	// very well. See https://github.com/golang/go/issues/8232.
+	for _, c := range s {
+		if c == ',' || c == '=' {
+			sb.WriteRune('_')
+		} else {
+			sb.WriteRune(c)
+		}
+	}
+	return sb.String()
 }
 
 // forceValid ensures that the resulting map will make a valid structured key.
