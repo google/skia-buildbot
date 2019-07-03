@@ -3,7 +3,9 @@
 package bt_tracestore
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
 	"hash/crc32"
 	"sort"
 	"strconv"
@@ -48,9 +50,6 @@ type BTTraceStore struct {
 	client *bigtable.Client
 	table  *bigtable.Table
 
-	tileSize int32
-	shards   int32
-
 	// if cacheOps is true, then cache the OrderedParamSets between calls
 	// where possible.
 	cacheOps bool
@@ -69,8 +68,6 @@ func New(ctx context.Context, conf BTConfig, cache bool) (*BTTraceStore, error) 
 	ret := &BTTraceStore{
 		vcs:      conf.VCS,
 		client:   client,
-		tileSize: DefaultTileSize,
-		shards:   DefaultShards,
 		table:    client.Open(conf.TableID),
 		cacheOps: cache,
 	}
@@ -132,7 +129,6 @@ func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, ts time.T
 	// .. should be applied to these rows.
 	rowNames := make([]string, 0, len(entries))
 	btTS := bigtable.Time(ts)
-	before := bigtable.Time(ts.Add(-1 * time.Millisecond))
 
 	for _, entry := range entries {
 		// To save space, traceID isn't the long form tiling.TraceId
@@ -155,8 +151,22 @@ func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, ts time.T
 		column := strconv.Itoa(commitIndex)
 
 		mut.Set(traceFamily, column, btTS, toBytes(entry.Digest))
-		// Delete anything that existed at this cell before now.
-		mut.DeleteTimestampRange(traceFamily, column, 0, before)
+		mutations = append(mutations, mut)
+
+		if len(entry.Options) == 0 {
+			continue
+		}
+		rowName = b.calcShardedRowName(tk, typeOptions, string(traceID))
+		rowNames = append(rowNames, rowName)
+
+		buf := bytes.Buffer{}
+		encoder := gob.NewEncoder(&buf)
+
+		if err := encoder.Encode(entry.Options); err != nil {
+			return nil, nil, skerr.Fmt("could not encode options map for trace %s: %s (%v)", sTrace, err, entry.Options)
+		}
+
+		mut.Set(optionsFamily, column, btTS, buf.Bytes())
 		mutations = append(mutations, mut)
 	}
 	return rowNames, mutations, nil
@@ -232,7 +242,7 @@ func (b *BTTraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile,
 func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTileKey tileKey, startCommitIndex, endCommitIndex int) (traceMap, paramtools.ParamSet, error) {
 	// Query those tiles.
 	nTiles := int(startTileKey - endTileKey + 1)
-	nCommits := int(startTileKey-endTileKey)*int(b.tileSize) + (endCommitIndex - startCommitIndex) + 1
+	nCommits := int(startTileKey-endTileKey)*int(DefaultTileSize) + (endCommitIndex - startCommitIndex) + 1
 	encTiles := make([]*encTile, nTiles)
 	var egroup errgroup.Group
 	tk := startTileKey
@@ -261,7 +271,7 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 	commitIDX := 0
 	for idx, encTile := range encTiles {
 		// Determine the offset within the tile that we should consider.
-		endOffset := int(b.tileSize - 1)
+		endOffset := int(DefaultTileSize - 1)
 		if idx == (len(encTiles) - 1) {
 			// If we are on the last tile, stop early (that is, at endCommitIndex)
 			endOffset = endCommitIndex
@@ -359,9 +369,9 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 			break
 		}
 
-		tKey++                       // go backwards in time one tile
-		endIdx = int(b.tileSize - 1) // fetch the whole previous tile
-		tileStartCommitIdx -= int(b.tileSize)
+		tKey++                            // go backwards in time one tile
+		endIdx = int(DefaultTileSize - 1) // fetch the whole previous tile
+		tileStartCommitIdx -= int(DefaultTileSize)
 	}
 
 	if len(commitsWithData) == 0 {
@@ -409,8 +419,8 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 // given the index of a commit in the repo (repoIndex).
 // commitIndex starts at 0 for the oldest commit in the tile.
 func (b *BTTraceStore) getTileKey(repoIndex int) (tileKey, int) {
-	tileIndex := int32(repoIndex) / b.tileSize
-	commitIndex := repoIndex % int(b.tileSize)
+	tileIndex := int32(repoIndex) / DefaultTileSize
+	commitIndex := repoIndex % int(DefaultTileSize)
 	return tileKeyFromIndex(tileIndex), commitIndex
 }
 
@@ -456,11 +466,11 @@ func (b *BTTraceStore) loadTile(ctx context.Context, tileKey tileKey) (*encTile,
 func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (map[encodedTraceID][]types.Digest, error) {
 	defer metrics2.FuncTimer().Stop()
 	var egroup errgroup.Group
-	shardResults := make([]map[encodedTraceID][]types.Digest, b.shards)
+	shardResults := make([]map[encodedTraceID][]types.Digest, DefaultShards)
 	traceCount := int64(0)
 
 	// Query all shards in parallel.
-	for shard := int32(0); shard < b.shards; shard++ {
+	for shard := int32(0); shard < DefaultShards; shard++ {
 		func(shard int32) {
 			egroup.Go(func() error {
 				// This prefix will match all traces belonging to the
@@ -475,7 +485,7 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 					// If this is the first time we've seen the trace, initialize the
 					// slice of digests for it.
 					if _, ok := target[traceKey]; !ok {
-						target[traceKey] = make([]types.Digest, b.tileSize)
+						target[traceKey] = make([]types.Digest, DefaultTileSize)
 						atomic.AddInt64(&traceCount, 1)
 					}
 
@@ -489,7 +499,7 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 							parseErr = err
 							return false
 						}
-						if idx < 0 || idx >= int(b.tileSize) {
+						if idx < 0 || idx >= int(DefaultTileSize) {
 							// This would happen if the tile size changed from a past
 							// value. It shouldn't be changed, even if the Gold tile size
 							// (n_commits) changes.
@@ -558,7 +568,7 @@ func (b *BTTraceStore) applyBulkBatched(ctx context.Context, rowNames []string, 
 // Once this is done, the shard, rowtype, tileKey and the subkey are combined into a
 // single string to be used as a row name in BT.
 func (b *BTTraceStore) calcShardedRowName(tileKey tileKey, rowType, subkey string) string {
-	shard := int32(crc32.ChecksumIEEE([]byte(subkey)) % uint32(b.shards))
+	shard := int32(crc32.ChecksumIEEE([]byte(subkey)) % uint32(DefaultShards))
 	return shardedRowName(shard, rowType, tileKey, subkey)
 }
 
