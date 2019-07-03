@@ -1,4 +1,4 @@
-package goldingestion
+package ingestion_processors
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
@@ -223,7 +222,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 	return nil
 }
 
-func (g *goldTryjobProcessor) syncIssueAndTryjob(issueID int64, tryjob *tryjobstore.Tryjob, dmResults *DMResults, resultFileName string) (*tryjobstore.Tryjob, error) {
+func (g *goldTryjobProcessor) syncIssueAndTryjob(issueID int64, tryjob *tryjobstore.Tryjob, dmResults *dmResults, resultFileName string) (*tryjobstore.Tryjob, error) {
 	// Only let one thread in at time for each issueID. In most cases they will follow the fast
 	// path of finding the issue and having an non-nil tryjob.
 	defer g.syncMonitor.Enter(issueID).Release()
@@ -327,7 +326,7 @@ func (g *goldTryjobProcessor) noUpload(builder, commit string) bool {
 	for _, s := range config.NoUpload {
 		m, err := regexp.MatchString(s, builder)
 		if err != nil {
-			glog.Errorf("Error matching regex: %s", err)
+			sklog.Errorf("Error matching regex: %s", err)
 			continue
 		}
 		if m {
