@@ -30,15 +30,12 @@
   },
   "cqExtraTrybots": [
     "skia.primary:Build-Debian9-Clang-x86_64-Release-ANGLE",
-    "skia.primary:Perf-Win10-Clang-AlphaR2-GPU-RadeonR9M470X-x86_64-Debug-All-ANGLE",
-    "skia.primary:Perf-Win10-Clang-NUC5i7RYH-GPU-IntelIris6100-x86_64-Debug-All-ANGLE",
-    "skia.primary:Perf-Win10-Clang-NUC6i5SYK-GPU-IntelIris540-x86_64-Debug-All-ANGLE",
-    "skia.primary:Perf-Win10-Clang-NUCD34010WYKH-GPU-IntelHD4400-x86_64-Debug-All-ANGLE",
-    "skia.primary:Perf-Win10-Clang-ShuttleC-GPU-GTX960-x86_64-Debug-All-ANGLE",
     "skia.primary:Test-Win10-Clang-AlphaR2-GPU-RadeonR9M470X-x86_64-Debug-All-ANGLE",
+    "skia.primary:Test-Win10-Clang-Golo-GPU-QuadroP400-x86_64-Debug-All-ANGLE",
+    "skia.primary:Test-Win10-Clang-NUC5i7RYH-GPU-IntelIris6100-x86_64-Debug-All-ANGLE",
     "skia.primary:Test-Win10-Clang-NUC6i5SYK-GPU-IntelIris540-x86_64-Debug-All-ANGLE",
-    "skia.primary:Test-Win10-Clang-NUCD34010WYKH-GPU-IntelHD4400-x86_64-Debug-All-ANGLE",
-    "skia.primary:Test-Win10-Clang-ShuttleC-GPU-GTX960-x86_64-Debug-All-ANGLE"
+    "skia.primary:Test-Win10-Clang-NUC8i5BEK-GPU-IntelIris655-x86_64-Debug-All-ANGLE",
+    "skia.primary:Test-Win10-Clang-NUCD34010WYKH-GPU-IntelHD4400-x86_64-Debug-All-ANGLE"
   ],
   "kubernetes": {
     "cpu": "1",
