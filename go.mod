@@ -13,7 +13,7 @@ require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/VividCortex/godaemon v0.0.0-20150910212227-3d9f6e0b234f
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.20.14 // indirect
+	github.com/aws/aws-sdk-go v1.20.15 // indirect
 	github.com/boltdb/bolt v1.3.1
 	github.com/cenkalti/backoff v2.1.1+incompatible
 	github.com/codegangsta/negroni v1.0.0 // indirect
@@ -26,7 +26,7 @@ require (
 	github.com/dgryski/go-sip13 v0.0.0-20190329191031-25c5027a8c7b // indirect
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
-	github.com/elazarl/goproxy v0.0.0-20190630181448-f1e96bc0f4c5 // indirect
+	github.com/elazarl/goproxy v0.0.0-20190703090003-6125c262ffb0 // indirect
 	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
 	github.com/evanphx/json-patch v4.5.0+incompatible // indirect
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
@@ -42,7 +42,6 @@ require (
 	github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6
 	github.com/golang/mock v1.3.1
 	github.com/golang/protobuf v1.3.1
-	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/uuid v1.1.1
@@ -83,7 +82,7 @@ require (
 	github.com/prometheus/client_golang v1.0.0
 	github.com/prometheus/common v0.6.0 // indirect
 	github.com/prometheus/procfs v0.0.3 // indirect
-	github.com/prometheus/tsdb v0.8.0 // indirect
+	github.com/prometheus/tsdb v0.9.1 // indirect
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d // indirect
 	github.com/robfig/go-cache v0.0.0-20130306151617-9fc39e0dbf62
 	github.com/rogpeppe/fastuuid v1.1.0 // indirect
@@ -106,19 +105,19 @@ require (
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
-	go.chromium.org/luci v0.0.0-20190702234052-4bc1a77fef8a
+	go.chromium.org/luci v0.0.0-20190704003605-b6c3f25451b5
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.opencensus.io v0.22.0
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/exp v0.0.0-20190627132806-fd42eb6b336f // indirect
-	golang.org/x/image v0.0.0-20190622003408-7e034cad6442 // indirect
+	golang.org/x/image v0.0.0-20190703141733-d6a02ce849c9 // indirect
 	golang.org/x/mobile v0.0.0-20190607214518-6fa95d984e88 // indirect
 	golang.org/x/mod v0.1.0 // indirect
 	golang.org/x/net v0.0.0-20190628185345-da137c7871d7
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb // indirect
-	golang.org/x/tools v0.0.0-20190702201734-44aeb8b7c377 // indirect
+	golang.org/x/tools v0.0.0-20190703212419-2214986f1668 // indirect
 	golang.org/x/tools/gopls v0.1.1 // indirect
 	google.golang.org/api v0.7.0
 	google.golang.org/genproto v0.0.0-20190701230453-710ae3a149df
@@ -130,8 +129,8 @@ require (
 	gopkg.in/unrolled/secure.v1 v1.0.0
 	gopkg.in/yaml.v2 v2.2.2
 	honnef.co/go/tools v0.0.0-20190623190502-86b08b5391b7 // indirect
-	k8s.io/api v0.0.0-20190627205229-acea843d18eb // indirect
-	k8s.io/apimachinery v0.0.0-20190629125103-05b5762916b3
+	k8s.io/api v0.0.0-20190703205437-39734b2a72fe // indirect
+	k8s.io/apimachinery v0.0.0-20190703205208-4cfb76a8bf76
 	k8s.io/client-go v0.0.0-20190425172711-65184652c889
 	k8s.io/gengo v0.0.0-20190327210449-e17681d19d3a // indirect
 	k8s.io/klog v0.3.3 // indirect
