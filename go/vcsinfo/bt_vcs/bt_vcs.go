@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"math"
 	"sort"
 	"sync"
@@ -57,7 +56,7 @@ type BigTableVCS struct {
 // If evt is not nil and nCommits > 0 then this instance will continuously track
 // the last nCommits and publish a EV_NEW_GIT_COMMIT event.
 // The instances of gitiles.Repo is only used to fetch files.
-func New(gitStore gitstore.GitStore, defaultBranch string, repo *gitiles.Repo, evt eventbus.EventBus, nCommits int) (*BigTableVCS, error) {
+func New(ctx context.Context, gitStore gitstore.GitStore, defaultBranch string, repo *gitiles.Repo) (*BigTableVCS, error) {
 	if gitStore == nil {
 		return nil, errors.New("Cannot have nil gitStore")
 	}
@@ -65,16 +64,12 @@ func New(gitStore gitstore.GitStore, defaultBranch string, repo *gitiles.Repo, e
 		gitStore:      gitStore,
 		repo:          repo,
 		defaultBranch: defaultBranch,
-		detailsCache:  make(map[string]*vcsinfo.LongCommit, nCommits),
+		detailsCache:  map[string]*vcsinfo.LongCommit{},
 	}
-	if err := ret.Update(context.TODO(), true, false); err != nil {
-		return nil, err
+	if err := ret.Update(ctx, true, false); err != nil {
+		return nil, skerr.Wrapf(err, "could not perform initial update")
 	}
 
-	// Start watching the repo for changes and fire events when commits change.
-	if evt != nil && nCommits > 0 {
-		startVCSTracker(gitStore, defaultWatchInterval, evt, defaultBranch, nCommits)
-	}
 	return ret, nil
 }
 
@@ -102,20 +97,20 @@ func (b *BigTableVCS) Update(ctx context.Context, pull, allBranches bool) error 
 	if pull {
 		branchHeads, err := b.gitStore.GetBranches(ctx)
 		if err != nil {
-			return err
+			return skerr.Wrapf(err, "GetBranches in Update")
 		}
 
 		var ok bool
 		b.branchInfo, ok = branchHeads[targetBranch]
 		if !ok {
 			r := (b.gitStore.(*bt_gitstore.BigTableGitStore)).RepoURL
-			return skerr.Fmt("Unable to find branch %q in BigTable repo %s", targetBranch, r)
+			return skerr.Fmt("unable to find branch %q in BigTable repo %s", targetBranch, r)
 		}
 	}
 
 	// Get all index commits for the current branch.
 	if err := b.fetchIndexRange(ctx, 0, b.branchInfo.Index+1); err != nil {
-		return skerr.Fmt("could not fetch index commits: %s", err)
+		return skerr.Wrapf(err, "could not fetch index commits [0,%d]", b.branchInfo.Index+1)
 	}
 	// warm the cache of long commits
 	hashes := func() []string {
@@ -173,7 +168,7 @@ func (b *BigTableVCS) Details(ctx context.Context, hash string, includeBranchInf
 	// cache miss, so query for it
 	c, err := b.details(ctx, hash, includeBranchInfo)
 	if err != nil {
-		return nil, skerr.Fmt("Could not fetch Details for commit %s", hash)
+		return nil, skerr.Wrapf(err, "could not fetch Details for commit %s", hash)
 	}
 	if c != nil {
 		b.mutex.Lock()
@@ -215,13 +210,13 @@ func (b *BigTableVCS) DetailsMulti(ctx context.Context, hashes []string, include
 	// could just do a b.details() for each commit (parallelized with an errgroup)
 	commits, err := b.gitStore.Get(ctx, missedHashes)
 	if err != nil {
-		return nil, skerr.Fmt("Could not fetch all information about %q (subset %q): %s", hashes, missedHashes, err)
+		return nil, skerr.Wrapf(err, "Get missed hashes %q (superset %q)", missedHashes, hashes)
 	}
 
 	if includeBranchInfo {
 		branchPointers, err := b.gitStore.GetBranches(ctx)
 		if err != nil {
-			return nil, skerr.Fmt("Error retrieving branches: %s", err)
+			return nil, skerr.Wrapf(err, "GetBranches in DetailsMulti")
 		}
 
 		// We need to do an individual request per commit for its branch info
@@ -233,7 +228,7 @@ func (b *BigTableVCS) DetailsMulti(ctx context.Context, hashes []string, include
 					egroup.Go(func() error {
 						branches, err := b.getBranchInfo(ctx, c, branchPointers)
 						if err != nil {
-							return skerr.Fmt("Error getting branch info for commit %s: %s", c.Hash, err)
+							return skerr.Wrapf(err, "getBranchInfo for commit %s", c.Hash)
 						}
 						c.Branches = branches
 						return nil
@@ -242,7 +237,7 @@ func (b *BigTableVCS) DetailsMulti(ctx context.Context, hashes []string, include
 			}
 		}
 		if err := egroup.Wait(); err != nil {
-			return nil, skerr.Fmt("Fetching branch info for %q failed: %s", missedHashes, err)
+			return nil, skerr.Wrapf(err, "Fetching branch info for %q", missedHashes)
 		}
 	}
 
@@ -273,12 +268,12 @@ func (b *BigTableVCS) details(ctx context.Context, hash string, includeBranchInf
 	if includeBranchInfo {
 		branchPointers, err := b.gitStore.GetBranches(ctx)
 		if err != nil {
-			return nil, skerr.Fmt("Error retrieving branches: %s", err)
+			return nil, skerr.Wrapf(err, "GetBranches in details")
 		}
 
 		branches, err := b.getBranchInfo(ctx, commits[0], branchPointers)
 		if err != nil {
-			return nil, skerr.Fmt("Error getting branch info for commit %s: %s", commits[0].Hash, err)
+			return nil, skerr.Wrapf(err, "getting branch info for commit %s", commits[0].Hash)
 		}
 		commits[0].Branches = branches
 	}
@@ -299,7 +294,7 @@ func (b *BigTableVCS) getBranchInfo(ctx context.Context, c *vcsinfo.LongCommit, 
 					// Then we check whether the target commit is returned as part of the result.
 					commits, err := b.gitStore.RangeByTime(ctx, c.Timestamp, c.Timestamp.Add(time.Second), branchName)
 					if err != nil {
-						return skerr.Fmt("Error in range query for branch %s: %s", branchName, err)
+						return skerr.Wrapf(err, "range query for branch %s", branchName)
 					}
 
 					// Iterate over the commits at the given timestamp. Most of the time there should
@@ -318,7 +313,7 @@ func (b *BigTableVCS) getBranchInfo(ctx context.Context, c *vcsinfo.LongCommit, 
 		}
 	}
 	if err := egroup.Wait(); err != nil {
-		return nil, skerr.Fmt("Error retrieving branch membership: %s", err)
+		return nil, skerr.Wrapf(err, "retrieving branch membership")
 	}
 	return ret, nil
 }
@@ -387,7 +382,7 @@ func (b *BigTableVCS) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, 
 
 	// Fetch the hash
 	if hash == "" {
-		return nil, fmt.Errorf("Hash index not found: %d", N)
+		return nil, skerr.Fmt("Hash index not found: %d", N)
 	}
 	return b.Details(ctx, hash, false)
 }
@@ -396,7 +391,7 @@ func (b *BigTableVCS) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, 
 func (b *BigTableVCS) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
 	var buf bytes.Buffer
 	if err := b.repo.ReadFileAtRef(fileName, commitHash, &buf); err != nil {
-		return "", skerr.Fmt("Error reading file %s @ %s via gitiles: %s", fileName, commitHash, err)
+		return "", skerr.Wrapf(err, "reading file %s @ %s via gitiles", fileName, commitHash)
 	}
 	return buf.String(), nil
 }
@@ -460,28 +455,31 @@ func (b *BigTableVCS) timeRange(start time.Time, end time.Time) []*vcsinfo.Index
 	return b.indexCommits[startIdx:endIdx]
 }
 
-// startVCSTracker starts a background process that watches for new commits at the given interval.
-// When a new commit is detected a EV_NEW_GIT_COMMIT event is triggered.
-func startVCSTracker(gitStore gitstore.GitStore, interval time.Duration, evt eventbus.EventBus, branch string, nCommits int) {
-	ctx := context.TODO()
+// StartTracking begins watching the repo for changes on a background thread.
+// When a new commit is detected a EV_NEW_GIT_COMMIT event is triggered on the event bus.
+func (b *BigTableVCS) StartTracking(ctx context.Context, nCommits int, evt eventbus.EventBus) {
+	if evt == nil || nCommits <= 0 {
+		sklog.Warningf("Not starting tracking because of invalid inputs: %d, %v", nCommits, evt)
+		return
+	}
+
 	// Keep track of commits.
 	var prevCommits []*vcsinfo.IndexCommit
-	go util.RepeatCtx(interval, ctx, func() {
-		ctx := context.TODO()
-		allBranches, err := gitStore.GetBranches(ctx)
+	go util.RepeatCtx(defaultWatchInterval, ctx, func() {
+		allBranches, err := b.gitStore.GetBranches(ctx)
 		if err != nil {
 			sklog.Errorf("Error retrieving branches: %s", err)
 			return
 		}
 
-		branchInfo, ok := allBranches[branch]
+		branchInfo, ok := allBranches[b.defaultBranch]
 		if !ok {
-			sklog.Errorf("Branch %s not found in gitstore", branch)
+			sklog.Errorf("Branch %s not found in gitstore", b.defaultBranch)
 			return
 		}
 
 		startIdx := util.MaxInt(0, branchInfo.Index+1-nCommits)
-		commits, err := gitStore.RangeN(ctx, startIdx, int(math.MaxInt32), branch)
+		commits, err := b.gitStore.RangeN(ctx, startIdx, int(math.MaxInt32), b.defaultBranch)
 		if err != nil {
 			sklog.Errorf("Error getting last %d commits: %s", nCommits, err)
 			return
