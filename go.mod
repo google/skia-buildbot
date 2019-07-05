@@ -34,7 +34,7 @@ require (
 	github.com/fortytw2/leaktest v1.3.0 // indirect
 	github.com/go-kit/kit v0.9.0 // indirect
 	github.com/go-openapi/spec v0.19.2 // indirect
-	github.com/go-openapi/swag v0.19.3 // indirect
+	github.com/go-openapi/swag v0.19.4 // indirect
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
 	github.com/gogo/protobuf v1.2.1
