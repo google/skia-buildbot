@@ -85,22 +85,23 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 
 	// Set up the gitinfo object.
 	var vcs vcsinfo.VCS
-	var err error
 	if btConf != nil {
 		gitStore, err := bt_gitstore.New(ctx, btConf, config.GitRepoURL)
 		if err != nil {
-			return nil, skerr.Fmt("Error instantiating gitstore: %s", err)
+			return nil, skerr.Wrapf(err, "could not instantiate gitstore for %s", config.GitRepoURL)
 		}
 
 		// Set up VCS instance to track master.
 		gitilesRepo := gitiles.NewRepo(config.GitRepoURL, "", client)
-		if vcs, err = bt_vcs.New(gitStore, "master", gitilesRepo, nil, 0); err != nil {
-			return nil, skerr.Fmt("could not create new bt_vcs: %s", err)
+		if vcs, err = bt_vcs.New(ctx, gitStore, "master", gitilesRepo); err != nil {
+			return nil, skerr.Wrapf(err, "could not create new bt_vcs")
 		}
+
 		sklog.Infof("Created vcs client based on BigTable.")
 	} else {
+		var err error
 		if vcs, err = gitinfo.CloneOrUpdate(ctx, config.GitRepoURL, config.GitRepoDir, true); err != nil {
-			return nil, skerr.Fmt("could not clone %s locally to %s: %s", config.GitRepoURL, config.GitRepoDir, err)
+			return nil, skerr.Wrapf(err, "could not clone %s locally to %s", config.GitRepoURL, config.GitRepoDir)
 		}
 		sklog.Infof("Created vcs client based on local checkout.")
 	}
@@ -110,6 +111,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 	var secondaryVCS vcsinfo.VCS
 	var extractor depot_tools.DEPSExtractor
 	if config.SecondaryRepoURL != "" {
+		var err error
 		if secondaryVCS, err = gitinfo.CloneOrUpdate(ctx, config.SecondaryRepoURL, config.SecondaryRepoDir, true); err != nil {
 			return nil, skerr.Fmt("could not set up secondary repo %s in %s: %s", config.SecondaryRepoURL, config.SecondaryRepoDir, err)
 		}
