@@ -30,7 +30,6 @@ import (
 	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/issues"
@@ -281,13 +280,16 @@ func main() {
 		if foundRepoURL, ok := bt_gitstore.RepoURLFromID(ctx, btConf, *gitRepoURL); ok {
 			useRepoURL = foundRepoURL
 		}
-		var gitStore gitstore.GitStore
-		gitStore, err = bt_gitstore.New(ctx, btConf, useRepoURL)
+		gitStore, err := bt_gitstore.New(ctx, btConf, useRepoURL)
 		if err != nil {
 			sklog.Fatalf("Error instantiating gitstore: %s", err)
 		}
 
 		gitilesRepo := gitiles.NewRepo("", "", nil)
+		bvcs, err := bt_vcs.New(ctx, gitStore, "master", gitilesRepo)
+		if err != nil {
+			sklog.Fatalf("Error creating BT-backed VCS instance: %s", err)
+		}
 
 		trackNCommits := *nCommits
 		if *sparseInput {
@@ -295,12 +297,13 @@ func main() {
 			// commit.
 			trackNCommits *= 10
 		}
-		vcs, err = bt_vcs.New(gitStore, "master", gitilesRepo, evt, trackNCommits)
+		bvcs.StartTracking(ctx, trackNCommits, evt)
+		vcs = bvcs
 	} else {
 		vcs, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
-	}
-	if err != nil {
-		sklog.Fatalf("Error creating VCS instance: %s", err)
+		if err != nil {
+			sklog.Fatalf("Error creating on-disk VCS instance: %s", err)
+		}
 	}
 
 	// If this is an authoritative instance we need an authenticated Gerrit client
