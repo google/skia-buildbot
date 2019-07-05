@@ -94,9 +94,11 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 
 		// Set up VCS instance to track master.
 		gitilesRepo := gitiles.NewRepo(config.GitRepoURL, "", client)
-		if vcs, err = bt_vcs.New(gitStore, "master", gitilesRepo, nil, 0); err != nil {
+		if vcs, err = bt_vcs.New(ctx, gitStore, "master", gitilesRepo); err != nil {
 			return nil, skerr.Fmt("could not create new bt_vcs: %s", err)
 		}
+		// TODO(kjlubick): should this auto-update?
+
 		sklog.Infof("Created vcs client based on BigTable.")
 	} else {
 		if vcs, err = gitinfo.CloneOrUpdate(ctx, config.GitRepoURL, config.GitRepoDir, true); err != nil {
