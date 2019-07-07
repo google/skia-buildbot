@@ -1,12 +1,16 @@
 package bt_tracestore
 
 import (
+	"bytes"
 	"crypto/md5"
+	"encoding/gob"
 	"encoding/hex"
 	"fmt"
 	"math"
 	"strings"
 
+	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -70,4 +74,28 @@ func fromBytes(b []byte) types.Digest {
 		return types.MISSING_DIGEST
 	}
 	return types.Digest(hex.EncodeToString(b))
+}
+
+func encodeParams(p map[string]string) ([]byte, error) {
+	buf := bytes.Buffer{}
+	e := gob.NewEncoder(&buf)
+
+	if err := e.Encode(p); err != nil {
+		return nil, skerr.Wrapf(err, "could not encode param map")
+	}
+	return buf.Bytes(), nil
+}
+
+func decodeParams(b []byte) paramtools.Params {
+	if b == nil || len(b) == 0 {
+		return paramtools.Params{}
+	}
+	buf := bytes.NewBuffer(b)
+	d := gob.NewDecoder(buf)
+	p := paramtools.Params{}
+	if err := d.Decode(&p); err != nil {
+		sklog.Errorf("Invalid params bytes: %s", err)
+		return paramtools.Params{}
+	}
+	return p
 }

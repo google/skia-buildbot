@@ -22,14 +22,21 @@ const (
 
 	// Column Families.
 	// https://cloud.google.com/bigtable/docs/schema-design#column_families_and_column_qualifiers
-	opsFamily   = "O" // ops short for Ordered Param Set
-	traceFamily = "T" // Holds "0"..."tilesize-1" columns with a DigestID at each cell
+	opsFamily     = "O" // ops short for OrderedParamSet
+	optionsFamily = "P" // oPtions map for a trace
+	traceFamily   = "T" // Holds "0"..."tilesize-1" columns with a DigestID at each cell
 
 	// Columns in the OrderedParamSet column family.
 	opsHashColumn   = "H"
 	opsOpsColumn    = "OPS"
 	hashFullColName = opsFamily + ":" + opsHashColumn
 	opsFullColName  = opsFamily + ":" + opsOpsColumn
+
+	// Columns in the options map column family.
+	optionsMapColumn    = "MAP"
+	optionsOffsetColumn = "IDX"
+
+	optionsFamilyPrefix = optionsFamily + ":"
 
 	// The columns in the trace family are "0", "1", "2"..."N" where N is
 	// the BT tile size (default below). These values correspond to the commitOffset,
@@ -39,8 +46,12 @@ const (
 	traceFamilyPrefix = traceFamily + ":"
 
 	// Define the row types.
-	typeOPS   = "o"
-	typeTrace = "t"
+	typeOPS     = "o"
+	typeOptions = "p"
+	typeTrace   = "t"
+
+	// We pad the columns so they are properly sorted lexicographically.
+	columnPad = "%03d"
 
 	// This is the size of the tile in Big Table. That is, how many commits do we store in one tile.
 	// We can have up to 2^32 tiles in big table, so this would let us store 1 trillion
@@ -70,6 +81,7 @@ var (
 // List of families (conceptually similar to tables) we are creating in BT.
 var btColumnFamilies = []string{
 	opsFamily,
+	optionsFamily,
 	traceFamily,
 }
 
