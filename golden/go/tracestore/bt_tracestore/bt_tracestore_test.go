@@ -86,6 +86,68 @@ func TestBTTraceStorePutGet(t *testing.T) {
 	assert.Equal(t, commits, actualCommits)
 }
 
+// TestBTTraceStorePutGetOptions adds a bunch of entries (with options) one at a time and
+// then retrieves the full tile.
+func TestBTTraceStorePutGetOptions(t *testing.T) {
+	unittest.LargeTest(t)
+	unittest.RequiresBigTableEmulator(t)
+
+	commits := data.MakeTestCommits()
+	mvcs := MockVCSWithCommits(commits, 0)
+	defer mvcs.AssertExpectations(t)
+
+	btConf := BTConfig{
+		ProjectID:  "should-use-the-emulator",
+		InstanceID: "testinstance",
+		TableID:    "three_devices_options",
+		VCS:        mvcs,
+	}
+
+	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	assert.NoError(t, InitBT(btConf))
+
+	ctx := context.Background()
+	traceStore, err := New(ctx, btConf, true)
+	assert.NoError(t, err)
+
+	// This time is an arbitrary point in time
+	now := time.Date(2019, time.May, 5, 1, 3, 4, 0, time.UTC)
+
+	// Build a tile up from the individual data points, one at a time
+	traces := data.MakeTestTile().Traces
+	for _, trace := range traces {
+		gTrace, ok := trace.(*types.GoldenTrace)
+		assert.True(t, ok)
+
+		// Put them in backwards, just to test that order doesn't matter
+		for i := len(gTrace.Digests) - 1; i >= 0; i-- {
+			if gTrace.Digests[i] == types.MISSING_DIGEST {
+				continue
+			}
+			e := tracestore.Entry{
+				Digest: gTrace.Digests[i],
+				Params: gTrace.Keys,
+			}
+			if i == 0 {
+				e.Options = optionsOne
+			} else {
+				e.Options = optionsTwo
+			}
+			err := traceStore.Put(ctx, commits[i].Hash, []*tracestore.Entry{&e}, now)
+			assert.NoError(t, err)
+			// roll forward the clock by an arbitrary amount of time
+			now = now.Add(7 * time.Second)
+		}
+	}
+
+	// Get the tile back and make make sure the options are there.
+	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
+	assert.NoError(t, err)
+
+	assert.Equal(t, makeTestTileWithOptions(), actualTile)
+	assert.Equal(t, commits, actualCommits)
+}
+
 // TestBTTraceStorePutGetSpanTile is like TestBTTraceStorePutGet except the 3 commits
 // are lined up to go across two tiles.
 func TestBTTraceStorePutGetSpanTile(t *testing.T) {
@@ -144,6 +206,69 @@ func TestBTTraceStorePutGetSpanTile(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, data.MakeTestTile(), actualTile)
+	assert.Equal(t, commits, actualCommits)
+}
+
+// TestBTTraceStorePutGetSpanOptionsTile is like TestBTTraceStorePutGetOptions except the 3 commits
+// are lined up to go across two tiles.
+func TestBTTraceStorePutGetOptionsSpanTile(t *testing.T) {
+	unittest.LargeTest(t)
+	unittest.RequiresBigTableEmulator(t)
+
+	commits := data.MakeTestCommits()
+	mvcs := MockVCSWithCommits(commits, DefaultTileSize-2)
+	defer mvcs.AssertExpectations(t)
+
+	btConf := BTConfig{
+		ProjectID:  "should-use-the-emulator",
+		InstanceID: "testinstance",
+		TableID:    "three_devices_test_span",
+		VCS:        mvcs,
+	}
+
+	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	assert.NoError(t, InitBT(btConf))
+
+	ctx := context.Background()
+	traceStore, err := New(ctx, btConf, true)
+	assert.NoError(t, err)
+
+	// This time is an arbitrary point in time
+	now := time.Date(2019, time.May, 5, 1, 3, 4, 0, time.UTC)
+
+	// Build a tile up from the individual data points, one at a time
+	traces := data.MakeTestTile().Traces
+	for _, trace := range traces {
+		gTrace, ok := trace.(*types.GoldenTrace)
+		assert.True(t, ok)
+
+		// Put them in backwards, just to test that order doesn't matter
+		for i := len(gTrace.Digests) - 1; i >= 0; i-- {
+			if gTrace.Digests[i] == types.MISSING_DIGEST {
+				continue
+			}
+			e := tracestore.Entry{
+				Digest: gTrace.Digests[i],
+				Params: gTrace.Keys,
+			}
+			if i == 0 {
+				e.Options = optionsOne
+			} else {
+				e.Options = optionsTwo
+			}
+			err := traceStore.Put(ctx, commits[i].Hash, []*tracestore.Entry{&e}, now)
+			assert.NoError(t, err)
+			// roll forward the clock by an arbitrary amount of time
+			now = now.Add(7 * time.Second)
+		}
+	}
+
+	// Get the tile back and make sure it exactly matches the tile
+	// we hand-crafted for the test data.
+	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
+	assert.NoError(t, err)
+
+	assert.Equal(t, makeTestTileWithOptions(), actualTile)
 	assert.Equal(t, commits, actualCommits)
 }
 
@@ -798,4 +923,34 @@ func MockSparseVCSWithCommits(commits []*tiling.Commit, realCommitIndices []int,
 	return mvcs, longCommits
 }
 
-var ctx = mock.AnythingOfType("*context.emptyCtx")
+func makeTestTileWithOptions() *tiling.Tile {
+	tile := data.MakeTestTile()
+	for id, trace := range tile.Traces {
+		gt := trace.(*types.GoldenTrace)
+		if id == data.CrosshatchBetaTraceID {
+			for k, v := range optionsOne {
+				gt.Keys[k] = v
+			}
+		} else {
+			for k, v := range optionsTwo {
+				gt.Keys[k] = v
+			}
+		}
+		tile.Traces[id] = gt
+	}
+	tile.ParamSet["resolution"] = []string{"1080p", "4k"}
+	tile.ParamSet["color"] = []string{"orange"}
+	return tile
+}
+
+var (
+	ctx = mock.AnythingOfType("*context.emptyCtx")
+
+	optionsOne = map[string]string{
+		"resolution": "1080p",
+		"color":      "orange",
+	}
+	optionsTwo = map[string]string{
+		"resolution": "4k",
+	}
+)
