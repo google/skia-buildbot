@@ -57,7 +57,7 @@ import (
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/tryjobs/gerrit_tryjob_monitor"
-	"go.skia.org/infra/golden/go/tryjobstore"
+	"go.skia.org/infra/golden/go/tryjobstore/ds_tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/warmer"
 	"go.skia.org/infra/golden/go/web"
@@ -380,7 +380,7 @@ func main() {
 		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
 	}
 
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, evt)
+	tryjobStore, err := ds_tryjobstore.New(ds.DS, evt)
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
 	}

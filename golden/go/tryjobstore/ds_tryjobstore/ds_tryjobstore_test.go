@@ -1,4 +1,4 @@
-package tryjobstore
+package ds_tryjobstore
 
 import (
 	"errors"
@@ -14,7 +14,7 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -29,7 +29,7 @@ func TestCloudTryjobStore(t *testing.T) {
 	defer cleanup()
 
 	eventBus := eventbus.New()
-	store, err := NewCloudTryjobStore(ds.DS, eventBus)
+	store, err := New(ds.DS, eventBus)
 	assert.NoError(t, err)
 
 	// Add the issue and two tryjobs to the store.
@@ -41,44 +41,44 @@ func TestCloudTryjobStore(t *testing.T) {
 	// kept the time down to nanoseconds the test would fail. So we drop everything
 	// smaller than a second.
 	nowSec := time.Unix(time.Now().Unix(), 0)
-	tryjob_1 := &Tryjob{
+	tryjob_1 := &tryjobstore.Tryjob{
 		IssueID:       issueID,
 		PatchsetID:    patchsetID,
 		Builder:       "Test-Builder-1",
 		BuildBucketID: buildBucketID,
-		Status:        TRYJOB_RUNNING,
+		Status:        tryjobstore.TRYJOB_RUNNING,
 		Updated:       nowSec,
 	}
 
 	patchsetID_2 := int64(1200)
 	buildBucketID_2 := int64(30199)
-	tryjob_2 := &Tryjob{
+	tryjob_2 := &tryjobstore.Tryjob{
 		IssueID:       issueID,
 		PatchsetID:    patchsetID_2,
 		Builder:       "Test-Builder-2",
 		BuildBucketID: buildBucketID_2,
-		Status:        TRYJOB_COMPLETE,
+		Status:        tryjobstore.TRYJOB_COMPLETE,
 		Updated:       nowSec,
 	}
 
 	buildBucketID_3 := int64(40199)
-	tryjob_3 := &Tryjob{
+	tryjob_3 := &tryjobstore.Tryjob{
 		IssueID:       issueID,
 		PatchsetID:    patchsetID_2,
 		Builder:       "Test-Builder-2",
 		BuildBucketID: buildBucketID_3,
-		Status:        TRYJOB_COMPLETE,
+		Status:        tryjobstore.TRYJOB_COMPLETE,
 		Updated:       nowSec.Add(-time.Hour),
 	}
 
 	// Delete the tryjobs from the datastore.
-	issue := &Issue{
+	issue := &tryjobstore.Issue{
 		ID:      issueID,
 		Subject: "Test issue",
 		Owner:   "jdoe@example.com",
 		Updated: time.Now(),
 		Status:  "",
-		PatchsetDetails: []*PatchsetDetail{
+		PatchsetDetails: []*tryjobstore.PatchsetDetail{
 			{ID: patchsetID},
 			{ID: patchsetID_2},
 		},
@@ -94,8 +94,8 @@ func TestCloudTryjobStore(t *testing.T) {
 	assert.Equal(t, tryjob_1, found)
 	assert.NoError(t, store.UpdateTryjob(0, tryjob_2, nil))
 
-	expTryjobs := []*Tryjob{tryjob_1, tryjob_2}
-	foundTryjobs := []*Tryjob{}
+	expTryjobs := []*tryjobstore.Tryjob{tryjob_1, tryjob_2}
+	foundTryjobs := []*tryjobstore.Tryjob{}
 	assert.NoError(t, testutils.EventuallyConsistent(5*time.Second, func() error {
 		foundIssue, err := store.GetIssue(issueID, true)
 		assert.NoError(t, err)
@@ -120,16 +120,16 @@ func TestCloudTryjobStore(t *testing.T) {
 	checkEqualIssue(t, issue, listedIssues[0])
 
 	// Generate instances of results
-	allTryjobs := []*Tryjob{tryjob_1, tryjob_2}
-	tryjobResults := make([][]*TryjobResult, len(allTryjobs))
+	allTryjobs := []*tryjobstore.Tryjob{tryjob_1, tryjob_2}
+	tryjobResults := make([][]*tryjobstore.TryjobResult, len(allTryjobs))
 	for idx, tj := range allTryjobs {
 		digestStart := int64((idx + 1) * 1000)
-		results := []*TryjobResult{}
+		results := []*tryjobstore.TryjobResult{}
 
 		for i := 0; i < 5; i++ {
 			digestStr := fmt.Sprintf("%010d", digestStart+int64(i))
 			testName := fmt.Sprintf("test-%d", i%5)
-			results = append(results, &TryjobResult{
+			results = append(results, &tryjobstore.TryjobResult{
 				BuildBucketID: tj.BuildBucketID,
 				Digest:        types.Digest("digest-" + digestStr),
 				TestName:      types.TestName(testName),
@@ -144,8 +144,8 @@ func TestCloudTryjobStore(t *testing.T) {
 		tryjobResults[idx] = results
 	}
 
-	var foundTJs []*Tryjob
-	var foundTJResults [][]*TryjobResult
+	var foundTJs []*tryjobstore.Tryjob
+	var foundTJResults [][]*tryjobstore.TryjobResult
 	assert.NoError(t, testutils.EventuallyConsistent(3*time.Second, func() error {
 		foundTJs, foundTJResults, err = store.GetTryjobs(issueID, []int64{patchsetID, patchsetID_2}, false, true)
 		if err != nil {
@@ -207,7 +207,7 @@ func TestCloudTryjobStore(t *testing.T) {
 	assert.True(t, foundIssue.Committed)
 }
 
-func checkEqualIssue(t *testing.T, exp *Issue, actual *Issue) {
+func checkEqualIssue(t *testing.T, exp *tryjobstore.Issue, actual *tryjobstore.Issue) {
 	expCp := *exp
 	actCp := *actual
 
@@ -221,26 +221,4 @@ func normalizeTimeToMs(t time.Time) time.Time {
 	secs := unixNano / int64(time.Second)
 	newNanoRemainder := ((unixNano % int64(time.Second)) / int64(time.Millisecond)) * int64(time.Millisecond)
 	return time.Unix(secs, newNanoRemainder)
-}
-
-func TestTryjobJsonCodec(t *testing.T) {
-	unittest.SmallTest(t)
-
-	tryjob_1 := &Tryjob{
-		IssueID:       12345,
-		PatchsetID:    9,
-		Builder:       "Test-Builder-1",
-		BuildBucketID: 45409309403,
-		Status:        TRYJOB_RUNNING,
-	}
-
-	// Create a codec like we do for firing events and test the round trip.
-	codec := util.JSONCodec(&Tryjob{})
-	jsonBytes, err := codec.Encode(tryjob_1)
-	assert.NoError(t, err)
-
-	foundInterface, err := codec.Decode(jsonBytes)
-	assert.NoError(t, err)
-	assert.IsType(t, foundInterface, &Tryjob{})
-	assert.Equal(t, tryjob_1, foundInterface.(*Tryjob))
 }

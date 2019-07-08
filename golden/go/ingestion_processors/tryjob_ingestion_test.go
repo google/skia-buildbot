@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/mocks"
 	"go.skia.org/infra/golden/go/tryjobstore"
+	"go.skia.org/infra/golden/go/tryjobstore/ds_tryjobstore"
 )
 
 const (
@@ -28,6 +29,7 @@ const (
 )
 
 // Tests the processor in conjunction with the vcs.
+// TODO(kjlubick): make this test use mocks for tryjobstore and VCS.
 func TestTryjobGoldProcessor(t *testing.T) {
 	unittest.LargeTest(t)
 
@@ -72,7 +74,7 @@ func TestTryjobGoldProcessor(t *testing.T) {
 
 	// Set up the TryjobStore.
 	eventBus := eventbus.New()
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, eventBus)
+	tryjobStore, err := ds_tryjobstore.New(ds.DS, eventBus)
 	assert.NoError(t, err)
 
 	// Map the path of the file to its content
