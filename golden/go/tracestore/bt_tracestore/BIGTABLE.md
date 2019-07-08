@@ -53,11 +53,12 @@ digests in the cells, but this isn't ideal for these reasons:
   4. We want to split our rows up further into shards, so we can execute multiple queries at once
      (one query per shard).
 
-To address these performance issues, we need to store our traces and some auxiliary data.
-Specifically, we need to store an OrderedParamSet (OPS for short) that can convert
-tiling.TraceId (long string) to/from EncodedTraceId (short string).
+To address these performance issues, we need to store our traces and some auxiliary data:
+  - an OrderedParamSet (OPS for short) that can convert tiling.TraceId (long string)
+    to/from EncodedTraceId (short string).
+  - The Options key/values that are a part of the trace, but don't affect the traceID.
 
-This OPS, along with the traces, will be stored using 2 Column Families and can
+These data, along with the traces, will be stored using 3 Column Families and can
 logically thought of being stored as independent "tables" or "spreadsheets" even
 though they are all stored in the "one big table".
 
@@ -98,7 +99,7 @@ We compress these maps using a paramstool.OrderedParamSet which concretely look 
 To do this compression/decompression, we need to store the OrderedParamSet (OPS).
 There is one OPS per tile. Conceptually, an OPS is stored like:
 ```
-           |   OPS   |    H   |
+          |   OPS   |    H   |
 ==============================
 ops_tile0 | [bytes] | [hash] |
 ops_tile1 | [bytes] | [hash] |
@@ -122,20 +123,20 @@ With all the auxiliary data set, we can look at how the traces themselves are st
 Going with the default tile size of 256, the data would be like:
 
 ```
-             | offset0 | offset1 | ... | offset255
+             | offset000 | offset001 | ... | offset255
 ====================================================
-tile0_trace0 | [dig_1] | [dig_1] | ... | [dig_2] |
-tile0_trace1 | [dig_1] | [dig_2] | ... | [dig_2] |
+tile0_trace0 |  [dig_1]  |  [dig_1]  | ... | [dig_2]
+tile0_trace1 |  [dig_1]  |  [dig_2]  | ... | [dig_2]
 ...
-tile0_traceN | [dig_8] | [blank] | ... | [dig_6] |
-tile1_trace0 | [blank] | [dig_2] | ... | [blank] |
+tile0_traceN |  [dig_8]  |  [blank]  | ... | [dig_6]
+tile1_trace0 |  [blank]  |  [dig_2]  | ... | [blank]
 ...
 ```
 
 The columns are the offset into a tile of a commit. For example, the third commit in a repo would
 end up in tile 0, offset 3. The 1000th commit with a tile size of 256 would be in
 tile 3 (1000 / 256), offset 232 (1000 % 256). This has the effect of wrapping a given
-trace across many tiles.
+trace across many tiles. The column values are zero padded so they sort lexicographically.
 
 The rows follow the standard naming scheme, using "t" as "type", and making use of the shards
 (32 by default). The value for "subkey" is the encoded ParamSet (and from this subkey a shard
@@ -147,3 +148,32 @@ calculates to be 7) would be:
 The cells are the 16 bytes of the digest that were drawn according to that ParamSet.
 Blank cells will be decoded to MISSING_DIGEST ("") [We will sometimes represent blank cells with
 a single null byte].
+
+Storing the trace Options
+----------------------------------------
+Options are small map[string]string. Since Options are submitted per entry
+(i.e. alongside a digest), we store them using the same column as above (offset into tile).
+
+```
+             | offset000 | offset001 | ... | offset255
+====================================================
+tile0_trace0 |  [bytes]  |  [bytes]  | ... | [blank]
+tile0_trace1 |  [bytes]  |  [bytes]  | ... | [blank]
+...
+tile0_traceN |  [bytes]  |  [blank]  | ... | [bytes]
+tile1_trace0 |  [blank]  |  [bytes]  | ... | [blank]
+...
+```
+
+We store the maps as strings, encoded like trace keys (`,key1=value1,key2=value2,`) which can use
+less disk (since GOB needs to specify the type of the encoded object) and allows us to intern the
+option maps, using less RAM on decoding.
+
+The rows have the same names as their trace counterparts, with the exception of the type
+(and column family). When reading them, we only care about the most recent one per trace.
+We keep the older ones around for simplicity.
+
+An example row for encoded ParamSet ",0=1,1=3,3=0," on tile 0 (assume shard
+calculates to be 7) would be:
+
+    07:ts:p:2147483646:,0=1,1=3,3=0,

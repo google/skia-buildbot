@@ -55,6 +55,18 @@ func TestBTTraceStorePutGet(t *testing.T) {
 	assert.NotNil(t, actualTile)
 	assert.Empty(t, actualTile.Traces)
 
+	putTestTile(t, traceStore, commits, false /*=options*/)
+
+	// Get the tile back and make sure it exactly matches the tile
+	// we hand-crafted for the test data.
+	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
+	assert.NoError(t, err)
+
+	assert.Equal(t, data.MakeTestTile(), actualTile)
+	assert.Equal(t, commits, actualCommits)
+}
+
+func putTestTile(t *testing.T, traceStore tracestore.TraceStore, commits []*tiling.Commit, options bool) {
 	// This time is an arbitrary point in time
 	now := time.Date(2019, time.May, 5, 1, 3, 4, 0, time.UTC)
 
@@ -66,23 +78,59 @@ func TestBTTraceStorePutGet(t *testing.T) {
 
 		// Put them in backwards, just to test that order doesn't matter
 		for i := len(gTrace.Digests) - 1; i >= 0; i-- {
+			if gTrace.Digests[i] == types.MISSING_DIGEST {
+				continue
+			}
 			e := tracestore.Entry{
 				Digest: gTrace.Digests[i],
 				Params: gTrace.Keys,
 			}
-			err := traceStore.Put(ctx, commits[i].Hash, []*tracestore.Entry{&e}, now)
+			if options {
+				if i == 0 {
+					e.Options = makeOptionsOne()
+				} else {
+					e.Options = makeOptionsTwo()
+				}
+			}
+			err := traceStore.Put(context.Background(), commits[i].Hash, []*tracestore.Entry{&e}, now)
 			assert.NoError(t, err)
 			// roll forward the clock by an arbitrary amount of time
 			now = now.Add(7 * time.Second)
 		}
 	}
+}
 
-	// Get the tile back and make sure it exactly matches the tile
-	// we hand-crafted for the test data.
+// TestBTTraceStorePutGetOptions adds a bunch of entries (with options) one at a time and
+// then retrieves the full tile.
+func TestBTTraceStorePutGetOptions(t *testing.T) {
+	unittest.LargeTest(t)
+	unittest.RequiresBigTableEmulator(t)
+
+	commits := data.MakeTestCommits()
+	mvcs := MockVCSWithCommits(commits, 0)
+	defer mvcs.AssertExpectations(t)
+
+	btConf := BTConfig{
+		ProjectID:  "should-use-the-emulator",
+		InstanceID: "testinstance",
+		TableID:    "three_devices_options",
+		VCS:        mvcs,
+	}
+
+	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	assert.NoError(t, InitBT(btConf))
+
+	ctx := context.Background()
+	traceStore, err := New(ctx, btConf, true)
+	assert.NoError(t, err)
+
+	putTestTile(t, traceStore, commits, true /*=options*/)
+
+	// Get the tile back and make make sure the options are there.
 	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
 	assert.NoError(t, err)
 
-	assert.Equal(t, data.MakeTestTile(), actualTile)
+	assert.Equal(t, makeTestTileWithOptions(), actualTile)
 	assert.Equal(t, commits, actualCommits)
 }
 
@@ -116,27 +164,7 @@ func TestBTTraceStorePutGetSpanTile(t *testing.T) {
 	assert.NotNil(t, actualTile)
 	assert.Empty(t, actualTile.Traces)
 
-	// This time is an arbitrary point in time
-	now := time.Date(2019, time.May, 5, 1, 3, 4, 0, time.UTC)
-
-	// Build a tile up from the individual data points, one at a time
-	traces := data.MakeTestTile().Traces
-	for _, trace := range traces {
-		gTrace, ok := trace.(*types.GoldenTrace)
-		assert.True(t, ok)
-
-		// Put them in backwards, just to test that order doesn't matter
-		for i := len(gTrace.Digests) - 1; i >= 0; i-- {
-			e := tracestore.Entry{
-				Digest: gTrace.Digests[i],
-				Params: gTrace.Keys,
-			}
-			err := traceStore.Put(ctx, commits[i].Hash, []*tracestore.Entry{&e}, now)
-			assert.NoError(t, err)
-			// roll forward the clock by an arbitrary amount of time
-			now = now.Add(7 * time.Second)
-		}
-	}
+	putTestTile(t, traceStore, commits, false /*=options*/)
 
 	// Get the tile back and make sure it exactly matches the tile
 	// we hand-crafted for the test data.
@@ -144,6 +172,41 @@ func TestBTTraceStorePutGetSpanTile(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, data.MakeTestTile(), actualTile)
+	assert.Equal(t, commits, actualCommits)
+}
+
+// TestBTTraceStorePutGetSpanOptionsTile is like TestBTTraceStorePutGetOptions except the 3 commits
+// are lined up to go across two tiles.
+func TestBTTraceStorePutGetOptionsSpanTile(t *testing.T) {
+	unittest.LargeTest(t)
+	unittest.RequiresBigTableEmulator(t)
+
+	commits := data.MakeTestCommits()
+	mvcs := MockVCSWithCommits(commits, DefaultTileSize-2)
+	defer mvcs.AssertExpectations(t)
+
+	btConf := BTConfig{
+		ProjectID:  "should-use-the-emulator",
+		InstanceID: "testinstance",
+		TableID:    "three_devices_test_span",
+		VCS:        mvcs,
+	}
+
+	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	assert.NoError(t, InitBT(btConf))
+
+	ctx := context.Background()
+	traceStore, err := New(ctx, btConf, true)
+	assert.NoError(t, err)
+
+	putTestTile(t, traceStore, commits, true /*=options*/)
+
+	// Get the tile back and make sure it exactly matches the tile
+	// we hand-crafted for the test data.
+	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
+	assert.NoError(t, err)
+
+	assert.Equal(t, makeTestTileWithOptions(), actualTile)
 	assert.Equal(t, commits, actualCommits)
 }
 
@@ -445,6 +508,65 @@ func testDenseTile(t *testing.T, tile *tiling.Tile, mvcs *mock_vcs.VCS, commits 
 	tile.Commits = commits
 
 	assert.Equal(t, tile, actualTile)
+}
+
+// TestBTTraceStoreOverwrite makes sure that options and digests can be overwritten by
+// later Put calls.
+func TestBTTraceStoreOverwrite(t *testing.T) {
+	unittest.LargeTest(t)
+	unittest.RequiresBigTableEmulator(t)
+
+	commits := data.MakeTestCommits()
+	mvcs := MockVCSWithCommits(commits, 0)
+	defer mvcs.AssertExpectations(t)
+
+	btConf := BTConfig{
+		ProjectID:  "should-use-the-emulator",
+		InstanceID: "testinstance",
+		TableID:    "three_devices_overwrite",
+		VCS:        mvcs,
+	}
+
+	// This digest should be not seen in the final tile.
+	badDigest := types.Digest("badc918f358a30d920f0b4e571ef20bd")
+
+	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	assert.NoError(t, InitBT(btConf))
+
+	ctx := context.Background()
+	traceStore, err := New(ctx, btConf, true)
+	assert.NoError(t, err)
+
+	// an arbitrary time that takes place before putTestTile's time.
+	now := time.Date(2019, time.April, 26, 12, 0, 3, 0, time.UTC)
+
+	// Write some data to trace AnglerAlphaTraceID that should be overwritten
+	for i := 0; i < len(commits); i++ {
+		e := tracestore.Entry{
+			Digest: badDigest,
+			Params: map[string]string{
+				"device":                data.AnglerDevice,
+				types.PRIMARY_KEY_FIELD: string(data.AlphaTest),
+				types.CORPUS_FIELD:      "gm",
+			},
+			Options: map[string]string{
+				"should": "be overwritten",
+			},
+		}
+		err := traceStore.Put(context.Background(), commits[i].Hash, []*tracestore.Entry{&e}, now)
+		assert.NoError(t, err)
+	}
+
+	// Now overwrite it.
+	putTestTile(t, traceStore, commits, true /*=options*/)
+
+	// Get the tile back and make sure it exactly matches the tile
+	// we hand-crafted for the test data.
+	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
+	assert.NoError(t, err)
+
+	assert.Equal(t, makeTestTileWithOptions(), actualTile)
+	assert.Equal(t, commits, actualCommits)
 }
 
 // TestGetTileKey tests the internal workings of deriving a
@@ -798,4 +920,44 @@ func MockSparseVCSWithCommits(commits []*tiling.Commit, realCommitIndices []int,
 	return mvcs, longCommits
 }
 
-var ctx = mock.AnythingOfType("*context.emptyCtx")
+func makeTestTileWithOptions() *tiling.Tile {
+	tile := data.MakeTestTile()
+	for id, trace := range tile.Traces {
+		gt := trace.(*types.GoldenTrace)
+		// CrosshatchBetaTraceID has a digest at index 0 and is missing in all
+		// other indices (and this is the only trace for which this occurs).
+		// optionsOne are written to index 0 and optionsTwo are for all other
+		// indices. Thus, CrosshatchBetaTraceID will be the only trace with
+		// optionsOne applied.
+		if id == data.CrosshatchBetaTraceID {
+			for k, v := range makeOptionsOne() {
+				gt.Keys[k] = v
+			}
+		} else {
+			for k, v := range makeOptionsTwo() {
+				gt.Keys[k] = v
+			}
+		}
+		tile.Traces[id] = gt
+	}
+	tile.ParamSet["resolution"] = []string{"1080p", "4k"}
+	tile.ParamSet["color"] = []string{"orange"}
+	return tile
+}
+
+func makeOptionsOne() map[string]string {
+	return map[string]string{
+		"resolution": "1080p",
+		"color":      "orange",
+	}
+}
+
+func makeOptionsTwo() map[string]string {
+	return map[string]string{
+		"resolution": "4k",
+	}
+}
+
+var (
+	ctx = mock.AnythingOfType("*context.emptyCtx")
+)
