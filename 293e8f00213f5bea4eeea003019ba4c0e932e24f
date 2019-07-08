@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f195d5b3_8497cf9d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-08T19:24:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a814d0fd_dcca3e52",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 14
+      },
+      "revId": "293e8f00213f5bea4eeea003019ba4c0e932e24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "952e1492_69c0d491",
         "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "293e8f00213f5bea4eeea003019ba4c0e932e24f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "284918c8_09d63bac",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-08T19:24:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "952e1492_69c0d491",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 59
+      },
+      "revId": "293e8f00213f5bea4eeea003019ba4c0e932e24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "b9d2e717_d655eecd",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-08T19:24:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ed61cba9_21642ee3",
+      "range": {
+        "startLine": 103,
+        "startChar": 27,
+        "endLine": 103,
+        "endChar": 50
+      },
+      "revId": "293e8f00213f5bea4eeea003019ba4c0e932e24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22c957a7_d3ff628f",
         "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
         "patchSetId": 6
@@ -91,6 +163,30 @@
       "revId": "293e8f00213f5bea4eeea003019ba4c0e932e24f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e1cbda4_5bc7c68a",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-08T19:24:49Z",
+      "side": 1,
+      "message": "I thought of that, but I didn\u0027t want to update other implementations of VCS also.",
+      "parentUuid": "22c957a7_d3ff628f",
+      "range": {
+        "startLine": 352,
+        "startChar": 12,
+        "endLine": 352,
+        "endChar": 50
+      },
+      "revId": "293e8f00213f5bea4eeea003019ba4c0e932e24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

@@ -22,6 +22,30 @@
       "revId": "d9fb98fc8538ae5fae31f47fbaed452bbf39fcc6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "69f541cf_3c7b3896",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-08T19:24:49Z",
+      "side": 0,
+      "message": "I really don\u0027t think trackNCommits did anything of value anyway. We basically have to make sure nCommits is more than the amount of commits we\u0027d expect in defaultWatchInterval time, which can be achieved with the constants I\u0027ve set.",
+      "parentUuid": "95ea2030_6f1504e8",
+      "range": {
+        "startLine": 294,
+        "startChar": 0,
+        "endLine": 296,
+        "endChar": 22
+      },
+      "revId": "d9fb98fc8538ae5fae31f47fbaed452bbf39fcc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
