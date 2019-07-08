@@ -42,6 +42,48 @@
     },
     {
       "key": {
+        "uuid": "6ddc581b_2ac85105",
+        "filename": "golden/go/tryjobstore/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-08T20:20:54Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "650047f6_869050f8",
+      "revId": "7e2c35c376c60d5d6739f52249f510da40714709",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e062b5a7_4aa8e70c",
+        "filename": "golden/go/tryjobstore/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-08T20:20:54Z",
+      "side": 1,
+      "message": "Yes, I agree.",
+      "parentUuid": "1887de1d_0151b87a",
+      "range": {
+        "startLine": 149,
+        "startChar": 18,
+        "endLine": 149,
+        "endChar": 24
+      },
+      "revId": "7e2c35c376c60d5d6739f52249f510da40714709",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f2f95a8d_dd44a6f2",
         "filename": "golden/go/tryjobstore/types_test.go",
         "patchSetId": 4
@@ -62,6 +104,30 @@
       "revId": "7e2c35c376c60d5d6739f52249f510da40714709",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf35fe73_8ef79121",
+        "filename": "golden/go/tryjobstore/types_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-08T20:20:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f2f95a8d_dd44a6f2",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 19
+      },
+      "revId": "7e2c35c376c60d5d6739f52249f510da40714709",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
