@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fb083867_e8c043b0",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-08T19:36:56Z",
+      "side": 1,
+      "message": "Will add on followup",
+      "parentUuid": "5816f4b6_e8af13e3",
+      "revId": "2fdce17faf2d55dc08736c796c819462baf45ec0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "245e9074_26d14f9a",
         "filename": "golden/go/tracestore/bt_tracestore/util.go",
         "patchSetId": 9
@@ -30,6 +48,30 @@
       "writtenOn": "2019-07-08T19:31:11Z",
       "side": 1,
       "message": "Note that this uses a regexp, so might be slow with many goroutines.",
+      "range": {
+        "startLine": 90,
+        "startChar": 11,
+        "endLine": 90,
+        "endChar": 25
+      },
+      "revId": "2fdce17faf2d55dc08736c796c819462baf45ec0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "657c87b7_f61c89aa",
+        "filename": "golden/go/tracestore/bt_tracestore/util.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-08T19:36:56Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "245e9074_26d14f9a",
       "range": {
         "startLine": 90,
         "startChar": 11,
