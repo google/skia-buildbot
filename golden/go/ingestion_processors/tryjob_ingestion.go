@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/golden/go/bbstate"
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/tryjobstore"
+	"go.skia.org/infra/golden/go/tryjobstore/ds_tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	gstorage "google.golang.org/api/storage/v1"
 )
@@ -94,7 +95,7 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 	cfgFile := config.ExtraParams[CONFIG_JOB_CFG_FILE]
 
 	// Create the cloud tryjob store.
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, eventBus)
+	tryjobStore, err := ds_tryjobstore.New(ds.DS, eventBus)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating tryjob store: %s", err)
 	}

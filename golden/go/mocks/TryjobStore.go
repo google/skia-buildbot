@@ -24,20 +24,6 @@ func (_m *TryjobStore) CommitIssueExp(issueID int64, writeFn func() error) error
 	return r0
 }
 
-// DeleteIssue provides a mock function with given fields: issueID
-func (_m *TryjobStore) DeleteIssue(issueID int64) error {
-	ret := _m.Called(issueID)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(int64) error); ok {
-		r0 = rf(issueID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // GetIssue provides a mock function with given fields: issueID, loadTryjobs
 func (_m *TryjobStore) GetIssue(issueID int64, loadTryjobs bool) (*tryjobstore.Issue, error) {
 	ret := _m.Called(issueID, loadTryjobs)

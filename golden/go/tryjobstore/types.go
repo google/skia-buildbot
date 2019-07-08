@@ -8,85 +8,12 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
 )
-
-// TODO(stephana): Move the UNKNOWN status to the first spot, so that we can
-// move to a "higher" status easily.
-
-// States of a tryjob in increasing order.
-const (
-	TRYJOB_SCHEDULED TryjobStatus = iota
-	TRYJOB_RUNNING
-	TRYJOB_COMPLETE
-	TRYJOB_INGESTED
-	TRYJOB_FAILED
-	TRYJOB_UNKNOWN
-)
-
-// statusStringRepr maps from a TryjobStatus to a string.
-var statusStringRepr = []string{
-	"scheduled",
-	"running",
-	"complete",
-	"ingested",
-	"failed",
-	"unknown",
-}
-
-// statusStringMap maps from status strings to instances of TryjobStatus
-var statusStringMap = map[string]TryjobStatus{}
-
-func init() {
-	// Initialize the mapping between TryjobStatus and it's string representation.
-	for idx, repr := range statusStringRepr {
-		statusStringMap[repr] = TryjobStatus(idx)
-	}
-}
-
-// TryjobStatus is an enum that captures the status of a tryjob.
-type TryjobStatus int
-
-// String returns a tryjob status as a string.
-func (t TryjobStatus) String() string {
-	return statusStringRepr[t]
-}
-
-// tryjobStatusFromString translates from a string representation of TryjobStatus
-// to the integer representation.
-func tryjobStatusFromString(statusStr string) TryjobStatus {
-	if s, ok := statusStringMap[statusStr]; ok {
-		return s
-	}
-	return TRYJOB_UNKNOWN
-}
-
-// Serialize TryjobStatus as string to JSON.
-func (t TryjobStatus) MarshalJSON() ([]byte, error) {
-	return []byte("\"" + t.String() + "\""), nil
-}
-
-// Deserialize a TryjobStatus from JSON.
-func (t *TryjobStatus) UnmarshalJSON(data []byte) error {
-	strStatus := strings.Trim(string(data), "\"")
-	*t = tryjobStatusFromString(strStatus)
-	return nil
-}
-
-// Reuse types from the buildbucket package.
-type Parameters = buildbucket.Parameters
-type Properties = buildbucket.Properties
-
-// newerInterface is an internal interface that allows to define a temporal
-// order for a type.
-type newerInterface interface {
-	newer(right interface{}) bool
-}
-
-// TODO(stephana): Fix the Committed field below to also be spelled correctly
-// in the database.
 
 // Issue captures information about a single code review issue.
 type Issue struct {
@@ -159,9 +86,15 @@ func (is *Issue) UpdatePatchsets(patchsets []*PatchsetDetail) {
 	}
 }
 
-// newer implements newerInterface.
-func (is *Issue) newer(right interface{}) bool {
-	return is.Updated.After(right.(*Issue).Updated)
+// MoreRecentThan returns if the given issue is more recently updated
+// than this one.
+func (is *Issue) MoreRecentThan(r interface{}) bool {
+	right, ok := r.(*Issue)
+	if !ok {
+		sklog.Errorf("Invalid cast of %#v -> *tryjobstore.Issue", r)
+		return true // treat it as a nil issue
+	}
+	return is.Updated.After(right.Updated)
 }
 
 // PatchsetDetails accumulates information about one patchset and the connected
@@ -174,6 +107,7 @@ type PatchsetDetail struct {
 }
 
 // Tryjob captures information about a tryjob in BuildBucket.
+// TODO(kjlubick): Maybe need to make this BB agnostic?
 type Tryjob struct {
 	Key           *datastore.Key `json:"-" datastore:"__key__"` // Insert the key upon loading
 	BuildBucketID int64          `json:"buildBucketID"`
@@ -185,11 +119,10 @@ type Tryjob struct {
 	MasterCommit  string         `json:"masterCommit"`
 }
 
-// clone returns a shallow copy of the Tryjob instance
-func (t *Tryjob) clone() *Tryjob {
-	ret := &Tryjob{}
-	*ret = *t
-	return ret
+func init() {
+	// Register JSON codecs for the events fired by this package. This is necessary
+	// to distribute events globally.
+	gevent.RegisterCodec(EV_TRYJOB_UPDATED, util.JSONCodec(&Tryjob{}))
 }
 
 type TimeJsonMs time.Time
@@ -204,12 +137,16 @@ func (t *Tryjob) String() string {
 	return fmt.Sprintf("%s - %d - %s", t.Builder, t.BuildBucketID, t.Status.String())
 }
 
-// newer implements newerInterface.
-func (t *Tryjob) newer(r interface{}) bool {
-	right := r.(*Tryjob)
-	// A tryjob is newer if the status is updated or the BuildBucket record has been
-	// updated.
-	return t.Updated.Before(right.Updated) || (t.Status > right.Status)
+// MoreRecentThan returns if the given Tryjob is more recent than this one.
+// A tryjob is more recent if the status is more advanced or the BuildBucket
+// record has been updated more recently.
+func (t *Tryjob) MoreRecentThan(r interface{}) bool {
+	right, ok := r.(*Tryjob)
+	if !ok {
+		sklog.Errorf("Invalid cast of %#v -> *tryjobstore.Issue", r)
+		return true // treat it as a nil tryjob
+	}
+	return t.Updated.After(right.Updated) || (t.Status > right.Status)
 }
 
 // TryjobResult stores results. It is stored in the database as a child of
@@ -281,4 +218,63 @@ func interfaceToStrSlice(inArr []interface{}) []string {
 // and an event is sent to notify client.
 type IssueExpChange struct {
 	IssueID int64 `json:"issueID"`
+}
+
+// States of a tryjob in increasing order.
+const (
+	TRYJOB_SCHEDULED TryjobStatus = iota
+	TRYJOB_RUNNING
+	TRYJOB_COMPLETE
+	TRYJOB_INGESTED
+	TRYJOB_FAILED
+	TRYJOB_UNKNOWN
+)
+
+// statusStringRepr maps from a TryjobStatus to a string.
+var statusStringRepr = []string{
+	"scheduled",
+	"running",
+	"complete",
+	"ingested",
+	"failed",
+	"unknown",
+}
+
+// statusStringMap maps from status strings to instances of TryjobStatus
+var statusStringMap = map[string]TryjobStatus{}
+
+func init() {
+	// Initialize the mapping between TryjobStatus and it's string representation.
+	for idx, repr := range statusStringRepr {
+		statusStringMap[repr] = TryjobStatus(idx)
+	}
+}
+
+// TryjobStatus is an enum that captures the status of a tryjob.
+type TryjobStatus int
+
+// String returns a tryjob status as a string.
+func (t TryjobStatus) String() string {
+	return statusStringRepr[t]
+}
+
+// tryjobStatusFromString translates from a string representation of TryjobStatus
+// to the integer representation.
+func tryjobStatusFromString(statusStr string) TryjobStatus {
+	if s, ok := statusStringMap[statusStr]; ok {
+		return s
+	}
+	return TRYJOB_UNKNOWN
+}
+
+// Serialize TryjobStatus as string to JSON.
+func (t TryjobStatus) MarshalJSON() ([]byte, error) {
+	return []byte("\"" + t.String() + "\""), nil
+}
+
+// Deserialize a TryjobStatus from JSON.
+func (t *TryjobStatus) UnmarshalJSON(data []byte) error {
+	strStatus := strings.Trim(string(data), "\"")
+	*t = tryjobStatusFromString(strStatus)
+	return nil
 }

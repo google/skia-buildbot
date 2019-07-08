@@ -315,7 +315,7 @@ func (b *BuildBucketState) fetchBuild(buildBucketID int64) (*tryjobstore.Tryjob,
 	build := buildResp.Build
 
 	// Parse the parameters encoded in the ParametersJson field.
-	params := &tryjobstore.Parameters{}
+	params := &buildbucket.Parameters{}
 	if err := json.Unmarshal([]byte(build.ParametersJson), params); err != nil {
 		return nil, fmt.Errorf("Error unmarshalling params: %s", err)
 	}
@@ -484,7 +484,7 @@ func (b *BuildBucketState) searchForNewBuilds(buildsCh chan<- *bb_api.LegacyApiC
 // ignoreBuild is the central place to determine whether a build from
 // BuildBucket should be ignored. For example, BuildBucket can contain build jobs
 // that produce no test output.
-func (b *BuildBucketState) ignoreBuild(build *bb_api.LegacyApiCommonBuildMessage, params *tryjobstore.Parameters) bool {
+func (b *BuildBucketState) ignoreBuild(build *bb_api.LegacyApiCommonBuildMessage, params *buildbucket.Parameters) bool {
 	// If BuildResultDetails are there, then parse them and see if
 	// resultDetails['properties']['skip_test'] exists and is true.
 	// This will only apply to some clients, but there should not be any false positives.
@@ -532,7 +532,7 @@ var extractPatchsetRegex = regexp.MustCompile(`^refs\/changes\/[0-9]*\/[0-9]*\/(
 // It translates the status of a BuildBucket build to the status defined for
 // Tryjob instances in tryjobstore, which is richer in that it also captures
 // whether a tryjob result has been ingested or not.
-func getTryjobInfo(build *bb_api.LegacyApiCommonBuildMessage, params *tryjobstore.Parameters) (*tryjobstore.Tryjob, error) {
+func getTryjobInfo(build *bb_api.LegacyApiCommonBuildMessage, params *buildbucket.Parameters) (*tryjobstore.Tryjob, error) {
 	matchedGroups := extractPatchsetRegex.FindStringSubmatch(params.Properties.GerritPatchset)
 	if len(matchedGroups) != 2 {
 		return nil, fmt.Errorf("Unable to extract patchset info from '%s'", params.Properties.GerritPatchset)
