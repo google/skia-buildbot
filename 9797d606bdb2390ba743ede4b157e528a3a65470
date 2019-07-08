@@ -1,0 +1,210 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7811160c_95d290b1",
+        "filename": "golden/go/tracestore/bt_tracestore/BIGTABLE.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-08T16:21:03Z",
+      "side": 1,
+      "message": "nit: consider using the ,key\u003dvalue, format (like trace keys) so that they\u0027re human-readable. This would actually use less space also, since GOB needs to write a header to specify the type of the encoded object. https://play.golang.org/p/HqWvxAo2ND0",
+      "range": {
+        "startLine": 154,
+        "startChar": 66,
+        "endLine": 154,
+        "endChar": 77
+      },
+      "revId": "9797d606bdb2390ba743ede4b157e528a3a65470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "259759e6_01212ccb",
+        "filename": "golden/go/tracestore/bt_tracestore/BIGTABLE.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-08T16:21:03Z",
+      "side": 1,
+      "message": "nit: maybe mention that we keep old ones around for simplicity.",
+      "revId": "9797d606bdb2390ba743ede4b157e528a3a65470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8d4c188_eab006bc",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-08T16:21:03Z",
+      "side": 1,
+      "message": "nit: personally I find it confusing to have same-named variables in enclosing scopes. (gt is also declared on line 338)",
+      "range": {
+        "startLine": 304,
+        "startChar": 4,
+        "endLine": 304,
+        "endChar": 6
+      },
+      "revId": "9797d606bdb2390ba743ede4b157e528a3a65470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5191405_90f7c5b0",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 331,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-08T16:21:03Z",
+      "side": 1,
+      "message": "nit: I think this could be simplified if we change the loop above to iterate backwards over encTiles. I don\u0027t think it makes sense to look for options in a tile where the trace doesn\u0027t exist, so we should only look at opts[idx][encodedKey].",
+      "range": {
+        "startLine": 305,
+        "startChar": 0,
+        "endLine": 331,
+        "endChar": 5
+      },
+      "revId": "9797d606bdb2390ba743ede4b157e528a3a65470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0b18587_66c69049",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 533,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-08T16:21:03Z",
+      "side": 1,
+      "message": "nit: maybe log -- this shouldn\u0027t happen, right?",
+      "revId": "9797d606bdb2390ba743ede4b157e528a3a65470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "455d95e3_bbfe50ce",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-08T16:21:03Z",
+      "side": 1,
+      "message": "nit: might be nice to have a test for overwriting existing data, both for digests and options.",
+      "revId": "9797d606bdb2390ba743ede4b157e528a3a65470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d6d7ede3_e27b01e6",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 930,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-08T16:21:03Z",
+      "side": 1,
+      "message": "nit: needs a comment to explain that only CrosshatchBetaTraceID has MISSING_DIGEST for all commits after 0.",
+      "revId": "9797d606bdb2390ba743ede4b157e528a3a65470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e581f166_02fc1d57",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-08T16:21:03Z",
+      "side": 1,
+      "message": "nit: maybe mention that columnPad depends on the number of digits in DefaultTileSize.",
+      "range": {
+        "startLine": 55,
+        "startChar": 30,
+        "endLine": 55,
+        "endChar": 31
+      },
+      "revId": "9797d606bdb2390ba743ede4b157e528a3a65470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b322906_a7bbe201",
+        "filename": "golden/go/tracestore/bt_tracestore/util.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-08T16:21:03Z",
+      "side": 1,
+      "message": "nit: seems odd that encode can return an error but decode does not.",
+      "range": {
+        "startLine": 91,
+        "startChar": 5,
+        "endLine": 91,
+        "endChar": 17
+      },
+      "revId": "9797d606bdb2390ba743ede4b157e528a3a65470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97ff7f6d_1cc28509",
+        "filename": "golden/go/tracestore/bt_tracestore/util.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-08T16:21:03Z",
+      "side": 1,
+      "message": "nit: NewReader",
+      "range": {
+        "startLine": 95,
+        "startChar": 14,
+        "endLine": 95,
+        "endChar": 23
+      },
+      "revId": "9797d606bdb2390ba743ede4b157e528a3a65470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
