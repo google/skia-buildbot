@@ -113,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "5c331199_4f02f6e9",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-08T19:35:59Z",
+      "side": 1,
+      "message": "Still needed - see GetFile",
+      "parentUuid": "e741c504_f1cc416f",
+      "revId": "293e8f00213f5bea4eeea003019ba4c0e932e24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ed61cba9_21642ee3",
         "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
         "patchSetId": 6
