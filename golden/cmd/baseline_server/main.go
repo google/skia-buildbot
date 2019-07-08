@@ -97,7 +97,7 @@ func main() {
 			sklog.Fatalf("Error instantiating gitstore: %s", err)
 		}
 		gitilesRepo := gitiles.NewRepo("", "", nil)
-		vcs, err = bt_vcs.New(gitStore, "master", gitilesRepo, nil, 0)
+		vcs, err = bt_vcs.New(ctx, gitStore, "master", gitilesRepo)
 	} else {
 		vcs, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
 	}

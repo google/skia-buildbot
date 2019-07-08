@@ -91,7 +91,14 @@ func (b *BTTraceStore) Put(ctx context.Context, commitHash string, entries []*tr
 
 	repoIndex, err := b.vcs.IndexOf(ctx, commitHash)
 	if err != nil {
-		return skerr.Fmt("could not look up commit %s: %s", commitHash, err)
+		err = b.vcs.Update(ctx, true, false)
+		if err != nil {
+			return skerr.Wrapf(err, "could not update VCS to look up %s", commitHash)
+		}
+		repoIndex, err = b.vcs.IndexOf(ctx, commitHash)
+	}
+	if err != nil {
+		return skerr.Wrapf(err, "could not look up commit %s", commitHash)
 	}
 
 	// Find out what tile we need to fetch and what index into that tile we need.
