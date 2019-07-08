@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "650047f6_869050f8",
+        "filename": "golden/go/tryjobstore/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-08T20:09:42Z",
+      "side": 1,
+      "message": "It bothers me that this is theoretically not transitive, but I suppose in practice it is.",
+      "revId": "7e2c35c376c60d5d6739f52249f510da40714709",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1887de1d_0151b87a",
+        "filename": "golden/go/tryjobstore/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-08T20:09:42Z",
+      "side": 1,
+      "message": "This is the opposite of what it used to be, but seems correct.",
+      "range": {
+        "startLine": 149,
+        "startChar": 18,
+        "endLine": 149,
+        "endChar": 24
+      },
+      "revId": "7e2c35c376c60d5d6739f52249f510da40714709",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f2f95a8d_dd44a6f2",
+        "filename": "golden/go/tryjobstore/types_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-08T20:09:42Z",
+      "side": 1,
+      "message": "Needs fixed?",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 19
+      },
+      "revId": "7e2c35c376c60d5d6739f52249f510da40714709",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
