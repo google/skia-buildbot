@@ -78,6 +78,7 @@ const (
 	BENCHMARK_MEMORY                   = "memory.cluster_telemetry"
 	BENCHMARK_V8_LOADING               = "v8.loading.cluster_telemetry"
 	BENCHMARK_V8_LOADING_RUNTIME_STATS = "v8.loading_runtime_stats.cluster_telemetry"
+	BENCHMARK_GENERIC_TRACE            = "generic_trace_ct"
 
 	// Logserver link. This is only accessible from Google corp.
 	MASTER_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
@@ -312,6 +313,7 @@ var (
 		BENCHMARK_MEMORY:                   "https://cs.chromium.org/chromium/src/tools/perf/contrib/cluster_telemetry/memory_ct.py",
 		BENCHMARK_V8_LOADING:               "https://cs.chromium.org/chromium/src/tools/perf/contrib/cluster_telemetry/v8_loading_ct.py",
 		BENCHMARK_V8_LOADING_RUNTIME_STATS: "https://cs.chromium.org/chromium/src/tools/perf/contrib/cluster_telemetry/v8_loading_runtime_stats_ct.py",
+		BENCHMARK_GENERIC_TRACE:            "https://docs.google.com/document/d/1vGd7dnrxayMYHPO72wWkwTvjMnIRrel4yxzCr1bMiis/",
 	}
 
 	SupportedPlatformsToDesc = map[string]string{
