@@ -32,7 +32,7 @@ func (st *StackTrace) String() string {
 // gamma.go:789
 // delta.go:123
 // main.go: 70
-// A typical call may look like sklog.CallStack(6, 1), which returns
+// A typical call may look like skerr.CallStack(6, 1), which returns
 // [{File:alpha.go, Line:123}, {File:beta.go, Line:456},...,
 //  {File:main.go, Line:70}, {File:???, Line:1}], omitting the not-helpful reference to
 // CallStack and padding the response with a dummy value, since the stack was not tall enough to

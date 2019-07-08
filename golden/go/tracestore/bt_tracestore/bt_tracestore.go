@@ -4,6 +4,7 @@ package bt_tracestore
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"hash/crc32"
 	"sort"
@@ -31,6 +32,9 @@ import (
 // to get auth information from the environment and must be called with an account that has
 // admin rights.
 func InitBT(conf BTConfig) error {
+	if conf.ProjectID == "" || conf.InstanceID == "" || conf.TableID == "" {
+		return errors.New("invalid config: must specify all parts of BTConfig")
+	}
 	return bt.InitBigtable(conf.ProjectID, conf.InstanceID, conf.TableID, btColumnFamilies)
 }
 
@@ -105,6 +109,8 @@ func (b *BTTraceStore) Put(ctx context.Context, commitHash string, entries []*tr
 	// Reminder that tileKeys start at 2^32-1 and decrease in value.
 	tileKey, commitIndex := b.getTileKey(repoIndex)
 
+	sklog.Debugf("Commit %s is repo index %d, which is tileKey %d offset %d", commitHash, repoIndex, tileKey, commitIndex)
+
 	// If these entries have any params we haven't seen before, we need to store those in BigTable.
 	ops, err := b.updateOrderedParamSet(ctx, tileKey, paramSet)
 	if err != nil {
@@ -118,6 +124,9 @@ func (b *BTTraceStore) Put(ctx context.Context, commitHash string, entries []*tr
 		return skerr.Fmt("could not create mutations to put data: %s", err)
 	}
 
+	sklog.Debugf("first row name: %s", rowNames[0])
+	sklog.Debugf("last row name: %s", rowNames[len(rowNames)-1])
+
 	// Write the trace data. We pick a batchsize based on the assumption
 	// that the whole batch should be 2MB large and each entry is ~200 Bytes of data.
 	// 2MB / 200B = 10000. This is extremely conservative but should not be a problem
@@ -127,8 +136,7 @@ func (b *BTTraceStore) Put(ctx context.Context, commitHash string, entries []*tr
 
 // createPutMutations is a helper function that returns two parallel arrays of
 // the rows that need updating and the mutations to apply to those rows.
-// Specifically, the mutations will add the given entries to BT, clearing out
-// anything that was there previously.
+// Specifically, the mutations will add the given entries to BT.
 func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, ts time.Time, tk tileKey, commitIndex int, ops *paramtools.OrderedParamSet) ([]string, []*bigtable.Mutation, error) {
 	// These mutations...
 	mutations := make([]*bigtable.Mutation, 0, len(entries))
