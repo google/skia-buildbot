@@ -7,7 +7,10 @@ import (
 	"math"
 	"strings"
 
+	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/golden/go/tracestore"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -70,4 +73,24 @@ func fromBytes(b []byte) types.Digest {
 		return types.MISSING_DIGEST
 	}
 	return types.Digest(hex.EncodeToString(b))
+}
+
+// encodeParams encodes params to bytes. Specifically, it encodes them
+// like a traceID
+func encodeParams(p map[string]string) []byte {
+	id := tracestore.TraceIDFromParams(p)
+	return []byte(id)
+}
+
+// decodeParams decodes bytes to Params.
+func decodeParams(b []byte) paramtools.Params {
+	if len(b) == 0 {
+		return paramtools.Params{}
+	}
+	p, err := query.ParseKey(string(b))
+	if err != nil {
+		sklog.Errorf("Invalid params bytes %s: %s", string(b), err)
+		return paramtools.Params{}
+	}
+	return p
 }

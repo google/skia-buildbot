@@ -22,8 +22,9 @@ const (
 
 	// Column Families.
 	// https://cloud.google.com/bigtable/docs/schema-design#column_families_and_column_qualifiers
-	opsFamily   = "O" // ops short for Ordered Param Set
-	traceFamily = "T" // Holds "0"..."tilesize-1" columns with a DigestID at each cell
+	opsFamily     = "O" // ops short for OrderedParamSet
+	optionsFamily = "P" // oPtions map for a trace
+	traceFamily   = "T" // Holds "0"..."tilesize-1" columns with a DigestID at each cell
 
 	// Columns in the OrderedParamSet column family.
 	opsHashColumn   = "H"
@@ -39,15 +40,20 @@ const (
 	traceFamilyPrefix = traceFamily + ":"
 
 	// Define the row types.
-	typeOPS   = "o"
-	typeTrace = "t"
+	typeOPS     = "o"
+	typeOptions = "p"
+	typeTrace   = "t"
+
+	// We pad the columns so they are properly sorted lexicographically.
+	columnPad = "%03d"
 
 	// This is the size of the tile in Big Table. That is, how many commits do we store in one tile.
 	// We can have up to 2^32 tiles in big table, so this would let us store 1 trillion
 	// commits worth of data. This tile size does not need to be related to the tile size that
 	// Gold operates on (although when tuning, it should be greater than, or an even divisor
 	// of the Gold tile size). The first commit in the repo belongs to tile 2^32-1 and tile numbers
-	// decrease for newer commits.
+	// decrease for newer commits. The columnPad const also depends on the number of digits of
+	// DefaultTileSize.
 	DefaultTileSize = 256
 
 	// Default number of shards used. A shard splits the traces up on a tile.
@@ -70,6 +76,7 @@ var (
 // List of families (conceptually similar to tables) we are creating in BT.
 var btColumnFamilies = []string{
 	opsFamily,
+	optionsFamily,
 	traceFamily,
 }
 

@@ -4,6 +4,7 @@ package bt_tracestore
 
 import (
 	"context"
+	"fmt"
 	"hash/crc32"
 	"sort"
 	"strconv"
@@ -48,9 +49,6 @@ type BTTraceStore struct {
 	client *bigtable.Client
 	table  *bigtable.Table
 
-	tileSize int32
-	shards   int32
-
 	// if cacheOps is true, then cache the OrderedParamSets between calls
 	// where possible.
 	cacheOps bool
@@ -69,8 +67,6 @@ func New(ctx context.Context, conf BTConfig, cache bool) (*BTTraceStore, error) 
 	ret := &BTTraceStore{
 		vcs:      conf.VCS,
 		client:   client,
-		tileSize: DefaultTileSize,
-		shards:   DefaultShards,
 		table:    client.Open(conf.TableID),
 		cacheOps: cache,
 	}
@@ -132,7 +128,6 @@ func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, ts time.T
 	// .. should be applied to these rows.
 	rowNames := make([]string, 0, len(entries))
 	btTS := bigtable.Time(ts)
-	before := bigtable.Time(ts.Add(-1 * time.Millisecond))
 
 	for _, entry := range entries {
 		// To save space, traceID isn't the long form tiling.TraceId
@@ -152,11 +147,19 @@ func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, ts time.T
 		// (i.e. the trace combined with the tile), at the given column
 		// (i.e. the commit offset into this tile).
 		mut := bigtable.NewMutation()
-		column := strconv.Itoa(commitIndex)
+		column := fmt.Sprintf(columnPad, commitIndex)
 
 		mut.Set(traceFamily, column, btTS, toBytes(entry.Digest))
-		// Delete anything that existed at this cell before now.
-		mut.DeleteTimestampRange(traceFamily, column, 0, before)
+		mutations = append(mutations, mut)
+
+		if len(entry.Options) == 0 {
+			continue
+		}
+		rowName = b.calcShardedRowName(tk, typeOptions, string(traceID))
+		rowNames = append(rowNames, rowName)
+
+		pBytes := encodeParams(entry.Options)
+		mut.Set(optionsFamily, column, btTS, pBytes)
 		mutations = append(mutations, mut)
 	}
 	return rowNames, mutations, nil
@@ -232,8 +235,9 @@ func (b *BTTraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile,
 func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTileKey tileKey, startCommitIndex, endCommitIndex int) (traceMap, paramtools.ParamSet, error) {
 	// Query those tiles.
 	nTiles := int(startTileKey - endTileKey + 1)
-	nCommits := int(startTileKey-endTileKey)*int(b.tileSize) + (endCommitIndex - startCommitIndex) + 1
+	nCommits := int(startTileKey-endTileKey)*int(DefaultTileSize) + (endCommitIndex - startCommitIndex) + 1
 	encTiles := make([]*encTile, nTiles)
+	options := make([]map[encodedTraceID]paramtools.Params, nTiles)
 	var egroup errgroup.Group
 	tk := startTileKey
 	for idx := 0; idx < nTiles; idx++ {
@@ -242,7 +246,16 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 				var err error
 				encTiles[idx], err = b.loadTile(ctx, tk)
 				if err != nil {
-					return skerr.Fmt("could not load tile with key %d to index %d: %s", tk, idx, err)
+					return skerr.Wrapf(err, "could not load tile with key %d to index %d", tk, idx)
+				}
+				return nil
+			})
+
+			egroup.Go(func() error {
+				var err error
+				options[idx], err = b.loadOptions(ctx, tk)
+				if err != nil {
+					return skerr.Wrapf(err, "could not load options with key %d to index %d", tk, idx)
 				}
 				return nil
 			})
@@ -251,22 +264,36 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 	}
 
 	if err := egroup.Wait(); err != nil {
-		return nil, nil, skerr.Fmt("could not load %d tiles: %s", nTiles, err)
+		return nil, nil, skerr.Wrapf(err, "could not load %d tiles", nTiles)
 	}
 
 	// This is the full tile we are going to return.
 	tileTraces := make(traceMap, len(encTiles[0].traces))
 	paramSet := paramtools.ParamSet{}
 
-	commitIDX := 0
-	for idx, encTile := range encTiles {
+	// traceIdx tracks the index we are writing digests into the trace.
+	traceIdx := nCommits
+	for idx := nTiles - 1; idx >= 0; idx-- {
+		encTile := encTiles[idx]
 		// Determine the offset within the tile that we should consider.
-		endOffset := int(b.tileSize - 1)
-		if idx == (len(encTiles) - 1) {
-			// If we are on the last tile, stop early (that is, at endCommitIndex)
+		startOffset := 0
+		if idx == 0 {
+			// If we are on the first tile, start at startCommitIndex
+			startOffset = startCommitIndex
+		}
+
+		endOffset := DefaultTileSize - 1
+		if idx == (nTiles - 1) {
+			// If we are on the last tile, end at endCommitIndex
 			endOffset = endCommitIndex
 		}
-		segLen := endOffset - startCommitIndex + 1
+
+		segLen := endOffset - startOffset + 1
+		traceIdx -= segLen
+		if idx == 0 && traceIdx != 0 {
+			// Check our math - should never happen.
+			return nil, nil, skerr.Fmt("incorrect tile math (tile %d, index %d) => tile(%d, index %d) was not %d commits", startTileKey, startCommitIndex, endTileKey, endCommitIndex, nCommits)
+		}
 
 		for encodedKey, encValues := range encTile.traces {
 			// at this point, the encodedKey looks like ,0=1,1=3,3=0,
@@ -285,21 +312,21 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 			// Turn the params into the tiling.TraceId we expect elsewhere.
 			traceKey := tracestore.TraceIDFromParams(params)
 			if _, ok := tileTraces[traceKey]; !ok {
-				tileTraces[traceKey] = types.NewGoldenTraceN(nCommits)
+				gt := types.NewGoldenTraceN(nCommits)
+				if opts, ok := options[idx][encodedKey]; ok {
+					params.Add(opts)
+				}
+
+				gt.Keys = params
+				tileTraces[traceKey] = gt
+
+				// Build up the total set of params
+				paramSet.AddParams(params)
 			}
-			gt := tileTraces[traceKey].(*types.GoldenTrace)
-			gt.Keys = params
-			// Build up the total set of params
-			paramSet.AddParams(params)
-
-			digests := encValues[startCommitIndex : startCommitIndex+segLen]
-			copy(gt.Digests[commitIDX:commitIDX+segLen], digests)
+			trace := tileTraces[traceKey].(*types.GoldenTrace)
+			digests := encValues[startOffset : startOffset+segLen]
+			copy(trace.Digests[traceIdx:traceIdx+segLen], digests)
 		}
-
-		// After the first tile we always start at the first entry and advance the
-		// overall commit index by the segment length.
-		commitIDX += segLen
-		startCommitIndex = 0
 	}
 
 	// Sort the params for determinism.
@@ -334,7 +361,7 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 		traces, params, err := b.getTracesInRange(ctx, tKey, tKey, 0, endIdx)
 
 		if err != nil {
-			return nil, nil, skerr.Fmt("could not load commits from tile %d: %s", tKey, err)
+			return nil, nil, skerr.Wrapf(err, "could not load commits from tile %d", tKey)
 		}
 
 		paramSet.AddParamSet(params)
@@ -359,9 +386,9 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 			break
 		}
 
-		tKey++                       // go backwards in time one tile
-		endIdx = int(b.tileSize - 1) // fetch the whole previous tile
-		tileStartCommitIdx -= int(b.tileSize)
+		tKey++                            // go backwards in time one tile
+		endIdx = int(DefaultTileSize - 1) // fetch the whole previous tile
+		tileStartCommitIdx -= int(DefaultTileSize)
 	}
 
 	if len(commitsWithData) == 0 {
@@ -373,7 +400,7 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 	oldestIdx := commitsWithData[0]
 	oldestCommit, err := b.vcs.ByIndex(ctx, oldestIdx)
 	if err != nil {
-		return nil, nil, skerr.Fmt("invalid oldest index %d: %s", oldestIdx, err)
+		return nil, nil, skerr.Wrapf(err, "invalid oldest index %d", oldestIdx)
 	}
 	hashes := b.vcs.From(oldestCommit.Timestamp.Add(-1 * time.Millisecond))
 
@@ -409,8 +436,8 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 // given the index of a commit in the repo (repoIndex).
 // commitIndex starts at 0 for the oldest commit in the tile.
 func (b *BTTraceStore) getTileKey(repoIndex int) (tileKey, int) {
-	tileIndex := int32(repoIndex) / b.tileSize
-	commitIndex := repoIndex % int(b.tileSize)
+	tileIndex := int32(repoIndex) / DefaultTileSize
+	commitIndex := repoIndex % int(DefaultTileSize)
 	return tileKeyFromIndex(tileIndex), commitIndex
 }
 
@@ -450,17 +477,85 @@ func (b *BTTraceStore) loadTile(ctx context.Context, tileKey tileKey) (*encTile,
 	}, nil
 }
 
+// loadOptions returns the options map corresponding to the given tile.
+func (b *BTTraceStore) loadOptions(ctx context.Context, tileKey tileKey) (map[encodedTraceID]paramtools.Params, error) {
+	defer metrics2.FuncTimer().Stop()
+
+	var egroup errgroup.Group
+	shardResults := make([]map[encodedTraceID]paramtools.Params, DefaultShards)
+	traceCount := int64(0)
+
+	// Query all shards in parallel.
+	for shard := int32(0); shard < DefaultShards; shard++ {
+		func(shard int32) {
+			egroup.Go(func() error {
+				// This prefix will match all traces belonging to the
+				// current shard in the current tile.
+				prefixRange := bigtable.PrefixRange(shardedRowName(shard, typeOptions, tileKey, ""))
+				target := map[encodedTraceID]paramtools.Params{}
+				shardResults[shard] = target
+				err := b.table.ReadRows(ctx, prefixRange, func(row bigtable.Row) bool {
+					// The encoded trace id is the "subkey" part of the row name.
+					traceKey := encodedTraceID(extractSubkey(row.Key()))
+					atomic.AddInt64(&traceCount, 1)
+
+					// we can look at the columns starting at the oldest because
+					// the column qualifiers are sorted lexicographically.
+					// https://stackoverflow.com/a/34935761
+
+					var p paramtools.Params
+					cols := row[optionsFamily]
+					for i := len(cols) - 1; i >= 0; i-- {
+						// Look for the first non-empty value
+						if len(cols[i].Value) > 1 {
+							// TODO(kjlubick): Try interning these params
+							p = decodeParams(cols[i].Value)
+							break
+						}
+					}
+					if p == nil {
+						return true
+					}
+
+					target[traceKey] = p
+					return true
+				}, bigtable.RowFilter(bigtable.LatestNFilter(1)))
+				if err != nil {
+					return skerr.Wrapf(err, "could not read options on shard %d", shard)
+				}
+				return nil
+			})
+		}(shard)
+	}
+
+	if err := egroup.Wait(); err != nil {
+		return nil, skerr.Wrapf(err, "could not read options")
+	}
+
+	// Merge all the results together
+	ret := make(map[encodedTraceID]paramtools.Params, traceCount)
+	for _, r := range shardResults {
+		for traceKey, opts := range r {
+			// different shards should never share results for a tracekey
+			// since a trace always maps to the same shard.
+			ret[traceKey] = opts
+		}
+	}
+
+	return ret, nil
+}
+
 // loadEncodedTraces returns all traces belonging to the given tileKey.
 // As outlined in BIGTABLE.md, the trace ids and the digest ids they
 // map to are in an encoded form and will need to be expanded prior to use.
 func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (map[encodedTraceID][]types.Digest, error) {
 	defer metrics2.FuncTimer().Stop()
 	var egroup errgroup.Group
-	shardResults := make([]map[encodedTraceID][]types.Digest, b.shards)
+	shardResults := make([]map[encodedTraceID][]types.Digest, DefaultShards)
 	traceCount := int64(0)
 
 	// Query all shards in parallel.
-	for shard := int32(0); shard < b.shards; shard++ {
+	for shard := int32(0); shard < DefaultShards; shard++ {
 		func(shard int32) {
 			egroup.Go(func() error {
 				// This prefix will match all traces belonging to the
@@ -475,7 +570,7 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 					// If this is the first time we've seen the trace, initialize the
 					// slice of digests for it.
 					if _, ok := target[traceKey]; !ok {
-						target[traceKey] = make([]types.Digest, b.tileSize)
+						target[traceKey] = make([]types.Digest, DefaultTileSize)
 						atomic.AddInt64(&traceCount, 1)
 					}
 
@@ -489,7 +584,7 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 							parseErr = err
 							return false
 						}
-						if idx < 0 || idx >= int(b.tileSize) {
+						if idx < 0 || idx >= int(DefaultTileSize) {
 							// This would happen if the tile size changed from a past
 							// value. It shouldn't be changed, even if the Gold tile size
 							// (n_commits) changes.
@@ -558,7 +653,7 @@ func (b *BTTraceStore) applyBulkBatched(ctx context.Context, rowNames []string, 
 // Once this is done, the shard, rowtype, tileKey and the subkey are combined into a
 // single string to be used as a row name in BT.
 func (b *BTTraceStore) calcShardedRowName(tileKey tileKey, rowType, subkey string) string {
-	shard := int32(crc32.ChecksumIEEE([]byte(subkey)) % uint32(b.shards))
+	shard := int32(crc32.ChecksumIEEE([]byte(subkey)) % uint32(DefaultShards))
 	return shardedRowName(shard, rowType, tileKey, subkey)
 }
 
