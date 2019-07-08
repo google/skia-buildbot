@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a814d0fd_dcca3e52",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-08T19:14:51Z",
+      "side": 1,
+      "message": "I think you mean \"Previously, it would try to fetch the unknown hash from gitstore, but would incorrectly return zero index (with nil error) if it exists in gitstore but not in the local cache.\"",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 14
+      },
+      "revId": "293e8f00213f5bea4eeea003019ba4c0e932e24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "952e1492_69c0d491",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-08T19:14:51Z",
+      "side": 1,
+      "message": "nit: remove",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 59
+      },
+      "revId": "293e8f00213f5bea4eeea003019ba4c0e932e24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed61cba9_21642ee3",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-08T19:14:51Z",
+      "side": 1,
+      "message": "nit: skerr.Wrap will add stack info, so this doesn\u0027t really add much.\n\nsame nit for \"GetBranches in DetailsMulti\", \"GetBranches in details\", \"retrieving branch membership\"",
+      "range": {
+        "startLine": 103,
+        "startChar": 27,
+        "endLine": 103,
+        "endChar": 50
+      },
+      "revId": "293e8f00213f5bea4eeea003019ba4c0e932e24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "22c957a7_d3ff628f",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-08T19:14:51Z",
+      "side": 1,
+      "message": "nit: maybe should return a specific \"Not found\" error so caller can handle that specifically",
+      "range": {
+        "startLine": 352,
+        "startChar": 12,
+        "endLine": 352,
+        "endChar": 50
+      },
+      "revId": "293e8f00213f5bea4eeea003019ba4c0e932e24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

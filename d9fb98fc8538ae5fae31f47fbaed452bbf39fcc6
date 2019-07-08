@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "95ea2030_6f1504e8",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-08T19:14:51Z",
+      "side": 0,
+      "message": "Seems like removing this could cause a very rare/unlikely bug to become more common. Maybe that\u0027s a good thing?",
+      "range": {
+        "startLine": 294,
+        "startChar": 0,
+        "endLine": 296,
+        "endChar": 22
+      },
+      "revId": "d9fb98fc8538ae5fae31f47fbaed452bbf39fcc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
