@@ -2,6 +2,7 @@ package bt_tracestore
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"sync"
@@ -664,6 +665,51 @@ func TestCalcShardedRowName(t *testing.T) {
 		row := traceStore.calcShardedRowName(test.InputKey, test.InputRowType, test.InputSubKey)
 		assert.Equal(t, test.ExpectedRowName, row)
 	}
+}
+
+// TestPutUpdate tests that if vcs.IndexOf fails, we call Update
+// and Put again.
+func TestPutUpdate(t *testing.T) {
+	unittest.LargeTest(t)
+	unittest.RequiresBigTableEmulator(t)
+
+	mvcs := &mock_vcs.VCS{}
+	defer mvcs.AssertExpectations(t)
+
+	btConf := BTConfig{
+		ProjectID:  "should-use-the-emulator",
+		InstanceID: "testinstance",
+		TableID:    "update",
+		VCS:        mvcs,
+	}
+
+	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	assert.NoError(t, InitBT(btConf))
+
+	notFound := errors.New("commit not found")
+	mvcs.On("IndexOf", ctx, data.FirstCommitHash).Return(-1, notFound).Once()
+	mvcs.On("Update", ctx, true, false).Return(nil)
+	mvcs.On("IndexOf", ctx, data.FirstCommitHash).Return(4001, nil).Once()
+
+	ctx := context.Background()
+	traceStore, err := New(ctx, btConf, true)
+	assert.NoError(t, err)
+
+	// put some arbitrary data (we only care that the write
+	// did not return an error)
+	err = traceStore.Put(ctx, data.FirstCommitHash, []*tracestore.Entry{
+		{
+			Digest: data.AlphaGood1Digest,
+			Options: map[string]string{
+				"ext":        "png",
+				"resolution": "1000px",
+			},
+			Params: map[string]string{
+				"name": string(data.AlphaTest),
+			},
+		},
+	}, time.Now())
+	assert.NoError(t, err)
 }
 
 const (

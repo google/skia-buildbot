@@ -98,7 +98,7 @@ func TestByIndex(t sktest.TestingT, vcs vcsinfo.VCS) {
 	commit, err = vcs.ByIndex(ctx, 1)
 	assert.NoError(t, err)
 	assert.Equal(t, "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18", commit.Hash)
-	commit, err = vcs.ByIndex(ctx, -1)
+	_, err = vcs.ByIndex(ctx, -1)
 	assert.Error(t, err)
 }
 
@@ -151,7 +151,7 @@ func TestIndexOf(t sktest.TestingT, vcs vcsinfo.VCS) {
 	idx, err = vcs.IndexOf(ctx, "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, idx)
-	idx, err = vcs.IndexOf(ctx, "foo")
+	_, err = vcs.IndexOf(ctx, "foo")
 	assert.Error(t, err)
 }
 

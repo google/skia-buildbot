@@ -27,9 +27,10 @@ func TestVCSSuite(t *testing.T) {
 	defer cleanup()
 
 	// Run the VCS test suite.
+	vcs_testutils.TestByIndex(t, vcs)
 	vcs_testutils.TestDisplay(t, vcs)
 	vcs_testutils.TestFrom(t, vcs)
-	vcs_testutils.TestByIndex(t, vcs)
+	vcs_testutils.TestIndexOf(t, vcs)
 	vcs_testutils.TestLastNIndex(t, vcs)
 	vcs_testutils.TestRange(t, vcs)
 }
@@ -39,8 +40,7 @@ func TestBranchInfo(t *testing.T) {
 	vcs, gitStore, cleanup := setupVCSLocalRepo(t, "")
 	defer cleanup()
 
-	ctx := context.TODO()
-	branchPointers, err := gitStore.GetBranches(ctx)
+	branchPointers, err := gitStore.GetBranches(context.Background())
 	assert.NoError(t, err)
 	branches := []string{}
 	for branchName := range branchPointers {
@@ -61,7 +61,7 @@ func TestGetFile(t *testing.T) {
 	vcs := &BigTableVCS{
 		repo: gtRepo,
 	}
-	_, err := vcs.GetFile(context.TODO(), "DEPS", hash)
+	_, err := vcs.GetFile(context.Background(), "DEPS", hash)
 	assert.NoError(t, err)
 }
 
@@ -81,20 +81,21 @@ func TestDetailsCaching(t *testing.T) {
 	startWithEmptyCache(mg)
 	mg.On("Get", anyContext, []string{firstHash}).Return([]*vcsinfo.LongCommit{commits[0]}, nil).Once()
 
-	vcs, err := New(mg, "master", nil, nil, disableVCSTracker)
+	vcs, err := New(context.Background(), mg, "master", nil)
 	assert.NoError(t, err)
 
 	// query details 3 times, and make sure it uses the cache after the
 	// first time. Since we said Once() on the mocked Get function, we are
 	// assured that gitstore.Get() is only called once.
-	c, err := vcs.Details(context.TODO(), firstHash, false)
+	ctx := context.Background()
+	c, err := vcs.Details(ctx, firstHash, false)
 	assert.NoError(t, err)
 	assert.Equal(t, commits[0], c)
 	assert.Nil(t, c.Branches)
-	c, err = vcs.Details(context.TODO(), firstHash, false)
+	c, err = vcs.Details(ctx, firstHash, false)
 	assert.NoError(t, err)
 	assert.Equal(t, commits[0], c)
-	c, err = vcs.Details(context.TODO(), firstHash, false)
+	c, err = vcs.Details(ctx, firstHash, false)
 	assert.NoError(t, err)
 	assert.Equal(t, commits[0], c)
 }
@@ -117,10 +118,11 @@ func TestDetailsBranchInfo(t *testing.T) {
 	mg.On("RangeByTime", anyContext, firstTime, mock.AnythingOfType("time.Time"), "master").Return(
 		[]*vcsinfo.IndexCommit{indices[0]}, nil)
 
-	vcs, err := New(mg, "master", nil, nil, disableVCSTracker)
+	vcs, err := New(context.Background(), mg, "master", nil)
 	assert.NoError(t, err)
 
-	c, err := vcs.Details(context.TODO(), firstHash, true)
+	c, err := vcs.Details(context.Background(), firstHash, true)
+	assert.NoError(t, err)
 	assert.NotNil(t, c)
 	assert.Equal(t, map[string]bool{
 		"master": true,
@@ -145,19 +147,20 @@ func TestDetailsBranchInfoCaching(t *testing.T) {
 	mg.On("RangeByTime", anyContext, firstTime, mock.AnythingOfType("time.Time"), "master").Return(
 		[]*vcsinfo.IndexCommit{indices[0]}, nil).Once()
 
-	vcs, err := New(mg, "master", nil, nil, disableVCSTracker)
+	vcs, err := New(context.Background(), mg, "master", nil)
 	assert.NoError(t, err)
 
 	// query details 3 times, and make sure it uses the cache after the
 	// first two times (cache miss on the second time because we requested)
 	// branch info.
-	c, err := vcs.Details(context.TODO(), firstHash, false)
+	ctx := context.Background()
+	c, err := vcs.Details(ctx, firstHash, false)
 	assert.NoError(t, err)
 	assert.Nil(t, c.Branches)
-	c, err = vcs.Details(context.TODO(), firstHash, true)
+	c, err = vcs.Details(ctx, firstHash, true)
 	assert.NoError(t, err)
 	assert.NotNil(t, c.Branches)
-	c, err = vcs.Details(context.TODO(), firstHash, false)
+	c, err = vcs.Details(ctx, firstHash, false)
 	assert.NoError(t, err)
 	// Branches is still here because it was in the cache. This should be fine,
 	// to give clients extra information when they didn't necessarily ask for it.
@@ -180,25 +183,26 @@ func TestDetailsMultiCaching(t *testing.T) {
 	startWithEmptyCache(mg)
 	mg.On("Get", anyContext, []string{firstHash, secondHash}).Return([]*vcsinfo.LongCommit{commits[0], commits[1]}, nil).Once()
 
-	vcs, err := New(mg, "master", nil, nil, disableVCSTracker)
+	vcs, err := New(context.Background(), mg, "master", nil)
 	assert.NoError(t, err)
 
 	// query details 3 times, and make sure it uses the cache after the
 	// first time. Since we said Once() on the mocked Get function, we are
 	// assured that gitstore.Get() is only called once.
-	c, err := vcs.DetailsMulti(context.TODO(), []string{firstHash, secondHash}, false)
+	ctx := context.Background()
+	c, err := vcs.DetailsMulti(ctx, []string{firstHash, secondHash}, false)
 	assert.NoError(t, err)
 	assert.NotNil(t, c)
 	assert.Len(t, c, 2)
 	assert.Equal(t, commits[0], c[0])
 	assert.Equal(t, commits[1], c[1])
-	c, err = vcs.DetailsMulti(context.TODO(), []string{firstHash, secondHash}, false)
+	c, err = vcs.DetailsMulti(ctx, []string{firstHash, secondHash}, false)
 	assert.NoError(t, err)
 	assert.NotNil(t, c)
 	assert.Len(t, c, 2)
 	assert.Equal(t, commits[0], c[0])
 	assert.Equal(t, commits[1], c[1])
-	c, err = vcs.DetailsMulti(context.TODO(), []string{firstHash, secondHash}, false)
+	c, err = vcs.DetailsMulti(ctx, []string{firstHash, secondHash}, false)
 	assert.NoError(t, err)
 	assert.NotNil(t, c)
 	assert.Len(t, c, 2)
@@ -223,27 +227,28 @@ func TestDetailsMultiPartialCaching(t *testing.T) {
 	mg.On("Get", anyContext, []string{firstHash, thirdHash}).Return([]*vcsinfo.LongCommit{commits[0], commits[2]}, nil).Once()
 	mg.On("Get", anyContext, []string{secondHash}).Return([]*vcsinfo.LongCommit{commits[1]}, nil).Once()
 
-	vcs, err := New(mg, "master", nil, nil, disableVCSTracker)
+	vcs, err := New(context.Background(), mg, "master", nil)
 	assert.NoError(t, err)
 
 	// query details 3 times, and make sure it uses the cache after the
 	// first two times. Since we said Once() on the mocked Get functions, we are
 	// assured that gitstore.Get() is only called twice, - once for the first 2 hashes
 	// and then for the follow up hash.
-	c, err := vcs.DetailsMulti(context.TODO(), []string{firstHash, thirdHash}, false)
+	ctx := context.Background()
+	c, err := vcs.DetailsMulti(ctx, []string{firstHash, thirdHash}, false)
 	assert.NoError(t, err)
 	assert.NotNil(t, c)
 	assert.Len(t, c, 2)
 	assert.Equal(t, commits[0], c[0])
 	assert.Equal(t, commits[2], c[1])
-	c, err = vcs.DetailsMulti(context.TODO(), []string{firstHash, secondHash, thirdHash}, false)
+	c, err = vcs.DetailsMulti(ctx, []string{firstHash, secondHash, thirdHash}, false)
 	assert.NoError(t, err)
 	assert.NotNil(t, c)
 	assert.Len(t, c, 3)
 	assert.Equal(t, commits[0], c[0])
 	assert.Equal(t, commits[1], c[1])
 	assert.Equal(t, commits[2], c[2])
-	c, err = vcs.DetailsMulti(context.TODO(), []string{firstHash, secondHash, thirdHash}, false)
+	c, err = vcs.DetailsMulti(ctx, []string{firstHash, secondHash, thirdHash}, false)
 	assert.NoError(t, err)
 	assert.NotNil(t, c)
 	assert.Len(t, c, 3)
@@ -256,7 +261,7 @@ func TestDetailsMultiPartialCaching(t *testing.T) {
 func setupVCSLocalRepo(t *testing.T, branch string) (vcsinfo.VCS, gitstore.GitStore, func()) {
 	repoDir, cleanup := vcs_testutils.InitTempRepo()
 	_, _, btgs := gs_testutils.SetupAndLoadBTGitStore(t, localRepoURL, repoDir, true)
-	vcs, err := New(btgs, branch, nil, nil, 0)
+	vcs, err := New(context.Background(), btgs, branch, nil)
 	assert.NoError(t, err)
 	return vcs, btgs, cleanup
 }
@@ -280,11 +285,6 @@ const (
 	firstHash  = "ae76331b95dfc399cd776d2fc68021e0db03cc4f"
 	secondHash = "b295e0bdde1938d1fbfd343e5a3e569e868e1465"
 	thirdHash  = "cf70f4c33de2200b76651bbe1e54aa55fcd77447"
-
-	// For the sake of unit tests, we'd rather the auto-polling functionality
-	// of the bt_vcs not be running in the background, which could cause
-	// nondeterminism
-	disableVCSTracker = 0
 )
 
 var (
