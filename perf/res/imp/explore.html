@@ -26,7 +26,6 @@
 <link rel="stylesheet" href="/res/common/css/md.css">
 
 <link rel="import" href="/res/imp/domain-picker-sk.html" />
-<link rel="import" href="/res/imp/json-source.html" />
 
 <dom-module id="explore-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
@@ -156,6 +155,10 @@
       font-size: 12pt;
     }
 
+    json-source-sk {
+      padding: 1em;
+    }
+
   </style>
   <template>
     <plot-simple-sk width=1024 height=256 id=plot></plot-simple-sk>
@@ -222,7 +225,7 @@
           <paramset-sk id=simple_paramset clickable-values></paramset-sk>
           <div class="layout vertical">
             <commit-detail-panel-sk id=commits></commit-detail-panel-sk>
-            <json-source id=jsonsource></json-source>
+            <json-source-sk id=jsonsource></json-source-sk>
           </div>
         </div>
       </div>
