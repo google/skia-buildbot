@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a28c913_6e06ea6a",
+        "filename": "perf/modules/json-source-sk/json-source-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-08T11:54:37Z",
+      "side": 1,
+      "message": "unneeded?",
+      "range": {
+        "startLine": 20,
+        "startChar": 7,
+        "endLine": 20,
+        "endChar": 17
+      },
+      "revId": "ecbaeb13ed129bf0e3ab5cb06ba2a912e1a26e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2304fbd_50dd8ef0",
+        "filename": "perf/modules/json-source-sk/json-source-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-08T11:54:37Z",
+      "side": 1,
+      "message": "nit: trailing semicolons",
+      "range": {
+        "startLine": 60,
+        "startChar": 11,
+        "endLine": 60,
+        "endChar": 12
+      },
+      "revId": "ecbaeb13ed129bf0e3ab5cb06ba2a912e1a26e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d8037d4_424aa7c2",
+        "filename": "perf/modules/json-source-sk/json-source-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-08T11:54:37Z",
+      "side": 1,
+      "message": "Would a simple falsy check work?  If not, add a short comment explaining why?",
+      "range": {
+        "startLine": 62,
+        "startChar": 8,
+        "endLine": 62,
+        "endChar": 30
+      },
+      "revId": "ecbaeb13ed129bf0e3ab5cb06ba2a912e1a26e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca837267_dd130f17",
+        "filename": "perf/modules/json-source-sk/json-source-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-08T11:54:37Z",
+      "side": 1,
+      "message": "nit: prefer single quotes",
+      "range": {
+        "startLine": 70,
+        "startChar": 14,
+        "endLine": 70,
+        "endChar": 15
+      },
+      "revId": "ecbaeb13ed129bf0e3ab5cb06ba2a912e1a26e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "199f9733_8cca4fc9",
+        "filename": "perf/modules/json-source-sk/json-source-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-08T11:54:37Z",
+      "side": 1,
+      "message": "You may want to use an AbortController to cancel previous fetches if a user clicks back and forth a bunch: \nhttps://chromium.googlesource.com/infra/luci/luci-py/+/refs/heads/master/appengine/swarming/ui2/modules/task-page/task-page.js#1104",
+      "range": {
+        "startLine": 74,
+        "startChar": 4,
+        "endLine": 74,
+        "endChar": 9
+      },
+      "revId": "ecbaeb13ed129bf0e3ab5cb06ba2a912e1a26e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
