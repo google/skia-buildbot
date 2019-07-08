@@ -14,7 +14,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/golden/go/tryjobstore"
+	"go.skia.org/infra/golden/go/tryjobstore/ds_tryjobstore"
 	gstorage "google.golang.org/api/storage/v1"
 )
 
@@ -46,7 +46,7 @@ func TestBuildBucketState(t *testing.T) {
 	assert.NoError(t, err)
 
 	evt := eventbus.New()
-	tjStore, err := tryjobstore.NewCloudTryjobStore(dsClient, evt)
+	tjStore, err := ds_tryjobstore.New(dsClient, evt)
 	assert.NoError(t, err)
 
 	gerritAPI, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", httpClient)
