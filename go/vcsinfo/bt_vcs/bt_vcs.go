@@ -56,6 +56,7 @@ type BigTableVCS struct {
 // NewVCS returns an instance of vcsinfo.VCS that is backed by the given GitStore and uses the
 // gittiles.Repo to retrieve files. Each instance provides an interface to one branch.
 // If defaultBranch is "" all commits in the repository are considered.
+// The instances of gitiles.Repo is only used to fetch files.
 func New(ctx context.Context, gitStore gitstore.GitStore, defaultBranch string, repo *gitiles.Repo) (*BigTableVCS, error) {
 	if gitStore == nil {
 		return nil, errors.New("Cannot have nil gitStore")

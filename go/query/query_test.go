@@ -398,6 +398,17 @@ func TestParseKey(t *testing.T) {
 	}
 }
 
+func TestParseKeyFast(t *testing.T) {
+	unittest.SmallTest(t)
+	p, err := ParseKeyFast(",arch=x86,config=565,debug=true,")
+	assert.NoError(t, err)
+	assert.Equal(t, map[string]string{
+		"arch":   "x86",
+		"config": "565",
+		"debug":  "true",
+	}, p)
+}
+
 func TestForceValue(t *testing.T) {
 	unittest.SmallTest(t)
 	testCases := []struct {

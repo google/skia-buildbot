@@ -24,6 +24,12 @@ const (
 	// notificationIDAttr is the name of the custom attribute in storage events
 	// is injected to connect it with registrations issued from distEventBus.
 	notificationIDAttr = "eventNotificationID"
+
+	// Maximum number of storage events to be processed at once.
+	// This number was determined experimentally.
+	// It can be small, as the number of ingesters can be increased with more
+	// kubernetes replicas.
+	MaximumConcurrentStorageEvents = 20
 )
 
 func init() {
@@ -225,6 +231,7 @@ func (d *distEventBus) setupTopicSub(topicName, subscriberName string) error {
 			return sklog.FmtErrorf("Error creating pubsub subscription '%s': %s", subName, err)
 		}
 	}
+	d.sub.ReceiveSettings.MaxOutstandingMessages = MaximumConcurrentStorageEvents
 	// Make the subscription also the id of this client.
 	d.clientID = subName
 	return nil
