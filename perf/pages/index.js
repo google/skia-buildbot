@@ -1,5 +1,6 @@
 import '../node_modules/@webcomponents/custom-elements/custom-elements.min.js'
 
+import 'elix/src/DateComboBox.js'
 import 'elements-sk/collapse-sk'
 import '../../infra-sk/modules/login-sk'
 
