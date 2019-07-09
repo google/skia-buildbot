@@ -3,6 +3,7 @@ package main
 // bt_reingester will scan through all the files in a GCS bucket and ingest
 // them into the bt_tracestore.
 import (
+	"context"
 	"flag"
 
 	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
@@ -23,5 +24,5 @@ func main() {
 		// TODO(kjlubick): VCS
 	}
 
-	_ = bt_tracestore.InitBT(btc)
+	_ = bt_tracestore.InitBT(context.Background(), btc)
 }
