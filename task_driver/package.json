@@ -4,9 +4,7 @@
   "description": "UI elements for Task Drivers",
   "private": true,
   "license": "Apache 2.0",
-  "dependencies": {
-    "infra-sk": "~0.9.3"
-  },
+  "dependencies": {},
   "devDependencies": {
     "pulito": "^4.1.0",
     "webpack": "^4.17.2",

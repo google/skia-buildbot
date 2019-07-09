@@ -1,4 +1,4 @@
-import 'infra-sk/modules/app-sk'
+import '../../../infra-sk/modules/app-sk'
 import 'elements-sk/error-toast-sk'
 import { errorMessage } from 'elements-sk/errorMessage'
 

@@ -13,7 +13,6 @@
     "common-sk": "~3.1.0",
     "elements-sk": "~2.7.0",
     "html-webpack-inject-attributes-plugin": "^1.0.1",
-    "infra-sk": "~0.8.1",
     "lit-html": "~0.14.0"
   },
   "devDependencies": {
