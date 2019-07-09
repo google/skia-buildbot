@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "91a8c173_6eca6cfb",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-07-09T15:12:03Z",
+      "side": 1,
+      "message": "Perf uses the timestamp from the file, which allows re-running bots and having the new data overwrite the old data, which comes in handy in case of problems with the bots.\n\nhttps://github.com/google/skia-buildbot/blob/master/perf/go/btts/btts.go#L319",
+      "parentUuid": "0fad9e66_2b364264",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 64
+      },
+      "revId": "2ea5db4b5a848af3929fa6b0f8c636d30ba3c650",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e2543db0_32f44838",
         "filename": "go/query/query.go",
         "patchSetId": 4
