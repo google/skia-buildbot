@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "e66503cf_b8bebe36",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-09T15:18:03Z",
+      "side": 1,
+      "message": "Ben and I discussed a hybrid approach where the time of the file is applied to the trace data and the VCS timestamp affects the Options data.  I like that approach for allowing later trace data to win w/o worrying about options changing (since options should not be flaky commit by commit).",
+      "parentUuid": "91a8c173_6eca6cfb",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 64
+      },
+      "revId": "2ea5db4b5a848af3929fa6b0f8c636d30ba3c650",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e2543db0_32f44838",
         "filename": "go/query/query.go",
         "patchSetId": 4
