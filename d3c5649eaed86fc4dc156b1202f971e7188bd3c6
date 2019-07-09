@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b9183437_89e94f3c",
+        "filename": "task_driver/go/td/step.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-09T13:53:32Z",
+      "side": 1,
+      "message": "nit: Does it make sense to wrap the retries in a step so that transient errors are hidden?",
+      "revId": "d3c5649eaed86fc4dc156b1202f971e7188bd3c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
