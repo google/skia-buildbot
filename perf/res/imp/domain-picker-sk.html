@@ -28,8 +28,6 @@
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <link rel="import" href="/res/imp/bower_components/paper-radio-button/paper-radio-button.html">
 
-<link rel="import" href="/res/common/imp/date-picker-sk.html" />
-
 <dom-module id="domain-picker-sk">
   <style>
     #controls {
@@ -54,7 +52,7 @@
         <div>
           <template is='dom-if' if='[[_isEqual(_state.request_type,0)]]'>
             <p>Display all points in the date range.</p>
-            <label>Begin:</label> <date-picker-sk on-date-changed=_beginChange date=[[_state.begin]]></date-picker-sk>
+            <label>Begin: <elix-date-combo-box on-date-changed=_beginChange date=[[_toDate(_state.begin)]]></elix-date-combo-box></label>
           </template>
           <template is='dom-if' if='[[_isEqual(_state.request_type,1)]]'>
             <p>Display only the points that have data before the date.</p>
@@ -62,7 +60,7 @@
           </template>
         </div>
         <div>
-          <label>End:</label> <date-picker-sk on-date-changed=_endChange date=[[_state.end]]></date-picker-sk>
+          <label>End: <elix-date-combo-box on-date-changed=_endChange date=[[_toDate(_state.end)]]></elix-date-combo-box></label>
         </div>
       <div id=controls>
         <button on-click=_cancel>Cancel</button>
@@ -138,12 +136,12 @@
     },
 
     _beginChange: function(e) {
-      this.set('_state.begin', e.detail.date);
+      this.set('_state.begin', e.detail.date/1000);
       this._stateChange();
     },
 
     _endChange: function(e) {
-      this.set('_state.end', e.detail.date);
+      this.set('_state.end', e.detail.date/1000);
       this._stateChange();
     },
 
@@ -184,7 +182,11 @@
         return true;
       }
       return false;
-    }
+    },
+
+    _toDate: function(seconds) {
+      return new Date(seconds*1000);
+    },
 
   });
 </script>
