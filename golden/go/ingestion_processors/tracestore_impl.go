@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/ingestion"
@@ -99,15 +100,13 @@ func (b *btProcessor) Process(ctx context.Context, resultsFile ingestion.ResultF
 		return skerr.Fmt("could not create entries for results: %s", err)
 	}
 
+	t := time.Unix(resultsFile.TimeStamp(), 0)
+
 	defer shared.NewMetricsTimer("put_tracestore_entry").Stop()
 
-	sklog.Debugf("tracestore.Put(%s, %d entries, %s)", targetHash, len(entries), commit.Timestamp)
+	sklog.Debugf("tracestore.Put(%s, %d entries, %s)", targetHash, len(entries), t)
 	// Write the result to the tracestore.
-	// We pretend that all entries for a given commit happen simultaneously.
-	// This is important because we sometimes backfill and in the case where 'most recent'
-	// matters, we want it to go off of the VCS, not off of the walltime that
-	// things happened to come in.
-	err = b.ts.Put(ctx, targetHash, entries, commit.Timestamp)
+	err = b.ts.Put(ctx, targetHash, entries, t)
 	if err != nil {
 		return skerr.Fmt("could not add to tracedb: %s", err)
 	}

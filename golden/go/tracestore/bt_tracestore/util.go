@@ -70,6 +70,9 @@ func fromBytes(b []byte) types.Digest {
 	// Be extra cautious - if we don't have enough bytes for an md5 hash,
 	// just assume it's corrupted or something and say missing.
 	if len(b) != md5.Size {
+		if len(b) >= 2 {
+			sklog.Warningf("Possibly corrupt data: %#v", b)
+		}
 		return types.MISSING_DIGEST
 	}
 	return types.Digest(hex.EncodeToString(b))
@@ -87,7 +90,7 @@ func decodeParams(b []byte) paramtools.Params {
 	if len(b) == 0 {
 		return paramtools.Params{}
 	}
-	p, err := query.ParseKey(string(b))
+	p, err := query.ParseKeyFast(string(b))
 	if err != nil {
 		sklog.Errorf("Invalid params bytes %s: %s", string(b), err)
 		return paramtools.Params{}

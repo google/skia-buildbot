@@ -68,9 +68,6 @@ func TestBTTraceStorePutGet(t *testing.T) {
 }
 
 func putTestTile(t *testing.T, traceStore tracestore.TraceStore, commits []*tiling.Commit, options bool) {
-	// This time is an arbitrary point in time
-	now := time.Date(2019, time.May, 5, 1, 3, 4, 0, time.UTC)
-
 	// Build a tile up from the individual data points, one at a time
 	traces := data.MakeTestTile().Traces
 	for _, trace := range traces {
@@ -93,10 +90,9 @@ func putTestTile(t *testing.T, traceStore tracestore.TraceStore, commits []*tili
 					e.Options = makeOptionsTwo()
 				}
 			}
-			err := traceStore.Put(context.Background(), commits[i].Hash, []*tracestore.Entry{&e}, now)
+			ts := time.Unix(commits[i].CommitTime, 0)
+			err := traceStore.Put(context.Background(), commits[i].Hash, []*tracestore.Entry{&e}, ts)
 			assert.NoError(t, err)
-			// roll forward the clock by an arbitrary amount of time
-			now = now.Add(7 * time.Second)
 		}
 	}
 }
