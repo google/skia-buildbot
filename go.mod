@@ -5,7 +5,7 @@ require (
 	contrib.go.opencensus.io/exporter/ocagent v0.5.0 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.12.2
 	github.com/99designs/goodies v0.0.0-20140916053233-ec7f410f2ff2
-	github.com/Azure/go-autorest v12.2.0+incompatible // indirect
+	github.com/Azure/go-autorest v12.3.0+incompatible // indirect
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.4.2 // indirect
 	github.com/Masterminds/sprig v2.20.0+incompatible
@@ -13,7 +13,7 @@ require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/VividCortex/godaemon v0.0.0-20150910212227-3d9f6e0b234f
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.20.15 // indirect
+	github.com/aws/aws-sdk-go v1.20.16 // indirect
 	github.com/boltdb/bolt v1.3.1
 	github.com/cenkalti/backoff v2.1.1+incompatible
 	github.com/codegangsta/negroni v1.0.0 // indirect
@@ -85,7 +85,7 @@ require (
 	github.com/prometheus/tsdb v0.9.1 // indirect
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d // indirect
 	github.com/robfig/go-cache v0.0.0-20130306151617-9fc39e0dbf62
-	github.com/rogpeppe/fastuuid v1.1.0 // indirect
+	github.com/rogpeppe/fastuuid v1.2.0 // indirect
 	github.com/russross/blackfriday v2.0.0+incompatible // indirect
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
@@ -105,7 +105,7 @@ require (
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
-	go.chromium.org/luci v0.0.0-20190708013600-ac5cea9a78bb
+	go.chromium.org/luci v0.0.0-20190708195649-91fb8d92d699
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.opencensus.io v0.22.0
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
@@ -117,10 +117,10 @@ require (
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb // indirect
-	golang.org/x/tools v0.0.0-20190706070813-72ffa07ba3db // indirect
+	golang.org/x/tools v0.0.0-20190708203411-c8855242db9c // indirect
 	golang.org/x/tools/gopls v0.1.1 // indirect
 	google.golang.org/api v0.7.0
-	google.golang.org/genproto v0.0.0-20190701230453-710ae3a149df
+	google.golang.org/genproto v0.0.0-20190708153700-3bdd9d9f5532
 	google.golang.org/grpc v1.22.0
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/inf.v0 v0.9.1 // indirect
