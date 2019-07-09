@@ -14,6 +14,7 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { errorMessage } from 'elements-sk/errorMessage'
 import { upgradeProperty } from 'elements-sk/upgradeProperty'
 import 'elements-sk/collapse-sk'
+import 'elements-sk/icon/launch-icon-sk'
 import 'elements-sk/styles/buttons'
 
 
@@ -124,6 +125,13 @@ const step = (ele, s) => html`
       </a>
       <div class="${ele._stepNameClass(s)}">${s.name}</div>
       <div class="horiz duration">${ele._duration(s.started, s.finished)}</div>
+      ${!s.parent && ele.hasAttribute('embedded') ? html`
+        <div class="horiz">
+          <a href="https://task-driver.skia.org/td/${s.id}" target="_blank">
+            <launch-icon-sk></launch-icon-sk>
+          </a>
+        </div>
+      ` : ""}
     </div>
     ${stepInner(ele, s)}
   </div>
@@ -284,6 +292,16 @@ window.customElements.define('task-driver-sk', class extends HTMLElement {
   set data(val) {
     this._process(val);
     this._data = val;
+    this._render();
+  }
+
+  get embedded() { return this.hasAttribute('embedded'); }
+  set embedded(isEmbedded) {
+    if (isEmbedded) {
+      this.setAttribute('embedded', '');
+    } else {
+      this.removeAttribute('embedded');
+    }
     this._render();
   }
 
