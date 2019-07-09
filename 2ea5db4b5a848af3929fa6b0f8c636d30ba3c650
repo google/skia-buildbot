@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0fad9e66_2b364264",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-09T15:06:48Z",
+      "side": 1,
+      "message": "I am fine with both of those.\noptions are not expected to change often (certainly not every commit). Additionally, the philosophy of Gold assumes that there is exactly one data point per trace per commit. I don\u0027t think I want to support retrying.",
+      "parentUuid": "ae64b2eb_37e705a7",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 64
+      },
+      "revId": "2ea5db4b5a848af3929fa6b0f8c636d30ba3c650",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e2543db0_32f44838",
         "filename": "go/query/query.go",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "4d332bb0_43a3f27a",
+        "filename": "go/query/query.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-09T15:06:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e2543db0_32f44838",
+      "range": {
+        "startLine": 177,
+        "startChar": 5,
+        "endLine": 177,
+        "endChar": 30
+      },
+      "revId": "2ea5db4b5a848af3929fa6b0f8c636d30ba3c650",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "401fb255_6aec128d",
         "filename": "go/query/query_test.go",
         "patchSetId": 4
@@ -62,6 +110,24 @@
       "revId": "2ea5db4b5a848af3929fa6b0f8c636d30ba3c650",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c58994ec_af4389e3",
+        "filename": "go/query/query_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 403,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-09T15:06:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "401fb255_6aec128d",
+      "revId": "2ea5db4b5a848af3929fa6b0f8c636d30ba3c650",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -85,6 +151,30 @@
       "revId": "2ea5db4b5a848af3929fa6b0f8c636d30ba3c650",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "006d4397_4b138134",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 557,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-09T15:06:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eb5b7ac5_860a55d9",
+      "range": {
+        "startLine": 557,
+        "startChar": 8,
+        "endLine": 557,
+        "endChar": 16
+      },
+      "revId": "2ea5db4b5a848af3929fa6b0f8c636d30ba3c650",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
