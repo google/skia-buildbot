@@ -1,9 +1,0 @@
-{
-  'variables': {
-    'files': [
-      './',
-      '../../../.gclient',
-      '../config/recipes.cfg',
-    ],
-  },
-}
