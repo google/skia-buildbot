@@ -206,6 +206,20 @@ func Fatalf(ctx context.Context, format string, a ...interface{}) {
 	Fatal(ctx, fmt.Errorf(format, a...))
 }
 
+// WithRetries runs the given function until it succeeds or the given number of
+// attempts is exhausted, returning the last error or nil if the function
+// completed successfully.
+func WithRetries(ctx context.Context, attempts int, fn func(ctx context.Context) error) error {
+	var err error
+	for i := 0; i < attempts; i++ {
+		err = fn(ctx)
+		if err == nil {
+			return nil
+		}
+	}
+	return err
+}
+
 // LogData is extra Step data generated for log streams.
 type LogData struct {
 	Name     string `json:"name"`

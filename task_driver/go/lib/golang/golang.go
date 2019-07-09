@@ -72,9 +72,12 @@ func Info(ctx context.Context) (string, string, error) {
 }
 
 // ModDownload downloads the Go module dependencies of the module in cwd.
+// Tries up to three times in case of transient network issues.
 func ModDownload(ctx context.Context, cwd string) error {
-	_, err := Go(ctx, cwd, "mod", "download")
-	return err
+	return td.WithRetries(ctx, 3, func(ctx context.Context) error {
+		_, err := Go(ctx, cwd, "mod", "download")
+		return err
+	})
 }
 
 // Install runs "go install" with the given args.
@@ -84,10 +87,13 @@ func Install(ctx context.Context, cwd string, args ...string) error {
 }
 
 // InstallCommonDeps installs common dependencies needed by the infra tests in
-// this repo.
+// this repo. Tries up to three times per dependency in case of transient
+// network issues.
 func InstallCommonDeps(ctx context.Context, workdir string) error {
 	for _, target := range COMMON_DEPS {
-		if err := Install(ctx, workdir, "-v", target); err != nil {
+		if err := td.WithRetries(ctx, 3, func(ctx context.Context) error {
+			return Install(ctx, workdir, "-v", target)
+		}); err != nil {
 			return err
 		}
 	}
