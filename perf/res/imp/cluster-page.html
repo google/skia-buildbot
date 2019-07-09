@@ -27,7 +27,6 @@
 <link rel="import" href="/res/imp/algo-select.html" />
 <link rel="import" href="/res/imp/cluster2.html" />
 <link rel="import" href="/res/imp/commit-detail-picker.html" />
-<link rel="import" href="/res/imp/day-range.html" />
 <dom-module id="cluster-page-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
     day-range-sk {
@@ -94,7 +93,7 @@
   </style>
   <template>
     <h2>Commit</h2>
-    <h3>Appears in Data Range</h3>
+    <h3>Appears in Date Range</h3>
     <div class="layout horizontal">
       <day-range-sk id=range on-day-range-change="_rangeChange"></day-range-sk>
       <paper-spinner id=spinner></paper-spinner>

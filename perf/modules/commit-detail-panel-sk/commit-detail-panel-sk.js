@@ -47,10 +47,10 @@ const template = (ele) => html`
 window.customElements.define('commit-detail-panel-sk', class extends HTMLElement {
   constructor() {
     super();
+    this._details = [];
   }
 
   connectedCallback() {
-    this._details = [];
     upgradeProperty(this, 'details');
     upgradeProperty(this, 'selected');
     upgradeProperty(this, 'selectable');
