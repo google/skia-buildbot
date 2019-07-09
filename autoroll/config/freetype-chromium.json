@@ -18,7 +18,8 @@
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "bungeman@google.com",
-    "drott@google.com"
+    "drott@google.com",
+    "thestig@google.com"
   ],
   "supportsManualRolls": true,
   "freeTypeRepoManager": {
