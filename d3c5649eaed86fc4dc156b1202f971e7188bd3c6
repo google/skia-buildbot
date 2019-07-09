@@ -16,6 +16,24 @@
       "revId": "d3c5649eaed86fc4dc156b1202f971e7188bd3c6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45a85e08_c739416a",
+        "filename": "task_driver/go/td/step.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-07-09T18:57:23Z",
+      "side": 1,
+      "message": "Yes, probably.  I couldn\u0027t think of a way to do it which was as clean as I\u0027d like.  Ideally, we\u0027d want the retry wrapper step to have the same name as the child step(s), or we\u0027d have a descriptive name for the retry wrapper and \"Attempt #%d\" for the individual attempts.  I don\u0027t know how to do that without passing the name as another parameter, which seems cluttery.",
+      "parentUuid": "b9183437_89e94f3c",
+      "revId": "d3c5649eaed86fc4dc156b1202f971e7188bd3c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
