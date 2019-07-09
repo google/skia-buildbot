@@ -4,7 +4,7 @@ Storing Gold traces in BigTable
 This implementation is based on the original btts.go made for Perf.
 See perf/BIGTABLE.md for an overview of that schema.
 
-Note that we assume our Big Table instance is strongly consistent, which is
+Note that we assume our BigTable instance is strongly consistent, which is
 only valid if there is no replication (which we shouldn't need for now).
 
 Data we want to store
@@ -168,6 +168,10 @@ tile1_trace0 |  [blank]
 We store the maps as strings, encoded like trace keys (`,key1=value1,key2=value2,`) which can use
 less disk (since GOB needs to specify the type of the encoded object) and allows us to intern the
 option maps, using less RAM on decoding.
+
+Of note, the timestamp applied to each cell will be the commit time. Options aren't expected to be
+flaky (digests can be flaky from run to run), so once they are set for a given trace+commit, they
+won't be overwritten except by a later commit.
 
 The rows have the same names as their trace counterparts, with the exception of the type
 (and column family). We only read the most recent cell value, which corresponds to the latest

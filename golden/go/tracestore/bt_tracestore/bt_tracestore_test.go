@@ -93,13 +93,77 @@ func putTestTile(t *testing.T, traceStore tracestore.TraceStore, commits []*tili
 					e.Options = makeOptionsTwo()
 				}
 			}
-			ts := time.Unix(commits[i].CommitTime, 0)
-			err := traceStore.Put(context.Background(), commits[i].Hash, []*tracestore.Entry{&e}, ts)
+			err := traceStore.Put(context.Background(), commits[i].Hash, []*tracestore.Entry{&e}, now)
 			assert.NoError(t, err)
 			// roll forward the clock by an arbitrary amount of time
 			now = now.Add(7 * time.Second)
 		}
 	}
+}
+
+// Tests that a digest put temporally later will override what is there.
+func TestBTTraceStorePutGetOverride(t *testing.T) {
+	unittest.LargeTest(t)
+	unittest.RequiresBigTableEmulator(t)
+
+	commits := data.MakeTestCommits()
+	mvcs := MockVCSWithCommits(commits, 0)
+	defer mvcs.AssertExpectations(t)
+
+	btConf := BTConfig{
+		ProjectID:  "should-use-the-emulator",
+		InstanceID: "testinstance",
+		TableID:    "three_devices_test",
+		VCS:        mvcs,
+	}
+
+	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
+	assert.NoError(t, InitBT(context.Background(), btConf))
+
+	ctx := context.Background()
+	traceStore, err := New(ctx, btConf, true)
+	assert.NoError(t, err)
+	putTestTile(t, traceStore, commits, false /*=options*/)
+
+	alphaParams := data.MakeTestTile().Traces[data.AnglerAlphaTraceID].Params()
+	assert.NotEmpty(t, alphaParams)
+
+	veryOldDigest := types.Digest("00069e4bb9c71ba0f7e2c7e03bf96699")
+	veryOldTime := time.Date(2016, time.January, 1, 0, 0, 0, 0, time.UTC)
+	veryOldEntry := []*tracestore.Entry{
+		{
+			Digest: veryOldDigest,
+			Params: alphaParams,
+		},
+	}
+	// This should not show up
+	err = traceStore.Put(context.Background(), data.FirstCommitHash, veryOldEntry, veryOldTime)
+	assert.NoError(t, err)
+
+	veryNewDigest := types.Digest("fffeb0c1980670adc5fe0bc52e7402b7")
+	veryNewTime := time.Now()
+	veryNewEntry := []*tracestore.Entry{
+		{
+			Digest: veryNewDigest,
+			Params: alphaParams,
+		},
+	}
+	// This should show up
+	err = traceStore.Put(context.Background(), data.ThirdCommitHash, veryNewEntry, veryNewTime)
+	assert.NoError(t, err)
+
+	// Get the tile back and make sure it exactly matches the tile
+	// we hand-crafted for the test data.
+	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
+	assert.NoError(t, err)
+
+	expectedTile := data.MakeTestTile()
+	// This is the edit we applied
+	gt := expectedTile.Traces[data.AnglerAlphaTraceID].(*types.GoldenTrace)
+	gt.Digests[2] = veryNewDigest
+
+	assert.Equal(t, expectedTile, actualTile)
+	assert.Equal(t, commits, actualCommits)
 }
 
 // TestBTTraceStorePutGetOptions adds a bunch of entries (with options) one at a time and
@@ -669,7 +733,7 @@ func TestCalcShardedRowName(t *testing.T) {
 }
 
 // TestPutUpdate tests that if vcs.IndexOf fails, we call Update
-// and Put again.
+// and then insert the data.
 func TestPutUpdate(t *testing.T) {
 	unittest.LargeTest(t)
 	unittest.RequiresBigTableEmulator(t)
@@ -691,6 +755,14 @@ func TestPutUpdate(t *testing.T) {
 	mvcs.On("IndexOf", ctx, data.FirstCommitHash).Return(-1, notFound).Once()
 	mvcs.On("Update", ctx, true, false).Return(nil)
 	mvcs.On("IndexOf", ctx, data.FirstCommitHash).Return(4001, nil).Once()
+	mvcs.On("Details", ctx, data.FirstCommitHash, false).Return(&vcsinfo.LongCommit{
+		ShortCommit: &vcsinfo.ShortCommit{
+			Hash:    data.FirstCommitHash,
+			Author:  "example@example.com",
+			Subject: fmt.Sprintf("test commit"),
+		},
+		Timestamp: time.Now(),
+	}, nil).Once()
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
@@ -900,6 +972,8 @@ func MockVCSWithCommits(commits []*tiling.Commit, offset int) *mock_vcs.VCS {
 			},
 			Timestamp: time.Unix(c.CommitTime, 0),
 		})
+
+		mvcs.On("Details", ctx, c.Hash, false).Return(longCommits[i], nil).Maybe()
 	}
 
 	mvcs.On("LastNIndex", len(commits)).Return(indexCommits)
@@ -956,6 +1030,8 @@ func MockSparseVCSWithCommits(commits []*tiling.Commit, realCommitIndices []int,
 			},
 			Timestamp: time.Unix(int64(index*1700), 0),
 		}
+
+		mvcs.On("Details", ctx, c.Hash, false).Return(longCommits[index], nil).Maybe()
 	}
 
 	firstRealCommitIdx := realCommitIndices[0]
