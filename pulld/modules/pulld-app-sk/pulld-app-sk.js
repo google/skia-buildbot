@@ -7,7 +7,7 @@ import { upgradeProperty } from 'elements-sk/upgradeProperty'
 import { fromObject } from 'common-sk/modules/query'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 
-import 'infra-sk/modules/systemd-unit-status-sk'
+import '../../../infra-sk/modules/systemd-unit-status-sk'
 
 const listUnits = (ele) =>  ele._units.map(
   unit => html`<systemd-unit-status-sk machine="${ele._hostname}" .value=${unit}></systemd-unit-status-sk>`
