@@ -28,6 +28,18 @@ DEPS = [
 INFRA_GIT_URL = 'https://skia.googlesource.com/buildbot'
 
 
+def retry(api, attempts, *args, **kwargs):
+  exc = None
+  for _ in range(attempts):
+    try:
+      api.step(*args, **kwargs)
+      return
+    except api.step.StepFailure as e:
+      exc = e
+  else:  # pragma: nocover
+    raise exc  # pylint:disable=raising-bad-type
+
+
 def RunSteps(api):
   # The 'build' and 'depot_tools directories come from recipe DEPS and aren't
   # provided by default. We have to set them manually.
@@ -68,7 +80,10 @@ def RunSteps(api):
   }
   with api.context(cwd=infra_dir, env=env):
     api.step('which go', cmd=['which', 'go'])
-    api.step('go mod download', cmd=['go', 'mod', 'download'])
+
+    # Try up to three times in case of transient network failures.
+    retry(api, 3, 'go mod download', cmd=['go', 'mod', 'download'])
+
     install_targets = [
       'github.com/golang/protobuf/protoc-gen-go',
       'github.com/kisielk/errcheck',
@@ -132,7 +147,8 @@ def GenTests(api):
   yield (
       api.test('Infra-PerCommit') +
       api.properties(buildername='Infra-PerCommit-Small',
-                     path_config='kitchen')
+                     path_config='kitchen') +
+      api.step_data('go mod download', retcode=1)
   )
   yield (
       api.test('Infra-PerCommit_initialcheckout') +
