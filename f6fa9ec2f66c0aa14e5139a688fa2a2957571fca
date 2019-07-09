@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "4ca7ccfa_80eca2fc",
+        "filename": "infra/bots/recipes/swarm_infra.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-07-09T12:21:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a4f27cd_f67567e3",
+      "revId": "f6fa9ec2f66c0aa14e5139a688fa2a2957571fca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1016a5e1_0ab6767d",
         "filename": "infra/bots/task_drivers/infra_tests/infra_tests.go",
         "patchSetId": 2
@@ -33,6 +51,24 @@
       "revId": "f6fa9ec2f66c0aa14e5139a688fa2a2957571fca",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e72c967_2494076e",
+        "filename": "infra/bots/task_drivers/infra_tests/infra_tests.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-07-09T12:21:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1016a5e1_0ab6767d",
+      "revId": "f6fa9ec2f66c0aa14e5139a688fa2a2957571fca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
