@@ -44,7 +44,7 @@ func TestBTTraceStorePutGet(t *testing.T) {
 	}
 
 	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(btConf))
+	assert.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
@@ -93,7 +93,8 @@ func putTestTile(t *testing.T, traceStore tracestore.TraceStore, commits []*tili
 					e.Options = makeOptionsTwo()
 				}
 			}
-			err := traceStore.Put(context.Background(), commits[i].Hash, []*tracestore.Entry{&e}, now)
+			ts := time.Unix(commits[i].CommitTime, 0)
+			err := traceStore.Put(context.Background(), commits[i].Hash, []*tracestore.Entry{&e}, ts)
 			assert.NoError(t, err)
 			// roll forward the clock by an arbitrary amount of time
 			now = now.Add(7 * time.Second)
@@ -119,7 +120,7 @@ func TestBTTraceStorePutGetOptions(t *testing.T) {
 	}
 
 	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(btConf))
+	assert.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
@@ -153,7 +154,7 @@ func TestBTTraceStorePutGetSpanTile(t *testing.T) {
 	}
 
 	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(btConf))
+	assert.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
@@ -194,7 +195,7 @@ func TestBTTraceStorePutGetOptionsSpanTile(t *testing.T) {
 	}
 
 	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(btConf))
+	assert.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
@@ -229,7 +230,7 @@ func TestBTTraceStorePutGetGrouped(t *testing.T) {
 	}
 
 	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(btConf))
+	assert.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
@@ -308,7 +309,7 @@ func TestBTTraceStorePutGetThreaded(t *testing.T) {
 	}
 
 	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(btConf))
+	assert.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
@@ -379,7 +380,7 @@ func TestBTTraceStoreGetDenseTileEmpty(t *testing.T) {
 	}
 
 	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(btConf))
+	assert.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
@@ -467,7 +468,7 @@ func testDenseTile(t *testing.T, tile *tiling.Tile, mvcs *mock_vcs.VCS, commits 
 	}
 
 	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(btConf))
+	assert.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
@@ -532,7 +533,7 @@ func TestBTTraceStoreOverwrite(t *testing.T) {
 	badDigest := types.Digest("badc918f358a30d920f0b4e571ef20bd")
 
 	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(btConf))
+	assert.NoError(t, InitBT(context.Background(), btConf))
 
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
@@ -684,7 +685,7 @@ func TestPutUpdate(t *testing.T) {
 	}
 
 	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(btConf))
+	assert.NoError(t, InitBT(context.Background(), btConf))
 
 	notFound := errors.New("commit not found")
 	mvcs.On("IndexOf", ctx, data.FirstCommitHash).Return(-1, notFound).Once()
@@ -861,7 +862,7 @@ func setupLargeTile(t sktest.TestingT) (BTConfig, *mock_vcs.VCS, *tiling.Tile) {
 	}
 
 	assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	assert.NoError(t, InitBT(btConf))
+	assert.NoError(t, InitBT(context.Background(), btConf))
 	fmt.Println("BT emulator set up")
 	return btConf, mvcs, tile
 }

@@ -152,16 +152,16 @@ a single null byte].
 Storing the trace Options
 ----------------------------------------
 Options are small map[string]string. Since Options are submitted per entry
-(i.e. alongside a digest), we store them using the same column as above (offset into tile).
+(i.e. alongside a digest), we store them, but only care about the latest one (most recent commit).
 
 ```
-             | offset000 | offset001 | ... | offset255
-====================================================
-tile0_trace0 |  [bytes]  |  [bytes]  | ... | [blank]
-tile0_trace1 |  [bytes]  |  [bytes]  | ... | [blank]
+             |     B
+==========================
+tile0_trace0 |  [bytes]
+tile0_trace1 |  [blank]
 ...
-tile0_traceN |  [bytes]  |  [blank]  | ... | [bytes]
-tile1_trace0 |  [blank]  |  [bytes]  | ... | [blank]
+tile0_traceN |  [bytes]
+tile1_trace0 |  [blank]
 ...
 ```
 
@@ -170,8 +170,8 @@ less disk (since GOB needs to specify the type of the encoded object) and allows
 option maps, using less RAM on decoding.
 
 The rows have the same names as their trace counterparts, with the exception of the type
-(and column family). When reading them, we only care about the most recent one per trace.
-We keep the older ones around for simplicity.
+(and column family). We only read the most recent cell value, which corresponds to the latest
+commit. There is a garbage collection policy that will clean up older cell values over time.
 
 An example row for encoded ParamSet ",0=1,1=3,3=0," on tile 0 (assume shard
 calculates to be 7) would be:

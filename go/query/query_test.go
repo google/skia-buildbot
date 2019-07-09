@@ -398,6 +398,41 @@ func TestParseKey(t *testing.T) {
 	}
 }
 
+func TestParseKeyFast(t *testing.T) {
+	unittest.SmallTest(t)
+	p, err := ParseKeyFast(",arch=x86,config=565,debug=true,")
+	assert.NoError(t, err)
+	assert.Equal(t, map[string]string{
+		"arch":   "x86",
+		"config": "565",
+		"debug":  "true",
+	}, p)
+}
+
+// Test a variety of inputs to make sure the code doesn't panic.
+func TestParseKeyFastNoPanics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	testCases := []string{
+		",config=565,arch=x86,", // unsorted
+		",,",
+		"x/y",
+		"",
+		",",
+		"foo=bar",
+		",foo=bar",
+		",foo,",
+		",foo,bar,baz,",
+		",foo=,bar=,",
+		",=,",
+		",space=spaces ok here,",
+	}
+
+	for _, tc := range testCases {
+		_, _ = ParseKeyFast(tc)
+	}
+}
+
 func TestForceValue(t *testing.T) {
 	unittest.SmallTest(t)
 	testCases := []struct {

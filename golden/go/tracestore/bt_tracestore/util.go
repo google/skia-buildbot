@@ -87,7 +87,7 @@ func decodeParams(b []byte) paramtools.Params {
 	if len(b) == 0 {
 		return paramtools.Params{}
 	}
-	p, err := query.ParseKey(string(b))
+	p, err := query.ParseKeyFast(string(b))
 	if err != nil {
 		sklog.Errorf("Invalid params bytes %s: %s", string(b), err)
 		return paramtools.Params{}
