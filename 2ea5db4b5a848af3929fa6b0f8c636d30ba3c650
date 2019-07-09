@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ae64b2eb_37e705a7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-09T14:31:03Z",
+      "side": 1,
+      "message": "There are two smallish problems with this:\n1. Commit timestamps have a resolution of 1 second. In a busy repo, it won\u0027t be uncommon for two commits to have the same timestamp. The options will come from whichever file happens to be ingested last.\n2. Using the timestamp that the json was generated had the advantage that the files could be ingested in any order. By using the commit time instead, if a retry gets ingested before the original run, the options will come from the original rather than the retry.",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 64
+      },
+      "revId": "2ea5db4b5a848af3929fa6b0f8c636d30ba3c650",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2543db0_32f44838",
+        "filename": "go/query/query.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-09T14:31:03Z",
+      "side": 1,
+      "message": "nope -- empty options will have 2 parts. Although if the string is longer than 1 byte and there aren\u0027t at least 3 parts, that\u0027s an error.",
+      "range": {
+        "startLine": 177,
+        "startChar": 5,
+        "endLine": 177,
+        "endChar": 30
+      },
+      "revId": "2ea5db4b5a848af3929fa6b0f8c636d30ba3c650",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "401fb255_6aec128d",
+        "filename": "go/query/query_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 403,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-09T14:31:03Z",
+      "side": 1,
+      "message": "nit: test that none of these panic:\n\"\"\n\",\"\n\",,\"\n\"foo\u003dbar\"\n\",foo\u003dbar\"\n\"foo\u003dbar,\"\n\",foo,\"\n\",foo\u003d,\"\n\",\u003dbar,\"\n\",\u003d,\"",
+      "revId": "2ea5db4b5a848af3929fa6b0f8c636d30ba3c650",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb5b7ac5_860a55d9",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 557,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-09T14:31:03Z",
+      "side": 1,
+      "message": "Should this be len(p) \u003d\u003d 0?",
+      "range": {
+        "startLine": 557,
+        "startChar": 8,
+        "endLine": 557,
+        "endChar": 16
+      },
+      "revId": "2ea5db4b5a848af3929fa6b0f8c636d30ba3c650",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
