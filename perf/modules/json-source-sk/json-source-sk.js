@@ -17,7 +17,7 @@ const template = (ele) => html`
   <button @click=${ele._loadSource}>View Source File</button>
   <button @click=${ele._loadSourceSmall}>View Source File Without Results</button>
   <spinner-sk id=spinner></spinner-sk>
-  <pre id=display>${ele._json}</pre>
+  <pre>${ele._json}</pre>
 `;
 
 window.customElements.define('json-source-sk', class extends HTMLElement {
@@ -32,7 +32,7 @@ window.customElements.define('json-source-sk', class extends HTMLElement {
   }
 
   /** @prop cid {string} A serialized cid.CommitID. */
-  get cid() { return this._cid }
+  get cid() { return this._cid; }
   set cid(val) {
     this._cid = val;
     this._json = '';
@@ -40,7 +40,7 @@ window.customElements.define('json-source-sk', class extends HTMLElement {
   }
 
   /** @prop traceid {string} The ID of the trace. */
-  get traceid() { return this._traceid }
+  get traceid() { return this._traceid; }
   set traceid(val) {
     this._traceid = val;
     this._json = '';
@@ -56,20 +56,23 @@ window.customElements.define('json-source-sk', class extends HTMLElement {
   }
 
   _loadSourceImpl(isSmall) {
-    if (!this.traceid) {
-      return
+    if (this._spinner.active === true) {
+      return;
     }
-    if (this.cid === undefined || this.cid.offset === undefined) {
-      return
+    if (!this.traceid) {
+      return;
+    }
+    if (!this.cid || this.cid.offset === undefined) {
+      return;
     }
     const body = {
       cid: this.cid,
       traceid: this.traceid,
     };
     this._spinner.active = true;
-    let url = "/_/details/";
+    let url = '/_/details/';
     if (isSmall) {
-      url += "?results=false";
+      url += '?results=false';
     }
     fetch(url, {
       method: 'POST',
