@@ -451,7 +451,7 @@ func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
-		Isolate:        "run_recipe.isolate",
+		Isolate:        "empty.isolate",
 		ServiceAccount: SERVICE_ACCOUNT_RECREATE_SKPS,
 	}
 	b.MustAddTask(name, t)

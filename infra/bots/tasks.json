@@ -133,7 +133,7 @@
           "go/go/bin"
         ]
       },
-      "isolate": "run_recipe.isolate",
+      "isolate": "empty.isolate",
       "service_account": "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Housekeeper-OnDemand-Presubmit": {
