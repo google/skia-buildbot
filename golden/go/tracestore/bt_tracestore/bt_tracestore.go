@@ -32,6 +32,9 @@ import (
 // to get auth information from the environment and must be called with an account that has
 // admin rights.
 func InitBT(ctx context.Context, conf BTConfig) error {
+	if conf.ProjectID == "" || conf.InstanceID == "" || conf.TableID == "" {
+		return skerr.Fmt("invalid config: must specify all parts of BTConfig")
+	}
 	// Set up admin client, tables, and column families.
 	adminClient, err := bigtable.NewAdminClient(ctx, conf.ProjectID, conf.InstanceID)
 	if err != nil {
@@ -122,7 +125,12 @@ func (b *BTTraceStore) Put(ctx context.Context, commitHash string, entries []*tr
 		repoIndex, err = b.vcs.IndexOf(ctx, commitHash)
 	}
 	if err != nil {
-		return skerr.Wrapf(err, "could not look up commit %s", commitHash)
+		return skerr.Wrapf(err, "could not look up commit index of %s", commitHash)
+	}
+
+	commit, err := b.vcs.Details(ctx, commitHash, false)
+	if err != nil {
+		return skerr.Wrapf(err, "could not look up commit details for %s", commitHash)
 	}
 
 	// Find out what tile we need to fetch and what index into that tile we need.
@@ -133,13 +141,13 @@ func (b *BTTraceStore) Put(ctx context.Context, commitHash string, entries []*tr
 	ops, err := b.updateOrderedParamSet(ctx, tileKey, paramSet)
 	if err != nil {
 		sklog.Warningf("Bad paramset: %#v", paramSet)
-		return skerr.Fmt("cannot update paramset: %s", err)
+		return skerr.Wrapf(err, "cannot update paramset")
 	}
 
 	// These are two parallel arrays. mutations[i] should be applied to rowNames[i] for all i.
-	rowNames, mutations, err := b.createPutMutations(entries, ts, tileKey, commitIndex, ops)
+	rowNames, mutations, err := b.createPutMutations(entries, tileKey, commitIndex, ops, ts, commit.Timestamp)
 	if err != nil {
-		return skerr.Fmt("could not create mutations to put data: %s", err)
+		return skerr.Wrapf(err, "could not create mutations to put data for tile %d", tileKey)
 	}
 
 	// Write the trace data. We pick a batchsize based on the assumption
@@ -153,12 +161,11 @@ func (b *BTTraceStore) Put(ctx context.Context, commitHash string, entries []*tr
 // the rows that need updating and the mutations to apply to those rows.
 // Specifically, the mutations will add the given entries to BT, clearing out
 // anything that was there previously.
-func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, ts time.Time, tk tileKey, commitIndex int, ops *paramtools.OrderedParamSet) ([]string, []*bigtable.Mutation, error) {
+func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, tk tileKey, commitIndex int, ops *paramtools.OrderedParamSet, digestTS, optionsTS time.Time) ([]string, []*bigtable.Mutation, error) {
 	// These mutations...
 	mutations := make([]*bigtable.Mutation, 0, len(entries))
 	// .. should be applied to these rows.
 	rowNames := make([]string, 0, len(entries))
-	btTS := bigtable.Time(ts)
 
 	for _, entry := range entries {
 		// To save space, traceID isn't the long form tiling.TraceId
@@ -180,7 +187,7 @@ func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, ts time.T
 		mut := bigtable.NewMutation()
 		column := fmt.Sprintf(columnPad, commitIndex)
 
-		mut.Set(traceFamily, column, btTS, toBytes(entry.Digest))
+		mut.Set(traceFamily, column, bigtable.Time(digestTS), toBytes(entry.Digest))
 		mutations = append(mutations, mut)
 
 		if len(entry.Options) == 0 {
@@ -190,7 +197,7 @@ func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, ts time.T
 		rowNames = append(rowNames, rowName)
 
 		pBytes := encodeParams(entry.Options)
-		mut.Set(optionsFamily, optionsBytesColumn, btTS, pBytes)
+		mut.Set(optionsFamily, optionsBytesColumn, bigtable.Time(optionsTS), pBytes)
 		mutations = append(mutations, mut)
 	}
 	return rowNames, mutations, nil
@@ -304,6 +311,7 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 
 	// traceIdx tracks the index we are writing digests into the trace.
 	traceIdx := nCommits
+	// We go backwards to make it easier to identify the most recent Options in the map.
 	for idx := nTiles - 1; idx >= 0; idx-- {
 		encTile := encTiles[idx]
 		// Determine the offset within the tile that we should consider.
