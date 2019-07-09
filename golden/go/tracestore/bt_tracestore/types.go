@@ -32,6 +32,8 @@ const (
 	hashFullColName = opsFamily + ":" + opsHashColumn
 	opsFullColName  = opsFamily + ":" + opsOpsColumn
 
+	optionsBytesColumn = "B"
+
 	// The columns in the trace family are "0", "1", "2"..."N" where N is
 	// the BT tile size (default below). These values correspond to the commitOffset,
 	// where 0 is the first (most recent) commit in the tile and N is the last (oldest)
@@ -72,13 +74,6 @@ var (
 	// missingDigestBytes is the sentinel for types.MISSING_DIGEST
 	missingDigestBytes = []byte{0}
 )
-
-// List of families (conceptually similar to tables) we are creating in BT.
-var btColumnFamilies = []string{
-	opsFamily,
-	optionsFamily,
-	traceFamily,
-}
 
 // tileKey is the identifier for each tile held in BigTable.
 //
