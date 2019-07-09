@@ -169,6 +169,25 @@ func ParseKey(key string) (map[string]string, error) {
 	return ret, nil
 }
 
+// Like ParseKey but omits much of the validation portions
+func ParseKeyFast(key string) (map[string]string, error) {
+	ret := map[string]string{}
+	parts := strings.Split(key, ",")
+	if len(parts) < 3 {
+		return map[string]string{}, nil
+	}
+	parts = parts[1 : len(parts)-1]
+
+	for _, s := range parts {
+		pair := strings.SplitN(s, "=", 2)
+		if len(pair) != 2 {
+			return nil, fmt.Errorf("Invalid key=value pair: %s", s)
+		}
+		ret[pair[0]] = pair[1]
+	}
+	return ret, nil
+}
+
 // queryParam represents a query on a particular parameter in a key.
 type queryParam struct {
 	keyMatch    string         // The param key, including the leading "," and trailing "=".

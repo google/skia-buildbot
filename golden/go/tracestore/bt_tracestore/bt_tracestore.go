@@ -25,13 +25,37 @@ import (
 	"go.skia.org/infra/golden/go/tracestore"
 	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc/codes"
 )
 
 // InitBT initializes the BT instance for the given configuration. It uses the default way
 // to get auth information from the environment and must be called with an account that has
 // admin rights.
-func InitBT(conf BTConfig) error {
-	return bt.InitBigtable(conf.ProjectID, conf.InstanceID, conf.TableID, btColumnFamilies)
+func InitBT(ctx context.Context, conf BTConfig) error {
+	// Set up admin client, tables, and column families.
+	adminClient, err := bigtable.NewAdminClient(ctx, conf.ProjectID, conf.InstanceID)
+	if err != nil {
+		return skerr.Wrapf(err, "creating admin client for project %s and instance %s", conf.ProjectID, conf.InstanceID)
+	}
+
+	err = adminClient.CreateTableFromConf(ctx, &bigtable.TableConf{
+		TableID: conf.TableID,
+		Families: map[string]bigtable.GCPolicy{
+			opsFamily:     bigtable.MaxVersionsPolicy(1),
+			optionsFamily: bigtable.MaxVersionsPolicy(1),
+			traceFamily:   bigtable.MaxVersionsPolicy(1),
+		},
+	})
+
+	// Create the table. Ignore error if it already existed.
+	err, code := bt.ErrToCode(err)
+	if err != nil && code != codes.AlreadyExists {
+		return skerr.Wrapf(err, "creating table %s", conf.TableID)
+	} else {
+		sklog.Infof("Created table %s on %s instance in project %s", conf.TableID, conf.InstanceID, conf.ProjectID)
+	}
+
+	return nil
 }
 
 // BTConfig contains the configuration information for the BigTable-based implementation of
@@ -166,7 +190,7 @@ func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, ts time.T
 		rowNames = append(rowNames, rowName)
 
 		pBytes := encodeParams(entry.Options)
-		mut.Set(optionsFamily, column, btTS, pBytes)
+		mut.Set(optionsFamily, optionsBytesColumn, btTS, pBytes)
 		mutations = append(mutations, mut)
 	}
 	return rowNames, mutations, nil
@@ -496,35 +520,45 @@ func (b *BTTraceStore) loadOptions(ctx context.Context, tileKey tileKey) (map[en
 	for shard := int32(0); shard < DefaultShards; shard++ {
 		func(shard int32) {
 			egroup.Go(func() error {
+				// Most of the options aren't unique. For example, in a single tile,
+				// the same options can be shared across most traces with the same name.
+				uniqueParams := make(map[string]paramtools.Params, 1000)
+				decodeParamsCached := func(b []byte) paramtools.Params {
+					if len(b) == 0 {
+						return paramtools.Params{}
+					}
+					k := string(b)
+					p, ok := uniqueParams[k]
+					if ok {
+						return p
+					}
+					p = decodeParams(b)
+					uniqueParams[k] = p
+					return p
+				}
+
 				// This prefix will match all traces belonging to the
 				// current shard in the current tile.
 				prefixRange := bigtable.PrefixRange(shardedRowName(shard, typeOptions, tileKey, ""))
 				target := map[encodedTraceID]paramtools.Params{}
 				shardResults[shard] = target
+				// There should only be one column per row (optionsBytesColumn)
+				// The cell in this column should be the most recent based on the timestamp in Put
 				err := b.table.ReadRows(ctx, prefixRange, func(row bigtable.Row) bool {
 					// The encoded trace id is the "subkey" part of the row name.
-					traceKey := encodedTraceID(extractSubkey(row.Key()))
+					encID := encodedTraceID(extractSubkey(row.Key()))
 					atomic.AddInt64(&traceCount, 1)
 
-					// we can look at the columns starting at the oldest because
-					// the column qualifiers are sorted lexicographically.
-					// https://stackoverflow.com/a/34935761
-
 					var p paramtools.Params
-					cols := row[optionsFamily]
-					for i := len(cols) - 1; i >= 0; i-- {
-						// Look for the first non-empty value
-						if len(cols[i].Value) > 1 {
-							// TODO(kjlubick): Try interning these params
-							p = decodeParams(cols[i].Value)
-							break
-						}
+					for _, c := range row[optionsFamily] {
+						p = decodeParamsCached(c.Value)
+						break
 					}
-					if p == nil {
+					if len(p) == 0 {
 						return true
 					}
 
-					target[traceKey] = p
+					target[encID] = p
 					return true
 				}, bigtable.RowFilter(bigtable.LatestNFilter(1)))
 				if err != nil {
@@ -542,10 +576,10 @@ func (b *BTTraceStore) loadOptions(ctx context.Context, tileKey tileKey) (map[en
 	// Merge all the results together
 	ret := make(map[encodedTraceID]paramtools.Params, traceCount)
 	for _, r := range shardResults {
-		for traceKey, opts := range r {
+		for encID, opts := range r {
 			// different shards should never share results for a tracekey
 			// since a trace always maps to the same shard.
-			ret[traceKey] = opts
+			ret[encID] = opts
 		}
 	}
 
