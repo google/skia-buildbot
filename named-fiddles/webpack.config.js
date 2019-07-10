@@ -5,6 +5,6 @@ module.exports = (env, argv) => {
   let config = commonBuilder(env, argv, __dirname);
   config.output.publicPath='/static/';
   config.resolve = config.resolve || {};
-  config.resolve.alias = config.resolve.alias || {};
+  config.resolve.modules = [resolve(__dirname, 'node_modules')];
   return config;
 }
