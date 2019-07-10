@@ -31,9 +31,20 @@ import (
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
 
+	// See https://golang.org/pkg/net/http/pprof/
+	net_pprof "net/http/pprof"
+
 	// The init() of this package register several ingestion.Processors to
 	// handle the files we locate in GCS (e.g. master branch, tryjobs, etc).
 	_ "go.skia.org/infra/golden/go/ingestion_processors"
+)
+
+const (
+	// This subscription ID doesn't have to be unique instance by instance
+	// because the unique topic id it is listening to will suffice.
+	// By setting the subscriber ID to be the same on all instances of the ingester,
+	// only one of the ingesters will get each event (usually).
+	subscriptionID = "gold-ingestion"
 )
 
 func main() {
@@ -44,16 +55,23 @@ func main() {
 		fsProjectID     = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
 		gitBTInstanceID = flag.String("git_bt_instance", "", "ID of the BigTable instance that contains Git metadata")
 		gitBTTableID    = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
+		hang            = flag.Bool("hang", false, "If true, just hang and do nothing.")
 		httpPort        = flag.String("http_port", ":9091", "The http port where ready-ness endpoints are served.")
 		local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 		memProfile      = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 		noCloudLog      = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
 		projectID       = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
 		promPort        = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+		debugPProf      = flag.Bool("debug_pprof", false, "turn pprof things on http_port if true")
 	)
 
 	// Parse the options. So we can configure logging.
 	flag.Parse()
+
+	if *hang {
+		sklog.Infof("--hang provided; doing nothing.")
+		httputils.RunHealthCheckServer(*httpPort)
+	}
 
 	_, appName := filepath.Split(os.Args[0])
 
@@ -98,15 +116,17 @@ func main() {
 	// Set up the eventbus.
 	var eventBus eventbus.EventBus
 	if config.EventTopic != "" {
-		nodeName, err := gevent.GetNodeName(appName, *local)
-		if err != nil {
-			sklog.Fatalf("Error getting node name: %s", err)
+		sID := subscriptionID
+		if *local {
+			// This allows us to have an independent ingester
+			// when running locally.
+			sID += "-local"
 		}
-		eventBus, err = gevent.New(*projectID, config.EventTopic, nodeName, option.WithTokenSource(tokenSrc))
+		eventBus, err = gevent.New(*projectID, config.EventTopic, sID, option.WithTokenSource(tokenSrc))
 		if err != nil {
 			sklog.Fatalf("Error creating global eventbus: %s", err)
 		}
-		sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created. %v", config.EventTopic, nodeName, eventBus == nil)
+		sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created. %v", config.EventTopic, sID, eventBus == nil)
 	} else {
 		eventBus = eventbus.New()
 	}
@@ -160,5 +180,10 @@ func main() {
 
 	// Set up the http handler to indicate ready-ness and start serving.
 	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+
+	if *debugPProf {
+		http.HandleFunc("/debug/pprof/", net_pprof.Index)
+	}
+
 	log.Fatal(http.ListenAndServe(*httpPort, nil))
 }
