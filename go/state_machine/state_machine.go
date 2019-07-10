@@ -11,7 +11,6 @@ import (
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/gcs"
-	"go.skia.org/infra/go/sklog"
 )
 
 // TransitionFn is a function to run when attempting to transition from one
@@ -120,12 +119,6 @@ func (b *Builder) Build(ctx context.Context, gcsClient gcs.GCSClient, gsPath str
 		funcs:       b.funcs,
 		transitions: transitions,
 		file:        gsPath,
-		busyFile:    gsPath + ".transitioning",
-	}
-
-	// Check that we didn't interrupt a previous transition.
-	if err := sm.checkBusy(ctx); err != nil {
-		return nil, err
 	}
 
 	// Write initial state back to GCS, in case it wasn't there before.
@@ -143,7 +136,6 @@ type StateMachine struct {
 	funcs       map[string]TransitionFn
 	transitions map[string]map[string]string
 	file        string
-	busyFile    string
 	mtx         sync.RWMutex
 }
 
@@ -152,16 +144,6 @@ func (sm *StateMachine) Current() string {
 	sm.mtx.RLock()
 	defer sm.mtx.RUnlock()
 	return sm.current
-}
-
-// checkBusy returns an error if the "transitioning" file exists, indicating
-// that a previous transition was interrupted.
-func (sm *StateMachine) checkBusy(ctx context.Context) error {
-	contents, err := sm.gcs.GetFileContents(ctx, sm.busyFile)
-	if err == nil {
-		return fmt.Errorf("Transition to %q already in progress; did a previous transition get interrupted?", string(contents))
-	}
-	return nil
 }
 
 // Attempt to transition to the given state, using the transition function.
@@ -181,19 +163,7 @@ func (sm *StateMachine) Transition(ctx context.Context, dest string) error {
 		return fmt.Errorf("Undefined transition function %q", fName)
 	}
 
-	// Write the busy file.
-	if err := sm.checkBusy(ctx); err != nil {
-		return err
-	}
-	if err := sm.gcs.SetFileContents(ctx, sm.busyFile, gcs.FILE_WRITE_OPTS_TEXT, []byte(dest)); err != nil {
-		return err
-	}
-	defer func() {
-		if err := sm.gcs.DeleteFile(ctx, sm.busyFile); err != nil {
-			sklog.Errorf("Failed to remove busy file: %s", err)
-		}
-	}()
-
+	// Run the transition func.
 	if err := fn(ctx); err != nil {
 		return fmt.Errorf("Failed to transition from %q to %q: %s", sm.current, dest, err)
 	}
