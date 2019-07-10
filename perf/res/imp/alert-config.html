@@ -21,8 +21,6 @@
 <link rel="import" href="/res/common/imp/query2-chooser.html" />
 <link rel="stylesheet" href="/res/common/css/md.css">
 
-<link rel="import" href="algo-select.html" />
-
 <dom-module id="alert-config-sk">
   <style>
     h3, h4 {
@@ -111,7 +109,7 @@
     <query2-chooser-sk id=querychooser paramset="{{paramset}}" current_query="{{config.query}}"></query2-chooser-sk>
     <h3>What triggers an alert</h3>
     <h4>Algorithm</h4>
-    <algo-select-sk algo="{{config.algo}}"></algo-select-sk>
+    <algo-select-sk on-algo-change=_onAlgoChange algo="[[config.algo]]"></algo-select-sk>
     <h4>K</h4>
     <paper-input type=number min=0 value="{{config.k}}" label="The number of clusters. Only used in kmeans. 0 = use a server chosen value. (For Tail algorithm, K is the jump percentage.)"></paper-input>
     <h4>Radius</h4>
@@ -184,6 +182,10 @@
 
     ready: function() {
       this.$.querychooser.query.setKeyOrder(sk.perf.key_order);
+    },
+
+    _onAlgoChange: function(e) {
+      this.set('config.algo', e.detail.algo);
     },
 
     _paramsetChange: function() {
