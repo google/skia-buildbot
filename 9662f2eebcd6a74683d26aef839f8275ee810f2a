@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a8971097_fe9de0f9",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-07-10T12:04:42Z",
+      "side": 0,
+      "message": "Could also log warning if file is detected and remove it. But this is fine too.",
+      "revId": "9662f2eebcd6a74683d26aef839f8275ee810f2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
