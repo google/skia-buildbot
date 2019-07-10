@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "38b9f4db_4ab8b5bc",
+        "filename": "golden/k8s-config-templates/ingest-config-template.json5",
+        "patchSetId": 27
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-10T20:37:54Z",
+      "side": 1,
+      "message": "missing .?",
+      "range": {
+        "startLine": 8,
+        "startChar": 19,
+        "endLine": 8,
+        "endChar": 21
+      },
+      "revId": "cf12eb3acd3f6edd150a87584402e85010151c25",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
