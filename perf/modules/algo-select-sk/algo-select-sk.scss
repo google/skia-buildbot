@@ -1,0 +1,11 @@
+@import '~elements-sk/colors';
+
+algo-select-sk {
+  * {
+    cursor: pointer;
+  }
+
+  div[selected] {
+    color: var(--white);
+  }
+}

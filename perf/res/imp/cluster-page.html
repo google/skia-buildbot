@@ -24,7 +24,6 @@
 <link rel="import" href="/res/common/imp/sort.html" />
 <link rel="stylesheet" href="/res/common/css/md.css">
 
-<link rel="import" href="/res/imp/algo-select.html" />
 <link rel="import" href="/res/imp/cluster2.html" />
 <link rel="import" href="/res/imp/commit-detail-picker.html" />
 <dom-module id="cluster-page-sk">
@@ -104,7 +103,7 @@
     </div>
 
     <h2>Algorithm</h2>
-    <algo-select-sk algo="{{state.algo}}"></algo-select-sk>
+    <algo-select-sk on-algo-change=_algoChange algo="[[state.algo]]"></algo-select-sk>
 
     <h2>Query</h2>
     <div class="layout horizontal">
@@ -279,6 +278,10 @@
           this.set('_summaries', fullSummaries);
         }.bind(this));
       }.bind(this)).catch(this._catch.bind(this));
+    },
+
+    _algoChange: function(e) {
+      this.state.algo = e.detail.algo;
     },
 
     _checkClusterRequestStatus: function(cb) {
