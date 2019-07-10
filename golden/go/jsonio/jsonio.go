@@ -48,6 +48,7 @@ import (
 	"strconv"
 	"strings"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -74,7 +75,7 @@ func ParseGoldResults(r io.Reader) (*GoldResults, []string, error) {
 	// a failure we just return the failure.
 	raw := &rawGoldResults{}
 	if err := json.NewDecoder(r).Decode(raw); err != nil {
-		return nil, nil, err
+		return nil, nil, skerr.Wrapf(err, "could not parse json")
 	}
 
 	// parse and validate the raw input from the previous step, i.e.
@@ -195,12 +196,12 @@ func (g *GoldResults) Validate(ignoreResults bool) ([]string, error) {
 
 	// If we have an error construct an error object from the error messages.
 	if len(errMsg) > 0 {
-		return errMsg, messagesToError(errMsg)
+		return errMsg, skerr.Fmt("errors in Validate: %s", messagesToError(errMsg))
 	}
 	return nil, nil
 }
 
-// Result is used by DMResults hand holds the individual result of one test.
+// Result holds the individual result of one test.
 type Result struct {
 	Key     map[string]string `json:"key"      validate:"required"`
 	Options map[string]string `json:"options"  validate:"required"`

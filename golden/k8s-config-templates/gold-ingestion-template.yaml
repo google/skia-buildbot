@@ -1,20 +1,30 @@
-apiVersion: apps/v1
-kind: StatefulSet
+apiVersion: v1
+kind: Service
 metadata:
-  name: gold-{{.INSTANCE_ID}}-ingestion
+  name: gold-{{.INSTANCE_ID}}-ingestion-bt
 spec:
-  serviceName: "gold-{{.INSTANCE_ID}}-ingestion"
-  replicas: 1
+  ports:
+    - name: http
+      port: 9091
+  selector:
+      app: gold-{{.INSTANCE_ID}}-ingestion-bt
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gold-{{.INSTANCE_ID}}-ingestion-bt
+spec:
+  replicas: 1 # Start with one so you don't make duplicate GCS Pubsub subscriptions
   selector:
     matchLabels:
-      app: gold-{{.INSTANCE_ID}}-ingestion # Label selector that determines which Pods belong to the StatefulSet
-                                 # Must match spec: template: metadata: labels
-  updateStrategy:
+      app: gold-{{.INSTANCE_ID}}-ingestion-bt
+  strategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: gold-{{.INSTANCE_ID}}-ingestion  # Pod template's label selector
+        app: gold-{{.INSTANCE_ID}}-ingestion-bt  # Pod template's label selector
         appgroup: gold-{{.INSTANCE_ID}}
       annotations:
         prometheus.io.scrape: "true"
@@ -29,11 +39,12 @@ spec:
           image: {{.INGESTION_IMAGE}}
           args:
             - "--config_filename=/etc/gold-ingestion/gold-{{.INSTANCE_ID}}-ingestion-config.json5"
+            - "--fs_namespace={{.INSTANCE_ID}}"
+            - "--fs_project_id={{.FIRESTORE_PROJECT}}"
             - "--git_bt_instance={{.GIT_BT_INSTANCE}}"
             - "--git_bt_table={{.GIT_BT_TABLE}}"
             - "--http_port=:9091"
             - "--logtostderr"
-            - "--namespace=gold-{{.INSTANCE_ID}}"
             - "--no_cloud_log"
             - "--project_id={{.PROJECT_ID}}"
             - "--prom_port=:20000"
@@ -43,8 +54,6 @@ spec:
           volumeMounts:
             - name: gold-{{.INSTANCE_ID}}-ingestion-config-volume
               mountPath: /etc/gold-ingestion
-            - name: gold-{{.INSTANCE_ID}}-ingestion-storage-volume
-              mountPath: /data
             - name: gold-service-account-secrets
               mountPath: /var/secrets/google
           env:
@@ -64,16 +73,7 @@ spec:
         - name: gold-{{.INSTANCE_ID}}-ingestion-config-volume
           configMap:
             defaultMode: 420
-            name: gold-{{.INSTANCE_ID}}-ingestion-config
+            name: gold-{{.INSTANCE_ID}}-ingestion-config-bt
         - name: gold-service-account-secrets
           secret:
             secretName: gold-service-account-secrets
-  volumeClaimTemplates:
-    - metadata:
-        name: gold-{{.INSTANCE_ID}}-ingestion-storage-volume
-      spec:
-        storageClassName: ssd-disk
-        accessModes: [ "ReadWriteOnce" ]
-        resources:
-          requests:
-            storage: 50Gi

@@ -26,7 +26,9 @@ const (
 
 	// nConcurrentProcessors is the maximum number of go-routines that run Processors.
 	// The number is chosen experimentally and should be adjusted to optimize throughput.
-	nConcurrentProcessors = 256
+	// It can be small, as the number of ingesters can be increased with more
+	// kubernetes replicas.
+	nConcurrentProcessors = 40
 
 	// eventChanSize is the buffer size of the events channel. Most of the time
 	// that channel should be almost empty, but this ensures we buffer events if
@@ -142,6 +144,10 @@ func (i *Ingester) getInputChannel(ctx context.Context) (<-chan ResultFileLocati
 // scheduled intervals (controlled by i.runEvery) and generates synthetic
 // storage events if the files in the source have not been ingested yet.
 func (i *Ingester) watchSource(source Source) {
+	if i.minDuration == 0 {
+		sklog.Infof("Not going to do polling because minDays = 0")
+		return
+	}
 	sklog.Infof("Watching source %s", source.ID())
 
 	// Repeat will run the function right away and then in intervals of 'runEvery'.
@@ -196,6 +202,7 @@ func (i *Ingester) addToProcessedFiles(name, md5 string) {
 func (i *Ingester) processResult(ctx context.Context, rfl ResultFileLocation) {
 	name, md5 := rfl.Name(), rfl.MD5()
 	if i.inProcessedFiles(name, md5) {
+		sklog.Infof("Skipping %s with md5 %s because we've already ingested it.", name, md5)
 		return
 	}
 

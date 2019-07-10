@@ -10,6 +10,7 @@
     "FIRESTORE_PROJECT":       "skia-firestore",
     "SITE_URL":                "https://lottie-gold.skia.org",
     "FORCE_LOGIN":             "false",
+    "BUCKET":                  "skia-gold-lottie",
 
     // Git BigTable settings
     "GIT_BT_INSTANCE":         "production",
@@ -20,9 +21,9 @@
     "TRACESERVER_CPU":         "1",
 
     // Settings for the main ingester.
-    "ING_RUN_EVERY":           "5m",
-    "ING_N_COMMITS":           200,
-    "ING_MIN_DAYS":            20,
+    "ING_RUN_EVERY":           "20m",
+    "ING_N_COMMITS":           30,
+    "ING_MIN_DAYS":            1,
 
     // Settings for the Tryjob ingester. If ING_TRY_ENABLED is false no ingester for
     // tryjobs will be configured.
