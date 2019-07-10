@@ -146,7 +146,7 @@ func (g *GoldenTrace) Len() int {
 
 // IsMissing implements the tiling.Trace interface.
 func (g *GoldenTrace) IsMissing(i int) bool {
-	return g.Digests[i] == MISSING_DIGEST
+	return len(g.Digests[i]) == 0
 }
 
 // DeepCopy implements the tiling.Trace interface.

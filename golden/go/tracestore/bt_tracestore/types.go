@@ -3,6 +3,8 @@ package bt_tracestore
 import (
 	"crypto/md5"
 	"fmt"
+	"runtime"
+	"sync"
 	"time"
 
 	"cloud.google.com/go/bigtable"
@@ -68,13 +70,15 @@ const (
 	readTimeout  = 4 * time.Minute
 	writeTimeout = 10 * time.Minute
 
+	maxTilesForDenseTile = 50
+
 	// BadTileKey is returned in error conditions.
 	badTileKey = tileKey(-1)
 )
 
 var (
 	// missingDigestBytes is the sentinel for types.MISSING_DIGEST
-	missingDigestBytes = []byte{0}
+	missingDigestBytes = []byte("")
 )
 
 // tileKey is the identifier for each tile held in BigTable.
@@ -93,8 +97,13 @@ type encodedTraceID string
 type encTile struct {
 	// maps a trace id to the list of digests. The list corresponds to the commits, with index
 	// 0 being the oldest commit and the last commit being the most recent.
-	traces map[encodedTraceID][]types.Digest
+	traces []*encodedTracePair
 	ops    *paramtools.OrderedParamSet
+}
+
+type encodedTracePair struct {
+	ID      encodedTraceID
+	Digests [DefaultTileSize]types.Digest
 }
 
 // When ingesting we keep a cache of the OrderedParamSets we have seen per-tile.
@@ -162,27 +171,70 @@ type traceMap map[tiling.TraceId]tiling.Trace
 
 // CommitIndicesWithData returns the indexes of the commits with at least one non-missing
 // digest in at least one trace.
-func (t traceMap) CommitIndicesWithData() []int {
+// This is pretty expensive, as in the worst case, it will have to go through all digests of
+// all traces. There are two primary optimizations going on here, one for the dense case (i.e
+// most traces have data), and one for the sparse case (most traces are empty).
+//
+// The dense case optimization is: once a trace has been found with data, keep checking that
+// trace's digests to see if they are full until we find one w/o data, then restart from the
+// top of the iteration. This increased performance by 60x (!) over the naive implementation in
+// benchmarks for the dense case (1.5x for the sparse case). kjlubick theorizes each time a new
+// trace is iterated over, it requires loading a large number of digests from RAM to
+// L1 cache, and when those get big, there is a lot of cache thrashing.
+//
+// The sparse case optimization is: break the work up into chunks and run each chunk on a
+// goroutine. That way all the CPUs can get involved searching every trace (if needed).
+// Finding the best params for breaking the data up is potentially tricky, so right now we do
+// the naive thing and break it up based on the number of CPUs. On a 4 core laptop, this improved
+// the sparse case by 2x and the dense case by 1.5x over the naive implementation.
+func (t traceMap) CommitIndicesWithData(maxIndex int) []int {
 	if len(t) == 0 {
 		return nil
 	}
-	numCommits := 0
+	nCommits := 0
 	for _, trace := range t {
-		gt := trace.(*types.GoldenTrace)
-		numCommits = len(gt.Digests)
+		nCommits = trace.Len()
 		break
 	}
-	var haveData []int
-	for i := 0; i < numCommits; i++ {
-		for _, trace := range t {
-			gt := trace.(*types.GoldenTrace)
-			if !gt.IsMissing(i) {
-				haveData = append(haveData, i)
-				break
+	chunkSize := maxIndex / runtime.NumCPU()
+	// Prevent integer division from making this 0 (or other small numbers where the overhead
+	// may not be worth it).
+	if chunkSize < 4 {
+		chunkSize = 4
+	}
+	wg := sync.WaitGroup{}
+	// store data to a slice of bools so we can safely share it between the goroutines without
+	// a mutex (which had some contention problems in the dense case).
+	haveData := make([]bool, maxIndex)
+	for i := 0; i < maxIndex; i += chunkSize {
+		wg.Add(1)
+		go func(start int) {
+			defer wg.Done()
+			for i := start; i < start+chunkSize; i++ {
+				for _, trace := range t {
+					gt := trace.(*types.GoldenTrace)
+					foundOne := false
+					for i < (start+chunkSize) && i < maxIndex && i < nCommits && !gt.IsMissing(i) {
+						haveData[i] = true
+						foundOne = true
+						i++
+					}
+					if foundOne {
+						// restart from the top of the traces to look for a digest at index i.
+						break
+					}
+				}
 			}
+		}(i)
+	}
+	wg.Wait()
+	var indices []int
+	for i, b := range haveData {
+		if b {
+			indices = append(indices, i)
 		}
 	}
-	return haveData
+	return indices
 }
 
 // MakeFromCommitIndexes creates a new traceMap from the data in this one that
@@ -216,8 +268,7 @@ func (t traceMap) MakeFromCommitIndexes(indices []int) traceMap {
 func (t traceMap) PrependTraces(other traceMap) {
 	numCommits := 0
 	for _, trace := range t {
-		gt := trace.(*types.GoldenTrace)
-		numCommits = len(gt.Digests)
+		numCommits = trace.Len()
 		break
 	}
 
