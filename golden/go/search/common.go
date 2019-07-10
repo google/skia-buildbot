@@ -58,7 +58,7 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *i
 				continue
 			}
 
-			// Iterate over the digess and filter them.
+			// Iterate over the digests and filter them.
 			test := fullTr.TestName()
 			for _, digest := range digests {
 				cl := exp.Classification(test, digest)
