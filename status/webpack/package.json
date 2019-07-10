@@ -4,7 +4,10 @@
   "description": "UI elements for Task Drivers",
   "private": true,
   "license": "Apache 2.0",
-  "dependencies": {},
+  "dependencies": {
+    "common-sk": "^3.2.0",
+    "elements-sk": "^2.7.3"
+  },
   "devDependencies": {
     "pulito": "^4.1.0",
     "webpack": "^4.27.1",
