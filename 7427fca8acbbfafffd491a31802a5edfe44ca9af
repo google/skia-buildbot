@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "42a4d9be_ba93c6dc",
+        "filename": "golden/cmd/bt_reingester/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-10T19:13:32Z",
+      "side": 1,
+      "message": "No. I needed some flexibility when I screwed up and command flags were easier.",
+      "parentUuid": "073d0b7f_d1d6ed94",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 101
+      },
+      "revId": "7427fca8acbbfafffd491a31802a5edfe44ca9af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ff084240_0a6636db",
         "filename": "golden/cmd/bt_reingester/main.go",
         "patchSetId": 25
@@ -45,6 +69,30 @@
       "revId": "7427fca8acbbfafffd491a31802a5edfe44ca9af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc24b57b_57dd0e37",
+        "filename": "golden/cmd/bt_reingester/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-10T19:13:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ff084240_0a6636db",
+      "range": {
+        "startLine": 53,
+        "startChar": 27,
+        "endLine": 53,
+        "endChar": 41
+      },
+      "revId": "7427fca8acbbfafffd491a31802a5edfe44ca9af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "525d011a_df1c106e",
+        "filename": "golden/cmd/bt_reingester/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-10T19:13:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "979463e1_470d37f4",
+      "range": {
+        "startLine": 55,
+        "startChar": 2,
+        "endLine": 55,
+        "endChar": 14
+      },
+      "revId": "7427fca8acbbfafffd491a31802a5edfe44ca9af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "75fb679c_2712c5b0",
         "filename": "golden/cmd/bt_reingester/main.go",
         "patchSetId": 25
@@ -91,6 +163,30 @@
       "revId": "7427fca8acbbfafffd491a31802a5edfe44ca9af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "290435b7_99b45d3c",
+        "filename": "golden/cmd/bt_reingester/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-10T19:13:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "75fb679c_2712c5b0",
+      "range": {
+        "startLine": 69,
+        "startChar": 59,
+        "endLine": 69,
+        "endChar": 80
+      },
+      "revId": "7427fca8acbbfafffd491a31802a5edfe44ca9af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "1dba53e0_d2f36cf3",
+        "filename": "golden/cmd/bt_reingester/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-10T19:13:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "00f392b2_234109cf",
+      "range": {
+        "startLine": 76,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 24
+      },
+      "revId": "7427fca8acbbfafffd491a31802a5edfe44ca9af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "11664afe_70929b69",
         "filename": "golden/cmd/bt_reingester/main.go",
         "patchSetId": 25
@@ -128,6 +248,30 @@
       "writtenOn": "2019-07-10T18:25:45Z",
       "side": 1,
       "message": "nit: gb should provide a Wait() method",
+      "range": {
+        "startLine": 94,
+        "startChar": 0,
+        "endLine": 96,
+        "endChar": 28
+      },
+      "revId": "7427fca8acbbfafffd491a31802a5edfe44ca9af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8d478d5_e23409f2",
+        "filename": "golden/cmd/bt_reingester/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-10T19:13:32Z",
+      "side": 1,
+      "message": "Probably, but in practice, this timeout appeared unnecessary.",
+      "parentUuid": "11664afe_70929b69",
       "range": {
         "startLine": 94,
         "startChar": 0,
@@ -160,6 +304,30 @@
       "revId": "7427fca8acbbfafffd491a31802a5edfe44ca9af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7832a996_82f37a0b",
+        "filename": "golden/k8s-config-templates/ingest-config-template.json5",
+        "patchSetId": 25
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-10T19:13:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bd3d7094_c3fed2f0",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 17
+      },
+      "revId": "7427fca8acbbfafffd491a31802a5edfe44ca9af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
