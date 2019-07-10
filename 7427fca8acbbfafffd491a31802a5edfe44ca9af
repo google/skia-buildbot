@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "073d0b7f_d1d6ed94",
+        "filename": "golden/cmd/bt_reingester/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-10T18:25:45Z",
+      "side": 1,
+      "message": "nit: Would it be simpler to point to the ingester config file?",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 101
+      },
+      "revId": "7427fca8acbbfafffd491a31802a5edfe44ca9af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff084240_0a6636db",
+        "filename": "golden/cmd/bt_reingester/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-10T18:25:45Z",
+      "side": 1,
+      "message": "nit: typo",
+      "range": {
+        "startLine": 53,
+        "startChar": 27,
+        "endLine": 53,
+        "endChar": 41
+      },
+      "revId": "7427fca8acbbfafffd491a31802a5edfe44ca9af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "979463e1_470d37f4",
+        "filename": "golden/cmd/bt_reingester/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-10T18:25:45Z",
+      "side": 1,
+      "message": "nit: os.Exit(0) or return",
+      "range": {
+        "startLine": 55,
+        "startChar": 2,
+        "endLine": 55,
+        "endChar": 14
+      },
+      "revId": "7427fca8acbbfafffd491a31802a5edfe44ca9af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "75fb679c_2712c5b0",
+        "filename": "golden/cmd/bt_reingester/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-10T18:25:45Z",
+      "side": 1,
+      "message": "nit: https://godoc.org/google.golang.org/api/option#WithTokenSource\n\nIf that doesn\u0027t work for some reason, remove \"With2xxOnly\" from the HTTP client. Also, 10 seconds seems pretty short for a dial timeout for a batch job.",
+      "range": {
+        "startLine": 69,
+        "startChar": 59,
+        "endLine": 69,
+        "endChar": 80
+      },
+      "revId": "7427fca8acbbfafffd491a31802a5edfe44ca9af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00f392b2_234109cf",
+        "filename": "golden/cmd/bt_reingester/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-10T18:25:45Z",
+      "side": 1,
+      "message": "nit: Should this comment be near the startYear/Month/Day flags?",
+      "range": {
+        "startLine": 76,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 24
+      },
+      "revId": "7427fca8acbbfafffd491a31802a5edfe44ca9af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11664afe_70929b69",
+        "filename": "golden/cmd/bt_reingester/main.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-10T18:25:45Z",
+      "side": 1,
+      "message": "nit: gb should provide a Wait() method",
+      "range": {
+        "startLine": 94,
+        "startChar": 0,
+        "endLine": 96,
+        "endChar": 28
+      },
+      "revId": "7427fca8acbbfafffd491a31802a5edfe44ca9af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd3d7094_c3fed2f0",
+        "filename": "golden/k8s-config-templates/ingest-config-template.json5",
+        "patchSetId": 25
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-10T18:25:45Z",
+      "side": 1,
+      "message": "nit: use correct variables",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 17
+      },
+      "revId": "7427fca8acbbfafffd491a31802a5edfe44ca9af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
