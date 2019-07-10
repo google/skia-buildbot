@@ -1681,7 +1681,7 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 		return fmt.Errorf("Failed to update unfinished jobs: %s", err)
 	}
 
-	if err := s.bl.Update(); err != nil {
+	if err := s.bl.Update(ctx); err != nil {
 		return fmt.Errorf("Failed to update blacklist: %s", err)
 	}
 

@@ -40,25 +40,27 @@ type Blacklist struct {
 	client *firestore.Client
 	coll   *fs.CollectionRef
 	mtx    sync.RWMutex
+	repos  repograph.Map
 	rules  map[string]*Rule
 }
 
 // NewWithParams returns a Blacklist instance backed by Firestore, using the given params.
-func NewWithParams(ctx context.Context, project, instance string, ts oauth2.TokenSource) (*Blacklist, error) {
+func NewWithParams(ctx context.Context, project, instance string, ts oauth2.TokenSource, repos repograph.Map) (*Blacklist, error) {
 	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, instance, ts)
 	if err != nil {
 		return nil, err
 	}
-	return New(ctx, client)
+	return New(ctx, client, repos)
 }
 
 // New returns a Blacklist instance backed by the given firestore.Client.
-func New(ctx context.Context, client *firestore.Client) (*Blacklist, error) {
+func New(ctx context.Context, client *firestore.Client, repos repograph.Map) (*Blacklist, error) {
 	b := &Blacklist{
 		client: client,
 		coll:   client.Collection(COLLECTION_BLACKLISTS),
+		repos:  repos,
 	}
-	if err := b.Update(); err != nil {
+	if err := b.Update(ctx); err != nil {
 		util.LogErr(b.Close())
 		return nil, err
 	}
@@ -74,9 +76,12 @@ func (b *Blacklist) Close() error {
 }
 
 // Update updates the local view of the Blacklist to match the remote DB.
-func (b *Blacklist) Update() error {
+func (b *Blacklist) Update(ctx context.Context) error {
 	if b == nil {
 		return nil
+	}
+	if err := b.repos.Update(ctx); err != nil {
+		return err
 	}
 	rules := map[string]*Rule{}
 	q := b.coll.Query

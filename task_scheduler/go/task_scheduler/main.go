@@ -678,12 +678,6 @@ func main() {
 		util.Close(tsDb)
 	})
 
-	// Blacklist DB.
-	bl, err = blacklist.NewWithParams(ctx, firestore.FIRESTORE_PROJECT, *pubsubTopicSet, tokenSource)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-
 	// Git repos.
 	if *repoUrls == nil {
 		sklog.Fatal("--repo is required.")
@@ -694,6 +688,16 @@ func main() {
 		TableID:    *gitstoreTable,
 	}
 	repos, err = repograph.NewBTGitStoreMap(ctx, *repoUrls, btConf)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	// Blacklist DB.
+	blRepos, err := repograph.NewBTGitStoreMap(ctx, *repoUrls, btConf)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	bl, err = blacklist.NewWithParams(ctx, firestore.FIRESTORE_PROJECT, *pubsubTopicSet, tokenSource, blRepos)
 	if err != nil {
 		sklog.Fatal(err)
 	}
