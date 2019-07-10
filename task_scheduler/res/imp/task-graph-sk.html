@@ -82,7 +82,7 @@
       },
 
       _computeTaskLink: function(task) {
-        var swarmingLink = "https://" + this.swarmingServer + "/task?id=" + task.swarmingTaskId;
+        var swarmingLink = "https://" + this.swarmingServer + "/task?id=" + task.swarmingRunId;
         return "https://task-driver.skia.org/td/" + task.id + "?ifNotFound=" + encodeURIComponent(swarmingLink);
       },
 

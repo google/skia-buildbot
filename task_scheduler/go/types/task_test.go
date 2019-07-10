@@ -466,7 +466,8 @@ func TestCopyTask(t *testing.T) {
 		Started:        now.Add(time.Minute),
 		Status:         TASK_STATUS_MISHAP,
 		SwarmingBotId:  "ENIAC",
-		SwarmingTaskId: "abc123",
+		SwarmingRunId:  "abc1231",
+		SwarmingTaskId: "abc1230",
 		TaskKey: TaskKey{
 			RepoState: RepoState{
 				Repo:     "nou.git",
@@ -683,11 +684,11 @@ func TestTaskDecoderError(t *testing.T) {
 func TestCopyTaskSummary(t *testing.T) {
 	unittest.SmallTest(t)
 	v := &TaskSummary{
-		Attempt:        1,
-		Id:             "123",
-		MaxAttempts:    2,
-		Status:         TASK_STATUS_FAILURE,
-		SwarmingTaskId: "abc123",
+		Attempt:       1,
+		Id:            "123",
+		MaxAttempts:   2,
+		Status:        TASK_STATUS_FAILURE,
+		SwarmingRunId: "abc123",
 	}
 	deepequal.AssertCopy(t, v, v.Copy())
 }

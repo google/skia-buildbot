@@ -68,7 +68,7 @@
         </div>
         <div class="tr">
           <div class="td">Swarming Task</div>
-          <div class="td"><a href$="[[_computeTaskLink(_task.swarmingTaskId)]]" target="_blank">[[_task.swarmingTaskId]]</a></div>
+          <div class="td"><a href$="[[_computeTaskLink(_task.swarmingRunId)]]" target="_blank">[[_task.swarmingRunId]]</a></div>
         </div>
         <div class="tr">
           <div class="td">Jobs</div>
@@ -235,8 +235,8 @@
         return textColor[1];
       },
 
-      _computeTaskLink: function(taskId) {
-        return "https://" + this.swarmingServer + "/task?id=" + taskId;
+      _computeTaskLink: function(runId) {
+        return "https://" + this.swarmingServer + "/task?id=" + runId;
       },
 
       _isFinished: function(taskStatus) {
