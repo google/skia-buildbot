@@ -190,6 +190,8 @@ func buildCommitMsg(from, to, childPath, cqExtraTrybots, childRepo, serverURL, l
 	}
 	if len(bugs) > 0 {
 		data.Footer += "\n\nBUG=" + strings.Join(bugs, ",")
+	} else {
+		data.Footer += "\n\nBUG=None"
 	}
 	if includeLog {
 		data.LogStr = fmt.Sprintf("\ngit log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'\n", from[:12], to[:12])
