@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3046066e_898ba340",
+        "filename": "perf/modules/algo-select-sk/algo-select-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-10T13:17:09Z",
+      "side": 1,
+      "message": "Maybe add a comment why we need to go backwards",
+      "revId": "2641108033922f86fd5652171cebaff075840fed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
