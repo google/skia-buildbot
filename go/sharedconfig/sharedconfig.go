@@ -22,7 +22,8 @@ type IngesterConfig struct {
 
 // Config is a struct to configure multiple ingesters.
 type Config struct {
-	GitRepoDir       string // Directory location for the repo.
+	// TODO(kjlubick): remove GitRepoDir after Skia is off of a local checkout.
+	GitRepoDir       string // Directory location for the repo. Deprecated.
 	GitRepoURL       string // Git URL of the repo.
 	SecondaryRepoURL string // URL of the secondary repo that has above as a dependency.
 	SecondaryRepoDir string // Directory location for the secondary repo.

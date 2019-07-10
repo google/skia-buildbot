@@ -1,36 +1,37 @@
 {
-  GitRepoDir: "/data/repo",
   GitRepoURL: "{{.GITREPO_URL}}",
-  EventTopic: "gold-{{.INSTANCE_ID}}-eventbus",
+  EventTopic: "gold-{{.INSTANCE_ID}}-eventbus-bt",
 
   Ingesters: {
     // Primary Ingester
-    gold: {
-      RunEvery: "5m",
-      NCommits: 75,
-      MinDays: 20,
+    "gold-bt": {
+      RunEvery: "{{ING_RUN_EVERY}}",
+      NCommits: {{.ING_N_COMMITS}},
+      MinDays: {{.ING_MIN_DAYS}},
       MetricName: "gold-{{.INSTANCE_ID}}-ingestion",
       Sources: [
         {
-          Bucket: "skia-gold-{{.INSTANCE_ID}}",
+          Bucket: "{{.BUCKET}}",
           Dir: "dm-json-v1"
         }
       ],
       ExtraParams: {
-        TraceService: "gold-{{.INSTANCE_ID}}-traceservice:9090"
+        BTProjectID: "skia-public",
+        BTInstance: "production",
+        BTTable: "gold-{{.INSTANCE_ID}}"
       }
     {{if .ING_TRY_ENABLED}}
     },
 
     // Gold Tryjob Ingester for gold-{{.INSTANCE_ID}}.
     "gold-tryjob": {
-      RunEvery: "5m",
+      RunEvery: "{{.ING_TRY_RUN_EVERY}}",
       NCommits: {{.ING_TRY_N_COMMITS}},
-      MinDays: 120,
+      MinDays: {{.ING_TRY_MIN_DAYS}},
       MetricName: "{{.INSTANCE_ID}}-gold-ingest-tryjob",
       Sources: [
         {
-          Bucket: "skia-gold-{{.INSTANCE_ID}}",
+          Bucket: "{{.BUCKET}}",
           Dir: "trybot/dm-json-v1"
         },
       ],

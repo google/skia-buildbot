@@ -24,6 +24,14 @@ const (
 	// notificationIDAttr is the name of the custom attribute in storage events
 	// is injected to connect it with registrations issued from distEventBus.
 	notificationIDAttr = "eventNotificationID"
+
+	// When subscribed to a pubsub topic, this is set as the number of MaxOutstandingMessages.
+	// This effectively limits how many Pubsub notifications this instance can handle at
+	// once. If this instance is working on this number or more, the pubsub client won't
+	// assign it any more. This number is kept small to reduce RAM and goroutine usage.
+	// Furthermore, it reduces the number of "lost" Pubsub notifications that will
+	// have to be re-tried elsewhere if this instance dies.
+	MaximumConcurrentPublishesPerTopic = 100
 )
 
 func init() {
@@ -225,6 +233,7 @@ func (d *distEventBus) setupTopicSub(topicName, subscriberName string) error {
 			return sklog.FmtErrorf("Error creating pubsub subscription '%s': %s", subName, err)
 		}
 	}
+	d.sub.ReceiveSettings.MaxOutstandingMessages = MaximumConcurrentPublishesPerTopic
 	// Make the subscription also the id of this client.
 	d.clientID = subName
 	return nil

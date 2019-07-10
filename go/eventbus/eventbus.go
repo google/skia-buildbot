@@ -12,7 +12,7 @@ import (
 const (
 	// maxConcurrentPublishers is the maximum number of go-routines that can publish
 	// events concurrently.
-	maxConcurrentPublishers = 1000
+	maxConcurrentPublishers = 500
 
 	// SYN_STORAGE_EVENT is the event type for synthetic storage events that are sent via the
 	// PublishStorageEvent function.
@@ -132,7 +132,7 @@ type MemEventBus struct {
 	concurrentPub chan bool
 
 	// Used to protect handlers.
-	mutex sync.Mutex
+	mutex sync.RWMutex
 
 	// storageNotifications keep track of storage notifications. Mainly used for
 	// testing with this implementation of EventBus.
@@ -165,12 +165,9 @@ func (e *MemEventBus) Publish(channel string, arg interface{}, globally bool) {
 		return
 	}
 
-	// It is essential that this runs in its own go-routine in case the calling go-routine
-	// is itself a handler of an event. Specifically, deadlock can occur if the caller were blocked
-	// by 'e.concurrentPub <- true' below.
-	go func() {
-		e.mutex.Lock()
-		defer e.mutex.Unlock()
+	func() {
+		e.mutex.RLock()
+		defer e.mutex.RUnlock()
 		if callbacks, ok := e.handlers[channel]; ok {
 			for _, callback := range callbacks {
 				e.concurrentPub <- true

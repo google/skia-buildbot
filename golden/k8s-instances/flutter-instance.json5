@@ -10,19 +10,21 @@
     "FIRESTORE_PROJECT":       "skia-firestore",
     "SITE_URL":                "https://flutter-gold.skia.org",
     "FORCE_LOGIN":             "false",
+    "BUCKET":                  "skia-gold-flutter",
 
     // Git BigTable settings
     "GIT_BT_INSTANCE":         "production",
     "GIT_BT_TABLE":            "git-repos",
 
     // Traceserver settings.
+    // TODO(kjlubick): delete these after tracestore lands
     "TRACESERVER_MEMORY":      "500Mi",
     "TRACESERVER_CPU":         "1",
 
     // Settings for the main ingester.
-    "ING_RUN_EVERY":           "5m",
-    "ING_N_COMMITS":           200,
-    "ING_MIN_DAYS":            20,
+    "ING_RUN_EVERY":           "20m",
+    "ING_N_COMMITS":           30,
+    "ING_MIN_DAYS":            1,
 
     // Settings for the Tryjob ingester. If ING_TRY_ENABLED is false no ingester for
     // tryjobs will be configured.
