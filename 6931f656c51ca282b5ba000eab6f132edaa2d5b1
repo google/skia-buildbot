@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e317260a_e1d69559",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 825,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-10T20:32:30Z",
+      "side": 1,
+      "message": "nit: Maybe say \"see details in diagnostics at https://console.cloud.google.com/storage/browser/skia-task-scheduler-diagnostics/%s?project\u003dgoogle.com:skia-corp\", ..., path.Join(s.diagInstance, GCS_MAIN_LOOP_DIAGNOSTICS_DIR)",
+      "revId": "6931f656c51ca282b5ba000eab6f132edaa2d5b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
