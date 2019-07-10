@@ -16,6 +16,24 @@
       "revId": "9662f2eebcd6a74683d26aef839f8275ee810f2a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "67e861df_8cb194ca",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-07-10T12:11:27Z",
+      "side": 0,
+      "message": "I suspect we\u0027ll never notice the warnings.",
+      "parentUuid": "a8971097_fe9de0f9",
+      "revId": "9662f2eebcd6a74683d26aef839f8275ee810f2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
