@@ -1,6 +1,7 @@
 const commonBuilder = require('pulito');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackInjectAttributesPlugin = require('html-webpack-inject-attributes-plugin');
+const { resolve } = require('path')
 
 module.exports = (env, argv) => {
   let config = commonBuilder(env, argv, __dirname);
@@ -23,5 +24,7 @@ module.exports = (env, argv) => {
       nonce: "{%.nonce%}",
     }),
   );
+  config.resolve = config.resolve || {};
+  config.resolve.modules = [resolve(__dirname, 'node_modules')];
   return config;
 }
