@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -18,7 +17,6 @@ func TestStateMachine(t *testing.T) {
 
 	gcsClient := test_gcsclient.NewMemoryClient("test-bucket")
 	file := "test_state_machine"
-	busyFile := file + ".transitioning"
 
 	b := NewBuilder()
 	b.T("15", "16", "noop")
@@ -77,11 +75,4 @@ func TestStateMachine(t *testing.T) {
 	p2, err := b.Build(ctx, gcsClient, file)
 	assert.NoError(t, err)
 	assert.Equal(t, p.Current(), p2.Current())
-
-	// Verify that we refuse to transition when the busy file exists.
-	assert.NoError(t, gcsClient.SetFileContents(ctx, busyFile, gcs.FILE_WRITE_OPTS_TEXT, []byte("anotherstate")))
-	expectErr := "Transition to \"anotherstate\" already in progress; did a previous transition get interrupted?"
-	_, err = b.Build(ctx, gcsClient, file)
-	assert.EqualError(t, err, expectErr)
-	assert.EqualError(t, p2.Transition(ctx, "17"), expectErr)
 }
