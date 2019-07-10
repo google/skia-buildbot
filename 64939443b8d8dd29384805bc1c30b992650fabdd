@@ -121,6 +121,30 @@
     },
     {
       "key": {
+        "uuid": "2287af7d_5debbf24",
+        "filename": "status/res/imp/task-popup-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-07-10T13:56:55Z",
+      "side": 1,
+      "message": "We can always go to the Swarming page for the run as opposed to the task.  The Milo UI doesn\u0027t currently work for runs, but I think that\u0027s easily fixable.  So to summarize:\n1. Add Task.SwarmingRunId field. Fill it in / update it in UpdateTaskFromSwarming.\n2. Send Task.SwarmingRunId to the front end instead of SwarmingTaskId.\n3. Fix Swarming UI so that Milo works for runs in addition to tasks.\n4. Task drivers use the run ID.",
+      "parentUuid": "5f9659f5_a5ceb76f",
+      "range": {
+        "startLine": 153,
+        "startChar": 39,
+        "endLine": 153,
+        "endChar": 74
+      },
+      "revId": "64939443b8d8dd29384805bc1c30b992650fabdd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7325a5f8_e743b783",
         "filename": "task_scheduler/res/imp/task-graph-sk.html",
         "patchSetId": 3
