@@ -169,6 +169,30 @@
     },
     {
       "key": {
+        "uuid": "5e7459f1_ed4bc69a",
+        "filename": "status/res/imp/task-popup-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-11T16:33:39Z",
+      "side": 1,
+      "message": "\u003e Fix Swarming UI so that Milo works for runs in addition to tasks.\n\nHas had some work done on that front already (although I think it\u0027s more correct to call it LogDog than Milo)\nhttps://chromium-review.googlesource.com/c/infra/luci/luci-py/+/1680758\n\nThere would just need to be some tweaks - like maybe renaming SWARMING_TASK_ID \u003d\u003e SWARMING_RUN_ID to be extra clear\n\nThat sounds plausible to me.",
+      "parentUuid": "7b799a23_86cc562a",
+      "range": {
+        "startLine": 153,
+        "startChar": 39,
+        "endLine": 153,
+        "endChar": 74
+      },
+      "revId": "64939443b8d8dd29384805bc1c30b992650fabdd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7325a5f8_e743b783",
         "filename": "task_scheduler/res/imp/task-graph-sk.html",
         "patchSetId": 3
