@@ -728,10 +728,11 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 
 	candidatesBySpec := map[string]map[string][]*taskCandidate{}
 	total := 0
+	skippedByBlacklist := map[string]int{}
 	for _, c := range preFilterCandidates {
 		// Reject blacklisted tasks.
 		if rule := s.bl.MatchRule(c.Name, c.Revision); rule != "" {
-			sklog.Warningf("Skipping blacklisted task candidate: %s @ %s due to rule %q", c.Name, c.Revision, rule)
+			skippedByBlacklist[rule]++
 			c.GetDiagnostics().Filtering = &taskCandidateFilteringDiagnostics{BlacklistedByRule: rule}
 			continue
 		}
@@ -819,6 +820,10 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 		}
 		candidates[c.Name] = append(candidates[c.Name], c)
 		total++
+	}
+	for rule, numSkipped := range skippedByBlacklist {
+		diagLink := fmt.Sprintf("https://console.cloud.google.com/storage/browser/skia-task-scheduler-diagnostics/%s?project=google.com:skia-corp", path.Join(s.diagInstance, GCS_MAIN_LOOP_DIAGNOSTICS_DIR))
+		sklog.Infof("Skipped %d candidates due to blacklist rule %q. See details in diagnostics at %s.", numSkipped, rule, diagLink)
 	}
 	sklog.Infof("Filtered to %d candidates in %d spec categories.", total, len(candidatesBySpec))
 	return candidatesBySpec, nil
