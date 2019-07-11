@@ -1,16 +1,16 @@
 {
     // Gold settings
+    "BUCKET":                  "skia-gold-chrome-gpu",
+    "DATASTORE_PROJECT":       "skia-public",
+    "FIRESTORE_PROJECT":       "skia-firestore",
+    "FORCE_LOGIN":             false,
     "GERRIT_URL":              "https://chromium-review.googlesource.com",
     "GITREPO_URL":             "https://chromium.googlesource.com/chromium/src",
     "N_COMMITS":               512,
-    "SPARSE":                  true,
-    "SKCORR_TITLE":            "Chrome GPU Gold",
-    "SKCORR_DEFAULT_CORPUS":   "chrome-gpu",
     "PROJECT_ID":              "skia-public",
-    "FIRESTORE_PROJECT":       "skia-firestore",
     "SITE_URL":                "https://chrome-gpu-gold.skia.org",
-    "FORCE_LOGIN":             "false",
-    "BUCKET":                  "skia-gold-chrome-gpu",
+    "SKCORR_DEFAULT_CORPUS":   "chrome-gpu",
+    "SKCORR_TITLE":            "Chrome GPU Gold",
 
     // Git BigTable settings
     "GIT_BT_INSTANCE":         "production",
@@ -28,9 +28,9 @@
     // Settings for the Tryjob ingester. If ING_TRY_ENABLED is false no ingester for
     // tryjobs will be configured.
     "ING_TRY_ENABLED":         true,
-    "ING_TRY_RUN_EVERY":       "5m",
-    "ING_TRY_MIN_DAYS":        5,
-    "ING_TRY_N_COMMITS":       10,
+    "ING_TRY_RUN_EVERY":       "20m",
+    "ING_TRY_MIN_DAYS":        1,
+    "ING_TRY_N_COMMITS":       100,
     "ING_TRY_BUILDBUCKET_URL": "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
     "ING_TRY_BUILDBUCKET":     "chromium/try",
     "ING_TRY_BB_INTERVAL":     "10s",
