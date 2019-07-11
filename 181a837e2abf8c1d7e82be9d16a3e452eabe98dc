@@ -525,6 +525,30 @@
     },
     {
       "key": {
+        "uuid": "ba4a8bae_d42df1e5",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-11T15:37:05Z",
+      "side": 1,
+      "message": "The dense case I tested on was 90% dense (i.e. 10% of commits had no data and 10% of cells in filled commits had no data), so if it got to skip those rare sparse columns (which are expensive with many traces), then that accounts for the erroneous speedup.\n\nThe sparse case was 10% dense, so skipping a few expensive commits only had a small impact.",
+      "parentUuid": "c6a35cb6_cc8ade36",
+      "range": {
+        "startLine": 213,
+        "startChar": 40,
+        "endLine": 213,
+        "endChar": 43
+      },
+      "revId": "181a837e2abf8c1d7e82be9d16a3e452eabe98dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bd4df80_d18df3f3",
         "filename": "golden/go/tracestore/bt_tracestore/types.go",
         "patchSetId": 13
@@ -690,6 +714,24 @@
       "side": 1,
       "message": "Maybe goes in tiling package?",
       "parentUuid": "71a2d8f7_2b652815",
+      "revId": "181a837e2abf8c1d7e82be9d16a3e452eabe98dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3e3bd65d_1ffefbd6",
+        "filename": "golden/go/types/complex_tile.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-11T15:37:05Z",
+      "side": 1,
+      "message": "If I made the change, I wouldn\u0027t want to affect other clients (i.e. Perf), so I\u0027m happy keeping it here for now.",
+      "parentUuid": "723d9605_ba2cde64",
       "revId": "181a837e2abf8c1d7e82be9d16a3e452eabe98dc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
