@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f392736a_d54b1fd9",
+        "filename": "golden/k8s-instances/chrome-gpu-instance.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-11T19:05:45Z",
+      "side": 1,
+      "message": "nit: as long as you\u0027re renaming this param, maybe make it BIGTABLE_INSTANCE to be consistent with BIGTABLE_PROJECT.",
+      "range": {
+        "startLine": 4,
+        "startChar": 5,
+        "endLine": 4,
+        "endChar": 16
+      },
+      "revId": "dc49d1dc7ae79988438f8ed5c62aca269924e0b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
