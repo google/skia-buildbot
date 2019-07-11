@@ -501,6 +501,30 @@
     },
     {
       "key": {
+        "uuid": "c6a35cb6_cc8ade36",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-11T15:02:34Z",
+      "side": 1,
+      "message": "I don\u0027t see how the previous code would be 60x faster for the dense case but no perf improvement for the corrected code. Was it actually the sparse case that was 60x faster?",
+      "parentUuid": "d2c8c309_37ac2723",
+      "range": {
+        "startLine": 213,
+        "startChar": 40,
+        "endLine": 213,
+        "endChar": 43
+      },
+      "revId": "181a837e2abf8c1d7e82be9d16a3e452eabe98dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bd4df80_d18df3f3",
         "filename": "golden/go/tracestore/bt_tracestore/types.go",
         "patchSetId": 13
@@ -595,6 +619,30 @@
     },
     {
       "key": {
+        "uuid": "6f5a9cb8_7589a724",
+        "filename": "golden/go/tracestore/bt_tracestore/util.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-11T15:02:34Z",
+      "side": 1,
+      "message": "Just to make sure we\u0027re on the same page -- len(missingDigestBytes) is now 0, not 1.",
+      "parentUuid": "6e6ff6cd_8039f14d",
+      "range": {
+        "startLine": 73,
+        "startChar": 15,
+        "endLine": 73,
+        "endChar": 16
+      },
+      "revId": "181a837e2abf8c1d7e82be9d16a3e452eabe98dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "78e2dea6_46ac8338",
         "filename": "golden/go/types/complex_tile.go",
         "patchSetId": 13
@@ -624,6 +672,24 @@
       "side": 1,
       "message": "Unused for now, added TODO",
       "parentUuid": "78e2dea6_46ac8338",
+      "revId": "181a837e2abf8c1d7e82be9d16a3e452eabe98dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "723d9605_ba2cde64",
+        "filename": "golden/go/types/complex_tile.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-11T15:02:34Z",
+      "side": 1,
+      "message": "Maybe goes in tiling package?",
+      "parentUuid": "71a2d8f7_2b652815",
       "revId": "181a837e2abf8c1d7e82be9d16a3e452eabe98dc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false

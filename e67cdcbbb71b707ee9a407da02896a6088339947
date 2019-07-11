@@ -1,0 +1,153 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "62b7da73_8204fad7",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 426,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-11T15:02:34Z",
+      "side": 1,
+      "message": "FWIW, it\u0027s very likely that only the last loop iteration will be recorded, i.e. the oldest tile.",
+      "range": {
+        "startLine": 425,
+        "startChar": 0,
+        "endLine": 426,
+        "endChar": 59
+      },
+      "revId": "e67cdcbbb71b707ee9a407da02896a6088339947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0608f40d_0388e532",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 549,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-11T15:02:34Z",
+      "side": 1,
+      "message": "nit: copy or move this doc to the definition for paramCache",
+      "range": {
+        "startLine": 548,
+        "startChar": 0,
+        "endLine": 549,
+        "endChar": 76
+      },
+      "revId": "e67cdcbbb71b707ee9a407da02896a6088339947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b82ccdb_38b908bd",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 622,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-11T15:02:34Z",
+      "side": 1,
+      "message": "nit: copy or move this doc to the definition for digestCache",
+      "range": {
+        "startLine": 619,
+        "startChar": 0,
+        "endLine": 622,
+        "endChar": 43
+      },
+      "revId": "e67cdcbbb71b707ee9a407da02896a6088339947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5f514dde_7fa47363",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-11T15:02:34Z",
+      "side": 1,
+      "message": "I\u0027m pretty sure you meant \"if !gt.IsMissing(i) {\"",
+      "range": {
+        "startLine": 212,
+        "startChar": 5,
+        "endLine": 212,
+        "endChar": 84
+      },
+      "revId": "e67cdcbbb71b707ee9a407da02896a6088339947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd308de4_8d6429d5",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-11T15:02:34Z",
+      "side": 1,
+      "message": "nit: should mention this is not goroutine-safe.",
+      "revId": "e67cdcbbb71b707ee9a407da02896a6088339947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b014299_2d765dfd",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-11T15:02:34Z",
+      "side": 1,
+      "message": "nit: you seem to be contradicting yourself here. (Sorry, should have mentioned on previous PS.)",
+      "range": {
+        "startLine": 296,
+        "startChar": 32,
+        "endLine": 297,
+        "endChar": 43
+      },
+      "revId": "e67cdcbbb71b707ee9a407da02896a6088339947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3787a5d_0dd77a03",
+        "filename": "golden/go/tracestore/bt_tracestore/types.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-11T15:02:34Z",
+      "side": 1,
+      "message": "nit: should mention this is not goroutine-safe.",
+      "revId": "e67cdcbbb71b707ee9a407da02896a6088339947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
