@@ -70,6 +70,9 @@ func fromBytes(b []byte) types.Digest {
 	// Be extra cautious - if we don't have enough bytes for an md5 hash,
 	// just assume it's corrupted or something and say missing.
 	if len(b) != md5.Size {
+		if len(b) > len(missingDigestBytes) {
+			sklog.Warningf("Possibly corrupt data: %#v", b)
+		}
 		return types.MISSING_DIGEST
 	}
 	return types.Digest(hex.EncodeToString(b))

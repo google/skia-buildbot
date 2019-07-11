@@ -3,6 +3,8 @@ package bt_tracestore
 import (
 	"crypto/md5"
 	"fmt"
+	"runtime"
+	"sync"
 	"time"
 
 	"cloud.google.com/go/bigtable"
@@ -68,13 +70,15 @@ const (
 	readTimeout  = 4 * time.Minute
 	writeTimeout = 10 * time.Minute
 
+	maxTilesForDenseTile = 50
+
 	// BadTileKey is returned in error conditions.
 	badTileKey = tileKey(-1)
 )
 
 var (
 	// missingDigestBytes is the sentinel for types.MISSING_DIGEST
-	missingDigestBytes = []byte{0}
+	missingDigestBytes = []byte("")
 )
 
 // tileKey is the identifier for each tile held in BigTable.
@@ -91,10 +95,18 @@ type encodedTraceID string
 
 // encTile contains an encoded tile.
 type encTile struct {
-	// maps a trace id to the list of digests. The list corresponds to the commits, with index
-	// 0 being the oldest commit and the last commit being the most recent.
-	traces map[encodedTraceID][]types.Digest
+	// This being a slice is more performant than a map, since we only really
+	// needed to iterate over the data structure, not look anything up by trace.
+	traces []*encodedTracePair
 	ops    *paramtools.OrderedParamSet
+}
+
+// maps a trace id to the list of digests.
+type encodedTracePair struct {
+	ID encodedTraceID
+	// This corresponds to the commits, with index 0 being the oldest commit
+	// and the last commit being the most recent.
+	Digests [DefaultTileSize]types.Digest
 }
 
 // When ingesting we keep a cache of the OrderedParamSets we have seen per-tile.
@@ -161,28 +173,58 @@ func newOpsCacheEntryFromRow(row bigtable.Row) (*opsCacheEntry, error) {
 type traceMap map[tiling.TraceId]tiling.Trace
 
 // CommitIndicesWithData returns the indexes of the commits with at least one non-missing
-// digest in at least one trace.
-func (t traceMap) CommitIndicesWithData() []int {
+// digest in at least one trace. Since the traces always have DefaultTraceSize commits
+// and might not be fully filled in, maxIndex tell us where to cut off the search so as
+// to avoid unneeded work.
+func (t traceMap) CommitIndicesWithData(maxIndex int) []int {
 	if len(t) == 0 {
 		return nil
 	}
-	numCommits := 0
+	nCommits := 0
 	for _, trace := range t {
-		gt := trace.(*types.GoldenTrace)
-		numCommits = len(gt.Digests)
+		nCommits = trace.Len()
 		break
 	}
-	var haveData []int
-	for i := 0; i < numCommits; i++ {
-		for _, trace := range t {
-			gt := trace.(*types.GoldenTrace)
-			if !gt.IsMissing(i) {
-				haveData = append(haveData, i)
-				break
+	// This is pretty expensive, as in the worst case, it will have to go through all digests of
+	// all traces.
+	// One optimization is: break the work up into chunks and run each chunk on a
+	// goroutine. That way all the CPUs can get involved searching every trace (if needed).
+	// Finding the best params for breaking the data up is potentially tricky, so right now we do
+	// the naive thing and break it up based on the number of CPUs. On a 4 core laptop, this improved
+	// the sparse case by 2x and the dense case by 1.5x over the naive implementation.
+	chunkSize := maxIndex / runtime.NumCPU()
+	// Prevent integer division from making this 0 (or other small numbers where the overhead
+	// may not be worth it).
+	if chunkSize < 4 {
+		chunkSize = 4
+	}
+	wg := sync.WaitGroup{}
+	// store data to a slice of bools so we can safely share it between the goroutines without
+	// a mutex (which had some contention problems in the dense case).
+	haveData := make([]bool, maxIndex)
+	for i := 0; i < maxIndex; i += chunkSize {
+		wg.Add(1)
+		go func(start int) {
+			defer wg.Done()
+			for i := start; i < start+chunkSize && i < maxIndex && i < nCommits; i++ {
+				for _, trace := range t {
+					gt := trace.(*types.GoldenTrace)
+					for !gt.IsMissing(i) {
+						haveData[i] = true
+						break
+					}
+				}
 			}
+		}(i)
+	}
+	wg.Wait()
+	var indices []int
+	for i, b := range haveData {
+		if b {
+			indices = append(indices, i)
 		}
 	}
-	return haveData
+	return indices
 }
 
 // MakeFromCommitIndexes creates a new traceMap from the data in this one that
@@ -216,8 +258,7 @@ func (t traceMap) MakeFromCommitIndexes(indices []int) traceMap {
 func (t traceMap) PrependTraces(other traceMap) {
 	numCommits := 0
 	for _, trace := range t {
-		gt := trace.(*types.GoldenTrace)
-		numCommits = len(gt.Digests)
+		numCommits = trace.Len()
 		break
 	}
 
@@ -241,4 +282,50 @@ func (t traceMap) PrependTraces(other traceMap) {
 			trace.Grow(numOtherCommits+numCommits, tiling.FILL_BEFORE)
 		}
 	}
+}
+
+// Most of the strings aren't unique. For example, in a single, stable trace,
+// the same digest may be used for all commits in the row. Thus, we don't want
+// to have to allocate memory on the heap for each of those strings, we can
+// just reuse those (immutable) strings.
+// THIS IS NOT SAFE to be shared between goroutines.
+type digestCache map[[md5.Size]byte]types.Digest
+
+func (c digestCache) FromBytesOrCache(b []byte) types.Digest {
+	if len(b) != md5.Size {
+		return types.MISSING_DIGEST
+	}
+	// Allocate a small array on the stack, then copy the bytes
+	// into it and use that as the key in the map.
+	// This is faster than k := string(b), maybe because of
+	// extra copies or simply that runtime.mapaccess2_faststr is slower
+	// than runtime.mapaccess2 (used by array).
+	k := [md5.Size]byte{}
+	copy(k[:], b)
+	d, ok := c[k]
+	if ok {
+		return d
+	}
+	d = fromBytes(b)
+	c[k] = d
+	return d
+}
+
+// Most of the options aren't unique. For example, in a single tile,
+// the same options can be shared across most traces with the same name.
+// THIS IS NOT SAFE to be shared between goroutines.
+type paramCache map[string]paramtools.Params
+
+func (c paramCache) FromBytesOrCache(b []byte) paramtools.Params {
+	if len(b) == 0 {
+		return paramtools.Params{}
+	}
+	k := string(b)
+	p, ok := c[k]
+	if ok {
+		return p
+	}
+	p = decodeParams(b)
+	c[k] = p
+	return p
 }
