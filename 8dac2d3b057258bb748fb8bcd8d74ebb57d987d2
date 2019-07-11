@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4ed5b51b_f28dccb7",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-07-11T13:13:09Z",
+      "side": 1,
+      "message": "How did this work before?",
+      "revId": "8dac2d3b057258bb748fb8bcd8d74ebb57d987d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
