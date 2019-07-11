@@ -16,6 +16,24 @@
       "revId": "8dac2d3b057258bb748fb8bcd8d74ebb57d987d2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd0d0aa5_0c1a3cb6",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-07-11T13:14:45Z",
+      "side": 1,
+      "message": "I think our parsing included both cases but we were only writing in the BUG\u003d format.",
+      "parentUuid": "4ed5b51b_f28dccb7",
+      "revId": "8dac2d3b057258bb748fb8bcd8d74ebb57d987d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
