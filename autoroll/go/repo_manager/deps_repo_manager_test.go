@@ -350,6 +350,9 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 			if strings.HasPrefix(line, "BUG=") {
 				found = true
 				assert.Equal(t, line[4:], expect)
+			} else if strings.HasPrefix(line, "Bug: ") {
+				found = true
+				assert.Equal(t, line[5:], expect)
 			}
 		}
 		if expect == "" {
@@ -360,12 +363,12 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 	}
 
 	// Test cases.
-	test("", "")
+	test("", "None")
 	test("BUG=skiatestproject:23", "skiatestproject:23")
 	test("BUG=skiatestproject:18,skiatestproject:58", "skiatestproject:18,skiatestproject:58")
 	// No prefix defaults to "chromium", which we don't include for rolls into "skiatestproject".
 	test("BUG=skiatestproject:18,58", "skiatestproject:18")
-	test("BUG=456", "")
+	test("BUG=456", "None")
 	test("BUG=skia:123,chromium:4532,skiatestproject:21", "skiatestproject:21")
 	test("Bug: skiatestproject:33", "skiatestproject:33")
 }
