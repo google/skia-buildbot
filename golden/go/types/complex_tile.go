@@ -25,10 +25,6 @@ type ComplexTile interface {
 	// is a way to get just the commits where some data has been ingested.
 	DataCommits() []*tiling.Commit
 
-	// FromSame returns true if the given complex tile was derived from the same tile as the one
-	// provided and if none of the other parameters changed, especially the ignore revision.
-	FromSame(completeTile *tiling.Tile, ignoreRev int64) bool
-
 	// FilledCommits returns how many commits in the tile have data.
 	FilledCommits() int
 
@@ -38,13 +34,13 @@ type ComplexTile interface {
 	// SetIgnoreRules adds ignore rules to the tile and a sub-tile with the ignores removed.
 	// In other words this function assumes that original tile has been filtered by the
 	// ignore rules that are being passed.
-	SetIgnoreRules(reducedTile *tiling.Tile, ignoreRules paramtools.ParamMatcher, irRev int64)
+	SetIgnoreRules(reducedTile *tiling.Tile, ignoreRules paramtools.ParamMatcher)
 
 	// IgnoreRules returns the ignore rules for this tile.
 	IgnoreRules() paramtools.ParamMatcher
 
-	// SetSparse sets sparsity information about this tile.
-	SetSparse(sparseCommits []*tiling.Commit, cardinalities []int)
+	// SetSparse tells the tile what the full range of commits analyzed was.
+	SetSparse(allCommits []*tiling.Commit)
 }
 
 type ComplexTileImpl struct {
@@ -57,18 +53,8 @@ type ComplexTileImpl struct {
 	// ignoreRules contains the rules used to created the TileWithIgnores.
 	ignoreRules paramtools.ParamMatcher
 
-	// irRevision is the (monotonically increasing) revision of the ignore rules.
-	irRevision int64
-
 	// sparseCommits are all the commits that were used condense the underlying tile.
 	sparseCommits []*tiling.Commit
-
-	// cards captures the cardinality of each commit in sparse tile, meaning how many data points
-	// each commit contains.
-	cardinalities []int
-
-	// filled contains the number of commits that are non-empty.
-	filled int
 }
 
 func NewComplexTile(completeTile *tiling.Tile) *ComplexTileImpl {
@@ -79,55 +65,19 @@ func NewComplexTile(completeTile *tiling.Tile) *ComplexTileImpl {
 }
 
 // SetIgnoreRules fulfills the ComplexTile interface.
-func (c *ComplexTileImpl) SetIgnoreRules(reducedTile *tiling.Tile, ignoreRules paramtools.ParamMatcher, irRev int64) {
+func (c *ComplexTileImpl) SetIgnoreRules(reducedTile *tiling.Tile, ignoreRules paramtools.ParamMatcher) {
 	c.tileExcludeIgnoredTraces = reducedTile
-	c.irRevision = irRev
 	c.ignoreRules = ignoreRules
 }
 
 // SetSparse fulfills the ComplexTile interface.
-func (c *ComplexTileImpl) SetSparse(sparseCommits []*tiling.Commit, cardinalities []int) {
-	// Make sure we always have valid values sparce commits.
-	if len(sparseCommits) == 0 {
-		sparseCommits = c.tileIncludeIgnoredTraces.Commits
-	}
-
-	filled := len(c.tileIncludeIgnoredTraces.Commits)
-	if len(cardinalities) == 0 {
-		cardinalities = make([]int, len(sparseCommits))
-		for idx := range cardinalities {
-			cardinalities[idx] = len(c.tileIncludeIgnoredTraces.Traces)
-		}
-	} else {
-		for _, card := range cardinalities {
-			if card > 0 {
-				filled++
-			}
-		}
-	}
-
-	commitsLen := tiling.LastCommitIndex(sparseCommits) + 1
-	if commitsLen < len(sparseCommits) {
-		sparseCommits = sparseCommits[:commitsLen]
-		cardinalities = cardinalities[:commitsLen]
-	}
+func (c *ComplexTileImpl) SetSparse(sparseCommits []*tiling.Commit) {
 	c.sparseCommits = sparseCommits
-	c.cardinalities = cardinalities
-	c.filled = filled
 }
 
 // FilledCommits fulfills the ComplexTile interface.
 func (c *ComplexTileImpl) FilledCommits() int {
-	return c.filled
-}
-
-// FromSame fulfills the ComplexTile interface.
-func (c *ComplexTileImpl) FromSame(completeTile *tiling.Tile, ignoreRev int64) bool {
-	return c != nil &&
-		c.tileIncludeIgnoredTraces != nil &&
-		c.tileIncludeIgnoredTraces == completeTile &&
-		c.tileExcludeIgnoredTraces != nil &&
-		c.irRevision == ignoreRev
+	return len(c.DataCommits())
 }
 
 // DataCommits fulfills the ComplexTile interface.
@@ -201,4 +151,12 @@ func TileFromJson(r io.Reader, traceExample tiling.Trace) (*tiling.Tile, error) 
 		Scale:     rawTile.Scale,
 		TileIndex: rawTile.Scale,
 	}, nil
+}
+
+// TODO(kjlubick): Most (all?) places in gold, we don't look anything up by trace id
+// Maps aren't the best choice in those cases, so maybe instead of
+// handing around a map of TraceID -> Trace we can hand around a []TracePair
+type TracePair struct {
+	ID    tiling.TraceId
+	Trace tiling.Trace
 }

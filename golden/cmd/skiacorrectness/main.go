@@ -24,7 +24,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gevent"
@@ -39,7 +38,6 @@ import (
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
-	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
@@ -56,9 +54,9 @@ import (
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tilesource"
+	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
 	"go.skia.org/infra/golden/go/tryjobs/gerrit_tryjob_monitor"
 	"go.skia.org/infra/golden/go/tryjobstore/ds_tryjobstore"
-	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/warmer"
 	"go.skia.org/infra/golden/go/web"
 	"google.golang.org/api/option"
@@ -84,6 +82,8 @@ func main() {
 		authoritative       = flag.Bool("authoritative", false, "Indicates that this instance should write changes that could be triggered on multiple instances running in parallel.")
 		authorizedUsers     = flag.String("auth_users", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 		baselineGSPath      = flag.String("baseline_gs_path", "", "GS path, where the baseline file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
+		btInstanceID        = flag.String("bt_instance", "production", "ID of the BigTable instance that contains Git metadata")
+		btProjectID         = flag.String("bt_project_id", "skia-public", "BigTable table ID for the traces.")
 		cacheSize           = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
 		clientSecretFile    = flag.String("client_secret", "", "Client secret file for OAuth2 authentication.")
 		cpuProfile          = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
@@ -92,13 +92,13 @@ func main() {
 		diffServerGRPCAddr  = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
 		diffServerImageAddr = flag.String("diff_server_http", "", "The images serving address of the diff server. 'diff_server_grpc has to be set as well.")
 		dsNamespace         = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
+		dsProjectID         = flag.String("ds_project_id", "", "Project id that houses the datastore instance.")
 		eventTopic          = flag.String("event_topic", "", "The pubsub topic to use for distributed events.")
 		forceLogin          = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
+		fsLegacyAuth        = flag.Bool("fs_legacy_auth", false, "use legacy credentials to auth Firestore")
 		fsNamespace         = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
 		fsProjectID         = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
-		fsLegacyAuth        = flag.Bool("fs_legacy_auth", false, "use legacy credentials to auth Firestore")
 		gerritURL           = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
-		gitBTInstanceID     = flag.String("git_bt_instance", "", "ID of the BigTable instance that contains Git metadata")
 		gitBTTableID        = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
 		gitRepoDir          = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 		gitRepoURL          = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
@@ -112,17 +112,15 @@ func main() {
 		nCommits            = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
 		noCloudLog          = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally and in K8s.")
 		port                = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
-		projectID           = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
 		promPort            = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 		pubWhiteList        = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", EVERYTHING_PUBLIC))
+		pubsubProjectID     = flag.String("pubsub_project_id", "", "Project ID that houses the GCS bucket (and therefore should be where to listen for pubsub notifications).")
 		redirectURL         = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 		resourcesDir        = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
 		serviceAccountFile  = flag.String("service_account_file", "", "Credentials file for service account.")
 		showBotProgress     = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
 		siteURL             = flag.String("site_url", "https://gold.skia.org", "URL where this app is hosted.")
-		sparseInput         = flag.Bool("sparse", false, "Sparse input expected. Filter out 'empty' commits.")
-		storageDir          = flag.String("storage_dir", "", "Directory to store reproducible application data. [DEPRECATED]")
-		traceservice        = flag.String("trace_service", "localhost:10000", "The address of the traceservice endpoint.")
+		traceBTTableID      = flag.String("trace_bt_table", "", "BigTable table ID for the traces.")
 	)
 
 	var err error
@@ -172,11 +170,11 @@ func main() {
 	}
 
 	if *cpuProfile > 0 {
-		sklog.Infof("Writing CPU Profile")
 		f, err := ioutil.TempFile("./", "cpu-profile")
 		if err != nil {
 			sklog.Fatalf("Unable to create cpu profile file: %s", err)
 		}
+		sklog.Infof("Writing CPU Profile to %s", f.Name())
 
 		if err := pprof.StartCPUProfile(f); err != nil {
 			sklog.Fatalf("Unable to write cpu profile file: %v", err)
@@ -187,6 +185,25 @@ func main() {
 			sklog.Infof("CPU profile written to %s", f.Name())
 			os.Exit(0)
 		})
+	}
+
+	// Start the internal server on the internal port if requested.
+	if *internalPort != "" {
+		// Add the profiling endpoints to the internal router.
+		internalRouter := mux.NewRouter()
+
+		// Set up the health check endpoint.
+		internalRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+
+		// Register pprof handlers
+		internalRouter.HandleFunc("/debug/pprof/", netpprof.Index)
+		internalRouter.HandleFunc("/debug/pprof/symbol", netpprof.Symbol)
+		internalRouter.HandleFunc("/debug/pprof/{profile}", netpprof.Index)
+
+		go func() {
+			sklog.Infof("Internal server on  http://127.0.0.1" + *internalPort)
+			sklog.Fatal(http.ListenAndServe(*internalPort, internalRouter))
+		}()
 	}
 
 	// Set the resource directory if it's empty. Useful for running locally.
@@ -257,7 +274,7 @@ func main() {
 	// depending whether an PubSub topic was defined.
 	var evt eventbus.EventBus = nil
 	if *eventTopic != "" {
-		evt, err = gevent.New(*projectID, *eventTopic, nodeName, option.WithTokenSource(deprecatedTS))
+		evt, err = gevent.New(*pubsubProjectID, *eventTopic, nodeName, option.WithTokenSource(deprecatedTS))
 		if err != nil {
 			sklog.Fatalf("Unable to create global event client. Got error: %s", err)
 		}
@@ -267,10 +284,10 @@ func main() {
 	}
 
 	var vcs vcsinfo.VCS
-	if *gitBTInstanceID != "" && *gitBTTableID != "" {
+	if *btInstanceID != "" && *gitBTTableID != "" {
 		btConf := &bt_gitstore.BTConfig{
-			ProjectID:  *projectID,
-			InstanceID: *gitBTInstanceID,
+			ProjectID:  *btProjectID,
+			InstanceID: *btInstanceID,
 			TableID:    *gitBTTableID,
 		}
 
@@ -317,27 +334,21 @@ func main() {
 		sklog.Fatalf("Failed to create Gerrit client: %s", err)
 	}
 
-	// Connect to traceDB and create the builders.
-	db, err := tracedb.NewTraceServiceDBFromAddress(*traceservice, types.GoldenTraceBuilder)
-	if err != nil {
-		sklog.Fatalf("Failed to connect to tracedb: %s", err)
+	btc := bt_tracestore.BTConfig{
+		ProjectID:  *btProjectID,
+		InstanceID: *btInstanceID,
+		TableID:    *traceBTTableID,
+		VCS:        vcs,
 	}
 
-	// TODO(stephana): All dependencies on storageDir should be removed once we have landed
-	// all instances in K8s.
-
-	// If a storage directory was provided we can use it to cache tiles.
-	mtbCache := ""
-	if *storageDir != "" {
-		if _, err := fileutil.EnsureDirExists(*storageDir); err != nil {
-			sklog.Fatalf("Failed to make storageDir: %s", err)
-		}
-		mtbCache = filepath.Join(*storageDir, "cached-last-tile")
+	err = bt_tracestore.InitBT(context.Background(), btc)
+	if err != nil {
+		sklog.Fatalf("Could not initialize BigTable tracestore with config %#v: %s", btc, err)
 	}
 
-	masterTileBuilder, err := tracedb.NewMasterTileBuilder(ctx, db, vcs, *nCommits, evt, mtbCache)
+	traceStore, err := bt_tracestore.New(context.Background(), btc, false)
 	if err != nil {
-		sklog.Fatalf("Failed to build trace/db.DB: %s", err)
+		sklog.Fatalf("Could not instantiate BT tracestore: %s", err)
 	}
 
 	gsClientOpt := storage.GCSClientOptions{
@@ -350,7 +361,7 @@ func main() {
 		sklog.Fatalf("Unable to create GCSClient: %s", err)
 	}
 
-	if err := ds.InitWithOpt(*projectID, *dsNamespace, option.WithTokenSource(deprecatedTS)); err != nil {
+	if err := ds.InitWithOpt(*dsProjectID, *dsNamespace, option.WithTokenSource(deprecatedTS)); err != nil {
 		sklog.Fatalf("Unable to configure cloud datastore: %s", err)
 	}
 
@@ -422,11 +433,9 @@ func main() {
 		EventBus:               evt,
 		GerritAPI:              gerritAPI,
 		IgnoreStore:            ignoreStore,
-		IsSparseTile:           *sparseInput,
-		MasterTileBuilder:      masterTileBuilder,
 		NCommits:               *nCommits,
 		PubliclyViewableParams: publiclyViewableParams,
-		TraceDB:                db,
+		TraceStore:             traceStore,
 		TryjobMonitor:          tryjobMonitor,
 		VCS:                    vcs,
 	}
@@ -620,30 +629,6 @@ func main() {
 	rootRouter := mux.NewRouter()
 	rootRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 	rootRouter.PathPrefix("/").Handler(appHandler)
-
-	// Start the internal server on the internal port if requested.
-	if *internalPort != "" {
-		// Add the profiling endpoints to the internal router.
-		internalRouter := mux.NewRouter()
-
-		// Set up the health check endpoint.
-		internalRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
-
-		// Register pprof handlers
-		internalRouter.HandleFunc("/debug/pprof/", netpprof.Index)
-		internalRouter.HandleFunc("/debug/pprof/cmdline", netpprof.Cmdline)
-		internalRouter.HandleFunc("/debug/pprof/profile", netpprof.Profile)
-		internalRouter.HandleFunc("/debug/pprof/symbol", netpprof.Symbol)
-		internalRouter.HandleFunc("/debug/pprof/trace", netpprof.Trace)
-
-		// Add the rest of the application without any authentication that was configured.
-		internalRouter.PathPrefix("/").Handler(appRouter)
-
-		go func() {
-			sklog.Infof("Internal server on  http://127.0.0.1" + *internalPort)
-			sklog.Fatal(http.ListenAndServe(*internalPort, internalRouter))
-		}()
-	}
 
 	// Start the server
 	sklog.Infof("Serving on http://127.0.0.1" + *port)
