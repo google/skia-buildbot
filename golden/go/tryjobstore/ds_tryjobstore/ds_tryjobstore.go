@@ -34,11 +34,11 @@ type DSTryjobStore struct {
 // New creates a new instance of TryjobStore based on Datastore.
 func New(client *datastore.Client, eventBus eventbus.EventBus) (*DSTryjobStore, error) {
 	if client == nil {
-		return nil, sklog.FmtErrorf("Received nil for datastore client.")
+		return nil, skerr.Fmt("received nil for datastore client")
 	}
 
 	if eventBus == nil {
-		return nil, sklog.FmtErrorf("Received nil for eventbus.")
+		return nil, skerr.Fmt("received nil for eventbus")
 	}
 
 	return &DSTryjobStore{

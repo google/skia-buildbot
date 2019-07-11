@@ -113,7 +113,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 	if config.SecondaryRepoURL != "" {
 		var err error
 		if secondaryVCS, err = gitinfo.CloneOrUpdate(ctx, config.SecondaryRepoURL, config.SecondaryRepoDir, true); err != nil {
-			return nil, skerr.Fmt("could not set up secondary repo %s in %s: %s", config.SecondaryRepoURL, config.SecondaryRepoDir, err)
+			return nil, skerr.Wrapf(err, "could not set up secondary repo %s in %s", config.SecondaryRepoURL, config.SecondaryRepoDir)
 		}
 		extractor = depot_tools.NewRegExDEPSExtractor(config.SecondaryRegEx)
 		vcs.(*gitinfo.GitInfo).SetSecondaryRepo(secondaryVCS, extractor)
@@ -132,7 +132,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		for _, dataSource := range ingesterConf.Sources {
 			oneSource, err := getSource(id, dataSource, client, eventBus)
 			if err != nil {
-				return nil, skerr.Fmt("Error instantiating sources for ingester '%s': %s", id, err)
+				return nil, skerr.Wrapf(err, "Error instantiating sources for ingester %q", id)
 			}
 			sources = append(sources, oneSource)
 			sklog.Infof("Source %s created for ingester %s", oneSource.ID(), id)
@@ -141,14 +141,14 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		// instantiate the processor
 		processor, err := processorConstructor(vcs, ingesterConf, client, eventBus)
 		if err != nil {
-			return nil, skerr.Fmt("could not create processor: %s", err)
+			return nil, skerr.Wrapf(err, "could not create processor %q", id)
 		}
 		sklog.Infof("Processor constructor for ingester %s created", id)
 
 		// create the ingester and add it to the result.
 		ingester, err := NewIngester(id, ingesterConf, vcs, sources, processor, ingestionStore, eventBus)
 		if err != nil {
-			return nil, skerr.Fmt("could not create ingester: %s", err)
+			return nil, skerr.Wrapf(err, "could not create ingester %q", id)
 		}
 		ret = append(ret, ingester)
 		sklog.Infof("Ingester %s created successfully", id)

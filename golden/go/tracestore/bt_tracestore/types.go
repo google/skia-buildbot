@@ -209,7 +209,7 @@ func (t traceMap) CommitIndicesWithData(maxIndex int) []int {
 			for i := start; i < start+chunkSize && i < maxIndex && i < nCommits; i++ {
 				for _, trace := range t {
 					gt := trace.(*types.GoldenTrace)
-					for !gt.IsMissing(i) {
+					if !gt.IsMissing(i) {
 						haveData[i] = true
 						break
 					}

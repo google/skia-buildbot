@@ -6,6 +6,7 @@ package bbstate
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -17,6 +18,7 @@ import (
 	bb_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"golang.org/x/sync/errgroup"
@@ -56,6 +58,11 @@ const (
 	// buildWatcherPollInterval is the interval at which builds, that are in a
 	// (pre)running state, are polled.
 	buildWatcherPollInterval = 10 * time.Second
+)
+
+var (
+	// Error returned when BB job doesn't match regex or is otherwise skipped
+	SkipTryjob = errors.New("Tryjob with the given id should be skipped")
 )
 
 // Config defines the configuration options for BuildBucketState.
@@ -142,12 +149,13 @@ func (b *BuildBucketState) SyncIssueTryjob(issueID, buildBucketID int64) (*tryjo
 	// Fetch the build information from BuildBucket and convert it to a Tryjob.
 	tryjob, err := b.fetchBuild(buildBucketID)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, skerr.Wrapf(err, "fetching build with id %d", buildBucketID)
 	}
 
-	// The referenced tryjob doesn't exist.
+	// The referenced tryjob was skipped by ignoreBuild (if it didn't exist,
+	// we would have seen an error)
 	if tryjob == nil {
-		return nil, nil, fmt.Errorf("Tryjob with BuildBucket id %d for issue %d does not exist.", buildBucketID, issueID)
+		return nil, nil, SkipTryjob
 	}
 
 	// Update the tryjob information.
@@ -156,20 +164,20 @@ func (b *BuildBucketState) SyncIssueTryjob(issueID, buildBucketID int64) (*tryjo
 		if err == gerrit.ErrNotFound {
 			return nil, nil, nil
 		}
-		return nil, nil, fmt.Errorf("Error adding build info to tryjob store. \n%s\nError: %s", spew.Sdump(tryjob), err)
+		return nil, nil, skerr.Wrapf(err, "adding build info to tryjob store. %s", spew.Sdump(tryjob))
 	}
 
 	if tryjob.IssueID != issueID {
-		return nil, nil, fmt.Errorf("Issue %d is not referenced by tryjob %d.", issueID, buildBucketID)
+		return nil, nil, skerr.Fmt("issue %d is not referenced by tryjob %d", issueID, buildBucketID)
 	}
 
 	issue, err := b.tryjobStore.GetIssue(issueID, false)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, skerr.Wrapf(err, "locating issue %d in tryjobstore", issueID)
 	}
 
 	if issue == nil {
-		return nil, nil, fmt.Errorf("Issue %d does not exist.", issueID)
+		return nil, nil, skerr.Fmt("issue %d does not exist", issueID)
 	}
 
 	return issue, tryjob, nil
@@ -183,7 +191,7 @@ func (b *BuildBucketState) startPollers(pollInterval, timeWindow time.Duration) 
 	// Fetch all tryjobs that we know as running and watch them for completion.
 	tryjobs, err := b.tryjobStore.RunningTryjobs()
 	if err != nil {
-		return sklog.FmtErrorf("Error retrieving running tryjobs: %s", err)
+		return skerr.Wrapf(err, "retrieving running tryjobs")
 	}
 
 	// Watch these tryjobs to make sure we catch when they are finished.

@@ -40,7 +40,7 @@ spec:
         fsGroup: 2000   # aka skia
       containers:
         - name: gold-{{.INSTANCE_ID}}-baselineserver
-          image: gcr.io/skia-public/gold-baseline-server:2019-03-21T20_02_53Z-stephana-8a35e3d-clean
+          image: {{.BASELINE_SERVER_IMAGE}}
           args:
             - "--baseline_gs_path=skia-gold-{{.INSTANCE_ID}}/baselines"
             - "--ds_namespace=gold-{{.INSTANCE_ID}}"

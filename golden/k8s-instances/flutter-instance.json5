@@ -1,16 +1,15 @@
 {
     // Gold settings
+    "BUCKET":                  "skia-gold-flutter",
+    "FIRESTORE_PROJECT":       "skia-firestore",
+    "FORCE_LOGIN":             false,
     "GERRIT_URL":              "",
     "GITREPO_URL":             "https://github.com/flutter/flutter",
     "N_COMMITS":               200,
-    "SPARSE":                  true,
-    "SKCORR_TITLE":            "Flutter Gold",
-    "SKCORR_DEFAULT_CORPUS":   "flutter",
     "PROJECT_ID":              "skia-public",
-    "FIRESTORE_PROJECT":       "skia-firestore",
     "SITE_URL":                "https://flutter-gold.skia.org",
-    "FORCE_LOGIN":             "false",
-    "BUCKET":                  "skia-gold-flutter",
+    "SKCORR_DEFAULT_CORPUS":   "flutter",
+    "SKCORR_TITLE":            "Flutter Gold",
 
     // Git BigTable settings
     "GIT_BT_INSTANCE":         "production",
