@@ -1,16 +1,15 @@
 {
     // Gold settings
+    "BUCKET":                  "skia-gold-lottie",
+    "FIRESTORE_PROJECT":       "skia-firestore",
+    "FORCE_LOGIN":             false,
     "GERRIT_URL":              "https://skia-review.googlesource.com",
     "GITREPO_URL":             "https://skia.googlesource.com/lottie-ci",
     "N_COMMITS":               200,
-    "SPARSE":                  true,
-    "SKCORR_TITLE":            "Lottie Gold",
-    "SKCORR_DEFAULT_CORPUS":   "lottie",
     "PROJECT_ID":              "skia-public",
-    "FIRESTORE_PROJECT":       "skia-firestore",
     "SITE_URL":                "https://lottie-gold.skia.org",
-    "FORCE_LOGIN":             "false",
-    "BUCKET":                  "skia-gold-lottie",
+    "SKCORR_DEFAULT_CORPUS":   "lottie",
+    "SKCORR_TITLE":            "Lottie Gold",
 
     // Git BigTable settings
     "GIT_BT_INSTANCE":         "production",

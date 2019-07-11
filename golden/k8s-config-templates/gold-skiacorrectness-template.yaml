@@ -73,7 +73,6 @@ spec:
             - "--service_account_file=/var/secrets/google/service-account.json"
             - "--site_url={{.SITE_URL}}"
             - "--show_bot_progress=false"
-            - "--sparse={{.SPARSE}}"
             - "--trace_service=gold-{{.INSTANCE_ID}}-traceservice:9090"
           ports:
             - containerPort: 8000

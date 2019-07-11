@@ -38,7 +38,7 @@ spec:
         - name: gold-{{.INSTANCE_ID}}-ingestion
           image: {{.INGESTION_IMAGE}}
           args:
-            - "--config_filename=/etc/gold-ingestion/gold-{{.INSTANCE_ID}}-ingestion-config.json5"
+            - "--config_filename=/etc/gold-ingestion/gold-{{.INSTANCE_ID}}-ingestion-config-bt.json5"
             - "--fs_namespace={{.INSTANCE_ID}}"
             - "--fs_project_id={{.FIRESTORE_PROJECT}}"
             - "--git_bt_instance={{.GIT_BT_INSTANCE}}"

@@ -3,7 +3,6 @@ package ingestion_processors
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -33,14 +32,15 @@ import (
 // Define configuration options to be used in the config file under
 // ExtraParams.
 const (
-	CONFIG_GERRIT_CODE_REVIEW_URL     = "GerritCodeReviewURL"
-	CONFIG_SERVICE_ACCOUNT_FILE       = "ServiceAccountFile"
-	CONFIG_BUILD_BUCKET_URL           = "BuildBucketURL"
-	CONFIG_BUILD_BUCKET_NAME          = "BuildBucketName"
-	CONFIG_BUILD_BUCKET_POLL_INTERVAL = "BuildBucketPollInterval"
-	CONFIG_BUILD_BUCKET_TIME_WINDOW   = "BuildBucketTimeWindow"
-	CONFIG_BUILDER_REGEX              = "BuilderRegEx"
-	CONFIG_JOB_CFG_FILE               = "JobConfigFile"
+	buildBucketNameParam         = "BuildBucketName"
+	buildBucketPollIntervalParam = "BuildBucketPollInterval"
+	buildBucketTimeWindowParam   = "BuildBucketTimeWindow"
+	buildBucketURLParam          = "BuildBucketURL"
+	builderRegexParam            = "BuilderRegEx"
+	datastoreNamespaceParam      = "DSNamespace"
+	datastoreProjectIDParam      = "DSProjectID"
+	gerritCodeReviewURLParam     = "GerritCodeReviewURL"
+	jobConfigFileParam           = "JobConfigFile"
 )
 
 // Register the ingestion Processor with the ingestion framework.
@@ -60,58 +60,61 @@ type goldTryjobProcessor struct {
 
 // newGoldTryjobProcessor implements the ingestion.Constructor function.
 func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, ignoreClient *http.Client, eventBus eventbus.EventBus) (ingestion.Processor, error) {
-	gerritURL := config.ExtraParams[CONFIG_GERRIT_CODE_REVIEW_URL]
+	gerritURL := config.ExtraParams[gerritCodeReviewURLParam]
 	if strings.TrimSpace(gerritURL) == "" {
-		return nil, fmt.Errorf("Missing URL for the Gerrit code review systems. Got value: '%s'", gerritURL)
+		return nil, skerr.Fmt("Missing URL for the Gerrit code review systems. Got value: '%s'", gerritURL)
 	}
 
-	// Get the config options.
-	svcAccountFile := config.ExtraParams[CONFIG_SERVICE_ACCOUNT_FILE]
-	sklog.Infof("Got service account file '%s'", svcAccountFile)
-
-	pollInterval, err := parseDuration(config.ExtraParams[CONFIG_BUILD_BUCKET_POLL_INTERVAL], bbstate.DefaultPollInterval)
+	pollInterval, err := parseDuration(config.ExtraParams[buildBucketPollIntervalParam], bbstate.DefaultPollInterval)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrapf(err, "invalid poll interval")
 	}
 
-	timeWindow, err := parseDuration(config.ExtraParams[CONFIG_BUILD_BUCKET_TIME_WINDOW], bbstate.DefaultTimeWindow)
+	timeWindow, err := parseDuration(config.ExtraParams[buildBucketTimeWindowParam], bbstate.DefaultTimeWindow)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrapf(err, "invalid time window")
 	}
 
-	buildBucketURL := config.ExtraParams[CONFIG_BUILD_BUCKET_URL]
-	buildBucketName := config.ExtraParams[CONFIG_BUILD_BUCKET_NAME]
-	if (buildBucketURL == "") || (buildBucketName == "") {
-		return nil, fmt.Errorf("BuildBucketName and BuildBucketURL must not be empty.")
+	buildBucketURL := config.ExtraParams[buildBucketURLParam]
+	buildBucketName := config.ExtraParams[buildBucketNameParam]
+	if buildBucketURL == "" || buildBucketName == "" {
+		return nil, skerr.Fmt("BuildBucketName and BuildBucketURL must not be empty.")
 	}
 
-	builderRegExp := config.ExtraParams[CONFIG_BUILDER_REGEX]
+	builderRegExp := config.ExtraParams[builderRegexParam]
 	if builderRegExp == "" {
 		builderRegExp = bbstate.DefaultTestBuilderRegex
 	}
 
-	// Get the config file in the repo that should be parsed to determine whether a
-	// bot uploads results. Currently only applies to the Skia repo.
-	cfgFile := config.ExtraParams[CONFIG_JOB_CFG_FILE]
+	dsID := config.ExtraParams[datastoreProjectIDParam]
+	dsNamespace := config.ExtraParams[datastoreNamespaceParam]
+	if dsID == "" || dsNamespace == "" {
+		return nil, skerr.Fmt("DSProjectID and DSNamespace must not be empty.")
+	}
 
+	// InitWithOpt will use the authentication that looks at the GOOGLE_APPLICATION_CREDENTIALS
+	// environment variable
+	if err := ds.InitWithOpt(dsID, dsNamespace); err != nil {
+		return nil, skerr.Wrapf(err, "initializing datastore")
+	}
 	// Create the cloud tryjob store.
 	tryjobStore, err := ds_tryjobstore.New(ds.DS, eventBus)
 	if err != nil {
-		return nil, fmt.Errorf("Error creating tryjob store: %s", err)
+		return nil, skerr.Wrapf(err, "creating datastore-based tryjobstore")
 	}
 	sklog.Infof("Cloud Tryjobstore Store created")
 
 	// Instantiate the Gerrit API client.
-	ts, err := auth.NewJWTServiceAccountTokenSource("", svcAccountFile, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	ts, err := auth.NewDefaultTokenSource(false, gstorage.CloudPlatformScope, auth.SCOPE_USERINFO_EMAIL)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to authenticate service account: %s", err)
+		return nil, skerr.Wrapf(err, "creating token source")
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	sklog.Infof("HTTP client instantiated")
 
 	gerritReview, err := gerrit.NewGerrit(gerritURL, "", client)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrapf(err, "creating gerrit client for %s", gerritURL)
 	}
 	sklog.Infof("Gerrit client instantiated")
 
@@ -128,9 +131,13 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 
 	bbGerritClient, err := bbstate.NewBuildBucketState(bbConf)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrapf(err, "creating BuildBucket client: %s %s", buildBucketURL, buildBucketName)
 	}
 	sklog.Infof("BuildBucketState created")
+
+	// Get the config file in the repo that should be parsed to determine whether a
+	// bot uploads results. Currently only applies to the Skia repo.
+	cfgFile := config.ExtraParams[jobConfigFileParam]
 
 	ret := &goldTryjobProcessor{
 		buildIssueSync: bbGerritClient,
@@ -212,7 +219,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 
 	// Update the database with the results.
 	if err := g.tryjobStore.UpdateTryjobResult(tjResults); err != nil {
-		return skerr.Fmt("Error updating tryjob results: %s", err)
+		return skerr.Wrapf(err, "updating tryjob results")
 	}
 
 	tryjob.Status = tryjobstore.TRYJOB_INGESTED
@@ -231,7 +238,7 @@ func (g *goldTryjobProcessor) syncIssueAndTryjob(issueID int64, tryjob *tryjobst
 	// Fetch the issue and check if the trybot is contained.
 	issue, err := g.tryjobStore.GetIssue(issueID, false)
 	if err != nil {
-		return nil, skerr.Fmt("Unable to retrieve issue %d to process file %s. Got error: %s", issueID, resultFileName, err)
+		return nil, skerr.Wrapf(err, "retrieving issue %d to process file %s", issueID, resultFileName)
 	}
 
 	// If we haven't loaded the tryjob then see if we can fetch it from
@@ -240,7 +247,9 @@ func (g *goldTryjobProcessor) syncIssueAndTryjob(issueID int64, tryjob *tryjobst
 	if (tryjob == nil) || (issue == nil) || !issue.HasPatchset(tryjob.PatchsetID) {
 		var err error
 		if issue, tryjob, err = g.buildIssueSync.SyncIssueTryjob(issueID, dmResults.BuildBucketID); err != nil {
-			sklog.Errorf("Error fetching the issue and tryjob information: %s", err)
+			if err != bbstate.SkipTryjob {
+				sklog.Errorf("Error fetching the issue and tryjob information: %s", err)
+			}
 			return nil, ingestion.IgnoreResultsFileErr
 		}
 
