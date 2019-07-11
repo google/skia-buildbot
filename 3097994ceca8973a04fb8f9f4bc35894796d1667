@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25c1834d_249da3f3",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-11T14:06:04Z",
+      "side": 1,
+      "message": "nit:\nif severity \u003d\u003d ERROR || severity \u003d\u003d ALERT {\n  buf.WriteString(msg)\n} else {\n  ...\n}",
+      "revId": "3097994ceca8973a04fb8f9f4bc35894796d1667",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2fabc45c_9ddf8021",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-11T14:06:04Z",
+      "side": 1,
+      "message": "nit: auth.SCOPE_USERINFO_EMAIL",
+      "range": {
+        "startLine": 108,
+        "startChar": 75,
+        "endLine": 108,
+        "endChar": 123
+      },
+      "revId": "3097994ceca8973a04fb8f9f4bc35894796d1667",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80a33219_e3bd206d",
+        "filename": "golden/k8s-instances/chrome-gpu-instance.json5",
+        "patchSetId": 3
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-11T14:06:04Z",
+      "side": 1,
+      "message": "Is it correct that this is a string rather than a boolean?",
+      "range": {
+        "startLine": 6,
+        "startChar": 31,
+        "endLine": 6,
+        "endChar": 38
+      },
+      "revId": "3097994ceca8973a04fb8f9f4bc35894796d1667",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "976dec63_38c60d8d",
+        "filename": "golden/k8s-instances/chrome-gpu-instance.json5",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-11T14:06:04Z",
+      "side": 1,
+      "message": "Still used?",
+      "revId": "3097994ceca8973a04fb8f9f4bc35894796d1667",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
