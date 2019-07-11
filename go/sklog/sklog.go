@@ -290,7 +290,7 @@ func logToGlog(depth int, severity string, msg string) {
 		buf.WriteString(strconv.Itoa(line))
 		buf.WriteRune(' ')
 		for _, c := range msg {
-			if c == '\n' {
+			if c == '\n' && severity != ERROR && severity != ALERT {
 				buf.WriteRune('⏎')
 			} else {
 				buf.WriteRune(c)
