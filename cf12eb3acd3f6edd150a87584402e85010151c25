@@ -22,6 +22,30 @@
       "revId": "cf12eb3acd3f6edd150a87584402e85010151c25",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0af3a6fb_54dc9fcb",
+        "filename": "golden/k8s-config-templates/ingest-config-template.json5",
+        "patchSetId": 27
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-11T13:41:42Z",
+      "side": 1,
+      "message": "Yep - will address in followup.",
+      "parentUuid": "38b9f4db_4ab8b5bc",
+      "range": {
+        "startLine": 8,
+        "startChar": 19,
+        "endLine": 8,
+        "endChar": 21
+      },
+      "revId": "cf12eb3acd3f6edd150a87584402e85010151c25",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
