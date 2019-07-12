@@ -50,7 +50,9 @@ const (
 func main() {
 	// Command line flags.
 	var (
+		btProjectID     = flag.String("bt_project_id", common.PROJECT_ID, "GCP project ID that houses the BigTable Instance")
 		configFilename  = flag.String("config_filename", "default.json5", "Configuration file in JSON5 format.")
+		debugPProf      = flag.Bool("debug_pprof", false, "turn pprof things on http_port if true")
 		fsNamespace     = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
 		fsProjectID     = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
 		gitBTInstanceID = flag.String("git_bt_instance", "", "ID of the BigTable instance that contains Git metadata")
@@ -60,9 +62,8 @@ func main() {
 		local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 		memProfile      = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 		noCloudLog      = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
-		projectID       = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
 		promPort        = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-		debugPProf      = flag.Bool("debug_pprof", false, "turn pprof things on http_port if true")
+		pubsubProjectID = flag.String("pubsub_project_id", "", "Project ID that houses the pubsub topics (e.g. for ingestion).")
 	)
 
 	// Parse the options. So we can configure logging.
@@ -122,7 +123,7 @@ func main() {
 			// when running locally.
 			sID += "-local"
 		}
-		eventBus, err = gevent.New(*projectID, config.EventTopic, sID, option.WithTokenSource(tokenSrc))
+		eventBus, err = gevent.New(*pubsubProjectID, config.EventTopic, sID, option.WithTokenSource(tokenSrc))
 		if err != nil {
 			sklog.Fatalf("Error creating global eventbus: %s", err)
 		}
@@ -135,7 +136,7 @@ func main() {
 	var btConf *bt_gitstore.BTConfig = nil
 	if *gitBTInstanceID != "" && *gitBTTableID != "" {
 		btConf = &bt_gitstore.BTConfig{
-			ProjectID:  *projectID,
+			ProjectID:  *btProjectID,
 			InstanceID: *gitBTInstanceID,
 			TableID:    *gitBTTableID,
 		}
