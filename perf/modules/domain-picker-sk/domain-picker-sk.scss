@@ -1,0 +1,30 @@
+domain-picker-sk {
+  .controls {
+    justify-content: flex-end;
+    display: flex;
+  }
+
+  .description {
+    text-transform: initial;
+  }
+
+  p {
+    font-style: italic;
+  }
+
+  .ranges label {
+    display: block;
+    height: 2em;
+  }
+
+  dialog-sk {
+    width: 25em;
+    overflow-y: unset;
+    z-index: 200;
+  }
+
+  .ranges label span {
+    display: inline-block;
+    width: 10em;
+  }
+}
