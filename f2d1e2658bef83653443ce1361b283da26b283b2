@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aed799fd_c379fb6e",
+        "filename": "infra-sk/modules/ElementSk/ElementSk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-07-12T16:25:15Z",
+      "side": 1,
+      "message": "Thoughts?",
+      "revId": "f2d1e2658bef83653443ce1361b283da26b283b2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
