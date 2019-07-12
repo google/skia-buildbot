@@ -172,7 +172,16 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		reloadTemplates()
 	}
-	if err := mainTemplate.Execute(w, ts.Status()); err != nil {
+	enc, err := json.Marshal(ts.Status())
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode JSON.")
+		return
+	}
+	if err := mainTemplate.Execute(w, struct {
+		Data string
+	}{
+		Data: string(enc),
+	}); err != nil {
 		httputils.ReportError(w, r, err, "Failed to execute template.")
 		return
 	}
