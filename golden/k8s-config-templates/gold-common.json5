@@ -1,7 +1,8 @@
 {
-    "BASELINE_SERVER_IMAGE": "gcr.io/skia-public/gold-baseline-server:2019-06-07T18_41_57Z-kjlubick-0a8606c-clean",
+    "BASELINE_SERVER_IMAGE": "gcr.io/skia-public/gold-baseline-server:2019-07-12T16_35_22Z-kjlubick-d4d608c-clean",
     "DIFF_SERVER_IMAGE":     "gcr.io/skia-public/gold-diff-server:2019-05-10T16_57_45Z-kjlubick-a01b41f-clean",
-    "INGESTION_IMAGE":       "gcr.io/skia-public/gold-ingestion:2019-07-11T13_18_37Z-kjlubick-0388c71-dirty",
-    "SKIACORRECTNESS_IMAGE": "gcr.io/skia-public/gold-skiacorrectness:2019-06-07T18_33_41Z-kjlubick-0a8606c-clean",
+    "INGESTION_IMAGE":       "gcr.io/skia-public/gold-ingestion:2019-05-09T17_23_16Z-kjlubick-e814534-clean",
+    "INGESTION_BT_IMAGE":    "gcr.io/skia-public/gold-ingestion:2019-07-12T13_08_20Z-kjlubick-6cb0cde-clean",
+    "SKIACORRECTNESS_IMAGE": "gcr.io/skia-public/gold-skiacorrectness:2019-07-12T16_32_58Z-kjlubick-d4d608c-clean",
     "TRACESERVER_IMAGE":     "gcr.io/skia-public/gold-traceserver:2019-05-09T17_23_29Z-kjlubick-e814534-clean",
 }
