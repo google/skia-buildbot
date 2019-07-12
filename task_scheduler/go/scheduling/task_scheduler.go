@@ -332,6 +332,7 @@ type TaskSchedulerStatus struct {
 
 // Status returns the current status of the TaskScheduler.
 func (s *TaskScheduler) Status() *TaskSchedulerStatus {
+	defer metrics2.FuncTimer().Stop()
 	s.queueMtx.RLock()
 	defer s.queueMtx.RUnlock()
 	n := NUM_TOP_CANDIDATES
