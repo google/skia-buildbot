@@ -5,12 +5,9 @@
 
 <script>
 // Add status information from the server to the task-scheduler-status-sk.
+var data = JSON.parse("{{.Data}}");
 var elem = document.getElementById("status_sk");
-elem.last_scheduled = "{{.LastScheduled}}";
-elem.top_candidates = [
-  {{range .TopCandidates}}
-    {"taskSpec": "{{.Name}}", "commit": "{{.Revision}}", "score": "{{.Score}}"},
-  {{end}}
-];
+elem.last_scheduled = data.last_scheduled;
+elem.top_candidates = data.top_candidates;
 </script>
 {{template "footer.html"}}
