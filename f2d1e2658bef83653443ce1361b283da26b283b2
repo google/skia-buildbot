@@ -16,6 +16,47 @@
       "revId": "f2d1e2658bef83653443ce1361b283da26b283b2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f9c031d_7c5acafb",
+        "filename": "infra-sk/modules/ElementSk/ElementSk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-12T16:31:35Z",
+      "side": 1,
+      "message": "I\u0027m not sure the use case for that.  I usually just upgrade the properties and deal with the values that are there when connectedCallback fires",
+      "parentUuid": "aed799fd_c379fb6e",
+      "revId": "f2d1e2658bef83653443ce1361b283da26b283b2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "65784761_ee428cc0",
+        "filename": "infra-sk/modules/ElementSk/ElementSk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-12T16:31:35Z",
+      "side": 1,
+      "message": "If this is a base class, shouldn\u0027t it take template as a param?",
+      "range": {
+        "startLine": 35,
+        "startChar": 1,
+        "endLine": 35,
+        "endChar": 15
+      },
+      "revId": "f2d1e2658bef83653443ce1361b283da26b283b2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
