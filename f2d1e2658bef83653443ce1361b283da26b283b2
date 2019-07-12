@@ -57,6 +57,30 @@
       "revId": "f2d1e2658bef83653443ce1361b283da26b283b2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ebd7ee1a_7fefb6db",
+        "filename": "infra-sk/modules/ElementSk/ElementSk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-07-12T16:49:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "65784761_ee428cc0",
+      "range": {
+        "startLine": 35,
+        "startChar": 1,
+        "endLine": 35,
+        "endChar": 15
+      },
+      "revId": "f2d1e2658bef83653443ce1361b283da26b283b2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
