@@ -22,6 +22,30 @@
       "revId": "dc49d1dc7ae79988438f8ed5c62aca269924e0b5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "718f93c8_dd8ae1fb",
+        "filename": "golden/k8s-instances/chrome-gpu-instance.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-07-12T12:31:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f392736a_d54b1fd9",
+      "range": {
+        "startLine": 4,
+        "startChar": 5,
+        "endLine": 4,
+        "endChar": 16
+      },
+      "revId": "dc49d1dc7ae79988438f8ed5c62aca269924e0b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
