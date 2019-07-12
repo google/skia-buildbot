@@ -33,6 +33,7 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/periodic"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
@@ -164,6 +165,7 @@ func reloadTemplates() {
 }
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "text/html")
 
 	// Don't use cached templates in testing mode.
