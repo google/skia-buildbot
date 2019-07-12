@@ -333,6 +333,7 @@ There are three images that it deals with, called left, top, and diff.
       clear: function(details) {
         this.set('details', {});
         this._cancelAsync();
+        this._cachedDiffs = null;
         this._active = false;
       },
 
