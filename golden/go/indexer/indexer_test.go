@@ -261,6 +261,6 @@ func makeComplexTileWithCrosshatchIgnores() (types.ComplexTile, *tiling.Tile, *t
 		{
 			"device": []string{"crosshatch"},
 		},
-	})
+	}, 1)
 	return ct, fullTile, partialTile
 }

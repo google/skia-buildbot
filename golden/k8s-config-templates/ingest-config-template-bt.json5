@@ -4,7 +4,7 @@
 
   Ingesters: {
     // Primary Ingester
-    "gold": {
+    "gold-bt": {
       RunEvery: "{{.ING_RUN_EVERY}}",
       NCommits: {{.ING_N_COMMITS}},
       MinDays: {{.ING_MIN_DAYS}},
@@ -16,7 +16,9 @@
         }
       ],
       ExtraParams: {
-        TraceService: "gold-{{.INSTANCE_ID}}-traceservice:9090"
+        BTProjectID: "skia-public",
+        BTInstance: "production",
+        BTTable: "gold-{{.INSTANCE_ID}}"
       }
     {{if .ING_TRY_ENABLED}}
     },
@@ -34,13 +36,14 @@
         },
       ],
       ExtraParams: {
-        GerritCodeReviewURL: "{{.GERRIT_URL}}",
-        BuildBucketURL: "{{.ING_TRY_BUILDBUCKET_URL}}",
         BuildBucketName: "{{.ING_TRY_BUILDBUCKET}}",
         BuildBucketPollInterval: "{{.ING_TRY_BB_INTERVAL}}",
         BuildBucketTimeWindow: "{{.ING_TRY_BB_WINDOW}}",
+        BuildBucketURL: "{{.ING_TRY_BUILDBUCKET_URL}}",
         BuilderRegEx: "{{.ING_TRY_BUILDER_REGEX}}",
-        ServiceAccountFile: "/etc/gold-config/service-account.json"
+        DSNamespace: "gold-{{.INSTANCE_ID}}",
+        DSProjectID: "{{.DATASTORE_PROJECT}}",
+        GerritCodeReviewURL: "{{.GERRIT_URL}}",
       }
     {{end}}
     }

@@ -58,6 +58,20 @@ func (_m *ComplexTile) FilledCommits() int {
 	return r0
 }
 
+// FromSame provides a mock function with given fields: completeTile, ignoreRev
+func (_m *ComplexTile) FromSame(completeTile *tiling.Tile, ignoreRev int64) bool {
+	ret := _m.Called(completeTile, ignoreRev)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(*tiling.Tile, int64) bool); ok {
+		r0 = rf(completeTile, ignoreRev)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // GetTile provides a mock function with given fields: is
 func (_m *ComplexTile) GetTile(is types.IgnoreState) *tiling.Tile {
 	ret := _m.Called(is)
@@ -90,12 +104,12 @@ func (_m *ComplexTile) IgnoreRules() paramtools.ParamMatcher {
 	return r0
 }
 
-// SetIgnoreRules provides a mock function with given fields: reducedTile, ignoreRules
-func (_m *ComplexTile) SetIgnoreRules(reducedTile *tiling.Tile, ignoreRules paramtools.ParamMatcher) {
-	_m.Called(reducedTile, ignoreRules)
+// SetIgnoreRules provides a mock function with given fields: reducedTile, ignoreRules, irRev
+func (_m *ComplexTile) SetIgnoreRules(reducedTile *tiling.Tile, ignoreRules paramtools.ParamMatcher, irRev int64) {
+	_m.Called(reducedTile, ignoreRules, irRev)
 }
 
-// SetSparse provides a mock function with given fields: allCommits
-func (_m *ComplexTile) SetSparse(allCommits []*tiling.Commit) {
-	_m.Called(allCommits)
+// SetSparse provides a mock function with given fields: sparseCommits, cardinalities
+func (_m *ComplexTile) SetSparse(sparseCommits []*tiling.Commit, cardinalities []int) {
+	_m.Called(sparseCommits, cardinalities)
 }
