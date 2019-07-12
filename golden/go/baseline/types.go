@@ -12,6 +12,19 @@ import (
 // TODO(kjlubick): Maybe make a version of this that handles a single commit/CL
 // called ExpectationsDelta or ChangelistExpectations or something like that.
 type Baseline struct {
+	// MD5 is the hash of the Expectations field.
+	MD5 string `json:"md5"`
+
+	// Expectations captures the "baseline expectations", that is, the Expectations
+	// with only the positive digests of the current commit.
+	Expectations types.Expectations `json:"master"`
+
+	// Issue indicates the Gerrit issue of this baseline. -1 indicates the master branch.
+	Issue int64
+
+	// TODO(kjlubick): The only consumer of the baselines is goldctl, and I don't think
+	// it cares about anything beneath here.  Can we remove them?
+
 	// StartCommit covered by these baselines.
 	StartCommit *tiling.Commit `json:"startCommit"`
 
@@ -23,16 +36,6 @@ type Baseline struct {
 
 	// Filled is the number of tests that had at least one positive digest at EndCommit.
 	Filled int `json:"filled"`
-
-	// MD5 is the hash of the Baseline field.
-	MD5 string `json:"md5"`
-
-	// Expectations captures the "baseline expectations", that is, the Expectations
-	// with only the positive digests of the current commit.
-	Expectations types.Expectations `json:"master"`
-
-	// Issue indicates the Gerrit issue of this baseline. -1 indicates the master branch.
-	Issue int64
 }
 
 // Copy returns a deep copy of the given instance of Baseline.

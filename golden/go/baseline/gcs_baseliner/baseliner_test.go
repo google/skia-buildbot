@@ -153,10 +153,10 @@ func TestPushMasterBaselineSunnyDay(t *testing.T) {
 	defer mes.AssertExpectations(t)
 
 	mcs.On("AllCommits").Return(three_devices.MakeTestCommits())
-	mcs.On("DataCommits").Return(three_devices.MakeTestCommits())
-	mcs.On("GetTile", types.ExcludeIgnoredTraces).Return(three_devices.MakeTestTile())
 
 	mes.On("Get").Return(three_devices.MakeTestExpectations(), nil)
+
+	bl := three_devices.MakeTestExpectations().AsBaseline()
 
 	mgs.On("WriteBaseline", mock.AnythingOfType("*baseline.Baseline")).Run(func(args mock.Arguments) {
 		b := args.Get(0).(*baseline.Baseline)
@@ -165,25 +165,8 @@ func TestPushMasterBaselineSunnyDay(t *testing.T) {
 		// These commits are per-commit baselines, thus the start and end are the same
 		deepequal.AssertDeepEqual(t, *b.StartCommit, *b.EndCommit)
 
-		assert.Equal(t, 6, b.Total)
-
-		// These per-commit baselines keep track of only the positive images we have seen,
-		// so make sure we see betaGood1Digest for all 3 and alphaGood1Digest show up in the
-		// third commit
-		switch b.StartCommit.Hash {
-		default:
-			assert.Fail(t, "Bad hash", b.StartCommit.Hash)
-		case three_devices.FirstCommitHash:
-			assert.Equal(t, 1, b.Filled)
-			assertLabel(t, b, three_devices.BetaTest, three_devices.BetaGood1Digest, types.POSITIVE)
-		case three_devices.SecondCommitHash:
-			assert.Equal(t, 1, b.Filled)
-			assertLabel(t, b, three_devices.BetaTest, three_devices.BetaGood1Digest, types.POSITIVE)
-		case three_devices.ThirdCommitHash:
-			assert.Equal(t, 2, b.Filled)
-			assertLabel(t, b, three_devices.AlphaTest, three_devices.AlphaGood1Digest, types.POSITIVE)
-			assertLabel(t, b, three_devices.BetaTest, three_devices.BetaGood1Digest, types.POSITIVE)
-		}
+		assert.Equal(t, bl, b.Expectations)
+		assert.Equal(t, types.MasterBranch, b.Issue)
 	}).Return("gs://test-bucket/baselines/foo-baseline.json", nil).Times(3) // once per commit
 
 	baseliner, err := New(mgs, mes, nil, nil)

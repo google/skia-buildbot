@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/digest_counter"
@@ -106,6 +107,9 @@ func (b *BaselinerImpl) PushMasterBaselines(tileInfo baseline.TileInfo, targetHa
 		return nil, skerr.Fmt("Unable to retrieve expectations: %s", err)
 	}
 
+	// Remove negatives/untriaged entries
+	exps = exps.AsBaseline()
+
 	// Make sure we have all commits, not just the ones that are in the tile. Currently a tile is
 	// fetched in intervals. New commits might have arrived since the last tile was read. Below we
 	// extrapolate the baselines of the new commits to be identical to the last commit in the tile.
@@ -121,29 +125,48 @@ func (b *BaselinerImpl) PushMasterBaselines(tileInfo baseline.TileInfo, targetHa
 		return nil, skerr.Fmt("error getting commits since %v: %s", tileCommits[len(tileCommits)-1], err)
 	}
 
-	perCommitBaselines, err := baseline.GetBaselinesPerCommit(exps, tileInfo, extraCommits)
-	if err != nil {
-		return nil, skerr.Fmt("Error getting master baseline: %s", err)
-	}
+	commits := append(extraCommits, tileCommits...)
 
 	// Get the current list of files that have been written.
 	lastWritten := b.lastWrittenBaselines
 
 	// Write the ones to disk that have not been written
-	written := make(map[string]string, len(perCommitBaselines))
+	// Maps commit hash -> md5 of expectations
+	written := map[string]string{}
 	var wMutex sync.Mutex
 	var egroup errgroup.Group
 
-	for commit, bLine := range perCommitBaselines {
+	md5Sum, err := util.MD5Sum(exps)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "calculating md5 hash of expectations")
+	}
+
+	var ret *baseline.Baseline
+
+	for _, commit := range commits {
 		// If we have written this baseline before, we mark it as written and process the next one.
-		if md5Sum, ok := lastWritten[commit]; ok && md5Sum == bLine.MD5 {
+		if old, ok := lastWritten[commit.Hash]; ok && md5Sum == old {
 			wMutex.Lock()
-			written[commit] = bLine.MD5
+			written[commit.Hash] = md5Sum
 			wMutex.Unlock()
 			continue
 		}
 
-		func(commit string, bLine *baseline.Baseline) {
+		func(commit *tiling.Commit) {
+			// It is intentional that the baselines do not fill in the other
+			// values like Total or Filled because they aren't needed by goldctl,
+			// who consumes these baselines.
+			bLine := baseline.EmptyBaseline(commit, commit)
+			bLine.Expectations = exps
+			bLine.MD5 = md5Sum
+			bLine.Issue = types.MasterBranch
+
+			if commit.Hash == targetHash {
+				ret = bLine
+			}
+
+			b.baselineCache.Set(commit.Hash, bLine, cache.DefaultExpiration)
+
 			egroup.Go(func() error {
 				// Write the baseline to GCS.
 				_, err := b.gStorageClient.WriteBaseline(bLine)
@@ -153,30 +176,16 @@ func (b *BaselinerImpl) PushMasterBaselines(tileInfo baseline.TileInfo, targetHa
 				wMutex.Lock()
 				defer wMutex.Unlock()
 
-				written[commit] = bLine.MD5
+				written[commit.Hash] = bLine.MD5
 				return nil
 			})
-		}(commit, bLine)
+		}(commit)
 	}
 
 	if err := egroup.Wait(); err != nil {
 		return nil, skerr.Fmt("Problem writing per-commit baselines to GCS: %s", err)
 	}
 
-	// If a specific baseline was also requested we find it now
-	var ret *baseline.Baseline
-	if targetHash != "" {
-		var ok bool
-		ret, ok = perCommitBaselines[targetHash]
-		if !ok {
-			return nil, skerr.Fmt("Unable to find requested commit %s", targetHash)
-		}
-	}
-
-	// Swap out the baseline cache and the list of last written files.
-	for c, bl := range perCommitBaselines {
-		b.baselineCache.Set(c, bl, cache.DefaultExpiration)
-	}
 	b.currTileInfo = tileInfo
 	b.lastWrittenBaselines = written
 	return ret, nil
