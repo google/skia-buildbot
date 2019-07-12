@@ -82,3 +82,16 @@ func (t Expectations) String() string {
 	}
 	return s.String()
 }
+
+// AsBaseline returns a copy that has all negative and untriaged digests removed.
+func (t Expectations) AsBaseline() Expectations {
+	e := Expectations{}
+	for testName, digests := range t {
+		for d, c := range digests {
+			if c == POSITIVE {
+				e.AddDigest(testName, d, POSITIVE)
+			}
+		}
+	}
+	return e
+}
