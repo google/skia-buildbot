@@ -18,10 +18,13 @@ import 'elix/src/DateComboBox.js'
 import 'elements-sk/dialog-sk'
 import 'elements-sk/styles/buttons'
 
+const RANGE = 0;
+const DENSE = 1;
+
 const _description = (ele) => {
   const begin = new Date(ele._stateBackup.begin*1000);
   const end = new Date(ele._stateBackup.end*1000);
-  if (ele._stateBackup.request_type === 0) {
+  if (ele._stateBackup.request_type === RANGE) {
     return `${begin.toLocaleDateString()} - ${end.toLocaleDateString()}`;
   } else {
     return `${ele._stateBackup.num_commits} commits ending at ${end.toLocaleDateString()}`;
@@ -33,7 +36,7 @@ const _toDate = (seconds) => {
 };
 
 const _request_type = (ele) => {
- if (ele._state.request_type === 0) {
+ if (ele._state.request_type === RANGE) {
    return html`
      <p>Display all points in the date range.</p>
      <label>
@@ -62,8 +65,8 @@ const _showRadio = (ele) => {
   if (!ele.force_request_type) {
     return html`
       <radiogroup>
-        <radio-sk @change=${ele._typeRange} ?checked=${ele._state.request_type === 0} label="Date Range"></radio-sk>
-        <radio-sk @change=${ele._typeDense} ?checked=${ele._state.request_type === 1} label="Dense"     ></radio-sk>
+        <radio-sk @change=${ele._typeRange} ?checked=${ele._state.request_type === RANGE} label="Date Range"></radio-sk>
+        <radio-sk @change=${ele._typeDense} ?checked=${ele._state.request_type === DENSE} label="Dense"     ></radio-sk>
       </radiogroup>
       `;
   } else {
@@ -93,12 +96,13 @@ const template = (ele) => html`
 window.customElements.define('domain-picker-sk', class extends HTMLElement {
   constructor() {
     super();
-    let now = Date.now();
+    const now = Date.now();
+    // See the 'state' property setters below for the shape of this._state.
     this._state = {
       begin: now/1000 - 24*60*60,
       end: now/1000,
       num_commits: 50,
-      request_type: 0,
+      request_type: RANGE,
     };
     this._stateBackup = Object.assign({}, this._state);
     this._description = '';
@@ -110,12 +114,12 @@ window.customElements.define('domain-picker-sk', class extends HTMLElement {
   }
 
   _typeRange() {
-    this._state.request_type = 0;
+    this._state.request_type = RANGE;
     this._render();
   }
 
   _typeDense() {
-    this._state.request_type = 1;
+    this._state.request_type = DENSE;
     this._render();
   }
 
@@ -155,7 +159,7 @@ window.customElements.define('domain-picker-sk', class extends HTMLElement {
   }
 
   _isInvalid() {
-    if (this._state.request_type === 0 && (this._state.end < this._state.begin)) {
+    if (this._state.request_type === RANGE && (this._state.end < this._state.begin)) {
       return true;
     }
     return false;
@@ -192,9 +196,9 @@ window.customElements.define('domain-picker-sk', class extends HTMLElement {
 
   _render() {
     if (this.force_request_type === 'dense') {
-      this._state.request_type = 1;
+      this._state.request_type = DENSE;
     } else if (this.force_request_type === 'range') {
-      this._state.request_type = 0;
+      this._state.request_type = RANGE;
     }
     render(template(this), this, {eventContext: this});
   }
