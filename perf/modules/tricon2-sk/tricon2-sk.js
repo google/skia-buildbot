@@ -9,6 +9,7 @@
  *
  */
 import { html, render } from 'lit-html'
+import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import 'elements-sk/icon/check-circle-icon-sk';
 import 'elements-sk/icon/cancel-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
@@ -26,12 +27,13 @@ const template = (ele) => {
   }
 }
 
-window.customElements.define('tricon2-sk', class extends HTMLElement {
+window.customElements.define('tricon2-sk', class extends ElementSk {
   constructor() {
-    super();
+    super(template);
   }
 
   connectedCallback() {
+    super.connectedCallback();
     upgradeProperty(this, 'value');
     this._render();
   }
@@ -46,10 +48,6 @@ window.customElements.define('tricon2-sk', class extends HTMLElement {
 
   attributeChangedCallback(name, oldValue, newValue) {
     this._render();
-  }
-
-  _render() {
-    render(template(this), this, {eventContext: this});
   }
 
 });
