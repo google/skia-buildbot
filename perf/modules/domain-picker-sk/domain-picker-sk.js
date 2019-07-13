@@ -13,6 +13,7 @@
  *
  */
 import { html, render } from 'lit-html'
+import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import 'elements-sk/radio-sk';
 import 'elix/src/DateComboBox.js'
 import 'elements-sk/dialog-sk'
@@ -93,9 +94,9 @@ const template = (ele) => html`
   <button class=description @click=${ele._edit}>${_description(ele)}</button>
 `;
 
-window.customElements.define('domain-picker-sk', class extends HTMLElement {
+window.customElements.define('domain-picker-sk', class extends ElementSk {
   constructor() {
-    super();
+    super(template);
     const now = Date.now();
     // See the 'state' property setters below for the shape of this._state.
     this._state = {
@@ -109,6 +110,7 @@ window.customElements.define('domain-picker-sk', class extends HTMLElement {
   }
 
   connectedCallback() {
+    super.connectedCallback();
     this._render();
     this._dialog = this.querySelector('dialog-sk');
   }
@@ -200,7 +202,7 @@ window.customElements.define('domain-picker-sk', class extends HTMLElement {
     } else if (this.force_request_type === 'range') {
       this._state.request_type = RANGE;
     }
-    render(template(this), this, {eventContext: this});
+    super._render();
   }
 
 });

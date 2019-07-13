@@ -25,7 +25,6 @@
 <link rel="stylesheet" href="/res/common/css/md.css">
 
 <link rel="import" href="/res/imp/cluster2.html" />
-<link rel="import" href="/res/imp/commit-detail-picker.html" />
 <dom-module id="cluster-page-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
     day-range-sk {
@@ -313,7 +312,7 @@
         this.$.spinner.active = false;
         cids.reverse();
         this._cids = cids;
-        this.$.commit.setCommitDetail(cids);
+        this.$.commit.details = cids;
 
         var index = -1;
         // Look for commit id in this._cids.
@@ -325,7 +324,7 @@
         }
         // If there is then select via index.
         if (index != -1) {
-          this.$.commit.select(index);
+          this.$.commit.selected = index;
         }
 
         if (this.state.begin == 0) {
