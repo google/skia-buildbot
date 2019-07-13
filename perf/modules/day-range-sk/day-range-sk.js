@@ -16,6 +16,7 @@
  * @example
  */
 import { html, render } from 'lit-html'
+import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import 'elix/src/DateComboBox.js'
 import { upgradeProperty } from 'elements-sk/upgradeProperty';
 
@@ -24,12 +25,13 @@ const template = (ele) => html`
   <label>End <elix-date-combo-box @date-changed=${ele._endChanged} .date=${new Date(ele.end * 1000)}></elix-date-combo-box></label>
 `;
 
-window.customElements.define('day-range-sk', class extends HTMLElement {
+window.customElements.define('day-range-sk', class extends ElementSk {
   constructor() {
-    super();
+    super(template);
   }
 
   connectedCallback() {
+    super.connectedCallback();
     upgradeProperty(this, 'begin');
     upgradeProperty(this, 'end');
     const now = Date.now();
@@ -74,10 +76,6 @@ window.customElements.define('day-range-sk', class extends HTMLElement {
 
   attributeChangedCallback(name, oldValue, newValue) {
     this._render();
-  }
-
-  _render() {
-    render(template(this), this, {eventContext: this});
   }
 
 });
