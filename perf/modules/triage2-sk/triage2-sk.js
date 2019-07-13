@@ -14,6 +14,7 @@
  *   <triage2-sk value=positive></triage2-sk>
  */
 import { html, render } from 'lit-html';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import 'elements-sk/icon/check-circle-icon-sk';
 import 'elements-sk/icon/cancel-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
@@ -34,21 +35,18 @@ const template = (ele) => html`
   </button>
   `;
 
-window.customElements.define('triage2-sk', class extends HTMLElement {
+window.customElements.define('triage2-sk', class extends ElementSk {
   constructor() {
-    super();
+    super(template);
   }
 
   connectedCallback() {
+    super.connectedCallback();
     upgradeProperty(this, 'value');
     if (!this.value) {
       this.value = 'untriaged';
     }
     this._render();
-  }
-
-  _render() {
-    render(template(this), this);
   }
 
   static get observedAttributes() {

@@ -8,6 +8,7 @@
  *
  */
 import { html, render } from 'lit-html';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { $$ } from 'common-sk/modules/dom.js';
 import { upgradeProperty } from 'elements-sk/upgradeProperty';
 
@@ -20,19 +21,16 @@ const template = (ele) => html`
   <a href="${ele.cid.url}">Commit</a>
 </div>`;
 
-window.customElements.define('commit-detail-sk', class extends HTMLElement {
+window.customElements.define('commit-detail-sk', class extends ElementSk {
   constructor() {
-    super();
+    super(template);
     this._cid = {};
   }
 
   connectedCallback() {
+    super.connectedCallback();
     upgradeProperty(this, 'cid');
     this._render();
-  }
-
-  _render() {
-    render(template(this), this);
   }
 
   _click() {

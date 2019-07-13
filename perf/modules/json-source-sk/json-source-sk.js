@@ -8,6 +8,7 @@
  *
  */
 import { html, render } from 'lit-html'
+import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { $$ } from 'common-sk/modules/dom'
 import { errorMessage } from 'elements-sk/errorMessage'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
@@ -20,13 +21,14 @@ const template = (ele) => html`
   <pre>${ele._json}</pre>
 `;
 
-window.customElements.define('json-source-sk', class extends HTMLElement {
+window.customElements.define('json-source-sk', class extends ElementSk {
   constructor() {
-    super();
+    super(template);
     this._json = '';
   }
 
   connectedCallback() {
+    super.connectedCallback();
     this._render();
     this._spinner = $$('#spinner', this);
   }
@@ -88,10 +90,6 @@ window.customElements.define('json-source-sk', class extends HTMLElement {
       this._spinner.active = false;
       errorMessage(e);
     });
-  }
-
-  _render() {
-    render(template(this), this, {eventContext: this});
   }
 
 });

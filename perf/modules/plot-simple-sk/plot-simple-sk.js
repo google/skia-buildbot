@@ -36,6 +36,7 @@
  *
  */
 import { html, render } from 'lit-html'
+import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { $$ } from 'common-sk/modules/dom'
 import { Chart } from 'chart.js'
 import 'chartjs-plugin-annotation'
@@ -66,12 +67,13 @@ const template = (ele) => html`
   <canvas id=chart width="${ele.width}" height="${ele.height}"></canvas>
 `;
 
-window.customElements.define('plot-simple-sk', class extends HTMLElement {
+window.customElements.define('plot-simple-sk', class extends ElementSk {
   constructor() {
-    super();
+    super(template);
   }
 
   connectedCallback() {
+    super.connectedCallback();
     this._render();
 
     // The location of the XBar. See setXBar().
@@ -478,10 +480,6 @@ window.customElements.define('plot-simple-sk', class extends HTMLElement {
     if (oldValue !== newValue) {
       this._render();
     }
-  }
-
-  _render() {
-    render(template(this), this);
   }
 
 });

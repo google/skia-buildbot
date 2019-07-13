@@ -6,6 +6,7 @@ import '../../infra-sk/modules/login-sk'
 
 import '../modules/algo-select-sk'
 import '../modules/commit-detail-panel-sk'
+import '../modules/commit-detail-picker-sk'
 import '../modules/commit-detail-sk'
 import '../modules/domain-picker-sk'
 import '../modules/day-range-sk'

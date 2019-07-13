@@ -11,6 +11,7 @@
  */
 import 'elements-sk/select-sk'
 import { html, render } from 'lit-html'
+import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { $, $$ } from 'common-sk/modules/dom'
 import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
@@ -35,12 +36,13 @@ const template = (ele) => html`
   </select-sk>
   `;
 
-window.customElements.define('algo-select-sk', class extends HTMLElement {
+window.customElements.define('algo-select-sk', class extends ElementSk {
   constructor() {
-    super();
+    super(template);
   }
 
   connectedCallback() {
+    super.connectedCallback();
     upgradeProperty(this, 'algo');
     this._render();
     this._select = $$('select-sk', this);
@@ -71,10 +73,6 @@ window.customElements.define('algo-select-sk', class extends HTMLElement {
 
   attributeChangedCallback(name, oldValue, newValue) {
     this._render();
-  }
-
-  _render() {
-    render(template(this), this, {eventContext: this});
   }
 
 });
