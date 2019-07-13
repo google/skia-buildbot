@@ -8,6 +8,7 @@
  * @example
  */
 import { html, render } from 'lit-html'
+import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { upgradeProperty } from 'elements-sk/upgradeProperty';
 
 const params = (values) => values.map((param) => html `
@@ -75,13 +76,14 @@ export function _convertToArray(val) {
   return ret;
 }
 
-window.customElements.define('word-cloud-sk', class extends HTMLElement {
+window.customElements.define('word-cloud-sk', class extends ElementSk {
   constructor() {
-    super();
+    super(template);
     this._items = [];
   }
 
   connectedCallback() {
+    super.connectedCallback();
     upgradeProperty(this, 'items');
     this._render();
   }
@@ -119,10 +121,6 @@ window.customElements.define('word-cloud-sk', class extends HTMLElement {
     }
     this._items = val;
     this._render();
-  }
-
-  _render() {
-    render(template(this), this);
   }
 
 });
