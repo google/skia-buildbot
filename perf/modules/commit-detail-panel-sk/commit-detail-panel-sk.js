@@ -25,6 +25,7 @@
  * @attr {Number} selected - The index of the selected commit.
  */
 import { html, render } from 'lit-html'
+import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { findParent } from 'common-sk/modules/dom'
 import { upgradeProperty } from 'elements-sk/upgradeProperty'
 import '../commit-detail-sk'
@@ -44,13 +45,14 @@ const template = (ele) => html`
   </table>
 `;
 
-window.customElements.define('commit-detail-panel-sk', class extends HTMLElement {
+window.customElements.define('commit-detail-panel-sk', class extends ElementSk {
   constructor() {
-    super();
+    super(template);
     this._details = [];
   }
 
   connectedCallback() {
+    super.connectedCallback();
     upgradeProperty(this, 'details');
     upgradeProperty(this, 'selected');
     upgradeProperty(this, 'selectable');
@@ -127,9 +129,5 @@ window.customElements.define('commit-detail-panel-sk', class extends HTMLElement
     if (oldValue !== newValue) {
       this._render();
     }
-  }
-
-  _render() {
-    render(template(this), this, {eventContext: this});
   }
 });

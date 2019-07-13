@@ -30,46 +30,47 @@ triage2-sk {
   .untriaged[raised]:hover {
     background: #ddd;
   }
+}
 
-  .darkmode {
+.darkmode triage2-sk {
+  background: var(--gray);
+
+  button {
+    box-shadow: 2px 2px 8px 0 var(--black);
     background: var(--gray);
+  }
 
-    button {
-      box-shadow: 2px 2px 8px 0 var(--black);
-      background: var(--gray);
-    }
+  .positive {
+    background:: var(--green);
+    fill: var(--white);
+  }
 
-    .positive {
-      background:: var(--green);
-      fill: var(--white);
-    }
+  .negative {
+    background: var(--red);
+    fill: var(--white);
+  }
 
-    .negative {
-      background: var(--red);
-      fill: var(--white);
-    }
+  .untriaged {
+    background: var(--brown);
+    fill: var(--white);
+  }
 
-    .untriaged {
-      background: var(--brown);
-      fill: var(--white);
-    }
+  button:not([selected]) {
+    fill: var(--white);
+    background: var(--gray);
+  }
 
-    button:not([selected]) {
-      fill: var(--white);
-      background: var(--gray);
-    }
+  button[selected] {
+    box-shadow: none;
+  }
 
-    button[selected] {
-      box-shadow: none;
-    }
-
-    .positive:hover,
-    .negative:hover,
-    .untriaged:hover,
-    .positive[raised]:hover,
-    .negative[raised]:hover,
-    .untriaged[raised]:hover {
-      background: var(--light-gray);
-    }
+  .positive:hover,
+  .negative:hover,
+  .untriaged:hover,
+  .positive[raised]:hover,
+  .negative[raised]:hover,
+  .untriaged[raised]:hover {
+    background: var(--light-gray);
   }
 }
+
