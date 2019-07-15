@@ -14,9 +14,9 @@
 
 &mdash; **def [retry](/infra/bots/recipes/swarm_infra.py#31)(api, attempts, \*args, \*\*kwargs):**
 
-[depot_tools/recipe_modules/bot_update]: https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/0e889b7298012df6aaff1bd3d3a01734d71c03dd/recipes/README.recipes.md#recipe_modules-bot_update
-[depot_tools/recipe_modules/gclient]: https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/0e889b7298012df6aaff1bd3d3a01734d71c03dd/recipes/README.recipes.md#recipe_modules-gclient
-[depot_tools/recipe_modules/infra_paths]: https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/0e889b7298012df6aaff1bd3d3a01734d71c03dd/recipes/README.recipes.md#recipe_modules-infra_paths
+[depot_tools/recipe_modules/bot_update]: https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/71f0da3e9392be24fbfac48a3238ee73a9ba3349/recipes/README.recipes.md#recipe_modules-bot_update
+[depot_tools/recipe_modules/gclient]: https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/71f0da3e9392be24fbfac48a3238ee73a9ba3349/recipes/README.recipes.md#recipe_modules-gclient
+[depot_tools/recipe_modules/infra_paths]: https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/71f0da3e9392be24fbfac48a3238ee73a9ba3349/recipes/README.recipes.md#recipe_modules-infra_paths
 [recipe_engine/recipe_modules/context]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/9f38694b68d88bf0bbc102aa614f42f21f13b71c/README.recipes.md#recipe_modules-context
 [recipe_engine/recipe_modules/file]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/9f38694b68d88bf0bbc102aa614f42f21f13b71c/README.recipes.md#recipe_modules-file
 [recipe_engine/recipe_modules/path]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/9f38694b68d88bf0bbc102aa614f42f21f13b71c/README.recipes.md#recipe_modules-path
