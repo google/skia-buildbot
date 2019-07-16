@@ -91,6 +91,17 @@ type SearchAPI struct {
 	PubliclyViewableParams paramtools.ParamSet
 }
 
+// NewSearchAPI returns a new SearchAPI instance.
+func NewSearchAPI(diffStore diff.DiffStore, expectationsStore expstorage.ExpectationsStore, indexer *indexer.Indexer, tryjobStore tryjobstore.TryjobStore, publiclyViewableParams paramtools.ParamSet) *SearchAPI {
+	return &SearchAPI{
+		DiffStore:              diffStore,
+		ExpectationsStore:      expectationsStore,
+		Indexer:                indexer,
+		TryjobStore:            tryjobStore,
+		PubliclyViewableParams: publiclyViewableParams,
+	}
+}
+
 // Search queries the current tile based on the parameters specified in
 // the instance of Query.
 func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, error) {
