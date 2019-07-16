@@ -1,5 +1,8 @@
 # Dockerfile for Skia Infrastructure CI environment.
-FROM debian:testing
+
+# TODO(jcgregorio) Switch back to debian:testing after
+# https://github.com/nodesource/distributions/issues/873 is resolved.
+FROM debian:buster
 RUN groupadd -g 2000 skia \
   && useradd -m -u 2000 -g 2000 skia \
   && apt-get update && apt-get upgrade -y && apt-get install -y \
