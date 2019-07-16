@@ -451,12 +451,7 @@ func main() {
 	}
 	sklog.Infof("Indexer created.")
 
-	searchAPI := &search.SearchAPI{
-		DiffStore:              diffStore,
-		ExpectationsStore:      expStore,
-		Indexer:                ixr,
-		PubliclyViewableParams: publiclyViewableParams,
-	}
+	searchAPI := search.NewSearchAPI(diffStore, expStore, ixr, tryjobStore, publiclyViewableParams)
 
 	sklog.Infof("Search API created")
 
