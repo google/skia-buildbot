@@ -1,0 +1,91 @@
+@import '~elements-sk/colors';
+
+cluster-summary2-sk {
+  #status.disabled {
+    opacity: 0.5;
+  }
+
+  .regression {
+    background-color: #ddd;
+    border-radius: 6px;
+    padding: 3px 6px;
+    margin-bottom: 0.5em;
+  }
+
+  .high {
+    background-color: var(--red);
+    color: white;
+    border-radius: 6px;
+    padding: 3px 6px;
+  }
+
+  .low {
+    background-color: var(--green);
+    color: white;
+    border-radius: 6px;
+    padding: 3px 6px;
+  }
+
+  #graph {
+    width: 500px;
+    height: 200px;
+  }
+
+  @media (max-width: 600px) {
+    #graph {
+      display: none;
+    }
+  }
+
+  .fade {
+    opacity: 0.3;
+  }
+
+  #wordCloudCollapse[closed] {
+    display: none;
+  }
+
+  #wordCloudCollapse {
+    display: block;
+  }
+
+  .disabledMessage  {
+    display: none;
+  }
+
+  #status {
+    padding: 0.5em 2em;
+    box-shadow: 3px 3px 3px #aaa;
+  }
+
+  #status.disabled .disabledMessage {
+    display: block;
+  }
+
+  plot-simple-sk {
+    margin: 1em;
+  }
+
+  #status.hidden,
+  #permalink.hidden {
+    display: none;
+  }
+
+  #rangelink,
+  #permalink {
+    color: var(--blue);
+    margin: 1em;
+  }
+
+  input {
+    padding: 0.6em;
+  }
+
+  .labelled {
+    margin-right: 2em;
+  }
+
+  commit-detail-panel-sk {
+    margin: 0.6em;
+  }
+}
