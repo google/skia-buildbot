@@ -24,7 +24,6 @@
 <link rel="import" href="/res/common/imp/sort.html" />
 <link rel="stylesheet" href="/res/common/css/md.css">
 
-<link rel="import" href="/res/imp/cluster2.html" />
 <dom-module id="cluster-page-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
     day-range-sk {
@@ -143,7 +142,7 @@
     </sort-sk>
     <div id=clusters>
       <template id=results is="dom-repeat" items="{{_summaries}}">
-        <cluster-summary2-sk full_summary="{{item}}"></cluster-summary2-sk>
+        <cluster-summary2-sk full_summary="[[item]]"></cluster-summary2-sk>
       </template>
       <template is="dom-if" if="{{_isZeroLength(_summaries,_requestId)}}">
         <p class=info>
