@@ -14,7 +14,6 @@ import 'elements-sk/icon/check-circle-icon-sk';
 import 'elements-sk/icon/cancel-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/styles/buttons';
-import { upgradeProperty } from 'elements-sk/upgradeProperty';
 
 const template = (ele) => {
   switch (ele.value) {
@@ -34,7 +33,7 @@ window.customElements.define('tricon2-sk', class extends ElementSk {
 
   connectedCallback() {
     super.connectedCallback();
-    upgradeProperty(this, 'value');
+    this._upgradeProperty('value');
     this._render();
   }
 

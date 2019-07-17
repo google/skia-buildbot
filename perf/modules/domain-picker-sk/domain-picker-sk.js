@@ -190,7 +190,10 @@ window.customElements.define('domain-picker-sk', class extends ElementSk {
   /** @prop force_request_type {string} A value of 'dense' or 'range' will force the corresponding request_type to be always set.
   */
   get force_request_type() { return this.getAttribute('force_request_type'); }
-  set force_request_type(val) { this.setAttribute('force_request_type', val); }
+  set force_request_type(val) {
+    this.setAttribute('force_request_type', val);
+    this._render();
+  }
 
   attributeChangedCallback(name, oldValue, newValue) {
     this._render();
@@ -199,8 +202,10 @@ window.customElements.define('domain-picker-sk', class extends ElementSk {
   _render() {
     if (this.force_request_type === 'dense') {
       this._state.request_type = DENSE;
+      this._stateBackup.request_type = DENSE;
     } else if (this.force_request_type === 'range') {
       this._state.request_type = RANGE;
+      this._stateBackup.request_type = RANGE;
     }
     super._render();
   }
