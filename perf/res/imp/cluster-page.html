@@ -24,7 +24,6 @@
 <link rel="import" href="/res/common/imp/sort.html" />
 <link rel="stylesheet" href="/res/common/css/md.css">
 
-<link rel="import" href="/res/imp/cluster2.html" />
 <dom-module id="cluster-page-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
     day-range-sk {
@@ -47,6 +46,7 @@
       display: block;
       padding: 1em;
       margin: 1em;
+      width: 80em;
     }
 
     #advanced h2 {
@@ -87,6 +87,11 @@
     paper-checkbox {
       --paper-checkbox-checked-color: #1f78b4;
       --paper-checkbox-checked-ink-color: #1f78b4;
+    }
+
+    algo-select-sk {
+      width: 20em;
+      display: block;
     }
   </style>
   <template>
@@ -139,11 +144,10 @@
       <button data-key="stepregression" data-default=up>Regression </button>
       <button data-key="stepsize">Step Size </button>
       <button data-key="steplse">Least Squares</button>
-      <button data-key="timestamp">Step Time</button>
     </sort-sk>
     <div id=clusters>
       <template id=results is="dom-repeat" items="{{_summaries}}">
-        <cluster-summary2-sk full_summary="{{item}}"></cluster-summary2-sk>
+        <cluster-summary2-sk full_summary="[[item]]" notriage></cluster-summary2-sk>
       </template>
       <template is="dom-if" if="{{_isZeroLength(_summaries,_requestId)}}">
         <p class=info>

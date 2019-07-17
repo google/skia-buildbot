@@ -4,6 +4,7 @@
  *
  */
 import { html, render } from 'lit-html'
+import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
 /**
  * A base class that records the connected status of the element in
@@ -45,6 +46,18 @@ export class ElementSk extends HTMLElement {
 
   disconnectedCallback() {
     this._connected = false;
+  }
+
+  /**
+   * Capture the value from the unupgraded instance and delete the property so
+   * it does not shadow the custom element's own property setter.
+   *
+   * See this [Google Developers article]{@link
+   *    https://developers.google.com/web/fundamentals/web-components/best-practices#lazy-properties
+   *    } for more details.
+   */
+  _upgradeProperty(name) {
+    upgradeProperty(this, name);
   }
 
   /**

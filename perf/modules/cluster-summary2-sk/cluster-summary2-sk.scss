@@ -1,0 +1,127 @@
+@import '~elements-sk/colors';
+
+cluster-summary2-sk {
+  #status.disabled {
+    opacity: 0.5;
+  }
+
+  .regression {
+    background-color: var(--dark-white);
+    border-radius: 6px;
+    padding: 3px 6px;
+    margin-bottom: 0.5em;
+  }
+
+  .high {
+    background-color: var(--red);
+    color: white;
+    border-radius: 6px;
+    padding: 3px 6px;
+  }
+
+  .low {
+    background-color: var(--green);
+    color: white;
+    border-radius: 6px;
+    padding: 3px 6px;
+  }
+
+  @media (max-width: 600px) {
+    plot-simple-sk {
+      display: none;
+    }
+  }
+
+  .wordCloudCollapse[closed] {
+    display: none;
+  }
+
+  .wordCloudCollapse {
+    display: block;
+  }
+
+  .disabledMessage  {
+    display: none;
+  }
+
+  #status {
+    padding: 0.5em 2em;
+    box-shadow: 3px 3px 3px var(--light-gray);
+    border: solid var(--light-gray) 1px;
+    display: flex;
+    flex-flow: wrap column;
+  }
+
+  #status.disabled .disabledMessage {
+    display: block;
+  }
+
+  #status.hidden,
+  #permalink.hidden {
+    display: none;
+  }
+
+  #rangelink,
+  #permalink {
+    color: var(--blue);
+    margin: 1em;
+  }
+
+  input {
+    padding: 0.6em;
+    margin: 0.6em;
+  }
+
+  .labelled {
+    margin-right: 2em;
+  }
+
+  commit-detail-panel-sk {
+    margin: 0.6em;
+  }
+
+  .regression {
+    grid-area: regression;
+  }
+
+  .stats {
+    display: flex;
+    flex-flow: wrap row;
+    grid-area: stats;
+  }
+
+  .plot {
+    grid-area: plot;
+    margin: 1em;
+    display: block;
+    width: 500px;
+    height: 200px;
+  }
+
+  #status {
+    grid-area: status;
+    width: 20em;
+  }
+
+  #commits {
+    grid-area: commits;
+  }
+
+  .actions {
+    grid-area: actions;
+  }
+
+  .wordCloudCollapse {
+    grid-area: cloud;
+  }
+
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "regression regression"
+    "stats      stats"
+    "plot       status"
+    "commits    commits"
+    "actions    actions"
+    "cloud      cloud"
+}
