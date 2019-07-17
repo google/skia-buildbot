@@ -21,7 +21,6 @@ import '../commit-detail-panel-sk'
 import 'elements-sk/styles/buttons'
 
 import { html, render } from 'lit-html'
-import { upgradeProperty } from 'elements-sk/upgradeProperty'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 
 const template = (ele) => html`
@@ -41,7 +40,7 @@ window.customElements.define('commit-detail-picker-sk', class extends ElementSk 
 
   connectedCallback() {
     super.connectedCallback();
-    upgradeProperty(this, 'details');
+    this._upgradeProperty('details');
     this._render();
     this._dialog = this.querySelector('dialog-sk');
   }

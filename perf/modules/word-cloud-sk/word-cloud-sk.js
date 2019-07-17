@@ -9,7 +9,6 @@
  */
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { upgradeProperty } from 'elements-sk/upgradeProperty';
 
 const params = (values) => values.map((param) => html `
   <div style="font-size: ${param.weight}px">${param.value}</div>
@@ -84,7 +83,7 @@ window.customElements.define('word-cloud-sk', class extends ElementSk {
 
   connectedCallback() {
     super.connectedCallback();
-    upgradeProperty(this, 'items');
+    this._upgradeProperty('items');
     this._render();
   }
 

@@ -27,7 +27,6 @@
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { findParent } from 'common-sk/modules/dom'
-import { upgradeProperty } from 'elements-sk/upgradeProperty'
 import '../commit-detail-sk'
 
 const rows = (ele) => ele._details.map((item, index) => html`
@@ -53,9 +52,9 @@ window.customElements.define('commit-detail-panel-sk', class extends ElementSk {
 
   connectedCallback() {
     super.connectedCallback();
-    upgradeProperty(this, 'details');
-    upgradeProperty(this, 'selected');
-    upgradeProperty(this, 'selectable');
+    this._upgradeProperty('details');
+    this._upgradeProperty('selected');
+    this._upgradeProperty('selectable');
     this._render();
   }
 

@@ -13,7 +13,6 @@ import 'elements-sk/select-sk'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { $, $$ } from 'common-sk/modules/dom'
-import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
 const _fromName = (ele) => {
   const target = ele.algo;
@@ -43,7 +42,7 @@ window.customElements.define('algo-select-sk', class extends ElementSk {
 
   connectedCallback() {
     super.connectedCallback();
-    upgradeProperty(this, 'algo');
+    this._upgradeProperty('algo');
     this._render();
     this._select = $$('select-sk', this);
   }
