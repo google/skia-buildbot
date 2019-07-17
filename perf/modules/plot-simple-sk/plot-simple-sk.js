@@ -11,7 +11,7 @@
  *
  *     <pre>
  *       e.detail = {
- *          id: "id of trace",
+ *          id: 'id of trace',
  *         index: 3,
  *         pt: [2, 34.5],
  *       }
@@ -22,7 +22,7 @@
  *     point in the line closest to the mouse.
  *     <pre>
  *       e.detail = {
- *         id: "id of trace",
+ *         id: 'id of trace',
  *         index: 3,
  *         pt: [2, 34.5],
  *       }
@@ -37,7 +37,6 @@
  */
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { $$ } from 'common-sk/modules/dom'
 import { Chart } from 'chart.js'
 import 'chartjs-plugin-annotation'
 import 'chartjs-plugin-zoom'
@@ -45,26 +44,25 @@ import 'chartjs-plugin-zoom'
 /**
  * @constant {string} - Prefix for trace ids that are not real traces.
  */
-const SPECIAL = "special";
-
+const SPECIAL = 'special';
 
 /**
  * @constant {Array} - Colors used for traces.
  */
 const colors = [
-  "#000000",
-  "#1B9E77",
-  "#D95F02",
-  "#7570B3",
-  "#E7298A",
-  "#66A61E",
-  "#E6AB02",
-  "#A6761D",
-  "#666666",
+  '#000000',
+  '#1B9E77',
+  '#D95F02',
+  '#7570B3',
+  '#E7298A',
+  '#66A61E',
+  '#E6AB02',
+  '#A6761D',
+  '#666666',
 ];
 
 const template = (ele) => html`
-  <canvas id=chart width="${ele.width}" height="${ele.height}"></canvas>
+  <canvas width=${ele.width} height=${ele.height}></canvas>
 `;
 
 window.customElements.define('plot-simple-sk', class extends ElementSk {
@@ -74,152 +72,156 @@ window.customElements.define('plot-simple-sk', class extends ElementSk {
 
   connectedCallback() {
     super.connectedCallback();
-    this._render();
 
-    // The location of the XBar. See setXBar().
-    this._xbarx = 0;
+    // Only create the _chart once.
+    if (!this._chart) {
+      this._render();
 
-    // The locations of the background bands. See setBanding().
-    this._bands = [];
+      // The location of the XBar. See setXBar().
+      this._xbarx = 0;
 
-    this._chart = new Chart($$('#chart', this), {
-      type: 'line',
-      data: {
-        datasets: [],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        spanGaps: true,
-        animation: {
-          duration: 0, // general animation time
-        },
-        hover: {
-          animationDuration: 0, // duration of animations when hovering an item
-        },
-        annotation: {
-          annotations: [],
-        },
-        responsiveAnimationDuration: 0, // animation duration after a resize
-        elements: {
-          line: {
-            tension: 0 // disables bezier curves
-          }
-        },
-        tooltips: {
-          intersect: false,
-          mode: 'nearest',
-          animationDuration: 0,
-          caretPadding: 10,
-          callbacks: {
-            label: (tooltipItem, data) => {
-              var label = data.datasets[tooltipItem.datasetIndex].label || '';
-              let detail = {
-                id: label,
-                value: tooltipItem.value,
-                index: tooltipItem.index,
-                pt: [tooltipItem.index, tooltipItem.value],
-              };
-              this.dispatchEvent(new CustomEvent('trace_focused', {detail: detail, bubbles: true}));
+      // The locations of the background bands. See setBanding().
+      this._bands = [];
 
-              return `Value: ${tooltipItem.value}`;
+      this._chart = new Chart(this.querySelector('canvas'), {
+        type: 'line',
+        data: {
+          datasets: [],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          spanGaps: true,
+          animation: {
+            duration: 0, // general animation time
+          },
+          hover: {
+            animationDuration: 0, // duration of animations when hovering an item
+          },
+          annotation: {
+            annotations: [],
+          },
+          responsiveAnimationDuration: 0, // animation duration after a resize
+          elements: {
+            line: {
+              tension: 0 // disables bezier curves
             }
           },
-        },
-        scales: {
-          xAxes: [{
-            type: 'time',
-            position: 'bottom',
-            time: {
-              source: 'labels',
-              displayFormats: {
-                'millisecond': 'h:mm:ss.SSS A',
-                'second': 'h:mm:ss A',
-                'minute': 'h:mm A',
-                'hour': 'ddd h A',
-                'day': 'ddd h A',
-                'week': 'D MMM',
-                'month': 'D MMM',
-              },
-            },
-            distribution: 'series',
-            ticks: {
-              autoSkip: true,
-              autoSkipPadding: 10,
-              source: 'data',
-              minRotation: 60,
-              autoSkip: true,
-              maxTicksLimit: 10,
-            },
-          }]
-        },
-        legend: {
-          display: false,
-        },
-        onClick: (e) => {
-          let eles = this._chart.getElementAtEvent(e);
-          if (!eles.length) {
-            return
-          }
-          let ele = eles[0];
-          let id = this._chart.data.datasets[ele._datasetIndex].label;
-          if (id.startsWith(SPECIAL))  {
-            return
-          }
-          let index = ele._index;
-          let value = this._chart.data.datasets[ele._datasetIndex].data[ele._index];
-          let detail =  {
-            id: id,
-            index: index,
-            value: value,
-            pt: [index, value],
-          };
-          this.dispatchEvent(new CustomEvent('trace_selected', {detail: detail, bubbles: true}));
-          this.setHighlight([id]);
-        },
-        plugins: {
-          zoom: {
-            pan: {
-              enabled: false,
-            },
-            zoom: {
-              enabled: true,
-              drag: true,
-
-              drag: {
-                borderColor: 'lightgray',
-                borderWidth: 3,
-              },
-
-              mode: 'xy',
-              rangeMin: {
-                x: null,
-                y: null
-              },
-              rangeMax: {
-                x: null,
-                y: null
-              },
-
-              // Speed of zoom via mouse wheel
-              // (percentage of zoom on a wheel event)
-              speed: 0.1,
-
-              onZoom: (c) => {
-                console.log(c.chart.scales);
+          tooltips: {
+            intersect: false,
+            mode: 'nearest',
+            animationDuration: 0,
+            caretPadding: 10,
+            callbacks: {
+              label: (tooltipItem, data) => {
+                var label = data.datasets[tooltipItem.datasetIndex].label || '';
                 let detail = {
-                  xMin: c.chart.scales["x-axis-0"].min,
-                  xMax: c.chart.scales["x-axis-0"].max,
-                  yMin: c.chart.scales["y-axis-0"].min,
-                  yMax: c.chart.scales["y-axis-0"].max,
+                  id: label,
+                  value: tooltipItem.value,
+                  index: tooltipItem.index,
+                  pt: [tooltipItem.index, tooltipItem.value],
                 };
-                this.dispatchEvent(new CustomEvent("zoom", {detail: detail, bubbles: true}));
+                this.dispatchEvent(new CustomEvent('trace_focused', {detail: detail, bubbles: true}));
+
+                return `Value: ${tooltipItem.value}`;
+              }
+            },
+          },
+          scales: {
+            xAxes: [{
+              type: 'time',
+              position: 'bottom',
+              time: {
+                source: 'labels',
+                displayFormats: {
+                  'millisecond': 'h:mm:ss.SSS A',
+                  'second': 'h:mm:ss A',
+                  'minute': 'h:mm A',
+                  'hour': 'ddd h A',
+                  'day': 'ddd h A',
+                  'week': 'D MMM',
+                  'month': 'D MMM',
+                },
               },
+              distribution: 'series',
+              ticks: {
+                autoSkip: true,
+                autoSkipPadding: 10,
+                source: 'data',
+                minRotation: 60,
+                autoSkip: true,
+                maxTicksLimit: 10,
+              },
+            }]
+          },
+          legend: {
+            display: false,
+          },
+          onClick: (e) => {
+            let eles = this._chart.getElementAtEvent(e);
+            if (!eles.length) {
+              return
+            }
+            let ele = eles[0];
+            let id = this._chart.data.datasets[ele._datasetIndex].label;
+            if (id.startsWith(SPECIAL))  {
+              return
+            }
+            let index = ele._index;
+            let value = this._chart.data.datasets[ele._datasetIndex].data[ele._index];
+            let detail =  {
+              id: id,
+              index: index,
+              value: value,
+              pt: [index, value],
+            };
+            this.dispatchEvent(new CustomEvent('trace_selected', {detail: detail, bubbles: true}));
+            this.setHighlight([id]);
+          },
+          plugins: {
+            zoom: {
+              pan: {
+                enabled: false,
+              },
+              zoom: {
+                enabled: true,
+                drag: true,
+
+                drag: {
+                  borderColor: 'lightgray',
+                  borderWidth: 3,
+                },
+
+                mode: 'xy',
+                rangeMin: {
+                  x: null,
+                  y: null
+                },
+                rangeMax: {
+                  x: null,
+                  y: null
+                },
+
+                // Speed of zoom via mouse wheel
+                // (percentage of zoom on a wheel event)
+                speed: 0.1,
+
+                onZoom: (c) => {
+                  console.log(c.chart.scales);
+                  let detail = {
+                    xMin: c.chart.scales['x-axis-0'].min,
+                    xMax: c.chart.scales['x-axis-0'].max,
+                    yMin: c.chart.scales['y-axis-0'].min,
+                    yMax: c.chart.scales['y-axis-0'].max,
+                  };
+                  this.dispatchEvent(new CustomEvent('zoom', {detail: detail, bubbles: true}));
+                },
+              }
             }
           }
-        }
-      },
-    });
+        },
+      });
+    }
   }
 
   // Convert the different in time between d1 and d2 into the units to
@@ -275,7 +277,7 @@ window.customElements.define('plot-simple-sk', class extends ElementSk {
   /**
    * Adds lines to be displayed.
    *
-   * Any line id that begins with "special" will be treated specially,
+   * Any line id that begins with 'special' will be treated specially,
    * i.e. it will be presented as a dashed black line that doesn't
    * generate events. This may be useful for adding a line at y=0,
    * or a reference trace.

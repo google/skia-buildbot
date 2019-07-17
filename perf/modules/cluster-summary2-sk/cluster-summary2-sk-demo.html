@@ -1,67 +1,36 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <title>cluster-summary2-sk demo</title>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
-  <script type="text/javascript" charset="utf-8">
-    // Create a global 'sk' for Login to be attached to.
-    var sk = {};
-  </script>
-  <link href="dist/main-bundle.css" rel="stylesheet">
-  <script src="dist/main-bundle.js"></script>
-  <script src=node_modules/chart.js/dist/Chart.bundle.min.js></script>
-  <script src=node_modules/chartjs-plugin-annotation/chartjs-plugin-annotation.min.js></script>
-  <script src=node_modules/chartjs-plugin-zoom/chartjs-plugin-zoom.min.js></script>
-  <script src="/res/common/js/common.js"></script>
-  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
-  <link rel="stylesheet" href="/res/common/css/md.css">
-  <link rel="import" href="/res/imp/bower_components/polymer/polymer.html">
-  <script type="text/javascript" charset="utf-8">
-    // Mock out sk.get() to return the login info.
-    sk.get = function(url) {
-      return new Promise(function (resolve, reject) {
-        resolve('{"Email":"user@google.com","LoginURL":"https://accounts.google.com/"}');
-      });
-    };
-    sk.post = function(url) {
-      return new Promise(function (resolve, reject) {
-        resolve('[{"offset":24748,"source":"master","author":"msarett@google.com","message":"313c463 - Safely handle unsupported color xforms in SkCodec","url":"https://skia.googlesource.com/skia/+/313c4635e3f1005e6807f5b0ad52805f30902d66","ts":1476984695}]');
-      });
-    };
-    sk.perf = {};
-    sk.perf.commit_range_url = "";
-  </script>
-  <link rel="import" href="cluster2.html">
-  <style type="text/css" media="screen">
-    button {
-      display: inline-block;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-    }
-
-    cluster-summary2-sk {
-      display: block;
-    }
-  </style>
+    <title>cluster-summary2-sk</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" charset="utf-8">
+      var sk = {};
+      sk.perf = {};
+      sk.perf.commit_range_url = "";
+    </script>
+    <style type="text/css" media="screen">
+      cluster-summary2-sk {
+        width: 60em;
+      }
+    </style>
 </head>
 <body>
   <h1>Cluster</h1>
 
   <h2>A cluster </h2>
-  <cluster-summary2-sk id=cluster></cluster-summary2-sk>
+  <cluster-summary2-sk class=cluster notriage></cluster-summary2-sk>
 
   <h2>A cluster with triaging </h2>
-  <cluster-summary2-sk id=nostatus></cluster-summary2-sk>
+  <cluster-summary2-sk class=nostatus></cluster-summary2-sk>
 
   <h3>Events</h3>
-  <pre><code id=events></code></pre>
+  <pre><code class=events></code></pre>
 
   <script type="text/javascript" charset="utf-8">
     (function () {
-      var summary = {
+      let summary = {
       "centroid":[-1.0826576,0.33417022,0.8747909,0.11694965,0.76775414,-0.21376616,0.026059598,-0.08791064,0.13508978,-0.38292113,-0.4874483],
         "keys":[
           ",arch=x86_64,bench_type=skandroidcodec,compiler=Clang,config=nonrendering,cpu_or_gpu=CPU,cpu_or_gpu_value=AVX,extra_config=GN,model=MacMini6.2,name=AndroidCodec_01_original.jpg_SampleSize2,os=Mac,source_type=image,sub_result=min_ms,test=AndroidCodec_01_original.jpg_SampleSize2_640_480,",
@@ -103,7 +72,7 @@
         },
         "num":4,
       };
-      var frame = {
+      let frame = {
         "dataframe":{
           "traceset":{},
           "header":[
@@ -132,27 +101,33 @@
         "skps":[],
         "msg":""
       };
-      var full_summary = {
+      let full_summary = {
         summary: summary,
         frame: frame,
       };
 
-      $$$('#cluster').full_summary = full_summary;
+      let cluster = document.querySelector('cluster-summary2-sk.cluster')
+      cluster.full_summary = full_summary;
 
-      var summary2 = JSON.parse(JSON.stringify(full_summary));
-      var triage = {
+      let summary2 = JSON.parse(JSON.stringify(full_summary));
+      let triage = {
         status: "untriaged",
         message: "Nothing to see here.",
       };
       summary2.summary.step_fit.status = "High";
       summary2.summary.step_fit.regression = 201;
-      $$$('#nostatus').full_summary = summary2;
-      $$$('#nostatus').triage = triage;
+      let nostatus = document.querySelector('cluster-summary2-sk.nostatus');
+      nostatus.full_summary = summary2;
+      nostatus.triage = triage;
 
-      $$$('#nostatus').addEventListener("triaged", function(e) {
-        $$$('#events').textContent = JSON.stringify(e.detail, null, ' ');
+      document.body.addEventListener("triaged", function(e) {
+        document.querySelector('code.events').textContent = JSON.stringify(e.detail, null, ' ');
+      });
+      document.body.addEventListener("open-keys", function(e) {
+        document.querySelector('code.events').textContent = JSON.stringify(e.detail, null, ' ');
       });
     })();
   </script>
+ 
 </body>
 </html>
