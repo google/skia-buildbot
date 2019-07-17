@@ -30,7 +30,7 @@ import { findParent } from 'common-sk/modules/dom'
 import { upgradeProperty } from 'elements-sk/upgradeProperty'
 import '../commit-detail-sk'
 
-const rows = (ele) => ele.details.map((item, index) => html`
+const rows = (ele) => ele._details.map((item, index) => html`
   <tr data-id="${index}" ?selected="${ele._isSelected(index)}">
     <td>${ele._trim(item.author)}</td>
     <td>
