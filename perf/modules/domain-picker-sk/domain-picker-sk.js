@@ -199,8 +199,10 @@ window.customElements.define('domain-picker-sk', class extends ElementSk {
   _render() {
     if (this.force_request_type === 'dense') {
       this._state.request_type = DENSE;
+      this._stateBackup.request_type = DENSE;
     } else if (this.force_request_type === 'range') {
       this._state.request_type = RANGE;
+      this._stateBackup.request_type = RANGE;
     }
     super._render();
   }

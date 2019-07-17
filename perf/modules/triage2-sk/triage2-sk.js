@@ -19,7 +19,6 @@ import 'elements-sk/icon/check-circle-icon-sk';
 import 'elements-sk/icon/cancel-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/styles/buttons';
-import { upgradeProperty } from 'elements-sk/upgradeProperty';
 
 const _match = (a,b) => { return a === b };
 
@@ -42,7 +41,7 @@ window.customElements.define('triage2-sk', class extends ElementSk {
 
   connectedCallback() {
     super.connectedCallback();
-    upgradeProperty(this, 'value');
+    this._upgradeProperty('value');
     if (!this.value) {
       this.value = 'untriaged';
     }
