@@ -70,8 +70,9 @@
  */
 import 'elements-sk/icon/delete-icon-sk'
 
+import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+
 import * as paramset from '../paramset'
-import { $$ } from 'common-sk/modules/dom'
 import { abbr, displaySilence, expiresIn, notes } from '../am'
 import { diffDate } from 'common-sk/modules/human'
 import { errorMessage } from 'elements-sk/errorMessage'
@@ -150,15 +151,16 @@ const template = (ele) => html`
   </div>
 `;
 
-window.customElements.define('silence-sk', class extends HTMLElement {
+window.customElements.define('silence-sk', class extends ElementSk {
   constructor() {
-    super();
+    super(template);
     this._incidents = [];
   }
 
   connectedCallback() {
-    upgradeProperty(this, 'state');
-    upgradeProperty(this, 'incidents');
+    super.connectedCallback();
+    this.upgradeProperty('state');
+    this.upgradeProperty('incidents');
   }
 
   /** @prop state {Object} A Silence. */
@@ -192,7 +194,7 @@ window.customElements.define('silence-sk', class extends HTMLElement {
       silence: this._state,
     };
     if (!this._state.key) {
-      let textarea = $$('textarea', this);
+      let textarea = this.querySelector('textarea');
       if (!textarea.value) {
         errorMessage("Please enter a description for the silence");
         textarea.focus();
@@ -237,7 +239,7 @@ window.customElements.define('silence-sk', class extends HTMLElement {
   }
 
   _addNote(e) {
-    let textarea = $$('textarea', this);
+    let textarea = this.querySelector('textarea');
     let detail = {
       key: this._state.key,
       text: textarea.value,
@@ -252,10 +254,6 @@ window.customElements.define('silence-sk', class extends HTMLElement {
       index: index,
     };
     this.dispatchEvent(new CustomEvent('del-silence-note', { detail: detail, bubbles: true }));
-  }
-
-  _render() {
-    render(template(this), this, {eventContext: this});
   }
 
 });
