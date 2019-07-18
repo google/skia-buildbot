@@ -1,0 +1,9 @@
+query-values-sk {
+  #regex[checked] + #regexValue {
+    display: inline-block;
+  }
+
+  #regex + #regexValue {
+    display: none;
+  }
+}
