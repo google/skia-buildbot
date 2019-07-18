@@ -53,13 +53,13 @@ type RepoManager interface {
 	NotRolledRevisions() []*revision.Revision
 
 	// Create a new roll attempt.
-	CreateNewRoll(context.Context, string, string, []string, string, bool) (int64, error)
+	CreateNewRoll(context.Context, *revision.Revision, *revision.Revision, []string, string, bool) (int64, error)
 
 	// Return the last-rolled child revision.
-	LastRollRev() string
+	LastRollRev() *revision.Revision
 
 	// Return the next child revision to be rolled.
-	NextRollRev() string
+	NextRollRev() *revision.Revision
 
 	// PreUploadSteps returns a slice of functions which should be run after the
 	// roll is performed but before a CL is uploaded for it.
@@ -155,9 +155,9 @@ type commonRepoManager struct {
 	g                gerrit.GerritInterface
 	httpClient       *http.Client
 	infoMtx          sync.RWMutex
-	lastRollRev      string
+	lastRollRev      *revision.Revision
 	local            bool
-	nextRollRev      string
+	nextRollRev      *revision.Revision
 	notRolledRevs    []*revision.Revision
 	parentBranch     string
 	preUploadSteps   []PreUploadStep
@@ -204,7 +204,7 @@ func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, 
 }
 
 // See documentation for RepoManager interface.
-func (r *commonRepoManager) LastRollRev() string {
+func (r *commonRepoManager) LastRollRev() *revision.Revision {
 	r.infoMtx.RLock()
 	defer r.infoMtx.RUnlock()
 	return r.lastRollRev
@@ -214,11 +214,11 @@ func (r *commonRepoManager) LastRollRev() string {
 func (r *commonRepoManager) RolledPast(ctx context.Context, hash string) (bool, error) {
 	r.repoMtx.RLock()
 	defer r.repoMtx.RUnlock()
-	return r.childRepo.IsAncestor(ctx, hash, r.lastRollRev)
+	return r.childRepo.IsAncestor(ctx, hash, r.lastRollRev.Id)
 }
 
 // See documentation for RepoManager interface.
-func (r *commonRepoManager) NextRollRev() string {
+func (r *commonRepoManager) NextRollRev() *revision.Revision {
 	r.infoMtx.RLock()
 	defer r.infoMtx.RUnlock()
 	return r.nextRollRev
@@ -255,28 +255,28 @@ func SetStrategy(ctx context.Context, r RepoManager, s string) error {
 	return nil
 }
 
-func (r *commonRepoManager) getNextRollRev(ctx context.Context, notRolled []*revision.Revision, lastRollRev string) (string, error) {
+func (r *commonRepoManager) getNextRollRev(ctx context.Context, notRolled []*revision.Revision, lastRollRev *revision.Revision) (*revision.Revision, error) {
 	r.strategyMtx.RLock()
 	defer r.strategyMtx.RUnlock()
 	nextRollRev, err := r.strategy.GetNextRollRev(ctx, notRolled)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	if nextRollRev == "" {
+	if nextRollRev == nil {
 		nextRollRev = lastRollRev
 	}
 	return nextRollRev, nil
 }
 
-func (r *commonRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) ([]*revision.Revision, error) {
+func (r *commonRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev *revision.Revision) ([]*revision.Revision, error) {
 	head, err := r.childRepo.FullHash(ctx, fmt.Sprintf("origin/%s", r.childBranch))
 	if err != nil {
 		return nil, err
 	}
-	if head == lastRollRev {
+	if head == lastRollRev.Id {
 		return []*revision.Revision{}, nil
 	}
-	commits, err := r.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev, head))
+	commits, err := r.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev.Id, head))
 	if err != nil {
 		return nil, err
 	}

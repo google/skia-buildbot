@@ -17,6 +17,7 @@ import (
 	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/repo_manager"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/state_machine"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -114,8 +115,6 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		rm, err = repo_manager.NewGithubCipdDEPSRepoManager(ctx, c.GithubCipdDEPSRepoManager, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.GithubDEPSRepoManager != nil {
 		rm, err = repo_manager.NewGithubDEPSRepoManager(ctx, c.GithubDEPSRepoManager, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
-	} else if c.ManifestRepoManager != nil {
-		rm, err = repo_manager.NewManifestRepoManager(ctx, c.ManifestRepoManager, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.NoCheckoutDEPSRepoManager != nil {
 		rm, err = repo_manager.NewNoCheckoutDEPSRepoManager(ctx, c.NoCheckoutDEPSRepoManager, workdir, g, recipesCfgFile, serverURL, gitcookiesPath, client, cr, local)
 	} else {
@@ -386,15 +385,15 @@ func (r *AutoRoller) unthrottle(ctx context.Context) error {
 }
 
 // See documentation for state_machine.AutoRollerImpl interface.
-func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to string, dryRun bool) error {
+func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to *revision.Revision, dryRun bool) error {
 	issueNum, err := r.rm.CreateNewRoll(ctx, from, to, r.GetEmails(), strings.Join(r.cfg.CqExtraTrybots, ";"), dryRun)
 	if err != nil {
 		return err
 	}
 	issue := &autoroll.AutoRollIssue{
 		Issue:       issueNum,
-		RollingFrom: from,
-		RollingTo:   to,
+		RollingFrom: from.Id,
+		RollingTo:   to.Id,
 	}
 	roll, err := r.retrieveRoll(ctx, issue)
 	if err != nil {
@@ -414,12 +413,12 @@ func (r *AutoRoller) FailureThrottle() *state_machine.Throttler {
 }
 
 // See documentation for state_machine.AutoRollerImpl interface.
-func (r *AutoRoller) GetCurrentRev() string {
+func (r *AutoRoller) GetCurrentRev() *revision.Revision {
 	return r.rm.LastRollRev()
 }
 
 // See documentation for state_machine.AutoRollerImpl interface.
-func (r *AutoRoller) GetNextRollRev() string {
+func (r *AutoRoller) GetNextRollRev() *revision.Revision {
 	return r.rm.NextRollRev()
 }
 
@@ -489,7 +488,7 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 	if err := status.Set(ctx, r.roller, &status.AutoRollStatus{
 		AutoRollMiniStatus: status.AutoRollMiniStatus{
 			CurrentRollRev:      currentRollRev,
-			LastRollRev:         r.rm.LastRollRev(),
+			LastRollRev:         r.rm.LastRollRev().Id,
 			Mode:                r.GetMode(),
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: len(notRolledRevs),
@@ -654,6 +653,7 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 		return fmt.Errorf("Failed to get incomplete rolls: %s", err)
 	}
 	sklog.Infof("Found %d requests.", len(reqs))
+	notRolledRevs := r.rm.NotRolledRevisions()
 	for _, req := range reqs {
 		var issue *autoroll.AutoRollIssue
 		if req.Status == manual.STATUS_PENDING {
@@ -664,13 +664,25 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			var err error
 			sklog.Infof("Creating manual roll to %s as requested by %s...", req.Revision, req.Requester)
 			from := r.GetCurrentRev()
-			issueNum, err := r.rm.CreateNewRoll(ctx, from, req.Revision, emails, strings.Join(r.cfg.CqExtraTrybots, ";"), false)
+			var to *revision.Revision
+			for _, rev := range notRolledRevs {
+				if req.Revision == rev.Id {
+					to = rev
+					break
+				}
+			}
+			if to == nil {
+				sklog.Errorf("Manual roll has unknown revision %q; marking failed.", req.Revision)
+				req.Status = manual.STATUS_COMPLETE
+				req.Result = manual.RESULT_FAILURE
+			}
+			issueNum, err := r.rm.CreateNewRoll(ctx, from, to, emails, strings.Join(r.cfg.CqExtraTrybots, ";"), false)
 			if err != nil {
 				return fmt.Errorf("Failed to create manual roll for %s: %s", req.Id, err)
 			}
 			issue = &autoroll.AutoRollIssue{
-				RollingFrom: from,
-				RollingTo:   req.Revision,
+				RollingFrom: from.Id,
+				RollingTo:   to.Id,
 				Issue:       issueNum,
 			}
 		} else if req.Status == manual.STATUS_STARTED {

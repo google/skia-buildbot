@@ -136,7 +136,7 @@ func setupFakeGithubDEPS(t *testing.T) (*github.GitHub, *mockhttpclient.URLMock)
 	return g, urlMock
 }
 
-func mockGithubDEPSRequests(t *testing.T, urlMock *mockhttpclient.URLMock, from, to string, numCommits int) {
+func mockGithubDEPSRequests(t *testing.T, urlMock *mockhttpclient.URLMock) {
 	// Mock /pulls endpoint.
 	serializedPull, err := json.Marshal(&github_api.PullRequest{
 		Number: &testPullNumber,
@@ -169,13 +169,13 @@ func TestGithubDEPSRepoManager(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, childCommits[0], rm.LastRollRev())
-	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
+	assert.Equal(t, childCommits[0], rm.LastRollRev().Id)
+	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
 
 	// Test update.
 	lastCommit := child.CommitGen(context.Background(), "abc.txt")
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, lastCommit, rm.NextRollRev())
+	assert.Equal(t, lastCommit, rm.NextRollRev().Id)
 
 	// RolledPast.
 	rp, err := rm.RolledPast(ctx, childCommits[0])
@@ -204,7 +204,7 @@ func TestCreateNewGithubDEPSRoll(t *testing.T) {
 	assert.NoError(t, rm.Update(ctx))
 
 	// Create a roll, assert that it's at tip of tree.
-	mockGithubDEPSRequests(t, urlMock, rm.LastRollRev(), rm.NextRollRev(), len(rm.NotRolledRevisions()))
+	mockGithubDEPSRequests(t, urlMock)
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
@@ -229,7 +229,7 @@ func TestCreateNewGithubDEPSRollTransitive(t *testing.T) {
 	assert.NoError(t, rm.Update(ctx))
 
 	// Create a roll, assert that it's at tip of tree.
-	mockGithubDEPSRequests(t, urlMock, rm.LastRollRev(), rm.NextRollRev(), len(rm.NotRolledRevisions()))
+	mockGithubDEPSRequests(t, urlMock)
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
@@ -259,7 +259,7 @@ func TestRanPreUploadStepsGithubDEPS(t *testing.T) {
 	}
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	mockGithubDEPSRequests(t, urlMock, rm.LastRollRev(), rm.NextRollRev(), len(rm.NotRolledRevisions()))
+	mockGithubDEPSRequests(t, urlMock)
 	_, createErr := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
 	assert.NoError(t, createErr)
 	assert.True(t, ran)
@@ -290,7 +290,7 @@ func TestErrorPreUploadStepsGithubDEPS(t *testing.T) {
 	}
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	mockGithubDEPSRequests(t, urlMock, rm.LastRollRev(), rm.NextRollRev(), len(rm.NotRolledRevisions()))
+	mockGithubDEPSRequests(t, urlMock)
 	_, createErr := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
 	assert.Error(t, expectedErr, createErr)
 	assert.True(t, ran)

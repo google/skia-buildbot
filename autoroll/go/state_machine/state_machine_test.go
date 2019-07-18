@@ -9,6 +9,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/notifier"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
@@ -164,10 +165,10 @@ type TestAutoRollerImpl struct {
 
 	getActiveRollResult *TestRollCLImpl
 
-	getCurrentRevResult string
+	getCurrentRevResult *revision.Revision
 	getCurrentRevError  error
 
-	getNextRollRevResult string
+	getNextRollRevResult *revision.Revision
 	getNextRollRevError  error
 
 	getModeResult   string
@@ -199,13 +200,13 @@ func NewTestAutoRollerImpl(t *testing.T, ctx context.Context, gcsClient gcs.GCSC
 }
 
 // See documentation for AutoRollerImpl.
-func (r *TestAutoRollerImpl) UploadNewRoll(ctx context.Context, from, to string, dryRun bool) error {
+func (r *TestAutoRollerImpl) UploadNewRoll(ctx context.Context, from, to *revision.Revision, dryRun bool) error {
 	if r.createNewRollError != nil {
 		return r.createNewRollError
 	}
 	r.getActiveRollResult = r.createNewRollResult
 	if r.getActiveRollResult == nil {
-		r.getActiveRollResult = NewTestRollCLImpl(r.t, to, dryRun)
+		r.getActiveRollResult = NewTestRollCLImpl(r.t, to.Id, dryRun)
 	}
 	r.createNewRollResult = nil
 	return nil
@@ -231,23 +232,23 @@ func (r *TestAutoRollerImpl) SetActiveRoll(roll *TestRollCLImpl) {
 }
 
 // See documentation for AutoRollerImpl.
-func (r *TestAutoRollerImpl) GetCurrentRev() string {
+func (r *TestAutoRollerImpl) GetCurrentRev() *revision.Revision {
 	return r.getCurrentRevResult
 }
 
 // Set the result of GetCurrentRev.
 func (r *TestAutoRollerImpl) SetCurrentRev(rev string) {
-	r.getCurrentRevResult = rev
+	r.getCurrentRevResult = &revision.Revision{Id: rev}
 }
 
 // See documentation for AutoRollerImpl.
-func (r *TestAutoRollerImpl) GetNextRollRev() string {
+func (r *TestAutoRollerImpl) GetNextRollRev() *revision.Revision {
 	return r.getNextRollRevResult
 }
 
 // Set the result of GetNextRollRev.
 func (r *TestAutoRollerImpl) SetNextRollRev(rev string) {
-	r.getNextRollRevResult = rev
+	r.getNextRollRevResult = &revision.Revision{Id: rev}
 }
 
 // See documentation for AutoRollerImpl.
@@ -326,6 +327,8 @@ func setup(t *testing.T) (context.Context, *AutoRollStateMachine, *TestAutoRolle
 	ctx := context.Background()
 	gcsClient := test_gcsclient.NewMemoryClient("test-bucket")
 	rollerImpl := NewTestAutoRollerImpl(t, ctx, gcsClient)
+	rollerImpl.SetNextRollRev("HEAD")
+	rollerImpl.SetCurrentRev("HEAD")
 	n, err := notifier.New(ctx, "fake", "fake", "fake", nil, nil, nil, nil)
 	assert.NoError(t, err)
 	sm, err := New(ctx, rollerImpl, n, gcsClient, "test-roller")
@@ -358,7 +361,7 @@ func TestNormal(t *testing.T) {
 	// Roll finished successfully.
 	roll.SetSucceeded()
 	rev := r.GetNextRollRev()
-	r.SetCurrentRev(rev)
+	r.SetCurrentRev(rev.Id)
 	checkNextState(t, sm, S_NORMAL_SUCCESS)
 	r.SetRolledPast("HEAD+1", true)
 	checkNextState(t, sm, S_NORMAL_IDLE)
@@ -442,7 +445,7 @@ func TestNormal(t *testing.T) {
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
 	roll.AssertNotDryRun()
 	roll.SetSucceeded()
-	r.SetCurrentRev(r.GetNextRollRev())
+	r.SetCurrentRev(r.GetNextRollRev().Id)
 	checkNextState(t, sm, S_NORMAL_SUCCESS)
 	r.SetRolledPast("HEAD+5", true)
 	checkNextState(t, sm, S_NORMAL_IDLE)
@@ -479,6 +482,8 @@ func TestDryRun(t *testing.T) {
 	r.failureThrottle = failureThrottle
 
 	// Switch to dry run.
+	r.SetCurrentRev("HEAD")
+	r.SetNextRollRev("HEAD")
 	checkState(t, sm, S_NORMAL_IDLE)
 	r.SetMode(ctx, modes.MODE_DRY_RUN)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)

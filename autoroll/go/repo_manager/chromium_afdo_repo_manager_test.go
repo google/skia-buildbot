@@ -175,8 +175,8 @@ func TestAFDORepoManager(t *testing.T) {
 	ctx, rm, urlmock, mockParent, parent, cleanup := setupAfdo(t)
 	defer cleanup()
 
-	assert.Equal(t, afdoRevBase, rm.LastRollRev())
-	assert.Equal(t, afdoRevBase, rm.NextRollRev())
+	assert.Equal(t, afdoRevBase, rm.LastRollRev().Id)
+	assert.Equal(t, afdoRevBase, rm.NextRollRev().Id)
 	rolledPast, err := rm.RolledPast(ctx, afdoRevPrev)
 	assert.NoError(t, err)
 	assert.True(t, rolledPast)
@@ -199,8 +199,8 @@ func TestAFDORepoManager(t *testing.T) {
 		afdoRevNext: afdoTimeNext,
 	})
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, afdoRevBase, rm.LastRollRev())
-	assert.Equal(t, afdoRevNext, rm.NextRollRev())
+	assert.Equal(t, afdoRevBase, rm.LastRollRev().Id)
+	assert.Equal(t, afdoRevNext, rm.NextRollRev().Id)
 	rolledPast, err = rm.RolledPast(ctx, afdoRevPrev)
 	assert.NoError(t, err)
 	assert.True(t, rolledPast)
@@ -210,13 +210,13 @@ func TestAFDORepoManager(t *testing.T) {
 	rolledPast, err = rm.RolledPast(ctx, afdoRevNext)
 	assert.NoError(t, err)
 	assert.False(t, rolledPast)
-	deepequal.AssertDeepEqual(t, []*revision.Revision{{Id: afdoRevNext}}, rm.NotRolledRevisions())
+	deepequal.AssertDeepEqual(t, []*revision.Revision{afdoVersionToRevision(afdoRevNext)}, rm.NotRolledRevisions())
 
 	// Upload a CL.
 
 	// Mock the initial change creation.
-	from := afdoShortVersion(rm.LastRollRev())
-	to := afdoShortVersion(rm.NextRollRev())
+	from := rm.LastRollRev()
+	to := rm.NextRollRev()
 	commitMsg := fmt.Sprintf(AFDO_COMMIT_MSG_TMPL, from, to, "fake.server.com")
 	commitMsg += "\nTBR=reviewer@chromium.org"
 	subject := strings.Split(commitMsg, "\n")[0]
@@ -242,7 +242,7 @@ func TestAFDORepoManager(t *testing.T) {
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:message", mockhttpclient.MockPutDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to modify the version file.
-	reqBody = []byte(rm.NextRollRev())
+	reqBody = []byte(rm.NextRollRev().Id)
 	url := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(AFDO_VERSION_FILE_PATH))
 	urlmock.MockOnce(url, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 

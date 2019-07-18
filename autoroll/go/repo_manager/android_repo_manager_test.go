@@ -122,8 +122,8 @@ func TestAndroidRepoManager(t *testing.T) {
 	assert.NoError(t, rm.Update(ctx))
 
 	assert.Equal(t, fmt.Sprintf("%s/android_repo/%s", wd, childPath), rm.(*androidRepoManager).childDir)
-	assert.Equal(t, childCommits[len(childCommits)-1], rm.LastRollRev())
-	assert.Equal(t, childCommits[0], rm.NextRollRev())
+	assert.Equal(t, childCommits[len(childCommits)-1], rm.LastRollRev().Id)
+	assert.Equal(t, childCommits[0], rm.NextRollRev().Id)
 }
 
 // TestCreateNewAndroidRoll tests creating a new roll.
