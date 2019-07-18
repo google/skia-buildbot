@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f19402f6_bf3f98a7",
+        "filename": "task_scheduler/go/types/task.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-18T15:34:10Z",
+      "side": 1,
+      "message": "nit: maybe be a little more explicit what happens if there are multiple runs of the same task.",
+      "range": {
+        "startLine": 158,
+        "startChar": 0,
+        "endLine": 160,
+        "endChar": 49
+      },
+      "revId": "79dc9f24187fd14297522e0fc4fd1af243c46313",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39c106df_a68bb718",
+        "filename": "task_scheduler/go/types/task.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-18T15:34:10Z",
+      "side": 1,
+      "message": "This type is used in Job, so changing it means we can\u0027t correctly deserialize old Jobs.\n\nNot sure of the best solution, but one possibility is to rename the field \"SwarmingId,\" document that it could be the task id or the run id, and add `firestore:\"SwarmingTaskId\"` (with a comment).",
+      "revId": "79dc9f24187fd14297522e0fc4fd1af243c46313",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1385ab1d_a026c66a",
+        "filename": "task_scheduler/go/types/task.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 436,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-18T15:34:10Z",
+      "side": 1,
+      "message": "Maybe we should fall back to SwarmingTaskId if SwarmingRunId is not set?",
+      "revId": "79dc9f24187fd14297522e0fc4fd1af243c46313",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
