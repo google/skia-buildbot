@@ -8,20 +8,13 @@
 
 ### *recipes* / [swarm\_infra](/infra/bots/recipes/swarm_infra.py)
 
-[DEPS](/infra/bots/recipes/swarm_infra.py#13): [depot\_tools/bot\_update][depot_tools/recipe_modules/bot_update], [depot\_tools/gclient][depot_tools/recipe_modules/gclient], [depot\_tools/infra\_paths][depot_tools/recipe_modules/infra_paths], [recipe\_engine/context][recipe_engine/recipe_modules/context], [recipe\_engine/file][recipe_engine/recipe_modules/file], [recipe\_engine/path][recipe_engine/recipe_modules/path], [recipe\_engine/platform][recipe_engine/recipe_modules/platform], [recipe\_engine/properties][recipe_engine/recipe_modules/properties], [recipe\_engine/python][recipe_engine/recipe_modules/python], [recipe\_engine/raw\_io][recipe_engine/recipe_modules/raw_io], [recipe\_engine/step][recipe_engine/recipe_modules/step]
+[DEPS](/infra/bots/recipes/swarm_infra.py#13): [recipe\_engine/context][recipe_engine/recipe_modules/context], [recipe\_engine/path][recipe_engine/recipe_modules/path], [recipe\_engine/properties][recipe_engine/recipe_modules/properties], [recipe\_engine/step][recipe_engine/recipe_modules/step]
 
-&mdash; **def [RunSteps](/infra/bots/recipes/swarm_infra.py#43)(api):**
+&mdash; **def [RunSteps](/infra/bots/recipes/swarm_infra.py#36)(api):**
 
-&mdash; **def [retry](/infra/bots/recipes/swarm_infra.py#31)(api, attempts, \*args, \*\*kwargs):**
+&mdash; **def [retry](/infra/bots/recipes/swarm_infra.py#24)(api, attempts, \*args, \*\*kwargs):**
 
-[depot_tools/recipe_modules/bot_update]: https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/f4e0cc69eed38336e8e6e741c7b6ad02e9cab731/recipes/README.recipes.md#recipe_modules-bot_update
-[depot_tools/recipe_modules/gclient]: https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/f4e0cc69eed38336e8e6e741c7b6ad02e9cab731/recipes/README.recipes.md#recipe_modules-gclient
-[depot_tools/recipe_modules/infra_paths]: https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/f4e0cc69eed38336e8e6e741c7b6ad02e9cab731/recipes/README.recipes.md#recipe_modules-infra_paths
 [recipe_engine/recipe_modules/context]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/da55db0ed58e23a8a3ee76fd3f1d4aa95a9db0c8/README.recipes.md#recipe_modules-context
-[recipe_engine/recipe_modules/file]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/da55db0ed58e23a8a3ee76fd3f1d4aa95a9db0c8/README.recipes.md#recipe_modules-file
 [recipe_engine/recipe_modules/path]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/da55db0ed58e23a8a3ee76fd3f1d4aa95a9db0c8/README.recipes.md#recipe_modules-path
-[recipe_engine/recipe_modules/platform]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/da55db0ed58e23a8a3ee76fd3f1d4aa95a9db0c8/README.recipes.md#recipe_modules-platform
 [recipe_engine/recipe_modules/properties]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/da55db0ed58e23a8a3ee76fd3f1d4aa95a9db0c8/README.recipes.md#recipe_modules-properties
-[recipe_engine/recipe_modules/python]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/da55db0ed58e23a8a3ee76fd3f1d4aa95a9db0c8/README.recipes.md#recipe_modules-python
-[recipe_engine/recipe_modules/raw_io]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/da55db0ed58e23a8a3ee76fd3f1d4aa95a9db0c8/README.recipes.md#recipe_modules-raw_io
 [recipe_engine/recipe_modules/step]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/da55db0ed58e23a8a3ee76fd3f1d4aa95a9db0c8/README.recipes.md#recipe_modules-step
