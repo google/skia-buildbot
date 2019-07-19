@@ -69,11 +69,6 @@ func loadSwarmingTasks(s swarming.ApiClient, pool string, edb events.EventDB, pe
 	revisitLater := []string{}
 	loaded := 0
 	for _, t := range tasks {
-		// Don't include de-duped tasks, as they'll skew the metrics down.
-		if t.TaskResult.DedupedFrom != "" {
-			continue
-		}
-
 		// Only include finished tasks. This includes completed success
 		// and completed failures.
 		if t.TaskResult.State != swarming.TASK_STATE_COMPLETED {
@@ -215,6 +210,11 @@ func addMetric(s *events.EventStream, metric, pool string, period time.Duration,
 		totals := map[string]int64{}
 		counts := map[string]int{}
 		for _, t := range tasks {
+			// Don't include de-duped tasks, as they'll skew the metrics down.
+			if t.TaskResult.DedupedFrom != "" {
+				continue
+			}
+
 			val, err := fn(t)
 			if err == errNoValue {
 				continue
@@ -331,6 +331,86 @@ func isolateCacheMissUpload(t *swarming_api.SwarmingRpcsTaskRequestMetadata) (in
 	}
 }
 
+// dedupeMetrics generates metrics for deduplicated tasks.
+func dedupeMetrics(ev []*events.Event) ([]map[string]string, []float64, error) {
+	sklog.Info("Computing value(s) for dedupeMetrics")
+	if len(ev) == 0 {
+		return []map[string]string{}, []float64{}, nil
+	}
+	tasks, err := decodeTasks(ev)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Total time taken by all tasks. Deduped tasks are not counted.
+	totalTime := int64(0)
+	// Total time taken by idempotent tasks. Deduped tasks are not counted.
+	idempotentTime := int64(0)
+	// Total time taken by original tasks referenced by deduped tasks.
+	dedupedTime := int64(0)
+	// Total number of tasks which ran. Deduped tasks are not counted.
+	totalCount := int64(0)
+	// Total number of idempotent tasks which ran. Deduped tasks are not counted.
+	idempotentCount := int64(0)
+	// Total number of deduped tasks.
+	dedupedCount := int64(0)
+	for _, t := range tasks {
+		completedTime, err := swarming.Completed(t)
+		if err != nil {
+			return nil, nil, err
+		}
+		startTime, err := swarming.Started(t)
+		if err != nil {
+			return nil, nil, err
+		}
+		durationMs := int64(completedTime.Sub(startTime).Seconds() * float64(1000.0))
+		if t.TaskResult.DedupedFrom == "" {
+			totalTime += durationMs
+			totalCount++
+			if t.Request.Properties.Idempotent {
+				idempotentTime += durationMs
+				idempotentCount++
+			}
+		} else {
+			dedupedTime += durationMs
+			dedupedCount++
+		}
+	}
+	return []map[string]string{
+			{
+				"taskClass": "total",
+				"measure":   "count",
+			},
+			{
+				"taskClass": "total",
+				"measure":   "time",
+			},
+			{
+				"taskClass": "idempotent",
+				"measure":   "count",
+			},
+			{
+				"taskClass": "idempotent",
+				"measure":   "time",
+			},
+			{
+				"taskClass": "deduped",
+				"measure":   "count",
+			},
+			{
+				"taskClass": "deduped",
+				"measure":   "time",
+			},
+		}, []float64{
+			float64(totalCount),
+			float64(totalTime),
+			float64(idempotentCount),
+			float64(idempotentTime),
+			float64(dedupedCount),
+			float64(dedupedTime),
+		}, nil
+}
+
 // setupMetrics creates the event metrics for Swarming tasks.
 func setupMetrics(ctx context.Context, btProject, btInstance, pool string, ts oauth2.TokenSource) (events.EventDB, *events.EventMetrics, error) {
 	edb, err := events.NewBTEventDB(ctx, btProject, btInstance, ts)
@@ -377,6 +457,11 @@ func setupMetrics(ctx context.Context, btProject, btInstance, pool string, ts oa
 
 		// Isolate Cache Miss (upload).
 		if err := addMetric(s, "isolate-cache-miss-upload", pool, period, isolateCacheMissUpload); err != nil {
+			return nil, nil, err
+		}
+
+		// Deduplicated tasks (duration and count).
+		if err := s.DynamicMetric(map[string]string{}, period, dedupeMetrics); err != nil {
 			return nil, nil, err
 		}
 	}
