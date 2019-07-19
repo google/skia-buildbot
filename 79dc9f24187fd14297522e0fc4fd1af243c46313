@@ -96,6 +96,24 @@
     },
     {
       "key": {
+        "uuid": "e0f4bfc7_a3fc6d41",
+        "filename": "task_scheduler/go/types/task.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-19T16:11:04Z",
+      "side": 1,
+      "message": "If you think the extra data will be a problem, we could try to unset the unused field before serializing as JSON and add omitempty. Or add a MarshalJSON method.",
+      "parentUuid": "fb7fb3cc_6c9a0533",
+      "revId": "79dc9f24187fd14297522e0fc4fd1af243c46313",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1385ab1d_a026c66a",
         "filename": "task_scheduler/go/types/task.go",
         "patchSetId": 1
