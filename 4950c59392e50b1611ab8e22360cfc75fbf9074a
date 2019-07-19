@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "58c0c85d_03b137ab",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-07-19T15:07:03Z",
+      "side": 1,
+      "message": "Should this be TMPL_COMMIT_MSG_ANDROID_DEFAULT ? to make it clear that if it is not specified in config file then this will be used for this repo manager. Same for other repo managers.",
+      "range": {
+        "startLine": 29,
+        "startChar": 1,
+        "endLine": 29,
+        "endChar": 24
+      },
+      "revId": "4950c59392e50b1611ab8e22360cfc75fbf9074a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "31f488bc_40747394",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-07-19T15:07:03Z",
+      "side": 1,
+      "message": "If not specified it will use the default commit msg templ of that specific repo manager.",
+      "revId": "4950c59392e50b1611ab8e22360cfc75fbf9074a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
