@@ -9,6 +9,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -265,6 +266,7 @@ func (p *promClient) GetFloat64Metric(name string, tags ...map[string]string) Fl
 			},
 			keys,
 		)
+		sklog.Errorf("Register: %s %+v", measurement, keys)
 		err := prometheus.Register(gaugeVec)
 		if err != nil {
 			glog.Fatalf("Failed to register %q: %s", measurement, err)
