@@ -167,10 +167,10 @@ func (m *EventMetrics) AggregateMetric(stream string, tags map[string]string, pe
 		period: period,
 		agg:    agg,
 	}
+	if err := checkTags(tags); err != nil {
+		return err
+	}
 	for k, v := range tags {
-		if err := checkTags(tags); err != nil {
-			return err
-		}
 		mx.tags[k] = v
 	}
 	m.mtx.Lock()
