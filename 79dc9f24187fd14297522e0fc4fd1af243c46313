@@ -78,6 +78,24 @@
     },
     {
       "key": {
+        "uuid": "fb7fb3cc_6c9a0533",
+        "filename": "task_scheduler/go/types/task.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-07-19T12:22:15Z",
+      "side": 1,
+      "message": "Yes, this is what we send to the UI.  It is slightly unfortunate to send another field, as it would result in a not-insignificant increase in the amount of data we transmit to the UI.\n\nAs an aside, at some point I need to revisit Status and try to shrink it.  That might involve only sending data required for placing the box in the grid with the right color, plus the ID of the task, and clicking to get the popup would generate a request for the full task data.",
+      "parentUuid": "77770e7c_ea0d6e83",
+      "revId": "79dc9f24187fd14297522e0fc4fd1af243c46313",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1385ab1d_a026c66a",
         "filename": "task_scheduler/go/types/task.go",
         "patchSetId": 1
