@@ -1,0 +1,16 @@
+query-values-sk {
+  #regex ~ #values,
+  #regex[checked] + #regexValue {
+    display: inline-block;
+  }
+
+  #regex[checked] ~ #values,
+  #regex + #regexValue {
+    display: none;
+  }
+
+  multi-select-sk {
+    max-height: 20em;
+    overflow-y: auto;
+  }
+}
