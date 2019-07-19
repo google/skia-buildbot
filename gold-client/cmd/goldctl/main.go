@@ -30,7 +30,7 @@ goldctl interacts with the Gold service.
 It can be used directly or in a scripted environment. `,
 	}
 	rootCmd.PersistentFlags().BoolVarP(&flagVerbose, "verbose", "v", false, "Verbose prints out extra information")
-	rootCmd.PersistentFlags().BoolVarP(&flagDryRun, "dryrun", "", false, "Dryrun causes goldctl to do everything except upload image. It will log any errors and always returns a zero (0) exit code")
+	rootCmd.PersistentFlags().BoolVarP(&flagDryRun, "dryrun", "", false, "Dryrun causes goldctl to do everything except upload data.")
 
 	// Wire up the other commands as children of the root command.
 	rootCmd.AddCommand(getValidateCmd())
@@ -113,14 +113,9 @@ func logVerbose(cmd *cobra.Command, args ...interface{}) {
 	}
 }
 
-// exitProcess terminates the process with the given exit code. If the --dryrun flag was
-// set this will always return zero (0).
+// exitProcess terminates the process with the given exit code.
 func exitProcess(cmd *cobra.Command, exitCode int) {
 	// If this is a dryrun don't return a non-zero exit code.
-	if flagDryRun {
-		logInfof(cmd, "Dryrun: Exit code would have been %d\n", exitCode)
-		os.Exit(0)
-	}
 	os.Exit(exitCode)
 }
 
