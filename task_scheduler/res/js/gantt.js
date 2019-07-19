@@ -156,7 +156,7 @@ function gantt(svg) {
           blocks.push({
             x: blockStartX + blocksWidth * (start - tStart) / duration,
             y: blockStartY + i * rowHeight + blockMarginY,
-            width: blocksWidth * (end - start) / duration,
+            width: Math.max(blocksWidth * (end - start) / duration, 1.0),
             height: blockHeight,
             title: title,
             color: seg.color,
