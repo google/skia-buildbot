@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "f647af3f_ff1ad88f",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-07-19T18:03:38Z",
+      "side": 1,
+      "message": "Whoops, done.",
+      "parentUuid": "b582d1fb_a3ae767c",
+      "revId": "d4f03cafb4d78426cae4114831b8b7d7e353f398",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "18c8f926_90eefb6f",
         "filename": "datahopper/go/swarming_metrics/tasks.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2019-07-19T16:05:05Z",
       "side": 1,
       "message": "IBWN to split this out by isolate file used, but I don\u0027t think that\u0027s available at this point. I suppose we could add that as an sk_ tag, but probably not worth the effort.",
+      "revId": "d4f03cafb4d78426cae4114831b8b7d7e353f398",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a08b849_705ef5f4",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-07-19T18:03:38Z",
+      "side": 1,
+      "message": "Yeah, I agree.  I could add a task_name_prefix or something which could at least distinguish between Build and Housekeeper, though the latter would still conflate InfraTests with the Isolate tasks.  Alternatively, I can create a metric per task name like we do with the others.  We\u0027d still be able to aggregate on dashboards but we\u0027d be able to slice it however we wanted.",
+      "parentUuid": "18c8f926_90eefb6f",
       "revId": "d4f03cafb4d78426cae4114831b8b7d7e353f398",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -56,6 +92,30 @@
       "revId": "d4f03cafb4d78426cae4114831b8b7d7e353f398",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ccbb7b1d_a19f4f10",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 464,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-07-19T18:03:38Z",
+      "side": 1,
+      "message": "Whoops, intended to fill this in but forgot.",
+      "parentUuid": "dd6dd9c2_3f638f7c",
+      "range": {
+        "startLine": 464,
+        "startChar": 28,
+        "endLine": 464,
+        "endChar": 47
+      },
+      "revId": "d4f03cafb4d78426cae4114831b8b7d7e353f398",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
