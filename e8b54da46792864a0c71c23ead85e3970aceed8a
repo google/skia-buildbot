@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "acd6ab68_2c638f48",
+        "filename": "go/metrics2/prom.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-19T18:29:33Z",
+      "side": 1,
+      "message": "debugging?",
+      "revId": "e8b54da46792864a0c71c23ead85e3970aceed8a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
