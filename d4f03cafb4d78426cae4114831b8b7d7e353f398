@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b582d1fb_a3ae767c",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-19T16:05:05Z",
+      "side": 1,
+      "message": "Need to skip this for deduped tasks, I think.",
+      "revId": "d4f03cafb4d78426cae4114831b8b7d7e353f398",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "18c8f926_90eefb6f",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-19T16:05:05Z",
+      "side": 1,
+      "message": "IBWN to split this out by isolate file used, but I don\u0027t think that\u0027s available at this point. I suppose we could add that as an sk_ tag, but probably not worth the effort.",
+      "revId": "d4f03cafb4d78426cae4114831b8b7d7e353f398",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dd6dd9c2_3f638f7c",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 464,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-19T16:05:05Z",
+      "side": 1,
+      "message": "nit: would be nice to include the pool somewhere in tags",
+      "range": {
+        "startLine": 464,
+        "startChar": 28,
+        "endLine": 464,
+        "endChar": 47
+      },
+      "revId": "d4f03cafb4d78426cae4114831b8b7d7e353f398",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
