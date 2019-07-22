@@ -46,6 +46,30 @@
       "revId": "998772831ac89234ed9624c64fc365eaad6407ec",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a922a2ea_e985aa8b",
+        "filename": "docserverk/res/css/main.css",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 8341
+      },
+      "writtenOn": "2019-07-22T16:58:56Z",
+      "side": 1,
+      "message": "Gotcha",
+      "parentUuid": "bdff6f9c_996e5782",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 5
+      },
+      "revId": "998772831ac89234ed9624c64fc365eaad6407ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
