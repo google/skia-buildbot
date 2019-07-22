@@ -3,7 +3,7 @@ sk.DomReady.then(function() {
 
   // Open the side drawer with the navigation menu.
   $$$('button').addEventListener('click', function(e) {
-    $$$('#drawer').classList.add('opened');
+    $$$('#drawer').classList.toggle('opened');
     e.stopPropagation();
   });
 

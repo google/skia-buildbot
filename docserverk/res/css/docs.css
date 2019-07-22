@@ -18,12 +18,15 @@ a {
 
 
 main {
-  padding: 1em;
-  padding-left: 2em;
+  padding: 1em 2em 2em 1em;
   /* https://css-tricks.com/snippets/css/momentum-scrolling-on-ios-overflow-elements/ */
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
+  margin: 0 0 0 2em;
+  display: inline-block;
+  clear: both;
 }
+
 
 pre {
   margin-left: 1em;
@@ -148,7 +151,7 @@ img {
 }
 
 header {
-  grid-area: header;
+  z-index: 20;
   display: -ms-flexbox;
   display: flex;
   -ms-flex-align: center;
@@ -160,6 +163,8 @@ header {
   position: -webkit-sticky;
   position: sticky;
   top: 0;
+  width: 100%;
+  height: 4em;
 }
 
 header img {
@@ -168,34 +173,21 @@ header img {
   margin: 0;
 }
 
-main {
-  grid-area: main;
-  margin: 0 0 0 2em;
-  padding-bottom: 2em;
-}
-
 aside {
-  grid-area: aside;
-  z-index: 100;
+  z-index: 10;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
+  float: left;
+  width: 20em;
 }
 
 footer {
-  grid-area: footer;
   background: #f8f8f8;
 }
 
 body {
   height: 100vh;
   width: 100vw;
-  display: grid;
-  grid-template-columns: 250px 1fr;
-  grid-template-rows: 92px 1fr 24px;
-  grid-template-areas:
-    "header header"
-    "aside main"
-    "footer footer";
 }
 
 @media (max-width: 900px) {
@@ -204,13 +196,6 @@ body {
   }
 
   body {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: 92px 1fr 24px;
-    grid-template-areas:
-      "header"
-      "main"
-      "footer";
   }
 
   #menu {
