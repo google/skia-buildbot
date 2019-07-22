@@ -18,9 +18,9 @@ a {
 
 
 main {
+  width: calc(100% - 30em);
   padding: 1em 2em 2em 1em;
   /* https://css-tricks.com/snippets/css/momentum-scrolling-on-ios-overflow-elements/ */
-  overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   margin: 0 0 0 2em;
   display: inline-block;
@@ -32,7 +32,6 @@ pre {
   margin-left: 1em;
   padding: 1em;
   background: #fafafa;
-  overflow-x: scroll;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -58,50 +57,52 @@ h2 {
   margin-bottom: 0.2em;
 }
 
-#drawer {
-  min-width: 250px;
-  background: #fafafa;
-  padding: 10px;
-  overflow-y: scroll;
-}
-
 img {
   margin: 1em;
 }
 
-#drawer ul {
+aside {
+  z-index: 10;
+  -webkit-overflow-scrolling: touch;
+  float: left;
+  width: 20em;
+  background: #fafafa;
+  padding: 10px;
+}
+
+aside ul {
   padding-left: 1em;
 }
 
-#drawer li {
+aside li {
   list-style-type: none;
   margin-top: 8px;
   font-size: 13px;
   padding-top: 0.5em;
 }
 
-#drawer li a.selected {
+aside li a.selected {
   color: black;
   font-weight: bold;
   text-decoration: none;
 }
 
-#drawer li a {
+aside li a {
   text-decoration: none;
 }
 
-#drawer ul.depth0>li,
-#drawer ul.depth1>li {
+aside ul.depth0>li,
+aside ul.depth1>li {
   font-weight: bold;
   font-size: 110%;
   font-variant: small-caps;
 }
 
-#drawer ul.depth0>li {
+aside ul.depth0>li {
   font-size: 120%;
 }
 
-#drawer ul.depth2>li {
+aside ul.depth2>li {
   font-weight: bold;
 }
 
@@ -173,29 +174,13 @@ header img {
   margin: 0;
 }
 
-aside {
-  z-index: 10;
-  overflow-y: scroll;
-  -webkit-overflow-scrolling: touch;
-  float: left;
-  width: 20em;
-}
-
 footer {
   background: #f8f8f8;
-}
-
-body {
-  height: 100vh;
-  width: 100vw;
 }
 
 @media (max-width: 900px) {
   #rhs {
     display: none;
-  }
-
-  body {
   }
 
   #menu {
@@ -226,6 +211,7 @@ body {
 
   main {
     margin-left: 10px;
+    width: 100%;
   }
 }
 
