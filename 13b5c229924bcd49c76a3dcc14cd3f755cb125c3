@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "961f3540_c59ce2dc",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-22T16:07:26Z",
+      "side": 1,
+      "message": "Doesn\u0027t match field name used below.",
+      "range": {
+        "startLine": 8,
+        "startChar": 4,
+        "endLine": 8,
+        "endChar": 16
+      },
+      "revId": "13b5c229924bcd49c76a3dcc14cd3f755cb125c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5dd86e3a_5847bf05",
+        "filename": "task_scheduler/res/js/gantt.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 616,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-22T16:07:26Z",
+      "side": 1,
+      "message": "nit: indentation",
+      "revId": "13b5c229924bcd49c76a3dcc14cd3f755cb125c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
