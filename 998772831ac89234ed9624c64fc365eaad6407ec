@@ -22,6 +22,30 @@
       "revId": "998772831ac89234ed9624c64fc365eaad6407ec",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bdff6f9c_996e5782",
+        "filename": "docserverk/res/css/main.css",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-07-22T16:54:36Z",
+      "side": 1,
+      "message": "Correct, we let them be their natural height and just let the browser scroll the \u0027body\u0027 of the page, so no more individual scrollbars for \u0027aside\u0027 and \u0027main\u0027.",
+      "parentUuid": "46637c22_8d42678a",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 5
+      },
+      "revId": "998772831ac89234ed9624c64fc365eaad6407ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
