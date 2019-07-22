@@ -1,9 +1,11 @@
 module go.skia.org/infra
 
 require (
-	cloud.google.com/go v0.41.0
-	contrib.go.opencensus.io/exporter/ocagent v0.5.0 // indirect
-	contrib.go.opencensus.io/exporter/stackdriver v0.12.2
+	cloud.google.com/go v0.43.0
+	cloud.google.com/go/logging v1.0.0
+	contrib.go.opencensus.io/exporter/ocagent v0.5.1 // indirect
+	contrib.go.opencensus.io/exporter/stackdriver v0.12.4
+	contrib.go.opencensus.io/resource v0.1.2 // indirect
 	github.com/99designs/goodies v0.0.0-20140916053233-ec7f410f2ff2
 	github.com/Azure/go-autorest v12.3.0+incompatible // indirect
 	github.com/Masterminds/goutils v1.1.0 // indirect
@@ -13,14 +15,14 @@ require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/VividCortex/godaemon v0.0.0-20150910212227-3d9f6e0b234f
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.20.21 // indirect
+	github.com/aws/aws-sdk-go v1.21.1 // indirect
 	github.com/boltdb/bolt v1.3.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/codegangsta/negroni v1.0.0 // indirect
 	github.com/coreos/bbolt v1.3.3 // indirect
 	github.com/coreos/etcd v3.3.13+incompatible // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
-	github.com/coreos/go-systemd v0.0.0-20190620071333-e64a0ec8b42a // indirect
+	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f // indirect
 	github.com/danjacques/gofslock v0.0.0-20180405201223-afa47669cc54 // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgryski/go-sip13 v0.0.0-20190329191031-25c5027a8c7b // indirect
@@ -92,7 +94,7 @@ require (
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/skia-dev/go-systemd v0.0.0-20181025131956-1cc903e82ae4
-	github.com/smartystreets/assertions v1.0.0 // indirect
+	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/cobra v0.0.5
@@ -106,19 +108,17 @@ require (
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
-	go.chromium.org/luci v0.0.0-20190717220010-46c6fd8e822d
+	go.chromium.org/luci v0.0.0-20190719234727-29607fc21f84
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.opencensus.io v0.22.0
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
-	golang.org/x/exp v0.0.0-20190627132806-fd42eb6b336f // indirect
+	golang.org/x/exp v0.0.0-20190718202018-cfdd5522f6f6 // indirect
 	golang.org/x/image v0.0.0-20190703141733-d6a02ce849c9 // indirect
-	golang.org/x/mobile v0.0.0-20190711165009-e47acb2ca7f9 // indirect
-	golang.org/x/mod v0.1.0 // indirect
+	golang.org/x/mobile v0.0.0-20190719004257-d2bd2a29d028 // indirect
 	golang.org/x/net v0.0.0-20190628185345-da137c7871d7
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	golang.org/x/sys v0.0.0-20190712062909-fae7ac547cb7 // indirect
-	golang.org/x/tools v0.0.0-20190717194535-128ec6dfca09 // indirect
+	golang.org/x/tools v0.0.0-20190719005602-e377ae9d6386 // indirect
 	golang.org/x/tools/gopls v0.1.3 // indirect
 	google.golang.org/api v0.7.0
 	google.golang.org/genproto v0.0.0-20190716160619-c506a9f90610
@@ -130,11 +130,12 @@ require (
 	gopkg.in/unrolled/secure.v1 v1.0.0
 	gopkg.in/yaml.v2 v2.2.2
 	honnef.co/go/tools v0.0.0-20190623190502-86b08b5391b7 // indirect
-	k8s.io/api v0.0.0-20190717022910-653c86b0609b // indirect
-	k8s.io/apimachinery v0.0.0-20190717022731-0bb8574e0887
+	k8s.io/api v0.0.0-20190718062839-c8a0b81cb10e // indirect
+	k8s.io/apimachinery v0.0.0-20190719140911-bfcf53abc9f8
 	k8s.io/client-go v0.0.0-20190425172711-65184652c889
 	k8s.io/gengo v0.0.0-20190327210449-e17681d19d3a // indirect
 	k8s.io/klog v0.3.3 // indirect
+	k8s.io/kube-openapi v0.0.0-20190718094010-3cf2ea392886 // indirect
 	k8s.io/utils v0.0.0-20190712204705-3dccf664f023 // indirect
-	sigs.k8s.io/structured-merge-diff v0.0.0-20190711200306-eaa53bff5a75 // indirect
+	sigs.k8s.io/structured-merge-diff v0.0.0-20190719182312-e94e05bfbbe3 // indirect
 )
