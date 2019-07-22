@@ -20,14 +20,17 @@ a {
 main {
   padding: 1em;
   padding-left: 2em;
-  overflow-y: auto;
+  /* https://css-tricks.com/snippets/css/momentum-scrolling-on-ios-overflow-elements/ */
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
 }
 
 pre {
   margin-left: 1em;
   padding: 1em;
   background: #fafafa;
-  overflow-x: auto;
+  overflow-x: scroll;
+  -webkit-overflow-scrolling: touch;
 }
 
 pre code {
@@ -173,6 +176,9 @@ main {
 
 aside {
   grid-area: aside;
+  z-index: 100;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
 }
 
 footer {
@@ -186,7 +192,7 @@ body {
   display: grid;
   grid-template-columns: 250px 1fr;
   grid-template-rows: 92px 1fr 24px;
-  grid-template-areas: 
+  grid-template-areas:
     "header header"
     "aside main"
     "footer footer";
@@ -201,7 +207,7 @@ body {
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: 92px 1fr 24px;
-    grid-template-areas: 
+    grid-template-areas:
       "header"
       "main"
       "footer";
