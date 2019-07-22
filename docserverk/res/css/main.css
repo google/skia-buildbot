@@ -18,6 +18,7 @@ a {
 
 
 main {
+  width: calc(100% - 30em);
   padding: 1em 2em 2em 1em;
   /* https://css-tricks.com/snippets/css/momentum-scrolling-on-ios-overflow-elements/ */
   overflow-y: scroll;
@@ -179,17 +180,9 @@ footer {
   background: #f8f8f8;
 }
 
-body {
-  height: 100vh;
-  width: 100vw;
-}
-
 @media (max-width: 900px) {
   #rhs {
     display: none;
-  }
-
-  body {
   }
 
   #menu {
@@ -220,6 +213,7 @@ body {
 
   main {
     margin-left: 10px;
+    width: 100%;
   }
 }
 
