@@ -10,6 +10,7 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
+    "@bundled-es-modules/fetch-mock": "^6.5.2",
     "@webcomponents/custom-elements": "^1.2.4",
     "autoprefixer": "~9.6.0",
     "bower": "~1.8.8",
