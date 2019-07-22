@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "174d06ba_1e6cb72f",
+        "filename": "golden/go/baseline/gcs_baseliner/baseliner.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-22T17:32:58Z",
+      "side": 1,
+      "message": "nit: seems like this comment no longer applies",
+      "revId": "f558abce10195b59201f159cc522d3177044d139",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d4f794e_b7bb4324",
+        "filename": "golden/go/baseline/gcs_baseliner/baseliner.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-22T17:32:58Z",
+      "side": 1,
+      "message": "nit: maybe add comment \"order doesn\u0027t matter\"",
+      "range": {
+        "startLine": 128,
+        "startChar": 1,
+        "endLine": 128,
+        "endChar": 48
+      },
+      "revId": "f558abce10195b59201f159cc522d3177044d139",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f7a80803_234ae403",
+        "filename": "golden/go/baseline/gcs_baseliner/baseliner.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-22T17:32:58Z",
+      "side": 1,
+      "message": "nit: What is the purpose of this func?",
+      "range": {
+        "startLine": 155,
+        "startChar": 2,
+        "endLine": 155,
+        "endChar": 31
+      },
+      "revId": "f558abce10195b59201f159cc522d3177044d139",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46cd02e8_348b9cc2",
+        "filename": "golden/go/baseline/gcs_baseliner/baseliner_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-07-22T17:32:58Z",
+      "side": 1,
+      "message": "nit: AsBaseline doesn\u0027t seem to be tested",
+      "range": {
+        "startLine": 159,
+        "startChar": 44,
+        "endLine": 159,
+        "endChar": 56
+      },
+      "revId": "f558abce10195b59201f159cc522d3177044d139",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
