@@ -178,6 +178,9 @@ func TestInit(t *testing.T) {
 	assert.Len(t, state.Expectations, 1)
 	assert.Len(t, state.Expectations["ThisIsTheOnlyTest"], 2)
 	assert.Equal(t, testSharedConfig, *state.SharedConfig)
+
+	state, err = loadStateFromJson("/tmp/some-file-guaranteed-not-to-exist")
+	assert.Error(t, err)
 }
 
 // Test that the client does not fetch from the server if UploadOnly is set.
