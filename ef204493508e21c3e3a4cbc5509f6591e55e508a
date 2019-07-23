@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da0c178b_a0aa692f",
+        "filename": "go/new-element/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-07-23T20:31:11Z",
+      "side": 1,
+      "message": "Nit: all 2 or more word directories in infra/go/ seem to use underscores as separators.",
+      "revId": "ef204493508e21c3e3a4cbc5509f6591e55e508a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f76d1bbc_9326856d",
+        "filename": "go/new-element/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-07-23T20:31:11Z",
+      "side": 1,
+      "message": "Nit: Why not call this modulesDirectory ?",
+      "range": {
+        "startLine": 16,
+        "startChar": 1,
+        "endLine": 16,
+        "endChar": 16
+      },
+      "revId": "ef204493508e21c3e3a4cbc5509f6591e55e508a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
