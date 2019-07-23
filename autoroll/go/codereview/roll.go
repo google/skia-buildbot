@@ -430,7 +430,7 @@ func updateGithubPullRequest(ctx context.Context, a *autoroll.AutoRollIssue, g *
 			return nil, fmt.Errorf("Could not close %d: %s", a.Issue, err)
 		}
 		pullRequestModified = true
-	} else if a.DryRunFinished && a.DryRunSuccess && len(a.TryResults) >= checksNum && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && shouldStateBeMerged(pullRequest.GetMergeableState()) {
+	} else if !a.IsDryRun && len(a.TryResults) >= checksNum && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && shouldStateBeMerged(pullRequest.GetMergeableState()) {
 		// Github and travisci do not have a "commit queue". So changes must be
 		// merged via the API after travisci successfully completes.
 		if err := g.AddComment(int(a.Issue), "Auto-roller completed checks. About to merge."); err != nil {
