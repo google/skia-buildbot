@@ -2231,8 +2231,7 @@ func (s *TaskScheduler) addTasks(ctx context.Context, taskMap map[string]map[str
 // updates the associated types.Task in the database. Returns a bool indicating
 // whether the pubsub message should be acknowledged.
 func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bool {
-	return false
-	/*s.pubsubCount.Inc(1)
+	s.pubsubCount.Inc(1)
 	if msg.UserData == "" {
 		// This message is invalid. ACK it to make it go away.
 		return true
@@ -2299,5 +2298,5 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 			return true
 		}
 	}
-	return true*/
+	return true
 }

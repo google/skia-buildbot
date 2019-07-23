@@ -5,7 +5,6 @@
 function gantt(svg) {
   const rv = {
     _svg: svg,
-    _layoutRetrying: false,
   };
 
   /**
@@ -61,7 +60,6 @@ function gantt(svg) {
     const boundingRect = this._svg.getBoundingClientRect();
     const totalWidth = boundingRect.width;
     const totalHeight = boundingRect.height;
-    console.log("draw: " + totalWidth + " x " + totalHeight);
     const chartMarginLeft = 5;
     const chartMarginRight = 110;
     const chartMarginY = 5;
@@ -431,12 +429,8 @@ function gantt(svg) {
    * Perform the layout.
    */
   rv.layout = function() {
-    console.log("layout");
     // Draw using d3.
     const d3svg = d3.select(this._svg);
-    const oldRect = this._svg.getBoundingClientRect();
-    const oldWidth = oldRect.width;
-    const oldHeight = oldRect.height;
 
     // Draw background blocks for each epoch.
     const epochRects = d3svg.selectAll('rect.epoch').data(this._layoutEpochs);
@@ -606,20 +600,6 @@ function gantt(svg) {
         .attr('x2', function(d) { return d.x2; })
         .attr('y2', function(d) { return d.y2; });
     selectedTimeRangeLine2.exit().remove();
-
-    const newRect = this._svg.getBoundingClientRect();
-    if (newRect.width != oldWidth || newRect.height != oldHeight) {
-      if (this._layoutRetrying) {
-        console.log("svg was resized but already retried layout; not trying again.");
-      } else {
-        console.log("svg was resized! Resetting size and running layout again.");
-        this._svg.style.width = oldWidth;
-        this._svg.style.height = oldHeight;
-        this._layoutRetrying = true;
-        this.layout();
-        this._layoutRetrying = false;
-      }
-    }
   };
 
   /**

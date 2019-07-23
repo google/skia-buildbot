@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
@@ -44,6 +45,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db/modified"
 	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
+	"go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"golang.org/x/oauth2"
@@ -708,7 +710,7 @@ func main() {
 	}
 
 	// Initialize Swarming client.
-	/*if *local {
+	if *local {
 		wd := filepath.Join(wdAbs, "local_git_repos")
 		gitRepos := make(map[string]*git.Repo, len(repos))
 		for url := range repos {
@@ -722,14 +724,14 @@ func main() {
 		swarmTestClient.MockBots(testutils.MockSwarmingBotsForAllTasksForTesting(ctx, gitRepos))
 		go testutils.PeriodicallyUpdateMockTasksForTesting(swarmTestClient)
 		swarm = swarmTestClient
-	} else {*/
-	cfg := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithDialTimeout(time.Minute).With2xxOnly()
-	cfg.RequestTimeout = time.Minute
-	swarm, err = swarming.NewApiClient(cfg.Client(), *swarmingServer)
-	if err != nil {
-		sklog.Fatal(err)
+	} else {
+		cfg := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithDialTimeout(time.Minute).With2xxOnly()
+		cfg.RequestTimeout = time.Minute
+		swarm, err = swarming.NewApiClient(cfg.Client(), *swarmingServer)
+		if err != nil {
+			sklog.Fatal(err)
+		}
 	}
-	//}
 
 	storageClient, err := storage.NewClient(ctx, option.WithTokenSource(tokenSource))
 	diagClient := gcsclient.New(storageClient, *diagnosticsBucket)
@@ -764,7 +766,7 @@ func main() {
 	}
 
 	sklog.Infof("Created task scheduler. Starting loop.")
-	//ts.Start(ctx, !*disableTryjobs, func() {})
+	ts.Start(ctx, !*disableTryjobs, func() {})
 
 	// Set up periodic triggers.
 	if err := periodic.Listen(ctx, fmt.Sprintf("task-scheduler-%s", *pubsubTopicSet), tokenSource, func(ctx context.Context, name, id string) bool {
