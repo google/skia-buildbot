@@ -21,8 +21,6 @@
 <link rel="import" href="/res/imp/bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
 <link rel="import" href="/res/imp/bower_components/paper-fab/paper-fab.html">
 
-<link rel="import" href="/res/common/imp/query-summary-sk.html" />
-
 <link rel="import" href="/res/imp/alert-config.html" />
 
 <dom-module id="alerts-page-sk">
@@ -92,7 +90,7 @@
         <tr>
           <td><iron-icon title="Edit" icon="create" on-tap="_edit" __config="{{item}}"></iron-icon></td>
           <td>{{item.display_name}}</td>
-          <td><query-summary-sk selection="{{item.query}}"></query-summary-sk></td>
+          <td><query-summary-sk selection="[[item.query]]"></query-summary-sk></td>
           <td>{{item.alert}}</td>
           <td>{{item.owner}}</td>
           <td><iron-icon title="Delete" icon="delete" on-tap="_delete" __config="{{item}}"></iron-icon></td>

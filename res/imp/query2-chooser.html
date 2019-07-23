@@ -23,7 +23,6 @@
 
 <link rel=import href="query2-sk.html">
 <link rel=import href="query2-count.html">
-<link rel=import href="query-summary-sk.html">
 
 <dom-module id="query2-chooser-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
@@ -63,7 +62,7 @@
   <template>
     <div class="horizontal layout center">
       <button on-tap="_editTap" class=raised>Edit</button>
-      <query-summary-sk id=summary selection="{{current_query}}"></query-summary-sk>
+      <query-summary-sk id=summary selection="[[current_query]]"></query-summary-sk>
     </div>
     <div id="dialog">
       <query2-sk current_query="{{current_query}}" id=query></query2-sk>
