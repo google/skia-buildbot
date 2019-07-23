@@ -224,7 +224,7 @@ func LoadCloudClient(authOpt AuthOpt, workDir string) (*CloudClient, error) {
 	var err error
 	ret.resultState, err = loadStateFromJson(ret.getResultStatePath())
 	if err != nil {
-		return nil, skerr.Fmt("Could not load disk from state: %s", err)
+		return nil, skerr.Fmt("Could not load state from disk: %s", err)
 	}
 	if err = ret.setHttpClient(); err != nil {
 		return nil, skerr.Fmt("Error setting http client: %s", err)
@@ -527,7 +527,7 @@ func loadStateFromJson(fileName string) (*resultState, error) {
 		return nil, err
 	}
 	if !exists {
-		return nil, nil
+		return nil, skerr.Fmt("The state file %q doesn't exist.", fileName)
 	}
 	return ret, nil
 }
