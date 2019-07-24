@@ -1,12 +1,44 @@
 ---
-# Disable Windows Update, Windows Defender, and disk indexing.
+# Disable Windows Update feature updates, Windows Defender, and disk indexing.
 - hosts: all
   tasks:
-  - name: Disable Windows Update
-    win_service:
-      name: wuauserv
-      start_mode: disabled
-      state: stopped
+  - name: Enable deferring feature updates in Windows Update
+    win_regedit:
+      path: HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState
+      name: "DeferFeatureUpdates"
+      data: 1
+      type: dword
+  - name: Set deferral period for feature updates to 365 in Windows Update UpdatePolicy
+    win_regedit:
+      path: HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState
+      name: "FeatureUpdatesDeferralInDays"
+      data: 365
+      type: dword
+  - name: Set deferral period for feature updates to 365 in Windows Update UX Settings
+    win_regedit:
+      path: HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings
+      name: "DeferFeatureUpdatesPeriodInDays"
+      data: 365
+      type: dword
+  # We do not defer quality updates because they rarely cause problems.
+  - name: Disable deferring quality updates in Windows Update
+    win_regedit:
+      path: HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState
+      name: "DeferQualityUpdates"
+      data: 0
+      type: dword
+  - name: Set deferral period for quality updates to 0 in Windows Update UpdatePolicy
+    win_regedit:
+      path: HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState
+      name: "QualityUpdatesDeferralInDays"
+      data: 0
+      type: dword
+  - name: Set deferral period for quality updates to 0 in Windows Update UX Settings
+    win_regedit:
+      path: HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings
+      name: "DeferQualityUpdatesPeriodInDays"
+      data: 0
+      type: dword
   # Unlike Windows Server, Windows Defender can not be uninstalled on Windows 10. Windows also
   # tends to re-enable it if it's disabled. Instead we exclude the entire drive from scanning and
   # disable specific features. Docs here:
