@@ -81,8 +81,13 @@ func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, wor
 	}
 
 	wd := path.Join(workdir, "android_repo")
+	if _, err := os.Stat(wd); err == nil {
+		if err := deleteGitLockFiles(ctx, wd); err != nil {
+			return nil, err
+		}
+	}
 
-	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, wd, serverURL, g, client, cr, local)
+	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, wd, serverURL, g, client, cr, local)
 	if err != nil {
 		return nil, err
 	}

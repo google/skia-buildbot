@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -169,7 +170,7 @@ type commonRepoManager struct {
 }
 
 // Returns a commonRepoManager instance.
-func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, g gerrit.GerritInterface, client *http.Client, cr codereview.CodeReview, local bool) (*commonRepoManager, error) {
+func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, workdir, serverURL string, g gerrit.GerritInterface, client *http.Client, cr codereview.CodeReview, local bool) (*commonRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -181,6 +182,12 @@ func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, 
 		childDir = path.Join(workdir, c.ChildSubdir, c.ChildPath)
 	}
 	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
+
+	if _, err := os.Stat(workdir); err == nil {
+		if err := deleteGitLockFiles(ctx, workdir); err != nil {
+			return nil, err
+		}
+	}
 	preUploadSteps, err := GetPreUploadSteps(c.PreUploadSteps)
 	if err != nil {
 		return nil, err
@@ -371,7 +378,7 @@ func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, workdir, serverURL, g, client, cr, local)
+	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, workdir, serverURL, g, client, cr, local)
 	if err != nil {
 		return nil, err
 	}
@@ -468,6 +475,29 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemoteAndBranch(ctx conte
 		Args: []string{r.gclient, "sync", "--nohooks"},
 	}); err != nil {
 		return err
+	}
+	return nil
+}
+
+// deleteGitLockFiles finds and deletes Git lock files within the given workdir.
+func deleteGitLockFiles(ctx context.Context, workdir string) error {
+	sklog.Infof("Looking for git lockfiles in %s", workdir)
+	output, err := exec.RunCwd(ctx, workdir, "find", ".", "-name", "index.lock")
+	if err != nil {
+		return err
+	}
+	output = strings.TrimSpace(output)
+	if output == "" {
+		sklog.Info("No lockfiles found.")
+		return nil
+	}
+	lockfiles := strings.Split(output, "\n")
+	for _, f := range lockfiles {
+		fp := filepath.Join(workdir, f)
+		sklog.Warningf("Removing git lockfile: %s", fp)
+		if err := os.Remove(fp); err != nil {
+			return err
+		}
 	}
 	return nil
 }
