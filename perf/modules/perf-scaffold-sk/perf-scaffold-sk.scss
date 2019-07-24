@@ -1,0 +1,72 @@
+@import '~elements-sk/colors';
+
+perf-scaffold-sk {
+  display: block;
+
+  * {
+    font-family:Roboto,Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+  }
+
+  nav-button-sk button {
+    fill: var(--white);
+    color: var(--white);
+    background: var(--blue);
+    border: none;
+    box-shadow: none;
+  }
+
+  nav-button-sk button:hover {
+    background: var(--light-blue);
+  }
+
+  nav {
+    display: flex;
+    align-items: center;
+    color: var(--white);
+    background: var(--blue);
+  }
+
+  nav a[href] {
+    color: black;
+    text-decoration: none;
+  }
+
+  nav a[href]:hover {
+    text-decoration: underline;
+  }
+
+  nav a span {
+    vertical-align: middle;
+    padding: 0.2em;
+    padding-left: 1em;
+    color: var(--blue);
+  }
+
+  nav div {
+    margin: 1em;
+  }
+
+  nav-links-sk {
+    top: 3em;
+  }
+
+  login-sk {
+    margin-left: auto;
+    margin-right: 1em;
+    display: block;
+    color: white;
+    --login-sk-color: var(--white);
+  }
+
+  h1 {
+    font-weight: normal;
+  }
+
+  main {
+    padding: 1em;
+  }
+
+  .name {
+    font-size: 20px;
+  }
+}
