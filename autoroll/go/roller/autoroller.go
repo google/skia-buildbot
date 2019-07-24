@@ -392,6 +392,7 @@ func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to string, dryRun 
 		return nil, err
 	}
 	issue := &autoroll.AutoRollIssue{
+		IsDryRun:    dryRun,
 		Issue:       issueNum,
 		RollingFrom: from,
 		RollingTo:   to,
