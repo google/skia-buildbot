@@ -1,0 +1,94 @@
+/**
+ * @module module/query-sk
+ * @description <h2><code>query-sk</code></h2>
+ *
+ * Starting from a serialized paramtools.ParamSet, this control allows the user
+ * to build up a query, suitable for passing to query.New.
+ *
+ * @evt query-change - The 'query-sk' element will produce 'query-change' events when the query
+ *      parameters chosen have changed. The event contains the current selections formatted as a URL query, found in e.detail.q.
+ *
+ * @evt query-change-delayed - The same exact event as query-change, but with a 500ms delay after
+ *      the query stops changing.
+ *
+ * @attr {string} current_query - The current query formatted as a URL formatted query string.
+ *
+ */
+import { html, render } from 'lit-html'
+import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import '../query-values-sk'
+import 'elements-sk/select-sk'
+
+const _keys = (ele) => {
+  return ele._keys.map((k) => html`<div>${k}</div>`);
+}
+
+const template = (ele) => html`
+  <label>Filter <input id=fast @input=${ele._fastFilter}></label>
+  <button @click=${ele._clearFilter}>Clear Filter</button>
+  <select-sk @selection-changed=${ele._keyChange}>
+    ${_keys(ele)}
+  </select-sk>
+  <button @click=${ele._clear}>Clear Selections</button>
+  <query-values-sk id=values @query-values-changed=${ele._valuesChanged}></query-values-sk>
+`;
+
+window.customElements.define('query-sk', class extends ElementSk {
+  constructor() {
+    super(template);
+    this._paramset = {};
+    this._key_order = [];
+
+    // We keep the current_query as an object.
+    this._query = {};
+
+    // The full set of keys in the desired order.
+    this._keys = [];
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    this._render();
+  }
+
+  _recalcKeys() {
+    let keys = Object.keys(this._paramset);
+    keys.sort();
+    // Pull out all the keys that appear in _key_order to be pushed to the front of the list.
+    let pre = this._key_order.filter(ordered => keys.indexOf(ordered) > -1);
+    let post = keys.filter(key => pre.indexOf(key) === -1);
+    this._keys = pre.concat(post);
+  }
+
+  /** @prop paramset {Object} A serialized paramtools.ParamSet. */
+  get paramset() { return this._paramset }
+  set paramset(val) {
+    this._paramset = val;
+    this._recalcKeys();
+    this._render();
+  }
+
+  /** @prop key_order {string} An array of strings, the keys in the order they
+   * should appear. All keys not in the key order will be present after and in
+   * alphabetical order.
+   */
+  get key_order() { return this._key_order }
+  set key_order(val) {
+    this._key_order = val;
+    this._recalcKeys();
+    this._render();
+  }
+
+  static get observedAttributes() {
+    return ['current_query'];
+  }
+
+  /** @prop current_query {string} Mirrors the current_query attribute.  */
+  get current_query() { return this.getAttribute('current_query'); }
+  set current_query(val) { this.setAttribute('current_query', val); }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    // Convert current_query the string into an object.
+    this._render();
+  }
+});
