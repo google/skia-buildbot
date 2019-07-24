@@ -1,0 +1,37 @@
+---
+# Helper for windows-update.yml: task list for running Windows Update once, followed by reboot, if
+# needed.
+# Requires Ansible 2.5.
+- name: Install updates
+  win_updates:
+    category_names:
+      # All categories.
+      - Application
+      - Connectors
+      - CriticalUpdates
+      - DefinitionUpdates
+      - DeveloperKits
+      - FeaturePacks
+      - Guidance
+      - SecurityUpdates
+      - ServicePacks
+      - Tools
+      - UpdateRollups
+      - Updates
+  register: result
+- debug:
+    msg: "{{ result }}"
+# It seems that win_updates tries to reboot too quickly after Windows Update says it has finished,
+# so some updates never get installed. Wait until Windows says it's ready to reboot.
+- name: Reboot after installing updates
+  when: result.reboot_required
+  block:
+    - name: Check for RebootRequired registry key
+      # Based on https://stackoverflow.com/a/45717438
+      win_reg_stat:
+        path: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update\
+          \\RebootRequired"
+      register: reboot_required
+      until: reboot_required.exists
+    - name: Reboot now
+        win_reboot:
