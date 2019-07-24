@@ -38,24 +38,26 @@ const (
 	S_DRY_RUN_FAILURE_THROTTLED    = "dry run failure throttled"
 	S_DRY_RUN_SAFETY_THROTTLED     = "dry run safety throttled"
 	S_STOPPED                      = "stopped"
+	S_CURRENT_ROLL_MISSING         = "current roll missing"
 
 	// Transition function names.
-	F_NOOP                    = "no-op"
-	F_UPDATE_REPOS            = "update repos"
-	F_UPLOAD_ROLL             = "upload roll"
-	F_UPLOAD_DRY_RUN          = "upload dry run"
-	F_UPDATE_ROLL             = "update roll"
-	F_SWITCH_TO_DRY_RUN       = "switch roll to dry run"
-	F_SWITCH_TO_NORMAL        = "switch roll to normal"
-	F_CLOSE_FAILED            = "close roll (failed)"
-	F_CLOSE_STOPPED           = "close roll (stopped)"
-	F_CLOSE_DRY_RUN_FAILED    = "close roll (dry run failed)"
-	F_CLOSE_DRY_RUN_OUTDATED  = "close roll (dry run outdated)"
-	F_WAIT_FOR_LAND           = "wait for roll to land"
-	F_RETRY_FAILED_NORMAL     = "retry failed roll"
-	F_RETRY_FAILED_DRY_RUN    = "retry failed dry run"
-	F_NOTIFY_FAILURE_THROTTLE = "notify failure throttled"
-	F_NOTIFY_SAFETY_THROTTLE  = "notify safety throttled"
+	F_NOOP                       = "no-op"
+	F_UPDATE_REPOS               = "update repos"
+	F_UPLOAD_ROLL                = "upload roll"
+	F_UPLOAD_DRY_RUN             = "upload dry run"
+	F_UPDATE_ROLL                = "update roll"
+	F_SWITCH_TO_DRY_RUN          = "switch roll to dry run"
+	F_SWITCH_TO_NORMAL           = "switch roll to normal"
+	F_CLOSE_FAILED               = "close roll (failed)"
+	F_CLOSE_STOPPED              = "close roll (stopped)"
+	F_CLOSE_DRY_RUN_FAILED       = "close roll (dry run failed)"
+	F_CLOSE_DRY_RUN_OUTDATED     = "close roll (dry run outdated)"
+	F_WAIT_FOR_LAND              = "wait for roll to land"
+	F_RETRY_FAILED_NORMAL        = "retry failed roll"
+	F_RETRY_FAILED_DRY_RUN       = "retry failed dry run"
+	F_NOTIFY_FAILURE_THROTTLE    = "notify failure throttled"
+	F_NOTIFY_SAFETY_THROTTLE     = "notify safety throttled"
+	F_ERROR_CURRENT_ROLL_MISSING = "error: current roll missing"
 
 	// Maximum number of no-op transitions to perform at once. This is an
 	// arbitrary limit just to keep us from performing an unbounded number
@@ -119,7 +121,8 @@ type AutoRollerImpl interface {
 	// times within a time period.
 	FailureThrottle() *Throttler
 
-	// Return the currently-active roll. May be nil if no roll exists.
+	// Return the currently-active roll. Should return untyped nil, as
+	// opposed to RollCLImpl(nil), if no roll exists.
 	GetActiveRoll() RollCLImpl
 
 	// Return the currently-rolled revision of the sub-project.
@@ -151,7 +154,7 @@ type AutoRollerImpl interface {
 	UpdateRepos(context.Context) error
 
 	// Upload a new roll. AutoRollerImpl should track the created roll.
-	UploadNewRoll(ctx context.Context, from, to string, dryRun bool) error
+	UploadNewRoll(ctx context.Context, from, to string, dryRun bool) (RollCLImpl, error)
 }
 
 // AutoRollStateMachine is a StateMachine for the AutoRoller.
@@ -233,6 +236,21 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 
 	b := state_machine.NewBuilder()
 
+	// f is a wrapper around b.F which adds a transition function which
+	// requires an active roll, returning an error if none exists. The
+	// transition functions do not need to handle a missing active roll
+	// gracefully, since the originating state should do that and choose
+	// the next state appropriately.
+	f := func(name string, fn func(context.Context, RollCLImpl) error) {
+		b.F(name, func(ctx context.Context) error {
+			roll := s.a.GetActiveRoll()
+			if roll == nil {
+				return fmt.Errorf("Transition func %q requires an active roll!", name)
+			}
+			return fn(ctx, roll)
+		})
+	}
+
 	// Named callback functions.
 	b.F(F_NOOP, nil)
 	b.F(F_UPDATE_REPOS, func(ctx context.Context) error {
@@ -242,11 +260,11 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 		if err := s.a.SafetyThrottle().Inc(ctx); err != nil {
 			return err
 		}
-		if err := s.a.UploadNewRoll(ctx, s.a.GetCurrentRev(), s.a.GetNextRollRev(), false); err != nil {
+		roll, err := s.a.UploadNewRoll(ctx, s.a.GetCurrentRev(), s.a.GetNextRollRev(), false)
+		if err != nil {
 			n.SendRollCreationFailed(ctx, err)
 			return err
 		}
-		roll := s.a.GetActiveRoll()
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), fmt.Sprintf("The roller has uploaded a new roll attempt: %s", roll.IssueURL()))
 		return nil
 	})
@@ -254,83 +272,70 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 		if err := s.a.SafetyThrottle().Inc(ctx); err != nil {
 			return err
 		}
-		if err := s.a.UploadNewRoll(ctx, s.a.GetCurrentRev(), s.a.GetNextRollRev(), true); err != nil {
+		roll, err := s.a.UploadNewRoll(ctx, s.a.GetCurrentRev(), s.a.GetNextRollRev(), true)
+		if err != nil {
 			n.SendRollCreationFailed(ctx, err)
 			return err
 		}
-		roll := s.a.GetActiveRoll()
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), fmt.Sprintf("The roller has uploaded a new dry run attempt: %s", roll.IssueURL()))
 		return nil
 	})
-	b.F(F_UPDATE_ROLL, func(ctx context.Context) error {
-		if err := s.a.GetActiveRoll().Update(ctx); err != nil {
+	f(F_UPDATE_ROLL, func(ctx context.Context, roll RollCLImpl) error {
+		if err := roll.Update(ctx); err != nil {
 			return err
 		}
 		return s.a.UpdateRepos(ctx)
 	})
-	b.F(F_CLOSE_FAILED, func(ctx context.Context) error {
-		roll := s.a.GetActiveRoll()
+	f(F_CLOSE_FAILED, func(ctx context.Context, roll RollCLImpl) error {
 		if err := roll.Close(ctx, autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("Commit queue failed; closing this roll.")); err != nil {
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the commit queue failed and there are new commits to try.")
 		return nil
 	})
-	b.F(F_CLOSE_STOPPED, func(ctx context.Context) error {
-		roll := s.a.GetActiveRoll()
+	f(F_CLOSE_STOPPED, func(ctx context.Context, roll RollCLImpl) error {
 		if err := roll.Close(ctx, autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("AutoRoller is stopped; closing the active roll.")); err != nil {
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the AutoRoller was stopped.")
 		return nil
 	})
-	b.F(F_CLOSE_DRY_RUN_FAILED, func(ctx context.Context) error {
-		roll := s.a.GetActiveRoll()
+	f(F_CLOSE_DRY_RUN_FAILED, func(ctx context.Context, roll RollCLImpl) error {
 		if err := roll.Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_FAILURE, fmt.Sprintf("Commit queue failed; closing this roll.")); err != nil {
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the commit queue dry run failed and there are new commits to try.")
 		return nil
 	})
-	b.F(F_CLOSE_DRY_RUN_OUTDATED, func(ctx context.Context) error {
-		roll := s.a.GetActiveRoll()
+	f(F_CLOSE_DRY_RUN_OUTDATED, func(ctx context.Context, roll RollCLImpl) error {
 		if err := roll.Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, fmt.Sprintf("Repo has passed %s; will open a new dry run.", roll.RollingTo())); err != nil {
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because one or more new commits have landed.")
 		return nil
 	})
-	b.F(F_SWITCH_TO_DRY_RUN, func(ctx context.Context) error {
-		roll := s.a.GetActiveRoll()
+	f(F_SWITCH_TO_DRY_RUN, func(ctx context.Context, roll RollCLImpl) error {
 		if err := roll.SwitchToDryRun(ctx); err != nil {
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This roll was switched to commit queue dry run mode.")
 		return nil
 	})
-	b.F(F_SWITCH_TO_NORMAL, func(ctx context.Context) error {
-		roll := s.a.GetActiveRoll()
+	f(F_SWITCH_TO_NORMAL, func(ctx context.Context, roll RollCLImpl) error {
 		if err := roll.SwitchToNormal(ctx); err != nil {
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This roll was switched to normal commit queue mode.")
 		return nil
 	})
-	b.F(F_WAIT_FOR_LAND, func(ctx context.Context) error {
+	f(F_WAIT_FOR_LAND, func(ctx context.Context, roll RollCLImpl) error {
 		sklog.Infof("Roll succeeded; syncing the repo until it lands.")
-		currentRoll := s.a.GetActiveRoll()
-		// If the server restarts during the loop below, we'll end up in this state
-		// even though there is no active roll.
-		if currentRoll == nil {
-			sklog.Warningf("GetActiveRoll returned nil in state %q. Continuing transition under the assumption that the roll has landed.", F_WAIT_FOR_LAND)
-			return nil
-		}
 		for {
-			sklog.Infof("Syncing, looking for %s...", currentRoll.RollingTo())
+			sklog.Infof("Syncing, looking for %s...", roll.RollingTo())
 			if err := s.a.UpdateRepos(ctx); err != nil {
 				return err
 			}
-			rolledPast, err := s.a.RolledPast(ctx, currentRoll.RollingTo())
+			rolledPast, err := s.a.RolledPast(ctx, roll.RollingTo())
 			if err != nil {
 				return err
 			}
@@ -339,44 +344,45 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 			}
 			time.Sleep(10 * time.Second)
 		}
-		n.SendIssueUpdate(ctx, currentRoll.IssueID(), currentRoll.IssueURL(), "This roll landed successfully.")
+		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This roll landed successfully.")
 		successThrottle := s.a.SuccessThrottle()
 		if successThrottle.IsThrottled() {
 			n.SendSuccessThrottled(ctx, successThrottle.ThrottledUntil())
 		}
 		return nil
 	})
-	b.F(F_RETRY_FAILED_NORMAL, func(ctx context.Context) error {
+	f(F_RETRY_FAILED_NORMAL, func(ctx context.Context, roll RollCLImpl) error {
 		// TODO(borenet): The CQ will fail forever in the case of a
 		// merge conflict; we should really patch in the CL, rebase and
 		// upload again.
-		roll := s.a.GetActiveRoll()
 		if err := roll.RetryCQ(ctx); err != nil {
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "Retrying the commit queue on this CL because there are no new commits.")
 		return nil
 	})
-	b.F(F_RETRY_FAILED_DRY_RUN, func(ctx context.Context) error {
+	f(F_RETRY_FAILED_DRY_RUN, func(ctx context.Context, roll RollCLImpl) error {
 		sklog.Infof("Dry run failed but no new commits; retrying CQ.")
 		// TODO(borenet): The CQ will fail forever in the case of a
 		// merge conflict; we should really patch in the CL, rebase and
 		// upload again.
-		roll := s.a.GetActiveRoll()
 		if err := roll.RetryDryRun(ctx); err != nil {
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "Retrying the CQ dry run on this CL because there are no new commits.")
 		return nil
 	})
-	b.F(F_NOTIFY_FAILURE_THROTTLE, func(ctx context.Context) error {
-		roll := s.a.GetActiveRoll()
+	f(F_NOTIFY_FAILURE_THROTTLE, func(ctx context.Context, roll RollCLImpl) error {
 		until := s.a.FailureThrottle().ThrottledUntil()
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), fmt.Sprintf("The commit queue failed on this CL but no new commits have landed in the repo. Will retry the CQ at %s if no new commits land.", until))
 		return nil
 	})
 	b.F(F_NOTIFY_SAFETY_THROTTLE, func(ctx context.Context) error {
 		n.SendSafetyThrottled(ctx, s.a.SafetyThrottle().ThrottledUntil())
+		return nil
+	})
+	b.F(F_ERROR_CURRENT_ROLL_MISSING, func(ctx context.Context) error {
+		sklog.Error("State machine could not obtain current roll; transitioning back to idle state. Was the roller interrupted?")
 		return nil
 	})
 
@@ -400,20 +406,24 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_NORMAL_ACTIVE, S_NORMAL_SUCCESS, F_NOOP)
 	b.T(S_NORMAL_ACTIVE, S_NORMAL_FAILURE, F_NOOP)
 	b.T(S_NORMAL_ACTIVE, S_STOPPED, F_CLOSE_STOPPED)
+	b.T(S_NORMAL_ACTIVE, S_CURRENT_ROLL_MISSING, F_NOOP)
 	b.T(S_NORMAL_SUCCESS, S_NORMAL_IDLE, F_WAIT_FOR_LAND)
 	b.T(S_NORMAL_SUCCESS, S_NORMAL_SUCCESS_THROTTLED, F_WAIT_FOR_LAND)
+	b.T(S_NORMAL_SUCCESS, S_CURRENT_ROLL_MISSING, F_NOOP)
 	b.T(S_NORMAL_SUCCESS_THROTTLED, S_NORMAL_SUCCESS_THROTTLED, F_UPDATE_REPOS)
 	b.T(S_NORMAL_SUCCESS_THROTTLED, S_NORMAL_IDLE, F_NOOP)
 	b.T(S_NORMAL_SUCCESS_THROTTLED, S_DRY_RUN_IDLE, F_NOOP)
 	b.T(S_NORMAL_SUCCESS_THROTTLED, S_STOPPED, F_NOOP)
 	b.T(S_NORMAL_FAILURE, S_NORMAL_IDLE, F_CLOSE_FAILED)
 	b.T(S_NORMAL_FAILURE, S_NORMAL_FAILURE_THROTTLED, F_NOTIFY_FAILURE_THROTTLE)
+	b.T(S_NORMAL_FAILURE, S_CURRENT_ROLL_MISSING, F_NOOP)
 	b.T(S_NORMAL_FAILURE_THROTTLED, S_NORMAL_FAILURE_THROTTLED, F_UPDATE_ROLL)
 	b.T(S_NORMAL_FAILURE_THROTTLED, S_NORMAL_SUCCESS, F_NOOP)
 	b.T(S_NORMAL_FAILURE_THROTTLED, S_NORMAL_ACTIVE, F_RETRY_FAILED_NORMAL)
 	b.T(S_NORMAL_FAILURE_THROTTLED, S_DRY_RUN_ACTIVE, F_SWITCH_TO_DRY_RUN)
 	b.T(S_NORMAL_FAILURE_THROTTLED, S_NORMAL_IDLE, F_CLOSE_FAILED)
 	b.T(S_NORMAL_FAILURE_THROTTLED, S_STOPPED, F_CLOSE_STOPPED)
+	b.T(S_NORMAL_FAILURE_THROTTLED, S_CURRENT_ROLL_MISSING, F_NOOP)
 	b.T(S_NORMAL_SAFETY_THROTTLED, S_NORMAL_IDLE, F_NOOP)
 	b.T(S_NORMAL_SAFETY_THROTTLED, S_NORMAL_SAFETY_THROTTLED, F_UPDATE_REPOS)
 	b.T(S_NORMAL_WAIT_FOR_WINDOW, S_NORMAL_WAIT_FOR_WINDOW, F_UPDATE_REPOS)
@@ -433,22 +443,30 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_DRY_RUN_ACTIVE, S_STOPPED, F_CLOSE_STOPPED)
 	b.T(S_DRY_RUN_ACTIVE, S_NORMAL_SUCCESS, F_NOOP)
 	b.T(S_DRY_RUN_ACTIVE, S_NORMAL_FAILURE, F_NOOP)
+	b.T(S_DRY_RUN_ACTIVE, S_CURRENT_ROLL_MISSING, F_NOOP)
 	b.T(S_DRY_RUN_SUCCESS, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_OUTDATED)
 	b.T(S_DRY_RUN_SUCCESS, S_DRY_RUN_SUCCESS_LEAVING_OPEN, F_NOOP)
+	b.T(S_DRY_RUN_SUCCESS, S_CURRENT_ROLL_MISSING, F_NOOP)
 	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_DRY_RUN_SUCCESS_LEAVING_OPEN, F_UPDATE_REPOS)
 	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_NORMAL_ACTIVE, F_SWITCH_TO_NORMAL)
 	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_STOPPED, F_CLOSE_STOPPED)
 	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_OUTDATED)
+	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_CURRENT_ROLL_MISSING, F_NOOP)
 	b.T(S_DRY_RUN_FAILURE, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_FAILED)
 	b.T(S_DRY_RUN_FAILURE, S_DRY_RUN_FAILURE_THROTTLED, F_NOTIFY_FAILURE_THROTTLE)
+	b.T(S_DRY_RUN_FAILURE, S_CURRENT_ROLL_MISSING, F_NOOP)
 	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_DRY_RUN_FAILURE_THROTTLED, F_UPDATE_ROLL)
 	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_DRY_RUN_IDLE, F_NOOP)
 	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_DRY_RUN_ACTIVE, F_RETRY_FAILED_DRY_RUN)
 	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_DRY_RUN_FAILURE, F_CLOSE_DRY_RUN_FAILED)
 	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_NORMAL_ACTIVE, F_SWITCH_TO_NORMAL)
 	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_STOPPED, F_CLOSE_STOPPED)
+	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_CURRENT_ROLL_MISSING, F_NOOP)
 	b.T(S_DRY_RUN_SAFETY_THROTTLED, S_DRY_RUN_IDLE, F_NOOP)
 	b.T(S_DRY_RUN_SAFETY_THROTTLED, S_DRY_RUN_SAFETY_THROTTLED, F_UPDATE_REPOS)
+
+	// Error; current roll is missing.
+	b.T(S_CURRENT_ROLL_MISSING, S_NORMAL_IDLE, F_ERROR_CURRENT_ROLL_MISSING)
 
 	// Build the state machine.
 	b.SetInitial(S_NORMAL_IDLE)
@@ -463,7 +481,15 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 // Get the next state.
 func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 	desiredMode := s.a.GetMode()
-	switch state := s.s.Current(); state {
+	state := s.s.Current()
+
+	// CAUTION: currentRoll may be nil, either because no active roll is
+	// expected in the current state, or because of inconsistencies in the
+	// DB due to server interruption. Each of the below cases should handle
+	// a nil currentRoll as appropriate for that state.
+	currentRoll := s.a.GetActiveRoll()
+
+	switch state {
 	case S_STOPPED:
 		switch desiredMode {
 		case modes.MODE_RUNNING:
@@ -501,7 +527,9 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			return S_NORMAL_ACTIVE, nil
 		}
 	case S_NORMAL_ACTIVE:
-		currentRoll := s.a.GetActiveRoll()
+		if currentRoll == nil {
+			return S_CURRENT_ROLL_MISSING, nil
+		}
 		if currentRoll.IsFinished() {
 			if currentRoll.IsSuccess() {
 				return S_NORMAL_SUCCESS, nil
@@ -520,6 +548,11 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			}
 		}
 	case S_NORMAL_SUCCESS:
+		if currentRoll == nil {
+			// currentRoll is not needed in this block, but the
+			// other transition funcs out of this state require it.
+			return S_CURRENT_ROLL_MISSING, nil
+		}
 		throttle := s.a.SuccessThrottle()
 		if err := throttle.Inc(ctx); err != nil {
 			return "", err
@@ -538,7 +571,9 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		}
 		return S_NORMAL_IDLE, nil
 	case S_NORMAL_FAILURE:
-		currentRoll := s.a.GetActiveRoll()
+		if currentRoll == nil {
+			return S_CURRENT_ROLL_MISSING, nil
+		}
 		if currentRoll.IsClosed() {
 			return S_NORMAL_IDLE, nil
 		}
@@ -546,7 +581,7 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		if err := throttle.Inc(ctx); err != nil {
 			return "", err
 		}
-		if s.a.GetNextRollRev() == s.a.GetActiveRoll().RollingTo() {
+		if s.a.GetNextRollRev() == currentRoll.RollingTo() {
 			// Rather than upload the same CL again, we'll try
 			// running the CQ again after a period of throttling.
 			if throttle.IsThrottled() {
@@ -555,14 +590,16 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		}
 		return S_NORMAL_IDLE, nil
 	case S_NORMAL_FAILURE_THROTTLED:
+		if currentRoll == nil {
+			return S_CURRENT_ROLL_MISSING, nil
+		}
 		// The roll may have been manually submitted.
-		currentRoll := s.a.GetActiveRoll()
 		if currentRoll.IsFinished() && currentRoll.IsSuccess() {
 			return S_NORMAL_SUCCESS, nil
 		}
 		if desiredMode == modes.MODE_STOPPED {
 			return S_STOPPED, nil
-		} else if s.a.GetNextRollRev() != s.a.GetActiveRoll().RollingTo() {
+		} else if s.a.GetNextRollRev() != currentRoll.RollingTo() {
 			return S_NORMAL_IDLE, nil
 		} else if desiredMode == modes.MODE_DRY_RUN {
 			return S_DRY_RUN_ACTIVE, nil
@@ -601,7 +638,9 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			return S_DRY_RUN_ACTIVE, nil
 		}
 	case S_DRY_RUN_ACTIVE:
-		currentRoll := s.a.GetActiveRoll()
+		if currentRoll == nil {
+			return S_CURRENT_ROLL_MISSING, nil
+		}
 		if currentRoll.IsDryRunFinished() {
 			if currentRoll.IsDryRunSuccess() {
 				return S_DRY_RUN_SUCCESS, nil
@@ -629,13 +668,19 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			}
 		}
 	case S_DRY_RUN_SUCCESS:
-		if s.a.GetNextRollRev() == s.a.GetActiveRoll().RollingTo() {
+		if currentRoll == nil {
+			return S_CURRENT_ROLL_MISSING, nil
+		}
+		if s.a.GetNextRollRev() == currentRoll.RollingTo() {
 			// The current dry run is for the commit we want. Leave
 			// it open so we can land it if we want.
 			return S_DRY_RUN_SUCCESS_LEAVING_OPEN, nil
 		}
 		return S_DRY_RUN_IDLE, nil
 	case S_DRY_RUN_SUCCESS_LEAVING_OPEN:
+		if currentRoll == nil {
+			return S_CURRENT_ROLL_MISSING, nil
+		}
 		if desiredMode == modes.MODE_RUNNING {
 			return S_NORMAL_ACTIVE, nil
 		} else if desiredMode == modes.MODE_STOPPED {
@@ -643,32 +688,36 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		} else if desiredMode != modes.MODE_DRY_RUN {
 			return "", fmt.Errorf("Invalid mode %q", desiredMode)
 		}
-
-		if s.a.GetNextRollRev() == s.a.GetActiveRoll().RollingTo() {
+		if s.a.GetNextRollRev() == currentRoll.RollingTo() {
 			// The current dry run is for the commit we want. Leave
 			// it open so we can land it if we want.
 			return S_DRY_RUN_SUCCESS_LEAVING_OPEN, nil
 		}
 		return S_DRY_RUN_IDLE, nil
 	case S_DRY_RUN_FAILURE:
+		if currentRoll == nil {
+			return S_CURRENT_ROLL_MISSING, nil
+		}
 		if err := s.a.FailureThrottle().Inc(ctx); err != nil {
 			return "", err
 		}
-		if s.a.GetNextRollRev() == s.a.GetActiveRoll().RollingTo() {
+		if s.a.GetNextRollRev() == currentRoll.RollingTo() {
 			// Rather than upload the same CL again, we'll try
 			// running the CQ again after a period of throttling.
 			return S_DRY_RUN_FAILURE_THROTTLED, nil
 		}
 		return S_DRY_RUN_IDLE, nil
 	case S_DRY_RUN_FAILURE_THROTTLED:
+		if currentRoll == nil {
+			return S_CURRENT_ROLL_MISSING, nil
+		}
 		// The roll may have been manually submitted.
-		currentRoll := s.a.GetActiveRoll()
 		if currentRoll.IsFinished() && currentRoll.IsSuccess() {
 			return S_DRY_RUN_IDLE, nil
 		}
 		if desiredMode == modes.MODE_STOPPED {
 			return S_STOPPED, nil
-		} else if s.a.GetNextRollRev() != s.a.GetActiveRoll().RollingTo() {
+		} else if s.a.GetNextRollRev() != currentRoll.RollingTo() {
 			return S_DRY_RUN_FAILURE, nil
 		} else if desiredMode == modes.MODE_RUNNING {
 			return S_NORMAL_ACTIVE, nil
@@ -681,6 +730,8 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			return S_DRY_RUN_SAFETY_THROTTLED, nil
 		}
 		return S_DRY_RUN_IDLE, nil
+	case S_CURRENT_ROLL_MISSING:
+		return S_NORMAL_IDLE, nil
 	default:
 		return "", fmt.Errorf("Invalid state %q", state)
 	}
