@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6cfc87ed_9db13fa7",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 485,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-07-24T16:27:54Z",
+      "side": 1,
+      "message": "Lets see if this takes a long time to do for some large checkouts.",
+      "revId": "4a601a50e6adb3f1ab914e2be282fe25963aeee5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
