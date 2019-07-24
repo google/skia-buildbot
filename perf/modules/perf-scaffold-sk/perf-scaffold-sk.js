@@ -1,0 +1,59 @@
+/**
+ * @module module/perf-scaffold-sk
+ * @description <h2><code>perf-scaffold-sk</code></h2>
+ *
+ * @evt
+ *
+ * @attr
+ *
+ * @example
+ */
+import { html, render } from 'lit-html'
+import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import 'elements-sk/nav-button-sk'
+import 'elements-sk/nav-links-sk'
+import 'elements-sk/icon/home-icon-sk'
+import 'elements-sk/icon/sort-icon-sk'
+import 'elements-sk/icon/trending-up-icon-sk'
+import 'elements-sk/icon/add-alert-icon-sk'
+import 'elements-sk/icon/build-icon-sk'
+import 'elements-sk/icon/event-icon-sk'
+import 'elements-sk/icon/help-icon-sk'
+import 'elements-sk/icon/folder-icon-sk'
+import '../../../infra-sk/modules/login-sk'
+
+const template = (ele) => html`
+  <nav>
+    <nav-button-sk></nav-button-sk>
+    <nav-links-sk>
+      <a href="/e/" tab-index=0 ><home-icon-sk></home-icon-sk><span>Home</span></a>
+      <a href="/c/" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering<span></a>
+      <a href="/t/" tab-index=0 ><trending-up-icon-sk></trending-up-icon-sk><span>Triage</span></a>
+      <a href="/a/" tab-index=0 ><add-alert-icon-sk></add-alert-icon-sk><span>Alerts</span></a>
+      <a href="/d/" tab-index=0 ><build-icon-sk></build-icon-sk><span>Dry Run</span></a>
+      <a href="/activitylog/" tab-index=0 ><event-icon-sk></event-icon-sk><span>Admin Log</span></a>
+      <a href="http://go/perf-user-doc" tab-index=0 ><help-icon-sk></help-icon-sk><span>Help</span></a>
+      <a href="https://github.com/google/skia-buildbot/tree/master/perf" tab-index=0 ><folder-icon-sk></folder-icon-sk><span>Code</span></a>
+    </nav-links-sk>
+    <div class=name>Perf</div>
+    <login-sk></login-sk>
+  </nav>
+  <main>
+  </main>
+  <error-toast-sk></error-toast-sk>
+`;
+
+window.customElements.define('perf-scaffold-sk', class extends ElementSk {
+  constructor() {
+    super(template);
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    this._render();
+  }
+
+  disconnectedCallback() {
+  }
+
+});
