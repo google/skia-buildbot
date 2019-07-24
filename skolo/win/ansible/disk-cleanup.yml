@@ -1,0 +1,72 @@
+---
+# Run disk cleanup on C.
+# Requires Ansible 2.7.
+- hosts: all
+  tasks:
+  - name: Set registry keys for automated disk cleanup
+    # Based on https://github.com/deekayen/ansible-role-cleanmgr/blob/master/tasks/main.yml which is
+    # in turn based on
+    # https://stackoverflow.com/questions/28852786/automate-process-of-disk-cleanup-cleanmgr-exe-without-user-intervention#35214197
+    win_regedit:
+      path: HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\{{ item }}
+      name: StateFlags0001
+      type: dword
+      data: 2
+      state: present
+    loop:
+      - Active Setup Temp Folders
+      - BranchCache
+      - Downloaded Program Files
+      - Internet Cache Files
+      - Memory Dump Files
+      - Old ChkDsk Files
+      - Previous Installations
+      - Recycle Bin
+      - Service Pack Cleanup
+      - Setup Log Files
+      - System error memory dump files
+      - System error minidump files
+      - Temporary Files
+      - Temporary Setup Files
+      - Thumbnail Cache
+      - Upgrade Discarded Files
+      - User file versions
+      - Windows Defender
+      - Windows Error Reporting Archive Files
+      - Windows Error Reporting Queue Files
+      - Windows Error Reporting System Archive Files
+      - Windows Error Reporting System Queue Files
+      - Windows ESD installation files
+      - Update Cleanup
+      - Windows Upgrade Log Files
+  - name: Start disk cleanup
+    # "-WindowStyle Hidden" seems to be necessary for CleanMgr.exe to start from the Ansible WRM
+    # connection.
+    win_shell:
+      Start-Process -FilePath CleanMgr.exe -ArgumentList /sagerun:1 -WindowStyle Hidden -Wait
+  - name: Wait for disk cleanup to finish (This can take a very long time -- timeout is 2 hours.)
+    win_wait_for_process:
+      process_name_exact:
+        - cleanmgr
+        - dismhost
+      state: absent
+      timeout: 7200
+  - name: Read DeepClean.log
+    slurp:
+      src: C:\Windows\Logs\CBS\DeepClean.log
+    register: deep_clean_log
+  - vars:
+      deep_clean_log_contents: "{{ deep_clean_log['content'] | b64decode }}"
+      deep_clean_line: " {{ deep_clean_log_contents |
+        regex_search('(Total size of superseded packages.*)') }}"
+    block:
+      - when: deep_clean_line
+        debug:
+          msg: "DeepClean.log contains: {{ deep_clean_line }}"
+      - when: not deep_clean_line
+        fail:
+          msg: "DeepClean.log does not contain expected line.\n{{ deep_clean_log_contents }}"
+  - name: Reboot to finish cleanup
+    # The Stack Overflow answer above seems to indicate a reboot is required to finish cleaning up
+    # some files.
+    win_reboot:
