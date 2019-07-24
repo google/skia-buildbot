@@ -103,7 +103,7 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 		return nil, err
 	}
 
-	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, wd, serverURL, nil, client, cr, local)
+	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, wd, serverURL, nil, client, cr, local)
 	if err != nil {
 		return nil, err
 	}
