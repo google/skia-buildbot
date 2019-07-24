@@ -16,6 +16,24 @@
       "revId": "4a601a50e6adb3f1ab914e2be282fe25963aeee5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fdc9ee70_39c501cb",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 485,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-07-24T16:34:01Z",
+      "side": 1,
+      "message": "Agreed, it may be problematic.  I shelled out to \"find\" rather than use filepath.Walk for the same reason.  Although manually deleting lockfiles is problematic too...",
+      "parentUuid": "6cfc87ed_9db13fa7",
+      "revId": "4a601a50e6adb3f1ab914e2be282fe25963aeee5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
