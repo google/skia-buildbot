@@ -82,7 +82,7 @@ func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, wor
 
 	wd := path.Join(workdir, "android_repo")
 
-	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, wd, serverURL, g, client, cr, local)
+	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, wd, serverURL, g, client, cr, local)
 	if err != nil {
 		return nil, err
 	}

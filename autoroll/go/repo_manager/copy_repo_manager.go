@@ -82,11 +82,12 @@ func newCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, workdir s
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, path.Join(workdir, "repo_manager"), recipeCfgFile, serverURL, g, client, cr, local)
+	wd := path.Join(workdir, "repo_manager")
+	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, wd, recipeCfgFile, serverURL, g, client, cr, local)
 	if err != nil {
 		return nil, err
 	}
-	childRepo, err := git.NewCheckout(ctx, c.ChildRepo, workdir)
+	childRepo, err := git.NewCheckout(ctx, c.ChildRepo, wd)
 	if err != nil {
 		return nil, err
 	}
