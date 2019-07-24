@@ -386,10 +386,10 @@ func (r *AutoRoller) unthrottle(ctx context.Context) error {
 }
 
 // See documentation for state_machine.AutoRollerImpl interface.
-func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to string, dryRun bool) error {
+func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to string, dryRun bool) (state_machine.RollCLImpl, error) {
 	issueNum, err := r.rm.CreateNewRoll(ctx, from, to, r.GetEmails(), strings.Join(r.cfg.CqExtraTrybots, ";"), dryRun)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	issue := &autoroll.AutoRollIssue{
 		Issue:       issueNum,
@@ -398,13 +398,13 @@ func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to string, dryRun 
 	}
 	roll, err := r.retrieveRoll(ctx, issue)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := roll.InsertIntoDB(ctx); err != nil {
-		return err
+		return nil, err
 	}
 	r.currentRoll = roll
-	return nil
+	return roll, nil
 }
 
 // Return a state_machine.Throttler indicating that we have failed to roll too many

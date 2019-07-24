@@ -7,6 +7,7 @@ package state_machine
 import (
 	"context"
 	"fmt"
+	"sort"
 	"sync"
 
 	"cloud.google.com/go/storage"
@@ -185,4 +186,18 @@ func (sm *StateMachine) GetTransitionName(dest string) (string, error) {
 		return "", fmt.Errorf("No transition defined from state %q to state %q", sm.current, dest)
 	}
 	return fName, nil
+}
+
+// ListStates returns the list of all states in the StateMachine.
+func (sm *StateMachine) ListStates() []string {
+	sm.mtx.RLock()
+	defer sm.mtx.RUnlock()
+	// Every state must have at least one transition defined from it, so we
+	// can use the keys in the outer transitions map to list the states.
+	rv := make([]string, 0, len(sm.transitions))
+	for state := range sm.transitions {
+		rv = append(rv, state)
+	}
+	sort.Strings(rv)
+	return rv
 }

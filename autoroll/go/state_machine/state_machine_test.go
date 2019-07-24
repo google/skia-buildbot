@@ -204,16 +204,16 @@ func NewTestAutoRollerImpl(t *testing.T, ctx context.Context, gcsClient gcs.GCSC
 }
 
 // See documentation for AutoRollerImpl.
-func (r *TestAutoRollerImpl) UploadNewRoll(ctx context.Context, from, to string, dryRun bool) error {
+func (r *TestAutoRollerImpl) UploadNewRoll(ctx context.Context, from, to string, dryRun bool) (RollCLImpl, error) {
 	if r.createNewRollError != nil {
-		return r.createNewRollError
+		return nil, r.createNewRollError
 	}
 	r.getActiveRollResult = r.createNewRollResult
 	if r.getActiveRollResult == nil {
 		r.getActiveRollResult = NewTestRollCLImpl(r.t, to, dryRun)
 	}
 	r.createNewRollResult = nil
-	return nil
+	return r.getActiveRollResult, nil
 }
 
 // Set the result of UploadNewRoll. If this is not called before UploadNewRoll,
@@ -225,6 +225,14 @@ func (r *TestAutoRollerImpl) SetUploadNewRollResult(roll *TestRollCLImpl, err er
 
 // See documentation for AutoRollerImpl.
 func (r *TestAutoRollerImpl) GetActiveRoll() RollCLImpl {
+	// Return raw nil if r.getActiveRollResult is nil. This prevents breaks
+	// because we check whether `AutoRollerImpl.GetActiveRoll() == nil`
+	// is true in the state machine; simply `return r.getActiveRollResult`
+	// would return a RollCLImpl interface instance which contains nil,
+	// as opposed to nil itself, and the equality check would return false.
+	if r.getActiveRollResult == nil {
+		return nil
+	}
 	return r.getActiveRollResult
 }
 
@@ -803,4 +811,26 @@ func TestSuccessThrottle(t *testing.T) {
 	assert.NoError(t, err)
 	r.successThrottle = successThrottle
 	checkNextState(t, sm, S_NORMAL_IDLE)
+}
+
+func TestNilCurrentRoll(t *testing.T) {
+	ctx, sm, r, gcsClient, cleanup := setup(t)
+	defer cleanup()
+
+	// Verify that every state in the state machine handles a nil current
+	// roll without crashing.
+	states := sm.s.ListStates()
+	assert.Equal(t, 17, len(states))
+	stateFile := "test-roller/state_machine"
+	n, err := notifier.New(ctx, "fake", "fake", "fake", nil, nil, nil, nil)
+	assert.NoError(t, err)
+
+	for _, state := range states {
+		assert.NoError(t, gcsClient.SetFileContents(ctx, stateFile, gcs.FILE_WRITE_OPTS_TEXT, []byte(state)))
+		sm, err := New(ctx, r, n, gcsClient, "test-roller")
+		assert.NoError(t, err)
+		assert.Equal(t, state, sm.Current())
+		assert.True(t, r.GetActiveRoll() == nil) // As opposed to typed nil.
+		assert.NoError(t, sm.NextTransition(ctx))
+	}
 }
