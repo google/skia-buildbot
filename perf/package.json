@@ -20,7 +20,7 @@
     "chartjs-plugin-zoom": "^0.7.0",
     "common-sk": "^3.2.0",
     "cssmin": "",
-    "elements-sk": "2.9.1",
+    "elements-sk": "2.9.2",
     "elix": "^6.0.3",
     "html-minifier": "~3.5.21",
     "karma": "~3.1.4",
