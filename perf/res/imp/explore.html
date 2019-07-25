@@ -20,7 +20,6 @@
 <link rel="import" href="/res/imp/bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
 
-<link rel="import" href="/res/common/imp/paramset.html" />
 <link rel="stylesheet" href="/res/common/css/md.css">
 
 <dom-module id="explore-sk">
@@ -215,10 +214,10 @@
         </div>
         <div>
           <paper-input floatingLabel label="Trace ID" readonly id=trace_id></paper-input>
-          <paramset-sk id=paramset class=hidden clickable-values></paramset-sk>
+          <paramset-sk id=paramset class=hidden clickable_values></paramset-sk>
         </div>
         <div id=details class="layout horizontal wrap hidden">
-          <paramset-sk id=simple_paramset clickable-values></paramset-sk>
+          <paramset-sk id=simple_paramset clickable_values></paramset-sk>
           <div class="layout vertical">
             <commit-detail-panel-sk id=commits></commit-detail-panel-sk>
             <json-source-sk id=jsonsource></json-source-sk>
@@ -356,8 +355,7 @@
 
         // Reflect the focused trace in the paramset.
         this.$.plot.addEventListener("trace_focused", function(e) {
-          this.$.paramset.clearHighlight();
-          this.$.paramset.setHighlight(sk.key.toObject(e.detail.id));
+          this.$.paramset.highlight = sk.key.toObject(e.detail.id);
           this.$.trace_id.value = e.detail.id;
         }.bind(this));
 
@@ -394,7 +392,9 @@
           sk.post("/_/cid/", JSON.stringify(commits)).then(JSON.parse).then(function(json){
             this.$.commits.details = json;
             this.$.commitsTab.disabled = false;
-            this.$.simple_paramset.setParamSets([paramset]);
+            this.$.simple_paramset.paramsets = {
+              paramsets: [paramset],
+            };
             this.$.detailtab.selected = 2;
             this.$.jsonsource.cid = commits[0];
             this.$.jsonsource.traceid = e.detail.id;
@@ -674,7 +674,9 @@
 
 
         // Populate the paramset element.
-        this.$.paramset.setParamSets([dataframe.paramset]);
+        this.$.paramset.paramsets = {
+          paramsets: [dataframe.paramset],
+        };
         if (tab) {
           this.$.detailtab.selected = 1;
         }
