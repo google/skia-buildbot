@@ -164,7 +164,7 @@ func loadTemplates() {
 // in Javascript under the sk.perf variable.
 type SkPerfConfig struct {
 	Radius         int      `json:"radius"`           // The number of commits when doing clustering.
-	KeyOrder       []string `json:"key_order"`        // The order of the keys to appear first in query2-sk elements.
+	KeyOrder       []string `json:"key_order"`        // The order of the keys to appear first in query-sk elements.
 	NumShift       int      `json:"num_shift"`        // The number of commits the shift navigation buttons should jump.
 	Interesting    float32  `json:"interesting"`      // The threshold for a cluster to be interesting.
 	StepUpOnly     bool     `json:"step_up_only"`     // If true then only regressions that are a step up are displayed.
