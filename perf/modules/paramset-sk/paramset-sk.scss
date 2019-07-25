@@ -1,0 +1,69 @@
+@import '~elements-sk/colors';
+
+paramset-sk {
+  td,
+  th {
+    padding: 0.1em;
+  }
+
+  th {
+    text-align: left;
+  }
+
+  div {
+    display: inline-block;
+    padding: 0.2em;
+  }
+
+  .clickable th,
+  .clickable div {
+    cursor: pointer;
+    color: var(--blue);
+  }
+
+  .clickable th:hover,
+  .clickable div:hover {
+    text-decoration: underline;
+  }
+
+  .clickable_values div {
+    cursor: pointer;
+    color: var(--blue);
+  }
+
+  .clickable_values div.highlight {
+    color: var(--blue);
+    animation-duration: 100ms;
+    animation-name: flash;
+    animation-timing-function: linear;
+  }
+
+  .clickable_values div:hover {
+    text-decoration: underline;
+  }
+
+  :host {
+    display: block;
+  }
+
+  .clickable .highlight,
+  .highlight {
+    color: var(--orange);
+    animation-duration: 200ms;
+    animation-name: flash;
+    animation-timing-function: ease-in-out;
+  }
+
+  @keyframes flash {
+    from {
+      background-color: var(--white);
+    }
+    to {
+      background-color: var(--orange);
+    }
+  }
+
+  tr:nth-child(even) {
+    background-color: var(--dark-white);
+  }
+}
