@@ -19,7 +19,6 @@
 <link rel="import" href="/res/imp/bower_components/iron-selector/iron-selector.html">
 
 <link rel="import" href="/res/common/imp/details-summary.html">
-<link rel="import" href="/res/common/imp/query2-sk.html" />
 <link rel="import" href="/res/common/imp/sort.html" />
 <link rel="stylesheet" href="/res/common/css/md.css">
 
@@ -110,7 +109,7 @@
 
     <h2>Query</h2>
     <div class="layout horizontal">
-      <query2-sk id=query on-query-change="_queryChange" on-query-change-delayed="_queryChangeDelayed"></query2-sk>
+      <query-sk id=query on-query-change="_queryChange" on-query-change-delayed="_queryChangeDelayed"></query-sk>
       <div class="layout vertical" id=selections>
         <h3>Selections</h3>
         <query-summary-sk id=summary></query-summary-sk>
@@ -214,8 +213,8 @@
     ready: function() {
       var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       sk.get("/_/initpage/?tz=" + tz).then(JSON.parse).then(function(json) {
-        this.$.query.setKeyOrder(sk.perf.key_order);
-        this.$.query.setParamset(json.dataframe.paramset);
+        this.$.query.key_order = sk.perf.key_order;
+        this.$.query.paramset = json.dataframe.paramset;
       }.bind(this)).catch(sk.errorMessage);
 
 
@@ -303,7 +302,7 @@
     _updateCommitSelections: function() {
       this.$.range.begin = this.state.begin;
       this.$.range.end = this.state.end;
-      this.$.query.setCurrentQuery(this.state.query);
+      this.$.query.current_query = this.state.query;
       var body = {
         begin: this.state.begin,
         end: this.state.end,
@@ -382,7 +381,7 @@
         this._countInProgress = false;
         this.$.matches.textContent = json.count;
         if (json.paramset) {
-          this.$.query.setParamset(json.paramset);
+          this.$.query.paramset = json.paramset;
         }
       }.bind(this)).catch(function() {
         this._countInProgress = false;

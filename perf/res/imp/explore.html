@@ -20,7 +20,6 @@
 <link rel="import" href="/res/imp/bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
 
-<link rel="import" href="/res/common/imp/query2-sk.html" />
 <link rel="import" href="/res/common/imp/paramset.html" />
 <link rel="stylesheet" href="/res/common/css/md.css">
 
@@ -195,7 +194,7 @@
       <div id=detail>
         <div id=queryTab class="layout vertical">
           <div class="layout horizontal">
-            <query2-sk id=query></query2-sk>
+            <query-sk id=query></query-sk>
             <div class="layout vertical" id=selections>
               <h3>Selections</h3>
               <query-summary-sk id=summary></query-summary-sk>
@@ -322,8 +321,8 @@
           this.state.end   = now;
           this.$.range.state = this.state;
 
-          this.$.query.setKeyOrder(sk.perf.key_order);
-          this.$.query.setParamset(json.dataframe.paramset);
+          this.$.query.key_order = sk.perf.key_order;
+          this.$.query.paramset = json.dataframe.paramset;
 
           // Remove the paramset so it doesn't get displayed in the Params tab.
           json.dataframe.paramset = {};
@@ -541,7 +540,7 @@
           this.$.matches.textContent = json.count;
 
           if (json.paramset) {
-            this.$.query.setParamset(json.paramset);
+            this.$.query.paramset = json.paramset;
           }
         }.bind(this)).catch(function() {
           this._countInProgress = false;

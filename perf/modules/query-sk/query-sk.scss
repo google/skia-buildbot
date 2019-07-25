@@ -1,0 +1,41 @@
+@import '~elements-sk/colors';
+
+query-sk {
+  display: block;
+
+  button {
+    padding: 0.4em;
+    height: initial;
+    text-transform: initial;
+  }
+
+  .selection {
+    display: inline-block;
+  }
+
+  query-values-sk {
+    display: inline-block;
+    margin: 0 1em;
+  }
+
+  select-sk {
+    display: block;
+    max-height: 20em;
+    overflow-y: auto;
+  }
+
+  multi-select-sk {
+    min-width: 10em;
+  }
+
+  .bottom {
+    display: flex;
+  }
+
+  multi-select-sk div,
+  select-sk div {
+    line-height: 14px;
+    cursor: pointer;
+  }
+}
+

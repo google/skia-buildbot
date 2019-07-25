@@ -1,25 +1,31 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <title>query2-sk demo</title>
-  <meta charset="utf-8">
+  <title>query-sk</title>
+  <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
-  <script src="/res/common/js/common.js"></script>
-  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
-  <link rel=import href="query2-sk.html">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-  <h1>Query2</h1>
-
-  <query2-sk id=basic></query2-sk>
-  <p>
-    <b>Query String:</b>
-    <query-summary-sk id=q selection=""></query-summary-sk>
-    <query-summary-sk id=q-delayed selection=""></query-summary-sk>
+  <h1>query-sk</h1>
+  <query-sk></query-sk>
+  <h2>Actions</h2>
+  <div>
     <button id=swap>Swap Paramset</button>
-  </p>
+  </div>
 
+  <h2>Events</h2>
+  <pre id=events></pre>
+  <query-summary-sk></query-summary-sk>
   <script type="text/javascript" charset="utf-8">
+    const q = document.querySelector('query-sk');
+    const summary = document.querySelector('query-summary-sk');
+    const events = document.querySelector('#events');
+    q.addEventListener('query-change', (e) => {
+      events.textContent = JSON.stringify(e.detail, null, '  ');
+      summary.selection = e.detail.q;
+    });
+
     var n = 0;
     var paramset = {
         "config": ["565", "8888"],
@@ -51,25 +57,12 @@
           "DeferredSurfaceCopy_nonDiscardable",
         ],
       };
-    $$$('#basic').setParamset(paramset);
-    setTimeout(function() {
-      $$$('#basic').setCurrentQuery("config=565&type=GPU");
-      $$$('#q').selection = $$$('#basic').current_query;
-    }, 10);
+    q.paramset = paramset;
+    q.key_order = ['test', 'units'];
 
-    $$$('#basic').addEventListener('query-change', function(e){
-      $$$('#q').selection = e.detail.q;
-      console.log('query-change');
-    });
-
-    $$$('#basic').addEventListener('query-change-delayed', function(e){
-      $$$('#q-delayed').selection = e.detail.q;
-      console.log('query-change-delayed');
-    });
-
-    $$$('#swap').addEventListener('click', function(e){
+    document.querySelector('#swap').addEventListener('click', function(e){
       n = (n + 1) % 2;
-      $$$('#basic').setParamset([paramset, paramset2][n]);
+      q.paramset = [paramset, paramset2][n];
     });
 
   </script>
