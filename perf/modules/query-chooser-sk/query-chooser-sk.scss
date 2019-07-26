@@ -1,0 +1,32 @@
+@import '~elements-sk/colors';
+
+query-chooser-sk {
+  query-summary-sk {
+    display: inline-block;
+    margin-left: 1em;
+  }
+
+  query-count-sk {
+    display: inline-block;
+  }
+
+  .matches {
+    margin: 0.6em;
+    font-weight: bold;
+  }
+
+  #dialog {
+    display: none;
+    padding: 1em;
+    margin: 1em;
+    border: solid lightgray 1px;
+  }
+
+  #dialog.display {
+    display: block;
+  }
+
+  #edit {
+    display: inline-block;
+  }
+}
