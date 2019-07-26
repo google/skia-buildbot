@@ -18,7 +18,6 @@
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
 
-<link rel="import" href="/res/common/imp/query2-chooser.html" />
 <link rel="stylesheet" href="/res/common/css/md.css">
 
 <dom-module id="alert-config-sk">
@@ -106,7 +105,9 @@
     <h3>Category</h3>
     <paper-input value="{{config.category}}"                               label="Alerts will be grouped by category."></paper-input>
     <h3>Which traces should be monitored</h3>
-    <query2-chooser-sk id=querychooser paramset="{{paramset}}" current_query="{{config.query}}"></query2-chooser-sk>
+    <query-chooser-sk id=querychooser paramset="[[paramset]]"
+      current_query="[[config.query]]" count_url='/_/count/'
+      on-query-change=_queryChange></query-chooser-sk>
     <h3>What triggers an alert</h3>
     <h4>Algorithm</h4>
     <algo-select-sk on-algo-change=_onAlgoChange algo="[[config.algo]]"></algo-select-sk>
@@ -181,7 +182,7 @@
     },
 
     ready: function() {
-      this.$.querychooser.query.key_order = sk.perf.key_order;
+      this.$.querychooser.key_order = sk.perf.key_order;
     },
 
     _onAlgoChange: function(e) {
@@ -192,6 +193,10 @@
       var keys = Object.keys(this.paramset);
       keys.sort();
       this.set('_paramkeys', keys);
+    },
+
+    _queryChange: function(e) {
+      this.set('config.query', e.detail.q)
     },
 
     _testBugTemplate: function() {
