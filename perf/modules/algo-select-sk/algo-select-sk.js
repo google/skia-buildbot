@@ -67,7 +67,6 @@ window.customElements.define('algo-select-sk', class extends ElementSk {
   get algo() { return this.getAttribute('algo'); }
   set algo(val) {
     this.setAttribute('algo', val);
-    this._render();
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
