@@ -1,0 +1,43 @@
+@import '~elements-sk/colors';
+
+alert-config-sk {
+  h3, h4 {
+    margin: 1em 0 0.2em 0;
+  }
+
+  algo-select-sk {
+    display: block;
+  }
+
+  button {
+    padding: 0.4em;
+    height: initial;
+    text-transform: initial;
+  }
+
+  h4 {
+    margin-left: 2em;
+  }
+}
+
+alert-config-sk > input {
+  display: block;
+}
+
+alert-config-sk > input,
+alert-config-sk > checkbox-sk,
+alert-config-sk > select-sk,
+alert-config-sk > multi-select-sk,
+alert-config-sk > algo-select-sk {
+  margin-left: 3em;
+}
+
+alert-config-sk > label {
+    font-size: 12px;
+    font-weight: normal;
+    line-height: 20px;
+    color: var(--blue);
+    padding: 0.4em;
+    margin-left: 3em;
+    display: block;
+  }
