@@ -15,7 +15,7 @@ require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/VividCortex/godaemon v0.0.0-20150910212227-3d9f6e0b234f
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.21.5 // indirect
+	github.com/aws/aws-sdk-go v1.21.6 // indirect
 	github.com/boltdb/bolt v1.3.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/codegangsta/negroni v1.0.0 // indirect
@@ -58,7 +58,7 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.9.5 // indirect
 	github.com/hashicorp/go-multierror v1.0.0
-	github.com/hashicorp/golang-lru v0.5.1
+	github.com/hashicorp/golang-lru v0.5.3
 	github.com/huandu/xstrings v1.2.0 // indirect
 	github.com/huin/goserial v0.0.0-20121012073615-7b90efdb22b1
 	github.com/imdario/mergo v0.3.7 // indirect
@@ -120,8 +120,8 @@ require (
 	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	golang.org/x/sys v0.0.0-20190726002231-94b544f455ef // indirect
-	golang.org/x/tools v0.0.0-20190725161231-2e34cfcb95cb // indirect
+	golang.org/x/sys v0.0.0-20190726091711-fc99dfbffb4e // indirect
+	golang.org/x/tools v0.0.0-20190726230722-1bd56024c620 // indirect
 	golang.org/x/tools/gopls v0.1.3 // indirect
 	google.golang.org/api v0.7.0
 	google.golang.org/genproto v0.0.0-20190716160619-c506a9f90610
