@@ -121,7 +121,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	golang.org/x/sys v0.0.0-20190726091711-fc99dfbffb4e // indirect
-	golang.org/x/tools v0.0.0-20190726230722-1bd56024c620 // indirect
+	golang.org/x/tools v0.0.0-20190727173135-db2fa46ec33c // indirect
 	golang.org/x/tools/gopls v0.1.3 // indirect
 	google.golang.org/api v0.7.0
 	google.golang.org/genproto v0.0.0-20190716160619-c506a9f90610
@@ -134,7 +134,7 @@ require (
 	gopkg.in/yaml.v2 v2.2.2
 	honnef.co/go/tools v0.0.0-20190623190502-86b08b5391b7 // indirect
 	k8s.io/api v0.0.0-20190726022912-69e1bce1dad5 // indirect
-	k8s.io/apimachinery v0.0.0-20190726022757-641a75999153
+	k8s.io/apimachinery v0.0.0-20190727130956-f97a4e5b4abc
 	k8s.io/client-go v0.0.0-20190425172711-65184652c889
 	k8s.io/gengo v0.0.0-20190327210449-e17681d19d3a // indirect
 	k8s.io/klog v0.3.3 // indirect
