@@ -80,6 +80,7 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, strateg
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockGetCommit(ctx, childCommits[0])
 
 	rm, err := NewNoCheckoutDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", "", urlmock.Client(), gerritCR(t, g), false)
 	assert.NoError(t, err)
@@ -118,10 +119,11 @@ func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockGetCommit(ctx, childCommits[0])
 	nextRollRev := childCommits[len(childCommits)-1]
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, rm.LastRollRev(), childCommits[0])
-	assert.Equal(t, rm.NextRollRev(), nextRollRev)
+	assert.Equal(t, rm.LastRollRev().Id, childCommits[0])
+	assert.Equal(t, rm.NextRollRev().Id, nextRollRev)
 	assert.Equal(t, len(rm.NotRolledRevisions()), len(childCommits)-1)
 }
 
@@ -135,24 +137,27 @@ func TestNoCheckoutDEPSRepoManagerStrategies(t *testing.T) {
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockGetCommit(ctx, childCommits[0])
 	nextRollRev := childCommits[1]
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, rm.NextRollRev(), nextRollRev)
+	assert.Equal(t, rm.NextRollRev().Id, nextRollRev)
 
 	// Switch next-roll-rev strategies.
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	mockParent.MockGetCommit(ctx, "master")
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockGetCommit(ctx, childCommits[0])
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
+	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
 	// And back again.
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_SINGLE))
 	mockParent.MockGetCommit(ctx, "master")
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockGetCommit(ctx, childCommits[0])
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, childCommits[1], rm.NextRollRev())
+	assert.Equal(t, childCommits[1], rm.NextRollRev().Id)
 }
 
 func TestNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T) {
@@ -165,6 +170,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockGetCommit(ctx, childCommits[0])
 	nextRollRev := childCommits[len(childCommits)-1]
 	assert.NoError(t, rm.Update(ctx))
 
@@ -280,6 +286,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockGetCommit(ctx, childCommits[0])
 	nextRollRev := childCommits[len(childCommits)-1]
 	assert.NoError(t, rm.Update(ctx))
 
@@ -289,7 +296,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 
 	// Mock the request to retrieve the child's DEPS file.
-	mockChild.MockReadFile(ctx, "DEPS", rm.NextRollRev())
+	mockChild.MockReadFile(ctx, "DEPS", rm.NextRollRev().Id)
 
 	// Mock the initial change creation.
 	logStr := ""

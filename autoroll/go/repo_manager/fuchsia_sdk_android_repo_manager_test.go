@@ -155,8 +155,8 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	ctx, wd, rm, urlmock, mockParent, parent, cleanup := setupFuchsiaSDKAndroid(t)
 	defer cleanup()
 
-	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev())
-	assert.Equal(t, fuchsiaSDKRevBase, rm.NextRollRev())
+	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev().Id)
+	assert.Equal(t, fuchsiaSDKRevBase, rm.NextRollRev().Id)
 	rolledPast, err := rm.RolledPast(ctx, fuchsiaSDKRevPrev)
 	assert.NoError(t, err)
 	assert.True(t, rolledPast)
@@ -180,8 +180,8 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	mockDownloadSDK(t, urlmock, fuchsiaSDKRevNext, wd)
 
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev())
-	assert.Equal(t, fuchsiaSDKRevNext, rm.NextRollRev())
+	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev().Id)
+	assert.Equal(t, fuchsiaSDKRevNext, rm.NextRollRev().Id)
 	rolledPast, err = rm.RolledPast(ctx, fuchsiaSDKRevPrev)
 	assert.NoError(t, err)
 	assert.True(t, rolledPast)
@@ -197,8 +197,8 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	// Upload a CL.
 
 	// Mock the initial change creation.
-	from := fuchsiaSDKShortVersion(rm.LastRollRev())
-	to := fuchsiaSDKShortVersion(rm.NextRollRev())
+	from := rm.LastRollRev()
+	to := rm.NextRollRev()
 	commitMsg := fmt.Sprintf(FUCHSIA_SDK_COMMIT_MSG_TMPL, from, to, "fake.server.com")
 	commitMsg += "\nTBR=reviewer@chromium.org"
 	commitMsg += "\nExempt-From-Owner-Approval: The autoroll bot does not require owner approval."
@@ -225,7 +225,7 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:message", mockhttpclient.MockPutDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to modify the version files.
-	reqBody = []byte(rm.NextRollRev())
+	reqBody = []byte(rm.NextRollRev().Id)
 	reqUrl := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(FUCHSIA_SDK_ANDROID_VERSION_FILE))
 	urlmock.MockOnce(reqUrl, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 	reqBody = []byte("hi")

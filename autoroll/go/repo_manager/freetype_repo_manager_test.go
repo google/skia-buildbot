@@ -111,6 +111,7 @@ func setupFreeType(t *testing.T, strategy string) (context.Context, string, Repo
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockGetCommit(ctx, childCommits[0])
 
 	rm, err := NewFreeTypeRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", "", urlmock.Client(), gerritCR(t, g), false)
 	assert.NoError(t, err)
@@ -135,10 +136,11 @@ func TestFreeTypeRepoManagerUpdate(t *testing.T) {
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockGetCommit(ctx, childCommits[0])
 	nextRollRev := childCommits[len(childCommits)-1]
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, rm.LastRollRev(), childCommits[0])
-	assert.Equal(t, rm.NextRollRev(), nextRollRev)
+	assert.Equal(t, rm.LastRollRev().Id, childCommits[0])
+	assert.Equal(t, rm.NextRollRev().Id, nextRollRev)
 	assert.Equal(t, len(rm.NotRolledRevisions()), len(childCommits)-1)
 }
 
@@ -151,24 +153,27 @@ func TestFreeTypeRepoManagerStrategies(t *testing.T) {
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockGetCommit(ctx, childCommits[0])
 	nextRollRev := childCommits[1]
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, rm.NextRollRev(), nextRollRev)
+	assert.Equal(t, rm.NextRollRev().Id, nextRollRev)
 
 	// Switch next-roll-rev strategies.
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	mockParent.MockGetCommit(ctx, "master")
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockGetCommit(ctx, childCommits[0])
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
+	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
 	// And back again.
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_SINGLE))
 	mockParent.MockGetCommit(ctx, "master")
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockGetCommit(ctx, childCommits[0])
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, childCommits[1], rm.NextRollRev())
+	assert.Equal(t, childCommits[1], rm.NextRollRev().Id)
 }
 
 func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
@@ -180,6 +185,7 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockGetCommit(ctx, childCommits[0])
 	nextRollRev := childCommits[len(childCommits)-1]
 	assert.NoError(t, rm.Update(ctx))
 

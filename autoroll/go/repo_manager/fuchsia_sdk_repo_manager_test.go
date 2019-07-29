@@ -121,8 +121,8 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	ctx, rm, urlmock, mockParent, parent, cleanup := setupFuchsiaSDK(t)
 	defer cleanup()
 
-	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev())
-	assert.Equal(t, fuchsiaSDKRevBase, rm.NextRollRev())
+	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev().Id)
+	assert.Equal(t, fuchsiaSDKRevBase, rm.NextRollRev().Id)
 	rolledPast, err := rm.RolledPast(ctx, fuchsiaSDKRevPrev)
 	assert.NoError(t, err)
 	assert.True(t, rolledPast)
@@ -145,8 +145,8 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	})
 	mockGetLatestSDK(urlmock, FUCHSIA_SDK_GS_LATEST_PATH_LINUX, FUCHSIA_SDK_GS_LATEST_PATH_MAC, fuchsiaSDKRevNext, "mac-next")
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev())
-	assert.Equal(t, fuchsiaSDKRevNext, rm.NextRollRev())
+	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev().Id)
+	assert.Equal(t, fuchsiaSDKRevNext, rm.NextRollRev().Id)
 	rolledPast, err = rm.RolledPast(ctx, fuchsiaSDKRevPrev)
 	assert.NoError(t, err)
 	assert.True(t, rolledPast)
@@ -162,8 +162,8 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	// Upload a CL.
 
 	// Mock the initial change creation.
-	from := fuchsiaSDKShortVersion(rm.LastRollRev())
-	to := fuchsiaSDKShortVersion(rm.NextRollRev())
+	from := rm.LastRollRev()
+	to := rm.NextRollRev()
 	commitMsg := fmt.Sprintf(FUCHSIA_SDK_COMMIT_MSG_TMPL, from, to, "fake.server.com")
 	commitMsg += "\nTBR=reviewer@chromium.org"
 	subject := strings.Split(commitMsg, "\n")[0]
@@ -189,7 +189,7 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:message", mockhttpclient.MockPutDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to modify the version files.
-	reqBody = []byte(rm.NextRollRev())
+	reqBody = []byte(rm.NextRollRev().Id)
 	reqUrl := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(FUCHSIA_SDK_VERSION_FILE_PATH_LINUX))
 	urlmock.MockOnce(reqUrl, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 	reqBody = []byte(rm.(*fuchsiaSDKRepoManager).nextRollRevMac)

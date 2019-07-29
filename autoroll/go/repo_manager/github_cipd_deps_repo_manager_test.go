@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	cipd_api "go.chromium.org/luci/cipd/client/cipd"
+
 	assert "github.com/stretchr/testify/require"
 	"go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/common"
@@ -27,9 +29,9 @@ const (
 	GITHUB_CIPD_ASSET_NAME      = "test/cipd/name"
 	GITHUB_CIPD_ASSET_TAG       = "latest"
 
-	LAST_ROLLED  = "xyz12345"
-	NOT_ROLLED_1 = "abc12345"
-	NOT_ROLLED_2 = "def12345"
+	GITHUB_CIPD_LAST_ROLLED  = "xyz12345"
+	GITHUB_CIPD_NOT_ROLLED_1 = "abc12345"
+	GITHUB_CIPD_NOT_ROLLED_2 = "def12345"
 )
 
 func githubCipdDEPSRmCfg() *GithubCipdDEPSRepoManagerConfig {
@@ -67,7 +69,7 @@ deps = {
 	  }
 	],
   },
-}`, GITHUB_CIPD_DEPS_CHILD_PATH, GITHUB_CIPD_ASSET_NAME, LAST_ROLLED))
+}`, GITHUB_CIPD_DEPS_CHILD_PATH, GITHUB_CIPD_ASSET_NAME, GITHUB_CIPD_LAST_ROLLED))
 	parent.Commit(context.Background())
 
 	mockRun := &exec.CommandCollector{}
@@ -101,41 +103,48 @@ func (e *instanceEnumeratorImpl) Next(ctx context.Context, limit int) ([]cipd.In
 	if e.done {
 		return nil, nil
 	}
-	instances := []cipd.InstanceInfo{}
 	instance0 := cipd.InstanceInfo{
 		Pin: common.Pin{
 			PackageName: GITHUB_CIPD_ASSET_NAME,
-			InstanceID:  LAST_ROLLED,
+			InstanceID:  GITHUB_CIPD_LAST_ROLLED,
 		},
 		RegisteredBy: "aquaman@ocean.com",
 	}
 	instance1 := cipd.InstanceInfo{
 		Pin: common.Pin{
 			PackageName: GITHUB_CIPD_ASSET_NAME,
-			InstanceID:  NOT_ROLLED_1,
+			InstanceID:  GITHUB_CIPD_NOT_ROLLED_1,
 		},
 		RegisteredBy: "superman@krypton.com",
 	}
 	instance2 := cipd.InstanceInfo{
 		Pin: common.Pin{
 			PackageName: GITHUB_CIPD_ASSET_NAME,
-			InstanceID:  NOT_ROLLED_2,
+			InstanceID:  GITHUB_CIPD_NOT_ROLLED_2,
 		},
 		RegisteredBy: "batman@gotham.com",
 	}
-	instances = append(instances, instance0, instance1, instance2)
 	e.done = true
-	return instances, nil
+	return []cipd.InstanceInfo{instance2, instance1, instance0}, nil
 }
 
 func getCipdMock(ctx context.Context) *mocks.CIPDClient {
 	cipdClient := &mocks.CIPDClient{}
 	head := common.Pin{
 		PackageName: "test/cipd/name",
-		InstanceID:  NOT_ROLLED_1,
+		InstanceID:  GITHUB_CIPD_NOT_ROLLED_1,
 	}
 	cipdClient.On("ResolveVersion", ctx, GITHUB_CIPD_ASSET_NAME, GITHUB_CIPD_ASSET_TAG).Return(head, nil).Once()
 	cipdClient.On("ListInstances", ctx, GITHUB_CIPD_ASSET_NAME).Return(&instanceEnumeratorImpl{}, nil).Once()
+	cipdClient.On("Describe", ctx, GITHUB_CIPD_ASSET_NAME, GITHUB_CIPD_LAST_ROLLED).Return(&cipd_api.InstanceDescription{
+		InstanceInfo: cipd_api.InstanceInfo{
+			Pin: common.Pin{
+				PackageName: GITHUB_CIPD_ASSET_NAME,
+				InstanceID:  GITHUB_CIPD_LAST_ROLLED,
+			},
+			RegisteredBy: "aquaman@ocean.com",
+		},
+	}, nil).Once()
 	return cipdClient
 }
 
@@ -157,13 +166,11 @@ func TestGithubCipdDEPSRepoManager(t *testing.T) {
 	assert.NoError(t, rm.Update(ctx))
 
 	// Assert last roll, next roll and not rolled yet.
-	assert.Equal(t, LAST_ROLLED, rm.LastRollRev())
-	assert.Equal(t, NOT_ROLLED_1, rm.NextRollRev())
-	assert.Equal(t, 2, len(rm.NotRolledRevisions()))
-	assert.Equal(t, NOT_ROLLED_1, rm.NotRolledRevisions()[0].Id)
-	assert.Equal(t, fmt.Sprintf("%s:%s", GITHUB_CIPD_ASSET_NAME, NOT_ROLLED_1), rm.NotRolledRevisions()[0].Display)
-	assert.Equal(t, NOT_ROLLED_2, rm.NotRolledRevisions()[1].Id)
-	assert.Equal(t, fmt.Sprintf("%s:%s", GITHUB_CIPD_ASSET_NAME, NOT_ROLLED_2), rm.NotRolledRevisions()[1].Display)
+	assert.Equal(t, GITHUB_CIPD_LAST_ROLLED, rm.LastRollRev().Id)
+	assert.Equal(t, GITHUB_CIPD_NOT_ROLLED_1, rm.NextRollRev().Id)
+	assert.Equal(t, 1, len(rm.NotRolledRevisions()))
+	assert.Equal(t, GITHUB_CIPD_NOT_ROLLED_1, rm.NotRolledRevisions()[0].Id)
+	assert.Equal(t, fmt.Sprintf("%s:%s", GITHUB_CIPD_ASSET_NAME, GITHUB_CIPD_NOT_ROLLED_1), rm.NotRolledRevisions()[0].Display)
 }
 
 func TestCreateNewGithubCipdDEPSRoll(t *testing.T) {
@@ -183,7 +190,7 @@ func TestCreateNewGithubCipdDEPSRoll(t *testing.T) {
 	assert.NoError(t, rm.Update(ctx))
 
 	// Create a roll.
-	mockGithubRequests(t, urlMock, rm.LastRollRev(), rm.NextRollRev(), len(rm.NotRolledRevisions()))
+	mockGithubRequests(t, urlMock)
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
@@ -215,7 +222,7 @@ func TestRanPreUploadStepsGithubCipdDEPS(t *testing.T) {
 	}
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	mockGithubRequests(t, urlMock, rm.LastRollRev(), rm.NextRollRev(), len(rm.NotRolledRevisions()))
+	mockGithubRequests(t, urlMock)
 	_, createErr := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
 	assert.NoError(t, createErr)
 	assert.True(t, ran)
@@ -248,7 +255,7 @@ func TestErrorPreUploadStepsGithubCipdDEPS(t *testing.T) {
 	}
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	mockGithubRequests(t, urlMock, rm.LastRollRev(), rm.NextRollRev(), len(rm.NotRolledRevisions()))
+	mockGithubRequests(t, urlMock)
 	_, createErr := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
 	assert.Error(t, expectedErr, createErr)
 	assert.True(t, ran)

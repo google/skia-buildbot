@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -122,7 +123,12 @@ func (rm *copyRepoManager) Update(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("Failed to read %s: %s", rm.versionFile, err)
 	}
-	lastRollRev := strings.TrimSpace(string(lastRollRevBytes))
+	lastRollHash := strings.TrimSpace(string(lastRollRevBytes))
+	details, err := rm.childRepo.Details(ctx, lastRollHash)
+	if err != nil {
+		return err
+	}
+	lastRollRev := revision.FromLongCommit(rm.childRevLinkTmpl, details)
 
 	// Find the not-rolled child repo commits.
 	notRolledRevs, err := rm.getCommitsNotRolled(ctx, lastRollRev)
@@ -145,7 +151,7 @@ func (rm *copyRepoManager) Update(ctx context.Context) error {
 }
 
 // See documentation for RepoManager interface.
-func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	rm.repoMtx.Lock()
 	defer rm.repoMtx.Unlock()
 
@@ -197,7 +203,7 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	}
 
 	// Roll the dependency.
-	if _, err := rm.childRepo.Git(ctx, "reset", "--hard", to); err != nil {
+	if _, err := rm.childRepo.Git(ctx, "reset", "--hard", to.Id); err != nil {
 		return 0, err
 	}
 	childFullPath := path.Join(rm.workdir, rm.childPath)
@@ -231,7 +237,7 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	if err := os.RemoveAll(path.Join(childFullPath, ".git")); err != nil {
 		return 0, err
 	}
-	if err := ioutil.WriteFile(rm.versionFile, []byte(to), os.ModePerm); err != nil {
+	if err := ioutil.WriteFile(rm.versionFile, []byte(to.Id), os.ModePerm); err != nil {
 		return 0, err
 	}
 	if _, err := parentRepo.Git(ctx, "add", parentRepo.Dir()); err != nil {
@@ -254,7 +260,7 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	}
 
 	// Build the commit message.
-	commitRange := fmt.Sprintf("%s..%s", from[:12], to[:12])
+	commitRange := fmt.Sprintf("%s..%s", from, to)
 	commitMsg := fmt.Sprintf(COPY_COMMIT_MSG, rm.childPath, commitRange, len(commits), rm.childRepoUrl, commitRange, changeSummaryBlob, fmt.Sprintf(COMMIT_MSG_FOOTER_TMPL, rm.serverURL))
 	if cqExtraTrybots != "" {
 		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)

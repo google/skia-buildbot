@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/issues"
@@ -148,21 +149,24 @@ func (dr *depsRepoManager) Update(ctx context.Context) error {
 	return nil
 }
 
-// See documentation for RepoManager interface.
-func (dr *depsRepoManager) getLastRollRev(ctx context.Context) (string, error) {
+func (dr *depsRepoManager) getLastRollRev(ctx context.Context) (*revision.Revision, error) {
 	output, err := exec.RunCwd(ctx, dr.parentDir, "python", dr.gclient, "getdep", "-r", dr.childPath)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	commit := strings.TrimSpace(output)
 	if len(commit) != 40 {
-		return "", fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
+		return nil, fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
 	}
-	return commit, nil
+	details, err := dr.childRepo.Details(ctx, commit)
+	if err != nil {
+		return nil, err
+	}
+	return revision.FromLongCommit(dr.childRevLinkTmpl, details), nil
 }
 
 // Helper function for building the commit message.
-func buildCommitMsg(from, to, childPath, cqExtraTrybots, childRepo, serverURL, logStr, transitiveDeps string, bugs []string, numCommits int, includeLog bool) (string, error) {
+func buildCommitMsg(from, to *revision.Revision, childPath, cqExtraTrybots, childRepo, serverURL, logStr, transitiveDeps string, bugs []string, numCommits int, includeLog bool) (string, error) {
 	data := struct {
 		ChildPath      string
 		ChildRepo      string
@@ -177,8 +181,8 @@ func buildCommitMsg(from, to, childPath, cqExtraTrybots, childRepo, serverURL, l
 	}{
 		ChildPath:      childPath,
 		ChildRepo:      childRepo,
-		From:           from[:12],
-		To:             to[:12],
+		From:           from.String(),
+		To:             to.String(),
 		NumCommits:     numCommits,
 		LogStr:         "",
 		ServerURL:      serverURL,
@@ -194,7 +198,7 @@ func buildCommitMsg(from, to, childPath, cqExtraTrybots, childRepo, serverURL, l
 		data.Footer += "\n\nBug: None"
 	}
 	if includeLog {
-		data.LogStr = fmt.Sprintf("\ngit log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'\n", from[:12], to[:12])
+		data.LogStr = fmt.Sprintf("\ngit log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'\n", from, to)
 		data.LogStr += logStr + "\n"
 	}
 	var buf bytes.Buffer
@@ -206,8 +210,8 @@ func buildCommitMsg(from, to, childPath, cqExtraTrybots, childRepo, serverURL, l
 }
 
 // Helper function for building the commit message.
-func (dr *depsRepoManager) buildCommitMsg(ctx context.Context, from, to, cqExtraTrybots string, bugs []string) (string, error) {
-	logStr, err := exec.RunCwd(ctx, dr.childDir, "git", "log", fmt.Sprintf("%s..%s", from, to), "--date=short", "--no-merges", "--format=%ad %ae %s")
+func (dr *depsRepoManager) buildCommitMsg(ctx context.Context, from, to *revision.Revision, cqExtraTrybots string, bugs []string) (string, error) {
+	logStr, err := exec.RunCwd(ctx, dr.childDir, "git", "log", fmt.Sprintf("%s..%s", from.Id, to.Id), "--date=short", "--no-merges", "--format=%ad %ae %s")
 	if err != nil {
 		return "", err
 	}
@@ -217,7 +221,7 @@ func (dr *depsRepoManager) buildCommitMsg(ctx context.Context, from, to, cqExtra
 }
 
 // See documentation for RepoManager interface.
-func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	dr.repoMtx.Lock()
 	defer dr.repoMtx.Unlock()
 
