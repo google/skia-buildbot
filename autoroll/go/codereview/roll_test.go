@@ -10,6 +10,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/ds"
@@ -119,10 +120,14 @@ func TestGerritRoll(t *testing.T) {
 	// Upload and retrieve the roll.
 	from := "abcde12345abcde12345abcde12345abcde12345"
 	to := "fghij67890fghij67890fghij67890fghij67890"
+	toRev := &revision.Revision{
+		Id:          to,
+		Description: "rolling to fghi",
+	}
 	ci, issue := makeFakeRoll(123, from, to, false, false)
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
-	gr, err := newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", nil)
+	gr, err := newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
 	assert.NoError(t, err)
 	assert.False(t, issue.IsDryRun)
 	assert.False(t, gr.IsFinished())
@@ -130,7 +135,7 @@ func TestGerritRoll(t *testing.T) {
 	assert.False(t, gr.IsDryRunFinished())
 	assert.False(t, gr.IsDryRunSuccess())
 	g.AssertEmpty()
-	assert.Equal(t, to, gr.RollingTo())
+	assert.Equal(t, toRev, gr.RollingTo())
 
 	// Insert into DB.
 	current := recent.CurrentRoll()
@@ -226,7 +231,7 @@ func TestGerritRoll(t *testing.T) {
 		},
 	}
 	g.MockGetTrybotResults(ci, 1, []*buildbucket.Build{tryjob})
-	gr, err = newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", nil)
+	gr, err = newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
 	assert.NoError(t, err)
 	assert.True(t, issue.IsDryRun)
 	assert.False(t, gr.IsFinished())
@@ -234,7 +239,7 @@ func TestGerritRoll(t *testing.T) {
 	assert.False(t, gr.IsDryRunFinished())
 	assert.False(t, gr.IsDryRunSuccess())
 	g.AssertEmpty()
-	assert.Equal(t, to, gr.RollingTo())
+	assert.Equal(t, toRev, gr.RollingTo())
 
 	// Insert into DB.
 	current = recent.CurrentRoll()
@@ -278,7 +283,7 @@ func TestGerritRoll(t *testing.T) {
 	ci, issue = makeFakeRoll(125, from, to, false, false)
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
-	gr, err = newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", nil)
+	gr, err = newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
 	assert.NoError(t, err)
 	assert.NoError(t, gr.InsertIntoDB(ctx))
 	url, reqBytes := g.MakePostRequest(ci, "Mode was changed to dry run", map[string]int{
@@ -295,7 +300,7 @@ func TestGerritRoll(t *testing.T) {
 	ci, issue = makeFakeRoll(126, from, to, false, false)
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
-	gr, err = newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", nil)
+	gr, err = newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
 	assert.NoError(t, err)
 	assert.NoError(t, gr.InsertIntoDB(ctx))
 	url, reqBytes = g.MakePostRequest(ci, "Mode was changed to normal", map[string]int{
@@ -312,7 +317,7 @@ func TestGerritRoll(t *testing.T) {
 	ci, issue = makeFakeRoll(127, from, to, false, false)
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
-	gr, err = newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", nil)
+	gr, err = newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
 	assert.NoError(t, err)
 	assert.NoError(t, gr.InsertIntoDB(ctx))
 	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FAKE_GERRIT_URL, ci.Issue)
@@ -332,7 +337,7 @@ func TestGerritRoll(t *testing.T) {
 	ci, issue = makeFakeRoll(128, from, to, false, false)
 	g.MockGetIssueProperties(ci)
 	g.MockGetTrybotResults(ci, 1, nil)
-	gr, err = newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", nil)
+	gr, err = newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
 	assert.NoError(t, err)
 	assert.NoError(t, gr.InsertIntoDB(ctx))
 	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FAKE_GERRIT_URL, ci.Issue)
@@ -370,9 +375,13 @@ func TestGerritAndroidRoll(t *testing.T) {
 	// Upload and retrieve the roll.
 	from := "abcde12345abcde12345abcde12345abcde12345"
 	to := "fghij67890fghij67890fghij67890fghij67890"
+	toRev := &revision.Revision{
+		Id:          to,
+		Description: "rolling to fghi",
+	}
 	ci, issue := makeFakeRoll(123, from, to, false, true)
 	g.MockGetIssueProperties(ci)
-	gr, err := newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", nil)
+	gr, err := newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
 	assert.NoError(t, err)
 	assert.False(t, issue.IsDryRun)
 	assert.False(t, gr.IsFinished())
@@ -380,7 +389,7 @@ func TestGerritAndroidRoll(t *testing.T) {
 	assert.False(t, gr.IsDryRunFinished())
 	assert.False(t, gr.IsDryRunSuccess())
 	g.AssertEmpty()
-	assert.Equal(t, to, gr.RollingTo())
+	assert.Equal(t, toRev, gr.RollingTo())
 
 	// Insert into DB.
 	current := recent.CurrentRoll()
@@ -438,7 +447,7 @@ func TestGerritAndroidRoll(t *testing.T) {
 	// Upload and retrieve another roll, dry run this time.
 	ci, issue = makeFakeRoll(124, from, to, true, true)
 	g.MockGetIssueProperties(ci)
-	gr, err = newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", nil)
+	gr, err = newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
 	assert.NoError(t, err)
 	assert.True(t, issue.IsDryRun)
 	assert.False(t, gr.IsFinished())
@@ -446,7 +455,7 @@ func TestGerritAndroidRoll(t *testing.T) {
 	assert.False(t, gr.IsDryRunFinished())
 	assert.False(t, gr.IsDryRunSuccess())
 	g.AssertEmpty()
-	assert.Equal(t, to, gr.RollingTo())
+	assert.Equal(t, toRev, gr.RollingTo())
 
 	// Insert into DB.
 	current = recent.CurrentRoll()
@@ -485,7 +494,7 @@ func TestGerritAndroidRoll(t *testing.T) {
 	// 1. SwitchToDryRun.
 	ci, issue = makeFakeRoll(125, from, to, false, true)
 	g.MockGetIssueProperties(ci)
-	gr, err = newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", nil)
+	gr, err = newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
 	assert.NoError(t, err)
 	assert.NoError(t, gr.InsertIntoDB(ctx))
 	url, reqBytes := g.MakePostRequest(ci, "Mode was changed to dry run", map[string]int{
@@ -500,7 +509,7 @@ func TestGerritAndroidRoll(t *testing.T) {
 	// 2. SwitchToNormal
 	ci, issue = makeFakeRoll(126, from, to, false, true)
 	g.MockGetIssueProperties(ci)
-	gr, err = newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", nil)
+	gr, err = newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
 	assert.NoError(t, err)
 	assert.NoError(t, gr.InsertIntoDB(ctx))
 	url, reqBytes = g.MakePostRequest(ci, "Mode was changed to normal", map[string]int{
@@ -515,7 +524,7 @@ func TestGerritAndroidRoll(t *testing.T) {
 	// 3. Close.
 	ci, issue = makeFakeRoll(127, from, to, false, true)
 	g.MockGetIssueProperties(ci)
-	gr, err = newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", nil)
+	gr, err = newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
 	assert.NoError(t, err)
 	assert.NoError(t, gr.InsertIntoDB(ctx))
 	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FAKE_GERRIT_URL, ci.Issue)
@@ -533,7 +542,7 @@ func TestGerritAndroidRoll(t *testing.T) {
 	// Verify that we set the correct status when abandoning a CL.
 	ci, issue = makeFakeRoll(128, from, to, false, true)
 	g.MockGetIssueProperties(ci)
-	gr, err = newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", nil)
+	gr, err = newGerritAndroidRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
 	assert.NoError(t, err)
 	assert.NoError(t, gr.InsertIntoDB(ctx))
 	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FAKE_GERRIT_URL, ci.Issue)

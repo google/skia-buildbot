@@ -23,7 +23,7 @@ type NextRollStrategy interface {
 	// Return the next roll revision, given the list of not-yet-rolled
 	// commits in reverse chronological order. Returning the empty string
 	// implies that we are up-to-date.
-	GetNextRollRev(context.Context, []*revision.Revision) (string, error)
+	GetNextRollRev(context.Context, []*revision.Revision) (*revision.Revision, error)
 }
 
 // Return the NextRollStrategy indicated by the given string.
@@ -44,12 +44,12 @@ func GetNextRollStrategy(strategy string) (NextRollStrategy, error) {
 type headStrategy struct{}
 
 // See documentation for NextRollStrategy interface.
-func (s *headStrategy) GetNextRollRev(ctx context.Context, notRolled []*revision.Revision) (string, error) {
+func (s *headStrategy) GetNextRollRev(ctx context.Context, notRolled []*revision.Revision) (*revision.Revision, error) {
 	if len(notRolled) > 0 {
 		// Commits are listed in reverse chronological order.
-		return notRolled[0].Id, nil
+		return notRolled[0], nil
 	}
-	return "", nil
+	return nil, nil
 }
 
 // StrategyHead returns a NextRollStrategy which always rolls to HEAD of a given branch.
@@ -62,13 +62,13 @@ func StrategyHead() NextRollStrategy {
 type nCommitsStrategy struct{}
 
 // See documentation for NextRollStrategy interface.
-func (s *nCommitsStrategy) GetNextRollRev(ctx context.Context, notRolled []*revision.Revision) (string, error) {
+func (s *nCommitsStrategy) GetNextRollRev(ctx context.Context, notRolled []*revision.Revision) (*revision.Revision, error) {
 	if len(notRolled) > N_COMMITS {
-		return notRolled[len(notRolled)-N_COMMITS].Id, nil
+		return notRolled[len(notRolled)-N_COMMITS], nil
 	} else if len(notRolled) > 0 {
-		return notRolled[0].Id, nil
+		return notRolled[0], nil
 	} else {
-		return "", nil
+		return nil, nil
 	}
 }
 
@@ -83,11 +83,11 @@ func StrategyNCommits() NextRollStrategy {
 type singleStrategy struct{}
 
 // See documentation for NextRollStrategy interface.
-func (s *singleStrategy) GetNextRollRev(ctx context.Context, notRolled []*revision.Revision) (string, error) {
+func (s *singleStrategy) GetNextRollRev(ctx context.Context, notRolled []*revision.Revision) (*revision.Revision, error) {
 	if len(notRolled) > 0 {
-		return notRolled[len(notRolled)-1].Id, nil
+		return notRolled[len(notRolled)-1], nil
 	}
-	return "", nil
+	return nil, nil
 }
 
 // StrategySingle returns a NextRollStrategy which rolls toward HEAD of a given branch,

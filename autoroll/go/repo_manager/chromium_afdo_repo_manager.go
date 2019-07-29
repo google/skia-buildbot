@@ -171,8 +171,8 @@ func newAfdoRepoManager(ctx context.Context, c *AFDORepoManagerConfig, workdir s
 }
 
 // See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
-func (rm *afdoRepoManager) createRoll(ctx context.Context, from, to, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
-	commitMsg := fmt.Sprintf(AFDO_COMMIT_MSG_TMPL, afdoShortVersion(from), afdoShortVersion(to), serverURL)
+func (rm *afdoRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
+	commitMsg := fmt.Sprintf(AFDO_COMMIT_MSG_TMPL, from, to, serverURL)
 	if cqExtraTrybots != "" {
 		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
 	}
@@ -181,17 +181,24 @@ func (rm *afdoRepoManager) createRoll(ctx context.Context, from, to, serverURL, 
 		tbr += strings.Join(emails, ",")
 	}
 	commitMsg += tbr
-	return commitMsg, map[string]string{AFDO_VERSION_FILE_PATH: to}, nil
+	return commitMsg, map[string]string{AFDO_VERSION_FILE_PATH: to.Id}, nil
+}
+
+func afdoVersionToRevision(ver string) *revision.Revision {
+	return &revision.Revision{
+		Id:      ver,
+		Display: afdoShortVersion(ver),
+	}
 }
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []*revision.Revision, error) {
+func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	// Read the version file to determine the last roll rev.
 	buf := bytes.NewBuffer([]byte{})
 	if err := parentRepo.ReadFileAtRef(rm.afdoVersionFile, baseCommit, buf); err != nil {
-		return "", "", nil, err
+		return nil, nil, nil, err
 	}
-	lastRollRev := strings.TrimSpace(buf.String())
+	lastRollRev := afdoVersionToRevision(strings.TrimSpace(buf.String()))
 
 	// Find the available AFDO versions, sorted newest to oldest.
 	versions := []string{}
@@ -205,34 +212,32 @@ func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.Next
 			sklog.Error(err)
 		}
 	}); err != nil {
-		return "", "", nil, err
+		return nil, nil, nil, err
 	}
 	if len(versions) == 0 {
-		return "", "", nil, fmt.Errorf("No valid AFDO profile names found.")
+		return nil, nil, nil, fmt.Errorf("No valid AFDO profile names found.")
 	}
 	sort.Sort(afdoVersionSlice(versions))
 
 	lastIdx := -1
 	for idx, v := range versions {
-		if v == lastRollRev {
+		if v == lastRollRev.Id {
 			lastIdx = idx
 			break
 		}
 	}
 	if lastIdx == -1 {
-		return "", "", nil, fmt.Errorf("Last roll rev %q not found in available versions. Unable to create revision list.", lastRollRev)
+		return nil, nil, nil, fmt.Errorf("Last roll rev %q not found in available versions. Unable to create revision list.", lastRollRev)
 	}
 
 	// Get the list of not-yet-rolled revisions.
 	notRolledRevs := make([]*revision.Revision, 0, len(versions)-lastIdx)
 	for i := 0; i < lastIdx; i++ {
-		notRolledRevs = append(notRolledRevs, &revision.Revision{
-			Id: versions[i],
-		})
+		notRolledRevs = append(notRolledRevs, afdoVersionToRevision(versions[i]))
 	}
 	nextRollRev, err := rm.getNextRollRev(ctx, notRolledRevs, lastRollRev)
 	if err != nil {
-		return "", "", nil, err
+		return nil, nil, nil, err
 	}
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
@@ -241,8 +246,8 @@ func (rm *afdoRepoManager) updateHelper(ctx context.Context, strat strategy.Next
 }
 
 // See documentation for RepoManager interface.
-func (rm *afdoRepoManager) RolledPast(ctx context.Context, ver string) (bool, error) {
-	verIsNewer, err := AFDOVersionGreater(ver, rm.LastRollRev())
+func (rm *afdoRepoManager) RolledPast(ctx context.Context, rev *revision.Revision) (bool, error) {
+	verIsNewer, err := AFDOVersionGreater(rev.Id, rm.LastRollRev().Id)
 	if err != nil {
 		return false, err
 	}
@@ -252,4 +257,9 @@ func (rm *afdoRepoManager) RolledPast(ctx context.Context, ver string) (bool, er
 // See documentation for RepoManager interface.
 func (r *afdoRepoManager) ValidStrategies() []string {
 	return []string{strategy.ROLL_STRATEGY_BATCH}
+}
+
+// See documentation for RepoManager interface.
+func (r *afdoRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
+	return afdoVersionToRevision(id), nil
 }

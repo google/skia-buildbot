@@ -148,7 +148,7 @@ func (rm *freetypeRepoManager) mergeInclude(ctx context.Context, include, from, 
 }
 
 // See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
-func (rm *freetypeRepoManager) createRoll(ctx context.Context, from, to, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
+func (rm *freetypeRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
 	commitMsg, changes, err := rm.noCheckoutDEPSRepoManager.createRoll(ctx, from, to, serverURL, cqExtraTrybots, emails)
 	if err != nil {
 		return "", nil, err
@@ -158,7 +158,7 @@ func (rm *freetypeRepoManager) createRoll(ctx context.Context, from, to, serverU
 	defer rm.infoMtx.RUnlock()
 
 	// Update README.chromium.
-	ftVersion, err := rm.localChildRepo.Git(ctx, "describe", "--long", to)
+	ftVersion, err := rm.localChildRepo.Git(ctx, "describe", "--long", to.Id)
 	if err != nil {
 		return "", nil, err
 	}
@@ -169,20 +169,20 @@ func (rm *freetypeRepoManager) createRoll(ctx context.Context, from, to, serverU
 	}
 	oldReadmeContents := buf.String()
 	newReadmeContents := ftReadmeVersionRegex.ReplaceAllString(oldReadmeContents, fmt.Sprintf(ftReadmeVersionTmpl, "", ftVersion))
-	newReadmeContents = ftReadmeRevisionRegex.ReplaceAllString(newReadmeContents, fmt.Sprintf(ftReadmeRevisionTmpl, "", to))
+	newReadmeContents = ftReadmeRevisionRegex.ReplaceAllString(newReadmeContents, fmt.Sprintf(ftReadmeRevisionTmpl, "", to.Id))
 	if newReadmeContents != oldReadmeContents {
 		changes[ftReadmePath] = newReadmeContents
 	}
 
 	// Merge includes.
 	for _, include := range ftIncludesToMerge {
-		if err := rm.mergeInclude(ctx, include, from, to, changes); err != nil {
+		if err := rm.mergeInclude(ctx, include, from.Id, to.Id, changes); err != nil {
 			return "", nil, err
 		}
 	}
 
 	// Check modules.cfg. Give up if it has changed.
-	diff, err := rm.localChildRepo.Git(ctx, "diff", "--name-only", fmt.Sprintf("%s..%s", from, to))
+	diff, err := rm.localChildRepo.Git(ctx, "diff", "--name-only", fmt.Sprintf("%s..%s", from.Id, to.Id))
 	if err != nil {
 		return "", nil, err
 	}
@@ -194,13 +194,24 @@ func (rm *freetypeRepoManager) createRoll(ctx context.Context, from, to, serverU
 }
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *freetypeRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []*revision.Revision, error) {
+func (rm *freetypeRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	lastRollRev, nextRollRev, notRolledRevs, err := rm.noCheckoutDEPSRepoManager.updateHelper(ctx, strat, parentRepo, baseCommit)
 	if err != nil {
-		return "", "", nil, err
+		return nil, nil, nil, err
 	}
 	if err := rm.localChildRepo.Update(ctx); err != nil {
-		return "", "", nil, err
+		return nil, nil, nil, err
 	}
 	return lastRollRev, nextRollRev, notRolledRevs, nil
+}
+
+// See documentation for RepoManager interface.
+func (r *freetypeRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
+	r.repoMtx.RLock()
+	defer r.repoMtx.RUnlock()
+	details, err := r.localChildRepo.Details(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return revision.FromLongCommit(r.childRevLinkTmpl, details), nil
 }

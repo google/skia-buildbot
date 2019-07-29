@@ -129,8 +129,8 @@ func newFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfi
 
 // buildCommitMessage is a helper function which builds the commit message for
 // a given roll.
-func (rm *fuchsiaSDKRepoManager) buildCommitMessage(from, to, serverURL, cqExtraTrybots string, emails []string) string {
-	commitMsg := fmt.Sprintf(FUCHSIA_SDK_COMMIT_MSG_TMPL, fuchsiaSDKShortVersion(from), fuchsiaSDKShortVersion(to), rm.serverURL)
+func (rm *fuchsiaSDKRepoManager) buildCommitMessage(from, to *revision.Revision, serverURL, cqExtraTrybots string, emails []string) string {
+	commitMsg := fmt.Sprintf(FUCHSIA_SDK_COMMIT_MSG_TMPL, from.String(), to.String(), rm.serverURL)
 	if cqExtraTrybots != "" {
 		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
 	}
@@ -144,12 +144,12 @@ func (rm *fuchsiaSDKRepoManager) buildCommitMessage(from, to, serverURL, cqExtra
 }
 
 // See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
-func (rm *fuchsiaSDKRepoManager) createRoll(ctx context.Context, from, to, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
+func (rm *fuchsiaSDKRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
 	commitMsg := rm.buildCommitMessage(from, to, serverURL, cqExtraTrybots, emails)
 
 	// Create the roll changes.
 	edits := map[string]string{
-		rm.versionFileLinux: to,
+		rm.versionFileLinux: to.Id,
 	}
 	// Hack: include the Mac version if required.
 	if rm.versionFileMac != "" && rm.lastRollRevMac != rm.nextRollRevMac {
@@ -158,19 +158,26 @@ func (rm *fuchsiaSDKRepoManager) createRoll(ctx context.Context, from, to, serve
 	return commitMsg, edits, nil
 }
 
+func fuchsiaSDKVersionToRevision(ver string) *revision.Revision {
+	return &revision.Revision{
+		Id:      ver,
+		Display: fuchsiaSDKShortVersion(ver),
+	}
+}
+
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []*revision.Revision, error) {
+func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	// Read the version file to determine the last roll rev.
 	buf := bytes.NewBuffer([]byte{})
 	if err := parentRepo.ReadFileAtRef(rm.versionFileLinux, baseCommit, buf); err != nil {
-		return "", "", nil, fmt.Errorf("Failed to read %s at %s: %s", rm.versionFileLinux, baseCommit, err)
+		return nil, nil, nil, fmt.Errorf("Failed to read %s at %s: %s", rm.versionFileLinux, baseCommit, err)
 	}
 	lastRollRevLinuxStr := strings.TrimSpace(buf.String())
 
 	buf = bytes.NewBuffer([]byte{})
 	if rm.versionFileMac != "" {
 		if err := parentRepo.ReadFileAtRef(rm.versionFileMac, baseCommit, buf); err != nil {
-			return "", "", nil, fmt.Errorf("Failed to read %s at %s: %s", rm.versionFileMac, baseCommit, err)
+			return nil, nil, nil, fmt.Errorf("Failed to read %s at %s: %s", rm.versionFileMac, baseCommit, err)
 		}
 	}
 	lastRollRevMacStr := strings.TrimSpace(buf.String())
@@ -185,23 +192,23 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strateg
 			Version:   vSplit[len(vSplit)-1],
 		})
 	}); err != nil {
-		return "", "", nil, fmt.Errorf("Failed to list available versions: %s", err)
+		return nil, nil, nil, fmt.Errorf("Failed to list available versions: %s", err)
 	}
 	if len(availableVersions) == 0 {
-		return "", "", nil, fmt.Errorf("No matching items found.")
+		return nil, nil, nil, fmt.Errorf("No matching items found.")
 	}
 	sort.Sort(fuchsiaSDKVersionSlice(availableVersions))
 
 	// Get next SDK version.
 	nextRollRevLinuxBytes, err := gcs.FileContentsFromGCS(rm.storageClient, rm.gsBucket, rm.gsLatestPathLinux)
 	if err != nil {
-		return "", "", nil, fmt.Errorf("Failed to read next SDK version (linux): %s", err)
+		return nil, nil, nil, fmt.Errorf("Failed to read next SDK version (linux): %s", err)
 	}
 	nextRollRevLinuxStr := strings.TrimSpace(string(nextRollRevLinuxBytes))
 
 	nextRollRevMacBytes, err := gcs.FileContentsFromGCS(rm.storageClient, rm.gsBucket, rm.gsLatestPathMac)
 	if err != nil {
-		return "", "", nil, fmt.Errorf("Failed to read next SDK version (mac): %s", err)
+		return nil, nil, nil, fmt.Errorf("Failed to read next SDK version (mac): %s", err)
 	}
 	nextRollRevMacStr := strings.TrimSpace(string(nextRollRevMacBytes))
 
@@ -217,10 +224,10 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strateg
 		}
 	}
 	if lastIdx == -1 {
-		return "", "", nil, fmt.Errorf("Last roll rev %q not found in available versions. Not-rolled count will be wrong.", lastRollRevLinuxStr)
+		return nil, nil, nil, fmt.Errorf("Last roll rev %q not found in available versions. Not-rolled count will be wrong.", lastRollRevLinuxStr)
 	}
 	if nextIdx == -1 {
-		return "", "", nil, fmt.Errorf("Next roll rev %q not found in available versions. Not-rolled count will be wrong.", nextRollRevLinuxStr)
+		return nil, nil, nil, fmt.Errorf("Next roll rev %q not found in available versions. Not-rolled count will be wrong.", nextRollRevLinuxStr)
 	}
 	// Versions should be in reverse chronological order. We cannot compute
 	// notRolledRevs correctly because there are things other than SDKs in
@@ -229,10 +236,7 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strateg
 	// which we know will work.
 	notRolledRevs := []*revision.Revision{}
 	if nextRollRevLinuxStr != lastRollRevLinuxStr {
-		notRolledRevs = append(notRolledRevs, &revision.Revision{
-			Id:      nextRollRevLinuxStr,
-			Display: nextRollRevLinuxStr,
-		})
+		notRolledRevs = append(notRolledRevs, fuchsiaSDKVersionToRevision(nextRollRevLinuxStr))
 	}
 
 	rm.infoMtx.Lock()
@@ -243,20 +247,20 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strateg
 	rm.nextRollRevMac = nextRollRevMacStr
 
 	rm.versions = availableVersions
-	return lastRollRevLinuxStr, nextRollRevLinuxStr, notRolledRevs, nil
+	return fuchsiaSDKVersionToRevision(lastRollRevLinuxStr), fuchsiaSDKVersionToRevision(nextRollRevLinuxStr), notRolledRevs, nil
 }
 
 // See documentation for RepoManager interface.
-func (rm *fuchsiaSDKRepoManager) RolledPast(ctx context.Context, ver string) (bool, error) {
+func (rm *fuchsiaSDKRepoManager) RolledPast(ctx context.Context, rev *revision.Revision) (bool, error) {
 	// TODO(borenet): Use a map?
 	var testVer *fuchsiaSDKVersion
 	for _, v := range rm.versions {
-		if v.Version == ver {
+		if v.Version == rev.Id {
 			testVer = v
 		}
 	}
 	if testVer == nil {
-		return false, fmt.Errorf("Unknown version: %s", ver)
+		return false, fmt.Errorf("Unknown version: %s", rev.Id)
 	}
 	rm.infoMtx.RLock()
 	defer rm.infoMtx.RUnlock()
@@ -268,4 +272,9 @@ func (r *fuchsiaSDKRepoManager) ValidStrategies() []string {
 	return []string{
 		strategy.ROLL_STRATEGY_BATCH,
 	}
+}
+
+// See documentation for RepoManager interface.
+func (r *fuchsiaSDKRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
+	return fuchsiaSDKVersionToRevision(id), nil
 }

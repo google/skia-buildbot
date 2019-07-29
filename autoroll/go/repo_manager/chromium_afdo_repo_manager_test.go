@@ -175,15 +175,24 @@ func TestAFDORepoManager(t *testing.T) {
 	ctx, rm, urlmock, mockParent, parent, cleanup := setupAfdo(t)
 	defer cleanup()
 
-	assert.Equal(t, afdoRevBase, rm.LastRollRev())
-	assert.Equal(t, afdoRevBase, rm.NextRollRev())
-	rolledPast, err := rm.RolledPast(ctx, afdoRevPrev)
+	assert.Equal(t, afdoRevBase, rm.LastRollRev().Id)
+	assert.Equal(t, afdoRevBase, rm.NextRollRev().Id)
+	prev, err := rm.GetRevision(ctx, afdoRevPrev)
+	assert.NoError(t, err)
+	assert.Equal(t, afdoRevPrev, prev.Id)
+	base, err := rm.GetRevision(ctx, afdoRevBase)
+	assert.NoError(t, err)
+	assert.Equal(t, afdoRevBase, base.Id)
+	next, err := rm.GetRevision(ctx, afdoRevNext)
+	assert.NoError(t, err)
+	assert.Equal(t, afdoRevNext, next.Id)
+	rolledPast, err := rm.RolledPast(ctx, prev)
 	assert.NoError(t, err)
 	assert.True(t, rolledPast)
-	rolledPast, err = rm.RolledPast(ctx, afdoRevBase)
+	rolledPast, err = rm.RolledPast(ctx, base)
 	assert.NoError(t, err)
 	assert.True(t, rolledPast)
-	rolledPast, err = rm.RolledPast(ctx, afdoRevNext)
+	rolledPast, err = rm.RolledPast(ctx, next)
 	assert.NoError(t, err)
 	assert.False(t, rolledPast)
 	assert.Empty(t, rm.PreUploadSteps())
@@ -199,24 +208,24 @@ func TestAFDORepoManager(t *testing.T) {
 		afdoRevNext: afdoTimeNext,
 	})
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, afdoRevBase, rm.LastRollRev())
-	assert.Equal(t, afdoRevNext, rm.NextRollRev())
-	rolledPast, err = rm.RolledPast(ctx, afdoRevPrev)
+	assert.Equal(t, afdoRevBase, rm.LastRollRev().Id)
+	assert.Equal(t, afdoRevNext, rm.NextRollRev().Id)
+	rolledPast, err = rm.RolledPast(ctx, prev)
 	assert.NoError(t, err)
 	assert.True(t, rolledPast)
-	rolledPast, err = rm.RolledPast(ctx, afdoRevBase)
+	rolledPast, err = rm.RolledPast(ctx, base)
 	assert.NoError(t, err)
 	assert.True(t, rolledPast)
-	rolledPast, err = rm.RolledPast(ctx, afdoRevNext)
+	rolledPast, err = rm.RolledPast(ctx, next)
 	assert.NoError(t, err)
 	assert.False(t, rolledPast)
-	deepequal.AssertDeepEqual(t, []*revision.Revision{{Id: afdoRevNext}}, rm.NotRolledRevisions())
+	deepequal.AssertDeepEqual(t, []*revision.Revision{afdoVersionToRevision(afdoRevNext)}, rm.NotRolledRevisions())
 
 	// Upload a CL.
 
 	// Mock the initial change creation.
-	from := afdoShortVersion(rm.LastRollRev())
-	to := afdoShortVersion(rm.NextRollRev())
+	from := rm.LastRollRev()
+	to := rm.NextRollRev()
 	commitMsg := fmt.Sprintf(AFDO_COMMIT_MSG_TMPL, from, to, "fake.server.com")
 	commitMsg += "\nTBR=reviewer@chromium.org"
 	subject := strings.Split(commitMsg, "\n")[0]
@@ -242,7 +251,7 @@ func TestAFDORepoManager(t *testing.T) {
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:message", mockhttpclient.MockPutDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to modify the version file.
-	reqBody = []byte(rm.NextRollRev())
+	reqBody = []byte(rm.NextRollRev().Id)
 	url := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(AFDO_VERSION_FILE_PATH))
 	urlmock.MockOnce(url, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 

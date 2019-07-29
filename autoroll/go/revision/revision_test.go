@@ -13,6 +13,7 @@ func TestCopyRevision(t *testing.T) {
 
 	v := &Revision{
 		Id:          "abc123",
+		Author:      "me@google.com",
 		Display:     "abc",
 		Description: "This is a great commit.",
 		Timestamp:   time.Now(),

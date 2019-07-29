@@ -138,7 +138,7 @@ func setupFakeGithub(t *testing.T, childCommits []string) (*github.GitHub, *mock
 	return g, urlMock
 }
 
-func mockGithubRequests(t *testing.T, urlMock *mockhttpclient.URLMock, from, to string, numCommits int) {
+func mockGithubRequests(t *testing.T, urlMock *mockhttpclient.URLMock) {
 	// Mock /pulls endpoint.
 	serializedPull, err := json.Marshal(&github_api.PullRequest{
 		Number: &testPullNumber,
@@ -170,15 +170,21 @@ func TestGithubRepoManager(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, childCommits[0], rm.LastRollRev())
-	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
+	assert.Equal(t, childCommits[0], rm.LastRollRev().Id)
+	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
 
 	// RolledPast.
-	rp, err := rm.RolledPast(ctx, childCommits[0])
+	currentRev, err := rm.GetRevision(ctx, childCommits[0])
+	assert.NoError(t, err)
+	assert.Equal(t, childCommits[0], currentRev.Id)
+	rp, err := rm.RolledPast(ctx, currentRev)
 	assert.NoError(t, err)
 	assert.True(t, rp)
 	for _, c := range childCommits[1:] {
-		rp, err := rm.RolledPast(ctx, c)
+		rev, err := rm.GetRevision(ctx, c)
+		assert.NoError(t, err)
+		assert.Equal(t, c, rev.Id)
+		rp, err := rm.RolledPast(ctx, rev)
 		assert.NoError(t, err)
 		assert.False(t, rp)
 	}
@@ -199,7 +205,7 @@ func TestCreateNewGithubRoll(t *testing.T) {
 	assert.NoError(t, rm.Update(ctx))
 
 	// Create a roll.
-	mockGithubRequests(t, urlMock, rm.LastRollRev(), rm.NextRollRev(), len(rm.NotRolledRevisions()))
+	mockGithubRequests(t, urlMock)
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
@@ -228,7 +234,7 @@ func TestRanPreUploadStepsGithub(t *testing.T) {
 	}
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	mockGithubRequests(t, urlMock, rm.LastRollRev(), rm.NextRollRev(), len(rm.NotRolledRevisions()))
+	mockGithubRequests(t, urlMock)
 	_, createErr := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
 	assert.NoError(t, createErr)
 	assert.True(t, ran)
@@ -258,7 +264,7 @@ func TestErrorPreUploadStepsGithub(t *testing.T) {
 	}
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	mockGithubRequests(t, urlMock, rm.LastRollRev(), rm.NextRollRev(), len(rm.NotRolledRevisions()))
+	mockGithubRequests(t, urlMock)
 	_, createErr := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
 	assert.Error(t, expectedErr, createErr)
 	assert.True(t, ran)

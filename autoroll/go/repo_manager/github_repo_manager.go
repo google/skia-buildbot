@@ -184,7 +184,12 @@ func (rm *githubRepoManager) Update(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	lastRollRev := strings.TrimRight(revisionFileContents, "\n")
+	lastRollHash := strings.TrimRight(revisionFileContents, "\n")
+	lastRollDetails, err := rm.childRepo.Details(ctx, lastRollHash)
+	if err != nil {
+		return err
+	}
+	lastRollRev := revision.FromLongCommit(rm.childRevLinkTmpl, lastRollDetails)
 
 	// Find the not-rolled child repo commits.
 	notRolledRevs, err := rm.getCommitsNotRolled(ctx, lastRollRev)
@@ -253,7 +258,7 @@ func (rm *githubRepoManager) cleanParent(ctx context.Context) error {
 }
 
 // See documentation for RepoManager interface.
-func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	rm.repoMtx.Lock()
 	defer rm.repoMtx.Unlock()
 
@@ -289,7 +294,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 
 	// Build the commit message.
 	user, repo := GetUserAndRepo(rm.childRepoURL)
-	childRepoCompareURL := fmt.Sprintf("https://github.com/%s/%s/compare/%s...%s", user, repo, from[:12], to[:12])
+	childRepoCompareURL := fmt.Sprintf("https://github.com/%s/%s/compare/%s...%s", user, repo, from, to)
 	logCmd := []string{"log", fmt.Sprintf("%s..%s", from, to), "--no-merges", "--oneline"}
 	logStr, err := rm.childRepo.Git(ctx, logCmd...)
 	if err != nil {
@@ -367,7 +372,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 }
 
 // GetGithubCommitMsg is a utility that returns a commit message that can be used in github rolls.
-func GetGithubCommitMsg(logStr, childRepoCompareURL, childPath, from, to, serverURL, transitiveDeps string, logCmd, emails []string) (string, error) {
+func GetGithubCommitMsg(logStr, childRepoCompareURL, childPath string, from, to *revision.Revision, serverURL, transitiveDeps string, logCmd, emails []string) (string, error) {
 	data := struct {
 		ChildPath           string
 		ChildRepoCompareUrl string
@@ -383,9 +388,9 @@ func GetGithubCommitMsg(logStr, childRepoCompareURL, childPath, from, to, server
 	}{
 		ChildPath:           childPath,
 		ChildRepoCompareUrl: childRepoCompareURL,
-		From:                from[:12],
+		From:                from.Id,
 		GitLogCmd:           strings.Join(logCmd, " "),
-		To:                  to[:12],
+		To:                  to.Id,
 		NumCommits:          len(strings.Split(logStr, "\n")),
 		LogStr:              logStr,
 		ServerURL:           serverURL,

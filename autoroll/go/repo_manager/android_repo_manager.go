@@ -175,34 +175,17 @@ func (r *androidRepoManager) Update(ctx context.Context) error {
 	return nil
 }
 
-// getLastRollRev returns the commit hash of the last-completed DEPS roll.
-func (r *androidRepoManager) getLastRollRev(ctx context.Context) (string, error) {
+// getLastRollRev returns the last-completed DEPS roll Revision.
+func (r *androidRepoManager) getLastRollRev(ctx context.Context) (*revision.Revision, error) {
 	output, err := exec.RunCwd(ctx, r.childRepo.Dir(), "git", "merge-base", fmt.Sprintf("refs/remotes/remote/%s", r.childBranch), fmt.Sprintf("refs/remotes/goog/%s", r.parentBranch))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return strings.TrimRight(output, "\n"), nil
-}
-
-// See documentation for RepoManager interface.
-func (r *androidRepoManager) LastRollRev() string {
-	r.infoMtx.RLock()
-	defer r.infoMtx.RUnlock()
-	return r.lastRollRev
-}
-
-// See documentation for RepoManager interface.
-func (r *androidRepoManager) RolledPast(ctx context.Context, hash string) (bool, error) {
-	r.repoMtx.RLock()
-	defer r.repoMtx.RUnlock()
-	return r.childRepo.IsAncestor(ctx, hash, r.lastRollRev)
-}
-
-// See documentation for RepoManager interface.
-func (r *androidRepoManager) NextRollRev() string {
-	r.infoMtx.RLock()
-	defer r.infoMtx.RUnlock()
-	return r.nextRollRev
+	details, err := r.childRepo.Details(ctx, strings.TrimRight(output, "\n"))
+	if err != nil {
+		return nil, err
+	}
+	return revision.FromLongCommit(r.childRevLinkTmpl, details), nil
 }
 
 // abortMerge aborts the current merge in the child repo.
@@ -260,7 +243,7 @@ func ExtractTestLines(line string) []string {
 }
 
 // See documentation for RepoManager interface.
-func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 
@@ -272,14 +255,22 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	// Create the roll CL.
 
 	cr := r.childRepo
-	commits, err := cr.RevList(ctx, fmt.Sprintf("%s..%s", from, to))
+	commits, err := cr.RevList(ctx, fmt.Sprintf("%s..%s", from.Id, to.Id))
 	if err != nil {
 		return 0, fmt.Errorf("Failed to list revisions: %s", err)
+	}
+	details := make([]*vcsinfo.LongCommit, 0, len(commits))
+	for _, c := range commits {
+		d, err := cr.Details(ctx, c)
+		if err != nil {
+			return 0, fmt.Errorf("Failed to get commit details: %s", err)
+		}
+		details = append(details, d)
 	}
 
 	// Start the merge.
 
-	if _, err := exec.RunCwd(ctx, r.childDir, "git", "merge", to, "--no-commit"); err != nil {
+	if _, err := exec.RunCwd(ctx, r.childDir, "git", "merge", to.Id, "--no-commit"); err != nil {
 		// Check to see if this was a merge conflict with IGNORE_MERGE_CONFLICT_FILES.
 		conflictsOutput, conflictsErr := exec.RunCwd(ctx, r.childDir, "git", "diff", "--name-only", "--diff-filter=U")
 		if conflictsErr != nil || conflictsOutput == "" {
@@ -362,7 +353,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	}
 
 	// Create commit message.
-	commitRange := fmt.Sprintf("%s..%s", from[:9], to[:9])
+	commitRange := fmt.Sprintf("%s..%s", from.Id[:9], to.Id[:9])
 	childRepoName := path.Base(r.childDir)
 	commitMsg := fmt.Sprintf(
 		`Roll %s %s (%d commits)
@@ -499,17 +490,17 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 	return change.Issue, nil
 }
 
-func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) ([]*revision.Revision, error) {
+func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev *revision.Revision) ([]*revision.Revision, error) {
 	output, err := r.childRepo.Git(ctx, "ls-remote", UPSTREAM_REMOTE_NAME, fmt.Sprintf("refs/heads/%s", r.childBranch), "-1")
 	if err != nil {
 		return nil, err
 	}
 	head := strings.Split(output, "\t")[0]
-	if head == lastRollRev {
+	if head == lastRollRev.Id {
 		return []*revision.Revision{}, nil
 	}
 	// Only consider commits on the "main" branch as roll candidates.
-	commits, err := r.childRepo.RevList(ctx, "--ancestry-path", "--first-parent", fmt.Sprintf("%s..%s", lastRollRev, head))
+	commits, err := r.childRepo.RevList(ctx, "--ancestry-path", "--first-parent", fmt.Sprintf("%s..%s", lastRollRev.Id, head))
 	if err != nil {
 		return nil, err
 	}

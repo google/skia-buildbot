@@ -9,6 +9,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/notifier"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
@@ -27,11 +28,11 @@ type TestRollCLImpl struct {
 	isDryRun     bool
 	normalResult string
 	dryRunResult string
-	rollingTo    string
+	rollingTo    *revision.Revision
 }
 
 // Return a TestRollCLImpl instance.
-func NewTestRollCLImpl(t *testing.T, rollingTo string, isDryRun bool) *TestRollCLImpl {
+func NewTestRollCLImpl(t *testing.T, rollingTo *revision.Revision, isDryRun bool) *TestRollCLImpl {
 	return &TestRollCLImpl{
 		t:         t,
 		isDryRun:  isDryRun,
@@ -92,7 +93,7 @@ func (r *TestRollCLImpl) IssueURL() string {
 }
 
 // See documentation for RollCLImpl.
-func (r *TestRollCLImpl) RollingTo() string {
+func (r *TestRollCLImpl) RollingTo() *revision.Revision {
 	return r.rollingTo
 }
 
@@ -169,10 +170,10 @@ type TestAutoRollerImpl struct {
 
 	getActiveRollResult *TestRollCLImpl
 
-	getCurrentRevResult string
+	getCurrentRevResult *revision.Revision
 	getCurrentRevError  error
 
-	getNextRollRevResult string
+	getNextRollRevResult *revision.Revision
 	getNextRollRevError  error
 
 	getModeResult   string
@@ -204,7 +205,7 @@ func NewTestAutoRollerImpl(t *testing.T, ctx context.Context, gcsClient gcs.GCSC
 }
 
 // See documentation for AutoRollerImpl.
-func (r *TestAutoRollerImpl) UploadNewRoll(ctx context.Context, from, to string, dryRun bool) (RollCLImpl, error) {
+func (r *TestAutoRollerImpl) UploadNewRoll(ctx context.Context, from, to *revision.Revision, dryRun bool) (RollCLImpl, error) {
 	if r.createNewRollError != nil {
 		return nil, r.createNewRollError
 	}
@@ -244,23 +245,23 @@ func (r *TestAutoRollerImpl) SetActiveRoll(roll *TestRollCLImpl) {
 }
 
 // See documentation for AutoRollerImpl.
-func (r *TestAutoRollerImpl) GetCurrentRev() string {
+func (r *TestAutoRollerImpl) GetCurrentRev() *revision.Revision {
 	return r.getCurrentRevResult
 }
 
 // Set the result of GetCurrentRev.
 func (r *TestAutoRollerImpl) SetCurrentRev(rev string) {
-	r.getCurrentRevResult = rev
+	r.getCurrentRevResult = &revision.Revision{Id: rev}
 }
 
 // See documentation for AutoRollerImpl.
-func (r *TestAutoRollerImpl) GetNextRollRev() string {
+func (r *TestAutoRollerImpl) GetNextRollRev() *revision.Revision {
 	return r.getNextRollRevResult
 }
 
 // Set the result of GetNextRollRev.
 func (r *TestAutoRollerImpl) SetNextRollRev(rev string) {
-	r.getNextRollRevResult = rev
+	r.getNextRollRevResult = &revision.Revision{Id: rev}
 }
 
 // See documentation for AutoRollerImpl.
@@ -274,10 +275,10 @@ func (r *TestAutoRollerImpl) SetMode(ctx context.Context, mode string) {
 }
 
 // See documentation for AutoRollerImpl.
-func (r *TestAutoRollerImpl) RolledPast(ctx context.Context, rev string) (bool, error) {
-	rv, ok := r.rolledPast[rev]
+func (r *TestAutoRollerImpl) RolledPast(ctx context.Context, rev *revision.Revision) (bool, error) {
+	rv, ok := r.rolledPast[rev.Id]
 	assert.True(r.t, ok)
-	delete(r.rolledPast, rev)
+	delete(r.rolledPast, rev.Id)
 	return rv, nil
 }
 
@@ -339,6 +340,8 @@ func setup(t *testing.T) (context.Context, *AutoRollStateMachine, *TestAutoRolle
 	ctx := context.Background()
 	gcsClient := test_gcsclient.NewMemoryClient("test-bucket")
 	rollerImpl := NewTestAutoRollerImpl(t, ctx, gcsClient)
+	rollerImpl.SetNextRollRev("HEAD")
+	rollerImpl.SetCurrentRev("HEAD")
 	n, err := notifier.New(ctx, "fake", "fake", "fake", nil, nil, nil, nil)
 	assert.NoError(t, err)
 	sm, err := New(ctx, rollerImpl, n, gcsClient, "test-roller")
@@ -371,7 +374,7 @@ func TestNormal(t *testing.T) {
 	// Roll finished successfully.
 	roll.SetSucceeded()
 	rev := r.GetNextRollRev()
-	r.SetCurrentRev(rev)
+	r.SetCurrentRev(rev.Id)
 	checkNextState(t, sm, S_NORMAL_SUCCESS)
 	r.SetRolledPast("HEAD+1", true)
 	checkNextState(t, sm, S_NORMAL_IDLE)
@@ -456,7 +459,7 @@ func TestNormal(t *testing.T) {
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
 	roll.AssertNotDryRun()
 	roll.SetSucceeded()
-	r.SetCurrentRev(r.GetNextRollRev())
+	r.SetCurrentRev(r.GetNextRollRev().Id)
 	checkNextState(t, sm, S_NORMAL_SUCCESS)
 	r.SetRolledPast("HEAD+5", true)
 	checkNextState(t, sm, S_NORMAL_IDLE)
@@ -493,6 +496,8 @@ func TestDryRun(t *testing.T) {
 	r.failureThrottle = failureThrottle
 
 	// Switch to dry run.
+	r.SetCurrentRev("HEAD")
+	r.SetNextRollRev("HEAD")
 	checkState(t, sm, S_NORMAL_IDLE)
 	r.SetMode(ctx, modes.MODE_DRY_RUN)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
@@ -609,7 +614,7 @@ func TestDryRun(t *testing.T) {
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
 	assert.NoError(t, roll.SwitchToNormal(ctx))
 	roll.SetSucceeded()
-	r.SetRolledPast(roll.RollingTo(), true)
+	r.SetRolledPast(roll.RollingTo().Id, true)
 	checkNextState(t, sm, S_NORMAL_SUCCESS)
 	checkNextState(t, sm, S_NORMAL_IDLE)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)

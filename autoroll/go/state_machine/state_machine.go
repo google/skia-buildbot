@@ -8,6 +8,7 @@ import (
 
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/notifier"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/counters"
 	"go.skia.org/infra/go/exec"
@@ -103,7 +104,7 @@ type RollCLImpl interface {
 	RetryDryRun(context.Context) error
 
 	// The revision this roll is rolling to.
-	RollingTo() string
+	RollingTo() *revision.Revision
 
 	// Set the dry run bit on the CL.
 	SwitchToDryRun(context.Context) error
@@ -126,11 +127,11 @@ type AutoRollerImpl interface {
 	GetActiveRoll() RollCLImpl
 
 	// Return the currently-rolled revision of the sub-project.
-	GetCurrentRev() string
+	GetCurrentRev() *revision.Revision
 
 	// Return the next revision of the sub-project which we want to roll.
 	// This is the same as GetCurrentRev when the sub-project is up-to-date.
-	GetNextRollRev() string
+	GetNextRollRev() *revision.Revision
 
 	// Return the current mode of the AutoRoller.
 	GetMode() string
@@ -140,7 +141,7 @@ type AutoRollerImpl interface {
 	InRollWindow(time.Time) bool
 
 	// Return true if we have already rolled past the given revision.
-	RolledPast(context.Context, string) (bool, error)
+	RolledPast(context.Context, *revision.Revision) (bool, error)
 
 	// Return a Throttler indicating that we have attempted to upload too
 	// many CLs within a time period.
@@ -154,7 +155,7 @@ type AutoRollerImpl interface {
 	UpdateRepos(context.Context) error
 
 	// Upload a new roll. AutoRollerImpl should track the created roll.
-	UploadNewRoll(ctx context.Context, from, to string, dryRun bool) (RollCLImpl, error)
+	UploadNewRoll(ctx context.Context, from, to *revision.Revision, dryRun bool) (RollCLImpl, error)
 }
 
 // AutoRollStateMachine is a StateMachine for the AutoRoller.
@@ -517,7 +518,7 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		}
 		current := s.a.GetCurrentRev()
 		next := s.a.GetNextRollRev()
-		if current == next {
+		if current.Id == next.Id {
 			return S_NORMAL_IDLE, nil
 		} else if s.a.SafetyThrottle().IsThrottled() {
 			return S_NORMAL_SAFETY_THROTTLED, nil
@@ -581,7 +582,7 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		if err := throttle.Inc(ctx); err != nil {
 			return "", err
 		}
-		if s.a.GetNextRollRev() == currentRoll.RollingTo() {
+		if s.a.GetNextRollRev().Id == currentRoll.RollingTo().Id {
 			// Rather than upload the same CL again, we'll try
 			// running the CQ again after a period of throttling.
 			if throttle.IsThrottled() {
@@ -599,7 +600,7 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		}
 		if desiredMode == modes.MODE_STOPPED {
 			return S_STOPPED, nil
-		} else if s.a.GetNextRollRev() != currentRoll.RollingTo() {
+		} else if s.a.GetNextRollRev().Id != currentRoll.RollingTo().Id {
 			return S_NORMAL_IDLE, nil
 		} else if desiredMode == modes.MODE_DRY_RUN {
 			return S_DRY_RUN_ACTIVE, nil
@@ -630,7 +631,7 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		}
 		current := s.a.GetCurrentRev()
 		next := s.a.GetNextRollRev()
-		if current == next {
+		if current.Id == next.Id {
 			return S_DRY_RUN_IDLE, nil
 		} else if s.a.SafetyThrottle().IsThrottled() {
 			return S_DRY_RUN_SAFETY_THROTTLED, nil
@@ -671,7 +672,7 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		if currentRoll == nil {
 			return S_CURRENT_ROLL_MISSING, nil
 		}
-		if s.a.GetNextRollRev() == currentRoll.RollingTo() {
+		if s.a.GetNextRollRev().Id == currentRoll.RollingTo().Id {
 			// The current dry run is for the commit we want. Leave
 			// it open so we can land it if we want.
 			return S_DRY_RUN_SUCCESS_LEAVING_OPEN, nil
@@ -688,7 +689,7 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		} else if desiredMode != modes.MODE_DRY_RUN {
 			return "", fmt.Errorf("Invalid mode %q", desiredMode)
 		}
-		if s.a.GetNextRollRev() == currentRoll.RollingTo() {
+		if s.a.GetNextRollRev().Id == currentRoll.RollingTo().Id {
 			// The current dry run is for the commit we want. Leave
 			// it open so we can land it if we want.
 			return S_DRY_RUN_SUCCESS_LEAVING_OPEN, nil
@@ -701,7 +702,7 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		if err := s.a.FailureThrottle().Inc(ctx); err != nil {
 			return "", err
 		}
-		if s.a.GetNextRollRev() == currentRoll.RollingTo() {
+		if s.a.GetNextRollRev().Id == currentRoll.RollingTo().Id {
 			// Rather than upload the same CL again, we'll try
 			// running the CQ again after a period of throttling.
 			return S_DRY_RUN_FAILURE_THROTTLED, nil
@@ -717,7 +718,7 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		}
 		if desiredMode == modes.MODE_STOPPED {
 			return S_STOPPED, nil
-		} else if s.a.GetNextRollRev() != currentRoll.RollingTo() {
+		} else if s.a.GetNextRollRev().Id != currentRoll.RollingTo().Id {
 			return S_DRY_RUN_FAILURE, nil
 		} else if desiredMode == modes.MODE_RUNNING {
 			return S_NORMAL_ACTIVE, nil
