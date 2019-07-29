@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
@@ -137,20 +138,26 @@ func TestDEPSRepoManager(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, childCommits[0], rm.LastRollRev())
-	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
+	assert.Equal(t, childCommits[0], rm.LastRollRev().Id)
+	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
 
 	// Test update.
 	lastCommit := child.CommitGen(context.Background(), "abc.txt")
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, lastCommit, rm.NextRollRev())
+	assert.Equal(t, lastCommit, rm.NextRollRev().Id)
 
 	// RolledPast.
-	rp, err := rm.RolledPast(ctx, childCommits[0])
+	currentRev, err := rm.GetRevision(ctx, childCommits[0])
+	assert.NoError(t, err)
+	assert.Equal(t, childCommits[0], currentRev.Id)
+	rp, err := rm.RolledPast(ctx, currentRev)
 	assert.NoError(t, err)
 	assert.True(t, rp)
 	for _, c := range childCommits[1:] {
-		rp, err := rm.RolledPast(ctx, c)
+		rev, err := rm.GetRevision(ctx, c)
+		assert.NoError(t, err)
+		assert.Equal(t, c, rev.Id)
+		rp, err := rm.RolledPast(ctx, rev)
 		assert.NoError(t, err)
 		assert.False(t, rp)
 	}
@@ -158,11 +165,11 @@ func TestDEPSRepoManager(t *testing.T) {
 	// Switch next-roll-rev strategies.
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_SINGLE))
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, childCommits[1], rm.NextRollRev())
+	assert.Equal(t, childCommits[1], rm.NextRollRev().Id)
 	// And back again.
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
-	assert.Equal(t, lastCommit, rm.NextRollRev())
+	assert.Equal(t, lastCommit, rm.NextRollRev().Id)
 }
 
 func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
@@ -338,10 +345,13 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 
 %s
 `, bugLine))
+		details, err := git.GitDir(child.Dir()).Details(ctx, hash)
+		assert.NoError(t, err)
+		rev := revision.FromLongCommit(rm.(*depsRepoManager).childRevLinkTmpl, details)
 
 		// Create a roll.
 		assert.NoError(t, rm.Update(ctx))
-		_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), hash, emails, cqExtraTrybots, false)
+		_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rev, emails, cqExtraTrybots, false)
 		assert.NoError(t, err)
 
 		// Verify that we passed the correct --bug argument to roll-dep.

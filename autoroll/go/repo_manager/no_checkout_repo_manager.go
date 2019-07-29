@@ -55,14 +55,14 @@ type noCheckoutRepoManager struct {
 // which returns the last roll revision, next roll revision, and a list of
 // not-yet-rolled revisions. The parameters are the parent repo and its base
 // commit.
-type noCheckoutUpdateHelperFunc func(context.Context, strategy.NextRollStrategy, *gitiles.Repo, string) (string, string, []*revision.Revision, error)
+type noCheckoutUpdateHelperFunc func(context.Context, strategy.NextRollStrategy, *gitiles.Repo, string) (*revision.Revision, *revision.Revision, []*revision.Revision, error)
 
 // noCheckoutCreateRollHelperFunc is a function called by
 // noCheckoutRepoManager.CreateNewRoll() which returns a commit message for
 // a given roll, plus a map of file names to new contents, given the previous
 // roll revision, next roll revision, URL of the server, extra trybots for the
 // CQ, and TBR emails.
-type noCheckoutCreateRollHelperFunc func(context.Context, string, string, string, string, []string) (string, map[string]string, error)
+type noCheckoutCreateRollHelperFunc func(context.Context, *revision.Revision, *revision.Revision, string, string, []string) (string, map[string]string, error)
 
 // Return a noCheckoutRepoManager instance.
 func newNoCheckoutRepoManager(ctx context.Context, c NoCheckoutRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, gitcookiesPath string, client *http.Client, cr codereview.CodeReview, createRoll noCheckoutCreateRollHelperFunc, updateHelper noCheckoutUpdateHelperFunc, local bool) (*noCheckoutRepoManager, error) {
@@ -84,7 +84,7 @@ func newNoCheckoutRepoManager(ctx context.Context, c NoCheckoutRepoManagerConfig
 }
 
 // See documentation for RepoManager interface.
-func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	// Build the roll.
 	commitMsg, nextRollChanges, err := rm.createRoll(ctx, from, to, rm.serverURL, cqExtraTrybots, emails)
 	if err != nil {
@@ -163,7 +163,7 @@ func (rm *noCheckoutRepoManager) Update(ctx context.Context) error {
 }
 
 // See documentation for RepoManager interface.
-func (rm *noCheckoutRepoManager) RolledPast(ctx context.Context, ver string) (bool, error) {
+func (rm *noCheckoutRepoManager) RolledPast(ctx context.Context, rev *revision.Revision) (bool, error) {
 	return false, fmt.Errorf("NOT IMPLEMENTED")
 }
 
@@ -175,4 +175,9 @@ func (r *noCheckoutRepoManager) DefaultStrategy() string {
 // See documentation for RepoManager interface.
 func (r *noCheckoutRepoManager) ValidStrategies() []string {
 	return []string{} // NOT IMPLEMENTED
+}
+
+// See documentation for RepoManager interface.
+func (r *noCheckoutRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
+	return nil, errors.New("NOT IMPLEMENTED")
 }

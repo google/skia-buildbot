@@ -116,26 +116,26 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 }
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []*revision.Revision, error) {
+func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	sklog.Info("Updating Android checkout...")
 	if err := rm.arm.updateAndroidCheckout(ctx); err != nil {
-		return "", "", nil, err
+		return nil, nil, nil, err
 	}
 
 	sklog.Info("Finding next roll rev...")
 	lastRollRev, nextRollRev, notRolledRevs, err := rm.fuchsiaSDKRepoManager.updateHelper(ctx, strat, parentRepo, baseCommit)
 	if err != nil {
-		return "", "", nil, err
+		return nil, nil, nil, err
 	}
 
 	if err := rm.parentRepo.Update(ctx); err != nil {
-		return "", "", nil, err
+		return nil, nil, nil, err
 	}
 	return lastRollRev, nextRollRev, notRolledRevs, nil
 }
 
 // See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
-func (rm *fuchsiaSDKAndroidRepoManager) createRoll(ctx context.Context, from, to, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
+func (rm *fuchsiaSDKAndroidRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
 
@@ -168,7 +168,7 @@ func (rm *fuchsiaSDKAndroidRepoManager) createRoll(ctx context.Context, from, to
 	if err := os.MkdirAll(sdkDestPath, os.ModePerm); err != nil {
 		return "", nil, err
 	}
-	sdkGsPath := rm.gsListPath + "/linux-amd64/" + to
+	sdkGsPath := rm.gsListPath + "/linux-amd64/" + to.Id
 	sklog.Infof("Downloading SDK from %s...", sdkGsPath)
 	newContents := map[string][]byte{}
 	r, err := rm.gcsClient.FileReader(ctx, sdkGsPath)
@@ -231,7 +231,7 @@ func (rm *fuchsiaSDKAndroidRepoManager) createRoll(ctx context.Context, from, to
 	}
 
 	// Lastly, include the SDK version hash file.
-	nextRollContents[rm.versionFileLinux] = to
+	nextRollContents[rm.versionFileLinux] = to.Id
 	sklog.Infof("Next roll modifies %d files.", len(nextRollContents))
 
 	// Create the commit message.

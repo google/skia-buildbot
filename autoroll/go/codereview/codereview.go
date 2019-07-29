@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/recent_rolls"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
@@ -26,7 +27,9 @@ type CodeReview interface {
 	// RetrieveRoll retrieves a RollImpl corresponding to the given issue.
 	// The passed-in AutoRollIssue becomes owned by the RollImpl; it may
 	// modify it, insert it into the RecentRolls DB, etc.
-	RetrieveRoll(context.Context, *autoroll.AutoRollIssue, *recent_rolls.RecentRolls, func(context.Context, RollImpl) error) (RollImpl, error)
+	// TODO(borenet): Consider storing the rollingTo Revision as part of the
+	// autoroll.AutoRollIssue struct, to avoid passing it around.
+	RetrieveRoll(context.Context, *autoroll.AutoRollIssue, *recent_rolls.RecentRolls, *revision.Revision, func(context.Context, RollImpl) error) (RollImpl, error)
 
 	// UserEmail returns the email address of the authenticated user.
 	UserEmail() string
@@ -79,11 +82,11 @@ func (c *gerritCodeReview) GetFullHistoryUrl() string {
 }
 
 // See documentation for CodeReview interface.
-func (c *gerritCodeReview) RetrieveRoll(ctx context.Context, issue *autoroll.AutoRollIssue, recent *recent_rolls.RecentRolls, finishedCallback func(context.Context, RollImpl) error) (RollImpl, error) {
+func (c *gerritCodeReview) RetrieveRoll(ctx context.Context, issue *autoroll.AutoRollIssue, recent *recent_rolls.RecentRolls, rollingTo *revision.Revision, finishedCallback func(context.Context, RollImpl) error) (RollImpl, error) {
 	if c.cfg.Config == GERRIT_CONFIG_ANDROID {
-		return newGerritAndroidRoll(ctx, issue, c.gerritClient, recent, c.issueUrlBase, finishedCallback)
+		return newGerritAndroidRoll(ctx, issue, c.gerritClient, recent, c.issueUrlBase, rollingTo, finishedCallback)
 	}
-	return newGerritRoll(ctx, issue, c.gerritClient, recent, c.issueUrlBase, finishedCallback)
+	return newGerritRoll(ctx, issue, c.gerritClient, recent, c.issueUrlBase, rollingTo, finishedCallback)
 }
 
 // See documentation for CodeReview interface.
@@ -146,8 +149,8 @@ func (c *githubCodeReview) GetFullHistoryUrl() string {
 }
 
 // See documentation for CodeReview interface.
-func (c *githubCodeReview) RetrieveRoll(ctx context.Context, issue *autoroll.AutoRollIssue, recent *recent_rolls.RecentRolls, finishedCallback func(context.Context, RollImpl) error) (RollImpl, error) {
-	return newGithubRoll(ctx, issue, c.githubClient, recent, c.issueUrlBase, c.cfg, finishedCallback)
+func (c *githubCodeReview) RetrieveRoll(ctx context.Context, issue *autoroll.AutoRollIssue, recent *recent_rolls.RecentRolls, rollingTo *revision.Revision, finishedCallback func(context.Context, RollImpl) error) (RollImpl, error) {
+	return newGithubRoll(ctx, issue, c.githubClient, recent, c.issueUrlBase, c.cfg, rollingTo, finishedCallback)
 }
 
 // See documentation for CodeReview interface.

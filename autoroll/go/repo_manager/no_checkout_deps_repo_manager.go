@@ -115,6 +115,7 @@ func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 		return nil, err
 	}
 	rv.noCheckoutRepoManager = ncrm
+	rv.childRevLinkTmpl = fmt.Sprintf(gerritRevTmpl, rv.childRepoUrl, "%s")
 
 	return rv, nil
 }
@@ -158,7 +159,7 @@ func (rm *noCheckoutDEPSRepoManager) getDEPSFile(ctx context.Context, repo *giti
 }
 
 // See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
-func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
+func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
 	rm.infoMtx.RLock()
 	defer rm.infoMtx.RUnlock()
 
@@ -170,14 +171,14 @@ func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to, s
 	defer cleanup()
 
 	// Write the new DEPS content.
-	if err := rm.setdep(ctx, depsFile, rm.childPath, to); err != nil {
+	if err := rm.setdep(ctx, depsFile, rm.childPath, to.Id); err != nil {
 		return "", nil, err
 	}
 
 	// Update any transitive DEPS.
 	transitiveDepsStr := ""
 	if len(rm.transitiveDeps) > 0 {
-		childDepsFile, childCleanup, err := rm.getDEPSFile(ctx, rm.childRepo, to)
+		childDepsFile, childCleanup, err := rm.getDEPSFile(ctx, rm.childRepo, to.Id)
 		if err != nil {
 			return "", nil, err
 		}
@@ -220,7 +221,7 @@ func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to, s
 	nextRollCommits := make([]*vcsinfo.LongCommit, 0, len(rm.notRolledRevs))
 	found := false
 	for _, rev := range rm.notRolledRevs {
-		if rev.Id == to {
+		if rev.Id == to.Id {
 			found = true
 		}
 		if found {
@@ -259,30 +260,17 @@ func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to, s
 }
 
 // See documentation for RepoManager interface.
-func (rm *noCheckoutDEPSRepoManager) RolledPast(ctx context.Context, hash string) (bool, error) {
+func (rm *noCheckoutDEPSRepoManager) RolledPast(ctx context.Context, rev *revision.Revision) (bool, error) {
 	rm.infoMtx.RLock()
 	defer rm.infoMtx.RUnlock()
-	if hash == rm.lastRollRev {
+	if rev.Id == rm.lastRollRev.Id {
 		return true, nil
 	}
-	commits, err := rm.childRepo.Log(hash, rm.lastRollRev)
+	commits, err := rm.childRepo.Log(rev.Id, rm.lastRollRev.Id)
 	if err != nil {
 		return false, err
 	}
 	return len(commits) > 0, nil
-}
-
-func (rm *noCheckoutDEPSRepoManager) getNextRollRev(ctx context.Context, notRolled []*revision.Revision, lastRollRev string) (string, error) {
-	rm.strategyMtx.RLock()
-	defer rm.strategyMtx.RUnlock()
-	nextRollRev, err := rm.strategy.GetNextRollRev(ctx, notRolled)
-	if err != nil {
-		return "", err
-	}
-	if nextRollRev == "" {
-		nextRollRev = lastRollRev
-	}
-	return nextRollRev, nil
 }
 
 func (rm *noCheckoutDEPSRepoManager) getdep(ctx context.Context, depsFile, depPath string) (string, error) {
@@ -310,32 +298,37 @@ func (rm *noCheckoutDEPSRepoManager) setdep(ctx context.Context, depsFile, depPa
 }
 
 // See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, []*revision.Revision, error) {
+func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
 
 	depsFile, cleanup, err := rm.getDEPSFile(ctx, rm.parentRepo, baseCommit)
 	if err != nil {
-		return "", "", nil, err
+		return nil, nil, nil, err
 	}
 	defer cleanup()
-	lastRollRev, err := rm.getdep(ctx, depsFile, rm.childPath)
+	lastRollHash, err := rm.getdep(ctx, depsFile, rm.childPath)
 	if err != nil {
-		return "", "", nil, err
+		return nil, nil, nil, err
 	}
+	lastRollDetails, err := rm.childRepo.GetCommit(lastRollHash)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	lastRollRev := revision.FromLongCommit(rm.childRevLinkTmpl, lastRollDetails)
 
 	// Find the not-yet-rolled child repo commits.
 	// Only consider commits on the "main" branch as roll candidates.
-	notRolled, err := rm.childRepo.LogLinear(lastRollRev, rm.childBranch)
+	notRolled, err := rm.childRepo.LogLinear(lastRollRev.Id, rm.childBranch)
 	if err != nil {
-		return "", "", nil, err
+		return nil, nil, nil, err
 	}
-	notRolledRevs := revision.FromLongCommits(fmt.Sprintf(gerritRevTmpl, rm.childRepoUrl, "%s"), notRolled)
+	notRolledRevs := revision.FromLongCommits(rm.childRevLinkTmpl, notRolled)
 
 	// Get the next roll revision.
 	nextRollRev, err := rm.getNextRollRev(ctx, notRolledRevs, lastRollRev)
 	if err != nil {
-		return "", "", nil, err
+		return nil, nil, nil, err
 	}
 
 	return lastRollRev, nextRollRev, notRolledRevs, nil
@@ -359,4 +352,13 @@ func (r *noCheckoutDEPSRepoManager) ValidStrategies() []string {
 		strategy.ROLL_STRATEGY_BATCH,
 		strategy.ROLL_STRATEGY_SINGLE,
 	}
+}
+
+// See documentation for RepoManager interface.
+func (r *noCheckoutDEPSRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
+	details, err := r.childRepo.GetCommit(id)
+	if err != nil {
+		return nil, err
+	}
+	return revision.FromLongCommit(r.childRevLinkTmpl, details), nil
 }

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -167,10 +168,15 @@ func (rm *githubDEPSRepoManager) Update(ctx context.Context) error {
 	}
 
 	// Get the last roll revision.
-	lastRollRev, err := rm.getdep(ctx, filepath.Join(rm.parentDir, "DEPS"), rm.childPath)
+	lastRollHash, err := rm.getdep(ctx, filepath.Join(rm.parentDir, "DEPS"), rm.childPath)
 	if err != nil {
 		return err
 	}
+	lastRollDetails, err := rm.childRepo.Details(ctx, lastRollHash)
+	if err != nil {
+		return err
+	}
+	lastRollRev := revision.FromLongCommit(rm.childRevLinkTmpl, lastRollDetails)
 
 	// Find the not-rolled child repo commits.
 	notRolledRevs, err := rm.getCommitsNotRolled(ctx, lastRollRev)
@@ -205,7 +211,7 @@ func (rm *githubDEPSRepoManager) Update(ctx context.Context) error {
 }
 
 // See documentation for RepoManager interface.
-func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	rm.repoMtx.Lock()
 	defer rm.repoMtx.Unlock()
 
@@ -244,7 +250,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to str
 
 	// Run "gclient setdep".
 	depsFile := filepath.Join(rm.parentDir, "DEPS")
-	if err := rm.setdep(ctx, depsFile, rm.childPath, to); err != nil {
+	if err := rm.setdep(ctx, depsFile, rm.childPath, to.Id); err != nil {
 		return 0, err
 	}
 
@@ -298,7 +304,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to str
 		return 0, err
 	}
 	logStr = strings.TrimSpace(logStr)
-	childRepoCompareURL := fmt.Sprintf("%s/compare/%s..%s", rm.childRepoUrl, from[:12], to[:12])
+	childRepoCompareURL := fmt.Sprintf("%s/compare/%s..%s", rm.childRepoUrl, from, to)
 	commitMsg, err := GetGithubCommitMsg(logStr, childRepoCompareURL, rm.childPath, from, to, rm.serverURL, transitiveDepsStr, logCmd, emails)
 	if err != nil {
 		return 0, fmt.Errorf("Could not build github commit message: %s", err)

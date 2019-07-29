@@ -17,6 +17,7 @@ import (
 	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/repo_manager"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/state_machine"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -114,8 +115,6 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		rm, err = repo_manager.NewGithubCipdDEPSRepoManager(ctx, c.GithubCipdDEPSRepoManager, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.GithubDEPSRepoManager != nil {
 		rm, err = repo_manager.NewGithubDEPSRepoManager(ctx, c.GithubDEPSRepoManager, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
-	} else if c.ManifestRepoManager != nil {
-		rm, err = repo_manager.NewManifestRepoManager(ctx, c.ManifestRepoManager, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.NoCheckoutDEPSRepoManager != nil {
 		rm, err = repo_manager.NewNoCheckoutDEPSRepoManager(ctx, c.NoCheckoutDEPSRepoManager, workdir, g, recipesCfgFile, serverURL, gitcookiesPath, client, cr, local)
 	} else {
@@ -229,7 +228,11 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	arb.sm = sm
 	current := recent.CurrentRoll()
 	if current != nil {
-		roll, err := arb.retrieveRoll(ctx, current)
+		rollingTo, err := repo_manager.GetRevision(ctx, rm, current.RollingTo)
+		if err != nil {
+			return nil, err
+		}
+		roll, err := arb.retrieveRoll(ctx, current, rollingTo)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to retrieve current roll: %s", err)
 		}
@@ -240,12 +243,12 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 }
 
 // Retrieve a RollImpl based on the given AutoRollIssue. The passed-in
-// AutoRollIssue becomes ownered bythe RollImpl; it may modify it, insert it
+// AutoRollIssue becomes owned by the RollImpl; it may modify it, insert it
 // into the RecentRolls DB, etc. The Issue field is required, and if the roll
 // has not yet been inserted into the DB, the RollingFrom, and RollingTo fields
 // must be set as well.
-func (r *AutoRoller) retrieveRoll(ctx context.Context, roll *autoroll.AutoRollIssue) (codereview.RollImpl, error) {
-	return r.codereview.RetrieveRoll(ctx, roll, r.recent, r.rollFinished)
+func (r *AutoRoller) retrieveRoll(ctx context.Context, roll *autoroll.AutoRollIssue, rollingTo *revision.Revision) (codereview.RollImpl, error) {
+	return r.codereview.RetrieveRoll(ctx, roll, r.recent, rollingTo, r.rollFinished)
 }
 
 // isSyncError returns true iff the error looks like a sync error.
@@ -386,7 +389,7 @@ func (r *AutoRoller) unthrottle(ctx context.Context) error {
 }
 
 // See documentation for state_machine.AutoRollerImpl interface.
-func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to string, dryRun bool) (state_machine.RollCLImpl, error) {
+func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to *revision.Revision, dryRun bool) (state_machine.RollCLImpl, error) {
 	issueNum, err := r.rm.CreateNewRoll(ctx, from, to, r.GetEmails(), strings.Join(r.cfg.CqExtraTrybots, ";"), dryRun)
 	if err != nil {
 		return nil, err
@@ -394,10 +397,10 @@ func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to string, dryRun 
 	issue := &autoroll.AutoRollIssue{
 		IsDryRun:    dryRun,
 		Issue:       issueNum,
-		RollingFrom: from,
-		RollingTo:   to,
+		RollingFrom: from.Id,
+		RollingTo:   to.Id,
 	}
-	roll, err := r.retrieveRoll(ctx, issue)
+	roll, err := r.retrieveRoll(ctx, issue, to)
 	if err != nil {
 		return nil, err
 	}
@@ -415,12 +418,12 @@ func (r *AutoRoller) FailureThrottle() *state_machine.Throttler {
 }
 
 // See documentation for state_machine.AutoRollerImpl interface.
-func (r *AutoRoller) GetCurrentRev() string {
+func (r *AutoRoller) GetCurrentRev() *revision.Revision {
 	return r.rm.LastRollRev()
 }
 
 // See documentation for state_machine.AutoRollerImpl interface.
-func (r *AutoRoller) GetNextRollRev() string {
+func (r *AutoRoller) GetNextRollRev() *revision.Revision {
 	return r.rm.NextRollRev()
 }
 
@@ -430,7 +433,7 @@ func (r *AutoRoller) InRollWindow(t time.Time) bool {
 }
 
 // See documentation for state_machine.AutoRollerImpl interface.
-func (r *AutoRoller) RolledPast(ctx context.Context, rev string) (bool, error) {
+func (r *AutoRoller) RolledPast(ctx context.Context, rev *revision.Revision) (bool, error) {
 	return r.rm.RolledPast(ctx, rev)
 }
 
@@ -490,7 +493,7 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 	if err := status.Set(ctx, r.roller, &status.AutoRollStatus{
 		AutoRollMiniStatus: status.AutoRollMiniStatus{
 			CurrentRollRev:      currentRollRev,
-			LastRollRev:         r.rm.LastRollRev(),
+			LastRollRev:         r.rm.LastRollRev().Id,
 			Mode:                r.GetMode(),
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: len(notRolledRevs),
@@ -657,6 +660,16 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 	sklog.Infof("Found %d requests.", len(reqs))
 	for _, req := range reqs {
 		var issue *autoroll.AutoRollIssue
+		to, err := repo_manager.GetRevision(ctx, r.rm, req.Revision)
+		if err != nil {
+			sklog.Errorf("Manual roll failed to obtain revision %q; marking failed: %s", req.Revision, err)
+			req.Status = manual.STATUS_COMPLETE
+			req.Result = manual.RESULT_FAILURE
+			if err := r.manualRollDB.Put(req); err != nil {
+				return fmt.Errorf("Failed to update manual roll request: %s", err)
+			}
+			continue
+		}
 		if req.Status == manual.STATUS_PENDING {
 			emails := r.GetEmails()
 			if !util.In(req.Requester, emails) {
@@ -665,13 +678,13 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			var err error
 			sklog.Infof("Creating manual roll to %s as requested by %s...", req.Revision, req.Requester)
 			from := r.GetCurrentRev()
-			issueNum, err := r.rm.CreateNewRoll(ctx, from, req.Revision, emails, strings.Join(r.cfg.CqExtraTrybots, ";"), false)
+			issueNum, err := r.rm.CreateNewRoll(ctx, from, to, emails, strings.Join(r.cfg.CqExtraTrybots, ";"), false)
 			if err != nil {
 				return fmt.Errorf("Failed to create manual roll for %s: %s", req.Id, err)
 			}
 			issue = &autoroll.AutoRollIssue{
-				RollingFrom: from,
-				RollingTo:   req.Revision,
+				RollingFrom: from.Id,
+				RollingTo:   to.Id,
 				Issue:       issueNum,
 			}
 		} else if req.Status == manual.STATUS_STARTED {
@@ -689,7 +702,7 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			continue
 		}
 		sklog.Infof("Getting status for manual roll # %d", issue.Issue)
-		roll, err := r.retrieveRoll(ctx, issue)
+		roll, err := r.retrieveRoll(ctx, issue, to)
 		if err != nil {
 			return fmt.Errorf("Failed to retrieve manual roll %s: %s", req.Id, err)
 		}

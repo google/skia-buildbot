@@ -178,7 +178,6 @@ type AutoRollerConfig struct {
 	GithubCipdDEPSRepoManager    *repo_manager.GithubCipdDEPSRepoManagerConfig    `json:"githubCipdDEPSRepoManager,omitempty"`
 	GithubDEPSRepoManager        *repo_manager.GithubDEPSRepoManagerConfig        `json:"githubDEPSRepoManager,omitempty"`
 	Google3RepoManager           *Google3FakeRepoManagerConfig                    `json:"google3,omitempty"`
-	ManifestRepoManager          *repo_manager.ManifestRepoManagerConfig          `json:"manifestRepoManager,omitempty"`
 	NoCheckoutDEPSRepoManager    *repo_manager.NoCheckoutDEPSRepoManagerConfig    `json:"noCheckoutDEPSRepoManager,omitempty"`
 
 	// Kubernetes config.
@@ -285,9 +284,6 @@ func (c *AutoRollerConfig) Validate() error {
 	if c.Google3RepoManager != nil {
 		rm = append(rm, c.Google3RepoManager)
 	}
-	if c.ManifestRepoManager != nil {
-		rm = append(rm, c.ManifestRepoManager)
-	}
 	if c.NoCheckoutDEPSRepoManager != nil {
 		rm = append(rm, c.NoCheckoutDEPSRepoManager)
 	}
@@ -332,8 +328,6 @@ func (c *AutoRollerConfig) RollerType() string {
 			c.rollerType = ROLLER_TYPE_GITHUB_DEPS
 		} else if c.Google3RepoManager != nil {
 			c.rollerType = ROLLER_TYPE_GOOGLE3
-		} else if c.ManifestRepoManager != nil {
-			c.rollerType = ROLLER_TYPE_MANIFEST
 		} else if c.NoCheckoutDEPSRepoManager != nil {
 			c.rollerType = ROLLER_TYPE_DEPS_NO_CHECKOUT
 		} else {

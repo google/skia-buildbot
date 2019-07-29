@@ -2,6 +2,7 @@ package revision
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/vcsinfo"
@@ -21,6 +22,9 @@ type Revision struct {
 	// commit title line.
 	Description string `json:"description"`
 
+	// Author is a string indicating the author of this Revision.
+	Author string `json:"author"`
+
 	// Timestamp is the time at which the Revision was created.
 	Timestamp time.Time `json:"time"`
 
@@ -34,6 +38,7 @@ func (r *Revision) Copy() *Revision {
 		Id:          r.Id,
 		Display:     r.Display,
 		Description: r.Description,
+		Author:      r.Author,
 		Timestamp:   r.Timestamp,
 		URL:         r.URL,
 	}
@@ -54,10 +59,16 @@ func FromLongCommit(revLinkTmpl string, c *vcsinfo.LongCommit) *Revision {
 	if revLinkTmpl != "" {
 		revLink = fmt.Sprintf(revLinkTmpl, c.Hash)
 	}
+	author := c.Author
+	authorSplit := strings.Split(c.Author, "(")
+	if len(authorSplit) > 1 {
+		author = strings.TrimRight(strings.TrimSpace(authorSplit[1]), ")")
+	}
 	return &Revision{
 		Id:          c.Hash,
-		Display:     c.Hash[:7],
+		Display:     c.Hash[:12],
 		Description: c.Subject,
+		Author:      author,
 		Timestamp:   c.Timestamp,
 		URL:         revLink,
 	}

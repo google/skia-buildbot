@@ -54,21 +54,21 @@ type RepoManager interface {
 	NotRolledRevisions() []*revision.Revision
 
 	// Create a new roll attempt.
-	CreateNewRoll(context.Context, string, string, []string, string, bool) (int64, error)
+	CreateNewRoll(context.Context, *revision.Revision, *revision.Revision, []string, string, bool) (int64, error)
 
 	// Return the last-rolled child revision.
-	LastRollRev() string
+	LastRollRev() *revision.Revision
 
 	// Return the next child revision to be rolled.
-	NextRollRev() string
+	NextRollRev() *revision.Revision
 
 	// PreUploadSteps returns a slice of functions which should be run after the
 	// roll is performed but before a CL is uploaded for it.
 	PreUploadSteps() []PreUploadStep
 
 	// Return true iff the roller has rolled up through or past the given
-	// commit.
-	RolledPast(context.Context, string) (bool, error)
+	// Revision.
+	RolledPast(context.Context, *revision.Revision) (bool, error)
 
 	// Update the RepoManager's view of the world. Depending on
 	// implementation, this may sync repos and may take some time.
@@ -82,6 +82,10 @@ type RepoManager interface {
 
 	// Return the list of valid strategy names for this RepoManager.
 	ValidStrategies() []string
+
+	// GetRevision returns a revision.Revision instance from the given
+	// revision ID.
+	GetRevision(context.Context, string) (*revision.Revision, error)
 }
 
 // Start makes the RepoManager begin the periodic update process.
@@ -96,6 +100,22 @@ func Start(ctx context.Context, r RepoManager, frequency time.Duration) {
 			lv.Reset()
 		}
 	}, nil)
+}
+
+// GetRevision is a wrapper around RepoManager.GetRevision() which attempts to
+// prevent unnecessary requests / subprocesses by first searching the known
+// Revisions.
+func GetRevision(ctx context.Context, r RepoManager, id string) (*revision.Revision, error) {
+	rev := r.LastRollRev()
+	if rev.Id == id {
+		return rev, nil
+	}
+	for _, rev := range r.NotRolledRevisions() {
+		if rev.Id == id {
+			return rev, nil
+		}
+	}
+	return r.GetRevision(ctx, id)
 }
 
 // CommonRepoManagerConfig provides configuration for commonRepoManager.
@@ -156,9 +176,9 @@ type commonRepoManager struct {
 	g                gerrit.GerritInterface
 	httpClient       *http.Client
 	infoMtx          sync.RWMutex
-	lastRollRev      string
+	lastRollRev      *revision.Revision
 	local            bool
-	nextRollRev      string
+	nextRollRev      *revision.Revision
 	notRolledRevs    []*revision.Revision
 	parentBranch     string
 	preUploadSteps   []PreUploadStep
@@ -211,21 +231,21 @@ func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, workdi
 }
 
 // See documentation for RepoManager interface.
-func (r *commonRepoManager) LastRollRev() string {
+func (r *commonRepoManager) LastRollRev() *revision.Revision {
 	r.infoMtx.RLock()
 	defer r.infoMtx.RUnlock()
 	return r.lastRollRev
 }
 
 // See documentation for RepoManager interface.
-func (r *commonRepoManager) RolledPast(ctx context.Context, hash string) (bool, error) {
+func (r *commonRepoManager) RolledPast(ctx context.Context, rev *revision.Revision) (bool, error) {
 	r.repoMtx.RLock()
 	defer r.repoMtx.RUnlock()
-	return r.childRepo.IsAncestor(ctx, hash, r.lastRollRev)
+	return r.childRepo.IsAncestor(ctx, rev.Id, r.lastRollRev.Id)
 }
 
 // See documentation for RepoManager interface.
-func (r *commonRepoManager) NextRollRev() string {
+func (r *commonRepoManager) NextRollRev() *revision.Revision {
 	r.infoMtx.RLock()
 	defer r.infoMtx.RUnlock()
 	return r.nextRollRev
@@ -262,28 +282,28 @@ func SetStrategy(ctx context.Context, r RepoManager, s string) error {
 	return nil
 }
 
-func (r *commonRepoManager) getNextRollRev(ctx context.Context, notRolled []*revision.Revision, lastRollRev string) (string, error) {
+func (r *commonRepoManager) getNextRollRev(ctx context.Context, notRolled []*revision.Revision, lastRollRev *revision.Revision) (*revision.Revision, error) {
 	r.strategyMtx.RLock()
 	defer r.strategyMtx.RUnlock()
 	nextRollRev, err := r.strategy.GetNextRollRev(ctx, notRolled)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	if nextRollRev == "" {
+	if nextRollRev == nil {
 		nextRollRev = lastRollRev
 	}
 	return nextRollRev, nil
 }
 
-func (r *commonRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) ([]*revision.Revision, error) {
+func (r *commonRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev *revision.Revision) ([]*revision.Revision, error) {
 	head, err := r.childRepo.FullHash(ctx, fmt.Sprintf("origin/%s", r.childBranch))
 	if err != nil {
 		return nil, err
 	}
-	if head == lastRollRev {
+	if head == lastRollRev.Id {
 		return []*revision.Revision{}, nil
 	}
-	commits, err := r.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev, head))
+	commits, err := r.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev.Id, head))
 	if err != nil {
 		return nil, err
 	}
@@ -309,6 +329,17 @@ func (r *commonRepoManager) ValidStrategies() []string {
 		strategy.ROLL_STRATEGY_BATCH,
 		strategy.ROLL_STRATEGY_SINGLE,
 	}
+}
+
+// See documentation for RepoManager interface.
+func (r *commonRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
+	r.repoMtx.RLock()
+	defer r.repoMtx.RUnlock()
+	details, err := r.childRepo.Details(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return revision.FromLongCommit(r.childRevLinkTmpl, details), nil
 }
 
 // Helper function for unsetting the WIP bit on a Gerrit CL if necessary.
