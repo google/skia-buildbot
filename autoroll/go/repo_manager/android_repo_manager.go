@@ -108,7 +108,7 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 		return err
 	}
 	// Sync only the child path and the repohooks directory (needed to upload changes).
-	if _, err := exec.RunCwd(ctx, r.workdir, r.repoToolPath, "sync", r.childPath, "tools/repohooks", "-j32"); err != nil {
+	if _, err := exec.RunCwd(ctx, r.workdir, r.repoToolPath, "sync", "--force-sync", r.childPath, "tools/repohooks", "-j32"); err != nil {
 		return err
 	}
 
