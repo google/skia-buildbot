@@ -21,8 +21,6 @@
 <link rel="import" href="/res/imp/bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
 <link rel="import" href="/res/imp/bower_components/paper-fab/paper-fab.html">
 
-<link rel="import" href="/res/imp/alert-config.html" />
-
 <dom-module id="alerts-page-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
     paper-fab {
@@ -68,7 +66,7 @@
   <template>
     <paper-dialog id=edit on-iron-overlay-closed=_onDialogClose>
       <paper-dialog-scrollable>
-        <alert-config-sk id=alertconfig config="{{_cfg}}"></alert-config-sk>
+        <alert-config-sk id=alertconfig config="[[_cfg]]"></alert-config-sk>
       </paper-dialog-scrollable>
       <div class="buttons">
         <paper-button dialog-dismiss>Cancel</paper-button>
@@ -213,6 +211,7 @@
       if (!e.detail.confirmed) {
         return
       }
+      this._cfg = this.$.alertconfig.config;
       // Force interesting to be a Number.
       this._cfg.interesting = +this._cfg.interesting;
       this._cfg.radius = +this._cfg.radius;

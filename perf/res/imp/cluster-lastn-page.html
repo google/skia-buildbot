@@ -14,8 +14,6 @@
 <link rel='import' href='/res/imp/bower_components/paper-spinner/paper-spinner.html'>
 <link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
 
-<link rel='import' href='/res/imp/alert-config.html' />
-
 <link rel='stylesheet' href='/res/common/css/md.css'>
 
 <dom-module id='cluster-lastn-page-sk'>
@@ -55,7 +53,7 @@
   <template>
     <paper-dialog id=edit on-iron-overlay-closed=_onDialogClose>
       <paper-dialog-scrollable>
-        <alert-config-sk id=alertconfig config='{{state}}'></alert-config-sk>
+        <alert-config-sk id=alertconfig config='[[state]]'></alert-config-sk>
       </paper-dialog-scrollable>
       <div class='buttons'>
         <paper-button dialog-dismiss>Cancel</paper-button>
@@ -228,11 +226,11 @@
       if (!e.detail.confirmed) {
         return
       }
+      this.state = this.$.alertconfig.config;
       this.state.interesting = +this.state.interesting;
       this.state.radius = +this.state.radius;
       this.state.k = +this.state.k;
       this.state.minimum_num = +this.state.minimum_num;
-      this.state = Object.assign({}, this.state);
       this.state = Object.assign({}, this.state);
     },
 
