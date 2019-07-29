@@ -28,10 +28,10 @@ const _fromName = (ele) => {
 // TODO(jcgregorio) select-sk needs something like attr-for-selected and
 // fallback-selection like iron-selector.
 const template = (ele) => html`
-  <select-sk @selection-changed=${ele._selectionChanged} .selection=${_fromName(ele)}>
-    <div value=kmeans title="Use k-means clustering on the trace shapes.">K-Means</div>
-    <div value=stepfit title="Only look for traces that step up or down at the selected commit.">StepFit</div>
-    <div value=tail title="Only look for traces with a jumping tail.">Tail</div>
+  <select-sk @selection-changed=${ele._selectionChanged}>
+    <div value=kmeans ?selected=${ele.algo === 'kmeans'} title="Use k-means clustering on the trace shapes.">K-Means</div>
+    <div value=stepfit ?selected=${ele.algo === 'stepfit'} title="Only look for traces that step up or down at the selected commit.">StepFit</div>
+    <div value=tail ?selected=${ele.algo === 'tail'}  title="Only look for traces with a jumping tail.">Tail</div>
   </select-sk>
   `;
 
@@ -67,7 +67,6 @@ window.customElements.define('algo-select-sk', class extends ElementSk {
   get algo() { return this.getAttribute('algo'); }
   set algo(val) {
     this.setAttribute('algo', val);
-    this._render();
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
