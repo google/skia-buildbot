@@ -43,7 +43,7 @@ used for both Linux and Android.
 	AFDO_GS_BUCKET = "chromeos-prebuilt"
 	AFDO_GS_PATH   = "afdo-job/llvm/"
 
-	AFDO_VERSION_LENGTH               = 5
+	AFDO_VERSION_LENGTH               = 4
 	AFDO_VERSION_REGEX_EXPECT_MATCHES = AFDO_VERSION_LENGTH + 1
 )
 
@@ -59,7 +59,7 @@ var (
 	// Example name: chromeos-chrome-amd64-63.0.3239.57_rc-r1.afdo.bz2
 	AFDO_VERSION_REGEX = regexp.MustCompile(
 		"^chromeos-chrome-amd64-" + // Prefix
-			"(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)" + // Version
+			"(\\d+)\\.(\\d+)\\.(\\d+)\\.0" + // Version
 			"_rc-r(\\d+)" + // Revision
 			"-merged\\.afdo\\.bz2$") // Suffix
 
