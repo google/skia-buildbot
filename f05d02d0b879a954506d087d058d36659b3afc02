@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "93e5eb7e_95b942cc",
+        "filename": "autoroll/go/codereview/codereview.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-07-29T16:11:30Z",
+      "side": 1,
+      "message": "I did not do this, because I didn\u0027t want to modify what we\u0027re storing in the DB without a significant amount of thought.  Plus, I\u0027m lightly considering changing revision.Revision to be an interface which could be implemented by different types of revisions (eg. Git vs CIPD vs Fuchsia SDK version) and add methods like Equal() and IsNewer(Revision).  Storing that interface in the DB would be more difficult.",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 62
+      },
+      "revId": "f05d02d0b879a954506d087d058d36659b3afc02",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
