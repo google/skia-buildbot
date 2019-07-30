@@ -34,6 +34,24 @@ groups:
           https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=logName%3D"projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.job }}"
           '
 
+  - alert: PodContainerCreatingTooLong
+    expr: k8s_pod_status{status="ContainerCreating"} > 30 * 60
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.pod }}'
+      description: '{{ $labels.pod }} of container {{ $labels.container }} in project {{ $labels.project }} has been in {{ $labels.status }} state for more than 30 minutes.'
+
+  - alert: PodTerminatingTooLong
+    expr: k8s_pod_status{status="Terminating"} > 30 * 60
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.pod }}'
+      description: '{{ $labels.pod }} of container {{ $labels.container }} in project {{ $labels.project }} has been in {{ $labels.status }} state for more than 30 minutes.'
+
   - alert: CrashLoop
     expr: max_over_time(liveness_uptime_s{kubernetes_pod_name!=""}[6m]) < 60 * 3
     for: 5m
