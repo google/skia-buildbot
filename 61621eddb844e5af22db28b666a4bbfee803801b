@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "383b81c6_e10e3497",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-07-30T18:11:22Z",
+      "side": 1,
+      "message": "Since this is in alerts_general it will be useful to also add {{ $labels.project }} to the description. Same below.",
+      "revId": "61621eddb844e5af22db28b666a4bbfee803801b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
