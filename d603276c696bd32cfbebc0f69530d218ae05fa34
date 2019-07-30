@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2e9b6ec9_5b3b52d3",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-07-30T15:17:39Z",
+      "side": 1,
+      "message": "No \"Completed\" ?",
+      "range": {
+        "startLine": 42,
+        "startChar": 1,
+        "endLine": 42,
+        "endChar": 18
+      },
+      "revId": "d603276c696bd32cfbebc0f69530d218ae05fa34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb049f0a_87d447f6",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-07-30T15:17:39Z",
+      "side": 1,
+      "message": "nit: I keep reading this as 1v (version 1), can this be livenessDirtyConfigs ? (same below for lvPodStatus)",
+      "range": {
+        "startLine": 371,
+        "startChar": 1,
+        "endLine": 371,
+        "endChar": 3
+      },
+      "revId": "d603276c696bd32cfbebc0f69530d218ae05fa34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
