@@ -1,6 +1,7 @@
 package repo_manager
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"text/template"
 	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
@@ -27,17 +29,6 @@ import (
 )
 
 const (
-	COMMIT_MSG_FOOTER_TMPL = `
-The AutoRoll server is located here: %s
-
-Documentation for the AutoRoller is here:
-https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
-
-If the roll is causing failures, please contact the current sheriff, who should
-be CC'd on the roll, and stop the roller if necessary.
-
-`
-
 	DEFAULT_REMOTE = "origin"
 
 	ROLL_BRANCH = "roll_branch"
@@ -134,7 +125,9 @@ type CommonRepoManagerConfig struct {
 	// ChildRevLinkTmpl is a template used to create links to revisions of
 	// the child repo. If not supplied, no links will be created.
 	ChildRevLinkTmpl string `json:"childRevLinkTmpl"`
-
+	// CommitMsgTmpl is a template used to build commit messages. See the
+	// CommitMsgVars type for more information.
+	CommitMsgTmpl string `json:"commitMsgTmpl"`
 	// ChildSubdir indicates the subdirectory of the workdir in which
 	// the childPath should be rooted. In most cases, this should be empty,
 	// but if ChildPath is relative to the parent repo dir (eg. when DEPS
@@ -173,6 +166,7 @@ type commonRepoManager struct {
 	childRevLinkTmpl string
 	childSubdir      string
 	codereview       codereview.CodeReview
+	commitMsgTmpl    *template.Template
 	g                gerrit.GerritInterface
 	httpClient       *http.Client
 	infoMtx          sync.RWMutex
@@ -212,6 +206,14 @@ func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, workdi
 	if err != nil {
 		return nil, err
 	}
+	commitMsgTmplStr := TMPL_COMMIT_MSG_DEFAULT
+	if c.CommitMsgTmpl != "" {
+		commitMsgTmplStr = c.CommitMsgTmpl
+	}
+	commitMsgTmpl, err := ParseCommitMsgTemplate(commitMsgTmplStr)
+	if err != nil {
+		return nil, err
+	}
 	return &commonRepoManager{
 		childBranch:      c.ChildBranch,
 		childDir:         childDir,
@@ -220,6 +222,7 @@ func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, workdi
 		childRevLinkTmpl: c.ChildRevLinkTmpl,
 		childSubdir:      c.ChildSubdir,
 		codereview:       cr,
+		commitMsgTmpl:    commitMsgTmpl,
 		g:                g,
 		httpClient:       client,
 		local:            local,
@@ -366,6 +369,16 @@ func (r *commonRepoManager) unsetWIP(ctx context.Context, change *gerrit.ChangeI
 		}
 	}
 	return nil
+}
+
+// buildCommitMsg executes the commit message template using the given
+// CommitMsgVars.
+func (r *commonRepoManager) buildCommitMsg(vars *CommitMsgVars) (string, error) {
+	var buf bytes.Buffer
+	if err := r.commitMsgTmpl.Execute(&buf, vars); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }
 
 // DepotToolsRepoManagerConfig provides configuration for depotToolsRepoManager.
