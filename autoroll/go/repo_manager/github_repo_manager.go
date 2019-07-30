@@ -294,8 +294,8 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 
 	// Build the commit message.
 	user, repo := GetUserAndRepo(rm.childRepoURL)
-	childRepoCompareURL := fmt.Sprintf("https://github.com/%s/%s/compare/%s...%s", user, repo, from, to)
-	logCmd := []string{"log", fmt.Sprintf("%s..%s", from, to), "--no-merges", "--oneline"}
+	childRepoCompareURL := fmt.Sprintf("https://github.com/%s/%s/compare/%s...%s", user, repo, from.Id, to.Id)
+	logCmd := []string{"log", fmt.Sprintf("%s..%s", from.Id, to.Id), "--no-merges", "--oneline"}
 	logStr, err := rm.childRepo.Git(ctx, logCmd...)
 	if err != nil {
 		return 0, err
@@ -309,7 +309,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		return 0, fmt.Errorf("Could not build github commit message: %s", err)
 	}
 
-	versions, err := rm.childRepo.RevList(ctx, "--no-merges", fmt.Sprintf("%s..%s", from, to))
+	versions, err := rm.childRepo.RevList(ctx, "--no-merges", fmt.Sprintf("%s..%s", from.Id, to.Id))
 	if err != nil {
 		return 0, err
 	}

@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -91,6 +92,11 @@ func setup(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []
 				testutils.WriteFile(t, f, json)
 				return nil
 			}
+		}
+		if strings.Contains(cmd.Name, "gclient") && util.In("setdep", cmd.Args) {
+			splitDep := strings.Split(cmd.Args[len(cmd.Args)-1], "@")
+			assert.Equal(t, 2, len(splitDep))
+			assert.Equal(t, 40, len(splitDep[1]))
 		}
 		return exec.DefaultRun(cmd)
 	})
