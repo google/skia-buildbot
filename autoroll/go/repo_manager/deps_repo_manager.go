@@ -240,7 +240,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 
 	// Create the roll CL.
 	cr := dr.childRepo
-	commits, err := cr.RevList(ctx, fmt.Sprintf("%s..%s", from, to))
+	commits, err := cr.RevList(ctx, fmt.Sprintf("%s..%s", from.Id, to.Id))
 	if err != nil {
 		return 0, fmt.Errorf("Failed to list revisions: %s", err)
 	}
@@ -275,7 +275,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	}
 
 	// Run "gclient setdep".
-	args := []string{"setdep", "-r", fmt.Sprintf("%s@%s", dr.childPath, to)}
+	args := []string{"setdep", "-r", fmt.Sprintf("%s@%s", dr.childPath, to.Id)}
 	sklog.Infof("Running command: gclient %s", strings.Join(args, " "))
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:        dr.parentDir,

@@ -170,7 +170,7 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	}()
 
 	// List the revisions in the roll.
-	commits, err := rm.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", from, to))
+	commits, err := rm.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", from.Id, to.Id))
 	if err != nil {
 		return 0, fmt.Errorf("Failed to list revisions: %s", err)
 	}
