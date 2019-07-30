@@ -22,15 +22,26 @@ import (
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 const (
 	IMAGE_DIRTY_SUFFIX = "-dirty"
 
 	// Metric names.
-	DIRTY_COMMITTED_IMAGE_METRIC = "dirty_committed_image_metric"
-	DIRTY_CONFIG_METRIC          = "dirty_config_metric"
-	LIVENESS_METRIC              = "k8s_checker"
+	DIRTY_COMMITTED_IMAGE_METRIC  = "dirty_committed_image_metric"
+	DIRTY_CONFIG_METRIC           = "dirty_config_metric"
+	LIVENESS_DIRTY_CONFIGS_METRIC = "k8s_checker"
+	LIVENESS_POD_STATUS_METRIC    = "k8s_checker_pod_status"
+	POD_STATUS_METRIC             = "k8s_pod_status"
+
+	// Possible values for the Phase of a pod. More detail in the docs:
+	// https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-phase
+	POD_PHASE_PENDING   = "Pending"
+	POD_PHASE_RUNNING   = "Running"
+	POD_PHASE_SUCCEEDED = "Succeeded"
+	POD_PHASE_FAILED    = "Failed"
+	POD_PHASE_UNKNOWN   = "Unknown"
 )
 
 var (
@@ -41,7 +52,27 @@ var (
 	promPort                = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 	serviceAccountKey       = flag.String("service_account_key", "", "Should be set when running in K8s.")
 	dirtyConfigChecksPeriod = flag.Duration("dirty_config_checks_period", 2*time.Minute, "How often to check for dirty configs/images in K8s.")
+	podStatusMetricsPeriod  = flag.Duration("pod_status_metrics_period", time.Minute, "How often to update pod status metrics.")
 )
+
+type containerState struct {
+	Running *struct {
+		StartedAt time.Time `json:"startedAt"`
+	} `json:"running"`
+	Terminated *struct {
+		ContainerID string    `json:"containerID"`
+		ExitCode    int       `json:"exitCode"`
+		FinishedAt  time.Time `json:"finishedAt"`
+		Message     string    `json:"message"`
+		Reason      string    `json:"reason"`
+		Signal      int       `json:"signal"`
+		StartedAt   time.Time `json:"startedAt"`
+	} `json:"terminated"`
+	Waiting *struct {
+		Message string `json:"message"`
+		Reason  string `json:"reason"`
+	} `json:"waiting"`
+}
 
 type K8sPodsJson struct {
 	Items []struct {
@@ -49,6 +80,7 @@ type K8sPodsJson struct {
 			Labels struct {
 				App string `json:"app"`
 			} `json:"labels"`
+			Name string `json:"name"`
 		} `json:"metadata"`
 		Spec struct {
 			Containers []struct {
@@ -56,6 +88,28 @@ type K8sPodsJson struct {
 				Image string `json:"image"`
 			} `json:"containers"`
 		} `json:"spec"`
+		Status struct {
+			Conditions []struct {
+				LastProbeTime      time.Time `json:"lastProbeTime"`
+				LastTransitionTime time.Time `json:"lastTransitionTime"`
+				Status             string    `json:"status"`
+				Type               string    `json:"type"`
+			} `json:"conditions"`
+			ContainerStatuses []struct {
+				ContainerID  string          `json:"containerID"`
+				Image        string          `json:"image"`
+				ImageID      string          `json:"imageID"`
+				LastState    *containerState `json:"lastState"`
+				Name         string          `json:"name"`
+				Ready        bool            `json:"ready"`
+				RestartCount int             `json:"restartCount"`
+				State        *containerState `json:"state"`
+			} `json:"containerStatuses"`
+			Message   string    `json:"message"`
+			Phase     string    `json:"phase"`
+			Reason    string    `json:"reason"`
+			StartTime time.Time `json:"startTime"`
+		} `json:"status"`
 	} `json:"items"`
 }
 
@@ -219,6 +273,81 @@ func checkForDirtyConfigs(ctx context.Context, oldMetrics map[metrics2.Int64Metr
 	return newMetrics, nil
 }
 
+func updatePodStatusMetrics(ctx context.Context, oldMetrics map[metrics2.Int64Metric]struct{}) (map[metrics2.Int64Metric]struct{}, error) {
+	now := time.Now()
+	// Get JSON output of pods running in K8s.
+	getPodsCommand := fmt.Sprintf("kubectl get pods --kubeconfig=%s -o json", *kubeConfig)
+	output, err := exec.RunSimple(ctx, getPodsCommand)
+	if err != nil {
+		return nil, fmt.Errorf("Error when running \"%s\": %s", getPodsCommand, err)
+	}
+	var podsJson K8sPodsJson
+	if err := json.Unmarshal([]byte(output), &podsJson); err != nil {
+		return nil, fmt.Errorf("Error when unmarshalling JSON: %s", err)
+	}
+	newMetrics := make(map[metrics2.Int64Metric]struct{}, len(podsJson.Items))
+	for _, item := range podsJson.Items {
+		// Attempt to find the time that the pod transitioned into its
+		// current state.
+		var lastTransitionTime time.Time
+		for _, condition := range item.Status.Conditions {
+			if condition.LastTransitionTime.After(lastTransitionTime) {
+				lastTransitionTime = condition.LastTransitionTime
+			}
+		}
+		if util.TimeIsZero(lastTransitionTime) && (item.Status.Phase == POD_PHASE_FAILED || item.Status.Phase == POD_PHASE_SUCCEEDED) {
+			lastTransitionTime = item.Status.StartTime
+		}
+
+		if util.TimeIsZero(lastTransitionTime) {
+			b, err := json.MarshalIndent(item, "", "  ")
+			if err != nil {
+				return nil, err
+			}
+			sklog.Errorf("Could not find transition time for pod:\n%s", string(b))
+			lastTransitionTime = now
+		}
+		duration := int64(now.Sub(lastTransitionTime).Seconds())
+
+		for _, container := range item.Status.ContainerStatuses {
+			// Find an appropriate status. The possible values for
+			// Phase do not provide as much information as we'd
+			// like, so dig into the State object when possible.
+			status := item.Status.Phase
+			if status == POD_PHASE_RUNNING && container.State.Terminated != nil {
+				status = "Terminating"
+			}
+			if status == POD_PHASE_PENDING && container.State.Waiting != nil && container.State.Waiting.Reason != "" {
+				status = container.State.Waiting.Reason
+			}
+
+			// Update the metric.
+			tags := map[string]string{
+				"app":       item.Metadata.Labels.App,
+				"container": container.Name,
+				"pod":       item.Metadata.Name,
+				"repo":      *k8sYamlRepo,
+				"status":    status,
+			}
+			m := metrics2.GetInt64Metric(POD_STATUS_METRIC, tags)
+			newMetrics[m] = struct{}{}
+			delete(oldMetrics, m)
+			m.Update(duration)
+			sklog.Debugf("  %s:\t%s for %ds", item.Metadata.Name, status, duration)
+		}
+	}
+	for m := range oldMetrics {
+		if err := m.Delete(); err != nil {
+			sklog.Errorf("Failed to delete metric: %s", err)
+			// Add the metric to newMetrics so that we'll
+			// have the chance to delete it again on the
+			// next cycle.
+			newMetrics[m] = struct{}{}
+		}
+	}
+	return newMetrics, nil
+}
+
 func main() {
 	common.InitWithMust("k8s_checker", common.PrometheusOpt(promPort))
 	defer sklog.Flush()
@@ -241,15 +370,29 @@ func main() {
 		}
 	}
 
-	liveness := metrics2.NewLiveness(LIVENESS_METRIC)
-	oldMetrics := map[metrics2.Int64Metric]struct{}{}
-	for range time.Tick(*dirtyConfigChecksPeriod) {
-		newMetrics, err := checkForDirtyConfigs(ctx, oldMetrics)
+	livenessDirtyConfigs := metrics2.NewLiveness(LIVENESS_DIRTY_CONFIGS_METRIC)
+	oldMetricsDirtyConfigs := map[metrics2.Int64Metric]struct{}{}
+	go util.RepeatCtx(*dirtyConfigChecksPeriod, ctx, func() {
+		newMetrics, err := checkForDirtyConfigs(ctx, oldMetricsDirtyConfigs)
 		if err != nil {
 			sklog.Errorf("Error when checking for dirty configs: %s", err)
 		} else {
-			liveness.Reset()
-			oldMetrics = newMetrics
+			livenessDirtyConfigs.Reset()
+			oldMetricsDirtyConfigs = newMetrics
 		}
-	}
+	})
+
+	livenessPodStatus := metrics2.NewLiveness(LIVENESS_POD_STATUS_METRIC)
+	oldMetricsPodStatus := map[metrics2.Int64Metric]struct{}{}
+	go util.RepeatCtx(*podStatusMetricsPeriod, ctx, func() {
+		newMetrics, err := updatePodStatusMetrics(ctx, oldMetricsPodStatus)
+		if err != nil {
+			sklog.Errorf("Error when checking pod statuses: %s", err)
+		} else {
+			livenessPodStatus.Reset()
+			oldMetricsPodStatus = newMetrics
+		}
+	})
+
+	select {}
 }
