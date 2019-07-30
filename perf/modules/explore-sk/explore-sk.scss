@@ -1,0 +1,107 @@
+@import '~elements-sk/colors';
+
+explore-sk  {
+  width: 100%;
+  display: block;
+
+  h3 {
+    margin: 0.5em 0 0 0;
+  }
+
+  #selections {
+    margin: 0 1em;
+  }
+
+  #commits,
+  #paramset {
+    display: inline-block;
+    margin: 0.5em;
+    overflow-y: auto;
+  }
+
+  #paramset {
+    height: 480px;
+  }
+
+  #detail {
+    border: #1F78B4 2px solid;
+    margin: 0;
+  }
+
+  #queryTab {
+    margin: 1em;
+  }
+
+  .formulas {
+    display: flex;
+    align-items: center;
+  }
+
+  help-icon-sk {
+    fill: var(--blue);
+  }
+
+  .query-parts {
+    display: flex;
+  }
+
+  .query-counts {
+    height: 2.5em;
+  }
+
+  query-values-sk {
+    display: flex;
+    flex-direction: column;
+  }
+
+  checkbox-sk,
+  domain-picker-sk {
+    display: inline-block;
+  }
+
+  #commits {
+    margin: 1em;
+  }
+
+  #simple_paramset {
+    margin: 1em 0 1em 1em;
+  }
+
+  #percent {
+    margin: 0.6em;
+    font-family: 'Roboto Mono',monospace;
+  }
+
+  #plot {
+    display: block;
+    min-height: 30vh;
+  }
+
+  #buttons {
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+  }
+
+  #spinner[aria-hidden=true] {
+    display: none;
+  }
+
+  #spinner {
+    width: 12px;
+    height: 12px;
+  }
+
+  #spin-container {
+    display: flex;
+    align-items: center;
+  }
+
+  #trace_id {
+    display: inline-block;
+  }
+
+  json-source-sk {
+    padding: 1em;
+  }
+}

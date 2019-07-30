@@ -313,7 +313,14 @@ window.customElements.define('plot-simple-sk', class extends ElementSk {
       this._chart.options.scales.xAxes[0].time.unit = unit;
     }
 
+    let exists = {};
+    this._chart.data.datasets.forEach((d) => {
+      exists[d.label] = true;
+    });
     Object.keys(lines).forEach((id) => {
+      if (exists[id]) {
+        return;
+      }
       let data = lines[id].map(arr => arr[1]);
       this._chart.data.datasets.push({
         label: id,
@@ -336,10 +343,9 @@ window.customElements.define('plot-simple-sk', class extends ElementSk {
     for (var i = 0; i < ds.length; i++) {
       if (ds[i].label === id) {
         this._chart.data.datasets.splice(i, 1);
-        this._chart.update();
-        return;
       }
     }
+    this._chart.update();
   }
 
   /**
