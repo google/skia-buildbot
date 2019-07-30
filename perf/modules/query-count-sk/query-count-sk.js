@@ -26,7 +26,7 @@ window.customElements.define('query-count-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._last_query = '';
-    this._count = '';
+    this._count = ' ';
     this._requestInProgress = false;
   }
 
