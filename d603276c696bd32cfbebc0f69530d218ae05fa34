@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5afe3b2e_c3d4388f",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-07-30T15:23:04Z",
+      "side": 1,
+      "message": "Nope, possible values are listed here: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-phase\nAdded that link as a comment.",
+      "parentUuid": "2e9b6ec9_5b3b52d3",
+      "range": {
+        "startLine": 42,
+        "startChar": 1,
+        "endLine": 42,
+        "endChar": 18
+      },
+      "revId": "d603276c696bd32cfbebc0f69530d218ae05fa34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bb049f0a_87d447f6",
         "filename": "k8s_checker/go/k8s_checker/main.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "d603276c696bd32cfbebc0f69530d218ae05fa34",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5a5e7fb_468e7741",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-07-30T15:23:04Z",
+      "side": 1,
+      "message": "This is an abbreviation we use all over the place, but sure, done.",
+      "parentUuid": "bb049f0a_87d447f6",
+      "range": {
+        "startLine": 371,
+        "startChar": 1,
+        "endLine": 371,
+        "endChar": 3
+      },
+      "revId": "d603276c696bd32cfbebc0f69530d218ae05fa34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
