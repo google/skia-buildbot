@@ -26,6 +26,7 @@
     "childBranch": "master",
     "childPath": "src/third_party/skia",
     "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+/%s",
+    "includeLog": true,
     "parentBranch": "master",
     "preUploadSteps": [
       "FlutterLicenseScripts"

@@ -29,7 +29,7 @@ import (
 */
 
 const (
-	AFDO_COMMIT_MSG_TMPL = `Roll AFDO from %s to %s
+	TMPL_COMMIT_MSG_AFDO = `Roll AFDO from {{.RollingFrom.String}} to {{.RollingTo.String}}
 
 This CL may cause a small binary size increase, roughly proportional
 to how long it's been since our last AFDO profile roll. For larger
@@ -38,7 +38,18 @@ gbiv@chromium.org. Additional context: https://crbug.com/805539
 
 Please note that, despite rolling to chrome/android, this profile is
 used for both Linux and Android.
-` + COMMIT_MSG_FOOTER_TMPL
+
+The AutoRoll server is located here: {{.ServerURL}}
+
+Documentation for the AutoRoller is here:
+https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
+
+If the roll is causing failures, please contact the current sheriff, who should
+be CC'd on the roll, and stop the roller if necessary.
+
+{{if .CqExtraTrybots}}CQ_INCLUDE_TRYBOTS={{.CqExtraTrybots}}
+{{end}}TBR={{stringsJoin .Reviewers ","}}
+`
 
 	AFDO_GS_BUCKET = "chromeos-prebuilt"
 	AFDO_GS_PATH   = "afdo-job/llvm/"
@@ -162,6 +173,9 @@ func newAfdoRepoManager(ctx context.Context, c *AFDORepoManagerConfig, workdir s
 		authClient:      client,
 		gcs:             gcsClient,
 	}
+	if c.CommitMsgTmpl == "" {
+		c.CommitMsgTmpl = TMPL_COMMIT_MSG_AFDO
+	}
 	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, client, cr, rv.createRoll, rv.updateHelper, local)
 	if err != nil {
 		return nil, err
@@ -172,15 +186,16 @@ func newAfdoRepoManager(ctx context.Context, c *AFDORepoManagerConfig, workdir s
 
 // See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
 func (rm *afdoRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
-	commitMsg := fmt.Sprintf(AFDO_COMMIT_MSG_TMPL, from, to, serverURL)
-	if cqExtraTrybots != "" {
-		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
+	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
+		CqExtraTrybots: cqExtraTrybots,
+		Reviewers:      emails,
+		RollingFrom:    from,
+		RollingTo:      to,
+		ServerURL:      serverURL,
+	})
+	if err != nil {
+		return "", nil, err
 	}
-	tbr := "\nTBR="
-	if len(emails) > 0 {
-		tbr += strings.Join(emails, ",")
-	}
-	commitMsg += tbr
 	return commitMsg, map[string]string{AFDO_VERSION_FILE_PATH: to.Id}, nil
 }
 
