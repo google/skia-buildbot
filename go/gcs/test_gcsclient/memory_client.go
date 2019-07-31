@@ -116,6 +116,30 @@ func (c *MemoryGCSClient) SetFileContents(ctx context.Context, path string, opts
 }
 
 // See documentation for GCSClient interface.
+func (c *MemoryGCSClient) GetFileObjectAttrs(ctx context.Context, path string) (*storage.ObjectAttrs, error) {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+	data, ok := c.data[path]
+	if !ok {
+		return nil, storage.ErrObjectNotExist
+	}
+	opts, ok := c.opts[path]
+	if !ok {
+		return nil, storage.ErrObjectNotExist
+	}
+	return &storage.ObjectAttrs{
+		Bucket:             c.bucket,
+		Name:               path,
+		ContentType:        opts.ContentType,
+		ContentLanguage:    opts.ContentLanguage,
+		Size:               int64(len(data)),
+		ContentEncoding:    opts.ContentEncoding,
+		ContentDisposition: opts.ContentDisposition,
+		Metadata:           util.CopyStringMap(opts.Metadata),
+	}, nil
+}
+
+// See documentation for GCSClient interface.
 func (c *MemoryGCSClient) AllFilesInDirectory(ctx context.Context, prefix string, callback func(item *storage.ObjectAttrs)) error {
 	items := func() []*storage.ObjectAttrs {
 		c.mtx.RLock()

@@ -79,6 +79,11 @@ func (g *StorageClient) SetFileContents(ctx context.Context, path string, opts g
 	})
 }
 
+// See the GCSClient interface for more information about GetFileObjectAttrs.
+func (g *StorageClient) GetFileObjectAttrs(ctx context.Context, path string) (*storage.ObjectAttrs, error) {
+	return g.client.Bucket(g.bucket).Object(path).Attrs(ctx)
+}
+
 // See the GCSClient interface for more information about AllFilesInDirectory.
 func (g *StorageClient) AllFilesInDirectory(ctx context.Context, prefix string, callback func(item *storage.ObjectAttrs)) error {
 	total := 0
