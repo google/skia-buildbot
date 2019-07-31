@@ -20,17 +20,10 @@ import (
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
-	COPY_COMMIT_MSG = `Roll %s %s (%d commits)
-
-%s/+log/%s
-
-%s
-
-%s
-`
 	COPY_VERSION_HASH_FILE = "version.sha1"
 )
 
@@ -245,25 +238,30 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	}
 
 	// Get list of changes.
-	changeSummaryBlob := ""
-	if rm.includeLog {
-		changeSummaries := []string{}
-		for _, c := range commits {
-			d, err := rm.childRepo.Details(ctx, c)
-			if err != nil {
-				return 0, err
-			}
-			changeSummary := fmt.Sprintf("%s %s %s", d.Timestamp.Format("2006-01-02"), AUTHOR_EMAIL_RE.FindStringSubmatch(d.Author)[1], d.Subject)
-			changeSummaries = append(changeSummaries, changeSummary)
+	details := make([]*vcsinfo.LongCommit, 0, len(commits))
+	for _, c := range commits {
+		d, err := rm.childRepo.Details(ctx, c)
+		if err != nil {
+			return 0, err
 		}
-		changeSummaryBlob = strings.Join(changeSummaries, "\n")
+		details = append(details, d)
 	}
 
 	// Build the commit message.
-	commitRange := fmt.Sprintf("%s..%s", from, to)
-	commitMsg := fmt.Sprintf(COPY_COMMIT_MSG, rm.childPath, commitRange, len(commits), rm.childRepoUrl, commitRange, changeSummaryBlob, fmt.Sprintf(COMMIT_MSG_FOOTER_TMPL, rm.serverURL))
-	if cqExtraTrybots != "" {
-		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
+	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
+		Bugs:           bugs,
+		ChildPath:      rm.childPath,
+		ChildRepo:      rm.childRepoUrl,
+		CqExtraTrybots: cqExtraTrybots,
+		IncludeLog:     rm.includeLog,
+		Reviewers:      emails,
+		Revisions:      revision.FromLongCommits(rm.childRevLinkTmpl, details),
+		RollingFrom:    from,
+		RollingTo:      to,
+		ServerURL:      rm.serverURL,
+	})
+	if err != nil {
+		return 0, err
 	}
 	if _, err := parentRepo.Git(ctx, "commit", "-a", "-m", commitMsg); err != nil {
 		return 0, err

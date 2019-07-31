@@ -29,9 +29,17 @@ const (
 	FUCHSIA_SDK_VERSION_FILE_PATH_LINUX = "build/fuchsia/linux.sdk.sha1"
 	FUCHSIA_SDK_VERSION_FILE_PATH_MAC   = "build/fuchsia/mac.sdk.sha1"
 
-	FUCHSIA_SDK_COMMIT_MSG_TMPL = `Roll Fuchsia SDK from %s to %s
+	TMPL_COMMIT_MSG_FUCHSIA_SDK = `Roll Fuchsia SDK from {{.RollingFrom.String}} to {{.RollingTo.String}}
 
-` + COMMIT_MSG_FOOTER_TMPL
+The AutoRoll server is located here: {{.ServerURL}}
+
+Documentation for the AutoRoller is here:
+https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
+
+If the roll is causing failures, please contact the current sheriff, who should
+be CC'd on the roll, and stop the roller if necessary.
+{{if .CqExtraTrybots}}
+CQ_INCLUDE_TRYBOTS={{.CqExtraTrybots}}{{end}}`
 )
 
 var (
@@ -118,7 +126,9 @@ func newFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfi
 	if c.IncludeMacSDK {
 		rv.versionFileMac = FUCHSIA_SDK_VERSION_FILE_PATH_MAC
 	}
-
+	if c.CommitMsgTmpl == "" {
+		c.CommitMsgTmpl = TMPL_COMMIT_MSG_FUCHSIA_SDK
+	}
 	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, authClient, cr, rv.createRoll, rv.updateHelper, local)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create NoCheckoutRepoManager: %s", err)
@@ -127,25 +137,18 @@ func newFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfi
 	return rv, nil
 }
 
-// buildCommitMessage is a helper function which builds the commit message for
-// a given roll.
-func (rm *fuchsiaSDKRepoManager) buildCommitMessage(from, to *revision.Revision, serverURL, cqExtraTrybots string, emails []string) string {
-	commitMsg := fmt.Sprintf(FUCHSIA_SDK_COMMIT_MSG_TMPL, from.String(), to.String(), rm.serverURL)
-	if cqExtraTrybots != "" {
-		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
-	}
-	tbr := "\nTBR="
-	if emails != nil && len(emails) > 0 {
-		emailStr := strings.Join(emails, ",")
-		tbr += emailStr
-	}
-	commitMsg += tbr
-	return commitMsg
-}
-
 // See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
 func (rm *fuchsiaSDKRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, serverURL, cqExtraTrybots string, emails []string) (string, map[string]string, error) {
-	commitMsg := rm.buildCommitMessage(from, to, serverURL, cqExtraTrybots, emails)
+	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
+		CqExtraTrybots: cqExtraTrybots,
+		Reviewers:      emails,
+		RollingFrom:    from,
+		RollingTo:      to,
+		ServerURL:      rm.serverURL,
+	})
+	if err != nil {
+		return "", nil, err
+	}
 
 	// Create the roll changes.
 	edits := map[string]string{

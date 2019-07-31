@@ -1,7 +1,6 @@
 package repo_manager
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,7 +9,6 @@ import (
 	"os"
 	"path"
 	"strings"
-	"text/template"
 	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
@@ -20,38 +18,17 @@ import (
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
 	GCLIENT = "gclient.py"
-
-	TMPL_COMMIT_MESSAGE = `Roll {{.ChildPath}} {{.From}}..{{.To}} ({{.NumCommits}} commits)
-
-{{.ChildRepo}}/+log/{{.From}}..{{.To}}
-
-{{.LogStr}}{{.TransitiveDeps}}
-Created with:
-  gclient setdep -r {{.ChildPath}}@{{.To}}
-
-The AutoRoll server is located here: {{.ServerURL}}
-
-Documentation for the AutoRoller is here:
-https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
-
-If the roll is causing failures, please contact the current sheriff, who should
-be CC'd on the roll, and stop the roller if necessary.
-
-{{.Footer}}
-`
-	TMPL_CQ_INCLUDE_TRYBOTS = "CQ_INCLUDE_TRYBOTS=%s"
 )
 
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
 	NewDEPSRepoManager func(context.Context, *DEPSRepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newDEPSRepoManager
-
-	commitMsgTmpl = template.Must(template.New("commitMsg").Parse(TMPL_COMMIT_MESSAGE))
 )
 
 // issueJson is the structure of "git cl issue --json"
@@ -140,7 +117,7 @@ func (dr *depsRepoManager) Update(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		dr.childRepoUrl = childRepo
+		dr.childRepoUrl = strings.TrimSpace(childRepo)
 	}
 
 	dr.lastRollRev = lastRollRev
@@ -163,61 +140,6 @@ func (dr *depsRepoManager) getLastRollRev(ctx context.Context) (*revision.Revisi
 		return nil, err
 	}
 	return revision.FromLongCommit(dr.childRevLinkTmpl, details), nil
-}
-
-// Helper function for building the commit message.
-func buildCommitMsg(from, to *revision.Revision, childPath, cqExtraTrybots, childRepo, serverURL, logStr, transitiveDeps string, bugs []string, numCommits int, includeLog bool) (string, error) {
-	data := struct {
-		ChildPath      string
-		ChildRepo      string
-		From           string
-		To             string
-		NumCommits     int
-		LogURL         string
-		LogStr         string
-		ServerURL      string
-		TransitiveDeps string
-		Footer         string
-	}{
-		ChildPath:      childPath,
-		ChildRepo:      childRepo,
-		From:           from.String(),
-		To:             to.String(),
-		NumCommits:     numCommits,
-		LogStr:         "",
-		ServerURL:      serverURL,
-		TransitiveDeps: transitiveDeps,
-		Footer:         "",
-	}
-	if cqExtraTrybots != "" {
-		data.Footer += fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
-	}
-	if len(bugs) > 0 {
-		data.Footer += "\n\nBug: " + strings.Join(bugs, ",")
-	} else {
-		data.Footer += "\n\nBug: None"
-	}
-	if includeLog {
-		data.LogStr = fmt.Sprintf("\ngit log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'\n", from, to)
-		data.LogStr += logStr + "\n"
-	}
-	var buf bytes.Buffer
-	if err := commitMsgTmpl.Execute(&buf, data); err != nil {
-		return "", err
-	}
-	commitMsg := buf.String()
-	return commitMsg, nil
-}
-
-// Helper function for building the commit message.
-func (dr *depsRepoManager) buildCommitMsg(ctx context.Context, from, to *revision.Revision, cqExtraTrybots string, bugs []string) (string, error) {
-	logStr, err := exec.RunCwd(ctx, dr.childDir, "git", "log", fmt.Sprintf("%s..%s", from.Id, to.Id), "--date=short", "--no-merges", "--format=%ad %ae %s")
-	if err != nil {
-		return "", err
-	}
-	logStr = strings.TrimSpace(logStr)
-	numCommits := len(strings.Split(logStr, "\n"))
-	return buildCommitMsg(from, to, dr.childPath, cqExtraTrybots, dr.childRepoUrl, dr.serverURL, logStr, "", bugs, numCommits, dr.includeLog)
 }
 
 // See documentation for RepoManager interface.
@@ -244,6 +166,15 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	if err != nil {
 		return 0, fmt.Errorf("Failed to list revisions: %s", err)
 	}
+	details := make([]*vcsinfo.LongCommit, 0, len(commits))
+	for _, c := range commits {
+		d, err := cr.Details(ctx, c)
+		if err != nil {
+			return 0, fmt.Errorf("Failed to get commit details: %s", err)
+		}
+		details = append(details, d)
+	}
+	revs := revision.FromLongCommits(dr.childRevLinkTmpl, details)
 
 	if !dr.local {
 		if _, err := exec.RunCwd(ctx, dr.parentDir, "git", "config", "user.name", dr.codereview.UserName()); err != nil {
@@ -261,11 +192,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 		if monorailProject == "" {
 			sklog.Warningf("Found no entry in issues.REPO_PROJECT_MAPPING for %q", dr.parentRepo)
 		} else {
-			for _, c := range commits {
-				d, err := cr.Details(ctx, c)
-				if err != nil {
-					return 0, fmt.Errorf("Failed to obtain commit details: %s", err)
-				}
+			for _, d := range details {
 				b := util.BugsFromCommitMsg(d.Body)
 				for _, bug := range b[monorailProject] {
 					bugs = append(bugs, fmt.Sprintf("%s:%s", monorailProject, bug))
@@ -300,7 +227,18 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 	}
 
 	// Build the commit message.
-	commitMsg, err := dr.buildCommitMsg(ctx, from, to, cqExtraTrybots, bugs)
+	commitMsg, err := dr.buildCommitMsg(&CommitMsgVars{
+		Bugs:           bugs,
+		ChildPath:      dr.childPath,
+		ChildRepo:      dr.childRepoUrl,
+		CqExtraTrybots: cqExtraTrybots,
+		IncludeLog:     dr.includeLog,
+		Reviewers:      emails,
+		Revisions:      revs,
+		RollingFrom:    from,
+		RollingTo:      to,
+		ServerURL:      dr.serverURL,
+	})
 	if err != nil {
 		return 0, err
 	}
@@ -334,13 +272,10 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 		uploadCmd.Args = append(uploadCmd.Args, "--use-commit-queue")
 	}
 	uploadCmd.Args = append(uploadCmd.Args, "--gerrit")
-	tbr := "\nTBR="
 	if emails != nil && len(emails) > 0 {
 		emailStr := strings.Join(emails, ",")
-		tbr += emailStr
 		uploadCmd.Args = append(uploadCmd.Args, "--send-mail", "--cc", emailStr)
 	}
-	commitMsg += tbr
 	uploadCmd.Args = append(uploadCmd.Args, "-m", commitMsg)
 
 	// Upload the CL.

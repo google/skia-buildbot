@@ -242,10 +242,8 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 
 %s/+log/%s..%s
 
-
 git log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'
 %s
-
 Created with:
   gclient setdep -r %s@%s
 
@@ -256,7 +254,6 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 
 If the roll is causing failures, please contact the current sheriff, who should
 be CC'd on the roll, and stop the roller if necessary.
-
 
 
 Bug: None

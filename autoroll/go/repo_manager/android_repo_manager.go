@@ -24,8 +24,31 @@ import (
 )
 
 const (
-	UPSTREAM_REMOTE_NAME = "remote"
-	REPO_BRANCH_NAME     = "merge"
+	UPSTREAM_REMOTE_NAME    = "remote"
+	REPO_BRANCH_NAME        = "merge"
+	TMPL_COMMIT_MSG_ANDROID = `Roll {{.ChildPath}} {{.RollingFrom.String}}..{{.RollingTo.String}} ({{len .Revisions}} commits)
+
+{{.ChildRepo}}/+log/{{.RollingFrom.String}}..{{.RollingTo.String}}
+
+{{if .IncludeLog}}
+{{range .Revisions}}{{.Timestamp.Format "2006-01-02"}} {{.Author}} {{.Description}}
+{{end}}{{end}}
+
+The AutoRoll server is located here: {{.ServerURL}}
+
+Documentation for the AutoRoller is here:
+https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
+
+If the roll is causing failures, please contact the current sheriff, who should
+be CC'd on the roll, and stop the roller if necessary.
+
+Test: Presubmit checks will test this change.
+Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
+
+{{range .Bugs}}Bug: {{.}}
+{{end}}{{range .Tests}}{{.}}
+{{end}}
+`
 )
 
 var (
@@ -82,6 +105,9 @@ func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, wor
 
 	wd := path.Join(workdir, "android_repo")
 
+	if c.CommitMsgTmpl == "" {
+		c.CommitMsgTmpl = TMPL_COMMIT_MSG_ANDROID
+	}
 	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, wd, serverURL, g, client, cr, local)
 	if err != nil {
 		return nil, err
@@ -341,38 +367,12 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		return 0, fmt.Errorf("Failed to create repo branch: %s", repoBranchErr)
 	}
 
-	// Get list of changes.
-	changeSummaries := []string{}
-	for _, c := range commits {
-		d, err := cr.Details(ctx, c)
-		if err != nil {
-			return 0, err
-		}
-		changeSummary := fmt.Sprintf("%s %s %s", d.Timestamp.Format("2006-01-02"), AUTHOR_EMAIL_RE.FindStringSubmatch(d.Author)[1], d.Subject)
-		changeSummaries = append(changeSummaries, changeSummary)
-	}
-
-	// Create commit message.
-	commitRange := fmt.Sprintf("%s..%s", from.Id[:9], to.Id[:9])
-	childRepoName := path.Base(r.childDir)
-	commitMsg := fmt.Sprintf(
-		`Roll %s %s (%d commits)
-
-https://%s.googlesource.com/%s.git/+log/%s
-
-%s
-
-%s
-
-Test: Presubmit checks will test this change.
-Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
-`, r.childPath, commitRange, len(commits), childRepoName, childRepoName, commitRange, strings.Join(changeSummaries, "\n"), fmt.Sprintf(COMMIT_MSG_FOOTER_TMPL, r.serverURL))
-
 	// Loop through all commits:
 	// * Collect all bugs from b/xyz to add the commit message later.
 	// * Add all 'Test: ' lines to the commit message.
 	emailMap := map[string]bool{}
 	bugMap := map[string]bool{}
+	tests := []string{}
 	for _, c := range commits {
 		d, err := cr.Details(ctx, c)
 		if err != nil {
@@ -389,22 +389,14 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 		}
 		// Extract out the Test lines and directly add them to the commit
 		// message.
-		for _, tl := range ExtractTestLines(d.Body) {
-			commitMsg += fmt.Sprintf("\n%s", tl)
-		}
-
+		tests = append(tests, ExtractTestLines(d.Body)...)
 	}
-	// Create a separate bug line for each bug and append it to the commit
-	// message. See skbug.com/8920.
+	bugs := []string{}
 	if len(bugMap) > 0 {
-		bugs := []string{}
 		for b := range bugMap {
 			bugs = append(bugs, b)
 		}
 		sort.Strings(bugs)
-		for _, b := range bugs {
-			commitMsg += fmt.Sprintf("\nBug: %s", b)
-		}
 	}
 
 	if r.parentBranch != "master" {
@@ -417,12 +409,28 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 			emails = append(emails, e)
 		}
 	}
-	emailStr := strings.Join(emails, ",")
+
+	// Create commit message.
+	commitMsg, err := r.buildCommitMsg(&CommitMsgVars{
+		Bugs:        bugs,
+		ChildPath:   r.childPath,
+		ChildRepo:   common.REPO_SKIA, // TODO(borenet): Don't hard-code.
+		IncludeLog:  true,
+		Reviewers:   emails,
+		Revisions:   revision.FromLongCommits(r.childRevLinkTmpl, details),
+		RollingFrom: from,
+		RollingTo:   to,
+		ServerURL:   r.serverURL,
+		Tests:       tests,
+	})
+	if err != nil {
+		return 0, err
+	}
 
 	// Commit the change with the above message.
 	if _, commitErr := exec.RunCwd(ctx, r.childDir, "git", "commit", "-m", commitMsg); commitErr != nil {
 		util.LogErr(r.abandonRepoBranch(ctx))
-		return 0, fmt.Errorf("Nothing to merge; did someone already merge %s?: %s", commitRange, commitErr)
+		return 0, fmt.Errorf("Nothing to merge; did someone already merge %s..%s?: %s", from, to, commitErr)
 	}
 
 	// Bypass the repo upload prompt by setting autoupload config to true.
@@ -436,7 +444,7 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 	// Upload the CL to Gerrit.
 	uploadCommand := &exec.Command{
 		Name: r.repoToolPath,
-		Args: []string{"upload", fmt.Sprintf("--re=%s", emailStr), "--verify"},
+		Args: []string{"upload", fmt.Sprintf("--re=%s", strings.Join(emails, ",")), "--verify"},
 		Dir:  r.childDir,
 		// The below is to bypass the blocking
 		// "ATTENTION: You are uploading an unusually high number of commits."

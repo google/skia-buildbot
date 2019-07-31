@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -35,6 +36,9 @@ type GithubDEPSRepoManagerConfig struct {
 	// Optional config to use if parent path is different than
 	// workdir + parent repo.
 	GithubParentPath string `json:"githubParentPath,omitempty"`
+
+	// If false, roll CLs do not include a git log.
+	IncludeLog bool `json:"includeLog"`
 
 	// Optional; transitive dependencies to roll. This is a mapping of
 	// dependencies of the child repo which are also dependencies of the
@@ -72,6 +76,7 @@ func newGithubDEPSRepoManager(ctx context.Context, c *GithubDEPSRepoManagerConfi
 	}
 	dr := &depsRepoManager{
 		depotToolsRepoManager: drm,
+		includeLog:            c.IncludeLog,
 	}
 	if c.GithubParentPath != "" {
 		dr.parentDir = path.Join(wd, c.GithubParentPath)
@@ -197,7 +202,7 @@ func (rm *githubDEPSRepoManager) Update(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		rm.childRepoUrl = childRepo
+		rm.childRepoUrl = strings.TrimSpace(childRepo)
 	}
 
 	rm.lastRollRev = lastRollRev
@@ -255,10 +260,9 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 	}
 
 	// Update any transitive DEPS.
-	transitiveDepsStr := ""
+	transitiveDeps := []*TransitiveDep{}
 	if len(rm.transitiveDeps) > 0 {
 		childDepsFile := filepath.Join(rm.childDir, "DEPS")
-		updated := []string{}
 		for childPath, parentPath := range rm.transitiveDeps {
 			newRev, err := rm.getdep(ctx, childDepsFile, childPath)
 			if err != nil {
@@ -272,11 +276,12 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 				if err := rm.setdep(ctx, depsFile, parentPath, newRev); err != nil {
 					return 0, err
 				}
-				updated = append(updated, fmt.Sprintf("  %s %s..%s", parentPath, oldRev[:12], newRev[:12]))
+				transitiveDeps = append(transitiveDeps, &TransitiveDep{
+					ParentPath:  parentPath,
+					RollingFrom: oldRev,
+					RollingTo:   newRev,
+				})
 			}
-		}
-		if len(updated) > 0 {
-			transitiveDepsStr = fmt.Sprintf("\nAlso rolling transitive DEPS:\n%s\n", strings.Join(updated, "\n"))
 		}
 	}
 
@@ -298,14 +303,35 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 	}
 
 	// Build the commit message.
-	logCmd := []string{"log", fmt.Sprintf("%s..%s", from, to), "--date=short", "--no-merges", "--format=%ad %ae %s"}
-	logStr, err := rm.childRepo.Git(ctx, logCmd...)
+	user, repo := GetUserAndRepo(rm.childRepoUrl)
+	commits, err := rm.childRepo.RevList(ctx, "--no-merges", fmt.Sprintf("%s..%s", from.Id, to.Id))
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("Failed to list revisions: %s", err)
 	}
-	logStr = strings.TrimSpace(logStr)
-	childRepoCompareURL := fmt.Sprintf("%s/compare/%s..%s", rm.childRepoUrl, from, to)
-	commitMsg, err := GetGithubCommitMsg(logStr, childRepoCompareURL, rm.childPath, from, to, rm.serverURL, transitiveDepsStr, logCmd, emails)
+	details := make([]*vcsinfo.LongCommit, 0, len(commits))
+	for _, c := range commits {
+		d, err := rm.childRepo.Details(ctx, c)
+		if err != nil {
+			return 0, fmt.Errorf("Failed to get commit details: %s", err)
+		}
+		// Github autolinks PR numbers to be of the same repository in logStr. Fix this by
+		// explicitly adding the child repo to the PR number.
+		d.Subject = pullRequestInLogRE.ReplaceAllString(d.Subject, fmt.Sprintf(" (%s/%s$1)", user, repo))
+		d.Body = pullRequestInLogRE.ReplaceAllString(d.Body, fmt.Sprintf(" (%s/%s$1)", user, repo))
+		details = append(details, d)
+	}
+	revs := revision.FromLongCommits(rm.childRevLinkTmpl, details)
+	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
+		ChildPath:      rm.childPath,
+		ChildRepo:      rm.childRepoUrl,
+		IncludeLog:     rm.includeLog,
+		Reviewers:      emails,
+		Revisions:      revs,
+		RollingFrom:    from,
+		RollingTo:      to,
+		ServerURL:      rm.serverURL,
+		TransitiveDeps: transitiveDeps,
+	})
 	if err != nil {
 		return 0, fmt.Errorf("Could not build github commit message: %s", err)
 	}

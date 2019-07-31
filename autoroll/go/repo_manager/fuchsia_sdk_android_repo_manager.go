@@ -33,6 +33,8 @@ const (
 	GEN_SDK_BP                       = "gen_sdk_bp.py"
 	GEN_SDK_BP_DIR                   = "scripts"
 	SDK_DEST_PATH                    = "prebuilts/fuchsia_sdk"
+
+	TMPL_COMMIT_MSG_FUCHSIA_SDK_ANDROID = TMPL_COMMIT_MSG_FUCHSIA_SDK + "\nExempt-From-Owner-Approval: The autoroll bot does not require owner approval."
 )
 
 type FuchsiaSDKAndroidRepoManagerConfig struct {
@@ -100,6 +102,9 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 	genSdkBpRepo, err := git.NewCheckout(ctx, c.GenSdkBpRepo, workdir)
 	if err != nil {
 		return nil, err
+	}
+	if c.CommitMsgTmpl == "" {
+		c.CommitMsgTmpl = TMPL_COMMIT_MSG_FUCHSIA_SDK_ANDROID
 	}
 	rv := &fuchsiaSDKAndroidRepoManager{
 		fuchsiaSDKRepoManager: fsrm,
@@ -235,8 +240,16 @@ func (rm *fuchsiaSDKAndroidRepoManager) createRoll(ctx context.Context, from, to
 	sklog.Infof("Next roll modifies %d files.", len(nextRollContents))
 
 	// Create the commit message.
-	msg := rm.fuchsiaSDKRepoManager.buildCommitMessage(from, to, serverURL, cqExtraTrybots, emails)
-	msg += "\nExempt-From-Owner-Approval: The autoroll bot does not require owner approval."
+	msg, err := rm.buildCommitMsg(&CommitMsgVars{
+		CqExtraTrybots: cqExtraTrybots,
+		Reviewers:      emails,
+		RollingFrom:    from,
+		RollingTo:      to,
+		ServerURL:      rm.serverURL,
+	})
+	if err != nil {
+		return "", nil, err
+	}
 
 	return msg, nextRollContents, nil
 }
