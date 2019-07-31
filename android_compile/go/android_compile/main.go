@@ -18,15 +18,15 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
+	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
+	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
@@ -57,9 +57,9 @@ var (
 
 	// Pubsub for storage flags.
 	projectID      = flag.String("project_id", "google.com:skia-corp", "Project ID of the Cloud project where the PubSub topic and GS bucket lives.")
-	storageBucket  = flag.String("bucket", "android-compile-tasks", "Storage bucket where android compile task JSON files will be kept.")
-	subscriberName = flag.String("subscriber", "android-compile-tasks", "ID of the pubsub subscriber.")
-	topic          = flag.String("topic", "android-compile-tasks", "Google Cloud PubSub topic of the eventbus.")
+	storageBucket  = flag.String("bucket", "android-compile-tasks-staging", "Storage bucket where android compile task JSON files will be kept.")
+	subscriberName = flag.String("subscriber", "android-compile-tasks-staging", "ID of the pubsub subscriber.")
+	topicName      = flag.String("topic", "android-compile-tasks-staging", "Google Cloud PubSub topic of the eventbus.")
 
 	// Datastore params
 	namespace   = flag.String("namespace", "android-compile-staging", "The Cloud Datastore namespace, such as 'android-compile'.")
@@ -187,18 +187,22 @@ func readGSAndTriggerCompileTask(ctx context.Context, g *gsFileLocation) error {
 
 	key := GetNewDSKey()
 	task.Created = time.Now()
+	task.CompileServerInstance = serverURL
 	datastoreKey, err := PutDSTask(ctx, key, &task)
 	if err != nil {
 		return fmt.Errorf("Error putting task in datastore: %s", err)
 	}
 
-	// Kick off the task and return the task ID.
-	triggerCompileTask(ctx, g, &task, datastoreKey)
+	fmt.Println("SKIPPING TRIGGERING COMPILE TASK")
+	fmt.Println(datastoreKey)
 
-	// Update the Google storage file.
-	if err := updateTaskInGoogleStorage(ctx, g, task, datastoreKey.ID); err != nil {
-		return fmt.Errorf("Could not update task in Google storage: %s", err)
-	}
+	//// Kick off the task and return the task ID.
+	//triggerCompileTask(ctx, g, &task, datastoreKey)
+
+	//// Update the Google storage file.
+	//if err := updateTaskInGoogleStorage(ctx, g, task, datastoreKey.ID); err != nil {
+	//	return fmt.Errorf("Could not update task in Google storage: %s", err)
+	//}
 
 	return nil
 }
@@ -210,6 +214,8 @@ func triggerCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTas
 		checkoutsReadyMutex.RLock()
 		defer checkoutsReadyMutex.RUnlock()
 		pathToCompileScript := filepath.Join(*resourcesDir, "compile.sh")
+		// TODO(rmistry): Should also move the available checkouts thing here from RunCompileTask.
+		// after it goes here maybe sure nothing else picked it up.
 		if err := RunCompileTask(ctx, g, task, datastoreKey, pathToCompileScript); err != nil {
 			task.InfraFailure = true
 			task.Error = err.Error()
@@ -262,10 +268,10 @@ type gsFileLocation struct {
 	storageClient *storage.Client
 }
 
-func newGCSFileLocation(result *storage.ObjectAttrs, storageClient *storage.Client) *gsFileLocation {
+func newGCSFileLocation(bucket, name string, storageClient *storage.Client) *gsFileLocation {
 	return &gsFileLocation{
-		bucket:        result.Bucket,
-		name:          result.Name,
+		bucket:        bucket,
+		name:          name,
 		storageClient: storageClient,
 	}
 }
@@ -291,6 +297,83 @@ func runServer() {
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
 
+func initPubSub(ts oauth2.TokenSource, resultCh chan *gsFileLocation, storageClient *storage.Client) error {
+	ctx := context.Background()
+
+	// Create a client.
+	client, err := pubsub.NewClient(ctx, *projectID, option.WithTokenSource(ts))
+	if err != nil {
+		return err
+	}
+
+	// Create topic and subscription if necessary.
+
+	// Topic.
+	topic := client.Topic(*topicName)
+	exists, err := topic.Exists(ctx)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		if _, err := client.CreateTopic(ctx, *topicName); err != nil {
+			return err
+		}
+	}
+
+	// Subscription.
+	subName := fmt.Sprintf("%s+%s", *subscriberName, *topicName)
+	sub := client.Subscription(subName)
+	exists, err = sub.Exists(ctx)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		if _, err := client.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
+			Topic:       topic,
+			AckDeadline: 10 * time.Second,
+		}); err != nil {
+			return err
+		}
+	}
+	go func() {
+		if err := sub.Receive(ctx, func(ctx context.Context, m *pubsub.Message) {
+			fmt.Println("IN RECEIVE. MESSAGE:")
+			fmt.Println(m)
+
+			var message struct {
+				Bucket string `json:"bucket"`
+				Name   string `json:"name"`
+			}
+			if err := json.Unmarshal(m.Data, &message); err != nil {
+				sklog.Errorf("Failed to decode pubsub message body: %s", err)
+				m.Ack() // We'll never be able to handle this message.
+				return
+			}
+
+			if m.Attributes["overwroteGeneration"] != "" {
+				fmt.Println("Override for " + message.Name)
+				m.Ack() // An existing request.
+				return
+			}
+
+			sklog.Infof("Received storage event: %s / %s\n", message.Bucket, message.Name)
+
+			if message.Name == "cf_x86_phone-eng-94900-4.json" {
+				fmt.Println("NACK'ING 94900-4.json")
+				m.Nack()
+				return
+			}
+
+			// Send the new file to the results channel.
+			resultCh <- newGCSFileLocation(message.Bucket, message.Name, storageClient)
+
+		}); err != nil {
+			sklog.Errorf("Failed to receive pubsub messages: %s", err)
+		}
+	}()
+	return nil
+}
+
 func main() {
 	flag.Parse()
 
@@ -299,7 +382,7 @@ func main() {
 	skiaversion.MustLogVersion()
 	ctx := context.Background()
 
-	if *projectID == "" || *topic == "" || *subscriberName == "" {
+	if *projectID == "" || *topicName == "" || *subscriberName == "" {
 		sklog.Fatalf("project_id, topic and subscriber flags must all be set.")
 	}
 
@@ -345,66 +428,85 @@ func main() {
 	}
 
 	// Initialize checkouts but do not block bringing up the server.
-	go func() {
-		checkoutsReadyMutex.Lock()
-		defer checkoutsReadyMutex.Unlock()
-		if err := CheckoutsInit(*numCheckouts, *workdir, *repoUpdateDuration, storageClient); err != nil {
-			sklog.Fatalf("Failed to init checkouts: %s", err)
-		}
-	}()
+	//go func() {
+	//	checkoutsReadyMutex.Lock()
+	//	defer checkoutsReadyMutex.Unlock()
+	//	if err := CheckoutsInit(*numCheckouts, *workdir, *repoUpdateDuration, storageClient); err != nil {
+	//		sklog.Fatalf("Failed to init checkouts: %s", err)
+	//	}
+	//}()
 
-	// Subscribe to storage pubsub events.
-	eventBus, err := gevent.New(*projectID, *topic, *subscriberName)
-	if err != nil {
-		sklog.Fatalf("Error creating event bus: %s", err)
-	}
-	eventType, err := eventBus.RegisterStorageEvents(*storageBucket, "", nil, storageClient)
-	if err != nil {
-		sklog.Fatalf("Error: %s", err)
-	}
+	// Create pubsub client.
 	resultCh := make(chan *gsFileLocation)
-	sklog.Infof("Registered storage events. Eventtype: %s", eventType)
-	eventBus.SubscribeAsync(eventType, func(evt interface{}) {
-		file := evt.(*eventbus.StorageEvent)
-		if file.OverwroteGeneration != "" {
-			return
-		}
-		sklog.Infof("Received storage event: %s / %s\n", file.BucketID, file.ObjectID)
+	if err := initPubSub(ts, resultCh, storageClient); err != nil {
+		sklog.Fatal(err)
+	}
 
-		// Fetch the object attributes.
-		objAttr, err := storageClient.Bucket(file.BucketID).Object(file.ObjectID).Attrs(ctx)
-		if err != nil {
-			sklog.Errorf("Unable to get handle for '%s/%s': %s", file.BucketID, file.ObjectID, err)
-			return
-		}
+	//// Subscribe to storage pubsub events.
+	//eventBus, err := gevent.New(*projectID, *topicName, *subscriberName)
+	//if err != nil {
+	//	sklog.Fatalf("Error creating event bus: %s", err)
+	//}
+	//eventType, err := eventBus.RegisterStorageEvents(*storageBucket, "", nil, storageClient)
+	//if err != nil {
+	//	sklog.Fatalf("Error: %s", err)
+	//}
+	//sklog.Infof("Registered storage events. Eventtype: %s", eventType)
+	//eventBus.SubscribeAsync(eventType, func(evt interface{}) {
+	//	file := evt.(*eventbus.StorageEvent)
+	//	fmt.Println("DETAILS ARE HERE")
+	//	fmt.Println(file)
+	//	if file.OverwroteGeneration != "" {
+	//		return
+	//	}
+	//	sklog.Infof("Received storage event: %s / %s\n", file.BucketID, file.ObjectID)
 
-		resultCh <- newGCSFileLocation(objAttr, storageClient)
-	})
+	//	if file.ObjectID == "cf_x86_phone-eng-94900-4.json" {
+	//		fmt.Println("WE ARE DONE REPUBLISH IT!")
+	//		e := eventbus.NewStorageEvent(file.BucketID, file.ObjectID, file.TimeStamp, file.MD5)
+	//		// eventBus.PublishStorageEvent(file)
+	//		eventBus.PublishStorageEvent(e)
+	//		return
+	//	}
+
+	//	// Fetch the object attributes.
+	//	objAttr, err := storageClient.Bucket(file.BucketID).Object(file.ObjectID).Attrs(ctx)
+	//	if err != nil {
+	//		sklog.Errorf("Unable to get handle for '%s/%s': %s", file.BucketID, file.ObjectID, err)
+	//		return
+	//	}
+
+	//	resultCh <- newGCSFileLocation(objAttr, storageClient)
+	//})
 
 	// Reset metrics on server startup.
 	resetMetrics()
 
-	// Find and reschedule all CompileTasks that are in "running" state. Any
-	// "running" CompileTasks means that the server was restarted in the middle
+	// Find and reschedule all CompileTasks that are in "running" state on this instance.
+	// Any "running" CompileTasks means that the server was restarted in the middle
 	// of run(s). Do not block bringing up the server.
-	go func() {
-		_, runningTasksAndKeys, err := GetCompileTasksAndKeys()
-		if err != nil {
-			sklog.Fatalf("Failed to retrieve compile tasks and keys: %s", err)
-		}
+	// NOT YET
+	//go func() {
+	//	// HERE HERE needs to be ONLY according to the instance, because the instance will always have
+	//	// capacity to satisfy it's own tasks. It things are movied to waiting then it is totally up for
+	//	// grabs by other instance(s).
+	//	_, runningTasksAndKeys, err := GetCompileTasksAndKeys()
+	//	if err != nil {
+	//		sklog.Fatalf("Failed to retrieve compile tasks and keys: %s", err)
+	//	}
 
-		for _, taskAndKey := range runningTasksAndKeys {
-			sklog.Infof("Found orphaned task %d. Retriggering it...", taskAndKey.key.ID)
-			// Fetch the object attributes.
-			fileName := fmt.Sprintf("%s-%d-%d.json", taskAndKey.task.LunchTarget, taskAndKey.task.Issue, taskAndKey.task.PatchSet)
-			objAttr, err := storageClient.Bucket(*storageBucket).Object(fileName).Attrs(ctx)
-			if err != nil {
-				sklog.Fatalf("Unable to get handle for orphaned task '%s/%s': %s", *storageBucket, fileName, err)
-			}
+	//	for _, taskAndKey := range runningTasksAndKeys {
+	//		sklog.Infof("Found orphaned task %d. Retriggering it...", taskAndKey.key.ID)
+	//		// Fetch the object attributes.
+	//		fileName := fmt.Sprintf("%s-%d-%d.json", taskAndKey.task.LunchTarget, taskAndKey.task.Issue, taskAndKey.task.PatchSet)
+	//		objAttr, err := storageClient.Bucket(*storageBucket).Object(fileName).Attrs(ctx)
+	//		if err != nil {
+	//			sklog.Fatalf("Unable to get handle for orphaned task '%s/%s': %s", *storageBucket, fileName, err)
+	//		}
 
-			triggerCompileTask(ctx, newGCSFileLocation(objAttr, storageClient), taskAndKey.task, taskAndKey.key)
-		}
-	}()
+	//		triggerCompileTask(ctx, newGCSFileLocation(objAttr, storageClient), taskAndKey.task, taskAndKey.key)
+	//	}
+	//}()
 
 	// Wait for compile task requests that come in.
 	go func() {

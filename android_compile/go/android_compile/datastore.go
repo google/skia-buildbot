@@ -36,10 +36,11 @@ type CompileTask struct {
 	WithPatchLog string `json:"withpatch_log"`
 	NoPatchLog   string `json:"nopatch_log"`
 
-	IsMasterBranch bool   `json:"is_master_branch"`
-	Done           bool   `json:"done"`
-	Error          string `json:"error"`
-	InfraFailure   bool   `json:"infra_failure"`
+	CompileServerInstance string `json:"compile_server_instance"`
+	IsMasterBranch        bool   `json:"is_master_branch"`
+	Done                  bool   `json:"done"`
+	Error                 string `json:"error"`
+	InfraFailure          bool   `json:"infra_failure"`
 }
 
 type CompileTaskAndKey struct {
@@ -54,6 +55,9 @@ func (a sortTasks) Less(i, j int) bool {
 	return a[i].task.Created.Before(a[j].task.Created)
 }
 
+// TODO(rmistry):
+// * Use transactions? - https://cloud.google.com/datastore/docs/concepts/transactions#datastore-datastore-transactional-update-go
+// * Put instance here (optionally)?
 func GetCompileTasksAndKeys() ([]*CompileTaskAndKey, []*CompileTaskAndKey, error) {
 	waitingTasksAndKeys := []*CompileTaskAndKey{}
 	runningTasksAndKeys := []*CompileTaskAndKey{}

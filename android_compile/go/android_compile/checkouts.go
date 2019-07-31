@@ -465,8 +465,10 @@ func addToCheckoutsChannel(checkout string) {
 // with link to logs and whether the no patch run was successful.
 //
 func RunCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTask, datastoreKey *datastore.Key, pathToCompileScript string) error {
+	// TODO(rmistry): Move out or remove completely.
 	incWaitingMetric()
 	// Blocking call to wait for an available checkout.
+	// TODO(rmistry): Move this check out.
 	checkoutPath := <-availableCheckoutsChan
 	moveToRunningMetric()
 	defer decRunningMetric()
