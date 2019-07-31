@@ -115,7 +115,6 @@ func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 		return nil, err
 	}
 	rv.noCheckoutRepoManager = ncrm
-	rv.childRevLinkTmpl = fmt.Sprintf(gerritRevTmpl, rv.childRepoUrl, "%s")
 
 	return rv, nil
 }
@@ -176,14 +175,13 @@ func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to *r
 	}
 
 	// Update any transitive DEPS.
-	transitiveDepsStr := ""
+	transitiveDeps := []*TransitiveDep{}
 	if len(rm.transitiveDeps) > 0 {
 		childDepsFile, childCleanup, err := rm.getDEPSFile(ctx, rm.childRepo, to.Id)
 		if err != nil {
 			return "", nil, err
 		}
 		defer childCleanup()
-		updated := []string{}
 		for childPath, parentPath := range rm.transitiveDeps {
 			newRev, err := rm.getdep(ctx, childDepsFile, childPath)
 			if err != nil {
@@ -197,11 +195,12 @@ func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to *r
 				if err := rm.setdep(ctx, depsFile, parentPath, newRev); err != nil {
 					return "", nil, err
 				}
-				updated = append(updated, fmt.Sprintf("  %s %s..%s", parentPath, oldRev[:12], newRev[:12]))
+				transitiveDeps = append(transitiveDeps, &TransitiveDep{
+					ParentPath:  parentPath,
+					RollingFrom: oldRev,
+					RollingTo:   newRev,
+				})
 			}
-		}
-		if len(updated) > 0 {
-			transitiveDepsStr = fmt.Sprintf("\nAlso rolling transitive DEPS:\n%s\n", strings.Join(updated, "\n"))
 		}
 	}
 
@@ -219,6 +218,7 @@ func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to *r
 	}
 
 	nextRollCommits := make([]*vcsinfo.LongCommit, 0, len(rm.notRolledRevs))
+	revs := make([]*revision.Revision, 0, len(rm.notRolledRevs))
 	found := false
 	for _, rev := range rm.notRolledRevs {
 		if rev.Id == to.Id {
@@ -230,19 +230,10 @@ func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to *r
 				return "", nil, err
 			}
 			nextRollCommits = append(nextRollCommits, c)
+			revs = append(revs, rev)
 		}
 	}
-	logStr := ""
 	for _, c := range nextRollCommits {
-		date := c.Timestamp.Format("2006-01-02")
-		author := c.Author
-		authorSplit := strings.Split(c.Author, "(")
-		if len(authorSplit) > 1 {
-			author = strings.TrimRight(strings.TrimSpace(authorSplit[1]), ")")
-		}
-		logStr += fmt.Sprintf("%s %s %s\n", date, author, c.Subject)
-
-		// Bugs list.
 		if rm.includeBugs && monorailProject != "" {
 			b := util.BugsFromCommitMsg(c.Body)
 			for _, bug := range b[monorailProject] {
@@ -250,12 +241,22 @@ func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to *r
 			}
 		}
 	}
-	commitMsg, err := buildCommitMsg(from, to, rm.childPath, cqExtraTrybots, rm.childRepoUrl, rm.serverURL, logStr, transitiveDepsStr, bugs, len(nextRollCommits), rm.includeLog)
+	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
+		Bugs:           bugs,
+		ChildPath:      rm.childPath,
+		ChildRepo:      rm.childRepoUrl,
+		CqExtraTrybots: cqExtraTrybots,
+		IncludeLog:     rm.includeLog,
+		Reviewers:      emails,
+		Revisions:      revs,
+		RollingFrom:    from,
+		RollingTo:      to,
+		ServerURL:      serverURL,
+		TransitiveDeps: transitiveDeps,
+	})
 	if err != nil {
 		return "", nil, fmt.Errorf("Failed to build commit msg: %s", err)
 	}
-	commitMsg += "TBR=" + strings.Join(emails, ",")
-
 	return commitMsg, map[string]string{"DEPS": string(newDEPSContent)}, nil
 }
 

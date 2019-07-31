@@ -23,12 +23,18 @@ import (
 )
 
 const (
+	TMPL_COMMIT_MSG_GITHUB_CIPD_DEPS = `Roll {{.ChildPath}} from {{.RollingFrom.String}} to {{.RollingTo.String}}
+
+The AutoRoll server is located here: {{.ServerURL}}
+
+Documentation for the AutoRoller is here:
+https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
+
+If the roll is causing failures, please contact the current sheriff, who should
+be CC'd on the roll, and stop the roller if necessary.
+`
+
 	cipdPackageUrlTmpl = "%s/p/%s/+/%s"
-
-	cipdGithubTitleTmpl = "Roll %s from %s to %s"
-	cipdCommitMsgTmpl   = cipdGithubTitleTmpl + `
-
-` + COMMIT_MSG_FOOTER_TMPL
 )
 
 var (
@@ -70,6 +76,9 @@ func newGithubCipdDEPSRepoManager(ctx context.Context, c *GithubCipdDEPSRepoMana
 		return nil, err
 	}
 	wd := path.Join(workdir, strings.TrimSuffix(path.Base(c.DepotToolsRepoManagerConfig.ParentRepo), ".git"))
+	if c.CommitMsgTmpl == "" {
+		c.CommitMsgTmpl = TMPL_COMMIT_MSG_GITHUB_CIPD_DEPS
+	}
 	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, wd, recipeCfgFile, serverURL, nil, httpClient, cr, local)
 	if err != nil {
 		return nil, err
@@ -182,7 +191,7 @@ func (rm *githubCipdDEPSRepoManager) Update(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		rm.childRepoUrl = childRepo
+		rm.childRepoUrl = strings.TrimSpace(childRepo)
 	}
 
 	rm.lastRollRev = lastRollRev
@@ -340,7 +349,15 @@ func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	}
 
 	// Build the commitMsg.
-	commitMsg := fmt.Sprintf(cipdCommitMsgTmpl, rm.cipdAssetName, from, to, rm.serverURL)
+	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
+		ChildPath:   rm.cipdAssetName,
+		RollingFrom: from,
+		RollingTo:   to,
+		ServerURL:   rm.serverURL,
+	})
+	if err != nil {
+		return 0, err
+	}
 
 	// Commit.
 	if _, err := git.GitDir(rm.parentDir).Git(ctx, "commit", "-a", "-m", commitMsg); err != nil {
@@ -353,7 +370,7 @@ func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	}
 
 	// Create a pull request.
-	title := fmt.Sprintf(cipdGithubTitleTmpl, rm.cipdAssetName, from.Id[:5]+"...", to.Id[:5]+"...")
+	title := strings.Split(commitMsg, "\n")[0]
 	headBranch := fmt.Sprintf("%s:%s", rm.codereview.UserName(), rm.rollBranchName)
 	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch, headBranch, commitMsg)
 	if err != nil {

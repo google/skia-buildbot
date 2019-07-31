@@ -1,10 +1,8 @@
 package repo_manager
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"html/template"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -21,22 +19,26 @@ import (
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
-	GITHUB_COMMIT_MSG_TMPL = `Roll {{.ChildPath}} {{.From}}..{{.To}} ({{.NumCommits}} commits)
+	TMPL_COMMIT_MSG_GITHUB = `Roll {{.ChildPath}} {{.RollingFrom.String}}..{{.RollingTo.String}} ({{len .Revisions}} commits)
 
-{{.ChildRepoCompareUrl}}
+{{.ChildRepo}}/compare/{{.RollingFrom.String}}...{{.RollingTo.String}}
 
-git {{.GitLogCmd}}
-{{.LogStr}}{{.TransitiveDeps}}
-
+{{if .IncludeLog}}git log {{.RollingFrom}}..{{.RollingTo}} --no-merges --oneline
+{{range .Revisions}}{{.Timestamp.Format "2006-01-02"}} {{.Author}} {{.Description}}
+{{end}}{{end}}{{if len .TransitiveDeps}}
+Also rolling transitive DEPS:
+{{range .TransitiveDeps}}  {{.ParentPath}} {{.RollingFrom}}..{{.RollingTo}}
+{{end}}{{end}}
 The AutoRoll server is located here: {{.ServerURL}}
 
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 
-If the roll is causing failures, please contact the current sheriff ({{.SheriffEmails}}), and stop
+If the roll is causing failures, please contact the current sheriff ({{stringsJoin .Reviewers ","}}), and stop
 the roller if necessary.
 
 `
@@ -46,8 +48,6 @@ var (
 	// Use this function to instantiate a NewGithubRepoManager. This is able to be
 	// overridden for testing.
 	NewGithubRepoManager func(context.Context, *GithubRepoManagerConfig, string, *github.GitHub, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newGithubRepoManager
-
-	githubCommitMsgTmpl = template.Must(template.New("githubCommitMsg").Parse(GITHUB_COMMIT_MSG_TMPL))
 
 	pullRequestInLogRE = regexp.MustCompile(`(?m) \((#[0-9]+)\)$`)
 )
@@ -59,6 +59,8 @@ type GithubRepoManagerConfig struct {
 	ParentRepoURL string `json:"parentRepoURL"`
 	// URL of the child repo.
 	ChildRepoURL string `json:"childRepoURL"`
+	// If false, roll CLs do not include a git log.
+	IncludeLog bool `json:"includeLog"`
 	// The roller will update this file with the child repo's revision.
 	RevisionFile string `json:"revisionFile"`
 	// GCS bucket to use if filtering revisions by presence of files in GCS.
@@ -74,6 +76,7 @@ type githubRepoManager struct {
 	filterRevisionsByGCS []string
 	gcs                  gcs.GCSClient
 	githubClient         *github.GitHub
+	includeLog           bool
 	parentRepo           *git.Checkout
 	parentRepoURL        string
 	childRepoURL         string
@@ -103,6 +106,9 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 		return nil, err
 	}
 
+	if c.CommitMsgTmpl == "" {
+		c.CommitMsgTmpl = TMPL_COMMIT_MSG_GITHUB
+	}
 	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, wd, serverURL, nil, client, cr, local)
 	if err != nil {
 		return nil, err
@@ -131,6 +137,7 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 		commonRepoManager: crm,
 		gcs:               gcsClient,
 		githubClient:      githubClient,
+		includeLog:        c.IncludeLog,
 		parentRepo:        parentRepo,
 		parentRepoURL:     c.ParentRepoURL,
 		childRepoURL:      c.ChildRepoURL,
@@ -294,38 +301,46 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 
 	// Build the commit message.
 	user, repo := GetUserAndRepo(rm.childRepoURL)
-	childRepoCompareURL := fmt.Sprintf("https://github.com/%s/%s/compare/%s...%s", user, repo, from.Id, to.Id)
-	logCmd := []string{"log", fmt.Sprintf("%s..%s", from.Id, to.Id), "--no-merges", "--oneline"}
-	logStr, err := rm.childRepo.Git(ctx, logCmd...)
+	commits, err := rm.childRepo.RevList(ctx, "--no-merges", fmt.Sprintf("%s..%s", from.Id, to.Id))
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("Failed to list revisions: %s", err)
 	}
-	logStr = strings.TrimSpace(logStr)
-	// Github autolinks PR numbers to be of the same repository in logStr. Fix this by
-	// explicitly adding the child repo to the PR number.
-	logStr = pullRequestInLogRE.ReplaceAllString(logStr, fmt.Sprintf(" (%s/%s$1)", user, repo))
-	commitMsg, err := GetGithubCommitMsg(logStr, childRepoCompareURL, rm.childPath, from, to, rm.serverURL, "", logCmd, emails)
-	if err != nil {
-		return 0, fmt.Errorf("Could not build github commit message: %s", err)
+	details := make([]*vcsinfo.LongCommit, 0, len(commits))
+	for _, c := range commits {
+		d, err := rm.childRepo.Details(ctx, c)
+		if err != nil {
+			return 0, fmt.Errorf("Failed to get commit details: %s", err)
+		}
+		// Github autolinks PR numbers to be of the same repository in logStr. Fix this by
+		// explicitly adding the child repo to the PR number.
+		d.Subject = pullRequestInLogRE.ReplaceAllString(d.Subject, fmt.Sprintf(" (%s/%s$1)", user, repo))
+		d.Body = pullRequestInLogRE.ReplaceAllString(d.Body, fmt.Sprintf(" (%s/%s$1)", user, repo))
+		details = append(details, d)
 	}
+	revs := revision.FromLongCommits(rm.childRevLinkTmpl, details)
 
-	versions, err := rm.childRepo.RevList(ctx, "--no-merges", fmt.Sprintf("%s..%s", from.Id, to.Id))
-	if err != nil {
-		return 0, err
-	}
-	logStrList := strings.Split(logStr, "\n")
-	for i := len(versions) - 1; i >= 0; i-- {
-		version := versions[i]
+	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
+		ChildPath:   rm.childPath,
+		ChildRepo:   rm.childRepoURL,
+		IncludeLog:  rm.includeLog,
+		Reviewers:   emails,
+		Revisions:   revs,
+		RollingFrom: from,
+		RollingTo:   to,
+		ServerURL:   rm.serverURL,
+	})
+
+	for i := len(details) - 1; i >= 0; i-- {
 		// Write the file.
-		if err := ioutil.WriteFile(path.Join(rm.parentRepo.Dir(), rm.revisionFile), []byte(version+"\n"), os.ModePerm); err != nil {
+		if err := ioutil.WriteFile(path.Join(rm.parentRepo.Dir(), rm.revisionFile), []byte(details[i].Hash+"\n"), os.ModePerm); err != nil {
 			return 0, err
 		}
 
 		// Commit.
-		if _, err := rm.parentRepo.Git(ctx, "commit", "-a", "-m", logStrList[i]); err != nil {
+		msg := fmt.Sprintf("%s %s", details[i].Hash[:9], details[i].Subject)
+		if _, err := rm.parentRepo.Git(ctx, "commit", "-a", "-m", msg); err != nil {
 			return 0, err
 		}
-
 	}
 
 	// Run the pre-upload steps.
@@ -369,39 +384,6 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	}
 
 	return int64(pr.GetNumber()), nil
-}
-
-// GetGithubCommitMsg is a utility that returns a commit message that can be used in github rolls.
-func GetGithubCommitMsg(logStr, childRepoCompareURL, childPath string, from, to *revision.Revision, serverURL, transitiveDeps string, logCmd, emails []string) (string, error) {
-	data := struct {
-		ChildPath           string
-		ChildRepoCompareUrl string
-		From                string
-		GitLogCmd           string
-		To                  string
-		NumCommits          int
-		LogURL              string
-		LogStr              string
-		ServerURL           string
-		SheriffEmails       string
-		TransitiveDeps      string
-	}{
-		ChildPath:           childPath,
-		ChildRepoCompareUrl: childRepoCompareURL,
-		From:                from.Id,
-		GitLogCmd:           strings.Join(logCmd, " "),
-		To:                  to.Id,
-		NumCommits:          len(strings.Split(logStr, "\n")),
-		LogStr:              logStr,
-		ServerURL:           serverURL,
-		SheriffEmails:       strings.Join(emails, ","),
-		TransitiveDeps:      transitiveDeps,
-	}
-	var buf bytes.Buffer
-	if err := githubCommitMsgTmpl.Execute(&buf, data); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
 }
 
 func GetUserAndRepo(githubRepo string) (string, string) {

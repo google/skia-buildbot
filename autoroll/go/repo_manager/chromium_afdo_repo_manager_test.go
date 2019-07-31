@@ -226,8 +226,26 @@ func TestAFDORepoManager(t *testing.T) {
 	// Mock the initial change creation.
 	from := rm.LastRollRev()
 	to := rm.NextRollRev()
-	commitMsg := fmt.Sprintf(AFDO_COMMIT_MSG_TMPL, from, to, "fake.server.com")
-	commitMsg += "\nTBR=reviewer@chromium.org"
+	commitMsg := fmt.Sprintf(`Roll AFDO from %s to %s
+
+This CL may cause a small binary size increase, roughly proportional
+to how long it's been since our last AFDO profile roll. For larger
+increases (around or exceeding 100KB), please file a bug against
+gbiv@chromium.org. Additional context: https://crbug.com/805539
+
+Please note that, despite rolling to chrome/android, this profile is
+used for both Linux and Android.
+
+The AutoRoll server is located here: fake.server.com
+
+Documentation for the AutoRoller is here:
+https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
+
+If the roll is causing failures, please contact the current sheriff, who should
+be CC'd on the roll, and stop the roller if necessary.
+
+TBR=reviewer@chromium.org
+`, from, to)
 	subject := strings.Split(commitMsg, "\n")[0]
 	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*afdoRepoManager).noCheckoutRepoManager.gerritConfig.Project, subject, rm.(*afdoRepoManager).parentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
