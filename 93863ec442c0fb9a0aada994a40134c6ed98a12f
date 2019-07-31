@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3b8f02dd_97c38ed5",
+        "filename": "autoroll/config/afdo-chromium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-07-31T18:37:12Z",
+      "side": 1,
+      "message": "This is uglier than I\u0027d like it to be, but as far as I know there\u0027s no way to improve it aside from switching to a config file format with better support for text blocks.",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 86
+      },
+      "revId": "93863ec442c0fb9a0aada994a40134c6ed98a12f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b280233_5ca72d42",
+        "filename": "autoroll/go/repo_manager/gcs_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-07-31T18:37:12Z",
+      "side": 1,
+      "message": "This and semver_gcs_repo_manager.go were moved and generalized from chromium_afdo_repo_manager.go.",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 49
+      },
+      "revId": "93863ec442c0fb9a0aada994a40134c6ed98a12f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc947618_90c30661",
+        "filename": "autoroll/go/repo_manager/semver_gcs_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-07-31T18:37:12Z",
+      "side": 1,
+      "message": "I\u0027m not a huge fan of this name, since this isn\u0027t really \"semantic versioning\".  We just compare the integers in the file name in order of appearance.",
+      "range": {
+        "startLine": 17,
+        "startChar": 5,
+        "endLine": 17,
+        "endChar": 11
+      },
+      "revId": "93863ec442c0fb9a0aada994a40134c6ed98a12f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
