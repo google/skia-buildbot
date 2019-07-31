@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"time"
@@ -15,6 +16,14 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
+
+	"go.skia.org/infra/go/sklog"
+)
+
+var (
+	ErrAnotherInstanceRunningTask        = errors.New("Another instance has picked up this task")
+	ErrThisInstanceRunningTask           = errors.New("This instance is already running this task")
+	ErrThisInstanceOwnsTaskButNotRunning = errors.New("This instance has picked up this task but it is not running yet")
 )
 
 type CompileTask struct {
@@ -36,10 +45,11 @@ type CompileTask struct {
 	WithPatchLog string `json:"withpatch_log"`
 	NoPatchLog   string `json:"nopatch_log"`
 
-	IsMasterBranch bool   `json:"is_master_branch"`
-	Done           bool   `json:"done"`
-	Error          string `json:"error"`
-	InfraFailure   bool   `json:"infra_failure"`
+	CompileServerInstance string `json:"compile_server_instance"`
+	IsMasterBranch        bool   `json:"is_master_branch"`
+	Done                  bool   `json:"done"`
+	Error                 string `json:"error"`
+	InfraFailure          bool   `json:"infra_failure"`
 }
 
 type CompileTaskAndKey struct {
@@ -54,6 +64,44 @@ func (a sortTasks) Less(i, j int) bool {
 	return a[i].task.Created.Before(a[j].task.Created)
 }
 
+func ClaimCompileTask(issue, patchset int, lunchTarget string) error {
+	var t CompileTask
+	var err error
+	_, err = ds.DS.RunInTransaction(context.Background(), func(tx *datastore.Transaction) error {
+		fmt.Println("IN TRANSACTION!!!!!!!!!!!")
+		k := GetNewDSKey(lunchTarget, issue, patchset)
+		if err := tx.Get(k, &t); err != nil && err != datastore.ErrNoSuchEntity {
+			return err
+		}
+		if t.CompileServerInstance != "" {
+			if t.CompileServerInstance == serverURL {
+				if t.Checkout == "" {
+					sklog.Infof("%s has already been picked up by this instance but task is not running.", k)
+					return ErrThisInstanceOwnsTaskButNotRunning
+				} else {
+					sklog.Infof("%s has already been picked up by this instance", k)
+					return ErrThisInstanceRunningTask
+				}
+			} else {
+				sklog.Infof("%s has been picked up by %s", k, t.CompileServerInstance)
+				return ErrAnotherInstanceRunningTask
+			}
+		}
+		// This instance is going to
+		t.CompileServerInstance = serverURL
+		if _, err := tx.Put(k, &t); err != nil {
+			return err
+		}
+		fmt.Println("DONE WITH TRANSACTION!")
+		return nil
+	})
+	return err
+}
+
+// TODO(rmistry):
+// * Use transactions? - https://cloud.google.com/datastore/docs/concepts/transactions#datastore-datastore-transactional-update-go
+// * Put instance here (optionally)?
+// WHOLE FUNCTION IS NO LONGER NEEDED!
 func GetCompileTasksAndKeys() ([]*CompileTaskAndKey, []*CompileTaskAndKey, error) {
 	waitingTasksAndKeys := []*CompileTaskAndKey{}
 	runningTasksAndKeys := []*CompileTaskAndKey{}
@@ -105,9 +153,13 @@ func GetPendingTasks() *datastore.Iterator {
 	return ds.DS.Run(context.TODO(), q)
 }
 
-func GetNewDSKey() *datastore.Key {
-	return ds.NewKey(ds.COMPILE_TASK)
+func GetNewDSKey(lunchTarget string, issue, patchset int) *datastore.Key {
+	k := ds.NewKey(ds.COMPILE_TASK)
+	k.Name = fmt.Sprintf("%s-%d-%d", lunchTarget, issue, patchset)
+	return k
 }
+
+//func FindDSTask()
 
 func GetDSTask(taskID int64) (*datastore.Key, *CompileTask, error) {
 	key := ds.NewKey(ds.COMPILE_TASK)

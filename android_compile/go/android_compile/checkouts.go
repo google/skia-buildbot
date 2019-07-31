@@ -69,7 +69,7 @@ const (
 )
 
 var (
-	availableCheckoutsChan chan string
+	AvailableCheckoutsChan chan string
 
 	bucketHandle *storage.BucketHandle
 
@@ -143,7 +143,7 @@ func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Dur
 	// Slice that will be used to update all checkouts in parallel.
 	checkoutsToUpdate := []string{}
 	// Channel that will be used to determine which checkouts are available.
-	availableCheckoutsChan = make(chan string, numCheckouts)
+	AvailableCheckoutsChan = make(chan string, numCheckouts)
 	// Populate the channel with available checkouts.
 	pathToMirrorManifest := filepath.Join(pathToMirror, "platform", "manifest.git")
 	for i := 1; i <= numCheckouts; i++ {
@@ -433,7 +433,7 @@ func prepareSkiaCheckoutForCompile(ctx context.Context, userConfigContent []byte
 }
 
 func addToCheckoutsChannel(checkout string) {
-	availableCheckoutsChan <- checkout
+	AvailableCheckoutsChan <- checkout
 }
 
 // RunCompileTask runs the specified CompileTask using the following algorithm-
@@ -465,9 +465,11 @@ func addToCheckoutsChannel(checkout string) {
 // with link to logs and whether the no patch run was successful.
 //
 func RunCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTask, datastoreKey *datastore.Key, pathToCompileScript string) error {
+	// TODO(rmistry): Move out or remove completely.
 	incWaitingMetric()
 	// Blocking call to wait for an available checkout.
-	checkoutPath := <-availableCheckoutsChan
+	// TODO(rmistry): Move this check out.
+	checkoutPath := <-AvailableCheckoutsChan
 	moveToRunningMetric()
 	defer decRunningMetric()
 	defer addToCheckoutsChannel(checkoutPath)
