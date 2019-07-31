@@ -13,9 +13,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
-	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -33,18 +31,76 @@ const (
 	afdoTimePrev = "2009-11-10T23:00:00Z"
 	afdoTimeBase = "2009-11-10T23:01:00Z"
 	afdoTimeNext = "2009-11-10T23:02:00Z"
+
+	AFDO_GS_BUCKET = "chromeos-prebuilt"
+	AFDO_GS_PATH   = "afdo-job/llvm"
+
+	// Example name: chromeos-chrome-amd64-63.0.3239.57_rc-r1.afdo.bz2
+	AFDO_VERSION_REGEX = ("^chromeos-chrome-amd64-" + // Prefix
+		"(\\d+)\\.(\\d+)\\.(\\d+)\\.0" + // Version
+		"_rc-r(\\d+)" + // Revision
+		"-merged\\.afdo\\.bz2$") // Suffix
+	AFDO_SHORT_REV_REGEX = "(\\d+)\\.(\\d+)\\.(\\d+)\\.0_rc-r(\\d+)-merged"
+
+	AFDO_VERSION_FILE_PATH = "chrome/android/profiles/newest.txt"
+
+	TMPL_COMMIT_MSG_AFDO = `Roll AFDO from {{.RollingFrom.String}} to {{.RollingTo.String}}
+
+This CL may cause a small binary size increase, roughly proportional
+to how long it's been since our last AFDO profile roll. For larger
+increases (around or exceeding 100KB), please file a bug against
+gbiv@chromium.org. Additional context: https://crbug.com/805539
+
+Please note that, despite rolling to chrome/android, this profile is
+used for both Linux and Android.
+
+The AutoRoll server is located here: {{.ServerURL}}
+
+Documentation for the AutoRoller is here:
+https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
+
+If the roll is causing failures, please contact the current sheriff, who should
+be CC'd on the roll, and stop the roller if necessary.
+
+TBR={{stringsJoin .Reviewers ","}}
+`
 )
 
-func afdoCfg() *AFDORepoManagerConfig {
-	return &AFDORepoManagerConfig{
-		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
-			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  "master",
-				ChildPath:    "unused/by/afdo/repomanager",
-				ParentBranch: "master",
+func TestCompareSemanticVersions(t *testing.T) {
+	unittest.SmallTest(t)
+
+	test := func(a, b []int, expect int) {
+		assert.Equal(t, expect, compareSemanticVersions(a, b))
+	}
+	test([]int{}, []int{}, 0)
+	test([]int{}, []int{1}, 1)
+	test([]int{1}, []int{}, -1)
+	test([]int{1}, []int{1}, 0)
+	test([]int{0}, []int{1}, 1)
+	test([]int{1}, []int{0}, -1)
+	test([]int{1, 1}, []int{1, 0}, -1)
+	test([]int{1}, []int{1, 0}, 1)
+	test([]int{1, 0}, []int{1}, -1)
+}
+
+func afdoCfg() *SemVerGCSRepoManagerConfig {
+	return &SemVerGCSRepoManagerConfig{
+		GCSRepoManagerConfig: GCSRepoManagerConfig{
+			NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
+				CommonRepoManagerConfig: CommonRepoManagerConfig{
+					ChildBranch:   "master",
+					ChildPath:     "unused/by/afdo/repomanager",
+					CommitMsgTmpl: TMPL_COMMIT_MSG_AFDO,
+					ParentBranch:  "master",
+				},
+				ParentRepo: "", // Filled in after GitInit().
 			},
-			ParentRepo: "", // Filled in after GitInit().
+			GCSBucket:   "chromeos-prebuilt",
+			GCSPath:     "afdo-job/llvm",
+			VersionFile: "chrome/android/profiles/newest.txt",
 		},
+		ShortRevRegex: "(\\d+)\\.(\\d+)\\.(\\d+)\\.0_rc-r(\\d+)-merged",
+		VersionRegex:  "^chromeos-chrome-amd64-(\\d+)\\.(\\d+)\\.(\\d+)\\.0_rc-r(\\d+)-merged\\.afdo\\.bz2$",
 	}
 }
 
@@ -99,7 +155,7 @@ func setupAfdo(t *testing.T) (context.Context, RepoManager, *mockhttpclient.URLM
 		afdoRevBase: afdoTimeBase,
 	})
 
-	rm, err := NewAFDORepoManager(ctx, cfg, wd, g, "fake.server.com", "", urlmock.Client(), gerritCR(t, g), false)
+	rm, err := NewSemVerGCSRepoManager(ctx, cfg, wd, g, "fake.server.com", "", urlmock.Client(), gerritCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -137,8 +193,8 @@ type gsObjectList struct {
 	Items []gsObject `json:"items"`
 }
 
-func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, path string, items map[string]string) {
-	fakeUrl := fmt.Sprintf("https://www.googleapis.com/storage/v1/b/%s/o?alt=json&delimiter=&pageToken=&prefix=%s&prettyPrint=false&projection=full&versions=false", bucket, url.PathEscape(path))
+func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, gsPath string, items map[string]string) {
+	fakeUrl := fmt.Sprintf("https://www.googleapis.com/storage/v1/b/%s/o?alt=json&delimiter=&pageToken=&prefix=%s&prettyPrint=false&projection=full&versions=false", bucket, url.PathEscape(gsPath))
 	resp := gsObjectList{
 		Kind:  "storage#objects",
 		Items: []gsObject{},
@@ -146,8 +202,8 @@ func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, path stri
 	for item, timestamp := range items {
 		resp.Items = append(resp.Items, gsObject{
 			Kind:                    "storage#object",
-			Id:                      bucket + path + item,
-			SelfLink:                bucket + path + item,
+			Id:                      path.Join(bucket+gsPath, item),
+			SelfLink:                path.Join(bucket+gsPath, item),
 			Name:                    item,
 			Bucket:                  bucket,
 			Generation:              "1",
@@ -169,6 +225,32 @@ func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, path stri
 	urlmock.MockOnce(fakeUrl, mockhttpclient.MockGetDialogue(respBytes))
 }
 
+func mockGSObject(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, gsPath, item, timestamp string) {
+	fakeUrl := fmt.Sprintf("https://www.googleapis.com/storage/v1/b/%s/o/%s?alt=json&prettyPrint=false&projection=full", bucket, url.PathEscape(path.Join(gsPath, item)))
+	resp := gsObject{
+		Kind:                    "storage#object",
+		Id:                      path.Join(bucket+gsPath, item),
+		SelfLink:                path.Join(bucket+gsPath, item),
+		Name:                    item,
+		Bucket:                  bucket,
+		Generation:              "1",
+		Metageneration:          "1",
+		ContentType:             "application/octet-stream",
+		TimeCreated:             timestamp,
+		Updated:                 timestamp,
+		StorageClass:            "MULTI_REGIONAL",
+		TimeStorageClassUpdated: timestamp,
+		Size:                    "12345",
+		Md5Hash:                 "dsafkldkldsaf",
+		MediaLink:               fakeUrl,
+		Crc32c:                  "eiekls",
+		Etag:                    "lasdfklds",
+	}
+	respBytes, err := json.MarshalIndent(resp, "", "  ")
+	assert.NoError(t, err)
+	urlmock.MockOnce(fakeUrl, mockhttpclient.MockGetDialogue(respBytes))
+}
+
 func TestAFDORepoManager(t *testing.T) {
 	unittest.LargeTest(t)
 
@@ -177,12 +259,15 @@ func TestAFDORepoManager(t *testing.T) {
 
 	assert.Equal(t, afdoRevBase, rm.LastRollRev().Id)
 	assert.Equal(t, afdoRevBase, rm.NextRollRev().Id)
+	mockGSObject(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, afdoRevPrev, afdoTimePrev)
 	prev, err := rm.GetRevision(ctx, afdoRevPrev)
 	assert.NoError(t, err)
 	assert.Equal(t, afdoRevPrev, prev.Id)
+	mockGSObject(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, afdoRevBase, afdoTimeBase)
 	base, err := rm.GetRevision(ctx, afdoRevBase)
 	assert.NoError(t, err)
 	assert.Equal(t, afdoRevBase, base.Id)
+	mockGSObject(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, afdoRevNext, afdoTimeNext)
 	next, err := rm.GetRevision(ctx, afdoRevNext)
 	assert.NoError(t, err)
 	assert.Equal(t, afdoRevNext, next.Id)
@@ -219,14 +304,13 @@ func TestAFDORepoManager(t *testing.T) {
 	rolledPast, err = rm.RolledPast(ctx, next)
 	assert.NoError(t, err)
 	assert.False(t, rolledPast)
-	deepequal.AssertDeepEqual(t, []*revision.Revision{afdoVersionToRevision(afdoRevNext)}, rm.NotRolledRevisions())
+	assert.Equal(t, 1, len(rm.NotRolledRevisions()))
+	assert.Equal(t, afdoRevNext, rm.NotRolledRevisions()[0].Id)
 
 	// Upload a CL.
 
 	// Mock the initial change creation.
-	from := rm.LastRollRev()
-	to := rm.NextRollRev()
-	commitMsg := fmt.Sprintf(`Roll AFDO from %s to %s
+	commitMsg := `Roll AFDO from 66.0.3336.0_rc-r1-merged to 66.0.3337.0_rc-r1-merged
 
 This CL may cause a small binary size increase, roughly proportional
 to how long it's been since our last AFDO profile roll. For larger
@@ -245,9 +329,9 @@ If the roll is causing failures, please contact the current sheriff, who should
 be CC'd on the roll, and stop the roller if necessary.
 
 TBR=reviewer@chromium.org
-`, from, to)
+`
 	subject := strings.Split(commitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*afdoRepoManager).noCheckoutRepoManager.gerritConfig.Project, subject, rm.(*afdoRepoManager).parentBranch, parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*gcsRepoManager).noCheckoutRepoManager.gerritConfig.Project, subject, rm.(*gcsRepoManager).parentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",
@@ -296,11 +380,17 @@ func TestChromiumAFDOConfigValidation(t *testing.T) {
 	unittest.SmallTest(t)
 
 	cfg := afdoCfg()
-	cfg.ParentRepo = "dummy" // Not supplied above.
+	// Fill in some fields which are not supplied above.
+	cfg.ParentRepo = "dummy"
+	cfg.CommitMsgTmpl = TMPL_COMMIT_MSG_AFDO
+	cfg.GCSBucket = AFDO_GS_BUCKET
+	cfg.GCSPath = AFDO_GS_PATH
+	cfg.VersionFile = AFDO_VERSION_FILE_PATH
+	cfg.VersionRegex = AFDO_VERSION_REGEX
 	assert.NoError(t, cfg.Validate())
 
 	// The only fields come from the nested Configs, so exclude them and
 	// verify that we fail validation.
-	cfg = &AFDORepoManagerConfig{}
+	cfg = &SemVerGCSRepoManagerConfig{}
 	assert.Error(t, cfg.Validate())
 }

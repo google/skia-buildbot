@@ -29,18 +29,6 @@ const (
 	// automatically added by our tooling, eg. the "autoroll-be-" prefix and
 	// "-storage" suffix for disks, controller hashes, etc.
 	MAX_ROLLER_NAME_LENGTH = 41
-
-	ROLLER_TYPE_AFDO             = "afdo"
-	ROLLER_TYPE_ANDROID          = "android"
-	ROLLER_TYPE_COPY             = "copy"
-	ROLLER_TYPE_DEPS             = "deps"
-	ROLLER_TYPE_DEPS_NO_CHECKOUT = "noCheckoutDEPS"
-	ROLLER_TYPE_FUCHSIA_SDK      = "fuchsiaSDK"
-	ROLLER_TYPE_GITHUB           = "github"
-	ROLLER_TYPE_GITHUB_DEPS      = "githubDEPS"
-	ROLLER_TYPE_GOOGLE3          = "google3"
-	ROLLER_TYPE_INVALID          = "INVALID"
-	ROLLER_TYPE_MANIFEST         = "manifest"
 )
 
 var (
@@ -167,7 +155,6 @@ type AutoRollerConfig struct {
 	Google3Review *codereview.Google3Config `json:"google3Review,omitempty"`
 
 	// RepoManager configs. Exactly one must be provided.
-	AFDORepoManager              *repo_manager.AFDORepoManagerConfig              `json:"afdoRepoManager,omitempty"`
 	AndroidRepoManager           *repo_manager.AndroidRepoManagerConfig           `json:"androidRepoManager,omitempty"`
 	CopyRepoManager              *repo_manager.CopyRepoManagerConfig              `json:"copyRepoManager,omitempty"`
 	DEPSRepoManager              *repo_manager.DEPSRepoManagerConfig              `json:"depsRepoManager,omitempty"`
@@ -179,6 +166,7 @@ type AutoRollerConfig struct {
 	GithubDEPSRepoManager        *repo_manager.GithubDEPSRepoManagerConfig        `json:"githubDEPSRepoManager,omitempty"`
 	Google3RepoManager           *Google3FakeRepoManagerConfig                    `json:"google3,omitempty"`
 	NoCheckoutDEPSRepoManager    *repo_manager.NoCheckoutDEPSRepoManagerConfig    `json:"noCheckoutDEPSRepoManager,omitempty"`
+	SemVerGCSRepoManager         *repo_manager.SemVerGCSRepoManagerConfig         `json:"semVerGCSRepoManager,omitempty"`
 
 	// Kubernetes config.
 	// TODO(borenet): Optional right now, but will eventually be required.
@@ -201,9 +189,6 @@ type AutoRollerConfig struct {
 	SafetyThrottle *ThrottleConfig `json:"safetyThrottle,omitempty"`
 	// If true, this roller supports one-click "manual" rolls.
 	SupportsManualRolls bool `json:"supportsManualRolls,omitempty"`
-
-	// Private.
-	rollerType string // Set by RollerType().
 }
 
 // Validate the config.
@@ -251,9 +236,6 @@ func (c *AutoRollerConfig) Validate() error {
 	}
 
 	rm := []util.Validator{}
-	if c.AFDORepoManager != nil {
-		rm = append(rm, c.AFDORepoManager)
-	}
 	if c.AndroidRepoManager != nil {
 		rm = append(rm, c.AndroidRepoManager)
 	}
@@ -287,6 +269,9 @@ func (c *AutoRollerConfig) Validate() error {
 	if c.NoCheckoutDEPSRepoManager != nil {
 		rm = append(rm, c.NoCheckoutDEPSRepoManager)
 	}
+	if c.SemVerGCSRepoManager != nil {
+		rm = append(rm, c.SemVerGCSRepoManager)
+	}
 	if len(rm) != 1 {
 		return fmt.Errorf("Exactly one repo manager must be supplied, but got %d", len(rm))
 	}
@@ -307,34 +292,6 @@ func (c *AutoRollerConfig) Validate() error {
 	// Verify that the TimeWindow is valid.
 	_, err = time_window.Parse(c.TimeWindow)
 	return err
-}
-
-// Return the "type" of this roller.
-func (c *AutoRollerConfig) RollerType() string {
-	if c.rollerType == "" {
-		if c.AFDORepoManager != nil {
-			c.rollerType = ROLLER_TYPE_AFDO
-		} else if c.AndroidRepoManager != nil {
-			c.rollerType = ROLLER_TYPE_ANDROID
-		} else if c.CopyRepoManager != nil {
-			c.rollerType = ROLLER_TYPE_COPY
-		} else if c.DEPSRepoManager != nil {
-			c.rollerType = ROLLER_TYPE_DEPS
-		} else if c.FuchsiaSDKRepoManager != nil {
-			c.rollerType = ROLLER_TYPE_FUCHSIA_SDK
-		} else if c.GithubRepoManager != nil {
-			c.rollerType = ROLLER_TYPE_GITHUB
-		} else if c.GithubDEPSRepoManager != nil {
-			c.rollerType = ROLLER_TYPE_GITHUB_DEPS
-		} else if c.Google3RepoManager != nil {
-			c.rollerType = ROLLER_TYPE_GOOGLE3
-		} else if c.NoCheckoutDEPSRepoManager != nil {
-			c.rollerType = ROLLER_TYPE_DEPS_NO_CHECKOUT
-		} else {
-			c.rollerType = ROLLER_TYPE_INVALID
-		}
-	}
-	return c.rollerType
 }
 
 // Return the code review config for the roller.
