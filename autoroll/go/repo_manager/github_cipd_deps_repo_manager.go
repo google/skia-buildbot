@@ -207,7 +207,7 @@ func (rm *githubCipdDEPSRepoManager) Update(ctx context.Context) error {
 func (rm *githubCipdDEPSRepoManager) cipdInstanceToRevision(instance *cipd_api.InstanceInfo) *revision.Revision {
 	return &revision.Revision{
 		Id:          instance.Pin.InstanceID,
-		Display:     instance.Pin.String(),
+		Display:     instance.Pin.InstanceID[:5] + "...",
 		Description: instance.Pin.String(),
 		Timestamp:   time.Time(instance.RegisteredTs),
 		URL:         fmt.Sprintf(cipdPackageUrlTmpl, cipd.SERVICE_URL, rm.cipdAssetName, instance.Pin.InstanceID),

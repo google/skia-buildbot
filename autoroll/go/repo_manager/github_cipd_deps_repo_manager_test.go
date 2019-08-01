@@ -175,7 +175,7 @@ func TestGithubCipdDEPSRepoManager(t *testing.T) {
 	assert.Equal(t, GITHUB_CIPD_NOT_ROLLED_1, rm.NextRollRev().Id)
 	assert.Equal(t, 1, len(rm.NotRolledRevisions()))
 	assert.Equal(t, GITHUB_CIPD_NOT_ROLLED_1, rm.NotRolledRevisions()[0].Id)
-	assert.Equal(t, fmt.Sprintf("%s:%s", GITHUB_CIPD_ASSET_NAME, GITHUB_CIPD_NOT_ROLLED_1), rm.NotRolledRevisions()[0].Display)
+	assert.Equal(t, GITHUB_CIPD_NOT_ROLLED_1[:5]+"...", rm.NotRolledRevisions()[0].Display)
 
 	// RolledPast.
 	cipdMockDescribe(ctx, mockCipd, GITHUB_CIPD_LAST_ROLLED)
