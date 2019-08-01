@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -69,8 +70,15 @@ TBR={{stringsJoin .Reviewers ","}}
 func TestCompareSemanticVersions(t *testing.T) {
 	unittest.SmallTest(t)
 
+	// Unnamed groups.
 	test := func(a, b []int, expect int) {
-		assert.Equal(t, expect, compareSemanticVersions(a, b))
+		verA := &semanticVersion{
+			unnamed: a,
+		}
+		verB := &semanticVersion{
+			unnamed: b,
+		}
+		assert.Equal(t, expect, compareSemanticVersions(verA, verB))
 	}
 	test([]int{}, []int{}, 0)
 	test([]int{}, []int{1}, 1)
@@ -81,6 +89,71 @@ func TestCompareSemanticVersions(t *testing.T) {
 	test([]int{1, 1}, []int{1, 0}, -1)
 	test([]int{1}, []int{1, 0}, 1)
 	test([]int{1, 0}, []int{1}, -1)
+}
+
+func TestParseAndCompareSemanticVersions(t *testing.T) {
+	unittest.SmallTest(t)
+
+	re := func(s string) *regexp.Regexp {
+		rv, err := regexp.Compile(s)
+		assert.NoError(t, err)
+		return rv
+	}
+	var r *regexp.Regexp
+	test := func(a, b string, expect int) {
+		verA, err := parseSemanticVersion(r, a)
+		assert.NoError(t, err)
+		verB, err := parseSemanticVersion(r, b)
+		assert.NoError(t, err)
+		assert.Equal(t, expect, compareSemanticVersions(verA, verB))
+	}
+
+	// Two unnamed groups.
+	r = re("(\\d+).(\\d+)")
+	test("0.0", "0.00", 0)
+	test("0.1", "0.0", -1)
+	test("0.0", "0.1", 1)
+	test("1.0", "0.1", -1)
+	test("1.3", "1.4", 1)
+	test("1.11", "1.3", -1)
+	test("1.2.3", "1.2.4", 0) // Only two groups!
+
+	// Two named groups, equivalent to above.
+	r = re("(?P<group1>\\d+).(?P<group2>\\d+)")
+	test("0.0", "0.00", 0)
+	test("0.1", "0.0", -1)
+	test("0.0", "0.1", 1)
+	test("1.0", "0.1", -1)
+	test("1.3", "1.4", 1)
+	test("1.11", "1.3", -1)
+	test("1.2.3", "1.2.4", 0) // Only two groups!
+
+	// Two named groups, reverse order.
+	r = re("(?P<group2>\\d+).(?P<group1>\\d+)")
+	test("0.0", "0.00", 0)
+	test("0.1", "0.0", -1)
+	test("0.0", "0.1", 1)
+	test("1.0", "0.1", 1)
+	test("1.3", "1.4", 1)
+	test("1.11", "1.3", -1)
+	test("1.2.3", "1.2.4", 0) // Only two groups!
+
+	// Two named groups. Group names sort alphanumerically, so "10" is
+	// before "9".
+	r = re("(?P<9>\\d+).(?P<10>\\d+)")
+	test("0.0", "0.00", 0)
+	test("0.1", "0.0", -1)
+	test("0.0", "0.1", 1)
+	test("1.0", "0.1", 1)
+	test("1.3", "1.4", 1)
+	test("1.11", "1.3", -1)
+	test("1.2.3", "1.2.4", 0) // Only two groups!
+
+	// Horrible hybrid example from the docs.
+	r = re("(\\d+) (?P<group2>\\d+) (?P<group1>\\d+) (\\d+)")
+	test("1 2 3 4", "2 4 1 3", -1)
+	test("1 2 3 4", "2 2 3 4", 1)
+	test("2 2 3 4", "1 2 4 4", 1)
 }
 
 func afdoCfg() *SemVerGCSRepoManagerConfig {
