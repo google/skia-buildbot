@@ -216,6 +216,11 @@ func (rm *gcsRepoManager) RolledPast(ctx context.Context, rev *revision.Revision
 }
 
 // See documentation for RepoManager interface.
+func (r *gcsRepoManager) DefaultStrategy() string {
+	return strategy.ROLL_STRATEGY_BATCH
+}
+
+// See documentation for RepoManager interface.
 func (r *gcsRepoManager) ValidStrategies() []string {
 	return []string{strategy.ROLL_STRATEGY_BATCH, strategy.ROLL_STRATEGY_SINGLE}
 }
