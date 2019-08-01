@@ -18,6 +18,7 @@
   "sheriff": [
     "https://skia-tree-status.appspot.com/current-sheriff"
   ],
+  "supportsManualRolls": true,
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "third_party/externals/angle2",

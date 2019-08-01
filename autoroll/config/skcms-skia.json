@@ -20,6 +20,7 @@
     "https://skia-tree-status.appspot.com/current-sheriff",
     "mtklein@google.com"
   ],
+  "supportsManualRolls": true,
   "copyRepoManager": {
     "childBranch": "master",
     "childPath": "skia/third_party/skcms",
