@@ -47,6 +47,11 @@ func (m *MockGCSClient) SetFileContents(ctx context.Context, path string, opts g
 	return args.Error(0)
 }
 
+func (m *MockGCSClient) GetFileObjectAttrs(ctx context.Context, path string) (*storage.ObjectAttrs, error) {
+	args := m.Called(ctx, path)
+	return args.Get(0).(*storage.ObjectAttrs), args.Error(1)
+}
+
 func (m *MockGCSClient) AllFilesInDirectory(ctx context.Context, folder string, callback func(item *storage.ObjectAttrs)) error {
 	args := m.Called(ctx, folder, callback)
 	return args.Error(0)

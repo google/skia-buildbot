@@ -95,9 +95,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 
 	// Create the RepoManager.
 	var rm repo_manager.RepoManager
-	if c.AFDORepoManager != nil {
-		rm, err = repo_manager.NewAFDORepoManager(ctx, c.AFDORepoManager, workdir, g, serverURL, gitcookiesPath, nil, cr, local)
-	} else if c.AndroidRepoManager != nil {
+	if c.AndroidRepoManager != nil {
 		rm, err = repo_manager.NewAndroidRepoManager(ctx, c.AndroidRepoManager, workdir, g, serverURL, c.ServiceAccount, client, cr, local)
 	} else if c.CopyRepoManager != nil {
 		rm, err = repo_manager.NewCopyRepoManager(ctx, c.CopyRepoManager, workdir, g, recipesCfgFile, serverURL, client, cr, local)
@@ -117,6 +115,8 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		rm, err = repo_manager.NewGithubDEPSRepoManager(ctx, c.GithubDEPSRepoManager, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.NoCheckoutDEPSRepoManager != nil {
 		rm, err = repo_manager.NewNoCheckoutDEPSRepoManager(ctx, c.NoCheckoutDEPSRepoManager, workdir, g, recipesCfgFile, serverURL, gitcookiesPath, client, cr, local)
+	} else if c.SemVerGCSRepoManager != nil {
+		rm, err = repo_manager.NewSemVerGCSRepoManager(ctx, c.SemVerGCSRepoManager, workdir, g, serverURL, gitcookiesPath, client, cr, local)
 	} else {
 		return nil, errors.New("Invalid roller config; no repo manager defined!")
 	}
