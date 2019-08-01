@@ -39,7 +39,8 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 If the roll is causing failures, please contact the current sheriff, who should
 be CC'd on the roll, and stop the roller if necessary.
 {{if .CqExtraTrybots}}
-CQ_INCLUDE_TRYBOTS={{.CqExtraTrybots}}{{end}}`
+CQ_INCLUDE_TRYBOTS={{.CqExtraTrybots}}
+TBR={{stringsJoin .Reviewers ","}}{{end}}`
 )
 
 var (
