@@ -42,7 +42,8 @@
       "flutter/%s/dart-sdk-darwin-x64.zip",
       "flutter/%s/dart-sdk-windows-x64.zip",
       "flutter/%s/ios-objcdoc.zip",
-      "flutter/%s/ios/artifacts.zip"
+      "flutter/%s/ios/artifacts.zip",
+      "flutter/%s/fuchsia/fuchsia.stamp"
     ]
   },
   "kubernetes": {
