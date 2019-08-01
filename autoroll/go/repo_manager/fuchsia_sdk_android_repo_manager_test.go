@@ -216,9 +216,9 @@ Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 
 If the roll is causing failures, please contact the current sheriff, who should
-be CC'd on the roll, and stop the roller if necessary.
-
-Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.`, from, to)
+be CC'd on the roll, and stop the roller if necessary.`, from, to)
+	commitMsg += "\nTBR=reviewer@chromium.org"
+	commitMsg += "\n\nExempt-From-Owner-Approval: The autoroll bot does not require owner approval."
 	subject := strings.Split(commitMsg, "\n")[0]
 	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*fuchsiaSDKAndroidRepoManager).noCheckoutRepoManager.gerritConfig.Project, subject, rm.(*fuchsiaSDKAndroidRepoManager).parentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
