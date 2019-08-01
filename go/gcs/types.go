@@ -45,6 +45,9 @@ type GCSClient interface {
 	// SetFileContents writes the []byte to the GCS file at path. This is a
 	// convenience wrapper around FileWriter. The GCS file will be created if it doesn't exist.
 	SetFileContents(ctx context.Context, path string, opts FileWriteOptions, contents []byte) error
+	// GetFileObjectAttrs returns the storage.ObjectAttrs associated with the given
+	// path.
+	GetFileObjectAttrs(ctx context.Context, path string) (*storage.ObjectAttrs, error)
 	// AllFilesInDirectory executes the callback on all GCS files with the given prefix,
 	// i.e. in the directory prefix. It returns an error if it fails to read any of the
 	// ObjectAttrs belonging to files.
