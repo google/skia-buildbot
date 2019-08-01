@@ -34,7 +34,7 @@ const (
 	GEN_SDK_BP_DIR                   = "scripts"
 	SDK_DEST_PATH                    = "prebuilts/fuchsia_sdk"
 
-	TMPL_COMMIT_MSG_FUCHSIA_SDK_ANDROID = TMPL_COMMIT_MSG_FUCHSIA_SDK + "\nExempt-From-Owner-Approval: The autoroll bot does not require owner approval."
+	TMPL_COMMIT_MSG_FUCHSIA_SDK_ANDROID = TMPL_COMMIT_MSG_FUCHSIA_SDK + "Exempt-From-Owner-Approval: The autoroll bot does not require owner approval."
 )
 
 type FuchsiaSDKAndroidRepoManagerConfig struct {

@@ -182,8 +182,9 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 
 If the roll is causing failures, please contact the current sheriff, who should
 be CC'd on the roll, and stop the roller if necessary.
+
+TBR=reviewer@chromium.org
 `, from, to)
-	commitMsg += "TBR=reviewer@chromium.org\n"
 	subject := strings.Split(commitMsg, "\n")[0]
 	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*fuchsiaSDKRepoManager).noCheckoutRepoManager.gerritConfig.Project, subject, rm.(*fuchsiaSDKRepoManager).parentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
