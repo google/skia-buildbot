@@ -482,7 +482,11 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 			dimensions = GCE_LINUX_WORKER_DIMENSIONS
 		}
 	} else {
-		dimensions = GOLO_ANDROID_WORKER_DIMENSIONS
+		if targetPlatform == PLATFORM_ANDROID {
+			dimensions = GOLO_ANDROID_WORKER_DIMENSIONS
+		} else {
+			dimensions = GOLO_LINUX_WORKER_DIMENSIONS
+		}
 	}
 
 	// The channel where batches of tasks to be triggered and collected will be sent to.
