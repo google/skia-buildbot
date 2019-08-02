@@ -1,5 +1,5 @@
 #!/bin/bash
-APPNAME=android_compile
+APPNAME=android_compile_fe
 
 set -x -e
 
@@ -9,13 +9,10 @@ copy_release_files()
 INSTALL="install -D --verbose --backup=none"
 INSTALL_DIR="install -d --verbose --backup=none"
 
-${INSTALL} --mode=644 -T Dockerfile               ${ROOT}/Dockerfile
-${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/usr/local/bin/${APPNAME}
+${INSTALL} --mode=644 -T ./go/android_compile_fe/Dockerfile ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME}           ${ROOT}/usr/local/bin/${APPNAME}
 
-${INSTALL_DIR} --mode=755                      ${ROOT}/usr/local/share/${APPNAME}
-${INSTALL}     --mode=755 -T compile.sh        ${ROOT}/usr/local/share/${APPNAME}/compile.sh
-${INSTALL}     --mode=755 -T clean-checkout.sh ${ROOT}/usr/local/share/${APPNAME}/clean-checkout.sh
-
+${INSTALL_DIR} --mode=755                             ${ROOT}/usr/local/share/${APPNAME}
 ${INSTALL_DIR} --mode=755                             ${ROOT}/usr/local/share/${APPNAME}/res/img
 ${INSTALL}     --mode=644 ./res/img/*                 ${ROOT}/usr/local/share/${APPNAME}/res/img
 ${INSTALL_DIR} --mode=755                             ${ROOT}/usr/local/share/${APPNAME}/res/js

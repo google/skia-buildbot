@@ -49,7 +49,8 @@ const (
 	HELPER_RECENT_KEYS Kind = "HelperRecentKeys"
 
 	// Android Compile
-	COMPILE_TASK Kind = "CompileTask"
+	COMPILE_TASK              Kind = "CompileTask"
+	ANDROID_COMPILE_INSTANCES Kind = "AndroidCompileInstances"
 
 	// Leasing
 	TASK Kind = "Task"
