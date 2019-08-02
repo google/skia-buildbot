@@ -10,25 +10,28 @@ Getting the Source Code
 The main source code repository is a Git repository hosted at
 [https://skia.googlesource.com/buildbot.git](https://skia.googlesource.com/buildbot.git).
 It is possible to check out this repository directly with `git clone` or via
-`go get`:
+`go get`.
+
+Using `git clone` allows you to work in whatever directory you want. You will
+still need to set GOPATH in order to build some apps (recommended to put this in
+a cache dir). E.g.:
 
 ```
 $ cd ${WORKDIR}
 $ git clone https://skia.googlesource.com/buildbot.git
+$ export GOPATH=${HOME}/.cache/gopath/$(basename ${WORKDIR})
+$ mkdir $GOPATH
+$ cd buildbot
 ```
 
-or
+Using `go get` will fetch the repository into your GOPATH directory along with
+all the Go dependencies. You will need to set GOPATH and GO111MODULE=on. E.g.:
 
 ```
+$ export GOPATH=${WORKDIR}
+$ export GO111MODULE=on
 $ go get -u -t go.skia.org/infra/...
-```
-
-The latter fetches the repository into your $GOPATH directory along with all the
-Go dependencies, while the former allows you to work in whatever directory you
-want. If you're working within GOPATH, you probably want to set this variable:
-
-```
-export GO111MODULE=on
+$ cd ${GOPATH}/src/go.skia.org/infra/
 ```
 
 Note: go.skia.org is a custom import path and will only work if used like the
@@ -82,12 +85,6 @@ Running unit tests
 ==================
 
 Install [Cloud SDK](https://cloud.google.com/sdk/).
-
-The installed python-django version must be >= 1.7. Run the following to update:
-
-```
-$ sudo pip install Django --upgrade
-```
 
 Use this command to run the presubmit tests:
 
