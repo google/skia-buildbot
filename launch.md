@@ -39,12 +39,15 @@ Wrap your `http.Handler` (many services use [mux.NewRouter()](https://github.com
 logging of HTTP requests and responses. Then, wrap it in
 `go.skia.org/infra/go/httputils.HealthzAndHTTPS` to add an unlogged /healthz endpoint for use
 with GKE health monitoring and various HTTPS configuration.
-Use `go.skia.org/infra/go/httputils.NewTimeoutClient` for HTTP clients, because the default
-httpClient doesn't have good defaults for timeouts.
 
-Any calls to external APIs should use an `http.Client` wrapped with
-`httputils.AddMetricsToClient`. This allows us to track how much load we place on
-external services.
+Use `go.skia.org/infra/go/httputils.DefaultClientConfig` for HTTP clients, which
+provides several features:
+
+- ensures requests time out within a reasonable limit
+- tracks how much load we place on external services
+- optionally adds authentication to requests
+- optionally adds automatic retries with exponential backoff
+- optionally treats non-2xx responses as errors
 
 Write your code with security in mind:
 
