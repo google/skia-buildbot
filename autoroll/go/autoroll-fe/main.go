@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
+	"strings"
 	"text/template"
 	"time"
 
@@ -52,6 +53,7 @@ var (
 	port              = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
 	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	hang              = flag.Bool("hang", false, "If true, don't spin up the server, just hang without doing anything.")
 
 	WHITELISTED_VIEWERS = []string{
 		"prober@skia-public.iam.gserviceaccount.com",
@@ -404,6 +406,10 @@ func main() {
 	Init()
 	skiaversion.MustLogVersion()
 
+	if *hang {
+		select {}
+	}
+
 	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
@@ -434,7 +440,8 @@ func main() {
 	rollerNames = make([]string, 0, len(dirEntries))
 	rollers = make(map[string]*autoroller, len(dirEntries))
 	for _, entry := range dirEntries {
-		if !entry.IsDir() {
+		sklog.Info(filepath.Join(*configDir, entry.Name()))
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".json") {
 			// Load the config.
 			var cfg roller.AutoRollerConfig
 			if err := util.WithReadFile(path.Join(*configDir, entry.Name()), func(f io.Reader) error {

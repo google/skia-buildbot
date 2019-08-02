@@ -100,6 +100,7 @@ func parseConfigHelper(confMap map[string]interface{}, ret map[string]interface{
 			} else {
 				val = "false"
 			}
+			sklog.Errorf("Got %v for %s", val, k)
 		case []interface{}:
 			ret[k] = t
 		case map[string]interface{}:
