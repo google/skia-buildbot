@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ff63dde_fcbeff3a",
+        "filename": "autoroll/config/spirv-tools-chromium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5835
+      },
+      "writtenOn": "2019-08-05T16:09:51Z",
+      "side": 1,
+      "message": "Hi! This builder doesn\u0027t seem to exist, and is causing warnings in the CQ logs, because the CQ can\u0027t trigger builds on it. It looks like:\n\n  * win-angle-deqp-rel-32\n  * win-angle-deqp-rel-64\n  * win-angle-rel-32\n  * win-angle-rel-64\n\nExist though, so maybe you meant one of those?",
+      "range": {
+        "startLine": 44,
+        "startChar": 19,
+        "endLine": 44,
+        "endChar": 44
+      },
+      "revId": "a9b086658d971f774d2f8532aa1450ccf1472f5c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
