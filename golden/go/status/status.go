@@ -147,7 +147,8 @@ func (s *StatusWatcher) updateLastCommitAge() {
 	if len(commitsFromLast) == 0 {
 		uningestedCommitAgeMetric.Update(0)
 	} else {
-		uningestedCommitAgeMetric.Update(time.Now().Unix() - commitsFromLast[1].Timestamp.Unix())
+		mostRecentCommit := commitsFromLast[len(commitsFromLast)-1]
+		uningestedCommitAgeMetric.Update(time.Now().Unix() - mostRecentCommit.Timestamp.Unix())
 	}
 }
 
