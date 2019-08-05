@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bc42b4c2_cb4ac13c",
+        "filename": "golden/go/ignore/common.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-05T21:03:17Z",
+      "side": 1,
+      "message": "nit: \"Make a shallow copy with a new Traces map\"",
+      "range": {
+        "startLine": 42,
+        "startChar": 4,
+        "endLine": 42,
+        "endChar": 27
+      },
+      "revId": "c60d8f90ad9c844ee32a838626c5b517e9b36cd8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47ea6097_8bd9496f",
+        "filename": "golden/go/ignore/common.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-05T21:03:17Z",
+      "side": 1,
+      "message": "nit: If you haven\u0027t done profiling to know what value to use here, it\u0027s probably better to omit it.",
+      "range": {
+        "startLine": 44,
+        "startChar": 50,
+        "endLine": 44,
+        "endChar": 73
+      },
+      "revId": "c60d8f90ad9c844ee32a838626c5b517e9b36cd8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07d388bd_82ecad91",
+        "filename": "golden/go/tilesource/tilesource.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-05T21:03:17Z",
+      "side": 1,
+      "message": "nit: util.RepeatCtx",
+      "range": {
+        "startLine": 65,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 37
+      },
+      "revId": "c60d8f90ad9c844ee32a838626c5b517e9b36cd8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
