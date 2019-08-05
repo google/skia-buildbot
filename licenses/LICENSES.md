@@ -60,5 +60,4 @@ The following licenses are used in dependent packages.
 | github.com/zeebo/bencode            | MIT              |
 | gopkg.in/fsnotify.v1                | BSD-3-Clause     |
 | gopkg.in/olivere/elastic.v5         | MIT              |
-| gopkg.in/unrolled/secure.v1         | MIT              |
 | gopkg.in/yaml.v2                    | Apache 2.0       |
