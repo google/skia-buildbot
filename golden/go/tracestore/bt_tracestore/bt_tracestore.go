@@ -213,6 +213,7 @@ func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, tk tileKe
 // any traces seen in the tile (since it ended prior to our cutoff point).
 func (b *BTTraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile, []*tiling.Commit, error) {
 	defer metrics2.FuncTimer().Stop()
+	sklog.Infof("GetTile(%d)", nCommits)
 	// Look up the commits we need to query from BT
 	idxCommits := b.vcs.LastNIndex(nCommits)
 	if len(idxCommits) == 0 {
@@ -264,6 +265,7 @@ func (b *BTTraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile,
 		Commits:  commits,
 		Scale:    0,
 	}
+	sklog.Infof("GetTile complete")
 
 	return ret, commits, nil
 }
@@ -379,6 +381,7 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 // there is enough non-empty data, then queries the next oldest tile until it has nCommits
 // non-empty commits.
 func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.Tile, []*tiling.Commit, error) {
+	sklog.Infof("GetDenseTile(%d)", nCommits)
 	defer metrics2.FuncTimer().Stop()
 	// Figure out what index we are on.
 	idxCommits := b.vcs.LastNIndex(1)
@@ -485,6 +488,8 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 		Commits:  denseCommits,
 		Scale:    0,
 	}
+	sklog.Infof("GetDenseTile complete")
+
 	return ret, allCommits, nil
 }
 
@@ -661,6 +666,7 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 				}, bigtable.RowFilter(
 					bigtable.ChainFilters(
 						bigtable.FamilyFilter(traceFamily),
+						bigtable.RowSampleFilter(0.5), // FIXME(kjlubick): just for local testing
 						bigtable.LatestNFilter(1),
 						bigtable.CellsPerRowLimitFilter(DefaultTileSize),
 					),
@@ -677,6 +683,7 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 		return nil, err
 	}
 
+	sklog.Infof("Saw %d traces", traceCount)
 	// Merge all the results together
 	ret := make([]*encodedTracePair, 0, traceCount)
 	for _, r := range shardResults {
