@@ -81,6 +81,8 @@ func (s *CachedTileSourceImpl) GetTile() (types.ComplexTile, error) {
 		return s.lastCpxTile, nil
 	}
 	defer metrics2.FuncTimer().Stop()
+	// Free up our reference on the last tile so Garbage collection can do its thing.
+	s.lastCpxTile = nil
 
 	if err := s.VCS.Update(context.TODO(), true, false); err != nil {
 		return nil, skerr.Wrapf(err, "could not update VCS")

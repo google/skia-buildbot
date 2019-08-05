@@ -661,6 +661,7 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 				}, bigtable.RowFilter(
 					bigtable.ChainFilters(
 						bigtable.FamilyFilter(traceFamily),
+						bigtable.RowSampleFilter(0.1), // FIXME(kjlubick): just for local testing
 						bigtable.LatestNFilter(1),
 						bigtable.CellsPerRowLimitFilter(DefaultTileSize),
 					),
