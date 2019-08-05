@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ea555928_1a4e6cc7",
+        "filename": "perf/modules/alert-config-sk/alert-config-sk.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-05T14:26:21Z",
+      "side": 1,
+      "message": "To avoid the function call.",
+      "parentUuid": "96d072fa_9e4f5ff9",
+      "range": {
+        "startLine": 23,
+        "startChar": 20,
+        "endLine": 23,
+        "endChar": 28
+      },
+      "revId": "cb2605465b83ba2e71abd155bd5c06050a8af721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4c4f458a_a77963dd",
         "filename": "perf/modules/alert-config-sk/alert-config-sk.js",
         "patchSetId": 12
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "86296fc0_71b934bf",
+        "filename": "perf/modules/alert-config-sk/alert-config-sk.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-05T14:26:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4c4f458a_a77963dd",
+      "range": {
+        "startLine": 99,
+        "startChar": 24,
+        "endLine": 99,
+        "endChar": 26
+      },
+      "revId": "cb2605465b83ba2e71abd155bd5c06050a8af721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f91fa221_b53be43d",
         "filename": "perf/modules/alerts-page-sk/alerts-page-sk.js",
         "patchSetId": 12
@@ -59,6 +107,30 @@
       "writtenOn": "2019-08-05T13:50:24Z",
       "side": 1,
       "message": "This is a bit confusing to read - is the double underscore necessary?  Could it be a single underscore instead?\n\nIf the __ is required from elsewhere, please document it.",
+      "range": {
+        "startLine": 30,
+        "startChar": 59,
+        "endLine": 30,
+        "endChar": 62
+      },
+      "revId": "cb2605465b83ba2e71abd155bd5c06050a8af721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ae1a001_30a09b07",
+        "filename": "perf/modules/alerts-page-sk/alerts-page-sk.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-05T14:26:21Z",
+      "side": 1,
+      "message": "We use a single underscore for properties to denote protected.\nHere I am, outside of the element definition, storing extra data in a property\non the create-icon-sk, so I use the __ to avoid any collisions. d3js\nfollows the same convention storing things at __data__ on elements.",
+      "parentUuid": "f91fa221_b53be43d",
       "range": {
         "startLine": 30,
         "startChar": 59,
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "f44b032d_194323a9",
+        "filename": "perf/modules/alerts-page-sk/alerts-page-sk.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-05T14:26:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d30ddd92_c6eb1d28",
+      "range": {
+        "startLine": 83,
+        "startChar": 4,
+        "endLine": 83,
+        "endChar": 7
+      },
+      "revId": "cb2605465b83ba2e71abd155bd5c06050a8af721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "91563a21_7555c834",
         "filename": "perf/modules/alerts-page-sk/alerts-page-sk.js",
         "patchSetId": 12
@@ -114,6 +210,30 @@
       "revId": "cb2605465b83ba2e71abd155bd5c06050a8af721",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8ac31e7_e49afe08",
+        "filename": "perf/modules/alerts-page-sk/alerts-page-sk.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-05T14:26:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "91563a21_7555c834",
+      "range": {
+        "startLine": 95,
+        "startChar": 27,
+        "endLine": 95,
+        "endChar": 28
+      },
+      "revId": "cb2605465b83ba2e71abd155bd5c06050a8af721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "03d8d67b_c250f560",
+        "filename": "perf/modules/alerts-page-sk/alerts-page-sk.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-05T14:26:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "18dd89fb_75e69e16",
+      "range": {
+        "startLine": 130,
+        "startChar": 4,
+        "endLine": 130,
+        "endChar": 7
+      },
+      "revId": "cb2605465b83ba2e71abd155bd5c06050a8af721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f49ca852_eb5e5a99",
         "filename": "perf/modules/alerts-page-sk/alerts-page-sk.js",
         "patchSetId": 12
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "185f87d0_178332ec",
+        "filename": "perf/modules/alerts-page-sk/alerts-page-sk.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-05T14:26:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f49ca852_eb5e5a99",
+      "range": {
+        "startLine": 131,
+        "startChar": 9,
+        "endLine": 131,
+        "endChar": 48
+      },
+      "revId": "cb2605465b83ba2e71abd155bd5c06050a8af721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b3ae0bd5_f00fb91e",
         "filename": "perf/modules/alerts-page-sk/alerts-page-sk.js",
         "patchSetId": 12
@@ -183,6 +351,30 @@
       "revId": "cb2605465b83ba2e71abd155bd5c06050a8af721",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff4507b5_866ac314",
+        "filename": "perf/modules/alerts-page-sk/alerts-page-sk.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-05T14:26:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b3ae0bd5_f00fb91e",
+      "range": {
+        "startLine": 141,
+        "startChar": 1,
+        "endLine": 143,
+        "endChar": 3
+      },
+      "revId": "cb2605465b83ba2e71abd155bd5c06050a8af721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
