@@ -125,5 +125,4 @@ github.com/zeebo/bencode
 gopkg.in/fsnotify.v1
 gopkg.in/inf.v0
 gopkg.in/olivere/elastic.v5/uritemplates
-gopkg.in/unrolled/secure.v1
 gopkg.in/yaml.v2

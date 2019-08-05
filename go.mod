@@ -125,7 +125,6 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/olivere/elastic.v5 v5.0.81
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
-	gopkg.in/unrolled/secure.v1 v1.0.0
 	gopkg.in/yaml.v2 v2.2.2
 	honnef.co/go/tools v0.0.1-2019.2.2 // indirect
 	k8s.io/api v0.0.0-20190803060717-3ce214556aa9 // indirect

@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/unrolled/secure"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
-	secure "gopkg.in/unrolled/secure.v1"
 )
 
 var (
