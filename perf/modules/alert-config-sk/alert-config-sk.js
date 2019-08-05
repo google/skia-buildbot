@@ -20,68 +20,68 @@ import '../algo-select-sk'
 import '../query-chooser-sk'
 
 const _groupByChoices = (ele) => {
-  const groups = ele.config.group_by.split(',');
+  const groups = ele._config.group_by.split(',');
   return ele._paramkeys.map((p) => html`<div ?selected=${groups.indexOf(p) != -1}>${p}</div>`);
 }
 
 const template = (ele) => html`
   <h3>Display Name</h3>
   <label for=display-name>Display Name</label>
-  <input id=display-name type=text value=${ele.config.display_name} @input=${(e) => ele.config.display_name=e.target.value}>
+  <input id=display-name type=text .value=${ele._config.display_name} @change=${(e) => ele._config.display_name=e.target.value}>
   <h3>Category</h3>
   <label for=category>Alerts will be grouped by category.</label>
-  <input id=category type=text value=${ele.config.category} @input=${(e) => ele.config.category=e.target.value}>
+  <input id=category type=text .value=${ele._config.category} @input=${(e) => ele._config.category=e.target.value}>
   <h3>Which traces should be monitored</h3>
-  <query-chooser-sk id=querychooser .paramset=${ele.paramset} .key_order=${ele.key_order} current_query=${ele.config.query} count_url='/_/count/' @query-change=${(e) => ele.config.query=e.detail.q}></query-chooser-sk>
+  <query-chooser-sk id=querychooser .paramset=${ele.paramset} .key_order=${ele.key_order} current_query=${ele._config.query} count_url='/_/count/' @query-change=${(e) => ele._config.query=e.detail.q}></query-chooser-sk>
   <h3>What triggers an alert</h3>
   <h4>Algorithm</h4>
-  <algo-select-sk algo=${ele.config.algo} @algo-change=${(e) => ele.config.algo=e.detail.algo}></algo-select-sk>
+  <algo-select-sk algo=${ele._config.algo} @algo-change=${(e) => ele._config.algo=e.detail.algo}></algo-select-sk>
   <h4>K</h4>
   <label for=k>The number of clusters. Only used in kmeans. 0 = use a server chosen value. (For Tail algorithm, K is the jump percentage.)</label>
-  <input id=k type=number min=0 value=${ele.config.k} @input=${(e) => ele.config.k=+e.target.value}>
+  <input id=k type=number min=0 .value=${ele._config.k} @input=${(e) => ele._config.k=+e.target.value}>
   <h4>Radius</h4>
   <label for=radius>Number of commits on either side to consider. 0 = use a server chosen value. (For Tail algorithm, we only consider 2*Radius commits on the left side.)</label>
-  <input id=radius type=number min=0 value=${ele.config.radius} @input=${(e) => ele.config.radius=+e.target.value}>
+  <input id=radius type=number min=0 .value=${ele._config.radius} @input=${(e) => ele._config.radius=+e.target.value}>
   <h4>Step Direction</h4>
-  <select-sk @selection-changed=${(e) => ele.config.direction=e.target.children[e.detail.selection].getAttribute('value')}>
+  <select-sk @selection-changed=${(e) => ele._config.direction=e.target.children[e.detail.selection].getAttribute('value')}>
     <!-- TODO(jcgregorio) Go back to using select-sk.selection once we've excised all Polymer. -->
-    <div value=BOTH ?selected=${ele.config.direction === 'BOTH'} >Either step up or step down trigger an alert.</div>
-    <div value=UP ?selected=${ele.config.direction === 'UP'}>Step up triggers an alert.</div>
-    <div value=DOWN ?selected=${ele.config.direction === 'DOWN'}>Step down triggers an alert.</div>
+    <div value=BOTH ?selected=${ele._config.direction === 'BOTH'} >Either step up or step down trigger an alert.</div>
+    <div value=UP ?selected=${ele._config.direction === 'UP'}>Step up triggers an alert.</div>
+    <div value=DOWN ?selected=${ele._config.direction === 'DOWN'}>Step down triggers an alert.</div>
   </select-sk>
   <h4>Threshold</h4>
   <label for=threshold>Interesting Threshold for clusters to be interesting. (Tail algorithm use this 1/Threshold as the min/max quantile.)</label>
-  <input id=threshold type=number min=1 max=500  value=${ele.config.interesting} @input=${(e) => ele.config.interesting=+e.target.value}>
+  <input id=threshold type=number min=1 max=500 .value=${ele._config.interesting} @input=${(e) => ele._config.interesting=+e.target.value}>
   <h4>Minimum</h4>
   <label for=min>Minimum number of interesting traces to trigger an alert.</label>
-  <input id=min type=number value=${ele.config.minimum_num} @input=${(e) => ele.config.minimum_num=+e.target.value}>
+  <input id=min type=number .value=${ele._config.minimum_num} @input=${(e) => ele._config.minimum_num=+e.target.value}>
   <h4>Sparse</h4>
-  <checkbox-sk ?checked=${ele.config.sparse} @input=${(e) => ele.config.sparse = e.target.checked} label='Data is sparse, so only include commits that have data.'></checkbox-sk>
+  <checkbox-sk ?checked=${ele._config.sparse} @input=${(e) => ele._config.sparse = e.target.checked} label='Data is sparse, so only include commits that have data.'></checkbox-sk>
   <h3>Where are alerts sent</h3>
   <label for=sent>Alert Destination: Comma separated list of email addresses.</label>
-  <input id=sent value=${ele.config.alert} @input=${(e) => ele.config.alert=e.target.value}>
+  <input id=sent .value=${ele._config.alert} @input=${(e) => ele._config.alert=e.target.value}>
   <button @click=${ele._testAlert}>Test</button>
   <spinner-sk id=alertSpinner></spinner-sk>
   <h3>Where are bugs filed</h3>
   <label for=template>Bug URI Template: {cluster_url}, {commit_url}, and {message}.</label>
-  <input id=template value=${ele.config.bug_uri_template} @input=${(e) => ele.config.bug_uri_template=e.target.value}>
+  <input id=template .value=${ele._config.bug_uri_template} @input=${(e) => ele._config.bug_uri_template=e.target.value}>
   <button @click=${ele._testBugTemplate}>Test</button>
   <spinner-sk id=bugSpinner></spinner-sk>
   <h3>Who owns this alert</h3>
   <label for=owner>Email address of owner.</label>
-  <input id=owner value=${ele.config.owner} @input=${(e) => ele.config.owner=e.target.value}>
+  <input id=owner .value=${ele._config.owner} @input=${(e) => ele._config.owner=e.target.value}>
   <h3>Group By</h3>
   <label for=groupby>Group clusters by these parameters. (Multiselect)</label>
   <multi-select-sk
-    @selection-changed=${(e) => ele.config.group_by = e.detail.selection.map((i) => ele._paramkeys[i]).join(',')}
+    @selection-changed=${(e) => ele._config.group_by = e.detail.selection.map((i) => ele._paramkeys[i]).join(',')}
     id=groupby
     >
     ${_groupByChoices(ele)}
   </multi-select-sk>
   <h3>Status</h3>
-  <select-sk @selection-changed=${(e) => ele.config.state=e.target.children[e.detail.selection].getAttribute('value')}>
-    <div value=ACTIVE ?selected=${ele.config.state === 'ACTIVE'} title='Clusters that match this will generate alerts.'>Active</div>
-    <div value=DELETED ?selected=${ele.config.state === 'DELETED'} title='Currently inactive.'>Deleted</div>
+  <select-sk @selection-changed=${(e) => ele._config.state=e.target.children[e.detail.selection].getAttribute('value')}>
+    <div value=ACTIVE ?selected=${ele._config.state === 'ACTIVE'} title='Clusters that match this will generate alerts.'>Active</div>
+    <div value=DELETED ?selected=${ele._config.state === 'DELETED'} title='Currently inactive.'>Deleted</div>
   </select-sk>
   `;
 
@@ -91,15 +91,23 @@ window.customElements.define('alert-config-sk', class extends ElementSk {
     this._paramset = {};
     this._paramkeys = [];
     this._config = {
+      id: -1,
+      display_name: 'Name',
       query: '',
       alert: '',
-      interesting: 25,
+      interesting: 0,
       bug_uri_template: '',
-      algo: 'stepfit',
+      algo: 'kmeans',
+      state: 'ACTIVE',
       owner: '',
-      minimum_num: 2,
-      category: '',
+      step_up_only: false,
+      direction: 'BOTH',
+      radius:  10,
+      k: 50,
       group_by: '',
+      sparse: false,
+      minimum_num: 0,
+      category: 'Experimental'
     };
     this._key_order = [];
   }
@@ -167,7 +175,7 @@ window.customElements.define('alert-config-sk', class extends ElementSk {
     this._render();
   }
 
-  /** @prop config {string} A serialized alerts.Config. */
+  /** @prop config {Object} A serialized alerts.Config. */
   get config() { return this._config }
   set config(val) {
     if (val === undefined || Object.keys(val).length === 0) {
