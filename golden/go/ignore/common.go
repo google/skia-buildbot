@@ -40,20 +40,28 @@ func BuildRuleMatcher(store IgnoreStore) (RuleMatcher, error) {
 // ignore rules for later matching.
 func FilterIgnored(inputTile *tiling.Tile, ignores []*IgnoreRule) (*tiling.Tile, paramtools.ParamMatcher, error) {
 	// Copy the tile by value.
-	ret := inputTile.Copy()
+	ret := &tiling.Tile{
+		Traces:   make(map[tiling.TraceId]tiling.Trace, len(inputTile.Traces)/2),
+		ParamSet: inputTile.ParamSet,
+		Commits:  inputTile.Commits,
 
-	// Then remove traces that should be ignored.
+		Scale:     inputTile.Scale,
+		TileIndex: inputTile.TileIndex,
+	}
+
+	// Then, add any traces that don't match any ignore rules
 	ignoreQueries, err := ToQuery(ignores)
 	if err != nil {
 		return nil, nil, err
 	}
-	for id, tr := range ret.Traces {
+nextTrace:
+	for id, tr := range inputTile.Traces {
 		for _, q := range ignoreQueries {
 			if tiling.Matches(tr, q) {
-				delete(ret.Traces, id)
-				continue
+				continue nextTrace
 			}
 		}
+		ret.Traces[id] = tr
 	}
 
 	ignoreRules := make([]paramtools.ParamSet, len(ignoreQueries))

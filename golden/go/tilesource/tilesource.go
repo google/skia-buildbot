@@ -26,11 +26,6 @@ type TileSource interface {
 	GetTile() (types.ComplexTile, error)
 }
 
-const (
-	// How long to cache the tile
-	tileCacheTime = 3 * time.Minute
-)
-
 type CachedTileSourceConfig struct {
 	EventBus      eventbus.EventBus
 	GerritAPI     gerrit.GerritInterface
@@ -53,7 +48,7 @@ type CachedTileSourceImpl struct {
 
 	lastCpxTile   types.ComplexTile
 	lastTimeStamp time.Time
-	mutex         sync.Mutex
+	mutex         sync.RWMutex
 }
 
 func New(c CachedTileSourceConfig) *CachedTileSourceImpl {
@@ -61,6 +56,20 @@ func New(c CachedTileSourceConfig) *CachedTileSourceImpl {
 		CachedTileSourceConfig: c,
 	}
 	return cti
+}
+
+func (s *CachedTileSourceImpl) StartUpdater(ctx context.Context, interval time.Duration) error {
+	if err := s.updateTile(ctx); err != nil {
+		return skerr.Wrapf(err, "failed initial tile update")
+	}
+	go func() {
+		for _ = range time.Tick(interval) {
+			if err := s.updateTile(ctx); err != nil {
+				sklog.Errorf("Could not update tile: %s", err)
+			}
+		}
+	}()
+	return nil
 }
 
 // TODO(stephana): Expand the Tile type to make querying faster.
@@ -71,24 +80,23 @@ func New(c CachedTileSourceConfig) *CachedTileSourceImpl {
 // most NCommits. It caches trimmed tiles as long as the underlying tiles
 // do not change.
 func (s *CachedTileSourceImpl) GetTile() (types.ComplexTile, error) {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
 
-	// If the tile was updated within a certain time window just return it without
-	// calculating it again.
-	if s.lastCpxTile != nil && (time.Since(s.lastTimeStamp) < tileCacheTime) {
-		sklog.Infof("short circuiting get tile, because it's still new: %s < %s", time.Since(s.lastTimeStamp), tileCacheTime)
-		return s.lastCpxTile, nil
-	}
+	return s.lastCpxTile, nil
+}
+
+func (s *CachedTileSourceImpl) updateTile(ctx context.Context) error {
+	sklog.Infof("Updating tile: %v", skerr.CallStack(5, 1))
 	defer metrics2.FuncTimer().Stop()
 
-	if err := s.VCS.Update(context.TODO(), true, false); err != nil {
-		return nil, skerr.Wrapf(err, "could not update VCS")
+	if err := s.VCS.Update(ctx, true, false); err != nil {
+		return skerr.Wrapf(err, "could not update VCS")
 	}
 
 	denseTile, allCommits, err := s.TraceStore.GetDenseTile(context.TODO(), s.NCommits)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "could not fetch dense tile")
+		return skerr.Wrapf(err, "could not fetch dense tile")
 	}
 
 	// Filter down to the publicly viewable ones
@@ -100,21 +108,23 @@ func (s *CachedTileSourceImpl) GetTile() (types.ComplexTile, error) {
 	// Get the tile without the ignored traces and update the complex tile.
 	ignores, err := s.IgnoreStore.List()
 	if err != nil {
-		return nil, skerr.Wrapf(err, "could not fetch ignore rules")
+		return skerr.Wrapf(err, "could not fetch ignore rules")
 	}
 	retIgnoredTile, ignoreRules, err := ignore.FilterIgnored(denseTile, ignores)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "could not apply ignore rules to tile")
+		return skerr.Wrapf(err, "could not apply ignore rules to tile")
 	}
 	cpxTile.SetIgnoreRules(retIgnoredTile, ignoreRules)
 
 	// check if all the expectations of all commits have been added to the tile.
 	s.checkCommitableIssues(cpxTile)
 
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	// Update the cached tile and return the result.
 	s.lastCpxTile = cpxTile
 	s.lastTimeStamp = time.Now()
-	return cpxTile, nil
+	return nil
 }
 
 // filterTile creates a new tile from the given tile that contains

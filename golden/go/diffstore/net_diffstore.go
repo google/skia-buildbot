@@ -93,20 +93,23 @@ func (n *NetDiffStore) WarmDiffs(priority int64, leftDigests types.DigestSlice, 
 
 // UnavailableDigests, see the diff.DiffStore interface.
 func (n *NetDiffStore) UnavailableDigests() map[types.Digest]*diff.DigestFailure {
-	resp, err := n.serviceClient.UnavailableDigests(context.Background(), &Empty{})
-	if err != nil {
-		return map[types.Digest]*diff.DigestFailure{}
-	}
+	sklog.Infof("Skipping unavailable digests")
+	return map[types.Digest]*diff.DigestFailure{}
+	// resp, err := n.serviceClient.UnavailableDigests(context.Background(), &Empty{})
+	// if err != nil {
+	// 	sklog.Errorf("Could not fetch unavailable digests: %s", err)
+	// 	return map[types.Digest]*diff.DigestFailure{}
+	// }
 
-	ret := make(map[types.Digest]*diff.DigestFailure, len(resp.DigestFailures))
-	for k, failure := range resp.DigestFailures {
-		ret[types.Digest(k)] = &diff.DigestFailure{
-			Digest: types.Digest(failure.Digest),
-			Reason: diff.DiffErr(failure.Reason),
-			TS:     failure.TS,
-		}
-	}
-	return ret
+	// ret := make(map[types.Digest]*diff.DigestFailure, len(resp.DigestFailures))
+	// for k, failure := range resp.DigestFailures {
+	// 	ret[types.Digest(k)] = &diff.DigestFailure{
+	// 		Digest: types.Digest(failure.Digest),
+	// 		Reason: diff.DiffErr(failure.Reason),
+	// 		TS:     failure.TS,
+	// 	}
+	// }
+	// return ret
 }
 
 // PurgeDigests, see the diff.DiffStore interface.

@@ -571,12 +571,12 @@ func writeMasterBaseline(state interface{}) error {
 
 	// Write the baseline asynchronously.
 	// TODO(kjlubick): Does this being asynchronous cause problems?
-	go func() {
-		if _, err := idx.baseliner.PushMasterBaselines(idx.cpxTile, ""); err != nil {
-			sklog.Errorf("Error pushing master baseline to GCS: %s", err)
-		}
-	}()
-
+	// go func() {
+	// 	if _, err := idx.baseliner.PushMasterBaselines(idx.cpxTile, ""); err != nil {
+	// 		sklog.Errorf("Error pushing master baseline to GCS: %s", err)
+	// 	}
+	// }()
+	sklog.Infof("Skipping writing master baselines")
 	return nil
 }
 
