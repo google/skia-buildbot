@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "d35fac08_fdc9632a",
+        "filename": "perf/modules/alert-config-sk/alert-config-sk.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-05T14:36:54Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ea555928_1a4e6cc7",
+      "range": {
+        "startLine": 23,
+        "startChar": 20,
+        "endLine": 23,
+        "endChar": 28
+      },
+      "revId": "cb2605465b83ba2e71abd155bd5c06050a8af721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4c4f458a_a77963dd",
         "filename": "perf/modules/alert-config-sk/alert-config-sk.js",
         "patchSetId": 12
@@ -131,6 +155,30 @@
       "side": 1,
       "message": "We use a single underscore for properties to denote protected.\nHere I am, outside of the element definition, storing extra data in a property\non the create-icon-sk, so I use the __ to avoid any collisions. d3js\nfollows the same convention storing things at __data__ on elements.",
       "parentUuid": "f91fa221_b53be43d",
+      "range": {
+        "startLine": 30,
+        "startChar": 59,
+        "endLine": 30,
+        "endChar": 62
+      },
+      "revId": "cb2605465b83ba2e71abd155bd5c06050a8af721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed40a085_21b86b73",
+        "filename": "perf/modules/alerts-page-sk/alerts-page-sk.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-05T14:36:54Z",
+      "side": 1,
+      "message": "I agree we want to avoid colliding with anything potentially on create-icon-sk.\n\nCould we instead use a namespace-like approach? i.e. skalerts_config? \n\nI\u0027m not super opposed to __ either, it just looks strange with .__ (I\u0027d like to avoid Morse code in my computer code)",
+      "parentUuid": "0ae1a001_30a09b07",
       "range": {
         "startLine": 30,
         "startChar": 59,
