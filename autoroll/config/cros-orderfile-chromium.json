@@ -21,18 +21,18 @@
   "semVerGCSRepoManager": {
     "childBranch": "master",
     "childPath": "chromeos/profiles/orderfile.newest.txt",
-    "commitMsgTmpl": "Roll ChromeOS orderfile from {{.RollingFrom.String}} to {{.RollingTo.String}}\
-\
-The AutoRoll server is located here: {{.ServerURL}}\
-\
-Documentation for the AutoRoller is here:\
-https://skia.googlesource.com/buildbot/+/master/autoroll/README.md\
-\
-If the roll is causing failures, please contact the current sheriff, who should\
-be CC'd on the roll, and stop the roller if necessary.\
-\
-CQ_EXTRA_TRYBOTS={{.CqExtraTrybots}}\
-TBR={{stringsJoin .Reviewers \",\"}}\
+    "commitMsgTmpl": "Roll ChromeOS orderfile from {{.RollingFrom.String}} to {{.RollingTo.String}}\n\
+\n\
+The AutoRoll server is located here: {{.ServerURL}}\n\
+\n\
+Documentation for the AutoRoller is here:\n\
+https://skia.googlesource.com/buildbot/+/master/autoroll/README.md\n\
+\n\
+If the roll is causing failures, please contact the current sheriff, who should\n\
+be CC'd on the roll, and stop the roller if necessary.\n\
+\n\
+CQ_EXTRA_TRYBOTS={{.CqExtraTrybots}}\n\
+TBR={{stringsJoin .Reviewers \",\"}}\n\
 ",
     "gcsBucket": "chromeos-prebuilt",
     "gcsPath": "afdo-job/orderfiles/vetted",
