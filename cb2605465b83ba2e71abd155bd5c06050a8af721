@@ -215,6 +215,30 @@
     },
     {
       "key": {
+        "uuid": "bdbd5d6a_738c7497",
+        "filename": "perf/modules/alerts-page-sk/alerts-page-sk.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-05T16:31:56Z",
+      "side": 1,
+      "message": "__config is fine by me. Maybe just add a note somewhere explaining it.",
+      "parentUuid": "4b1ce37c_c74d7663",
+      "range": {
+        "startLine": 30,
+        "startChar": 59,
+        "endLine": 30,
+        "endChar": 62
+      },
+      "revId": "cb2605465b83ba2e71abd155bd5c06050a8af721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d30ddd92_c6eb1d28",
         "filename": "perf/modules/alerts-page-sk/alerts-page-sk.js",
         "patchSetId": 12
