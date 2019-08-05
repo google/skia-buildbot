@@ -191,6 +191,30 @@
     },
     {
       "key": {
+        "uuid": "4b1ce37c_c74d7663",
+        "filename": "perf/modules/alerts-page-sk/alerts-page-sk.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-05T16:13:51Z",
+      "side": 1,
+      "message": "\u003e I agree we want to avoid colliding with anything potentially on create-icon-sk.\n\u003e \n\u003e Could we instead use a namespace-like approach? i.e. skalerts_config? \n\nThen there\u0027s no indication that this isn\u0027t a native property of create-icon-sk.\n\n\u003e \n\u003e I\u0027m not super opposed to __ either, it just looks strange with .__ (I\u0027d like to avoid Morse code in my computer code)\n\nI would prefer to stick with __config, or I could go to __config__ to make it look closer to what d3js does.",
+      "parentUuid": "ed40a085_21b86b73",
+      "range": {
+        "startLine": 30,
+        "startChar": 59,
+        "endLine": 30,
+        "endChar": 62
+      },
+      "revId": "cb2605465b83ba2e71abd155bd5c06050a8af721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d30ddd92_c6eb1d28",
         "filename": "perf/modules/alerts-page-sk/alerts-page-sk.js",
         "patchSetId": 12
