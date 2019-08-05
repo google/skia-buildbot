@@ -16,6 +16,24 @@
       "revId": "d4d608cb961ea339e808151d7a0b9227bfb9cf0a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a62d83e_63a35ae5",
+        "filename": "golden/frontend/res/imp/multi-zoom-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-05T11:33:51Z",
+      "side": 1,
+      "message": "Done in followup",
+      "parentUuid": "784189a4_aaa9e6f1",
+      "revId": "d4d608cb961ea339e808151d7a0b9227bfb9cf0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
