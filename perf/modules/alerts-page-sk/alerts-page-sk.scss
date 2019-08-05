@@ -1,0 +1,38 @@
+@import '~elements-sk/colors';
+
+alerts-page-sk {
+  td {
+    padding: 0.2em 1em;
+  }
+
+  td > build-icon-sk,
+  td > create-icon-sk,
+  td > delete-icon-sk {
+    padding: 0.4em;
+    cursor: pointer;
+    fill: var(--black);
+  }
+
+  td > build-icon-sk:hover,
+  td > create-icon-sk:hover,
+  td > delete-icon-sk:hover {
+    background: var(--dark-white);
+  }
+}
+
+alerts-page-sk > {
+  checkbox-sk {
+    margin-top: 2em;
+  }
+
+  .warning {
+    color: var(--red);
+    font-weight: bold;
+  }
+
+  button.fab {
+    position: fixed;
+    right: 2em;
+    bottom: 2em;
+  }
+}
