@@ -72,7 +72,6 @@ spec:
             - "--resources_dir=/usr/local/share/skiacorrectness/frontend"
             - "--service_account_file=/var/secrets/google/service-account.json"
             - "--site_url={{.SITE_URL}}"
-            - "--sparse=true"
             - "--show_bot_progress=false"
             - "--trace_service=gold-{{.INSTANCE_ID}}-traceservice:9090"
           ports:
