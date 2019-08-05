@@ -80,7 +80,14 @@ explore-sk  {
   #buttons {
     font-size: 11px;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
+  }
+
+  #buttons button {
+    padding: .4em;
+    height: auto;
+    text-transform: none;
   }
 
   #spinner[aria-hidden=true] {
