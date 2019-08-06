@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1564c75c_72e3aaa4",
+        "filename": "golden/go/baseline/fs_baseliner/fs_baseliner.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-06T21:34:55Z",
+      "side": 1,
+      "message": "I don\u0027t see anything that\u0027s specific to FireStore. Should this be called SimpleBaseliner or PassthroughBaseliner or something like that?\n\nAlso, this only satisfies the BaselineFetcher -- should be be called SimpleBaselineFetcher or PassthroughBaselineFetcher?",
+      "range": {
+        "startLine": 2,
+        "startChar": 46,
+        "endLine": 2,
+        "endChar": 60
+      },
+      "revId": "0e92daec07d623acdae44fc65e490b24594901d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f5574ae_ad9194e5",
+        "filename": "golden/go/baseline/fs_baseliner/fs_baseliner.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-06T21:34:55Z",
+      "side": 1,
+      "message": "Is it correct that MD5 is not set?",
+      "range": {
+        "startLine": 53,
+        "startChar": 9,
+        "endLine": 53,
+        "endChar": 27
+      },
+      "revId": "0e92daec07d623acdae44fc65e490b24594901d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "33abe1c9_fc046656",
+        "filename": "golden/go/baseline/fs_baseliner/fs_baseliner.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-06T21:34:55Z",
+      "side": 1,
+      "message": "Can this contain negative digests? Is that OK?",
+      "range": {
+        "startLine": 55,
+        "startChar": 17,
+        "endLine": 55,
+        "endChar": 21
+      },
+      "revId": "0e92daec07d623acdae44fc65e490b24594901d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
