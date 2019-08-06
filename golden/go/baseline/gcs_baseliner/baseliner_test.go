@@ -62,11 +62,6 @@ func TestFetchBaselineIssueSunnyDay(t *testing.T) {
 			},
 		},
 		Issue: testIssueID,
-
-		StartCommit: nil, // This can all be blank, and in some real-world data, is blank
-		EndCommit:   nil,
-		Filled:      0,
-		Total:       0,
 	}
 
 	mgs := makeMockGCSStorage()
@@ -161,9 +156,6 @@ func TestPushMasterBaselineSunnyDay(t *testing.T) {
 	mgs.On("WriteBaseline", mock.AnythingOfType("*baseline.Baseline")).Run(func(args mock.Arguments) {
 		b := args.Get(0).(*baseline.Baseline)
 		assert.NotNil(t, b)
-		assert.NotNil(t, b.StartCommit)
-		// These commits are per-commit baselines, thus the start and end are the same
-		deepequal.AssertDeepEqual(t, *b.StartCommit, *b.EndCommit)
 
 		assert.Equal(t, bl, b.Expectations)
 		assert.Equal(t, types.MasterBranch, b.Issue)
