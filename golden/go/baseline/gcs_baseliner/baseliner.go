@@ -153,10 +153,7 @@ func (b *BaselinerImpl) PushMasterBaselines(tileInfo baseline.TileInfo, targetHa
 		}
 
 		func(commit *tiling.Commit) {
-			// It is intentional that the baselines do not fill in the other
-			// values like Total or Filled because they aren't needed by goldctl,
-			// who consumes these baselines.
-			bLine := baseline.EmptyBaseline(commit, commit)
+			bLine := baseline.EmptyBaseline()
 			bLine.Expectations = exps
 			bLine.MD5 = md5Sum
 			bLine.Issue = types.MasterBranch
@@ -169,7 +166,7 @@ func (b *BaselinerImpl) PushMasterBaselines(tileInfo baseline.TileInfo, targetHa
 
 			egroup.Go(func() error {
 				// Write the baseline to GCS.
-				_, err := b.gStorageClient.WriteBaseline(bLine)
+				_, err := b.gStorageClient.WriteBaseline(bLine, commit.Hash)
 				if err != nil {
 					return skerr.Fmt("Error writing baseline to GCS: %s", err)
 				}
@@ -217,7 +214,7 @@ func (b *BaselinerImpl) PushIssueBaseline(issueID int64, tileInfo baseline.TileI
 	}
 
 	// Write the baseline to GCS.
-	outputPath, err := b.gStorageClient.WriteBaseline(base)
+	outputPath, err := b.gStorageClient.WriteBaseline(base, "")
 	if err != nil {
 		return skerr.Fmt("Error writing baseline to GCS: %s", err)
 	}
@@ -259,7 +256,7 @@ func (b *BaselinerImpl) FetchBaseline(commitHash string, issueID int64, issueOnl
 
 			// If no baseline was found. We place an empty one.
 			if issueBaseline == nil {
-				issueBaseline = baseline.EmptyBaseline(nil, nil)
+				issueBaseline = baseline.EmptyBaseline()
 			}
 
 			return nil
@@ -348,7 +345,7 @@ func (b *BaselinerImpl) getMasterExpectations(commitHash string) (*baseline.Base
 		if commitHash == "" {
 			// If we have no tile yet, we cannot get the HEAD of it.
 			if tileInfo == nil {
-				return baseline.EmptyBaseline(nil, nil)
+				return baseline.EmptyBaseline()
 			}
 			// Get the last commit that has data.
 			allCommits := tileInfo.AllCommits()
@@ -396,5 +393,6 @@ func (b *BaselinerImpl) getMasterExpectations(commitHash string) (*baseline.Base
 	return ret, nil
 }
 
-// Make sure BaselinerImpl fulfills the Baseliner interface
-var _ baseline.Baseliner = (*BaselinerImpl)(nil)
+// Make sure BaselinerImpl fulfills the Baseliner interfaces
+var _ baseline.BaselineWriter = (*BaselinerImpl)(nil)
+var _ baseline.BaselineFetcher = (*BaselinerImpl)(nil)
