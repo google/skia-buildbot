@@ -43,8 +43,10 @@
     "luci.chromium.try:android_angle_vk64_rel_ng",
     "luci.chromium.try:linux_angle_deqp_rel_ng",
     "luci.chromium.try:linux-angle-rel",
-    "luci.chromium.try:win-angle-rel",
-    "luci.chromium.try:win_angle_deqp_rel_ng"
+    "luci.chromium.try:win-angle-rel-32",
+    "luci.chromium.try:win-angle-rel-64",
+    "luci.chromium.try:win-angle-deqp-rel-32",
+    "luci.chromium.try:win-angle-deqp-rel-64"
   ],
   "kubernetes": {
     "cpu": "1",
