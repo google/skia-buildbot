@@ -3,7 +3,8 @@
 {
   "childName": "GoogleTest",
   "contacts": [
-    "isamsonov@google.com"
+    "isamsonov@google.com",
+    "staphany@google.com"
   ],
   "gerrit": {
     "url": "https://chromium-review.googlesource.com",
@@ -16,7 +17,8 @@
   "rollerName": "googletest-chromium-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "isamsonov@google.com"
+    "isamsonov@google.com",
+    "staphany@google.com"
   ],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
