@@ -1,0 +1,34 @@
+@import '~elements-sk/colors';
+
+sort-sk {
+  display: flex;
+
+
+  [data-sort-sk="up"] {
+    arrow-drop-up-icon-sk {
+      visibility: visible;
+      display: inline-block;
+    }
+    arrow-drop-down-icon-sk {
+      display: none;
+    }
+  }
+
+  [data-sort-sk="down"] {
+    arrow-drop-up-icon-sk {
+      visibility: hidden;
+      display: none;
+    }
+    arrow-drop-down-icon-sk {
+      display: inline-block;
+    }
+  }
+
+  arrow-drop-down-icon-sk {
+    display: none;
+  }
+  arrow-drop-up-icon-sk {
+    visibility: hidden;
+    display: inline-block;
+  }
+}
