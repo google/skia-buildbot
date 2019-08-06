@@ -65,6 +65,30 @@
     },
     {
       "key": {
+        "uuid": "4c93ab68_aeeeb01a",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-06T12:55:33Z",
+      "side": 1,
+      "message": "Personally when I\u0027m looking at the flags list, it makes more sense to see \"--config file1 --config file2\" than \"--configs file1 --configs file2\".  But I don\u0027t feel strongly.  Added a note that the flag should be used once per roller.",
+      "parentUuid": "a8270fa9_c3e736ef",
+      "range": {
+        "startLine": 45,
+        "startChar": 48,
+        "endLine": 45,
+        "endChar": 54
+      },
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f44179ea_912c57dd",
         "filename": "autoroll/go/autoroll-fe/main.go",
         "patchSetId": 4
@@ -76,6 +100,24 @@
       "writtenOn": "2019-08-06T12:38:07Z",
       "side": 1,
       "message": "Trying to figure out how this will be used. Before it used to point to a configDir, now it will have to point to each individual config file?",
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b2fb919_ac8b1782",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 429,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-06T12:55:33Z",
+      "side": 1,
+      "message": "Yep. In production that should be fine, since the automation handles the addition of all the --config flags.  Locally, we should just only need one --config in most cases.",
+      "parentUuid": "f44179ea_912c57dd",
       "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -105,6 +147,30 @@
     },
     {
       "key": {
+        "uuid": "03bf7fba_32808ba8",
+        "filename": "autoroll/go/push-helper/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-06T12:55:33Z",
+      "side": 1,
+      "message": "Google Container Registry.  It\u0027s where our Docker images are stored.  Added comments for this and the other constants.",
+      "parentUuid": "d5187385_4549b8c2",
+      "range": {
+        "startLine": 31,
+        "startChar": 1,
+        "endLine": 31,
+        "endChar": 12
+      },
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1eae2718_a1c6f739",
         "filename": "autoroll/go/push-helper/main.go",
         "patchSetId": 4
@@ -116,6 +182,24 @@
       "writtenOn": "2019-08-06T12:38:07Z",
       "side": 1,
       "message": "I guess this is the opposite of dry-run, probably the safer option to make sure nothing gets applied unless specified.",
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "41bfe3e9_45bc7b7d",
+        "filename": "autoroll/go/push-helper/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-06T12:55:33Z",
+      "side": 1,
+      "message": "Right; in my mind there are three \"levels\":\n1. Write out the k8s config files but don\u0027t \"kubectl apply them\".\n2. Write out the k8s config files and apply them.\n3. Write out the k8s config files, apply them, commit and push.\n\nAt the moment, I like doing #1, inspecting the k8s config changes and manually applying and pushing as desired.  It may be that that use case diminishes in the future as we trust the automation more.  One could also make the argument that #2 is not needed, since we don\u0027t care all that much about churn in the config repos, but my current workflow is to only push manually.  Again, that might change as we trust the automation more.",
+      "parentUuid": "1eae2718_a1c6f739",
       "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -139,6 +223,24 @@
     },
     {
       "key": {
+        "uuid": "2ac545a0_6868358b",
+        "filename": "autoroll/go/push-helper/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-06T12:55:33Z",
+      "side": 1,
+      "message": "It had not even crossed my mind that there might be a Go client, and of course there is.  I\u0027ll update to use that.",
+      "parentUuid": "5a094330_f8f093f9",
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bdfa35c0_16c054b8",
         "filename": "kube/go/kube-conf-gen/main.go",
         "patchSetId": 4
@@ -153,6 +255,24 @@
       "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4279105_44291ccb",
+        "filename": "kube/go/kube-conf-gen/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-06T12:55:33Z",
+      "side": 1,
+      "message": "Forgot to remove!",
+      "parentUuid": "bdfa35c0_16c054b8",
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
