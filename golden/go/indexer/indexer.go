@@ -60,7 +60,7 @@ type SearchIndex struct {
 }
 
 type searchIndexConfig struct {
-	baseliner         baseline.Baseliner
+	baseliner         baseline.BaselineWriter
 	diffStore         diff.DiffStore
 	expectationsStore expstorage.ExpectationsStore
 	gcsClient         storage.GCSClient
@@ -151,7 +151,7 @@ func (idx *SearchIndex) GetBlame(test types.TestName, digest types.Digest, commi
 }
 
 type IndexerConfig struct {
-	Baseliner         baseline.Baseliner
+	Baseliner         baseline.BaselineWriter
 	DiffStore         diff.DiffStore
 	EventBus          eventbus.EventBus
 	ExpectationsStore expstorage.ExpectationsStore
