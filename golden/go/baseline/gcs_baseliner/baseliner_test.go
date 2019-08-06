@@ -62,11 +62,6 @@ func TestFetchBaselineIssueSunnyDay(t *testing.T) {
 			},
 		},
 		Issue: testIssueID,
-
-		StartCommit: nil, // This can all be blank, and in some real-world data, is blank
-		EndCommit:   nil,
-		Filled:      0,
-		Total:       0,
 	}
 
 	mgs := makeMockGCSStorage()
@@ -94,9 +89,7 @@ func TestFetchBaselineIssueSunnyDay(t *testing.T) {
 		},
 		// AlphaTest should be unchanged from the master baseline.
 		three_devices.AlphaTest: map[types.Digest]types.Label{
-			three_devices.AlphaBad1Digest:       types.NEGATIVE,
-			three_devices.AlphaGood1Digest:      types.POSITIVE,
-			three_devices.AlphaUntriaged1Digest: types.UNTRIAGED,
+			three_devices.AlphaGood1Digest: types.POSITIVE,
 		},
 		three_devices.BetaTest: map[types.Digest]types.Label{
 			LambdaNewDigest: types.POSITIVE,
@@ -158,12 +151,9 @@ func TestPushMasterBaselineSunnyDay(t *testing.T) {
 
 	bl := three_devices.MakeTestExpectations().AsBaseline()
 
-	mgs.On("WriteBaseline", mock.AnythingOfType("*baseline.Baseline")).Run(func(args mock.Arguments) {
+	mgs.On("WriteBaseline", mock.AnythingOfType("*baseline.Baseline"), mock.AnythingOfType("string")).Run(func(args mock.Arguments) {
 		b := args.Get(0).(*baseline.Baseline)
 		assert.NotNil(t, b)
-		assert.NotNil(t, b.StartCommit)
-		// These commits are per-commit baselines, thus the start and end are the same
-		deepequal.AssertDeepEqual(t, *b.StartCommit, *b.EndCommit)
 
 		assert.Equal(t, bl, b.Expectations)
 		assert.Equal(t, types.MasterBranch, b.Issue)

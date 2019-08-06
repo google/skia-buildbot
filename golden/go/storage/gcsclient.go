@@ -34,7 +34,7 @@ type GCSClient interface {
 
 	// WriteBaseline writes the given baseline to GCS. It returns the path of the
 	// written file in GCS (prefixed with 'gs://').
-	WriteBaseline(b *baseline.Baseline) (string, error)
+	WriteBaseline(b *baseline.Baseline, commitHash string) (string, error)
 
 	// ReadBaseline returns the baseline for the given issue from GCS.
 	ReadBaseline(commitHash string, issueID int64) (*baseline.Baseline, error)
@@ -91,7 +91,7 @@ func (g *ClientImpl) WriteKnownDigests(digests types.DigestSlice) error {
 }
 
 // ReadBaseline fulfills the GCSClient interface.
-func (g *ClientImpl) WriteBaseline(b *baseline.Baseline) (string, error) {
+func (g *ClientImpl) WriteBaseline(b *baseline.Baseline, commitHash string) (string, error) {
 	writeFn := func(w *gstorage.Writer) error {
 		if err := json.NewEncoder(w).Encode(b); err != nil {
 			return fmt.Errorf("Error encoding baseline to JSON: %s", err)
@@ -100,15 +100,11 @@ func (g *ClientImpl) WriteBaseline(b *baseline.Baseline) (string, error) {
 	}
 
 	// We need a valid end commit or issue.
-	if b.EndCommit == nil && types.IsMasterBranch(b.Issue) {
-		return "", skerr.Fmt("Received empty end commit and no issue. Cannot write baseline")
+	if commitHash == "" && types.IsMasterBranch(b.Issue) {
+		return "", skerr.Fmt("Received empty baseline commit and no issue. Cannot write baseline.")
 	}
 
-	hash := ""
-	if b.EndCommit != nil {
-		hash = b.EndCommit.Hash
-	}
-	outPath := g.getBaselinePath(hash, b.Issue)
+	outPath := g.getBaselinePath(commitHash, b.Issue)
 	return "gs://" + outPath, g.writeToPath(outPath, "application/json", writeFn)
 }
 
