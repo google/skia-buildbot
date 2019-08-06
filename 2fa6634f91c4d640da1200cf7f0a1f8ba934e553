@@ -89,6 +89,30 @@
     },
     {
       "key": {
+        "uuid": "ee367b5a_7b473339",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-06T12:59:05Z",
+      "side": 1,
+      "message": "Yes, --config makes more sense.",
+      "parentUuid": "4c93ab68_aeeeb01a",
+      "range": {
+        "startLine": 45,
+        "startChar": 48,
+        "endLine": 45,
+        "endChar": 54
+      },
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f44179ea_912c57dd",
         "filename": "autoroll/go/autoroll-fe/main.go",
         "patchSetId": 4
