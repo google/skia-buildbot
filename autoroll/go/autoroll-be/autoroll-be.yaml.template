@@ -25,10 +25,10 @@ spec:
         fsGroup: 2000   # aka skia
       containers:
         - name: autoroll-be-{{.rollerName}}
-          image: gcr.io/skia-public/autoroll-be:TODO
+          image: {{.image}}
           args:
             - "--logtostderr"
-            - "--config_file=/usr/local/share/autoroll/config/{{.configFile}}"
+            - "--config={{.configBase64}}"
             - "--email_creds=/var/secrets/autoroll-email-creds"
             - "--firestore_instance=production"
             - "--port=:8000"
