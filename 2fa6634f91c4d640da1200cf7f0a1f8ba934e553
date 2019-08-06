@@ -1,0 +1,158 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ebb172d_9919c07a",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-06T12:38:07Z",
+      "side": 1,
+      "message": "Looking at the below. It is not obvious to me which targets to use for the 3 main usecases we use. Would be very helpful to document this in detail somewhere:\n* At the top of this file.\n* PROD.md\n* ???",
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2328631_a901599a",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 4
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-06T12:38:07Z",
+      "side": 1,
+      "message": "If we forget to set MESSAGE then commit-with-msg will be blank and AFAICT push-helper will not commit at all which is not what this target suggests.\nI think there is a way to check to see if an env variable is specified in a makefile. You can do the same for REGEX as well.",
+      "range": {
+        "startLine": 116,
+        "startChar": 51,
+        "endLine": 116,
+        "endChar": 61
+      },
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8270fa9_c3e736ef",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-06T12:38:07Z",
+      "side": 1,
+      "message": "nit: config -\u003e configs ? (since it can be multiple)",
+      "range": {
+        "startLine": 45,
+        "startChar": 48,
+        "endLine": 45,
+        "endChar": 54
+      },
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f44179ea_912c57dd",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 429,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-06T12:38:07Z",
+      "side": 1,
+      "message": "Trying to figure out how this will be used. Before it used to point to a configDir, now it will have to point to each individual config file?",
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5187385_4549b8c2",
+        "filename": "autoroll/go/push-helper/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-06T12:38:07Z",
+      "side": 1,
+      "message": "What is GCR ?",
+      "range": {
+        "startLine": 31,
+        "startChar": 1,
+        "endLine": 31,
+        "endChar": 12
+      },
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1eae2718_a1c6f739",
+        "filename": "autoroll/go/push-helper/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-06T12:38:07Z",
+      "side": 1,
+      "message": "I guess this is the opposite of dry-run, probably the safer option to make sure nothing gets applied unless specified.",
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a094330_f8f093f9",
+        "filename": "autoroll/go/push-helper/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-06T12:38:07Z",
+      "side": 1,
+      "message": "There\u0027s probably a Go client somewhere to interact with K8s config maps (ex: https://github.com/kubernetes/client-go/blob/master/kubernetes/typed/core/v1/configmap.go) but nevermind, since you already did the command line work.",
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bdfa35c0_16c054b8",
+        "filename": "kube/go/kube-conf-gen/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-06T12:38:07Z",
+      "side": 1,
+      "message": "Needed? (if yes then probably should not be Errorf)",
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
