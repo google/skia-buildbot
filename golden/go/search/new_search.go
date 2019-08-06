@@ -487,6 +487,7 @@ func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDi
 	refDiffer := NewRefDiffer(exp, s.DiffStore, idx)
 	var wg sync.WaitGroup
 	wg.Add(len(resultDigests))
+	sklog.Infof("Fetching %d reference diffs", len(resultDigests))
 	for _, retDigest := range resultDigests {
 		go func(retDigest *SRDigest) {
 			closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, retDigest.Test, retDigest.Digest, retDigest.ParamSet, rhsQuery, is)

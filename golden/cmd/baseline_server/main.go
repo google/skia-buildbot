@@ -34,6 +34,7 @@ func main() {
 	// Command line flags.
 	var (
 		baselineGSPath     = flag.String("baseline_gs_path", "", "GS path, where the baseline file are stored. This should match the same flag in skiacorrectness which writes the baselines. Format: <bucket>/<path>.")
+		btProjectID        = flag.String("bt_project_id", common.PROJECT_ID, "project ID that houses the BigTable instance")
 		gitBTInstanceID    = flag.String("git_bt_instance", "", "ID of the BigTable instance that contains Git metadata")
 		gitBTTableID       = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
 		gitRepoDir         = flag.String("git_repo_dir", "", "Directory location for the Skia repo.")
@@ -41,7 +42,6 @@ func main() {
 		hashesGSPath       = flag.String("hashes_gs_path", "", "GS path, where the known hashes file should be stored. This should match the same flag in skiacorrectness which writes the hashes. Format: <bucket>/<path>.")
 		noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally and in K8s.")
 		port               = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
-		projectID          = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
 		promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 		serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
 	)
@@ -87,7 +87,7 @@ func main() {
 	var vcs vcsinfo.VCS
 	if *gitBTInstanceID != "" && *gitBTTableID != "" {
 		btConf := &bt_gitstore.BTConfig{
-			ProjectID:  *projectID,
+			ProjectID:  *btProjectID,
 			InstanceID: *gitBTInstanceID,
 			TableID:    *gitBTTableID,
 		}
