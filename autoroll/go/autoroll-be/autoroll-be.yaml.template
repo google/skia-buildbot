@@ -25,10 +25,10 @@ spec:
         fsGroup: 2000   # aka skia
       containers:
         - name: autoroll-be-{{.rollerName}}
-          image: gcr.io/skia-public/autoroll-be:TODO
+          image: {{.image}}
           args:
             - "--logtostderr"
-            - "--config_file=/usr/local/share/autoroll/config/{{.configFile}}"
+            - "--config_file=/etc/config/{{.configFileHash}}.json"
             - "--email_creds=/var/secrets/autoroll-email-creds"
             - "--firestore_instance=production"
             - "--port=:8000"
@@ -48,6 +48,8 @@ spec:
               mountPath: /var/secrets/autoroll-email-creds
             - name: notifier-chat-config
               mountPath: /etc/notifier-chat-config/
+            - name: autoroll-be-config-volume
+              mountPath: /etc/config
             {{- range $index, $secret := .kubernetes.secrets}}
             - name: {{$secret.name}}
               mountPath: {{$secret.mountPath}}
@@ -78,6 +80,9 @@ spec:
         - name: notifier-chat-config
           secret:
             secretName: notifier-chat-config
+        - name: autoroll-be-config-volume
+          configMap:
+            name: {{.configMapName}}
         {{- range $index, $secret := .kubernetes.secrets}}
         - name: {{$secret.name}}
           secret:

@@ -15,14 +15,6 @@ ${INSTALL} --mode=644 -T ./res/vul/elements.html            ${ROOT}/usr/local/sh
 cp -r                    ./templates                        ${ROOT}/usr/local/share/autoroll/templates
 chmod 777 ${ROOT}/usr/local/share/autoroll/templates
 chmod 644 ${ROOT}/usr/local/share/autoroll/templates/*
-cp -r                    ./config                           ${ROOT}/usr/local/share/autoroll/config
-chmod 777 ${ROOT}/usr/local/share/autoroll/config
-chmod 644 ${ROOT}/usr/local/share/autoroll/config/*
-
-# /tmp/skia-autoroll-internal-config is created via the target setup-internal-config-repo.
-cp -r                    /tmp/skia-autoroll-internal-config ${ROOT}/usr/local/share/autoroll/internal-config
-chmod 777 ${ROOT}/usr/local/share/autoroll/internal-config
-chmod 644 ${ROOT}/usr/local/share/autoroll/internal-config/*
 }
 
 source ../bash/docker_build.sh
