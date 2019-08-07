@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "37512092_987c3f54",
+        "filename": "golden/go/baseline/fs_baseliner/fs_baseliner.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-07T12:08:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1564c75c_72e3aaa4",
+      "range": {
+        "startLine": 2,
+        "startChar": 46,
+        "endLine": 2,
+        "endChar": 60
+      },
+      "revId": "0e92daec07d623acdae44fc65e490b24594901d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6f5574ae_ad9194e5",
         "filename": "golden/go/baseline/fs_baseliner/fs_baseliner.go",
         "patchSetId": 8
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "19d70a98_72f1e132",
+        "filename": "golden/go/baseline/fs_baseliner/fs_baseliner.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-07T12:08:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6f5574ae_ad9194e5",
+      "range": {
+        "startLine": 53,
+        "startChar": 9,
+        "endLine": 53,
+        "endChar": 27
+      },
+      "revId": "0e92daec07d623acdae44fc65e490b24594901d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "33abe1c9_fc046656",
         "filename": "golden/go/baseline/fs_baseliner/fs_baseliner.go",
         "patchSetId": 8
@@ -68,6 +116,30 @@
       "revId": "0e92daec07d623acdae44fc65e490b24594901d4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d88b16c_08b8f705",
+        "filename": "golden/go/baseline/fs_baseliner/fs_baseliner.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-07T12:08:19Z",
+      "side": 1,
+      "message": "Yes - issueOnly is only for debugging, so I figured I would be verbose. Added a comment.",
+      "parentUuid": "33abe1c9_fc046656",
+      "range": {
+        "startLine": 55,
+        "startChar": 17,
+        "endLine": 55,
+        "endChar": 21
+      },
+      "revId": "0e92daec07d623acdae44fc65e490b24594901d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
