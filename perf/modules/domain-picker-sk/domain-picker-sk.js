@@ -14,9 +14,9 @@
  */
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import dialogPolyfill from 'dialog-polyfill'
 import 'elements-sk/radio-sk';
 import 'elix/src/DateComboBox.js'
-import 'elements-sk/dialog-sk'
 import 'elements-sk/styles/buttons'
 
 const RANGE = 0;
@@ -76,7 +76,7 @@ const _showRadio = (ele) => {
 };
 
 const template = (ele) => html`
-  <dialog-sk>
+  <dialog>
     <h2>Graph Domain</h2>
     ${_showRadio(ele)}
     <div class=ranges>
@@ -90,7 +90,7 @@ const template = (ele) => html`
       <button @click=${ele._cancel}>Cancel</button>
       <button @click=${ele._ok} ?disabled=${ele._isInvalid(ele)}>OK</button>
     </div>
-  </dialog-sk>
+  </dialog>
   <button class=description @click=${ele._edit}>${_description(ele)}</button>
 `;
 
@@ -112,7 +112,8 @@ window.customElements.define('domain-picker-sk', class extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this._render();
-    this._dialog = this.querySelector('dialog-sk');
+    this._dialog = this.querySelector('dialog');
+    dialogPolyfill.registerDialog(this._dialog);
   }
 
   _typeRange() {
@@ -127,7 +128,7 @@ window.customElements.define('domain-picker-sk', class extends ElementSk {
 
   _ok() {
     this._stateBackup = Object.assign({}, this._state);
-    this._dialog.shown = false;
+    this._dialog.close();
     const detail = {
       state: this._state,
     }
@@ -151,13 +152,13 @@ window.customElements.define('domain-picker-sk', class extends ElementSk {
   }
 
   _edit() {
-    this._dialog.shown = true;
+    this._dialog.showModal();
   }
 
   _cancel() {
     this._state = Object.assign({}, this._stateBackup);
     this._render();
-    this._dialog.shown = false;
+    this._dialog.close();
   }
 
   _isInvalid() {
