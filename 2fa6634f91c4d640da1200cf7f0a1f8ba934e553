@@ -265,6 +265,24 @@
     },
     {
       "key": {
+        "uuid": "536f1b38_1a78f5c3",
+        "filename": "autoroll/go/push-helper/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-07T13:15:03Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2ac545a0_6868358b",
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bdfa35c0_16c054b8",
         "filename": "kube/go/kube-conf-gen/main.go",
         "patchSetId": 4
