@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "16a07fb2_f329b9a9",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 584,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-07T18:55:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "04e5f678_052eeffc",
+      "revId": "30c5dbe34f33a7df0d6099373d810944e80a15e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c05a8145_9f29bb70",
         "filename": "golden/k8s-config-templates/gold-diffserver-template.yaml",
         "patchSetId": 9
@@ -33,6 +51,24 @@
       "revId": "30c5dbe34f33a7df0d6099373d810944e80a15e5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1152f45_210d6ab6",
+        "filename": "golden/k8s-config-templates/gold-diffserver-template.yaml",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-07T18:55:19Z",
+      "side": 1,
+      "message": "No, it appears the smaller diffserver-storage-volume was being used instead of the bigger diffserver-diffs-storage-volume and Skia ran that 100G disk out of space. This removes the smaller 100G and replaces it with the intended, larger 1000GB disk.",
+      "parentUuid": "c05a8145_9f29bb70",
+      "revId": "30c5dbe34f33a7df0d6099373d810944e80a15e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
