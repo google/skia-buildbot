@@ -23,8 +23,21 @@ import 'elements-sk/styles/buttons'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 
+
+function _titleFrom(ele) {
+  const index = ele.selected;
+  if (index === -1) {
+    return 'Choose a commit.';
+  }
+  const d = ele._details[index];
+  if (!d) {
+    return 'Choose a commit.';
+  }
+  return `${d.author} -  ${d.message}`;
+}
+
 const template = (ele) => html`
-  <button @click=${ele._open}>${ele._title}</button>
+  <button @click=${ele._open}>${_titleFrom(ele)}</button>
   <dialog-sk>
     <commit-detail-panel-sk @commit-selected='${ele._panelSelect}' .details='${ele._details}' selectable selected=${ele.selected}></commit-detail-panel-sk>
     <button @click=${ele._close}>Close</button>
@@ -47,6 +60,7 @@ window.customElements.define('commit-detail-picker-sk', class extends ElementSk 
 
   _panelSelect(e) {
     this._title = e.detail.description;
+    this.selected = e.detail.selected;
     this._render();
   }
 
@@ -65,8 +79,10 @@ window.customElements.define('commit-detail-picker-sk', class extends ElementSk 
   }
 
   /** @prop selected {string} Mirrors the selected attribute. */
-  get selected() { return this.getAttribute('selected'); }
-  set selected(val) { this.setAttribute('selected', val); }
+  get selected() { return +this.getAttribute('selected'); }
+  set selected(val) {
+    this.setAttribute('selected', val);
+  }
 
   attributeChangedCallback(name, oldValue, newValue) {
     this._render();
