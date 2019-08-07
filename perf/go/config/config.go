@@ -29,12 +29,14 @@ type PerfBigTableConfig struct {
 	GitUrl   string
 	Shards   int32
 	Sources  []string // List of gs: locations.
+	Branches []string // If populated then restrict to ingesting just these branches.
 }
 
 const (
 	NANO         = "nano"
 	ANDROID_PROD = "android-prod"
 	CT_PROD      = "ct-prod"
+	ANDROID_X    = "android-x"
 )
 
 var (
@@ -48,6 +50,7 @@ var (
 			GitUrl:   "https://skia.googlesource.com/skia",
 			Shards:   8,
 			Sources:  []string{"gs://skia-perf/nano-json-v1", "gs://skia-perf/task-duration", "gs://skia-perf/buildstats-json-v1"},
+			Branches: []string{},
 		},
 		ANDROID_PROD: {
 			TileSize: 8192,
@@ -58,6 +61,7 @@ var (
 			GitUrl:   "https://skia.googlesource.com/perf-buildid/android-master",
 			Shards:   8,
 			Sources:  []string{"gs://skia-perf/android-master-ingest"},
+			Branches: []string{},
 		},
 		CT_PROD: {
 			TileSize: 256,
@@ -68,6 +72,18 @@ var (
 			GitUrl:   "https://skia.googlesource.com/perf-ct",
 			Shards:   8,
 			Sources:  []string{"gs://cluster-telemetry-perf/ingest"},
+			Branches: []string{},
+		},
+		ANDROID_X: { // https://bug.skia.org/9315
+			TileSize: 512,
+			Project:  "skia-public",
+			Instance: "production",
+			Table:    "perf-android-x",
+			Topic:    "perf-ingestion-android-x-production",
+			GitUrl:   "https://skia.googlesource.com/perf-buildid/android-master",
+			Shards:   8,
+			Sources:  []string{"gs://skia-perf/android-master-ingest"},
+			Branches: []string{"aosp-androidx-master-dev branch"},
 		},
 	}
 )
