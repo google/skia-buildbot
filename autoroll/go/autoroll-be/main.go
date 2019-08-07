@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"flag"
 	"fmt"
 	"io"
@@ -48,7 +50,8 @@ const (
 // flags
 var (
 	chatWebHooksFile  = flag.String("chat_webhooks_file", "", "Chat webhook config.")
-	configFile        = flag.String("config_file", "", "Configuration file to use.")
+	config            = flag.String("config", "", "Base 64 encoded configuration in JSON format, mutually exclusive with --config_file.")
+	configFile        = flag.String("config_file", "", "Configuration file to use, mutually exclusive with --config.")
 	emailCreds        = flag.String("email_creds", "", "Directory containing credentials for sending emails.")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
@@ -89,11 +92,25 @@ func main() {
 		}
 	}
 
+	// Decode the config.
 	var cfg roller.AutoRollerConfig
-	if err := util.WithReadFile(*configFile, func(f io.Reader) error {
-		return json5.NewDecoder(f).Decode(&cfg)
-	}); err != nil {
-		sklog.Fatal(err)
+	if (*config == "" && *configFile == "") || (*config != "" && *configFile != "") {
+		sklog.Fatal("Exactly one of --config or --config_file is required.")
+	}
+	if *config != "" {
+		b, err := base64.StdEncoding.DecodeString(*config)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		if err := json5.NewDecoder(bytes.NewReader(b)).Decode(&cfg); err != nil {
+			sklog.Fatal(err)
+		}
+	} else {
+		if err := util.WithReadFile(*configFile, func(f io.Reader) error {
+			return json5.NewDecoder(f).Decode(&cfg)
+		}); err != nil {
+			sklog.Fatal(err)
+		}
 	}
 
 	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")

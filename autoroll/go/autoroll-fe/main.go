@@ -5,15 +5,15 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
-	"path"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -44,7 +44,8 @@ import (
 
 var (
 	// flags.
-	configDir         = flag.String("config_dir", "", "Directory containing only configuration files for all rollers.")
+	configs           = common.NewMultiStringFlag("config", nil, "Base 64 encoded config in JSON format. Supply this flag once for each roller. Mutually exclusive with --config_file.")
+	configFiles       = common.NewMultiStringFlag("config_file", nil, "Path to autoroller config file. Supply this flag once for each roller. Mutually exclusive with --config.")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	host              = flag.String("host", "localhost", "HTTP service host")
 	internal          = flag.Bool("internal", false, "If true, display the internal rollers.")
@@ -52,6 +53,7 @@ var (
 	port              = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
 	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	hang              = flag.Bool("hang", false, "If true, don't spin up the server, just hang without doing anything.")
 
 	WHITELISTED_VIEWERS = []string{
 		"prober@skia-public.iam.gserviceaccount.com",
@@ -404,6 +406,10 @@ func main() {
 	Init()
 	skiaversion.MustLogVersion()
 
+	if *hang {
+		select {}
+	}
+
 	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
@@ -423,69 +429,81 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	// Read the config files for the rollers.
-	if *configDir == "" {
-		sklog.Fatal("--config_dir is required.")
+	// Read the configs for the rollers.
+	if len(*configs) > 0 && len(*configFiles) > 0 {
+		sklog.Fatal("--config and --config_file are mutually exclusive.")
+	} else if len(*configs) == 0 && len(*configFiles) == 0 {
+		sklog.Fatal("At least one instance of --config or --config_file is required.")
 	}
-	dirEntries, err := ioutil.ReadDir(*configDir)
-	if err != nil {
-		sklog.Fatal(err)
+	cfgs := make([]*roller.AutoRollerConfig, 0, len(*configs)+len(*configFiles))
+	for _, cfgStr := range *configs {
+		b, err := base64.StdEncoding.DecodeString(cfgStr)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		var cfg roller.AutoRollerConfig
+		if err := json5.NewDecoder(bytes.NewReader(b)).Decode(&cfg); err != nil {
+			sklog.Fatal(err)
+		}
+		cfgs = append(cfgs, &cfg)
 	}
-	rollerNames = make([]string, 0, len(dirEntries))
-	rollers = make(map[string]*autoroller, len(dirEntries))
-	for _, entry := range dirEntries {
-		if !entry.IsDir() {
-			// Load the config.
-			var cfg roller.AutoRollerConfig
-			if err := util.WithReadFile(path.Join(*configDir, entry.Name()), func(f io.Reader) error {
-				return json5.NewDecoder(f).Decode(&cfg)
-			}); err != nil {
-				sklog.Fatal(err)
-			}
-			if err := cfg.Validate(); err != nil {
-				sklog.Fatalf("Invalid roller config: %s %s", entry.Name(), err)
-			}
+	for _, path := range *configFiles {
+		var cfg roller.AutoRollerConfig
+		if err := util.WithReadFile(path, func(f io.Reader) error {
+			return json5.NewDecoder(f).Decode(&cfg)
+		}); err != nil {
+			sklog.Fatal(err)
+		}
+		cfgs = append(cfgs, &cfg)
+	}
 
-			// Public frontend only displays public rollers, private-private.
-			if *internal != cfg.IsInternal {
-				continue
-			}
+	// Process the configs.
+	rollerNames = []string{}
+	rollers = map[string]*autoroller{}
+	for _, cfg := range cfgs {
+		if err := cfg.Validate(); err != nil {
+			sklog.Fatalf("Invalid roller config %q: %s", cfg.RollerName, err)
+		}
 
-			// Set up DBs for the roller.
-			arbMode, err := modes.NewModeHistory(ctx, cfg.RollerName)
-			if err != nil {
-				sklog.Fatal(err)
+		// Public frontend only displays public rollers, private-private.
+		if *internal != cfg.IsInternal {
+			continue
+		}
+
+		// Set up DBs for the roller.
+		arbMode, err := modes.NewModeHistory(ctx, cfg.RollerName)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		go util.RepeatCtx(10*time.Second, ctx, func() {
+			if err := arbMode.Update(ctx); err != nil {
+				sklog.Error(err)
 			}
-			go util.RepeatCtx(10*time.Second, ctx, func() {
-				if err := arbMode.Update(ctx); err != nil {
-					sklog.Error(err)
-				}
-			})
-			arbStatus, err := status.NewCache(ctx, cfg.RollerName)
-			if err != nil {
-				sklog.Fatal(err)
+		})
+		arbStatus, err := status.NewCache(ctx, cfg.RollerName)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		go util.RepeatCtx(10*time.Second, ctx, func() {
+			if err := arbStatus.Update(ctx); err != nil {
+				sklog.Error(err)
 			}
-			go util.RepeatCtx(10*time.Second, ctx, func() {
-				if err := arbStatus.Update(ctx); err != nil {
-					sklog.Error(err)
-				}
-			})
-			arbStrategy, err := strategy.NewStrategyHistory(ctx, cfg.RollerName, "", arbStatus.Get().ValidStrategies)
-			if err != nil {
-				sklog.Fatal(err)
+		})
+		arbStrategy, err := strategy.NewStrategyHistory(ctx, cfg.RollerName, "", arbStatus.Get().ValidStrategies)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		go util.RepeatCtx(10*time.Second, ctx, func() {
+			if err := arbStrategy.Update(ctx); err != nil {
+				sklog.Error(err)
 			}
-			go util.RepeatCtx(10*time.Second, ctx, func() {
-				if err := arbStrategy.Update(ctx); err != nil {
-					sklog.Error(err)
-				}
-			})
-			rollerNames = append(rollerNames, cfg.RollerName)
-			rollers[cfg.RollerName] = &autoroller{
-				Cfg:      &cfg,
-				Mode:     arbMode,
-				Status:   arbStatus,
-				Strategy: arbStrategy,
-			}
+		})
+		rollerNames = append(rollerNames, cfg.RollerName)
+		rollers[cfg.RollerName] = &autoroller{
+			Cfg:      cfg,
+			Mode:     arbMode,
+			Status:   arbStatus,
+			Strategy: arbStrategy,
 		}
 	}
 	sort.Strings(rollerNames)
