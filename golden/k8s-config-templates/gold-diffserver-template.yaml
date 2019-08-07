@@ -47,7 +47,7 @@ spec:
           args:
             - "--cache_size=10"
             - "--grpc_port=:8000"
-            - "--gs_buckets=skia-gold-{{.INSTANCE_ID}}"
+            - "--gs_buckets={{.BUCKET}}"
             - "--image_dir=/data"
             - "--image_port=:8001"
             - "--logtostderr"
@@ -62,10 +62,8 @@ spec:
             - containerPort: 20000
               name: prom
           volumeMounts:
-            - name: gold-{{.INSTANCE_ID}}-diffserver-storage-volume
-              mountPath: /data
             - name: gold-{{.INSTANCE_ID}}-diffserver-diffs-storage-volume
-              mountPath: /data/imageStore/diffs
+              mountPath: /data
             - name: gold-service-account-secrets
               mountPath: /var/secrets/google/
           env:
@@ -94,17 +92,9 @@ spec:
             secretName: gold-service-account-secrets
   volumeClaimTemplates:
     - metadata:
-        name: gold-{{.INSTANCE_ID}}-diffserver-storage-volume
-      spec:
-        storageClassName: ssd-disk
-        accessModes: [ "ReadWriteOnce" ]
-        resources:
-          requests:
-            storage: 100Gi
-    - metadata:
         name: gold-{{.INSTANCE_ID}}-diffserver-diffs-storage-volume
       spec:
-        storageClassName: standard
+        storageClassName: ssd-disk
         accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
