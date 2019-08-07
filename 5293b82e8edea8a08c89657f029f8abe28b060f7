@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6b2b1bf2_ecb48627",
+        "filename": "perf/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 14
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-07T19:32:19Z",
+      "side": 1,
+      "message": "I like it when you break up elements like this. Feel free to do it more, e.g. line 46, 51, etc.",
+      "range": {
+        "startLine": 60,
+        "startChar": 6,
+        "endLine": 64,
+        "endChar": 6
+      },
+      "revId": "5293b82e8edea8a08c89657f029f8abe28b060f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2fcef64c_c7b31bac",
+        "filename": "perf/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 14
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-07T19:32:19Z",
+      "side": 1,
+      "message": "nit: wrap to 100 cols",
+      "range": {
+        "startLine": 133,
+        "startChar": 4,
+        "endLine": 133,
+        "endChar": 102
+      },
+      "revId": "5293b82e8edea8a08c89657f029f8abe28b060f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4fca4340_b8ca15d9",
+        "filename": "perf/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 14
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-07T19:32:19Z",
+      "side": 1,
+      "message": "why not \u00270\u0027 ?",
+      "range": {
+        "startLine": 150,
+        "startChar": 9,
+        "endLine": 150,
+        "endChar": 15
+      },
+      "revId": "5293b82e8edea8a08c89657f029f8abe28b060f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "372099d6_decbf0a2",
+        "filename": "perf/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 14
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-07T19:32:19Z",
+      "side": 1,
+      "message": "I think I would prefer null here. I view null as \"explicitly not here\" and undefined as, well, hasn\u0027t been set, so it feels strange to set something to undefined.",
+      "range": {
+        "startLine": 158,
+        "startChar": 13,
+        "endLine": 158,
+        "endChar": 22
+      },
+      "revId": "5293b82e8edea8a08c89657f029f8abe28b060f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba5f0953_8aad3867",
+        "filename": "perf/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 14
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-07T19:32:19Z",
+      "side": 1,
+      "message": "I\u0027m not a huge fan of this, but if it works, it works.  Is it too tedious to track down the places that _state could be updated and have them call reflectURLChanges or something like that?",
+      "range": {
+        "startLine": 184,
+        "startChar": 4,
+        "endLine": 184,
+        "endChar": 28
+      },
+      "revId": "5293b82e8edea8a08c89657f029f8abe28b060f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "baa1ee1c_3d76fb90",
+        "filename": "perf/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 14
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-07T19:32:19Z",
+      "side": 1,
+      "message": "nit: semicolon",
+      "range": {
+        "startLine": 223,
+        "startChar": 11,
+        "endLine": 223,
+        "endChar": 12
+      },
+      "revId": "5293b82e8edea8a08c89657f029f8abe28b060f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b80cc8e8_cdf6e39d",
+        "filename": "perf/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 14
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-07T19:32:19Z",
+      "side": 1,
+      "message": "!this._state.begin?",
+      "range": {
+        "startLine": 256,
+        "startChar": 10,
+        "endLine": 256,
+        "endChar": 32
+      },
+      "revId": "5293b82e8edea8a08c89657f029f8abe28b060f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "82d36ed8_a7d4d511",
+        "filename": "perf/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 14
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-07T19:32:19Z",
+      "side": 1,
+      "message": "this._requestId",
+      "range": {
+        "startLine": 295,
+        "startChar": 8,
+        "endLine": 295,
+        "endChar": 29
+      },
+      "revId": "5293b82e8edea8a08c89657f029f8abe28b060f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
