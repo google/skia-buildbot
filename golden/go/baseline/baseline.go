@@ -29,19 +29,12 @@ func init() {
 // Note: Total and Filled are not relevant for an issue baseline since
 // the concept of traces doesn't really make sense for a single commit.
 func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobResults [][]*tryjobstore.TryjobResult, exp types.Expectations, commits []*tiling.Commit) (*Baseline, error) {
-	startCommit := commits[len(commits)-1]
-	endCommit := commits[len(commits)-1]
-
 	b := types.Expectations{}
-	for idx, tryjob := range tryjobs {
+	for idx := range tryjobs {
 		for _, result := range tryjobResults[idx] {
 			if result.Digest != types.MISSING_DIGEST && exp.Classification(result.TestName, result.Digest) == types.POSITIVE {
 				b.AddDigest(result.TestName, result.Digest, types.POSITIVE)
 			}
-
-			_, c := tiling.FindCommit(commits, tryjob.MasterCommit)
-			startCommit = minCommit(startCommit, c)
-			endCommit = maxCommit(endCommit, c)
 		}
 	}
 
@@ -50,11 +43,7 @@ func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobRes
 		return nil, skerr.Fmt("Error calculating MD5 sum: %s", err)
 	}
 
-	// TODO(stephana): Review whether StartCommit and EndCommit are useful here.
-
 	ret := &Baseline{
-		StartCommit:  startCommit,
-		EndCommit:    endCommit,
 		Expectations: b,
 		Issue:        issueID,
 		MD5:          md5Sum,

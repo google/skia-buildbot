@@ -1,6 +1,7 @@
 package mocks
 
-//go:generate mockery -name Baseliner -dir ../baseline/ -output .
+//go:generate mockery -name BaselineFetcher -dir ../baseline/ -output .
+//go:generate mockery -name BaselineWriter -dir ../baseline/ -output .
 //go:generate mockery -name ClosestDiffFinder -dir ../digesttools -output .
 //go:generate mockery -name ComplexTile -dir ../types -output .
 //go:generate mockery -name DiffStore -dir ../diff -output .

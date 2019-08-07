@@ -41,7 +41,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
-	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
+	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
@@ -83,7 +83,7 @@ func main() {
 		authorizedUsers     = flag.String("auth_users", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 		baselineGSPath      = flag.String("baseline_gs_path", "", "GS path, where the baseline file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
 		btInstanceID        = flag.String("bt_instance", "production", "ID of the BigTable instance that contains Git metadata")
-		btProjectID         = flag.String("bt_project_id", "skia-public", "BigTable table ID for the traces.")
+		btProjectID         = flag.String("bt_project_id", "skia-public", "project id with BigTable instance")
 		cacheSize           = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
 		clientSecretFile    = flag.String("client_secret", "", "Client secret file for OAuth2 authentication.")
 		cpuProfile          = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
@@ -397,11 +397,7 @@ func main() {
 	}
 	tryjobMonitor := gerrit_tryjob_monitor.New(tryjobStore, expStore, gerritAPI, *siteURL, evt, *authoritative)
 
-	// Initialize the Baseliner instance from the values set above.
-	baseliner, err := gcs_baseliner.New(gsClient, expStore, tryjobStore, vcs)
-	if err != nil {
-		sklog.Fatalf("Error initializing baseliner: %s", err)
-	}
+	baseliner := simple_baseliner.New(expStore)
 
 	publiclyViewableParams := paramtools.ParamSet{}
 	// Load the publiclyViewable params if configured and disable querying for issues.
@@ -443,7 +439,6 @@ func main() {
 	tileSource := tilesource.New(ctc)
 
 	ic := indexer.IndexerConfig{
-		Baseliner:         baseliner,
 		DiffStore:         diffStore,
 		EventBus:          evt,
 		ExpectationsStore: expStore,

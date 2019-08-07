@@ -62,20 +62,8 @@ const (
 
 func MakeTestBaseline() *baseline.Baseline {
 	b := baseline.Baseline{
-		StartCommit: &tiling.Commit{
-			Hash:       FirstCommitHash,
-			CommitTime: time.Date(2019, time.April, 26, 12, 0, 3, 0, time.UTC).Unix(),
-			Author:     FirstCommitAuthor,
-		},
-		EndCommit: &tiling.Commit{
-			Hash:       ThirdCommitHash,
-			CommitTime: time.Date(2019, time.April, 26, 13, 10, 8, 0, time.UTC).Unix(),
-			Author:     ThirdCommitAuthor,
-		},
-		Expectations: MakeTestExpectations(),
-		Filled:       2, // two tests had at least one positive digest
-		Total:        6,
-		Issue:        0, // 0 means master branch, by definition
+		Expectations: MakeTestExpectations().AsBaseline(),
+		Issue:        types.MasterBranch,
 	}
 	var err error
 	b.MD5, err = util.MD5Sum(b.Expectations)

@@ -78,20 +78,20 @@ func (_m *GCSClient) RemoveForTestingOnly(targetPath string) error {
 	return r0
 }
 
-// WriteBaseline provides a mock function with given fields: b
-func (_m *GCSClient) WriteBaseline(b *baseline.Baseline) (string, error) {
-	ret := _m.Called(b)
+// WriteBaseline provides a mock function with given fields: b, commitHash
+func (_m *GCSClient) WriteBaseline(b *baseline.Baseline, commitHash string) (string, error) {
+	ret := _m.Called(b, commitHash)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*baseline.Baseline) string); ok {
-		r0 = rf(b)
+	if rf, ok := ret.Get(0).(func(*baseline.Baseline, string) string); ok {
+		r0 = rf(b, commitHash)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*baseline.Baseline) error); ok {
-		r1 = rf(b)
+	if rf, ok := ret.Get(1).(func(*baseline.Baseline, string) error); ok {
+		r1 = rf(b, commitHash)
 	} else {
 		r1 = ret.Error(1)
 	}

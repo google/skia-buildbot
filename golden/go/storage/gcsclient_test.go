@@ -47,17 +47,13 @@ var (
 	}
 
 	masterBaseline = &baseline.Baseline{
-		StartCommit: startCommit,
-		EndCommit:   endCommit,
 		Expectations: types.Expectations{
 			"test-1": map[types.Digest]types.Label{"d1": types.POSITIVE},
 		},
-		Issue: 0,
+		Issue: types.MasterBranch,
 	}
 
 	issueBaseline = &baseline.Baseline{
-		StartCommit: endCommit,
-		EndCommit:   endCommit,
 		Expectations: types.Expectations{
 			"test-3": map[types.Digest]types.Label{"d2": types.POSITIVE},
 		},
@@ -104,7 +100,7 @@ func TestWritingBaselines(t *testing.T) {
 		}
 	}()
 
-	path, err := gsClient.WriteBaseline(masterBaseline)
+	path, err := gsClient.WriteBaseline(masterBaseline, endCommit.Hash)
 	assert.NoError(t, err)
 	removePaths = append(removePaths, strings.TrimPrefix(path, "gs://"))
 
@@ -113,7 +109,7 @@ func TestWritingBaselines(t *testing.T) {
 	assert.Equal(t, masterBaseline, foundBaseline)
 
 	// Add a baseline for an issue
-	path, err = gsClient.WriteBaseline(issueBaseline)
+	path, err = gsClient.WriteBaseline(issueBaseline, "")
 	assert.NoError(t, err)
 	removePaths = append(removePaths, strings.TrimPrefix(path, "gs://"))
 
@@ -144,7 +140,7 @@ func TestBaselineRobustness(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Nil(t, foundBaseline)
 
-	path, err := gsClient.WriteBaseline(masterBaseline)
+	path, err := gsClient.WriteBaseline(masterBaseline, endCommit.Hash)
 	assert.NoError(t, err)
 	removePaths = append(removePaths, strings.TrimPrefix(path, "gs://"))
 }

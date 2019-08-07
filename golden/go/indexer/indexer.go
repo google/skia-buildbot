@@ -60,7 +60,7 @@ type SearchIndex struct {
 }
 
 type searchIndexConfig struct {
-	baseliner         baseline.Baseliner
+	baseliner         baseline.BaselineWriter
 	diffStore         diff.DiffStore
 	expectationsStore expstorage.ExpectationsStore
 	gcsClient         storage.GCSClient
@@ -151,7 +151,7 @@ func (idx *SearchIndex) GetBlame(test types.TestName, digest types.Digest, commi
 }
 
 type IndexerConfig struct {
-	Baseliner         baseline.Baseliner
+	Baseliner         baseline.BaselineWriter
 	DiffStore         diff.DiffStore
 	EventBus          eventbus.EventBus
 	ExpectationsStore expstorage.ExpectationsStore
@@ -424,7 +424,7 @@ func (ix *Indexer) setIndex(state interface{}) error {
 // writeIssueBaseline handles changes to baselines for Gerrit issues and dumps
 // the updated baseline to disk.
 func (ix *Indexer) writeIssueBaseline(evData interface{}) {
-	if !ix.Baseliner.CanWriteBaseline() {
+	if ix.Baseliner == nil || !ix.Baseliner.CanWriteBaseline() {
 		return
 	}
 
@@ -563,6 +563,10 @@ func writeKnownHashesList(state interface{}) error {
 // writeMasterBaseline asynchronously writes the master baseline to GCS.
 func writeMasterBaseline(state interface{}) error {
 	idx := state.(*SearchIndex)
+
+	if idx.baseliner == nil {
+		return nil
+	}
 
 	if !idx.baseliner.CanWriteBaseline() {
 		sklog.Warning("Indexer tried to write baselines, but was not allowed to")

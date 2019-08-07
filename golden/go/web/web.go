@@ -51,7 +51,7 @@ const (
 // WebHandlers holds the environment needed by the various http hander functions
 // that have WebHandlers as its receiver.
 type WebHandlers struct {
-	Baseliner         baseline.Baseliner
+	Baseliner         baseline.BaselineFetcher
 	DiffStore         diff.DiffStore
 	ExpectationsStore expstorage.ExpectationsStore
 	GCSClient         storage.GCSClient

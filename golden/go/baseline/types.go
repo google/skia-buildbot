@@ -9,8 +9,6 @@ import (
 // Baseline captures the data necessary to verify test results on the
 // commit queue. A baseline is essentially the expectations for a set of
 // tests in a given commit range.
-// TODO(kjlubick): Maybe make a version of this that handles a single commit/CL
-// called ExpectationsDelta or ChangelistExpectations or something like that.
 type Baseline struct {
 	// MD5 is the hash of the Expectations field.
 	MD5 string `json:"md5"`
@@ -21,21 +19,6 @@ type Baseline struct {
 
 	// Issue indicates the Gerrit issue of this baseline. -1 indicates the master branch.
 	Issue int64
-
-	// TODO(kjlubick): The only consumer of the baselines is goldctl, and I don't think
-	// it cares about anything beneath here.  Can we remove them?
-
-	// StartCommit covered by these baselines.
-	StartCommit *tiling.Commit `json:"startCommit"`
-
-	// EndCommit is the commit for which this baseline was collected.
-	EndCommit *tiling.Commit `json:"endCommit"`
-
-	// Total is the total number of traces that were iterated when generating the baseline.
-	Total int `json:"total"`
-
-	// Filled is the number of tests that had at least one positive digest at EndCommit.
-	Filled int `json:"filled"`
 }
 
 // Copy returns a deep copy of the given instance of Baseline.
@@ -50,17 +33,15 @@ func (c *Baseline) Copy() *Baseline {
 
 // EmptyBaseline returns an instance of Baseline with the provided commits and nil
 // values in all other fields. The Baseline field contains an empty instance of types.Expectations.
-func EmptyBaseline(startCommit, endCommit *tiling.Commit) *Baseline {
+func EmptyBaseline() *Baseline {
 	return &Baseline{
-		StartCommit:  startCommit,
-		EndCommit:    endCommit,
 		Expectations: types.Expectations{},
 		MD5:          md5SumEmptyExp,
 	}
 }
 
-// Baseliner is an interface wrapping the functionality to save and fetch baselines.
-type Baseliner interface {
+// TODO(kjlubick): delete this once fs_baseliner lands
+type BaselineWriter interface {
 	// CanWriteBaseline returns true if this instance was configured to write baseline files.
 	CanWriteBaseline() bool
 
@@ -75,13 +56,17 @@ type Baseliner interface {
 
 	// PushIssueBaseline writes the baseline for a Gerrit issue to GCS.
 	PushIssueBaseline(issueID int64, tileInfo TileInfo, dCounter digest_counter.DigestCounter) error
+}
 
+type BaselineFetcher interface {
 	// FetchBaseline fetches the complete baseline for the given Gerrit issue by
 	// loading the master baseline and the issue baseline from GCS and combining
 	// them. If either of them doesn't exist an empty baseline is assumed.
 	// If issueOnly is true and issueID > 0 then only the expectations attached to the issue are
 	// returned (omitting the baselines of the master branch).
 	// issueOnly is primarily used for debugging.
+	// TODO(kjlubick): remove commitHash as it has no meaning anymore, now that per-commit
+	// baselines have been removed.
 	FetchBaseline(commitHash string, issueID int64, issueOnly bool) (*Baseline, error)
 }
 
