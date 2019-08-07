@@ -116,6 +116,30 @@
       "revId": "c60d8f90ad9c844ee32a838626c5b517e9b36cd8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a863b09d_0d78fb09",
+        "filename": "golden/go/tilesource/tilesource.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-07T17:14:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "07d388bd_82ecad91",
+      "range": {
+        "startLine": 65,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 37
+      },
+      "revId": "c60d8f90ad9c844ee32a838626c5b517e9b36cd8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
