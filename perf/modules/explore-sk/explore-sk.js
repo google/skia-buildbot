@@ -115,7 +115,8 @@ const template = (ele) => html`
                 <h3>Selections</h3>
                 <query-summary-sk id=summary></query-summary-sk>
                 <div class=query-counts>
-                  Matches: <query-count-sk url='/_/count/'></query-count-sk>
+                  Matches: <query-count-sk url='/_/count/' @paramset-changed=${ele._paramsetChanged}>
+                  </query-count-sk>
                 </div>
                 <button @click=${ele._add} class=action>Plot</button>
               </div>
@@ -232,6 +233,10 @@ window.customElements.define('explore-sk', class extends ElementSk {
       // From this point on reflect the state to the URL.
       this._startStateReflector();
     }).catch(errorMessage);
+  }
+
+  _paramsetChanged(e) {
+    this._query.paramset = e.detail;
   }
 
   _queryChangeDelayedHandler(e) {

@@ -8,6 +8,9 @@
  *
  * @attr {string} url - The URL to POST the query to.
  *
+ * @evt paramset-changed - An event with the updated paramset in e.detail
+ *   from the fetch response.
+ *
  */
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
@@ -44,7 +47,7 @@ window.customElements.define('query-count-sk', class extends ElementSk {
     if (!this._connected) {
       return;
     }
-    if (!this.url || !this.current_query) {
+    if (!this.url) {
       return;
     }
     if (this._requestInProgress) {
@@ -72,6 +75,7 @@ window.customElements.define('query-count-sk', class extends ElementSk {
       if (this._last_query != this.current_query) {
         this._fetch();
       }
+      this.dispatchEvent(new CustomEvent('paramset-changed', {detail: json.paramset, bubbles: true }));
     }).catch((msg) => {
       this._requestInProgress = false;
       this._render();

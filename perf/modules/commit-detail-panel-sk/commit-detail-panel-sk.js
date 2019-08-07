@@ -8,6 +8,7 @@
  *
  *     <pre>
  *     {
+ *       selected: 2,
  *       description: "foo (foo@example.org) 62W Commit from foo.",
  *       commit: {
  *         author: "foo (foo@example.org)",
@@ -87,6 +88,7 @@ window.customElements.define('commit-detail-panel-sk', class extends ElementSk {
     }
     this.selected = +ele.dataset['id']
     let detail = {
+      selected: ele.dataset.id,
       description: ele.textContent.trim(),
       commit: this._details[this.selected],
     }
