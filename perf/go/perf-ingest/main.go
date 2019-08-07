@@ -131,11 +131,22 @@ func indexToCache(hash string, index int) {
 }
 
 // processSingleFile parses the contents of a single JSON file and writes the values into BigTable.
-func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs vcsinfo.VCS, filename string, r io.Reader, timestamp time.Time) error {
+//
+// If 'branches' is not empty then restrict to ingesting just the branches in the slice.
+func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs vcsinfo.VCS, filename string, r io.Reader, timestamp time.Time, branches []string) error {
 	benchData, err := ingestcommon.ParseBenchDataFromReader(r)
 	if err != nil {
 		sklog.Errorf("Failed to read or parse data: %s", err)
 		return NonRecoverableError
+	}
+
+	if branch, ok := benchData.Key["branch"]; ok {
+		if len(branches) > 0 {
+			if !util.In(branch, branches) {
+				sklog.Infof("Skipping branch: %q", branch)
+				return nil
+			}
+		}
 	}
 
 	params, values, paramset := getParamsAndValues(benchData)
@@ -275,7 +286,7 @@ func main() {
 				sklog.Info(attrs.Name)
 				// Pull data out of file and write it into BigTable.
 				fullName := fmt.Sprintf("gs://%s/%s", event.Bucket, event.Name)
-				err = processSingleFile(ctx, store, vcs, fullName, reader, attrs.Created)
+				err = processSingleFile(ctx, store, vcs, fullName, reader, attrs.Created, cfg.Branches)
 				if err := reader.Close(); err != nil {
 					sklog.Errorf("Failed to close: %s", err)
 				}
