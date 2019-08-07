@@ -57,6 +57,8 @@ spec:
               value: /var/secrets/google/key.json
             - name: TMPDIR
               value: /data/tmp
+            - name: DEPOT_TOOLS_UPDATE
+              value: 0
           resources:
             limits:
               memory: "{{.kubernetes.memory}}"

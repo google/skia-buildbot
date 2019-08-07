@@ -460,8 +460,8 @@ func (r *depotToolsRepoManager) cleanParentWithRemoteAndBranch(ctx context.Conte
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
 		Env:  r.depotToolsEnv,
-		Name: "python",
-		Args: []string{r.gclient, "revert", "--nohooks"},
+		Name: r.gclient,
+		Args: []string{"revert", "--nohooks"},
 	}); err != nil {
 		return err
 	}
@@ -498,7 +498,7 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemoteAndBranch(ctx conte
 		}
 	}
 
-	args := []string{r.gclient, "config"}
+	args := []string{"config"}
 	if r.gclientSpec != "" {
 		args = append(args, fmt.Sprintf("--spec=%s", r.gclientSpec))
 	} else {
@@ -507,7 +507,7 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemoteAndBranch(ctx conte
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
 		Env:  r.depotToolsEnv,
-		Name: "python",
+		Name: r.gclient,
 		Args: args,
 	}); err != nil {
 		return err
@@ -515,8 +515,8 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemoteAndBranch(ctx conte
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
 		Env:  r.depotToolsEnv,
-		Name: "python",
-		Args: []string{r.gclient, "sync", "--nohooks"},
+		Name: r.gclient,
+		Args: []string{"sync", "--nohooks"},
 	}); err != nil {
 		return err
 	}

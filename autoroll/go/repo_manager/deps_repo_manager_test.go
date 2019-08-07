@@ -310,7 +310,7 @@ cache_dir=None
 	// Ensure that we pass the spec into "gclient config".
 	found := false
 	for _, c := range mockRun.Commands() {
-		if c.Name == "python" && strings.Contains(c.Args[0], "gclient.py") && c.Args[1] == "config" {
+		if strings.Contains(c.Name, "gclient") && c.Args[0] == "config" {
 			for _, arg := range c.Args {
 				if arg == "--spec="+gclientSpec {
 					found = true
