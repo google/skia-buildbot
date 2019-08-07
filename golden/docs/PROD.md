@@ -36,17 +36,28 @@ Alerts
 
 Items below here should include target links from alerts.
 
-GoldIngestionStalled
+GoldStreamingIngestionStalled
 --------------------
-Gold ingestion hasn't completed in at least 10 minutes. Normally, it should
-complete every minute or so (90% at 3 minutes) for gold, up to 5 minutes
-for other instances (Pdfium, Chrome VR)
+Gold has a pubsub subscription for events created in its bucket.
+This alert means we haven't successfully ingested a file in over 24 hours.
+This could mean that ingestion is throwing errors on every file or
+the repo isn't very busy.
 
-Ingestion depends on the tile being served, so check the logs for which commits
-were produced in the last tile (search logs for "last commit"). This has
-happened before because gitsync stopped, so check that out too.
+This has happened before because gitsync stopped, so check that out too.
 
-Key metrics: since_last_run, liveness_last_successful_git_sync_s
+Key metrics: liveness_gold_bt_s{metric="last-successful-process"}, liveness_last_successful_git_sync_s
+
+
+GoldPollingIngestionStalled
+--------------------
+Gold regularly polls its GCS buckets for any files that were not
+successfully ingested via PubSub event when the file was created (aka "streaming").
+This alert means it has been at least 10 minutes since this happened;
+this should happen every 5 minutes or so, even in not-busy repos.
+
+This has happened before because gitsync stopped, so check that out too.
+
+Key metrics: liveness_gold_bt_s{metric="since-last-run"}, liveness_last_successful_git_sync_s
 
 
 GoldIgnoreMonitoring
