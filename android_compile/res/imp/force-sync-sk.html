@@ -32,6 +32,10 @@
         border-spacing: 0px;
         width: 80%;
       }
+      tr.headers {
+        background-color: #CCCCFF;
+        text-align: center;
+      }
       tr {
         text-align: center;
       }
@@ -46,19 +50,25 @@
     </style>
 
     <table class="forcesync">
-      <col width = "50%">
-      <tr>
-        <td>
-          Checkout synced at: {{mirrorLastSynced}}
-        </td>
-        <td>
-          Periodic syncs done every: {{mirrorUpdateDuration}}
-        </td>
+      <tr class="headers">
+        <td colspan=3>Instances</td>
       </tr>
+      <template is="dom-repeat" items="[[androidCompileInstances]]">
+        <tr>
+          <td>
+            {{item.name}}
+          </td>
+          <td>
+            Last synced at: {{item.mirror_last_synced}}
+          </td>
+          <td>
+            Periodic syncs done every: {{item.mirror_update_duration}}
+          </td>
+        </tr>
+      </template>
       <tr>
-        <td colspan=2>
-          <paper-button raised id="force_sync" disabled={{mirrorUpdateRunning}}>Force Sync Android Checkout</paper-button>
-          <template is="dom-if" if="{{mirrorUpdateRunning}}"><br/>Checkout is currently being synced</template>
+        <td colspan=3>
+          <paper-button raised id="force_sync">Force Sync All Instances</paper-button>
         </td>
       </tr>
     </table>
@@ -69,17 +79,9 @@
   Polymer({
     is: "force-sync-sk",
     properties: {
-      mirrorLastSynced: {
-        type: Object,
-        value: null,
-      },
-      mirrorUpdateDuration: {
-        type: Object,
-        value: null,
-      },
-      mirrorUpdateRunning: {
-        type: Boolean,
-        value: false,
+      androidCompileInstances: {
+        type: Array,
+        value: [],
       },
     },
 
