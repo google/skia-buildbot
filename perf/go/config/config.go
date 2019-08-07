@@ -29,12 +29,14 @@ type PerfBigTableConfig struct {
 	GitUrl   string
 	Shards   int32
 	Sources  []string // List of gs: locations.
+	Branches []string // If populated then restrict to ingesting just these branches.
 }
 
 const (
 	NANO         = "nano"
 	ANDROID_PROD = "android-prod"
 	CT_PROD      = "ct-prod"
+	ANDROIDX     = "androidx"
 )
 
 var (
@@ -68,6 +70,16 @@ var (
 			GitUrl:   "https://skia.googlesource.com/perf-ct",
 			Shards:   8,
 			Sources:  []string{"gs://cluster-telemetry-perf/ingest"},
+		},
+		ANDROIDX: {
+			TileSize: 512,
+			Project:  "skia-public",
+			Instance: "production",
+			Table:    "perf-android-x",
+			Topic:    "perf-ingestion-android-production",
+			GitUrl:   "https://skia.googlesource.com/perf-buildid/android-master",
+			Shards:   8,
+			Sources:  []string{"gs://skia-perf/android-master-ingest"},
 		},
 	}
 )
