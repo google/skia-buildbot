@@ -299,7 +299,7 @@ func (r *gerritAndroidRoll) SwitchToNormal(ctx context.Context) error {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritAndroidRoll) RetryCQ(ctx context.Context) error {
 	return r.withModify(ctx, "retry TH", func() error {
-		if err := r.g.SetReview(ctx, r.ci, "TH failed but there are no new commits. Retrying...", map[string]interface{}{gerrit.PRESUBMIT_READY_LABEL: "1"}, nil); err != nil {
+		if err := r.g.SetReview(ctx, r.ci, "TH failed but there are no new commits. Retrying...", map[string]interface{}{gerrit.PRESUBMIT_READY_LABEL: "1", gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_SUBMIT}, nil); err != nil {
 			return err
 		}
 		r.issue.IsDryRun = false
