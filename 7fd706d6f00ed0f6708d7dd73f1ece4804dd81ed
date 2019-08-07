@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "c0cdd2e7_ad1f7b7b",
+        "filename": "autoroll/go/autoroll-be/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-07T18:37:21Z",
+      "side": 1,
+      "message": "Yeah, that was my intent. Having to base64-encode the config before local testing is an extra barrier.",
+      "parentUuid": "4fa9b67f_eb569679",
+      "revId": "7fd706d6f00ed0f6708d7dd73f1ece4804dd81ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c3dc7d58_1669e47c",
         "filename": "autoroll/go/autoroll-fe/main.go",
         "patchSetId": 6
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "5e19bd4e_bf67c8a0",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-07T18:37:21Z",
+      "side": 1,
+      "message": "It was more code to not support it than to support it, so I didn\u0027t bother.  Changed to make it consistent.",
+      "parentUuid": "c3dc7d58_1669e47c",
+      "revId": "7fd706d6f00ed0f6708d7dd73f1ece4804dd81ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d973807c_2002c1c7",
         "filename": "autoroll/go/push-helper/main.go",
         "patchSetId": 6
@@ -50,6 +86,24 @@
       "revId": "7fd706d6f00ed0f6708d7dd73f1ece4804dd81ed",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9ec4eae_86942907",
+        "filename": "autoroll/go/push-helper/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-07T18:37:21Z",
+      "side": 1,
+      "message": "I forgot to update the Makefile after adding this flag...",
+      "parentUuid": "d973807c_2002c1c7",
+      "revId": "7fd706d6f00ed0f6708d7dd73f1ece4804dd81ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

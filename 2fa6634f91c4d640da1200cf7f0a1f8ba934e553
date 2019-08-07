@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9e437a2b_37f6cbb5",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-07T18:37:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ebb172d_9919c07a",
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e2328631_a901599a",
         "filename": "autoroll/Makefile",
         "patchSetId": 4
@@ -39,6 +57,30 @@
       "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "494adbf7_3fc79dbb",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 4
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-07T18:37:21Z",
+      "side": 1,
+      "message": "Fixed in push-helper.",
+      "parentUuid": "e2328631_a901599a",
+      "range": {
+        "startLine": 116,
+        "startChar": 51,
+        "endLine": 116,
+        "endChar": 61
+      },
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -145,6 +187,24 @@
       "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c570c481_f250af3d",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 429,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-07T18:37:21Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "7b2fb919_ac8b1782",
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -277,6 +337,24 @@
       "side": 1,
       "message": "Ack",
       "parentUuid": "2ac545a0_6868358b",
+      "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "389f2937_00c021cf",
+        "filename": "autoroll/go/push-helper/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-07T18:37:21Z",
+      "side": 1,
+      "message": "Turns out it\u0027s easier without the Go client, when we\u0027re not using a configmap, ie. to use the API we\u0027d have to parse the k8s yaml files and make individual API calls for all of the individual statefulsets, deployments, disks, etc.  It\u0027s much simpler to just \"kubectl apply\" the files.",
+      "parentUuid": "536f1b38_1a78f5c3",
       "revId": "2fa6634f91c4d640da1200cf7f0a1f8ba934e553",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
