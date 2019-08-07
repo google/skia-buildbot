@@ -14,16 +14,12 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/git/gitinfo"
-	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/gitstore"
-	"go.skia.org/infra/go/gitstore/bt_gitstore"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/go/vcsinfo/bt_vcs"
-	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
+	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
+	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/web"
@@ -33,21 +29,21 @@ import (
 func main() {
 	// Command line flags.
 	var (
-		baselineGSPath     = flag.String("baseline_gs_path", "", "GS path, where the baseline file are stored. This should match the same flag in skiacorrectness which writes the baselines. Format: <bucket>/<path>.")
-		gitBTInstanceID    = flag.String("git_bt_instance", "", "ID of the BigTable instance that contains Git metadata")
-		gitBTTableID       = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
-		gitRepoDir         = flag.String("git_repo_dir", "", "Directory location for the Skia repo.")
-		gitRepoURL         = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
-		hashesGSPath       = flag.String("hashes_gs_path", "", "GS path, where the known hashes file should be stored. This should match the same flag in skiacorrectness which writes the hashes. Format: <bucket>/<path>.")
-		noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally and in K8s.")
-		port               = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
-		projectID          = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
-		promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-		serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
+		fsNamespace  = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
+		fsProjectID  = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
+		hashesGSPath = flag.String("hashes_gs_path", "", "GS path, where the known hashes file should be stored. This should match the same flag in skiacorrectness which writes the hashes. Format: <bucket>/<path>.")
+		local        = flag.Bool("local", false, "if running local (not in production)")
+		noCloudLog   = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally and in K8s.")
+		port         = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+		promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	)
 
 	// Parse the options. So we can configure logging.
 	flag.Parse()
+
+	if *fsNamespace == "" {
+		sklog.Fatalf("--fs_namespace must be set")
+	}
 
 	// Set up the logging options.
 	logOpts := []common.Opt{
@@ -61,56 +57,36 @@ func main() {
 	_, appName := filepath.Split(os.Args[0])
 	common.InitWithMust(appName, logOpts...)
 	skiaversion.MustLogVersion()
-
-	// Get the client to be used to access GCS and the Monorail issue tracker.
-	tokenSource, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	// Auth note: the underlying firestore.NewClient looks at the
+	// GOOGLE_APPLICATION_CREDENTIALS env variable, so we don't need to supply
+	// a token source.
+	fsClient, err := firestore.NewClient(context.Background(), *fsProjectID, "gold", *fsNamespace, nil)
 	if err != nil {
-		sklog.Fatalf("Failed to authenticate service account: %s", err)
+		sklog.Fatalf("Unable to configure Firestore: %s", err)
 	}
 
-	// TODO(dogben): Ok to add request/dial timeouts?
-	client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithoutRetries().Client()
-	ctx := context.Background()
+	expStore, err := fs_expstore.New(fsClient, nil, fs_expstore.ReadOnly)
+	if err != nil {
+		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
+	}
 
-	// TODO(stephana): There is a lot of overlap with code in skiacorrectness/main.go. This should
-	// be factored out into a common function.
+	// Initialize the Baseliner instance from the values set above.
+	baseliner := simple_baseliner.New(expStore)
+
 	gsClientOpt := storage.GCSClientOptions{
-		HashesGSPath:   *hashesGSPath,
-		BaselineGSPath: *baselineGSPath,
+		HashesGSPath: *hashesGSPath,
 	}
+
+	tokenSource, err := auth.NewDefaultTokenSource(*local, gstorage.CloudPlatformScope)
+	if err != nil {
+		sklog.Fatalf("Could not create token source: %s", err)
+	}
+
+	client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
 
 	gsClient, err := storage.NewGCSClient(client, gsClientOpt)
 	if err != nil {
 		sklog.Fatalf("Unable to create GCSClient: %s", err)
-	}
-
-	var vcs vcsinfo.VCS
-	if *gitBTInstanceID != "" && *gitBTTableID != "" {
-		btConf := &bt_gitstore.BTConfig{
-			ProjectID:  *projectID,
-			InstanceID: *gitBTInstanceID,
-			TableID:    *gitBTTableID,
-		}
-		var gitStore gitstore.GitStore
-		gitStore, err = bt_gitstore.New(ctx, btConf, *gitRepoURL)
-		if err != nil {
-			sklog.Fatalf("Error instantiating gitstore: %s", err)
-		}
-		gitilesRepo := gitiles.NewRepo("", "", nil)
-		vcs, err = bt_vcs.New(ctx, gitStore, "master", gitilesRepo)
-	} else {
-		vcs, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
-	}
-	if err != nil {
-		sklog.Fatalf("Error creating VCS instance: %s", err)
-	}
-
-	// Initialize the Baseliner instance from the values set above.
-	// expectationsStore and tryjobStore can both be nil, since they are only used
-	// when pushing baselines, and we read baselines.
-	baseliner, err := gcs_baseliner.New(gsClient, nil, nil, vcs)
-	if err != nil {
-		sklog.Fatalf("Error initializing baseliner: %s", err)
 	}
 
 	// We only need to fill in the WebHandlers struct with the following subset, since the baseline

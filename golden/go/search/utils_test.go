@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/golden/go/baseline/gcs_baseliner"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/mocks"
@@ -156,14 +155,10 @@ func getAPIAndIndexerFromTile(t sktest.TestingT, path string, randomize bool) (S
 
 	eventBus := eventbus.New()
 
-	baseliner, err := gcs_baseliner.New(nil, mes, nil, nil)
-	assert.NoError(t, err)
-
 	ic := indexer.IndexerConfig{
 		ExpectationsStore: mes,
 		TileSource:        mts,
 		EventBus:          eventBus,
-		Baseliner:         baseliner,
 		DiffStore:         mds,
 		Warmer:            warmer.New(),
 	}

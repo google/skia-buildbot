@@ -26,7 +26,7 @@ import (
 func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mb := &mocks.Baseliner{}
+	mb := &mocks.BaselineWriter{}
 	mds := &mocks.DiffStore{}
 	mdw := &mocks.DiffWarmer{}
 	meb := &mock_eventbus.EventBus{}
@@ -142,7 +142,7 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 func TestIndexerPartialUpdate(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mb := &mocks.Baseliner{}
+	mb := &mocks.BaselineWriter{}
 	mdw := &mocks.DiffWarmer{}
 	meb := &mock_eventbus.EventBus{}
 	mes := &mocks.ExpectationsStore{}
