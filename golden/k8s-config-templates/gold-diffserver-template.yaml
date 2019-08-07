@@ -47,7 +47,7 @@ spec:
           args:
             - "--cache_size=10"
             - "--grpc_port=:8000"
-            - "--gs_buckets=skia-gold-{{.INSTANCE_ID}}"
+            - "--gs_buckets={{.BUCKET}}"
             - "--image_dir=/data"
             - "--image_port=:8001"
             - "--logtostderr"
