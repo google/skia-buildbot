@@ -11,20 +11,32 @@ include ../webtools/webtools.mk
 include ../go/skiaversion/skiaversion.mk
 
 # Build debug versions of core.js and elements.html.
-.PHONY: debug_android_compile
-debug_android_compile: clean_webtools debug_core_js debug_elements_html skiaversion
-	go install -v ./go/...
+.PHONY: debug_android_compile_fe
+debug_android_compile_fe: clean_webtools debug_core_js debug_elements_html skiaversion
+	go install -v ./go/android_compile_fe/...
 
-.PHONY: android_compile
-android_compile: clean_webtools elements_html
-	GOOS=linux go install -v ./go/...
+.PHONY: android_compile_fe
+android_compile_fe: clean_webtools elements_html
+	GOOS=linux go install -v ./go/android_compile_fe
 
-.PHONY: release
-release: android_compile
-	./build_docker_release
+.PHONY: release_fe
+release_fe: android_compile_fe
+	./build_fe_release
 
-.PHONY: push
+.PHONY: android_compile_be
+android_compile_be:
+	GOOS=linux go install -v ./go/android_compile_be
+
+.PHONY: release_be
+release_be: android_compile_be
+	./build_be_release
+
+.PHONY: push_fe
 push: skia-corp
-	pushk --cluster=skia-corp android_compile
+	pushk --cluster=skia-corp android_compile_fe
+
+.PHONY: push_be
+push: skia-corp
+	pushk --cluster=skia-corp android_compile_be
 
 include ../make/clusters.mk
