@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "880b806c_20641693",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-07T18:52:14Z",
+      "side": 1,
+      "message": "Yea either approach is fine as long as both are doing it.",
+      "parentUuid": "5e19bd4e_bf67c8a0",
+      "revId": "7fd706d6f00ed0f6708d7dd73f1ece4804dd81ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d973807c_2002c1c7",
         "filename": "autoroll/go/push-helper/main.go",
         "patchSetId": 6
