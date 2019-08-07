@@ -266,7 +266,7 @@ func (rm *githubCipdDEPSRepoManager) RolledPast(ctx context.Context, rev *revisi
 }
 
 func (rm *githubCipdDEPSRepoManager) getLastRollRev(ctx context.Context) (*revision.Revision, error) {
-	output, err := exec.RunCwd(ctx, rm.parentDir, "python", rm.gclient, "getdep", "-r", fmt.Sprintf("%s:%s", rm.childPath, rm.cipdAssetName))
+	output, err := exec.RunCwd(ctx, rm.parentDir, rm.gclient, "getdep", "-r", fmt.Sprintf("%s:%s", rm.childPath, rm.cipdAssetName))
 	if err != nil {
 		return nil, err
 	}

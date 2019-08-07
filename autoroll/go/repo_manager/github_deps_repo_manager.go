@@ -92,7 +92,7 @@ func newGithubDEPSRepoManager(ctx context.Context, c *GithubDEPSRepoManagerConfi
 }
 
 func (rm *githubDEPSRepoManager) getdep(ctx context.Context, depsFile, depPath string) (string, error) {
-	output, err := exec.RunCwd(ctx, path.Dir(depsFile), "python", rm.gclient, "getdep", "-r", depPath)
+	output, err := exec.RunCwd(ctx, path.Dir(depsFile), rm.gclient, "getdep", "-r", depPath)
 	if err != nil {
 		return "", err
 	}

@@ -142,7 +142,7 @@ func (rm *noCheckoutDEPSRepoManager) getDEPSFile(ctx context.Context, repo *giti
 	// Use "gclient getdep" to retrieve the last roll revision.
 
 	// "gclient getdep" requires a .gclient file.
-	if _, err := exec.RunCwd(ctx, wd, "python", rm.gclient, "config", repo.URL); err != nil {
+	if _, err := exec.RunCwd(ctx, wd, rm.gclient, "config", repo.URL); err != nil {
 		return "", nil, err
 	}
 	splitRepo := strings.Split(repo.URL, "/")
@@ -275,7 +275,7 @@ func (rm *noCheckoutDEPSRepoManager) RolledPast(ctx context.Context, rev *revisi
 }
 
 func (rm *noCheckoutDEPSRepoManager) getdep(ctx context.Context, depsFile, depPath string) (string, error) {
-	output, err := exec.RunCwd(ctx, path.Dir(depsFile), "python", rm.gclient, "getdep", "-r", depPath)
+	output, err := exec.RunCwd(ctx, path.Dir(depsFile), rm.gclient, "getdep", "-r", depPath)
 	if err != nil {
 		return "", err
 	}

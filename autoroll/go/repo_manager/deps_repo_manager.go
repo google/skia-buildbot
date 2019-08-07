@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	GCLIENT = "gclient.py"
+	GCLIENT = "gclient"
 )
 
 var (
@@ -127,7 +127,7 @@ func (dr *depsRepoManager) Update(ctx context.Context) error {
 }
 
 func (dr *depsRepoManager) getLastRollRev(ctx context.Context) (*revision.Revision, error) {
-	output, err := exec.RunCwd(ctx, dr.parentDir, "python", dr.gclient, "getdep", "-r", dr.childPath)
+	output, err := exec.RunCwd(ctx, dr.parentDir, dr.gclient, "getdep", "-r", dr.childPath)
 	if err != nil {
 		return nil, err
 	}
@@ -220,8 +220,8 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 		Dir:        dr.workdir,
 		Env:        dr.depotToolsEnv,
 		InheritEnv: true,
-		Name:       "python",
-		Args:       []string{dr.gclient, "sync", "--nohooks"},
+		Name:       dr.gclient,
+		Args:       []string{"sync", "--nohooks"},
 	}); err != nil {
 		return 0, err
 	}

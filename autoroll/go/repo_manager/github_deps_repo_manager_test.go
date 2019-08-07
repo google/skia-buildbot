@@ -91,7 +91,7 @@ func setupGithubDEPS(t *testing.T) (context.Context, string, *git_testutils.GitB
 	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
 		// Without this, the mock commands get confused with:
 		// "Could not switch upstream branch from refs/remotes/remote/master to refs/remotes/origin/master"
-		if strings.Contains(cmd.Name, "gclient") && (cmd.Args[0] == "sync" || cmd.Args[0] == "runhooks") {
+		if strings.Contains(cmd.Name, "gclient") && cmd.Args[0] == "runhooks" {
 			return nil
 		}
 		return exec.DefaultRun(cmd)
