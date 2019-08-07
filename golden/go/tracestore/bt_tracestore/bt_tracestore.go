@@ -213,6 +213,7 @@ func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, tk tileKe
 // any traces seen in the tile (since it ended prior to our cutoff point).
 func (b *BTTraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile, []*tiling.Commit, error) {
 	defer metrics2.FuncTimer().Stop()
+	sklog.Infof("GetTile(%d)", nCommits)
 	// Look up the commits we need to query from BT
 	idxCommits := b.vcs.LastNIndex(nCommits)
 	if len(idxCommits) == 0 {
@@ -264,6 +265,7 @@ func (b *BTTraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile,
 		Commits:  commits,
 		Scale:    0,
 	}
+	sklog.Infof("GetTile complete")
 
 	return ret, commits, nil
 }
@@ -379,6 +381,7 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 // there is enough non-empty data, then queries the next oldest tile until it has nCommits
 // non-empty commits.
 func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.Tile, []*tiling.Commit, error) {
+	sklog.Infof("GetDenseTile(%d)", nCommits)
 	defer metrics2.FuncTimer().Stop()
 	// Figure out what index we are on.
 	idxCommits := b.vcs.LastNIndex(1)
@@ -485,6 +488,8 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 		Commits:  denseCommits,
 		Scale:    0,
 	}
+	sklog.Infof("GetDenseTile complete")
+
 	return ret, allCommits, nil
 }
 
@@ -635,6 +640,16 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 						ID:      traceKey,
 						Digests: [DefaultTileSize]types.Digest{},
 					}
+					// kjlubick@ and benjaminwagner@ are not super sure why, but this
+					// helps reduce memory usage by allowing the allocated pair to be
+					// cleaned up after GetTile/GetDenseTile completes.
+					// Without this initialization step, the Digest arrays seem to
+					// persist, causing a 2-3x increase in tile RAM size.
+					// It might be due to a bug in golang and/or just that the GC gets a
+					// little confused due to the complex procedure of passing things around.
+					for i := range pair.Digests {
+						pair.Digests[i] = types.MISSING_DIGEST
+					}
 
 					for _, col := range row[traceFamily] {
 						// The columns are something like T:35 where the part
@@ -661,6 +676,8 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 				}, bigtable.RowFilter(
 					bigtable.ChainFilters(
 						bigtable.FamilyFilter(traceFamily),
+						// can be used for local testing to keep RAM usage lower
+						// bigtable.RowSampleFilter(0.1),
 						bigtable.LatestNFilter(1),
 						bigtable.CellsPerRowLimitFilter(DefaultTileSize),
 					),
