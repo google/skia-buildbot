@@ -87,6 +87,7 @@ window.customElements.define('commit-detail-panel-sk', class extends ElementSk {
     }
     this.selected = +ele.dataset['id']
     let detail = {
+      index: ele.dataset.id,
       description: ele.textContent.trim(),
       commit: this._details[this.selected],
     }
