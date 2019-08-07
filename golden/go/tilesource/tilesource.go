@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/tracestore"
@@ -25,11 +26,6 @@ type TileSource interface {
 	// GetTile returns the most recently loaded Tile.
 	GetTile() (types.ComplexTile, error)
 }
-
-const (
-	// How long to cache the tile
-	tileCacheTime = 3 * time.Minute
-)
 
 type CachedTileSourceConfig struct {
 	EventBus      eventbus.EventBus
@@ -53,7 +49,7 @@ type CachedTileSourceImpl struct {
 
 	lastCpxTile   types.ComplexTile
 	lastTimeStamp time.Time
-	mutex         sync.Mutex
+	mutex         sync.RWMutex
 }
 
 func New(c CachedTileSourceConfig) *CachedTileSourceImpl {
@@ -63,32 +59,44 @@ func New(c CachedTileSourceConfig) *CachedTileSourceImpl {
 	return cti
 }
 
+// StartUpdater loads the initial tile and starts a goroutine to update it at
+// the specified interval. It returns an error if the initial load fails, but
+// will only log errors that happen later.
+func (s *CachedTileSourceImpl) StartUpdater(ctx context.Context, interval time.Duration) error {
+	if err := s.updateTile(ctx); err != nil {
+		return skerr.Wrapf(err, "failed initial tile update")
+	}
+	go util.RepeatCtx(interval, ctx, func() {
+		if err := s.updateTile(ctx); err != nil {
+			sklog.Errorf("Could not update tile: %s", err)
+		}
+	})
+	return nil
+}
+
 // TODO(stephana): Expand the Tile type to make querying faster.
 // i.e. add traces as an array so that iteration can be done in parallel and
 // add map[hash]Commit to do faster commit lookup (-> Remove tiling.FindCommit).
 
-// GetLastTrimmed returns the last tile as read-only trimmed to contain at
-// most NCommits. It caches trimmed tiles as long as the underlying tiles
-// do not change.
+// GetTile implements the TileSource interface.
 func (s *CachedTileSourceImpl) GetTile() (types.ComplexTile, error) {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
 
-	// If the tile was updated within a certain time window just return it without
-	// calculating it again.
-	if s.lastCpxTile != nil && (time.Since(s.lastTimeStamp) < tileCacheTime) {
-		sklog.Infof("short circuiting get tile, because it's still new: %s < %s", time.Since(s.lastTimeStamp), tileCacheTime)
-		return s.lastCpxTile, nil
-	}
+	return s.lastCpxTile, nil
+}
+
+// updateTile fetches the latest tile and caches it.
+func (s *CachedTileSourceImpl) updateTile(ctx context.Context) error {
 	defer metrics2.FuncTimer().Stop()
 
-	if err := s.VCS.Update(context.TODO(), true, false); err != nil {
-		return nil, skerr.Wrapf(err, "could not update VCS")
+	if err := s.VCS.Update(ctx, true, false); err != nil {
+		return skerr.Wrapf(err, "could not update VCS")
 	}
 
-	denseTile, allCommits, err := s.TraceStore.GetDenseTile(context.TODO(), s.NCommits)
+	denseTile, allCommits, err := s.TraceStore.GetDenseTile(ctx, s.NCommits)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "could not fetch dense tile")
+		return skerr.Wrapf(err, "could not fetch dense tile")
 	}
 
 	// Filter down to the publicly viewable ones
@@ -100,21 +108,23 @@ func (s *CachedTileSourceImpl) GetTile() (types.ComplexTile, error) {
 	// Get the tile without the ignored traces and update the complex tile.
 	ignores, err := s.IgnoreStore.List()
 	if err != nil {
-		return nil, skerr.Wrapf(err, "could not fetch ignore rules")
+		return skerr.Wrapf(err, "could not fetch ignore rules")
 	}
 	retIgnoredTile, ignoreRules, err := ignore.FilterIgnored(denseTile, ignores)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "could not apply ignore rules to tile")
+		return skerr.Wrapf(err, "could not apply ignore rules to tile")
 	}
 	cpxTile.SetIgnoreRules(retIgnoredTile, ignoreRules)
 
 	// check if all the expectations of all commits have been added to the tile.
 	s.checkCommitableIssues(cpxTile)
 
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	// Update the cached tile and return the result.
 	s.lastCpxTile = cpxTile
 	s.lastTimeStamp = time.Now()
-	return cpxTile, nil
+	return nil
 }
 
 // filterTile creates a new tile from the given tile that contains

@@ -556,6 +556,7 @@ func writeKnownHashesList(state interface{}) error {
 		if err := idx.gcsClient.WriteKnownDigests(hashes.Keys()); err != nil {
 			sklog.Errorf("Error writing known digests list: %s", err)
 		}
+		sklog.Infof("Finished writing %d known hashes", len(hashes))
 	}()
 	return nil
 }
@@ -580,7 +581,6 @@ func writeMasterBaseline(state interface{}) error {
 			sklog.Errorf("Error pushing master baseline to GCS: %s", err)
 		}
 	}()
-
 	return nil
 }
 
