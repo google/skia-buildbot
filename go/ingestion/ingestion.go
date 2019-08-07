@@ -116,8 +116,9 @@ func (i *Ingester) Close() error {
 	// Stop the internal Go routines.
 	close(i.doneCh)
 
-	// Close the liveness.
-	i.eventProcessMetrics.liveness.Close()
+	// Close the liveness metrics.
+	i.eventProcessMetrics.pollingLiveness.Close()
+	i.eventProcessMetrics.processLiveness.Close()
 
 	// Give straggling operations time to complete before we close the ingestion store.
 	time.Sleep(1 * time.Second)
@@ -163,6 +164,8 @@ func (i *Ingester) watchSource(source Source) {
 		processed := int64(0)
 		ignored := int64(0)
 		for rf := range rfCh {
+			// It is a rare case that the pubsub event got lost, so we check to see
+			// if we already processed the file before re-queuing it.
 			if i.inProcessedFiles(rf.Name(), rf.MD5()) {
 				ignored++
 				continue
@@ -174,7 +177,7 @@ func (i *Ingester) watchSource(source Source) {
 		}
 		i.eventProcessMetrics.ignoredByPollingGauge.Update(ignored)
 		i.eventProcessMetrics.processedByPollingGauge.Update(processed)
-		i.eventProcessMetrics.liveness.Reset()
+		i.eventProcessMetrics.pollingLiveness.Reset()
 		sklog.Infof("Watcher for %s received/processed/ignored: %d/%d/%d", source.ID(), ignored+processed, processed, ignored)
 	})
 }
@@ -200,21 +203,18 @@ func (i *Ingester) addToProcessedFiles(name, md5 string) {
 
 // processResult processes a single result file.
 func (i *Ingester) processResult(ctx context.Context, rfl ResultFileLocation) {
+	// processResult does not check the inProcessedFiles because we want to retain the ability
+	// to force a re-process via bt_reingester or other means.
 	name, md5 := rfl.Name(), rfl.MD5()
-	if i.inProcessedFiles(name, md5) {
-		sklog.Infof("Skipping %s with md5 %s because we've already ingested it.", name, md5)
-		return
-	}
-
 	err := i.processor.Process(ctx, rfl)
 	if err != nil {
 		if err != IgnoreResultsFileErr {
-			sklog.Errorf("Failed to ingest %s: %s", rfl.Name(), err)
-			return
+			sklog.Errorf("Failed to ingest %s: %s", name, err)
 		}
+		return
 	}
 	i.addToProcessedFiles(name, md5)
-	i.eventProcessMetrics.liveness.Reset()
+	i.eventProcessMetrics.processLiveness.Reset()
 }
 
 // getStartTimeOfInterest returns the start time of input files we are interested in.
@@ -274,10 +274,9 @@ type tags map[string]string
 type processMetrics struct {
 	ignoredByPollingGauge   metrics2.Int64Metric
 	processedByPollingGauge metrics2.Int64Metric
-	liveness                metrics2.Liveness
+	pollingLiveness         metrics2.Liveness
+	processLiveness         metrics2.Liveness
 }
-
-// TODO(stephana): Remove the "poll" value below, this is to have continuity with existing metrics.
 
 // newProcessMetrics instantiates the metrics to track processing and registers them
 // with the metrics package.
@@ -286,6 +285,7 @@ func newProcessMetrics(id string) *processMetrics {
 	return &processMetrics{
 		ignoredByPollingGauge:   metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, tags{TAG_INGESTION_METRIC: "ignored"}),
 		processedByPollingGauge: metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, tags{TAG_INGESTION_METRIC: "processed"}),
-		liveness:                metrics2.NewLiveness(id, tags{TAG_INGESTER_SOURCE: "poll", TAG_INGESTION_METRIC: "since-last-run"}),
+		pollingLiveness:         metrics2.NewLiveness(id, tags{TAG_INGESTER_SOURCE: "poll", TAG_INGESTION_METRIC: "since-last-run"}),
+		processLiveness:         metrics2.NewLiveness(id, tags{TAG_INGESTER_SOURCE: "gcs_event", TAG_INGESTION_METRIC: "last-successful-process"}),
 	}
 }
