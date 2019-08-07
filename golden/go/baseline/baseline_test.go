@@ -56,12 +56,7 @@ func TestGetBaselineForIssueSunnyDay(t *testing.T) {
 		data.MakeTestExpectations(), makeSparseCommits())
 	assert.NoError(t, err)
 
-	sparseCommits := makeSparseCommits()
 	assert.Equal(t, &baseline.Baseline{
-		StartCommit:  sparseCommits[2],
-		EndCommit:    sparseCommits[3],
-		Total:        0,
-		Filled:       0,
 		Issue:        issue,
 		Expectations: both,
 		MD5:          bothMD5,
