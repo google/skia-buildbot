@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "04e5f678_052eeffc",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 584,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-07T17:48:12Z",
+      "side": 1,
+      "message": "unintentional change?",
+      "revId": "30c5dbe34f33a7df0d6099373d810944e80a15e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c05a8145_9f29bb70",
+        "filename": "golden/k8s-config-templates/gold-diffserver-template.yaml",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-07T17:48:12Z",
+      "side": 1,
+      "message": "I don\u0027t understand these changes and the commit message doesn\u0027t mention it. Are you deleting all the gold-*-diffserver-diffs-storage-volume?",
+      "revId": "30c5dbe34f33a7df0d6099373d810944e80a15e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
