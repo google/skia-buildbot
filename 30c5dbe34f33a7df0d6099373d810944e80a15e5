@@ -69,6 +69,24 @@
       "revId": "30c5dbe34f33a7df0d6099373d810944e80a15e5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dfa6cc62_7e8642a6",
+        "filename": "golden/k8s-config-templates/gold-diffserver-template.yaml",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-07T19:07:21Z",
+      "side": 1,
+      "message": "Resolved verbally.",
+      "parentUuid": "c1152f45_210d6ab6",
+      "revId": "30c5dbe34f33a7df0d6099373d810944e80a15e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
