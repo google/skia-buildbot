@@ -9,7 +9,7 @@ CORE_SOURCE_FILES = third_party/bower_components/webcomponentsjs/webcomponents.m
 
 BOWER_DIR=third_party/bower_components
 
-all: clean_webtools statusk
+all: clean_webtools status
 
 include ../go/skiaversion/skiaversion.mk
 
@@ -26,17 +26,17 @@ touch_elements:
 testgo: skiaversion
 	go test ./go/... -v
 
-statusk: web skiaversion
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/statusk
+status: web skiaversion
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/status
 
-release_kube: statusk
+release: status
 	./build_docker_release
 
-run_kube: release
+run_docker: release
 	docker run status
 
-push_kube: release_kube skia-public
-	pushk --message="$(MESSAGE)" statusk
+push: release skia-public
+	pushk --message="$(MESSAGE)" status
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
