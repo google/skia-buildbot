@@ -16,8 +16,9 @@
     <list-tasks-sk></list-tasks-sk>
 
   Attributes:
-    waitingTasks - An array of compile tasks waiting to be picked up.
-    runningTasks - An array of currently running compile tasks.
+    androidCompileInstances - An array of Android compile instances.
+    unownedPendingTasks - An array of compile tasks waiting to be picked up.
+    ownedPendingTasks - An array of currently running compile tasks.
 
   Events:
     None
@@ -55,9 +56,7 @@
       <compile-menu-sk navigation></compile-menu-sk>
       <br/><br/>
 
-      <force-sync-sk mirror-last-synced="{{mirrorLastSynced}}"
-                     mirror-update-duration="{{mirrorUpdateDuration}}"
-                     mirror-update-running="{{mirrorUpdateRunning}}">
+      <force-sync-sk android-compile-instances="[[androidCompileInstances]]">
       </force-sync-sk>
       <br/><br/>
 
@@ -66,10 +65,10 @@
         <col width = "50%">
         <tr class="headers">
           <td colspan=2>
-            [[waitingTasks.length]] Tasks Waiting in Queue
+            [[unownedPendingTasks.length]] Tasks Waiting in Queue
           </td>
         </tr>
-        <template is="dom-repeat" items="{{waitingTasks}}">
+        <template is="dom-repeat" items="{{unownedPendingTasks}}">
           <tr>
             <td>
               <template is="dom-if" if="[[item.hash]]">
@@ -93,19 +92,14 @@
         <col width = "50%">
         <tr class="headers">
           <td colspan=2>
-            [[runningTasks.length]] Tasks Currently Running
+            [[ownedPendingTasks.length]] Tasks Currently Running
           </td>
         </tr>
-        <template is="dom-repeat" items="{{runningTasks}}">
+        <template is="dom-repeat" items="{{ownedPendingTasks}}">
           <tr>
             <td>
-              Running on [[item.checkout]] :
-              <template is="dom-if" if="[[item.hash]]">
-                <a href="[[ _getHashLink(item.hash) ]]" target="_blank">[[ _getShortHash(item.hash) ]]</a>
-              </template>
-              <template is="dom-if" if="[[item.issue]]">
-                <a href="[[ _getGerritLink(item.issue, item.patchset) ]]" target="_blank">skrev/[[item.issue]]/[[item.patchset]]</a>
-              </template>
+              Running on [[item.compile_server_instance]] ([[item.checkout]]):
+              <a href="[[ _getGerritLink(item.issue, item.patchset) ]]" target="_blank">skrev/[[item.issue]]/[[item.patchset]]</a>
             </td>
             <td>
               Created: [[ _formatTimestamp(item.created) ]]
@@ -120,23 +114,15 @@
   Polymer({
     is: "list-tasks-sk",
     properties: {
-      mirrorLastSynced: {
-        type: Object,
-        value: null,
-      },
-      mirrorUpdateDuration: {
-        type: Object,
-        value: null,
-      },
-      mirrorUpdateRunning: {
-        type: Boolean,
-        value: false,
-      },
-      waitingTasks: {
+      androidCompileInstances: {
         type: Array,
         value: [],
       },
-      runningTasks: {
+      unownedPendingTasks: {
+        type: Array,
+        value: [],
+      },
+      ownedPendingTasks: {
         type: Array,
         value: [],
       },

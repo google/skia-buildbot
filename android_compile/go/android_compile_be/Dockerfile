@@ -39,4 +39,4 @@ COPY . /
 ENV JAVA_HOME /usr/lib/jvm/java-1.8.0-openjdk-amd64
 ENV PATH /home/skia/bin:$PATH
 
-ENTRYPOINT ["/usr/local/bin/android_compile"]
+ENTRYPOINT ["/usr/local/bin/android_compile_be"]
