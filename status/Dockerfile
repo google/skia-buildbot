@@ -4,4 +4,4 @@ USER skia
 
 COPY . /
 
-ENTRYPOINT ["/usr/local/bin/statusk"]
+ENTRYPOINT ["/usr/local/bin/status"]
