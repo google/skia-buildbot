@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "09c65fda_c79d01cd",
+        "filename": "android_compile/go/android_compile_be/main.go",
+        "patchSetId": 38
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-08T13:42:48Z",
+      "side": 1,
+      "message": "Maybe it makes sense to have this constant if I add better documentation explaining why we do this. Done.",
+      "parentUuid": "cbf3e14f_e0c52953",
+      "range": {
+        "startLine": 38,
+        "startChar": 25,
+        "endLine": 38,
+        "endChar": 26
+      },
+      "revId": "a49c188bf736c75a1feff5f50d42f071f04b26e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c316d623_cb7f449b",
         "filename": "android_compile/go/android_compile_be/main.go",
         "patchSetId": 38
