@@ -143,13 +143,20 @@ func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs 
 	if branch, ok := benchData.Key["branch"]; ok {
 		if len(branches) > 0 {
 			if !util.In(branch, branches) {
-				sklog.Infof("Skipping branch: %q", branch)
 				return nil
 			}
 		}
+	} else {
+		sklog.Infof("No branch name.")
 	}
 
 	params, values, paramset := getParamsAndValues(benchData)
+	// Don't do any more work if there's no data to ingest.
+	if len(params) == 0 {
+		sklog.Infof("No data in: %q", filename)
+		return nil
+	}
+	sklog.Infof("Processing %q", filename)
 	index, ok := indexFromCache(benchData.Hash)
 	if !ok {
 		var err error
@@ -270,6 +277,11 @@ func main() {
 					sklog.Error(err)
 					return
 				}
+				// Transaction logs for android_ingest are written to the same bucket,
+				// which we should ignore.
+				if strings.Contains(event.Name, "/tx_log/") {
+					return
+				}
 				// Load the file.
 				obj := gcsClient.Bucket(event.Bucket).Object(event.Name)
 				attrs, err := obj.Attrs(ctx)
@@ -283,7 +295,7 @@ func main() {
 					return
 				}
 				defer util.Close(reader)
-				sklog.Info(attrs.Name)
+				sklog.Infof("Filename: %q", attrs.Name)
 				// Pull data out of file and write it into BigTable.
 				fullName := fmt.Sprintf("gs://%s/%s", event.Bucket, event.Name)
 				err = processSingleFile(ctx, store, vcs, fullName, reader, attrs.Created, cfg.Branches)
