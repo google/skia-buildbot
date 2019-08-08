@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6fb92deb_da30bef4",
+        "filename": "android_compile/go/android_compile_be/main.go",
+        "patchSetId": 38
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-08T12:30:35Z",
+      "side": 1,
+      "message": "This seems low.",
+      "range": {
+        "startLine": 38,
+        "startChar": 25,
+        "endLine": 38,
+        "endChar": 26
+      },
+      "revId": "a49c188bf736c75a1feff5f50d42f071f04b26e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c316d623_cb7f449b",
+        "filename": "android_compile/go/android_compile_be/main.go",
+        "patchSetId": 38
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-08T12:30:35Z",
+      "side": 1,
+      "message": "We used to do updateInfraFailureMetric(task.InfraFailure) here. Is that no longer needed?",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 18
+      },
+      "revId": "a49c188bf736c75a1feff5f50d42f071f04b26e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9fbde97_1d9baba3",
+        "filename": "android_compile/go/android_compile_be/main.go",
+        "patchSetId": 38
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-08T12:30:35Z",
+      "side": 1,
+      "message": "I\u0027m not familiar with GCS pubsub messages; can you explain what this means?",
+      "range": {
+        "startLine": 225,
+        "startChar": 21,
+        "endLine": 225,
+        "endChar": 40
+      },
+      "revId": "a49c188bf736c75a1feff5f50d42f071f04b26e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b420bfb_5f9661ff",
+        "filename": "android_compile/res/imp/force-sync-sk.html",
+        "patchSetId": 38
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-08T12:30:35Z",
+      "side": 1,
+      "message": "Does it make sense to have a button to force sync a single instance?",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 67,
+        "endChar": 13
+      },
+      "revId": "a49c188bf736c75a1feff5f50d42f071f04b26e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
