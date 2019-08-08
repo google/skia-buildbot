@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "60915711_de6c3278",
+        "filename": "datahopper/go/bot_metrics/bot_metrics.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-08T17:45:40Z",
+      "side": 1,
+      "message": "nit: FWIW, read does \"ev, err :\u003d edb.Range(fmtStream(repoUrl), from, to)\"",
+      "range": {
+        "startLine": 379,
+        "startChar": 0,
+        "endLine": 380,
+        "endChar": 41
+      },
+      "revId": "640bf7626cd696383b807feeb1b22cf55120cba6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
