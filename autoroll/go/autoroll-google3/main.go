@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"flag"
 	"io"
 	"net/http"
@@ -27,7 +29,8 @@ import (
 
 // flags
 var (
-	configFile  = flag.String("config_file", "", "Configuration file to use.")
+	config      = flag.String("config", "", "Base 64 encoded configuration in JSON format, mutually exclusive with --config_file.")
+	configFile  = flag.String("config_file", "", "Configuration file to use, mutually exclusive with --config.")
 	local       = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port        = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
 	promPort    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -48,11 +51,25 @@ func main() {
 		sklog.Fatal("--webhook_request_salt is required.")
 	}
 
+	// Decode the config.
 	var cfg roller.AutoRollerConfig
-	if err := util.WithReadFile(*configFile, func(f io.Reader) error {
-		return json5.NewDecoder(f).Decode(&cfg)
-	}); err != nil {
-		sklog.Fatal(err)
+	if (*config == "" && *configFile == "") || (*config != "" && *configFile != "") {
+		sklog.Fatal("Exactly one of --config or --config_file is required.")
+	}
+	if *config != "" {
+		b, err := base64.StdEncoding.DecodeString(*config)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		if err := json5.NewDecoder(bytes.NewReader(b)).Decode(&cfg); err != nil {
+			sklog.Fatal(err)
+		}
+	} else {
+		if err := util.WithReadFile(*configFile, func(f io.Reader) error {
+			return json5.NewDecoder(f).Decode(&cfg)
+		}); err != nil {
+			sklog.Fatal(err)
+		}
 	}
 
 	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, datastore.ScopeDatastore)
