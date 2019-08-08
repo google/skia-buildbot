@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bdd6cbe8_b0fa7f2a",
+        "filename": "perf/go/perf-ingest/main.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-08T19:28:50Z",
+      "side": 1,
+      "message": "nit: wrap to 100 cols",
+      "range": {
+        "startLine": 280,
+        "startChar": 4,
+        "endLine": 280,
+        "endChar": 98
+      },
+      "revId": "079357bdda65b0d12f95c00076092a2c6597db02",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
