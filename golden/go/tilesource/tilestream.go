@@ -32,9 +32,14 @@ func GetTileStreamNow(ts TileSource, interval time.Duration, metricsTag string) 
 					retCh <- lastTile
 				}
 			} else {
-				lastTile = tile
-				lastTileStreamed.Reset()
-				retCh <- tile
+				if lastTile != tile {
+					lastTile = tile
+					lastTileStreamed.Reset()
+					retCh <- tile
+				} else {
+					sklog.Debugf("Tile hasn't changed for tile stream")
+				}
+
 			}
 		}
 

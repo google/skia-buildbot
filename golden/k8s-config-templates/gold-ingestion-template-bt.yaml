@@ -35,19 +35,20 @@ spec:
         runAsUser: 2000 # aka skia
         fsGroup: 2000   # aka skia
       containers:
-        - name: gold-{{.INSTANCE_ID}}-ingestion
+        - name: gold-{{.INSTANCE_ID}}-ingestion-bt
           image: {{.INGESTION_BT_IMAGE}}
           args:
+            - "--bt_instance={{.BIGTABLE_INSTANCE}}"
+            - "--bt_project_id={{.BIGTABLE_PROJECT}}"
             - "--config_filename=/etc/gold-ingestion/gold-{{.INSTANCE_ID}}-ingestion-config-bt.json5"
             - "--fs_namespace={{.INSTANCE_ID}}"
             - "--fs_project_id={{.FIRESTORE_PROJECT}}"
-            - "--git_bt_instance={{.GIT_BT_INSTANCE}}"
             - "--git_bt_table={{.GIT_BT_TABLE}}"
             - "--http_port=:9091"
             - "--logtostderr"
             - "--no_cloud_log"
-            - "--project_id={{.PROJECT_ID}}"
             - "--prom_port=:20000"
+            - "--pubsub_project_id={{.PUBSUB_PROJECT}}"
           ports:
             - containerPort: 9091
               name: http-health

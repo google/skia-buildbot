@@ -95,6 +95,7 @@ func (n *NetDiffStore) WarmDiffs(priority int64, leftDigests types.DigestSlice, 
 func (n *NetDiffStore) UnavailableDigests() map[types.Digest]*diff.DigestFailure {
 	resp, err := n.serviceClient.UnavailableDigests(context.Background(), &Empty{})
 	if err != nil {
+		sklog.Errorf("Could not fetch unavailable digests: %s", err)
 		return map[types.Digest]*diff.DigestFailure{}
 	}
 

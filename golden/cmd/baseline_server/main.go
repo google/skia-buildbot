@@ -33,7 +33,6 @@ func main() {
 		fsProjectID  = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
 		hashesGSPath = flag.String("hashes_gs_path", "", "GS path, where the known hashes file should be stored. This should match the same flag in skiacorrectness which writes the hashes. Format: <bucket>/<path>.")
 		local        = flag.Bool("local", false, "if running local (not in production)")
-		noCloudLog   = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally and in K8s.")
 		port         = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
 		promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	)
@@ -50,10 +49,6 @@ func main() {
 		common.PrometheusOpt(promPort),
 	}
 
-	// Should we disable cloud logging.
-	if !*noCloudLog {
-		logOpts = append(logOpts, common.CloudLoggingOpt())
-	}
 	_, appName := filepath.Split(os.Args[0])
 	common.InitWithMust(appName, logOpts...)
 	skiaversion.MustLogVersion()

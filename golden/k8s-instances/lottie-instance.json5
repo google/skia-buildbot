@@ -1,23 +1,27 @@
 {
     // Gold settings
+    "BIGTABLE_INSTANCE":       "production",
+    "BIGTABLE_PROJECT":        "skia-public",
     "BUCKET":                  "skia-gold-lottie",
+    "DATASTORE_NAMESPACE":     "gold-lottie",
+    "DATASTORE_PROJECT":       "skia-public",
     "FIRESTORE_PROJECT":       "skia-firestore",
     "FORCE_LOGIN":             false,
     "GERRIT_URL":              "https://skia-review.googlesource.com",
     "GITREPO_URL":             "https://skia.googlesource.com/lottie-ci",
     "N_COMMITS":               200,
-    "PROJECT_ID":              "skia-public",
+    "PUBSUB_PROJECT":          "skia-public",
     "SITE_URL":                "https://lottie-gold.skia.org",
     "SKCORR_DEFAULT_CORPUS":   "lottie",
     "SKCORR_TITLE":            "Lottie Gold",
 
     // Git BigTable settings
-    "GIT_BT_INSTANCE":         "production",
     "GIT_BT_TABLE":            "git-repos",
 
-    // Traceserver settings.
-    "TRACESERVER_MEMORY":      "500Mi",
-    "TRACESERVER_CPU":         "1",
+    // Settings for skiacorrectness instance
+    "MAIN_MEMORY":             "4Gi",
+    "MAIN_CPU":                "4",
+    "TILE_FRESHNESS":          "1m",
 
     // Settings for the main ingester.
     "ING_RUN_EVERY":           "20m",

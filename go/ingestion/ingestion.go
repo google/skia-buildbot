@@ -2,7 +2,6 @@ package ingestion
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"go.skia.org/infra/go/eventbus"
@@ -114,10 +113,13 @@ func (i *Ingester) Start(ctx context.Context) error {
 // to terminate as many goroutines as possible.
 func (i *Ingester) Close() error {
 	// Stop the internal Go routines.
-	close(i.doneCh)
+	if i.doneCh != nil {
+		close(i.doneCh)
+	}
 
-	// Close the liveness.
-	i.eventProcessMetrics.liveness.Close()
+	// Close the liveness metrics.
+	i.eventProcessMetrics.pollingLiveness.Close()
+	i.eventProcessMetrics.processLiveness.Close()
 
 	// Give straggling operations time to complete before we close the ingestion store.
 	time.Sleep(1 * time.Second)
@@ -153,7 +155,7 @@ func (i *Ingester) watchSource(source Source) {
 	// Repeat will run the function right away and then in intervals of 'runEvery'.
 	util.Repeat(i.runEvery, i.doneCh, func() {
 		// Get the start of the time range that we are polling.
-		startTime, err := i.getStartTimeOfInterest(context.TODO())
+		startTime, err := i.getStartTimeOfInterest(context.TODO(), time.Now())
 		if err != nil {
 			sklog.Errorf("Unable to get commit range of interest: %s", err)
 			return
@@ -162,7 +164,10 @@ func (i *Ingester) watchSource(source Source) {
 		rfCh := source.Poll(startTime, time.Now().Unix())
 		processed := int64(0)
 		ignored := int64(0)
+		sklog.Infof("Polling starting at %s [UTC]", time.Unix(startTime, 0))
 		for rf := range rfCh {
+			// It is a rare case that the pubsub event got lost, so we check to see
+			// if we already processed the file before re-queuing it.
 			if i.inProcessedFiles(rf.Name(), rf.MD5()) {
 				ignored++
 				continue
@@ -174,7 +179,7 @@ func (i *Ingester) watchSource(source Source) {
 		}
 		i.eventProcessMetrics.ignoredByPollingGauge.Update(ignored)
 		i.eventProcessMetrics.processedByPollingGauge.Update(processed)
-		i.eventProcessMetrics.liveness.Reset()
+		i.eventProcessMetrics.pollingLiveness.Reset()
 		sklog.Infof("Watcher for %s received/processed/ignored: %d/%d/%d", source.ID(), ignored+processed, processed, ignored)
 	})
 }
@@ -200,31 +205,28 @@ func (i *Ingester) addToProcessedFiles(name, md5 string) {
 
 // processResult processes a single result file.
 func (i *Ingester) processResult(ctx context.Context, rfl ResultFileLocation) {
+	// processResult does not check the inProcessedFiles because we want to retain the ability
+	// to force a re-process via bt_reingester or other means.
 	name, md5 := rfl.Name(), rfl.MD5()
-	if i.inProcessedFiles(name, md5) {
-		sklog.Infof("Skipping %s with md5 %s because we've already ingested it.", name, md5)
-		return
-	}
-
 	err := i.processor.Process(ctx, rfl)
 	if err != nil {
 		if err != IgnoreResultsFileErr {
-			sklog.Errorf("Failed to ingest %s: %s", rfl.Name(), err)
-			return
+			sklog.Errorf("Failed to ingest %s: %s", name, err)
 		}
+		return
 	}
 	i.addToProcessedFiles(name, md5)
-	i.eventProcessMetrics.liveness.Reset()
+	i.eventProcessMetrics.processLiveness.Reset()
 }
 
 // getStartTimeOfInterest returns the start time of input files we are interested in.
-// We will then poll for input files from startTime to now. This method assumes that
-// UpdateCommitInfo has been called and therefore reading the tile should not fail.
-func (i *Ingester) getStartTimeOfInterest(ctx context.Context) (int64, error) {
+// We will then poll for input files from startTime to now. This is computed using the
+// configured NCommits and MinDays for the Ingester.
+func (i *Ingester) getStartTimeOfInterest(ctx context.Context, now time.Time) (int64, error) {
 	// If there is no vcs, use the minDuration field of the ingester to calculate
 	// the start time.
 	if i.vcs == nil {
-		return time.Now().Add(-i.minDuration).Unix(), nil
+		return now.Add(-i.minDuration).Unix(), nil
 	}
 
 	// Make sure the VCS is up to date.
@@ -234,17 +236,18 @@ func (i *Ingester) getStartTimeOfInterest(ctx context.Context) (int64, error) {
 
 	// Get the desired number of commits in the desired time frame.
 	delta := -i.minDuration
-	hashes := i.vcs.From(time.Now().Add(delta))
+	hashes := i.vcs.From(now.Add(delta))
 	if len(hashes) == 0 {
-		return 0, fmt.Errorf("No commits found.")
+		return 0, skerr.Fmt("No commits found.")
 	}
 
 	// If the number of required commits is not covered by this time
-	// frame then keep adding more.
+	// frame then keep adding more (up until we are scanning the last year of data, at which point
+	// something must be wrong or the repository is just very new).
 	if len(hashes) < i.nCommits {
-		for len(hashes) < i.nCommits {
+		for len(hashes) < i.nCommits && delta < 365*24*time.Hour {
 			delta *= 2
-			moreHashes := i.vcs.From(time.Now().Add(delta))
+			moreHashes := i.vcs.From(now.Add(delta))
 			if len(moreHashes) == len(hashes) {
 				hashes = moreHashes
 				break
@@ -252,7 +255,7 @@ func (i *Ingester) getStartTimeOfInterest(ctx context.Context) (int64, error) {
 			hashes = moreHashes
 		}
 
-		// In case we have retrieved to many commits.
+		// In case we have retrieved too many commits.
 		if len(hashes) > i.nCommits {
 			hashes = hashes[len(hashes)-i.nCommits:]
 		}
@@ -274,10 +277,9 @@ type tags map[string]string
 type processMetrics struct {
 	ignoredByPollingGauge   metrics2.Int64Metric
 	processedByPollingGauge metrics2.Int64Metric
-	liveness                metrics2.Liveness
+	pollingLiveness         metrics2.Liveness
+	processLiveness         metrics2.Liveness
 }
-
-// TODO(stephana): Remove the "poll" value below, this is to have continuity with existing metrics.
 
 // newProcessMetrics instantiates the metrics to track processing and registers them
 // with the metrics package.
@@ -286,6 +288,7 @@ func newProcessMetrics(id string) *processMetrics {
 	return &processMetrics{
 		ignoredByPollingGauge:   metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, tags{TAG_INGESTION_METRIC: "ignored"}),
 		processedByPollingGauge: metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, tags{TAG_INGESTION_METRIC: "processed"}),
-		liveness:                metrics2.NewLiveness(id, tags{TAG_INGESTER_SOURCE: "poll", TAG_INGESTION_METRIC: "since-last-run"}),
+		pollingLiveness:         metrics2.NewLiveness(id, tags{TAG_INGESTER_SOURCE: "poll", TAG_INGESTION_METRIC: "since-last-run"}),
+		processLiveness:         metrics2.NewLiveness(id, tags{TAG_INGESTER_SOURCE: "gcs_event", TAG_INGESTION_METRIC: "last-successful-process"}),
 	}
 }

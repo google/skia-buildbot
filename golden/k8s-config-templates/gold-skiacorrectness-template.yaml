@@ -45,19 +45,19 @@ spec:
             - "--logtostderr=true"
             - "--app_title={{.SKCORR_TITLE}}"
             - "--baseline_gs_path=skia-gold-{{.INSTANCE_ID}}/baselines"
+            - "--bt_instance={{.BIGTABLE_INSTANCE}}"
             - "--cache_size=0"
             - "--default_corpus={{.SKCORR_DEFAULT_CORPUS}}"
             - "--diff_server_grpc=gold-{{.INSTANCE_ID}}-diffserver:8000"
             - "--diff_server_http=gold-{{.INSTANCE_ID}}-diffserver:8001"
             - "--ds_namespace=gold-{{.INSTANCE_ID}}"
+            - "--ds_project_id={{.DATASTORE_PROJECT}}"
             - "--event_topic=gold-{{.INSTANCE_ID}}-eventbus"
             - "--fs_namespace={{.INSTANCE_ID}}"
             - "--fs_project_id={{.FIRESTORE_PROJECT}}"
             - "--force_login={{.FORCE_LOGIN}}"
             - "--gerrit_url={{.GERRIT_URL}}"
-            - "--git_bt_instance={{.GIT_BT_INSTANCE}}"
             - "--git_bt_table=git-repos"
-            - "--git_repo_dir=/data/ci-repo"
             - "--git_repo_url={{.GITREPO_URL}}"
             - "--gs_buckets=skia-gold-{{.INSTANCE_ID}}"
             - "--hashes_gs_path=skia-gold-{{.INSTANCE_ID}}/hash_files/gold-{{.INSTANCE_ID}}-hashes.txt"
@@ -65,15 +65,16 @@ spec:
             - "--n_commits={{.N_COMMITS}}"
             - "--no_cloud_log=true"
             - "--port=:8000"
-            - "--project_id={{.PROJECT_ID}}"
             - "--prom_port=:20000"
             - "--public_whitelist=all"
+            - "--pubsub_project_id={{.PUBSUB_PROJECT}}"
             - "--redirect_url={{.SITE_URL}}/oauth2callback/"
             - "--resources_dir=/usr/local/share/skiacorrectness/frontend"
             - "--service_account_file=/var/secrets/google/service-account.json"
             - "--site_url={{.SITE_URL}}"
             - "--show_bot_progress=false"
-            - "--trace_service=gold-{{.INSTANCE_ID}}-traceservice:9090"
+            - "--tile_freshness={{.TILE_FRESHNESS}}"
+            - "--trace_bt_table=gold-{{.INSTANCE_ID}}"
           ports:
             - containerPort: 8000
               name: http
@@ -89,8 +90,8 @@ spec:
               value: /var/secrets/google/service-account.json
           resources:
             requests:
-              memory: "4Gi"
-              cpu: "2"
+              memory: "{{.MAIN_MEMORY}}"
+              cpu: "{{.MAIN_CPU}}"
           readinessProbe:
             httpGet:
               path: /healthz
