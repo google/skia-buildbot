@@ -52,6 +52,24 @@
       "revId": "87c994b7d282f03a323ef24e1c53a2951b244be9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad2d4793_6cd53cf3",
+        "filename": "autoroll/config/skia-google3.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-08T15:04:36Z",
+      "side": 1,
+      "message": "Is the roller script able to access the internal URL?",
+      "parentUuid": "0009f6ff_29943ffd",
+      "revId": "87c994b7d282f03a323ef24e1c53a2951b244be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
