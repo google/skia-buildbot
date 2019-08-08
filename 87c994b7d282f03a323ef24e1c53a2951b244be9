@@ -34,6 +34,24 @@
       "revId": "87c994b7d282f03a323ef24e1c53a2951b244be9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0009f6ff_29943ffd",
+        "filename": "autoroll/config/skia-google3.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-08T15:01:03Z",
+      "side": 1,
+      "message": "It doesn\u0027t matter too much. If you want to bring up the G3 frontend at the internal URL, I can change the URL used by the autoroller.",
+      "parentUuid": "2425edb7_ce0dc449",
+      "revId": "87c994b7d282f03a323ef24e1c53a2951b244be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
