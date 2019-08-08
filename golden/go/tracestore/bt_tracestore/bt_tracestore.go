@@ -88,7 +88,7 @@ type BTTraceStore struct {
 func New(ctx context.Context, conf BTConfig, cache bool) (*BTTraceStore, error) {
 	client, err := bigtable.NewClient(ctx, conf.ProjectID, conf.InstanceID)
 	if err != nil {
-		return nil, skerr.Fmt("could not instantiate client: %s", err)
+		return nil, skerr.Wrapf(err, "could not instantiate client")
 	}
 
 	ret := &BTTraceStore{
@@ -174,7 +174,7 @@ func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, tk tileKe
 		// See params.paramsEncoder
 		sTrace, err := ops.EncodeParamsAsString(entry.Params)
 		if err != nil {
-			return nil, nil, skerr.Fmt("invalid params: %s", err)
+			return nil, nil, skerr.Wrapf(err, "invalid params")
 		}
 		traceID := encodedTraceID(sTrace)
 
@@ -237,7 +237,7 @@ func (b *BTTraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile,
 		var err error
 		commits, err = b.makeTileCommits(ctx, hashes)
 		if err != nil {
-			return skerr.Fmt("could not load tile commits: %s", err)
+			return skerr.Wrapf(err, "could not load tile commits")
 		}
 		return nil
 	})
@@ -249,13 +249,13 @@ func (b *BTTraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile,
 		traces, params, err = b.getTracesInRange(ctx, startTileKey, endTileKey, startCommitIndex, endCommitIndex)
 
 		if err != nil {
-			return skerr.Fmt("could not load tile commits: %s", err)
+			return skerr.Wrapf(err, "could not load tile commits (%d, %d, %d, %d)", startTileKey, endTileKey, startCommitIndex, endCommitIndex)
 		}
 		return nil
 	})
 
 	if err := egroup.Wait(); err != nil {
-		return nil, nil, skerr.Fmt("could not load last %d commits into tile: %s", nCommits, err)
+		return nil, nil, skerr.Wrapf(err, "could not load last %d commits into tile", nCommits)
 	}
 
 	ret := &tiling.Tile{
@@ -379,6 +379,7 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 // there is enough non-empty data, then queries the next oldest tile until it has nCommits
 // non-empty commits.
 func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.Tile, []*tiling.Commit, error) {
+	sklog.Debugf("GetDenseTile(%d)", nCommits)
 	defer metrics2.FuncTimer().Stop()
 	// Figure out what index we are on.
 	idxCommits := b.vcs.LastNIndex(1)
@@ -471,7 +472,7 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 
 	allCommits, err := b.makeTileCommits(ctx, hashes)
 	if err != nil {
-		return nil, nil, skerr.Fmt("could not make tile commits: %s", err)
+		return nil, nil, skerr.Wrapf(err, "could not make tile commits")
 	}
 
 	denseCommits := make([]*tiling.Commit, len(commitsWithData))
@@ -485,6 +486,8 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 		Commits:  denseCommits,
 		Scale:    0,
 	}
+	sklog.Debugf("GetDenseTile complete")
+
 	return ret, allCommits, nil
 }
 
@@ -507,7 +510,7 @@ func (b *BTTraceStore) loadTile(ctx context.Context, tileKey tileKey) (*encTile,
 	egroup.Go(func() error {
 		opsEntry, _, err := b.getOPS(ctx, tileKey)
 		if err != nil {
-			return skerr.Fmt("could not load OPS: %s", err)
+			return skerr.Wrapf(err, "could not load OPS")
 		}
 		ops = opsEntry.ops
 		return nil
@@ -518,7 +521,7 @@ func (b *BTTraceStore) loadTile(ctx context.Context, tileKey tileKey) (*encTile,
 		var err error
 		traces, err = b.loadEncodedTraces(ctx, tileKey)
 		if err != nil {
-			return skerr.Fmt("could not load traces: %s", err)
+			return skerr.Wrapf(err, "could not load traces")
 		}
 		return nil
 	})
@@ -635,6 +638,16 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 						ID:      traceKey,
 						Digests: [DefaultTileSize]types.Digest{},
 					}
+					// kjlubick@ and benjaminwagner@ are not super sure why, but this
+					// helps reduce memory usage by allowing the allocated pair to be
+					// cleaned up after GetTile/GetDenseTile completes.
+					// Without this initialization step, the Digest arrays seem to
+					// persist, causing a 2-3x increase in tile RAM size.
+					// It might be due to a bug in golang and/or just that the GC gets a
+					// little confused due to the complex procedure of passing things around.
+					for i := range pair.Digests {
+						pair.Digests[i] = types.MISSING_DIGEST
+					}
 
 					for _, col := range row[traceFamily] {
 						// The columns are something like T:35 where the part
@@ -661,12 +674,14 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 				}, bigtable.RowFilter(
 					bigtable.ChainFilters(
 						bigtable.FamilyFilter(traceFamily),
+						// can be used for local testing to keep RAM usage lower
+						// bigtable.RowSampleFilter(0.1),
 						bigtable.LatestNFilter(1),
 						bigtable.CellsPerRowLimitFilter(DefaultTileSize),
 					),
 				))
 				if err != nil {
-					return skerr.Fmt("could not read rows: %s", err)
+					return skerr.Wrapf(err, "could not read rows")
 				}
 				return parseErr
 			})
@@ -691,7 +706,9 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 // applyBulkBatched writes the given rowNames/mutation pairs to BigTable in batches that are
 // maximally of size 'batchSize'. The batches are written in parallel.
 func (b *BTTraceStore) applyBulkBatched(ctx context.Context, rowNames []string, mutations []*bigtable.Mutation, batchSize int) error {
-
+	if len(rowNames) == 0 {
+		return nil
+	}
 	var egroup errgroup.Group
 	err := util.ChunkIter(len(rowNames), batchSize, func(chunkStart, chunkEnd int) error {
 		egroup.Go(func() error {
@@ -701,17 +718,17 @@ func (b *BTTraceStore) applyBulkBatched(ctx context.Context, rowNames []string, 
 			mutations := mutations[chunkStart:chunkEnd]
 			errs, err := b.table.ApplyBulk(tctx, rowNames, mutations)
 			if err != nil {
-				return skerr.Fmt("error writing batch [%d:%d]: %s", chunkStart, chunkEnd, err)
+				return skerr.Wrapf(err, "writing batch [%d:%d]", chunkStart, chunkEnd)
 			}
 			if errs != nil {
-				return skerr.Fmt("error writing some portions of batch [%d:%d]: %s", chunkStart, chunkEnd, errs)
+				return skerr.Wrapf(err, "writing some portions of batch [%d:%d]", chunkStart, chunkEnd)
 			}
 			return nil
 		})
 		return nil
 	})
 	if err != nil {
-		return skerr.Fmt("error running ChunkIter: %s", err)
+		return skerr.Wrapf(err, "running ChunkIter(%s...%s) batch size %d", rowNames[0], rowNames[len(rowNames)-1], batchSize)
 	}
 	return egroup.Wait()
 }
@@ -738,7 +755,7 @@ func (b *BTTraceStore) updateOrderedParamSet(ctx context.Context, tileKey tileKe
 		// Get OPS.
 		entry, existsInBT, err := b.getOPS(ctx, tileKey)
 		if err != nil {
-			return nil, skerr.Fmt("failed to get OPS: %s", err)
+			return nil, skerr.Wrapf(err, "failed to get OPS for tile %d", tileKey)
 		}
 
 		// If the OPS contains our paramset then we're done.
@@ -751,11 +768,11 @@ func (b *BTTraceStore) updateOrderedParamSet(ctx context.Context, tileKey tileKe
 		ops.Update(p)
 		newEntry, err = opsCacheEntryFromOPS(ops)
 		if err != nil {
-			return nil, skerr.Fmt("failed to create cache entry: %s", err)
+			return nil, skerr.Wrapf(err, "failed to create cache entry")
 		}
 		encodedOps, err := newEntry.ops.Encode()
 		if err != nil {
-			return nil, skerr.Fmt("failed to encode new ops: %s", err)
+			return nil, skerr.Wrapf(err, "failed to encode new ops")
 		}
 
 		now := bigtable.Time(time.Now())
@@ -849,11 +866,11 @@ func (b *BTTraceStore) getOPS(ctx context.Context, tk tileKey) (*opsCacheEntry, 
 		),
 	))
 	if err != nil {
-		return nil, false, skerr.Fmt("failed to read OPS from BigTable for %s: %s", tk.OpsRowName(), err)
+		return nil, false, skerr.Wrapf(err, "failed to read OPS row %s from BigTable", tk.OpsRowName())
 	}
 	// If there is no entry in BigTable then return an empty OPS.
 	if len(row) == 0 {
-		sklog.Warningf("Failed to read OPS from BT for %s. - the tile could be empty", tk.OpsRowName())
+		sklog.Warningf("Failed to read OPS from BT for %s; the tile could be empty", tk.OpsRowName())
 		entry, err := newOpsCacheEntry()
 		return entry, false, err
 	}
@@ -870,7 +887,7 @@ func (b *BTTraceStore) makeTileCommits(ctx context.Context, hashes []string) ([]
 	longCommits, err := b.vcs.DetailsMulti(ctx, hashes, false)
 	if err != nil {
 		// put hashes second in case they get truncated for being quite long.
-		return nil, skerr.Fmt("could not fetch commit data for commits %s (hashes: %q)", err, hashes)
+		return nil, skerr.Wrapf(err, "could not fetch commit data for commits with hashes %q", hashes)
 	}
 
 	commits := make([]*tiling.Commit, len(hashes))

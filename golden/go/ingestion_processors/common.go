@@ -68,10 +68,18 @@ func getCanonicalCommitHash(ctx context.Context, vcs vcsinfo.VCS, targetHash str
 
 		if foundCommit == "" {
 			if err == vcsinfo.NoSecondaryRepo {
-				sklog.Warningf("Unable to find commit %s in primary or secondary repo.", targetHash)
+				sklog.Warningf("Unable to find commit %s in primary repo and no secondary configured", targetHash)
 			} else {
-				sklog.Warningf("Unable to find commit %s in primary repo and no secondary configured.", targetHash)
+				sklog.Warningf("Unable to find commit %s in primary or secondary repo.", targetHash)
 			}
+			c := vcs.LastNIndex(3)
+			if len(c) == 3 {
+				sklog.Debugf("Last three commits were %s on %s, %s on %s, and %s on %s",
+					c[0].Hash, c[0].Timestamp, c[1].Hash, c[1].Timestamp, c[2].Hash, c[2].Timestamp)
+			} else {
+				sklog.Debugf("Last commits: %v", c)
+			}
+
 			return "", ingestion.IgnoreResultsFileErr
 		}
 

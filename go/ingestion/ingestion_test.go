@@ -15,10 +15,12 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/eventbus"
+	mockeventbus "go.skia.org/infra/go/eventbus/mocks"
 	"go.skia.org/infra/go/ingestion/mocks"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	mockvcs "go.skia.org/infra/go/vcsinfo/mocks"
 )
@@ -105,6 +107,136 @@ func TestPollingIngester(t *testing.T) {
 		assert.True(t, ok)
 	}
 }
+
+// TestGetStartTimeOfInterestDays checks that we compute the time to start
+// polling for commits properly in the case that the commits returned in
+// last 3 days exceeds the NCommits we want to scan.
+func TestGetStartTimeOfInterestDays(t *testing.T) {
+	unittest.SmallTest(t)
+	// We have to provide NewIngester non-nil eventbus and ingestionstore.
+	meb := &mockeventbus.EventBus{}
+	mis := &mocks.IngestionStore{}
+	mvs := &mockvcs.VCS{}
+
+	defer meb.AssertExpectations(t)
+	defer mis.AssertExpectations(t)
+	defer mvs.AssertExpectations(t)
+
+	// arbitrary date
+	now := time.Date(2019, 8, 5, 11, 20, 0, 0, time.UTC)
+	threeDaysAgo := now.Add(-3 * 24 * time.Hour)
+	alphaTime := time.Date(2019, 8, 2, 17, 35, 0, 0, time.UTC)
+
+	hashes := []string{"alpha", "beta", "gamma", "delta", "epsilon"}
+
+	mvs.On("Update", anyCtx, true, false).Return(nil)
+	mvs.On("From", threeDaysAgo).Return(hashes)
+	mvs.On("Details", anyCtx, "alpha", false).Return(&vcsinfo.LongCommit{
+		// The function only cares about the timestamp
+		Timestamp: alphaTime,
+	}, nil)
+
+	conf := &sharedconfig.IngesterConfig{
+		NCommits: 2,
+		MinDays:  3,
+	}
+
+	i, err := NewIngester("test-ingester-1", conf, mvs, nil, nil, mis, meb)
+	assert.NoError(t, err)
+	defer util.Close(i)
+
+	ts, err := i.getStartTimeOfInterest(context.Background(), now)
+	assert.NoError(t, err)
+	assert.Equal(t, alphaTime.Unix(), ts)
+}
+
+// TestGetStartTimeOfInterestCommits checks that we compute the time to start
+// polling for commits properly in the case that the commits returned in
+// last 3 days does not exceed the NCommits we want to scan.
+func TestGetStartTimeOfInterestCommits(t *testing.T) {
+	unittest.SmallTest(t)
+	// We have to provide NewIngester non-nil eventbus and ingestionstore.
+	meb := &mockeventbus.EventBus{}
+	mis := &mocks.IngestionStore{}
+	mvs := &mockvcs.VCS{}
+
+	defer meb.AssertExpectations(t)
+	defer mis.AssertExpectations(t)
+	defer mvs.AssertExpectations(t)
+
+	// arbitrary date
+	now := time.Date(2019, 8, 5, 11, 20, 0, 0, time.UTC)
+	threeDaysAgo := now.Add(-3 * 24 * time.Hour)
+	sixDaysAgo := now.Add(-6 * 24 * time.Hour)
+	betaTime := time.Date(2019, 8, 1, 17, 35, 0, 0, time.UTC)
+
+	hashes := []string{"alpha", "beta", "gamma", "delta", "epsilon"}
+
+	mvs.On("Update", anyCtx, true, false).Return(nil)
+	mvs.On("From", threeDaysAgo).Return(hashes[3:])
+	mvs.On("From", sixDaysAgo).Return(hashes)
+	// Since we retrieve 5 commits, the algorithm trims it to NCommits
+	// when it has to query more.
+	mvs.On("Details", anyCtx, "beta", false).Return(&vcsinfo.LongCommit{
+		// The function only cares about the timestamp
+		Timestamp: betaTime,
+	}, nil)
+
+	conf := &sharedconfig.IngesterConfig{
+		NCommits: 4,
+		MinDays:  3,
+	}
+
+	i, err := NewIngester("test-ingester-2", conf, mvs, nil, nil, mis, meb)
+	assert.NoError(t, err)
+	defer util.Close(i)
+
+	ts, err := i.getStartTimeOfInterest(context.Background(), now)
+	assert.NoError(t, err)
+	assert.Equal(t, betaTime.Unix(), ts)
+}
+
+// TestGetStartTimeOfInterestNotEnough makes sure we don't loop infinitely
+// if there are not enough commits in the repo to fulfill the NCommits.
+func TestGetStartTimeOfInterestNotEnough(t *testing.T) {
+	unittest.SmallTest(t)
+	// We have to provide NewIngester non-nil eventbus and ingestionstore.
+	meb := &mockeventbus.EventBus{}
+	mis := &mocks.IngestionStore{}
+	mvs := &mockvcs.VCS{}
+
+	defer meb.AssertExpectations(t)
+	defer mis.AssertExpectations(t)
+	defer mvs.AssertExpectations(t)
+
+	// arbitrary date
+	now := time.Date(2019, 8, 5, 11, 20, 0, 0, time.UTC)
+	alphaTime := time.Date(2019, 8, 1, 17, 35, 0, 0, time.UTC)
+
+	hashes := []string{"alpha", "beta", "gamma", "delta", "epsilon"}
+
+	mvs.On("Update", anyCtx, true, false).Return(nil)
+	mvs.On("From", mock.AnythingOfType("time.Time")).Return(hashes)
+	mvs.On("Details", anyCtx, "alpha", false).Return(&vcsinfo.LongCommit{
+		// The function only cares about the timestamp
+		Timestamp: alphaTime,
+	}, nil)
+
+	conf := &sharedconfig.IngesterConfig{
+		NCommits: 100,
+		MinDays:  3,
+	}
+
+	i, err := NewIngester("test-ingester-3", conf, mvs, nil, nil, mis, meb)
+	assert.NoError(t, err)
+	defer util.Close(i)
+
+	ts, err := i.getStartTimeOfInterest(context.Background(), now)
+	assert.NoError(t, err)
+	assert.Equal(t, alphaTime.Unix(), ts)
+}
+
+// TODO(kjlubick): replace these with mockery-based mocks
 
 // mock processor
 type mockProcessor struct {
@@ -223,3 +355,5 @@ func getVCS(start, end int64, nCommits int) vcsinfo.VCS {
 	}
 	return mockvcs.DeprecatedMockVCS(commits, nil, nil)
 }
+
+var anyCtx = mock.AnythingOfType("*context.emptyCtx")
