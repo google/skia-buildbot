@@ -22,6 +22,30 @@
       "revId": "ec2fba45b581d8e37628373ba3b55884a9e09b3c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f06b48d9_372af697",
+        "filename": "perf/modules/commit-detail-panel-sk/commit-detail-panel-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-08T16:25:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5874c90d_7a4653f3",
+      "range": {
+        "startLine": 89,
+        "startChar": 4,
+        "endLine": 89,
+        "endChar": 7
+      },
+      "revId": "ec2fba45b581d8e37628373ba3b55884a9e09b3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
