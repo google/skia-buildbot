@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7188a158_32c77458",
+        "filename": "autoroll/config/skia-google3.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-08T14:44:29Z",
+      "side": 1,
+      "message": "Should this be in the internal repo or does it not matter?",
+      "revId": "87c994b7d282f03a323ef24e1c53a2951b244be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
