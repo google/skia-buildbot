@@ -11,10 +11,7 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
-	"io/ioutil"
 	"math"
-	"os"
-	"path"
 	"sort"
 	"strings"
 	"time"
@@ -193,7 +190,7 @@ func addMetric(s *events.EventStream, repoUrl string, pct float64, period time.D
 // cycle runs ingestion of task data, maps each task to the commits it covered
 // before any other task, and inserts event data based on the lag time between
 // a commit landing and each task finishing for that commit.
-func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time, workdir string) error {
+func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time) error {
 	totalCommits := 0
 	for _, r := range repos {
 		totalCommits += r.Len()
@@ -367,45 +364,43 @@ func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 		return fmt.Errorf("Failed to update metrics: %s", err)
 	}
 	em.LogMetrics()
-	if err := writeTs(workdir, now); err != nil {
-		return fmt.Errorf("Failed to write timestamp file: %s", err)
-	}
 	return nil
 }
 
-// readTs returns the last successful run timestamp which was cached in a file.
-func readTs(workdir string) (time.Time, error) {
-	var rv time.Time
-	b, err := ioutil.ReadFile(path.Join(workdir, TIMESTAMP_FILE))
-	if err != nil {
-		if os.IsNotExist(err) {
+// getLastIngestionTs returns the timestamp of the last commit for which we
+// successfully ingested events.
+func getLastIngestionTs(edb events.EventDB, repos repograph.Map) (time.Time, error) {
+	timeEnd := time.Now()
+	window := time.Hour
+	for {
+		timeStart := timeEnd.Add(-window)
+		var latest time.Time
+		for repo := range repos {
+			ev, err := edb.Range(fmtStream(repo), timeStart, timeEnd)
+			if err != nil {
+				return BEGINNING_OF_TIME, err
+			}
+			if len(ev) > 0 {
+				ts := ev[len(ev)-1].Timestamp
+				if ts.After(latest) {
+					latest = ts
+				}
+			}
+		}
+		if !util.TimeIsZero(latest) {
+			return latest, nil
+		}
+		if timeStart.Before(BEGINNING_OF_TIME) {
 			return BEGINNING_OF_TIME, nil
 		}
-		return rv, err
+		window *= 2
+		timeEnd = timeStart
 	}
-	if err := gob.NewDecoder(bytes.NewBuffer(b)).Decode(&rv); err != nil {
-		return rv, err
-	}
-	return rv, nil
-}
-
-// writeTs writes the last successful run timestamp to a file.
-func writeTs(workdir string, ts time.Time) error {
-	var buf bytes.Buffer
-	if err := gob.NewEncoder(&buf).Encode(ts); err != nil {
-		return err
-	}
-	return ioutil.WriteFile(path.Join(workdir, TIMESTAMP_FILE), buf.Bytes(), os.ModePerm)
 }
 
 // Start initiates "average time to X% bot coverage" metrics data generation.
 // The caller is responsible for updating the passed-in repos and TaskCfgCache.
-func Start(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, btProject, btInstance, workdir string, ts oauth2.TokenSource) error {
-	// Setup.
-	if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
-		return err
-	}
-
+func Start(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, btProject, btInstance string, ts oauth2.TokenSource) error {
 	// Set up event metrics.
 	edb, err := events.NewBTEventDB(ctx, btProject, btInstance, ts)
 	if err != nil {
@@ -416,8 +411,8 @@ func Start(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 		return fmt.Errorf("Failed to create EventMetrics: %s", err)
 	}
 	for repoUrl := range repos {
+		s := em.GetEventStream(fmtStream(repoUrl))
 		for _, p := range []time.Duration{24 * time.Hour, 7 * 24 * time.Hour} {
-			s := em.GetEventStream(fmtStream(repoUrl))
 			for _, pct := range PERCENTILES {
 				if err := addMetric(s, repoUrl, pct, p); err != nil {
 					return fmt.Errorf("Failed to add metric: %s", err)
@@ -427,13 +422,13 @@ func Start(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 	}
 
 	lv := metrics2.NewLiveness("last_successful_bot_coverage_metrics")
-	lastFinished, err := readTs(workdir)
+	lastFinished, err := getLastIngestionTs(edb, repos)
 	if err != nil {
-		return fmt.Errorf("Failed to read timestamp: %s", err)
+		return fmt.Errorf("Failed to get timestamp of last successful ingestion: %s", err)
 	}
 	go util.RepeatCtx(10*time.Minute, ctx, func() {
 		now := time.Now()
-		if err := cycle(ctx, taskDb, repos, tcc, edb, em, lastFinished, now, workdir); err != nil {
+		if err := cycle(ctx, taskDb, repos, tcc, edb, em, lastFinished, now); err != nil {
 			sklog.Errorf("Failed to obtain avg time to X%% bot coverage metrics: %s", err)
 		} else {
 			lastFinished = now

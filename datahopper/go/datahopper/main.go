@@ -8,7 +8,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"path/filepath"
 	"regexp"
 	"time"
 
@@ -56,7 +55,6 @@ var (
 	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
 	swarmingServer    = flag.String("swarming_server", "", "Host name of the Swarming server.")
 	swarmingPools     = common.NewMultiStringFlag("swarming_pool", nil, "Swarming pools to use.")
-	workdir           = flag.String("workdir", ".", "Working directory used by data processors.")
 )
 
 var (
@@ -77,13 +75,6 @@ func main() {
 		common.MetricsLoggingOpt(),
 	)
 	ctx := context.Background()
-
-	// Absolutify the workdir.
-	w, err := filepath.Abs(*workdir)
-	if err != nil {
-		sklog.Fatal(w)
-	}
-	sklog.Infof("Workdir is %s", w)
 
 	// OAuth2.0 TokenSource.
 	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, pubsub.AUTH_SCOPE, bigtable.Scope, datastore.ScopeDatastore, swarming.AUTH_SCOPE, auth.SCOPE_READ_WRITE, auth.SCOPE_GERRIT)
@@ -185,7 +176,7 @@ func main() {
 	}
 
 	// Generate "time to X% bot coverage" metrics.
-	if err := bot_metrics.Start(ctx, d, repos, tcc, *btProject, *btInstance, *workdir, ts); err != nil {
+	if err := bot_metrics.Start(ctx, d, repos, tcc, *btProject, *btInstance, ts); err != nil {
 		sklog.Fatal(err)
 	}
 
