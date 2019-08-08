@@ -1,5 +1,5 @@
 #!/bin/bash
-APPNAME=statusk
+APPNAME=status
 
 set -x -e
 
