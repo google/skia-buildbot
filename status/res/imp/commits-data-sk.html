@@ -343,6 +343,10 @@
           type: Number,
           value: 0,
         },
+        _server_pod_id: {
+          type: String,
+          value: "",
+        },
         _updateRequested: {
           type: Boolean,
           value: false,
@@ -431,11 +435,18 @@
         if (this._last_load_ts && !fromScratch) {
           url += "&from=" + this._last_load_ts;
         }
+        if (this._server_pod_id) {
+          url += "&pod=" + this._server_pod_id;
+        }
         sk.get(url).then(JSON.parse).then(function(json) {
           // Clear out the existing data if necessary.
           if (json.start_over || fromScratch) {
             this._clearData();
           }
+
+          // Keep track of the server pod ID. This ensures that we're in sync
+          // with the server.
+          this._server_pod_id = json.pod;
 
           // Mix the new data into the existing.
           if (!json.commits) {

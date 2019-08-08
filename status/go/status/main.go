@@ -23,6 +23,7 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	autoroll_status "go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/go/allowed"
@@ -117,8 +118,8 @@ var (
 	swarmingUrl                 = flag.String("swarming_url", "https://chromium-swarm.appspot.com", "URL of the Swarming server.")
 	taskSchedulerUrl            = flag.String("task_scheduler_url", "https://task-scheduler.skia.org", "URL of the Task Scheduler server.")
 	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
-	workdir                     = flag.String("workdir", ".", "Directory to use for scratch work.")
 
+	podId string
 	repos repograph.Map
 )
 
@@ -164,6 +165,14 @@ func getIntParam(name string, r *http.Request) (*int64, error) {
 		return nil, fmt.Errorf("Invalid integer value for parameter %q", name)
 	}
 	return &v, nil
+}
+
+func getStringParam(name string, r *http.Request) string {
+	raw, ok := r.URL.Query()[name]
+	if !ok {
+		return ""
+	}
+	return raw[0]
 }
 
 // repoUrlToName returns a short repo nickname given a full repo URL.
@@ -252,6 +261,7 @@ func incrementalJsonHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid parameter for \"n\": %s", err))
 		return
 	}
+	expectPodId := getStringParam("pod", r)
 	numCommits := DEFAULT_COMMITS_TO_LOAD
 	if n != nil {
 		numCommits = int(*n)
@@ -259,17 +269,22 @@ func incrementalJsonHandler(w http.ResponseWriter, r *http.Request) {
 			numCommits = MAX_COMMITS_TO_LOAD
 		}
 	}
-	var update *incremental.Update
-	if from != nil {
+	update := struct {
+		*incremental.Update
+		Pod string `json:"pod"`
+	}{
+		Pod: podId,
+	}
+	if (expectPodId != "" && expectPodId != podId) || from == nil {
+		update.Update, err = iCache.GetAll(repoUrl, numCommits)
+	} else {
 		fromTime := time.Unix(0, (*from)*util.MILLIS_TO_NANOS)
 		if to != nil {
 			toTime := time.Unix(0, (*to)*util.MILLIS_TO_NANOS)
-			update, err = iCache.GetRange(repoUrl, fromTime, toTime, numCommits)
+			update.Update, err = iCache.GetRange(repoUrl, fromTime, toTime, numCommits)
 		} else {
-			update, err = iCache.Get(repoUrl, fromTime, numCommits)
+			update.Update, err = iCache.Get(repoUrl, fromTime, numCommits)
 		}
-	} else {
-		update, err = iCache.GetAll(repoUrl, numCommits)
 	}
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to retrieve updates: %s", err))
@@ -710,6 +725,12 @@ func main() {
 	}
 	ctx := context.Background()
 
+	podId = os.Getenv("POD_ID")
+	if podId == "" {
+		sklog.Error("POD_ID not defined; falling back to UUID.")
+		podId = uuid.New().String()
+	}
+
 	ts, err := auth.NewDefaultTokenSource(*testing, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, bigtable.Scope, pubsub.AUTH_SCOPE, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
@@ -756,10 +777,6 @@ func main() {
 	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, adminAllowed, editAllowed, nil)
 
 	// Check out source code.
-	reposDir := path.Join(*workdir, "repos")
-	if err := os.MkdirAll(reposDir, os.ModePerm); err != nil {
-		sklog.Fatalf("Failed to create repos dir: %s", err)
-	}
 	if *repoUrls == nil {
 		sklog.Fatal("At least one --repo is required.")
 	}
