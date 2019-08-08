@@ -24,14 +24,17 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import dialogPolyfill from 'dialog-polyfill'
 
 
+const NO_COMMIT_SELECTED_MSG = 'Choose a commit.';
+
+
 function _titleFrom(ele) {
   const index = ele.selected;
   if (index === -1) {
-    return 'Choose a commit.';
+    return NO_COMMIT_SELECTED_MSG;
   }
   const d = ele._details[index];
   if (!d) {
-    return 'Choose a commit.';
+    return NO_COMMIT_SELECTED_MSG;
   }
   return `${d.author} -  ${d.message}`;
 }
@@ -48,7 +51,6 @@ window.customElements.define('commit-detail-picker-sk', class extends ElementSk 
   constructor() {
     super(template);
     this._details = [];
-    this._title = 'Choose a commit.';
   }
 
   connectedCallback() {
@@ -60,7 +62,6 @@ window.customElements.define('commit-detail-picker-sk', class extends ElementSk 
   }
 
   _panelSelect(e) {
-    this._title = e.detail.description;
     this.selected = e.detail.selected;
     this._render();
   }
