@@ -55,6 +55,9 @@ const (
 	// Google Cloud projects used by the autoroller.
 	PROJECT_PUBLIC = "skia-public"
 	PROJECT_CORP   = "google.com:skia-corp"
+
+	// Parent repo name for Google3 rollers.
+	GOOGLE3_PARENT_NAME = "Google3"
 )
 
 var (
@@ -335,6 +338,10 @@ func updateConfigs(ctx context.Context, cfgDir *configDir, latestImageFe, latest
 	if *updateBeImage || *updateRollerConfig {
 		tmplBe := "./go/autoroll-be/autoroll-be.yaml.template"
 		for cfgFile, config := range configs {
+			// Google3 uses a different type of backend.
+			if config.ParentName == GOOGLE3_PARENT_NAME {
+				continue
+			}
 			dst := filepath.Join(cfgDir.K8sConfigDir, fmt.Sprintf("autoroll-be-%s.yaml", strings.Split(cfgFile, ".")[0]))
 
 			// If the k8s file doesn't exist yet or the user supplied the
