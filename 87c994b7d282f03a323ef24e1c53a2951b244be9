@@ -16,6 +16,24 @@
       "revId": "87c994b7d282f03a323ef24e1c53a2951b244be9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2425edb7_ce0dc449",
+        "filename": "autoroll/config/skia-google3.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-08T14:52:58Z",
+      "side": 1,
+      "message": "Hrm, I just realised that this is a problem. We want this on the internal frontend, but the \"backend\" runs in skia-public.  My plan was to just move the config into the public set, since the backend is in skia-public and there\u0027s nothing private about this config file, but this will make it disappear from the private frontend and not show up on the public one due to \"isInternal\".  I\u0027m not sure what to do about this.",
+      "parentUuid": "7188a158_32c77458",
+      "revId": "87c994b7d282f03a323ef24e1c53a2951b244be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
