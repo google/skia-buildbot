@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "983a1e68_f362f6d5",
+        "filename": "perf/elements.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-08T19:38:01Z",
+      "side": 1,
+      "message": "Ignore any changes in this file, they will go away once the last CL lands and this CL is rebased.",
+      "revId": "91814080926d6b42360aaa43b011303a3d195701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
