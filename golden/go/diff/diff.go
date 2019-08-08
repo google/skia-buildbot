@@ -1,6 +1,7 @@
 package diff
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -307,6 +308,8 @@ func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 	// an even number of pixels here.  If that's a big deal, we can easily
 	// fix that up, handling the straggler pixel separately at the end.
 	if img1Bounds.Eq(img2Bounds) && len(p1)%8 == 0 {
+		fmt.Println("PixelDiff: Images are the same size")
+
 		numDiffPixels = 0
 		// Note the += 8.  We're checking two pixels at a time here.
 		for i := 0; i < len(p1); i += 8 {
@@ -341,8 +344,12 @@ func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 			}
 		}
 	} else {
+		fmt.Println("PixelDiff: Images are NOT the same size")
+
 		// Fill the entire image with maximum diff color.
 		maxDiffColor := uint8ToColor(PixelDiffColor[deltaOffset(1024)])
+
+		// NON-OPTIMIZED: BEGIN
 		draw.Draw(resultImg, resultImg.Bounds(), &image.Uniform{maxDiffColor}, image.ZP, draw.Src)
 
 		for x := 0; x < cmpWidth; x++ {
@@ -357,6 +364,30 @@ func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 				resultImg.Set(x, y, dc)
 			}
 		}
+		// NON-OPTIMIZED: END
+
+		/*
+		// OPTIMIZED: BEGIN
+		for x := 0; x < resultWidth; x++ {
+			for y := 0; y < resultHeight; y++ {
+				if x < cmpWidth && y < cmpHeight {
+					color1 := img1.At(x, y)
+					color2 := img2.At(x, y)
+
+					dc := diffColors(color1, color2, maxRGBADiffs)
+					if dc == PixelMatchColor {
+						numDiffPixels--
+					}
+					resultImg.Set(x, y, dc)
+				}	else {
+					resultImg.Set(x, y, maxDiffColor)
+				}
+			}
+		}
+		// OPTIMIZED: END
+		*/
+
+
 	}
 
 	return &DiffMetrics{
