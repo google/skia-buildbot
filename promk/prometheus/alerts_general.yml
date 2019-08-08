@@ -541,15 +541,25 @@ groups:
       abbr: '{{ $labels.app }}'
       description: 'At least two rounds of monitoring for expired ignore rules have failed back to back on {{ $labels.app }}. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldignoremonitoring'
 
-  - alert: GoldErrorRate
-    expr: liveness_gold_s{metric="since-last-run"} > 750
+  - alert: GoldPollingIngestionStalled
+    expr: liveness_gold_bt_s{metric="since-last-run"} > 750
     labels:
       category: infra
       severity: warning
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'At least two rounds of gold ingestion have failed back to back for {{ $labels.app }}. See https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldingestionstalled'
+      description: '{{ $labels.app }} has not been able to poll the bucket for missed files to ingest for a while. See https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldpollingingestionstalled'
+
+  - alert: GoldStreamingIngestionStalled
+    expr: liveness_gold_bt_s{metric="last-successful-process"} > 24*60*60
+    labels:
+      category: infra
+      severity: warning
+      owner: kjlubick@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: '{{ $labels.app }} has not successfully ingested files via streaming in a long time. See https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldstreamingingestionstalled'
 
   - alert: GoldCommitTooOldWallTime
     expr: gold_last_commit_age_s{type="wall_time"} > 24*60*60

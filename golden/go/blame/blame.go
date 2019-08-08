@@ -224,7 +224,9 @@ func (b *BlamerImpl) calculate(tile *tiling.Tile, exp types.Expectations) error 
 		}
 	}
 
-	commits := tile.Commits[:tileLen]
+	// make a copy of the commits we hold onto, so as not to hold a reference
+	// to the tile, preventing GC.
+	commits := append([]*tiling.Commit{}, tile.Commits[:tileLen]...)
 	for testName, digests := range blameRange {
 		for digest, commitRanges := range digests {
 			start := blameStart[testName][digest]
