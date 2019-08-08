@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "cbf3e14f_e0c52953",
+        "filename": "android_compile/go/android_compile_be/main.go",
+        "patchSetId": 38
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-08T13:29:30Z",
+      "side": 1,
+      "message": "In that case, does it make sense to have this constant at all?",
+      "parentUuid": "b52e9d81_ce4a2b59",
+      "range": {
+        "startLine": 38,
+        "startChar": 25,
+        "endLine": 38,
+        "endChar": 26
+      },
+      "revId": "a49c188bf736c75a1feff5f50d42f071f04b26e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c316d623_cb7f449b",
         "filename": "android_compile/go/android_compile_be/main.go",
         "patchSetId": 38
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "Right, the whole UpdateInfraFailureMetric has been removed because (from the commit msg):\n* Removed UpdateInfraFailureMetric. The alert was only triggered for merge errors and the error is already exposed in the recipe output anyway.",
       "parentUuid": "c316d623_cb7f449b",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 18
+      },
+      "revId": "a49c188bf736c75a1feff5f50d42f071f04b26e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "57e151ed_d9b76756",
+        "filename": "android_compile/go/android_compile_be/main.go",
+        "patchSetId": 38
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-08T13:29:30Z",
+      "side": 1,
+      "message": "Ah, sorry, I missed that.",
+      "parentUuid": "eadc02af_e256e0f6",
       "range": {
         "startLine": 88,
         "startChar": 0,
@@ -143,6 +191,30 @@
     },
     {
       "key": {
+        "uuid": "5b3f2bdb_878e3d2e",
+        "filename": "android_compile/go/android_compile_be/main.go",
+        "patchSetId": 38
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-08T13:29:30Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "d589b025_2e74908d",
+      "range": {
+        "startLine": 225,
+        "startChar": 21,
+        "endLine": 225,
+        "endChar": 40
+      },
+      "revId": "a49c188bf736c75a1feff5f50d42f071f04b26e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4b420bfb_5f9661ff",
         "filename": "android_compile/res/imp/force-sync-sk.html",
         "patchSetId": 38
@@ -178,6 +250,30 @@
       "side": 1,
       "message": "I think we always need both instances to sync at the same time. Otherwise you could sync one instance and then the other might run at a revision before some fix.",
       "parentUuid": "4b420bfb_5f9661ff",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 67,
+        "endChar": 13
+      },
+      "revId": "a49c188bf736c75a1feff5f50d42f071f04b26e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "de59b26f_c1cefed8",
+        "filename": "android_compile/res/imp/force-sync-sk.html",
+        "patchSetId": 38
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-08T13:29:30Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "bb216711_77e93141",
       "range": {
         "startLine": 67,
         "startChar": 0,
