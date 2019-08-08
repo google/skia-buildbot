@@ -247,12 +247,7 @@ func (i *Ingester) getStartTimeOfInterest(ctx context.Context, now time.Time) (i
 	if len(hashes) < i.nCommits {
 		for len(hashes) < i.nCommits && delta < 365*24*time.Hour {
 			delta *= 2
-			moreHashes := i.vcs.From(now.Add(delta))
-			if len(moreHashes) == len(hashes) {
-				hashes = moreHashes
-				break
-			}
-			hashes = moreHashes
+			hashes = i.vcs.From(now.Add(delta))
 		}
 
 		// In case we have retrieved too many commits.

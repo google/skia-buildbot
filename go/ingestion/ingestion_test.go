@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	mockvcs "go.skia.org/infra/go/vcsinfo/mocks"
 )
@@ -143,7 +142,7 @@ func TestGetStartTimeOfInterestDays(t *testing.T) {
 
 	i, err := NewIngester("test-ingester-1", conf, mvs, nil, nil, mis, meb)
 	assert.NoError(t, err)
-	defer util.Close(i)
+	defer testutils.AssertCloses(t, i)
 
 	ts, err := i.getStartTimeOfInterest(context.Background(), now)
 	assert.NoError(t, err)
@@ -189,7 +188,7 @@ func TestGetStartTimeOfInterestCommits(t *testing.T) {
 
 	i, err := NewIngester("test-ingester-2", conf, mvs, nil, nil, mis, meb)
 	assert.NoError(t, err)
-	defer util.Close(i)
+	defer testutils.AssertCloses(t, i)
 
 	ts, err := i.getStartTimeOfInterest(context.Background(), now)
 	assert.NoError(t, err)
@@ -211,7 +210,7 @@ func TestGetStartTimeOfInterestNotEnough(t *testing.T) {
 
 	// arbitrary date
 	now := time.Date(2019, 8, 5, 11, 20, 0, 0, time.UTC)
-	alphaTime := time.Date(2019, 8, 1, 17, 35, 0, 0, time.UTC)
+	alphaTime := time.Date(2019, 8, 2, 17, 35, 0, 0, time.UTC)
 
 	hashes := []string{"alpha", "beta", "gamma", "delta", "epsilon"}
 
@@ -229,7 +228,7 @@ func TestGetStartTimeOfInterestNotEnough(t *testing.T) {
 
 	i, err := NewIngester("test-ingester-3", conf, mvs, nil, nil, mis, meb)
 	assert.NoError(t, err)
-	defer util.Close(i)
+	defer testutils.AssertCloses(t, i)
 
 	ts, err := i.getStartTimeOfInterest(context.Background(), now)
 	assert.NoError(t, err)
