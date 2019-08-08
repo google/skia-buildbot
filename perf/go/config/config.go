@@ -83,7 +83,7 @@ var (
 			GitUrl:   "https://skia.googlesource.com/perf-buildid/android-master",
 			Shards:   8,
 			Sources:  []string{"gs://skia-perf/android-master-ingest"},
-			Branches: []string{"aosp-androidx-master-dev branch"},
+			Branches: []string{"aosp-androidx-master-dev"},
 		},
 	}
 )
