@@ -114,12 +114,13 @@ func main() {
 		port                = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
 		promPort            = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 		pubWhiteList        = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", EVERYTHING_PUBLIC))
-		pubsubProjectID     = flag.String("pubsub_project_id", "", "Project ID that houses the GCS bucket (and therefore should be where to listen for pubsub notifications).")
+		pubsubProjectID     = flag.String("pubsub_project_id", "", "Project ID that houses the pubsub topics (e.g. for ingestion).")
 		redirectURL         = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 		resourcesDir        = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
 		serviceAccountFile  = flag.String("service_account_file", "", "Credentials file for service account.")
 		showBotProgress     = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
 		siteURL             = flag.String("site_url", "https://gold.skia.org", "URL where this app is hosted.")
+		tileFreshness       = flag.Duration("tile_freshness", time.Minute, "How often to re-fetch the tile")
 		traceBTTableID      = flag.String("trace_bt_table", "", "BigTable table ID for the traces.")
 	)
 
@@ -421,7 +422,7 @@ func main() {
 		sklog.Fatalf("Unable to create ignorestore: %s", err)
 	}
 
-	if err := ignore.StartMonitoring(ignoreStore, time.Minute); err != nil {
+	if err := ignore.StartMonitoring(ignoreStore, *tileFreshness); err != nil {
 		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
 	}
 
@@ -437,6 +438,12 @@ func main() {
 	}
 
 	tileSource := tilesource.New(ctc)
+	sklog.Infof("Fetching tile")
+	// Blocks until tile is fetched
+	err = tileSource.StartUpdater(context.Background(), 2*time.Minute)
+	if err != nil {
+		sklog.Fatalf("Could not fetch initial tile: %s", err)
+	}
 
 	ic := indexer.IndexerConfig{
 		DiffStore:         diffStore,
