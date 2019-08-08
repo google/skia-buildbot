@@ -38,7 +38,7 @@ function _titleFrom(ele) {
 
 const template = (ele) => html`
   <button @click=${ele._open}>${_titleFrom(ele)}</button>
-  <dialog-sk>
+  <dialog>
     <commit-detail-panel-sk @commit-selected='${ele._panelSelect}' .details='${ele._details}' selectable selected=${ele.selected}></commit-detail-panel-sk>
     <button @click=${ele._close}>Close</button>
   </dialog>
