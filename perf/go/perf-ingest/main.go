@@ -134,6 +134,7 @@ func indexToCache(hash string, index int) {
 //
 // If 'branches' is not empty then restrict to ingesting just the branches in the slice.
 func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs vcsinfo.VCS, filename string, r io.Reader, timestamp time.Time, branches []string) error {
+	sklog.Infof("Processing %q", filename)
 	benchData, err := ingestcommon.ParseBenchDataFromReader(r)
 	if err != nil {
 		sklog.Errorf("Failed to read or parse data: %s", err)
@@ -147,9 +148,12 @@ func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs 
 				return nil
 			}
 		}
+	} else {
+		sklog.Infof("No branch name.")
 	}
 
 	params, values, paramset := getParamsAndValues(benchData)
+	sklog.Infof("Processing file: %q paramset: %v", filename, paramset)
 	index, ok := indexFromCache(benchData.Hash)
 	if !ok {
 		var err error
@@ -268,6 +272,10 @@ func main() {
 				var event Event
 				if err := json.Unmarshal(msg.Data, &event); err != nil {
 					sklog.Error(err)
+					return
+				}
+				// Transaction logs for android_ingest are writting to the same bucket, which we should ignore.
+				if strings.Contains(event.Name, "/tx_log/") {
 					return
 				}
 				// Load the file.
