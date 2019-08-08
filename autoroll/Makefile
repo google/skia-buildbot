@@ -1,3 +1,7 @@
+# This makefile is used to compile Autoroller code, build Docker images
+# containing the same, and generate, apply, and push Kubernetes configs
+# for the autorollers.
+
 VULCANIZE1=true
 
 # The list of files we want to go into core.js, which is concat'd and
@@ -10,30 +14,29 @@ CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
 BOWER_DIR=third_party/bower_components
 
 include ../go/skiaversion/skiaversion.mk
+include ../kube/kube.mk
+include ../make/clusters.mk
+include ../webtools/webtools.mk
 
-all: autoroll-fe autoroll-be-kube autoroll-google3
-
+.PHONY: autoroll-fe
 autoroll-fe: core_js elements_html skiaversion
 	ln -sf ../../res res/imp/res
 	GOOS=linux go install -a ./go/autoroll-fe
 
-autoroll-be-kube: skiaversion
-	GOOS=linux go install -a ./go/autoroll-be-kube
+.PHONY: autoroll-be
+autoroll-be: skiaversion
+	GOOS=linux go install -a ./go/autoroll-be
 
+.PHONY: autoroll-google3
 autoroll-google3: skiaversion
 	GOOS=linux go install -a ./go/autoroll-google3
+
+.PHONY: all
+all: autoroll-fe autoroll-be autoroll-google3
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html
-
-testgo: skiaversion
-	go test ./go/... -v
-
-include ../webtools/webtools.mk
-
-release-fe: autoroll-fe setup-internal-config-repo
-	./build_frontend_release
 
 ROLLER_INTERNAL_CONFIG_DIR = "/tmp/skia-autoroll-internal-config"
 USE_INTERNAL_CONFIG_DIR_PROMPT ?= $$(bash -c 'read -s -p "The checkout in $(ROLLER_INTERNAL_CONFIG_DIR) is dirty. Would you still like to use it? (y/n): " ans; echo $$ans')
@@ -51,49 +54,62 @@ setup-internal-config-repo:
 		fi; \
 	fi
 
-# Parse the config files, compile lists of roller configs.
-ROLLER_CONFIGS_KUBE_INTERNAL=$(wildcard /tmp/skia-autoroll-internal-config/*.json)
-ROLLER_CONFIGS_KUBE_EXTERNAL=$(wildcard config/*.json)
+# These targets build kubernetes releases.
+.PHONY: release-be
+release-be: autoroll-be
+	./build_backend_release
 
-release-be-kube: autoroll-be-kube
-	CONFIG_DIR="$(CONFIG_DIR)" ./build_docker_backend_release "$(CONFIG_FILE)" "$(MESSAGE)"
+.PHONY: release-fe
+release-fe: autoroll-fe
+	./build_frontend_release
 
+.PHONY: release-google3
 release-google3: autoroll-google3 setup-internal-config-repo
 	CONFIG_DIR="$(ROLLER_INTERNAL_CONFIG_DIR)" ./build_google3_release "$(MESSAGE)"
 
-release-all: release-fe release-be-all release-google3
+.PHONY: release-all
+release-all: release-fe release-be release-google3
 
-include ../kube/kube.mk
+# push-helper is used by the below targets to apply k8s configurations.
+.PHONY: push-helper
+push-helper: kube-conf-gen deployment-dirs
+	go install -v ./go/push-helper
 
-KUBE_CONF_GEN_INTERNAL=kube-conf-gen -t ./go/autoroll-be-kube/autoroll-be.yaml.template \
-	-c "$(CONFIG_FILE)" \
-	-o $(SKIA_CORP_CONFIG_DIR)/autoroll-be-$(basename $(notdir $(CONFIG_FILE))).yaml \
-	--extra configFile:$(notdir $(CONFIG_FILE))
+# apply-roller generates a new backend release build and applies it, along with
+# the current roller config file(s), to the roller(s) matching the ROLLER
+# environment variable. Also updates the frontend with the current roller
+# config(s) but does not change the frontend build.
+.PHONY: apply-roller
+apply-roller: release-be push-helper setup-internal-config-repo
+	push-helper --roller="$(ROLLER)" --update-config --update-be-image
 
-KUBE_CONF_GEN_EXTERNAL=kube-conf-gen -t ./go/autoroll-be-kube/autoroll-be.yaml.template \
-	-c "$(CONFIG_FILE)" \
-	-o $(SKIA_PUBLIC_CONFIG_DIR)/autoroll-be-$(basename $(notdir $(CONFIG_FILE))).yaml \
-	--extra configFile:$(notdir $(CONFIG_FILE))
+# push-roller is the same as apply-roller, but it also commits and pushes the
+# modified kubernetes config files into the git repo, using the commit message
+# from the MESSAGE environment variable.
+.PHONY: push-roller
+push-roller: release-be push-helper setup-internal-config-repo
+	push-helper --roller="$(ROLLER)" --update-config --update-be-image --commit-with-msg="$(MESSAGE)" --use-tmp-checkout
 
-CONFIG_IS_INTERNAL=$(shell python -c "import json,sys; print ('1' if json.load(open(sys.argv[1]))['isInternal'] else '0')" $(CONFIG_FILE))
+# push-be generates a new backend release build and applies it to ALL rollers,
+# then commits and pushes the modified kubernetes config files into the git
+# repo, using the commit message from the MESSAGE environment variable. Does NOT
+# update the roller config files used by the backends.
+.PHONY: push-be
+push-be: release-be push-helper setup-internal-config-repo
+	push-helper --external --internal --update-be-image --commit-with-msg="$(MESSAGE)" --use-tmp-checkout
 
-push-be-kube: release-be-kube kube-conf-gen pushk deployment-dirs $(CONFIG_FILE)
-	if [ "$(CONFIG_IS_INTERNAL)" == "1" ]; then $(KUBE_CONF_GEN_INTERNAL); else $(KUBE_CONF_GEN_EXTERNAL); fi
-	pushk --ignore-dirty --message="$(MESSAGE)" --cluster="$(shell python -c "import json,sys; print ('skia-corp' if json.load(open(sys.argv[1])).get('isInternal') else 'skia-public')" $(CONFIG_FILE))" autoroll-be
+# push-fe generates a new frontend release build, applies it, and commits and
+# pushes the modified kubernetes config files into the git repo, using the
+# commit message from the MESSAGE environment variable. Does NOT update the
+# roller config files used by the frontends.
+.PHONY: push-fe
+push-fe: release-fe push-helper setup-internal-config-repo
+	push-helper --external --internal --update-fe-image --commit-with-msg="$(MESSAGE)" --use-tmp-checkout
 
-push-be-kube-internal: release-be-kube kube-conf-gen pushk deployment-dirs setup-internal-config-repo $(SKIA_CORP_CONFIG_DIR) $(ROLLER_CONFIGS_KUBE_INTERNAL)
-	$(foreach CONFIG_FILE, $(ROLLER_CONFIGS_KUBE_INTERNAL), $(KUBE_CONF_GEN_INTERNAL);)
-	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-corp autoroll-be
-
-push-be-kube-external: release-be-kube kube-conf-gen pushk deployment-dirs $(SKIA_PUBLIC_CONFIG_DIR) $(ROLLER_CONFIGS_KUBE_EXTERNAL)
-	$(foreach CONFIG_FILE, $(ROLLER_CONFIGS_KUBE_EXTERNAL), $(KUBE_CONF_GEN_EXTERNAL);)
-	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-public autoroll-be
-
-push-be-kube-all: push-be-kube-internal push-be-kube-external
-
-push-fe: release-fe
-	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-corp autoroll-fe-internal
-	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-public autoroll-fe
-
-push-google3: release-google3 pushk deployment-dirs $(SKIA_PUBLIC_CONFIG_DIR)
-	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-public autoroll-google3
+# push-all generates new frontend and backend release builds, applies them along
+# with the current roller config files(s), and commits and pushes the modified
+# kubernetes config files into the git repo, using the commit message from the
+# MESSAGE environment variable.
+.PHONY: push-all
+push-all: release-be release-fe push-helper setup-internal-config-repo
+	push-helper --external --internal --update-config --update-be-image --update-fe-image --commit-with-msg="$(MESSAGE)" --use-tmp-checkout
