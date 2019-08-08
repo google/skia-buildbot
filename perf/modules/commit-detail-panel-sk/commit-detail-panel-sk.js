@@ -82,15 +82,15 @@ window.customElements.define('commit-detail-panel-sk', class extends ElementSk {
   }
 
   _click(e) {
-    let ele = findParent(e.target, 'TR');
+    const ele = findParent(e.target, 'TR');
     if (!ele) {
       return
     }
     this.selected = +ele.dataset['id']
-    let detail = {
-      selected: ele.dataset.id,
-      description: ele.textContent.trim(),
-      commit: this._details[this.selected],
+    const commit = this._details[this.selected];
+    const detail = {
+      description: `${commit.author} -  ${commit.message}`,
+      commit: commit,
     }
     this.dispatchEvent(new CustomEvent('commit-selected', {detail: detail, bubbles: true}));
   }

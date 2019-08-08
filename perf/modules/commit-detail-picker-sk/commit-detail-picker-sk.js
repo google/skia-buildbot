@@ -16,12 +16,12 @@
  *
  */
 
-import 'elements-sk/dialog-sk'
 import '../commit-detail-panel-sk'
 import 'elements-sk/styles/buttons'
 
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import dialogPolyfill from 'dialog-polyfill'
 
 
 function _titleFrom(ele) {
@@ -41,7 +41,7 @@ const template = (ele) => html`
   <dialog-sk>
     <commit-detail-panel-sk @commit-selected='${ele._panelSelect}' .details='${ele._details}' selectable selected=${ele.selected}></commit-detail-panel-sk>
     <button @click=${ele._close}>Close</button>
-  </dialog-sk>
+  </dialog>
 `;
 
 window.customElements.define('commit-detail-picker-sk', class extends ElementSk {
@@ -55,7 +55,8 @@ window.customElements.define('commit-detail-picker-sk', class extends ElementSk 
     super.connectedCallback();
     this._upgradeProperty('details');
     this._render();
-    this._dialog = this.querySelector('dialog-sk');
+    this._dialog = this.querySelector('dialog');
+    dialogPolyfill.registerDialog(this._dialog);
   }
 
   _panelSelect(e) {
@@ -65,12 +66,12 @@ window.customElements.define('commit-detail-picker-sk', class extends ElementSk 
   }
 
   _close() {
-    this._dialog.shown = false;
+    this._dialog.close();
     this._render();
   }
 
   _open() {
-    this._dialog.shown = true;
+    this._dialog.showModal();
     this._render();
   }
 
