@@ -134,6 +134,7 @@ func indexToCache(hash string, index int) {
 //
 // If 'branches' is not empty then restrict to ingesting just the branches in the slice.
 func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs vcsinfo.VCS, filename string, r io.Reader, timestamp time.Time, branches []string) error {
+	sklog.Infof("Processing %q", filename)
 	benchData, err := ingestcommon.ParseBenchDataFromReader(r)
 	if err != nil {
 		sklog.Errorf("Failed to read or parse data: %s", err)
@@ -143,13 +144,15 @@ func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs 
 	if branch, ok := benchData.Key["branch"]; ok {
 		if len(branches) > 0 {
 			if !util.In(branch, branches) {
-				sklog.Infof("Skipping branch: %q", branch)
 				return nil
 			}
 		}
+	} else {
+		sklog.Infof("No branch name.")
 	}
 
 	params, values, paramset := getParamsAndValues(benchData)
+	sklog.Infof("Processing file: %q paramset: %v", filename, paramset)
 	index, ok := indexFromCache(benchData.Hash)
 	if !ok {
 		var err error
@@ -270,6 +273,10 @@ func main() {
 					sklog.Error(err)
 					return
 				}
+				// Transaction logs for android_ingest are writting to the same bucket, which we should ignore.
+				if strings.Contains(event.Name, "/tx_log/") {
+					return
+				}
 				// Load the file.
 				obj := gcsClient.Bucket(event.Bucket).Object(event.Name)
 				attrs, err := obj.Attrs(ctx)
@@ -283,7 +290,7 @@ func main() {
 					return
 				}
 				defer util.Close(reader)
-				sklog.Info(attrs.Name)
+				sklog.Infof("Filename: %q", attrs.Name)
 				// Pull data out of file and write it into BigTable.
 				fullName := fmt.Sprintf("gs://%s/%s", event.Bucket, event.Name)
 				err = processSingleFile(ctx, store, vcs, fullName, reader, attrs.Created, cfg.Branches)
