@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8ec1def1_e4e95771",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-08T18:11:33Z",
+      "side": 1,
+      "message": "It seems this condition is no longer needed and may result in incorrect results. I think the idea was that if we double the time range and still get the same number of commits, we should stop looking. However, that wouldn\u0027t work very well if e.g. minDuration is 24 hours and there are no commits to the repo over the weekend.",
+      "range": {
+        "startLine": 251,
+        "startChar": 0,
+        "endLine": 254,
+        "endChar": 4
+      },
+      "revId": "233427423670abe1ff5ca501530446fc962e56e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "647b4497_3cb2b380",
+        "filename": "go/ingestion/ingestion_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-08T18:11:33Z",
+      "side": 1,
+      "message": "nit: in tests it\u0027s nice to use testutils.AssertCloses",
+      "revId": "233427423670abe1ff5ca501530446fc962e56e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4bc24e11_8bbfbde1",
+        "filename": "go/ingestion/ingestion_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-08T18:11:33Z",
+      "side": 1,
+      "message": "nit: needs to be within 3 days of \u0027now\u0027 for test to be self-consistent",
+      "range": {
+        "startLine": 214,
+        "startChar": 33,
+        "endLine": 214,
+        "endChar": 34
+      },
+      "revId": "233427423670abe1ff5ca501530446fc962e56e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
