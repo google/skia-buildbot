@@ -64,7 +64,7 @@ const template = (ele) => html`
   <h2>Algorithm</h2>
   <algo-select-sk
     algo=${ele._state.algo}
-    @algo-change=${(e) => ele._state.algo = e.detail.algo}
+    @algo-change=${ele._algoChange}
     ></algo-select-sk>
 
   <h2>Query</h2>
@@ -108,7 +108,7 @@ const template = (ele) => html`
           min=0
           max=100
           .value=${ele._state.k}
-          @input=${(e) => ele._state.k = e.target.value}>
+          @input=${ele._kChange}>
       </label>
       <label>
         Number of commits to include on either side.
@@ -117,7 +117,7 @@ const template = (ele) => html`
           min=1
           max=25
           .value=${ele._state.radius}
-          @input=${(e) => ele._state.radius = e.target.value}>
+          @input=${ele._radiusChange}>
       </label>
       <label>
         Clusters are interesting if regression score &gt;= this.
@@ -126,12 +126,12 @@ const template = (ele) => html`
           min=0
           max=500
           .value=${ele._state.interesting}
-          @input=${(e) => ele._state.interesting = e.target.value}>
+          @input=${ele._interestingChange}>
       </label>
       <checkbox-sk
         ?checked=${ele._state.sparse}
-        @input=${(e) => ele._state.sparse = e.target.checked}
         label='Data is sparse, so only include commits that have data.'
+        @input=${ele._sparseChange}
         >
       </checkbox-sk>
     </div>
@@ -212,17 +212,36 @@ window.customElements.define('cluster-page-sk', class extends ElementSk {
       this._render();
       this._updateCommitSelections();
     });
-    // There are a lot of pieces of _state, so just keep the URL up to date by polling.
-    this._keepURLUpdated();
   }
 
-  _keepURLUpdated() {
+  _algoChange(e) {
+    this._state.algo = e.detail.algo;
     this._stateHasChanged();
-    window.setTimeout(() => this._keepURLUpdated(), 100);
+  }
+
+  _kChange(e) {
+    this._state.k = e.target.value;
+    this._stateHasChanged();
+  }
+
+  _radiusChange(e) {
+    this._state.radius = e.target.value;
+    this._stateHasChanged();
+  }
+
+  _interestingChange(e) {
+    this._state.interesting = e.target.value;
+    this._stateHasChanged();
+  }
+
+  _sparseChange(e) {
+    this._state.sparse = e.target.checked;
+    this._stateHasChanged();
   }
 
   _queryChanged(e) {
     this._state.query = e.detail.q;
+    this._stateHasChanged();
     this._render();
   }
 
@@ -246,12 +265,14 @@ window.customElements.define('cluster-page-sk', class extends ElementSk {
   _rangeChange(e) {
     this._state.begin = e.detail.begin;
     this._state.end = e.detail.end;
+    this._stateHasChanged();
     this._updateCommitSelections();
   }
 
   _commitSelected(e) {
     this._state.source = e.detail.commit.source;
     this._state.offset = e.detail.commit.offset;
+    this._stateHasChanged();
   }
 
   _updateCommitSelections() {
