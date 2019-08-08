@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b52e9d81_ce4a2b59",
+        "filename": "android_compile/go/android_compile_be/main.go",
+        "patchSetId": 38
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-08T13:16:21Z",
+      "side": 1,
+      "message": "I got this from perf/go/perf-ingest/main.go after talking to Joe. When we receive a pubsub msg we handle it immediately and either Ack it or Nack it, there should be no need for parallel receives and it is probably the safest option. Also we do not get tons of parallel requests for tryjob bots so this should be ok.",
+      "parentUuid": "6fb92deb_da30bef4",
+      "range": {
+        "startLine": 38,
+        "startChar": 25,
+        "endLine": 38,
+        "endChar": 26
+      },
+      "revId": "a49c188bf736c75a1feff5f50d42f071f04b26e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c316d623_cb7f449b",
         "filename": "android_compile/go/android_compile_be/main.go",
         "patchSetId": 38
@@ -45,6 +69,30 @@
       "revId": "a49c188bf736c75a1feff5f50d42f071f04b26e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eadc02af_e256e0f6",
+        "filename": "android_compile/go/android_compile_be/main.go",
+        "patchSetId": 38
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-08T13:16:21Z",
+      "side": 1,
+      "message": "Right, the whole UpdateInfraFailureMetric has been removed because (from the commit msg):\n* Removed UpdateInfraFailureMetric. The alert was only triggered for merge errors and the error is already exposed in the recipe output anyway.",
+      "parentUuid": "c316d623_cb7f449b",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 18
+      },
+      "revId": "a49c188bf736c75a1feff5f50d42f071f04b26e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "d589b025_2e74908d",
+        "filename": "android_compile/go/android_compile_be/main.go",
+        "patchSetId": 38
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-08T13:16:21Z",
+      "side": 1,
+      "message": "Added a comment here.",
+      "parentUuid": "e9fbde97_1d9baba3",
+      "range": {
+        "startLine": 225,
+        "startChar": 21,
+        "endLine": 225,
+        "endChar": 40
+      },
+      "revId": "a49c188bf736c75a1feff5f50d42f071f04b26e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4b420bfb_5f9661ff",
         "filename": "android_compile/res/imp/force-sync-sk.html",
         "patchSetId": 38
@@ -91,6 +163,30 @@
       "revId": "a49c188bf736c75a1feff5f50d42f071f04b26e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb216711_77e93141",
+        "filename": "android_compile/res/imp/force-sync-sk.html",
+        "patchSetId": 38
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-08T13:16:21Z",
+      "side": 1,
+      "message": "I think we always need both instances to sync at the same time. Otherwise you could sync one instance and then the other might run at a revision before some fix.",
+      "parentUuid": "4b420bfb_5f9661ff",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 67,
+        "endChar": 13
+      },
+      "revId": "a49c188bf736c75a1feff5f50d42f071f04b26e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
