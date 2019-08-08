@@ -89,6 +89,7 @@ window.customElements.define('commit-detail-panel-sk', class extends ElementSk {
     this.selected = +ele.dataset['id']
     const commit = this._details[this.selected];
     const detail = {
+      selected: this.selected,
       description: `${commit.author} -  ${commit.message}`,
       commit: commit,
     }
