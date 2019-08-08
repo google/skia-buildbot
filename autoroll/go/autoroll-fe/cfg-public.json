@@ -1,0 +1,6 @@
+{
+  "appName": "autoroll-fe",
+  "hostName": "autoroll.skia.org",
+  "internal": false,
+  "legacyLoginSecrets": "skia-org-legacy-login-secrets"
+}

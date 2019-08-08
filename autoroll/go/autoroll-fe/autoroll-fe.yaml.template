@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{.appName}}
+  name: {{.appName}}
+  annotations:
+    beta.cloud.google.com/backend-config: '{"ports": {"8000":"skia-default-backendconfig"}}'
+spec:
+  ports:
+    - name: metrics
+      port: 20000
+    - name: http
+      port: 8000
+  selector:
+    app: {{.appName}}
+  type: NodePort
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: {{.appName}}
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: {{.appName}}
+      annotations:
+        prometheus.io.scrape: "true"
+        prometheus.io.port: "20000"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 2000 # aka skia
+        fsGroup: 2000   # aka skia
+      containers:
+        - name: {{.appName}}
+          image: {{.image}}
+          args:
+            - "--logtostderr"
+            - "--firestore_instance=production"
+            - "--host={{.hostName}}"
+            - "--port=:8000"
+            - "--prom_port=:20000"
+            - "--resources_dir=/usr/local/share/autoroll"{{if eq .internal "true"}}
+            - "--internal"{{end}}{{- range $index, $config := .configs}}
+            - "--config={{$config.base64}}"{{- end}}
+          ports:
+            - containerPort: 8000
+            - containerPort: 20000
+          volumeMounts:
+            - name: {{.appName}}-sa
+              mountPath: /var/secrets/google
+            - name: legacy-login-secrets
+              mountPath: /etc/skia.org/
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/key.json
+          resources:
+            requests:
+              memory: "10Mi"
+              cpu: "10m"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 3
+            failureThreshold: 10
+      volumes:
+        - name: {{.appName}}-sa
+          secret:
+            secretName: {{.appName}}
+        - name: legacy-login-secrets
+          secret:
+            secretName: {{.legacyLoginSecrets}}
