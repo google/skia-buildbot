@@ -3,6 +3,7 @@ package gitiles
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -28,9 +29,13 @@ const (
 	DATE_FORMAT_NO_TZ = "Mon Jan 02 15:04:05 2006"
 	DATE_FORMAT_TZ    = "Mon Jan 02 15:04:05 2006 -0700"
 	DOWNLOAD_URL      = "%s/+/%s/%s?format=TEXT"
-	LOG_URL           = "%s/+log/%s..%s?format=JSON"
+	LOG_URL           = "%s/+log/%s?format=JSON"
 	REFS_URL          = "%s/+refs%%2Fheads?format=JSON"
 	TAGS_URL          = "%s/+refs%%2Ftags?format=JSON"
+)
+
+var (
+	ErrStopIteration = errors.New("stop iteration")
 )
 
 // Repo is an object used for interacting with a single Git repo using Gitiles.
@@ -187,28 +192,48 @@ func (r *Repo) GetCommit(ref string) (*vcsinfo.LongCommit, error) {
 	return commitToLongCommit(&c)
 }
 
+// logHelper is used to perform requests which are equivalent to "git log".
+// Loads commits in batches and calls the given function for each batch of
+// commits. If the function returns an error, iteration stops, and the error is
+// returned, unless it was ErrStopIteration.
+func (r *Repo) logHelper(urlTmpl, commit string, fn func([]*vcsinfo.LongCommit) error) error {
+	for {
+		var l Log
+		if err := r.getJson(fmt.Sprintf(urlTmpl, commit), &l); err != nil {
+			return err
+		}
+		// Convert to vcsinfo.LongCommit.
+		commits := make([]*vcsinfo.LongCommit, 0, len(l.Log))
+		for _, c := range l.Log {
+			vc, err := commitToLongCommit(c)
+			if err != nil {
+				return err
+			}
+			commits = append(commits, vc)
+		}
+		if err := fn(commits); err == ErrStopIteration {
+			return nil
+		} else if err != nil {
+			return err
+		}
+		if l.Next == "" {
+			return nil
+		} else {
+			commit = l.Next
+		}
+	}
+}
+
 // Log returns Gitiles' equivalent to "git log" for the given start and end
 // commits.
 func (r *Repo) Log(from, to string) ([]*vcsinfo.LongCommit, error) {
 	rv := []*vcsinfo.LongCommit{}
-	for {
-		var l Log
-		if err := r.getJson(fmt.Sprintf(LOG_URL, r.URL, from, to), &l); err != nil {
-			return nil, err
-		}
-		// Convert to vcsinfo.LongCommit.
-		for _, c := range l.Log {
-			vc, err := commitToLongCommit(c)
-			if err != nil {
-				return nil, err
-			}
-			rv = append(rv, vc)
-		}
-		if l.Next == "" {
-			break
-		} else {
-			to = l.Next
-		}
+	tmpl := fmt.Sprintf(LOG_URL, r.URL, from+"..%s")
+	if err := r.logHelper(tmpl, to, func(commits []*vcsinfo.LongCommit) error {
+		rv = append(rv, commits...)
+		return nil
+	}); err != nil {
+		return nil, err
 	}
 	return rv, nil
 }
@@ -273,6 +298,26 @@ func (r *Repo) LogLinear(from, to string) ([]*vcsinfo.LongCommit, error) {
 		}
 	}
 	return rv, nil
+}
+
+// LogFn runs the given function for each commit in the log history reachable
+// from the given commit hash or ref name. It stops when ErrStopIteration is
+// returned.
+func (r *Repo) LogFn(to string, fn func(*vcsinfo.LongCommit) error) error {
+	return r.logHelper(fmt.Sprintf(LOG_URL, r.URL, "%s"), to, func(commits []*vcsinfo.LongCommit) error {
+		for _, c := range commits {
+			if err := fn(c); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+// LogFnBatch is the same as LogFn but it runs the given function over batches
+// of commits.
+func (r *Repo) LogFnBatch(to string, fn func([]*vcsinfo.LongCommit) error) error {
+	return r.logHelper(fmt.Sprintf(LOG_URL, r.URL, "%s"), to, fn)
 }
 
 // Branches returns the list of branches in the repo.

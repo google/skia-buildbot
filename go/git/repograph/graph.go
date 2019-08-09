@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/metrics2"
@@ -176,6 +177,12 @@ type RepoImpl interface {
 	UpdateCallback(context.Context, *Graph) error
 }
 
+// GraphUpdateCallback is a callback which can be passed to
+// Graph.UpdateWithCallback. It accepts as parameters the new version of the
+// Graph before the changes are committed, and slices of the new and deleted
+// commits, respectively.
+type GraphUpdateCallback func(*Graph, []*vcsinfo.LongCommit, []*vcsinfo.LongCommit) error
+
 // Graph represents an entire Git repo.
 type Graph struct {
 	branches []*git.Branch
@@ -212,6 +219,13 @@ func NewGitStoreGraph(ctx context.Context, gs gitstore.GitStore) (*Graph, error)
 	})
 }
 
+// NewGitilesGraph returns a Graph instance which uses Gitiles.
+func NewGitilesGraph(ctx context.Context, repo *gitiles.Repo) (*Graph, error) {
+	return NewWithRepoImpl(ctx, &gitilesRepoImpl{
+		Repo: repo,
+	})
+}
+
 // NewWithRepoImpl returns a Graph instance which uses the given RepoImpl.
 func NewWithRepoImpl(ctx context.Context, ri RepoImpl) (*Graph, error) {
 	rv := &Graph{
@@ -222,6 +236,15 @@ func NewWithRepoImpl(ctx context.Context, ri RepoImpl) (*Graph, error) {
 		return nil, err
 	}
 	return rv, nil
+}
+
+// SwapRepoImpl changes the RepoImpl which backs this Graph. Useful for
+// initializing a Graph from one RepoImpl but using another for periodic
+// updates.
+func (r *Graph) SwapRepoImpl(ri RepoImpl) {
+	r.updateMtx.Lock()
+	defer r.updateMtx.Unlock()
+	r.repoImpl = ri
 }
 
 // Len returns the number of commits in the repo.
@@ -404,51 +427,50 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 	return addedCommits, removedCommits, nil
 }
 
-// update the Graph, returning any added and removed commits, and run the given
-// callback function on the Graph before the changes are committed. If the
-// callback returns an error, the changes are not committed.
-func (r *Graph) update(ctx context.Context, cb func(*Graph) error) ([]*vcsinfo.LongCommit, []*vcsinfo.LongCommit, error) {
+// UpdateWithCallback updates the Graph and runs the given function before the
+// changes are committed. If the function returns an error, the changes are not
+// committed. The function is allowed to call non-Update methods of the Graph.
+func (r *Graph) UpdateWithCallback(ctx context.Context, cb GraphUpdateCallback) error {
 	r.updateMtx.Lock()
 	defer r.updateMtx.Unlock()
 	defer metrics2.FuncTimer().Stop()
 	newGraph := r.shallowCopy()
 	added, removed, err := newGraph.updateFrom(ctx, r.repoImpl)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 	if cb != nil {
-		if err := cb(newGraph); err != nil {
-			return nil, nil, err
+		if err := cb(newGraph, added, removed); err != nil {
+			return err
 		}
 	}
 	if err := r.repoImpl.UpdateCallback(ctx, newGraph); err != nil {
-		return nil, nil, err
+		return err
 	}
 	r.graphMtx.Lock()
 	defer r.graphMtx.Unlock()
 	r.branches = newGraph.branches
 	r.commits = newGraph.commits
-	return added, removed, nil
+	return nil
 }
 
 // Update the Graph.
 func (r *Graph) Update(ctx context.Context) error {
-	_, _, err := r.update(ctx, nil)
-	return err
+	return r.UpdateWithCallback(ctx, nil)
 }
 
 // UpdateAndReturnCommitDiffs updates the Graph and returns the added and
 // removed commits, in arbitrary order.
 func (r *Graph) UpdateAndReturnCommitDiffs(ctx context.Context) ([]*vcsinfo.LongCommit, []*vcsinfo.LongCommit, error) {
-	return r.update(ctx, nil)
-}
-
-// UpdateWithCallback updates the Graph and runs the given function before the
-// changes are committed. If the function returns an error, the changes are not
-// committed. The function is allowed to call non-Update methods of the Graph.
-func (r *Graph) UpdateWithCallback(ctx context.Context, cb func(*Graph) error) error {
-	_, _, err := r.update(ctx, cb)
-	return err
+	var added, removed []*vcsinfo.LongCommit
+	if err := r.UpdateWithCallback(ctx, func(_ *Graph, a, r []*vcsinfo.LongCommit) error {
+		added = a
+		removed = r
+		return nil
+	}); err != nil {
+		return nil, nil, err
+	}
+	return added, removed, nil
 }
 
 // Branches returns the list of known branches in the repo.

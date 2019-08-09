@@ -24,6 +24,13 @@ type gitstoreRepoImpl struct {
 	lastUpdate time.Time
 }
 
+// NewGitStoreRepoImpl returns a RepoImpl instance which is backed by GitStore.
+func NewGitStoreRepoImpl(gs gitstore.GitStore) RepoImpl {
+	return &gitstoreRepoImpl{
+		gs: gs,
+	}
+}
+
 // See documentation for RepoImpl interface.
 func (g *gitstoreRepoImpl) Update(ctx context.Context) error {
 	branchPtrs, err := g.gs.GetBranches(ctx)
