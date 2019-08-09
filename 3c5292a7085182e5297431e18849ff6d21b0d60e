@@ -202,6 +202,30 @@
     },
     {
       "key": {
+        "uuid": "b3477b70_83b422ea",
+        "filename": "gitsync/go/gitsync/watcher.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T19:41:57Z",
+      "side": 1,
+      "message": "\"// Wrapf adds context and stack trace info to err.\"\n\nIt makes errors print with a stracktrace, which is easier to debug IMO.\n\nSo, \nreturn skerr.Wrapf(err, \"could not put branches\")\n\nadds that context (which is a format string and any relevant variables)\nand a stacktrace to that error as it trickles up.\n\nIf skerr.Wrapf is called on that error again, it just keeps adding more stack/context.\n\nYeah, it looks like in PS9 you use it appropriately.",
+      "parentUuid": "beffed88_12329a02",
+      "range": {
+        "startLine": 91,
+        "startChar": 10,
+        "endLine": 91,
+        "endChar": 13
+      },
+      "revId": "3c5292a7085182e5297431e18849ff6d21b0d60e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7915290d_8f5ee1c9",
         "filename": "go/git/repograph/gitiles.go",
         "patchSetId": 4
