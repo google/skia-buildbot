@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba915a68_75d16d60",
+        "filename": "gitsync/go/gitsync/watcher.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T19:04:40Z",
+      "side": 1,
+      "message": "Some context would be nice with this error a la \"Error while getting branches in repo...\"",
+      "range": {
+        "startLine": 93,
+        "startChar": 15,
+        "endLine": 93,
+        "endChar": 18
+      },
+      "revId": "1265b63f5963f84031e456f6f40872f556c07560",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6fd5fb79_c36f5687",
+        "filename": "gitsync/go/gitsync/watcher.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T19:04:40Z",
+      "side": 1,
+      "message": "Does this need a mutex or a rwmutex to prevent concurrent read/writes?",
+      "revId": "1265b63f5963f84031e456f6f40872f556c07560",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0029b8ae_240e5fae",
+        "filename": "gitsync/go/gitsync/watcher.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T19:04:40Z",
+      "side": 1,
+      "message": "skerr.Wrapf... here and below",
+      "range": {
+        "startLine": 117,
+        "startChar": 14,
+        "endLine": 117,
+        "endChar": 17
+      },
+      "revId": "1265b63f5963f84031e456f6f40872f556c07560",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1c290b4_6873ffc1",
+        "filename": "gitsync/go/gitsync/watcher.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T19:04:40Z",
+      "side": 1,
+      "message": "Maybe make this Debugf?",
+      "range": {
+        "startLine": 134,
+        "startChar": 8,
+        "endLine": 134,
+        "endChar": 13
+      },
+      "revId": "1265b63f5963f84031e456f6f40872f556c07560",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

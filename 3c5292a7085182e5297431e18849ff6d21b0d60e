@@ -84,6 +84,30 @@
     },
     {
       "key": {
+        "uuid": "1b493adc_f1d66254",
+        "filename": "gitsync/go/gitsync/watcher.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T19:04:40Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "e2bfc90e_8472b83f",
+      "range": {
+        "startLine": 59,
+        "startChar": 1,
+        "endLine": 59,
+        "endChar": 8
+      },
+      "revId": "3c5292a7085182e5297431e18849ff6d21b0d60e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2eda35d0_f55f4c3e",
         "filename": "gitsync/go/gitsync/watcher.go",
         "patchSetId": 4
@@ -118,6 +142,30 @@
       "writtenOn": "2019-08-09T13:05:42Z",
       "side": 1,
       "message": "skerr.Wrapf",
+      "range": {
+        "startLine": 91,
+        "startChar": 10,
+        "endLine": 91,
+        "endChar": 13
+      },
+      "revId": "3c5292a7085182e5297431e18849ff6d21b0d60e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32ad7e7c_accf8e65",
+        "filename": "gitsync/go/gitsync/watcher.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T19:04:40Z",
+      "side": 1,
+      "message": "ping",
+      "parentUuid": "07bb5f97_cb9963bb",
       "range": {
         "startLine": 91,
         "startChar": 10,
@@ -187,6 +235,30 @@
       "writtenOn": "2019-08-09T13:05:42Z",
       "side": 1,
       "message": "skerr.Wrapf here and 440,444, 467",
+      "range": {
+        "startLine": 436,
+        "startChar": 9,
+        "endLine": 436,
+        "endChar": 12
+      },
+      "revId": "3c5292a7085182e5297431e18849ff6d21b0d60e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7a510421_d3e33535",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 436,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T19:04:40Z",
+      "side": 1,
+      "message": "ping",
+      "parentUuid": "0ff640d0_5aa2f4ae",
       "range": {
         "startLine": 436,
         "startChar": 9,
