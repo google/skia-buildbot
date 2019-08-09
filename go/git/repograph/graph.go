@@ -165,8 +165,8 @@ type RepoImpl interface {
 	// Update the local view of the repo.
 	Update(context.Context) error
 
-	// Return the given commits.
-	Get(context.Context, []string) ([]*vcsinfo.LongCommit, error)
+	// Return details for the given commit.
+	Details(context.Context, string) (*vcsinfo.LongCommit, error)
 
 	// Return the branch heads, as of the last call to Update().
 	Branches(context.Context) ([]*git.Branch, error)
@@ -207,9 +207,7 @@ func NewLocalGraph(ctx context.Context, repoUrl, workdir string) (*Graph, error)
 
 // NewGitStoreGraph returns a Graph instance which is backed by a GitStore.
 func NewGitStoreGraph(ctx context.Context, gs gitstore.GitStore) (*Graph, error) {
-	return NewWithRepoImpl(ctx, &gitstoreRepoImpl{
-		gs: gs,
-	})
+	return NewWithRepoImpl(ctx, NewGitStoreRepoImpl(gs))
 }
 
 // NewWithRepoImpl returns a Graph instance which uses the given RepoImpl.
@@ -333,17 +331,17 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 			}
 
 			// We haven't seen this commit before; add it to newCommits.
-			details, err := ri.Get(ctx, []string{c})
+			details, err := ri.Details(ctx, c)
 			if err != nil {
 				return nil, nil, fmt.Errorf("Failed to Get commit details from RepoImpl: %s", err)
 			}
-			newCommits = append(newCommits, details[0])
+			newCommits = append(newCommits, details)
 
 			// Add the commit's parent(s) to the toProcess map.
-			for _, p := range details[0].Parents {
+			for _, p := range details.Parents {
 				toProcess[p] = true
 			}
-			if len(details[0].Parents) == 0 && oldHead != "" {
+			if len(details.Parents) == 0 && oldHead != "" {
 				// If we found a commit with no parents and this
 				// is not a new branch, then we've discovered a
 				// completely new line of history and need to

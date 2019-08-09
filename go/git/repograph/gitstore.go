@@ -3,7 +3,6 @@ package repograph
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"go.skia.org/infra/go/git"
@@ -22,6 +21,13 @@ type gitstoreRepoImpl struct {
 	branches   []*git.Branch
 	commits    map[string]*vcsinfo.LongCommit
 	lastUpdate time.Time
+}
+
+// NewGitStoreRepoImpl returns a RepoImpl instance which is backed by GitStore.
+func NewGitStoreRepoImpl(gs gitstore.GitStore) RepoImpl {
+	return &gitstoreRepoImpl{
+		gs: gs,
+	}
 }
 
 // See documentation for RepoImpl interface.
@@ -67,32 +73,19 @@ func (g *gitstoreRepoImpl) Update(ctx context.Context) error {
 }
 
 // See documentation for RepoImpl interface.
-func (g *gitstoreRepoImpl) Get(ctx context.Context, hashes []string) ([]*vcsinfo.LongCommit, error) {
-	var needRetrieve []string
-	for _, hash := range hashes {
-		if _, ok := g.commits[hash]; !ok {
-			sklog.Warningf("Commit %q not found in results; performing explicit lookup.", hash)
-			needRetrieve = append(needRetrieve, hash)
-		}
+func (g *gitstoreRepoImpl) Details(ctx context.Context, hash string) (*vcsinfo.LongCommit, error) {
+	if c, ok := g.commits[hash]; ok {
+		return c, nil
 	}
-	if len(needRetrieve) > 0 {
-		got, err := g.gs.Get(ctx, needRetrieve)
-		if err != nil {
-			return nil, err
-		}
-		for _, c := range got {
-			g.commits[c.Hash] = c
-		}
+	sklog.Warningf("Commit %q not found in results; performing explicit lookup.", hash)
+	got, err := g.gs.Get(ctx, []string{hash})
+	if err != nil {
+		return nil, err
 	}
-	rv := make([]*vcsinfo.LongCommit, 0, len(hashes))
-	for _, hash := range hashes {
-		c, ok := g.commits[hash]
-		if !ok {
-			return nil, fmt.Errorf("Missing commit %s but did not retrieve it!", hash)
-		}
-		rv = append(rv, c)
+	for _, c := range got {
+		g.commits[c.Hash] = c
 	}
-	return rv, nil
+	return got[0], nil
 }
 
 // See documentation for RepoImpl interface.
