@@ -6,10 +6,10 @@ metadata:
   name: gold-{{.INSTANCE_ID}}-baselineserver
 spec:
   ports:
-    - name: metrics
-      port: 20000
     - name: http
       port: 8000
+    - name: metrics
+      port: 20000
   selector:
     app: gold-{{.INSTANCE_ID}}-baselineserver
   type: NodePort
