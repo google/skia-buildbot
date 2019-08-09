@@ -6,15 +6,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/flynn/json5"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
@@ -35,7 +31,6 @@ var defaultConf = gitSyncConfig{
 	PromPort:        ":20000",
 	RepoURLs:        []string{},
 	RefreshInterval: human.JSONDuration(10 * time.Minute),
-	WorkDir:         "",
 }
 
 func main() {
@@ -55,7 +50,6 @@ func main() {
 	flag.StringVar(&config.PromPort, "prom_port", defaultConf.PromPort, "Metrics service address (e.g., ':10110')")
 	common.MultiStringFlagVar(&config.RepoURLs, "repo_url", defaultConf.RepoURLs, "Repo url")
 	flag.DurationVar((*time.Duration)(&config.RefreshInterval), "refresh", time.Duration(defaultConf.RefreshInterval), "Interval in which to poll git and refresh the GitStore.")
-	flag.StringVar(&config.WorkDir, "workdir", defaultConf.WorkDir, "Working directory where repos are cached. Use the same directory between calls to speed up checkout time.")
 
 	common.InitWithMust(
 		"gitsync",
@@ -97,12 +91,6 @@ func main() {
 		return
 	}
 
-	// Make sure we have a data directory and it exists or can be created.
-	if config.WorkDir == "" {
-		sklog.Fatal("No workdir specified.")
-	}
-	useWorkDir := fileutil.Must(fileutil.EnsureDirExists(config.WorkDir))
-
 	// Make sure we have at least one repo configured.
 	if len(config.RepoURLs) == 0 {
 		sklog.Fatalf("At least one repository URL must be configured.")
@@ -117,9 +105,10 @@ func main() {
 	}
 
 	// Set up Git authentication if a service account email was set.
+	gitcookiesPath := ""
 	if !config.Local {
 		// Use the gitcookie created by the gitauth package.
-		gitcookiesPath := "/tmp/gitcookies"
+		gitcookiesPath = "/tmp/gitcookies"
 		sklog.Infof("Writing gitcookies to %s", gitcookiesPath)
 		if _, err := gitauth.New(ts, gitcookiesPath, true, ""); err != nil {
 			sklog.Fatalf("Failed to create git cookie updater: %s", err)
@@ -131,15 +120,7 @@ func main() {
 	ctx := context.Background()
 	for _, repoURL := range config.RepoURLs {
 		go func(repoURL string) {
-			repoDir, err := git.NormalizeURL(repoURL)
-			if err != nil {
-				sklog.Fatalf("Error getting normalized URL for %q:  %s", repoURL, err)
-			}
-			repoDir = strings.Replace(repoDir, "/", "_", -1)
-			repoDir = filepath.Join(useWorkDir, repoDir)
-			sklog.Infof("Checking out %s into %s", repoURL, repoDir)
-
-			watcher, err := NewRepoWatcher(ctx, btConfig, repoURL, repoDir)
+			watcher, err := NewRepoWatcher(ctx, btConfig, repoURL, gitcookiesPath)
 			if err != nil {
 				sklog.Fatalf("Error initializing repo watcher: %s", err)
 			}
