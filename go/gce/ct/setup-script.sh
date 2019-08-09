@@ -39,6 +39,12 @@ if [ ! -d ~/depot_tools ]; then
 fi
 PATH=$PATH:~/depot_tools
 
+# Create /b if it does not already exist.
+if [[ ! -d /b ]]; then
+  sudo mkdir /b
+  sudo chown chrome-bot:chrome-bot /b
+fi
+
 # If the bot is a builder then checkout Chromium and Skia repositories.
 if [[ $(hostname -s) = ct-*-builder* ]]; then
   echo "Checking out Chromium repository..."
@@ -77,11 +83,7 @@ fi
 # Get access token from metadata.
 TOKEN=`curl "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" -H "Metadata-Flavor: Google" | python -c "import sys, json; print json.load(sys.stdin)['access_token']"`
 # Bootstrap Swarming.
-if [[ ! -d /b ]]; then
-  sudo mkdir /b
-  sudo chown chrome-bot:chrome-bot /b
-  mkdir -p /b/s
-fi
+mkdir -p /b/s
 SWARMING=https://chrome-swarming.appspot.com
 HOSTNAME=`hostname`
 curl ${SWARMING}/bot_code?bot_id=$HOSTNAME -H "Authorization":"Bearer $TOKEN" -o /b/s/swarming_bot.zip
