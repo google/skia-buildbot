@@ -178,6 +178,30 @@
     },
     {
       "key": {
+        "uuid": "beffed88_12329a02",
+        "filename": "gitsync/go/gitsync/watcher.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-09T19:37:49Z",
+      "side": 1,
+      "message": "I haven\u0027t seen this before - what\u0027s the idea?",
+      "parentUuid": "32ad7e7c_accf8e65",
+      "range": {
+        "startLine": 91,
+        "startChar": 10,
+        "endLine": 91,
+        "endChar": 13
+      },
+      "revId": "3c5292a7085182e5297431e18849ff6d21b0d60e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7915290d_8f5ee1c9",
         "filename": "go/git/repograph/gitiles.go",
         "patchSetId": 4
