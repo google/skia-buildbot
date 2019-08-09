@@ -10,10 +10,11 @@ spec:
       port: 8000
     - name: http
       port: 8001
-    - name: prometheus
+    - name: metrics
       port: 20000
   selector:
     app: gold-{{.INSTANCE_ID}}-diffserver
+  type: NodePort
 ---
 apiVersion: apps/v1
 kind: StatefulSet

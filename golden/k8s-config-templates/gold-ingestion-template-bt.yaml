@@ -6,6 +6,8 @@ spec:
   ports:
     - name: http
       port: 9091
+    - name: metrics
+      port: 20000
   selector:
       app: gold-{{.INSTANCE_ID}}-ingestion-bt
   type: NodePort

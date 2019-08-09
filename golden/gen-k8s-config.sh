@@ -54,7 +54,7 @@ kube-conf-gen -c "${TMPL_DIR}/gold-common.json5" \
               -c "${INSTANCE_DIR}/${INSTANCE_ID}-instance.json5" \
               -extra "INSTANCE_ID:${INSTANCE_ID}" \
               -t "${TMPL_DIR}/gold-skiacorrectness-template.yaml" \
-              -parse_conf=false -quote -strict \
+              -parse_conf=false -strict \
               -o "${CORRECTNESS_CONF}"
 
 # generate the deployment file for the baseline server
