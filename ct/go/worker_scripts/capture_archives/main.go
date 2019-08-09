@@ -128,7 +128,7 @@ func captureArchives() error {
 				// Retry record_wpr binary 3 times if there are any errors.
 				retryAttempts := 3
 				for i := 0; ; i++ {
-					err = util.ExecuteCmd(ctx, util.BINARY_PYTHON_2_7_11, args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
+					err = util.ExecuteCmd(ctx, "python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
 					if err == nil {
 						successfulCapture = true
 						break

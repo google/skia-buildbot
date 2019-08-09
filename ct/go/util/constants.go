@@ -57,9 +57,6 @@ const (
 	BINARY_GIT             = "git"
 	BINARY_MAIL            = "mail"
 	BINARY_LUA             = "lua"
-	// TODO(rmistry): Remove once all CT bots have been upgraded to use 2.7.11
-	//                by default.
-	BINARY_PYTHON_2_7_11 = "/usr/local/lib/python2.7.11/bin/python"
 
 	// Platforms supported by CT.
 	PLATFORM_ANDROID = "Android"
@@ -317,7 +314,7 @@ var (
 	}
 
 	SupportedPlatformsToDesc = map[string]string{
-		PLATFORM_LINUX:   "Linux (Ubuntu14.04 machines)",
+		PLATFORM_LINUX:   "Linux (Ubuntu18.04 machines)",
 		PLATFORM_ANDROID: "Android (N5X devices)",
 		PLATFORM_WINDOWS: "Windows (2016 DataCenter Server cloud instances)",
 	}

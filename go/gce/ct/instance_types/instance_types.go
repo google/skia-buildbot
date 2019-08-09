@@ -17,7 +17,8 @@ const (
 
 	CT_WORKER_PREFIX = "ct-gce-"
 
-	WIN_SOURCE_IMAGE = "projects/windows-cloud/global/images/windows-server-2016-dc-v20190108"
+	LINUX_SOURCE_IMAGE = "projects/ubuntu-os-cloud/global/images/ubuntu-1804-bionic-v20190722a"
+	WIN_SOURCE_IMAGE   = "projects/windows-cloud/global/images/windows-server-2016-dc-v20190108"
 )
 
 // Base config for CT GCE instances.
@@ -36,25 +37,10 @@ func CT20170602(name string, useSSDDataDisk bool) *gce.Instance {
 	return &gce.Instance{
 		BootDisk: &gce.Disk{
 			Name:        name,
-			SourceImage: "ct-swarming-v1",
+			SourceImage: LINUX_SOURCE_IMAGE,
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
-		DataDisks: []*gce.Disk{dataDisk},
-		GSDownloads: []*gce.GSDownload{
-			{
-				Source: GS_URL_GITCONFIG,
-				Dest:   "/home/chrome-bot/.gitconfig",
-			},
-			{
-				Source: GS_URL_NETRC,
-				Dest:   "/home/chrome-bot/.netrc",
-				Mode:   "600",
-			},
-			{
-				Source: GS_URL_BOTO,
-				Dest:   "/home/chrome-bot/.boto",
-			},
-		},
+		DataDisks:         []*gce.Disk{dataDisk},
 		MachineType:       gce.MACHINE_TYPE_HIGHMEM_4,
 		Metadata:          map[string]string{},
 		MetadataDownloads: map[string]string{},
