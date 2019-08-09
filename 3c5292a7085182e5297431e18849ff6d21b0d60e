@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0be11b34_918ace46",
+        "filename": "gitsync/go/gitsync/watcher.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T13:05:42Z",
+      "side": 1,
+      "message": "Can you explain in the comment why we swap? Something about loading what we have and then swapping in the gittiles for updates?",
+      "revId": "3c5292a7085182e5297431e18849ff6d21b0d60e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0984c1d1_f5d238eb",
+        "filename": "gitsync/go/gitsync/watcher.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T13:05:42Z",
+      "side": 1,
+      "message": "What are the benefits of using cleanup.Repeat vs util.RepeatCtx?",
+      "range": {
+        "startLine": 59,
+        "startChar": 1,
+        "endLine": 59,
+        "endChar": 8
+      },
+      "revId": "3c5292a7085182e5297431e18849ff6d21b0d60e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2eda35d0_f55f4c3e",
+        "filename": "gitsync/go/gitsync/watcher.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T13:05:42Z",
+      "side": 1,
+      "message": "skerr.Wrapf(err, \"Could not put... to gitstore\")",
+      "range": {
+        "startLine": 83,
+        "startChar": 10,
+        "endLine": 83,
+        "endChar": 13
+      },
+      "revId": "3c5292a7085182e5297431e18849ff6d21b0d60e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07bb5f97_cb9963bb",
+        "filename": "gitsync/go/gitsync/watcher.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T13:05:42Z",
+      "side": 1,
+      "message": "skerr.Wrapf",
+      "range": {
+        "startLine": 91,
+        "startChar": 10,
+        "endLine": 91,
+        "endChar": 13
+      },
+      "revId": "3c5292a7085182e5297431e18849ff6d21b0d60e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7915290d_8f5ee1c9",
+        "filename": "go/git/repograph/gitiles.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T13:05:42Z",
+      "side": 1,
+      "message": "I\u0027m surprised gitiles doesn\u0027t take context.Context",
+      "range": {
+        "startLine": 32,
+        "startChar": 12,
+        "endLine": 32,
+        "endChar": 15
+      },
+      "revId": "3c5292a7085182e5297431e18849ff6d21b0d60e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "25a147d9_ab441e7f",
+        "filename": "go/git/repograph/gitiles.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T13:05:42Z",
+      "side": 1,
+      "message": "skerr.Wrapf()",
+      "range": {
+        "startLine": 34,
+        "startChar": 15,
+        "endLine": 34,
+        "endChar": 18
+      },
+      "revId": "3c5292a7085182e5297431e18849ff6d21b0d60e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ff640d0_5aa2f4ae",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 436,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T13:05:42Z",
+      "side": 1,
+      "message": "skerr.Wrapf here and 440,444, 467",
+      "range": {
+        "startLine": 436,
+        "startChar": 9,
+        "endLine": 436,
+        "endChar": 12
+      },
+      "revId": "3c5292a7085182e5297431e18849ff6d21b0d60e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
