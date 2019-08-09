@@ -606,7 +606,7 @@ func main() {
 	// set up the app router that might be authenticated and logs everything except for the status
 	// endpoint which is polled a lot.
 	appRouter := mux.NewRouter()
-	appRouter.HandleFunc("/json/trstatus", handlers.JsonStatusHandler)
+	appRouter.HandleFunc("/json/trstatus", httputils.CorsCredentialsHandler(handlers.JsonStatusHandler, ".skia.org"))
 	// Images should not be served gzipped, which can sometimes have issues
 	// when serving an image from a NetDiffstore with HTTP2. Additionally, is wasteful
 	// given PNGs typically have zlib compression anyway.
