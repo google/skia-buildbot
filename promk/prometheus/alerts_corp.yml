@@ -51,13 +51,3 @@ groups:
       owner: rmistry@google.com
     annotations:
       description: 'Android tree might be broken. Both withpatch and nopatch runs failed on android compile server. https://skia.googlesource.com/buildbot/%2B/master/android_compile/PROD.md#android_tree_broken'
-
-  - alert: AndroidCompileInfraFailure
-    expr: android_compile_infra_failure{app="android-compile"} > 0
-    for: 5m
-    labels:
-      category: infra
-      severity: critical
-      owner: rmistry@google.com
-    annotations:
-      description: 'Infra failure in android compile bot. https://skia.googlesource.com/buildbot/%2B/master/android_compile/PROD.md#infra_failure'
