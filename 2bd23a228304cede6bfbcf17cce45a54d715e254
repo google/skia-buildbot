@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "84c4a583_ebafaff9",
+        "filename": "golden/go/diff/diff_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T15:28:08Z",
+      "side": 1,
+      "message": "It\u0027s idiomatic to generally use :\u003d instead of var foo, bar \u003d\n\ne.g. \nimg, err :\u003d OpenNRGBAFromFile(filepath.Join(TESTDATA_DIR, fileName))\n\nvar is generally reserved for module level variables (see also const) and special cases like empty slices:\nhttps://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices",
+      "range": {
+        "startLine": 338,
+        "startChar": 1,
+        "endLine": 338,
+        "endChar": 13
+      },
+      "revId": "2bd23a228304cede6bfbcf17cce45a54d715e254",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ade972a7_a0599eb9",
+        "filename": "golden/go/diff/diff_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T15:28:08Z",
+      "side": 1,
+      "message": "So we are not benchmarking the load from disk, we should do b.ResetTimer() here\n\nhttps://golang.org/pkg/testing/#hdr-Benchmarks",
+      "revId": "2bd23a228304cede6bfbcf17cce45a54d715e254",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "392b944d_9d679c62",
+        "filename": "golden/go/diff/diff_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T15:28:08Z",
+      "side": 1,
+      "message": "Would you mind putting the size of the images as inline comments?",
+      "revId": "2bd23a228304cede6bfbcf17cce45a54d715e254",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
