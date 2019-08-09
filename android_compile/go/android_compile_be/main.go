@@ -225,6 +225,11 @@ func initPubSub(ts oauth2.TokenSource, resultCh chan *ac_util.CompileTask, stora
 					return
 				}
 
+				if m.Attributes["eventType"] != "OBJECT_FINALIZE" {
+					// We only care about new files, i.e. OBJECT_FINALIZE events.
+					m.Ack()
+					return
+				}
 				// The overwroteGeneration attribute only appears in OBJECT_FINALIZE
 				// events in the case of an overwrite.
 				// Source: https://cloud.google.com/storage/docs/pubsub-notifications
@@ -251,19 +256,19 @@ func initPubSub(ts oauth2.TokenSource, resultCh chan *ac_util.CompileTask, stora
 				}
 
 				// Is this instance ready to pickup new tasks? Checks for the following to decide:
-				// * Are all checkouts busy?
 				// * Is mirror sync going on?
+				// * Are all checkouts busy?
 				// If either of these cases are true then the message is Nack'ed. Hopefully another instance
 				// handles it, else this instance will pick it up when free.
-				if len(AvailableCheckoutsChan) == 0 {
-					sklog.Debugf("All %d checkouts are busy. Nack'ing %s .", *numCheckouts, message.Name)
+				if getMirrorUpdateRunning() {
+					sklog.Debugf("Mirror is being updated right now. Nack'ing %s.", message.Name)
 					if err := ac_util.AddUnownedCompileTask(&task); err != nil {
 						sklog.Error(err)
 					}
 					m.Nack()
 					return
-				} else if getMirrorUpdateRunning() {
-					sklog.Debugf("Mirror is being updated right now. Nack'ing %s.", message.Name)
+				} else if len(AvailableCheckoutsChan) == 0 {
+					sklog.Debugf("All %d checkouts are busy. Nack'ing %s .", *numCheckouts, message.Name)
 					if err := ac_util.AddUnownedCompileTask(&task); err != nil {
 						sklog.Error(err)
 					}
