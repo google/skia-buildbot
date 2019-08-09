@@ -206,8 +206,7 @@ func initPubSub(ts oauth2.TokenSource, resultCh chan *ac_util.CompileTask, stora
 			// * Could not read the JSON in the file.
 			// * There is a datastore entry for the file that says that
 			//   the current instance owns it but is not running it yet.
-			//   Something probably went wrong and we will Ack it and run
-			//   the task.
+			//   We will Ack it and wait for the instance to run the task.
 			// * There is a datastore entry for the file that says that
 			//   another instance owns it. This instance will Ack it and not
 			//   run the task to avoid duplicated work.
@@ -279,8 +278,8 @@ func initPubSub(ts oauth2.TokenSource, resultCh chan *ac_util.CompileTask, stora
 						return
 					} else if err == ac_util.ErrThisInstanceOwnsTaskButNotRunning {
 						sklog.Info(err.Error())
-						// This instance should run this task so continue.
-						// TODO(rmistry): Not sure if this should be Ack'ed instead.
+						m.Ack() // This instance will run the task eventually.
+						return
 					} else {
 						sklog.Errorf("Could not claim %s: %s", message.Name, err)
 						m.Nack() // Failed due to unknown reason. Let's try again.
