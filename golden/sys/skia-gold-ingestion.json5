@@ -41,12 +41,12 @@
         },
       ],
       ExtraParams: {
-        GerritCodeReviewURL: "https://skia-review.googlesource.com",
-        BuildBucketURL: "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
         BuildBucketName: "skia.primary",
         BuildBucketPollInterval: "10s",
         BuildBucketTimeWindow: "5h",
+        BuildBucketURL: "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
         BuilderRegEx: "^Test-.*",
+        GerritCodeReviewURL: "https://skia-review.googlesource.com",
         JobConfigFile: "infra/bots/cfg.json",
       }
     }
