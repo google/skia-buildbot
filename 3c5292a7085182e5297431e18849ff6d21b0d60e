@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "db5be394_13fedd6f",
+        "filename": "gitsync/go/gitsync/watcher.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-09T18:29:08Z",
+      "side": 1,
+      "message": "Changed to use a single RepoImpl which uses both Gitiles and GitStore, loading from Gitiles while it pushes to GitStore.  The original idea here was to obtain a Graph which matches what\u0027s in the GitStore and then change it to use Gitiles to update itself.  Then on each update we could push the newly added commits into GitStore.",
+      "parentUuid": "0be11b34_918ace46",
+      "revId": "3c5292a7085182e5297431e18849ff6d21b0d60e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0984c1d1_f5d238eb",
         "filename": "gitsync/go/gitsync/watcher.go",
         "patchSetId": 4
@@ -30,6 +48,30 @@
       "writtenOn": "2019-08-09T13:05:42Z",
       "side": 1,
       "message": "What are the benefits of using cleanup.Repeat vs util.RepeatCtx?",
+      "range": {
+        "startLine": 59,
+        "startChar": 1,
+        "endLine": 59,
+        "endChar": 8
+      },
+      "revId": "3c5292a7085182e5297431e18849ff6d21b0d60e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2bfc90e_8472b83f",
+        "filename": "gitsync/go/gitsync/watcher.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-09T18:29:08Z",
+      "side": 1,
+      "message": "cleanup.Repeat calls util.RepeatCtx but runs the func in a way that attempts to avoid interruption in the case of a SIGINT.",
+      "parentUuid": "0984c1d1_f5d238eb",
       "range": {
         "startLine": 59,
         "startChar": 1,

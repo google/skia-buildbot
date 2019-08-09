@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3f5720f2_73dbd2a3",
+        "filename": "gitsync/go/gitsync/watcher.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-09T18:29:08Z",
+      "side": 1,
+      "message": "So this is somewhat concerning to me, but I can\u0027t find evidence that it\u0027s actually a problem.  GitStore.Put() adds the given commits to BigTable, including adding IndexCommits for the \"empty\" branch.  We\u0027re loading commits in chunks here, most recent first.  The indexes are rewritten at every call to Put(), so we\u0027ll have a contiguous line of indexes even though commits are missing, until we finish loading all of the commits.  Note that we don\u0027t actually push the branch heads until we\u0027ve loaded all of the commits, so the indexes for those should always be correct.",
+      "range": {
+        "startLine": 171,
+        "startChar": 0,
+        "endLine": 176,
+        "endChar": 56
+      },
+      "revId": "430a628f7759b0f3e0ee7af81bb7a1162845427a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
