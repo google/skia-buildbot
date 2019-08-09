@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -316,34 +315,6 @@ func TestDeltaOffset(t *testing.T) {
 
 }
 
-var (
-	img1 image.Image
-	img2 image.Image
-	once sync.Once
-)
-
-func loadBenchmarkImages() {
-	var err error
-	img1, err = OpenNRGBAFromFile(filepath.Join(TESTDATA_DIR, "4029959456464745507.png"))
-	if err != nil {
-		sklog.Fatal("Failed to open test file: ", err)
-	}
-	img2, err = OpenNRGBAFromFile(filepath.Join(TESTDATA_DIR, "16465366847175223174.png"))
-	if err != nil {
-		sklog.Fatal("Failed to open test file: ", err)
-	}
-}
-
-func BenchmarkDiff(b *testing.B) {
-	// Only load the images once so we aren't measuring that as part of the
-	// benchmark.
-	once.Do(loadBenchmarkImages)
-
-	for i := 0; i < b.N; i++ {
-		PixelDiff(img1, img2)
-	}
-}
-
 func TestCombinedDiffMetric(t *testing.T) {
 	unittest.SmallTest(t)
 	dm := &DiffMetrics{
@@ -361,4 +332,37 @@ func TestCombinedDiffMetric(t *testing.T) {
 		PixelDiffPercent: 0.5,
 	}
 	assert.InDelta(t, math.Sqrt(0.5), CombinedDiffMetric(dm, nil, nil), 0.000001)
+}
+
+func loadBenchmarkImage(fileName string) image.Image {
+	img, err := OpenNRGBAFromFile(filepath.Join(TESTDATA_DIR, fileName))
+	if err != nil {
+		sklog.Fatal("Failed to open test file: ", err)
+	}
+	return img
+}
+
+func benchmarkDiff(b *testing.B, img1, img2 image.Image) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		PixelDiff(img1, img2)
+	}
+}
+
+const (
+	img1 = "4029959456464745507.png"              // 500x500.
+	img2 = "4029959456464745507-inverted.png"     // 500x500.
+	img3 = "b716a12d5b98d04b15db1d9dd82c82ea.png" // 640x480.
+)
+
+func BenchmarkDiffIdentical(b *testing.B) {
+	benchmarkDiff(b, loadBenchmarkImage(img1), loadBenchmarkImage(img1))
+}
+
+func BenchmarkDiffSameSize(b *testing.B) {
+	benchmarkDiff(b, loadBenchmarkImage(img1), loadBenchmarkImage(img2))
+}
+
+func BenchmarkDiffDifferentSize(b *testing.B) {
+	benchmarkDiff(b, loadBenchmarkImage(img1), loadBenchmarkImage(img3))
 }
