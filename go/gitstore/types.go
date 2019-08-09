@@ -41,7 +41,7 @@ type GitStore interface {
 	// order by Index and the commits are topologically sorted only including first-parent commits.
 	RangeN(ctx context.Context, startIndex, endIndex int, branch string) ([]*vcsinfo.IndexCommit, error)
 
-	// RangeByTime returns all commits in the half open time range [startIndex, endIndex). Thus not
+	// RangeByTime returns all commits in the half open time range [start, end). Thus not
 	// including commits at 'end' time.
 	// Caveat: The returned results will match the requested range, but will be sorted by Index.
 	// So if the timestamps within a commit are not in order they will be unordered in the results.
