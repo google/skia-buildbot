@@ -206,8 +206,7 @@ func initPubSub(ts oauth2.TokenSource, resultCh chan *ac_util.CompileTask, stora
 			// * Could not read the JSON in the file.
 			// * There is a datastore entry for the file that says that
 			//   the current instance owns it but is not running it yet.
-			//   Something probably went wrong and we will Ack it and run
-			//   the task.
+			//   We will Ack it and wait for the instance to run the task.
 			// * There is a datastore entry for the file that says that
 			//   another instance owns it. This instance will Ack it and not
 			//   run the task to avoid duplicated work.
@@ -225,6 +224,11 @@ func initPubSub(ts oauth2.TokenSource, resultCh chan *ac_util.CompileTask, stora
 					return
 				}
 
+				if m.Attributes["eventType"] != "OBJECT_FINALIZE" {
+					// We only care about new files, i.e. OBJECT_FINALIZE events.
+					m.Ack()
+					return
+				}
 				// The overwroteGeneration attribute only appears in OBJECT_FINALIZE
 				// events in the case of an overwrite.
 				// Source: https://cloud.google.com/storage/docs/pubsub-notifications
@@ -251,19 +255,19 @@ func initPubSub(ts oauth2.TokenSource, resultCh chan *ac_util.CompileTask, stora
 				}
 
 				// Is this instance ready to pickup new tasks? Checks for the following to decide:
-				// * Are all checkouts busy?
 				// * Is mirror sync going on?
+				// * Are all checkouts busy?
 				// If either of these cases are true then the message is Nack'ed. Hopefully another instance
 				// handles it, else this instance will pick it up when free.
-				if len(AvailableCheckoutsChan) == 0 {
-					sklog.Debugf("All %d checkouts are busy. Nack'ing %s .", *numCheckouts, message.Name)
+				if getMirrorUpdateRunning() {
+					sklog.Debugf("Mirror is being updated right now. Nack'ing %s.", message.Name)
 					if err := ac_util.AddUnownedCompileTask(&task); err != nil {
 						sklog.Error(err)
 					}
 					m.Nack()
 					return
-				} else if getMirrorUpdateRunning() {
-					sklog.Debugf("Mirror is being updated right now. Nack'ing %s.", message.Name)
+				} else if len(AvailableCheckoutsChan) == 0 {
+					sklog.Debugf("All %d checkouts are busy. Nack'ing %s .", *numCheckouts, message.Name)
 					if err := ac_util.AddUnownedCompileTask(&task); err != nil {
 						sklog.Error(err)
 					}
@@ -279,8 +283,8 @@ func initPubSub(ts oauth2.TokenSource, resultCh chan *ac_util.CompileTask, stora
 						return
 					} else if err == ac_util.ErrThisInstanceOwnsTaskButNotRunning {
 						sklog.Info(err.Error())
-						// This instance should run this task so continue.
-						// TODO(rmistry): Not sure if this should be Ack'ed instead.
+						m.Ack() // This instance will run the task eventually.
+						return
 					} else {
 						sklog.Errorf("Could not claim %s: %s", message.Name, err)
 						m.Nack() // Failed due to unknown reason. Let's try again.
