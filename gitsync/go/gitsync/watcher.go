@@ -2,18 +2,19 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"path"
 	"runtime"
 	"time"
 
-	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -25,33 +26,29 @@ const (
 // RepoWatcher continuously watches a repository and uploads changes to a BigTable Gitstore.
 type RepoWatcher struct {
 	gitStore gitstore.GitStore
-	repo     *git.Repo
-	repoDir  string
+	repo     *repograph.Graph
 	repoURL  string
 }
 
-// NewRepoWatcher creates a GitStore with the provided information and checks out the git repo
-// at repoURL into repoDir. It's Start(...) function will watch a repo in the background.
-func NewRepoWatcher(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL, repoDir string) (*RepoWatcher, error) {
-	repoDir, err := fileutil.EnsureDirExists(repoDir)
-	if err != nil {
-		return nil, err
-	}
-
+// NewRepoWatcher creates a GitStore with the provided information. Its
+// Start(...) method will watch a repo in the background.
+func NewRepoWatcher(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL, gitcookiesPath string) (*RepoWatcher, error) {
 	gitStore, err := bt_gitstore.New(ctx, conf, repoURL)
 	if err != nil {
 		return nil, skerr.Fmt("Error instantiating git store: %s", err)
 	}
-
-	repo, err := git.NewRepo(ctx, repoURL, repoDir)
+	gr := gitiles.NewRepo(repoURL, gitcookiesPath, nil)
+	ri, err := newRepoImpl(ctx, gitStore, gr)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create git repo: %s", err)
+		return nil, err
 	}
-
+	repo, err := repograph.NewWithRepoImpl(ctx, ri)
+	if err != nil {
+		return nil, err
+	}
 	return &RepoWatcher{
 		gitStore: gitStore,
 		repo:     repo,
-		repoDir:  repoDir,
 		repoURL:  repoURL,
 	}, nil
 }
@@ -60,140 +57,193 @@ func NewRepoWatcher(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL, re
 // defined by 'interval'.
 func (r *RepoWatcher) Start(ctx context.Context, interval time.Duration) {
 	lvGitSync := metrics2.NewLiveness("last_successful_git_sync", map[string]string{"repo": r.repoURL})
-	go util.RepeatCtx(interval, ctx, func() {
+	cleanup.Repeat(interval, func() {
 		// Catch any panic and log relevant information to find the root cause.
 		defer func() {
 			if err := recover(); err != nil {
 				const size = 64 << 10
 				buf := make([]byte, size)
 				buf = buf[:runtime.Stack(buf, false)]
-				sklog.Errorf("Panic updating %s in %s:  %s\n%s", r.repoURL, r.repoDir, err, buf)
+				sklog.Errorf("Panic updating %s:  %s\n%s", r.repoURL, err, buf)
 			}
 		}()
 
-		if err := r.updateFn(); err != nil {
+		if err := r.updateFn(ctx); err != nil {
 			sklog.Errorf("Error updating %s: %s", r.repoURL, err)
 		} else {
 			lvGitSync.Reset()
 		}
-	})
+	}, nil)
 }
 
 // updateFn retrieves git info from the repository and updates the GitStore.
-func (r *RepoWatcher) updateFn() error {
-	// Update the git repo.
-	ctx := context.Background()
-	sklog.Infof("Updating repo ...")
-	if err := r.repo.Update(ctx); err != nil {
-		return skerr.Fmt("Failed to update repo: %s", err)
-	}
+func (r *RepoWatcher) updateFn(ctx context.Context) error {
+	sklog.Infof("Updating %s...", r.repoURL)
+	return r.repo.UpdateWithCallback(ctx, func(g *repograph.Graph) error {
+		branches := g.BranchHeads()
+		branchMap := make(map[string]string, len(branches))
+		for _, b := range branches {
+			branchMap[b.Name] = b.Head
+		}
+		if err := r.gitStore.PutBranches(ctx, branchMap); err != nil {
+			return err
+		}
+		gotBranches, err := r.gitStore.GetBranches(ctx)
+		if err != nil {
+			sklog.Errorf("Successfully updated %s but failed to retrieve branch heads: %s", r.repoURL, err)
+			return nil
+		}
+		sklog.Infof("Successfully updated %s", r.repoURL)
+		for name, branch := range gotBranches {
+			sklog.Debugf("  %s@%s: %d, %s", path.Base(r.repoURL), name, branch.Index, branch.Head)
+		}
+		return nil
+	})
+}
 
-	// Get the branches from the repo.
-	sklog.Info("Getting branches...")
-	branches, err := r.repo.Branches(ctx)
+// repoImpl is an implementation of repograph.RepoImpl which loads commits into
+// a GitStore.
+type repoImpl struct {
+	branches []*git.Branch
+	commits  map[string]*vcsinfo.LongCommit
+	gitiles  *gitiles.Repo
+	gitstore gitstore.GitStore
+}
+
+// newRepoImpl returns a repograph.RepoImpl which uses both Gitiles and
+// GitStore.
+func newRepoImpl(ctx context.Context, gs gitstore.GitStore, repo *gitiles.Repo) (repograph.RepoImpl, error) {
+	indexCommits, err := gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, "")
 	if err != nil {
-		return skerr.Fmt("Failed to get branches from Git repo: %s", err)
+		return nil, skerr.Wrapf(err, "Failed loading IndexCommits from GitStore.")
 	}
-
-	// Get the current branches from the GitStore.
-	currBranches, err := r.gitStore.GetBranches(ctx)
+	hashes := make([]string, 0, len(indexCommits))
+	for _, c := range indexCommits {
+		hashes = append(hashes, c.Hash)
+	}
+	commits, err := gs.Get(ctx, hashes)
 	if err != nil {
-		return skerr.Fmt("Error retrieving branches from GitStore: %s", err)
+		return nil, skerr.Wrapf(err, "Failed loading LongCommits from GitStore.")
 	}
+	sklog.Infof("Repo %s has %d commits so far.", repo.URL, len(commits))
+	gb, err := gs.GetBranches(ctx)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed loading branches from GitStore.")
+	}
+	branches := make([]*git.Branch, 0, len(gb))
+	for name, branch := range gb {
+		sklog.Debugf("%s@%s: %d, %s", path.Base(repo.URL), name, branch.Index, branch.Head)
+		branches = append(branches, &git.Branch{
+			Name: name,
+			Head: branch.Head,
+		})
+	}
+	commitsMap := make(map[string]*vcsinfo.LongCommit, len(commits))
+	for _, c := range commits {
+		commitsMap[c.Hash] = c
+	}
+	return &repoImpl{
+		branches: branches,
+		commits:  commitsMap,
+		gitiles:  repo,
+		gitstore: gs,
+	}, nil
+}
 
-	// Find the hashes all all commits that need to be added to the GitStore. This
-	// considers all branches in the repo and whether they are already in the GitStore.
-	hashes := util.StringSet{}
-	for _, newBranch := range branches {
-		// revListStr is an argument to repo.RevList below and controls how many commits we
-		// retrieve. By default we retrieve all commits in the branch, but may restrict that if
-		// we find an ancester to the current branch (see below).
-		revListStr := newBranch.Head
-
-		// See if we have the branch in the repo already.
-		foundBranch, ok := currBranches[newBranch.Name]
-		if ok {
-			// If the branch hasn't changed we  are done.
-			if foundBranch.Head == newBranch.Head {
+// See documentation for RepoImpl interface.
+func (r *repoImpl) Update(ctx context.Context) error {
+	// Load new data from gitiles and push it into gitstore.
+	oldBranches := make(map[string]*git.Branch, len(r.branches))
+	for _, branch := range r.branches {
+		oldBranches[branch.Name] = branch
+	}
+	branches, err := r.gitiles.Branches()
+	if err != nil {
+		return skerr.Wrapf(err, "Failed loading branches from Gitiles.")
+	}
+	for _, branch := range branches {
+		oldBranch := oldBranches[branch.Name]
+		if oldBranch != nil {
+			// If there's nothing new, skip this branch.
+			if branch.Head == oldBranch.Head {
 				continue
 			}
-
-			// See if the new branch head is a descendant of the old branch head.
-			anc, err := r.repo.IsAncestor(ctx, foundBranch.Head, newBranch.Head)
+			// Find any new commits.
+			commits, err := r.gitiles.Log(oldBranch.Head, branch.Head)
 			if err != nil {
-				return skerr.Fmt("Error checking if %s is an ancestor of %s: %s", foundBranch.Head, newBranch.Head, err)
+				return skerr.Wrapf(err, "Failed loading commits from Gitiles.")
 			}
-
-			if anc {
-				// Only get the commits between the old and new head.
-				revListStr = fmt.Sprintf("%s..%s", foundBranch.Head, newBranch.Head)
+			if len(commits) > 0 {
+				if err := r.gitstore.Put(ctx, commits); err != nil {
+					return skerr.Wrapf(err, "Failed inserting commits into GitStore.")
+				}
+				for _, c := range commits {
+					r.commits[c.Hash] = c
+				}
+				// Skip the below fallback case.
+				continue
+			} else {
+				sklog.Warningf("History has changed for %s", r.gitiles.URL)
 			}
 		}
-
-		// Retrieve the target commits.
-		foundHashes, err := r.repo.RevList(ctx, "--topo-order", revListStr)
+		// This is a new branch, or history has changed.
+		sklog.Infof("Loading all commits for branch %s of %s", branch.Name, r.gitiles.URL)
+		// Get() loads batches of commits until it finds one we've seen
+		// before, so Get(branch.Head) will load the entire branch.
+		_, err := r.Details(ctx, branch.Head)
 		if err != nil {
-			return skerr.Fmt("Error retrieving hashes with the argument %q: %s", revListStr, err)
-		}
-		hashes.AddLists(foundHashes)
-	}
-	sklog.Infof("Repo @ %s: Found %d unique hashes in %d branches.", r.repoURL, len(hashes), len(branches))
-
-	// Iterate over the LongCommits that correspond to batches.
-	ctx, cancelFn := context.WithCancel(context.Background())
-	defer cancelFn()
-
-	commitsCh, err := r.iterateLongCommits(ctx, hashes.Keys(), batchSize)
-	if err != nil {
-		return skerr.Fmt("Error iterating over new commits: %s", err)
-	}
-
-	// Make sure we iterate over all commits, so we don't leak go-routine.
-	for commits := range commitsCh {
-		if err := r.gitStore.Put(ctx, commits); err != nil {
-			return skerr.Fmt("Error writing commits to BigTable: %s", err)
+			return err
 		}
 	}
-
-	branchMap := make(map[string]string, len(branches))
-	for _, gb := range branches {
-		branchMap[gb.Name] = gb.Head
-	}
-	if err := r.gitStore.PutBranches(ctx, branchMap); err != nil {
-		return skerr.Fmt("Error calling PutBranches on GitStore: %s", err)
-	}
-	sklog.Infof("Repo @ %s: Branches updated successfully.", r.repoURL)
+	r.branches = branches
 	return nil
 }
 
-// iterateLongCommit returns batches of commits corresponding to the given hashes.
-func (r *RepoWatcher) iterateLongCommits(ctx context.Context, hashes []string, batchSize int) (<-chan []*vcsinfo.LongCommit, error) {
-	// Allocate a channel so can always send all batches and are not dependent on the speed of the receiver.
-	retCh := make(chan []*vcsinfo.LongCommit, len(hashes)/batchSize+1)
-
-	go func() {
-		longCommits := make([]*vcsinfo.LongCommit, 0, batchSize)
-		for idx, hash := range hashes {
-			// Check whether the context has been canceled.
-			select {
-			case <-ctx.Done():
-				return
-			default:
+// See documentation for RepoImpl interface.
+func (r *repoImpl) Details(ctx context.Context, hash string) (*vcsinfo.LongCommit, error) {
+	if c, ok := r.commits[hash]; ok {
+		return c, nil
+	}
+	// We haven't seen this commit before. For efficiency's sake, don't load
+	// a single commit at a time. Instead, load commits until we find one
+	// we've seen before.
+	addedCommits := 0
+	if err := r.gitiles.LogFnBatch(hash, func(commits []*vcsinfo.LongCommit) error {
+		stop := false
+		newCommits := make([]*vcsinfo.LongCommit, 0, len(commits))
+		for _, c := range commits {
+			if _, ok := r.commits[c.Hash]; ok {
+				stop = true
+				break
 			}
-
-			c, err := r.repo.Details(ctx, hash)
-			if err != nil {
-				sklog.Errorf("Error fetching commit %q: %s", hash, err)
-				continue
-			}
-
-			longCommits = append(longCommits, c)
-			if len(longCommits) >= batchSize || idx == (len(hashes)-1) {
-				retCh <- longCommits
-				longCommits = make([]*vcsinfo.LongCommit, 0, batchSize)
+			newCommits = append(newCommits, c)
+		}
+		if err := r.gitstore.Put(ctx, newCommits); err != nil {
+			return skerr.Wrapf(err, "Failed inserting commits into GitStore.")
+		}
+		for _, c := range newCommits {
+			r.commits[c.Hash] = c
+			addedCommits++
+			if addedCommits%500 == 0 {
+				sklog.Infof("Added %d commits so far.", addedCommits)
 			}
 		}
-		close(retCh)
-	}()
-	return retCh, nil
+		if stop {
+			return gitiles.ErrStopIteration
+		}
+		return nil
+	}); err != nil {
+		return nil, skerr.Wrapf(err, "Failed loading commits from Gitiles")
+	}
+	return r.commits[hash], nil
+}
+
+// See documentation for RepoImpl interface.
+func (r *repoImpl) Branches(_ context.Context) ([]*git.Branch, error) {
+	return r.branches, nil
+}
+
+// See documentation for RepoImpl interface.
+func (r *repoImpl) UpdateCallback(_ context.Context, _ *repograph.Graph) error {
+	return nil
 }

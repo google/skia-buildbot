@@ -11,7 +11,6 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -66,19 +65,6 @@ func writeCacheFile(g *Graph, cacheFile string) error {
 // git.Repo to interact with a git repo.
 type localRepoImpl struct {
 	*git.Repo
-}
-
-// See documentation for RepoImpl interface.
-func (r *localRepoImpl) Get(ctx context.Context, hashes []string) ([]*vcsinfo.LongCommit, error) {
-	rv := make([]*vcsinfo.LongCommit, 0, len(hashes))
-	for _, hash := range hashes {
-		details, err := r.Details(ctx, hash)
-		if err != nil {
-			return nil, err
-		}
-		rv = append(rv, details)
-	}
-	return rv, nil
 }
 
 // See documentation for RepoImpl interface.
