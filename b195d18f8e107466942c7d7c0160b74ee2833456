@@ -22,6 +22,30 @@
       "revId": "b195d18f8e107466942c7d7c0160b74ee2833456",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f44d798_a768df0c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-09T15:21:35Z",
+      "side": 1,
+      "message": "Steady state for ingester is \u003c 1GB of ram. Reingesting a few months of data took it briefly to 10GB, which was over the old limit and caused it to be killed frequently.\n\nSo I think I\u0027m respecting the first guideline you listed.",
+      "parentUuid": "e6a97d34_66164608",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 67
+      },
+      "revId": "b195d18f8e107466942c7d7c0160b74ee2833456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
