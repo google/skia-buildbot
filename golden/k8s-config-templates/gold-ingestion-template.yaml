@@ -61,7 +61,7 @@ spec:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/service-account.json
           resources:
-            limits:
+            requests:
               memory: "8Gi"
               cpu: 4
           readinessProbe:

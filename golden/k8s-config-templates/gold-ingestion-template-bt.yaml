@@ -61,9 +61,9 @@ spec:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/service-account.json
           resources:
-            limits:
-              memory: "8Gi"
-              cpu: 4
+            requests:
+              memory: "12Gi"
+              cpu: 6
           readinessProbe:
             httpGet:
               path: /healthz

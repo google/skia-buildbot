@@ -41,9 +41,10 @@
         BuildBucketTimeWindow: "{{.ING_TRY_BB_WINDOW}}",
         BuildBucketURL: "{{.ING_TRY_BUILDBUCKET_URL}}",
         BuilderRegEx: "{{.ING_TRY_BUILDER_REGEX}}",
-        DSNamespace: "gold-{{.INSTANCE_ID}}",
+        DSNamespace: "{{.DATASTORE_NAMESPACE}}",
         DSProjectID: "{{.DATASTORE_PROJECT}}",
         GerritCodeReviewURL: "{{.GERRIT_URL}}",
+        JobConfigFile: "{{.ING_JOB_CONFIG_FILE}}",
       }
     {{end}}
     }
