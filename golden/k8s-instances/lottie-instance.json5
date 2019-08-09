@@ -9,7 +9,7 @@
     "FORCE_LOGIN":             false,
     "GERRIT_URL":              "https://skia-review.googlesource.com",
     "GITREPO_URL":             "https://skia.googlesource.com/lottie-ci",
-    "N_COMMITS":               200,
+    "N_COMMITS":               500,
     "PUBSUB_PROJECT":          "skia-public",
     "SITE_URL":                "https://lottie-gold.skia.org",
     "SKCORR_DEFAULT_CORPUS":   "lottie",
@@ -22,6 +22,7 @@
     "MAIN_MEMORY":             "4Gi",
     "MAIN_CPU":                "4",
     "TILE_FRESHNESS":          "1m",
+    "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
 
     // Settings for the main ingester.
     "ING_RUN_EVERY":           "20m",

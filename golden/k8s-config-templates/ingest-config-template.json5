@@ -16,8 +16,8 @@
         }
       ],
       ExtraParams: {
-        BTProjectID: "skia-public",
-        BTInstance: "production",
+        BTProjectID: "{{.BIGTABLE_PROJECT}}",
+        BTInstance: "{{.BIGTABLE_INSTANCE}}",
         BTTable: "gold-{{.INSTANCE_ID}}"
       }
     {{if .ING_TRY_ENABLED}}

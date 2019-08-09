@@ -46,6 +46,7 @@ spec:
             - "--app_title={{.SKCORR_TITLE}}"
             - "--baseline_gs_path=skia-gold-{{.INSTANCE_ID}}/baselines"
             - "--bt_instance={{.BIGTABLE_INSTANCE}}"
+            - "--bt_project_id={{.BIGTABLE_PROJECT}}"
             - "--cache_size=0"
             - "--default_corpus={{.SKCORR_DEFAULT_CORPUS}}"
             - "--diff_server_grpc=gold-{{.INSTANCE_ID}}-diffserver:8000"
@@ -83,7 +84,7 @@ spec:
           volumeMounts:
             - name: gold-service-account-secrets
               mountPath: /var/secrets/google/
-            - name: skia-org-legacy-login-secrets
+            - name: {{.LOGIN_SECRETS}}
               mountPath: /etc/skia.org/
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
@@ -103,6 +104,6 @@ spec:
         - name: gold-service-account-secrets
           secret:
             secretName: gold-service-account-secrets
-        - name: skia-org-legacy-login-secrets
+        - name: {{.LOGIN_SECRETS}}
           secret:
-            secretName: skia-org-legacy-login-secrets
+            secretName: {{.LOGIN_SECRETS}}

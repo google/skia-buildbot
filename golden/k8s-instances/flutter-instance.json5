@@ -22,6 +22,7 @@
     "MAIN_MEMORY":             "4Gi",
     "MAIN_CPU":                "4",
     "TILE_FRESHNESS":          "1m",
+    "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
 
     // Settings for the main ingester.
     "ING_RUN_EVERY":           "20m",
