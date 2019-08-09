@@ -341,20 +341,22 @@ func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 			}
 		}
 	} else {
-		// Fill the entire image with maximum diff color.
+		// Set pixels outside of the comparison area with the with maximum diff color.
 		maxDiffColor := uint8ToColor(PixelDiffColor[deltaOffset(1024)])
-		draw.Draw(resultImg, resultImg.Bounds(), &image.Uniform{maxDiffColor}, image.ZP, draw.Src)
+		for x := 0; x < resultWidth; x++ {
+			for y := 0; y < resultHeight; y++ {
+				if x < cmpWidth && y < cmpHeight {
+					color1 := img1.At(x, y)
+					color2 := img2.At(x, y)
 
-		for x := 0; x < cmpWidth; x++ {
-			for y := 0; y < cmpHeight; y++ {
-				color1 := img1.At(x, y)
-				color2 := img2.At(x, y)
-
-				dc := diffColors(color1, color2, maxRGBADiffs)
-				if dc == PixelMatchColor {
-					numDiffPixels--
+					dc := diffColors(color1, color2, maxRGBADiffs)
+					if dc == PixelMatchColor {
+						numDiffPixels--
+					}
+					resultImg.Set(x, y, dc)
+				} else {
+					resultImg.Set(x, y, maxDiffColor)
 				}
-				resultImg.Set(x, y, dc)
 			}
 		}
 	}
