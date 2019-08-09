@@ -603,10 +603,8 @@ func main() {
 		}
 	})
 
-	// set up the app router that might be authenticated and logs everything except for the status
-	// endpoint which is polled a lot.
+	// set up the app router that might be authenticated and logs almost everything.
 	appRouter := mux.NewRouter()
-	appRouter.HandleFunc("/json/trstatus", httputils.CorsCredentialsHandler(handlers.JsonStatusHandler, ".skia.org"))
 	// Images should not be served gzipped, which can sometimes have issues
 	// when serving an image from a NetDiffstore with HTTP2. Additionally, is wasteful
 	// given PNGs typically have zlib compression anyway.
@@ -625,6 +623,8 @@ func main() {
 	// (aka the K8s container) which requires that some routes are never logged or authenticated.
 	rootRouter := mux.NewRouter()
 	rootRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+	rootRouter.HandleFunc("/json/trstatus", httputils.CorsHandler(handlers.JsonStatusHandler))
+
 	rootRouter.PathPrefix("/").Handler(appHandler)
 
 	// Start the server
