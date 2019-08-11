@@ -104,7 +104,7 @@ const (
 	errNotFound      = "Error 404"
 	errAlreadyExists = "Error 409"
 
-	maxWaitTime = 10 * time.Minute
+	maxWaitTime = 30 * time.Minute
 
 	winSetupFinishedText   = "Instance setup finished."
 	winStartupFinishedText = "Finished running startup scripts."
@@ -1072,10 +1072,10 @@ func (g *GCloud) CreateAndSetup(ctx context.Context, vm *Instance, ignoreExists 
 		// when finished, so we need to wait for it to complete before
 		// performing our own setup.
 		sklog.Infof("Waiting for gce initialization on %s to complete.", vm.Name)
-		if _, err := g.Ssh(ctx, vm, "sleep", "300"); err != nil {
+		if _, err := g.Ssh(ctx, vm, "sleep", "600"); err != nil {
 			sklog.Infof("gce initialization finished on %s", vm.Name)
 		} else {
-			sklog.Infof("gce initialization did not finish on %s within 5 minutes. Continuing anyway.", vm.Name)
+			sklog.Infof("gce initialization did not finish on %s within 10 minutes. Continuing anyway.", vm.Name)
 		}
 
 		// Instance IP address may change at reboot.
