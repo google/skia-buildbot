@@ -29,7 +29,7 @@ func CT20170602(name string, useSSDDataDisk bool) *gce.Instance {
 		Name:      fmt.Sprintf("%s-data", name),
 		SizeGb:    300,
 		Type:      gce.DISK_TYPE_PERSISTENT_STANDARD,
-		MountPath: "/mnt/pd0",
+		MountPath: "/b",
 	}
 	if useSSDDataDisk {
 		dataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
