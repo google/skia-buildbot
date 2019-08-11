@@ -10,7 +10,7 @@ echo "Installing packages..."
 sudo apt-get update
 sudo apt-get -y install libosmesa-dev clang-3.6 poppler-utils netpbm \
     python-django libgif-dev lua5.2 libnss3 python-setuptools python-pip \
-    libglu1 libgtk3.0 xvfb
+    libglu1 libgtk3.0 xvfb gperf bison
 sudo pip install -U crcmod mock psutil
 
 # Install openjdk-8. See skbug.com/6975 for context.
@@ -38,12 +38,6 @@ if [ ! -d ~/depot_tools ]; then
   echo 'export PATH=~/depot_tools:$PATH' >> ~/.bashrc
 fi
 PATH=$PATH:~/depot_tools
-
-# Create /b if it does not already exist.
-if [[ ! -d /b ]]; then
-  sudo mkdir /b
-  sudo chown chrome-bot:chrome-bot /b
-fi
 
 # If the bot is a builder then checkout Chromium and Skia repositories.
 if [[ $(hostname -s) = ct-*-builder* ]]; then
