@@ -30,6 +30,10 @@ triage2-sk {
   .untriaged[raised]:hover {
     background: #ddd;
   }
+
+  button {
+    padding: 0;
+  }
 }
 
 .darkmode triage2-sk {
