@@ -532,17 +532,17 @@ groups:
 
 # Gold Alerts
   - alert: GoldIgnoreMonitoring
-    expr: liveness_gold_expired_ignore_rules_monitoring_s > 200
+    expr: liveness_gold_expired_ignore_rules_monitoring_s > 20*60
     labels:
       category: infra
       severity: warning
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'At least two rounds of monitoring for expired ignore rules have failed back to back on {{ $labels.app }}. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldignoremonitoring'
+      description: '{{ $labels.app }} has not checked for expired ignore rules in a while. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldignoremonitoring'
 
   - alert: GoldPollingIngestionStalled
-    expr: liveness_gold_bt_s{metric="since-last-run"} > 750
+    expr: liveness_gold_bt_s{metric="since-last-run"} > 60*60
     labels:
       category: infra
       severity: warning
@@ -572,7 +572,7 @@ groups:
       description: 'It has been at least 24 hours since the last commit made it into Gold for {{ $labels.app }}. Some process might have hung, or perhaps that repo simply has not seen a commit in that period. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldcommittoooldwalltime'
 
   - alert: GoldCommitTooOldNewerCommit
-    expr: gold_last_commit_age_s{type="with_new_commit"} > 1*60*60
+    expr: gold_last_commit_age_s{type="with_new_commit"} > 60*60
     labels:
       category: infra
       severity: critical
