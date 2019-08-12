@@ -86,6 +86,10 @@
         return "https://task-driver.skia.org/td/" + task.id + "?ifNotFound=" + encodeURIComponent(swarmingLink);
       },
 
+      _computeTasksLink: function(task) {
+        return "https://" + this.swarmingServer + "/tasklist?f=sk_name-tag:" + task.name;
+      },
+
       _draw: function() {
         var graph = {};
         var taskData = {};
@@ -202,11 +206,17 @@
         var textMarginY = 10;
         var taskWidth = 30;
         var taskHeight = 30;
+        var taskLinkFontSize = botLinkFontSize;
+        var taskLinkMarginX = botLinkMarginX;
+        var taskLinkMarginY = botLinkMarginY;
+        var taskLinkHeight = taskLinkFontSize + 2*taskLinkMarginY;
+        var taskLinkText = "view swarming tasks";
         var textOffsetX = textMarginX;
         var textOffsetY = fontSize + textMarginY;
         var textHeight = fontSize + 2 * textMarginY;
         var botLinkOffsetY = textOffsetY + botLinkFontSize + botLinkMarginY;
-        var taskSpecHeight = textHeight + botLinkHeight + taskHeight + taskMarginY;
+        var taskLinkOffsetY = botLinkOffsetY + taskLinkFontSize + taskLinkMarginY;
+        var taskSpecHeight = textHeight + botLinkHeight + taskLinkHeight + taskHeight + taskMarginY;
 
         // Compute the task spec block width for each column.
         var maxTextWidth = 0;
@@ -214,12 +224,14 @@
         var ctx = canvas.getContext("2d");
         ctx.font = botLinkFontSize + "px " + fontFamily;
         var botLinkTextWidth = ctx.measureText(botLinkText).width + 2 * botLinkMarginX;
+        ctx.font = taskLinkFontSize + "px " + fontFamily;
+        var taskLinkTextWidth = ctx.measureText(taskLinkText).width + 2 * taskLinkMarginX;
         ctx.font = fontSize + "px " + fontFamily;
         var taskSpecWidth = [];
         for (var col = 0; col < cols.length; col++) {
           // Get the minimum width of a task spec block needed to fit the entire
           // task spec name.
-          var maxWidth = botLinkTextWidth;
+          var maxWidth = Math.max(botLinkTextWidth, taskLinkTextWidth);
           for (var i = 0; i < cols[col].length; i++) {
             var oldFont = ctx.font;
             var text = cols[col][i].name;
@@ -266,7 +278,7 @@
             byName[taskSpec.name] = entry;
 
             var taskX = curX + taskMarginX;
-            var taskY = curY + textHeight + botLinkHeight;
+            var taskY = curY + textHeight + botLinkHeight + taskLinkHeight;
             for (var j = 0; j < taskSpec.tasks.length; j++) {
               var task = taskSpec.tasks[j];
               tasks.push({
@@ -321,6 +333,54 @@
           return rv;
         }
 
+        // Draw arrows.
+        var arrowWidth = 4;
+        var arrowHeight = 4;
+        var arrowHeadPath = svg.selectAll("marker.arrowhead").data([0]);
+        arrowHeadPath.enter()
+          .append("svg:marker")
+            .attr("id", "arrowhead")
+            .attr("class", "arrowhead")
+            .attr("viewBox", "0 0 10 10")
+            .attr("refX", "0")
+            .attr("refY", "5")
+            .attr("markerUnits", "strokeWidth")
+            .attr("markerWidth", arrowWidth)
+            .attr("markerHeight", arrowHeight)
+            .attr("orient", "auto")
+            .append("svg:path")
+               .attr("d", "M 0 0 L 10 5 L 0 10 Z"); // Filled triangle path.
+        arrowHeadPath.exit().remove();
+
+        var arrowId = function(data) { return `(${data[0].name}),(${data[1].name})`; };
+        var arrowPaths = svg.selectAll("path.arrow").data(arrows, arrowId);
+        arrowPaths
+          .enter()
+          .append("svg:path")
+            .attr("class", "arrow")
+            .attr("stroke", "black")
+            .attr("stroke-width", "1")
+            .attr("fill", "transparent")
+            .attr("marker-end", "url(#arrowhead)");
+        arrowPaths
+          .attr("d", function(data) {
+              // Start and end points.
+              var x1 = data[0].x + data[0].width;
+              var y1 = data[0].y + data[0].height / 2;
+              var x2 = data[1].x - arrowWidth;
+              var y2 = data[1].y + data[1].height / 2;
+              // Control points.
+              var cx1 = x1 + taskSpecMarginX - arrowWidth/2;
+              var cy1 = y1;
+              var cx2 = x2 - taskSpecMarginX + arrowWidth/2;
+              var cy2 = y2;
+              return ("M"  + x1  + " " + y1
+                    + " C" + cx1 + " " + cy1
+                    + " "  + cx2 + " " + cy2
+                    + " "  + x2  + " " + y2);
+          });
+        arrowPaths.exit().remove();
+
         // Draw task specs.
         var taskSpecRects = svg.selectAll("rect.taskSpec").data(taskSpecs, function(data) { return data.name; });
         taskSpecRects.enter()
@@ -336,7 +396,7 @@
           .attr("style", function(taskspec) {
             var style = {
               "stroke": "black",
-               "fill":   "white",
+              "fill":   "white",
             };
             if (taskspec.name == this.task.name) {
               style["stroke-width"] = "3px";
@@ -389,6 +449,34 @@
             }.bind(this));
         botTexts.exit().remove();
 
+        // Draw links to Swarming task lists.
+        var taskLinks = svg.selectAll("a.taskLinks")
+            .data(taskSpecs, function(data) { return data.name; });
+        taskLinks.enter()
+          .append("a")
+            .attr("class", "taskLinks")
+            .attr("target", "_blank")
+            .append("svg:text")
+               .attr("class", "taskLinks")
+               .attr("font-family", fontFamily)
+               .attr("font-size", taskLinkFontSize)
+               .attr("style", styleToString({"text-decoration": "underline"}));
+        taskLinks
+            .attr("href", function(data) {
+              return this._computeTasksLink(data);
+            }.bind(this));
+        taskLinks.exit().remove()
+        var taskTexts = svg.selectAll("text.taskLinks")
+            .data(taskSpecs, function(data) { return data.name; });
+        taskTexts
+            .attr("x", function(data) { return data.x + textOffsetX; })
+            .attr("y", function(data) { return data.y + taskLinkOffsetY; })
+            .text(taskLinkText)
+            .attr("href", function(data) {
+              return this._computeTasksLink(data);
+            }.bind(this));
+        taskTexts.exit().remove();
+
         // Draw tasks.
         var taskLinks = svg.selectAll("a.task").data(tasks, function(data) { return data.task.id; });
         taskLinks.enter()
@@ -421,54 +509,6 @@
               return styleToString(style);
           }.bind(this));
         taskRects.exit().remove();
-
-        // Draw arrows.
-        var arrowWidth = 4;
-        var arrowHeight = 4;
-        var arrowHeadPath = svg.selectAll("marker.arrowhead").data([0]);
-        arrowHeadPath.enter()
-          .append("svg:marker")
-            .attr("id", "arrowhead")
-            .attr("class", "arrowhead")
-            .attr("viewBox", "0 0 10 10")
-            .attr("refX", "0")
-            .attr("refY", "5")
-            .attr("markerUnits", "strokeWidth")
-            .attr("markerWidth", arrowWidth)
-            .attr("markerHeight", arrowHeight)
-            .attr("orient", "auto")
-            .append("svg:path")
-               .attr("d", "M 0 0 L 10 5 L 0 10 Z"); // Filled triangle path.
-        arrowHeadPath.exit().remove();
-
-        var arrowId = function(data) { return `(${data[0].name}),(${data[1].name})`; };
-        var arrowPaths = svg.selectAll("path.arrow").data(arrows, arrowId);
-        arrowPaths
-          .enter()
-          .append("svg:path")
-            .attr("class", "arrow")
-            .attr("stroke", "black")
-            .attr("stroke-width", "1")
-            .attr("fill", "transparent")
-            .attr("marker-end", "url(#arrowhead)");
-        arrowPaths
-          .attr("d", function(data) {
-              // Start and end points.
-              var x1 = data[0].x + data[0].width;
-              var y1 = data[0].y + data[0].height / 2;
-              var x2 = data[1].x - arrowWidth;
-              var y2 = data[1].y + data[1].height / 2;
-              // Control points.
-              var cx1 = x1 + taskSpecMarginX - arrowWidth/2;
-              var cy1 = y1;
-              var cx2 = x2 - taskSpecMarginX + arrowWidth/2;
-              var cy2 = y2;
-              return ("M"  + x1  + " " + y1
-                    + " C" + cx1 + " " + cy1
-                    + " "  + cx2 + " " + cy2
-                    + " "  + x2  + " " + y2);
-          });
-        arrowPaths.exit().remove();
       },
     });
   })();
