@@ -113,7 +113,7 @@ func MatchConfigGroup(cqCfg *Config, ref string) (*ConfigGroup, *ConfigGroup_Ger
 // GetCQConfig returns the Config for the given repo.
 func GetCQConfig(repo *gitiles.Repo) (*Config, error) {
 	var buf bytes.Buffer
-	if err := repo.ReadFileAtRef(CQ_CFG_FILE, CQ_CFG_REF, &buf); err != nil {
+	if err := repo.ReadFileAtRef(context.Background(), CQ_CFG_FILE, CQ_CFG_REF, &buf); err != nil {
 		return nil, err
 	}
 	var cqCfg Config

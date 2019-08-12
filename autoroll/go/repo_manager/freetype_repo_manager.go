@@ -93,7 +93,7 @@ func (rm *freetypeRepoManager) mergeInclude(ctx context.Context, include, from, 
 	parentHeader := path.Join(ftIncludeDest, include)
 	dest := filepath.Join(wd, include)
 	var buf bytes.Buffer
-	if err := rm.parentRepo.ReadFileAtRef(parentHeader, rm.baseCommit, &buf); err != nil {
+	if err := rm.parentRepo.ReadFileAtRef(ctx, parentHeader, rm.baseCommit, &buf); err != nil {
 		return err
 	}
 	oldParentContents := buf.String()
@@ -164,7 +164,7 @@ func (rm *freetypeRepoManager) createRoll(ctx context.Context, from, to *revisio
 	}
 	ftVersion = strings.TrimSpace(ftVersion)
 	var buf bytes.Buffer
-	if err := rm.parentRepo.ReadFileAtRef(ftReadmePath, rm.baseCommit, &buf); err != nil {
+	if err := rm.parentRepo.ReadFileAtRef(ctx, ftReadmePath, rm.baseCommit, &buf); err != nil {
 		return "", nil, err
 	}
 	oldReadmeContents := buf.String()

@@ -68,7 +68,8 @@ func main() {
 		sklog.Fatal(err)
 	}
 	repo := gitiles.NewRepo(*repoUrl, gitcookiesPath, client)
-	baseCommitInfo, err := repo.GetCommit(cq.CQ_CFG_REF)
+	ctx := context.Background()
+	baseCommitInfo, err := repo.Details(ctx, cq.CQ_CFG_REF)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -76,7 +77,7 @@ func main() {
 
 	// Download the CQ config file and modify it.
 	var buf bytes.Buffer
-	if err := repo.ReadFileAtRef(cq.CQ_CFG_FILE, baseCommit, &buf); err != nil {
+	if err := repo.ReadFileAtRef(ctx, cq.CQ_CFG_FILE, baseCommit, &buf); err != nil {
 		sklog.Fatal(err)
 	}
 	newCfgBytes, err := cq.WithUpdateCQConfig(buf.Bytes(), func(cfg *cq.Config) error {
@@ -101,7 +102,7 @@ func main() {
 
 	// Download and modify the supported-branches.json file.
 	buf = bytes.Buffer{}
-	if err := repo.ReadFileAtRef(supported_branches.SUPPORTED_BRANCHES_FILE, baseCommit, &buf); err != nil {
+	if err := repo.ReadFileAtRef(ctx, supported_branches.SUPPORTED_BRANCHES_FILE, baseCommit, &buf); err != nil {
 		sklog.Fatal(err)
 	}
 	sbc, err := supported_branches.DecodeConfig(&buf)

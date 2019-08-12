@@ -121,9 +121,9 @@ func TestLog(t *testing.T) {
 	}
 
 	// Verify that we got the correct list of commits from the call to Log.
-	checkGitiles := func(fn func(string, string) ([]*vcsinfo.LongCommit, error), from, to string, expect []string) {
+	checkGitiles := func(fn func(context.Context, string, string) ([]*vcsinfo.LongCommit, error), from, to string, expect []string) {
 		mockLog(from, to, expect)
-		log, err := fn(from, to)
+		log, err := fn(ctx, from, to)
 		assert.NoError(t, err)
 		deepequal.AssertDeepEqual(t, hashes(log), expect)
 		assert.True(t, urlMock.Empty())
@@ -183,6 +183,7 @@ func TestLogPagination(t *testing.T) {
 	unittest.MediumTest(t)
 
 	// Gitiles API paginates logs over 100 commits long.
+	ctx := context.Background()
 	repoUrl := "https://fake/repo"
 	urlMock := mockhttpclient.NewURLMock()
 	repo := NewRepo(repoUrl, "", urlMock.Client())
@@ -238,7 +239,7 @@ func TestLogPagination(t *testing.T) {
 		urlMock.MockOnce(fmt.Sprintf(LOG_URL, repoUrl, from.Hash, to.Hash), mockhttpclient.MockGetDialogue([]byte(js)))
 	}
 	check := func(from, to *vcsinfo.LongCommit, expect []*vcsinfo.LongCommit) {
-		log, err := repo.Log(from.Hash, to.Hash)
+		log, err := repo.Log(ctx, from.Hash, to.Hash)
 		assert.NoError(t, err)
 		sort.Sort(sort.Reverse(vcsinfo.LongCommitSlice(log)))
 		deepequal.AssertDeepEqual(t, expect, log)
