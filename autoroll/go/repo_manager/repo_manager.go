@@ -83,8 +83,13 @@ type RepoManager interface {
 func Start(ctx context.Context, r RepoManager, frequency time.Duration) {
 	sklog.Infof("Starting repo_manager")
 	lv := metrics2.NewLiveness("last_successful_repo_manager_update")
-	cleanup.Repeat(frequency, func() {
+	cleanup.Repeat(frequency, func(_ context.Context) {
 		sklog.Infof("Running repo_manager update.")
+		// Explicitly ignore the passed-in context; this allows us to
+		// continue updating the RepoManager even if the context is
+		// canceled, which helps to prevent errors due to interrupted
+		// syncs, etc.
+		ctx := context.Background()
 		if err := r.Update(ctx); err != nil {
 			sklog.Errorf("Failed to update repo manager: %s", err)
 		} else {

@@ -814,7 +814,7 @@ func main() {
 		sklog.Fatalf("Failed to create TaskCache: %s", err)
 	}
 	lvTaskCache := metrics2.NewLiveness("status_task_cache")
-	go util.RepeatCtx(60*time.Second, ctx, func() {
+	go util.RepeatCtx(60*time.Second, ctx, func(ctx context.Context) {
 		if err := tCache.Update(); err != nil {
 			sklog.Errorf("Failed to update TaskCache: %s", err)
 		} else {
@@ -856,7 +856,7 @@ func main() {
 	if err := updateAutorollStatus(ctx); err != nil {
 		sklog.Fatal(err)
 	}
-	go util.RepeatCtx(60*time.Second, ctx, func() {
+	go util.RepeatCtx(60*time.Second, ctx, func(ctx context.Context) {
 		if err := updateAutorollStatus(ctx); err != nil {
 			sklog.Errorf("Failed to update autoroll status: %s", err)
 		}
