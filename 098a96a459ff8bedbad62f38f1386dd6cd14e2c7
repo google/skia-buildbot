@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bf9a9805_b74cec6c",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-12T16:35:44Z",
+      "side": 1,
+      "message": "What is gitfs?",
+      "range": {
+        "startLine": 38,
+        "startChar": 48,
+        "endLine": 38,
+        "endChar": 53
+      },
+      "revId": "098a96a459ff8bedbad62f38f1386dd6cd14e2c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96012cd3_a0e9e0ac",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-12T16:35:44Z",
+      "side": 1,
+      "message": "Where are you throwing ErrStopIteration? (I only see it in the test) or is it not used by a client yet?",
+      "revId": "098a96a459ff8bedbad62f38f1386dd6cd14e2c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
