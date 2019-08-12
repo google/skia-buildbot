@@ -2,9 +2,12 @@
 <html>
 <head>
     <title>Skia Performance Monitoring | Activity Log</title>
-
-    {{template "header.html" .}}
-
+    <meta charset="utf-8">
+    <meta name="theme-color" content="#1f78b4">
+    <link rel="shortcut icon" href="/res/img/favicon.ico" />
+    <link rel="manifest" href="/res/manifest.json">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style type="text/css" media="screen">
       table {
         margin: 2em;
@@ -16,15 +19,13 @@
     </style>
 </head>
 <body>
-  <perf-scaffold-sk responsiveWidth="700px">
-    <div id=container>
-      <table>
+  <perf-scaffold-sk>
+    <table>
       <tr><th>ID</th><th>Date</th><th>User</th><th>Action</th><th>Link</th></tr>
       {{range .}}
       <tr><td>{{.ID}}</td><td>{{.Date}}</td><td>{{.UserID}}</td><td>{{.Action}}</td><td><a href="{{.URL}}">{{.URL}}</a></tr>
       {{end}}
-      </table>
-    </div>
+    </table>
   </perf-scaffold-sk>
 </body>
 </html>
