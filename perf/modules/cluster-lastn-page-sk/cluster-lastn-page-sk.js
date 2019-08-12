@@ -1,0 +1,289 @@
+/**
+ * @module module/cluster-lastn-page-sk
+ * @description <h2><code>cluster-lastn-page-sk</code></h2>
+ *
+ *  Allows trying out an alert by clustering over a range of commits.
+ */
+import dialogPolyfill from 'dialog-polyfill'
+import { html, render } from 'lit-html'
+import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+
+function _stepUpAt(dir) {
+  return dir === 'UP' || dir === 'BOTH';
+}
+
+function _stepDownAt(dir) {
+  return dir === 'DOWN' || dir === 'BOTH';
+}
+
+function _notBoth(dir) {
+  return dir != 'BOTH';
+}
+
+const _tableHeader = (ele) => {
+  ret = [html`<th></th>`];
+  if (_stepDownAt(ele._state.direction)) {
+    ret.push(html`<th>Low</th>`);
+  }
+  if (_stepUpAt(ele._state.direction)) {
+    ret.push(html`<th>High</th>`);
+  }
+  if (_notBoth(ele._state.direction)) {
+    ret.push(html`<th></th>`);
+  }
+  return ret;
+}
+
+function _full_summary(frame, summary) {
+  return {
+    frame: frame,
+    summary: summary,
+  }
+}
+
+const _low = (ele, reg) => {
+  if (!_stepDownAt(ele)) {
+    return html``;
+  }
+  if (reg.regression.low) {
+    return html`
+      <td class=cluster>
+        <triage-status-sk
+          .alert=${ele._state}i
+          cluster_type=low
+          .full_summary=${_full_summary(reg.regression.frame, reg.regression.low)}
+          .triage=${reg.regression.low_status}>
+        </triage-status-sk>
+      </td>
+    `;
+  } else {
+    return html`
+      <td class=cluster>
+      </td>
+    `;
+  }
+}
+
+const _high = (ele, reg) => {
+  if (!_stepUpAt(ele)) {
+    return html``;
+  }
+  if (reg.regression.high) {
+    return html`
+      <td class=cluster>
+        <triage-status-sk
+          .alert=${ele._state}i
+          cluster_type=high
+          .full_summary=${_full_summary(reg.regression.frame, reg.regression.high)}
+          .triage=${reg.regression.high_status}>
+        </triage-status-sk>
+      </td>
+    `;
+  } else {
+    return html`
+      <td class=cluster>
+      </td>
+    `;
+  }
+}
+
+const _filler = (ele) => {
+  if (_notBoth(ele)) {
+    return html`<td></td>`;
+  }
+  return html``;
+}
+
+const _tableRows = (ele) => ele._regressions.map((reg, rowIndex) => html`
+  <tr>
+    <td class=fixed>
+      <commit-detail-sk .cid=${reg.cid}></commit-detail-sk>
+    </td>
+
+    ${_low(ele, reg)}
+    ${_high(ele, reg)}
+    ${_filler(ele)}
+  </tr>
+  `);
+
+const _configTitle = (ele) => html`Algo: ${ele._state.algo} - Radius: ${ele._state.radius} - Sparse: ${ele._state.sparse} - Threshhold: ${ele._state.interesting}`;
+
+const template = (ele) => html`
+  <dialog id=alert-config-dialog>
+    <alert-config-sk id=alertconfig .config=${ele._state} .paramset=${ele._paramset}></alert-config-sk>
+    <div class=buttons>
+      <button @click=${ele._alertClose}>Cancel</button>
+      <button @click=${ele._alertAccept}>Accept</button>
+    </div>
+  </dialog>
+  <div class=controls>
+    <label>Alert Configuration: <button @click=${ele._alertEdit}>${_configTitle(ele)}</button></label>
+    <label>Domain: <domain-picker-sk id=range .state=${ele.domain} @domain-changed=${ele._rangeChange} force_request_type=dense></domain-picker-sk></label>
+    <div class=running>
+      <button class=action ?disabled=${ele._notHasQuery()} @click=${ele._run}>Run</button>
+      <spinner-sk ?active=${!!ele._requestId}></spinner-sk>
+      <span>${ele._runningStatus}</span>
+    </div>
+  </div>
+  <hr>
+
+  <dialog id=triage-cluster-dialog  @open-keys=${ele._openKeys}>
+    <cluster-summary2-sk @triaged=${ele._triaged} .full_summary=${ele._dialog_state.full_summary} .triage=${ele._dialog_state.triage}></cluster-summary2-sk>
+    <div class=buttons>
+      <button @click=${ele._close}>Close</button>
+    </div>
+  </dialog>
+
+  <table @start-triage=${ele._triage_start}>
+    <tr>
+      <th>Commit</th>
+      <th colspan=2>Regressions</th>
+    </tr>
+    <tr>
+      ${_tableHeader(ele)}
+    </tr>
+    ${_tableRows(ele)}
+  </table>
+`;
+
+window.customElements.define('cluster-lastn-page-sk', class extends ElementSk {
+  constructor() {
+    super(template);
+
+    // The fetch in connectedCallback will fill this is with the defaults.
+    this._state = {};
+
+    // The range of commits over which we are clustering.
+    this._domain = {
+      end: Math.floor(Date.now()/1000),
+      num_commits: 200,
+      request_type: 1,
+    };
+
+    // The regressions found when running.
+    this._regressions = [];
+
+    // The state of the cluster-summary2-sk dialog.
+    this._dialog_state = {};
+
+    // The paramsets for the alert config.
+    this._paramset = {};
+
+    // The id of the currently running request.
+    this._requestId = null;
+
+    // The text status of the currently running request.
+    this._runningStatus = '';
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    const init = fetch('/_/initpage/').then(jsonOrThrow).then((json) => {
+      this._paramset = json.dataframe.paramset;
+    });
+    const alertNew = fetch('/_/alert/new').then(jsonOrThrow).then((json) => {
+      this._state = json;
+    });
+    Promise.all([init, alertNew]).then(() => {
+      this._render();
+      this._alertDialog = this.querySelector('#alert-config-dialog');
+      this._triageDialog = this.querySelector('#triage-cluster-dialog');
+      dialogPolyfill.registerDialog(this._alertDialog);
+      dialogPolyfill.registerDialog(this._triageDialog);
+      this._alertConfig = this.querySelector('alert-config-sk');
+      this._stateHasChanged = stateReflector(() => this._state, (state) => {
+        this._state = state;
+        this._render();
+      });
+    }).catch(errorMessage);
+  }
+
+  _rangeChange(e) {
+    this._domain = e.detail.state;
+  }
+
+  _alertEdit() {
+    this._alertDialog.showModal();
+  }
+
+  _alertClose() {
+    this._alertDialog.close();
+  }
+
+  _alertAccept(e) {
+    this._alertDialog.close();
+    this._state = this._alertConfig.config;
+    this._stateHasChanged();
+    this._render();
+  }
+
+  _triage_start(e) {
+    this._dialog_state = e.detail;
+    this._render();
+    this._triageDialog.show();
+  }
+
+  _openKeys(e) {
+    const query = {
+      keys:       e.detail.shortcut,
+      begin:      e.detail.begin,
+      end:        e.detail.end,
+      xbaroffset: e.detail.xbar.offset
+    };
+    window.open('/e/?' + sk.query.fromObject(query), '_blank');
+  }
+
+  _triaged() {
+    errorMessage("Dry run results can't be triaged.", 10000);
+  }
+
+  _catch(msg) {
+    this._requestId = null;
+    this._runningStatus = ''
+    this._render();
+    if (msg) {
+      errorMessage(msg, 10000);
+    }
+  }
+
+  _run(e) {
+    if (this._requestId) {
+      errorMessage('There is a pending query already running.');
+      return;
+    }
+    const body = {
+      domain: this.domain,
+      config: this.state,
+    }
+    fetch('/_/dryrun/start', {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers:{
+        'Content-Type': 'application/json'
+      }
+    }).then(jsonOrThrow).then((json) => {
+      this._requestId = json.id;
+      this._render();
+      this._checkDryRunStatus((regressions) => {
+        this._regressions = regressions;
+        this._render();
+      });
+    }).catch(() => this._catch());
+  }
+
+  _checkDryRunStatus(cb) {
+    fetch(`/_/dryrun/status/${this._requestId}`).then(jsonOrThrow).then((json) => {
+      if (!json.finished) {
+        this._runningStatus = json.message;
+        // json.regressions will get filled in incrementally, so display them
+        // as they appear.
+        cb(json.regressions);
+        window.setTimeout(() => this._checkDryRunStatus(cb), 300);
+      } else {
+        cb(json.regressions);
+        this._catch();
+      }
+    }).catch(() => this._catch());
+  }
+
+});
