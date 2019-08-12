@@ -91,6 +91,6 @@ func (mr *MockRepo) MockLog(ctx context.Context, from, to string) {
 	b, err := json.Marshal(log)
 	assert.NoError(mr.t, err)
 	b = append([]byte(")]}'\n"), b...)
-	url := fmt.Sprintf(gitiles.LOG_URL, mr.url, from, to)
+	url := fmt.Sprintf(gitiles.LOG_URL, mr.url, fmt.Sprintf("%s..%s", from, to))
 	mr.c.MockOnce(url, mockhttpclient.MockGetDialogue(b))
 }

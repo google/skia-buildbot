@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -18,6 +19,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"golang.org/x/time/rate"
 )
 
 /*
@@ -29,15 +31,25 @@ const (
 	DATE_FORMAT_NO_TZ = "Mon Jan 02 15:04:05 2006"
 	DATE_FORMAT_TZ    = "Mon Jan 02 15:04:05 2006 -0700"
 	DOWNLOAD_URL      = "%s/+/%s/%s?format=TEXT"
-	LOG_URL           = "%s/+log/%s..%s?format=JSON"
+	LOG_URL           = "%s/+log/%s?format=JSON"
 	REFS_URL          = "%s/+refs%%2Fheads?format=JSON"
 	TAGS_URL          = "%s/+refs%%2Ftags?format=JSON"
+
+	// These were copied from the defaults used by gitfs:
+	// https://gerrit.googlesource.com/gitfs/+/59c1163fd1737445281f2339399b2b986b0d30fe/gitiles/client.go#102
+	MAX_QPS   = rate.Limit(4.0)
+	MAX_BURST = 40
+)
+
+var (
+	ErrStopIteration = errors.New("stop iteration")
 )
 
 // Repo is an object used for interacting with a single Git repo using Gitiles.
 type Repo struct {
 	client         *http.Client
 	gitCookiesPath string
+	rl             *rate.Limiter
 	URL            string
 }
 
@@ -49,12 +61,17 @@ func NewRepo(url string, gitCookiesPath string, c *http.Client) *Repo {
 	return &Repo{
 		client:         c,
 		gitCookiesPath: gitCookiesPath,
+		rl:             rate.NewLimiter(MAX_QPS, MAX_BURST),
 		URL:            url,
 	}
 }
 
 // get executes a GET request to the given URL, returning the http.Response.
 func (r *Repo) get(ctx context.Context, url string) (*http.Response, error) {
+	// Respect the rate limit.
+	if err := r.rl.Wait(ctx); err != nil {
+		return nil, err
+	}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -189,28 +206,48 @@ func (r *Repo) Details(ctx context.Context, ref string) (*vcsinfo.LongCommit, er
 	return commitToLongCommit(&c)
 }
 
+// logHelper is used to perform requests which are equivalent to "git log".
+// Loads commits in batches and calls the given function for each batch of
+// commits. If the function returns an error, iteration stops, and the error is
+// returned, unless it was ErrStopIteration.
+func (r *Repo) logHelper(ctx context.Context, urlTmpl, commit string, fn func(context.Context, []*vcsinfo.LongCommit) error) error {
+	for {
+		var l Log
+		if err := r.getJson(ctx, fmt.Sprintf(urlTmpl, commit), &l); err != nil {
+			return err
+		}
+		// Convert to vcsinfo.LongCommit.
+		commits := make([]*vcsinfo.LongCommit, 0, len(l.Log))
+		for _, c := range l.Log {
+			vc, err := commitToLongCommit(c)
+			if err != nil {
+				return err
+			}
+			commits = append(commits, vc)
+		}
+		if err := fn(ctx, commits); err == ErrStopIteration {
+			return nil
+		} else if err != nil {
+			return err
+		}
+		if l.Next == "" {
+			return nil
+		} else {
+			commit = l.Next
+		}
+	}
+}
+
 // Log returns Gitiles' equivalent to "git log" for the given start and end
 // commits.
 func (r *Repo) Log(ctx context.Context, from, to string) ([]*vcsinfo.LongCommit, error) {
 	rv := []*vcsinfo.LongCommit{}
-	for {
-		var l Log
-		if err := r.getJson(ctx, fmt.Sprintf(LOG_URL, r.URL, from, to), &l); err != nil {
-			return nil, err
-		}
-		// Convert to vcsinfo.LongCommit.
-		for _, c := range l.Log {
-			vc, err := commitToLongCommit(c)
-			if err != nil {
-				return nil, err
-			}
-			rv = append(rv, vc)
-		}
-		if l.Next == "" {
-			break
-		} else {
-			to = l.Next
-		}
+	tmpl := fmt.Sprintf(LOG_URL, r.URL, from+"..%s")
+	if err := r.logHelper(ctx, tmpl, to, func(ctx context.Context, commits []*vcsinfo.LongCommit) error {
+		rv = append(rv, commits...)
+		return nil
+	}); err != nil {
+		return nil, err
 	}
 	return rv, nil
 }
@@ -275,6 +312,26 @@ func (r *Repo) LogLinear(ctx context.Context, from, to string) ([]*vcsinfo.LongC
 		}
 	}
 	return rv, nil
+}
+
+// LogFn runs the given function for each commit in the log history reachable
+// from the given commit hash or ref name. It stops when ErrStopIteration is
+// returned.
+func (r *Repo) LogFn(ctx context.Context, to string, fn func(context.Context, *vcsinfo.LongCommit) error) error {
+	return r.LogFnBatch(ctx, to, func(ctx context.Context, commits []*vcsinfo.LongCommit) error {
+		for _, c := range commits {
+			if err := fn(ctx, c); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+// LogFnBatch is the same as LogFn but it runs the given function over batches
+// of commits.
+func (r *Repo) LogFnBatch(ctx context.Context, to string, fn func(context.Context, []*vcsinfo.LongCommit) error) error {
+	return r.logHelper(ctx, fmt.Sprintf(LOG_URL, r.URL, "%s"), to, fn)
 }
 
 // Branches returns the list of branches in the repo.
