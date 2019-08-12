@@ -66,7 +66,7 @@ func (s *CachedTileSourceImpl) StartUpdater(ctx context.Context, interval time.D
 	if err := s.updateTile(ctx); err != nil {
 		return skerr.Wrapf(err, "failed initial tile update")
 	}
-	go util.RepeatCtx(interval, ctx, func() {
+	go util.RepeatCtx(interval, ctx, func(ctx context.Context) {
 		if err := s.updateTile(ctx); err != nil {
 			sklog.Errorf("Could not update tile: %s", err)
 		}

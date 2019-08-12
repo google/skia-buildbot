@@ -57,7 +57,7 @@ func NewRepoWatcher(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL, gi
 // defined by 'interval'.
 func (r *RepoWatcher) Start(ctx context.Context, interval time.Duration) {
 	lvGitSync := metrics2.NewLiveness("last_successful_git_sync", map[string]string{"repo": r.repoURL})
-	cleanup.Repeat(interval, func() {
+	cleanup.Repeat(interval, func(ctx context.Context) {
 		// Catch any panic and log relevant information to find the root cause.
 		defer func() {
 			if err := recover(); err != nil {
