@@ -1,38 +1,37 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Skia Performance Monitoring | Help</title>
-
-    {{template "header.html" .}}
-
     <style type="text/css" media="screen">
-section {
-  margin: 2em;
-}
-p {
-  margin: 1em;
-}
-h2 {
-  margin-bottom: 0.5em;
-  margin-top: 1em;
-}
+      section {
+        margin: 2em;
+      }
+
+      p {
+        margin: 1em;
+      }
+
+      h2 {
+        margin-bottom: 0.5em;
+        margin-top: 1em;
+      }
     </style>
-</head>
-<body>
-    <perf-scaffold-sk responsiveWidth="700px">
+  </head>
+  <body>
+    <perf-scaffold-sk>
       <div id="container">
         <section>
-        {{range $k, $v := .Funcs}}
+          {{range $k, $v := .Funcs}}
           <h2>{{$k}}</h2>
           <p>{{$v.Describe}}</p>
-        {{end}}
+          {{end}}
         </section>
 
         <section>
           <h2>Examples</h2>
           <code>ave(fill(filter("config=8888")))</code>
           <p>Plot a single curve that's the average of all the traces that have a config of '8888'.
-          The traces have missing data points filled in from nearby runs.</p>
+            The traces have missing data points filled in from nearby runs.</p>
 
           <code>ave(filter(""))</code>
           <p>Plot a single curve that's the average of all the traces.</p>
@@ -42,5 +41,5 @@ h2 {
         </section>
       </div>
     </perf-scaffold-sk>
-</body>
+  </body>
 </html>

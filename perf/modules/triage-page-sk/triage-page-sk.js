@@ -177,7 +177,7 @@ const template = (ele) => html`
       <summary>
         <h2>Range</h2>
       </summary>
-      <day-range-sk day-range-change=${ele._rangeChange} begin=${ele._state.begin} end=${ele._state.end}></day-range-sk>
+      <day-range-sk @day-range-change=${ele._rangeChange} begin=${ele._state.begin} end=${ele._state.end}></day-range-sk>
     </details>
     <details @toggle=${ele._toggleStatus}>
       <summary>
