@@ -372,7 +372,7 @@ func main() {
 
 	livenessDirtyConfigs := metrics2.NewLiveness(LIVENESS_DIRTY_CONFIGS_METRIC)
 	oldMetricsDirtyConfigs := map[metrics2.Int64Metric]struct{}{}
-	go util.RepeatCtx(*dirtyConfigChecksPeriod, ctx, func() {
+	go util.RepeatCtx(*dirtyConfigChecksPeriod, ctx, func(ctx context.Context) {
 		newMetrics, err := checkForDirtyConfigs(ctx, oldMetricsDirtyConfigs)
 		if err != nil {
 			sklog.Errorf("Error when checking for dirty configs: %s", err)
@@ -384,7 +384,7 @@ func main() {
 
 	livenessPodStatus := metrics2.NewLiveness(LIVENESS_POD_STATUS_METRIC)
 	oldMetricsPodStatus := map[metrics2.Int64Metric]struct{}{}
-	go util.RepeatCtx(*podStatusMetricsPeriod, ctx, func() {
+	go util.RepeatCtx(*podStatusMetricsPeriod, ctx, func(ctx context.Context) {
 		newMetrics, err := updatePodStatusMetrics(ctx, oldMetricsPodStatus)
 		if err != nil {
 			sklog.Errorf("Error when checking pod statuses: %s", err)

@@ -475,7 +475,7 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		go util.RepeatCtx(10*time.Second, ctx, func() {
+		go util.RepeatCtx(10*time.Second, ctx, func(ctx context.Context) {
 			if err := arbMode.Update(ctx); err != nil {
 				sklog.Error(err)
 			}
@@ -484,7 +484,7 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		go util.RepeatCtx(10*time.Second, ctx, func() {
+		go util.RepeatCtx(10*time.Second, ctx, func(ctx context.Context) {
 			if err := arbStatus.Update(ctx); err != nil {
 				sklog.Error(err)
 			}
@@ -493,7 +493,7 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		go util.RepeatCtx(10*time.Second, ctx, func() {
+		go util.RepeatCtx(10*time.Second, ctx, func(ctx context.Context) {
 			if err := arbStrategy.Update(ctx); err != nil {
 				sklog.Error(err)
 			}

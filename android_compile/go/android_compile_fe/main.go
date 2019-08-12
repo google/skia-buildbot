@@ -165,7 +165,7 @@ func main() {
 	}
 
 	// Start updater for the queue length metrics.
-	cleanup.Repeat(time.Minute, func() {
+	cleanup.Repeat(time.Minute, func(ctx context.Context) {
 		unownedPendingTasks, ownedPendingTasks, err := util.GetPendingCompileTasks("" /* ownedByInstance */)
 		if err != nil {
 			sklog.Errorf("Failed to get unowned/owned compile tasks: %s", err)

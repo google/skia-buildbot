@@ -136,7 +136,7 @@ func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Dur
 		}
 	}
 	// Update mirror here and then periodically.
-	cleanup.Repeat(repoUpdateDuration, func() {
+	cleanup.Repeat(repoUpdateDuration, func(ctx context.Context) {
 		UpdateMirror(ctx)
 	}, nil)
 

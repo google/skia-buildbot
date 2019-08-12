@@ -190,7 +190,7 @@ func StartTaskMetrics(ctx context.Context, taskDb db.TaskReader, instance string
 	}
 
 	lv := metrics2.NewLiveness("last_successful_task_metrics_update")
-	go util.RepeatCtx(5*time.Minute, ctx, func() {
+	go util.RepeatCtx(5*time.Minute, ctx, func(ctx context.Context) {
 		if err := edb.update(); err != nil {
 			sklog.Errorf("Failed to update task data: %s", err)
 		} else {

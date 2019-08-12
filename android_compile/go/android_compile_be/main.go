@@ -375,7 +375,7 @@ func main() {
 
 	// Start listener for when the mirror should be force synced.
 	// Update mirror here and then periodically.
-	cleanup.Repeat(time.Minute, func() {
+	cleanup.Repeat(time.Minute, func(ctx context.Context) {
 		// Check the datastore and if it is true then Update the mirror!
 		forceMirror, err := ac_util.GetForceMirrorUpdateBool(ctx, hostname)
 		if err != nil {

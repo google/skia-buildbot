@@ -755,18 +755,18 @@ MainLoop:
 
 // RepeatCtx calls the provided function 'fn' immediately and then in intervals
 // defined by 'interval'. If the given context is canceled, the iteration stops.
-func RepeatCtx(interval time.Duration, ctx context.Context, fn func()) {
+func RepeatCtx(interval time.Duration, ctx context.Context, fn func(ctx context.Context)) {
 	ticker := time.NewTicker(interval)
 	done := ctx.Done()
 	defer ticker.Stop()
-	fn()
+	fn(ctx)
 MainLoop:
 	for {
 		select {
 		case <-done:
 			break MainLoop
 		case <-ticker.C:
-			fn()
+			fn(ctx)
 		}
 	}
 }

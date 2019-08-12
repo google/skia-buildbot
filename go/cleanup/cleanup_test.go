@@ -1,6 +1,7 @@
 package cleanup
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -17,7 +18,7 @@ func TestCleanup(t *testing.T) {
 	// expected.
 	count := 0
 	cleanup := false
-	Repeat(interval, func() {
+	Repeat(interval, func(_ context.Context) {
 		count++
 		assert.False(t, cleanup)
 	}, func() {
@@ -41,7 +42,7 @@ func TestCleanup(t *testing.T) {
 	}
 	for i := 0; i < n; i++ {
 		idx := i
-		Repeat(interval, func() {
+		Repeat(interval, func(_ context.Context) {
 			counts[idx]++
 			assert.False(t, cleanups[idx])
 		}, func() {

@@ -77,7 +77,7 @@ func NewAutoRoller(ctx context.Context, gitcookiesPath string, cfg *roller.AutoR
 
 // Start ensures DBs are closed when ctx is canceled.
 func (a *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency time.Duration) {
-	go cleanup.Repeat(repoFrequency, func() {
+	go cleanup.Repeat(repoFrequency, func(ctx context.Context) {
 		util.LogErr(a.UpdateStatus(ctx, "", true))
 	}, nil)
 }
