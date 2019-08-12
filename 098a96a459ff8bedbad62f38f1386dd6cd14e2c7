@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "078030cf_11d4be8c",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-12T17:20:51Z",
+      "side": 1,
+      "message": "I took the numbers from here: https://gerrit.googlesource.com/gitfs/+/refs/heads/master/gitiles/client.go#102\nIf that comment raises more questions than it answers, I can remove it.",
+      "parentUuid": "bf9a9805_b74cec6c",
+      "range": {
+        "startLine": 38,
+        "startChar": 48,
+        "endLine": 38,
+        "endChar": 53
+      },
+      "revId": "098a96a459ff8bedbad62f38f1386dd6cd14e2c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "96012cd3_a0e9e0ac",
         "filename": "go/gitiles/gitiles.go",
         "patchSetId": 3
@@ -36,6 +60,24 @@
       "writtenOn": "2019-08-12T16:35:44Z",
       "side": 1,
       "message": "Where are you throwing ErrStopIteration? (I only see it in the test) or is it not used by a client yet?",
+      "revId": "098a96a459ff8bedbad62f38f1386dd6cd14e2c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec75be22_f9cfe0ed",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-12T17:20:51Z",
+      "side": 1,
+      "message": "It\u0027s intended to be used by the client in LogFn or LogFnBatch in the case where there are a lot of commits but the caller is done looking at them.  It\u0027s relevant for the single-parameter Log functions, where the starting point is given but not an ending point.  Without ErrStopIteration, we\u0027ll iterate over ALL commits in history, which may or may not be what the caller wants.  There\u0027s more context in https://skia-review.googlesource.com/c/buildbot/+/233361 if you\u0027re interested.",
+      "parentUuid": "96012cd3_a0e9e0ac",
       "revId": "098a96a459ff8bedbad62f38f1386dd6cd14e2c7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
