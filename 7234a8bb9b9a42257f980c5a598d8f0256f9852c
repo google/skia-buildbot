@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b897434e_b491c7fe",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-12T20:32:05Z",
+      "side": 1,
+      "message": "nit: let",
+      "range": {
+        "startLine": 232,
+        "startChar": 8,
+        "endLine": 232,
+        "endChar": 11
+      },
+      "revId": "7234a8bb9b9a42257f980c5a598d8f0256f9852c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
