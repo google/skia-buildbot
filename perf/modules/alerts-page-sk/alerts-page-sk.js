@@ -175,7 +175,7 @@ window.customElements.define('alerts-page-sk', class extends ElementSk {
       headers:{
         'Content-Type': 'application/json'
       }
-    }).then(jsonOrThrow).then(() => {
+    }).then(() => {
       this._list()
     }).catch(errorMessage);
   }
@@ -186,9 +186,7 @@ window.customElements.define('alerts-page-sk', class extends ElementSk {
     }
     fetch(`/_/alert/delete/${e.target.__config.id}`, {
       method: 'POST',
-    }).then(() => {
-      this._list()
-    }).catch(errorMessage);
+    }).then(() => this._list()).catch(errorMessage);
   }
 
   /** @prop cfg {string} The alert config being edited. */
