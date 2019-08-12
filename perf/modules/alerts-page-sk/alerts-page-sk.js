@@ -134,8 +134,7 @@ window.customElements.define('alerts-page-sk', class extends ElementSk {
     const id = +window.location.search.slice(1);
     for (const alert of this._alerts) {
       if (id === alert.id) {
-        this.cfg = alerts[i];
-        this._dialog.showModal();
+        this._startEditing(alerts[i]);
         break;
       }
     }
@@ -145,14 +144,17 @@ window.customElements.define('alerts-page-sk', class extends ElementSk {
   _add() {
     // Load an new Config from the server.
     fetch('/_/alert/new').then(jsonOrThrow).then((json) => {
-      this.cfg = json;
-      // Pop up edit dialog using the new Config.
-      this._dialog.showModal();
+      this._startEditing(json);
     }).catch(errorMessage);
   }
 
   _edit(e) {
-    this.cfg = e.target.__config;
+    this._startEditing(e.target.__config);
+  }
+
+  _startEditing(cfg) {
+    this._orig_cfg = JSON.parse(JSON.stringify(this._cfg));
+    this.cfg = cfg;
     this._dialog.showModal();
   }
 
@@ -196,7 +198,6 @@ window.customElements.define('alerts-page-sk', class extends ElementSk {
     if (this._cfg && !this._cfg.owner) {
       this._cfg.owner = this._email;
     }
-    this._orig_cfg = JSON.parse(JSON.stringify(this._cfg));
     this._render();
   }
 
