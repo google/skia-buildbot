@@ -1,0 +1,63 @@
+@import '~elements-sk/colors';
+
+triage-page-sk {
+  > dialog {
+    position: fixed;
+    z-index: 2;
+  }
+
+  summary h2 {
+    display: inline-block;
+    margin: 0;
+  }
+
+  header {
+    display: flex;
+  }
+
+  details {
+    display: inline-block;
+    margin: 1em 0.4em;
+    padding: 1em;
+    background: var(--dark-white);
+  }
+
+  details[open] {
+    border: solid 1px var(--light-gray);
+    background: var(--white);
+  }
+
+  details table {
+    margin: 1em;
+  }
+
+  summary {
+    padding: 0 0.6em;
+  }
+
+  summary:focus {
+    outline: dotted thick var(--blue);
+  }
+
+  tr:nth-child(even) {
+    background-color: var(--dark-white);
+  }
+
+  table {
+    border-collapse: collapse;
+    border-spacing: 0;
+  }
+
+  .cluster {
+    text-align: center;
+  }
+
+  th {
+    padding: 0 1em;
+  }
+
+  a {
+    color: var(--blue);
+  }
+
+}
