@@ -341,7 +341,7 @@ func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 			}
 		}
 	} else {
-		// Set pixels outside of the comparison area with the with maximum diff color.
+		// Set pixels outside of the comparison area with the maximum diff color.
 		maxDiffColor := uint8ToColor(PixelDiffColor[deltaOffset(1024)])
 		for x := 0; x < resultWidth; x++ {
 			for y := 0; y < resultHeight; y++ {
