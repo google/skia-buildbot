@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
+	"golang.org/x/time/rate"
 )
 
 func TestLog(t *testing.T) {
@@ -81,6 +82,7 @@ func TestLog(t *testing.T) {
 
 	urlMock := mockhttpclient.NewURLMock()
 	r := NewRepo(gb.RepoUrl(), "", urlMock.Client())
+	r.rl.SetLimit(rate.Inf)
 
 	// Helper function for mocking gitiles API calls.
 	mockLog := func(from, to string, rvCommits []string) {
@@ -108,7 +110,7 @@ func TestLog(t *testing.T) {
 		}
 		js := testutils.MarshalJSON(t, results)
 		js = ")]}'\n" + js
-		urlMock.MockOnce(fmt.Sprintf(LOG_URL, gb.RepoUrl(), from, to), mockhttpclient.MockGetDialogue([]byte(js)))
+		urlMock.MockOnce(fmt.Sprintf(LOG_URL, gb.RepoUrl(), fmt.Sprintf("%s..%s", from, to)), mockhttpclient.MockGetDialogue([]byte(js)))
 	}
 
 	// Return a slice of the hashes for the given commits.
@@ -187,6 +189,7 @@ func TestLogPagination(t *testing.T) {
 	repoUrl := "https://fake/repo"
 	urlMock := mockhttpclient.NewURLMock()
 	repo := NewRepo(repoUrl, "", urlMock.Client())
+	repo.rl.SetLimit(rate.Inf)
 	next := 0
 	hash := func() string {
 		next++
@@ -236,13 +239,33 @@ func TestLogPagination(t *testing.T) {
 		}
 		js := testutils.MarshalJSON(t, results)
 		js = ")]}'\n" + js
-		urlMock.MockOnce(fmt.Sprintf(LOG_URL, repoUrl, from.Hash, to.Hash), mockhttpclient.MockGetDialogue([]byte(js)))
+		urlMock.MockOnce(fmt.Sprintf(LOG_URL, repoUrl, fmt.Sprintf("%s..%s", from.Hash, to.Hash)), mockhttpclient.MockGetDialogue([]byte(js)))
+		urlMock.MockOnce(fmt.Sprintf(LOG_URL, repoUrl, to.Hash), mockhttpclient.MockGetDialogue([]byte(js)))
 	}
-	check := func(from, to *vcsinfo.LongCommit, expect []*vcsinfo.LongCommit) {
+	check := func(from, to *vcsinfo.LongCommit, expectCommits []*vcsinfo.LongCommit) {
+		// The expectations are in chronological order for convenience
+		// of the caller. But git logs are in reverse chronological
+		// order. Sort the expectations.
+		expect := make([]*vcsinfo.LongCommit, len(expectCommits))
+		copy(expect, expectCommits)
+		sort.Sort(vcsinfo.LongCommitSlice(expect))
+
+		// Test standard Log(from, to) function.
 		log, err := repo.Log(ctx, from.Hash, to.Hash)
 		assert.NoError(t, err)
-		sort.Sort(sort.Reverse(vcsinfo.LongCommitSlice(log)))
 		deepequal.AssertDeepEqual(t, expect, log)
+
+		// Test LogFn
+		log = make([]*vcsinfo.LongCommit, 0, len(expect))
+		assert.NoError(t, repo.LogFn(ctx, to.Hash, func(ctx context.Context, c *vcsinfo.LongCommit) error {
+			if c.Hash == from.Hash {
+				return ErrStopIteration
+			}
+			log = append(log, c)
+			return nil
+		}))
+		deepequal.AssertDeepEqual(t, expect, log)
+		assert.True(t, urlMock.Empty())
 	}
 
 	// Create some fake commits.
@@ -252,20 +275,20 @@ func TestLogPagination(t *testing.T) {
 	}
 
 	// Most basic test case; no pagination.
-	mock(commits[0], commits[5], commits[0:5], "")
-	check(commits[0], commits[5], commits[0:5])
+	mock(commits[0], commits[5], commits[1:5], "")
+	check(commits[0], commits[5], commits[1:5])
 
 	// Two pages.
 	split := 5
 	mock(commits[0], commits[len(commits)-1], commits[split:], commits[split].Hash)
-	mock(commits[0], commits[split], commits[0:split], "")
-	check(commits[0], commits[len(commits)-1], commits)
+	mock(commits[0], commits[split], commits[1:split], "")
+	check(commits[0], commits[len(commits)-1], commits[1:])
 
 	// Three pages.
 	split1 := 7
 	split2 := 3
 	mock(commits[0], commits[len(commits)-1], commits[split1:], commits[split1].Hash)
 	mock(commits[0], commits[split1], commits[split2:split1], commits[split2].Hash)
-	mock(commits[0], commits[split2], commits[0:split2], "")
-	check(commits[0], commits[len(commits)-1], commits)
+	mock(commits[0], commits[split2], commits[1:split2], "")
+	check(commits[0], commits[len(commits)-1], commits[1:])
 }
