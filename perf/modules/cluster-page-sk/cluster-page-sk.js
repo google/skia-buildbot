@@ -7,7 +7,7 @@
  */
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { errorMessage } from 'elements-sk/errorMessage'
-import { html, render } from 'lit-html'
+import { html } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { stateReflector } from 'common-sk/modules/stateReflector'
 

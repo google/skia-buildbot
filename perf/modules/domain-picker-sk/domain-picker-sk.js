@@ -100,8 +100,8 @@ window.customElements.define('domain-picker-sk', class extends ElementSk {
     const now = Date.now();
     // See the 'state' property setters below for the shape of this._state.
     this._state = {
-      begin: now/1000 - 24*60*60,
-      end: now/1000,
+      begin: Math.floor(now/1000 - 24*60*60),
+      end: Math.floor(now/1000),
       num_commits: 50,
       request_type: RANGE,
     };
@@ -137,12 +137,12 @@ window.customElements.define('domain-picker-sk', class extends ElementSk {
   }
 
   _beginChange(e) {
-    this._state.begin = e.detail.date/1000;
+    this._state.begin = Math.floor(e.detail.date/1000);
     this._render();
   }
 
   _endChange(e) {
-    this._state.end = e.detail.date/1000;
+    this._state.end = Math.floor(e.detail.date/1000);
     this._render();
   }
 
@@ -183,6 +183,9 @@ window.customElements.define('domain-picker-sk', class extends ElementSk {
    */
   get state() { return this._stateBackup }
   set state(val) {
+    if (!val) {
+      return;
+    }
     this._state = val;
     this._stateBackup = Object.assign({}, this._state);
     this._render();
