@@ -145,18 +145,15 @@ var (
 
 func loadTemplates() {
 	templates = template.Must(template.New("").ParseFiles(
-		filepath.Join(*resourcesDir, "templates/newindex.html"),
-		filepath.Join(*resourcesDir, "templates/clusters2.html"),
-		filepath.Join(*resourcesDir, "templates/triage.html"),
-		filepath.Join(*resourcesDir, "templates/alerts.html"),
-		filepath.Join(*resourcesDir, "templates/help.html"),
-		filepath.Join(*resourcesDir, "templates/offline.html"),
-		filepath.Join(*resourcesDir, "templates/activitylog.html"),
-		filepath.Join(*resourcesDir, "templates/dryRunAlert.html"),
-		filepath.Join(*resourcesDir, "templates/service-worker.js"),
-
-		// Sub templates used by other templates.
-		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "dist/newindex.html"),
+		filepath.Join(*resourcesDir, "dist/clusters2.html"),
+		filepath.Join(*resourcesDir, "dist/triage.html"),
+		filepath.Join(*resourcesDir, "dist/alerts.html"),
+		filepath.Join(*resourcesDir, "dist/offline.html"),
+		filepath.Join(*resourcesDir, "dist/help.html"),
+		filepath.Join(*resourcesDir, "dist/activitylog.html"),
+		filepath.Join(*resourcesDir, "dist/dryRunAlert.html"),
+		filepath.Join(*resourcesDir, "dist/service-worker-bundle.js"),
 	))
 }
 
@@ -1539,7 +1536,7 @@ func main() {
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	router.HandleFunc("/offline", offlineHandler)
-	router.HandleFunc("/service-worker.js", scriptHandler("service-worker.js"))
+	router.HandleFunc("/service-worker.js", scriptHandler("service-worker-bundle.js"))
 
 	// JSON handlers.
 	router.HandleFunc("/_/initpage/", initpageHandler)
@@ -1574,8 +1571,8 @@ func main() {
 	if *internalOnly {
 		h = internalOnlyHandler(h)
 	}
+	h = httputils.LoggingGzipRequestResponse(h)
 	if !*local {
-		h = httputils.LoggingGzipRequestResponse(h)
 		h = httputils.HealthzAndHTTPS(h)
 	}
 	http.Handle("/", h)
