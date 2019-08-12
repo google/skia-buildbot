@@ -165,8 +165,8 @@ type RepoImpl interface {
 	// Update the local view of the repo.
 	Update(context.Context) error
 
-	// Return the given commits.
-	Get(context.Context, []string) ([]*vcsinfo.LongCommit, error)
+	// Return details for the given commit.
+	Details(context.Context, string) (*vcsinfo.LongCommit, error)
 
 	// Return the branch heads, as of the last call to Update().
 	Branches(context.Context) ([]*git.Branch, error)
@@ -207,9 +207,7 @@ func NewLocalGraph(ctx context.Context, repoUrl, workdir string) (*Graph, error)
 
 // NewGitStoreGraph returns a Graph instance which is backed by a GitStore.
 func NewGitStoreGraph(ctx context.Context, gs gitstore.GitStore) (*Graph, error) {
-	return NewWithRepoImpl(ctx, &gitstoreRepoImpl{
-		gs: gs,
-	})
+	return NewWithRepoImpl(ctx, NewGitStoreRepoImpl(gs))
 }
 
 // NewWithRepoImpl returns a Graph instance which uses the given RepoImpl.
@@ -302,6 +300,8 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 		// Shortcut: if the branch is up-to-date, skip it.
 		if newHead == oldHead {
 			continue
+		} else if oldHead == "" {
+			sklog.Warningf("Found new branch %s @ %s", branch.Name, newHead)
 		}
 
 		// Trace back in time from the new branch head until we find the
@@ -327,28 +327,30 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 					// we found the old branch head, then history
 					// has changed and we need to run the orphan
 					// check.
+					sklog.Warningf("Found previously-known commit %s before old branch head %s of %s; need to check for orphaned commits.", c, oldHead, branch.Name)
 					needOrphanCheck = true
 				}
 				continue
 			}
 
 			// We haven't seen this commit before; add it to newCommits.
-			details, err := ri.Get(ctx, []string{c})
+			details, err := ri.Details(ctx, c)
 			if err != nil {
 				return nil, nil, fmt.Errorf("Failed to Get commit details from RepoImpl: %s", err)
 			}
-			newCommits = append(newCommits, details[0])
+			newCommits = append(newCommits, details)
 
 			// Add the commit's parent(s) to the toProcess map.
-			for _, p := range details[0].Parents {
+			for _, p := range details.Parents {
 				toProcess[p] = true
 			}
-			if len(details[0].Parents) == 0 && oldHead != "" {
+			if len(details.Parents) == 0 && oldHead != "" {
 				// If we found a commit with no parents and this
 				// is not a new branch, then we've discovered a
 				// completely new line of history and need to
 				// check whether the commits on the old line are
 				// now orphaned.
+				sklog.Warningf("Commit %s has no parents, and branch %s is not new. Need to check for orphaned commits.", c, branch.Name)
 				needOrphanCheck = true
 			}
 		}
@@ -372,6 +374,7 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 		// Check to see whether any branches were deleted.
 		for branch := range oldBranchesMap {
 			if _, ok := newBranchesMap[branch]; !ok {
+				sklog.Warningf("Branch %s was deleted; need to check for orphaned commits.", branch)
 				needOrphanCheck = true
 				break
 			}
