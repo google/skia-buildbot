@@ -6,6 +6,7 @@ package supported_branches
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"sort"
@@ -124,7 +125,7 @@ func WriteConfig(f string, c *SupportedBranchesConfig) error {
 // ReadConfigFromRepo reads a SupportedBranchesConfig from the given repo.
 func ReadConfigFromRepo(repo *gitiles.Repo) (*SupportedBranchesConfig, error) {
 	var buf bytes.Buffer
-	if err := repo.ReadFileAtRef(SUPPORTED_BRANCHES_FILE, "infra/config", &buf); err != nil {
+	if err := repo.ReadFileAtRef(context.Background(), SUPPORTED_BRANCHES_FILE, "infra/config", &buf); err != nil {
 		return nil, err
 	}
 	return DecodeConfig(&buf)

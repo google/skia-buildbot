@@ -47,7 +47,7 @@ func main() {
 		*repoUrl = strings.TrimSpace(*repoUrl)
 	}
 	repo := gitiles.NewRepo(*repoUrl, "", nil)
-	branches, err := repo.Branches()
+	branches, err := repo.Branches(ctx)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -56,7 +56,7 @@ func main() {
 	taskCfgs := make(map[string]*specs.TasksCfg, len(branches))
 	for _, branch := range branches {
 		buf := bytes.Buffer{}
-		if err = repo.ReadFileAtRef(specs.TASKS_CFG_FILE, branch.Head, &buf); err != nil {
+		if err = repo.ReadFileAtRef(ctx, specs.TASKS_CFG_FILE, branch.Head, &buf); err != nil {
 			if strings.Contains(err.Error(), "404 Not Found") {
 				sklog.Warningf("Could not find %s on %s", specs.TASKS_CFG_FILE, branch.Name)
 				// This is valid; there are no trybots on this branch.

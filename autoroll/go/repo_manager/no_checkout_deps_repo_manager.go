@@ -135,7 +135,7 @@ func (rm *noCheckoutDEPSRepoManager) getDEPSFile(ctx context.Context, repo *giti
 
 	// Download the DEPS file from the parent repo.
 	buf := bytes.NewBuffer([]byte{})
-	if err := repo.ReadFileAtRef("DEPS", baseCommit, buf); err != nil {
+	if err := repo.ReadFileAtRef(ctx, "DEPS", baseCommit, buf); err != nil {
 		return "", nil, err
 	}
 
@@ -225,7 +225,7 @@ func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to *r
 			found = true
 		}
 		if found {
-			c, err := rm.childRepo.GetCommit(rev.Id)
+			c, err := rm.childRepo.Details(ctx, rev.Id)
 			if err != nil {
 				return "", nil, err
 			}
@@ -267,7 +267,7 @@ func (rm *noCheckoutDEPSRepoManager) RolledPast(ctx context.Context, rev *revisi
 	if rev.Id == rm.lastRollRev.Id {
 		return true, nil
 	}
-	commits, err := rm.childRepo.Log(rev.Id, rm.lastRollRev.Id)
+	commits, err := rm.childRepo.Log(ctx, rev.Id, rm.lastRollRev.Id)
 	if err != nil {
 		return false, err
 	}
@@ -312,7 +312,7 @@ func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, strat str
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	lastRollDetails, err := rm.childRepo.GetCommit(lastRollHash)
+	lastRollDetails, err := rm.childRepo.Details(ctx, lastRollHash)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -320,7 +320,7 @@ func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, strat str
 
 	// Find the not-yet-rolled child repo commits.
 	// Only consider commits on the "main" branch as roll candidates.
-	notRolled, err := rm.childRepo.LogLinear(lastRollRev.Id, rm.childBranch)
+	notRolled, err := rm.childRepo.LogLinear(ctx, lastRollRev.Id, rm.childBranch)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -357,7 +357,7 @@ func (r *noCheckoutDEPSRepoManager) ValidStrategies() []string {
 
 // See documentation for RepoManager interface.
 func (r *noCheckoutDEPSRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
-	details, err := r.childRepo.GetCommit(id)
+	details, err := r.childRepo.Details(ctx, id)
 	if err != nil {
 		return nil, err
 	}
