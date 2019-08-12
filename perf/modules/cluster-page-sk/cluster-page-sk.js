@@ -7,6 +7,7 @@
  */
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { errorMessage } from 'elements-sk/errorMessage'
+import { fromObject } from 'common-sk/modules/query'
 import { html } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { stateReflector } from 'common-sk/modules/stateReflector'
@@ -259,7 +260,7 @@ window.customElements.define('cluster-page-sk', class extends ElementSk {
       num_commits: 50,
       request_type: 1,
     };
-    window.open(`/e/?${sk.query.fromObject(query)}`, '_blank');
+    window.open(`/e/?${fromObject(query)}`, '_blank');
   }
 
   _rangeChange(e) {

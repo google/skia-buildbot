@@ -134,7 +134,7 @@ window.customElements.define('alerts-page-sk', class extends ElementSk {
     const id = +window.location.search.slice(1);
     for (const alert of this._alerts) {
       if (id === alert.id) {
-        this._startEditing(alerts[i]);
+        this._startEditing(alert);
         break;
       }
     }
