@@ -286,7 +286,11 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency tim
 	sklog.Infof("Starting autoroller.")
 	repo_manager.Start(ctx, r.rm, repoFrequency)
 	lv := metrics2.NewLiveness("last_successful_autoroll_tick", map[string]string{"roller": r.roller})
-	cleanup.Repeat(tickFrequency, func() {
+	cleanup.Repeat(tickFrequency, func(_ context.Context) {
+		// Explicitly ignore the passed-in context; this allows us to
+		// continue running even if the context is canceled, which helps
+		// to prevent errors due to interrupted syncs, etc.
+		ctx := context.Background()
 		if err := r.Tick(ctx); err != nil {
 			// Hack: we frequently get failures from GoB which trigger error-rate alerts.
 			// These alerts are noise and sometimes hide real failures. If the error is
@@ -303,7 +307,7 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency tim
 	}, nil)
 
 	// Update the current sheriff in a loop.
-	cleanup.Repeat(30*time.Minute, func() {
+	cleanup.Repeat(30*time.Minute, func(ctx context.Context) {
 		emails, err := getSheriff(r.cfg.ParentName, r.cfg.ChildName, r.cfg.RollerName, r.cfg.Sheriff, r.cfg.SheriffBackup)
 		if err != nil {
 			sklog.Errorf("Failed to retrieve current sheriff: %s", err)
@@ -323,7 +327,12 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency tim
 	// Handle requests for manual rolls.
 	if r.cfg.SupportsManualRolls {
 		lvManualRolls := metrics2.NewLiveness("last_successful_manual_roll_check", map[string]string{"roller": r.roller})
-		cleanup.Repeat(time.Minute, func() {
+		cleanup.Repeat(time.Minute, func(_ context.Context) {
+			// Explicitly ignore the passed-in context; this allows
+			// us to continue handling manual rolls even if the
+			// context is canceled, which helps to prevent errors
+			// due to interrupted syncs, etc.
+			ctx := context.Background()
 			if err := r.handleManualRolls(ctx); err != nil {
 				sklog.Error(err)
 			} else {
