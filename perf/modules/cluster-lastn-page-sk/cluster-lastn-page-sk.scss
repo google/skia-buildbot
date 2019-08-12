@@ -1,0 +1,26 @@
+@import '~elements-sk/colors';
+
+cluster-lastn-page-sk {
+  dialog {
+    z-index: 4;
+  }
+
+  .running {
+    display: flex;
+    align-items: center;
+
+    spinner-sk {
+      width: 12px;
+      height: 12px;
+    }
+
+  }
+
+  .controls {
+    label {
+      display: block;
+    }
+  }
+
+}
+
