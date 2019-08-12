@@ -20,7 +20,6 @@ import (
 	"cloud.google.com/go/datastore"
 	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
-	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
 	"google.golang.org/grpc"
@@ -119,7 +118,6 @@ func main() {
 		pubsubProjectID     = flag.String("pubsub_project_id", "", "Project ID that houses the pubsub topics (e.g. for ingestion).")
 		redirectURL         = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 		resourcesDir        = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
-		serviceAccountFile  = flag.String("service_account_file", "", "Credentials file for service account.")
 		showBotProgress     = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
 		siteURL             = flag.String("site_url", "https://gold.skia.org", "URL where this app is hosted.")
 		tileFreshness       = flag.Duration("tile_freshness", time.Minute, "How often to re-fetch the tile")
@@ -201,6 +199,7 @@ func main() {
 		// Register pprof handlers
 		internalRouter.HandleFunc("/debug/pprof/", netpprof.Index)
 		internalRouter.HandleFunc("/debug/pprof/symbol", netpprof.Symbol)
+		internalRouter.HandleFunc("/debug/pprof/profile", netpprof.Profile)
 		internalRouter.HandleFunc("/debug/pprof/{profile}", netpprof.Index)
 
 		go func() {
@@ -228,17 +227,12 @@ func main() {
 
 	// Get the token source for the service account with access to GCS, the Monorail issue tracker,
 	// cloud pubsub, and datastore.
-	var deprecatedTS oauth2.TokenSource
-	if *local {
-		deprecatedTS = auth.NewGCloudTokenSource("")
-	} else {
-		deprecatedTS, err = auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, datastore.ScopeDatastore, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
-		if err != nil {
-			sklog.Fatalf("Failed to authenticate service account: %s", err)
-		}
+	tokenSource, err := auth.NewDefaultTokenSource(*local, datastore.ScopeDatastore, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	if err != nil {
+		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
 	// TODO(dogben): Ok to add request/dial timeouts?
-	client := httputils.DefaultClientConfig().WithTokenSource(deprecatedTS).WithoutRetries().Client()
+	client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithoutRetries().Client()
 
 	// serviceName uniquely identifies this host and app and is used as ID for other services.
 	nodeName, err := gevent.GetNodeName(appName, *local)
@@ -282,7 +276,7 @@ func main() {
 	// depending whether an PubSub topic was defined.
 	var evt eventbus.EventBus = nil
 	if *eventTopic != "" {
-		evt, err = gevent.New(*pubsubProjectID, *eventTopic, nodeName, option.WithTokenSource(deprecatedTS))
+		evt, err = gevent.New(*pubsubProjectID, *eventTopic, nodeName, option.WithTokenSource(tokenSource))
 		if err != nil {
 			sklog.Fatalf("Unable to create global event client. Got error: %s", err)
 		}
@@ -362,6 +356,7 @@ func main() {
 	gsClientOpt := storage.GCSClientOptions{
 		HashesGSPath:   *hashesGSPath,
 		BaselineGSPath: *baselineGSPath,
+		Dryrun:         *local,
 	}
 
 	gsClient, err := storage.NewGCSClient(client, gsClientOpt)
@@ -369,7 +364,7 @@ func main() {
 		sklog.Fatalf("Unable to create GCSClient: %s", err)
 	}
 
-	if err := ds.InitWithOpt(*dsProjectID, *dsNamespace, option.WithTokenSource(deprecatedTS)); err != nil {
+	if err := ds.InitWithOpt(*dsProjectID, *dsNamespace, option.WithTokenSource(tokenSource)); err != nil {
 		sklog.Fatalf("Unable to configure cloud datastore: %s", err)
 	}
 
@@ -379,7 +374,7 @@ func main() {
 
 	var fsClient *firestore.Client
 	if *fsLegacyAuth {
-		fsClient, err = firestore.NewClient(context.Background(), *fsProjectID, "gold", *fsNamespace, deprecatedTS)
+		fsClient, err = firestore.NewClient(context.Background(), *fsProjectID, "gold", *fsNamespace, tokenSource)
 		if err != nil {
 			sklog.Fatalf("Unable to configure Firestore: %s", err)
 		}
