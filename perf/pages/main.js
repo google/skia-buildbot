@@ -1,12 +1,9 @@
 import '../node_modules/@webcomponents/custom-elements/custom-elements.min.js'
 
-import 'elix/src/DateComboBox.js'
-import 'elements-sk/collapse-sk'
-import '../../infra-sk/modules/login-sk'
-
 import '../modules/algo-select-sk'
 import '../modules/alert-config-sk'
 import '../modules/alerts-page-sk'
+import '../modules/cluster-lastn-page-sk'
 import '../modules/cluster-page-sk'
 import '../modules/cluster-summary2-sk'
 import '../modules/commit-detail-panel-sk'
