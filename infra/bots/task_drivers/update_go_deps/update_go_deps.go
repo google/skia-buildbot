@@ -96,7 +96,7 @@ func main() {
 	}
 	diff = strings.TrimSpace(diff)
 	modFiles := strings.Split(diff, "\n")
-	if len(modFiles) > 0 {
+	if len(modFiles) > 0 && diff != "" {
 		g, err := gerrit_steps.Init(ctx, *local, wd, *gerritUrl)
 		if err != nil {
 			td.Fatal(ctx, err)
