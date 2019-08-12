@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b5a5872f_42cb5681",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-12T18:03:57Z",
+      "side": 1,
+      "message": "unused?",
+      "range": {
+        "startLine": 232,
+        "startChar": 5,
+        "endLine": 232,
+        "endChar": 15
+      },
+      "revId": "a6e2c3feba80e587503524d07b319099d644d8fe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f712041e_5dcc577d",
+        "filename": "go/util/context.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-12T18:03:57Z",
+      "side": 1,
+      "message": "nit: naming is a little misleading -- it\u0027s probably clear to someone who is familiar with context.Context that it\u0027s still possible to do ctx, cancel \u003d context.WithCancel(ctx) with the result of this function, but the doc and naming sort of suggest otherwise.\n\nMaybe WithoutCancel to mirror WithCancel?",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 29
+      },
+      "revId": "a6e2c3feba80e587503524d07b319099d644d8fe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
