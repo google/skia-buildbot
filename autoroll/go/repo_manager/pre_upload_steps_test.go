@@ -38,7 +38,7 @@ func TestFlutterLicenseScripts(t *testing.T) {
 	gitErr := error(nil)
 
 	mockRun := &exec.CommandCollector{}
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		pubCmd := "get"
 		dartCmd := "lib/main.dart --src ../../.. --out testing/out/licenses --golden testing/dir/ci/licenses_golden"
 		if cmd.Name == "testing/third_party/dart/tools/sdks/dart-sdk/bin/pub" && strings.Join(cmd.Args, " ") == pubCmd {
@@ -52,7 +52,7 @@ func TestFlutterLicenseScripts(t *testing.T) {
 				return gitErr
 			}
 		}
-		return exec.DefaultRun(cmd)
+		return exec.DefaultRun(ctx, cmd)
 	})
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
 

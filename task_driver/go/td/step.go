@@ -371,7 +371,7 @@ type ExecData struct {
 // Return a context.Context associated with this Step. Any calls to exec which
 // use this Context will be attached to the Step.
 func execCtx(ctx context.Context) context.Context {
-	return exec.NewContext(ctx, func(cmd *exec.Command) error {
+	return exec.NewContext(ctx, func(ctx context.Context, cmd *exec.Command) error {
 		name := strings.Join(append([]string{cmd.Name}, cmd.Args...), " ")
 
 		// Merge the command's env into that of its parent.
@@ -398,7 +398,7 @@ func execCtx(ctx context.Context) context.Context {
 			StepData(ctx, DATA_TYPE_COMMAND, d)
 
 			// Run the command.
-			return getCtx(ctx).execRun(cmd)
+			return getCtx(ctx).execRun(ctx, cmd)
 		})
 	})
 }

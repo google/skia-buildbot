@@ -54,7 +54,7 @@ func setupAndroid(t *testing.T) (context.Context, string, func()) {
 	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	mockRun := exec.CommandCollector{}
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		if strings.Contains(cmd.Name, "repo") {
 			return nil
 		}

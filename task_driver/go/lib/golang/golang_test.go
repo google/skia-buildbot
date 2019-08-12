@@ -26,7 +26,7 @@ func TestWithEnv(t *testing.T) {
 		ctx = WithEnv(ctx, wd)
 		mockRun := &exec.CommandCollector{}
 		runCount := 0
-		mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+		mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 			runCount++
 
 			// Misc variables.
