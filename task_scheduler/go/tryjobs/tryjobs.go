@@ -11,11 +11,11 @@ import (
 
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/cacher"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
@@ -105,16 +105,27 @@ func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB
 // Start initiates the TryJobIntegrator's heatbeat and polling loops. If the
 // given Context is canceled, the loops stop.
 func (t *TryJobIntegrator) Start(ctx context.Context) {
-	go util.RepeatCtx(UPDATE_INTERVAL, ctx, func() {
+	cleanup.Repeat(UPDATE_INTERVAL, func(_ context.Context) {
+		// Explicitly ignore the passed-in context; this allows us to
+		// finish sending heartbeats and updating finished jobs in the
+		// DB even if the context is canceled, which helps to prevent
+		// inconsistencies between Buildbucket and the Task Scheduler
+		// DB.
 		if err := t.updateJobs(time.Now()); err != nil {
 			sklog.Error(err)
 		}
-	})
-	go util.RepeatCtx(POLL_INTERVAL, ctx, func() {
+	}, nil)
+	cleanup.Repeat(POLL_INTERVAL, func(_ context.Context) {
+		// Explicitly ignore the passed-in context; this allows us to
+		// finish leasing jobs from Buildbucket and inserting them into
+		// the DB even if the context is canceled, which helps to
+		// prevent inconsistencies between Buildbucket and the Task
+		// Scheduler DB.
+		ctx := context.Background()
 		if err := t.Poll(ctx); err != nil {
 			sklog.Errorf("Failed to poll for new try jobs: %s", err)
 		}
-	})
+	}, nil)
 }
 
 // getActiveTryJobs returns the active (not yet marked as finished in

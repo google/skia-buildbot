@@ -456,7 +456,7 @@ func (b *BigTableVCS) StartTracking(ctx context.Context, evt eventbus.EventBus) 
 
 	// Keep track of commits.
 	var prevCommits []*vcsinfo.IndexCommit
-	go util.RepeatCtx(defaultWatchInterval, ctx, func() {
+	go util.RepeatCtx(defaultWatchInterval, ctx, func(ctx context.Context) {
 		allBranches, err := b.gitStore.GetBranches(ctx)
 		if err != nil {
 			sklog.Errorf("Error retrieving branches: %s", err)
