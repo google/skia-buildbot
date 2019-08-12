@@ -24,7 +24,6 @@ import (
 	"github.com/gorilla/mux"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/calc"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
@@ -145,18 +144,14 @@ var (
 
 func loadTemplates() {
 	templates = template.Must(template.New("").ParseFiles(
-		filepath.Join(*resourcesDir, "templates/newindex.html"),
-		filepath.Join(*resourcesDir, "templates/clusters2.html"),
-		filepath.Join(*resourcesDir, "templates/triage.html"),
-		filepath.Join(*resourcesDir, "templates/alerts.html"),
-		filepath.Join(*resourcesDir, "templates/help.html"),
-		filepath.Join(*resourcesDir, "templates/offline.html"),
-		filepath.Join(*resourcesDir, "templates/activitylog.html"),
-		filepath.Join(*resourcesDir, "templates/dryRunAlert.html"),
-		filepath.Join(*resourcesDir, "templates/service-worker.js"),
-
-		// Sub templates used by other templates.
-		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "dist/newindex.html"),
+		filepath.Join(*resourcesDir, "dist/clusters2.html"),
+		filepath.Join(*resourcesDir, "dist/triage.html"),
+		filepath.Join(*resourcesDir, "dist/alerts.html"),
+		filepath.Join(*resourcesDir, "dist/offline.html"),
+		filepath.Join(*resourcesDir, "dist/activitylog.html"),
+		filepath.Join(*resourcesDir, "dist/dryRunAlert.html"),
+		filepath.Join(*resourcesDir, "dist/service-worker-bundle.js"),
 	))
 }
 
@@ -395,21 +390,6 @@ func activityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := templates.ExecuteTemplate(w, "activitylog.html", a); err != nil {
 		sklog.Errorln("Failed to expand template:", err)
-	}
-}
-
-// helpHandler handles the GET of the main page.
-func helpHandler(w http.ResponseWriter, r *http.Request) {
-	sklog.Infof("Help Handler: %q\n", r.URL.Path)
-	if *local {
-		loadTemplates()
-	}
-	if r.Method == "GET" {
-		w.Header().Set("Content-Type", "text/html")
-		ctx := calc.NewContext(nil, nil)
-		if err := templates.ExecuteTemplate(w, "help.html", ctx); err != nil {
-			sklog.Errorln("Failed to expand template:", err)
-		}
 	}
 }
 
@@ -1533,13 +1513,12 @@ func main() {
 	router.HandleFunc("/a/", templateHandler("alerts.html"))
 	router.HandleFunc("/d/", templateHandler("dryRunAlert.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", gotoHandler)
-	router.HandleFunc("/help/", helpHandler)
 	router.PathPrefix("/activitylog/").HandlerFunc(activityHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	router.HandleFunc("/offline", offlineHandler)
-	router.HandleFunc("/service-worker.js", scriptHandler("service-worker.js"))
+	router.HandleFunc("/service-worker.js", scriptHandler("service-worker-bundle.js"))
 
 	// JSON handlers.
 	router.HandleFunc("/_/initpage/", initpageHandler)
