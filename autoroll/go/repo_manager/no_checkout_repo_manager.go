@@ -139,7 +139,7 @@ func (rm *noCheckoutRepoManager) Update(ctx context.Context) error {
 	// Find HEAD of the desired parent branch. We make sure to provide the
 	// base commit of our change, to avoid clobbering other changes to the
 	// DEPS file.
-	baseCommit, err := rm.parentRepo.GetCommit(rm.parentBranch)
+	baseCommit, err := rm.parentRepo.Details(ctx, rm.parentBranch)
 	if err != nil {
 		return err
 	}

@@ -48,7 +48,7 @@ func main() {
 	// Load the schema from JSON
 	buf := bytes.NewBuffer(nil)
 	r := gitiles.NewRepo("https://skia.googlesource.com/skia", "", nil)
-	if err := r.ReadFile("infra/bots/recipe_modules/builder_name_schema/builder_name_schema.json", buf); err != nil {
+	if err := r.ReadFile(context.Background(), "infra/bots/recipe_modules/builder_name_schema/builder_name_schema.json", buf); err != nil {
 		sklog.Fatalf("Could not read schema file: %s\n", err)
 	}
 	schema := new(taskNameSchema)
