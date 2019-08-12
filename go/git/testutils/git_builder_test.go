@@ -20,7 +20,7 @@ func TestGitSetup(t *testing.T) {
 
 	output, err := exec.RunCwd(ctx, g.Dir(), "git", "log", "-n", "6", "--format=format:%H:%P", "HEAD")
 	assert.NoError(t, err)
-	t.Log(output)
+	t.Log(ctx, output)
 	lines := strings.Split(output, "\n")
 	assert.Equal(t, 5, len(lines))
 

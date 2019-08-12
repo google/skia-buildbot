@@ -149,7 +149,7 @@ func (rm *gcsRepoManager) createRoll(ctx context.Context, from, to *revision.Rev
 func (rm *gcsRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	// Read the version file to determine the last roll rev.
 	buf := bytes.NewBuffer([]byte{})
-	if err := parentRepo.ReadFileAtRef(rm.versionFile, baseCommit, buf); err != nil {
+	if err := parentRepo.ReadFileAtRef(ctx, rm.versionFile, baseCommit, buf); err != nil {
 		return nil, nil, nil, err
 	}
 	lastRollRevId := strings.TrimSpace(buf.String())

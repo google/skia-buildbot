@@ -173,7 +173,7 @@ func GetCipdPackageFromAsset(assetName string) (string, error) {
 	// Find the latest version of the asset from gitiles.
 	assetVersionFilePath := path.Join("infra", "bots", "assets", assetName, "VERSION")
 	var buf bytes.Buffer
-	if err := gitiles.NewRepo(common.REPO_SKIA, "", nil).ReadFile(assetVersionFilePath, &buf); err != nil {
+	if err := gitiles.NewRepo(common.REPO_SKIA, "", nil).ReadFile(context.Background(), assetVersionFilePath, &buf); err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("%s:skia/bots/%s:version:%s", assetName, assetName, strings.TrimSpace(buf.String())), nil

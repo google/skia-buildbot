@@ -174,14 +174,14 @@ func fuchsiaSDKVersionToRevision(ver string) *revision.Revision {
 func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	// Read the version file to determine the last roll rev.
 	buf := bytes.NewBuffer([]byte{})
-	if err := parentRepo.ReadFileAtRef(rm.versionFileLinux, baseCommit, buf); err != nil {
+	if err := parentRepo.ReadFileAtRef(ctx, rm.versionFileLinux, baseCommit, buf); err != nil {
 		return nil, nil, nil, fmt.Errorf("Failed to read %s at %s: %s", rm.versionFileLinux, baseCommit, err)
 	}
 	lastRollRevLinuxStr := strings.TrimSpace(buf.String())
 
 	buf = bytes.NewBuffer([]byte{})
 	if rm.versionFileMac != "" {
-		if err := parentRepo.ReadFileAtRef(rm.versionFileMac, baseCommit, buf); err != nil {
+		if err := parentRepo.ReadFileAtRef(ctx, rm.versionFileMac, baseCommit, buf); err != nil {
 			return nil, nil, nil, fmt.Errorf("Failed to read %s at %s: %s", rm.versionFileMac, baseCommit, err)
 		}
 	}

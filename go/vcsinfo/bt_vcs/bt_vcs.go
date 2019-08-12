@@ -381,7 +381,7 @@ func (b *BigTableVCS) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, 
 // GetFile implements the vcsinfo.VCS interface
 func (b *BigTableVCS) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
 	var buf bytes.Buffer
-	if err := b.repo.ReadFileAtRef(fileName, commitHash, &buf); err != nil {
+	if err := b.repo.ReadFileAtRef(ctx, fileName, commitHash, &buf); err != nil {
 		return "", skerr.Wrapf(err, "reading file %s @ %s via gitiles", fileName, commitHash)
 	}
 	return buf.String(), nil

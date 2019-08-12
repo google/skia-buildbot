@@ -113,11 +113,11 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 
 	commitsNotRolled := 0
 	if lastSuccessRev != "" {
-		headRev, err := a.childRepo.GetCommit(a.childBranch)
+		headRev, err := a.childRepo.Details(ctx, a.childBranch)
 		if err != nil {
 			return err
 		}
-		revs, err := a.childRepo.LogLinear(lastSuccessRev, headRev.Hash)
+		revs, err := a.childRepo.LogLinear(ctx, lastSuccessRev, headRev.Hash)
 		if err != nil {
 			return err
 		}

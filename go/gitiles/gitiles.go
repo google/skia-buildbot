@@ -1,6 +1,7 @@
 package gitiles
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -53,11 +54,12 @@ func NewRepo(url string, gitCookiesPath string, c *http.Client) *Repo {
 }
 
 // get executes a GET request to the given URL, returning the http.Response.
-func (r *Repo) get(url string) (*http.Response, error) {
+func (r *Repo) get(ctx context.Context, url string) (*http.Response, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
+	req = req.WithContext(ctx)
 	if r.gitCookiesPath != "" {
 		if err := gitauth.AddAuthenticationCookie(r.gitCookiesPath, req); err != nil {
 			return nil, err
@@ -76,8 +78,8 @@ func (r *Repo) get(url string) (*http.Response, error) {
 
 // getJson executes a GET request to the given URL, reads the response and
 // unmarshals it to the given destination.
-func (r *Repo) getJson(url string, dest interface{}) error {
-	resp, err := r.get(url)
+func (r *Repo) getJson(ctx context.Context, url string, dest interface{}) error {
+	resp, err := r.get(ctx, url)
 	if err != nil {
 		return err
 	}
@@ -92,8 +94,8 @@ func (r *Repo) getJson(url string, dest interface{}) error {
 }
 
 // ReadFileAtRef reads the given file at the given ref.
-func (r *Repo) ReadFileAtRef(srcPath, ref string, w io.Writer) error {
-	resp, err := r.get(fmt.Sprintf(DOWNLOAD_URL, r.URL, ref, srcPath))
+func (r *Repo) ReadFileAtRef(ctx context.Context, srcPath, ref string, w io.Writer) error {
+	resp, err := r.get(ctx, fmt.Sprintf(DOWNLOAD_URL, r.URL, ref, srcPath))
 	if err != nil {
 		return err
 	}
@@ -107,19 +109,19 @@ func (r *Repo) ReadFileAtRef(srcPath, ref string, w io.Writer) error {
 
 // ReadFile reads the current version of the given file from the master branch
 // of the Repo.
-func (r *Repo) ReadFile(srcPath string, w io.Writer) error {
-	return r.ReadFileAtRef(srcPath, "master", w)
+func (r *Repo) ReadFile(ctx context.Context, srcPath string, w io.Writer) error {
+	return r.ReadFileAtRef(ctx, srcPath, "master", w)
 }
 
 // DownloadFile downloads the current version of the given file from the master
 // branch of the Repo.
-func (r *Repo) DownloadFile(srcPath, dstPath string) error {
+func (r *Repo) DownloadFile(ctx context.Context, srcPath, dstPath string) error {
 	f, err := os.Create(dstPath)
 	if err != nil {
 		return err
 	}
 	defer util.Close(f)
-	if err := r.ReadFile(srcPath, f); err != nil {
+	if err := r.ReadFile(ctx, srcPath, f); err != nil {
 		return err
 	}
 	return nil
@@ -178,10 +180,10 @@ func commitToLongCommit(c *Commit) (*vcsinfo.LongCommit, error) {
 	}, nil
 }
 
-// GetCommit returns a vcsinfo.LongCommit for the given commit.
-func (r *Repo) GetCommit(ref string) (*vcsinfo.LongCommit, error) {
+// Details returns a vcsinfo.LongCommit for the given commit.
+func (r *Repo) Details(ctx context.Context, ref string) (*vcsinfo.LongCommit, error) {
 	var c Commit
-	if err := r.getJson(fmt.Sprintf(COMMIT_URL, r.URL, ref), &c); err != nil {
+	if err := r.getJson(ctx, fmt.Sprintf(COMMIT_URL, r.URL, ref), &c); err != nil {
 		return nil, err
 	}
 	return commitToLongCommit(&c)
@@ -189,11 +191,11 @@ func (r *Repo) GetCommit(ref string) (*vcsinfo.LongCommit, error) {
 
 // Log returns Gitiles' equivalent to "git log" for the given start and end
 // commits.
-func (r *Repo) Log(from, to string) ([]*vcsinfo.LongCommit, error) {
+func (r *Repo) Log(ctx context.Context, from, to string) ([]*vcsinfo.LongCommit, error) {
 	rv := []*vcsinfo.LongCommit{}
 	for {
 		var l Log
-		if err := r.getJson(fmt.Sprintf(LOG_URL, r.URL, from, to), &l); err != nil {
+		if err := r.getJson(ctx, fmt.Sprintf(LOG_URL, r.URL, from, to), &l); err != nil {
 			return nil, err
 		}
 		// Convert to vcsinfo.LongCommit.
@@ -217,9 +219,9 @@ func (r *Repo) Log(from, to string) ([]*vcsinfo.LongCommit, error) {
 // ie. it only returns commits which are on the direct path from A to B, and
 // only on the "main" branch. This is as opposed to "git log from..to" which
 // returns all commits which are ancestors of 'to' but not 'from'.
-func (r *Repo) LogLinear(from, to string) ([]*vcsinfo.LongCommit, error) {
+func (r *Repo) LogLinear(ctx context.Context, from, to string) ([]*vcsinfo.LongCommit, error) {
 	// Retrieve the normal "git log".
-	commits, err := r.Log(from, to)
+	commits, err := r.Log(ctx, from, to)
 	if err != nil {
 		return nil, err
 	}
@@ -276,11 +278,11 @@ func (r *Repo) LogLinear(from, to string) ([]*vcsinfo.LongCommit, error) {
 }
 
 // Branches returns the list of branches in the repo.
-func (r *Repo) Branches() ([]*git.Branch, error) {
+func (r *Repo) Branches(ctx context.Context) ([]*git.Branch, error) {
 	branchMap := map[string]struct {
 		Value string `json:"value"`
 	}{}
-	if err := r.getJson(fmt.Sprintf(REFS_URL, r.URL), &branchMap); err != nil {
+	if err := r.getJson(ctx, fmt.Sprintf(REFS_URL, r.URL), &branchMap); err != nil {
 		return nil, err
 	}
 	rv := make([]*git.Branch, 0, len(branchMap))
@@ -296,12 +298,12 @@ func (r *Repo) Branches() ([]*git.Branch, error) {
 
 // Tags returns the list of tags in the repo. The returned map has tag names as
 // keys and commit hashes as values.
-func (r *Repo) Tags() (map[string]string, error) {
+func (r *Repo) Tags(ctx context.Context) (map[string]string, error) {
 	tags := map[string]struct {
 		Value  string `json:"value"`
 		Peeled string `json:"peeled"`
 	}{}
-	if err := r.getJson(fmt.Sprintf(TAGS_URL, r.URL), &tags); err != nil {
+	if err := r.getJson(ctx, fmt.Sprintf(TAGS_URL, r.URL), &tags); err != nil {
 		return nil, err
 	}
 	rv := make(map[string]string, len(tags))
