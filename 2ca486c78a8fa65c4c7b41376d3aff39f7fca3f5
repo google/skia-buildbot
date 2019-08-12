@@ -1,0 +1,228 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0dd6fc48_c6db8ed1",
+        "filename": "perf/modules/alert-config-sk/alert-config-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-12T20:42:49Z",
+      "side": 1,
+      "message": "nit: add comment explaining why we exactly look for zero (I think because we want to differentiate between 0 and undefined?)",
+      "revId": "2ca486c78a8fa65c4c7b41376d3aff39f7fca3f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "885b9dc7_2ff1f96d",
+        "filename": "perf/modules/cluster-lastn-page-sk/cluster-lastn-page-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-12T20:42:49Z",
+      "side": 1,
+      "message": "nit: !\u003d\u003d",
+      "range": {
+        "startLine": 32,
+        "startChar": 13,
+        "endLine": 32,
+        "endChar": 15
+      },
+      "revId": "2ca486c78a8fa65c4c7b41376d3aff39f7fca3f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a64d8458_bdc2da4f",
+        "filename": "perf/modules/cluster-lastn-page-sk/cluster-lastn-page-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-12T20:42:49Z",
+      "side": 1,
+      "message": "intentional?",
+      "range": {
+        "startLine": 64,
+        "startChar": 30,
+        "endLine": 64,
+        "endChar": 31
+      },
+      "revId": "2ca486c78a8fa65c4c7b41376d3aff39f7fca3f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4404759_a1c9f941",
+        "filename": "perf/modules/cluster-lastn-page-sk/cluster-lastn-page-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-12T20:42:49Z",
+      "side": 1,
+      "message": "nit: no line break before this",
+      "range": {
+        "startLine": 74,
+        "startChar": 6,
+        "endLine": 74,
+        "endChar": 11
+      },
+      "revId": "2ca486c78a8fa65c4c7b41376d3aff39f7fca3f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db0c09ba_3d087c2b",
+        "filename": "perf/modules/cluster-lastn-page-sk/cluster-lastn-page-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-12T20:42:49Z",
+      "side": 1,
+      "message": "maybe just return \u0027\u0027; ?",
+      "range": {
+        "startLine": 81,
+        "startChar": 11,
+        "endLine": 81,
+        "endChar": 17
+      },
+      "revId": "2ca486c78a8fa65c4c7b41376d3aff39f7fca3f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "531ab53e_7def80d7",
+        "filename": "perf/modules/cluster-lastn-page-sk/cluster-lastn-page-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-12T20:42:49Z",
+      "side": 1,
+      "message": "nit: Threshold",
+      "range": {
+        "startLine": 121,
+        "startChar": 124,
+        "endLine": 121,
+        "endChar": 134
+      },
+      "revId": "2ca486c78a8fa65c4c7b41376d3aff39f7fca3f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe88aee1_dc42b51c",
+        "filename": "perf/modules/cluster-lastn-page-sk/cluster-lastn-page-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-12T20:42:49Z",
+      "side": 1,
+      "message": "Maybe use `` for a template literal?",
+      "range": {
+        "startLine": 265,
+        "startChar": 16,
+        "endLine": 265,
+        "endChar": 17
+      },
+      "revId": "2ca486c78a8fa65c4c7b41376d3aff39f7fca3f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "75a07cfa_dd4375bd",
+        "filename": "perf/modules/cluster-lastn-page-sk/cluster-lastn-page-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-12T20:42:49Z",
+      "side": 1,
+      "message": "nit: trailing ;",
+      "range": {
+        "startLine": 270,
+        "startChar": 26,
+        "endLine": 270,
+        "endChar": 28
+      },
+      "revId": "2ca486c78a8fa65c4c7b41376d3aff39f7fca3f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f99e03e_37f6cb5e",
+        "filename": "perf/modules/cluster-lastn-page-sk/cluster-lastn-page-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-12T20:42:49Z",
+      "side": 1,
+      "message": "why this number?  Maybe make it a constant?",
+      "range": {
+        "startLine": 309,
+        "startChar": 61,
+        "endLine": 309,
+        "endChar": 64
+      },
+      "revId": "2ca486c78a8fa65c4c7b41376d3aff39f7fca3f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39758add_5a55d50e",
+        "filename": "perf/modules/cluster-lastn-page-sk/cluster-lastn-page-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-12T20:42:49Z",
+      "side": 1,
+      "message": "Should we log the error?",
+      "range": {
+        "startLine": 314,
+        "startChar": 31,
+        "endLine": 314,
+        "endChar": 32
+      },
+      "revId": "2ca486c78a8fa65c4c7b41376d3aff39f7fca3f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
