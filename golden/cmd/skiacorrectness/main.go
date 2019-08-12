@@ -20,6 +20,11 @@ import (
 	"cloud.google.com/go/datastore"
 	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
+	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
+	gstorage "google.golang.org/api/storage/v1"
+	"google.golang.org/grpc"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
@@ -59,9 +64,6 @@ import (
 	"go.skia.org/infra/golden/go/tryjobstore/ds_tryjobstore"
 	"go.skia.org/infra/golden/go/warmer"
 	"go.skia.org/infra/golden/go/web"
-	"google.golang.org/api/option"
-	gstorage "google.golang.org/api/storage/v1"
-	"google.golang.org/grpc"
 )
 
 const (
@@ -226,9 +228,14 @@ func main() {
 
 	// Get the token source for the service account with access to GCS, the Monorail issue tracker,
 	// cloud pubsub, and datastore.
-	deprecatedTS, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, datastore.ScopeDatastore, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
-	if err != nil {
-		sklog.Fatalf("Failed to authenticate service account: %s", err)
+	var deprecatedTS oauth2.TokenSource
+	if *local {
+		deprecatedTS = auth.NewGCloudTokenSource("")
+	} else {
+		deprecatedTS, err = auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, datastore.ScopeDatastore, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+		if err != nil {
+			sklog.Fatalf("Failed to authenticate service account: %s", err)
+		}
 	}
 	// TODO(dogben): Ok to add request/dial timeouts?
 	client := httputils.DefaultClientConfig().WithTokenSource(deprecatedTS).WithoutRetries().Client()
