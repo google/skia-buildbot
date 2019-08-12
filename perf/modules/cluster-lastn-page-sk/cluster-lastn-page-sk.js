@@ -7,6 +7,7 @@
 import dialogPolyfill from 'dialog-polyfill'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { errorMessage } from 'elements-sk/errorMessage'
+import { fromObject } from 'common-sk/modules/query'
 import { html } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { stateReflector } from 'common-sk/modules/stateReflector'
@@ -29,7 +30,7 @@ function _stepDownAt(dir) {
 }
 
 function _notBoth(dir) {
-  return dir != 'BOTH';
+  return dir !== 'BOTH';
 }
 
 const _tableHeader = (ele) => {
@@ -61,7 +62,7 @@ const _low = (ele, reg) => {
     return html`
       <td class=cluster>
         <triage-status-sk
-          .alert=${ele._state}i
+          .alert=${ele._state}
           cluster_type=low
           .full_summary=${_full_summary(reg.regression.frame, reg.regression.low)}
           .triage=${reg.regression.low_status}>
@@ -84,7 +85,7 @@ const _high = (ele, reg) => {
     return html`
       <td class=cluster>
         <triage-status-sk
-          .alert=${ele._state}i
+          .alert=${ele._state}
           cluster_type=high
           .full_summary=${_full_summary(reg.regression.frame, reg.regression.high)}
           .triage=${reg.regression.high_status}>
@@ -118,7 +119,7 @@ const _tableRows = (ele) => ele._regressions.map((reg, rowIndex) => html`
   </tr>
   `);
 
-const _configTitle = (ele) => html`Algo: ${ele._state.algo} - Radius: ${ele._state.radius} - Sparse: ${ele._state.sparse} - Threshhold: ${ele._state.interesting}`;
+const _configTitle = (ele) => html`Algo: ${ele._state.algo} - Radius: ${ele._state.radius} - Sparse: ${ele._state.sparse} - Threshold: ${ele._state.interesting}`;
 
 const _table = (ele) => {
   if (ele._requestId && !ele._regressions.length) {
@@ -262,12 +263,12 @@ window.customElements.define('cluster-lastn-page-sk', class extends ElementSk {
       end:        e.detail.end,
       xbaroffset: e.detail.xbar.offset
     };
-    window.open('/e/?' + sk.query.fromObject(query), '_blank');
+    window.open(`/e/?${fromObject(query)}`, '_blank');
   }
 
   _catch(msg) {
     this._requestId = null;
-    this._runningStatus = ''
+    this._runningStatus = '';
     this._render();
     if (msg) {
       errorMessage(msg, 10000);
@@ -311,7 +312,7 @@ window.customElements.define('cluster-lastn-page-sk', class extends ElementSk {
         cb(json.regressions);
         this._catch();
       }
-    }).catch(() => this._catch());
+    }).catch((msg) => this._catch(msg));
   }
 
 });
