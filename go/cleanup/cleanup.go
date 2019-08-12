@@ -46,9 +46,9 @@ func AtExit(fn func()) {
 }
 
 // Repeat runs the tick function immediately and on the given timer. When
-// Cancel() is called, the optional cleanup function is run after waiting for
-// the tick function to finish.
-func Repeat(tickFrequency time.Duration, tick, cleanup func()) {
+// Cancel() is called, waits for any active tick() to finish (tick may or may
+// not respect ctx.Done), and then the optional cleanup function is run.
+func Repeat(tickFrequency time.Duration, tick func(context.Context), cleanup func()) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()

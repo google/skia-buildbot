@@ -18,6 +18,7 @@ import (
 	multierror "github.com/hashicorp/go-multierror"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.chromium.org/luci/common/isolated"
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
@@ -245,7 +246,12 @@ func (s *TaskScheduler) Start(ctx context.Context, enableTryjobs bool, beforeMai
 		s.tryjobs.Start(ctx)
 	}
 	lvScheduling := metrics2.NewLiveness("last_successful_task_scheduling")
-	go util.RepeatCtx(5*time.Second, ctx, func() {
+	cleanup.Repeat(5*time.Second, func(_ context.Context) {
+		// Explicitly ignore the passed-in context; this allows us to
+		// finish the current scheduling cycle even if the context is
+		// canceled, which helps prevent "orphaned" tasks which were
+		// triggered on Swarming but were not inserted into the DB.
+		ctx := context.Background()
 		sklog.Infof("Running beforeMainLoop()")
 		beforeMainLoop()
 		sklog.Infof("beforeMainLoop() finished.")
@@ -254,9 +260,9 @@ func (s *TaskScheduler) Start(ctx context.Context, enableTryjobs bool, beforeMai
 		} else {
 			lvScheduling.Reset()
 		}
-	})
+	}, nil)
 	lvUpdateUnfinishedTasks := metrics2.NewLiveness("last_successful_tasks_update")
-	go util.RepeatCtx(5*time.Minute, ctx, func() {
+	go util.RepeatCtx(5*time.Minute, ctx, func(ctx context.Context) {
 		if err := s.updateUnfinishedTasks(); err != nil {
 			sklog.Errorf("Failed to run periodic tasks update: %s", err)
 		} else {
@@ -264,13 +270,17 @@ func (s *TaskScheduler) Start(ctx context.Context, enableTryjobs bool, beforeMai
 		}
 	})
 	lvUpdateRepos := metrics2.NewLiveness("last_successful_repo_update")
-	go util.RepeatCtx(10*time.Second, ctx, func() {
+	cleanup.Repeat(10*time.Second, func(_ context.Context) {
+		// Explicitly ignore the passed-in context; this allows us to
+		// continue running even if the context is canceled, which helps
+		// to prevent partial insertions of new jobs.
+		ctx := context.Background()
 		if err := s.updateRepos(ctx); err != nil {
 			sklog.Errorf("Failed to update repos: %s", err)
 		} else {
 			lvUpdateRepos.Reset()
 		}
-	})
+	}, nil)
 }
 
 // initCaches ensures that all of the RepoStates we care about are present

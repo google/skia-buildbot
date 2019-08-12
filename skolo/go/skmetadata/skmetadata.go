@@ -135,7 +135,7 @@ func (t *ServiceAccountToken) UpdateLoop(ctx context.Context) {
 	// get_oauth2_token runs every 45 minutes, and the tokens are valid for
 	// 60 minutes. Reloading the token every 10 minutes ensures that our
 	// token is always valid.
-	util.RepeatCtx(10*time.Minute, ctx, func() {
+	util.RepeatCtx(10*time.Minute, ctx, func(ctx context.Context) {
 		if err := t.Update(); err != nil {
 			sklog.Errorf("Failed to update ServiceAccountToken from file: %s", err)
 		}
