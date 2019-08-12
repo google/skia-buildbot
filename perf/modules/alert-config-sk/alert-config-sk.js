@@ -109,7 +109,7 @@ window.customElements.define('alert-config-sk', class extends ElementSk {
       minimum_num: 0,
       category: 'Experimental'
     };
-    this._key_order = [];
+    this._key_order = sk.perf.key_order;
   }
 
   connectedCallback() {
@@ -182,6 +182,12 @@ window.customElements.define('alert-config-sk', class extends ElementSk {
       return
     }
     this._config = val;
+    if (this._config.interesting === 0) {
+      this._config.interesting = sk.perf.interesting;
+    }
+    if (this._config.radius === 0) {
+      this._config.radius = sk.perf.radius;
+    }
     this._render();
   }
 
