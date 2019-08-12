@@ -173,7 +173,7 @@ func (f *Store) Get() (types.Expectations, error) {
 // getMasterExpectations returns an Expectations object which is safe to mutate
 // based on the current state. It is expected the caller has taken care of any mutex grabbing.
 func (f *Store) getMasterExpectations() (types.Expectations, error) {
-	if f.cache == nil {
+	if f.mode == ReadOnly || f.cache == nil {
 		c, err := f.loadExpectationsSharded(types.MasterBranch, masterShards)
 		if err != nil {
 			return nil, skerr.Fmt("could not load master expectations from firestore: %s", err)
