@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
@@ -358,7 +359,7 @@ func NewJWTServiceAccountTokenSource(metadataname, filename string, scopes ...st
 	if err != nil {
 		body, err = ioutil.ReadFile(filename)
 		if err != nil {
-			return nil, fmt.Errorf("Couldn't find JWT via metadata or in a local file.")
+			return nil, skerr.Fmt("Couldn't find JWT via metadata %q or in a local file %q.", metadataname, filename)
 		}
 		sklog.Infof("Read from file %s", filename)
 	} else {
@@ -369,7 +370,7 @@ func NewJWTServiceAccountTokenSource(metadataname, filename string, scopes ...st
 	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, tokenClient)
 	jwtConfig, err := google.JWTConfigFromJSON(body, scopes...)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrapf(err, "failed to load JWT from JSON: %s", body)
 	}
 	return jwtConfig.TokenSource(ctx), nil
 }
