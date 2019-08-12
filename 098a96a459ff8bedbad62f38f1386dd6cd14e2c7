@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "60bbc632_6561c2ad",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-12T17:40:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d1c81b81_ad574ef7",
+      "range": {
+        "startLine": 38,
+        "startChar": 48,
+        "endLine": 38,
+        "endChar": 53
+      },
+      "revId": "098a96a459ff8bedbad62f38f1386dd6cd14e2c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "96012cd3_a0e9e0ac",
         "filename": "go/gitiles/gitiles.go",
         "patchSetId": 3
