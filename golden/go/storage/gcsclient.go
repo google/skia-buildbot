@@ -25,6 +25,9 @@ type GCSClientOptions struct {
 	// BaselineGSPath is the bucket and path for storing the baseline information.
 	// This is considered to be a directory and will be used as such.
 	BaselineGSPath string
+
+	// If DryRun is true, don't actually write the files (e.g. running locally)
+	Dryrun bool
 }
 
 // GCSClient provides an abstraction around read/writes to Google storage.
@@ -80,6 +83,10 @@ func (g *ClientImpl) Options() GCSClientOptions {
 
 // WriteKnownDigests fulfills the GCSClient interface.
 func (g *ClientImpl) WriteKnownDigests(digests types.DigestSlice) error {
+	if g.options.Dryrun {
+		sklog.Infof("dryrun: Writing %d digests", len(digests))
+		return nil
+	}
 	writeFn := func(w *gstorage.Writer) error {
 		for _, digest := range digests {
 			if _, err := w.Write([]byte(digest + "\n")); err != nil {
@@ -94,6 +101,11 @@ func (g *ClientImpl) WriteKnownDigests(digests types.DigestSlice) error {
 
 // ReadBaseline fulfills the GCSClient interface.
 func (g *ClientImpl) WriteBaseline(b *baseline.Baseline, commitHash string) (string, error) {
+	if g.options.Dryrun {
+		sklog.Infof("dryrun: Writing baseline")
+		outPath := g.getBaselinePath(commitHash, b.Issue)
+		return "gs://" + outPath, nil
+	}
 	writeFn := func(w *gstorage.Writer) error {
 		if err := json.NewEncoder(w).Encode(b); err != nil {
 			return fmt.Errorf("Error encoding baseline to JSON: %s", err)
