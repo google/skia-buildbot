@@ -1,5 +1,5 @@
+import dialogPolyfill from 'dialog-polyfill'
 import 'elements-sk/styles/buttons'
-import 'elements-sk/dialog-sk'
 import 'elements-sk/icon/check-icon-sk'
 import 'elements-sk/icon/warning-icon-sk'
 import { upgradeProperty } from 'elements-sk/upgradeProperty'
@@ -34,7 +34,7 @@ function listChoices(choices) {
 }
 
 const template = (ele) => html`
-<dialog-sk>
+<dialog>
   <h2>Choose a release package to push</h2>
   <select-sk selection="${ele._chosen}" @selection-changed=${ele._selectionChanged}>
     ${listChoices(ele._choices)}
@@ -42,7 +42,7 @@ const template = (ele) => html`
   <div class=buttons>
     <button @click=${ele.hide}>Cancel</button>
   </div>
-</dialog-sk>`;
+</dialog>`;
 
 /** <code>push-selection-sk</code> custom element declaration.
  *
@@ -115,12 +115,12 @@ class PushSelectionSk extends HTMLElement {
 
   /** Show the dialog. */
   show() {
-    this.firstElementChild.shown = true;
+    this.firstElementChild.showModal();
   }
 
   /** Hide the dialog. */
   hide() {
-    this.firstElementChild.shown = false;
+    this.firstElementChild.close();
   }
 
 }
