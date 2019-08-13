@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "0e3c56df_fb307925",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-13T15:55:42Z",
+      "side": 1,
+      "message": "I agree those are problems, but yet I\u0027m sure those problems exist.\n\nISTM logging and saying \"see logs\" in the error is not going to cause much trouble.",
+      "parentUuid": "01bb0599_bb3aabfb",
+      "revId": "10411354f46539b3298e42727b4f5c89d961f265",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e7db2bdd_d5a7daf0",
         "filename": "golden/cmd/skiacorrectness/main.go",
         "patchSetId": 4
@@ -69,6 +87,24 @@
       "revId": "10411354f46539b3298e42727b4f5c89d961f265",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d120fe10_8f8a617d",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 359,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-13T15:55:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "15c62e0c_34cfd475",
+      "revId": "10411354f46539b3298e42727b4f5c89d961f265",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
