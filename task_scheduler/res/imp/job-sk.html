@@ -29,7 +29,9 @@
 <link rel="import" href="/res/common/imp/styles-sk.html">
 <link rel="import" href="/res/common/imp/timer-sk.html">
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
+<link rel="import" href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
 
 <dom-module id="job-sk">
   <template>
@@ -59,7 +61,11 @@
       </div>
       <div class="table">
         <div class="tr"><div class="td">ID</div><div class="td">[[_job.id]]</div></div>
-        <div class="tr"><div class="td">Name</div><div class="td">[[_job.name]]</div></div>
+        <div class="tr">
+          <div class="td">Name</div>
+          <div class="td">[[_job.name]]</div>
+          <div class="td"><a href$="[[_searchLinkName]]"><paper-icon-button icon="icons:search"></paper-icon-button></a></div>
+        </div>
         <div class="tr">
           <div class="td">Status</div>
           <div class="td" style$="background-color:[[_statusColor]]">[[_statusText]]</div>
@@ -76,11 +82,13 @@
         <div class="tr">
           <div class="td">Revision</div>
           <div class="td"><a href$="[[_revisionLink]]" target="_blank">[[_job.revision]]</a></div>
+          <div class="td"><a href$="[[_searchLinkRevision]]"><paper-icon-button icon="icons:search"></paper-icon-button></a></div>
         </div>
         <template is="dom-if" if="[[_isTryJob]]">
           <div class="tr">
             <div class="td">Codereview Link</div>
             <div class="td"><a href$="[[_codereviewLink]]" target="_blank">[[_codereviewLink]]</a></div>
+            <div class="td"><a href$="[[_searchLinkCL]]"><paper-icon-button icon="icons:search"></paper-icon-button></a></div>
           </div>
           <div class="tr"><div class="td">Codereview Server</div><div class="td">[[_job.server]]</div></div>
           <div class="tr"><div class="td">Issue</div><div class="td">[[_job.issue]]</div></div>
@@ -148,6 +156,18 @@
           type: String,
           computed: "_computeRevisionLink(_job)",
         },
+        _searchLinkCL: {
+          type: String,
+          computed: "_computeSearchLink(_job, 'server', 'issue', 'patchset')",
+        },
+        _searchLinkName: {
+          type: String,
+          computed: "_computeSearchLink(_job, 'name')",
+        },
+        _searchLinkRevision: {
+          type: String,
+          computed: "_computeSearchLink(_job, 'repo', 'revision')",
+        },
         _statusText: {
           type: String,
           computed: "_computeStatusText(_job)",
@@ -206,6 +226,14 @@
       _computeRevisionLink: function(job) {
         // This assumes we use Gitiles, but that's a safe assumption for now.
         return job.repo + "/+/" + job.revision;
+      },
+
+      _computeSearchLink: function(job, ...fields) {
+        let url = "/jobs/search?";
+        for (const field of fields) {
+          url += field + "=" + encodeURIComponent(job[field]) + "&";
+        }
+        return url.substring(0, url.length-1); // Trim trailing "&"
       },
 
       _computeStatusText: function(job) {
