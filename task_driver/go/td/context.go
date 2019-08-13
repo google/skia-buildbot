@@ -27,7 +27,7 @@ type Context struct {
 
 	// execRun provides a Run function to be called by execCtx. This is used
 	// for testing, where we may want to mock out subprocess invocations.
-	execRun func(*exec.Command) error
+	execRun func(context.Context, *exec.Command) error
 }
 
 // getCtx retrieves the current Context. Panics if none exists.
@@ -71,7 +71,7 @@ func WithEnv(ctx context.Context, env []string) context.Context {
 }
 
 // WithExecRunFn allows the Run function to be overridden for testing.
-func WithExecRunFn(ctx context.Context, run func(*exec.Command) error) context.Context {
+func WithExecRunFn(ctx context.Context, run func(context.Context, *exec.Command) error) context.Context {
 	return withChildCtx(ctx, &Context{
 		execRun: run,
 	})

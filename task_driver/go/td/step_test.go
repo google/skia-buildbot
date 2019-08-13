@@ -21,7 +21,7 @@ import (
 func mockExec(ctx context.Context) (context.Context, *int) {
 	mockRun := &exec.CommandCollector{}
 	runCount := 0
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		runCount++
 		if cmd.Name == "true" {
 			return nil
@@ -321,7 +321,7 @@ func TestEnvInheritance(t *testing.T) {
 	expect := MergeEnv(os.Environ(), BASE_ENV)
 	expect = append(expect, "a=a", "b=b", "c=c", "d=d")
 	mockRun := &exec.CommandCollector{}
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		runCount++
 		assert.Equal(t, expect, cmd.Env)
 		return nil

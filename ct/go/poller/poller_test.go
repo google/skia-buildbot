@@ -88,7 +88,7 @@ func pendingChromiumPerfTask() ChromiumPerfTask {
 func TestChromiumPerfExecute(t *testing.T) {
 	unittest.SmallTest(t)
 	mockRun := exec.CommandCollector{}
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		runId := getRunId(t, cmd)
 		assertFileContents(t, filepath.Join(os.TempDir(), runId+".chromium.patch"),
 			"patches/abc.patch\n")
@@ -236,7 +236,7 @@ func TestLuaScriptExecuteWithAggregator(t *testing.T) {
 	mockRun := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
 	task := pendingLuaScriptTaskWithAggregator(ctx)
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		runId := getRunId(t, cmd)
 		assertFileContents(t, filepath.Join(os.TempDir(), runId+".lua"),
 			`print("lualualua")`)
@@ -270,7 +270,7 @@ func TestLuaScriptExecuteWithAggregator(t *testing.T) {
 func TestLuaScriptExecuteWithoutAggregator(t *testing.T) {
 	unittest.SmallTest(t)
 	mockRun := exec.CommandCollector{}
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		runId := getRunId(t, cmd)
 		assertFileContents(t, filepath.Join(os.TempDir(), runId+".lua"),
 			`print("lualualua")`)

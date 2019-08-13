@@ -73,7 +73,7 @@ deps = {
 	parent.Commit(context.Background())
 
 	mockRun := &exec.CommandCollector{}
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		if cmd.Name == "git" {
 			if cmd.Args[0] == "clone" || cmd.Args[0] == "fetch" || cmd.Args[0] == "reset" {
 				return nil
@@ -83,7 +83,7 @@ deps = {
 				cmd.Args[1] = "origin/master"
 			}
 		}
-		return exec.DefaultRun(cmd)
+		return exec.DefaultRun(ctx, cmd)
 	})
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
 

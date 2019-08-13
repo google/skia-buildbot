@@ -328,7 +328,7 @@ with open('ran', 'wb') as f:
 func TestInjection(t *testing.T) {
 	unittest.SmallTest(t)
 	var actualCommand *Command
-	ctx := NewContext(context.Background(), func(command *Command) error {
+	ctx := NewContext(context.Background(), func(ctx context.Context, command *Command) error {
 		actualCommand = command
 		return nil
 	})

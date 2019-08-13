@@ -46,7 +46,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, RepoManager,
 
 	// Mock out repo commands.
 	mockRun := exec.CommandCollector{}
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		if strings.Contains(cmd.Name, "repo") {
 			return nil
 		} else if cmd.Name == "git" && strings.Contains(cmd.Dir, cfg.ChildPath) {
@@ -77,7 +77,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, RepoManager,
 			assert.NoError(t, ioutil.WriteFile(androidBp, []byte("hi"), os.ModePerm))
 			return nil
 		} else {
-			return exec.DefaultRun(cmd)
+			return exec.DefaultRun(ctx, cmd)
 		}
 	})
 	ctx := exec.NewContext(context.Background(), mockRun.Run)

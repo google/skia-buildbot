@@ -53,7 +53,7 @@ func setupCopy(t *testing.T) (context.Context, string, *git_testutils.GitBuilder
 	parent.Commit(ctx)
 
 	mockRun := &exec.CommandCollector{}
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		if cmd.Name == "git" && cmd.Args[0] == "cl" {
 			if cmd.Args[1] == "upload" {
 				return nil
@@ -67,7 +67,7 @@ func setupCopy(t *testing.T) (context.Context, string, *git_testutils.GitBuilder
 				return nil
 			}
 		}
-		return exec.DefaultRun(cmd)
+		return exec.DefaultRun(ctx, cmd)
 	})
 	ctx = exec.NewContext(ctx, mockRun.Run)
 

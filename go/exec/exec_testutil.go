@@ -4,6 +4,7 @@
 package exec
 
 import (
+	"context"
 	"regexp"
 	"sync"
 )
@@ -22,7 +23,7 @@ import (
 type CommandCollector struct {
 	mutex       sync.RWMutex
 	commands    []*Command
-	delegateRun func(*Command) error
+	delegateRun func(context.Context, *Command) error
 }
 
 func (c *CommandCollector) Commands() []*Command {
@@ -40,7 +41,7 @@ func (c *CommandCollector) ClearCommands() {
 	c.commands = nil
 }
 
-func (c *CommandCollector) SetDelegateRun(delegateRun func(*Command) error) {
+func (c *CommandCollector) SetDelegateRun(delegateRun func(context.Context, *Command) error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.delegateRun = delegateRun
@@ -49,7 +50,7 @@ func (c *CommandCollector) SetDelegateRun(delegateRun func(*Command) error) {
 // Collects command into c and delegates to the function specified by SetDelegateRun. Returns nil
 // if SetDelegateRun has not been called. The command will be visible in Commands() before the
 // SetDelegateRun function is called.
-func (c *CommandCollector) Run(command *Command) error {
+func (c *CommandCollector) Run(ctx context.Context, command *Command) error {
 	c.mutex.Lock()
 	c.commands = append(c.commands, command)
 	delegateRun := c.delegateRun
@@ -57,7 +58,7 @@ func (c *CommandCollector) Run(command *Command) error {
 	if delegateRun == nil {
 		return nil
 	} else {
-		return delegateRun(command)
+		return delegateRun(ctx, command)
 	}
 }
 
@@ -94,7 +95,7 @@ func (m *MockRun) AddRule(expr string, err error) {
 
 // Tries to match DebugString(command) against the regexps in the order of the calls to AddRule,
 // with the first matched giving the return value. Returns nil if no regexps match.
-func (m *MockRun) Run(command *Command) error {
+func (m *MockRun) Run(ctx context.Context, command *Command) error {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 	commandStr := DebugString(command)

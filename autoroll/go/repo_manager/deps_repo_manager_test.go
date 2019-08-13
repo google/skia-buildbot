@@ -74,7 +74,7 @@ func setup(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []
 	lastUpload := new(vcsinfo.LongCommit)
 	mockRun := &exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		if cmd.Name == "git" && cmd.Args[0] == "cl" {
 			if cmd.Args[1] == "upload" {
 				d, err := git.GitDir(cmd.Dir).Details(ctx, "HEAD")
@@ -98,7 +98,7 @@ func setup(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []
 			assert.Equal(t, 2, len(splitDep))
 			assert.Equal(t, 40, len(splitDep[1]))
 		}
-		return exec.DefaultRun(cmd)
+		return exec.DefaultRun(ctx, cmd)
 	})
 
 	cleanup := func() {
