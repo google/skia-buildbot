@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3d9f8729_7350ce4d",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-13T13:59:13Z",
+      "side": 1,
+      "message": "Hmm, we might want to be careful about this. I\u0027m sure we have code that indiscriminately sends whatever error it gets back to the client. In this case, that would send them the contents of what could be a corrupted JWT JSON.\n\nProbably better to just mention metadataname and/or filename. If we really want body, logging is better, although it\u0027s not a great idea to log sensitive data either.",
+      "revId": "10411354f46539b3298e42727b4f5c89d961f265",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7db2bdd_d5a7daf0",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 359,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-13T13:59:13Z",
+      "side": 1,
+      "message": "IDK, wouldn\u0027t it be better to specify a testing GCS bucket? E.g. I have dogben-test GCS bucket.",
+      "revId": "10411354f46539b3298e42727b4f5c89d961f265",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
