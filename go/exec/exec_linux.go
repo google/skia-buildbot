@@ -3,20 +3,22 @@ package exec
 import (
 	"context"
 	"syscall"
+
+	"go.skia.org/infra/go/util"
 )
 
 // NoInterruptContext returns a context.Context instance which launches
 // subprocesses in a difference process group so that they are not killed when
 // this process is killed.
 //
-// This function is a no-op on Windows.
+// On Windows, this function just returns util.WithoutCancel(ctx).
 func NoInterruptContext(ctx context.Context) context.Context {
 	parent := getCtx(ctx)
-	runFn := func(c *Command) error {
+	runFn := func(ctx context.Context, c *Command) error {
 		c.SysProcAttr = &syscall.SysProcAttr{
 			Setpgid: true,
 		}
-		return parent.runFn(c)
+		return parent.runFn(ctx, c)
 	}
-	return NewContext(ctx, runFn)
+	return NewContext(util.WithoutCancel(ctx), runFn)
 }

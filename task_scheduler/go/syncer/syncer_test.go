@@ -216,13 +216,13 @@ func TestLazyTempGitRepo(t *testing.T) {
 
 	botUpdateCount := 0
 	mockRun := exec.CommandCollector{}
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		for _, arg := range cmd.Args {
 			if strings.Contains(arg, "bot_update") {
 				botUpdateCount++
 			}
 		}
-		return exec.DefaultRun(cmd)
+		return exec.DefaultRun(ctx, cmd)
 	})
 	ctx = exec.NewContext(context.Background(), mockRun.Run)
 
