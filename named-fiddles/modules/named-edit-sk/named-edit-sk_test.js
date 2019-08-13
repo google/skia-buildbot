@@ -34,7 +34,7 @@ import { $$ } from 'common-sk/modules/dom'
         $$('#ok', ele).click();
         return Promise.resolve().then(() => {
           assert.equal('123', hash);
-          assert.equal($$('dialog-sk', ele).shown, false);
+          assert.equal($$('dialog', ele).open, false);
         });
       })
     });
@@ -58,7 +58,7 @@ import { $$ } from 'common-sk/modules/dom'
         });
         $$('#ok', ele).click();
         return Promise.resolve().then(() => {
-          assert.equal($$('dialog-sk', ele).shown, false);
+          assert.equal($$('dialog', ele).open, false);
           assert.equal('ad161cfe21bb38bcec264bbacecbe93a', detail.hash);
           assert.equal('Octopus_Generator_Animated', detail.name);
           assert.equal('some new name', detail.new_name);

@@ -17,13 +17,13 @@
  *   </pre>
  *
  */
+import dialogPolyfill from 'dialog-polyfill'
 import { html, render } from 'lit-html'
 import { $$ } from 'common-sk/modules/dom'
-import 'elements-sk/dialog-sk'
 import 'elements-sk/styles/buttons'
 
 const template = (ele) => html`
-<dialog-sk>
+<dialog>
   <h2>Edit Named Fiddle</h2>
   <label>Name <input type=text id=name value=${ele._state.name} size=50></label>
   <label>Hash <input type=text id=hash value=${ele._state.hash} size=40></label>
@@ -31,7 +31,7 @@ const template = (ele) => html`
     <button @click=${ele.hide}>Cancel</button>
     <button id=ok @click=${ele._ok}>OK</button>
   </div>
-</dialog-sk>
+</dialog>
 `;
 
 window.customElements.define('named-edit-sk', class extends HTMLElement {
@@ -48,6 +48,8 @@ window.customElements.define('named-edit-sk', class extends HTMLElement {
   set state(val) {
     this._state = Object.assign({}, val);
     this._render();
+    this._dialog = this.firstElementChild;
+    dialogPolyfill.registerDialog(this._dialog);
   }
 
   _ok() {
@@ -61,12 +63,12 @@ window.customElements.define('named-edit-sk', class extends HTMLElement {
 
   /** Show the dialog. */
   show() {
-    this.firstElementChild.shown = true;
+    this._dialog.showModal();
   }
 
   /** Hide the dialog. */
   hide() {
-    this.firstElementChild.shown = false;
+    this._dialog.close();
   }
 
   connectedCallback() {
