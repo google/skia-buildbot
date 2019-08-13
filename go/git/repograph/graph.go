@@ -310,6 +310,8 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 		// Shortcut: if the branch is up-to-date, skip it.
 		if newHead == oldHead {
 			continue
+		} else if oldHead == "" {
+			sklog.Warningf("Found new branch %s @ %s", branch.Name, newHead)
 		}
 
 		// Trace back in time from the new branch head until we find the
@@ -335,6 +337,7 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 					// we found the old branch head, then history
 					// has changed and we need to run the orphan
 					// check.
+					sklog.Warningf("Found previously-known commit %s before old branch head %s of %s; need to check for orphaned commits.", c, oldHead, branch.Name)
 					needOrphanCheck = true
 				}
 				continue
@@ -357,6 +360,7 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 				// completely new line of history and need to
 				// check whether the commits on the old line are
 				// now orphaned.
+				sklog.Warningf("Commit %s has no parents, and branch %s is not new. Need to check for orphaned commits.", c, branch.Name)
 				needOrphanCheck = true
 			}
 		}
@@ -380,6 +384,7 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 		// Check to see whether any branches were deleted.
 		for branch := range oldBranchesMap {
 			if _, ok := newBranchesMap[branch]; !ok {
+				sklog.Warningf("Branch %s was deleted; need to check for orphaned commits.", branch)
 				needOrphanCheck = true
 				break
 			}
