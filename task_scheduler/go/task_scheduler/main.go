@@ -704,7 +704,7 @@ func main() {
 		InstanceID: *btInstance,
 		TableID:    *gitstoreTable,
 	}
-	repos, err = repograph.NewBTGitStoreMap(ctx, *repoUrls, btConf)
+	repos, err = bt_gitstore.NewBTGitStoreMap(ctx, *repoUrls, btConf)
 	if err != nil {
 		sklog.Fatal(err)
 	}
