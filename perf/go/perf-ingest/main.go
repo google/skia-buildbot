@@ -280,6 +280,7 @@ func main() {
 				// Transaction logs for android_ingest are written to the same bucket,
 				// which we should ignore.
 				if strings.Contains(event.Name, "/tx_log/") {
+					success = true
 					return
 				}
 				// Load the file.
