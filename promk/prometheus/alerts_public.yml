@@ -282,6 +282,16 @@ groups:
     annotations:
       description: 'https://android-master-perf.skia.org/t/ clustering appears to be stuck. Check the Status on the triage page.'
 
+  - alert: PerfIngestionNackRate
+    expr: rate(nack{appgroup="perf"}[5m]) > 2
+    for: 10m
+    labels:
+      category: infra
+      severity: critical
+      owner: jcgregorio@google.com
+    annotations:
+      description: 'Nack rate is too high for perf ingestion. See https://github.com/google/skia-buildbot/blob/master/perf/PROD.md#nack'
+
 # Prober
   - alert: ProbeFailure
     expr: prober{type="failure"} > 0
