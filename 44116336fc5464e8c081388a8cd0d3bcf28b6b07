@@ -1,0 +1,532 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2f25b1a6_deb00ba7",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 510,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "What is this used for?  Debugging? It\u0027s not clear to me what use the commits in a potentially random order would be.",
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f4f1148_45f52c0e",
+        "filename": "go/git/repograph/repo_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "Intentional to go from require -\u003e assert?",
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a5b925c0_3837ea2a",
+        "filename": "go/git/repograph/repo_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "nit: add comment describing what this is testing. To me it appears to be testing that LocalGraph can persist to disk?",
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "10971a99_7fd3e2f1",
+        "filename": "go/git/repograph/testutils/graph_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "I would not expect testutils to have tests in them. Should these tests go closer to the implementations of the things they are testing?",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 17
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "79bca8b6_e064babc",
+        "filename": "go/git/repograph/testutils/graph_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "For readability, I think I\u0027d prefer this be defined as a proper function\nfunc checkTopoSort(t *testing.T, commits....) { ...\n\nSame idea for checkGraph and checkGitBuilder",
+      "range": {
+        "startLine": 29,
+        "startChar": 1,
+        "endLine": 29,
+        "endChar": 6
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b0975677_0ce299ff",
+        "filename": "go/git/repograph/testutils/graph_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "TIL: you can use empty struct here to save a small amount of RAM\nhttps://yourbasic.org/golang/implement-set/\n\nProbably doesn\u0027t matter here, but I thought I\u0027d mention it in case you want to use that knowledge elsewhere.",
+      "range": {
+        "startLine": 34,
+        "startChar": 38,
+        "endLine": 34,
+        "endChar": 42
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "993c19f3_70e97b1b",
+        "filename": "go/git/repograph/testutils/graph_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "I\u0027d prefer each of these be their own separate test. Keep the comments though, they are helpful.\n\nAFAIK, there isn\u0027t anything that persists between tests that would require them to be run in this specific order or that there are any dependencies between them (which is fantastic). If we have them as their own functions, it will further ensure that.",
+      "range": {
+        "startLine": 73,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 2
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f52f8e40_214653a3",
+        "filename": "go/git/repograph/testutils/graph_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "Where did this time come from? Any chance you could put it in time.Date(...)? I find time.Date more human readable.",
+      "range": {
+        "startLine": 124,
+        "startChar": 18,
+        "endLine": 124,
+        "endChar": 28
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "071247a9_b59fbcb1",
+        "filename": "go/git/repograph/testutils/graph_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "That\u0027s because we control the content and timestamp, right?",
+      "range": {
+        "startLine": 126,
+        "startChar": 80,
+        "endLine": 126,
+        "endChar": 93
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "09013632_aeb25249",
+        "filename": "go/git/repograph/testutils/graph_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "nit: rename to checkIsAncestor",
+      "range": {
+        "startLine": 204,
+        "startChar": 1,
+        "endLine": 204,
+        "endChar": 6
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7e9f4834_bfdebbb6",
+        "filename": "go/git/repograph/testutils/graph_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "nit: call these hashA, hashB",
+      "range": {
+        "startLine": 204,
+        "startChar": 15,
+        "endLine": 204,
+        "endChar": 16
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5bc43f7_2ae561cb",
+        "filename": "go/git/repograph/testutils/repo_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "Add comment explaining that this struct implements such-and-such interface",
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf34c868_3a026e66",
+        "filename": "go/git/repograph/testutils/repo_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "Would it work to move them to the proper spot and use the _test package feature? For similar bits of Gold, it has helped me out.\n\nhttps://github.com/golang/go/issues/25223 for an example",
+      "range": {
+        "startLine": 40,
+        "startChar": 56,
+        "endLine": 41,
+        "endChar": 26
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9f9d761_13f3060c",
+        "filename": "go/git/repograph/testutils/testutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "nit/suggestion: maybe a better package name for tests that are shared between implementations could be shared_tests (instead of testutils). I think of testutils as things that just help set up a test; if we have full blown suites (like we do below), then maybe they deserve their own package.\n\nWDYT?",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 17
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46956fdd_1ec847bf",
+        "filename": "go/git/repograph/testutils/testutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "nit: I think this function\u0027s name could be a bit more clear. AssertGraphWellFormed?  Similar comment for this functions brethren below.\n\nPerhaps if the name can\u0027t easily express what is going on, add a sentence or two of comment before them summarizing what they assert.",
+      "range": {
+        "startLine": 201,
+        "startChar": 5,
+        "endLine": 201,
+        "endChar": 14
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38b67ea8_f723eb20",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "Not sure this will work well on a Windows bot",
+      "range": {
+        "startLine": 23,
+        "startChar": 1,
+        "endLine": 23,
+        "endChar": 12
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bfc47b15_44f360f8",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "nit/suggestion: TestGitStoreSkiaRepo",
+      "range": {
+        "startLine": 29,
+        "startChar": 5,
+        "endLine": 29,
+        "endChar": 22
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8b1d810_ae0c1bf5",
+        "filename": "go/gitstore/bt_gitstore/helpers.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "would prefer skerr.Wrapf(err, \"failed to crea...\", repoURL)\n\nSame for line 100",
+      "range": {
+        "startLine": 96,
+        "startChar": 15,
+        "endLine": 96,
+        "endChar": 25
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60d34232_f452d634",
+        "filename": "go/gitstore/repo_impl.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "Add some context to this error with skerr.Wrapf Same for line 67, 88",
+      "range": {
+        "startLine": 59,
+        "startChar": 9,
+        "endLine": 59,
+        "endChar": 12
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4bdf9a0b_4feef745",
+        "filename": "go/gitstore/repo_impl.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "Is the severity really a warning level here?  Why? (might a comment help explain?)",
+      "range": {
+        "startLine": 85,
+        "startChar": 7,
+        "endLine": 85,
+        "endChar": 15
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c083858_fb61a47c",
+        "filename": "go/gitstore/repo_impl.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "prefer skerr.Fmt",
+      "range": {
+        "startLine": 92,
+        "startChar": 15,
+        "endLine": 92,
+        "endChar": 25
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a68e7915_4b23a1f3",
+        "filename": "go/gitstore/repo_impl.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "skerr.Fmt",
+      "range": {
+        "startLine": 102,
+        "startChar": 14,
+        "endLine": 102,
+        "endChar": 24
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea34cfbb_6f5ea17c",
+        "filename": "go/gitstore/repo_impl_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "What is this map?  What do the keys represent and what do the values represent?\n\nPotential rabbit hole: would it be worthwhile to add a \n\ntype GitHash string\n\ndeclaration and use that all over the place? It has helped clear up some Gold code for Digests, TestNames and TraceIds (fine for another CL and a stiff drink)",
+      "range": {
+        "startLine": 23,
+        "startChar": 10,
+        "endLine": 23,
+        "endChar": 27
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6ae16793_96ce57d4",
+        "filename": "go/gitstore/repo_impl_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:34:32Z",
+      "side": 1,
+      "message": "skerr.Fmt here and below",
+      "range": {
+        "startLine": 64,
+        "startChar": 13,
+        "endLine": 64,
+        "endChar": 23
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
