@@ -236,7 +236,7 @@ func main() {
 
 	if !*local {
 		router.HandleFunc("/logout/", login.LogoutHandler)
-		router.HandleFunc("/loginstatus/", login.StatusHandler)
+		router.HandleFunc("/loginstatus/", httputils.CorsHandler(login.StatusHandler))
 		router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	}
 
