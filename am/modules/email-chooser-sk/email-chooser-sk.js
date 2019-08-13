@@ -9,10 +9,10 @@
  * </p>
  *
  */
+import dialogPolyfill from 'dialog-polyfill'
 import { html, render } from 'lit-html'
 import { $$ } from 'common-sk/modules/dom'
 
-import 'elements-sk/dialog-sk'
 import 'elements-sk/styles/buttons'
 import 'elements-sk/styles/select'
 
@@ -24,7 +24,7 @@ function displayEmail(email, owner) {
   }
 }
 
-const template = (ele) => html`<dialog-sk>
+const template = (ele) => html`<dialog>
   <h2>Assign</h2>
   <select size=10 @input=${ele._input}>
     <option value='' selected>(un-assign)</option>
@@ -34,7 +34,7 @@ const template = (ele) => html`<dialog-sk>
     <button @click=${ele._dismiss}>Cancel</button>
     <button @click=${ele._confirm}>OK</button>
   </div>
-</dialog-sk>`;
+</dialog>`;
 
 window.customElements.define('email-chooser-sk', class extends HTMLElement {
   constructor() {
@@ -48,7 +48,8 @@ window.customElements.define('email-chooser-sk', class extends HTMLElement {
 
   connectedCallback() {
     this._render();
-    this._dialog = $$('dialog-sk');
+    this._dialog = $$('dialog');
+    dialogPolyfill.registerDialog(this._dialog);
   }
 
   /**
@@ -63,7 +64,7 @@ window.customElements.define('email-chooser-sk', class extends HTMLElement {
     this._emails = emails;
     this._owner = owner;
     this._render();
-    this._dialog.shown = true;
+    this._dialog.showModal();
     $$('select', this).focus();
     return new Promise((resolve, reject) => {
       this._resolve = resolve;
@@ -76,12 +77,12 @@ window.customElements.define('email-chooser-sk', class extends HTMLElement {
   }
 
   _dismiss() {
-    this._dialog.shown = false;
+    this._dialog.close();
     this._reject();
   }
 
   _confirm() {
-    this._dialog.shown = false;
+    this._dialog.close();
     this._resolve(this._selected);
   }
 
