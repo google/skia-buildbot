@@ -1,13 +1,13 @@
-import 'elements-sk/styles/buttons'
-import 'elements-sk/dialog-sk'
+import dialogPolyfill from 'dialog-polyfill'
+import { html, render } from 'lit-html'
+
 import 'elements-sk/icon/check-icon-sk'
 import 'elements-sk/icon/warning-icon-sk'
+import 'elements-sk/select-sk'
+import 'elements-sk/styles/buttons'
 import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
-import 'elements-sk/select-sk'
 import { diffDate } from 'common-sk/modules/human'
-
-import { html, render } from 'lit-html'
 
 function linkToCommit(hash) {
   return 'https://skia.googlesource.com/buildbot/+/' + hash;
@@ -17,32 +17,30 @@ function shorten(s) {
   return s.slice(0, 8);
 }
 
-function dirtyIndicator(choice) {
-    return choice.Dirty ? html`<warning-icon-sk title="Uncommited changes when the package was built."></warning-icon-sk>` : ``;
+const dirtyIndicator = (choice) => {
+  return choice.Dirty ? html`<warning-icon-sk title="Uncommited changes when the package was built."></warning-icon-sk>` : ``;
 }
 
-function listChoices(choices) {
-  return choices.map((choice) => html`
-<div class=pushSelection data-name="${choice.Name}">
-  <check-icon-sk title="Currently installed."></check-icon-sk>
-  <pre><a target=_blank href="${linkToCommit(choice.Hash)}">${shorten(choice.Hash)}</a></pre>
-  <pre class=built>${diffDate(choice.Built)}</pre>
-  <pre class=userid title="${choice.UserID}">${shorten(choice.UserID)}</pre>
-  <span>${choice.Note}</span>
-  ${dirtyIndicator(choice)}
-</div>`);
-}
+const listChoices = (choices) => choices.map((choice) => html`
+  <div class=pushSelection data-name="${choice.Name}">
+    <check-icon-sk title="Currently installed."></check-icon-sk>
+    <pre><a target=_blank href="${linkToCommit(choice.Hash)}">${shorten(choice.Hash)}</a></pre>
+    <pre class=built>${diffDate(choice.Built)}</pre>
+    <pre class=userid title="${choice.UserID}">${shorten(choice.UserID)}</pre>
+    <span>${choice.Note}</span>
+    ${dirtyIndicator(choice)}
+  </div>`);
 
 const template = (ele) => html`
-<dialog-sk>
-  <h2>Choose a release package to push</h2>
-  <select-sk selection="${ele._chosen}" @selection-changed=${ele._selectionChanged}>
-    ${listChoices(ele._choices)}
-  </select-sk>
-  <div class=buttons>
-    <button @click=${ele.hide}>Cancel</button>
-  </div>
-</dialog-sk>`;
+  <dialog>
+    <h2>Choose a release package to push</h2>
+    <select-sk selection="${ele._chosen}" @selection-changed=${ele._selectionChanged}>
+      ${listChoices(ele._choices)}
+    </select-sk>
+    <div class=buttons>
+      <button @click=${ele.hide}>Cancel</button>
+    </div>
+  </dialog>`;
 
 /** <code>push-selection-sk</code> custom element declaration.
  *
@@ -71,6 +69,8 @@ class PushSelectionSk extends HTMLElement {
     upgradeProperty(this, 'choices');
     upgradeProperty(this, 'chosen');
     this._render();
+    this._dialog = this.firstElementChild;
+    dialogPolyfill.registerDialog(this._dialog);
   }
 
   _render() {
@@ -115,12 +115,12 @@ class PushSelectionSk extends HTMLElement {
 
   /** Show the dialog. */
   show() {
-    this.firstElementChild.shown = true;
+    this._dialog.showModal();
   }
 
   /** Hide the dialog. */
   hide() {
-    this.firstElementChild.shown = false;
+    this._dialog.close();
   }
 
 }
