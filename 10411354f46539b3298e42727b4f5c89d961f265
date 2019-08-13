@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "01bb0599_bb3aabfb",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T15:15:51Z",
+      "side": 1,
+      "message": "If we have code that sends whatever error it has back to the client, *that* is the problem. It means we are vulnerable to an XSS reflection bug.\n\nI believe we have a helper, httpsutils.ReportError that does not do that.\n\nAlso, if we are authenticating somehow (i.e. calling this function) in an http.Handler - IMO *that* is a bug; we should only authenticate when the server boots up.\n\nI would imagine that 99% of the time we have an error, we log an unexpected response given to us from metadata/ (which is helpful) and \u003c 1% of the time, we would log a corrupted JWT JSON (which, I agree, is potentially sensitive).\n\nI would like this error to help in the 99% of cases rather than be opaque 100% of the time.",
+      "parentUuid": "3d9f8729_7350ce4d",
+      "revId": "10411354f46539b3298e42727b4f5c89d961f265",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e7db2bdd_d5a7daf0",
         "filename": "golden/cmd/skiacorrectness/main.go",
         "patchSetId": 4
@@ -30,6 +48,24 @@
       "writtenOn": "2019-08-13T13:59:13Z",
       "side": 1,
       "message": "IDK, wouldn\u0027t it be better to specify a testing GCS bucket? E.g. I have dogben-test GCS bucket.",
+      "revId": "10411354f46539b3298e42727b4f5c89d961f265",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15c62e0c_34cfd475",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 359,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T15:15:51Z",
+      "side": 1,
+      "message": "I would rather patch into the prod data, but read-only.  In this case, the only thing that protects is the known_hashes (the gcs_baseliner will be removed soon).",
+      "parentUuid": "e7db2bdd_d5a7daf0",
       "revId": "10411354f46539b3298e42727b4f5c89d961f265",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
