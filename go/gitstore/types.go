@@ -46,9 +46,6 @@ type GitStore interface {
 	// Caveat: The returned results will match the requested range, but will be sorted by Index.
 	// So if the timestamps within a commit are not in order they will be unordered in the results.
 	RangeByTime(ctx context.Context, start, end time.Time, branch string) ([]*vcsinfo.IndexCommit, error)
-
-	// GetGraph returns the commit graph of the entire repository.
-	GetGraph(ctx context.Context) (*CommitGraph, error)
 }
 
 // GitStoreBased is an interface that tags an object as being based on GitStore and the

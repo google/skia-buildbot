@@ -94,6 +94,23 @@ func (c *Commit) recurse(f func(*Commit) error, visited map[*Commit]bool) error 
 	return nil
 }
 
+// RecurseFirstParent is like Recurse, but it only follows the first parent of
+// each commit.
+func (c *Commit) RecurseFirstParent(f func(*Commit) error) error {
+	for {
+		if err := f(c); err == ErrStopRecursing {
+			return nil
+		} else if err != nil {
+			return err
+		}
+		if len(c.parents) == 0 {
+			return nil
+		} else {
+			c = c.parents[0]
+		}
+	}
+}
+
 // AllCommits returns the hashes of all commits reachable from this Commit, in
 // reverse topological order.
 func (c *Commit) AllCommits() ([]string, error) {
@@ -700,6 +717,34 @@ func topologicalSortHelper(commits map[*Commit]bool) []*Commit {
 		followBranch(next)
 	}
 	return rv
+}
+
+// LogLinear is equivalent to "git log --first-parent --ancestry-path from..to",
+// ie. it only returns commits which are on the direct path from A to B, and
+// only on the "main" branch. This is as opposed to "git log from..to" which
+// returns all commits which are ancestors of 'to' but not 'from'. The 'from'
+// commit may be the empty string, in which case all commits in the first-parent
+// line are returned.
+func (r *Graph) LogLinear(from, to string) ([]*vcsinfo.LongCommit, error) {
+	fromCommit := r.Get(from)
+	if fromCommit == nil && from != "" {
+		return nil, fmt.Errorf("No such commit %q", from)
+	}
+	toCommit := r.Get(to)
+	if toCommit == nil {
+		return nil, fmt.Errorf("No such commit %q", to)
+	}
+	rv := []*vcsinfo.LongCommit{}
+	if err := toCommit.RecurseFirstParent(func(c *Commit) error {
+		if c == fromCommit {
+			return ErrStopRecursing
+		}
+		rv = append(rv, c.LongCommit)
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return rv, nil
 }
 
 // IsAncestor returns true iff A is an ancestor of B, where A and B are either
