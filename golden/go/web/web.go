@@ -56,7 +56,7 @@ type WebHandlers struct {
 	ExpectationsStore expstorage.ExpectationsStore
 	GCSClient         storage.GCSClient
 	IgnoreStore       ignore.IgnoreStore
-	Indexer           *indexer.Indexer
+	Indexer           indexer.IndexMaker
 	IssueTracker      issues.IssueTracker
 	SearchAPI         *search.SearchAPI
 	StatusWatcher     *status.StatusWatcher
@@ -72,12 +72,12 @@ type WebHandlers struct {
 // JsonByBlameHandler returns a json object with the digests to be triaged grouped by blamelist.
 func (wh *WebHandlers) JsonByBlameHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	idx := wh.Indexer.GetIndex()
 
 	// Extract the corpus from the query.
 	var query url.Values = nil
 	var err error = nil
 	if q := r.FormValue("query"); q != "" {
+		// TODO(kjlubick): this error handling does not make sense.
 		if query, err = url.ParseQuery(q); query.Get(types.CORPUS_FIELD) == "" {
 			err = fmt.Errorf("Got query field, but did not contain %s field.", types.CORPUS_FIELD)
 		}
@@ -85,17 +85,29 @@ func (wh *WebHandlers) JsonByBlameHandler(w http.ResponseWriter, r *http.Request
 
 	// If no corpus specified return an error.
 	if err != nil {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Did not receive value for corpus/%s.", types.CORPUS_FIELD))
+		httputils.ReportError(w, r, skerr.Fmt("did not receive value for corpus/%s", types.CORPUS_FIELD), "invalid input")
 		return
 	}
 
-	// At this point query contains at least a corpus.
-	tile, sum, err := allUntriagedSummaries(idx, query)
-	commits := tile.Commits
+	blameEntries, err := wh.computeByBlame(query)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to load summaries.")
+		httputils.ReportError(w, r, skerr.Wrapf(err, "computing blame %v", query), "")
 		return
 	}
+
+	// Wrap the result in an object because we don't want to return
+	// a JSON array.
+	sendJsonResponse(w, map[string]interface{}{"data": blameEntries})
+}
+
+func (wh *WebHandlers) computeByBlame(query url.Values) ([]*ByBlameEntry, error) {
+	idx := wh.Indexer.GetIndex()
+	// At this point query contains at least a corpus.
+	untriagedSummaries, err := idx.CalcSummaries(nil, query, types.ExcludeIgnoredTraces, true)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "could not get untriaged summaries for query %v", query)
+	}
+	commits := idx.Tile().DataCommits()
 
 	// This is a very simple grouping of digests, for every digest we look up the
 	// blame list for that digest and then use the concatenated git hashes as a
@@ -109,7 +121,7 @@ func (wh *WebHandlers) JsonByBlameHandler(w http.ResponseWriter, r *http.Request
 	// map [groupid] [test] TestRollup
 	rollups := map[string]map[types.TestName]*TestRollup{}
 
-	for test, s := range sum {
+	for test, s := range untriagedSummaries {
 		for _, d := range s.UntHashes {
 			dist := idx.GetBlame(test, d, commits)
 			if dist == nil {
@@ -181,21 +193,7 @@ func (wh *WebHandlers) JsonByBlameHandler(w http.ResponseWriter, r *http.Request
 	}
 	sort.Sort(ByBlameEntrySlice(blameEntries))
 
-	// Wrap the result in an object because we don't want to return
-	// a JSON array.
-	sendJsonResponse(w, map[string]interface{}{"data": blameEntries})
-}
-
-// allUntriagedSummaries returns a tile and summaries for all untriaged GMs.
-func allUntriagedSummaries(idx *indexer.SearchIndex, query url.Values) (*tiling.Tile, map[types.TestName]*summary.Summary, error) {
-	tile := idx.CpxTile().GetTile(types.IncludeIgnoredTraces)
-
-	// Get a list of all untriaged images by test.
-	sum, err := idx.CalcSummaries(nil, query, types.ExcludeIgnoredTraces, true)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Couldn't load summaries: %s", err)
-	}
-	return tile, sum, nil
+	return blameEntries, nil
 }
 
 // lookUpCommits returns the commit hashes for the commit indices in 'freq'.
@@ -967,7 +965,7 @@ func (wh *WebHandlers) JsonTriageUndoHandler(w http.ResponseWriter, r *http.Requ
 // JsonParamsHandler returns the union of all parameters.
 func (wh *WebHandlers) JsonParamsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	tile := wh.Indexer.GetIndex().CpxTile().GetTile(types.IncludeIgnoredTraces)
+	tile := wh.Indexer.GetIndex().Tile().GetTile(types.IncludeIgnoredTraces)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(tile.ParamSet); err != nil {
 		sklog.Errorf("Failed to write or encode result: %s", err)

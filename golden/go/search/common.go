@@ -28,8 +28,8 @@ type AddFn func(test types.TestName, digest types.Digest, traceID tiling.TraceId
 // acceptFn to determine whether to keep a trace (after it has already been
 // tested against the query) and calls addFn to add a digest and its trace.
 // acceptFn == nil equals unconditional acceptance.
-func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *indexer.SearchIndex) error {
-	cpxTile := idx.CpxTile()
+func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx indexer.IndexSearcher) error {
+	cpxTile := idx.Tile()
 	selectedTile := cpxTile.GetTile(query.IgnoreState())
 
 	if acceptFn == nil {
