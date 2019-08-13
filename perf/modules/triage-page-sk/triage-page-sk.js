@@ -130,7 +130,7 @@ const _columns = (ele, row, rowIndex) => row.columns.map((col, colIndex) => {
   }
 
   if (ele._notBoth(colIndex)) {
-    ret.push('<td></td>');
+    ret.push(html`<td></td>`);
   }
   return ret;
 });
@@ -271,6 +271,10 @@ window.customElements.define('triage-page-sk', class extends ElementSk {
     dialogPolyfill.registerDialog(this.querySelector('dialog'));
     this._stateHasChanged = stateReflector(() => this._state, (state) => {
       this._state = state;
+      // For backwards compatibility with existing URLs that used 'filter'.
+      if (this._state.filter) {
+        this._state.alert_filter = this._state.filter;
+      }
       this._render();
       this._updateRange();
     });
