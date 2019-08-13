@@ -1,0 +1,182 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c6b2e234_4b21f5ee",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:43:40Z",
+      "side": 1,
+      "message": "Is there context we can add here to help debugging? If so, skerr.Wrapf is the tool for the job",
+      "range": {
+        "startLine": 104,
+        "startChar": 10,
+        "endLine": 104,
+        "endChar": 13
+      },
+      "revId": "df64b8caf55ce20c75734c3e3af04316dd3477e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c2eebb5_1891aaed",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 731,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:43:40Z",
+      "side": 1,
+      "message": "prefer skerr.Fmt. Here and below",
+      "range": {
+        "startLine": 731,
+        "startChar": 14,
+        "endLine": 731,
+        "endChar": 24
+      },
+      "revId": "df64b8caf55ce20c75734c3e3af04316dd3477e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4248407_39b1dbcb",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 745,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:43:40Z",
+      "side": 1,
+      "message": "Maybe add context here with skerr.Wrapf? e.g. the to/from commits?",
+      "range": {
+        "startLine": 745,
+        "startChar": 14,
+        "endLine": 745,
+        "endChar": 17
+      },
+      "revId": "df64b8caf55ce20c75734c3e3af04316dd3477e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1bc4c881_34029eb1",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:43:40Z",
+      "side": 1,
+      "message": "driveby: skerr.Wrapf",
+      "range": {
+        "startLine": 220,
+        "startChar": 11,
+        "endLine": 220,
+        "endChar": 19
+      },
+      "revId": "df64b8caf55ce20c75734c3e3af04316dd3477e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8af57170_dcde4254",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:43:40Z",
+      "side": 1,
+      "message": "skerr.Wrapf",
+      "range": {
+        "startLine": 227,
+        "startChar": 10,
+        "endLine": 227,
+        "endChar": 19
+      },
+      "revId": "df64b8caf55ce20c75734c3e3af04316dd3477e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "218e920f_e157d18e",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:43:40Z",
+      "side": 1,
+      "message": "Should this include newBranchHead?",
+      "range": {
+        "startLine": 386,
+        "startChar": 63,
+        "endLine": 386,
+        "endChar": 73
+      },
+      "revId": "df64b8caf55ce20c75734c3e3af04316dd3477e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5fba7363_f3699edb",
+        "filename": "go/gitstore/bt_gitstore/repo_impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:43:40Z",
+      "side": 1,
+      "message": "Is RepoImpl an interface or a struct? It appears to be embedded here, so I\u0027m guessing struct",
+      "range": {
+        "startLine": 11,
+        "startChar": 59,
+        "endLine": 12,
+        "endChar": 12
+      },
+      "revId": "df64b8caf55ce20c75734c3e3af04316dd3477e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6643082e_f43f07ff",
+        "filename": "go/gitstore/bt_gitstore/repo_impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:43:40Z",
+      "side": 1,
+      "message": "needs function level comment. Same for 26, 30",
+      "revId": "df64b8caf55ce20c75734c3e3af04316dd3477e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
