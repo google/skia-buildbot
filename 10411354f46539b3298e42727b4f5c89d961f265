@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "583b4fa1_94bc9500",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-13T19:48:05Z",
+      "side": 1,
+      "message": "Invalid body moved to logs as per suggestion.",
+      "parentUuid": "0e3c56df_fb307925",
+      "revId": "10411354f46539b3298e42727b4f5c89d961f265",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e7db2bdd_d5a7daf0",
         "filename": "golden/cmd/skiacorrectness/main.go",
         "patchSetId": 4
