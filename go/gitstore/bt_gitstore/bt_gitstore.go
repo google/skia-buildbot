@@ -16,8 +16,10 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"golang.org/x/sync/errgroup"
@@ -209,12 +211,15 @@ func (b *BigTableGitStore) PutBranches(ctx context.Context, branches map[string]
 	}
 
 	// Load the commit graph.
-	graph, err := b.GetGraph(ctx)
+	ri := newRepoImplForUpdate(b)
+	ri.setBranches(branches)
+	graph, err := repograph.NewWithRepoImpl(ctx, ri)
 	if err != nil {
 		return skerr.Fmt("Error loading graph: %s", err)
 	}
+	sklog.Errorf("Got graph with %d commits", graph.Len())
 
-	// updateFromm maps branchName -> branch_pointer_to_old_head to capture the branches we  need to update
+	// updateFrom maps branchName -> branch_pointer_to_old_head to capture the branches we  need to update
 	// and whether the branch existed before this update (the value of the map is not nil).
 	updateFrom := make(map[string]*gitstore.BranchPointer, len(branches))
 	for branchName, head := range branches {
@@ -226,11 +231,11 @@ func (b *BigTableGitStore) PutBranches(ctx context.Context, branches map[string]
 				continue
 			}
 
-			oldHeadNode := graph.GetNode(foundHeadPtr.Head)
-			if oldHeadNode == nil {
-				return skerr.Fmt("Unable to find previous head commit %s in graph", foundHeadPtr.Head)
+			// The old HEAD might be missing, if history was changed
+			// and the old HEAD commit became orphaned.
+			if graph.Get(foundHeadPtr.Head) != nil {
+				oldHeadPtr = foundHeadPtr
 			}
-			oldHeadPtr = foundHeadPtr
 		}
 		updateFrom[branchName] = oldHeadPtr
 	}
@@ -340,23 +345,9 @@ func (b *BigTableGitStore) loadRepoInfo(ctx context.Context, create bool) (*gits
 // Used by GetGraph.
 var graphColFilter = fmt.Sprintf("(%s)", strings.Join([]string{colHash, colParents}, "|"))
 
-// GetGraph implements the GitStore interface.
-func (b *BigTableGitStore) GetGraph(ctx context.Context) (*gitstore.CommitGraph, error) {
-	result := newRawNodesResult(b.shards)
-	filters := []bigtable.Filter{
-		bigtable.FamilyFilter(cfCommit),
-		bigtable.ColumnFilter(graphColFilter),
-	}
-	if err := b.iterShardedRange(ctx, "", typCommit, "", "", filters, result); err != nil {
-		return nil, skerr.Fmt("Error getting sharded commits: %s", err)
-	}
-	rawGraph, timeStamps := result.Merge()
-	return gitstore.BuildGraph(rawGraph, timeStamps), nil
-}
-
-func (b *BigTableGitStore) getAsIndexCommits(ctx context.Context, ancestors []*gitstore.Node, startIdx int) ([]*vcsinfo.IndexCommit, error) {
-	ret := make([]*vcsinfo.IndexCommit, len(ancestors))
-	for idx, commitNode := range ancestors {
+func (b *BigTableGitStore) getAsIndexCommits(ctx context.Context, commits []*vcsinfo.LongCommit, startIdx int) ([]*vcsinfo.IndexCommit, error) {
+	ret := make([]*vcsinfo.IndexCommit, len(commits))
+	for idx, commitNode := range commits {
 		ret[idx] = &vcsinfo.IndexCommit{
 			Index:     startIdx + idx,
 			Hash:      commitNode.Hash,
@@ -369,9 +360,9 @@ func (b *BigTableGitStore) getAsIndexCommits(ctx context.Context, ancestors []*g
 // updateBranch updates the indices for the named branch and stores the branch pointer. It
 // calculates the branch based on the given commit graph.
 // If there is no previous branch then oldBranchPtr should be nil.
-func (b *BigTableGitStore) updateBranch(ctx context.Context, branchName, newBranchHead string, oldBranchPtr *gitstore.BranchPointer, graph *gitstore.CommitGraph) error {
+func (b *BigTableGitStore) updateBranch(ctx context.Context, branchName, newBranchHead string, oldBranchPtr *gitstore.BranchPointer, graph *repograph.Graph) error {
 	// Make sure the new head node is in branch.
-	headNode := graph.GetNode(newBranchHead)
+	headNode := graph.Get(newBranchHead)
 	if headNode == nil {
 		return skerr.Fmt("Head commit %s not found in commit graph", newBranchHead)
 	}
@@ -381,15 +372,23 @@ func (b *BigTableGitStore) updateBranch(ctx context.Context, branchName, newBran
 		oldBranchPtr = &gitstore.BranchPointer{Head: "", Index: 0}
 	}
 
-	branchNodes := graph.DecendantChain(oldBranchPtr.Head, newBranchHead)
-	startIndex := 0
-
-	// If the hash of the first Node matches the hash of the old branchpointer we need to adjust
-	// the initial value of index.
-	if branchNodes[0].Hash == oldBranchPtr.Head {
-		startIndex = oldBranchPtr.Index
+	commits, err := graph.LogLinear(oldBranchPtr.Head, newBranchHead)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to find new commits for %s", branchName)
 	}
-	indexCommits, err := b.getAsIndexCommits(ctx, branchNodes, startIndex)
+	// Reverse the commits slice, which comes in reverse topological order.
+	for a, b := 0, len(commits)-1; a < b; a, b = a+1, b-1 {
+		commits[a], commits[b] = commits[b], commits[a]
+	}
+
+	// If the first parent of the first commit is the old branch head, we
+	// need to adjust the initial value of index. Otherwise, this is a new
+	// branch, or history has been changed, and we start at zero.
+	startIndex := 0
+	if len(commits[0].Parents) > 0 && commits[0].Parents[0] == oldBranchPtr.Head {
+		startIndex = oldBranchPtr.Index + 1
+	}
+	indexCommits, err := b.getAsIndexCommits(ctx, commits, startIndex)
 	if err != nil {
 		return skerr.Fmt("Error getting index commits for branch %s: %s", branchName, err)
 	}

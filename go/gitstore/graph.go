@@ -1,85 +1,110 @@
 package gitstore
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"time"
+
+	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
-const (
-	// initialGraphSize is the assumed starting number of commits in a repository. Just so we
-	// don't start with an empty data structure when we building or traversing the graph.
-	initialGraphSize = 100000
-)
+// GetRepoGraph returns *repograph.Graph backed by the given GitStore.
+func GetRepoGraph(ctx context.Context, gs GitStore) (*repograph.Graph, error) {
+	return repograph.NewWithRepoImpl(ctx, NewGitStoreRepoImpl(gs))
+}
 
-// BuildGraph takes a rawGraph (a slice where each element contains a commit hash followed by its
-// parents) and returns an instance of CommitGraph.
-// TODO(kjlubick,borenet): can this be replaced by go/git/repograph.Graph ?
-func BuildGraph(rawGraph [][]string, timeStamps []time.Time) *CommitGraph {
-	nodeMap := make(map[string]*Node, len(rawGraph))
-	for idx, rawNode := range rawGraph {
-		hash := rawNode[0]
-		nodeMap[hash] = &Node{
-			Hash:      hash,
-			Parents:   make([]*Node, len(rawNode)-1),
-			Timestamp: timeStamps[idx],
+// GitStoreRepoImpl is an implementation of the repograph.RepoImpl interface
+// which uses a GitStore to interact with a git repo.
+type GitStoreRepoImpl struct {
+	gs GitStore
+
+	// These are stored between calls to Update so that we don't have to
+	// Get individual commits as they are requested.
+	BranchList []*git.Branch
+	Commits    map[string]*vcsinfo.LongCommit
+	lastUpdate time.Time
+}
+
+// NewGitStoreRepoImpl returns a repograph.RepoImpl instance which uses the
+// given GitStore.
+func NewGitStoreRepoImpl(gs GitStore) repograph.RepoImpl {
+	return &GitStoreRepoImpl{gs: gs}
+}
+
+// See documentation for repograph.RepoImpl interface.
+func (g *GitStoreRepoImpl) Update(ctx context.Context) error {
+	branchPtrs, err := g.gs.GetBranches(ctx)
+	if err != nil {
+		return err
+	}
+	branches := make([]*git.Branch, 0, len(branchPtrs))
+	for name, ptr := range branchPtrs {
+		if name != "" {
+			branches = append(branches, &git.Branch{
+				Name: name,
+				Head: ptr.Head,
+			})
 		}
 	}
 
-	for _, rawNode := range rawGraph {
-		for idx, p := range rawNode[1:] {
-			nodeMap[rawNode[0]].Parents[idx] = nodeMap[p]
+	from := g.lastUpdate.Add(-10 * time.Minute)
+	now := time.Now()
+	to := now.Add(time.Second)
+	indexCommits, err := g.gs.RangeByTime(ctx, from, to, "")
+	if err != nil {
+		return err
+	}
+	hashes := make([]string, 0, len(indexCommits))
+	for _, c := range indexCommits {
+		hashes = append(hashes, c.Hash)
+	}
+	commits, err := g.gs.Get(ctx, hashes)
+	if err != nil {
+		return err
+	}
+	commitsMap := make(map[string]*vcsinfo.LongCommit, len(commits))
+	for _, c := range commits {
+		commitsMap[c.Hash] = c
+	}
+
+	g.lastUpdate = now
+	g.BranchList = branches
+	g.Commits = commitsMap
+	return nil
+}
+
+// See documentation for repograph.RepoImpl interface.
+func (g *GitStoreRepoImpl) Details(ctx context.Context, hash string) (*vcsinfo.LongCommit, error) {
+	if d, ok := g.Commits[hash]; ok {
+		return d, nil
+	}
+	sklog.Warningf("Commit %q not found in results; performing explicit lookup.", hash)
+	got, err := g.gs.Get(ctx, []string{hash})
+	if err != nil {
+		return nil, err
+	}
+	for _, c := range got {
+		if c == nil {
+			return nil, fmt.Errorf("Commit %s not present in GitStore.", hash)
 		}
+		g.Commits[c.Hash] = c
 	}
-
-	return &CommitGraph{
-		Nodes: nodeMap,
-	}
+	return got[0], nil
 }
 
-// CommitGraph contains commits as Nodes that are connected and thus can be traversed.
-// Given a graph a client can retrieve a specific node and traverse the graph like this:
-//    // First-parent traversal
-//    node := graph.GetNode(someHash)
-//    for node != nil {
-//        // so something with the commit
-//        node = node.Parents[0]
-//    }
-//
-type CommitGraph struct {
-	Nodes map[string]*Node
-}
-
-// GetNode returns the node in the graph that corresponds to the given hash or nil
-func (c *CommitGraph) GetNode(hash string) *Node {
-	return c.Nodes[hash]
-}
-
-// Node is a node in the commit graph that contains the commit hash, a timestamp and pointers to
-// its parent nodes. The first parent is the immediate parent in the same branch (like in Git).
-type Node struct {
-	Hash      string
-	Timestamp time.Time
-	Parents   []*Node
-}
-
-// DescendantChain returns all nodes in the commit graph in the range of
-// (firstAncestor, lastDescendant) where the parameters are both commit hashes.
-// 'firstAncestor' can be "" in which case it will return all ancestors of 'lastDescendant'.
-// 'lastDescendant' must not be empty and must exist in graph or this will panic.
-func (g *CommitGraph) DecendantChain(firstAncestor, lastDescendant string) []*Node {
-	curr := g.Nodes[lastDescendant]
-	ret := make([]*Node, 0, len(g.Nodes))
-	for curr != nil {
-		ret = append(ret, curr)
-		if (len(curr.Parents) == 0) || (curr.Hash == firstAncestor) {
-			break
-		}
-		curr = curr.Parents[0]
+// See documentation for repograph.RepoImpl interface.
+func (g *GitStoreRepoImpl) Branches(ctx context.Context) ([]*git.Branch, error) {
+	if g.BranchList == nil {
+		return nil, errors.New("Need to call Update() before Branches()")
 	}
+	return g.BranchList, nil
+}
 
-	// Reverse the result
-	for idx := 0; idx < len(ret)/2; idx++ {
-		rightIdx := len(ret) - 1 - idx
-		ret[idx], ret[rightIdx] = ret[rightIdx], ret[idx]
-	}
-	return ret
+// See documentation for repograph.RepoImpl interface.
+func (g *GitStoreRepoImpl) UpdateCallback(ctx context.Context, graph *repograph.Graph) error {
+	return nil
 }

@@ -14,8 +14,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/gitstore"
-	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
@@ -60,7 +58,7 @@ func (c *Commit) Recurse(f func(*Commit) error) error {
 }
 
 // recurse is a helper function used by Recurse.
-func (c *Commit) recurse(f func(*Commit) error, visited map[*Commit]bool) (rvErr error) {
+func (c *Commit) recurse(f func(*Commit) error, visited map[*Commit]bool) error {
 	// For large repos, we may not have enough stack space to recurse
 	// through the whole commit history. Since most commits only have
 	// one parent, avoid recursion when possible.
@@ -94,6 +92,23 @@ func (c *Commit) recurse(f func(*Commit) error, visited map[*Commit]bool) (rvErr
 		}
 	}
 	return nil
+}
+
+// RecurseFirstParent is like Recurse, but it only follows the first parent of
+// each commit.
+func (c *Commit) RecurseFirstParent(f func(*Commit) error) error {
+	for {
+		if err := f(c); err == ErrStopRecursing {
+			return nil
+		} else if err != nil {
+			return err
+		}
+		if len(c.parents) == 0 {
+			return nil
+		} else {
+			c = c.parents[0]
+		}
+	}
 }
 
 // AllCommits returns the hashes of all commits reachable from this Commit, in
@@ -165,8 +180,8 @@ type RepoImpl interface {
 	// Update the local view of the repo.
 	Update(context.Context) error
 
-	// Return the given commits.
-	Get(context.Context, []string) ([]*vcsinfo.LongCommit, error)
+	// Return the details for the given commit.
+	Details(context.Context, string) (*vcsinfo.LongCommit, error)
 
 	// Return the branch heads, as of the last call to Update().
 	Branches(context.Context) ([]*git.Branch, error)
@@ -203,13 +218,6 @@ func NewLocalGraph(ctx context.Context, repoUrl, workdir string) (*Graph, error)
 		return nil, err
 	}
 	return rv, nil
-}
-
-// NewGitStoreGraph returns a Graph instance which is backed by a GitStore.
-func NewGitStoreGraph(ctx context.Context, gs gitstore.GitStore) (*Graph, error) {
-	return NewWithRepoImpl(ctx, &gitstoreRepoImpl{
-		gs: gs,
-	})
 }
 
 // NewWithRepoImpl returns a Graph instance which uses the given RepoImpl.
@@ -333,17 +341,17 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 			}
 
 			// We haven't seen this commit before; add it to newCommits.
-			details, err := ri.Get(ctx, []string{c})
+			details, err := ri.Details(ctx, c)
 			if err != nil {
 				return nil, nil, fmt.Errorf("Failed to Get commit details from RepoImpl: %s", err)
 			}
-			newCommits = append(newCommits, details[0])
+			newCommits = append(newCommits, details)
 
 			// Add the commit's parent(s) to the toProcess map.
-			for _, p := range details[0].Parents {
+			for _, p := range details.Parents {
 				toProcess[p] = true
 			}
-			if len(details[0].Parents) == 0 && oldHead != "" {
+			if len(details.Parents) == 0 && oldHead != "" {
 				// If we found a commit with no parents and this
 				// is not a new branch, then we've discovered a
 				// completely new line of history and need to
@@ -700,6 +708,34 @@ func topologicalSortHelper(commits map[*Commit]bool) []*Commit {
 	return rv
 }
 
+// LogLinear is equivalent to "git log --first-parent --ancestry-path from..to",
+// ie. it only returns commits which are on the direct path from A to B, and
+// only on the "main" branch. This is as opposed to "git log from..to" which
+// returns all commits which are ancestors of 'to' but not 'from'. The 'from'
+// commit may be the empty string, in which case all commits in the first-parent
+// line are returned.
+func (r *Graph) LogLinear(from, to string) ([]*vcsinfo.LongCommit, error) {
+	fromCommit := r.Get(from)
+	if fromCommit == nil && from != "" {
+		return nil, fmt.Errorf("No such commit %q", from)
+	}
+	toCommit := r.Get(to)
+	if toCommit == nil {
+		return nil, fmt.Errorf("No such commit %q", to)
+	}
+	rv := []*vcsinfo.LongCommit{}
+	if err := toCommit.RecurseFirstParent(func(c *Commit) error {
+		if c == fromCommit {
+			return ErrStopRecursing
+		}
+		rv = append(rv, c.LongCommit)
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return rv, nil
+}
+
 // IsAncestor returns true iff A is an ancestor of B, where A and B are either
 // commit hashes or branch names.
 func (r *Graph) IsAncestor(a, b string) (bool, error) {
@@ -778,23 +814,6 @@ func NewLocalMap(ctx context.Context, repos []string, workdir string) (Map, erro
 			return nil, err
 		}
 		rv[r] = g
-	}
-	return rv, nil
-}
-
-// NewGitStoreMap returns a Map instance with Graphs for the given GitStores.
-func NewBTGitStoreMap(ctx context.Context, repoUrls []string, btConf *bt_gitstore.BTConfig) (Map, error) {
-	rv := make(map[string]*Graph, len(repoUrls))
-	for _, repoUrl := range repoUrls {
-		gs, err := bt_gitstore.New(ctx, btConf, repoUrl)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to create GitStore for %s: %s", repoUrl, err)
-		}
-		graph, err := NewGitStoreGraph(ctx, gs)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to create Graph from GitStore for %s: %s", repoUrl, err)
-		}
-		rv[repoUrl] = graph
 	}
 	return rv, nil
 }
