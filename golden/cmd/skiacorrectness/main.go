@@ -318,6 +318,7 @@ func main() {
 
 		bvcs.StartTracking(ctx, evt)
 		vcs = bvcs
+		sklog.Infof("gitstore and vcs initialized")
 	} else {
 		vcs, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
 		if err != nil {
