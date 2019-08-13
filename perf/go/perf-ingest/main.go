@@ -194,6 +194,8 @@ func main() {
 
 	// nackCounter is the number files we weren't able to ingest.
 	nackCounter := metrics2.GetCounter("nack", nil)
+	// ackCounter is the number files we were able to ingest.
+	ackCounter := metrics2.GetCounter("ack", nil)
 
 	ctx := context.Background()
 	cfg, ok := config.PERF_BIGTABLE_CONFIGS[*configName]
@@ -265,6 +267,7 @@ func main() {
 				success := false
 				defer func() {
 					if success {
+						ackCounter.Inc(1)
 						msg.Ack()
 					} else {
 						nackCounter.Inc(1)
