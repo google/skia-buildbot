@@ -16,6 +16,24 @@
       "revId": "3cf8b1ab1048c0dedf3df418c0400390c1662945",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39b8b465_7f78f931",
+        "filename": "infra-sk/modules/confirm-dialog-sk/confirm-dialog-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-13T14:53:01Z",
+      "side": 1,
+      "message": "No, good catch!",
+      "parentUuid": "500e0cc7_a736fa27",
+      "revId": "3cf8b1ab1048c0dedf3df418c0400390c1662945",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
