@@ -22,19 +22,19 @@
  * </script>
  *
  */
+import dialogPolyfill from 'dialog-polyfill'
 import { html, render } from 'lit-html'
 
-import 'elements-sk/dialog-sk'
 import 'elements-sk/styles/buttons'
 
-const template = (ele) => html`<dialog-sk ?shown=${ele._shown}>
+const template = (ele) => html`<dialog @cancel=${ele._dismiss}>
   <h2>Confirm</h2>
   <div class=message>${ele._message}</div>
   <div class=buttons>
   <button @click=${ele._dismiss}>Cancel</button>
   <button @click=${ele._confirm}>OK</button>
   </div>
-</dialog-sk>`;
+</dialog>`;
 
 window.customElements.define('confirm-dialog-sk', class extends HTMLElement {
   constructor() {
@@ -42,11 +42,12 @@ window.customElements.define('confirm-dialog-sk', class extends HTMLElement {
     this._resolve = null;
     this._reject = null;
     this._message = '';
-    this._shown = false;
   }
 
   connectedCallback() {
     this._render();
+    this._dialog = this.firstElementChild;
+    dialogPolyfill.registerDialog(this._dialog);
   }
 
   /**
@@ -58,8 +59,7 @@ window.customElements.define('confirm-dialog-sk', class extends HTMLElement {
    */
   open(message) {
     this._message = message;
-    this._shown = true;
-    this._render();
+    this._dialog.showModal();
     return new Promise((resolve, reject) => {
       this._resolve = resolve;
       this._reject = reject;
@@ -67,14 +67,12 @@ window.customElements.define('confirm-dialog-sk', class extends HTMLElement {
   }
 
   _dismiss() {
-    this._shown = false;
-    this._render();
+    this._dialog.close();
     this._reject();
   }
 
   _confirm() {
-    this._shown = false;
-    this._render();
+    this._dialog.close();
     this._resolve();
   }
 
