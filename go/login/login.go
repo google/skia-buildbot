@@ -608,8 +608,12 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if strings.HasSuffix(u.Host, "."+COOKIE_DOMAIN_SKIA_ORG) ||
 			strings.HasSuffix(u.Host, "."+COOKIE_DOMAIN_SKIA_CORP) ||
-			strings.HasPrefix("localhost:", u.Host) {
-			w.Header().Add("Access-Control-Allow-Origin", "https://"+u.Host)
+			strings.HasPrefix(u.Host, "localhost:") {
+			prefix := "https://"
+			if strings.HasPrefix(u.Host, "localhost:") {
+				prefix = "http://"
+			}
+			w.Header().Add("Access-Control-Allow-Origin", prefix+u.Host)
 			w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 			w.Header().Add("Access-Control-Allow-Credentials", "true")
 			w.Header().Add("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
