@@ -14,8 +14,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/gitstore"
-	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
@@ -60,7 +58,7 @@ func (c *Commit) Recurse(f func(*Commit) error) error {
 }
 
 // recurse is a helper function used by Recurse.
-func (c *Commit) recurse(f func(*Commit) error, visited map[*Commit]bool) (rvErr error) {
+func (c *Commit) recurse(f func(*Commit) error, visited map[*Commit]bool) error {
 	// For large repos, we may not have enough stack space to recurse
 	// through the whole commit history. Since most commits only have
 	// one parent, avoid recursion when possible.
@@ -165,8 +163,8 @@ type RepoImpl interface {
 	// Update the local view of the repo.
 	Update(context.Context) error
 
-	// Return the given commits.
-	Get(context.Context, []string) ([]*vcsinfo.LongCommit, error)
+	// Return the details for the given commit.
+	Details(context.Context, string) (*vcsinfo.LongCommit, error)
 
 	// Return the branch heads, as of the last call to Update().
 	Branches(context.Context) ([]*git.Branch, error)
@@ -203,13 +201,6 @@ func NewLocalGraph(ctx context.Context, repoUrl, workdir string) (*Graph, error)
 		return nil, err
 	}
 	return rv, nil
-}
-
-// NewGitStoreGraph returns a Graph instance which is backed by a GitStore.
-func NewGitStoreGraph(ctx context.Context, gs gitstore.GitStore) (*Graph, error) {
-	return NewWithRepoImpl(ctx, &gitstoreRepoImpl{
-		gs: gs,
-	})
 }
 
 // NewWithRepoImpl returns a Graph instance which uses the given RepoImpl.
@@ -333,17 +324,17 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 			}
 
 			// We haven't seen this commit before; add it to newCommits.
-			details, err := ri.Get(ctx, []string{c})
+			details, err := ri.Details(ctx, c)
 			if err != nil {
 				return nil, nil, fmt.Errorf("Failed to Get commit details from RepoImpl: %s", err)
 			}
-			newCommits = append(newCommits, details[0])
+			newCommits = append(newCommits, details)
 
 			// Add the commit's parent(s) to the toProcess map.
-			for _, p := range details[0].Parents {
+			for _, p := range details.Parents {
 				toProcess[p] = true
 			}
-			if len(details[0].Parents) == 0 && oldHead != "" {
+			if len(details.Parents) == 0 && oldHead != "" {
 				// If we found a commit with no parents and this
 				// is not a new branch, then we've discovered a
 				// completely new line of history and need to
@@ -514,6 +505,17 @@ func (r *Graph) Get(ref string) *Commit {
 		}
 	}
 	return nil
+}
+
+// GetAll returns all of the stored Commit objects, in arbitrary order.
+func (r *Graph) GetAll() []*Commit {
+	r.graphMtx.RLock()
+	defer r.graphMtx.RUnlock()
+	rv := make([]*Commit, 0, len(r.commits))
+	for _, c := range r.commits {
+		rv = append(rv, c)
+	}
+	return rv
 }
 
 // RecurseCommits runs the given function recursively over the given refs, which
@@ -778,23 +780,6 @@ func NewLocalMap(ctx context.Context, repos []string, workdir string) (Map, erro
 			return nil, err
 		}
 		rv[r] = g
-	}
-	return rv, nil
-}
-
-// NewGitStoreMap returns a Map instance with Graphs for the given GitStores.
-func NewBTGitStoreMap(ctx context.Context, repoUrls []string, btConf *bt_gitstore.BTConfig) (Map, error) {
-	rv := make(map[string]*Graph, len(repoUrls))
-	for _, repoUrl := range repoUrls {
-		gs, err := bt_gitstore.New(ctx, btConf, repoUrl)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to create GitStore for %s: %s", repoUrl, err)
-		}
-		graph, err := NewGitStoreGraph(ctx, gs)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to create Graph from GitStore for %s: %s", repoUrl, err)
-		}
-		rv[repoUrl] = graph
 	}
 	return rv, nil
 }
