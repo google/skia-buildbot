@@ -50,19 +50,3 @@ func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobRes
 	}
 	return ret, nil
 }
-
-// minCommit returns newCommit if it appears before current (or current is nil).
-func minCommit(current *tiling.Commit, newCommit *tiling.Commit) *tiling.Commit {
-	if current == nil || newCommit == nil || newCommit.CommitTime < current.CommitTime {
-		return newCommit
-	}
-	return current
-}
-
-// maxCommit returns newCommit if it appears after current (or current is nil).
-func maxCommit(current *tiling.Commit, newCommit *tiling.Commit) *tiling.Commit {
-	if current == nil || newCommit == nil || newCommit.CommitTime > current.CommitTime {
-		return newCommit
-	}
-	return current
-}

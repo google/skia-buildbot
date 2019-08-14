@@ -26,14 +26,12 @@ import (
 func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mb := &mocks.BaselineWriter{}
 	mds := &mocks.DiffStore{}
 	mdw := &mocks.DiffWarmer{}
 	meb := &mock_eventbus.EventBus{}
 	mes := &mocks.ExpectationsStore{}
 	mgc := &mocks.GCSClient{}
 
-	defer mb.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
 	defer mdw.AssertExpectations(t)
 	defer meb.AssertExpectations(t)
@@ -43,21 +41,17 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 	ct, _, _ := makeComplexTileWithCrosshatchIgnores()
 
 	ic := IndexerConfig{
-		Baseliner:         mb,
 		DiffStore:         mds,
 		EventBus:          meb,
 		ExpectationsStore: mes,
 		GCSClient:         mgc,
 		Warmer:            mdw,
 	}
-	wg, isAsync, asyncWrapper := testutils.AsyncHelpers()
+	wg, _, asyncWrapper := testutils.AsyncHelpers()
 
 	allTestDigests := types.DigestSlice{data.AlphaGood1Digest, data.AlphaBad1Digest, data.AlphaUntriaged1Digest,
 		data.BetaGood1Digest, data.BetaUntriaged1Digest}
 	sort.Sort(allTestDigests)
-
-	mb.On("CanWriteBaseline").Return(true)
-	isAsync(mb.On("PushMasterBaselines", ct, "")).Return(nil, nil)
 
 	mes.On("Get").Return(data.MakeTestExpectations(), nil)
 
@@ -142,12 +136,10 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 func TestIndexerPartialUpdate(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mb := &mocks.BaselineWriter{}
 	mdw := &mocks.DiffWarmer{}
 	meb := &mock_eventbus.EventBus{}
 	mes := &mocks.ExpectationsStore{}
 
-	defer mb.AssertExpectations(t)
 	defer mdw.AssertExpectations(t)
 	defer meb.AssertExpectations(t)
 	defer mes.AssertExpectations(t)
@@ -155,12 +147,9 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	ct, fullTile, partialTile := makeComplexTileWithCrosshatchIgnores()
 	assert.NotEqual(t, fullTile, partialTile)
 
-	wg, isAsync, asyncWrapper := testutils.AsyncHelpers()
+	wg, _, asyncWrapper := testutils.AsyncHelpers()
 
 	mes.On("Get").Return(data.MakeTestExpectations(), nil)
-
-	mb.On("CanWriteBaseline").Return(true)
-	isAsync(mb.On("PushMasterBaselines", ct, "")).Return(nil, nil)
 
 	meb.On("Publish", EV_INDEX_UPDATED, mock.AnythingOfType("*indexer.SearchIndex"), false).Return(nil)
 
@@ -174,7 +163,6 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	}))
 
 	ic := IndexerConfig{
-		Baseliner:         mb,
 		EventBus:          meb,
 		ExpectationsStore: mes,
 		Warmer:            mdw,
@@ -193,7 +181,6 @@ func TestIndexerPartialUpdate(t *testing.T) {
 
 	ixr.lastIndex = &SearchIndex{
 		searchIndexConfig: searchIndexConfig{
-			baseliner:         mb,
 			expectationsStore: mes,
 			warmer:            mdw,
 		},

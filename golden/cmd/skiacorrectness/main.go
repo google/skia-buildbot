@@ -82,7 +82,6 @@ func main() {
 		appTitle            = flag.String("app_title", "Skia Gold", "Title of the deployed up on the front end.")
 		authoritative       = flag.Bool("authoritative", false, "Indicates that this instance should write changes that could be triggered on multiple instances running in parallel.")
 		authorizedUsers     = flag.String("auth_users", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
-		baselineGSPath      = flag.String("baseline_gs_path", "", "GS path, where the baseline file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
 		btInstanceID        = flag.String("bt_instance", "production", "ID of the BigTable instance that contains Git metadata")
 		btProjectID         = flag.String("bt_project_id", "skia-public", "project id with BigTable instance")
 		cacheSize           = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
@@ -354,9 +353,8 @@ func main() {
 	}
 
 	gsClientOpt := storage.GCSClientOptions{
-		HashesGSPath:   *hashesGSPath,
-		BaselineGSPath: *baselineGSPath,
-		Dryrun:         *local,
+		HashesGSPath: *hashesGSPath,
+		Dryrun:       *local,
 	}
 
 	gsClient, err := storage.NewGCSClient(client, gsClientOpt)

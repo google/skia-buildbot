@@ -2,7 +2,6 @@ package baseline
 
 import (
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -38,24 +37,6 @@ func EmptyBaseline() *Baseline {
 		Expectations: types.Expectations{},
 		MD5:          md5SumEmptyExp,
 	}
-}
-
-// TODO(kjlubick): delete this once fs_baseliner lands
-type BaselineWriter interface {
-	// CanWriteBaseline returns true if this instance was configured to write baseline files.
-	CanWriteBaseline() bool
-
-	// PushMasterBaselines writes the baselines for the master branch to GCS.
-	// If tileInfo is nil the tile of the last call to PushMasterBaselines is used. If the
-	// function was never called before and tileInfo is nil, an error is returned.
-	// If targetHash != "" we also return the baseline for corresponding commit as the first return
-	// value. Otherwise the first return value is nil.
-	// It is assumed that the target commit is one of the commits that are written as part of
-	// this call.
-	PushMasterBaselines(tileInfo TileInfo, targetHash string) (*Baseline, error)
-
-	// PushIssueBaseline writes the baseline for a Gerrit issue to GCS.
-	PushIssueBaseline(issueID int64, tileInfo TileInfo, dCounter digest_counter.DigestCounter) error
 }
 
 type BaselineFetcher interface {
