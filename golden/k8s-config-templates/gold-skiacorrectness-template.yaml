@@ -44,7 +44,6 @@ spec:
           args:
             - "--app_title={{.SKCORR_TITLE}}"
             - "--auth_users={{.AUTH_USERS}}"
-            - "--baseline_gs_path=skia-gold-{{.INSTANCE_ID}}/baselines"
             - "--bt_instance={{.BIGTABLE_INSTANCE}}"
             - "--bt_project_id={{.BIGTABLE_PROJECT}}"
             - "--cache_size=0"
