@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e42cb89c_c0428de0",
+        "filename": "perf/modules/explore-sk/explore-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 611,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-14T16:33:45Z",
+      "side": 1,
+      "message": "If there are no callers with _removeAll(false) then we can just remove the parameter?",
+      "revId": "e06182d6d4c19b761fb1120b75cf2ceb2d4b7901",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
