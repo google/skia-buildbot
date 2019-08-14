@@ -111,12 +111,9 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 	var secondaryVCS vcsinfo.VCS
 	var extractor depot_tools.DEPSExtractor
 	if config.SecondaryRepoURL != "" {
-		var err error
-		if secondaryVCS, err = gitinfo.CloneOrUpdate(ctx, config.SecondaryRepoURL, config.SecondaryRepoDir, true); err != nil {
-			return nil, skerr.Wrapf(err, "could not set up secondary repo %s in %s", config.SecondaryRepoURL, config.SecondaryRepoDir)
-		}
-		extractor = depot_tools.NewRegExDEPSExtractor(config.SecondaryRegEx)
-		vcs.(*gitinfo.GitInfo).SetSecondaryRepo(secondaryVCS, extractor)
+		// TODO(kjlubick) Check up tracestore_impl's isOnMaster to make sure it
+		// works with what is put here.
+		return nil, skerr.Fmt("Not yet implemented to have a secondary repo url")
 	}
 
 	// for each defined ingester create an instance.
