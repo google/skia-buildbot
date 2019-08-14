@@ -8,14 +8,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"path"
 	"sort"
 	"sync"
 	"time"
 
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/gitstore"
-	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
@@ -60,7 +57,7 @@ func (c *Commit) Recurse(f func(*Commit) error) error {
 }
 
 // recurse is a helper function used by Recurse.
-func (c *Commit) recurse(f func(*Commit) error, visited map[*Commit]bool) (rvErr error) {
+func (c *Commit) recurse(f func(*Commit) error, visited map[*Commit]bool) error {
 	// For large repos, we may not have enough stack space to recurse
 	// through the whole commit history. Since most commits only have
 	// one parent, avoid recursion when possible.
@@ -165,8 +162,8 @@ type RepoImpl interface {
 	// Update the local view of the repo.
 	Update(context.Context) error
 
-	// Return the given commits.
-	Get(context.Context, []string) ([]*vcsinfo.LongCommit, error)
+	// Return the details for the given commit.
+	Details(context.Context, string) (*vcsinfo.LongCommit, error)
 
 	// Return the branch heads, as of the last call to Update().
 	Branches(context.Context) ([]*git.Branch, error)
@@ -191,34 +188,22 @@ type Graph struct {
 // update the Graph; the caller is responsible for doing so before using the
 // Graph if up-to-date data is required.
 func NewLocalGraph(ctx context.Context, repoUrl, workdir string) (*Graph, error) {
-	repo, err := git.NewRepo(ctx, repoUrl, workdir)
+	ri, err := NewLocalRepoImpl(ctx, repoUrl, workdir)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create git repo: %s", err)
-	}
-	rv := &Graph{
-		commits:  map[string]*Commit{},
-		repoImpl: &localRepoImpl{repo},
-	}
-	if err := initFromFile(rv, path.Join(repo.Dir(), CACHE_FILE)); err != nil {
 		return nil, err
 	}
-	return rv, nil
+	return NewWithRepoImpl(ctx, ri)
 }
 
-// NewGitStoreGraph returns a Graph instance which is backed by a GitStore.
-func NewGitStoreGraph(ctx context.Context, gs gitstore.GitStore) (*Graph, error) {
-	return NewWithRepoImpl(ctx, &gitstoreRepoImpl{
-		gs: gs,
-	})
-}
-
-// NewWithRepoImpl returns a Graph instance which uses the given RepoImpl.
+// NewWithRepoImpl returns a Graph instance which uses the given RepoImpl. The
+// RepoImpl should be initialized (via Update() or otherwise) before being
+// passed to NewWithRepoImpl.
 func NewWithRepoImpl(ctx context.Context, ri RepoImpl) (*Graph, error) {
 	rv := &Graph{
 		commits:  map[string]*Commit{},
 		repoImpl: ri,
 	}
-	if err := rv.Update(ctx); err != nil {
+	if _, _, err := rv.updateFrom(ctx, rv.repoImpl); err != nil {
 		return nil, err
 	}
 	return rv, nil
@@ -267,9 +252,6 @@ func (r *Graph) addCommit(lc *vcsinfo.LongCommit) error {
 func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCommit, []*vcsinfo.LongCommit, error) {
 	// Retrieve the new commits.
 	sklog.Info("Updating repograph.Graph...")
-	if err := ri.Update(ctx); err != nil {
-		return nil, nil, fmt.Errorf("Failed RepoImpl.Update(): %s", err)
-	}
 
 	// Obtain the list of branches.
 	sklog.Info("  Getting branches...")
@@ -333,17 +315,17 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 			}
 
 			// We haven't seen this commit before; add it to newCommits.
-			details, err := ri.Get(ctx, []string{c})
+			details, err := ri.Details(ctx, c)
 			if err != nil {
 				return nil, nil, fmt.Errorf("Failed to Get commit details from RepoImpl: %s", err)
 			}
-			newCommits = append(newCommits, details[0])
+			newCommits = append(newCommits, details)
 
 			// Add the commit's parent(s) to the toProcess map.
-			for _, p := range details[0].Parents {
+			for _, p := range details.Parents {
 				toProcess[p] = true
 			}
-			if len(details[0].Parents) == 0 && oldHead != "" {
+			if len(details.Parents) == 0 && oldHead != "" {
 				// If we found a commit with no parents and this
 				// is not a new branch, then we've discovered a
 				// completely new line of history and need to
@@ -411,6 +393,13 @@ func (r *Graph) update(ctx context.Context, cb func(*Graph) error) ([]*vcsinfo.L
 	r.updateMtx.Lock()
 	defer r.updateMtx.Unlock()
 	defer metrics2.FuncTimer().Stop()
+
+	// Update the RepoImpl.
+	sklog.Info("Updating RepoImpl...")
+	if err := r.repoImpl.Update(ctx); err != nil {
+		return nil, nil, fmt.Errorf("Failed RepoImpl.Update(): %s", err)
+	}
+
 	newGraph := r.shallowCopy()
 	added, removed, err := newGraph.updateFrom(ctx, r.repoImpl)
 	if err != nil {
@@ -514,6 +503,18 @@ func (r *Graph) Get(ref string) *Commit {
 		}
 	}
 	return nil
+}
+
+// GetAll returns a map containing all of the stored Commit objects keyed by
+// commit hash.
+func (r *Graph) GetAll() map[string]*Commit {
+	r.graphMtx.RLock()
+	defer r.graphMtx.RUnlock()
+	rv := make(map[string]*Commit, len(r.commits))
+	for k, v := range r.commits {
+		rv[k] = v
+	}
+	return rv
 }
 
 // RecurseCommits runs the given function recursively over the given refs, which
@@ -782,23 +783,6 @@ func NewLocalMap(ctx context.Context, repos []string, workdir string) (Map, erro
 	return rv, nil
 }
 
-// NewGitStoreMap returns a Map instance with Graphs for the given GitStores.
-func NewBTGitStoreMap(ctx context.Context, repoUrls []string, btConf *bt_gitstore.BTConfig) (Map, error) {
-	rv := make(map[string]*Graph, len(repoUrls))
-	for _, repoUrl := range repoUrls {
-		gs, err := bt_gitstore.New(ctx, btConf, repoUrl)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to create GitStore for %s: %s", repoUrl, err)
-		}
-		graph, err := NewGitStoreGraph(ctx, gs)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to create Graph from GitStore for %s: %s", repoUrl, err)
-		}
-		rv[repoUrl] = graph
-	}
-	return rv, nil
-}
-
 // update the Graphs in the Map, returning any added and removed commits, and
 // run the given callback function on the Graphs before the changes are
 // committed. If the callback returns an error for any Graph, the changes are
@@ -811,6 +795,10 @@ func (m Map) update(ctx context.Context, cb func(string, *Graph) error) (map[str
 		r.updateMtx.Lock()
 		defer r.updateMtx.Unlock()
 		newGraph := r.shallowCopy()
+		sklog.Info("Updating RepoImpl...")
+		if err := r.repoImpl.Update(ctx); err != nil {
+			return nil, nil, err
+		}
 		a, r, err := newGraph.updateFrom(ctx, r.repoImpl)
 		if err != nil {
 			return nil, nil, err
