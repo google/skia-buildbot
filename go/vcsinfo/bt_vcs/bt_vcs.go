@@ -282,6 +282,7 @@ func (b *BigTableVCS) details(ctx context.Context, hash string, includeBranchInf
 }
 
 // getBranchInfo determines which branches contain the given commit 'c'.
+// This function can potentially spawn a huge number of goroutines (one per branch).
 func (b *BigTableVCS) getBranchInfo(ctx context.Context, c *vcsinfo.LongCommit, allBranches map[string]*gitstore.BranchPointer) (map[string]bool, error) {
 	ret := make(map[string]bool, len(allBranches))
 	var mutex sync.Mutex
