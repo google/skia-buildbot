@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3b6013d5_60541384",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-14T18:36:22Z",
+      "side": 1,
+      "message": "FYI: be aware of the difference between the path and path/filepath package the former is not platform-dependent (i.e. always uses /) and the latter will use / or \\ where for Unix or Windows respectively.\n\nSince this is a URL, should we make sure we are always using / here? or does it need to match the path on disk (could be \\ on Windows)?",
+      "range": {
+        "startLine": 301,
+        "startChar": 16,
+        "endLine": 301,
+        "endChar": 24
+      },
+      "revId": "295f3342a069afac295532474a212e71ca8ff897",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "512ffacf_13c78ec2",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-14T18:36:22Z",
+      "side": 1,
+      "message": "Add some context to this error. The preferred way to do this is something like:\n  return skerr.Wrapf(err, \"fetching image %s\", imgDigest)\n\nThis will include a stacktrace with the error, making debugging easier.",
+      "range": {
+        "startLine": 357,
+        "startChar": 10,
+        "endLine": 357,
+        "endChar": 13
+      },
+      "revId": "295f3342a069afac295532474a212e71ca8ff897",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
