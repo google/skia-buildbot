@@ -36,7 +36,8 @@ triage-page-sk {
   }
 
   summary:focus {
-    outline: dotted thick var(--blue);
+    outline: dashed 2px var(--blue);
+    outline-offset: 3px;
   }
 
   tr:nth-child(even) {
