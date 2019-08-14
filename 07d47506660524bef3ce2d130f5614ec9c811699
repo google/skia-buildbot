@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c65cae5b_7e47616c",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-14T20:49:16Z",
+      "side": 1,
+      "message": "AFAIK - this is unused (and would have been broken if used)",
+      "revId": "07d47506660524bef3ce2d130f5614ec9c811699",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
