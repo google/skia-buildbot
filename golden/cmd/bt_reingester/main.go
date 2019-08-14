@@ -18,6 +18,9 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
 	"google.golang.org/api/option"
+
+	// Add codec for tryjobstore events, which may fire while we are ingesting.
+	_ "go.skia.org/infra/golden/go/tryjobstore"
 )
 
 func main() {

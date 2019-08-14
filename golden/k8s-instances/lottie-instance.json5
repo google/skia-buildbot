@@ -12,17 +12,18 @@
     "N_COMMITS":               500,
     "PUBSUB_PROJECT":          "skia-public",
     "SITE_URL":                "https://lottie-gold.skia.org",
-    "SKCORR_DEFAULT_CORPUS":   "lottie",
-    "SKCORR_TITLE":            "Lottie Gold",
 
     // Git BigTable settings
     "GIT_BT_TABLE":            "git-repos",
 
     // Settings for skiacorrectness instance
-    "MAIN_MEMORY":             "4Gi",
-    "MAIN_CPU":                "4",
-    "TILE_FRESHNESS":          "1m",
+    "AUTH_USERS":              "google.com chromium.org skia.org",
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
+    "MAIN_CPU":                "4",
+    "MAIN_MEMORY":             "4Gi",
+    "SKCORR_DEFAULT_CORPUS":   "lottie",
+    "SKCORR_TITLE":            "Lottie Gold",
+    "TILE_FRESHNESS":          "1m",
 
     // Settings for the main ingester.
     "ING_RUN_EVERY":           "20m",

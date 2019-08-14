@@ -15,6 +15,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/davecgh/go-spew/spew"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
@@ -99,12 +100,12 @@ func New(projectID, topicName, subscriberName string, opts ...option.ClientOptio
 	var err error
 	ret.client, err = pubsub.NewClient(context.Background(), projectID, opts...)
 	if err != nil {
-		return nil, sklog.FmtErrorf("Error creating pubsub client: %s", err)
+		return nil, skerr.Wrapf(err, "creating pubsub client for project %s", projectID)
 	}
 
 	// Set up the pubsub client, topic and subscription.
 	if err := ret.setupTopicSub(topicName, subscriberName); err != nil {
-		return nil, err
+		return nil, skerr.Wrapf(err, "setting up topic with name %s as subscriber %s", topicName, subscriberName)
 	}
 
 	// Start the receiver.
@@ -297,13 +298,13 @@ func (d *distEventBus) decodeMsg(msg *pubsub.Message) ([]*channelWrapper, interf
 	if d.wrapperCodec != nil {
 		tempWrapper, err := d.wrapperCodec.Decode(payload)
 		if err != nil {
-			return nil, nil, false, fmt.Errorf("Error decoding message wrapper: %s", err)
+			return nil, nil, false, skerr.Wrapf(err, "decoding message wrapper")
 		}
 		wrapper = tempWrapper.(*channelWrapper)
 		payload = wrapper.Data
 		codecInst, ok := codecMap.Load(wrapper.ChannelID)
 		if !ok {
-			return nil, nil, false, fmt.Errorf("Unable to decode message for channel '%s'. No codec registered.", wrapper.ChannelID)
+			return nil, nil, false, skerr.Fmt("Unable to decode message for channel '%s'. No codec registered", wrapper.ChannelID)
 		}
 		codec = codecInst.(util.LRUCodec)
 	}
@@ -311,7 +312,7 @@ func (d *distEventBus) decodeMsg(msg *pubsub.Message) ([]*channelWrapper, interf
 	// Deserialize the payload.
 	data, err = codec.Decode(payload)
 	if err != nil {
-		return nil, nil, false, fmt.Errorf("Unable to decode payload of pubsub event: %s", err)
+		return nil, nil, false, skerr.Wrapf(err, "decoding payload of pubsub event")
 	}
 
 	// Check if this is a synthetic storage event in which case we need to notify the right subscribers.

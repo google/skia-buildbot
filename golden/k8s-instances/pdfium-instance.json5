@@ -2,28 +2,29 @@
     // Gold settings
     "BIGTABLE_INSTANCE":       "production",
     "BIGTABLE_PROJECT":        "skia-public",
-    "BUCKET":                  "skia-infra-gm",
-    "DATASTORE_NAMESPACE":     "gold-skia-prod",
+    "BUCKET":                  "skia-pdfium-gm",
+    "DATASTORE_NAMESPACE":     "gold-pdfium",
     "DATASTORE_PROJECT":       "google.com:skia-buildbots",
     "FIRESTORE_PROJECT":       "skia-firestore",
-    "FORCE_LOGIN":             true,
-    "GERRIT_URL":              "https://skia-review.googlesource.com",
-    "GITREPO_URL":             "https://skia.googlesource.com/skia.git",
-    "N_COMMITS":               256,
+    "FORCE_LOGIN":             false,
+    "GERRIT_URL":              "https://pdfium-review.googlesource.com",
+    "GITREPO_URL":             "https://pdfium.googlesource.com/pdfium",
+    "N_COMMITS":               250,
     "PUBSUB_PROJECT":          "skia-public",
-    "SITE_URL":                "https://gold.skia.org",
+    "SITE_URL":                "https://pdfium-gold.skia.org",
+
 
     // Git BigTable settings
     "GIT_BT_TABLE":            "git-repos",
 
     // Settings for skiacorrectness instance
-    "AUTH_USERS":              "google.com mtklein@chromium.org skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com",
+    "AUTH_USERS":              "google.com",
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
-    "MAIN_CPU":                "25",
-    "MAIN_MEMORY":             "200Gi",
-    "SKCORR_DEFAULT_CORPUS":   "gm",
-    "SKCORR_TITLE":            "Skia Gold",
-    "TILE_FRESHNESS":          "5m",
+    "MAIN_CPU":                "4",
+    "MAIN_MEMORY":             "4Gi",
+    "SKCORR_DEFAULT_CORPUS":   "corpus",
+    "SKCORR_TITLE":            "Pdfium Gold",
+    "TILE_FRESHNESS":          "1m",
 
     // Settings for the main ingester.
     "ING_RUN_EVERY":           "20m",
@@ -33,13 +34,13 @@
     // Settings for the Tryjob ingester. If ING_TRY_ENABLED is false no ingester for
     // tryjobs will be configured.
     "ING_TRY_ENABLED":         true,
-    "ING_TRY_RUN_EVERY":       "20m",
+    "ING_TRY_RUN_EVERY":       "60m",
     "ING_TRY_MIN_DAYS":        2,
     "ING_TRY_N_COMMITS":       1,  // N_COMMITS doesn't really make sense for tryjob scanning
     "ING_TRY_BUILDBUCKET_URL": "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
-    "ING_TRY_BUILDBUCKET":     "skia.primary",
+    "ING_TRY_BUILDBUCKET":     "master.tryserver.client.pdfium",
     "ING_TRY_BB_INTERVAL":     "10s",
     "ING_TRY_BB_WINDOW":       "5h",
-    "ING_TRY_BUILDER_REGEX":   "^Test-.*",
-    "ING_JOB_CONFIG_FILE":     "", // Omit this for now, gittiles file fetch borked "infra/bots/cfg.json",
+    "ING_TRY_BUILDER_REGEX":   ".*",
+    "ING_JOB_CONFIG_FILE":     "",
 }
