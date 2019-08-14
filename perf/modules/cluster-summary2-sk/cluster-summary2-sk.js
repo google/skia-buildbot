@@ -62,8 +62,8 @@ const template = (ele) => html`
   <plot-simple-sk class=plot specialevents @trace_selected=${ele._traceSelected}></plot-simple-sk>
   <div id=status class=${ele._hiddenClass()}>
     <p class=disabledMessage>You must be logged in to change the status.</p>
-    <triage2-sk value=${ele.triage.status} @change=${(e) => {ele.triage.status = e.detail}}></triage2-sk>
-    <input type=text value=${ele.triage.message} @change=${(e) => {ele.triage.message = e.target.value}} label=Message>
+    <triage2-sk value=${ele._triage.status} @change=${(e) => {ele._triage.status = e.detail}}></triage2-sk>
+    <input type=text .value=${ele._triage.message} @change=${(e) => {ele._triage.message = e.target.value}} label=Message>
     <button class=action @click=${ele._update}>Update</button>
   </div>
   <commit-detail-panel-sk id=commits></commit-detail-panel-sk>

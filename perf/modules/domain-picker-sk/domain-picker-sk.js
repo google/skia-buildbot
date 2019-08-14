@@ -50,7 +50,7 @@ const _request_type = (ele) => {
      <p>Display only the points that have data before the date.</p>
      <label>
        <span>Number of points</span>
-       <input @change=${ele._numChanged} type=number value='${ele._state.num_commits}' min=1 max=5000 list=defaultNumbers>
+       <input @change=${ele._numChanged} type=number .value='${ele._state.num_commits}' min=1 max=5000 list=defaultNumbers>
      </label>
      <datalist id=defaultNumbers>
        <option value=50>
