@@ -117,7 +117,7 @@ func main() {
 		time.Sleep(5 * time.Second)
 		fmt.Println("Emulators started. Set environment variables as follows:")
 		for _, e := range emulators {
-			fmt.Println(fmt.Sprintf("export %s=%s", e.env, e.port))
+			fmt.Println(fmt.Sprintf("export %s=localhost:%s", e.env, e.port))
 		}
 		select {}
 	} else {
