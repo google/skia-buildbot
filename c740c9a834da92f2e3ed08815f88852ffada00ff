@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f5e58dbe_1c6e7520",
+        "filename": "go/git/repograph/graph_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-14T18:54:14Z",
+      "side": 1,
+      "message": "\\o/",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 22
+      },
+      "revId": "c740c9a834da92f2e3ed08815f88852ffada00ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "538d9249_609dccd8",
+        "filename": "go/git/repograph/local.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-14T18:54:14Z",
+      "side": 1,
+      "message": "would prefer skerr.Wrapf  See also line 35 and line 68",
+      "range": {
+        "startLine": 64,
+        "startChar": 14,
+        "endLine": 64,
+        "endChar": 24
+      },
+      "revId": "c740c9a834da92f2e3ed08815f88852ffada00ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
