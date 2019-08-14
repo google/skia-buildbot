@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "1f35d879_d434f282",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 510,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "This got changed to be a map and is now used by the localRepoImpl.",
+      "parentUuid": "1327bcba_18ad5f66",
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4f4f1148_45f52c0e",
         "filename": "go/git/repograph/repo_test.go",
         "patchSetId": 5
@@ -54,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "709abd1b_94389b7b",
+        "filename": "go/git/repograph/repo_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4f4f1148_45f52c0e",
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a5b925c0_3837ea2a",
         "filename": "go/git/repograph/repo_test.go",
         "patchSetId": 5
@@ -68,6 +104,24 @@
       "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f12fc159_689f8e7c",
+        "filename": "go/git/repograph/repo_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Done. This test was moved to local_serialize_test.go, since it needs things which are internal to repograph.",
+      "parentUuid": "a5b925c0_3837ea2a",
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -118,6 +172,30 @@
     },
     {
       "key": {
+        "uuid": "32ec3cb3_4a536dec",
+        "filename": "go/git/repograph/testutils/graph_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Ok, tests are now in go/git/repograph in package repograph_test.  go/git/repograph/testutils/testutils.go is now go/git/repograph/shared_tests/shared_tests.go.",
+      "parentUuid": "1c62c0a7_293093b8",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 17
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "79bca8b6_e064babc",
         "filename": "go/git/repograph/testutils/graph_test.go",
         "patchSetId": 5
@@ -141,6 +219,30 @@
     },
     {
       "key": {
+        "uuid": "2e41918e_0674b087",
+        "filename": "go/git/repograph/testutils/graph_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "79bca8b6_e064babc",
+      "range": {
+        "startLine": 29,
+        "startChar": 1,
+        "endLine": 29,
+        "endChar": 6
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b0975677_0ce299ff",
         "filename": "go/git/repograph/testutils/graph_test.go",
         "patchSetId": 5
@@ -152,6 +254,30 @@
       "writtenOn": "2019-08-13T19:34:32Z",
       "side": 1,
       "message": "TIL: you can use empty struct here to save a small amount of RAM\nhttps://yourbasic.org/golang/implement-set/\n\nProbably doesn\u0027t matter here, but I thought I\u0027d mention it in case you want to use that knowledge elsewhere.",
+      "range": {
+        "startLine": 34,
+        "startChar": 38,
+        "endLine": 34,
+        "endChar": 42
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c3f94f0c_ed6c85f3",
+        "filename": "go/git/repograph/testutils/graph_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "I\u0027ve done that before in some places, but in this case it\u0027s less convenient to write \"_, ok :\u003d found[c]; assert.True(t, ok)\" than it is to write \"assert.True(t, found[c])\".",
+      "parentUuid": "b0975677_0ce299ff",
       "range": {
         "startLine": 34,
         "startChar": 38,
@@ -187,6 +313,30 @@
     },
     {
       "key": {
+        "uuid": "d1b169f7_cab8877c",
+        "filename": "go/git/repograph/testutils/graph_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "993c19f3_70e97b1b",
+      "range": {
+        "startLine": 73,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 2
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f52f8e40_214653a3",
         "filename": "go/git/repograph/testutils/graph_test.go",
         "patchSetId": 5
@@ -210,6 +360,30 @@
     },
     {
       "key": {
+        "uuid": "73292a55_57f696b0",
+        "filename": "go/git/repograph/testutils/graph_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "I believe it was the current time when the test was written.  It has no meaning other than to fix the timestamps of the commits, which makes the commit hashes deterministic.  I actually prefer time.Unix here, since the other might imply that the value is somehow important.",
+      "parentUuid": "f52f8e40_214653a3",
+      "range": {
+        "startLine": 124,
+        "startChar": 18,
+        "endLine": 124,
+        "endChar": 28
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "071247a9_b59fbcb1",
         "filename": "go/git/repograph/testutils/graph_test.go",
         "patchSetId": 5
@@ -230,6 +404,30 @@
       "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c563a65_f7ab0ac5",
+        "filename": "go/git/repograph/testutils/graph_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Yep!",
+      "parentUuid": "071247a9_b59fbcb1",
+      "range": {
+        "startLine": 126,
+        "startChar": 80,
+        "endLine": 126,
+        "endChar": 93
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -279,6 +477,54 @@
     },
     {
       "key": {
+        "uuid": "463b5fe7_12f6fd4e",
+        "filename": "go/git/repograph/testutils/graph_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Done, but I typically prefer short names in tests, especially for short functions like this.",
+      "parentUuid": "7e9f4834_bfdebbb6",
+      "range": {
+        "startLine": 204,
+        "startChar": 15,
+        "endLine": 204,
+        "endChar": 16
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9980d731_4f4603a6",
+        "filename": "go/git/repograph/testutils/graph_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Done, but this is much more wordy than I like in tests.",
+      "parentUuid": "09013632_aeb25249",
+      "range": {
+        "startLine": 204,
+        "startChar": 1,
+        "endLine": 204,
+        "endChar": 6
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c5bc43f7_2ae561cb",
         "filename": "go/git/repograph/testutils/repo_test.go",
         "patchSetId": 5
@@ -293,6 +539,24 @@
       "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e1463b5d_c4b4325f",
+        "filename": "go/git/repograph/testutils/repo_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c5bc43f7_2ae561cb",
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -343,6 +607,30 @@
     },
     {
       "key": {
+        "uuid": "da54fe15_4cb7f4a3",
+        "filename": "go/git/repograph/testutils/repo_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Looks like repograph_test cannot be imported.",
+      "parentUuid": "6d442191_be4acd59",
+      "range": {
+        "startLine": 40,
+        "startChar": 56,
+        "endLine": 41,
+        "endChar": 26
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d9f9d761_13f3060c",
         "filename": "go/git/repograph/testutils/testutils.go",
         "patchSetId": 5
@@ -390,6 +678,30 @@
     },
     {
       "key": {
+        "uuid": "646895ad_b0ecc4ca",
+        "filename": "go/git/repograph/testutils/testutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Renamed to shared_tests.",
+      "parentUuid": "34b332ba_6a63763f",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 17
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "46956fdd_1ec847bf",
         "filename": "go/git/repograph/testutils/testutils.go",
         "patchSetId": 5
@@ -413,6 +725,30 @@
     },
     {
       "key": {
+        "uuid": "8c1b420b_e2bb83b5",
+        "filename": "go/git/repograph/testutils/testutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Changed this test\u0027s name. The meanings of the others are pretty obvious IMO: TestRecurse tests that the graph\u0027s Recurse() function does what we expect, etc.",
+      "parentUuid": "46956fdd_1ec847bf",
+      "range": {
+        "startLine": 201,
+        "startChar": 5,
+        "endLine": 201,
+        "endChar": 14
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "38b67ea8_f723eb20",
         "filename": "go/gitstore/bt_gitstore/bt_gitstore_test.go",
         "patchSetId": 5
@@ -433,6 +769,30 @@
       "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9dcb0ada_aacee2e2",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "38b67ea8_f723eb20",
+      "range": {
+        "startLine": 23,
+        "startChar": 1,
+        "endLine": 23,
+        "endChar": 12
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -483,6 +843,30 @@
     },
     {
       "key": {
+        "uuid": "f751944b_8590b5d4",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b190ac4d_aaf2f0cd",
+      "range": {
+        "startLine": 29,
+        "startChar": 5,
+        "endLine": 29,
+        "endChar": 22
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e8b1d810_ae0c1bf5",
         "filename": "go/gitstore/bt_gitstore/helpers.go",
         "patchSetId": 5
@@ -503,6 +887,30 @@
       "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "afaf8918_f1e28bd8",
+        "filename": "go/gitstore/bt_gitstore/helpers.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e8b1d810_ae0c1bf5",
+      "range": {
+        "startLine": 96,
+        "startChar": 15,
+        "endLine": 96,
+        "endChar": 25
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -529,6 +937,30 @@
     },
     {
       "key": {
+        "uuid": "27e1ddbe_735e3f17",
+        "filename": "go/gitstore/repo_impl.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "60d34232_f452d634",
+      "range": {
+        "startLine": 59,
+        "startChar": 9,
+        "endLine": 59,
+        "endChar": 12
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4bdf9a0b_4feef745",
         "filename": "go/gitstore/repo_impl.go",
         "patchSetId": 5
@@ -549,6 +981,30 @@
       "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bbb8d3fc_8b745836",
+        "filename": "go/gitstore/repo_impl.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4bdf9a0b_4feef745",
+      "range": {
+        "startLine": 85,
+        "startChar": 7,
+        "endLine": 85,
+        "endChar": 15
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -575,6 +1031,30 @@
     },
     {
       "key": {
+        "uuid": "9235443a_8f7a5ab2",
+        "filename": "go/gitstore/repo_impl.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8c083858_fb61a47c",
+      "range": {
+        "startLine": 92,
+        "startChar": 15,
+        "endLine": 92,
+        "endChar": 25
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a68e7915_4b23a1f3",
         "filename": "go/gitstore/repo_impl.go",
         "patchSetId": 5
@@ -595,6 +1075,30 @@
       "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c124518e_f2402e06",
+        "filename": "go/gitstore/repo_impl.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a68e7915_4b23a1f3",
+      "range": {
+        "startLine": 102,
+        "startChar": 14,
+        "endLine": 102,
+        "endChar": 24
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -621,6 +1125,30 @@
     },
     {
       "key": {
+        "uuid": "df7d3dd7_7dd7d7a0",
+        "filename": "go/gitstore/repo_impl_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Added comments. I\u0027ll consider adding \"type Hash string\" in the go/git package (along with a Validate() method).  I think that\u0027s generally a good idea, but it\u0027ll be a huge change and I suspect it\u0027ll make the API painful, having to continually write git.Hash(hash).",
+      "parentUuid": "ea34cfbb_6f5ea17c",
+      "range": {
+        "startLine": 23,
+        "startChar": 10,
+        "endLine": 23,
+        "endChar": 27
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6ae16793_96ce57d4",
         "filename": "go/gitstore/repo_impl_test.go",
         "patchSetId": 5
@@ -641,6 +1169,30 @@
       "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cc1cf29e_8a9a1e55",
+        "filename": "go/gitstore/repo_impl_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T15:52:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6ae16793_96ce57d4",
+      "range": {
+        "startLine": 64,
+        "startChar": 13,
+        "endLine": 64,
+        "endChar": 23
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
