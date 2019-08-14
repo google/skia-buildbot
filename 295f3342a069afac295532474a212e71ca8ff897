@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "457e61b1_171d7ce8",
+        "filename": "golden/go/diffstore/mapper/mapper.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-14T18:47:01Z",
+      "side": 0,
+      "message": "I think this still applies, although maybe it can go down to the ImagePaths function, which is the only thing that feels out of place here.",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 67
+      },
+      "revId": "295f3342a069afac295532474a212e71ca8ff897",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
