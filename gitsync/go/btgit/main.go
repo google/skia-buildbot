@@ -99,12 +99,12 @@ func main() {
 	// Fetch the graph of the repository to see if it performs well enough.
 	if *loadGraph {
 		ggt := timer.New("Getting graph")
-		commitGraph, err := gitStore.GetGraph(ctx)
+		commitGraph, err := gitstore.GetRepoGraph(ctx, gitStore)
 		if err != nil {
 			sklog.Fatalf("Error retrieving graph: %s", err)
 		}
 		ggt.Stop()
-		sklog.Infof("Loaded graph with %d nodes", len(commitGraph.Nodes))
+		sklog.Infof("Loaded graph with %d nodes", commitGraph.Len())
 	}
 
 	// Retrieve the index commits we are interested in.

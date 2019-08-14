@@ -3,10 +3,14 @@ package bt_gitstore_test
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sort"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gitstore"
 	gitstore_testutils "go.skia.org/infra/go/gitstore/testutils"
@@ -17,16 +21,21 @@ import (
 )
 
 const (
-	skiaRepoURL  = "https://skia.googlesource.com/skia.git"
-	skiaRepoDir  = "./skia"
 	localRepoURL = "https://example.com/local.git"
 )
 
-// This test requires a checkout of a repo (can be really any repo) in a directory named 'skia'
-// in the same directory as this test.
-func TestLargeGitStore(t *testing.T) {
+// This test uses a checkout of a repo (can be really any repo) in /tmp/skia.
+// If not present, syncs skia.git to /tmp/skia first.
+func TestGitStoreSkiaRepo(t *testing.T) {
 	unittest.ManualTest(t)
-	testGitStore(t, skiaRepoURL, skiaRepoDir, true)
+	skiaRepoDir := filepath.Join(os.TempDir(), "skia")
+	if _, err := os.Stat(skiaRepoDir); os.IsNotExist(err) {
+		_, err = git.NewRepo(context.Background(), common.REPO_SKIA, os.TempDir())
+		assert.NoError(t, err)
+	} else if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+	testGitStore(t, common.REPO_SKIA, skiaRepoDir, true)
 }
 
 func TestGitStoreLocalRepo(t *testing.T) {

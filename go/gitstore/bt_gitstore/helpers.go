@@ -8,6 +8,7 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/bt"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/skerr"
 )
@@ -83,4 +84,21 @@ func RepoURLFromID(ctx context.Context, conf *BTConfig, repoIDStr string) (strin
 		}
 	}
 	return "", false
+}
+
+// NewGitStoreMap returns a Map instance with Graphs for the given GitStores.
+func NewBTGitStoreMap(ctx context.Context, repoUrls []string, btConf *BTConfig) (repograph.Map, error) {
+	rv := make(map[string]*repograph.Graph, len(repoUrls))
+	for _, repoUrl := range repoUrls {
+		gs, err := New(ctx, btConf, repoUrl)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to create GitStore for %s", repoUrl)
+		}
+		graph, err := gitstore.GetRepoGraph(ctx, gs)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to create Graph from GitStore for %s", repoUrl)
+		}
+		rv[repoUrl] = graph
+	}
+	return rv, nil
 }

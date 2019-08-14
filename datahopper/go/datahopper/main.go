@@ -21,7 +21,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
@@ -104,7 +103,7 @@ func main() {
 		InstanceID: *btInstance,
 		TableID:    *gitstoreTable,
 	}
-	repos, err := repograph.NewBTGitStoreMap(ctx, *repoUrls, btConf)
+	repos, err := bt_gitstore.NewBTGitStoreMap(ctx, *repoUrls, btConf)
 	if err != nil {
 		sklog.Fatal(err)
 	}

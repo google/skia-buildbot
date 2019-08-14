@@ -1,4 +1,4 @@
-package repograph
+package bt_gitstore
 
 import (
 	"context"
@@ -9,21 +9,24 @@ import (
 	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/git/repograph"
+	repograph_shared_tests "go.skia.org/infra/go/git/repograph/shared_tests"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/gitstore"
-	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
+// gitstoreRefresher is an implementation of repograph_shared_tests.RepoImplRefresher
+// used for testing a GitStore.
 type gitstoreRefresher struct {
 	gs   gitstore.GitStore
 	repo git.GitDir
 	t    *testing.T
 }
 
-func newGitstoreUpdater(t *testing.T, gs gitstore.GitStore, gb *git_testutils.GitBuilder) refresher {
+func newGitstoreUpdater(t *testing.T, gs gitstore.GitStore, gb *git_testutils.GitBuilder) repograph_shared_tests.RepoImplRefresher {
 	return &gitstoreRefresher{
 		gs:   gs,
 		repo: git.GitDir(gb.Dir()),
@@ -31,7 +34,7 @@ func newGitstoreUpdater(t *testing.T, gs gitstore.GitStore, gb *git_testutils.Gi
 	}
 }
 
-func (u *gitstoreRefresher) refresh(commits ...*vcsinfo.LongCommit) {
+func (u *gitstoreRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 	ctx := context.Background()
 	// Add the commits.
 	assert.NoError(u.t, u.gs.Put(ctx, commits))
@@ -64,64 +67,64 @@ func (u *gitstoreRefresher) refresh(commits ...*vcsinfo.LongCommit) {
 }
 
 // setupGitStore performs common setup for GitStore based Graphs.
-func setupGitStore(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph, refresher, func()) {
-	ctx, g, cleanup := commonSetup(t)
+func setupGitStore(t *testing.T) (context.Context, *git_testutils.GitBuilder, *repograph.Graph, repograph_shared_tests.RepoImplRefresher, func()) {
+	ctx, g, cleanup := repograph_shared_tests.CommonSetup(t)
 
-	btConf := &bt_gitstore.BTConfig{
+	btConf := &BTConfig{
 		ProjectID:  "fake-project",
 		InstanceID: fmt.Sprintf("fake-instance-%s", uuid.New()),
 		TableID:    "repograph-gitstore",
 	}
-	assert.NoError(t, bt_gitstore.InitBT(btConf))
-	gs, err := bt_gitstore.New(context.Background(), btConf, g.RepoUrl())
+	assert.NoError(t, InitBT(btConf))
+	gs, err := New(context.Background(), btConf, g.RepoUrl())
 	assert.NoError(t, err)
 	ud := newGitstoreUpdater(t, gs, g)
-	repo, err := NewGitStoreGraph(ctx, gs)
+	repo, err := gitstore.GetRepoGraph(ctx, gs)
 	assert.NoError(t, err)
 	return ctx, g, repo, ud, cleanup
 }
 
-func TestGraphGitStore(t *testing.T) {
+func TestGraphWellFormedBTGitStore(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
-	testGraph(t, ctx, g, repo, ud)
+	repograph_shared_tests.TestGraphWellFormed(t, ctx, g, repo, ud)
 }
 
-func TestRecurseGitStore(t *testing.T) {
+func TestRecurseBTGitStore(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
-	testRecurse(t, ctx, g, repo, ud)
+	repograph_shared_tests.TestRecurse(t, ctx, g, repo, ud)
 }
 
-func TestRecurseAllBranchesGitStore(t *testing.T) {
+func TestRecurseAllBranchesBTGitStore(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
-	testRecurseAllBranches(t, ctx, g, repo, ud)
+	repograph_shared_tests.TestRecurseAllBranches(t, ctx, g, repo, ud)
 }
 
 /*
 TODO(borenet): This test is disabled because GitStore doesn't support deleting
 branches.
-func TestUpdateHistoryChangedGitStore(t *testing.T) {
+func TestUpdateHistoryChangedBTGitStore(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
-	testUpdateHistoryChanged(t, ctx, g, repo, ud)
+	repograph_shared_tests.TestUpdateHistoryChanged(t, ctx, g, repo, ud)
 }*/
 
-func TestUpdateAndReturnCommitDiffsGitStore(t *testing.T) {
+func TestUpdateAndReturnCommitDiffsBTGitStore(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
-	testUpdateAndReturnCommitDiffs(t, ctx, g, repo, ud)
+	repograph_shared_tests.TestUpdateAndReturnCommitDiffs(t, ctx, g, repo, ud)
 }
 
-func TestRevListGitStore(t *testing.T) {
+func TestRevListBTGitStore(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
-	testRevList(t, ctx, g, repo, ud)
+	repograph_shared_tests.TestRevList(t, ctx, g, repo, ud)
 }
