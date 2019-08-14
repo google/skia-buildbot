@@ -167,20 +167,33 @@ window.customElements.define('query-sk', class extends ElementSk {
   }
 
   _clearFilter() {
-    this._paramset = this._originalParamset;
-    this._recalcKeys();
-    this._keyChange();
     this._fast.value = "";
-    this._render();
+    this.paramset = this._originalParamset;
+    this._queryChanged();
   }
 
   /** @prop paramset {Object} A serialized paramtools.ParamSet. */
   get paramset() { return this._paramset }
   set paramset(val) {
+    // Record the current key so we can restore it later.
+    let prevSelectKey = '';
+    if (this._keySelect && this._keySelect.selection) {
+      prevSelectKey = this._keys[this._keySelect.selection];
+    }
+
     this._paramset = val;
     this._originalParamset = val;
     this._recalcKeys();
+    if (this._fast.value.trim() !== '') {
+      this._fastFilter();
+    }
     this._render();
+
+    // Now re-select the current key if it still exists post-filtering.
+    if (this._keySelect && prevSelectKey && this._keys.indexOf(prevSelectKey) != -1) {
+      this._keySelect.selection = this._keys.indexOf(prevSelectKey);
+      this._keyChange();
+    }
   }
 
   /** @prop key_order {string} An array of strings, the keys in the order they
