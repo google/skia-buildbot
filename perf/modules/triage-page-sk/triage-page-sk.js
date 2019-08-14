@@ -86,7 +86,7 @@ const _lowCell = (ele, rowIndex, col, colIndex) => {
   if (col && col.low) {
     return html`<triage-status-sk
                   .alert=${ele._alertAt(colIndex)}
-                  .cluster_type=low
+                  .cluster_type=${'low'}
                   .full_summary=${_full_summary(col.frame, col.low)}
                   .triage=${col.low_status}></triage-status-sk> `;
   } else {
@@ -100,7 +100,7 @@ const _highCell = (ele, rowIndex, col, colIndex) => {
   if (col && col.high) {
     return html`<triage-status-sk
                   .alert=${ele._alertAt(colIndex)}
-                  .cluster_type=high
+                  .cluster_type=${'high'}
                   .full_summary=${_full_summary(col.frame, col.high)}
                   .triage=${col.high_status}></triage-status-sk> `;
   } else {
