@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a5d17d65_c1c2b2f2",
+        "filename": "perf/modules/explore-sk/explore-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 344,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-14T16:48:34Z",
+      "side": 1,
+      "message": "nit: !\u003d\u003d",
+      "range": {
+        "startLine": 344,
+        "startChar": 29,
+        "endLine": 344,
+        "endChar": 31
+      },
+      "revId": "0495a778df5d862202f69c69b13c364082d45470",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
