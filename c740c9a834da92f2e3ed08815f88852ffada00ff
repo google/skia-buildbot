@@ -45,6 +45,30 @@
       "revId": "c740c9a834da92f2e3ed08815f88852ffada00ff",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d020b40_d9ec6ca6",
+        "filename": "go/git/repograph/local.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T19:25:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "538d9249_609dccd8",
+      "range": {
+        "startLine": 64,
+        "startChar": 14,
+        "endLine": 64,
+        "endChar": 24
+      },
+      "revId": "c740c9a834da92f2e3ed08815f88852ffada00ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
