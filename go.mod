@@ -1,7 +1,8 @@
 module go.skia.org/infra
 
 require (
-	cloud.google.com/go v0.44.1
+	cloud.google.com/go v0.44.3
+	cloud.google.com/go/bigtable v1.0.0
 	cloud.google.com/go/datastore v1.0.0
 	cloud.google.com/go/logging v1.0.0
 	contrib.go.opencensus.io/exporter/ocagent v0.6.0 // indirect
@@ -16,7 +17,7 @@ require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/VividCortex/godaemon v0.0.0-20150910212227-3d9f6e0b234f
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.22.4 // indirect
+	github.com/aws/aws-sdk-go v1.23.0 // indirect
 	github.com/boltdb/bolt v1.3.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/coreos/bbolt v1.3.3 // indirect
@@ -107,32 +108,31 @@ require (
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
-	go.chromium.org/luci v0.0.0-20190813043604-bacf46204919
+	go.chromium.org/luci v0.0.0-20190814000021-c916cf091f7e
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.opencensus.io v0.22.0
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/mobile v0.0.0-20190806162312-597adff16ade // indirect
-	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
+	golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	golang.org/x/sys v0.0.0-20190812172437-4e8604ab3aff // indirect
+	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
-	golang.org/x/tools v0.0.0-20190813034749-528a2984e271 // indirect
+	golang.org/x/tools v0.0.0-20190813214729-9dba7caff850 // indirect
 	golang.org/x/tools/gopls v0.1.3 // indirect
 	google.golang.org/api v0.8.0
 	google.golang.org/genproto v0.0.0-20190801165951-fa694d86fc64
-	google.golang.org/grpc v1.22.1
+	google.golang.org/grpc v1.23.0
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/olivere/elastic.v5 v5.0.81
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 	honnef.co/go/tools v0.0.1-2019.2.2 // indirect
-	k8s.io/api v0.0.0-20190813020757-36bff7324fb7 // indirect
-	k8s.io/apimachinery v0.0.0-20190809020650-423f5d784010
+	k8s.io/api v0.0.0-20190813220812-4c9d9526570f // indirect
+	k8s.io/apimachinery v0.0.0-20190813235223-d2c4b5819cd0
 	k8s.io/client-go v0.0.0-20190425172711-65184652c889
-	k8s.io/gengo v0.0.0-20190327210449-e17681d19d3a // indirect
-	k8s.io/klog v0.4.0 // indirect
+	k8s.io/gengo v0.0.0-20190813173942-955ffa8fcfc9 // indirect
 	k8s.io/kube-openapi v0.0.0-20190722073852-5e22f3d471e6 // indirect
 	k8s.io/utils v0.0.0-20190809000727-6c36bc71fc4a // indirect
 	sigs.k8s.io/structured-merge-diff v0.0.0-20190724202554-0c1d754dd648 // indirect
