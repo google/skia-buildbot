@@ -115,15 +115,17 @@ window.customElements.define('plot-simple-sk', class extends ElementSk {
             callbacks: {
               label: (tooltipItem, data) => {
                 var label = data.datasets[tooltipItem.datasetIndex].label || '';
+                var tooltipValue = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
                 let detail = {
                   id: label,
-                  value: tooltipItem.value,
+                  value: tooltipValue,
                   index: tooltipItem.index,
                   pt: [tooltipItem.index, tooltipItem.value],
                 };
                 this.dispatchEvent(new CustomEvent('trace_focused', {detail: detail, bubbles: true}));
 
-                return `Value: ${tooltipItem.value}`;
+                return parseFloat(tooltipValue).toLocaleString();
+                // return `Value: ${tooltipItem.value}`;
               }
             },
           },
@@ -151,6 +153,13 @@ window.customElements.define('plot-simple-sk', class extends ElementSk {
                 minRotation: 60,
                 autoSkip: true,
                 maxTicksLimit: 10,
+              },
+            }],
+            yAxes: [{
+              ticks: {
+                callback: function(value, index, values) {
+                  return parseFloat(value).toLocaleString();
+                },
               },
             }]
           },
