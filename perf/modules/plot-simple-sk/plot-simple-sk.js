@@ -114,16 +114,17 @@ window.customElements.define('plot-simple-sk', class extends ElementSk {
             caretPadding: 10,
             callbacks: {
               label: (tooltipItem, data) => {
-                var label = data.datasets[tooltipItem.datasetIndex].label || '';
+                const label = data.datasets[tooltipItem.datasetIndex].label || '';
+                const tooltipValue = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
                 let detail = {
                   id: label,
-                  value: tooltipItem.value,
+                  value: tooltipValue,
                   index: tooltipItem.index,
                   pt: [tooltipItem.index, tooltipItem.value],
                 };
                 this.dispatchEvent(new CustomEvent('trace_focused', {detail: detail, bubbles: true}));
 
-                return `Value: ${tooltipItem.value}`;
+                return parseFloat(tooltipValue).toLocaleString();
               }
             },
           },
@@ -151,6 +152,13 @@ window.customElements.define('plot-simple-sk', class extends ElementSk {
                 minRotation: 60,
                 autoSkip: true,
                 maxTicksLimit: 10,
+              },
+            }],
+            yAxes: [{
+              ticks: {
+                callback: function(value, index, values) {
+                  return parseFloat(value).toLocaleString();
+                },
               },
             }]
           },
@@ -266,8 +274,8 @@ window.customElements.define('plot-simple-sk', class extends ElementSk {
    * @return {Number} A 32 bit hash for the given string.
    */
   _hashString(s) {
-    var hash = 0;
-    for (var i = s.length - 1; i >= 0; i--) {
+    let hash = 0;
+    for (let i = s.length - 1; i >= 0; i--) {
       hash = ((hash << 5) - hash) + s.charCodeAt(i);
       hash |= 0;
     }
@@ -291,7 +299,7 @@ window.customElements.define('plot-simple-sk', class extends ElementSk {
    *
    * @example
    *
-   *     var lines = {
+   *     let lines = {
    *       foo: [
    *         [0.1, 3.7],
    *         [0.2, 3.8],
@@ -303,7 +311,7 @@ window.customElements.define('plot-simple-sk', class extends ElementSk {
    *         [0.5, 3.9],
    *       ],
    *     };
-   *     var labels = [new Date(), new Date()];
+   *     let labels = [new Date(), new Date()];
    *     plot.addLines(lines, labels);
    */
   addLines(lines, labels) {
@@ -340,7 +348,7 @@ window.customElements.define('plot-simple-sk', class extends ElementSk {
    */
   deleteLine(id) {
     let ds = this._chart.data.datasets;
-    for (var i = 0; i < ds.length; i++) {
+    for (let i = 0; i < ds.length; i++) {
       if (ds[i].label === id) {
         this._chart.data.datasets.splice(i, 1);
       }
@@ -440,7 +448,7 @@ window.customElements.define('plot-simple-sk', class extends ElementSk {
    *
    * @example
    *
-   *     var bands = [
+   *     let bands = [
    *       [0.0, 0.1],
    *       [0.5, 1.2],
    *     ];

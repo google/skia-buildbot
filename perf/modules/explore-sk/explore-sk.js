@@ -71,7 +71,7 @@ const template = (ele) => html`
   <div id=buttons>
     <domain-picker-sk id=range .state=${ele.state} @domain-changed=${ele._rangeChange}></domain-picker-sk>
     <button @click=${ele._removeHighlighted} title="Remove all the highlighted traces.">Remove Highlighted</button>
-    <button @click=${ele._removeAll} title="Remove all the traces.">Remove All</button>
+    <button @click=${(e) => ele._removeAll()} title="Remove all the traces.">Remove All</button>
     <button @click=${ele._highlightedOnly} title="Remove all but the highlighted traces.">Highlighted Only</button>
     <button @click=${ele._clearHighlights} title="Remove highlights from all traces.">Clear Highlights</button>
     <button @click=${ele._resetAxes} title="Reset back to the original zoom level.">Reset Axes</button>
@@ -627,13 +627,22 @@ window.customElements.define('explore-sk', class extends ElementSk {
     });
   }
 
-  _removeAll() {
+  /**
+   * Removes all traces.
+   *
+   * @param skipHistory {Boolean} - If true then don't update the URL. Used
+   * in calls like _normalize() where this is just an intermediate state we
+   * don't want in history.
+   */
+  _removeAll(skipHistory) {
     this.state.formulas = [];
     this.state.queries = [];
     this.state.keys = "";
     this._plot.removeAll();
     this._lines = [];
-    this._stateHasChanged();
+    if (!skipHistory) {
+      this._stateHasChanged();
+    }
   }
 
   // When Remove Highlighted or Highlighted Only are pressed then create a
@@ -692,12 +701,13 @@ window.customElements.define('explore-sk', class extends ElementSk {
     }
     promise.then(() => {
       let f = `norm(shortcut("${this.state.keys}"))`
-      this._removeAll();
+      this._removeAll(true);
       let body = this._requestFrameBodyFromState();
       Object.assign(body, {
         formulas: [f],
       });
       this.state.formulas.push(f);
+      this._stateHasChanged();
       this._requestFrame(body, (json) => {
         this._addTraces(json, true, false);
       });
@@ -713,12 +723,13 @@ window.customElements.define('explore-sk', class extends ElementSk {
     }
     promise.then(() => {
       let f = `scale_by_ave(shortcut("${this.state.keys}"))`
-      this._removeAll();
+      this._removeAll(true);
       var body = this._requestFrameBodyFromState();
       Object.assign(body, {
         formulas: [f],
       });
       this.state.formulas.push(f);
+      this._stateHasChanged();
       this._requestFrame(body, (json) => {
         this._addTraces(json, true, false);
       });
