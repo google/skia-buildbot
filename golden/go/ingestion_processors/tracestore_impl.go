@@ -73,7 +73,6 @@ func (b *btProcessor) Process(ctx context.Context, resultsFile ingestion.ResultF
 		return ingestion.IgnoreResultsFileErr
 	}
 
-	var commit *vcsinfo.LongCommit = nil
 	// If the target commit is not in the primary repository we look it up
 	// in the secondary that has the primary as a dependency.
 	targetHash, err := getCanonicalCommitHash(ctx, b.vcs, dmResults.GitHash)
@@ -84,13 +83,10 @@ func (b *btProcessor) Process(ctx context.Context, resultsFile ingestion.ResultF
 		return skerr.Fmt("could not identify canonical commit from %q: %s", dmResults.GitHash, err)
 	}
 
-	commit, err = b.vcs.Details(ctx, targetHash, true)
-	if err != nil {
-		return skerr.Fmt("could not get details for git commit %q: %s", targetHash, err)
-	}
-
-	if !commit.Branches["master"] {
-		sklog.Warningf("Commit %s is not in master branch. Got branches: %v", commit.Hash, commit.Branches)
+	if ok, err := b.isOnMaster(ctx, targetHash); err != nil {
+		return skerr.Wrapf(err, "could not determine branch for %s", targetHash)
+	} else if !ok {
+		sklog.Warningf("Commit %s is not in master branch", targetHash)
 		return ingestion.IgnoreResultsFileErr
 	}
 
@@ -111,6 +107,23 @@ func (b *btProcessor) Process(ctx context.Context, resultsFile ingestion.ResultF
 		return skerr.Fmt("could not add to tracedb: %s", err)
 	}
 	return nil
+}
+
+// isOnMaster returns true if the given commit hash is on the master branch.
+func (b *btProcessor) isOnMaster(ctx context.Context, hash string) (bool, error) {
+	// BT_VCS is configured to only look at master, so if we just look up the index of the hash,
+	// we will know if it is on the master branch
+	if i, _ := b.vcs.IndexOf(ctx, hash); i >= 0 {
+		return true, nil
+	}
+
+	if err := b.vcs.Update(ctx, false /*=pull*/, false /*=all branches*/); err != nil {
+		return false, skerr.Wrapf(err, "could not update VCS")
+	}
+	if i, _ := b.vcs.IndexOf(ctx, hash); i >= 0 {
+		return true, nil
+	}
+	return false, nil
 }
 
 // BatchFinished implements the ingestion.Processor interface.

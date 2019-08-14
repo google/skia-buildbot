@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"golang.org/x/sync/errgroup"
@@ -38,12 +39,12 @@ func New(ctx context.Context, config *BTConfig, repoURL string) (*BigTableGitSto
 	// Create the client.
 	client, err := bigtable.NewClient(ctx, config.ProjectID, config.InstanceID)
 	if err != nil {
-		return nil, skerr.Fmt("Error creating bigtable client: %s", err)
+		return nil, skerr.Wrapf(err, "creating bigtable client (project: %s; instance: %s)", config.ProjectID, config.InstanceID)
 	}
 
 	repoURL, err = git.NormalizeURL(repoURL)
 	if err != nil {
-		return nil, skerr.Fmt("Error normalizing URL %q: %s", repoURL, err)
+		return nil, skerr.Wrapf(err, "normalizing URL %q", repoURL)
 	}
 
 	shards := config.Shards
@@ -59,7 +60,7 @@ func New(ctx context.Context, config *BTConfig, repoURL string) (*BigTableGitSto
 
 	repoInfo, err := ret.loadRepoInfo(ctx, true)
 	if err != nil {
-		return nil, skerr.Fmt("Error getting initial repo info: %s", err)
+		return nil, skerr.Wrapf(err, "getting initial repo info for %s (project %s; instance: %s)", repoURL, config.ProjectID, config.InstanceID)
 	}
 	ret.RepoID = repoInfo.ID
 	return ret, nil
@@ -516,6 +517,9 @@ func (b *BigTableGitStore) writeTimestampIndex(ctx context.Context, indexCommits
 // The results of the query are added to the instance of shardedResults.
 func (b *BigTableGitStore) iterShardedRange(ctx context.Context, branch, rowType, startKey, endKey string, filters []bigtable.Filter, result shardedResults) error {
 	var egroup errgroup.Group
+
+	sklog.Infof("In iterShardedRange: %v", skerr.CallStack(10, 1))
+	sklog.Infof("shards: %d", b.shards)
 
 	// Query all shards in parallel.
 	for shard := uint32(0); shard < b.shards; shard++ {
