@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -255,14 +256,14 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 	// Setup the file server and define the handler function.
 	fileServer := http.FileServer(http.Dir(absPath))
 	handlerFunc := func(w http.ResponseWriter, r *http.Request) {
-		path := r.URL.Path
-		sklog.Debugf("diffstore handling %s", path)
-		idx := strings.Index(path, "/")
+		urlPath := r.URL.Path
+		sklog.Debugf("diffstore handling %s", urlPath)
+		idx := strings.Index(urlPath, "/")
 		if idx == -1 {
 			noCacheNotFound(w, r)
 			return
 		}
-		dir := path[:idx]
+		dir := urlPath[:idx]
 
 		// Limit the requests to directories with the images and diff images.
 		if (dir != DEFAULT_DIFFIMG_DIR_NAME) && (dir != DEFAULT_IMG_DIR_NAME) {
@@ -271,14 +272,14 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 		}
 
 		// Get the file that was requested and verify that it's a valid PNG file.
-		file := path[idx+1:]
+		file := urlPath[idx+1:]
 		if (len(file) <= len(dotExt)) || (!strings.HasSuffix(file, dotExt)) {
 			noCacheNotFound(w, r)
 			return
 		}
 
 		// Trim the image extension to get the image ID.
-		imgID := path[idx+1 : len(path)-len(dotExt)]
+		imgID := urlPath[idx+1 : len(urlPath)-len(dotExt)]
 		var localRelPath string
 		if dir == DEFAULT_IMG_DIR_NAME {
 			// Validate the requested image ID.
@@ -290,17 +291,17 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 			imgDigest := types.Digest(imgID)
 
 			// Make sure the file exists. If not fetch it. Should be the exception.
-			if !m.imgLoader.IsOnDisk(imgDigest) {
-				_, pendingWrites, err := m.imgLoader.Get(diff.PRIORITY_NOW, types.DigestSlice{imgDigest})
-				if err != nil {
-					sklog.Errorf("Errorf retrieving digests: %s", imgDigest)
-					noCacheNotFound(w, r)
-					return
-				}
-				// Wait until the images are written to disk.
-				pendingWrites.Wait()
+			if err := m.fetchIfNotOnDisk(imgDigest); err != nil {
+				sklog.Errorf("Error retrieving digests: %s", imgDigest)
+				noCacheNotFound(w, r)
+				return
 			}
 			localRelPath, _ = m.mapper.ImagePaths(imgDigest)
+
+			// Rewrite the path to include the mapper's custom local path construction format.
+			r.URL.Path = path.Join(DEFAULT_IMG_DIR_NAME, localRelPath)
+
+			fileServer.ServeHTTP(w, r)
 		} else {
 			// Validate the requested diff image ID.
 			if !mapper.IsValidDiffImgID(imgID) {
@@ -308,22 +309,58 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 				return
 			}
 
-			localRelPath = m.mapper.DiffPath(mapper.SplitDiffID(imgID))
-		}
+			// Extract the left and right image digests.
+			leftImgDigest, rightImgDigest := mapper.SplitDiffID(imgID)
 
-		// Rewrite the path to include the mapper's custom local path construction
-		// format.
-		r.URL.Path = filepath.Join(dir, localRelPath)
+			// Make sure both files exist.
+			for _, imgDigest := range []types.Digest{leftImgDigest, rightImgDigest} {
+				if err := m.fetchIfNotOnDisk(imgDigest); err != nil {
+					sklog.Errorf("Error retrieving digests: %s", imgDigest)
+					noCacheNotFound(w, r)
+					return
+				}
+			}
+
+			// Get their absolute paths.
+			leftImgLocalRelPath, _ := m.mapper.ImagePaths(leftImgDigest)
+			rightImgLocalRelPath, _ := m.mapper.ImagePaths(rightImgDigest)
+			leftImgPath := filepath.Join(absPath, DEFAULT_IMG_DIR_NAME, leftImgLocalRelPath)
+			rightImgPath := filepath.Join(absPath, DEFAULT_IMG_DIR_NAME, rightImgLocalRelPath)
+
+			// Load images.
+			leftImg, _ := common.LoadImg(leftImgPath)
+			rightImg, _ := common.LoadImg(rightImgPath)
+
+			// Compute the diff image and write it to the response.
+			_, diffImg := diff.PixelDiff(leftImg, rightImg)
+			if err := common.EncodeImg(w, diffImg); err != nil {
+				sklog.Errorf("Error encoding diff: %s", imgID)
+				noCacheNotFound(w, r)
+				return
+			}
+		}
 
 		// Cache images for 12 hours.
 		w.Header().Set("Cache-Control", "public, max-age=43200")
-		fileServer.ServeHTTP(w, r)
 	}
 
 	sklog.Infof("Created diffstore with base directory: %s", m.baseDir)
 
 	// The above function relies on the URL prefix being stripped.
 	return http.StripPrefix(urlPrefix, http.HandlerFunc(handlerFunc)), nil
+}
+
+// Fetches the image file if it's not already on disk.
+func (m *MemDiffStore) fetchIfNotOnDisk(imgDigest types.Digest) error {
+	if !m.imgLoader.IsOnDisk(imgDigest) {
+		_, pendingWrites, err := m.imgLoader.Get(diff.PRIORITY_NOW, types.DigestSlice{imgDigest})
+		if err != nil {
+			return skerr.Wrapf(err, "fetching image %s", imgDigest)
+		}
+		// Wait until the images are written to disk.
+		pendingWrites.Wait()
+	}
+	return nil
 }
 
 // noCacheNotFound disables caching and returns a 404.
