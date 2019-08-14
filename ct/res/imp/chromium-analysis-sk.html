@@ -160,13 +160,21 @@
       <tr>
         <td>
           Chromium Git patch (optional)<br/>
-          Applied to Chromium ToT
+          Applied to Chromium ToT<br/>
+          or to the hash specified below.
         </td>
         <td>
           <patch-sk id="chromium_patch"
                     patch-type="chromium"
                     cl-description="{{chromiumClDescription}}">
           </patch-sk>
+        </td>
+      </tr>
+
+      <tr>
+        <td>Chromium hash to sync to (optional)<br/></td>
+        <td>
+          <paper-input value="" id="chromium_hash" class="long-field"></paper-input>
         </td>
       </tr>
 
@@ -454,6 +462,7 @@
        params["browser_args"] = this.$.browser_args.value;
        params["desc"] = this.$.desc.value;
        params["chromium_patch"] = this.$.chromium_patch.patch;
+       params["chromium_hash"] = this.$.chromium_hash.value;
        params["skia_patch"] = this.$.skia_patch.patch;
        params["v8_patch"] = this.$.v8_patch.patch;
        params["catapult_patch"] = this.$.catapult_patch.patch;
