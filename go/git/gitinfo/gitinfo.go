@@ -105,7 +105,7 @@ func (g *GitInfo) Update(ctx context.Context, pull, allBranches bool) error {
 	} else {
 		hashes, timestamps, err = readCommitsFromGit(ctx, g.dir, "HEAD")
 	}
-	sklog.Infof("Finished reading commits: %s", g.dir)
+	sklog.Infof("Finished reading commits: %s (%d)", g.dir, len(hashes))
 	if err != nil {
 		return fmt.Errorf("Failed to read commits from: %s : %s", g.dir, err)
 	}

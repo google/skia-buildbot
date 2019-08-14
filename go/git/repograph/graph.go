@@ -93,6 +93,23 @@ func (c *Commit) recurse(f func(*Commit) error, visited map[*Commit]bool) error 
 	return nil
 }
 
+// RecurseFirstParent is like Recurse, but it only follows the first parent of
+// each commit.
+func (c *Commit) RecurseFirstParent(f func(*Commit) error) error {
+	for {
+		if err := f(c); err == ErrStopRecursing {
+			return nil
+		} else if err != nil {
+			return err
+		}
+		if len(c.parents) == 0 {
+			return nil
+		} else {
+			c = c.parents[0]
+		}
+	}
+}
+
 // AllCommits returns the hashes of all commits reachable from this Commit, in
 // reverse topological order.
 func (c *Commit) AllCommits() ([]string, error) {
@@ -284,6 +301,8 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 		// Shortcut: if the branch is up-to-date, skip it.
 		if newHead == oldHead {
 			continue
+		} else if oldHead == "" {
+			sklog.Warningf("Found new branch %s @ %s", branch.Name, newHead)
 		}
 
 		// Trace back in time from the new branch head until we find the
@@ -309,6 +328,7 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 					// we found the old branch head, then history
 					// has changed and we need to run the orphan
 					// check.
+					sklog.Warningf("Found previously-known commit %s before old branch head %s of %s; need to check for orphaned commits.", c, oldHead, branch.Name)
 					needOrphanCheck = true
 				}
 				continue
@@ -331,6 +351,7 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 				// completely new line of history and need to
 				// check whether the commits on the old line are
 				// now orphaned.
+				sklog.Warningf("Commit %s has no parents, and branch %s is not new. Need to check for orphaned commits.", c, branch.Name)
 				needOrphanCheck = true
 			}
 		}
@@ -354,6 +375,7 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 		// Check to see whether any branches were deleted.
 		for branch := range oldBranchesMap {
 			if _, ok := newBranchesMap[branch]; !ok {
+				sklog.Warningf("Branch %s was deleted; need to check for orphaned commits.", branch)
 				needOrphanCheck = true
 				break
 			}
@@ -417,6 +439,7 @@ func (r *Graph) update(ctx context.Context, cb func(*Graph) error) ([]*vcsinfo.L
 	defer r.graphMtx.Unlock()
 	r.branches = newGraph.branches
 	r.commits = newGraph.commits
+	sklog.Infof("Graph update finished; have %d commits, added %d, removed %d", len(r.commits), len(added), len(removed))
 	return added, removed, nil
 }
 
@@ -699,6 +722,34 @@ func topologicalSortHelper(commits map[*Commit]bool) []*Commit {
 		followBranch(next)
 	}
 	return rv
+}
+
+// LogLinear is equivalent to "git log --first-parent --ancestry-path from..to",
+// ie. it only returns commits which are on the direct path from A to B, and
+// only on the "main" branch. This is as opposed to "git log from..to" which
+// returns all commits which are ancestors of 'to' but not 'from'. The 'from'
+// commit may be the empty string, in which case all commits in the first-parent
+// line are returned.
+func (r *Graph) LogLinear(from, to string) ([]*vcsinfo.LongCommit, error) {
+	fromCommit := r.Get(from)
+	if fromCommit == nil && from != "" {
+		return nil, fmt.Errorf("No such commit %q", from)
+	}
+	toCommit := r.Get(to)
+	if toCommit == nil {
+		return nil, fmt.Errorf("No such commit %q", to)
+	}
+	rv := []*vcsinfo.LongCommit{}
+	if err := toCommit.RecurseFirstParent(func(c *Commit) error {
+		if c == fromCommit {
+			return ErrStopRecursing
+		}
+		rv = append(rv, c.LongCommit)
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return rv, nil
 }
 
 // IsAncestor returns true iff A is an ancestor of B, where A and B are either
