@@ -210,6 +210,8 @@ server {
     client_max_body_size 100M;
 
     # serve hashes directly to avoid bot outages if gold.skia.org goes down
+    # TODO(kjlubick): spin up a baseliner and replace this rule with that
+    # (although I don't think our bots directly look at this link anyway.)
     location /_/hashes {
       proxy_pass https://storage.googleapis.com/skia-infra-gm/hash_files/gold-prod-hashes.txt;
     }
@@ -266,12 +268,8 @@ server {
 
     client_max_body_size 100M;
 
-    location /_/hashes {
-      proxy_pass https://storage.googleapis.com/skia-infra-gm/hash_files/gold-pdfium-hashes.txt;
-    }
-
     location / {
-        proxy_pass http://skia-gold-pdfium:8001;
+        proxy_pass https://35.201.76.220;
         proxy_set_header Host $host;
     }
 }
@@ -293,12 +291,8 @@ server {
 
     client_max_body_size 100M;
 
-    location /_/hashes {
-      proxy_pass https://storage.googleapis.com/skia-chromevr-gm/hash_files/gold-chromevr-hashes.txt;
-    }
-
     location / {
-        proxy_pass http://skia-gold-chromevr:8001;
+        proxy_pass https://35.201.76.220;
         proxy_set_header Host $host;
     }
 }
