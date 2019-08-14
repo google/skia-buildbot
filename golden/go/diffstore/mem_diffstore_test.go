@@ -3,12 +3,10 @@ package diffstore
 import (
 	"fmt"
 	"path"
-	"path/filepath"
 	"sort"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
@@ -103,7 +101,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 		}
 	}
 	ti.Stop()
-	testDiffs(t, baseDir, memDiffStore, digests, digests, foundDiffs)
+	testDiffs(t, memDiffStore, digests, digests, foundDiffs)
 
 	// Get the results directly and make sure they are correct.
 	digests = testDigests[1][:TEST_N_DIGESTS]
@@ -115,18 +113,16 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 		foundDiffs[oneDigest] = found
 	}
 	ti.Stop()
-	testDiffs(t, baseDir, memDiffStore, digests, digests, foundDiffs)
+	testDiffs(t, memDiffStore, digests, digests, foundDiffs)
 }
 
-func testDiffs(t *testing.T, baseDir string, diffStore *MemDiffStore, leftDigests, rightDigests types.DigestSlice, result map[types.Digest]map[types.Digest]interface{}) {
+func testDiffs(t *testing.T, diffStore *MemDiffStore, leftDigests, rightDigests types.DigestSlice, result map[types.Digest]map[types.Digest]interface{}) {
 	diffStore.sync()
 	for _, left := range leftDigests {
 		for _, right := range rightDigests {
 			if left != right {
 				_, ok := result[left][right]
 				assert.True(t, ok, fmt.Sprintf("left: %s, right:%s", left, right))
-				diffPath := diffStore.mapper.DiffPath(left, right)
-				assert.True(t, fileutil.FileExists(filepath.Join(diffStore.localDiffDir, diffPath)), fmt.Sprintf("Could not find %s", diffPath))
 			}
 		}
 	}
