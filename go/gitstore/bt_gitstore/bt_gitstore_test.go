@@ -3,6 +3,7 @@ package bt_gitstore_test
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -16,6 +17,7 @@ import (
 	gitstore_testutils "go.skia.org/infra/go/gitstore/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	vcs_testutils "go.skia.org/infra/go/vcsinfo/testutils"
 )
@@ -43,12 +45,16 @@ func TestGitStoreLocalRepo(t *testing.T) {
 
 	repoDir, cleanup := vcs_testutils.InitTempRepo()
 	defer cleanup()
-	testGitStore(t, localRepoURL, repoDir, true)
+	testGitStore(t, "file://"+repoDir, repoDir, true)
 }
 
 func testGitStore(t *testing.T, repoURL, repoDir string, freshLoad bool) {
+	wd, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer util.RemoveAll(wd)
+
 	// Get all commits that have been added to the gitstore.
-	_, longCommits, gitStore := gitstore_testutils.SetupAndLoadBTGitStore(t, repoURL, repoDir, freshLoad)
+	_, longCommits, gitStore := gitstore_testutils.SetupAndLoadBTGitStore(t, context.TODO(), wd, repoURL, freshLoad)
 
 	// Sort long commits they way they are sorted by BigTable (by timestamp/hash)
 	sort.Slice(longCommits, func(i, j int) bool {

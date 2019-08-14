@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"sort"
+	"time"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
@@ -42,18 +43,17 @@ func CommonSetup(t sktest.TestingT) (context.Context, *git_testutils.GitBuilder,
 // c1--c2------c4--c5--
 //       \-c3-----/
 func GitSetup(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilder, repo *repograph.Graph, rf RepoImplRefresher) []*repograph.Commit {
-	c1hash := g.CommitGen(ctx, "myfile.txt")
+	now := time.Unix(1565820963, 0)
+	c1hash := g.CommitGenAt(ctx, "myfile.txt", now)
 	c1details, err := git.GitDir(g.Dir()).Details(ctx, c1hash)
 	assert.NoError(t, err)
 	rf.Refresh(c1details)
 	assert.NoError(t, repo.Update(ctx))
-
 	c1 := repo.Get("master")
 	assert.NotNil(t, c1)
 	assert.Equal(t, 0, len(c1.GetParents()))
 	assert.False(t, util.TimeIsZero(c1.Timestamp))
-
-	c2hash := g.CommitGen(ctx, "myfile.txt")
+	c2hash := g.CommitGenAt(ctx, "myfile.txt", now.Add(time.Second))
 	c2details, err := git.GitDir(g.Dir()).Details(ctx, c2hash)
 	assert.NoError(t, err)
 	rf.Refresh(c2details)
@@ -67,7 +67,7 @@ func GitSetup(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilde
 
 	// Create a second branch.
 	g.CreateBranchTrackBranch(ctx, "branch2", "origin/master")
-	c3hash := g.CommitGen(ctx, "anotherfile.txt")
+	c3hash := g.CommitGenAt(ctx, "anotherfile.txt", now.Add(2*time.Second))
 	c3details, err := git.GitDir(g.Dir()).Details(ctx, c3hash)
 	assert.NoError(t, err)
 	rf.Refresh(c3details)
@@ -80,7 +80,7 @@ func GitSetup(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilde
 
 	// Commit again to master.
 	g.CheckoutBranch(ctx, "master")
-	c4hash := g.CommitGen(ctx, "myfile.txt")
+	c4hash := g.CommitGenAt(ctx, "myfile.txt", now.Add(3*time.Second))
 	c4details, err := git.GitDir(g.Dir()).Details(ctx, c4hash)
 	assert.NoError(t, err)
 	rf.Refresh(c4details)
@@ -442,16 +442,19 @@ func TestUpdateHistoryChanged(t sktest.TestingT, ctx context.Context, g *git_tes
 }
 
 func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilder, repo *repograph.Graph, rf RepoImplRefresher) {
-	GitSetup(t, ctx, g, repo, rf)
+	commits := GitSetup(t, ctx, g, repo, rf)
+	now := commits[len(commits)-1].Timestamp
 
 	// The repo has commits, but GitSetup has already run Update(), so
 	// there's nothing new.
+	rf.Refresh()
 	added, removed, err := repo.UpdateAndReturnCommitDiffs(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, len(added), 0)
 	assert.Equal(t, len(removed), 0)
 
 	// No new commits.
+	rf.Refresh()
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(added))
@@ -460,8 +463,8 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 	// Add a few commits, ensure that they get picked up.
 	g.CheckoutBranch(ctx, "master")
 	f := "myfile"
-	new1 := g.CommitGen(ctx, f)
-	new2 := g.CommitGen(ctx, f)
+	new1 := g.CommitGenAt(ctx, f, now.Add(time.Second))
+	new2 := g.CommitGenAt(ctx, f, now.Add(2*time.Second))
 	new1details, err := git.GitDir(g.Dir()).Details(ctx, new1)
 	assert.NoError(t, err)
 	new2details, err := git.GitDir(g.Dir()).Details(ctx, new2)
@@ -471,17 +474,13 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(added))
 	assert.Equal(t, len(removed), 0)
-	if added[0].Hash == new1 {
-		assert.Equal(t, new2, added[1].Hash)
-	} else {
-		assert.Equal(t, new1, added[1].Hash)
-		assert.Equal(t, new2, added[0].Hash)
-	}
+	assert.Equal(t, new1, added[0].Hash)
+	assert.Equal(t, new2, added[1].Hash)
 
 	// Add commits on both branches, ensure that they get picked up.
-	new1 = g.CommitGen(ctx, f)
+	new1 = g.CommitGenAt(ctx, f, now.Add(3*time.Second))
 	g.CheckoutBranch(ctx, "branch2")
-	new2 = g.CommitGen(ctx, "file2")
+	new2 = g.CommitGenAt(ctx, "file2", now.Add(4*time.Second))
 	new1details, err = git.GitDir(g.Dir()).Details(ctx, new1)
 	assert.NoError(t, err)
 	new2details, err = git.GitDir(g.Dir()).Details(ctx, new2)
@@ -491,12 +490,8 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(added))
 	assert.Equal(t, len(removed), 0)
-	if added[0].Hash == new1 {
-		assert.Equal(t, new2, added[1].Hash)
-	} else {
-		assert.Equal(t, new1, added[1].Hash)
-		assert.Equal(t, new2, added[0].Hash)
-	}
+	assert.Equal(t, new1, added[0].Hash)
+	assert.Equal(t, new2, added[1].Hash)
 
 	// Add a new branch. Make sure that we don't get duplicate commits.
 	g.CheckoutBranch(ctx, "master")
@@ -510,6 +505,7 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 
 	// Make sure we get no duplicates if the branch heads aren't the same.
 	g.Reset(ctx, "--hard", "master^")
+	rf.Refresh()
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(added))
@@ -518,13 +514,14 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 	// Create a new branch.
 	g.CheckoutBranch(ctx, "master")
 	g.CreateBranchTrackBranch(ctx, "branch4", "master")
+	rf.Refresh()
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(added))
 	assert.Equal(t, len(removed), 0)
 
 	// Add a commit on the new branch.
-	new1 = g.CommitGen(ctx, f)
+	new1 = g.CommitGenAt(ctx, f, now.Add(5*time.Second))
 	new1details, err = git.GitDir(g.Dir()).Details(ctx, new1)
 	assert.NoError(t, err)
 	rf.Refresh(new1details)

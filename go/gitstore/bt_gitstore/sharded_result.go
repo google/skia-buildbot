@@ -42,22 +42,16 @@ func (s *srIndexCommits) Add(shard uint32, row bigtable.Row) error {
 	if idx < 0 {
 		return skerr.Fmt("Unable to parse index key %q. Invalid index", row.Key())
 	}
-
-	var hash string
-	var timeStamp bigtable.Timestamp
 	prefix := cfCommit + ":"
 	for _, col := range row[cfCommit] {
 		if strings.TrimPrefix(col.Column, prefix) == colHash {
-			hash = string(col.Value)
-			timeStamp = col.Timestamp
+			s.results[shard] = append(s.results[shard], &vcsinfo.IndexCommit{
+				Index:     idx,
+				Hash:      string(col.Value),
+				Timestamp: col.Timestamp.Time().UTC(),
+			})
 		}
 	}
-
-	s.results[shard] = append(s.results[shard], &vcsinfo.IndexCommit{
-		Index:     idx,
-		Hash:      hash,
-		Timestamp: timeStamp.Time().UTC(),
-	})
 	return nil
 }
 

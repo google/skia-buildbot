@@ -334,11 +334,17 @@ func (r *Repo) LogFnBatch(ctx context.Context, to string, fn func(context.Contex
 	return r.logHelper(ctx, fmt.Sprintf(LOG_URL, r.URL, "%s"), to, fn)
 }
 
+// Ref represents a single ref, as returned by the API.
+type Ref struct {
+	Value string `json:"value"`
+}
+
+// RefsMap is the result of a request to REFS_URL.
+type RefsMap map[string]Ref
+
 // Branches returns the list of branches in the repo.
 func (r *Repo) Branches(ctx context.Context) ([]*git.Branch, error) {
-	branchMap := map[string]struct {
-		Value string `json:"value"`
-	}{}
+	branchMap := RefsMap{}
 	if err := r.getJson(ctx, fmt.Sprintf(REFS_URL, r.URL), &branchMap); err != nil {
 		return nil, err
 	}

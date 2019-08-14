@@ -286,7 +286,7 @@ func (b *BigTableGitStore) RangeN(ctx context.Context, startIndex, endIndex int,
 	endIdx := sortableIndex(endIndex)
 
 	result := newSRIndexCommits(b.shards)
-	filters := []bigtable.Filter{bigtable.FamilyFilter(cfCommit)}
+	filters := []bigtable.Filter{bigtable.FamilyFilter(cfCommit), bigtable.LatestNFilter(1)}
 	err := b.iterShardedRange(ctx, branch, typIndex, startIdx, endIdx, filters, result)
 	if err != nil {
 		return nil, err
