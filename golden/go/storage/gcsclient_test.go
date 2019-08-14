@@ -4,61 +4,17 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"strings"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/types"
 )
 
 const (
-	// TEST_HASHES_GS_PATH is the bucket/path combination where the test file will be written.
-	TEST_HASHES_GS_PATH = "skia-infra-testdata/hash_files/testing-known-hashes.txt"
-
-	// TEST_BASELINE_GS_PATH is the root path of all baseline file in GCS.
-	TEST_BASELINE_GS_PATH = "skia-infra-testdata/hash_files/testing-baselines"
-
-	// Directory with testdata.
-	TEST_DATA_DIR = "./testdata"
-
-	// Local file location of the test data.
-	TEST_DATA_PATH = TEST_DATA_DIR + "/10-test-sample-4bytes.tile"
-
-	// Folder in the testdata bucket. See go/testutils for details.
-	TEST_DATA_STORAGE_PATH = "gold-testdata/10-test-sample-4bytes.tile"
-)
-
-var (
-	issueID = int64(5678)
-
-	startCommit = &tiling.Commit{
-		CommitTime: time.Now().Add(-time.Hour * 10).Unix(),
-		Hash:       "abb84b151a49eca5a6e107c51a1f1b7da73454bf",
-		Author:     "Jon Doe",
-	}
-	endCommit = &tiling.Commit{
-		CommitTime: time.Now().Unix(),
-		Hash:       "51465f0ed60ce2cacff3653c7d1d70317679fc06",
-		Author:     "Jane Doe",
-	}
-
-	masterBaseline = &baseline.Baseline{
-		Expectations: types.Expectations{
-			"test-1": map[types.Digest]types.Label{"d1": types.POSITIVE},
-		},
-		Issue: types.MasterBranch,
-	}
-
-	issueBaseline = &baseline.Baseline{
-		Expectations: types.Expectations{
-			"test-3": map[types.Digest]types.Label{"d2": types.POSITIVE},
-		},
-		Issue: issueID,
-	}
+	// hashesGCSPath is the bucket/path combination where the test file will be written.
+	hashesGCSPath = "skia-infra-testdata/hash_files/testing-known-hashes.txt"
 )
 
 func TestWritingHashes(t *testing.T) {
@@ -89,67 +45,10 @@ func TestWritingHashes(t *testing.T) {
 	assert.Equal(t, knownDigests, found)
 }
 
-func TestWritingBaselines(t *testing.T) {
-	unittest.LargeTest(t)
-
-	gsClient, _ := initGSClient(t)
-	removePaths := []string{}
-	defer func() {
-		for _, path := range removePaths {
-			_ = gsClient.RemoveForTestingOnly(path)
-		}
-	}()
-
-	path, err := gsClient.WriteBaseline(masterBaseline, endCommit.Hash)
-	assert.NoError(t, err)
-	removePaths = append(removePaths, strings.TrimPrefix(path, "gs://"))
-
-	foundBaseline, err := gsClient.ReadBaseline(endCommit.Hash, 0)
-	assert.NoError(t, err)
-	assert.Equal(t, masterBaseline, foundBaseline)
-
-	// Add a baseline for an issue
-	path, err = gsClient.WriteBaseline(issueBaseline, "")
-	assert.NoError(t, err)
-	removePaths = append(removePaths, strings.TrimPrefix(path, "gs://"))
-
-	foundBaseline, err = gsClient.ReadBaseline("", issueID)
-	assert.NoError(t, err)
-	assert.Equal(t, issueBaseline, foundBaseline)
-}
-
-func TestBaselineRobustness(t *testing.T) {
-	unittest.LargeTest(t)
-
-	gsClient, _ := initGSClient(t)
-
-	removePaths := []string{}
-	defer func() {
-		for _, path := range removePaths {
-			_ = gsClient.RemoveForTestingOnly(path)
-		}
-	}()
-
-	// Read the master baseline that has not been written
-	foundBaseline, err := gsClient.ReadBaseline("", 5344)
-	assert.NoError(t, err)
-	assert.Nil(t, foundBaseline)
-
-	// Test reading a non-existing baseline for an issue
-	foundBaseline, err = gsClient.ReadBaseline("", 5344)
-	assert.NoError(t, err)
-	assert.Nil(t, foundBaseline)
-
-	path, err := gsClient.WriteBaseline(masterBaseline, endCommit.Hash)
-	assert.NoError(t, err)
-	removePaths = append(removePaths, strings.TrimPrefix(path, "gs://"))
-}
-
 func initGSClient(t *testing.T) (GCSClient, GCSClientOptions) {
 	timeStamp := fmt.Sprintf("%032d", time.Now().UnixNano())
 	opt := GCSClientOptions{
-		HashesGSPath:   TEST_HASHES_GS_PATH + "-" + timeStamp,
-		BaselineGSPath: TEST_BASELINE_GS_PATH + "-" + timeStamp,
+		HashesGSPath: hashesGCSPath + "-" + timeStamp,
 	}
 	gsClient, err := NewGCSClient(nil, opt)
 	assert.NoError(t, err)

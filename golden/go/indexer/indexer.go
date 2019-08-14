@@ -13,9 +13,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/go/vcsinfo/bt_vcs"
-	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
@@ -60,7 +57,6 @@ type SearchIndex struct {
 }
 
 type searchIndexConfig struct {
-	baseliner         baseline.BaselineWriter
 	diffStore         diff.DiffStore
 	expectationsStore expstorage.ExpectationsStore
 	gcsClient         storage.GCSClient
@@ -151,7 +147,6 @@ func (idx *SearchIndex) GetBlame(test types.TestName, digest types.Digest, commi
 }
 
 type IndexerConfig struct {
-	Baseliner         baseline.BaselineWriter
 	DiffStore         diff.DiffStore
 	EventBus          eventbus.EventBus
 	ExpectationsStore expstorage.ExpectationsStore
@@ -167,11 +162,10 @@ type IndexerConfig struct {
 type Indexer struct {
 	IndexerConfig
 
-	pipeline          *pdag.Node
-	indexTestsNode    *pdag.Node
-	writeBaselineNode *pdag.Node
-	lastIndex         *SearchIndex
-	mutex             sync.RWMutex
+	pipeline       *pdag.Node
+	indexTestsNode *pdag.Node
+	lastIndex      *SearchIndex
+	mutex          sync.RWMutex
 }
 
 // New returns a new Indexer instance. It synchronously indexes the initially
@@ -201,10 +195,6 @@ func New(ic IndexerConfig, interval time.Duration) (*Indexer, error) {
 	// ... and invoke the Blamer to calculate the blames.
 	blamerNode := indexTestsNode.Child(calcBlame)
 
-	// Write baselines whenever a new tile is processed, new commits become available, or
-	// when the expectations change.
-	writeBaselineNode := indexTestsNode.Child(writeMasterBaseline)
-
 	// Parameters depend on DigestCounter.
 	paramsNodeInclude := pdag.NewNodeWithParents(calcParamsetsInclude, countsNodeInclude)
 	// These are run in parallel because they can take tens of seconds
@@ -227,7 +217,6 @@ func New(ic IndexerConfig, interval time.Duration) (*Indexer, error) {
 
 	ret.pipeline = root
 	ret.indexTestsNode = indexTestsNode
-	ret.writeBaselineNode = writeBaselineNode
 
 	// Process the first tile and start the indexing process.
 	return ret, ret.start(interval)
@@ -266,17 +255,6 @@ func (ix *Indexer) start(interval time.Duration) error {
 		expCh <- e.(*expstorage.EventExpectationChange).TestChanges
 	})
 
-	// When the expectations of a Gerrit issue change then trigger pushing the
-	// new expectations to GCS.
-	ix.EventBus.SubscribeAsync(expstorage.EV_TRYJOB_EXP_CHANGED, ix.writeIssueBaseline)
-
-	// When new commits have become available trigger writing the baselines. We choose size 100
-	// because that is large enough to handle an unlikely torrent of commits being added to the repo.
-	commitCh := make(chan []*vcsinfo.IndexCommit, 100)
-	ix.EventBus.SubscribeAsync(bt_vcs.EV_NEW_GIT_COMMIT, func(e interface{}) {
-		commitCh <- e.([]*vcsinfo.IndexCommit)
-	})
-
 	// Keep building indices for different types of events. This is the central
 	// event loop of the indexer.
 	go func() {
@@ -295,10 +273,6 @@ func (ix *Indexer) start(interval time.Duration) error {
 			case tn := <-expCh:
 				testChanges = append(testChanges, tn)
 				sklog.Infof("Indexer saw %d tests change", len(tn))
-
-				// Catch changes in the commits.
-			case <-commitCh:
-				sklog.Infof("Indexer saw commits change")
 			}
 
 			// Drain all input channels, effectively bunching signals together that arrive in short
@@ -308,7 +282,6 @@ func (ix *Indexer) start(interval time.Duration) error {
 				select {
 				case tn := <-expCh:
 					testChanges = append(testChanges, tn)
-				case <-commitCh:
 				default:
 					break DrainLoop
 				}
@@ -323,10 +296,6 @@ func (ix *Indexer) start(interval time.Duration) error {
 			} else if len(testChanges) > 0 {
 				// Only index the tests that have changed.
 				ix.indexTests(testChanges)
-			} else {
-				// At this point new commits have been discovered and we
-				// just want to write the baselines.
-				ix.writeBaselines()
 			}
 		}
 	}()
@@ -340,21 +309,12 @@ func (ix *Indexer) executePipeline(cpxTile types.ComplexTile) error {
 	defer shared.NewMetricsTimer("indexer_execute_pipeline").Stop()
 	// Create a new index from the given tile.
 	sic := searchIndexConfig{
-		baseliner:         ix.Baseliner,
 		diffStore:         ix.DiffStore,
 		expectationsStore: ix.ExpectationsStore,
 		gcsClient:         ix.GCSClient,
 		warmer:            ix.Warmer,
 	}
 	return ix.pipeline.Trigger(newSearchIndex(sic, cpxTile))
-}
-
-// writeBaselines triggers the node that causes baselines to be written to GCS.
-func (ix *Indexer) writeBaselines() {
-	idx := ix.cloneLastIndex()
-	if err := ix.writeBaselineNode.Trigger(idx); err != nil {
-		sklog.Errorf("Error writing baselines: %s", err)
-	}
 }
 
 // indexTest creates an updated index by indexing the given list of expectation changes.
@@ -385,7 +345,6 @@ func (ix *Indexer) indexTests(testChanges []types.Expectations) {
 func (ix *Indexer) cloneLastIndex() *SearchIndex {
 	lastIdx := ix.GetIndex()
 	sic := searchIndexConfig{
-		baseliner:         ix.Baseliner,
 		diffStore:         ix.DiffStore,
 		expectationsStore: ix.ExpectationsStore,
 		gcsClient:         ix.GCSClient,
@@ -419,26 +378,6 @@ func (ix *Indexer) setIndex(state interface{}) error {
 		ix.EventBus.Publish(EV_INDEX_UPDATED, state, false)
 	}
 	return nil
-}
-
-// writeIssueBaseline handles changes to baselines for Gerrit issues and dumps
-// the updated baseline to disk.
-func (ix *Indexer) writeIssueBaseline(evData interface{}) {
-	if ix.Baseliner == nil || !ix.Baseliner.CanWriteBaseline() {
-		return
-	}
-
-	issueID := evData.(*expstorage.EventExpectationChange).IssueID
-	if issueID <= 0 {
-		sklog.Errorf("Invalid issue id received for issue exp change: %d", issueID)
-		return
-	}
-
-	idx := ix.GetIndex()
-	if err := ix.Baseliner.PushIssueBaseline(issueID, idx.cpxTile, idx.dCounters[types.ExcludeIgnoredTraces]); err != nil {
-		sklog.Errorf("Unable to push baseline for issue %d to GCS: %s", issueID, err)
-		return
-	}
 }
 
 // calcDigestCountsInclude is the pipeline function to calculate DigestCounts from
@@ -557,29 +496,6 @@ func writeKnownHashesList(state interface{}) error {
 			sklog.Errorf("Error writing known digests list: %s", err)
 		}
 		sklog.Infof("Finished writing %d known hashes", len(hashes))
-	}()
-	return nil
-}
-
-// writeMasterBaseline asynchronously writes the master baseline to GCS.
-func writeMasterBaseline(state interface{}) error {
-	idx := state.(*SearchIndex)
-
-	if idx.baseliner == nil {
-		return nil
-	}
-
-	if !idx.baseliner.CanWriteBaseline() {
-		sklog.Warning("Indexer tried to write baselines, but was not allowed to")
-		return nil
-	}
-
-	// Write the baseline asynchronously.
-	// TODO(kjlubick): Does this being asynchronous cause problems?
-	go func() {
-		if _, err := idx.baseliner.PushMasterBaselines(idx.cpxTile, ""); err != nil {
-			sklog.Errorf("Error pushing master baseline to GCS: %s", err)
-		}
 	}()
 	return nil
 }

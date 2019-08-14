@@ -2,7 +2,6 @@
 
 package mocks
 
-import baseline "go.skia.org/infra/golden/go/baseline"
 import io "io"
 import mock "github.com/stretchr/testify/mock"
 import storage "go.skia.org/infra/golden/go/storage"
@@ -41,29 +40,6 @@ func (_m *GCSClient) Options() storage.GCSClientOptions {
 	return r0
 }
 
-// ReadBaseline provides a mock function with given fields: commitHash, issueID
-func (_m *GCSClient) ReadBaseline(commitHash string, issueID int64) (*baseline.Baseline, error) {
-	ret := _m.Called(commitHash, issueID)
-
-	var r0 *baseline.Baseline
-	if rf, ok := ret.Get(0).(func(string, int64) *baseline.Baseline); ok {
-		r0 = rf(commitHash, issueID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*baseline.Baseline)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
-		r1 = rf(commitHash, issueID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // RemoveForTestingOnly provides a mock function with given fields: targetPath
 func (_m *GCSClient) RemoveForTestingOnly(targetPath string) error {
 	ret := _m.Called(targetPath)
@@ -76,27 +52,6 @@ func (_m *GCSClient) RemoveForTestingOnly(targetPath string) error {
 	}
 
 	return r0
-}
-
-// WriteBaseline provides a mock function with given fields: b, commitHash
-func (_m *GCSClient) WriteBaseline(b *baseline.Baseline, commitHash string) (string, error) {
-	ret := _m.Called(b, commitHash)
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(*baseline.Baseline, string) string); ok {
-		r0 = rf(b, commitHash)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(*baseline.Baseline, string) error); ok {
-		r1 = rf(b, commitHash)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // WriteKnownDigests provides a mock function with given fields: digests
