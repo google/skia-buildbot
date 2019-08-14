@@ -16,6 +16,24 @@
       "revId": "e06182d6d4c19b761fb1120b75cf2ceb2d4b7901",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38f96261_e5d9da1d",
+        "filename": "perf/modules/explore-sk/explore-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 611,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-14T16:39:15Z",
+      "side": 1,
+      "message": "All the calls to _removeAll() [i.e. no args] are implicitly calling _removeAll(false).",
+      "parentUuid": "e42cb89c_c0428de0",
+      "revId": "e06182d6d4c19b761fb1120b75cf2ceb2d4b7901",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
