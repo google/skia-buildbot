@@ -73,9 +73,9 @@ const template = (ele) => html`
     <button @click=${ele._highlightedOnly} title="Remove all but the highlighted traces.">Highlighted Only</button>
     <button @click=${ele._clearHighlights} title="Remove highlights from all traces.">Clear Highlights</button>
     <button @click=${ele._resetAxes} title="Reset back to the original zoom level.">Reset Axes</button>
-    <button @click=${ele._shiftLeft} title="Move 10 commits in the past.">&lt;&lt; ${ele._numShift}</button>
+    <button @click=${ele._shiftLeft} title="Move ${ele._numShift} commits in the past.">&lt;&lt; ${ele._numShift}</button>
     <button @click=${ele._shiftBoth} title="Expand the display ${ele._numShift} commits in both directions.">&lt;&lt; ${+ele._numShift} &gt;&gt;</button>
-    <button @click=${ele._shiftRight} title="Move 10 commits in the future.">${+ele._numShift} &gt;&gt;</button>
+    <button @click=${ele._shiftRight} title="Move ${ele._numShift} commits in the future.">${+ele._numShift} &gt;&gt;</button>
     <button @click=${ele._zoomToRange} id=zoom_range disabled title="Fit the time range to the current zoom window.">Zoom Range</button>
     <span title="Number of commits skipped between each point displayed." ?hidden=${ele._isZero(ele._dataframe.skip)} id=skip>${ele._dataframe.skip}</span>
     <checkbox-sk name=zero @change=${ele._zeroChangeHandler} ?checked=${ele.state.show_zero} label="Zero" title="Toggle the presence of the zero line.">Zero</checkbox-sk>
