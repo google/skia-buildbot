@@ -22,6 +22,30 @@
       "revId": "295f3342a069afac295532474a212e71ca8ff897",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3a1bc16_77b99f55",
+        "filename": "golden/go/diffstore/mapper/mapper.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-14T18:59:43Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "457e61b1_171d7ce8",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 67
+      },
+      "revId": "295f3342a069afac295532474a212e71ca8ff897",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
