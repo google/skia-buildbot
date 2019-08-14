@@ -30,6 +30,11 @@ window.customElements.define('triage-status-sk', class extends ElementSk {
     this._full_summary = {};
     this._alert = {};
     this._cluster_type = "low";
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    this._render();
     this._upgradeProperty('alert');
     this._upgradeProperty('cluster_type');
     this._upgradeProperty('full_summary');
@@ -77,11 +82,6 @@ window.customElements.define('triage-status-sk', class extends ElementSk {
   get triage() { return this._triage }
   set triage(val) {
     this._triage = val;
-    this._render();
-  }
-
-  connectedCallback() {
-    super.connectedCallback();
     this._render();
   }
 
