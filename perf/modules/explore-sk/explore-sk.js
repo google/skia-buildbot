@@ -38,6 +38,8 @@ const ZERO_NAME = "special_zero";
 
 const REFRESH_TIMEOUT = 30*1000; // milliseconds
 
+const DEFAULT_RANGE_S = 24*60*60 // 2 days in seconds.
+
 // TODO(jcgregorio) Move to a 'key' module.
 // Returns true if paramName=paramValue appears in the given structured key.
 function _matches(key, paramName, paramValue) {
@@ -159,7 +161,7 @@ window.customElements.define('explore-sk', class extends ElementSk {
 
     // The state that goes into the URL.
     this.state = {
-      begin: Math.floor(Date.now()/1000 - 24*60*60),
+      begin: Math.floor(Date.now()/1000 - DEFAULT_RANGE_S),
       end: Math.floor(Date.now()/1000),
       formulas: [],
       queries: [],
@@ -267,7 +269,7 @@ window.customElements.define('explore-sk', class extends ElementSk {
 
   // User has zoomed in on the graph.
   _plotZoom(e) {
-    this._zoomRange = [e.detail.xMin/1000, e.detail.xMax/1000];
+    this._zoomRange = [Math.floor(e.detail.xMin/1000), Math.floor(e.detail.xMax/1000)];
     this._zoom_range.disabled = false;
   }
 
@@ -316,6 +318,7 @@ window.customElements.define('explore-sk', class extends ElementSk {
 
   _startStateReflector() {
     this._stateHasChanged = stateReflector(() => this.state, (state) => {
+      state = this._rationalizeTimeRange(state);
       this.state = state;
       this._range.state = this.state;
       this._render();
@@ -323,6 +326,29 @@ window.customElements.define('explore-sk', class extends ElementSk {
       this._autoRefreshChanged();
       this._rangeChangeImpl();
     });
+  }
+
+  /**
+   * Fixes up the time ranges in the state that came from query values.
+   *
+   * It is possible for the query URL to specify just the begin or end time,
+   * which may end up giving us an inverted time range, i.e. end < begin.
+   */
+  _rationalizeTimeRange(state) {
+    if (state.end <= state.begin) {
+      // If dense then just make sure begin is before end.
+      if (state.request_type === 1) {
+        state.begin = state.end - DEFAULT_RANGE_S;
+      } else {
+        // If 'begin' was set in the URL.
+        if (this.state.begin != state.begin) {
+          state.end = state.begin + DEFAULT_RANGE_S;
+        } else { // They set 'end' in the URL.
+          state.begin = states.end - DEFAULT_RANGE_S;
+        }
+      }
+    }
+    return state;
   }
 
   _paramsetKeyValueClick(e) {
