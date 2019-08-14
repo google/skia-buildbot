@@ -1,7 +1,6 @@
 package diffstore
 
 import (
-	"bytes"
 	"fmt"
 	"math"
 	"net/http"
@@ -56,10 +55,7 @@ type MemDiffStore struct {
 	// baseDir contains the root directory of where all data are stored.
 	baseDir string
 
-	// localDiffDir is the directory where diff images are written to.
-	localDiffDir string
-
-	// diffMetricsCache caches and calculates diff metrics and images.
+	// diffMetricsCache caches and calculates diff metrics.
 	diffMetricsCache rtcache.ReadThroughCache
 
 	// imgLoader fetches and caches images.
@@ -94,12 +90,6 @@ func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string
 		return nil, skerr.Fmt("Could not make image directory %s: %s", imgPath, err)
 	}
 
-	diffPath := filepath.Join(baseDir, DEFAULT_DIFFIMG_DIR_NAME)
-	difDir, err := fileutil.EnsureDirExists(diffPath)
-	if err != nil {
-		return nil, skerr.Fmt("Could not make diff image directory %s: %s", diffPath, err)
-	}
-
 	// Set up image retrieval, caching and serving.
 	imgLoader, err := NewImgLoader(client, baseDir, imgDir, gsBucketNames, gsImageBaseDir, imageCacheCount, m)
 	if err != nil {
@@ -113,7 +103,6 @@ func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string
 
 	ret := &MemDiffStore{
 		baseDir:         baseDir,
-		localDiffDir:    difDir,
 		imgLoader:       imgLoader,
 		metricsStore:    mStore,
 		mapper:          m,
@@ -389,23 +378,16 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 	}
 
 	// We are guaranteed to have two images at this point.
-	diffMetrics, diffImg := d.mapper.DiffFn(imgs[0], imgs[1])
+	diffMetrics := d.mapper.DiffFn(imgs[0], imgs[1])
 
-	// Encode the result image and save it to disk. If encoding causes an error
-	// we return an error.
-	var buf bytes.Buffer
-	if err = common.EncodeImg(&buf, diffImg); err != nil {
-		return nil, err
-	}
-
-	// Save the diffMetrics and the diffImage.
-	d.saveDiffInfoAsync(id, leftDigest, rightDigest, diffMetrics, buf.Bytes())
+	// Save the diffMetrics.
+	d.saveDiffMetricsAsync(id, leftDigest, rightDigest, diffMetrics)
 	return diffMetrics, nil
 }
 
-// saveDiffInfoAsync saves the given diff information to disk asynchronously.
-func (d *MemDiffStore) saveDiffInfoAsync(diffID string, leftDigest, rightDigest types.Digest, diffMetrics interface{}, imgBytes []byte) {
-	d.wg.Add(2)
+// saveDiffMetricsAsync saves the given diff metrics to disk asynchronously.
+func (d *MemDiffStore) saveDiffMetricsAsync(diffID string, leftDigest, rightDigest types.Digest, diffMetrics interface{}) {
+	d.wg.Add(1)
 	d.maxGoRoutinesCh <- true
 	go func() {
 		defer func() {
@@ -414,20 +396,6 @@ func (d *MemDiffStore) saveDiffInfoAsync(diffID string, leftDigest, rightDigest 
 		}()
 		if err := d.metricsStore.SaveDiffMetrics(diffID, diffMetrics); err != nil {
 			sklog.Errorf("Error saving diff metric: %s", err)
-		}
-	}()
-
-	d.maxGoRoutinesCh <- true
-	go func() {
-		defer func() {
-			d.wg.Done()
-			<-d.maxGoRoutinesCh
-		}()
-
-		// Get the local file path using the mapper and save the diff image there.
-		localDiffPath := d.mapper.DiffPath(leftDigest, rightDigest)
-		if err := common.SaveFilePath(filepath.Join(d.localDiffDir, localDiffPath), bytes.NewBuffer(imgBytes)); err != nil {
-			sklog.Error(err)
 		}
 	}()
 }
