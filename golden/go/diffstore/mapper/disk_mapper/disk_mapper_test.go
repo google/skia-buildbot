@@ -11,25 +11,12 @@ import (
 )
 
 const (
-	// Arbitrary MD5 digests
+	// Arbitrary MD5 digest.
 	imgOne = types.Digest("098f6bcd4621d373cade4e832627b4f6")
-	imgTwo = types.Digest("1660f0783f4076284bc18c5f4bdc9608")
-
-	exampleDiffId = "098f6bcd4621d373cade4e832627b4f6-1660f0783f4076284bc18c5f4bdc9608"
 
 	// PNG extension.
 	png = ".png"
 )
-
-func TestDiffPath(t *testing.T) {
-	unittest.SmallTest(t)
-
-	dm := New(&testutils.DummyDiffMetrics{})
-
-	actualDiffPath := dm.DiffPath(imgOne, imgTwo)
-	expectedPath := filepath.Join("09", "8f", exampleDiffId+png)
-	assert.Equal(t, expectedPath, actualDiffPath)
-}
 
 func TestImagePaths(t *testing.T) {
 	unittest.SmallTest(t)

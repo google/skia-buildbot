@@ -39,11 +39,11 @@ func GetDiffMetricIDs() []string {
 	return diffMetricIds
 }
 
-// DefaultDiffFn implements the DiffFn function type. Calculates the basic
-// image difference along with custom diff metrics.
-func DefaultDiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) (interface{}, *image.NRGBA) {
+// DefaultDiffFn implements the DiffFn function type. It computes
+// and returns the diff metrics between two given images.
+func DefaultDiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) interface{} {
 	defer metrics2.FuncTimer().Stop()
-	ret, diffImg := PixelDiff(leftImg, rightImg)
+	ret, _ := PixelDiff(leftImg, rightImg)
 
 	// Calculate the metrics.
 	diffs := make(map[string]float32, len(diffMetricIds))
@@ -52,7 +52,7 @@ func DefaultDiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) (interface{}, *i
 	}
 	ret.Diffs = diffs
 
-	return ret, diffImg
+	return ret
 }
 
 // combinedDiffMetric returns a value in [0, 1] that represents how large
