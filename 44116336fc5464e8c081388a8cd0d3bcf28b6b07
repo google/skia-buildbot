@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1327bcba_18ad5f66",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 510,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T12:12:27Z",
+      "side": 1,
+      "message": "It\u0027s used for testing.  There\u0027s no other easy way to check that all of the commits in the repo graph ended up, for example, in a GitStore.  We could use RecurseAllBranches() but it\u0027s not as convenient.",
+      "parentUuid": "2f25b1a6_deb00ba7",
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4f4f1148_45f52c0e",
         "filename": "go/git/repograph/repo_test.go",
         "patchSetId": 5
@@ -64,6 +82,30 @@
       "writtenOn": "2019-08-13T19:34:32Z",
       "side": 1,
       "message": "I would not expect testutils to have tests in them. Should these tests go closer to the implementations of the things they are testing?",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 17
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c62c0a7_293093b8",
+        "filename": "go/git/repograph/testutils/graph_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T12:12:27Z",
+      "side": 1,
+      "message": "Yes, ideally they should.  I want to share the repograph tests with gitstore, since the tests exercise tricky cases.  Unfortunately, those tests need to import assert/require, which is disallowed in non-test packages by go/imports/imports_test.go.  So I needed to move the tests to this new testutils package.  But since repograph doesn\u0027t use interfaces, just Graph and Commit structs, go/git/repograph/testutils needs to have a dependency on go/git/repograph, which means that we can\u0027t have tests in go/git/repograph which call into go/git/repograph/testutils.  So I moved the tests here.  It was the only solution I could think of; if you know of a better one, I\u0027ll go that route.",
+      "parentUuid": "10971a99_7fd3e2f1",
       "range": {
         "startLine": 1,
         "startChar": 8,
@@ -277,6 +319,30 @@
     },
     {
       "key": {
+        "uuid": "6d442191_be4acd59",
+        "filename": "go/git/repograph/testutils/repo_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T12:12:27Z",
+      "side": 1,
+      "message": "Like the person who filed that bug, I had no idea this feature existed.  IIUC I should definitely be able to move graph_test.go and repo_test.go back into dir go/git/repograph under the repograph_test package name.  I\u0027m not sure if repograph_test would be importable by other packages; if so, then I can move testutils.go there as well and just have gitstore tests import repograph_tests.  I\u0027ll give it a try.",
+      "parentUuid": "bf34c868_3a026e66",
+      "range": {
+        "startLine": 40,
+        "startChar": 56,
+        "endLine": 41,
+        "endChar": 26
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d9f9d761_13f3060c",
         "filename": "go/git/repograph/testutils/testutils.go",
         "patchSetId": 5
@@ -288,6 +354,30 @@
       "writtenOn": "2019-08-13T19:34:32Z",
       "side": 1,
       "message": "nit/suggestion: maybe a better package name for tests that are shared between implementations could be shared_tests (instead of testutils). I think of testutils as things that just help set up a test; if we have full blown suites (like we do below), then maybe they deserve their own package.\n\nWDYT?",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 17
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "34b332ba_6a63763f",
+        "filename": "go/git/repograph/testutils/testutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T12:12:27Z",
+      "side": 1,
+      "message": "Personally I\u0027m not bothered by it; in my mind \"test utils\" encompasses anything you might need to help you test something, including actual black-box tests which accept an interface.  But I don\u0027t feel strongly about it.  I\u0027ll first see if I can move this to a repograph_test package and import it from gitstore.  If so, problem solved.  Otherwise, I\u0027ll rename this.",
+      "parentUuid": "d9f9d761_13f3060c",
       "range": {
         "startLine": 1,
         "startChar": 8,
@@ -357,6 +447,30 @@
       "writtenOn": "2019-08-13T19:34:32Z",
       "side": 1,
       "message": "nit/suggestion: TestGitStoreSkiaRepo",
+      "range": {
+        "startLine": 29,
+        "startChar": 5,
+        "endLine": 29,
+        "endChar": 22
+      },
+      "revId": "44116336fc5464e8c081388a8cd0d3bcf28b6b07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b190ac4d_aaf2f0cd",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T12:12:27Z",
+      "side": 1,
+      "message": "I\u0027m very tempted to remove this test altogether, or re-imagine it as a standalone app.  It\u0027s slow enough to be really annoying and I\u0027ve gotten to the point where I keep adding t.Skip().  I see its value for benchmarking, but it probably doesn\u0027t need to run by default.",
+      "parentUuid": "bfc47b15_44f360f8",
       "range": {
         "startLine": 29,
         "startChar": 5,
