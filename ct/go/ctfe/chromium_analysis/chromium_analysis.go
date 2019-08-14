@@ -63,6 +63,7 @@ type DatastoreTask struct {
 	RunOnGCE             bool
 	RawOutput            string
 	MatchStdoutTxt       string
+	ChromiumHash         string
 	CCList               []string
 	TaskPriority         int
 	GroupName            string
@@ -113,6 +114,7 @@ func (task *DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, e
 	taskVars.Platform = task.Platform
 	taskVars.RunOnGCE = task.RunOnGCE
 	taskVars.MatchStdoutTxt = task.MatchStdoutTxt
+	taskVars.ChromiumHash = task.ChromiumHash
 	taskVars.CCList = task.CCList
 	taskVars.TaskPriority = strconv.Itoa(task.TaskPriority)
 	taskVars.GroupName = task.GroupName
@@ -181,6 +183,7 @@ type AddTaskVars struct {
 	Platform       string   `json:"platform"`
 	RunOnGCE       bool     `json:"run_on_gce"`
 	MatchStdoutTxt string   `json:"match_stdout_txt"`
+	ChromiumHash   string   `json:"chromium_hash"`
 	CCList         []string `json:"cc_list"`
 	TaskPriority   string   `json:"task_priority"`
 	GroupName      string   `json:"group_name"`
@@ -250,6 +253,7 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		Platform:       task.Platform,
 		RunOnGCE:       task.RunOnGCE,
 		MatchStdoutTxt: task.MatchStdoutTxt,
+		ChromiumHash:   task.ChromiumHash,
 		CCList:         task.CCList,
 		GroupName:      task.GroupName,
 	}
