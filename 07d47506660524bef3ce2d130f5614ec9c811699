@@ -16,6 +16,70 @@
       "revId": "07d47506660524bef3ce2d130f5614ec9c811699",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d8b15523_55c4cc1a",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T21:36:38Z",
+      "side": 1,
+      "message": "Ack, I\u0027m not familiar enough with this to know what it would have been used for...",
+      "parentUuid": "c65cae5b_7e47616c",
+      "revId": "07d47506660524bef3ce2d130f5614ec9c811699",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7cc814bf_83fed896",
+        "filename": "golden/cmd/gold_ingestion/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T21:36:38Z",
+      "side": 1,
+      "message": "Is this intentional?  It doesn\u0027t seem like the ingester, as a normal user, should have admin rights.",
+      "range": {
+        "startLine": 88,
+        "startChar": 53,
+        "endLine": 88,
+        "endChar": 74
+      },
+      "revId": "07d47506660524bef3ce2d130f5614ec9c811699",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fddf3434_ab2fe6e3",
+        "filename": "golden/go/ingestion_processors/tracestore_impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-14T21:36:38Z",
+      "side": 1,
+      "message": "What happens if we encounter data from a commit which we haven\u0027t pulled yet in our local GitStore?  Is that prevented elsewhere?",
+      "range": {
+        "startLine": 123,
+        "startChar": 29,
+        "endLine": 123,
+        "endChar": 34
+      },
+      "revId": "07d47506660524bef3ce2d130f5614ec9c811699",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
