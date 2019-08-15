@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "47efa031_fc521548",
+        "filename": "golden/probers.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-15T18:07:22Z",
+      "side": 1,
+      "message": "Do you need healthz probers since k8s already has a readinessProbe?",
+      "revId": "66ed96b6cca8980c516be81eff7af375ce65f120",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
