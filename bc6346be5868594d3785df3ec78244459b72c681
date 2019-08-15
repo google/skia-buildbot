@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e9bb65ee_b4926e63",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-15T16:59:32Z",
+      "side": 1,
+      "message": "This is a schema change!  At the least, the stored index is now required in order to get correct results for branch heads.  This means if we land this change we\u0027ll have to re-ingest the data for all repos.",
+      "range": {
+        "startLine": 213,
+        "startChar": 0,
+        "endLine": 226,
+        "endChar": 31
+      },
+      "revId": "bc6346be5868594d3785df3ec78244459b72c681",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
