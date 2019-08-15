@@ -16,12 +16,13 @@
  *  </iframe>
  */
 import '../skottie-player-sk'
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 
 const template = (ele) => html`<skottie-player-sk></skottie-player-sk>`;
 
-window.customElements.define('skottie-embed-sk', class extends HTMLElement {
+define('skottie-embed-sk', class extends HTMLElement {
   constructor() {
     super();
   }

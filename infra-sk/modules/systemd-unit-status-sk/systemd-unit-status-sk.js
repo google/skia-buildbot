@@ -17,6 +17,7 @@
  *  }
  * </pre>
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 
 import 'elements-sk/styles/buttons'
@@ -33,7 +34,7 @@ const template = (ele) => html`
   <div class=service>${ele.value.status.Name}</div>
 `;
 
-window.customElements.define('systemd-unit-status-sk', class extends HTMLElement {
+define('systemd-unit-status-sk', class extends HTMLElement {
   constructor() {
     super();
     this._value = null;

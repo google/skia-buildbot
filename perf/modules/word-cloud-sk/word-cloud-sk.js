@@ -7,6 +7,7 @@
  *
  * @example
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 
@@ -75,7 +76,7 @@ export function _convertToArray(val) {
   return ret;
 }
 
-window.customElements.define('word-cloud-sk', class extends ElementSk {
+define('word-cloud-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._items = [];

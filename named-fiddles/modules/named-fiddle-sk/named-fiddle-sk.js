@@ -14,6 +14,7 @@
  *   fiddle.
  *
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import 'elements-sk/styles/buttons'
 
@@ -32,7 +33,7 @@ const template = (ele) => html`<span class=name><a href='https://fiddle.skia.org
   <span class=user>${ele._state.user}</span>
 `;
 
-window.customElements.define('named-fiddle-sk', class extends HTMLElement {
+define('named-fiddle-sk', class extends HTMLElement {
   constructor() {
     super();
     this._state = {

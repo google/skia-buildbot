@@ -1,3 +1,4 @@
+import { define } from 'elements-sk/define'
 import { ElementSk } from './ElementSk.js'
 import { html } from 'lit-html'
 
@@ -8,7 +9,7 @@ afterEach(function() {
   container.innerHTML = "";
 });
 
-window.customElements.define('my-test-element-sk', class extends ElementSk {
+define('my-test-element-sk', class extends ElementSk {
   constructor() {
     super((ele) => html`<p>Hello World!</p>`);
     assert.isNull(this.querySelector('p'));

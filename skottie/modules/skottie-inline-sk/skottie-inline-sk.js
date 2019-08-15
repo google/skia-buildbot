@@ -23,9 +23,10 @@
  *  </skottie-inline-sk>
  */
 import '../skottie-player-sk'
+import { define } from 'elements-sk/define'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 
-window.customElements.define('skottie-inline-sk', class extends HTMLElement {
+define('skottie-inline-sk', class extends HTMLElement {
   static get observedAttributes() {
     return ['width', 'height', 'src'];
   }

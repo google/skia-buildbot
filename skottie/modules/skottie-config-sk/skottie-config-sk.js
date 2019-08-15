@@ -26,6 +26,7 @@
  *
  */
 import 'elements-sk/styles/buttons'
+import { define } from 'elements-sk/define'
 import { errorMessage } from 'elements-sk/errorMessage'
 import { html, render } from 'lit-html'
 import { $$ } from 'common-sk/modules/dom'
@@ -249,4 +250,4 @@ class SkottieConfigSk extends HTMLElement {
   }
 };
 
-window.customElements.define('skottie-config-sk', SkottieConfigSk);
+define('skottie-config-sk', SkottieConfigSk);

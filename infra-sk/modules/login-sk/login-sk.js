@@ -8,10 +8,11 @@
  * {@linkcode module:elements-sk/error-toast-sk}.
  * </p>
  */
+import { define } from 'elements-sk/define'
 import { errorMessage } from 'elements-sk/errorMessage';
 import { Login } from '../login';
 
-window.customElements.define('login-sk', class extends HTMLElement {
+define('login-sk', class extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `<span class=email>Loading...</span><a class=logInOut></a>`;
     Login.then(status => {

@@ -15,6 +15,7 @@ import 'elements-sk/error-toast-sk'
 import { $$ } from 'common-sk/modules/dom'
 import { SKIA_VERSION } from '../../build/version.js'
 import { errorMessage } from 'elements-sk/errorMessage'
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { setupListeners, onUserEdit, reannotate} from '../lottie-annotations'
@@ -187,7 +188,7 @@ const template = (ele) => html`
 </footer>
 `;
 
-window.customElements.define('skottie-sk', class extends HTMLElement {
+define('skottie-sk', class extends HTMLElement {
   constructor() {
     super();
     this._state = {

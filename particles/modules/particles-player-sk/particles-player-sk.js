@@ -8,6 +8,7 @@
  *
  */
 import { $$ } from 'common-sk/modules/dom'
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 
 import 'elements-sk/spinner-sk'
@@ -47,7 +48,7 @@ const runningTemplate = (ele) => html`
   </canvas>
 </div>`;
 
-window.customElements.define('particles-player-sk', class extends HTMLElement {
+define('particles-player-sk', class extends HTMLElement {
   constructor() {
     super();
 

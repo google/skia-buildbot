@@ -13,6 +13,7 @@
  * @example
  *   <triage2-sk value=positive></triage2-sk>
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import 'elements-sk/icon/check-circle-icon-sk';
@@ -34,7 +35,7 @@ const template = (ele) => html`
   </button>
   `;
 
-window.customElements.define('triage2-sk', class extends ElementSk {
+define('triage2-sk', class extends ElementSk {
   constructor() {
     super(template);
   }
