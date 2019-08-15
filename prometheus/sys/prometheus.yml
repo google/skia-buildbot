@@ -21,40 +21,6 @@ scrape_configs:
     static_configs:
       - targets: ['skia-proxy:20000']
 
-  - job_name: 'diffserver-prod'
-    static_configs:
-      - targets: ['skia-diffserver-prod:20000']
-
-  - job_name: 'skiacorrectness-pdfium'
-    static_configs:
-      - targets: ['skia-gold-pdfium:20001']
-
-  - job_name: 'skiacorrectness-prod'
-    static_configs:
-      - targets: ['skia-gold-prod:20001']
-
-  - job_name: 'skiacorrectness-public'
-    static_configs:
-      - targets: ['skia-gold-public:20001']
-
-  - job_name: 'chromevr_gold_ingestion'
-    static_configs:
-      - targets: ['skia-ingestion:20002']
-        labels:
-          corpus: chromevr_gold
-
-  - job_name: 'gold_ingestion'
-    static_configs:
-      - targets: ['skia-ingestion:20000']
-        labels:
-          corpus: gold
-
-  - job_name: 'pdfium_gold_ingestion'
-    static_configs:
-      - targets: ['skia-ingestion:20001']
-        labels:
-          corpus: pdfium_gold
-
   - job_name: 'logmetrics'
     static_configs:
       - targets: ['skia-monitoring:20001']
@@ -75,30 +41,9 @@ scrape_configs:
     static_configs:
       - targets: ['skia-push:20000']
 
-  - job_name: 'chromevr_gold_traceserver'
-    static_configs:
-      - targets: ['skia-tracedb:20005']
-        labels:
-          corpus: chromevr_gold
-
-  - job_name: 'gold_traceserver'
-    static_configs:
-      - targets: ['skia-tracedb:20004']
-        labels:
-          corpus: gold
-
-  - job_name: 'pdfium_gold_traceserver'
-    static_configs:
-      - targets: ['skia-tracedb:20003']
-        labels:
-          corpus: pdfium_gold
-
 # pulld for every server.
   - job_name: 'pulld'
     static_configs:
-      - targets: ['skia-diffserver-prod:11000']
-      - targets: ['skia-gold-pdfium:11000']
-      - targets: ['skia-gold-prod:11000']
       - targets: ['skia-monitoring:11000']
       - targets: ['skia-monitoring:11000']
       - targets: ['skia-prom:11000']
@@ -106,7 +51,6 @@ scrape_configs:
       - targets: ['skia-push:11000']
       - targets: ['skia-skfe-1:11000']
       - targets: ['skia-skfe-2:11000']
-      - targets: ['skia-tracedb:11000']
 
   # Prometheus self monitoring.
   - job_name: 'prometheus'
