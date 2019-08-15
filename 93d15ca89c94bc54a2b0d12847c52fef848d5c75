@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0e964232_93ba1243",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-15T13:52:30Z",
+      "side": 1,
+      "message": "Only those which changed, see line 242.",
+      "parentUuid": "81578b41_bd7f881e",
+      "range": {
+        "startLine": 256,
+        "startChar": 37,
+        "endLine": 256,
+        "endChar": 47
+      },
+      "revId": "93d15ca89c94bc54a2b0d12847c52fef848d5c75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "554b126d_ef124968",
         "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2019-08-15T12:24:33Z",
       "side": 1,
       "message": "I\u0027m not quite sure what this means. Empty branch?  If possible, could we use a constant like GARBAGE_COLLECT_BRANCH or DELETE_BRANCH instead of a raw empty string? Would make it a bit more readable.",
+      "range": {
+        "startLine": 259,
+        "startChar": 7,
+        "endLine": 259,
+        "endChar": 33
+      },
+      "revId": "93d15ca89c94bc54a2b0d12847c52fef848d5c75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4fc49ca5_2b94c34a",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-15T13:52:30Z",
+      "side": 1,
+      "message": "Sure, we can do that.  It would definitely help to prevent accidental branch deletion.  An alternative is just to change the behavior of PutBranches to delete anything which isn\u0027t passed in.  That seems potentially dangerous, but the reality is that only gitsync should be writing to the GitStore, and it can easily be configured to pass all of the branches every time.",
+      "parentUuid": "554b126d_ef124968",
       "range": {
         "startLine": 259,
         "startChar": 7,
@@ -68,6 +116,30 @@
       "revId": "93d15ca89c94bc54a2b0d12847c52fef848d5c75",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63552b3a_fd549a6c",
+        "filename": "go/gitstore/types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-15T13:52:30Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "67f23879_968cf6fa",
+      "range": {
+        "startLine": 30,
+        "startChar": 87,
+        "endLine": 31,
+        "endChar": 10
+      },
+      "revId": "93d15ca89c94bc54a2b0d12847c52fef848d5c75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
