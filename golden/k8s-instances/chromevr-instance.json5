@@ -2,9 +2,11 @@
     // Gold settings
     "BIGTABLE_INSTANCE":       "production",
     "BIGTABLE_PROJECT":        "skia-public",
+    "BIGTABLE_TABLE":          "gold-chromevr",
     "BUCKET":                  "skia-gold-chromevr",
     "DATASTORE_NAMESPACE":     "gold-chromevr",
     "DATASTORE_PROJECT":       "skia-public",
+    "FIRESTORE_NAMESPACE":     "chromevr",
     "FIRESTORE_PROJECT":       "skia-firestore",
     "FORCE_LOGIN":             false,
     "GERRIT_URL":              "https://chromium-review.googlesource.com",
@@ -17,11 +19,13 @@
     "GIT_BT_TABLE":            "git-repos",
 
     // Settings for skiacorrectness instance
+    "AUTHORIZED_PARAMS":       "", // defaults to "all"
     "AUTH_USERS":              "google.com",
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
     "MAIN_CPU":                "4",
     "MAIN_MEMORY":             "4Gi",
     "SKCORR_DEFAULT_CORPUS":   "chromevr",
+    "SKCORR_DIFF_SERVER":      "gold-chromevr-diffserver",
     "SKCORR_TITLE":            "Chrome VR Gold",
     "TILE_FRESHNESS":          "1m",
 
