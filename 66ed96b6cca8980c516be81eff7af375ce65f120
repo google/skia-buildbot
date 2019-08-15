@@ -52,6 +52,24 @@
       "revId": "66ed96b6cca8980c516be81eff7af375ce65f120",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d19f2352_2d9f7681",
+        "filename": "golden/probers.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-15T18:26:53Z",
+      "side": 1,
+      "message": "readinessProbe failure will alert if the instance is down, but this prober goes through the GFE,  which should also be tested and wont\u0027 be caught by a readinessProbe.",
+      "parentUuid": "0e66be28_6fdb853c",
+      "revId": "66ed96b6cca8980c516be81eff7af375ce65f120",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
