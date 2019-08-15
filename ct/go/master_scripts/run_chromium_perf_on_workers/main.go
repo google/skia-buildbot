@@ -43,6 +43,8 @@ var (
 	runID                     = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 	varianceThreshold         = flag.Float64("variance_threshold", 0.0, "The variance threshold to use when comparing the resultant CSV files.")
 	discardOutliers           = flag.Float64("discard_outliers", 0.0, "The percentage of outliers to discard when comparing the result CSV files.")
+	chromiumHashNoPatch       = flag.String("chromium_hash_nopatch", "", "The Chromium full hash the nopatch checkout should be synced to.")
+	chromiumHashWithPatch     = flag.String("chromium_hash_withpatch", "", "The Chromium full hash the withpatch checkout should be synced to before applying patches.")
 	taskPriority              = flag.Int("task_priority", util.TASKS_PRIORITY_MEDIUM, "The priority swarming tasks should run at.")
 	groupName                 = flag.String("group_name", "", "The group name of this run. It will be used as the key when uploading data to ct-perf.skia.org.")
 
