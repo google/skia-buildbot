@@ -36,5 +36,9 @@
     "webpack": "~4.39.1",
     "webpack-cli": "~3.3.6",
     "webpack-dev-server": "~3.8.0"
+  },
+  "devDependencies": {
+    "karma-sinon": "^1.0.5",
+    "sinon": "^7.4.1"
   }
 }
