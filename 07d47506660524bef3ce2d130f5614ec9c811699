@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "1fea0707_7baa5dd1",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-15T12:16:20Z",
+      "side": 1,
+      "message": "I believe it was to be used for the scenario in which we had a repo that rolled in multiple repos to track them.",
+      "parentUuid": "d8b15523_55c4cc1a",
+      "revId": "07d47506660524bef3ce2d130f5614ec9c811699",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7cc814bf_83fed896",
         "filename": "golden/cmd/gold_ingestion/main.go",
         "patchSetId": 4
@@ -60,6 +78,30 @@
     },
     {
       "key": {
+        "uuid": "e7c9daf2_9fbb2b65",
+        "filename": "golden/cmd/gold_ingestion/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-15T12:16:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7cc814bf_83fed896",
+      "range": {
+        "startLine": 88,
+        "startChar": 53,
+        "endLine": 88,
+        "endChar": 74
+      },
+      "revId": "07d47506660524bef3ce2d130f5614ec9c811699",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fddf3434_ab2fe6e3",
         "filename": "golden/go/ingestion_processors/tracestore_impl.go",
         "patchSetId": 4
@@ -80,6 +122,30 @@
       "revId": "07d47506660524bef3ce2d130f5614ec9c811699",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "128e7f8b_9d8fe803",
+        "filename": "golden/go/ingestion_processors/tracestore_impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-15T12:16:20Z",
+      "side": 1,
+      "message": "isOnMaster will return false, which will return IgnoreResultsFileErr, which means processResult [1] will *not* add it to the list of processed files, which means it will be re-ingested on the next time we poll for missed data (every 20-60 minutes).\n\n[1] https://github.com/google/skia-buildbot/blob/aae8a72948a396fed14fe47e50bca2c5939aa03e/go/ingestion/ingestion.go#L216",
+      "parentUuid": "fddf3434_ab2fe6e3",
+      "range": {
+        "startLine": 123,
+        "startChar": 29,
+        "endLine": 123,
+        "endChar": 34
+      },
+      "revId": "07d47506660524bef3ce2d130f5614ec9c811699",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
