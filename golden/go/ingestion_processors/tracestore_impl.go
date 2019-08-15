@@ -9,6 +9,7 @@ import (
 
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/ingestion"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -63,9 +64,10 @@ type btProcessor struct {
 
 // Process implements the ingestion.Processor interface.
 func (b *btProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
+	defer metrics2.FuncTimer().Stop()
 	dmResults, err := processDMResults(resultsFile)
 	if err != nil {
-		return skerr.Fmt("could not process results file: %s", err)
+		return skerr.Wrapf(err, "could not process results file: %s", resultsFile.Name())
 	}
 
 	if len(dmResults.Results) == 0 {
@@ -73,7 +75,6 @@ func (b *btProcessor) Process(ctx context.Context, resultsFile ingestion.ResultF
 		return ingestion.IgnoreResultsFileErr
 	}
 
-	var commit *vcsinfo.LongCommit = nil
 	// If the target commit is not in the primary repository we look it up
 	// in the secondary that has the primary as a dependency.
 	targetHash, err := getCanonicalCommitHash(ctx, b.vcs, dmResults.GitHash)
@@ -81,16 +82,13 @@ func (b *btProcessor) Process(ctx context.Context, resultsFile ingestion.ResultF
 		if err == ingestion.IgnoreResultsFileErr {
 			return ingestion.IgnoreResultsFileErr
 		}
-		return skerr.Fmt("could not identify canonical commit from %q: %s", dmResults.GitHash, err)
+		return skerr.Wrapf(err, "could not identify canonical commit from %q", dmResults.GitHash)
 	}
 
-	commit, err = b.vcs.Details(ctx, targetHash, true)
-	if err != nil {
-		return skerr.Fmt("could not get details for git commit %q: %s", targetHash, err)
-	}
-
-	if !commit.Branches["master"] {
-		sklog.Warningf("Commit %s is not in master branch. Got branches: %v", commit.Hash, commit.Branches)
+	if ok, err := b.isOnMaster(ctx, targetHash); err != nil {
+		return skerr.Wrapf(err, "could not determine branch for %s", targetHash)
+	} else if !ok {
+		sklog.Warningf("Commit %s is not in master branch", targetHash)
 		return ingestion.IgnoreResultsFileErr
 	}
 
@@ -108,9 +106,27 @@ func (b *btProcessor) Process(ctx context.Context, resultsFile ingestion.ResultF
 	// Write the result to the tracestore.
 	err = b.ts.Put(ctx, targetHash, entries, t)
 	if err != nil {
-		return skerr.Fmt("could not add to tracedb: %s", err)
+		return skerr.Wrapf(err, "could not add to tracestore")
 	}
 	return nil
+}
+
+// isOnMaster returns true if the given commit hash is on the master branch.
+func (b *btProcessor) isOnMaster(ctx context.Context, hash string) (bool, error) {
+	// BT_VCS is configured to only look at master, so if we just look up the index of the hash,
+	// we will know if it is on the master branch.
+	// We can ignore the error, because it would be a "commit not found" error.
+	if i, _ := b.vcs.IndexOf(ctx, hash); i >= 0 {
+		return true, nil
+	}
+
+	if err := b.vcs.Update(ctx, false /*=pull*/, false /*=all branches*/); err != nil {
+		return false, skerr.Wrapf(err, "could not update VCS")
+	}
+	if i, _ := b.vcs.IndexOf(ctx, hash); i >= 0 {
+		return true, nil
+	}
+	return false, nil
 }
 
 // BatchFinished implements the ingestion.Processor interface.

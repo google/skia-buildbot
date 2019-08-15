@@ -32,7 +32,7 @@ import (
 	"google.golang.org/api/option"
 
 	// See https://golang.org/pkg/net/http/pprof/
-	net_pprof "net/http/pprof"
+	_ "net/http/pprof"
 
 	// The init() of this package register several ingestion.Processors to
 	// handle the files we locate in GCS (e.g. master branch, tryjobs, etc).
@@ -53,7 +53,6 @@ func main() {
 		btInstanceID    = flag.String("bt_instance", "", "ID of the BigTable instance that contains Git metadata")
 		btProjectID     = flag.String("bt_project_id", common.PROJECT_ID, "GCP project ID that houses the BigTable Instance")
 		configFilename  = flag.String("config_filename", "default.json5", "Configuration file in JSON5 format.")
-		debugPProf      = flag.Bool("debug_pprof", false, "turn pprof things on http_port if true")
 		fsNamespace     = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
 		fsProjectID     = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
 		gitBTTableID    = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
@@ -61,7 +60,6 @@ func main() {
 		httpPort        = flag.String("http_port", ":9091", "The http port where ready-ness endpoints are served.")
 		local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 		memProfile      = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
-		noCloudLog      = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
 		promPort        = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 		pubsubProjectID = flag.String("pubsub_project_id", "", "Project ID that houses the pubsub topics (e.g. for ingestion).")
 	)
@@ -81,10 +79,6 @@ func main() {
 		common.PrometheusOpt(promPort),
 	}
 
-	// Should we disable cloud logging.
-	if !*noCloudLog {
-		logOpts = append(logOpts, common.CloudLoggingOpt())
-	}
 	common.InitWithMust(appName, logOpts...)
 
 	ctx := context.Background()
@@ -181,10 +175,6 @@ func main() {
 
 	// Set up the http handler to indicate ready-ness and start serving.
 	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
-
-	if *debugPProf {
-		http.HandleFunc("/debug/pprof/", net_pprof.Index)
-	}
 
 	log.Fatal(http.ListenAndServe(*httpPort, nil))
 }

@@ -34,17 +34,9 @@ func TestTraceStoreProcessorSunnyDay(t *testing.T) {
 		// arbitrary time
 		Timestamp: time.Date(2019, time.June, 16, 3, 23, 17, 0, time.UTC),
 	}
-	commitWithBranch := &vcsinfo.LongCommit{
-		ShortCommit: &vcsinfo.ShortCommit{
-			Hash:    testCommitHash,
-			Subject: "Really big code change",
-		},
-		// arbitrary time
-		Timestamp: time.Date(2019, time.June, 16, 3, 23, 17, 0, time.UTC),
-		Branches:  map[string]bool{"master": true},
-	}
 	mvs.On("Details", ctx, testCommitHash, false).Return(commit, nil)
-	mvs.On("Details", ctx, testCommitHash, true).Return(commitWithBranch, nil)
+	// arbitrary result
+	mvs.On("IndexOf", ctx, testCommitHash).Return(12, nil)
 
 	// There are 3 entries in the file, but one of them is pdf, which should
 	// be ignored by this ingester.

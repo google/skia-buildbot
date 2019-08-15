@@ -18,7 +18,6 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/cenkalti/backoff"
-	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
@@ -108,15 +107,10 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 
 	// Instantiate the secondary repo if one was specified.
 	// TODO(kjlubick): make this support bigtable git also.
-	var secondaryVCS vcsinfo.VCS
-	var extractor depot_tools.DEPSExtractor
 	if config.SecondaryRepoURL != "" {
-		var err error
-		if secondaryVCS, err = gitinfo.CloneOrUpdate(ctx, config.SecondaryRepoURL, config.SecondaryRepoDir, true); err != nil {
-			return nil, skerr.Wrapf(err, "could not set up secondary repo %s in %s", config.SecondaryRepoURL, config.SecondaryRepoDir)
-		}
-		extractor = depot_tools.NewRegExDEPSExtractor(config.SecondaryRegEx)
-		vcs.(*gitinfo.GitInfo).SetSecondaryRepo(secondaryVCS, extractor)
+		// TODO(kjlubick) Check up tracestore_impl's isOnMaster to make sure it
+		// works with what is put here.
+		return nil, skerr.Fmt("Not yet implemented to have a secondary repo url")
 	}
 
 	// for each defined ingester create an instance.
