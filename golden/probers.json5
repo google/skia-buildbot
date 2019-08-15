@@ -1,15 +1,14 @@
 {
-   // Because of authentication hit the internal gold port.
+   // healthz is available even if the instance is locked down.
    "skiagold": {
-     "urls": ["http://skia-gold-prod:19000"],
+     "urls": ["https://gold.skia.org/healthz"],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-
    "skiagold_pdfium": {
-     "urls": ["https://pdfium-gold.skia.org"],
+     "urls": ["https://pdfium-gold.skia.org/healthz"],
      "method": "GET",
      "expected": [200],
      "body": "",
@@ -26,21 +25,49 @@
      "mimetype": "text/plain"
    },
    "skiagold_public": {
-     "urls": ["https://public-gold.skia.org"],
+     "urls": ["https://public-gold.skia.org/healthz"],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiagold_chromevr": {
-     "urls": ["https://chrome-vr-gold.skia.org"],
+     "urls": ["https://chrome-vr-gold.skia.org/healthz"],
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-   "skiagold_chromevr": {
-     "urls": ["https://lottie-gold.skia.org"],
+   "skiagold_lottie": {
+     "urls": ["https://lottie-gold.skia.org/healthz"],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skiagold_flutter": {
+     "urls": ["https://flutter-gold.skia.org/healthz"],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skiagold_chrome_gpu": {
+     "urls": ["https://chrome-gpu-gold.skia.org/healthz"],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "goldbaselines_chrome_gpu": {
+     "urls": ["https://chrome-gpu-gold.skia.org/json/expectations/commit/any"],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "goldbaselines_flutter": {
+     "urls": ["https://flutter-gold.skia.org/json/expectations/commit/any"],
      "method": "GET",
      "expected": [200],
      "body": "",
