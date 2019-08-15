@@ -1,0 +1,31 @@
+{
+    // Gold settings
+    "BIGTABLE_INSTANCE":       "production",
+    "BIGTABLE_PROJECT":        "skia-public",
+    "BIGTABLE_TABLE":          "gold-skia",
+    "BUCKET":                  "skia-infra-gm",
+    "DATASTORE_NAMESPACE":     "gold-skia-prod",
+    "DATASTORE_PROJECT":       "google.com:skia-buildbots",
+    "FIRESTORE_NAMESPACE":     "skia",
+    "FIRESTORE_PROJECT":       "skia-firestore",
+    "FORCE_LOGIN":             false,
+    "GERRIT_URL":              "https://skia-review.googlesource.com",
+    "GITREPO_URL":             "https://skia.googlesource.com/skia.git",
+    "N_COMMITS":               256,
+    "PUBSUB_PROJECT":          "skia-public",
+    "SITE_URL":                "https://public-gold.skia.org",
+
+    // Git BigTable settings
+    "GIT_BT_TABLE":            "git-repos",
+
+    // Settings for skiacorrectness instance
+    "AUTHORIZED_PARAMS":       "skia-public-authorized-params",
+    "AUTH_USERS":              "google.com chromium.org skia.org kkinnunen@nvidia.com mjk@nvidia.com vbuzinov@nvidia.com martina.kollarova@intel.com this.is.harry.stern@gmail.com dvonbeck@gmail.com zakerinasab@chromium.org afar.lin@imgtec.com",
+    "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
+    "MAIN_CPU":                "20",
+    "MAIN_MEMORY":             "150Gi",
+    "SKCORR_DEFAULT_CORPUS":   "gm",
+    "SKCORR_DIFF_SERVER":      "gold-skia-diffserver",
+    "SKCORR_TITLE":            "Public Skia Gold",
+    "TILE_FRESHNESS":          "10m",
+}
