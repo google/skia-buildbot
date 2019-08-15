@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "397a3065_96593a0f",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-15T18:21:57Z",
+      "side": 1,
+      "message": "If there\u0027s anything else that picks up these two mutexs, make sure they pick them up in the same order or we could have a deadlock.",
+      "revId": "21e843a7c570309d80eaa427438bb42f75699a12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6fc3371a_90020711",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-15T18:21:57Z",
+      "side": 1,
+      "message": "Maps commits -\u003e branch set?  Maybe make a typealias\ntype branchSet map[string]bool\nfor readability?",
+      "range": {
+        "startLine": 257,
+        "startChar": 20,
+        "endLine": 257,
+        "endChar": 47
+      },
+      "revId": "21e843a7c570309d80eaa427438bb42f75699a12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9bc25f8e_4e5f6297",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-15T18:21:57Z",
+      "side": 1,
+      "message": "why drop this error?",
+      "range": {
+        "startLine": 259,
+        "startChar": 2,
+        "endLine": 259,
+        "endChar": 3
+      },
+      "revId": "21e843a7c570309d80eaa427438bb42f75699a12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a73db0f6_5b84d007",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 769,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-15T18:21:57Z",
+      "side": 1,
+      "message": "nit: skerr.Fmt",
+      "range": {
+        "startLine": 769,
+        "startChar": 14,
+        "endLine": 769,
+        "endChar": 24
+      },
+      "revId": "21e843a7c570309d80eaa427438bb42f75699a12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
