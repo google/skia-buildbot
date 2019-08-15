@@ -26,9 +26,9 @@ type GitStore interface {
 	// can be retrieved via RangeN and RangeByTime. These are ordered in toplogical order with only
 	// first-parents included.
 	// 'branches' maps branchName -> commit_hash to indicate the head of a branch. The store then
-	// calculates the commits of the branch and updates the indices accordingly.
-	// If a branch exists it will be updated. It will not remove existing branches in the repo if
-	// they are not listed in the 'branches' argument.
+	// calculates the commits of the branch and updates the indices accordingly. Branches which
+	// already exist in the GitStore are not removed if not present in 'branches'; if the empty
+	// string is used, then the branch is removed.
 	PutBranches(ctx context.Context, branches map[string]string) error
 
 	// GetBranches returns the current branches in the store. It maps[branchName]->BranchPointer.

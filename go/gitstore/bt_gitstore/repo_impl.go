@@ -16,11 +16,15 @@ type btGitStoreRepoImplForUpdate struct {
 	overrideBranches []*git.Branch
 }
 
-func newRepoImplForUpdate(gs gitstore.GitStore) *btGitStoreRepoImplForUpdate {
-	return &btGitStoreRepoImplForUpdate{
-		RepoImpl:         gitstore.NewGitStoreRepoImpl(gs),
-		overrideBranches: []*git.Branch{},
+func newRepoImplForUpdate(ctx context.Context, gs gitstore.GitStore) (*btGitStoreRepoImplForUpdate, error) {
+	ri, err := gitstore.NewGitStoreRepoImpl(ctx, gs)
+	if err != nil {
+		return nil, err
 	}
+	return &btGitStoreRepoImplForUpdate{
+		RepoImpl:         ri,
+		overrideBranches: []*git.Branch{},
+	}, nil
 }
 
 func (ri *btGitStoreRepoImplForUpdate) Branches(ctx context.Context) ([]*git.Branch, error) {
@@ -33,7 +37,11 @@ func (ri *btGitStoreRepoImplForUpdate) setBranches(branches map[string]string) {
 		branchMap[b.Name] = b.Head
 	}
 	for name, hash := range branches {
-		branchMap[name] = hash
+		if hash == "" {
+			delete(branchMap, name)
+		} else {
+			branchMap[name] = hash
+		}
 	}
 	branchList := make([]*git.Branch, 0, len(branchMap))
 	for name, hash := range branchMap {
