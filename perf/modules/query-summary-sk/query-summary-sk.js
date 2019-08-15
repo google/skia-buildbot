@@ -10,6 +10,7 @@
  *
  */
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { toParamSet } from 'common-sk/modules/query'
 
@@ -21,7 +22,7 @@ const template = (ele) => {
   }
 }
 
-window.customElements.define('query-summary-sk', class extends ElementSk {
+define('query-summary-sk', class extends ElementSk {
   constructor() {
     super(template);
   }

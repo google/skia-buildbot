@@ -14,6 +14,7 @@
  * @attr {string} current_query - The current query formatted as a URL formatted query string.
  *
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import '../query-values-sk'
@@ -44,7 +45,7 @@ const template = (ele) => html`
 // The delay in ms before sending a delayed query-change event.
 const DELAY_MS = 500;
 
-window.customElements.define('query-sk', class extends ElementSk {
+define('query-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._paramset = {};

@@ -28,6 +28,7 @@ import '../skottie-player-sk'
 import 'elements-sk/error-toast-sk'
 import { $$ } from 'common-sk/modules/dom'
 import { SKIA_VERSION } from '../../build/version.js'
+import { define } from 'elements-sk/define'
 import { errorMessage } from 'elements-sk/errorMessage'
 import { html, render } from 'lit-html'
 import { until } from 'lit-html/directives/until.js';
@@ -80,7 +81,7 @@ const template = (ele) => html`
 </footer>
 `;
 
-window.customElements.define('skottie-drive-sk', class extends HTMLElement {
+define('skottie-drive-sk', class extends HTMLElement {
   constructor() {
     super();
 

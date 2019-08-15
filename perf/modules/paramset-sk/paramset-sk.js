@@ -35,6 +35,7 @@
  *     both clickable and clickable_values is unsupported.
  *
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 
@@ -68,7 +69,7 @@ const template = (ele) => html`
   </table>
 `;
 
-window.customElements.define('paramset-sk', class extends ElementSk {
+define('paramset-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._titles = [];

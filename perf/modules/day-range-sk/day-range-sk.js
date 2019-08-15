@@ -15,6 +15,7 @@
  *
  * @example
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import 'elix/src/DateComboBox.js'
@@ -24,7 +25,7 @@ const template = (ele) => html`
   <label>End <elix-date-combo-box @date-changed=${ele._endChanged} .date=${new Date(ele.end * 1000)}></elix-date-combo-box></label>
 `;
 
-window.customElements.define('day-range-sk', class extends ElementSk {
+define('day-range-sk', class extends ElementSk {
   constructor() {
     super(template);
   }

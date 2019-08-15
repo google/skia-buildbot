@@ -1,4 +1,5 @@
 import 'elements-sk/error-toast-sk'
+import { define } from 'elements-sk/define'
 import { html } from 'lit-html'
 
 import { SKIA_VERSION } from '../../build/version.js'
@@ -49,7 +50,7 @@ const wasmPromise = PathKitInit({
  * </p>
  *
  */
-window.customElements.define('pathkit-fiddle', class extends WasmFiddle {
+define('pathkit-fiddle', class extends WasmFiddle {
 
   constructor() {
     super(wasmPromise, template, 'PathKit', 'pathkit');

@@ -6,6 +6,7 @@
  * every Perf page should be a child of this element.
  *
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import 'elements-sk/error-toast-sk'
@@ -52,7 +53,7 @@ function move(from, to) {
   Array.prototype.slice.call(from).forEach((ele) => to.appendChild(ele))
 }
 
-window.customElements.define('perf-scaffold-sk', class extends ElementSk {
+define('perf-scaffold-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._main = null;

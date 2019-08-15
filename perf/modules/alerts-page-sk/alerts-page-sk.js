@@ -12,6 +12,7 @@ import 'elements-sk/styles/buttons'
 import dialogPolyfill from 'dialog-polyfill'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { Login } from '../../../infra-sk/modules/login.js'
+import { define } from 'elements-sk/define'
 import { errorMessage } from 'elements-sk/errorMessage.js'
 import { fromObject } from 'common-sk/modules/query'
 import { html, render } from 'lit-html'
@@ -71,7 +72,7 @@ const template = (ele) => html`
   <checkbox-sk ?checked=${ele._showDeleted} @change=${ele._showChanged} label='Show deleted configs.'></checkbox-sk>
 `;
 
-window.customElements.define('alerts-page-sk', class extends ElementSk {
+define('alerts-page-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._cfg = {};

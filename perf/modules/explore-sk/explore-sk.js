@@ -5,6 +5,7 @@
  * Main page of Perf, for exploring data.
  */
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import { define } from 'elements-sk/define'
 import { errorMessage } from 'elements-sk/errorMessage'
 import { html, render } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
@@ -149,7 +150,7 @@ const template = (ele) => html`
     </div>
   `;
 
-window.customElements.define('explore-sk', class extends ElementSk {
+define('explore-sk', class extends ElementSk {
   constructor() {
     super(template);
     // Keep track of the data sent to plot.
