@@ -38,12 +38,12 @@ func New(ctx context.Context, config *BTConfig, repoURL string) (*BigTableGitSto
 	// Create the client.
 	client, err := bigtable.NewClient(ctx, config.ProjectID, config.InstanceID)
 	if err != nil {
-		return nil, skerr.Fmt("Error creating bigtable client: %s", err)
+		return nil, skerr.Wrapf(err, "creating bigtable client (project: %s; instance: %s)", config.ProjectID, config.InstanceID)
 	}
 
 	repoURL, err = git.NormalizeURL(repoURL)
 	if err != nil {
-		return nil, skerr.Fmt("Error normalizing URL %q: %s", repoURL, err)
+		return nil, skerr.Wrapf(err, "normalizing URL %q", repoURL)
 	}
 
 	shards := config.Shards
@@ -59,7 +59,7 @@ func New(ctx context.Context, config *BTConfig, repoURL string) (*BigTableGitSto
 
 	repoInfo, err := ret.loadRepoInfo(ctx, true)
 	if err != nil {
-		return nil, skerr.Fmt("Error getting initial repo info: %s", err)
+		return nil, skerr.Wrapf(err, "getting initial repo info for %s (project %s; instance: %s)", repoURL, config.ProjectID, config.InstanceID)
 	}
 	ret.RepoID = repoInfo.ID
 	return ret, nil
