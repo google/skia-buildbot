@@ -2,9 +2,11 @@
     // Gold settings
     "BIGTABLE_INSTANCE":       "production",
     "BIGTABLE_PROJECT":        "skia-public",
+    "BIGTABLE_TABLE":          "gold-flutter",
     "BUCKET":                  "skia-gold-flutter",
     "DATASTORE_NAMESPACE":     "gold-flutter",
     "DATASTORE_PROJECT":       "skia-public",
+    "FIRESTORE_NAMESPACE":     "flutter",
     "FIRESTORE_PROJECT":       "skia-firestore",
     "FORCE_LOGIN":             false,
     "GERRIT_URL":              "",
@@ -17,11 +19,13 @@
     "GIT_BT_TABLE":            "git-repos",
 
     // Settings for skiacorrectness instance
+    "AUTHORIZED_PARAMS":       "", // defaults to "all"
     "AUTH_USERS":              "google.com",
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
     "MAIN_CPU":                "4",
     "MAIN_MEMORY":             "4Gi",
     "SKCORR_DEFAULT_CORPUS":   "flutter",
+    "SKCORR_DIFF_SERVER":      "gold-flutter-diffserver",
     "SKCORR_TITLE":            "Flutter Gold",
     "TILE_FRESHNESS":          "1m",
 

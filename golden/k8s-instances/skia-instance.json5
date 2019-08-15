@@ -2,9 +2,11 @@
     // Gold settings
     "BIGTABLE_INSTANCE":       "production",
     "BIGTABLE_PROJECT":        "skia-public",
+    "BIGTABLE_TABLE":          "gold-skia",
     "BUCKET":                  "skia-infra-gm",
     "DATASTORE_NAMESPACE":     "gold-skia-prod",
     "DATASTORE_PROJECT":       "google.com:skia-buildbots",
+    "FIRESTORE_NAMESPACE":     "skia",
     "FIRESTORE_PROJECT":       "skia-firestore",
     "FORCE_LOGIN":             true,
     "GERRIT_URL":              "https://skia-review.googlesource.com",
@@ -17,11 +19,13 @@
     "GIT_BT_TABLE":            "git-repos",
 
     // Settings for skiacorrectness instance
+    "AUTHORIZED_PARAMS":       "", // defaults to "all"
     "AUTH_USERS":              "google.com mtklein@chromium.org skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com",
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
     "MAIN_CPU":                "25",
     "MAIN_MEMORY":             "200Gi",
     "SKCORR_DEFAULT_CORPUS":   "gm",
+    "SKCORR_DIFF_SERVER":      "gold-skia-diffserver",
     "SKCORR_TITLE":            "Skia Gold",
     "TILE_FRESHNESS":          "5m",
 

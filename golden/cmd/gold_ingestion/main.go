@@ -173,7 +173,7 @@ func main() {
 		cleanup.AtExit(writeProfileFn)
 	}
 
-	// Set up the http handler to indicate ready-ness and start serving.
+	// Set up the http handler to indicate readiness and start serving.
 	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 
 	log.Fatal(http.ListenAndServe(*httpPort, nil))

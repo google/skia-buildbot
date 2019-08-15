@@ -2,9 +2,11 @@
     // Gold settings
     "BIGTABLE_INSTANCE":       "production",
     "BIGTABLE_PROJECT":        "skia-public",
+    "BIGTABLE_TABLE":          "gold-pdfium",
     "BUCKET":                  "skia-pdfium-gm",
     "DATASTORE_NAMESPACE":     "gold-pdfium",
     "DATASTORE_PROJECT":       "google.com:skia-buildbots",
+    "FIRESTORE_NAMESPACE":     "pdfium",
     "FIRESTORE_PROJECT":       "skia-firestore",
     "FORCE_LOGIN":             false,
     "GERRIT_URL":              "https://pdfium-review.googlesource.com",
@@ -18,11 +20,13 @@
     "GIT_BT_TABLE":            "git-repos",
 
     // Settings for skiacorrectness instance
+    "AUTHORIZED_PARAMS":       "", // defaults to "all"
     "AUTH_USERS":              "google.com",
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
     "MAIN_CPU":                "4",
     "MAIN_MEMORY":             "4Gi",
     "SKCORR_DEFAULT_CORPUS":   "corpus",
+    "SKCORR_DIFF_SERVER":      "gold-pdfium-diffserver",
     "SKCORR_TITLE":            "Pdfium Gold",
     "TILE_FRESHNESS":          "1m",
 
