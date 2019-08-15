@@ -65,6 +65,8 @@ type DatastoreTask struct {
 	Results                      string
 	NoPatchRawOutput             string
 	WithPatchRawOutput           string
+	ChromiumHashNoPatch          string
+	ChromiumHashWithPatch        string
 	CCList                       []string
 	TaskPriority                 int
 	GroupName                    string
@@ -88,7 +90,8 @@ func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, er
 	taskVars.BenchmarkArgs = task.BenchmarkArgs
 	taskVars.BrowserArgsNoPatch = task.BrowserArgsNoPatch
 	taskVars.BrowserArgsWithPatch = task.BrowserArgsWithPatch
-	taskVars.Description = task.Description
+	taskVars.ChromiumHashNoPatch = task.ChromiumHashNoPatch
+	taskVars.ChromiumHashWithPatch = task.ChromiumHashWithPatch
 	taskVars.CCList = task.CCList
 	taskVars.TaskPriority = strconv.Itoa(task.TaskPriority)
 	taskVars.GroupName = task.GroupName
@@ -179,20 +182,22 @@ func addTaskView(w http.ResponseWriter, r *http.Request) {
 type AddTaskVars struct {
 	task_common.AddTaskCommonVars
 
-	Benchmark            string   `json:"benchmark"`
-	Platform             string   `json:"platform"`
-	RunOnGCE             string   `json:"run_on_gce"`
-	PageSets             string   `json:"page_sets"`
-	CustomWebpages       string   `json:"custom_webpages"`
-	RepeatRuns           string   `json:"repeat_runs"`
-	RunInParallel        string   `json:"run_in_parallel"`
-	BenchmarkArgs        string   `json:"benchmark_args"`
-	BrowserArgsNoPatch   string   `json:"browser_args_nopatch"`
-	BrowserArgsWithPatch string   `json:"browser_args_withpatch"`
-	Description          string   `json:"desc"`
-	CCList               []string `json:"cc_list"`
-	TaskPriority         string   `json:"task_priority"`
-	GroupName            string   `json:"group_name"`
+	Benchmark             string   `json:"benchmark"`
+	Platform              string   `json:"platform"`
+	RunOnGCE              string   `json:"run_on_gce"`
+	PageSets              string   `json:"page_sets"`
+	CustomWebpages        string   `json:"custom_webpages"`
+	RepeatRuns            string   `json:"repeat_runs"`
+	RunInParallel         string   `json:"run_in_parallel"`
+	BenchmarkArgs         string   `json:"benchmark_args"`
+	BrowserArgsNoPatch    string   `json:"browser_args_nopatch"`
+	BrowserArgsWithPatch  string   `json:"browser_args_withpatch"`
+	Description           string   `json:"desc"`
+	ChromiumHashNoPatch   string   `json:"chromium_hash_nopatch"`
+	ChromiumHashWithPatch string   `json:"chromium_hash_withpatch"`
+	CCList                []string `json:"cc_list"`
+	TaskPriority          string   `json:"task_priority"`
+	GroupName             string   `json:"group_name"`
 
 	ChromiumPatch          string `json:"chromium_patch"`
 	BlinkPatch             string `json:"blink_patch"`
@@ -260,16 +265,18 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 	}
 
 	t := &DatastoreTask{
-		Benchmark:            task.Benchmark,
-		Platform:             task.Platform,
-		PageSets:             task.PageSets,
-		IsTestPageSet:        task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k,
-		BenchmarkArgs:        task.BenchmarkArgs,
-		BrowserArgsNoPatch:   task.BrowserArgsNoPatch,
-		BrowserArgsWithPatch: task.BrowserArgsWithPatch,
-		Description:          task.Description,
-		CCList:               task.CCList,
-		GroupName:            task.GroupName,
+		Benchmark:             task.Benchmark,
+		Platform:              task.Platform,
+		PageSets:              task.PageSets,
+		IsTestPageSet:         task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k,
+		BenchmarkArgs:         task.BenchmarkArgs,
+		BrowserArgsNoPatch:    task.BrowserArgsNoPatch,
+		BrowserArgsWithPatch:  task.BrowserArgsWithPatch,
+		Description:           task.Description,
+		ChromiumHashNoPatch:   task.ChromiumHashNoPatch,
+		ChromiumHashWithPatch: task.ChromiumHashWithPatch,
+		CCList:                task.CCList,
+		GroupName:             task.GroupName,
 
 		CustomWebpagesGSPath:         customWebpagesGSPath,
 		ChromiumPatchGSPath:          chromiumPatchGSPath,
