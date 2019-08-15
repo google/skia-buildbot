@@ -34,6 +34,24 @@
       "revId": "66ed96b6cca8980c516be81eff7af375ce65f120",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e66be28_6fdb853c",
+        "filename": "golden/probers.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-15T18:18:48Z",
+      "side": 1,
+      "message": "If readinessProbe is failing then the instance is down and our alerts will complain.\nOne clue is that none of our apps on k8s have probers.json5 anymore. CT has one but that should probably be deleted now because we can use k8s for that AFAIK. I\u0027m sure Joe knows more.",
+      "parentUuid": "dae2fa00_fd045530",
+      "revId": "66ed96b6cca8980c516be81eff7af375ce65f120",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
