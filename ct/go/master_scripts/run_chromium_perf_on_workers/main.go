@@ -43,6 +43,7 @@ var (
 	runID                     = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 	varianceThreshold         = flag.Float64("variance_threshold", 0.0, "The variance threshold to use when comparing the resultant CSV files.")
 	discardOutliers           = flag.Float64("discard_outliers", 0.0, "The percentage of outliers to discard when comparing the result CSV files.")
+	chromiumHash              = flag.String("chromium_hash", "", "The Chromium full hash the checkout should be synced to before applying patches.")
 	taskPriority              = flag.Int("task_priority", util.TASKS_PRIORITY_MEDIUM, "The priority swarming tasks should run at.")
 	groupName                 = flag.String("group_name", "", "The group name of this run. It will be used as the key when uploading data to ct-perf.skia.org.")
 
@@ -185,11 +186,13 @@ func main() {
 	localPatches := []string{filepath.Join(os.TempDir(), chromiumPatchName), filepath.Join(os.TempDir(), skiaPatchName), filepath.Join(os.TempDir(), v8PatchName), filepath.Join(os.TempDir(), chromiumPatchNameBaseBuild)}
 	remotePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName), filepath.Join(remoteOutputDir, chromiumPatchNameBaseBuild)}
 
-	// Find which chromium hash the workers should use.
-	chromiumHash, err := util.GetChromiumHash(ctx)
-	if err != nil {
-		sklog.Errorf("Could not find the latest chromium hash: %s", err)
-		return
+	// Find which chromium hash the builds should use.
+	if *chromiumHash == "" {
+		*chromiumHash, err = util.GetChromiumHash(ctx)
+		if err != nil {
+			sklog.Errorf("Could not find the latest chromium hash: %s", err)
+			return
+		}
 	}
 
 	// Trigger both the build repo and isolate telemetry tasks in parallel.
@@ -199,7 +202,7 @@ func main() {
 		if util.PatchesAreEmpty(localPatches) {
 			// Create only one chromium build.
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-				ctx, "build_chromium", *runID, "chromium", *targetPlatform, *master_common.ServiceAccountFile, []string{chromiumHash}, remotePatches, []string{},
+				ctx, "build_chromium", *runID, "chromium", *targetPlatform, *master_common.ServiceAccountFile, []string{*chromiumHash}, remotePatches, []string{},
 				/*singlebuild*/ true, *master_common.Local, 3*time.Hour, 1*time.Hour)
 			if err != nil {
 				return sklog.FmtErrorf("Error encountered when swarming build repo task: %s", err)
@@ -213,7 +216,7 @@ func main() {
 		} else {
 			// Create the two required chromium builds (with patch and without the patch).
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-				ctx, "build_chromium", *runID, "chromium", *targetPlatform, *master_common.ServiceAccountFile, []string{chromiumHash}, remotePatches, []string{},
+				ctx, "build_chromium", *runID, "chromium", *targetPlatform, *master_common.ServiceAccountFile, []string{*chromiumHash}, remotePatches, []string{},
 				/*singlebuild*/ false, *master_common.Local, 3*time.Hour, 1*time.Hour)
 			if err != nil {
 				return sklog.FmtErrorf("Error encountered when swarming build repo task: %s", err)
@@ -231,7 +234,7 @@ func main() {
 	isolateDeps := []string{}
 	group.Go("isolate telemetry", func() error {
 		telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
-		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, *master_common.ServiceAccountFile, *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
+		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, *master_common.ServiceAccountFile, *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
 		if err != nil {
 			return fmt.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
 		}
@@ -352,7 +355,7 @@ func main() {
 		"--browser_args_nopatch=" + *browserExtraArgsNoPatch,
 		"--browser_args_withpatch=" + *browserExtraArgsWithPatch,
 		"--pageset_type=" + *pagesetType,
-		"--chromium_hash=" + chromiumHash,
+		"--chromium_hash=" + *chromiumHash,
 		"--skia_hash=" + skiaHash,
 		"--missing_output_slaves=" + strings.Join(noOutputSlaves, " "),
 		"--logs_link_prefix=" + fmt.Sprintf(util.SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE, *runID, "chromium_perf_"),

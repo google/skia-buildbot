@@ -148,7 +148,8 @@
       <tr>
         <td>
           Chromium Git patch (optional)<br/>
-          Applied to Chromium ToT
+          Applied to Chromium ToT<br/>
+          or to the hash specified below.
         </td>
         <td>
           <patch-sk id="chromium_patch"
@@ -201,6 +202,7 @@
         <td>
           Chromium Git metrics patch (optional)<br/>
           Applied to Chromium ToT<br/>
+          or to the hash specified below.<br/>
           Used to create the base build (See <a href="http://skbug.com/9029">skbug/9029</a>)
         </td>
         <td>
@@ -208,6 +210,13 @@
                     patch-type="chromium"
                     cl-description="{{chromiumBaseBuildClDescription}}">
           </patch-sk>
+        </td>
+      </tr>
+
+      <tr>
+        <td>Chromium hash to sync to (optional)<br/></td>
+        <td>
+          <paper-input value="" id="chromium_hash" class="long-field"></paper-input>
         </td>
       </tr>
 
@@ -455,6 +464,7 @@
        params["v8_patch"] = this.$.v8_patch.patch;
        params["catapult_patch"] = this.$.catapult_patch.patch;
        params["chromium_patch_base_build"] = this.$.chromium_patch_base_build.patch;
+       params["chromium_hash"] = this.$.chromium_hash.value;
        params["repeat_after_days"] = this.$.repeat_after_days.selected;
        params["task_priority"] = this.$.task_priority.selected;
        // Run on GCE if it is Windows. This will change in the future if we
