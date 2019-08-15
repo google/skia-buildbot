@@ -65,6 +65,7 @@ type DatastoreTask struct {
 	Results                      string
 	NoPatchRawOutput             string
 	WithPatchRawOutput           string
+	ChromiumHash                 string
 	CCList                       []string
 	TaskPriority                 int
 	GroupName                    string
@@ -89,6 +90,7 @@ func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, er
 	taskVars.BrowserArgsNoPatch = task.BrowserArgsNoPatch
 	taskVars.BrowserArgsWithPatch = task.BrowserArgsWithPatch
 	taskVars.Description = task.Description
+	taskVars.ChromiumHash = task.ChromiumHash
 	taskVars.CCList = task.CCList
 	taskVars.TaskPriority = strconv.Itoa(task.TaskPriority)
 	taskVars.GroupName = task.GroupName
@@ -190,6 +192,7 @@ type AddTaskVars struct {
 	BrowserArgsNoPatch   string   `json:"browser_args_nopatch"`
 	BrowserArgsWithPatch string   `json:"browser_args_withpatch"`
 	Description          string   `json:"desc"`
+	ChromiumHash         string   `json:"chromium_hash"`
 	CCList               []string `json:"cc_list"`
 	TaskPriority         string   `json:"task_priority"`
 	GroupName            string   `json:"group_name"`
@@ -268,6 +271,7 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		BrowserArgsNoPatch:   task.BrowserArgsNoPatch,
 		BrowserArgsWithPatch: task.BrowserArgsWithPatch,
 		Description:          task.Description,
+		ChromiumHash:         task.ChromiumHash,
 		CCList:               task.CCList,
 		GroupName:            task.GroupName,
 

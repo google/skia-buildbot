@@ -211,6 +211,7 @@ func (task *ChromiumPerfTask) Execute(ctx context.Context, getPatchFunc GetPatch
 		"--run_in_parallel=" + strconv.FormatBool(task.RunInParallel),
 		"--target_platform=" + task.Platform,
 		"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
+		"--chromium_hash=" + task.ChromiumHash,
 		"--run_id=" + runId,
 		"--logtostderr",
 		"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
