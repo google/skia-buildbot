@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cbcbabc5_aabcab50",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-15T18:42:19Z",
+      "side": 1,
+      "message": "add \n   const allBranches \u003d \"\"\nand then use allBranches here and below",
+      "range": {
+        "startLine": 139,
+        "startChar": 23,
+        "endLine": 139,
+        "endChar": 25
+      },
+      "revId": "7391781cf756f00025cef8803415f03cc1a21ada",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87e199fb_760182b0",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-15T18:42:19Z",
+      "side": 1,
+      "message": "prefer skerr.Wrapf for adding context to an error\n\nSee also 278",
+      "range": {
+        "startLine": 178,
+        "startChar": 9,
+        "endLine": 178,
+        "endChar": 18
+      },
+      "revId": "7391781cf756f00025cef8803415f03cc1a21ada",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d391560_0fa957e4",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-15T18:42:19Z",
+      "side": 1,
+      "message": "It\u0027s not clear to me what hashOrder is",
+      "range": {
+        "startLine": 187,
+        "startChar": 1,
+        "endLine": 187,
+        "endChar": 10
+      },
+      "revId": "7391781cf756f00025cef8803415f03cc1a21ada",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6d8a759_51cca024",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-15T18:42:19Z",
+      "side": 1,
+      "message": "nit: add comment explaining the use of the locals here for closures",
+      "revId": "7391781cf756f00025cef8803415f03cc1a21ada",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "72041076_0447c5e7",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 498,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-15T18:42:19Z",
+      "side": 1,
+      "message": "Needed in production? Or just for testing?  If for production - maybe downgrade to Warningf or Infof?",
+      "range": {
+        "startLine": 498,
+        "startChar": 7,
+        "endLine": 498,
+        "endChar": 13
+      },
+      "revId": "7391781cf756f00025cef8803415f03cc1a21ada",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
