@@ -83,11 +83,6 @@ func (gs *testGitStore) RangeByTime(ctx context.Context, start, end time.Time, b
 	return rv, nil
 }
 
-// See documentation for GitStore interface.
-func (gs *testGitStore) GetGraph(ctx context.Context) (*CommitGraph, error) {
-	return nil, skerr.Fmt("GetGraph not implemented for testGitStore.")
-}
-
 // gitstoreRefresher is an implementation of repograph_shared_tests.RepoImplRefresher
 // used for testing a GitStore.
 type gitstoreRefresher struct {
