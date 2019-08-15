@@ -13,7 +13,6 @@ import (
 	repograph_shared_tests "go.skia.org/infra/go/git/repograph/shared_tests"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/gitstore"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -42,8 +41,17 @@ func (u *gitstoreRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 	assert.NoError(u.t, err)
 	putBranches := make(map[string]string, len(branches))
 	for _, branch := range branches {
-		sklog.Infof("Put branch %s", branch.Name)
 		putBranches[branch.Name] = branch.Head
+	}
+	oldBranches, err := u.gs.GetBranches(ctx)
+	assert.NoError(u.t, err)
+	for name := range oldBranches {
+		if name == "" {
+			continue
+		}
+		if _, ok := putBranches[name]; !ok {
+			putBranches[name] = gitstore.DELETE_BRANCH
+		}
 	}
 	assert.NoError(u.t, u.gs.PutBranches(ctx, putBranches))
 
@@ -56,6 +64,12 @@ func (u *gitstoreRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 		for _, expectBranch := range branches {
 			actualBranch, ok := actual[expectBranch.Name]
 			if !ok || actualBranch.Head != expectBranch.Head {
+				allMatch = false
+				break
+			}
+		}
+		for name := range actual {
+			if _, ok := putBranches[name]; name != "" && !ok {
 				allMatch = false
 				break
 			}
@@ -105,15 +119,12 @@ func TestRecurseAllBranchesBTGitStore(t *testing.T) {
 	repograph_shared_tests.TestRecurseAllBranches(t, ctx, g, repo, ud)
 }
 
-/*
-TODO(borenet): This test is disabled because GitStore doesn't support deleting
-branches.
 func TestUpdateHistoryChangedBTGitStore(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestUpdateHistoryChanged(t, ctx, g, repo, ud)
-}*/
+}
 
 func TestUpdateAndReturnCommitDiffsBTGitStore(t *testing.T) {
 	unittest.LargeTest(t)

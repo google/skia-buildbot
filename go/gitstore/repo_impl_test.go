@@ -45,7 +45,11 @@ func (gs *testGitStore) Get(ctx context.Context, hashes []string) ([]*vcsinfo.Lo
 // See documentation for GitStore interface.
 func (gs *testGitStore) PutBranches(ctx context.Context, branches map[string]string) error {
 	for name, hash := range branches {
-		gs.branches[name] = hash
+		if hash == DELETE_BRANCH {
+			delete(gs.branches, name)
+		} else {
+			gs.branches[name] = hash
+		}
 	}
 	return nil
 }
@@ -114,6 +118,16 @@ func (u *gitstoreRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 	for _, branch := range branches {
 		putBranches[branch.Name] = branch.Head
 	}
+	oldBranches, err := u.gs.GetBranches(ctx)
+	assert.NoError(u.t, err)
+	for name := range oldBranches {
+		if name == "" {
+			continue
+		}
+		if _, ok := putBranches[name]; !ok {
+			putBranches[name] = DELETE_BRANCH
+		}
+	}
 	assert.NoError(u.t, u.gs.PutBranches(ctx, putBranches))
 }
 
@@ -152,15 +166,12 @@ func TestRecurseAllBranchesGitStore(t *testing.T) {
 	repograph_shared_tests.TestRecurseAllBranches(t, ctx, g, repo, ud)
 }
 
-/*
-TODO(borenet): This test is disabled because GitStore doesn't support deleting
-branches.
 func TestUpdateHistoryChangedGitStore(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestUpdateHistoryChanged(t, ctx, g, repo, ud)
-}*/
+}
 
 func TestUpdateAndReturnCommitDiffsGitStore(t *testing.T) {
 	unittest.LargeTest(t)

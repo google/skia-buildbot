@@ -239,7 +239,11 @@ func (b *BigTableGitStore) PutBranches(ctx context.Context, branches map[string]
 	for branchName, oldHeadPtr := range updateFrom {
 		func(branchName string, oldHeadPtr *gitstore.BranchPointer) {
 			egroup.Go(func() error {
-				return b.updateBranch(ctx, branchName, branches[branchName], oldHeadPtr, graph)
+				if branches[branchName] == gitstore.DELETE_BRANCH {
+					return b.deleteBranchPointer(ctx, branchName)
+				} else {
+					return b.updateBranch(ctx, branchName, branches[branchName], oldHeadPtr, graph)
+				}
 			})
 		}(branchName, oldHeadPtr)
 	}
@@ -415,6 +419,13 @@ func (b *BigTableGitStore) putBranchPointer(ctx context.Context, repoInfoRowName
 	mut.Set(cfBranches, branchName, now, encBranchPointer(idxCommit.Hash, idxCommit.Index))
 	mut.DeleteTimestampRange(cfBranches, branchName, 0, now)
 	return b.table.Apply(ctx, repoInfoRowName, mut)
+}
+
+// deleteBranchPointer deletes the row containing the branch pointer.
+func (b *BigTableGitStore) deleteBranchPointer(ctx context.Context, branchName string) error {
+	mut := bigtable.NewMutation()
+	mut.DeleteCellsInColumn(cfBranches, branchName)
+	return b.table.Apply(ctx, getRepoInfoRowName(b.RepoURL), mut)
 }
 
 // writeLongCommits writes the LongCommits to the store idempotently.
