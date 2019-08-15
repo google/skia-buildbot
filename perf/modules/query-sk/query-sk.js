@@ -184,7 +184,7 @@ window.customElements.define('query-sk', class extends ElementSk {
     this._paramset = val;
     this._originalParamset = val;
     this._recalcKeys();
-    if (this._fast.value.trim() !== '') {
+    if (this._fast && this._fast.value.trim() !== '') {
       this._fastFilter();
     }
     this._render();
