@@ -58,7 +58,7 @@ def GetDepsVar(deps_filepath, variable):
   return deps_vars['vars'][variable]
 
 
-def Sync(skia_revision=SKIA_REV_MASTER, chrome_revision=CHROME_REV_LKGR,
+def Sync(skia_revision=SKIA_REV_DEPS, chrome_revision=CHROME_REV_LKGR,
          fetch_target=DEFAULT_FETCH_TARGET,
          gyp_defines=None, gyp_generators=None):
   """ Create and sync a checkout of Skia inside a checkout of Chrome. Returns
@@ -190,7 +190,7 @@ def Main():
   dest_dir = os.path.abspath(options.destination)
   with misc.ChDir(dest_dir):
     actual_skia_rev, actual_chrome_rev = Sync(
-        skia_revision=options.skia_revision or SKIA_REV_MASTER,
+        skia_revision=options.skia_revision or SKIA_REV_DEPS,
         chrome_revision=options.chrome_revision or CHROME_REV_MASTER,
         fetch_target=options.fetch_target)
     print 'Chrome synced to %s' % actual_chrome_rev

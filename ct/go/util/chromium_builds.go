@@ -334,22 +334,22 @@ func ResetChromiumCheckout(ctx context.Context, chromiumSrcDir string) error {
 	if err != nil {
 		sklog.Info("No index.lock file found.")
 	}
-	// Reset Skia.
+	sklog.Info("Resetting Skia")
 	skiaDir := filepath.Join(chromiumSrcDir, "third_party", "skia")
 	if err := ResetCheckout(ctx, skiaDir, "HEAD"); err != nil {
 		return fmt.Errorf("Could not reset Skia's checkout in %s: %s", skiaDir, err)
 	}
-	// Reset V8.
+	sklog.Info("Resetting V8")
 	v8Dir := filepath.Join(chromiumSrcDir, "v8")
-	if err := ResetCheckout(ctx, v8Dir, "origin/master"); err != nil {
+	if err := ResetCheckout(ctx, v8Dir, "HEAD"); err != nil {
 		return fmt.Errorf("Could not reset V8's checkout in %s: %s", v8Dir, err)
 	}
-	// Reset Catapult.
+	sklog.Info("Resetting Catapult")
 	catapultDir := filepath.Join(chromiumSrcDir, RelativeCatapultSrcDir)
 	if err := ResetCheckout(ctx, catapultDir, "HEAD"); err != nil {
 		return fmt.Errorf("Could not reset Catapult's checkout in %s: %s", catapultDir, err)
 	}
-	// Reset Chromium.
+	sklog.Info("Resetting Chromium")
 	if err := ResetCheckout(ctx, chromiumSrcDir, "HEAD"); err != nil {
 		return fmt.Errorf("Could not reset Chromium's checkout in %s: %s", chromiumSrcDir, err)
 	}
