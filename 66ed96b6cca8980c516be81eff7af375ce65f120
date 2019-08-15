@@ -16,6 +16,24 @@
       "revId": "66ed96b6cca8980c516be81eff7af375ce65f120",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dae2fa00_fd045530",
+        "filename": "golden/probers.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-15T18:14:00Z",
+      "side": 1,
+      "message": "IIUC, prober makes sure a website is up. k8s wouldn\u0027t alert if the readinessProbe was down, would it?\n\n/healthz is on the same webserver as the main webpage, so if we can\u0027t reach healthz, we can\u0027t reach the website, so it seems like a fine thing to prob by me.",
+      "parentUuid": "47efa031_fc521548",
+      "revId": "66ed96b6cca8980c516be81eff7af375ce65f120",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
