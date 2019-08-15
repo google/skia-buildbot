@@ -114,10 +114,11 @@ func iterateCommits(t sktest.TestingT, repoDir string, maxCount int, targetCh ch
 		retIdx := 0
 		batchTimer := timer.New("Fetching commits starting with 0")
 		for idx, indexCommit := range indexCommits {
-			commitDetails, err := gitInfo.Details(ctx, indexCommit.Hash, false)
+			commitDetails, err := gitInfo.Details(ctx, indexCommit.Hash, true)
 			if err != nil {
 				sklog.Fatalf("Error fetching commits: %s", err)
 			}
+			commitDetails.Index = indexCommit.Index
 			longCommits = append(longCommits, commitDetails)
 			indices = append(indices, indexCommit.Index)
 			if len(longCommits) >= maxCount || idx == (len(indexCommits)-1) {
