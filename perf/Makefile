@@ -27,6 +27,7 @@ start_datastore_emulator:
 
 .PHONY: web
 web:
+	npm i
 	npx webpack-cli --mode=production
 
 .PHONY: testjs
@@ -45,8 +46,11 @@ testgo:
 debug:
 	npx webpack-cli --mode=development
 
-.PHONY: all
-all: build
+.PHONY: all # For ../Makefile 'all' target.
+all:
+	go install -v ./go/...
+	npm i
+	npx webpack-cli --mode=production
 
 start_bigtable_emulator:
 	docker run -ti -p 8000:8000 google/cloud-sdk:latest gcloud beta emulators bigtable start \
