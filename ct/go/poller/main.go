@@ -73,6 +73,7 @@ func runId(task Task) string {
 	return strings.SplitN(task.GetCommonCols().Username, "@", 2)[0] + "-" + ctutil.GetCurrentTs()
 }
 
+// HERE HERE
 func executeAndPrintTaskOutput(ctx context.Context, taskName, runId string, args []string) error {
 	var b bytes.Buffer
 	if _, err := b.WriteString(fmt.Sprintf("========== Start of stdout and stderr for %s %s ==========\n", taskName, runId)); err != nil {

@@ -1,0 +1,38 @@
+# Copyright (c) 2019 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+{
+  'includes': [
+    'py.isolate',
+  ],
+  'conditions': [
+    ['OS=="linux"', {
+      'variables': {
+        'files': [
+          '../../../bin/run_chromium_perf_on_workers',
+          'chromium_perf.isolate',
+          'py.isolate',  # NEEDED?
+        ],
+      'command': [
+        '../../../bin/run_chromium_perf_on_workers',
+        '-logtostderr',
+        '--emails=<(EMAILS)',
+        '--description=<(DESCRIPTION)',
+        '--task_id=<(TASK_ID)',
+        '--pageset_type=<(PAGESET_TYPE)',
+        '--benchmark_name=<(BENCHMARK)',
+        '--benchmark_extra_args=<(BENCHMARK_ARGS)',
+        '--browser_extra_args_nopatch=<(BROWSER_EXTRA_ARGS_NOPATCH)',
+        '--browser_extra_args_withpatch=<(BROWSER_EXTRA_ARGS_WITHPATCH)',
+        '--repeat_benchmark=<(REPEAT_BENCHMARK)',
+        '--run_in_parallel=<(RUN_IN_PARALLEL)',
+        '--target_platform=<(TARGET_PLATFORM)',
+        '--run_on_gce=<(RUN_ON_GCE)',
+        '--chromium_hash=<(CHROMIUM_HASH)',
+        '--run_id=<(RUN_ID)',
+        '--task_priority=<(TASK_PRIORITY)',
+        '--group_name=<(GROUP_NAME)',
+      ]},
+    }],
+  ]
+}

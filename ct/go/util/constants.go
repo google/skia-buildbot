@@ -326,6 +326,10 @@ var (
 	}
 
 	// Swarming machine dimensions.
+	// Right now this is the same as GCE_LINUX_WORKER_DIMENSIONS. This will change after we bring up a
+	// new pool for CT masters.
+	GCE_LINUX_MASTER_DIMENSIONS = map[string]string{"pool": SWARMING_POOL, "os": "Linux", "cores": "8"}
+
 	GCE_LINUX_WORKER_DIMENSIONS   = map[string]string{"pool": SWARMING_POOL, "os": "Linux", "cores": "4"}
 	GCE_WINDOWS_WORKER_DIMENSIONS = map[string]string{"pool": SWARMING_POOL, "os": "Windows", "cores": "4"}
 
