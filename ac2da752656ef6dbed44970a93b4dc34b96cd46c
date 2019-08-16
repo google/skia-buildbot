@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8579a2c0_638b3613",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-16T14:22:57Z",
+      "side": 1,
+      "message": "Why not just use minHours and get rid of minDays from the config?\nLittle confusing to have both in the config.",
+      "revId": "ac2da752656ef6dbed44970a93b4dc34b96cd46c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1eb3d6f9_37fc54c0",
+        "filename": "go/sharedconfig/sharedconfig.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-16T14:22:57Z",
+      "side": 1,
+      "message": "If both are specified then they are added",
+      "revId": "ac2da752656ef6dbed44970a93b4dc34b96cd46c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
