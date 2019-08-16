@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"sort"
+	"strings"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
@@ -214,6 +215,13 @@ func TestGraphWellFormed(t sktest.TestingT, ctx context.Context, g *git_testutil
 	assert.Equal(t, []*repograph.Commit(nil), c1.GetParents())
 	assert.Equal(t, []*repograph.Commit{c2}, c3.GetParents())
 
+	// Assert that each of the commits has the correct index.
+	assert.Equal(t, 0, c1.Index)
+	assert.Equal(t, 1, c2.Index)
+	assert.Equal(t, 2, c3.Index)
+	assert.Equal(t, 2, c4.Index)
+	assert.Equal(t, 3, c5.Index)
+
 	// Ensure that we can start in an empty dir and check out from scratch properly.
 	tmp2, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
@@ -356,6 +364,50 @@ func TestRecurseAllBranches(t sktest.TestingT, ctx context.Context, g *git_testu
 	}))
 	assert.False(t, gotCommits[c1])
 	assert.True(t, gotCommits[c2])
+}
+
+func TestLogLinear(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilder, repo *repograph.Graph, rf RepoImplRefresher) {
+	commits := GitSetup(t, ctx, g, repo, rf)
+
+	c1 := commits[0]
+	c2 := commits[1]
+	c3 := commits[2]
+	c4 := commits[3]
+	c5 := commits[4]
+
+	gitdir := git.GitDir(g.Dir())
+	test := func(from, to string, checkAgainstGit bool, expect ...*repograph.Commit) {
+		if checkAgainstGit {
+			// Ensure that our expectations match actual git results.
+			cmd := []string{"--first-parent"}
+			if from == "" {
+				cmd = append(cmd, to)
+			} else {
+				cmd = append(cmd, "--ancestry-path", fmt.Sprintf("%s..%s", from, to))
+			}
+			hashes, err := gitdir.RevList(ctx, cmd...)
+			assert.NoError(t, err)
+			assert.Equal(t, len(hashes), len(expect))
+			for i, h := range hashes {
+				assert.Equal(t, h, expect[i].Hash)
+			}
+		}
+
+		// Ensure that we get the expected results from the Graph.
+		actual, err := repo.LogLinear(from, to)
+		assert.NoError(t, err)
+		deepequal.AssertDeepEqual(t, expect, actual)
+	}
+
+	// Get the full linear history from c5.
+	test("", c5.Hash, true, c5, c4, c2, c1)
+	// Get the linear history from c1 to c5. Like "git log", we don't
+	// include the "from" commit in the results.
+	test(c1.Hash, c5.Hash, true, c5, c4, c2)
+	// c3 is not reachable via first-parents from c5. For some reason, git
+	// actually returns c5.Hash, even though c5 has c4 as its first parent.
+	// Ignore the check against git in this case.
+	test(c3.Hash, c5.Hash, false)
 }
 
 func TestUpdateHistoryChanged(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilder, repo *repograph.Graph, rf RepoImplRefresher) {
@@ -670,4 +722,88 @@ func TestRevList(t sktest.TestingT, ctx context.Context, gb *git_testutils.GitBu
 	check(commits[1], commits[4], commits[2:5])
 	check(commits[2], commits[4], commits[3:5])
 	check(commits[3], commits[4], []string{commits[2], commits[4]})
+}
+
+func TestBranchMembership(t sktest.TestingT, ctx context.Context, gb *git_testutils.GitBuilder, repo *repograph.Graph, rf RepoImplRefresher) {
+	commits := GitSetup(t, ctx, gb, repo, rf)
+	c1 := commits[0]
+	c2 := commits[1]
+	c3 := commits[2]
+	c4 := commits[3]
+	c5 := commits[4]
+	test := func(c *repograph.Commit, branches ...string) {
+		sklog.Errorf("%d: %s", c.Index, c.Hash)
+		sklog.Errorf("Expect:\n%s", strings.Join(branches, "\n"))
+		actualStr := ""
+		for branch := range c.Branches {
+			actualStr += branch + "\n"
+		}
+		sklog.Errorf("Actual:\n%s", actualStr)
+		assert.Equal(t, len(branches), len(c.Branches))
+		for _, b := range branches {
+			assert.True(t, c.Branches[b])
+		}
+	}
+
+	// Branches should be nil at first.
+	for _, c := range commits {
+		assert.Nil(t, c.Branches)
+	}
+
+	// Enable branch tracking. Ensure that all commits were updated with the
+	// correct branch membership.
+	repo.EnableBranchTracking()
+	test(c1, "master", "branch2")
+	test(c2, "master", "branch2")
+	test(c3, "branch2") // c3 is reachable from master, but not via first-parent.
+	test(c4, "master")
+	test(c5, "master")
+
+	// Ensure that subsequent calls to Update() cause the branch membership
+	// to be updated.
+	gb.CreateBranchTrackBranch(ctx, "b3", "master")
+	rf.Refresh()
+	assert.NoError(t, repo.Update(ctx))
+	test(c1, "master", "branch2", "b3")
+	test(c2, "master", "branch2", "b3")
+	test(c3, "branch2") // c3 is reachable from b3, but not via first-parent.
+	test(c4, "master", "b3")
+	test(c5, "master", "b3")
+
+	// Reset b3 to branch2.
+	gb.Reset(ctx, "--hard", "branch2")
+	rf.Refresh()
+	assert.NoError(t, repo.Update(ctx))
+	test(c1, "master", "branch2", "b3")
+	test(c2, "master", "branch2", "b3")
+	test(c3, "branch2", "b3")
+	test(c4, "master")
+	test(c5, "master")
+
+	// Delete b3. We should get the same results as before it was added.
+	gb.CheckoutBranch(ctx, "master")
+	gb.UpdateRef(ctx, "-d", "refs/heads/b3")
+	rf.Refresh()
+	assert.NoError(t, repo.Update(ctx))
+	test(c1, "master", "branch2")
+	test(c2, "master", "branch2")
+	test(c3, "branch2")
+	test(c4, "master")
+	test(c5, "master")
+
+	// Ensure that repograph.Map updates branch membership as well.
+	m := repograph.Map{"dummy": repo}
+	c6hash := gb.CommitGen(ctx, "blah")
+	c6details, err := git.GitDir(gb.Dir()).Details(ctx, c6hash)
+	assert.NoError(t, err)
+	rf.Refresh(c6details)
+	assert.NoError(t, m.Update(ctx))
+	c6 := repo.Get(c6hash)
+	assert.NotNil(t, c6)
+	test(c1, "master", "branch2")
+	test(c2, "master", "branch2")
+	test(c3, "branch2")
+	test(c4, "master")
+	test(c5, "master")
+	test(c6, "master")
 }

@@ -16,9 +16,9 @@ var (
 	MaxTime = time.Unix(9999999999, 0)
 )
 
-// IndexCommit is information about a commit that includes the offset from
-// the first commit in the repository. The first commit in the branch has Index 0.
-// Usually the indexing makes most sense the commits on a branch in first-parent order.
+// IndexCommit is information about a commit that includes the commit's index
+// in the linear ancestry path obtained by following each commit's first parent
+// backward in history. The first commit in a given branch has Index 0.
 type IndexCommit struct {
 	Hash      string
 	Index     int
@@ -35,10 +35,16 @@ type ShortCommit struct {
 // LongCommit gives more detailed information about a commit.
 type LongCommit struct {
 	*ShortCommit
-	Parents   []string        `json:"parent"`
-	Body      string          `json:"body"`
-	Timestamp time.Time       `json:"timestamp"`
-	Branches  map[string]bool `json:"-"`
+	Parents   []string  `json:"parent"`
+	Body      string    `json:"body"`
+	Timestamp time.Time `json:"timestamp"`
+	// Index is this Commit's index in the linear ancestry path obtained by
+	// following each commit's first parent backward in history. The first
+	// commit in a given branch has Index 0. This field is not set by
+	// default.
+	Index int `json:"-"`
+	// Branches indicates which branches can reach this commit.
+	Branches map[string]bool `json:"-"`
 }
 
 func NewLongCommit() *LongCommit {

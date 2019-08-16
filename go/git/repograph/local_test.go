@@ -57,6 +57,13 @@ func TestRecurseAllBranchesRepo(t *testing.T) {
 	shared_tests.TestRecurseAllBranches(t, ctx, g, repo, ud)
 }
 
+func TestLogLinearRepo(t *testing.T) {
+	unittest.MediumTest(t)
+	ctx, g, repo, ud, cleanup := setupRepo(t)
+	defer cleanup()
+	shared_tests.TestLogLinear(t, ctx, g, repo, ud)
+}
+
 func TestUpdateHistoryChangedRepo(t *testing.T) {
 	unittest.MediumTest(t)
 	ctx, g, repo, ud, cleanup := setupRepo(t)
@@ -76,4 +83,11 @@ func TestRevListRepo(t *testing.T) {
 	ctx, g, repo, ud, cleanup := setupRepo(t)
 	defer cleanup()
 	shared_tests.TestRevList(t, ctx, g, repo, ud)
+}
+
+func TestBranchMembershipRepo(t *testing.T) {
+	unittest.MediumTest(t)
+	ctx, g, repo, ud, cleanup := setupRepo(t)
+	defer cleanup()
+	shared_tests.TestBranchMembership(t, ctx, g, repo, ud)
 }

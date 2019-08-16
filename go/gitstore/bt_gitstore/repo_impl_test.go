@@ -119,6 +119,13 @@ func TestRecurseAllBranchesBTGitStore(t *testing.T) {
 	repograph_shared_tests.TestRecurseAllBranches(t, ctx, g, repo, ud)
 }
 
+func TestLogLinearBTGitStore(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, g, repo, ud, cleanup := setupGitStore(t)
+	defer cleanup()
+	repograph_shared_tests.TestLogLinear(t, ctx, g, repo, ud)
+}
+
 func TestUpdateHistoryChangedBTGitStore(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
@@ -138,4 +145,11 @@ func TestRevListBTGitStore(t *testing.T) {
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
 	repograph_shared_tests.TestRevList(t, ctx, g, repo, ud)
+}
+
+func TestBranchMembershipBTGitStore(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, g, repo, ud, cleanup := setupGitStore(t)
+	defer cleanup()
+	repograph_shared_tests.TestBranchMembership(t, ctx, g, repo, ud)
 }

@@ -14,7 +14,9 @@ import (
 
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -26,12 +28,6 @@ var (
 type Commit struct {
 	*vcsinfo.LongCommit
 	parents []*Commit
-
-	// HistoryLen is the number of commits in the longest line of history
-	// reachable from this Commit. It is only used during Recurse as an
-	// estimate of the number of commits which might be visited, to prevent
-	// excessive resizing of the visited map.
-	HistoryLen int
 }
 
 // Parents returns the parents of this commit.
@@ -52,8 +48,11 @@ func (c *Commit) GetParents() []*Commit {
 // 	sklog.Info(c.Hash)
 // 	return nil
 // })
+//
+// If the passed-in function returns no errors other than ErrStopRecursing,
+// Recurse() will never return an error.
 func (c *Commit) Recurse(f func(*Commit) error) error {
-	return c.recurse(f, make(map[*Commit]bool, c.HistoryLen))
+	return c.recurse(f, make(map[*Commit]bool, c.Index+1))
 }
 
 // recurse is a helper function used by Recurse.
@@ -93,10 +92,28 @@ func (c *Commit) recurse(f func(*Commit) error, visited map[*Commit]bool) error 
 	return nil
 }
 
+// RecurseFirstParent is like Recurse, but it only follows the first parent of
+// each commit. Like Recurse, if the passed-in function returns no errors other
+// than ErrStopRecursing, RecurseFirstParent() will never return an error.
+func (c *Commit) RecurseFirstParent(f func(*Commit) error) error {
+	for {
+		if err := f(c); err == ErrStopRecursing {
+			return nil
+		} else if err != nil {
+			return err
+		}
+		if len(c.parents) == 0 {
+			return nil
+		} else {
+			c = c.parents[0]
+		}
+	}
+}
+
 // AllCommits returns the hashes of all commits reachable from this Commit, in
 // reverse topological order.
 func (c *Commit) AllCommits() ([]string, error) {
-	commits := make(map[*Commit]bool, c.HistoryLen)
+	commits := make(map[*Commit]bool, c.Index+1)
 	if err := c.recurse(func(c *Commit) error {
 		return nil
 	}, commits); err != nil {
@@ -162,7 +179,8 @@ type RepoImpl interface {
 	// Update the local view of the repo.
 	Update(context.Context) error
 
-	// Return the details for the given commit.
+	// Return the details for the given commit. The Graph takes ownership
+	// of the returned LongCommit and may modify it.
 	Details(context.Context, string) (*vcsinfo.LongCommit, error)
 
 	// Return the branch heads, as of the last call to Update().
@@ -179,8 +197,9 @@ type Graph struct {
 	commits  map[string]*Commit
 	graphMtx sync.RWMutex
 
-	updateMtx sync.Mutex
-	repoImpl  RepoImpl
+	updateMtx     sync.Mutex
+	repoImpl      RepoImpl
+	trackBranches bool
 }
 
 // NewLocalGraph returns a Graph instance, creating a git.Repo from the repoUrl
@@ -216,11 +235,50 @@ func (r *Graph) Len() int {
 	return len(r.commits)
 }
 
+// EnableBranchTracking enables tracking of commit membership in branches. A
+// commit is considered a member of a branch if and only if it is reachable by
+// tracing the *first parent* lineage backward from the branch head. Notably,
+// this will result in different branch membership than would be obtained by
+// `git branch --all --list --contains <hash` as is used elsewhere. This process
+// is somewhat expensive and is thus not enabled by default.
+func (r *Graph) EnableBranchTracking() {
+	r.updateMtx.Lock()
+	defer r.updateMtx.Unlock()
+	r.graphMtx.Lock()
+	defer r.graphMtx.Unlock()
+	r.trackBranches = true
+	r.updateBranchInfo()
+}
+
+// updateBranchInfo updates the membership of all commits in all branches. The
+// caller must hold r.updateMtx AND r.graphMtx.
+func (r *Graph) updateBranchInfo() {
+	// TODO(borenet): We have to obtain this information from scratch when
+	// EnableBranchTracking() is called, but we should be able to update it
+	// incrementally in updateFrom() in the common case. It seemed that
+	// there were enough edge cases that updateFrom() would become
+	// significantly more complicated, so I did not attempt that.
+	membership := make(map[*Commit]util.StringSet, len(r.commits))
+	for _, branch := range r.branches {
+		_ = r.commits[branch.Head].RecurseFirstParent(func(c *Commit) error {
+			m := membership[c]
+			if m == nil {
+				m = util.NewStringSet()
+				membership[c] = m
+			}
+			m[branch.Name] = true
+			return nil
+		})
+	}
+	for _, c := range r.commits {
+		c.Branches = membership[c]
+	}
+}
+
 // addCommit adds the given commit to the Graph. Requires that the commit's
 // parents are already in the Graph. Assumes that the caller holds r.graphMtx.
 func (r *Graph) addCommit(lc *vcsinfo.LongCommit) error {
 	defer metrics2.FuncTimer().Stop()
-	maxParentHistoryLen := 0
 	var parents []*Commit
 	if len(lc.Parents) > 0 {
 		for _, h := range lc.Parents {
@@ -232,8 +290,8 @@ func (r *Graph) addCommit(lc *vcsinfo.LongCommit) error {
 				return fmt.Errorf("repograph.Graph: Could not find parent commit %q", h)
 			}
 			parents = append(parents, p)
-			if p.HistoryLen > maxParentHistoryLen {
-				maxParentHistoryLen = p.HistoryLen
+			if lc.Index == 0 {
+				lc.Index = p.Index + 1
 			}
 		}
 	}
@@ -241,7 +299,6 @@ func (r *Graph) addCommit(lc *vcsinfo.LongCommit) error {
 	c := &Commit{
 		LongCommit: lc,
 		parents:    parents,
-		HistoryLen: maxParentHistoryLen + 1,
 	}
 	r.commits[c.Hash] = c
 	return nil
@@ -417,6 +474,9 @@ func (r *Graph) update(ctx context.Context, cb func(*Graph) error) ([]*vcsinfo.L
 	defer r.graphMtx.Unlock()
 	r.branches = newGraph.branches
 	r.commits = newGraph.commits
+	if r.trackBranches {
+		r.updateBranchInfo()
+	}
 	return added, removed, nil
 }
 
@@ -701,6 +761,39 @@ func topologicalSortHelper(commits map[*Commit]bool) []*Commit {
 	return rv
 }
 
+// LogLinear is equivalent to "git log --first-parent --ancestry-path from..to",
+// ie. it only returns commits which are on the direct path from A to B, and
+// only on the "main" branch. This is as opposed to "git log from..to" which
+// returns all commits which are ancestors of 'to' but not 'from'. The 'from'
+// commit may be the empty string, in which case all commits in the first-parent
+// line are returned.
+func (r *Graph) LogLinear(from, to string) ([]*Commit, error) {
+	fromCommit := r.Get(from)
+	if fromCommit == nil && from != "" {
+		return nil, skerr.Fmt("No such commit %q", from)
+	}
+	toCommit := r.Get(to)
+	if toCommit == nil {
+		return nil, skerr.Fmt("No such commit %q", to)
+	}
+	rv := []*Commit{}
+	found := false
+	_ = toCommit.RecurseFirstParent(func(c *Commit) error {
+		if c == fromCommit {
+			found = true
+			return ErrStopRecursing
+		}
+		rv = append(rv, c)
+		return nil
+	})
+	if !found && from != "" {
+		// If the "from" commit was not found, then there is no ancestry
+		// path from "from" to "to".
+		return nil, nil
+	}
+	return rv, nil
+}
+
 // IsAncestor returns true iff A is an ancestor of B, where A and B are either
 // commit hashes or branch names.
 func (r *Graph) IsAncestor(a, b string) (bool, error) {
@@ -818,6 +911,9 @@ func (m Map) update(ctx context.Context, cb func(string, *Graph) error) (map[str
 		newGraph := newGraphs[repoUrl]
 		r.branches = newGraph.branches
 		r.commits = newGraph.commits
+		if r.trackBranches {
+			r.updateBranchInfo()
+		}
 	}
 	return added, removed, nil
 }
