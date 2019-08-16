@@ -168,7 +168,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 		return ingestion.IgnoreResultsFileErr
 	}
 
-	entries, err := extractTraceDBEntries(dmResults)
+	entries, err := extractTraceStoreEntries(dmResults)
 	if err != nil {
 		sklog.Errorf("Error getting tracedb entries: %s", err)
 		return ingestion.IgnoreResultsFileErr
@@ -199,14 +199,14 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 	resultsMap := make(map[string]*tryjobstore.TryjobResult, len(entries))
 	for _, entry := range entries {
 		testName := types.TestName(entry.Params[types.PRIMARY_KEY_FIELD])
-		key := string(testName) + string(entry.Value)
+		key := string(testName) + string(entry.Digest)
 		if found, ok := resultsMap[key]; ok {
 			found.Params.AddParams(entry.Params)
 		} else {
 			resultsMap[key] = &tryjobstore.TryjobResult{
 				BuildBucketID: tryjob.BuildBucketID,
 				TestName:      testName,
-				Digest:        types.Digest(entry.Value),
+				Digest:        entry.Digest,
 				Params:        paramtools.NewParamSet(entry.Params),
 			}
 		}
