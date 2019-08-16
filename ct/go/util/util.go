@@ -180,16 +180,16 @@ func GetCipdPackageFromAsset(assetName string) (string, error) {
 }
 
 // ResetCheckout resets the specified Git checkout.
-func ResetCheckout(ctx context.Context, dir, resetTo string) error {
+func ResetCheckout(ctx context.Context, dir, resetTo, checkoutArg string) error {
 	if err := os.Chdir(dir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
 	}
 	// Clear out remnants of incomplete rebases from .git/rebase-apply.
 	rebaseArgs := []string{"rebase", "--abort"}
 	util.LogErr(ExecuteCmd(ctx, BINARY_GIT, rebaseArgs, []string{}, GIT_REBASE_TIMEOUT, nil, nil))
-	// Make sure we are on master branch and not stuck in a rebase branch for whatever reason.
-	branchArgs := []string{"checkout", "master"}
-	util.LogErr(ExecuteCmd(ctx, BINARY_GIT, branchArgs, []string{}, GIT_BRANCH_TIMEOUT, nil, nil))
+	// Checkout the specified branch or argument (eg: --detach).
+	checkoutArgs := []string{"checkout", checkoutArg}
+	util.LogErr(ExecuteCmd(ctx, BINARY_GIT, checkoutArgs, []string{}, GIT_CHECKOUT_TIMEOUT, nil, nil))
 	// Run "git reset --hard HEAD"
 	resetArgs := []string{"reset", "--hard", resetTo}
 	util.LogErr(ExecuteCmd(ctx, BINARY_GIT, resetArgs, []string{}, GIT_RESET_TIMEOUT, nil, nil))
