@@ -48,7 +48,6 @@ spec:
             - "--git_bt_table={{.GIT_BT_TABLE}}"
             - "--http_port=:9091"
             - "--logtostderr"
-            - "--no_cloud_log"
             - "--prom_port=:20000"
             - "--pubsub_project_id={{.PUBSUB_PROJECT}}"
           ports:
