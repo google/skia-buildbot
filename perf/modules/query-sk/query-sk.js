@@ -35,8 +35,8 @@ const template = (ele) => html`
     <div class=selection>
       <select-sk @selection-changed=${ele._keyChange}>
         ${_keys(ele)}
-        </select-sk>
-        <button @click=${ele._clear}>Clear Selections</button>
+      </select-sk>
+      <button @click=${ele._clear}>Clear Selections</button>
     </div>
     <query-values-sk id=values @query-values-changed=${ele._valuesChanged}></query-values-sk>
   </div>
