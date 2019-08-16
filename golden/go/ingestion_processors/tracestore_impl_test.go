@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.skia.org/infra/go/ingestion"
+	ingestion_mocks "go.skia.org/infra/go/ingestion/mocks"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	mock_vcs "go.skia.org/infra/go/vcsinfo/mocks"
@@ -81,7 +81,7 @@ func TestTraceStoreProcessorSunnyDay(t *testing.T) {
 
 	mts.On("Put", ctx, testCommitHash, expectedEntries, mock.AnythingOfType("time.Time")).Return(nil)
 
-	fsResult, err := ingestion.FileSystemResult(TEST_INGESTION_FILE, "./")
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(TEST_INGESTION_FILE)
 	assert.NoError(t, err)
 
 	p := &btProcessor{

@@ -10,7 +10,6 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs/gcs_testutils"
-	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -43,61 +42,6 @@ func TestGoogleStorageSource(t *testing.T) {
 	src, err := NewGoogleStorageSource("gs-test-src", gcs_testutils.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient, nil)
 	assert.NoError(t, err)
 	testSource(t, src)
-}
-
-func TestFileSystemResultFileLocations(t *testing.T) {
-	unittest.LargeTest(t)
-
-	err := gcs_testutils.DownloadTestDataArchive(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, TEST_DATA_DIR)
-
-	src, err := NewFileSystemSource("test-fs-source", TEST_DATA_DIR)
-	assert.NoError(t, err)
-	testSource(t, src)
-}
-
-func TestCompareSources(t *testing.T) {
-	// This test often times out after 5m on the Race bot, causing flaky failures.
-	// Since https://bugs.chromium.org/p/skia/issues/detail?id=8692 is marked Low
-	// Priority, I'm disabling the test until it's fixed or removed.
-	unittest.ManualTest(t)
-
-	gsSource, err := NewGoogleStorageSource("gs-test-src", gcs_testutils.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient, nil)
-	assert.NoError(t, err)
-
-	err = gcs_testutils.DownloadTestDataArchive(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, TEST_DATA_DIR)
-
-	fsSource, err := NewFileSystemSource("test-fs-source", TEST_DATA_DIR)
-	assert.NoError(t, err)
-
-	gsResults := drainPollChannel(gsSource.Poll(START_TIME, END_TIME))
-	fsResults := drainPollChannel(fsSource.Poll(START_TIME, END_TIME))
-
-	assert.Equal(t, len(gsResults), len(fsResults))
-	sort.Sort(rflSlice(gsResults))
-	sort.Sort(rflSlice(fsResults))
-
-	// Only compare a subset of all files to limit the runtime of this test.
-	gsResults = gsResults[:10]
-	fsResults = fsResults[:10]
-
-	for idx, result := range gsResults {
-		// Check if the MD5 from GS and the file system match.
-		assert.Equal(t, result.MD5(), fsResults[idx].MD5())
-
-		// Check if the content is the same for both sources.
-		file, err := result.Open()
-		assert.NoError(t, err)
-		c1, err := ioutil.ReadAll(file)
-		assert.NoError(t, err)
-		file, err = fsResults[idx].Open()
-		c2, err := ioutil.ReadAll(file)
-		assert.NoError(t, err)
-		assert.Equal(t, string(c1), string(c2))
-	}
 }
 
 func testSource(t *testing.T, src Source) {
