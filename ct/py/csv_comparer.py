@@ -423,7 +423,8 @@ if '__main__' == __name__:
       help='The chromium git hash that was used for this run.')
   option_parser.add_option(
       '', '--skia_hash',
-      help='The skia git hash that was used for this run.')
+      help='The skia git hash that was used for this run.',
+      default='')
   option_parser.add_option(
       '', '--missing_output_slaves',
       help='Slaves which had no output for this run.')
@@ -444,14 +445,13 @@ if '__main__' == __name__:
           and options.skia_patch_link and options.raw_csv_nopatch
           and options.raw_csv_withpatch and options.num_repeated
           and options.target_platform and options.pageset_type
-          and options.chromium_hash and options.skia_hash
-          and options.description):
+          and options.chromium_hash and options.description):
     option_parser.error('Must specify csv_file1, csv_file2, output_html_dir, '
                         'variance_threshold, requester_email, '
                         'chromium_patch_link, '
                         'skia_patch_link, raw_csv_nopatch, description, '
                         'raw_csv_withpatch, num_repeated, pageset_type, '
-                        'chromium_hash, skia_hash and target_platform')
+                        'chromium_hash and target_platform')
 
   sys.exit(CsvComparer(
       options.csv_file1, options.csv_file2, options.output_html_dir,
