@@ -502,12 +502,14 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 
 	// The repo has commits, but GitSetup has already run Update(), so
 	// there's nothing new.
+	rf.Refresh()
 	added, removed, err := repo.UpdateAndReturnCommitDiffs(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, len(added), 0)
 	assert.Equal(t, len(removed), 0)
 
 	// No new commits.
+	rf.Refresh()
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(added))
@@ -566,6 +568,7 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 
 	// Make sure we get no duplicates if the branch heads aren't the same.
 	g.Reset(ctx, "--hard", "master^")
+	rf.Refresh()
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(added))
@@ -574,6 +577,7 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 	// Create a new branch.
 	g.CheckoutBranch(ctx, "master")
 	g.CreateBranchTrackBranch(ctx, "branch4", "master")
+	rf.Refresh()
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(added))

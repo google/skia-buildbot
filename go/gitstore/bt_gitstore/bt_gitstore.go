@@ -135,7 +135,9 @@ func (b *BigTableGitStore) Put(ctx context.Context, commits []*vcsinfo.LongCommi
 		}
 		indexCommitsByBranch[gitstore.ALL_BRANCHES] = append(indexCommitsByBranch[gitstore.ALL_BRANCHES], ic)
 		for branch := range c.Branches {
-			indexCommitsByBranch[branch] = append(indexCommitsByBranch[branch], ic)
+			if branch != gitstore.ALL_BRANCHES {
+				indexCommitsByBranch[branch] = append(indexCommitsByBranch[branch], ic)
+			}
 		}
 	}
 	// Count the number of commits with index 0 on each branch. Error out if

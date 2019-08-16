@@ -210,10 +210,14 @@ func (r *Repo) Details(ctx context.Context, ref string) (*vcsinfo.LongCommit, er
 // Loads commits in batches and calls the given function for each batch of
 // commits. If the function returns an error, iteration stops, and the error is
 // returned, unless it was ErrStopIteration.
-func (r *Repo) logHelper(ctx context.Context, urlTmpl, commit string, fn func(context.Context, []*vcsinfo.LongCommit) error) error {
+func (r *Repo) logHelper(ctx context.Context, urlTmpl, commit string, reverse bool, fn func(context.Context, []*vcsinfo.LongCommit) error) error {
 	for {
 		var l Log
-		if err := r.getJson(ctx, fmt.Sprintf(urlTmpl, commit), &l); err != nil {
+		url := fmt.Sprintf(urlTmpl, commit)
+		if reverse {
+			url += "&reverse=true"
+		}
+		if err := r.getJson(ctx, url, &l); err != nil {
 			return err
 		}
 		// Convert to vcsinfo.LongCommit.
@@ -243,7 +247,7 @@ func (r *Repo) logHelper(ctx context.Context, urlTmpl, commit string, fn func(co
 func (r *Repo) Log(ctx context.Context, from, to string) ([]*vcsinfo.LongCommit, error) {
 	rv := []*vcsinfo.LongCommit{}
 	tmpl := fmt.Sprintf(LOG_URL, r.URL, from+"..%s")
-	if err := r.logHelper(ctx, tmpl, to, func(ctx context.Context, commits []*vcsinfo.LongCommit) error {
+	if err := r.logHelper(ctx, tmpl, to, false, func(ctx context.Context, commits []*vcsinfo.LongCommit) error {
 		rv = append(rv, commits...)
 		return nil
 	}); err != nil {
@@ -331,14 +335,33 @@ func (r *Repo) LogFn(ctx context.Context, to string, fn func(context.Context, *v
 // LogFnBatch is the same as LogFn but it runs the given function over batches
 // of commits.
 func (r *Repo) LogFnBatch(ctx context.Context, to string, fn func(context.Context, []*vcsinfo.LongCommit) error) error {
-	return r.logHelper(ctx, fmt.Sprintf(LOG_URL, r.URL, "%s"), to, fn)
+	return r.logHelper(ctx, fmt.Sprintf(LOG_URL, r.URL, "%s"), to, false, fn)
 }
+
+// LogFnBatchReverse is the same as LogFnBatch but the commits are traversed
+// in reverse order, ie. each commit appears after all of its parents. The
+// "from" commit can be empty, in which case all commits are loaded.
+func (r *Repo) LogFnBatchReverse(ctx context.Context, from, to string, fn func(context.Context, []*vcsinfo.LongCommit) error) error {
+	var tmpl string
+	if from == "" {
+		tmpl = fmt.Sprintf(LOG_URL, r.URL, "%s")
+	} else {
+		tmpl = fmt.Sprintf(LOG_URL, r.URL, from+"..%s")
+	}
+	return r.logHelper(ctx, tmpl, to, true, fn)
+}
+
+// Ref represents a single ref, as returned by the API.
+type Ref struct {
+	Value string `json:"value"`
+}
+
+// RefsMap is the result of a request to REFS_URL.
+type RefsMap map[string]Ref
 
 // Branches returns the list of branches in the repo.
 func (r *Repo) Branches(ctx context.Context) ([]*git.Branch, error) {
-	branchMap := map[string]struct {
-		Value string `json:"value"`
-	}{}
+	branchMap := RefsMap{}
 	if err := r.getJson(ctx, fmt.Sprintf(REFS_URL, r.URL), &branchMap); err != nil {
 		return nil, err
 	}

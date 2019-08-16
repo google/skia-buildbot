@@ -3,6 +3,7 @@ package repograph
 import (
 	"context"
 	"encoding/gob"
+	"fmt"
 	"io"
 	"os"
 	"path"
@@ -94,16 +95,32 @@ func (r *localRepoImpl) Update(ctx context.Context) error {
 }
 
 // See documentation for RepoImpl interface.
-func (r *localRepoImpl) Details(ctx context.Context, hash string) (*vcsinfo.LongCommit, error) {
-	if c, ok := r.commits[hash]; ok {
-		return c, nil
+func (r *localRepoImpl) LogProcess(ctx context.Context, from, to string, cb func(*vcsinfo.LongCommit) error) error {
+	s := to
+	if from != "" {
+		s = fmt.Sprintf("%s..%s", from, to)
 	}
-	rv, err := r.Repo.Details(ctx, hash)
+	hashes, err := r.RevList(ctx, "--topo-order", "--reverse", s)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	r.commits[hash] = rv
-	return rv, nil
+	for _, h := range hashes {
+		sklog.Infof("%s", h)
+	}
+	for _, h := range hashes {
+		c, ok := r.commits[h]
+		if !ok {
+			c, err = r.Repo.Details(ctx, h)
+			if err != nil {
+				return err
+			}
+			r.commits[h] = c
+		}
+		if err := cb(c); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // See documentation for RepoImpl interface.
@@ -112,6 +129,6 @@ func (r *localRepoImpl) Branches(ctx context.Context) ([]*git.Branch, error) {
 }
 
 // See documentation for RepoImpl interface.
-func (r *localRepoImpl) UpdateCallback(ctx context.Context, g *Graph) error {
+func (r *localRepoImpl) UpdateCallback(ctx context.Context, _, _ []*vcsinfo.LongCommit, g *Graph) error {
 	return writeCacheFile(r.branches, r.commits, path.Join(r.Dir(), CACHE_FILE))
 }

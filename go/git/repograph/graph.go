@@ -188,7 +188,7 @@ type RepoImpl interface {
 
 	// UpdateCallback is a function which is called after the Graph is
 	// updated but before the changes are committed.
-	UpdateCallback(context.Context, *Graph) error
+	UpdateCallback(context.Context, []*vcsinfo.LongCommit, []*vcsinfo.LongCommit, *Graph) error
 }
 
 // Graph represents an entire Git repo.
@@ -225,6 +225,7 @@ func NewWithRepoImpl(ctx context.Context, ri RepoImpl) (*Graph, error) {
 	if _, _, err := rv.updateFrom(ctx, rv.repoImpl); err != nil {
 		return nil, err
 	}
+	sklog.Infof("Created graph %p", rv)
 	return rv, nil
 }
 
@@ -247,12 +248,15 @@ func (r *Graph) EnableBranchTracking() {
 	r.graphMtx.Lock()
 	defer r.graphMtx.Unlock()
 	r.trackBranches = true
+	sklog.Infof("Branch tracking enabled for %p", r)
 	r.updateBranchInfo()
 }
 
 // updateBranchInfo updates the membership of all commits in all branches. The
-// caller must hold r.updateMtx AND r.graphMtx.
-func (r *Graph) updateBranchInfo() {
+// caller must hold r.updateMtx AND r.graphMtx. Returns the commits which were
+// updated.
+func (r *Graph) updateBranchInfo() []*Commit {
+	sklog.Infof("Updating branch info...")
 	// TODO(borenet): We have to obtain this information from scratch when
 	// EnableBranchTracking() is called, but we should be able to update it
 	// incrementally in updateFrom() in the common case. It seemed that
@@ -267,12 +271,18 @@ func (r *Graph) updateBranchInfo() {
 				membership[c] = m
 			}
 			m[branch.Name] = true
+			sklog.Infof("%s: %s", c.Hash, branch.Name)
 			return nil
 		})
 	}
+	rv := []*Commit{}
 	for _, c := range r.commits {
-		c.Branches = membership[c]
+		if !util.StringSet(c.Branches).Equals(membership[c]) {
+			c.Branches = membership[c]
+			rv = append(rv, c)
+		}
 	}
+	return rv
 }
 
 // addCommit adds the given commit to the Graph. Requires that the commit's
@@ -341,6 +351,8 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 		// Shortcut: if the branch is up-to-date, skip it.
 		if newHead == oldHead {
 			continue
+		} else if oldHead == "" {
+			sklog.Warningf("Found new branch %s @ %s", branch.Name, newHead)
 		}
 
 		// Trace back in time from the new branch head until we find the
@@ -411,6 +423,7 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 		// Check to see whether any branches were deleted.
 		for branch := range oldBranchesMap {
 			if _, ok := newBranchesMap[branch]; !ok {
+				sklog.Warningf("Branch %s was deleted; need to check for orphaned commits.", branch)
 				needOrphanCheck = true
 				break
 			}
@@ -467,16 +480,33 @@ func (r *Graph) update(ctx context.Context, cb func(*Graph) error) ([]*vcsinfo.L
 			return nil, nil, err
 		}
 	}
-	if err := r.repoImpl.UpdateCallback(ctx, newGraph); err != nil {
+	if r.trackBranches {
+		// TODO(borenet): This modifies commits in place. We should
+		// instead create a copy and only "commit" the modifications
+		// once the callback is successful.
+		modified := newGraph.updateBranchInfo()
+		allModified := make(map[string]*vcsinfo.LongCommit, len(added)+len(modified))
+		for _, c := range added {
+			allModified[c.Hash] = c
+		}
+		for _, c := range modified {
+			allModified[c.Hash] = c.LongCommit
+		}
+		added = make([]*vcsinfo.LongCommit, 0, len(allModified))
+		for _, c := range allModified {
+			added = append(added, c)
+		}
+	} else {
+		sklog.Errorf("Not tracking branch info for %p", r)
+	}
+	if err := r.repoImpl.UpdateCallback(ctx, added, removed, newGraph); err != nil {
 		return nil, nil, err
 	}
 	r.graphMtx.Lock()
 	defer r.graphMtx.Unlock()
 	r.branches = newGraph.branches
 	r.commits = newGraph.commits
-	if r.trackBranches {
-		r.updateBranchInfo()
-	}
+	sklog.Infof("Graph update finished; have %d commits, added %d, removed %d", len(r.commits), len(added), len(removed))
 	return added, removed, nil
 }
 
