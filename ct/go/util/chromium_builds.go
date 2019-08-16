@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -55,6 +54,11 @@ func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyF
 	chromiumBuildDir, _ := filepath.Split(ChromiumSrcDir)
 	util.MkdirAll(chromiumBuildDir, 0700)
 
+	// Make sure we are starting from a clean slate before the sync.
+	if err := ResetChromiumCheckout(ctx, ChromiumSrcDir); err != nil {
+		return fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
+	}
+
 	// Run chromium sync command using the specified chromium hash.
 	// Construct path to the sync_skia_in_chrome python script.
 	syncArgs := []string{
@@ -76,10 +80,6 @@ func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyF
 		return fmt.Errorf("There was an error checking out chromium %s: %s", chromiumHash, err)
 	}
 
-	// Make sure we are starting from a clean slate.
-	if err := ResetChromiumCheckout(ctx, ChromiumSrcDir); err != nil {
-		return fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
-	}
 	if applyPatches {
 		if err := applyRepoPatches(ctx, ChromiumSrcDir, runID); err != nil {
 			return fmt.Errorf("Could not apply patches in the chromium checkout in %s: %s", chromiumBuildDir, err)
@@ -147,12 +147,9 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 		}
 	}
 
-	// Find which Skia commit hash should be used.
-	if skiaHash == "" {
-		skiaHash, err = buildskia.GetSkiaHash(nil)
-		if err != nil {
-			return "", "", fmt.Errorf("Error while finding Skia's Hash: %s", err)
-		}
+	// Make sure we are starting from a clean slate before the sync.
+	if err := ResetChromiumCheckout(ctx, filepath.Join(chromiumBuildDir, "src")); err != nil {
+		return "", "", fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
 	}
 
 	// Run chromium sync command using the above commit hashes.
@@ -162,7 +159,7 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 		"--destination=" + chromiumBuildDir,
 		"--fetch_target=" + fetchTarget,
 		"--chrome_revision=" + chromiumHash,
-		"--skia_revision=" + skiaHash,
+		"--skia_revision=SKIA_REV_DEPS",
 	}
 	syncCommand := &exec.Command{
 		Name: "python",
@@ -186,10 +183,6 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 		}
 	}
 
-	// Make sure we are starting from a clean slate.
-	if err := ResetChromiumCheckout(ctx, filepath.Join(chromiumBuildDir, "src")); err != nil {
-		return "", "", fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
-	}
 	googleStorageDirName := ChromiumBuildDir(chromiumHash, skiaHash, runID)
 	if applyPatches {
 		if err := applyRepoPatches(ctx, filepath.Join(chromiumBuildDir, "src"), runID); err != nil {
