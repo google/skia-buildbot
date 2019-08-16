@@ -232,6 +232,10 @@ func TestGraphWellFormed(t sktest.TestingT, ctx context.Context, g *git_testutil
 	deepequal.AssertDeepEqual(t, repo.Branches(), repo2.Branches())
 	m1 := repo.Get("master")
 	m2 := repo2.Get("master")
+	// Different implementations may or may not track branch info.
+	for _, c := range repo2.GetAll() {
+		c.Branches = repo.Get(c.Hash).Branches
+	}
 	deepequal.AssertDeepEqual(t, m1, m2)
 }
 
@@ -743,11 +747,6 @@ func TestBranchMembership(t sktest.TestingT, ctx context.Context, gb *git_testut
 		for _, b := range branches {
 			assert.True(t, c.Branches[b])
 		}
-	}
-
-	// Branches should be nil at first.
-	for _, c := range commits {
-		assert.Nil(t, c.Branches)
 	}
 
 	// Enable branch tracking. Ensure that all commits were updated with the
