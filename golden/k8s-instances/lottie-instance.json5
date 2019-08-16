@@ -30,16 +30,15 @@
     "TILE_FRESHNESS":          "1m",
 
     // Settings for the main ingester.
-    "ING_RUN_EVERY":           "20m",
-    "ING_N_COMMITS":           30,
-    "ING_MIN_DAYS":            1,
+    "ING_RUN_EVERY":           "1h",
+    "ING_N_COMMITS":           5,
+    "ING_MIN_HOURS":           2,
 
     // Settings for the Tryjob ingester. If ING_TRY_ENABLED is false no ingester for
     // tryjobs will be configured.
     "ING_TRY_ENABLED":         false,
-    "ING_TRY_RUN_EVERY":       "5m",
-    "ING_TRY_MIN_DAYS":        20,
-    "ING_TRY_N_COMMITS":       10,
+    "ING_TRY_RUN_EVERY":       "1h",
+    "ING_TRY_MIN_HOURS":       2,
     "ING_TRY_BUILDBUCKET_URL": "",
     "ING_TRY_BUILDBUCKET":     "",
     "ING_TRY_BB_INTERVAL":     "10s",

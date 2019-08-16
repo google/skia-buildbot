@@ -120,7 +120,7 @@ func (b *btProcessor) isOnMaster(ctx context.Context, hash string) (bool, error)
 		return true, nil
 	}
 
-	if err := b.vcs.Update(ctx, false /*=pull*/, false /*=all branches*/); err != nil {
+	if err := b.vcs.Update(ctx, true /*=pull*/, false /*=all branches*/); err != nil {
 		return false, skerr.Wrapf(err, "could not update VCS")
 	}
 	if i, _ := b.vcs.IndexOf(ctx, hash); i >= 0 {
