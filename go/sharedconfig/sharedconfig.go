@@ -12,9 +12,19 @@ type DataSource struct {
 }
 
 type IngesterConfig struct {
-	RunEvery    config.Duration   // How often the ingester should pull data from Google Storage.
-	NCommits    int               // Minimum number of commits that should be ingested.
-	MinDays     int               // Minimum number of days that should be covered by the ingested commits.
+	// As of 2019, the primary way to ingest data is event-driven. That is, when
+	// new files are put into a GCS bucket, PubSub fires an event and that is the
+	// primary way for an ingester to be notified about a file.
+	// The four parameters below configure the manual polling of the source, which
+	// is a backup way to ingest data in the unlikely case that a PubSub event is
+	// dropped (PubSub will try and re-try to send events for up to seven days by default).
+	// If MinDays and MinHours are both 0, polling will not happen.
+	// If MinDays and MinHours are both specified, the two will be added.
+	RunEvery config.Duration // How often the ingester should pull data from Google Storage.
+	NCommits int             // Minimum number of commits that should be ingested.
+	MinDays  int             // Minimum number of days the commits polled should span.
+	MinHours int             // Minimum number of hours the commits polled should span.
+
 	MetricName  string            // What to call this ingester's data when imported to Graphite
 	Sources     []*DataSource     // Input sources where the ingester reads from.
 	ExtraParams map[string]string // Any additional needed parameters (ingester specific)

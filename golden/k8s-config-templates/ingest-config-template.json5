@@ -7,7 +7,7 @@
     "gold-bt": {
       RunEvery: "{{.ING_RUN_EVERY}}",
       NCommits: {{.ING_N_COMMITS}},
-      MinDays: {{.ING_MIN_DAYS}},
+      MinHours: {{.ING_MIN_HOURS}},
       MetricName: "gold-{{.INSTANCE_ID}}-ingestion",
       Sources: [
         {
@@ -26,8 +26,7 @@
     // Gold Tryjob Ingester for gold-{{.INSTANCE_ID}}.
     "gold-tryjob": {
       RunEvery: "{{.ING_TRY_RUN_EVERY}}",
-      NCommits: {{.ING_TRY_N_COMMITS}},
-      MinDays: {{.ING_TRY_MIN_DAYS}},
+      MinHours: {{.ING_TRY_MIN_HOURS}},
       MetricName: "{{.INSTANCE_ID}}-gold-ingest-tryjob",
       Sources: [
         {

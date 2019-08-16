@@ -65,11 +65,14 @@ func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, v
 		return nil, skerr.Fmt("eventBus and ingestionStore cannot be nil")
 	}
 
+	minDuration := time.Duration(ingesterConf.MinDays) * time.Hour * 24
+	minDuration += time.Duration(ingesterConf.MinHours) * time.Hour
+
 	ret := &Ingester{
 		id:                  ingesterID,
 		vcs:                 vcs,
 		nCommits:            ingesterConf.NCommits,
-		minDuration:         time.Duration(ingesterConf.MinDays) * time.Hour * 24,
+		minDuration:         minDuration,
 		runEvery:            ingesterConf.RunEvery.Duration,
 		sources:             sources,
 		processor:           processor,
@@ -85,7 +88,7 @@ func (i *Ingester) Start(ctx context.Context) error {
 	concurrentProc := make(chan bool, nConcurrentProcessors)
 	resultChan, err := i.getInputChannel(ctx)
 	if err != nil {
-		return sklog.FmtErrorf("Error retrieving input channel: %s", err)
+		return skerr.Wrapf(err, "retrieving input channel")
 	}
 
 	// Continuously catch events from all input sources and push the data to the processor.
@@ -133,7 +136,7 @@ func (i *Ingester) getInputChannel(ctx context.Context) (<-chan ResultFileLocati
 
 	for _, source := range i.sources {
 		if err := source.SetEventChannel(eventChan); err != nil {
-			return nil, sklog.FmtErrorf("Error setting event channel: %s", err)
+			return nil, skerr.Wrapf(err, "setting event channel for source %v", source)
 		}
 
 		// Watch the source and feed anything not found in the IngestionStore
@@ -147,7 +150,7 @@ func (i *Ingester) getInputChannel(ctx context.Context) (<-chan ResultFileLocati
 // storage events if the files in the source have not been ingested yet.
 func (i *Ingester) watchSource(source Source) {
 	if i.minDuration == 0 {
-		sklog.Infof("Not going to do polling because minDays = 0")
+		sklog.Infof("Not going to do polling because minDuration == 0")
 		return
 	}
 	sklog.Infof("Watching source %s", source.ID())
