@@ -10,7 +10,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/ingestion"
+	ingestion_mocks "go.skia.org/infra/go/ingestion/mocks"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
@@ -123,7 +123,7 @@ func TestTryjobGoldProcessor(t *testing.T) {
 	})
 
 	// Call process for the input file.
-	fsResult, err := ingestion.FileSystemResult(TRYJOB_INGESTION_FILE, TEST_DATA_DIR)
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(TRYJOB_INGESTION_FILE)
 	assert.NoError(t, err)
 	assert.NoError(t, processor.Process(context.Background(), fsResult))
 
