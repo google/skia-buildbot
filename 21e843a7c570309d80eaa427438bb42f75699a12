@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "a7cb3607_4b756d0f",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-16T11:56:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "397a3065_96593a0f",
+      "revId": "21e843a7c570309d80eaa427438bb42f75699a12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6fc3371a_90020711",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 4
@@ -39,6 +57,30 @@
       "revId": "21e843a7c570309d80eaa427438bb42f75699a12",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a32d1d91_9c016f49",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-16T11:56:11Z",
+      "side": 1,
+      "message": "Changed to use util.StringSet.",
+      "parentUuid": "6fc3371a_90020711",
+      "range": {
+        "startLine": 257,
+        "startChar": 20,
+        "endLine": 257,
+        "endChar": 47
+      },
+      "revId": "21e843a7c570309d80eaa427438bb42f75699a12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "8d59cedf_f101348a",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-16T11:56:11Z",
+      "side": 1,
+      "message": "I updated the docstring for Recurse() above to be clearer; Recurse and its brethren only return an error if the passed-in function returns an error other than ErrStopRecursing.  This func doesn\u0027t, so there\u0027s no need to check the error.",
+      "parentUuid": "9bc25f8e_4e5f6297",
+      "range": {
+        "startLine": 259,
+        "startChar": 2,
+        "endLine": 259,
+        "endChar": 3
+      },
+      "revId": "21e843a7c570309d80eaa427438bb42f75699a12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a73db0f6_5b84d007",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 4
@@ -85,6 +151,53 @@
       "revId": "21e843a7c570309d80eaa427438bb42f75699a12",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4129faa_71df4e99",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 769,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-16T11:56:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a73db0f6_5b84d007",
+      "range": {
+        "startLine": 769,
+        "startChar": 14,
+        "endLine": 769,
+        "endChar": 24
+      },
+      "revId": "21e843a7c570309d80eaa427438bb42f75699a12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dde64ea6_271337e9",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 777,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-16T11:56:11Z",
+      "side": 1,
+      "message": "Removed the check for this error, for the same reason as above.",
+      "range": {
+        "startLine": 777,
+        "startChar": 4,
+        "endLine": 777,
+        "endChar": 7
+      },
+      "revId": "21e843a7c570309d80eaa427438bb42f75699a12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
