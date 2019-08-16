@@ -13,6 +13,7 @@ import 'elements-sk/styles/buttons'
 import 'elements-sk/spinner-sk'
 import '../../../infra-sk/modules/login-sk'
 import { $$ } from 'common-sk/modules/dom'
+import { define } from 'elements-sk/define'
 import { errorMessage } from 'elements-sk/errorMessage'
 import { html, render } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
@@ -36,7 +37,7 @@ const template = (ele) => html`
 <footer>
 `;
 
-window.customElements.define('named-fiddles-sk', class extends HTMLElement {
+define('named-fiddles-sk', class extends HTMLElement {
   constructor() {
     super();
     this._named_fiddles = [];

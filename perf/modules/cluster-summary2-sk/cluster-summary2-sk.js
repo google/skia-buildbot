@@ -33,6 +33,7 @@
  *
  * @example
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import 'elements-sk/styles/buttons'
 import 'elements-sk/collapse-sk'
@@ -290,4 +291,4 @@ export class ClusterSummary2Sk extends ElementSk {
   }
 }
 
-window.customElements.define('cluster-summary2-sk', ClusterSummary2Sk);
+define('cluster-summary2-sk', ClusterSummary2Sk);

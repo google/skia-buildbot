@@ -1,3 +1,4 @@
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 
 import 'elements-sk/error-toast-sk'
@@ -41,7 +42,7 @@ const template = (ele) => html`
 //  Methods:
 //    None
 //
-window.customElements.define('pulld-app-sk', class extends HTMLElement {
+define('pulld-app-sk', class extends HTMLElement {
   constructor() {
     super();
 

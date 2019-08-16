@@ -19,6 +19,7 @@
 import '../commit-detail-panel-sk'
 import 'elements-sk/styles/buttons'
 
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import dialogPolyfill from 'dialog-polyfill'
@@ -45,7 +46,7 @@ const template = (ele) => html`
   </dialog>
 `;
 
-window.customElements.define('commit-detail-picker-sk', class extends ElementSk {
+define('commit-detail-picker-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._details = [];

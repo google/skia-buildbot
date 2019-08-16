@@ -6,6 +6,7 @@
  *
  */
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import { define } from 'elements-sk/define'
 import { errorMessage } from 'elements-sk/errorMessage'
 import { fromObject } from 'common-sk/modules/query'
 import { html } from 'lit-html'
@@ -150,7 +151,7 @@ const template = (ele) => html`
   </div>
   `;
 
-window.customElements.define('cluster-page-sk', class extends ElementSk {
+define('cluster-page-sk', class extends ElementSk {
   constructor() {
     super(template);
 

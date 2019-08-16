@@ -7,6 +7,7 @@
  * id.
  *
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { $$ } from 'common-sk/modules/dom'
@@ -21,7 +22,7 @@ const template = (ele) => html`
   <pre>${ele._json}</pre>
 `;
 
-window.customElements.define('json-source-sk', class extends ElementSk {
+define('json-source-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._json = '';

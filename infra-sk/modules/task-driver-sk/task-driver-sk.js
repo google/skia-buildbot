@@ -7,6 +7,7 @@
  * </p>
  *
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { $$ } from 'common-sk/modules/dom'
 import { localeTime, strDuration } from 'common-sk/modules/human'
@@ -139,7 +140,7 @@ const step = (ele, s) => html`
 
 const template = (ele) => step(ele, ele.data);
 
-window.customElements.define('task-driver-sk', class extends HTMLElement {
+define('task-driver-sk', class extends HTMLElement {
   constructor() {
     super();
     this._data = {};

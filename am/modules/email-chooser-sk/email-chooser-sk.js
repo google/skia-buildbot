@@ -10,6 +10,7 @@
  *
  */
 import dialogPolyfill from 'dialog-polyfill'
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { $$ } from 'common-sk/modules/dom'
 
@@ -36,7 +37,7 @@ const template = (ele) => html`<dialog>
   </div>
 </dialog>`;
 
-window.customElements.define('email-chooser-sk', class extends HTMLElement {
+define('email-chooser-sk', class extends HTMLElement {
   constructor() {
     super();
     this._resolve = null;

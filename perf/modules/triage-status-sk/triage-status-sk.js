@@ -10,6 +10,7 @@
  *    alert, cluster_type, full_summary, and triage.
  *
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import '../tricon2-sk'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
@@ -20,7 +21,7 @@ const template = (ele) => html`
   </button>
 `;
 
-window.customElements.define('triage-status-sk', class extends ElementSk {
+define('triage-status-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._triage= {

@@ -5,6 +5,7 @@
  *   The main application element for am.skia.org.
  *
  */
+import { define } from 'elements-sk/define'
 import 'elements-sk/checkbox-sk'
 import 'elements-sk/error-toast-sk'
 import 'elements-sk/icon/comment-icon-sk'
@@ -205,7 +206,7 @@ function findParent(ele, tagName) {
   return ele;
 }
 
-window.customElements.define('alert-manager-sk', class extends HTMLElement {
+define('alert-manager-sk', class extends HTMLElement {
   constructor() {
     super();
     this._incidents = []; // All active incidents.

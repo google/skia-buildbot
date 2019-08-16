@@ -1,4 +1,5 @@
 import dialogPolyfill from 'dialog-polyfill'
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 
 import 'elements-sk/icon/check-icon-sk'
@@ -125,4 +126,4 @@ class PushSelectionSk extends HTMLElement {
 
 }
 
-window.customElements.define('push-selection-sk', PushSelectionSk);
+define('push-selection-sk', PushSelectionSk);

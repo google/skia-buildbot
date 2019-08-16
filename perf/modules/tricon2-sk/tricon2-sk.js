@@ -8,6 +8,7 @@
  *     "untriaged", "positive", or "negative".
  *
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import 'elements-sk/icon/check-circle-icon-sk';
@@ -26,7 +27,7 @@ const template = (ele) => {
   }
 }
 
-window.customElements.define('tricon2-sk', class extends ElementSk {
+define('tricon2-sk', class extends ElementSk {
   constructor() {
     super(template);
   }

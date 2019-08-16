@@ -35,6 +35,7 @@
  * @attr height - The height of the element in px.
  *
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { Chart } from 'chart.js'
@@ -65,7 +66,7 @@ const template = (ele) => html`
   <canvas width=${ele.width} height=${ele.height}></canvas>
 `;
 
-window.customElements.define('plot-simple-sk', class extends ElementSk {
+define('plot-simple-sk', class extends ElementSk {
   constructor() {
     super(template);
   }
