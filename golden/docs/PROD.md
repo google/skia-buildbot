@@ -6,9 +6,6 @@ First make sure you are familiar with the design of gold by reading the
 
 General Metrics
 ===============
-The following dashboard is for the legacy, non-k8s instances:
-<https://mon.skia.org/dashboard/db/gold-panel>.
-
 The following dashboard is for the skia-public instances:
 <https://grafana2.skia.org/d/m8kl1amWk/gold-panel-public>.
 
@@ -23,10 +20,6 @@ Some things to look for:
 
 General Logs
 ============
-
-Logs for legacy, non-k8s instances are linked to by push.skia.org, e.g.:
-<https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&resource=logging_log%2Fname%2Fskia-gold-prod&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fskiacorrectness-prod>
-
 Logs for Gold instances in skia-public/skia-corp are in the usual
 GKE container grouping, for example:
 <https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container&logName=projects%2Fskia-public%2Flogs%2Fgold-flutter-skiacorrectness>

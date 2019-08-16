@@ -16,23 +16,23 @@ Each ingested JSON file describes a single buildbot run for a specific commit.
 It generally does not refer to images directly - it only refers to their digests.
 The names of images are then derived from the digests.
 
-Both images and JSON files are stored in GS (Google storage) and then ingested
+Both images and JSON files are stored in GCS (Google Cloud Storage) and then ingested
 by the Gold process (running in GCE).
 Generally a process will want to write the images of a buildbot run first.
-Only if the images have been uploaded to GS successfully, the JSON file should be
-added to GS. The content in GS is considered the 'source for truth' for Gold.
+Only if the images have been uploaded to GCS successfully, the JSON file should be
+added to GCS. The content in GCS is considered the 'source for truth' for Gold.
 
 Note: Since all images are content addressable - we only need to upload images
-that are not already in GS.
+that are not already in GCS.
 
-Storage Layout in GS
+Storage Layout in GCS
 --------------------
 
 JSON files are stored at
 
     gs://JSON_BUCKET/JSON_DIR/YYYY/MM/DD/HH/GIT_HASH/BUILDER_NAME/BUILD_NUMBER/dm.json
 
-Where JSON_BUCKET and JSON_DIR are the GS bucket and directory respectively.
+Where JSON_BUCKET and JSON_DIR are the GCS bucket and directory respectively.
 YYYY, MM, DD and HH are the year, month, day and hour (0-23) respectively of
 when the buildbot run finished. All times are based on UTC.
 GIT_HASH is the value of the git commit hash, BUILDER_NAME and BUILDER_NUMBER
@@ -52,7 +52,7 @@ images are stored.
 <<DIGEST>> is the digest generated from the image content and used to refer to
 the image by the JSON file.
 
-Note: Most infromation encoded in the path is also contained in the JSON file
+Note: Most information encoded in the path is also contained in the JSON file
 itself. The path information is used by Gold ingestion to scan for new files
 continuously. So it's important that the date in the path is the actual date of
 when the data were generated and it has to be based on the UTC timezone.

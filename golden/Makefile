@@ -73,15 +73,6 @@ build-static-ingestion: skiaversion
 	rm -f ./build/gold_ingestion_k8s
 	$(KGO) -o build/gold_ingestion_k8s -a ./cmd/gold_ingestion/main.go
 
-.PHONY: release
-release: allgo frontend
-	./build_release "release" "all"
-
-.PHONY: release_diffserver
-release_diffserver: allgo
-	./build_release_diffserver "release" "all"
-
-
 .PHONY: mocks
 mocks:
 	go get github.com/vektra/mockery/...
