@@ -240,9 +240,6 @@ func (i *Ingester) getStartTimeOfInterest(ctx context.Context, now time.Time) (i
 	// Get the desired number of commits in the desired time frame.
 	delta := -i.minDuration
 	hashes := i.vcs.From(now.Add(delta))
-	if len(hashes) == 0 {
-		return 0, skerr.Fmt("No commits found.")
-	}
 
 	// If the number of required commits is not covered by this time
 	// frame then keep adding more (up until we are scanning the last year of data, at which point
@@ -257,6 +254,10 @@ func (i *Ingester) getStartTimeOfInterest(ctx context.Context, now time.Time) (i
 		if len(hashes) > i.nCommits {
 			hashes = hashes[len(hashes)-i.nCommits:]
 		}
+	}
+
+	if len(hashes) == 0 {
+		return 0, skerr.Fmt("No commits found in last year.")
 	}
 
 	// Get the commit time of the first commit of interest.
