@@ -173,14 +173,7 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 		Env:       os.Environ(),
 	}
 	if _, err = exec.RunCommand(ctx, syncCommand); err != nil {
-		sklog.Warning("There was an error. Deleting base directory and trying again.")
-		util.RemoveAll(chromiumBuildDir)
-		util.MkdirAll(chromiumBuildDir, 0700)
-		// Resetting stdin.
-		syncCommand.Stdin = strings.NewReader("y")
-		if _, err = exec.RunCommand(ctx, syncCommand); err != nil {
-			return "", "", fmt.Errorf("There was an error checking out chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
-		}
+		return "", "", fmt.Errorf("There was an error checking out chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
 	}
 
 	googleStorageDirName := ChromiumBuildDir(chromiumHash, skiaHash, runID)
@@ -329,21 +322,23 @@ func ResetChromiumCheckout(ctx context.Context, chromiumSrcDir string) error {
 	}
 	sklog.Info("Resetting Skia")
 	skiaDir := filepath.Join(chromiumSrcDir, "third_party", "skia")
-	if err := ResetCheckout(ctx, skiaDir, "HEAD"); err != nil {
+	if err := ResetCheckout(ctx, skiaDir, "HEAD", "master"); err != nil {
 		return fmt.Errorf("Could not reset Skia's checkout in %s: %s", skiaDir, err)
 	}
 	sklog.Info("Resetting V8")
 	v8Dir := filepath.Join(chromiumSrcDir, "v8")
-	if err := ResetCheckout(ctx, v8Dir, "HEAD"); err != nil {
+	// Detach the v8 checkout because of the problem described in
+	// https://bugs.chromium.org/p/chromium/issues/detail?id=584742#c8
+	if err := ResetCheckout(ctx, v8Dir, "HEAD", "--detach"); err != nil {
 		return fmt.Errorf("Could not reset V8's checkout in %s: %s", v8Dir, err)
 	}
 	sklog.Info("Resetting Catapult")
 	catapultDir := filepath.Join(chromiumSrcDir, RelativeCatapultSrcDir)
-	if err := ResetCheckout(ctx, catapultDir, "HEAD"); err != nil {
+	if err := ResetCheckout(ctx, catapultDir, "HEAD", "master"); err != nil {
 		return fmt.Errorf("Could not reset Catapult's checkout in %s: %s", catapultDir, err)
 	}
 	sklog.Info("Resetting Chromium")
-	if err := ResetCheckout(ctx, chromiumSrcDir, "HEAD"); err != nil {
+	if err := ResetCheckout(ctx, chromiumSrcDir, "HEAD", "master"); err != nil {
 		return fmt.Errorf("Could not reset Chromium's checkout in %s: %s", chromiumSrcDir, err)
 	}
 	return nil

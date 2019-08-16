@@ -112,10 +112,10 @@ const (
 	GCLIENT_SYNC_TIMEOUT = 30 * time.Minute
 
 	// util.ResetCheckout
-	GIT_BRANCH_TIMEOUT = 10 * time.Minute
-	GIT_REBASE_TIMEOUT = 10 * time.Minute
-	GIT_RESET_TIMEOUT  = 10 * time.Minute
-	GIT_CLEAN_TIMEOUT  = 10 * time.Minute
+	GIT_CHECKOUT_TIMEOUT = 10 * time.Minute
+	GIT_REBASE_TIMEOUT   = 10 * time.Minute
+	GIT_RESET_TIMEOUT    = 10 * time.Minute
+	GIT_CLEAN_TIMEOUT    = 10 * time.Minute
 
 	// util.CreateChromiumBuildOnSwarming
 	SYNC_SKIA_IN_CHROME_TIMEOUT = 2 * time.Hour
