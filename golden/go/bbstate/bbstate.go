@@ -152,9 +152,10 @@ func (b *BuildBucketState) SyncIssueTryjob(issueID, buildBucketID int64) (*tryjo
 		return nil, nil, skerr.Wrapf(err, "fetching build with id %d", buildBucketID)
 	}
 
-	// The referenced tryjob was skipped by ignoreBuild (if it didn't exist,
-	// we would have seen an error)
 	if tryjob == nil {
+		// The referenced tryjob was skipped by ignoreBuild (if it didn't exist,
+		// we would have seen an error)
+		sklog.Debugf("build %d for issue %d was ignored by BuilderRegEx", issueID, buildBucketID)
 		return nil, nil, SkipTryjob
 	}
 

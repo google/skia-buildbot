@@ -298,19 +298,19 @@ func (g *gsResultFileLocation) Open() (io.ReadCloser, error) {
 		obj := g.storageClient.Bucket(g.bucket).Object(g.name)
 		reader, err := obj.NewReader(context.Background())
 		if err != nil {
-			return skerr.Fmt("accessing %s/%s failed: %s", g.bucket, g.name, err)
+			return skerr.Wrapf(err, "accessing %s/%s failed", g.bucket, g.name)
 		}
 		defer util.Close(reader)
 
 		// Read the entire file into memory and return a buffer.
 		if g.content, err = ioutil.ReadAll(reader); err != nil {
 			g.content = nil
-			return skerr.Fmt("error reading content of %s/%s: %s", g.bucket, g.name, err)
+			return skerr.Wrapf(err, "error reading content of %s/%s", g.bucket, g.name)
 		}
 
 		if oa, err := obj.Attrs(context.Background()); err != nil {
 			g.content = nil
-			return skerr.Fmt("error reading attributes of %s/%s: %s", g.bucket, g.name, err)
+			return skerr.Wrapf(err, "error reading attributes of %s/%s", g.bucket, g.name)
 		} else {
 			g.md5 = fmt.Sprintf("%x", oa.MD5)
 			g.lastUpdated = oa.Updated.Unix()
@@ -322,7 +322,7 @@ func (g *gsResultFileLocation) Open() (io.ReadCloser, error) {
 
 	if g.content == nil {
 		if err := backoff.Retry(o, exp); err != nil {
-			return nil, skerr.Fmt("could not read gcs://%s/%s with retries: %s", g.bucket, g.name, err)
+			return nil, skerr.Wrapf(err, "could not read gcs://%s/%s with retries", g.bucket, g.name)
 		}
 	}
 

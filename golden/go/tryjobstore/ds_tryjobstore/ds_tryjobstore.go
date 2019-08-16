@@ -190,7 +190,7 @@ func (c *DSTryjobStore) UpdateTryjob(buildBucketID int64, tryjob *tryjobstore.Tr
 
 	newTryjob, err := c.updateEntity(c.getTryjobKey(buildBucketID), tryjob, nil, false, newValFn)
 	if err != nil {
-		return err
+		return skerr.Wrapf(err, "could not update tryjob for CL %d with bb id %d", tryjob.IssueID, buildBucketID)
 	}
 	c.eventBus.Publish(tryjobstore.EV_TRYJOB_UPDATED, copyTryjob(newTryjob.(*tryjobstore.Tryjob)), true)
 	return nil
