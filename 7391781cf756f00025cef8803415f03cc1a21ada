@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "6024cb43_852326a8",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-16T13:00:58Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0dfe7b5d_8e40372c",
+      "range": {
+        "startLine": 187,
+        "startChar": 1,
+        "endLine": 187,
+        "endChar": 10
+      },
+      "revId": "7391781cf756f00025cef8803415f03cc1a21ada",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a6d8a759_51cca024",
         "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
         "patchSetId": 4
