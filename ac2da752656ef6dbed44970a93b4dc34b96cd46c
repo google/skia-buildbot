@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1bcd325b_c6edc1c1",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-16T14:33:35Z",
+      "side": 1,
+      "message": "I\u0027d like the configs to be backwards compatible. One day it could be removed.",
+      "parentUuid": "8579a2c0_638b3613",
+      "revId": "ac2da752656ef6dbed44970a93b4dc34b96cd46c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1eb3d6f9_37fc54c0",
         "filename": "go/sharedconfig/sharedconfig.go",
         "patchSetId": 3
@@ -33,6 +51,24 @@
       "revId": "ac2da752656ef6dbed44970a93b4dc34b96cd46c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6840e41d_c9308e86",
+        "filename": "go/sharedconfig/sharedconfig.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-16T14:33:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1eb3d6f9_37fc54c0",
+      "revId": "ac2da752656ef6dbed44970a93b4dc34b96cd46c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
