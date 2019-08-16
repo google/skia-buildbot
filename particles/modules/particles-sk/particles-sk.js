@@ -14,6 +14,7 @@ import 'elements-sk/error-toast-sk'
 import 'elements-sk/styles/buttons'
 import { $$ } from 'common-sk/modules/dom'
 import { SKIA_VERSION } from '../../build/version.js'
+import { define } from 'elements-sk/define'
 import { errorMessage } from 'elements-sk/errorMessage'
 import { html, render } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
@@ -128,7 +129,7 @@ const template = (ele) => html`
 </footer>
 `;
 
-window.customElements.define('particles-sk', class extends HTMLElement {
+define('particles-sk', class extends HTMLElement {
   constructor() {
     super();
     this._state = {

@@ -16,6 +16,7 @@ import { fromObject } from 'common-sk/modules/query'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { stateReflector } from 'common-sk/modules/stateReflector'
 
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 
 import '../push-selection-sk'
@@ -270,4 +271,4 @@ class PushAppSk extends HTMLElement {
 
 }
 
-window.customElements.define('push-app-sk', PushAppSk);
+define('push-app-sk', PushAppSk);

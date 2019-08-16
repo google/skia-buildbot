@@ -36,6 +36,7 @@
  *  </app-sk>
  *
  */
+import { define } from 'elements-sk/define'
 import 'elements-sk/icon/menu-icon-sk'
 const button_template = document.createElement('template');
 button_template.innerHTML =`
@@ -45,7 +46,7 @@ button_template.innerHTML =`
   </button>
 `
 
-window.customElements.define('app-sk', class extends HTMLElement {
+define('app-sk', class extends HTMLElement {
   connectedCallback() {
     let header = this.querySelector('header');
     let sidebar = this.querySelector('aside');

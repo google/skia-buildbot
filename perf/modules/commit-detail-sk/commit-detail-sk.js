@@ -7,6 +7,7 @@
  * The element takes as data a serialized cid.CommitDetail.
  *
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { $$ } from 'common-sk/modules/dom.js';
@@ -21,7 +22,7 @@ const template = (ele) => html`
   <a href="${ele.cid.url}">Commit</a>
 </div>`;
 
-window.customElements.define('commit-detail-sk', class extends ElementSk {
+define('commit-detail-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._cid = {};

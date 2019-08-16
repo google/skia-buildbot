@@ -17,6 +17,7 @@
  *   </pre>
  *
  */
+import { define } from 'elements-sk/define'
 import dialogPolyfill from 'dialog-polyfill'
 import { html, render } from 'lit-html'
 import { $$ } from 'common-sk/modules/dom'
@@ -34,7 +35,7 @@ const template = (ele) => html`
 </dialog>
 `;
 
-window.customElements.define('named-edit-sk', class extends HTMLElement {
+define('named-edit-sk', class extends HTMLElement {
   constructor() {
     super();
     this._state = {

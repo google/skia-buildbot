@@ -68,6 +68,7 @@
  *   </pre>
  *
  */
+import { define } from 'elements-sk/define'
 import 'elements-sk/icon/delete-icon-sk'
 
 import * as paramset from '../paramset'
@@ -150,7 +151,7 @@ const template = (ele) => html`
   </div>
 `;
 
-window.customElements.define('silence-sk', class extends HTMLElement {
+define('silence-sk', class extends HTMLElement {
   constructor() {
     super();
     this._incidents = [];

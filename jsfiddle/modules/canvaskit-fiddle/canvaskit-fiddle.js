@@ -1,4 +1,5 @@
 import 'elements-sk/error-toast-sk'
+import { define } from 'elements-sk/define'
 import { html } from 'lit-html'
 
 import { SKIA_VERSION } from '../../build/version.js'
@@ -45,7 +46,7 @@ const wasmPromise = CanvasKitInit({
  * </p>
  *
  */
-window.customElements.define('canvaskit-fiddle', class extends WasmFiddle {
+define('canvaskit-fiddle', class extends WasmFiddle {
 
   constructor() {
     super(wasmPromise, template, 'CanvasKit', 'canvaskit');

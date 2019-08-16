@@ -12,6 +12,7 @@
  *   from the fetch response.
  *
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { errorMessage } from 'elements-sk/errorMessage'
@@ -25,7 +26,7 @@ const template = (ele) => html`
   </div>
   `;
 
-window.customElements.define('query-count-sk', class extends ElementSk {
+define('query-count-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._last_query = '';

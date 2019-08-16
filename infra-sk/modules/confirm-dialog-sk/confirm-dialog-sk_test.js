@@ -49,9 +49,9 @@ describe('confirm-dialog-sk', function() {
         container.innerHTML = `<confirm-dialog-sk></confirm-dialog-sk>`;
         let dialog = container.firstElementChild;
 
-        assert.equal($$('dialog-sk', dialog).hasAttribute('shown'), false);
+        assert.equal($$('dialog', dialog).hasAttribute('open'), false);
         dialog.open('whatever');
-        assert.equal($$('dialog-sk', dialog).hasAttribute('shown'), true);
+        assert.equal($$('dialog', dialog).hasAttribute('open'), true);
       });
     });
   })

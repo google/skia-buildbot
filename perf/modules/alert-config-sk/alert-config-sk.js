@@ -5,6 +5,7 @@
  * Control that allows editing an alert.Config.
  *
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 
@@ -85,7 +86,7 @@ const template = (ele) => html`
   </select-sk>
   `;
 
-window.customElements.define('alert-config-sk', class extends ElementSk {
+define('alert-config-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._paramset = {};

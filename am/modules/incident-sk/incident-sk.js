@@ -51,6 +51,7 @@
  *   </pre>
  *
  */
+import { define } from 'elements-sk/define'
 import 'elements-sk/icon/delete-icon-sk'
 import '../silence-sk'
 
@@ -181,7 +182,7 @@ const template = (ele) => html`
   </section>
 `;
 
-window.customElements.define('incident-sk', class extends HTMLElement {
+define('incident-sk', class extends HTMLElement {
   constructor() {
     super();
     this._silences = [];

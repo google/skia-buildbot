@@ -5,6 +5,7 @@ import { errorMessage } from 'elements-sk/errorMessage'
 import { diffDate } from 'common-sk/modules/human'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 
 // How often to update the data.
@@ -112,7 +113,7 @@ function _command(host, bots) {
 //  Methods:
 //    None
 //
-window.customElements.define('power-index-sk', class extends HTMLElement {
+define('power-index-sk', class extends HTMLElement {
 
   constructor() {
     super();

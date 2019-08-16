@@ -12,6 +12,7 @@
  * @evt domain-changed - The event detail.state will contain the updated 'state'.
  *
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import dialogPolyfill from 'dialog-polyfill'
@@ -94,7 +95,7 @@ const template = (ele) => html`
   <button class=description @click=${ele._edit}>${_description(ele)}</button>
 `;
 
-window.customElements.define('domain-picker-sk', class extends ElementSk {
+define('domain-picker-sk', class extends ElementSk {
   constructor() {
     super(template);
     const now = Date.now();

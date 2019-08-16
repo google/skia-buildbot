@@ -10,6 +10,7 @@
  * @attr {string} algo - The algorithm name.
  */
 import 'elements-sk/select-sk'
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { $, $$ } from 'common-sk/modules/dom'
@@ -35,7 +36,7 @@ const template = (ele) => html`
   </select-sk>
   `;
 
-window.customElements.define('algo-select-sk', class extends ElementSk {
+define('algo-select-sk', class extends ElementSk {
   constructor() {
     super(template);
   }

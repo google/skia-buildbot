@@ -25,6 +25,7 @@
  *
  * @attr {Number} selected - The index of the selected commit.
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { findParent } from 'common-sk/modules/dom'
@@ -45,7 +46,7 @@ const template = (ele) => html`
   </table>
 `;
 
-window.customElements.define('commit-detail-panel-sk', class extends ElementSk {
+define('commit-detail-panel-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._details = [];

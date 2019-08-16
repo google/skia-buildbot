@@ -5,7 +5,7 @@
   "license": "",
   "dependencies": {
     "common-sk": "^3.1.0",
-    "elements-sk": "^2.6.2",
+    "elements-sk": "3.0.1",
     "lit-html": "~0.14.0"
   },
   "devDependencies": {

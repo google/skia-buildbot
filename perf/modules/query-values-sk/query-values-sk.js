@@ -9,6 +9,7 @@
  *     changed. The selection is available in e.detail.
  *
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import 'elements-sk/checkbox-sk'
@@ -32,7 +33,7 @@ const template = (ele) => html`
   </multi-select-sk>
   `;
 
-window.customElements.define('query-values-sk', class extends ElementSk {
+define('query-values-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._options = [];

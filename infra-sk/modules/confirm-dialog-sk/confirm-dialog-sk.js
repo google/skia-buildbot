@@ -22,6 +22,7 @@
  * </script>
  *
  */
+import { define } from 'elements-sk/define'
 import dialogPolyfill from 'dialog-polyfill'
 import { html, render } from 'lit-html'
 
@@ -36,7 +37,7 @@ const template = (ele) => html`<dialog @cancel=${ele._dismiss}>
   </div>
 </dialog>`;
 
-window.customElements.define('confirm-dialog-sk', class extends HTMLElement {
+define('confirm-dialog-sk', class extends HTMLElement {
   constructor() {
     super();
     this._resolve = null;

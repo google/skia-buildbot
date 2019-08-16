@@ -6,6 +6,7 @@
  */
 import dialogPolyfill from 'dialog-polyfill'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import { define } from 'elements-sk/define'
 import { errorMessage } from 'elements-sk/errorMessage'
 import { fromObject } from 'common-sk/modules/query'
 import { html } from 'lit-html'
@@ -175,7 +176,7 @@ const template = (ele) => html`
   ${_table(ele)}
 `;
 
-window.customElements.define('cluster-lastn-page-sk', class extends ElementSk {
+define('cluster-lastn-page-sk', class extends ElementSk {
   constructor() {
     super(template);
 

@@ -24,6 +24,7 @@
  *
  */
 import 'elements-sk/styles/buttons'
+import { define } from 'elements-sk/define'
 import { errorMessage } from 'elements-sk/errorMessage'
 import { html, render } from 'lit-html'
 import { $$ } from 'common-sk/modules/dom'
@@ -156,4 +157,4 @@ class ParticlesConfigSk extends HTMLElement {
   }
 };
 
-window.customElements.define('particles-config-sk', ParticlesConfigSk);
+define('particles-config-sk', ParticlesConfigSk);

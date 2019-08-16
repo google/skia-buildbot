@@ -8,12 +8,13 @@
  *
  * @example
  */
-import { html, render } from 'lit-html'
+import { define } from 'elements-sk/define'
+import { html } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 
 const template = (ele) => html``;
 
-window.customElements.define('{{.ElementName}}', class extends ElementSk {
+define('{{.ElementName}}', class extends ElementSk {
   constructor() {
     super(template);
   }
@@ -21,9 +22,6 @@ window.customElements.define('{{.ElementName}}', class extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this._render();
-  }
-
-  disconnectedCallback() {
   }
 
 });

@@ -12,6 +12,7 @@ import 'elements-sk/icon/pause-icon-sk'
 import 'elements-sk/icon/play-arrow-icon-sk'
 import 'elements-sk/icon/settings-icon-sk'
 import 'elements-sk/spinner-sk'
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { repeat } from 'lit-html/directives/repeat';
 
@@ -108,7 +109,7 @@ const canvasReady = CanvasKitInit({
   },
 }).ready();
 
-window.customElements.define('skottie-player-sk', class extends HTMLElement {
+define('skottie-player-sk', class extends HTMLElement {
   constructor() {
     super();
 

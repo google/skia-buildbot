@@ -7,6 +7,7 @@
  */
 import dialogPolyfill from 'dialog-polyfill'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import { define } from 'elements-sk/define'
 import { equals, deepCopy } from 'common-sk/modules/object'
 import { errorMessage } from 'elements-sk/errorMessage.js'
 import { fromObject } from 'common-sk/modules/query'
@@ -219,7 +220,7 @@ const template = (ele) => html`
   </template>
 `;
 
-window.customElements.define('triage-page-sk', class extends ElementSk {
+define('triage-page-sk', class extends ElementSk {
   constructor() {
     super(template);
     const now = Math.floor(Date.now()/1000);

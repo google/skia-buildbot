@@ -35,7 +35,8 @@
  * @attr target - The id of the container element whose children are to be sorted.
  *
  */
-import { html, render } from 'lit-html'
+import { define } from 'elements-sk/define'
+import { html } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { $, $$ } from 'common-sk/modules/dom'
 import 'elements-sk/icon/arrow-drop-down-icon-sk'
@@ -59,7 +60,7 @@ const f_alpha_down = (x, y) => f_alpha_up(y, x);
 const f_num_up = (x, y) => (x.value - y.value);
 const f_num_down = (x, y) => f_num_up(y, x);
 
-window.customElements.define('sort-sk', class extends ElementSk {
+define('sort-sk', class extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     $('[data-key]', this).forEach((ele) => {

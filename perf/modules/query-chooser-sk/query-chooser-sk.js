@@ -12,6 +12,7 @@
  * @attr {string} count_url - The  URL to POST the query to, passed down to quuery-count-sk.
  *
  */
+import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import 'elements-sk/styles/buttons'
@@ -29,7 +30,7 @@ const template = (ele) => html`
   </div>
   `;
 
-window.customElements.define('query-chooser-sk', class extends ElementSk {
+define('query-chooser-sk', class extends ElementSk {
   constructor() {
     super(template);
     this.current_query = '';
