@@ -125,9 +125,15 @@ func (b *BigTableGitStore) Put(ctx context.Context, commits []*vcsinfo.LongCommi
 	// Organize the commits by branch.
 	indexCommitsByBranch := map[string][]*vcsinfo.IndexCommit{}
 	for _, c := range commits {
-		if len(c.Branches) == 0 {
-			return skerr.Fmt("Branch information is missing for %s", c.Hash)
+		// Validation.
+		if c.Index == 0 && len(c.Parents) != 0 {
+			return skerr.Fmt("Commit %s has index zero but has at least one parent. This cannot be correct.", c.Hash)
 		}
+		if len(c.Branches) == 0 {
+			// TODO(borenet): Is there any way to check for this?
+			sklog.Warningf("Commit %s has no branch information; this is valid if it is not on the first-parent ancestry chain of any branch.", c.Hash)
+		}
+		// Create the IndexCommit(s).
 		ic := &vcsinfo.IndexCommit{
 			Hash:      c.Hash,
 			Index:     c.Index,
@@ -135,21 +141,8 @@ func (b *BigTableGitStore) Put(ctx context.Context, commits []*vcsinfo.LongCommi
 		}
 		indexCommitsByBranch[gitstore.ALL_BRANCHES] = append(indexCommitsByBranch[gitstore.ALL_BRANCHES], ic)
 		for branch := range c.Branches {
-			indexCommitsByBranch[branch] = append(indexCommitsByBranch[branch], ic)
-		}
-	}
-	// Count the number of commits with index 0 on each branch. Error out if
-	// there's more than one. Note that a client could call Put() for one
-	// commit at a time using zero as the index and we wouldn't catch it,
-	// but this should prevent problems in most cases.
-	for branch, indexCommits := range indexCommitsByBranch {
-		zeroCount := 0
-		for _, ic := range indexCommits {
-			if ic.Index == 0 {
-				zeroCount++
-				if zeroCount > 1 {
-					return skerr.Fmt("More than one commit has index 0 for %s", branch)
-				}
+			if branch != gitstore.ALL_BRANCHES {
+				indexCommitsByBranch[branch] = append(indexCommitsByBranch[branch], ic)
 			}
 		}
 	}

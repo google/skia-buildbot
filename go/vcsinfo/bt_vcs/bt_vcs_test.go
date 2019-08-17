@@ -260,8 +260,9 @@ func TestDetailsMultiPartialCaching(t *testing.T) {
 // setupVCSLocalRepo loads the test repo into a new GitStore and returns an instance of vcsinfo.VCS.
 func setupVCSLocalRepo(t *testing.T, branch string) (vcsinfo.VCS, gitstore.GitStore, func()) {
 	repoDir, cleanup := vcs_testutils.InitTempRepo()
-	_, _, btgs := gs_testutils.SetupAndLoadBTGitStore(t, localRepoURL, repoDir, true)
-	vcs, err := New(context.Background(), btgs, branch, nil)
+	ctx := context.Background()
+	_, _, btgs := gs_testutils.SetupAndLoadBTGitStore(t, ctx, localRepoURL, repoDir, true)
+	vcs, err := New(ctx, btgs, branch, nil)
 	assert.NoError(t, err)
 	return vcs, btgs, cleanup
 }
