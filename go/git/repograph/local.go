@@ -112,6 +112,6 @@ func (r *localRepoImpl) Branches(ctx context.Context) ([]*git.Branch, error) {
 }
 
 // See documentation for RepoImpl interface.
-func (r *localRepoImpl) UpdateCallback(ctx context.Context, g *Graph) error {
+func (r *localRepoImpl) UpdateCallback(ctx context.Context, _, _ []*vcsinfo.LongCommit, g *Graph) error {
 	return writeCacheFile(r.branches, r.commits, path.Join(r.Dir(), CACHE_FILE))
 }
