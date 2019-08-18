@@ -6,8 +6,10 @@ package repograph
 
 import (
 	"context"
+	"encoding/gob"
 	"errors"
 	"fmt"
+	"io"
 	"sort"
 	"sync"
 	"time"
@@ -188,7 +190,7 @@ type RepoImpl interface {
 
 	// UpdateCallback is a function which is called after the Graph is
 	// updated but before the changes are committed.
-	UpdateCallback(context.Context, *Graph) error
+	UpdateCallback(context.Context, []*vcsinfo.LongCommit, []*vcsinfo.LongCommit, *Graph) error
 }
 
 // Graph represents an entire Git repo.
@@ -197,9 +199,8 @@ type Graph struct {
 	commits  map[string]*Commit
 	graphMtx sync.RWMutex
 
-	updateMtx     sync.Mutex
-	repoImpl      RepoImpl
-	trackBranches bool
+	updateMtx sync.Mutex
+	repoImpl  RepoImpl
 }
 
 // NewLocalGraph returns a Graph instance, creating a git.Repo from the repoUrl
@@ -228,6 +229,46 @@ func NewWithRepoImpl(ctx context.Context, ri RepoImpl) (*Graph, error) {
 	return rv, nil
 }
 
+// gobGraph is a utility struct used for serializing a Graph using gob.
+type gobGraph struct {
+	Branches []*git.Branch
+	Commits  map[string]*vcsinfo.LongCommit
+}
+
+// NewFromGob reads a Graph from the given Reader in gob format.
+func NewFromGob(ctx context.Context, r io.Reader, ri RepoImpl) (*Graph, error) {
+	var g gobGraph
+	if err := gob.NewDecoder(r).Decode(&g); err != nil {
+		return nil, err
+	}
+	// Temporarily use an in-memory RepoImpl to build the Graph.
+	mem := NewMemCacheRepoImpl(g.Commits, g.Branches)
+	rv := &Graph{
+		commits:  make(map[string]*Commit, len(g.Commits)),
+		repoImpl: mem,
+	}
+	if err := rv.Update(ctx); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to initialize Graph from Gob")
+	}
+	// Swap to the passed-in RepoImpl.
+	rv.repoImpl = ri
+	return rv, nil
+}
+
+// WriteGob writes the Graph to the given Writer using gob format.
+func (r *Graph) WriteGob(w io.Writer) error {
+	r.graphMtx.RLock()
+	defer r.graphMtx.RUnlock()
+	commits := make(map[string]*vcsinfo.LongCommit, len(r.commits))
+	for hash, c := range r.commits {
+		commits[hash] = c.LongCommit
+	}
+	return gob.NewEncoder(w).Encode(gobGraph{
+		Branches: r.branches,
+		Commits:  commits,
+	})
+}
+
 // Len returns the number of commits in the repo.
 func (r *Graph) Len() int {
 	r.graphMtx.RLock()
@@ -235,32 +276,17 @@ func (r *Graph) Len() int {
 	return len(r.commits)
 }
 
-// EnableBranchTracking enables tracking of commit membership in branches. A
+// UpdateBranchInfo updates the membership of all commits in all branches. A
 // commit is considered a member of a branch if and only if it is reachable by
 // tracing the *first parent* lineage backward from the branch head. Notably,
 // this will result in different branch membership than would be obtained by
-// `git branch --all --list --contains <hash` as is used elsewhere. This process
-// is somewhat expensive and is thus not enabled by default.
-func (r *Graph) EnableBranchTracking() {
-	r.updateMtx.Lock()
-	defer r.updateMtx.Unlock()
-	r.graphMtx.Lock()
-	defer r.graphMtx.Unlock()
-	r.trackBranches = true
-	r.updateBranchInfo()
-}
-
-// updateBranchInfo updates the membership of all commits in all branches. The
-// caller must hold r.updateMtx AND r.graphMtx.
-func (r *Graph) updateBranchInfo() {
-	// TODO(borenet): We have to obtain this information from scratch when
-	// EnableBranchTracking() is called, but we should be able to update it
-	// incrementally in updateFrom() in the common case. It seemed that
-	// there were enough edge cases that updateFrom() would become
-	// significantly more complicated, so I did not attempt that.
-	membership := make(map[*Commit]util.StringSet, len(r.commits))
-	for _, branch := range r.branches {
-		_ = r.commits[branch.Head].RecurseFirstParent(func(c *Commit) error {
+// `git branch --all --list --contains <hash>` as is used elsewhere. Modifies
+// the Commit objects stored in the graph and returns the LongCommits associated
+// with the modified Commits.
+func (r *Graph) UpdateBranchInfo() []*vcsinfo.LongCommit {
+	membership := make(map[*Commit]util.StringSet, r.Len())
+	for _, branch := range r.BranchHeads() {
+		_ = r.Get(branch.Head).RecurseFirstParent(func(c *Commit) error {
 			m := membership[c]
 			if m == nil {
 				m = util.NewStringSet()
@@ -270,9 +296,14 @@ func (r *Graph) updateBranchInfo() {
 			return nil
 		})
 	}
-	for _, c := range r.commits {
-		c.Branches = membership[c]
+	rv := []*vcsinfo.LongCommit{}
+	for _, c := range r.GetAll() {
+		if !util.StringSet(c.Branches).Equals(membership[c]) {
+			rv = append(rv, c.LongCommit)
+			c.Branches = membership[c]
+		}
 	}
+	return rv
 }
 
 // addCommit adds the given commit to the Graph. Requires that the commit's
@@ -308,10 +339,8 @@ func (r *Graph) addCommit(lc *vcsinfo.LongCommit) error {
 // new and deleted commits, or any error which occurred.
 func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCommit, []*vcsinfo.LongCommit, error) {
 	// Retrieve the new commits.
-	sklog.Info("Updating repograph.Graph...")
 
 	// Obtain the list of branches.
-	sklog.Info("  Getting branches...")
 	newBranchesList, err := ri.Branches(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to obtain branch list from RepoImpl: %s", err)
@@ -330,8 +359,6 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 
 	// Load new commits.
 	var newCommits []*vcsinfo.LongCommit
-	sklog.Infof("  Loading commits...")
-	defer sklog.Infof("Done loading repograph.Graph")
 
 	needOrphanCheck := false
 	for _, branch := range newBranchesList {
@@ -341,6 +368,8 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 		// Shortcut: if the branch is up-to-date, skip it.
 		if newHead == oldHead {
 			continue
+		} else if oldHead == "" {
+			//sklog.Warningf("Found new branch %s @ %s", branch.Name, newHead)
 		}
 
 		// Trace back in time from the new branch head until we find the
@@ -366,6 +395,7 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 					// we found the old branch head, then history
 					// has changed and we need to run the orphan
 					// check.
+					sklog.Warningf("Found existing commit %s before old branch head %s. Need to perform orphan check.", c, oldHead)
 					needOrphanCheck = true
 				}
 				continue
@@ -388,6 +418,7 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 				// completely new line of history and need to
 				// check whether the commits on the old line are
 				// now orphaned.
+				sklog.Warningf("Found commit %s with no parents which we haven't seen before.", c)
 				needOrphanCheck = true
 			}
 		}
@@ -395,7 +426,6 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 
 	// Add newCommits in reverse order to ensure that all parents are added
 	// before their children.
-	sklog.Info("  Adding commits...")
 	addedCommits := make([]*vcsinfo.LongCommit, 0, len(newCommits))
 	for i := len(newCommits) - 1; i >= 0; i-- {
 		commit := newCommits[i]
@@ -411,6 +441,7 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 		// Check to see whether any branches were deleted.
 		for branch := range oldBranchesMap {
 			if _, ok := newBranchesMap[branch]; !ok {
+				sklog.Warningf("Branch %s was deleted; need to check for orphaned commits.", branch)
 				needOrphanCheck = true
 				break
 			}
@@ -439,7 +470,6 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 
 	// Update the rest of the Graph.
 	r.branches = newBranchesList
-	sklog.Info("  Finished update.")
 	return addedCommits, removedCommits, nil
 }
 
@@ -452,7 +482,6 @@ func (r *Graph) update(ctx context.Context, cb func(*Graph) error) ([]*vcsinfo.L
 	defer metrics2.FuncTimer().Stop()
 
 	// Update the RepoImpl.
-	sklog.Info("Updating RepoImpl...")
 	if err := r.repoImpl.Update(ctx); err != nil {
 		return nil, nil, fmt.Errorf("Failed RepoImpl.Update(): %s", err)
 	}
@@ -467,16 +496,14 @@ func (r *Graph) update(ctx context.Context, cb func(*Graph) error) ([]*vcsinfo.L
 			return nil, nil, err
 		}
 	}
-	if err := r.repoImpl.UpdateCallback(ctx, newGraph); err != nil {
+	if err := r.repoImpl.UpdateCallback(ctx, added, removed, newGraph); err != nil {
 		return nil, nil, err
 	}
 	r.graphMtx.Lock()
 	defer r.graphMtx.Unlock()
 	r.branches = newGraph.branches
 	r.commits = newGraph.commits
-	if r.trackBranches {
-		r.updateBranchInfo()
-	}
+	//sklog.Infof("Graph update finished; have %d commits, added %d, removed %d", len(r.commits), len(added), len(removed))
 	return added, removed, nil
 }
 
@@ -911,9 +938,6 @@ func (m Map) update(ctx context.Context, cb func(string, *Graph) error) (map[str
 		newGraph := newGraphs[repoUrl]
 		r.branches = newGraph.branches
 		r.commits = newGraph.commits
-		if r.trackBranches {
-			r.updateBranchInfo()
-		}
 	}
 	return added, removed, nil
 }

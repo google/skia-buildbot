@@ -20,13 +20,8 @@ const (
 	CACHE_FILE = "sk_gitrepo.gob"
 )
 
-// gobGraph is a utility struct used for serializing a Graph using gob.
-type gobGraph struct {
-	Branches []*git.Branch
-	Commits  map[string]*vcsinfo.LongCommit
-}
-
 // initFromFile initializes the Graph from a file.
+// TODO(borenet): This is kind of a duplicate of NewFromGob.
 func initFromFile(cacheFile string) ([]*git.Branch, map[string]*vcsinfo.LongCommit, error) {
 	var r gobGraph
 	if err := util.MaybeReadGobFile(cacheFile, &r); err != nil {
@@ -39,6 +34,7 @@ func initFromFile(cacheFile string) ([]*git.Branch, map[string]*vcsinfo.LongComm
 }
 
 // Write the Graph to the cache file in the given Repo.
+// TODO(borenet): This is kind of a duplicate of Graph.WriteGob.
 func writeCacheFile(branches []*git.Branch, commits map[string]*vcsinfo.LongCommit, cacheFile string) error {
 	sklog.Infof("  Writing cache file...")
 	return util.WithWriteFile(cacheFile, func(w io.Writer) error {
@@ -112,6 +108,6 @@ func (r *localRepoImpl) Branches(ctx context.Context) ([]*git.Branch, error) {
 }
 
 // See documentation for RepoImpl interface.
-func (r *localRepoImpl) UpdateCallback(ctx context.Context, g *Graph) error {
+func (r *localRepoImpl) UpdateCallback(ctx context.Context, _, _ []*vcsinfo.LongCommit, g *Graph) error {
 	return writeCacheFile(r.branches, r.commits, path.Join(r.Dir(), CACHE_FILE))
 }

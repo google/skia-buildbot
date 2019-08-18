@@ -267,7 +267,7 @@ func (rm *noCheckoutDEPSRepoManager) RolledPast(ctx context.Context, rev *revisi
 	if rev.Id == rm.lastRollRev.Id {
 		return true, nil
 	}
-	commits, err := rm.childRepo.Log(ctx, rev.Id, rm.lastRollRev.Id)
+	commits, err := rm.childRepo.Log(ctx, fmt.Sprintf("%s..%s", rev.Id, rm.lastRollRev.Id))
 	if err != nil {
 		return false, err
 	}
