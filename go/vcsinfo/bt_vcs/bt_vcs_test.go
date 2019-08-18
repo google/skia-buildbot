@@ -37,14 +37,14 @@ func TestVCSSuite(t *testing.T) {
 
 func TestBranchInfo(t *testing.T) {
 	unittest.LargeTest(t)
-	vcs, gitStore, cleanup := setupVCSLocalRepo(t, "")
+	vcs, gitStore, cleanup := setupVCSLocalRepo(t, gitstore.ALL_BRANCHES)
 	defer cleanup()
 
 	branchPointers, err := gitStore.GetBranches(context.Background())
 	assert.NoError(t, err)
 	branches := []string{}
 	for branchName := range branchPointers {
-		if branchName != "" {
+		if branchName != gitstore.ALL_BRANCHES {
 			branches = append(branches, branchName)
 		}
 	}
