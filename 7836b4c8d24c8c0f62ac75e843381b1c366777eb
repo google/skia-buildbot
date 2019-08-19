@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "aee57e8e_7b9cbe4a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T18:55:13Z",
+      "side": 1,
+      "message": "1. Agreed. I\u0027d like to think I\u0027ve thought hard enough that they won\u0027t have to change (much), but I\u0027m open to them changing as I write them.\n2. code_review and continuous_integration might, but it\u0027s hard to tell until they are closer to done. I can revisit moving them after they are more fleshed out. My main worry at this point is that they end up being very Gold-specific or won\u0027t address Task Scheduler\u0027s needs.",
+      "parentUuid": "3bb5fa49_19d42a5f",
+      "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d0b775f7_ee0c8b43",
         "filename": "golden/go/clstore/changeliststore.go",
         "patchSetId": 3
@@ -39,6 +57,30 @@
       "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a3d595e_ffac2d06",
+        "filename": "golden/go/clstore/changeliststore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T18:55:13Z",
+      "side": 1,
+      "message": "Correct - something else (the ingester) will have the Store and the Client and will pipe data from one to the other.  This is a stark contrast to the previous implementation which had everything in one uberpackage.",
+      "parentUuid": "d0b775f7_ee0c8b43",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 41
+      },
+      "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "9c31fbd1_89230490",
+        "filename": "golden/go/code_review/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T18:55:13Z",
+      "side": 1,
+      "message": "This is to emphasize that this is the ID associated with the CRS, not, for example, the ID assigned by the database.",
+      "parentUuid": "e4dc9639_ed381532",
+      "range": {
+        "startLine": 30,
+        "startChar": 4,
+        "endLine": 30,
+        "endChar": 12
+      },
+      "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f47c8d91_0903bdf2",
         "filename": "golden/go/code_review/types.go",
         "patchSetId": 3
@@ -85,6 +151,30 @@
       "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "525d9b74_bb944aeb",
+        "filename": "golden/go/code_review/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T18:55:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f47c8d91_0903bdf2",
+      "range": {
+        "startLine": 44,
+        "startChar": 1,
+        "endLine": 44,
+        "endChar": 7
+      },
+      "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "7eaa6e2d_eca40f9e",
+        "filename": "golden/go/continuous_integration/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T18:55:13Z",
+      "side": 1,
+      "message": "ack regarding Buildbucket. We already track the data made on the waterfall (non-tryjobs), just not the tasks themselves. Clarified documentation.",
+      "parentUuid": "227e3249_07399f67",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 63
+      },
+      "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5e89b44f_4510662b",
         "filename": "golden/go/continuous_integration/types.go",
         "patchSetId": 3
@@ -131,6 +245,30 @@
       "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5f42bd6c_3262cc67",
+        "filename": "golden/go/continuous_integration/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T18:55:13Z",
+      "side": 1,
+      "message": "I don\u0027t think Gold cares about failures/successes on tryjobs.  If needed, we can extend the API like you suggest with a Result enum.",
+      "parentUuid": "5e89b44f_4510662b",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 0
+      },
+      "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "5e41b8a3_d563c212",
+        "filename": "golden/go/tjstore/tryjobstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T18:55:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba3b6c6c_7491fc53",
+      "range": {
+        "startLine": 2,
+        "startChar": 8,
+        "endLine": 2,
+        "endChar": 15
+      },
+      "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c2c32894_0c044628",
         "filename": "golden/go/tjstore/tryjobstore.go",
         "patchSetId": 3
@@ -177,6 +339,30 @@
       "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a5da7e1_289cc70f",
+        "filename": "golden/go/tjstore/tryjobstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T18:55:13Z",
+      "side": 1,
+      "message": "Exactly.",
+      "parentUuid": "c2c32894_0c044628",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 41
+      },
+      "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
