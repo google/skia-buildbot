@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "02611742_bd116ba3",
+        "filename": "autoroll/go/repo_manager/no_checkout_deps_repo_manager_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T13:38:59Z",
+      "side": 1,
+      "message": "nit: since this same code is used all over, could you have a one-liner self-documenting function like\ngitLineage() or something like that?",
+      "range": {
+        "startLine": 304,
+        "startChar": 24,
+        "endLine": 304,
+        "endChar": 45
+      },
+      "revId": "5ed09447a2a4d100b85f029f5248035aa44e090b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "78afbdce_39f98478",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T13:38:59Z",
+      "side": 1,
+      "message": "I\u0027m not sure this is as clear as simply doing:\ntype LogOption interface {\n  String() string\n}",
+      "range": {
+        "startLine": 210,
+        "startChar": 15,
+        "endLine": 210,
+        "endChar": 27
+      },
+      "revId": "5ed09447a2a4d100b85f029f5248035aa44e090b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "61b443db_39056dcb",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T13:38:59Z",
+      "side": 1,
+      "message": "Needs docs, maybe as simple as \"implements LogOption interface\"",
+      "revId": "5ed09447a2a4d100b85f029f5248035aa44e090b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c51a1e64_a6785467",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T13:38:59Z",
+      "side": 1,
+      "message": "nit: you may consider moving LogOption to a subpackage of gittiles\nThat way, clients would be invoking these with\nlogoption.Reverse()\n\ninstead of gittiles.Reverse() \n\nand I think that reads a little better.",
+      "range": {
+        "startLine": 223,
+        "startChar": 0,
+        "endLine": 223,
+        "endChar": 14
+      },
+      "revId": "5ed09447a2a4d100b85f029f5248035aa44e090b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd695e8a_30565e37",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T13:38:59Z",
+      "side": 1,
+      "message": "Does this do retries?  If not, should it?  Elsewhere, we\u0027ve used \"github.com/cenkalti/backoff\" for exponential backoffs.",
+      "range": {
+        "startLine": 248,
+        "startChar": 2,
+        "endLine": 250,
+        "endChar": 3
+      },
+      "revId": "5ed09447a2a4d100b85f029f5248035aa44e090b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
