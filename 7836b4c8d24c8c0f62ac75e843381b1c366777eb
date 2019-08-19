@@ -1,0 +1,182 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3bb5fa49_19d42a5f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:37:38Z",
+      "side": 1,
+      "message": "A couple of general notes:\n1. It\u0027s a bit of a chicken-and-egg problem, but without a user for these interfaces, I suspect that they\u0027ll have to change once you start implementing them.\n2. If there\u0027s any chance that these might be useful for other apps (eg. task scheduler), let\u0027s put them in the top-level go/ dir, or maybe collected as subpackages of a new package in go/",
+      "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0b775f7_ee0c8b43",
+        "filename": "golden/go/clstore/changeliststore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:37:38Z",
+      "side": 1,
+      "message": "Just to be 100% clear, Store does not interact with a code review server; it stores CLs/patchsets \"locally\"?",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 41
+      },
+      "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e4dc9639_ed381532",
+        "filename": "golden/go/code_review/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:37:38Z",
+      "side": 1,
+      "message": "Any reason not to simply call this ID? Same below.",
+      "range": {
+        "startLine": 30,
+        "startChar": 4,
+        "endLine": 30,
+        "endChar": 12
+      },
+      "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f47c8d91_0903bdf2",
+        "filename": "golden/go/code_review/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:37:38Z",
+      "side": 1,
+      "message": "Nit: I\u0027d call this \"Abandoned\", since \"Closed\" could be interpreted to be either \"Landed\" or \"Abandoned\".",
+      "range": {
+        "startLine": 44,
+        "startChar": 1,
+        "endLine": 44,
+        "endChar": 7
+      },
+      "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "227e3249_07399f67",
+        "filename": "golden/go/continuous_integration/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:37:38Z",
+      "side": 1,
+      "message": "Just a general note: this suggests that we should be able to pull info about non-tryjob tests too.  I see that\u0027s not currently done here, but in case you were thinking of adding that in the future, Skia doesn\u0027t use Buildbucket at all for non-try jobs.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 63
+      },
+      "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e89b44f_4510662b",
+        "filename": "golden/go/continuous_integration/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:37:38Z",
+      "side": 1,
+      "message": "Do we care about success/failure here?  You might want: [Pending, Running, Success, Failure] and maybe InfraFailure.  Alternatively, \"Status\" and \"Result\" could be different enums, the latter of which may not be needed here at all.",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 0
+      },
+      "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba3b6c6c_7491fc53",
+        "filename": "golden/go/tjstore/tryjobstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:37:38Z",
+      "side": 1,
+      "message": "Nit: I typically expect the \"main\" file in a package to be named the same as the package, ie. \"tjstore.go\" in this case.  Alternatively, \"types.go\" seems appropriate for this file.  Same with changeliststore.go.",
+      "range": {
+        "startLine": 2,
+        "startChar": 8,
+        "endLine": 2,
+        "endChar": 15
+      },
+      "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c2c32894_0c044628",
+        "filename": "golden/go/tjstore/tryjobstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:37:38Z",
+      "side": 1,
+      "message": "Same question as clstore.Store: this is our \"local\" view of the tryjob data, not an interface used for interacting with the remote server?",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 41
+      },
+      "revId": "7836b4c8d24c8c0f62ac75e843381b1c366777eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
