@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -281,7 +282,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	// Create the roll CL.
 
 	cr := r.childRepo
-	commits, err := cr.RevList(ctx, fmt.Sprintf("%s..%s", from.Id, to.Id))
+	commits, err := cr.RevList(ctx, git.LogFromTo(from.Id, to.Id))
 	if err != nil {
 		return 0, fmt.Errorf("Failed to list revisions: %s", err)
 	}
@@ -508,7 +509,7 @@ func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRe
 		return []*revision.Revision{}, nil
 	}
 	// Only consider commits on the "main" branch as roll candidates.
-	commits, err := r.childRepo.RevList(ctx, "--ancestry-path", "--first-parent", fmt.Sprintf("%s..%s", lastRollRev.Id, head))
+	commits, err := r.childRepo.RevList(ctx, "--ancestry-path", "--first-parent", git.LogFromTo(lastRollRev.Id, head))
 	if err != nil {
 		return nil, err
 	}

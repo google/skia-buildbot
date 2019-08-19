@@ -79,7 +79,7 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, strateg
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
 
 	rm, err := NewNoCheckoutDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", "", urlmock.Client(), gerritCR(t, g), false)
@@ -118,7 +118,7 @@ func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
 	nextRollRev := childCommits[len(childCommits)-1]
 	assert.NoError(t, rm.Update(ctx))
@@ -139,7 +139,7 @@ func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 		rev, err := rm.GetRevision(ctx, c)
 		assert.NoError(t, err)
 		assert.Equal(t, c, rev.Id)
-		mockChild.MockLog(ctx, c, childCommits[0])
+		mockChild.MockLog(ctx, git.LogFromTo(c, childCommits[0]))
 		rp, err := rm.RolledPast(ctx, rev)
 		assert.NoError(t, err)
 		assert.False(t, rp)
@@ -155,7 +155,7 @@ func TestNoCheckoutDEPSRepoManagerStrategies(t *testing.T) {
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
 	nextRollRev := childCommits[1]
 	assert.NoError(t, rm.Update(ctx))
@@ -165,7 +165,7 @@ func TestNoCheckoutDEPSRepoManagerStrategies(t *testing.T) {
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	mockParent.MockGetCommit(ctx, "master")
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
 	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev().Id)
@@ -173,7 +173,7 @@ func TestNoCheckoutDEPSRepoManagerStrategies(t *testing.T) {
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_SINGLE))
 	mockParent.MockGetCommit(ctx, "master")
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
 	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, childCommits[1], rm.NextRollRev().Id)
@@ -188,7 +188,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
 	nextRollRev := childCommits[len(childCommits)-1]
 	assert.NoError(t, rm.Update(ctx))
@@ -201,7 +201,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	// Mock the initial change creation.
 	logStr := ""
 	childGitRepo := git.GitDir(childRepo.Dir())
-	commitsToRoll, err := childGitRepo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev, nextRollRev))
+	commitsToRoll, err := childGitRepo.RevList(ctx, git.LogFromTo(lastRollRev, nextRollRev))
 	assert.NoError(t, err)
 	for _, c := range commitsToRoll {
 		mockChild.MockGetCommit(ctx, c)
@@ -301,7 +301,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, childCommits[0], "master")
+	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
 	nextRollRev := childCommits[len(childCommits)-1]
 	assert.NoError(t, rm.Update(ctx))
@@ -317,7 +317,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	// Mock the initial change creation.
 	logStr := ""
 	childGitRepo := git.GitDir(childRepo.Dir())
-	commitsToRoll, err := childGitRepo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev, nextRollRev))
+	commitsToRoll, err := childGitRepo.RevList(ctx, git.LogFromTo(lastRollRev, nextRollRev))
 	assert.NoError(t, err)
 	for _, c := range commitsToRoll {
 		mockChild.MockGetCommit(ctx, c)
