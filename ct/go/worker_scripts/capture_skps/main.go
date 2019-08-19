@@ -245,6 +245,11 @@ func captureSkps() error {
 		return err
 	}
 
+	// Sleep for 10 mins.
+	sklog.Info("PATH IS HERE")
+	sklog.Info(pathToSkps)
+	time.Sleep(30 * time.Minute)
+
 	return nil
 }
 
