@@ -26,8 +26,6 @@ func init() {
 
 // GetBaselineForIssue returns the baseline for the given issue. This baseline
 // contains all triaged digests that are not in the master tile.
-// Note: Total and Filled are not relevant for an issue baseline since
-// the concept of traces doesn't really make sense for a single commit.
 func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobResults [][]*tryjobstore.TryjobResult, exp types.Expectations, commits []*tiling.Commit) (*Baseline, error) {
 	b := types.Expectations{}
 	for idx := range tryjobs {
