@@ -1,0 +1,285 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6713256d_84b5685c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T13:21:50Z",
+      "side": 1,
+      "message": "nit: list some of those changes, especially to APIs",
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48629832_1db91ef7",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T13:21:50Z",
+      "side": 1,
+      "message": "driveby: \"It allows the client to perform caching, for example\"",
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf85fec9_e6d5bc9b",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T13:21:50Z",
+      "side": 1,
+      "message": "add docs for these two params - at least param names.\n\nSee also comment in repo_impl.go",
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3b4195e_ccacc9ff",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T13:21:50Z",
+      "side": 1,
+      "message": "nit: skerr.Wrapf",
+      "range": {
+        "startLine": 230,
+        "startChar": 14,
+        "endLine": 230,
+        "endChar": 17
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a25c8843_2fb071cb",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T13:21:50Z",
+      "side": 1,
+      "message": "add comment: \"we never return error in our callback, so there is nothing to check here.\"",
+      "range": {
+        "startLine": 277,
+        "startChar": 2,
+        "endLine": 277,
+        "endChar": 3
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de15ab61_102e0743",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T13:21:50Z",
+      "side": 1,
+      "message": "delete or uncomment",
+      "range": {
+        "startLine": 360,
+        "startChar": 3,
+        "endLine": 360,
+        "endChar": 5
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eec0586a_aeb903a9",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 494,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T13:21:50Z",
+      "side": 1,
+      "message": "delete or uncomment",
+      "range": {
+        "startLine": 494,
+        "startChar": 1,
+        "endLine": 494,
+        "endChar": 3
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "def19db3_91ebc2e8",
+        "filename": "go/git/repograph/local.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T13:21:50Z",
+      "side": 1,
+      "message": "include repoUrl in context",
+      "range": {
+        "startLine": 30,
+        "startChar": 53,
+        "endLine": 30,
+        "endChar": 58
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e28c4e86_c8bcee20",
+        "filename": "go/git/repograph/local.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T13:21:50Z",
+      "side": 1,
+      "message": "skerr.Wrapf with repo.Dir()",
+      "range": {
+        "startLine": 35,
+        "startChar": 14,
+        "endLine": 35,
+        "endChar": 17
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0774b42e_c3ff6ecc",
+        "filename": "go/git/repograph/local.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T13:21:50Z",
+      "side": 1,
+      "message": "break up this if statement:\nerr :\u003d util.WithRead...\nif os.IsNotExist(err)...",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 1
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66142204_96fa15ad",
+        "filename": "go/git/repograph/local.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T13:21:50Z",
+      "side": 1,
+      "message": "skerr.Wrapf with workdir and repo",
+      "range": {
+        "startLine": 65,
+        "startChar": 15,
+        "endLine": 65,
+        "endChar": 18
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f5847db1_5e4a2e01",
+        "filename": "go/git/repograph/mem_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T13:21:50Z",
+      "side": 1,
+      "message": "Are these all MediumTest because they read from disk?",
+      "range": {
+        "startLine": 47,
+        "startChar": 10,
+        "endLine": 47,
+        "endChar": 20
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ac4226d_ce8d889a",
+        "filename": "go/gitstore/repo_impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T13:21:50Z",
+      "side": 1,
+      "message": "Both instances of UpdateCallback don\u0027t seem to use these params - can we remove them?",
+      "range": {
+        "startLine": 118,
+        "startChar": 63,
+        "endLine": 118,
+        "endChar": 89
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
