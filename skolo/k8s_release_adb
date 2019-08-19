@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -x -e
+
+# Create and upload a container image for the metadata server to be used in the Skolo.
+APPNAME=rpi-swarming-adb
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+
+# Add the dockerfile and binary.
+${INSTALL} --mode=644 -T ./dockerfiles/Dockerfile_rpi_adb             ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T /usr/bin/qemu-arm-static                     ${ROOT}/usr/bin/qemu-arm-static
+${INSTALL} --mode=644 -T ./51-android.rules                           ${ROOT}/etc/udev/rules.d/51-android.rules
+}
+
+source ../bash/docker_build.sh

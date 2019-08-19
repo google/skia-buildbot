@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: rpi-swarming-client
+spec:
+  selector:
+    matchLabels:
+      name: rpi-swarming-client
+  template:
+    metadata:
+      labels:
+        name: rpi-swarming-client
+    spec:
+      #securityContext:
+      #  fsGroup: 2000
+      containers:
+        - name: rpi-swarming-client
+          image: gcr.io/skia-public/rpi-swarming-client:2019-08-19T18_05_06Z-jcgregorio-2b8e696-dirty
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - ALL
+          env:
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: REMOTE_BOT_CONFIG
+              value: /etc/swarming/remote-bot-config/remote-bot-config.json
+          volumeMounts:
+          - mountPath: /b
+            name: local-swarming-workingset
+          - mountPath: /root/.android
+            name: skolo-rpi-adb-key
+          - mountPath: /etc/swarming/remote-bot-config/
+            name: remote-bot-config
+        - name: rpi-swarming-adb
+          image: gcr.io/skia-public/rpi-swarming-adb:2019-08-19T16_08_50Z-jcgregorio-6dd9a15-dirty
+          env:
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+          - mountPath: /root/.android
+            name: skolo-rpi-adb-key
+      volumes:
+      - name: local-swarming-workingset
+        hostPath:
+          # directory location on host
+          path: /var/swarming
+          # this field is optional
+          type: Directory
+      - name: skolo-rpi-adb-key
+        secret:
+          secretName: skolo-rpi-adb-key
+      - name: remote-bot-config
+        secret:
+          secretName: remote-bot-config
