@@ -46,6 +46,6 @@ func (ri *MemCacheRepoImpl) Branches(_ context.Context) ([]*git.Branch, error) {
 }
 
 // See documentation for RepoImpl interface.
-func (ri *MemCacheRepoImpl) UpdateCallback(_ context.Context, _ *Graph) error {
+func (ri *MemCacheRepoImpl) UpdateCallback(_ context.Context, _, _ []*vcsinfo.LongCommit, _ *Graph) error {
 	return nil
 }
