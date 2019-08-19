@@ -12,15 +12,14 @@ import (
 	"strings"
 	"sync"
 	"time"
-)
 
-import (
-	// TODO(stephana): Replace with github.com/hashicorp/golang-lru
 	"github.com/golang/groupcache/lru"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 )
+
+// TODO(stephana): Replace with github.com/hashicorp/golang-lru
 
 const (
 	MAX_CACHE_TILES = 10
