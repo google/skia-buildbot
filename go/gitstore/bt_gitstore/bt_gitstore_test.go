@@ -28,6 +28,7 @@ const (
 // If not present, syncs skia.git to /tmp/skia first.
 func TestGitStoreSkiaRepo(t *testing.T) {
 	unittest.ManualTest(t)
+	t.Skip()
 	skiaRepoDir := filepath.Join(os.TempDir(), "skia")
 	if _, err := os.Stat(skiaRepoDir); os.IsNotExist(err) {
 		_, err = git.NewRepo(context.Background(), common.REPO_SKIA, os.TempDir())
@@ -66,7 +67,7 @@ func testGitStore(t *testing.T, repoURL, repoDir string, freshLoad bool) {
 	}
 
 	// Find all the commits in the repository independent of branches.
-	foundIndexCommits, foundLongCommits := getFromRange(t, gitStore, 0, len(longCommits), "")
+	foundIndexCommits, foundLongCommits := getFromRange(t, gitStore, 0, len(longCommits), gitstore.ALL_BRANCHES)
 	assert.Equal(t, len(indexCommits), len(foundIndexCommits))
 	assert.Equal(t, len(longCommits), len(foundLongCommits))
 
