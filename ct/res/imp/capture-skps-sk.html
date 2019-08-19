@@ -109,6 +109,12 @@
     },
 
     pageSetsChanged: function(newValue, oldValue) {
+      // Capture SKPs does not support 1M anymore.
+      for (var i=this.pageSets.length-1; i>=0; i--) {
+         if (ctfe.pageSets.getKey(this.pageSets[i]) == "All") {
+           this.pageSets.splice(i, 1);
+         }
+       }
       if (!oldValue || oldValue.length == 0) {
         this.$.page_sets.selectFirst();
       }
