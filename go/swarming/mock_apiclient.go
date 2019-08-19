@@ -3,10 +3,11 @@ package swarming
 
 import (
 	mock "github.com/stretchr/testify/mock"
-)
 
-import time "time"
-import v1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	time "time"
+
+	v1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+)
 
 // MockCommonImpl is a mock of swarming.ApiClient. All the methods are mocked using
 // testify's mocking library.
