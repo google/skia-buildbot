@@ -1,0 +1,550 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b8461929_09bdbc04",
+        "filename": "gitsync/go/gitsync/main.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "Can/should this be a command line arg?",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 10
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67e1e46f_3ca463c3",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "nit: This comment feels out of place - should it go before line 41?",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 11
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cda3657_3b9e4707",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "what does this map - commits-\u003ebranches?  please add doc.",
+      "range": {
+        "startLine": 35,
+        "startChar": 13,
+        "endLine": 35,
+        "endChar": 33
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "faa7567e_4366cdf5",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "nit: maybe just generate a UUID? In any case, I\u0027d pull it out as a helper function.",
+      "range": {
+        "startLine": 89,
+        "startChar": 21,
+        "endLine": 89,
+        "endChar": 38
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bfe44135_6bc9c178",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "What does this mutex protect? The whole object?",
+      "range": {
+        "startLine": 164,
+        "startChar": 1,
+        "endLine": 164,
+        "endChar": 21
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1f597ef_c92f17c6",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "I\u0027m not sure what this keeps track of",
+      "range": {
+        "startLine": 165,
+        "startChar": 0,
+        "endLine": 165,
+        "endChar": 14
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40e24680_3ab36377",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "why not unlock it after writing?",
+      "range": {
+        "startLine": 181,
+        "startChar": 3,
+        "endLine": 181,
+        "endChar": 18
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5db92cc9_6dca44e4",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "Give context - \"Error writing graph to GCS\"",
+      "range": {
+        "startLine": 184,
+        "startChar": 11,
+        "endLine": 184,
+        "endChar": 21
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fda3de7a_9f2c9565",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "Wouldn\u0027t we always want to sleep?",
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d002c945_0409773f",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "\"Don\u0027t name result parameters just to avoid declaring a var inside the function; that trades off a minor implementation brevity at the cost of unnecessary API verbosity.\" https://github.com/golang/go/wiki/CodeReviewComments#named-result-parameters\n\nNot to mention I don\u0027t think you ever use rv after storing to it?",
+      "range": {
+        "startLine": 207,
+        "startChar": 61,
+        "endLine": 207,
+        "endChar": 63
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cb254273_555796dc",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "combine",
+      "range": {
+        "startLine": 211,
+        "startChar": 2,
+        "endLine": 212,
+        "endChar": 17
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "895b5882_183e0703",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "include repoURL",
+      "range": {
+        "startLine": 38,
+        "startChar": 53,
+        "endLine": 38,
+        "endChar": 58
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63f0a539_41fcbf85",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "include relevant variables (gcsPath?)",
+      "range": {
+        "startLine": 48,
+        "startChar": 51,
+        "endLine": 48,
+        "endChar": 54
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0db08546_fd4204fe",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "where did this value come from?  And it\u0027s 6.4 MB? 64MB?",
+      "range": {
+        "startLine": 61,
+        "startChar": 17,
+        "endLine": 61,
+        "endChar": 25
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47b9a8d4_c3432fdb",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "uberubernit: https://github.com/golang/go/wiki/CodeReviewComments#error-strings",
+      "range": {
+        "startLine": 103,
+        "startChar": 31,
+        "endLine": 103,
+        "endChar": 75
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c43cca5_703395b1",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "loadCommits()? here and below",
+      "range": {
+        "startLine": 175,
+        "startChar": 39,
+        "endLine": 175,
+        "endChar": 43
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17c5da76_e122a561",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "skerr.Fmt ?",
+      "range": {
+        "startLine": 200,
+        "startChar": 10,
+        "endLine": 200,
+        "endChar": 20
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec89b84a_0b32b220",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "include URL and maybe gcsPath?",
+      "range": {
+        "startLine": 230,
+        "startChar": 49,
+        "endLine": 230,
+        "endChar": 53
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3443eabd_1ee9e8f1",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "document that this maps branch -\u003e hash",
+      "range": {
+        "startLine": 235,
+        "startChar": 16,
+        "endLine": 235,
+        "endChar": 34
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46aab718_5e65d861",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "what is this mutex protecting?  The repoimpl itself?",
+      "range": {
+        "startLine": 284,
+        "startChar": 1,
+        "endLine": 284,
+        "endChar": 19
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf94ae3f_b64d74dd",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "how does this scale to 1800+ branches?",
+      "range": {
+        "startLine": 285,
+        "startChar": 24,
+        "endLine": 285,
+        "endChar": 32
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc38e29b_b59a007e",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 334,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "maybe include branch name?",
+      "range": {
+        "startLine": 334,
+        "startChar": 52,
+        "endLine": 334,
+        "endChar": 56
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59e5118c_7d6a86d9",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "skerr.Fmt",
+      "range": {
+        "startLine": 452,
+        "startChar": 14,
+        "endLine": 452,
+        "endChar": 24
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b0b2251b_8e7ab1a7",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore_test.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T14:27:25Z",
+      "side": 1,
+      "message": "here, I think it\u0027s valid to use context.Background()",
+      "range": {
+        "startLine": 58,
+        "startChar": 82,
+        "endLine": 58,
+        "endChar": 86
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
