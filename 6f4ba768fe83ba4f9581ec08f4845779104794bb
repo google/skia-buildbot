@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7c24be64_5fcc3d99",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T14:50:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6713256d_84b5685c",
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "48629832_1db91ef7",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "746a4658_53343231",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T14:50:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "48629832_1db91ef7",
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bf85fec9_e6d5bc9b",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 1
@@ -50,6 +86,24 @@
       "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1247f892_cb1ac0d2",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T14:50:50Z",
+      "side": 1,
+      "message": "I removed them; these were needed in one of the ~20 or so implementations I tried :P",
+      "parentUuid": "bf85fec9_e6d5bc9b",
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -76,6 +130,30 @@
     },
     {
       "key": {
+        "uuid": "6016b675_de1e443d",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T14:50:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f3b4195e_ccacc9ff",
+      "range": {
+        "startLine": 230,
+        "startChar": 14,
+        "endLine": 230,
+        "endChar": 17
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a25c8843_2fb071cb",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 1
@@ -96,6 +174,30 @@
       "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4f7e693_ded2d163",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T14:50:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a25c8843_2fb071cb",
+      "range": {
+        "startLine": 277,
+        "startChar": 2,
+        "endLine": 277,
+        "endChar": 3
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -122,6 +224,30 @@
     },
     {
       "key": {
+        "uuid": "d8f378fd_2d022ccf",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T14:50:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "de15ab61_102e0743",
+      "range": {
+        "startLine": 360,
+        "startChar": 3,
+        "endLine": 360,
+        "endChar": 5
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eec0586a_aeb903a9",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 1
@@ -142,6 +268,30 @@
       "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5aff801_27fd5d0d",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 494,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T14:50:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eec0586a_aeb903a9",
+      "range": {
+        "startLine": 494,
+        "startChar": 1,
+        "endLine": 494,
+        "endChar": 3
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -168,6 +318,30 @@
     },
     {
       "key": {
+        "uuid": "129081fd_09246291",
+        "filename": "go/git/repograph/local.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T14:50:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "def19db3_91ebc2e8",
+      "range": {
+        "startLine": 30,
+        "startChar": 53,
+        "endLine": 30,
+        "endChar": 58
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e28c4e86_c8bcee20",
         "filename": "go/git/repograph/local.go",
         "patchSetId": 1
@@ -188,6 +362,30 @@
       "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0da3d906_485fa54f",
+        "filename": "go/git/repograph/local.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T14:50:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e28c4e86_c8bcee20",
+      "range": {
+        "startLine": 35,
+        "startChar": 14,
+        "endLine": 35,
+        "endChar": 17
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -214,6 +412,30 @@
     },
     {
       "key": {
+        "uuid": "a1cecf02_60579ddf",
+        "filename": "go/git/repograph/local.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T14:50:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0774b42e_c3ff6ecc",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 1
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "66142204_96fa15ad",
         "filename": "go/git/repograph/local.go",
         "patchSetId": 1
@@ -234,6 +456,30 @@
       "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20c53ddf_4aec75a2",
+        "filename": "go/git/repograph/local.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T14:50:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "66142204_96fa15ad",
+      "range": {
+        "startLine": 65,
+        "startChar": 15,
+        "endLine": 65,
+        "endChar": 18
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -260,6 +506,30 @@
     },
     {
       "key": {
+        "uuid": "4644cbfe_9aa051de",
+        "filename": "go/git/repograph/mem_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T14:50:50Z",
+      "side": 1,
+      "message": "Yep.",
+      "parentUuid": "f5847db1_5e4a2e01",
+      "range": {
+        "startLine": 47,
+        "startChar": 10,
+        "endLine": 47,
+        "endChar": 20
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4ac4226d_ce8d889a",
         "filename": "go/gitstore/repo_impl.go",
         "patchSetId": 1
@@ -280,6 +550,30 @@
       "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e57590bf_a265efee",
+        "filename": "go/gitstore/repo_impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T14:50:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4ac4226d_ce8d889a",
+      "range": {
+        "startLine": 118,
+        "startChar": 63,
+        "endLine": 118,
+        "endChar": 89
+      },
+      "revId": "6f4ba768fe83ba4f9581ec08f4845779104794bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
