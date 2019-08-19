@@ -110,7 +110,7 @@ func TestLog(t *testing.T) {
 		}
 		js := testutils.MarshalJSON(t, results)
 		js = ")]}'\n" + js
-		urlMock.MockOnce(fmt.Sprintf(LOG_URL, gb.RepoUrl(), fmt.Sprintf("%s..%s", from, to)), mockhttpclient.MockGetDialogue([]byte(js)))
+		urlMock.MockOnce(fmt.Sprintf(LOG_URL, gb.RepoUrl(), git.LogFromTo(from, to)), mockhttpclient.MockGetDialogue([]byte(js)))
 	}
 
 	// Return a slice of the hashes for the given commits.
@@ -123,9 +123,9 @@ func TestLog(t *testing.T) {
 	}
 
 	// Verify that we got the correct list of commits from the call to Log.
-	checkGitiles := func(fn func(context.Context, string, string) ([]*vcsinfo.LongCommit, error), from, to string, expect []string) {
+	checkGitiles := func(fn func(context.Context, string, ...LogOption) ([]*vcsinfo.LongCommit, error), from, to string, expect []string) {
 		mockLog(from, to, expect)
-		log, err := fn(ctx, from, to)
+		log, err := fn(ctx, git.LogFromTo(from, to))
 		assert.NoError(t, err)
 		deepequal.AssertDeepEqual(t, hashes(log), expect)
 		assert.True(t, urlMock.Empty())
@@ -137,7 +137,7 @@ func TestLog(t *testing.T) {
 	checkGit := func(from, to string, expect []string, args ...string) {
 		cmd := []string{"rev-list", "--date-order"}
 		cmd = append(cmd, args...)
-		cmd = append(cmd, fmt.Sprintf("%s..%s", from, to))
+		cmd = append(cmd, string(git.LogFromTo(from, to)))
 		output, err := repo.Git(ctx, cmd...)
 		assert.NoError(t, err)
 		log := strings.Split(strings.TrimSpace(output), "\n")
@@ -161,7 +161,11 @@ func TestLog(t *testing.T) {
 	// ("git log --date-order --first-parent --ancestry-path).
 	checkLinear := func(from, to string, expect []string) {
 		checkGit(from, to, expect, "--first-parent", "--ancestry-path")
-		checkGitiles(r.LogLinear, from, to, expect)
+		mockLog(from, to, expect)
+		log, err := r.LogLinear(ctx, from, to)
+		assert.NoError(t, err)
+		deepequal.AssertDeepEqual(t, hashes(log), expect)
+		assert.True(t, urlMock.Empty())
 	}
 
 	// Test cases.
@@ -213,7 +217,7 @@ func TestLogPagination(t *testing.T) {
 		last = rv
 		return rv
 	}
-	mock := func(from, to *vcsinfo.LongCommit, commits []*vcsinfo.LongCommit, next string) {
+	mock := func(from, to *vcsinfo.LongCommit, commits []*vcsinfo.LongCommit, start, next string) {
 		// Create the mock results.
 		results := &Log{
 			Log:  make([]*Commit, 0, len(commits)),
@@ -239,8 +243,14 @@ func TestLogPagination(t *testing.T) {
 		}
 		js := testutils.MarshalJSON(t, results)
 		js = ")]}'\n" + js
-		urlMock.MockOnce(fmt.Sprintf(LOG_URL, repoUrl, fmt.Sprintf("%s..%s", from.Hash, to.Hash)), mockhttpclient.MockGetDialogue([]byte(js)))
-		urlMock.MockOnce(fmt.Sprintf(LOG_URL, repoUrl, to.Hash), mockhttpclient.MockGetDialogue([]byte(js)))
+		url1 := fmt.Sprintf(LOG_URL, repoUrl, git.LogFromTo(from.Hash, to.Hash))
+		url2 := fmt.Sprintf(LOG_URL, repoUrl, to.Hash)
+		if start != "" {
+			url1 += "&s=" + start
+			url2 += "&s=" + start
+		}
+		urlMock.MockOnce(url1, mockhttpclient.MockGetDialogue([]byte(js)))
+		urlMock.MockOnce(url2, mockhttpclient.MockGetDialogue([]byte(js)))
 	}
 	check := func(from, to *vcsinfo.LongCommit, expectCommits []*vcsinfo.LongCommit) {
 		// The expectations are in chronological order for convenience
@@ -251,7 +261,7 @@ func TestLogPagination(t *testing.T) {
 		sort.Sort(vcsinfo.LongCommitSlice(expect))
 
 		// Test standard Log(from, to) function.
-		log, err := repo.Log(ctx, from.Hash, to.Hash)
+		log, err := repo.Log(ctx, git.LogFromTo(from.Hash, to.Hash))
 		assert.NoError(t, err)
 		deepequal.AssertDeepEqual(t, expect, log)
 
@@ -275,20 +285,20 @@ func TestLogPagination(t *testing.T) {
 	}
 
 	// Most basic test case; no pagination.
-	mock(commits[0], commits[5], commits[1:5], "")
+	mock(commits[0], commits[5], commits[1:5], "", "")
 	check(commits[0], commits[5], commits[1:5])
 
 	// Two pages.
 	split := 5
-	mock(commits[0], commits[len(commits)-1], commits[split:], commits[split].Hash)
-	mock(commits[0], commits[split], commits[1:split], "")
+	mock(commits[0], commits[len(commits)-1], commits[split:], "", commits[split].Hash)
+	mock(commits[0], commits[len(commits)-1], commits[1:split], commits[split].Hash, "")
 	check(commits[0], commits[len(commits)-1], commits[1:])
 
 	// Three pages.
 	split1 := 7
 	split2 := 3
-	mock(commits[0], commits[len(commits)-1], commits[split1:], commits[split1].Hash)
-	mock(commits[0], commits[split1], commits[split2:split1], commits[split2].Hash)
-	mock(commits[0], commits[split2], commits[1:split2], "")
+	mock(commits[0], commits[len(commits)-1], commits[split1:], "", commits[split1].Hash)
+	mock(commits[0], commits[len(commits)-1], commits[split2:split1], commits[split1].Hash, commits[split2].Hash)
+	mock(commits[0], commits[len(commits)-1], commits[1:split2], commits[split2].Hash, "")
 	check(commits[0], commits[len(commits)-1], commits[1:])
 }

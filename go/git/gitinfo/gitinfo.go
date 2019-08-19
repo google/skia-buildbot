@@ -15,6 +15,7 @@ import (
 
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
@@ -312,7 +313,7 @@ func (g *GitInfo) LastNIndex(N int) []*vcsinfo.IndexCommit {
 func (g *GitInfo) IndexOf(ctx context.Context, hash string) (int, error) {
 	// Count the lines from running:
 	//   git rev-list --count <first-commit>..hash.
-	output, err := g.RevList(ctx, "--count", fmt.Sprintf("%s..%s", g.firstCommit, hash))
+	output, err := g.RevList(ctx, "--count", git.LogFromTo(g.firstCommit, hash))
 	if err != nil {
 		return 0, fmt.Errorf("git rev-list failed: %s", err)
 	}

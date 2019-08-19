@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -162,7 +163,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision
 
 	// Create the roll CL.
 	cr := dr.childRepo
-	commits, err := cr.RevList(ctx, fmt.Sprintf("%s..%s", from.Id, to.Id))
+	commits, err := cr.RevList(ctx, git.LogFromTo(from.Id, to.Id))
 	if err != nil {
 		return 0, fmt.Errorf("Failed to list revisions: %s", err)
 	}

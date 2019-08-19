@@ -34,6 +34,10 @@ func NewMockRepo(t sktest.TestingT, url string, repo git.GitDir, c *mockhttpclie
 	}
 }
 
+func (mr *MockRepo) Empty() bool {
+	return mr.c.Empty()
+}
+
 func (mr *MockRepo) MockReadFile(ctx context.Context, srcPath, ref string) {
 	contents, err := mr.repo.GetFile(ctx, srcPath, ref)
 	assert.NoError(mr.t, err)
@@ -79,18 +83,37 @@ func (mr *MockRepo) MockGetCommit(ctx context.Context, ref string) {
 	mr.c.MockOnce(url, mockhttpclient.MockGetDialogue(b))
 }
 
-func (mr *MockRepo) MockLog(ctx context.Context, from, to string) {
-	revlist, err := mr.repo.RevList(ctx, fmt.Sprintf("%s..%s", from, to))
+func (mr *MockRepo) MockBranches(ctx context.Context) {
+	branches, err := mr.repo.Branches(ctx)
+	assert.NoError(mr.t, err)
+	res := make(gitiles.RefsMap, len(branches))
+	for _, branch := range branches {
+		res[branch.Name] = gitiles.Ref{
+			Value: branch.Head,
+		}
+	}
+	b, err := json.Marshal(res)
+	assert.NoError(mr.t, err)
+	b = append([]byte(")]}'\n"), b...)
+	url := fmt.Sprintf(gitiles.REFS_URL, mr.url)
+	mr.c.MockOnce(url, mockhttpclient.MockGetDialogue(b))
+}
+
+func (mr *MockRepo) MockLog(ctx context.Context, logExpr string, opts ...gitiles.LogOption) {
+	revlist, err := mr.repo.RevList(ctx, logExpr)
 	assert.NoError(mr.t, err)
 	log := &gitiles.Log{
-		Log: []*gitiles.Commit{},
+		Log: make([]*gitiles.Commit, len(revlist)),
 	}
-	for _, hash := range revlist {
-		log.Log = append(log.Log, mr.getCommit(ctx, hash))
+	for idx, hash := range revlist {
+		log.Log[idx] = mr.getCommit(ctx, hash)
 	}
 	b, err := json.Marshal(log)
 	assert.NoError(mr.t, err)
 	b = append([]byte(")]}'\n"), b...)
-	url := fmt.Sprintf(gitiles.LOG_URL, mr.url, fmt.Sprintf("%s..%s", from, to))
+	url := fmt.Sprintf(gitiles.LOG_URL, mr.url, logExpr)
+	for _, opt := range opts {
+		url += "&" + string(opt)
+	}
 	mr.c.MockOnce(url, mockhttpclient.MockGetDialogue(b))
 }

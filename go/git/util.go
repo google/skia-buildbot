@@ -1,9 +1,23 @@
 package git
 
 import (
+	"fmt"
 	"net/url"
 	"strings"
 )
+
+// LogFromTo returns a string which is used to log from one commit to another.
+// It is important to note that:
+// - The results will include the second commit but not the first.
+// - The results include all commits reachable from the first commit which are
+//   not reachable from the second, ie. if there is a merge in the given
+//   range, the results will include that line of history and not just the
+//   commits which are descendants of the first commit. If you want only commits
+//   which are ancestors of the second commit AND descendants of the first, you
+//   should use LogLinear.
+func LogFromTo(from, to string) string {
+	return fmt.Sprintf("%s..%s", from, to)
+}
 
 // NormalizeURL strips everything from the URL except for the host and the path.
 // A trailing ".git" is also stripped. The purpose is to allow for small

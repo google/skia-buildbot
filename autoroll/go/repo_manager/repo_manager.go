@@ -311,7 +311,7 @@ func (r *commonRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev
 	if head == lastRollRev.Id {
 		return []*revision.Revision{}, nil
 	}
-	commits, err := r.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev.Id, head))
+	commits, err := r.childRepo.RevList(ctx, git.LogFromTo(lastRollRev.Id, head))
 	if err != nil {
 		return nil, err
 	}

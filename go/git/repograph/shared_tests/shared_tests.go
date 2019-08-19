@@ -385,7 +385,7 @@ func TestLogLinear(t sktest.TestingT, ctx context.Context, g *git_testutils.GitB
 			if from == "" {
 				cmd = append(cmd, to)
 			} else {
-				cmd = append(cmd, "--ancestry-path", fmt.Sprintf("%s..%s", from, to))
+				cmd = append(cmd, "--ancestry-path", git.LogFromTo(from, to))
 			}
 			hashes, err := gitdir.RevList(ctx, cmd...)
 			assert.NoError(t, err)
@@ -702,7 +702,7 @@ func TestRevList(t sktest.TestingT, ctx context.Context, gb *git_testutils.GitBu
 
 	check := func(from, to string, expectOrig []string) {
 		expect := util.CopyStringSlice(expectOrig)
-		revs, err := co.RevList(ctx, fmt.Sprintf("%s..%s", from, to))
+		revs, err := co.RevList(ctx, git.LogFromTo(from, to))
 		assert.NoError(t, err)
 		// Sanity check; assert that the commits returned from git are
 		// in reverse topological order.

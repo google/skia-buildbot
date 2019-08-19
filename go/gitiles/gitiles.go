@@ -206,14 +206,38 @@ func (r *Repo) Details(ctx context.Context, ref string) (*vcsinfo.LongCommit, er
 	return commitToLongCommit(&c)
 }
 
+// LogOption represents an optional parameter to a Log function.
+type LogOption string
+
+// LogReverse is a LogOption which indicates that the commits in the Log should
+// be returned in reverse order from the typical "git log" ordering, ie. each
+// commit's parents appear before the commit itself.
+func LogReverse() LogOption {
+	return LogOption("reverse=true")
+}
+
+// LogBatchSize is a LogOption which indicates the number of commits which
+// should be included in each batch of commits returned by Log.
+func LogBatchSize(n int) LogOption {
+	return LogOption(fmt.Sprintf("n=%d", n))
+}
+
 // logHelper is used to perform requests which are equivalent to "git log".
 // Loads commits in batches and calls the given function for each batch of
 // commits. If the function returns an error, iteration stops, and the error is
 // returned, unless it was ErrStopIteration.
-func (r *Repo) logHelper(ctx context.Context, urlTmpl, commit string, fn func(context.Context, []*vcsinfo.LongCommit) error) error {
+func (r *Repo) logHelper(ctx context.Context, url string, fn func(context.Context, []*vcsinfo.LongCommit) error, opts ...LogOption) error {
+	for _, opt := range opts {
+		url += "&" + string(opt)
+	}
+	start := ""
 	for {
 		var l Log
-		if err := r.getJson(ctx, fmt.Sprintf(urlTmpl, commit), &l); err != nil {
+		u := url
+		if start != "" {
+			u += "&s=" + start
+		}
+		if err := r.getJson(ctx, u, &l); err != nil {
 			return err
 		}
 		// Convert to vcsinfo.LongCommit.
@@ -233,20 +257,19 @@ func (r *Repo) logHelper(ctx context.Context, urlTmpl, commit string, fn func(co
 		if l.Next == "" {
 			return nil
 		} else {
-			commit = l.Next
+			start = l.Next
 		}
 	}
 }
 
-// Log returns Gitiles' equivalent to "git log" for the given start and end
-// commits.
-func (r *Repo) Log(ctx context.Context, from, to string) ([]*vcsinfo.LongCommit, error) {
+// Log returns Gitiles' equivalent to "git log" for the given expression.
+func (r *Repo) Log(ctx context.Context, logExpr string, opts ...LogOption) ([]*vcsinfo.LongCommit, error) {
 	rv := []*vcsinfo.LongCommit{}
-	tmpl := fmt.Sprintf(LOG_URL, r.URL, from+"..%s")
-	if err := r.logHelper(ctx, tmpl, to, func(ctx context.Context, commits []*vcsinfo.LongCommit) error {
+	url := fmt.Sprintf(LOG_URL, r.URL, logExpr)
+	if err := r.logHelper(ctx, url, func(ctx context.Context, commits []*vcsinfo.LongCommit) error {
 		rv = append(rv, commits...)
 		return nil
-	}); err != nil {
+	}, opts...); err != nil {
 		return nil, err
 	}
 	return rv, nil
@@ -256,9 +279,9 @@ func (r *Repo) Log(ctx context.Context, from, to string) ([]*vcsinfo.LongCommit,
 // ie. it only returns commits which are on the direct path from A to B, and
 // only on the "main" branch. This is as opposed to "git log from..to" which
 // returns all commits which are ancestors of 'to' but not 'from'.
-func (r *Repo) LogLinear(ctx context.Context, from, to string) ([]*vcsinfo.LongCommit, error) {
+func (r *Repo) LogLinear(ctx context.Context, from, to string, opts ...LogOption) ([]*vcsinfo.LongCommit, error) {
 	// Retrieve the normal "git log".
-	commits, err := r.Log(ctx, from, to)
+	commits, err := r.Log(ctx, git.LogFromTo(from, to), opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -314,31 +337,37 @@ func (r *Repo) LogLinear(ctx context.Context, from, to string) ([]*vcsinfo.LongC
 	return rv, nil
 }
 
-// LogFn runs the given function for each commit in the log history reachable
-// from the given commit hash or ref name. It stops when ErrStopIteration is
-// returned.
-func (r *Repo) LogFn(ctx context.Context, to string, fn func(context.Context, *vcsinfo.LongCommit) error) error {
-	return r.LogFnBatch(ctx, to, func(ctx context.Context, commits []*vcsinfo.LongCommit) error {
+// LogFn runs the given function for each commit in the log for the given
+// expression. It stops when ErrStopIteration is returned.
+func (r *Repo) LogFn(ctx context.Context, logExpr string, fn func(context.Context, *vcsinfo.LongCommit) error, opts ...LogOption) error {
+	return r.LogFnBatch(ctx, logExpr, func(ctx context.Context, commits []*vcsinfo.LongCommit) error {
 		for _, c := range commits {
 			if err := fn(ctx, c); err != nil {
 				return err
 			}
 		}
 		return nil
-	})
+	}, opts...)
 }
 
 // LogFnBatch is the same as LogFn but it runs the given function over batches
 // of commits.
-func (r *Repo) LogFnBatch(ctx context.Context, to string, fn func(context.Context, []*vcsinfo.LongCommit) error) error {
-	return r.logHelper(ctx, fmt.Sprintf(LOG_URL, r.URL, "%s"), to, fn)
+func (r *Repo) LogFnBatch(ctx context.Context, logExpr string, fn func(context.Context, []*vcsinfo.LongCommit) error, opts ...LogOption) error {
+	url := fmt.Sprintf(LOG_URL, r.URL, logExpr)
+	return r.logHelper(ctx, url, fn, opts...)
 }
+
+// Ref represents a single ref, as returned by the API.
+type Ref struct {
+	Value string `json:"value"`
+}
+
+// RefsMap is the result of a request to REFS_URL.
+type RefsMap map[string]Ref
 
 // Branches returns the list of branches in the repo.
 func (r *Repo) Branches(ctx context.Context) ([]*git.Branch, error) {
-	branchMap := map[string]struct {
-		Value string `json:"value"`
-	}{}
+	branchMap := RefsMap{}
 	if err := r.getJson(ctx, fmt.Sprintf(REFS_URL, r.URL), &branchMap); err != nil {
 		return nil, err
 	}
