@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8bd9144c_d05e5da8",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 22
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T19:00:33Z",
+      "side": 1,
+      "message": "Removed the check and changed %d to %s. String() isn\u0027t needed here because it\u0027s called by Sprintf for %s.",
+      "parentUuid": "776ac1d6_b47a80e5",
+      "range": {
+        "startLine": 40,
+        "startChar": 50,
+        "endLine": 40,
+        "endChar": 60
+      },
+      "revId": "b9f9b200b0605f908b59ea5e422fed9f1a38f914",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0e3e1467_5658a6d7",
         "filename": "gitsync/go/watcher/initial.go",
         "patchSetId": 22
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "4235177b_fc3a664b",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 22
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T19:00:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0e3e1467_5658a6d7",
+      "revId": "b9f9b200b0605f908b59ea5e422fed9f1a38f914",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0ed8d754_28fe2020",
         "filename": "gitsync/go/watcher/initial_test.go",
         "patchSetId": 22
@@ -53,6 +95,24 @@
       "writtenOn": "2019-08-19T18:18:18Z",
       "side": 1,
       "message": "Left over?",
+      "revId": "b9f9b200b0605f908b59ea5e422fed9f1a38f914",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff5ee3cf_68879262",
+        "filename": "gitsync/go/watcher/initial_test.go",
+        "patchSetId": 22
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T19:00:33Z",
+      "side": 1,
+      "message": "I was going to write tests for the initial ingestion process, but didn\u0027t manage to start before I uploaded this patch set.  Please hold...",
+      "parentUuid": "0ed8d754_28fe2020",
       "revId": "b9f9b200b0605f908b59ea5e422fed9f1a38f914",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
