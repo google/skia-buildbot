@@ -75,9 +75,9 @@ func (task DatastoreTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 }
 
 func (task DatastoreTask) RunsOnGCEWorkers() bool {
-	// Capture SKP tasks need to run on bare-metal machines because they have
-	// the right font packages installed.
-	return false
+	// TODO(rmistry): Figure out which font packages to install on the GCE
+	// instances if any missing packages become an issue.
+	return true
 }
 
 func (task DatastoreTask) GetDatastoreKind() ds.Kind {
