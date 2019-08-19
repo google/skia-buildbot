@@ -23,19 +23,18 @@ func GetRepoGraph(ctx context.Context, gs GitStore) (*repograph.Graph, error) {
 // gitStoreRepoImpl is an implementation of the repograph.RepoImpl interface
 // which uses a GitStore to interact with a git repo.
 type gitStoreRepoImpl struct {
-	gs GitStore
-
-	// These are stored between calls to Update so that we don't have to
-	// Get individual commits as they are requested.
-	BranchList []*git.Branch
-	Commits    map[string]*vcsinfo.LongCommit
+	*repograph.MemCacheRepoImpl
+	gs         GitStore
 	lastUpdate time.Time
 }
 
 // NewGitStoreRepoImpl returns a repograph.RepoImpl instance which uses the
 // given GitStore.
 func NewGitStoreRepoImpl(ctx context.Context, gs GitStore) (repograph.RepoImpl, error) {
-	rv := &gitStoreRepoImpl{gs: gs}
+	rv := &gitStoreRepoImpl{
+		MemCacheRepoImpl: repograph.NewMemCacheRepoImpl(nil, nil).(*repograph.MemCacheRepoImpl),
+		gs:               gs,
+	}
 	if err := rv.Update(ctx); err != nil {
 		return nil, err
 	}
@@ -86,7 +85,8 @@ func (g *gitStoreRepoImpl) Update(ctx context.Context) error {
 
 // See documentation for repograph.RepoImpl interface.
 func (g *gitStoreRepoImpl) Details(ctx context.Context, hash string) (*vcsinfo.LongCommit, error) {
-	if d, ok := g.Commits[hash]; ok {
+	d, err := g.MemCacheRepoImpl.Details(ctx, hash)
+	if err == nil {
 		return d, nil
 	}
 	// Update() should have pre-fetched all of the commits for us, so we
@@ -104,17 +104,4 @@ func (g *gitStoreRepoImpl) Details(ctx context.Context, hash string) (*vcsinfo.L
 		g.Commits[c.Hash] = c
 	}
 	return got[0], nil
-}
-
-// See documentation for repograph.RepoImpl interface.
-func (g *gitStoreRepoImpl) Branches(ctx context.Context) ([]*git.Branch, error) {
-	if g.BranchList == nil {
-		return nil, skerr.Fmt("Need to call Update() before Branches()")
-	}
-	return g.BranchList, nil
-}
-
-// See documentation for repograph.RepoImpl interface.
-func (g *gitStoreRepoImpl) UpdateCallback(ctx context.Context, graph *repograph.Graph) error {
-	return nil
 }

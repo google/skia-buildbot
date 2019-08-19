@@ -1,14 +1,14 @@
 package repograph
 
 import (
+	"bytes"
 	"context"
 	"io/ioutil"
-	"os"
-	"path"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -25,9 +25,12 @@ func TestSerializeLocalRepo(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	repoImpl, err := NewLocalRepoImpl(ctx, g.Dir(), tmp)
+	repo, err := git.NewRepo(ctx, g.Dir(), tmp)
 	assert.NoError(t, err)
-	repo, err := NewWithRepoImpl(ctx, repoImpl)
+
+	repoImpl, err := NewLocalRepoImpl(ctx, repo)
+	assert.NoError(t, err)
+	g1, err := NewWithRepoImpl(ctx, repoImpl)
 	assert.NoError(t, err)
 	ri := repoImpl.(*localRepoImpl)
 
@@ -35,20 +38,18 @@ func TestSerializeLocalRepo(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		g.CommitGen(ctx, "dummy.txt")
 	}
-	assert.NoError(t, repo.Update(ctx))
-	assert.Equal(t, 10, repo.Len())
+	assert.NoError(t, g1.Update(ctx))
+	assert.Equal(t, 10, g1.Len())
 	assert.Equal(t, 10, len(ri.commits))
 	assert.Equal(t, 1, len(ri.branches))
 
-	// Copy the cache file to a new loction.
-	cacheFile := path.Join(tmp, "cache-file.cpy")
-	b, err := ioutil.ReadFile(path.Join(ri.Repo.Dir(), CACHE_FILE))
+	// Build a new Graph.
+	buf := &bytes.Buffer{}
+	assert.NoError(t, g1.WriteGob(buf))
+	g2, err := NewFromGob(ctx, buf, NewMemCacheRepoImpl(nil, nil))
 	assert.NoError(t, err)
-	assert.NoError(t, ioutil.WriteFile(cacheFile, b, os.ModePerm))
 
 	// Assert that we get the same branches and commits.
-	branches, commits, err := initFromFile(cacheFile)
-	assert.NoError(t, err)
-	deepequal.AssertDeepEqual(t, ri.branches, branches)
-	deepequal.AssertDeepEqual(t, ri.commits, commits)
+	deepequal.AssertDeepEqual(t, g1.branches, g2.branches)
+	deepequal.AssertDeepEqual(t, g2.commits, g2.commits)
 }
