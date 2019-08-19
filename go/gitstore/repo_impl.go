@@ -27,8 +27,8 @@ type gitStoreRepoImpl struct {
 
 	// These are stored between calls to Update so that we don't have to
 	// Get individual commits as they are requested.
-	BranchList []*git.Branch
-	Commits    map[string]*vcsinfo.LongCommit
+	branchList []*git.Branch
+	commits    map[string]*vcsinfo.LongCommit
 	lastUpdate time.Time
 }
 
@@ -79,14 +79,14 @@ func (g *gitStoreRepoImpl) Update(ctx context.Context) error {
 	}
 
 	g.lastUpdate = now
-	g.BranchList = branches
-	g.Commits = commitsMap
+	g.branchList = branches
+	g.commits = commitsMap
 	return nil
 }
 
 // See documentation for repograph.RepoImpl interface.
 func (g *gitStoreRepoImpl) Details(ctx context.Context, hash string) (*vcsinfo.LongCommit, error) {
-	if d, ok := g.Commits[hash]; ok {
+	if d, ok := g.commits[hash]; ok {
 		return d, nil
 	}
 	// Update() should have pre-fetched all of the commits for us, so we
@@ -101,17 +101,17 @@ func (g *gitStoreRepoImpl) Details(ctx context.Context, hash string) (*vcsinfo.L
 		if c == nil {
 			return nil, skerr.Fmt("Commit %s not present in GitStore.", hash)
 		}
-		g.Commits[c.Hash] = c
+		g.commits[c.Hash] = c
 	}
 	return got[0], nil
 }
 
 // See documentation for repograph.RepoImpl interface.
 func (g *gitStoreRepoImpl) Branches(ctx context.Context) ([]*git.Branch, error) {
-	if g.BranchList == nil {
+	if g.branchList == nil {
 		return nil, skerr.Fmt("Need to call Update() before Branches()")
 	}
-	return g.BranchList, nil
+	return g.branchList, nil
 }
 
 // See documentation for repograph.RepoImpl interface.
