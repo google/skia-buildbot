@@ -3,6 +3,7 @@ package bt_gitstore
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -36,6 +37,24 @@ func newGitstoreUpdater(t *testing.T, gs gitstore.GitStore, gb *git_testutils.Gi
 func (u *gitstoreRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 	ctx := context.Background()
 	// Add the commits.
+	for _, c := range commits {
+		// This is inefficient, but the test repo is small.
+		hashes, err := u.repo.RevList(ctx, "--first-parent", c.Hash)
+		assert.NoError(u.t, err)
+		c.Index = len(hashes) - 1
+		out, err := u.repo.Git(ctx, "branch", "--all", "--list", "--contains", c.Hash)
+		assert.NoError(u.t, err)
+		c.Branches = map[string]bool{}
+		for _, line := range strings.Split(strings.TrimSpace(out), "\n") {
+			b := strings.TrimSpace(line)
+			if b != "" {
+				// Splitting the line to filter out the '*' that marks the active branch.
+				parts := strings.Split(b, " ")
+				parts = strings.Split(parts[len(parts)-1], "/")
+				c.Branches[parts[len(parts)-1]] = true
+			}
+		}
+	}
 	assert.NoError(u.t, u.gs.Put(ctx, commits))
 	branches, err := u.repo.Branches(ctx)
 	assert.NoError(u.t, err)
@@ -46,7 +65,7 @@ func (u *gitstoreRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 	oldBranches, err := u.gs.GetBranches(ctx)
 	assert.NoError(u.t, err)
 	for name := range oldBranches {
-		if name == "" {
+		if name == gitstore.ALL_BRANCHES {
 			continue
 		}
 		if _, ok := putBranches[name]; !ok {
@@ -69,7 +88,7 @@ func (u *gitstoreRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 			}
 		}
 		for name := range actual {
-			if _, ok := putBranches[name]; name != "" && !ok {
+			if _, ok := putBranches[name]; name != gitstore.ALL_BRANCHES && !ok {
 				allMatch = false
 				break
 			}

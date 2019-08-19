@@ -64,29 +64,6 @@ func (_m *GitStore) GetBranches(ctx context.Context) (map[string]*gitstore.Branc
 	return r0, r1
 }
 
-// GetGraph provides a mock function with given fields: ctx
-func (_m *GitStore) GetGraph(ctx context.Context) (*gitstore.CommitGraph, error) {
-	ret := _m.Called(ctx)
-
-	var r0 *gitstore.CommitGraph
-	if rf, ok := ret.Get(0).(func(context.Context) *gitstore.CommitGraph); ok {
-		r0 = rf(ctx)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*gitstore.CommitGraph)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Put provides a mock function with given fields: ctx, commits
 func (_m *GitStore) Put(ctx context.Context, commits []*vcsinfo.LongCommit) error {
 	ret := _m.Called(ctx, commits)
