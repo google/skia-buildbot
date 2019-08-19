@@ -695,6 +695,30 @@
     },
     {
       "key": {
+        "uuid": "a4292d79_131d6edf",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T18:18:18Z",
+      "side": 1,
+      "message": "That\u0027s fine. With the increased usage of skerr.Fmt/skerr.Wrapf and the new error context proposed for future Go [1], we may want to reconsider that.\n\nhttps://blog.golang.org/experiment",
+      "parentUuid": "bd1c1618_480e9582",
+      "range": {
+        "startLine": 103,
+        "startChar": 31,
+        "endLine": 103,
+        "endChar": 75
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c43cca5_703395b1",
         "filename": "gitsync/go/watcher/watcher.go",
         "patchSetId": 21
@@ -974,6 +998,30 @@
       "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04a931a1_435e752c",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T18:18:18Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0d38200b_2d304095",
+      "range": {
+        "startLine": 285,
+        "startChar": 24,
+        "endLine": 285,
+        "endChar": 32
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {

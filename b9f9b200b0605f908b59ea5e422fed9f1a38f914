@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "776ac1d6_b47a80e5",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 22
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T18:18:18Z",
+      "side": 1,
+      "message": "uuid.New().String() and change %d \u003d\u003e %s\n\nOf note, the odds of a UUID collision are so minute, you might as well drop the check against existing branches.",
+      "range": {
+        "startLine": 40,
+        "startChar": 50,
+        "endLine": 40,
+        "endChar": 60
+      },
+      "revId": "b9f9b200b0605f908b59ea5e422fed9f1a38f914",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e3e1467_5658a6d7",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 22
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T18:18:18Z",
+      "side": 1,
+      "message": "If we failed to write to GCS, we may want to sleep.  It could indicate an issue with GCS.",
+      "revId": "b9f9b200b0605f908b59ea5e422fed9f1a38f914",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ed8d754_28fe2020",
+        "filename": "gitsync/go/watcher/initial_test.go",
+        "patchSetId": 22
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-19T18:18:18Z",
+      "side": 1,
+      "message": "Left over?",
+      "revId": "b9f9b200b0605f908b59ea5e422fed9f1a38f914",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
