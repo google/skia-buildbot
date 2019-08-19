@@ -2,10 +2,10 @@ package repograph
 
 import (
 	"context"
-	"encoding/gob"
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
@@ -20,33 +20,54 @@ const (
 	CACHE_FILE = "sk_gitrepo.gob"
 )
 
-// gobGraph is a utility struct used for serializing a Graph using gob.
-type gobGraph struct {
-	Branches []*git.Branch
-	Commits  map[string]*vcsinfo.LongCommit
-}
-
-// initFromFile initializes the Graph from a file.
-func initFromFile(cacheFile string) ([]*git.Branch, map[string]*vcsinfo.LongCommit, error) {
-	var r gobGraph
-	if err := util.MaybeReadGobFile(cacheFile, &r); err != nil {
-		sklog.Errorf("Failed to read Graph cache file %s; deleting the file and starting from scratch: %s", cacheFile, err)
-		if err2 := os.Remove(cacheFile); err2 != nil {
-			return nil, nil, skerr.Wrapf(err, "Failed to read Graph cache file %s and failed to remove with: %s", cacheFile, err2)
-		}
+// NewLocalGraph returns a Graph instance, creating a git.Repo from the repoUrl
+// and workdir. May obtain cached data from a file in the git repo, but does NOT
+// update the Graph; the caller is responsible for doing so before using the
+// Graph if up-to-date data is required.
+func NewLocalGraph(ctx context.Context, repoUrl, workdir string) (*Graph, error) {
+	repo, err := git.NewRepo(ctx, repoUrl, workdir)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to sync %s", repoUrl)
 	}
-	return r.Branches, r.Commits, nil
+	cacheFile := filepath.Join(repo.Dir(), CACHE_FILE)
+	ri, err := NewLocalRepoImpl(ctx, repo)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to create LocalRepoImpl in %s", repo.Dir())
+	}
+	var graph *Graph
+	err = util.WithReadFile(cacheFile, func(r io.Reader) error {
+		g, err := NewFromGob(ctx, r, ri)
+		if err != nil {
+			if err2 := os.Remove(cacheFile); err2 != nil {
+				return skerr.Wrapf(err, "Failed to read Graph cache file %s and failed to remove with: %s", cacheFile, err2)
+			}
+			return err
+		}
+		graph = g
+		return nil
+	})
+	if os.IsNotExist(err) {
+		return NewWithRepoImpl(ctx, ri)
+	} else if err != nil {
+		return nil, err
+	}
+	return graph, nil
 }
 
-// Write the Graph to the cache file in the given Repo.
-func writeCacheFile(branches []*git.Branch, commits map[string]*vcsinfo.LongCommit, cacheFile string) error {
-	sklog.Infof("  Writing cache file...")
-	return util.WithWriteFile(cacheFile, func(w io.Writer) error {
-		return gob.NewEncoder(w).Encode(gobGraph{
-			Branches: branches,
-			Commits:  commits,
-		})
-	})
+// NewLocalMap returns a Map instance with Graphs for the given repo URLs.
+// May obtain cached data from a file in the git repo, but does NOT update the
+// Map; the caller is responsible for doing so before using the Map if
+// up-to-date data is required.
+func NewLocalMap(ctx context.Context, repos []string, workdir string) (Map, error) {
+	rv := make(map[string]*Graph, len(repos))
+	for _, r := range repos {
+		g, err := NewLocalGraph(ctx, r, workdir)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to create local Map in %s; failed on %s", workdir, r)
+		}
+		rv[r] = g
+	}
+	return rv, nil
 }
 
 // localRepoImpl is an implementation of the RepoImpl interface which uses a local
@@ -58,25 +79,11 @@ type localRepoImpl struct {
 }
 
 // NewLocalRepoImpl returns a RepoImpl backed by a local git repo.
-func NewLocalRepoImpl(ctx context.Context, repoUrl, workdir string) (RepoImpl, error) {
-	repo, err := git.NewRepo(ctx, repoUrl, workdir)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to create git repo")
-	}
-	branches, commits, err := initFromFile(path.Join(repo.Dir(), CACHE_FILE))
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if branches == nil {
-		branches = []*git.Branch{}
-	}
-	if commits == nil {
-		commits = map[string]*vcsinfo.LongCommit{}
-	}
+func NewLocalRepoImpl(ctx context.Context, repo *git.Repo) (RepoImpl, error) {
 	return &localRepoImpl{
 		Repo:     repo,
-		branches: branches,
-		commits:  commits,
+		branches: []*git.Branch{},
+		commits:  map[string]*vcsinfo.LongCommit{},
 	}, nil
 }
 
@@ -113,5 +120,8 @@ func (r *localRepoImpl) Branches(ctx context.Context) ([]*git.Branch, error) {
 
 // See documentation for RepoImpl interface.
 func (r *localRepoImpl) UpdateCallback(ctx context.Context, g *Graph) error {
-	return writeCacheFile(r.branches, r.commits, path.Join(r.Dir(), CACHE_FILE))
+	sklog.Infof("  Writing cache file...")
+	return util.WithWriteFile(path.Join(r.Dir(), CACHE_FILE), func(w io.Writer) error {
+		return g.WriteGob(w)
+	})
 }

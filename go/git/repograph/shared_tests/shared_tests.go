@@ -7,14 +7,12 @@ import (
 	"os"
 	"path"
 	"sort"
-	"strings"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -232,6 +230,10 @@ func TestGraphWellFormed(t sktest.TestingT, ctx context.Context, g *git_testutil
 	deepequal.AssertDeepEqual(t, repo.Branches(), repo2.Branches())
 	m1 := repo.Get("master")
 	m2 := repo2.Get("master")
+	// Different implementations may or may not track branch info.
+	for _, c := range repo2.GetAll() {
+		c.Branches = repo.Get(c.Hash).Branches
+	}
 	deepequal.AssertDeepEqual(t, m1, m2)
 }
 
@@ -468,7 +470,6 @@ func TestUpdateHistoryChanged(t sktest.TestingT, ctx context.Context, g *git_tes
 	assert.Nil(t, repo.Get(commits[4].Hash)) // Should be orphaned now.
 
 	// Delete branch2. Ensure that c6 disappears.
-	sklog.Error("Deleting branch2")
 	g.UpdateRef(ctx, "-d", "refs/heads/branch2")
 	rf.Refresh()
 	assert.NoError(t, repo.Update(ctx))
@@ -476,7 +477,6 @@ func TestUpdateHistoryChanged(t sktest.TestingT, ctx context.Context, g *git_tes
 	assert.Nil(t, repo.Get(c6hash))
 
 	// Rewind a branch. Make sure that we correctly handle this case.
-	sklog.Error("Rewinding master")
 	removed := []string{c7, c8}
 	for _, c := range removed {
 		assert.NotNil(t, repo.Get(c))
@@ -498,12 +498,14 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 
 	// The repo has commits, but GitSetup has already run Update(), so
 	// there's nothing new.
+	rf.Refresh()
 	added, removed, err := repo.UpdateAndReturnCommitDiffs(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, len(added), 0)
 	assert.Equal(t, len(removed), 0)
 
 	// No new commits.
+	rf.Refresh()
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(added))
@@ -562,6 +564,7 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 
 	// Make sure we get no duplicates if the branch heads aren't the same.
 	g.Reset(ctx, "--hard", "master^")
+	rf.Refresh()
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(added))
@@ -570,6 +573,7 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 	// Create a new branch.
 	g.CheckoutBranch(ctx, "master")
 	g.CreateBranchTrackBranch(ctx, "branch4", "master")
+	rf.Refresh()
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(added))
@@ -732,38 +736,26 @@ func TestBranchMembership(t sktest.TestingT, ctx context.Context, gb *git_testut
 	c4 := commits[3]
 	c5 := commits[4]
 	test := func(c *repograph.Commit, branches ...string) {
-		sklog.Errorf("%d: %s", c.Index, c.Hash)
-		sklog.Errorf("Expect:\n%s", strings.Join(branches, "\n"))
-		actualStr := ""
-		for branch := range c.Branches {
-			actualStr += branch + "\n"
-		}
-		sklog.Errorf("Actual:\n%s", actualStr)
 		assert.Equal(t, len(branches), len(c.Branches))
 		for _, b := range branches {
 			assert.True(t, c.Branches[b])
 		}
 	}
 
-	// Branches should be nil at first.
-	for _, c := range commits {
-		assert.Nil(t, c.Branches)
-	}
-
-	// Enable branch tracking. Ensure that all commits were updated with the
+	// Update branch info. Ensure that all commits were updated with the
 	// correct branch membership.
-	repo.EnableBranchTracking()
+	repo.UpdateBranchInfo()
 	test(c1, "master", "branch2")
 	test(c2, "master", "branch2")
 	test(c3, "branch2") // c3 is reachable from master, but not via first-parent.
 	test(c4, "master")
 	test(c5, "master")
 
-	// Ensure that subsequent calls to Update() cause the branch membership
-	// to be updated.
+	// Add a branch.
 	gb.CreateBranchTrackBranch(ctx, "b3", "master")
 	rf.Refresh()
 	assert.NoError(t, repo.Update(ctx))
+	repo.UpdateBranchInfo()
 	test(c1, "master", "branch2", "b3")
 	test(c2, "master", "branch2", "b3")
 	test(c3, "branch2") // c3 is reachable from b3, but not via first-parent.
@@ -774,6 +766,7 @@ func TestBranchMembership(t sktest.TestingT, ctx context.Context, gb *git_testut
 	gb.Reset(ctx, "--hard", "branch2")
 	rf.Refresh()
 	assert.NoError(t, repo.Update(ctx))
+	repo.UpdateBranchInfo()
 	test(c1, "master", "branch2", "b3")
 	test(c2, "master", "branch2", "b3")
 	test(c3, "branch2", "b3")
@@ -785,19 +778,20 @@ func TestBranchMembership(t sktest.TestingT, ctx context.Context, gb *git_testut
 	gb.UpdateRef(ctx, "-d", "refs/heads/b3")
 	rf.Refresh()
 	assert.NoError(t, repo.Update(ctx))
+	repo.UpdateBranchInfo()
 	test(c1, "master", "branch2")
 	test(c2, "master", "branch2")
 	test(c3, "branch2")
 	test(c4, "master")
 	test(c5, "master")
 
-	// Ensure that repograph.Map updates branch membership as well.
-	m := repograph.Map{"dummy": repo}
+	// Add a commit.
 	c6hash := gb.CommitGen(ctx, "blah")
 	c6details, err := git.GitDir(gb.Dir()).Details(ctx, c6hash)
 	assert.NoError(t, err)
 	rf.Refresh(c6details)
-	assert.NoError(t, m.Update(ctx))
+	assert.NoError(t, repo.Update(ctx))
+	repo.UpdateBranchInfo()
 	c6 := repo.Get(c6hash)
 	assert.NotNil(t, c6)
 	test(c1, "master", "branch2")
