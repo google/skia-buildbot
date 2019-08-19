@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3b40ef1a_49269d21",
+        "filename": "autoroll/go/repo_manager/no_checkout_deps_repo_manager_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T15:36:19Z",
+      "side": 1,
+      "message": "I considered it but lazily decided not to, with the justification that I couldn\u0027t think of a way which would be less typing than this.  Added git.LogFromTo, and I\u0027m definitely open to suggestions of better names.",
+      "parentUuid": "02611742_bd116ba3",
+      "range": {
+        "startLine": 304,
+        "startChar": 24,
+        "endLine": 304,
+        "endChar": 45
+      },
+      "revId": "5ed09447a2a4d100b85f029f5248035aa44e090b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "78afbdce_39f98478",
         "filename": "go/gitiles/gitiles.go",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "999b825b_90facc91",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T15:36:19Z",
+      "side": 1,
+      "message": "Changed to just \"type LogOption string\"",
+      "parentUuid": "78afbdce_39f98478",
+      "range": {
+        "startLine": 210,
+        "startChar": 15,
+        "endLine": 210,
+        "endChar": 27
+      },
+      "revId": "5ed09447a2a4d100b85f029f5248035aa44e090b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "61b443db_39056dcb",
         "filename": "go/gitiles/gitiles.go",
         "patchSetId": 1
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "00295058_c2009062",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T15:36:19Z",
+      "side": 1,
+      "message": "Changed to just \"type LogOption string\"",
+      "parentUuid": "61b443db_39056dcb",
+      "revId": "5ed09447a2a4d100b85f029f5248035aa44e090b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c51a1e64_a6785467",
         "filename": "go/gitiles/gitiles.go",
         "patchSetId": 1
@@ -76,6 +142,30 @@
       "writtenOn": "2019-08-19T13:38:59Z",
       "side": 1,
       "message": "nit: you may consider moving LogOption to a subpackage of gittiles\nThat way, clients would be invoking these with\nlogoption.Reverse()\n\ninstead of gittiles.Reverse() \n\nand I think that reads a little better.",
+      "range": {
+        "startLine": 223,
+        "startChar": 0,
+        "endLine": 223,
+        "endChar": 14
+      },
+      "revId": "5ed09447a2a4d100b85f029f5248035aa44e090b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c9f0e341_44f5c833",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T15:36:19Z",
+      "side": 1,
+      "message": "I\u0027m not sure that these two functions warrant their own package; would you be okay if I just changed the names to gitiles.LogReverse() and gitiles.LogBatchSize() so that it\u0027s clear what they\u0027re used for?",
+      "parentUuid": "c51a1e64_a6785467",
       "range": {
         "startLine": 223,
         "startChar": 0,
@@ -108,6 +198,30 @@
       "revId": "5ed09447a2a4d100b85f029f5248035aa44e090b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85781f52_18479f56",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T15:36:19Z",
+      "side": 1,
+      "message": "It uses the passed-in http.Client.  The caller is welcome to configure it to use timeouts, retries, backoff as desired.",
+      "parentUuid": "cd695e8a_30565e37",
+      "range": {
+        "startLine": 248,
+        "startChar": 2,
+        "endLine": 250,
+        "endChar": 3
+      },
+      "revId": "5ed09447a2a4d100b85f029f5248035aa44e090b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
