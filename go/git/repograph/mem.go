@@ -17,7 +17,7 @@ type MemCacheRepoImpl struct {
 // NewMemCacheRepoImpl returns a RepoImpl implementation which just caches
 // commits in memory. The commits map must contain all commits needed by the
 // given branch heads.
-func NewMemCacheRepoImpl(commits map[string]*vcsinfo.LongCommit, branches []*git.Branch) RepoImpl {
+func NewMemCacheRepoImpl(commits map[string]*vcsinfo.LongCommit, branches []*git.Branch) *MemCacheRepoImpl {
 	if commits == nil {
 		commits = map[string]*vcsinfo.LongCommit{}
 	}
@@ -46,6 +46,6 @@ func (ri *MemCacheRepoImpl) Branches(_ context.Context) ([]*git.Branch, error) {
 }
 
 // See documentation for RepoImpl interface.
-func (ri *MemCacheRepoImpl) UpdateCallback(_ context.Context, _ *Graph) error {
+func (ri *MemCacheRepoImpl) UpdateCallback(_ context.Context, _, _ []*vcsinfo.LongCommit, _ *Graph) error {
 	return nil
 }

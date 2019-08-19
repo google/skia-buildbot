@@ -32,7 +32,7 @@ type gitStoreRepoImpl struct {
 // given GitStore.
 func NewGitStoreRepoImpl(ctx context.Context, gs GitStore) (repograph.RepoImpl, error) {
 	rv := &gitStoreRepoImpl{
-		MemCacheRepoImpl: repograph.NewMemCacheRepoImpl(nil, nil).(*repograph.MemCacheRepoImpl),
+		MemCacheRepoImpl: repograph.NewMemCacheRepoImpl(nil, nil),
 		gs:               gs,
 	}
 	if err := rv.Update(ctx); err != nil {

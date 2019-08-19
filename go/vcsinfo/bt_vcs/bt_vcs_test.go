@@ -2,6 +2,7 @@ package bt_vcs
 
 import (
 	"context"
+	"io/ioutil"
 	"testing"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"go.skia.org/infra/go/gitstore/mocks"
 	gs_testutils "go.skia.org/infra/go/gitstore/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	vcs_testutils "go.skia.org/infra/go/vcsinfo/testutils"
 )
@@ -260,10 +262,16 @@ func TestDetailsMultiPartialCaching(t *testing.T) {
 // setupVCSLocalRepo loads the test repo into a new GitStore and returns an instance of vcsinfo.VCS.
 func setupVCSLocalRepo(t *testing.T, branch string) (vcsinfo.VCS, gitstore.GitStore, func()) {
 	repoDir, cleanup := vcs_testutils.InitTempRepo()
-	_, _, btgs := gs_testutils.SetupAndLoadBTGitStore(t, localRepoURL, repoDir, true)
-	vcs, err := New(context.Background(), btgs, branch, nil)
+	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	return vcs, btgs, cleanup
+	ctx := context.Background()
+	_, _, btgs := gs_testutils.SetupAndLoadBTGitStore(t, ctx, wd, "file://"+repoDir, true)
+	vcs, err := New(ctx, btgs, branch, nil)
+	assert.NoError(t, err)
+	return vcs, btgs, func() {
+		util.RemoveAll(wd)
+		cleanup()
+	}
 }
 
 func startWithEmptyCache(mg *mocks.GitStore) {

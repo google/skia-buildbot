@@ -38,7 +38,7 @@ func setupMem(t *testing.T) (context.Context, *git_testutils.GitBuilder, *repogr
 	assert.NoError(t, err)
 	return ctx, g, graph, &memRefresher{
 		repo: repo,
-		ri:   ri.(*repograph.MemCacheRepoImpl),
+		ri:   ri,
 		t:    t,
 	}, cleanup
 }
