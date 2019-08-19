@@ -1,8 +1,10 @@
 package rtcache
 
-import "math"
+import (
+	"math"
 
-import "go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/util"
+)
 
 // ReadThroughCache defines a caching work queue with priorities. If the item
 // identified by 'id' is not in the cache then it will call a
