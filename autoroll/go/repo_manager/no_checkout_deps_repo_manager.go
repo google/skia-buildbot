@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/sklog"
@@ -267,7 +268,7 @@ func (rm *noCheckoutDEPSRepoManager) RolledPast(ctx context.Context, rev *revisi
 	if rev.Id == rm.lastRollRev.Id {
 		return true, nil
 	}
-	commits, err := rm.childRepo.Log(ctx, rev.Id, rm.lastRollRev.Id)
+	commits, err := rm.childRepo.Log(ctx, git.LogFromTo(rev.Id, rm.lastRollRev.Id))
 	if err != nil {
 		return false, err
 	}

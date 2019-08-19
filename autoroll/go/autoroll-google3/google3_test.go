@@ -100,7 +100,7 @@ func TestStatus(t *testing.T) {
 	commits = append(commits, gb.CommitGen(ctx, "a.txt"))
 
 	mockChild.MockGetCommit(ctx, "master")
-	mockChild.MockLog(ctx, commits[0], commits[1])
+	mockChild.MockLog(ctx, git.LogFromTo(commits[0], commits[1]))
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
 	status := a.status.Get()
 	assert.Equal(t, 0, status.NumFailedRolls)
@@ -128,7 +128,7 @@ func TestStatus(t *testing.T) {
 
 	recent := []*autoroll.AutoRollIssue{issue4, issue3, issue2, issue1}
 	mockChild.MockGetCommit(ctx, "master")
-	mockChild.MockLog(ctx, commits[0], commits[2])
+	mockChild.MockLog(ctx, git.LogFromTo(commits[0], commits[2]))
 	assert.NoError(t, a.UpdateStatus(ctx, "error message", false))
 	status = a.status.Get()
 	assert.Equal(t, 2, status.NumFailedRolls)
@@ -141,7 +141,7 @@ func TestStatus(t *testing.T) {
 
 	// Test preserving error.
 	mockChild.MockGetCommit(ctx, "master")
-	mockChild.MockLog(ctx, commits[0], commits[2])
+	mockChild.MockLog(ctx, git.LogFromTo(commits[0], commits[2]))
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
 	status = a.status.Get()
 	assert.Equal(t, "error message", status.Error)
@@ -160,7 +160,7 @@ func TestStatus(t *testing.T) {
 		recent = append([]*autoroll.AutoRollIssue{issueI}, recent...)
 	}
 	mockChild.MockGetCommit(ctx, "master")
-	mockChild.MockLog(ctx, commits[0], commits[2])
+	mockChild.MockLog(ctx, git.LogFromTo(commits[0], commits[2]))
 	assert.NoError(t, a.UpdateStatus(ctx, "error message", false))
 	status = a.status.Get()
 	assert.Equal(t, recent_rolls.RECENT_ROLLS_LENGTH+1, status.NumFailedRolls)
@@ -188,7 +188,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	closeIssue(issue2, autoroll.ROLL_RESULT_SUCCESS)
 	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue2, http.MethodPut))
 	mockChild.MockGetCommit(ctx, "master")
-	mockChild.MockLog(ctx, commits[1], commits[2])
+	mockChild.MockLog(ctx, git.LogFromTo(commits[1], commits[2]))
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
 	deepequal.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue2, issue1}, a.status.Get().Recent)
 
@@ -198,7 +198,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	issue4 := makeIssue(4, commits[2])
 	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue4, http.MethodPost))
 	mockChild.MockGetCommit(ctx, "master")
-	mockChild.MockLog(ctx, commits[1], commits[2])
+	mockChild.MockLog(ctx, git.LogFromTo(commits[1], commits[2]))
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
 	issue3.Closed = true
 	issue3.Result = autoroll.ROLL_RESULT_FAILURE
@@ -209,7 +209,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	closeIssue(issue5, autoroll.ROLL_RESULT_SUCCESS)
 	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue5, http.MethodPut))
 	mockChild.MockGetCommit(ctx, "master")
-	mockChild.MockLog(ctx, commits[2], commits[2])
+	mockChild.MockLog(ctx, git.LogFromTo(commits[2], commits[2]))
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
 	issue4.Closed = true
 	issue4.Result = autoroll.ROLL_RESULT_FAILURE

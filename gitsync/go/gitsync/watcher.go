@@ -126,7 +126,7 @@ func (r *RepoWatcher) updateFn() error {
 
 			if anc {
 				// Only get the commits between the old and new head.
-				revListStr = fmt.Sprintf("%s..%s", foundBranch.Head, newBranch.Head)
+				revListStr = git.LogFromTo(foundBranch.Head, newBranch.Head)
 			}
 		}
 

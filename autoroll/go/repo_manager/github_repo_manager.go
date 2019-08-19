@@ -301,7 +301,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 
 	// Build the commit message.
 	user, repo := GetUserAndRepo(rm.childRepoURL)
-	commits, err := rm.childRepo.RevList(ctx, "--no-merges", fmt.Sprintf("%s..%s", from.Id, to.Id))
+	commits, err := rm.childRepo.RevList(ctx, "--no-merges", git.LogFromTo(from.Id, to.Id))
 	if err != nil {
 		return 0, fmt.Errorf("Failed to list revisions: %s", err)
 	}

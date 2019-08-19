@@ -182,7 +182,7 @@ func (rm *freetypeRepoManager) createRoll(ctx context.Context, from, to *revisio
 	}
 
 	// Check modules.cfg. Give up if it has changed.
-	diff, err := rm.localChildRepo.Git(ctx, "diff", "--name-only", fmt.Sprintf("%s..%s", from.Id, to.Id))
+	diff, err := rm.localChildRepo.Git(ctx, "diff", "--name-only", git.LogFromTo(from.Id, to.Id))
 	if err != nil {
 		return "", nil, err
 	}
