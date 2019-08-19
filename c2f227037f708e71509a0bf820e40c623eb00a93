@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "48c51c8f_5acd52a9",
+        "filename": "gitsync/go/gitsync/main.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "It is; these are just the defaults.  See line 49.",
+      "parentUuid": "b8461929_09bdbc04",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 10
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "67e1e46f_3ca463c3",
         "filename": "gitsync/go/watcher/initial.go",
         "patchSetId": 21
@@ -45,6 +69,30 @@
       "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d2b5edf9_c0e622bd",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "67e1e46f_3ca463c3",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 11
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "ecb2e6ca_37a6a537",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7cda3657_3b9e4707",
+      "range": {
+        "startLine": 35,
+        "startChar": 13,
+        "endLine": 35,
+        "endChar": 33
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "faa7567e_4366cdf5",
         "filename": "gitsync/go/watcher/initial.go",
         "patchSetId": 21
@@ -91,6 +163,30 @@
       "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25b2ec11_e453bde0",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "faa7567e_4366cdf5",
+      "range": {
+        "startLine": 89,
+        "startChar": 21,
+        "endLine": 89,
+        "endChar": 38
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "8e9e71f0_a7b0a1e4",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Renamed to writeRequestsMtx.",
+      "parentUuid": "bfe44135_6bc9c178",
+      "range": {
+        "startLine": 164,
+        "startChar": 1,
+        "endLine": 164,
+        "endChar": 21
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a1f597ef_c92f17c6",
         "filename": "gitsync/go/watcher/initial.go",
         "patchSetId": 21
@@ -137,6 +257,30 @@
       "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c66cba9_6108ffe9",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Renamed to writeRequests.",
+      "parentUuid": "a1f597ef_c92f17c6",
+      "range": {
+        "startLine": 165,
+        "startChar": 0,
+        "endLine": 165,
+        "endChar": 14
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "4af09aa8_8dd55133",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Writing to GCS takes a long time.  The idea is for UpdateCallback to asynchronously request a write and return immediately. If we held the mutex while we called write, then any calls to UpdateCallback would block until we were done.",
+      "parentUuid": "40e24680_3ab36377",
+      "range": {
+        "startLine": 181,
+        "startChar": 3,
+        "endLine": 181,
+        "endChar": 18
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5db92cc9_6dca44e4",
         "filename": "gitsync/go/watcher/initial.go",
         "patchSetId": 21
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "0077d326_dabc9f01",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5db92cc9_6dca44e4",
+      "range": {
+        "startLine": 184,
+        "startChar": 11,
+        "endLine": 184,
+        "endChar": 21
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fda3de7a_9f2c9565",
         "filename": "gitsync/go/watcher/initial.go",
         "patchSetId": 21
@@ -200,6 +392,24 @@
       "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81311b70_cfaf6525",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "No, if we just finished a write but someone has already requested another, we should start it immediately.",
+      "parentUuid": "fda3de7a_9f2c9565",
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -226,6 +436,30 @@
     },
     {
       "key": {
+        "uuid": "7be44dde_c8a47b4b",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d002c945_0409773f",
+      "range": {
+        "startLine": 207,
+        "startChar": 61,
+        "endLine": 207,
+        "endChar": 63
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cb254273_555796dc",
         "filename": "gitsync/go/watcher/initial.go",
         "patchSetId": 21
@@ -246,6 +480,30 @@
       "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4fb8616_8527b7ec",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cb254273_555796dc",
+      "range": {
+        "startLine": 211,
+        "startChar": 2,
+        "endLine": 212,
+        "endChar": 17
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -272,6 +530,30 @@
     },
     {
       "key": {
+        "uuid": "d99904f8_ae58e3f3",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "895b5882_183e0703",
+      "range": {
+        "startLine": 38,
+        "startChar": 53,
+        "endLine": 38,
+        "endChar": 58
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "63f0a539_41fcbf85",
         "filename": "gitsync/go/watcher/watcher.go",
         "patchSetId": 21
@@ -292,6 +574,30 @@
       "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1882ae28_bfecb71e",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "63f0a539_41fcbf85",
+      "range": {
+        "startLine": 48,
+        "startChar": 51,
+        "endLine": 48,
+        "endChar": 54
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -318,6 +624,30 @@
     },
     {
       "key": {
+        "uuid": "d3230352_2ac64ff4",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "I have no idea. This was part of the initial implementation. Changed to use debug.Stack() which figures out the buffer size itself.",
+      "parentUuid": "0db08546_fd4204fe",
+      "range": {
+        "startLine": 61,
+        "startChar": 17,
+        "endLine": 61,
+        "endChar": 25
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "47b9a8d4_c3432fdb",
         "filename": "gitsync/go/watcher/watcher.go",
         "patchSetId": 21
@@ -329,6 +659,30 @@
       "writtenOn": "2019-08-19T14:27:25Z",
       "side": 1,
       "message": "uberubernit: https://github.com/golang/go/wiki/CodeReviewComments#error-strings",
+      "range": {
+        "startLine": 103,
+        "startChar": 31,
+        "endLine": 103,
+        "endChar": 75
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd1c1618_480e9582",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "I have capitalized error messages _everywhere_.  AFAIK we have not tried to implement that as a policy for our project.  I think it\u0027s worth a team-wide discussion and if we decide to do it, a giant mechanical CL to fix this across the board.",
+      "parentUuid": "47b9a8d4_c3432fdb",
       "range": {
         "startLine": 103,
         "startChar": 31,
@@ -364,6 +718,30 @@
     },
     {
       "key": {
+        "uuid": "8984df96_20126a36",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c43cca5_703395b1",
+      "range": {
+        "startLine": 175,
+        "startChar": 39,
+        "endLine": 175,
+        "endChar": 43
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "17c5da76_e122a561",
         "filename": "gitsync/go/watcher/watcher.go",
         "patchSetId": 21
@@ -384,6 +762,30 @@
       "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98876962_b7acf4fb",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "17c5da76_e122a561",
+      "range": {
+        "startLine": 200,
+        "startChar": 10,
+        "endLine": 200,
+        "endChar": 20
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -410,6 +812,30 @@
     },
     {
       "key": {
+        "uuid": "0ff031cb_389b27b5",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ec89b84a_0b32b220",
+      "range": {
+        "startLine": 230,
+        "startChar": 49,
+        "endLine": 230,
+        "endChar": 53
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3443eabd_1ee9e8f1",
         "filename": "gitsync/go/watcher/watcher.go",
         "patchSetId": 21
@@ -430,6 +856,30 @@
       "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f19b5382_959656a5",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3443eabd_1ee9e8f1",
+      "range": {
+        "startLine": 235,
+        "startChar": 16,
+        "endLine": 235,
+        "endChar": 34
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -456,6 +906,30 @@
     },
     {
       "key": {
+        "uuid": "65519de5_630a56ff",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "46aab718_5e65d861",
+      "range": {
+        "startLine": 284,
+        "startChar": 1,
+        "endLine": 284,
+        "endChar": 19
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bf94ae3f_b64d74dd",
         "filename": "gitsync/go/watcher/watcher.go",
         "patchSetId": 21
@@ -467,6 +941,30 @@
       "writtenOn": "2019-08-19T14:27:25Z",
       "side": 1,
       "message": "how does this scale to 1800+ branches?",
+      "range": {
+        "startLine": 285,
+        "startChar": 24,
+        "endLine": 285,
+        "endChar": 32
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d38200b_2d304095",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "I\u0027ll give it a try for pdfium.\n\nIIUC, most of the branches just point to commits on master.  If that\u0027s true, the check on line 292 should prevent us from needing to do anything for most of the branches.  For branches with only a few commits not on master the large batches we request from gitiles will be wasteful, but we will stop iteration early because we\u0027ll find existing commits in the first batch.  The rate limiter in gitiles will slow us down for sure.",
+      "parentUuid": "bf94ae3f_b64d74dd",
       "range": {
         "startLine": 285,
         "startChar": 24,
@@ -502,6 +1000,30 @@
     },
     {
       "key": {
+        "uuid": "9b86a99a_aa36c0ba",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 334,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bc38e29b_b59a007e",
+      "range": {
+        "startLine": 334,
+        "startChar": 52,
+        "endLine": 334,
+        "endChar": 56
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "59e5118c_7d6a86d9",
         "filename": "gitsync/go/watcher/watcher.go",
         "patchSetId": 21
@@ -525,6 +1047,30 @@
     },
     {
       "key": {
+        "uuid": "c57008c4_728cb3e1",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "59e5118c_7d6a86d9",
+      "range": {
+        "startLine": 452,
+        "startChar": 14,
+        "endLine": 452,
+        "endChar": 24
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b0b2251b_8e7ab1a7",
         "filename": "go/gitstore/bt_gitstore/bt_gitstore_test.go",
         "patchSetId": 21
@@ -545,6 +1091,30 @@
       "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85629c19_20b16518",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore_test.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-19T18:05:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b0b2251b_8e7ab1a7",
+      "range": {
+        "startLine": 58,
+        "startChar": 82,
+        "endLine": 58,
+        "endChar": 86
+      },
+      "revId": "c2f227037f708e71509a0bf820e40c623eb00a93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
