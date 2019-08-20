@@ -87,7 +87,7 @@ func TestLoadBaseline(t *testing.T) {
 	assert.Equal(t, types.NEGATIVE, digests["badbadbad1325855590527db196112e0"])
 	assert.Equal(t, types.POSITIVE, digests["beef00d3a1527db19619ec12a4e0df68"])
 
-	assert.Equal(t, testIssueID, goldClient.resultState.SharedConfig.Issue)
+	assert.Equal(t, testIssueID, goldClient.resultState.SharedConfig.GerritChangeListID)
 
 	knownHashes := goldClient.resultState.KnownHashes
 	assert.Empty(t, knownHashes, "No hashes loaded")
@@ -119,7 +119,7 @@ func TestLoadBaselineMaster(t *testing.T) {
 			"os":  "WinTest",
 			"gpu": "GPUTest",
 		},
-		Issue: types.MasterBranch,
+		GerritChangeListID: types.MasterBranch,
 	})
 	assert.NoError(t, err)
 
@@ -131,7 +131,7 @@ func TestLoadBaselineMaster(t *testing.T) {
 	assert.Equal(t, types.NEGATIVE, digests["badbadbad1325855590527db196112e0"])
 	assert.Equal(t, types.POSITIVE, digests["beef00d3a1527db19619ec12a4e0df68"])
 
-	assert.Equal(t, types.MasterBranch, goldClient.resultState.SharedConfig.Issue)
+	assert.Equal(t, types.MasterBranch, goldClient.resultState.SharedConfig.GerritChangeListID)
 
 	knownHashes := goldClient.resultState.KnownHashes
 	assert.Empty(t, knownHashes, "No hashes loaded")
@@ -857,7 +857,7 @@ var testSharedConfig = jsonio.GoldResults{
 		"os":  "WinTest",
 		"gpu": "GPUTest",
 	},
-	Issue:         testIssueID,
-	Patchset:      testPatchsetID,
-	BuildBucketID: testBuildBucketID,
+	GerritChangeListID: testIssueID,
+	GerritPatchSet:     testPatchsetID,
+	BuildBucketID:      testBuildBucketID,
 }

@@ -55,7 +55,7 @@ func TestValidate(t *testing.T) {
 		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
 		Key:     map[string]string{"param1": "value1"},
 
-		Issue: types.LegacyMasterBranch,
+		GerritChangeListID: types.LegacyMasterBranch,
 	}
 	_, err = legacyMaster.Validate(true)
 	assert.NoError(t, err)
@@ -64,7 +64,7 @@ func TestValidate(t *testing.T) {
 		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
 		Key:     map[string]string{"param1": "value1"},
 
-		Issue: types.MasterBranch,
+		GerritChangeListID: types.MasterBranch,
 	}
 	_, err = master.Validate(true)
 	assert.NoError(t, err)
@@ -77,18 +77,18 @@ func TestParseGoldResults(t *testing.T) {
 	// Make sure some key fields come out correctly, i.e. are converted correctly from string to int.
 	assert.Equal(t, "c4711517219f333c1116f47706eb57b51b5f8fc7", r.GitHash)
 	assert.Equal(t, "Xb0VhENPSRFGnf2elVQd", r.TaskID)
-	assert.Equal(t, int64(12345), r.Issue)
-	assert.Equal(t, int64(10), r.Patchset)
+	assert.Equal(t, int64(12345), r.GerritChangeListID)
+	assert.Equal(t, int64(10), r.GerritPatchSet)
 	assert.Equal(t, int64(549340494940393), r.BuildBucketID)
 
 	r = testParse(t, legacyMasterBranchJSON)
-	assert.Equal(t, types.LegacyMasterBranch, r.Issue)
+	assert.Equal(t, types.LegacyMasterBranch, r.GerritChangeListID)
 
 	r = testParse(t, masterBranchJSON)
-	assert.Equal(t, types.MasterBranch, r.Issue)
+	assert.Equal(t, types.MasterBranch, r.GerritChangeListID)
 
 	r = testParse(t, emptyMasterBranchJSON)
-	assert.Equal(t, types.MasterBranch, r.Issue)
+	assert.Equal(t, types.MasterBranch, r.GerritChangeListID)
 }
 
 func TestGenJson(t *testing.T) {

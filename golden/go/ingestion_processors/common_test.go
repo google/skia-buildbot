@@ -39,7 +39,7 @@ func TestDMResults(t *testing.T) {
 			"model":            "ShuttleB",
 			"os":               "Win8",
 		},
-		Issue: types.MasterBranch,
+		GerritChangeListID: types.MasterBranch,
 		Results: []*jsonio.Result{
 			{
 				Key: map[string]string{
