@@ -163,8 +163,8 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 	}
 
 	// Make sure we have an issue, patchset and a buildbucket id.
-	if (dmResults.Issue <= 0) || (dmResults.Patchset <= 0) || (dmResults.BuildBucketID <= 0) {
-		sklog.Errorf("Invalid data. issue, patchset and buildbucket id must be > 0. Got (%d, %d, %d).", dmResults.Issue, dmResults.Patchset, dmResults.BuildBucketID)
+	if (dmResults.GerritChangeListID <= 0) || (dmResults.GerritPatchSet <= 0) || (dmResults.BuildBucketID <= 0) {
+		sklog.Errorf("Invalid data. issue, patchset and buildbucket id must be > 0. Got (%d, %d, %d).", dmResults.GerritChangeListID, dmResults.GerritPatchSet, dmResults.BuildBucketID)
 		return ingestion.IgnoreResultsFileErr
 	}
 
@@ -175,7 +175,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 	}
 
 	// Save the results to the trybot store.
-	issueID := dmResults.Issue
+	issueID := dmResults.GerritChangeListID
 	tryjob, err := g.tryjobStore.GetTryjob(issueID, dmResults.BuildBucketID)
 	if err != nil {
 		sklog.Errorf("Error retrieving tryjob: %s", err)

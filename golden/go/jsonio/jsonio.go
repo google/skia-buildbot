@@ -105,11 +105,13 @@ type GoldResults struct {
 	Results []*Result         `json:"results"  validate:"min=1"`
 
 	// Required fields for tryjobs.
-	Issue         int64  `json:"issue,string"`
-	BuildBucketID int64  `json:"buildbucket_build_id,string"`
-	Patchset      int64  `json:"patchset,string"`
-	Builder       string `json:"builder"` // Builder is not strictly necessary but makes debugging easier.
-	TaskID        string `json:"task_id"`
+	BuildBucketID      int64 `json:"buildbucket_build_id,string"`
+	GerritChangeListID int64 `json:"issue,string"`
+	GerritPatchSet     int64 `json:"patchset,string"`
+
+	// Optional fields for tryjobs - can make debugging easier
+	Builder string `json:"builder"`
+	TaskID  string `json:"task_id"`
 }
 
 // rawGoldResults used to embed GoldResults, but in newer versions of Go (1.12+), it became
@@ -120,11 +122,13 @@ type rawGoldResults struct {
 	Results []*Result         `json:"results"  validate:"min=1"`
 
 	// Required fields for tryjobs.
-	Issue         string `json:"issue"`
-	BuildBucketID string `json:"buildbucket_build_id"`
-	Patchset      string `json:"patchset"`
-	Builder       string `json:"builder"` // Builder is not strictly necessary but makes debugging easier.
-	TaskID        string `json:"task_id"`
+	BuildBucketID      string `json:"buildbucket_build_id"`
+	GerritChangeListID string `json:"issue"`
+	GerritPatchSet     string `json:"patchset"`
+
+	// Optional fields for tryjobs - can make debugging easier
+	Builder string `json:"builder"`
+	TaskID  string `json:"task_id"`
 }
 
 // parseValidate validates the rawGoldResult instance and parses integers
@@ -134,11 +138,11 @@ func (r *rawGoldResults) parseValidate() (*GoldResults, []string) {
 	var errs []string
 	mb := strconv.FormatInt(types.MasterBranch, 10)
 	lmb := strconv.FormatInt(types.LegacyMasterBranch, 10)
-	issueValid := (r.Issue == "") || (r.Issue == mb) || (r.Issue == lmb) ||
-		(r.Issue != "" && r.BuildBucketID != "" && r.Patchset != "")
+	issueValid := (r.GerritChangeListID == "") || (r.GerritChangeListID == mb) || (r.GerritChangeListID == lmb) ||
+		(r.GerritChangeListID != "" && r.BuildBucketID != "" && r.GerritPatchSet != "")
 	addErrMessage(&errs, issueValid, "fields '%s', '%s' must not be empty if field '%s' contains a value", jn["Patchset"], jn["BuildBucketID"], jn["Issue"])
 
-	f := []string{"Issue", r.Issue, "Patchset", r.Patchset, "BuildBucketID", r.BuildBucketID}
+	f := []string{"Issue", r.GerritChangeListID, "Patchset", r.GerritPatchSet, "BuildBucketID", r.BuildBucketID}
 	for i := 0; i < len(f); i += 2 {
 		valid := f[i+1] == "" || regExInt.MatchString(f[i+1])
 		addErrMessage(&errs, valid, "field '%s' must be empty or contain a valid integer", jn[f[i]])
@@ -153,13 +157,13 @@ func (r *rawGoldResults) parseValidate() (*GoldResults, []string) {
 			Builder: r.Builder,
 			TaskID:  r.TaskID,
 		}
-		if r.Issue == "" {
-			ret.Issue = types.MasterBranch
+		if r.GerritChangeListID == "" {
+			ret.GerritChangeListID = types.MasterBranch
 		} else {
 			// If there was no error we can just parse the strings to int64.
-			ret.Issue, _ = strconv.ParseInt(r.Issue, 10, 64)
+			ret.GerritChangeListID, _ = strconv.ParseInt(r.GerritChangeListID, 10, 64)
 			ret.BuildBucketID, _ = strconv.ParseInt(r.BuildBucketID, 10, 64)
-			ret.Patchset, _ = strconv.ParseInt(r.Patchset, 10, 64)
+			ret.GerritPatchSet, _ = strconv.ParseInt(r.GerritPatchSet, 10, 64)
 		}
 
 	}
@@ -183,8 +187,8 @@ func (g *GoldResults) Validate(ignoreResults bool) ([]string, error) {
 	addErrMessage(&errMsg, regExHexadecimal.MatchString(g.GitHash), "field '%s' must be hexadecimal. Received '%s'", jn["GitHash"], g.GitHash)
 	addErrMessage(&errMsg, len(g.Key) > 0 && hasNonEmptyKV(g.Key), "field '%s' must not be empty and must not have empty keys or values", jn["Key"])
 
-	validIssue := types.IsMasterBranch(g.Issue) ||
-		(!types.IsMasterBranch(g.Issue) && g.Patchset > 0 && g.BuildBucketID > 0)
+	validIssue := types.IsMasterBranch(g.GerritChangeListID) ||
+		(!types.IsMasterBranch(g.GerritChangeListID) && g.GerritPatchSet > 0 && g.BuildBucketID > 0)
 	addErrMessage(&errMsg, validIssue, "fields '%s', '%s', '%s' must all be set or all not be set", jn["Issue"], jn["Patchset"], jn["BuildBucketID"])
 
 	if !ignoreResults {
