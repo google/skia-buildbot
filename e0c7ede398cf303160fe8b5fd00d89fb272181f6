@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fe684958_42c228fc",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-20T15:31:28Z",
+      "side": 1,
+      "message": "Is this specific to Skia?  If not, should the fields match the new interfaces?",
+      "range": {
+        "startLine": 102,
+        "startChar": 5,
+        "endLine": 102,
+        "endChar": 16
+      },
+      "revId": "e0c7ede398cf303160fe8b5fd00d89fb272181f6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91170d3a_94ac9487",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-20T15:31:28Z",
+      "side": 1,
+      "message": "Nit: different order than above",
+      "range": {
+        "startLine": 130,
+        "startChar": 0,
+        "endLine": 131,
+        "endChar": 32
+      },
+      "revId": "e0c7ede398cf303160fe8b5fd00d89fb272181f6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
