@@ -140,6 +140,30 @@
       "revId": "a17d995fc23ed060527bd6b21b5e26e058024e96",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "15078d12_2b17d4f1",
+        "filename": "go/gitstore/bt_gitstore/sharded_result.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-20T19:18:30Z",
+      "side": 1,
+      "message": "Maybe - If you profiled this and looked at the live objects after it completes, it will show your where those objects were born. That would indicate what is living longer than it should.",
+      "parentUuid": "a1edda89_d0047505",
+      "range": {
+        "startLine": 55,
+        "startChar": 12,
+        "endLine": 55,
+        "endChar": 25
+      },
+      "revId": "a17d995fc23ed060527bd6b21b5e26e058024e96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
