@@ -191,8 +191,10 @@ type RepoImpl interface {
 	// UpdateCallback is a function which is called after the Graph is
 	// updated but before the changes are committed. If UpdateCallback
 	// returns an error, the changes are not committed. This allows the
-	// RepoImpl to perform caching, for example.
-	UpdateCallback(context.Context, *Graph) error
+	// RepoImpl to perform caching, for example. The parameters are the
+	// list of commits which were added during the current Update, the
+	// list of commits which were removed, and the new state of the Graph.
+	UpdateCallback(context.Context, []*vcsinfo.LongCommit, []*vcsinfo.LongCommit, *Graph) error
 }
 
 // Graph represents an entire Git repo.
@@ -489,7 +491,7 @@ func (r *Graph) update(ctx context.Context, cb func(*Graph) error) ([]*vcsinfo.L
 			return nil, nil, err
 		}
 	}
-	if err := r.repoImpl.UpdateCallback(ctx, newGraph); err != nil {
+	if err := r.repoImpl.UpdateCallback(ctx, added, removed, newGraph); err != nil {
 		return nil, nil, err
 	}
 	r.graphMtx.Lock()
