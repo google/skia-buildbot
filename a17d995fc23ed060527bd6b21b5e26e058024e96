@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0afc96a4_4a0564e0",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-20T18:47:36Z",
+      "side": 1,
+      "message": "This feels a little weird, having a pointer as a key to a map - can\u0027t we use the hash instead?\n\nOtherwise, a document about why and how it\u0027s safe would be re-assuring.",
+      "range": {
+        "startLine": 279,
+        "startChar": 24,
+        "endLine": 279,
+        "endChar": 31
+      },
+      "revId": "a17d995fc23ed060527bd6b21b5e26e058024e96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b31f506_67321f97",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-20T18:47:36Z",
+      "side": 1,
+      "message": "this feels a bit clunky - use an errgroup?",
+      "range": {
+        "startLine": 332,
+        "startChar": 4,
+        "endLine": 332,
+        "endChar": 19
+      },
+      "revId": "a17d995fc23ed060527bd6b21b5e26e058024e96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a862ba77_965b9810",
+        "filename": "go/gitstore/bt_gitstore/sharded_result.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-20T18:47:36Z",
+      "side": 1,
+      "message": "of note, strings.Split subslices the string given to it: https://golang.org/src/strings/strings.go?s\u003d7505:7539#L264\n\nSince you return split[0], this might be leaking memory of the whole column contents.",
+      "range": {
+        "startLine": 55,
+        "startChar": 12,
+        "endLine": 55,
+        "endChar": 25
+      },
+      "revId": "a17d995fc23ed060527bd6b21b5e26e058024e96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
