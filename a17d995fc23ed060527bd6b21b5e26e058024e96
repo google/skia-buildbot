@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8c4e1b68_1c967c7d",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-20T19:15:03Z",
+      "side": 1,
+      "message": "A pointer is (marginally) faster than a string as a map key.  Added a comment.",
+      "parentUuid": "0afc96a4_4a0564e0",
+      "range": {
+        "startLine": 279,
+        "startChar": 24,
+        "endLine": 279,
+        "endChar": 31
+      },
+      "revId": "a17d995fc23ed060527bd6b21b5e26e058024e96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6b31f506_67321f97",
         "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
         "patchSetId": 11
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "c8ef76ae_2f4fd805",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-20T19:15:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6b31f506_67321f97",
+      "range": {
+        "startLine": 332,
+        "startChar": 4,
+        "endLine": 332,
+        "endChar": 19
+      },
+      "revId": "a17d995fc23ed060527bd6b21b5e26e058024e96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a862ba77_965b9810",
         "filename": "go/gitstore/bt_gitstore/sharded_result.go",
         "patchSetId": 11
@@ -68,6 +116,30 @@
       "revId": "a17d995fc23ed060527bd6b21b5e26e058024e96",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1edda89_d0047505",
+        "filename": "go/gitstore/bt_gitstore/sharded_result.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-20T19:15:03Z",
+      "side": 1,
+      "message": "Changed to create a copy. To be clear, this is also the case on line 114 of this patch set, or anywhere we create a substring without a copy?",
+      "parentUuid": "a862ba77_965b9810",
+      "range": {
+        "startLine": 55,
+        "startChar": 12,
+        "endLine": 55,
+        "endChar": 25
+      },
+      "revId": "a17d995fc23ed060527bd6b21b5e26e058024e96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
