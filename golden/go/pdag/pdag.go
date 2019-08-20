@@ -38,7 +38,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
-// Type of the processing functio nin each node.
+// Type of the processing function in each node.
 type ProcessFn func(interface{}) error
 
 // Node of the Dag.
@@ -50,7 +50,7 @@ type Node struct {
 	mutex    sync.Mutex
 	inputMap map[string]int
 	inputCh  chan *call
-	verbose  bool // debuging only
+	verbose  bool // debugging only
 }
 
 // Processing function that does nothing. Mostly used for testing.
@@ -94,7 +94,7 @@ func (n *Node) Child(fn ProcessFn) *Node {
 // of the functions returns an error, execution ceases
 // and the error is returned.
 // Note: Trigger can be called on any node in the graph
-// and will only call the decendents of that node.
+// and will only call the descendants of that node.
 func (n *Node) Trigger(state interface{}) error {
 	// Create a call message.
 	msg := call{
@@ -124,7 +124,7 @@ func (n *Node) Trigger(state interface{}) error {
 }
 
 // setName assigns a name to the Node. It's purely used
-// for debugging purposes. Iternally a unique id is used.
+// for debugging purposes. Internally a unique id is used.
 // it returns Node so it can easily be chained.
 func (n *Node) setName(name string) *Node {
 	n.name = name
@@ -132,7 +132,7 @@ func (n *Node) setName(name string) *Node {
 }
 
 // dump outputs the input connections of this node and its
-// decendents. Only useful for debugging.
+// descendants. Only useful for debugging.
 func (n *Node) dump(msgID, indent string) {
 	sklog.Infof("Node %s : %d\n", n.name, n.inputMap[msgID])
 	for _, child := range n.children {
@@ -140,28 +140,28 @@ func (n *Node) dump(msgID, indent string) {
 	}
 }
 
-// addInput records the number of inputs each each node
+// addInput records the number of inputs each node
 // has to expect and records them in inputMap and returns the
-// number of decendents of this node (including the node itself).
+// number of descendants of this node (including the node itself).
 func (n *Node) addInput(msgID string) int {
-	descendents := 0
+	descendants := 0
 	n.mutex.Lock()
 	if _, ok := n.inputMap[msgID]; !ok {
-		descendents = 1
+		descendants = 1
 	}
 	n.inputMap[msgID] += 1
 	n.mutex.Unlock()
 
 	// If we have visited this node before that means we have
-	// visited it's children and we can stop now.
-	if descendents == 0 {
-		return descendents
+	// visited its children and we can stop now.
+	if descendants == 0 {
+		return descendants
 	}
 
 	for _, child := range n.children {
-		descendents += child.addInput(msgID)
+		descendants += child.addInput(msgID)
 	}
-	return descendents
+	return descendants
 }
 
 // receiver is the core processing function of this node that
@@ -215,7 +215,7 @@ type call struct {
 	wg    sync.WaitGroup
 }
 
-// hasErr returns true if a error has been set of this call.
+// hasErr returns true if a error has been set on this call.
 func (c *call) hasErr() bool {
 	return len(c.errCh) > 0
 }
