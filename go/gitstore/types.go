@@ -58,9 +58,9 @@ type GitStore interface {
 	// including commits at 'end' time. Set branch = ALL_BRANCHES to retrieve all commits
 	// for every branch within the specified range.
 	// Caveat: The returned results will match the requested range, but will be sorted by Index.
-	// So if the timestamps within a commit are not in order they will be unordered in the results.
-	// In the case of branch == ALL_BRANCHES, some indexes may be repeated, because different
-	// lines of history may use the same indexes.
+	// So if the timestamps of the commits within a branch are not in order they will be
+	// unordered in the results. In the case of branch == ALL_BRANCHES, some indexes may be
+	// repeated, because different lines of history may use the same indexes.
 	RangeByTime(ctx context.Context, start, end time.Time, branch string) ([]*vcsinfo.IndexCommit, error)
 }
 

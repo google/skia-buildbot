@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -153,12 +154,22 @@ func (b *BigTableGitStore) Put(ctx context.Context, commits []*vcsinfo.LongCommi
 	if err := b.writeLongCommits(ctx, commits); err != nil {
 		return skerr.Wrapf(err, "Error writing long commits.")
 	}
+	wrote := 0
+	total := len(indexCommitsByBranch)
+	var mtx sync.Mutex
 	var egroup errgroup.Group
 	for branch, indexCommits := range indexCommitsByBranch {
 		// https://golang.org/doc/faq#closures_and_goroutines
 		branch := branch
 		indexCommits := indexCommits
 		egroup.Go(func() error {
+			sklog.Infof("Writing %d index commits for %s", len(indexCommits), branch)
+			defer func() {
+				mtx.Lock()
+				defer mtx.Unlock()
+				wrote++
+				sklog.Infof("Done writing index commits for %s, %d/%d complete", branch, wrote, total)
+			}()
 			if err := b.writeTimestampIndex(ctx, indexCommits, branch); err != nil {
 				return err
 			}

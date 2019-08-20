@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -790,6 +791,7 @@ func TestBranchMembership(t sktest.TestingT, ctx context.Context, gb *git_testut
 
 	// Reset b3 to branch2.
 	gb.Reset(ctx, "--hard", "branch2")
+	sklog.Errorf("reset b3 to branch2")
 	rf.Refresh()
 	assert.NoError(t, repo.Update(ctx))
 	up(c3, c4, c5)
@@ -812,6 +814,7 @@ func TestBranchMembership(t sktest.TestingT, ctx context.Context, gb *git_testut
 	test(c5, "master")
 
 	// Delete b3. We should get the same results as before it was added.
+	sklog.Errorf("Deleted b3")
 	gb.CheckoutBranch(ctx, "master")
 	gb.UpdateRef(ctx, "-d", "refs/heads/b3")
 	rf.Refresh()
