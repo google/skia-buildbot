@@ -133,7 +133,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, resps []*ClusterResp
 					sklog.Infof("Found High regression at %s: %v", id.ID(), *cl.StepFit)
 					isNew, err := c.store.SetHigh(details[0], key, resp.Frame, cl)
 					if err != nil {
-						sklog.Errorf("Failed to save newly found cluster: %s", err)
+						sklog.Errorf("Failed to save newly found cluster for alert %q length=%d: %s", key, len(cl.Keys), err)
 						continue
 					}
 					if isNew {

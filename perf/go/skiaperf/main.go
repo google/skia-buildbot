@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"math/rand"
 	"net/http"
+	"net/http/pprof"
 	"net/url"
 	"path/filepath"
 	"regexp"
@@ -106,6 +107,7 @@ var (
 	port                  = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	projectName           = flag.String("project_name", "google.com:skia-buildbots", "The Google Cloud project name.")
 	promPort              = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	internalPort          = flag.String("internal_port", ":9000", "HTTP service address for internal clients, e.g. probers. No authentication on this port.")
 	radius                = flag.Int("radius", 7, "The number of commits to include on either side of a commit when clustering.")
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	stepUpOnly            = flag.Bool("step_up_only", false, "Only regressions that look like a step up will be reported.")
@@ -1511,6 +1513,25 @@ func main() {
 
 	Init()
 	login.SimpleInitMust(*port, *local)
+
+	// Start the internal server on the internal port if requested.
+	if *internalPort != "" {
+		// Add the profiling endpoints to the internal router.
+		internalRouter := mux.NewRouter()
+
+		// Register pprof handlers
+		internalRouter.HandleFunc("/debug/pprof/", pprof.Index)
+		internalRouter.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+		internalRouter.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+		internalRouter.HandleFunc("/debug/pprof/profile", pprof.Profile)
+		internalRouter.HandleFunc("/debug/pprof/trace", pprof.Trace)
+		internalRouter.HandleFunc("/debug/pprof/{profile}", pprof.Index)
+
+		go func() {
+			sklog.Infof("Internal server on %q", *internalPort)
+			sklog.Info(http.ListenAndServe(*internalPort, internalRouter))
+		}()
+	}
 
 	// Resources are served directly.
 	router := mux.NewRouter()
