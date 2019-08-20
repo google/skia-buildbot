@@ -183,12 +183,16 @@ func (i *imgTestEnv) runImgTestInitCmd(cmd *cobra.Command, args []string) {
 	ifErrLogExit(cmd, err)
 
 	// Define the meta data of the result that is shared by all tests.
+	// TODO(kjlubick): make the CodeReviewSystem (e.g. gerrit) and
+	// ContinuousIntegrationSystem (e.g. buildbucket) configurable
+	// via command line args.
+	// See https://bugs.chromium.org/p/skia/issues/detail?id=9340
 	gr := jsonio.GoldResults{
-		GitHash:       i.flagCommit,
-		Key:           keyMap,
-		Issue:         issueID,
-		Patchset:      patchsetID,
-		BuildBucketID: jobID,
+		GitHash:            i.flagCommit,
+		Key:                keyMap,
+		GerritChangeListID: issueID,
+		GerritPatchSet:     patchsetID,
+		BuildBucketID:      jobID,
 	}
 
 	logVerbose(cmd, "Loading hashes and baseline from Gold\n")
@@ -226,11 +230,11 @@ func (i *imgTestEnv) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 
 		// Define the meta data of the result that is shared by all tests.
 		gr := jsonio.GoldResults{
-			GitHash:       i.flagCommit,
-			Key:           keyMap,
-			Issue:         issueID,
-			Patchset:      patchsetID,
-			BuildBucketID: jobID,
+			GitHash:            i.flagCommit,
+			Key:                keyMap,
+			GerritChangeListID: issueID,
+			GerritPatchSet:     patchsetID,
+			BuildBucketID:      jobID,
 		}
 
 		config := goldclient.GoldClientConfig{
