@@ -36,9 +36,6 @@ const (
 	// DEFAULT_GCS_IMG_DIR_NAME is the default image directory in GCS.
 	DEFAULT_GCS_IMG_DIR_NAME = "dm-images-v1"
 
-	// DEFAULT_TEMPFILE_DIR_NAME is the name of the temp directory.
-	DEFAULT_TEMPFILE_DIR_NAME = "__temp"
-
 	// BYTES_PER_IMAGE is the estimated number of bytes an uncompressed images consumes.
 	// Used to conservatively estimate the maximum number of items in the cache.
 	BYTES_PER_IMAGE = 1024 * 1024
