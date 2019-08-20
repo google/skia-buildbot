@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	repograph_shared_tests "go.skia.org/infra/go/git/repograph/shared_tests"
@@ -36,9 +37,36 @@ func newGitstoreUpdater(t *testing.T, gs gitstore.GitStore, gb *git_testutils.Gi
 func (u *gitstoreRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 	ctx := context.Background()
 	// Add the commits.
-	assert.NoError(u.t, u.gs.Put(ctx, commits))
+	update := make(map[string]*vcsinfo.LongCommit, len(commits))
+	for _, commit := range commits {
+		c, err := u.repo.Details(ctx, commit.Hash)
+		assert.NoError(u.t, err)
+		// This is inefficient, but the test repo is small.
+		hashes, err := u.repo.RevList(ctx, "--first-parent", c.Hash)
+		assert.NoError(u.t, err)
+		c.Index = len(hashes) - 1
+		c.Branches = map[string]bool{}
+		update[c.Hash] = c
+	}
 	branches, err := u.repo.Branches(ctx)
 	assert.NoError(u.t, err)
+	for _, b := range branches {
+		hashes, err := u.repo.RevList(ctx, "--first-parent", b.Head)
+		assert.NoError(u.t, err)
+		for _, hash := range hashes {
+			c, ok := update[hash]
+			if ok {
+				c.Branches[b.Name] = true
+			}
+		}
+	}
+	putCommits := make([]*vcsinfo.LongCommit, 0, len(update))
+	putHashes := make([]string, 0, len(update))
+	for _, c := range update {
+		putCommits = append(putCommits, c)
+		putHashes = append(putHashes, c.Hash)
+	}
+	assert.NoError(u.t, u.gs.Put(ctx, putCommits))
 	putBranches := make(map[string]string, len(branches))
 	for _, branch := range branches {
 		putBranches[branch.Name] = branch.Head
@@ -46,7 +74,7 @@ func (u *gitstoreRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 	oldBranches, err := u.gs.GetBranches(ctx)
 	assert.NoError(u.t, err)
 	for name := range oldBranches {
-		if name == "" {
+		if name == gitstore.ALL_BRANCHES {
 			continue
 		}
 		if _, ok := putBranches[name]; !ok {
@@ -69,7 +97,15 @@ func (u *gitstoreRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 			}
 		}
 		for name := range actual {
-			if _, ok := putBranches[name]; name != "" && !ok {
+			if _, ok := putBranches[name]; name != gitstore.ALL_BRANCHES && !ok {
+				allMatch = false
+				break
+			}
+		}
+		gotCommits, err := u.gs.Get(ctx, putHashes)
+		assert.NoError(u.t, err)
+		for idx, expect := range putCommits {
+			if !deepequal.DeepEqual(expect, gotCommits[idx]) {
 				allMatch = false
 				break
 			}

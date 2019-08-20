@@ -274,22 +274,22 @@ func (r *Graph) Len() int {
 // the Commit objects stored in the graph and returns the LongCommits associated
 // with the modified Commits.
 func (r *Graph) UpdateBranchInfo() []*vcsinfo.LongCommit {
-	membership := make(map[*Commit]util.StringSet, r.Len())
-	for _, branch := range r.BranchHeads() {
+	branches := r.BranchHeads()
+	commits := r.GetAll()
+	membership := make(map[*Commit]util.StringSet, len(commits))
+	for _, c := range commits {
+		membership[c] = util.NewStringSet()
+	}
+	for _, branch := range branches {
 		// Our func never returns an error, so we don't need to check
 		// the return value here.
-		_ = r.Get(branch.Head).RecurseFirstParent(func(c *Commit) error {
-			m := membership[c]
-			if m == nil {
-				m = util.NewStringSet()
-				membership[c] = m
-			}
-			m[branch.Name] = true
+		_ = commits[branch.Head].RecurseFirstParent(func(c *Commit) error {
+			membership[c][branch.Name] = true
 			return nil
 		})
 	}
 	rv := []*vcsinfo.LongCommit{}
-	for _, c := range r.GetAll() {
+	for _, c := range commits {
 		if !util.StringSet(c.Branches).Equals(membership[c]) {
 			rv = append(rv, c.LongCommit)
 			c.Branches = membership[c]
@@ -323,6 +323,9 @@ func (r *Graph) addCommit(lc *vcsinfo.LongCommit) error {
 		LongCommit: lc,
 		parents:    parents,
 	}
+	// Ignore any previously-set branch information. If desired, the client
+	// can call UpdateBranchInfo.
+	c.Branches = nil
 	r.commits[c.Hash] = c
 	return nil
 }

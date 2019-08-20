@@ -59,6 +59,19 @@ func (s LongCommitSlice) Len() int           { return len(s) }
 func (s LongCommitSlice) Less(i, j int) bool { return s[i].Timestamp.After(s[j].Timestamp) }
 func (s LongCommitSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
+// IndexCommitSlice represents a slice of IndexCommit objects used for sorting
+// commits by index, then by timestamp, then by hash.
+type IndexCommitSlice []*IndexCommit
+
+func (s IndexCommitSlice) Len() int { return len(s) }
+func (s IndexCommitSlice) Less(i, j int) bool {
+	return s[i].Index < s[j].Index ||
+		((s[i].Index == s[j].Index) && s[i].Timestamp.Before(s[j].Timestamp)) ||
+		((s[i].Index == s[j].Index) && s[i].Timestamp.Equal(s[j].Timestamp) &&
+			(s[i].Hash < s[j].Hash))
+}
+func (s IndexCommitSlice) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+
 var NoSecondaryRepo = errors.New("No secondary repo configured for this vcsinfo")
 
 // VCS is a generic interface to the information contained in a version

@@ -7,10 +7,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"hash/crc32"
+	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -18,6 +21,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"golang.org/x/sync/errgroup"
@@ -81,24 +85,22 @@ const (
 	metaVarIDCounter = "idcounter"
 
 	// index commit
-	colHash      = "h"
-	colTimestamp = "t"
+	colHashTs = "ht"
 
-	// shortcommit
+	// long commit
 	colAuthor   = "a"
 	colSubject  = "s"
 	colParents  = "p"
 	colBody     = "b"
 	colBranches = "br"
+	colHash     = "h"
+	colIndex    = "i"
 
 	// Define the row types.
 	typIndex     = "i"
 	typTimeStamp = "z"
 	typCommit    = "k"
 	typMeta      = "!"
-
-	// allCommitsBranch is a pseudo branch name to index all commits in a repo.
-	allCommitsBranch = "@all-commits"
 
 	// getBatchSize is the batchsize for the Get operation. Each call to bigtable is made with maximally
 	// this number of git hashes. This is a conservative number to stay within the 1M request
@@ -117,85 +119,143 @@ var (
 
 // Put implements the GitStore interface.
 func (b *BigTableGitStore) Put(ctx context.Context, commits []*vcsinfo.LongCommit) error {
-	branch := ""
+	if len(commits) == 0 {
+		return nil
+	}
 
+	// Organize the commits by branch.
+	indexCommitsByBranch := map[string][]*vcsinfo.IndexCommit{}
+	for _, c := range commits {
+		// Validation.
+		if c.Index == 0 && len(c.Parents) != 0 {
+			return skerr.Fmt("Commit %s has index zero but has at least one parent. This cannot be correct.", c.Hash)
+		}
+		if len(c.Branches) == 0 {
+			// TODO(borenet): Is there any way to check for this?
+			sklog.Warningf("Commit %s has no branch information; this is valid if it is not on the first-parent ancestry chain of any branch.", c.Hash)
+		}
+		// Create the IndexCommit(s).
+		ic := &vcsinfo.IndexCommit{
+			Hash:      c.Hash,
+			Index:     c.Index,
+			Timestamp: c.Timestamp,
+		}
+		indexCommitsByBranch[gitstore.ALL_BRANCHES] = append(indexCommitsByBranch[gitstore.ALL_BRANCHES], ic)
+		for branch := range c.Branches {
+			if branch != gitstore.ALL_BRANCHES {
+				indexCommitsByBranch[branch] = append(indexCommitsByBranch[branch], ic)
+			}
+		}
+	}
+
+	// Write the LongCommits and IndexCommits to BT.
+	// TODO(borenet): Could we first obtain the list of mutations and then
+	// run a big set of batched updates?
 	if err := b.writeLongCommits(ctx, commits); err != nil {
-		return skerr.Fmt("Error writing long commits: %s", err)
+		return skerr.Wrapf(err, "Error writing long commits.")
 	}
-
-	// Retrieve the commits in time chronological order and set the index.
-	indexCommits, err := b.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, branch)
-	if err != err {
-		return skerr.Fmt("Error retrieving commits in order: %s", err)
+	var egroup errgroup.Group
+	for branch, indexCommits := range indexCommitsByBranch {
+		// https://golang.org/doc/faq#closures_and_goroutines
+		branch := branch
+		indexCommits := indexCommits
+		egroup.Go(func() error {
+			if err := b.writeTimestampIndex(ctx, indexCommits, branch); err != nil {
+				return err
+			}
+			return b.writeIndexCommits(ctx, indexCommits, branch)
+		})
 	}
-
-	for idx, idxCommit := range indexCommits {
-		idxCommit.Index = idx
+	if err := egroup.Wait(); err != nil {
+		return skerr.Wrapf(err, "Error writing index commits.")
 	}
-	return b.writeIndexCommits(ctx, indexCommits, branch)
+	allCommits := indexCommitsByBranch[gitstore.ALL_BRANCHES]
+	sort.Sort(vcsinfo.IndexCommitSlice(allCommits))
+	return b.putBranchPointer(ctx, getRepoInfoRowName(b.RepoURL), gitstore.ALL_BRANCHES, allCommits[len(allCommits)-1])
 }
 
 // Get implements the GitStore interface.
 func (b *BigTableGitStore) Get(ctx context.Context, hashes []string) ([]*vcsinfo.LongCommit, error) {
-	rowNames := make(bigtable.RowList, len(hashes))
-	hashOrder := make(map[string]int, len(hashes))
+	// hashOrder tracks the original index(es) of each hash in the passed-in
+	// slice. It is used to ensure that we return the LongCommits in the
+	// desired order, despite our receiving them from BT in arbitrary order.
+	hashOrder := make(map[string][]int, len(hashes))
 	for idx, h := range hashes {
-		rowNames[idx] = b.rowName("", typCommit, h)
-		hashOrder[h] = idx
+		hashOrder[h] = append(hashOrder[h], idx)
+	}
+	rowNames := make(bigtable.RowList, 0, len(hashOrder))
+	for h := range hashOrder {
+		rowNames = append(rowNames, b.rowName("", typCommit, h))
 	}
 
 	var egroup errgroup.Group
-	tempRet := make([]*vcsinfo.LongCommit, len(hashes))
+	tempRet := make([]*vcsinfo.LongCommit, len(rowNames))
 	prefix := cfCommit + ":"
 
-	for batchStart := 0; batchStart < len(rowNames); batchStart += getBatchSize {
-		func(bStart, bEnd int) {
-			egroup.Go(func() error {
-				bRowNames := rowNames[bStart:bEnd]
-				batchIdx := int64(bStart - 1)
+	err := util.ChunkIter(len(rowNames), getBatchSize, func(bStart, bEnd int) error {
+		egroup.Go(func() error {
+			bRowNames := rowNames[bStart:bEnd]
+			batchIdx := int64(bStart - 1)
+			err := b.table.ReadRows(ctx, bRowNames, func(row bigtable.Row) bool {
+				longCommit := vcsinfo.NewLongCommit()
+				longCommit.Hash = keyFromRowName(row.Key())
 
-				err := b.table.ReadRows(ctx, bRowNames, func(row bigtable.Row) bool {
-					longCommit := vcsinfo.NewLongCommit()
-					longCommit.Hash = keyFromRowName(row.Key())
-
-					for _, col := range row[cfCommit] {
-						switch strings.TrimPrefix(col.Column, prefix) {
-						case colHash:
-							longCommit.Timestamp = col.Timestamp.Time().UTC()
-						case colAuthor:
-							longCommit.Author = string(col.Value)
-						case colSubject:
-							longCommit.Subject = string(col.Value)
-						case colParents:
-							if len(col.Value) > 0 {
-								longCommit.Parents = strings.Split(string(col.Value), ":")
-							}
-						case colBody:
-							longCommit.Body = string(col.Value)
+				for _, col := range row[cfCommit] {
+					switch strings.TrimPrefix(col.Column, prefix) {
+					case colHash:
+						longCommit.Timestamp = col.Timestamp.Time().UTC()
+					case colAuthor:
+						longCommit.Author = string(col.Value)
+					case colSubject:
+						longCommit.Subject = string(col.Value)
+					case colParents:
+						if len(col.Value) > 0 {
+							longCommit.Parents = strings.Split(string(col.Value), ":")
 						}
+					case colBody:
+						longCommit.Body = string(col.Value)
+					case colBranches:
+						if err := json.Unmarshal(col.Value, &longCommit.Branches); err != nil {
+							// We don't want to fail forever if there's a bad value in
+							// BigTable. Log an error and move on.
+							sklog.Errorf("Failed to decode LongCommit branches: %s\nStored value: %s", err, string(col.Value))
+						}
+					case colIndex:
+						index, err := strconv.Atoi(string(col.Value))
+						if err != nil {
+							// We don't want to fail forever if there's a bad value in
+							// BigTable. Log an error and move on.
+							sklog.Errorf("Failed to decode LongCommit branches: %s\nStored value: %s", err, string(col.Value))
+						}
+						longCommit.Index = index
 					}
-					targetIdx := atomic.AddInt64(&batchIdx, 1)
-					tempRet[targetIdx] = longCommit
-					return true
-				})
-				if err != nil {
-					return skerr.Fmt("Error running ReadRows: %s", err)
 				}
-				return nil
+				targetIdx := atomic.AddInt64(&batchIdx, 1)
+				tempRet[targetIdx] = longCommit
+				return true
 			})
-		}(batchStart, util.MinInt(batchStart+getBatchSize, len(rowNames)))
+			if err != nil {
+				return skerr.Fmt("Error running ReadRows: %s", err)
+			}
+			return nil
+		})
+		return nil
+	})
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to spin up goroutines to load commits.")
 	}
 
 	if err := egroup.Wait(); err != nil {
-		return nil, err
+		return nil, skerr.Wrapf(err, "Failed loading commits from BT.")
 	}
 
-	// Put the results into their places based of the order of the input hashes.
+	// Order the LongCommits to match the passed-in slice of hashes.
 	ret := make([]*vcsinfo.LongCommit, len(hashes))
 	for _, commit := range tempRet {
 		if commit != nil {
-			targetIdx := hashOrder[commit.Hash]
-			ret[targetIdx] = commit
+			for _, targetIdx := range hashOrder[commit.Hash] {
+				ret[targetIdx] = commit
+			}
 		}
 	}
 	return ret, nil
@@ -203,49 +263,41 @@ func (b *BigTableGitStore) Get(ctx context.Context, hashes []string) ([]*vcsinfo
 
 // PutBranches implements the GitStore interface.
 func (b *BigTableGitStore) PutBranches(ctx context.Context, branches map[string]string) error {
-	repoInfo, err := b.loadRepoInfo(ctx, false)
-	if err != nil {
-		return err
-	}
-
-	// Load the commit graph.
-	graph, err := b.GetGraph(ctx)
-	if err != nil {
-		return skerr.Fmt("Error loading graph: %s", err)
-	}
-
-	// updateFromm maps branchName -> branch_pointer_to_old_head to capture the branches we  need to update
-	// and whether the branch existed before this update (the value of the map is not nil).
-	updateFrom := make(map[string]*gitstore.BranchPointer, len(branches))
-	for branchName, head := range branches {
-		// Assume we start out with a completely fresh branch
-		var oldHeadPtr *gitstore.BranchPointer = nil
-		if foundHeadPtr, ok := repoInfo.Branches[branchName]; ok {
-			// We are already done and do not need to update this branch.
-			if foundHeadPtr.Head == head {
-				continue
-			}
-
-			oldHeadNode := graph.GetNode(foundHeadPtr.Head)
-			if oldHeadNode == nil {
-				return skerr.Fmt("Unable to find previous head commit %s in graph", foundHeadPtr.Head)
-			}
-			oldHeadPtr = foundHeadPtr
+	// Get the commits pointed to by the branches.
+	hashes := make([]string, 0, len(branches))
+	for _, head := range branches {
+		if head != gitstore.DELETE_BRANCH {
+			hashes = append(hashes, head)
 		}
-		updateFrom[branchName] = oldHeadPtr
+	}
+	longCommits, err := b.Get(ctx, hashes)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to retrieve branch heads.")
+	}
+	indexCommitsByHash := make(map[string]*vcsinfo.IndexCommit, len(longCommits))
+	for idx, c := range longCommits {
+		if c == nil {
+			return skerr.Fmt("Commit %s is missing from GitStore", hashes[idx])
+		}
+		indexCommitsByHash[c.Hash] = &vcsinfo.IndexCommit{
+			Hash:      c.Hash,
+			Index:     c.Index,
+			Timestamp: c.Timestamp,
+		}
 	}
 
 	var egroup errgroup.Group
-	for branchName, oldHeadPtr := range updateFrom {
-		func(branchName string, oldHeadPtr *gitstore.BranchPointer) {
-			egroup.Go(func() error {
-				if branches[branchName] == gitstore.DELETE_BRANCH {
-					return b.deleteBranchPointer(ctx, branchName)
-				} else {
-					return b.updateBranch(ctx, branchName, branches[branchName], oldHeadPtr, graph)
-				}
-			})
-		}(branchName, oldHeadPtr)
+	for name, head := range branches {
+		// https://golang.org/doc/faq#closures_and_goroutines
+		name := name
+		head := head
+		egroup.Go(func() error {
+			if head == gitstore.DELETE_BRANCH {
+				return b.deleteBranchPointer(ctx, name)
+			} else {
+				return b.putBranchPointer(ctx, getRepoInfoRowName(b.RepoURL), name, indexCommitsByHash[head])
+			}
+		})
 	}
 	if err := egroup.Wait(); err != nil {
 		return skerr.Fmt("Error updating branches: %s", err)
@@ -259,13 +311,6 @@ func (b *BigTableGitStore) GetBranches(ctx context.Context) (map[string]*gitstor
 	if err != nil {
 		return nil, err
 	}
-
-	// Replace the pseudo branch for all commits with an empty branch name.
-	if found, ok := repoInfo.Branches[allCommitsBranch]; ok {
-		repoInfo.Branches[""] = found
-		delete(repoInfo.Branches, allCommitsBranch)
-	}
-
 	return repoInfo.Branches, nil
 }
 
@@ -274,28 +319,84 @@ func (b *BigTableGitStore) RangeByTime(ctx context.Context, start, end time.Time
 	startTS := sortableTimestamp(start)
 	endTS := sortableTimestamp(end)
 
+	// If a branch was supplied, retrieve the pointer.
+	var wg sync.WaitGroup
+	var branchPtr *gitstore.BranchPointer
+	var branchErr error
+	if branch != gitstore.ALL_BRANCHES {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			branches, err := b.GetBranches(ctx)
+			if err != nil {
+				branchErr = err
+			} else {
+				branchPtr = branches[branch]
+			}
+		}()
+	}
+
 	result := newSRTimestampCommits(b.shards)
+	// Note that we do NOT use a LatestN filter here, because that would
+	// result in incomplete results in the case of commits which have the
+	// same timestamp. Git has a timestamp resolution of one second, which
+	// makes this likely, especially in tests.
 	filters := []bigtable.Filter{bigtable.FamilyFilter(cfTsCommit)}
 	err := b.iterShardedRange(ctx, branch, typTimeStamp, startTS, endTS, filters, result)
 	if err != nil {
 		return nil, err
 	}
+	indexCommits, timestamps := result.Sorted()
 
-	return result.Sorted(), nil
+	// Filter out results which do not belong on the given branch.
+	wg.Wait()
+	if branchErr != nil {
+		return nil, skerr.Wrapf(err, "Failed to retrieve branch pointer for %s", branch)
+	}
+	if branchPtr != nil {
+		filtered := make(map[int][]*vcsinfo.IndexCommit, len(indexCommits))
+		for _, ic := range indexCommits {
+			if ic.Index <= branchPtr.Index {
+				filtered[ic.Index] = append(filtered[ic.Index], ic)
+			}
+		}
+		indexCommits = make([]*vcsinfo.IndexCommit, 0, len(filtered))
+		for idx := 0; idx <= branchPtr.Index; idx++ {
+			commits, ok := filtered[idx]
+			if !ok {
+				return nil, skerr.Fmt("Missing index %d for branch %s.", idx, branch)
+			}
+			if len(commits) == 1 {
+				indexCommits = append(indexCommits, commits[0])
+			} else {
+				sklog.Warningf("History was changed for branch %s. Deduplicating by last insertion into BT.", branch)
+				var mostRecent *vcsinfo.IndexCommit
+				for _, ic := range commits {
+					if mostRecent == nil || timestamps[ic].After(timestamps[mostRecent]) {
+						mostRecent = ic
+					}
+				}
+				indexCommits = append(indexCommits, mostRecent)
+			}
+		}
+	}
+
+	return indexCommits, nil
 }
 
-// RangeByTime implements the GitStore interface.
+// RangeN implements the GitStore interface.
 func (b *BigTableGitStore) RangeN(ctx context.Context, startIndex, endIndex int, branch string) ([]*vcsinfo.IndexCommit, error) {
 	startIdx := sortableIndex(startIndex)
 	endIdx := sortableIndex(endIndex)
 
 	result := newSRIndexCommits(b.shards)
-	filters := []bigtable.Filter{bigtable.FamilyFilter(cfCommit)}
+	filters := []bigtable.Filter{bigtable.FamilyFilter(cfCommit), bigtable.LatestNFilter(1)}
 	err := b.iterShardedRange(ctx, branch, typIndex, startIdx, endIdx, filters, result)
 	if err != nil {
 		return nil, err
 	}
-	return result.Sorted(), nil
+	rv, _ := result.Sorted()
+	return rv, nil
 }
 
 func (b *BigTableGitStore) loadRepoInfo(ctx context.Context, create bool) (*gitstore.RepoInfo, error) {
@@ -340,80 +441,9 @@ func (b *BigTableGitStore) loadRepoInfo(ctx context.Context, create bool) (*gits
 	}, nil
 }
 
-// graphColFilter defines a filter (regex) that only keeps columns we need to build the commit graph.
-// Used by GetGraph.
-var graphColFilter = fmt.Sprintf("(%s)", strings.Join([]string{colHash, colParents}, "|"))
-
-// GetGraph implements the GitStore interface.
-func (b *BigTableGitStore) GetGraph(ctx context.Context) (*gitstore.CommitGraph, error) {
-	result := newRawNodesResult(b.shards)
-	filters := []bigtable.Filter{
-		bigtable.FamilyFilter(cfCommit),
-		bigtable.ColumnFilter(graphColFilter),
-	}
-	if err := b.iterShardedRange(ctx, "", typCommit, "", "", filters, result); err != nil {
-		return nil, skerr.Fmt("Error getting sharded commits: %s", err)
-	}
-	rawGraph, timeStamps := result.Merge()
-	return gitstore.BuildGraph(rawGraph, timeStamps), nil
-}
-
-func (b *BigTableGitStore) getAsIndexCommits(ctx context.Context, ancestors []*gitstore.Node, startIdx int) ([]*vcsinfo.IndexCommit, error) {
-	ret := make([]*vcsinfo.IndexCommit, len(ancestors))
-	for idx, commitNode := range ancestors {
-		ret[idx] = &vcsinfo.IndexCommit{
-			Index:     startIdx + idx,
-			Hash:      commitNode.Hash,
-			Timestamp: commitNode.Timestamp,
-		}
-	}
-	return ret, nil
-}
-
-// updateBranch updates the indices for the named branch and stores the branch pointer. It
-// calculates the branch based on the given commit graph.
-// If there is no previous branch then oldBranchPtr should be nil.
-func (b *BigTableGitStore) updateBranch(ctx context.Context, branchName, newBranchHead string, oldBranchPtr *gitstore.BranchPointer, graph *gitstore.CommitGraph) error {
-	// Make sure the new head node is in branch.
-	headNode := graph.GetNode(newBranchHead)
-	if headNode == nil {
-		return skerr.Fmt("Head commit %s not found in commit graph", newBranchHead)
-	}
-
-	// If we have not previous branch we set the corresponding values so the logic below still works.
-	if oldBranchPtr == nil {
-		oldBranchPtr = &gitstore.BranchPointer{Head: "", Index: 0}
-	}
-
-	branchNodes := graph.DecendantChain(oldBranchPtr.Head, newBranchHead)
-	startIndex := 0
-
-	// If the hash of the first Node matches the hash of the old branchpointer we need to adjust
-	// the initial value of index.
-	if branchNodes[0].Hash == oldBranchPtr.Head {
-		startIndex = oldBranchPtr.Index
-	}
-	indexCommits, err := b.getAsIndexCommits(ctx, branchNodes, startIndex)
-	if err != nil {
-		return skerr.Fmt("Error getting index commits for branch %s: %s", branchName, err)
-	}
-
-	// Write the index commits.
-	if err := b.writeIndexCommits(ctx, indexCommits, branchName); err != nil {
-		return err
-	}
-
-	// Write the index commits of the branch sorted by timestamps.
-	return b.writeTimestampIndex(ctx, indexCommits, branchName)
-}
-
 // putBranchPointer writes the branch pointer (the HEAD of a branch) to the row that stores
 // the repo information. idxCommit is the index commit of the HEAD of the branch.
 func (b *BigTableGitStore) putBranchPointer(ctx context.Context, repoInfoRowName, branchName string, idxCommit *vcsinfo.IndexCommit) error {
-	if branchName == "" {
-		branchName = allCommitsBranch
-	}
-
 	mut := bigtable.NewMutation()
 	now := bigtable.Now()
 	mut.Set(cfBranches, branchName, now, encBranchPointer(idxCommit.Hash, idxCommit.Index))
@@ -430,31 +460,24 @@ func (b *BigTableGitStore) deleteBranchPointer(ctx context.Context, branchName s
 
 // writeLongCommits writes the LongCommits to the store idempotently.
 func (b *BigTableGitStore) writeLongCommits(ctx context.Context, commits []*vcsinfo.LongCommit) error {
-	branch := ""
-
 	// Assemble the mutations.
 	nMutations := len(commits)
 	rowNames := make([]string, 0, nMutations)
 	mutations := make([]*bigtable.Mutation, 0, nMutations)
-
-	// Assemble the records for the Timestamp index.
-	tsIdxCommits := make([]*vcsinfo.IndexCommit, 0, nMutations)
-
 	for _, commit := range commits {
 		// Add the long commits
-		rowNames = append(rowNames, b.rowName(branch, typCommit, commit.Hash))
-		mutations = append(mutations, b.getCommitMutation(commit))
-
-		tsIdxCommits = append(tsIdxCommits, &vcsinfo.IndexCommit{
-			Hash:      commit.Hash,
-			Timestamp: commit.Timestamp,
-		})
+		rowNames = append(rowNames, b.rowName("", typCommit, commit.Hash))
+		mut, err := b.getCommitMutation(commit)
+		if err != nil {
+			return skerr.Wrapf(err, "Failed to create BT mutation")
+		}
+		mutations = append(mutations, mut)
 	}
 
 	if err := b.applyBulkBatched(ctx, rowNames, mutations, writeBatchSize); err != nil {
 		return skerr.Fmt("Error writing commits: %s", err)
 	}
-	return b.writeTimestampIndex(ctx, tsIdxCommits, branch)
+	return nil
 }
 
 // applyBulkBatched writes the given rowNames/mutation pairs to bigtable in batches that are
@@ -490,16 +513,18 @@ func (b *BigTableGitStore) writeIndexCommits(ctx context.Context, indexCommits [
 	for idx, commit := range indexCommits {
 		sIndex := sortableIndex(indexCommits[idx].Index)
 		idxRowNames = append(idxRowNames, b.rowName(branch, typIndex, sIndex))
-		idxMutations = append(idxMutations, b.simpleMutation(cfCommit, commit.Timestamp, [2]string{colHash, commit.Hash}))
+		idxMutations = append(idxMutations, b.simpleMutation(cfCommit, [][2]string{
+			{colHashTs, fmt.Sprintf("%s#%d", commit.Hash, commit.Timestamp.Unix())}, // Git has a timestamp resolution of 1s.
+		}...))
 	}
 
 	if err := b.applyBulkBatched(ctx, idxRowNames, idxMutations, writeBatchSize); err != nil {
 		return skerr.Fmt("Error writing indices: %s", err)
 	}
-	return b.putBranchPointer(ctx, getRepoInfoRowName(b.RepoURL), branch, indexCommits[len(indexCommits)-1])
+	return nil
 }
 
-// writeTimestampIndexCommits writes the given index commits keyed by their timestamp for the
+// writeTimestampIndex writes the given index commits keyed by their timestamp for the
 // given branch.
 func (b *BigTableGitStore) writeTimestampIndex(ctx context.Context, indexCommits []*vcsinfo.IndexCommit, branch string) error {
 	nMutations := len(indexCommits)
@@ -509,7 +534,7 @@ func (b *BigTableGitStore) writeTimestampIndex(ctx context.Context, indexCommits
 	for _, commit := range indexCommits {
 		tsRowName := b.rowName(branch, typTimeStamp, sortableTimestamp(commit.Timestamp))
 		tsRowNames = append(tsRowNames, tsRowName)
-		tsMutations = append(tsMutations, b.simpleMutation(cfTsCommit, commit.Timestamp, [][2]string{
+		tsMutations = append(tsMutations, b.simpleMutation(cfTsCommit, [][2]string{
 			{commit.Hash, sortableIndex(commit.Index)},
 		}...))
 	}
@@ -530,33 +555,33 @@ func (b *BigTableGitStore) iterShardedRange(ctx context.Context, branch, rowType
 
 	// Query all shards in parallel.
 	for shard := uint32(0); shard < b.shards; shard++ {
-		func(shard uint32) {
-			egroup.Go(func() error {
-				defer result.Finish(shard)
+		// https://golang.org/doc/faq#closures_and_goroutines
+		shard := shard
+		egroup.Go(func() error {
+			defer result.Finish(shard)
 
-				var rr bigtable.RowRange
-				// Treat the startKey as part of a prefix and do a prefix scan.
-				if endKey == "" {
-					rowPrefix := b.shardedRowName(shard, branch, rowType, startKey)
-					rr = bigtable.PrefixRange(rowPrefix)
-				} else {
-					// Derive the start and end row names.
-					rStart := b.shardedRowName(shard, branch, rowType, startKey)
-					rEnd := b.shardedRowName(shard, branch, rowType, endKey)
-					rr = bigtable.NewRange(rStart, rEnd)
-				}
+			var rr bigtable.RowRange
+			// Treat the startKey as part of a prefix and do a prefix scan.
+			if endKey == "" {
+				rowPrefix := b.shardedRowName(shard, branch, rowType, startKey)
+				rr = bigtable.PrefixRange(rowPrefix)
+			} else {
+				// Derive the start and end row names.
+				rStart := b.shardedRowName(shard, branch, rowType, startKey)
+				rEnd := b.shardedRowName(shard, branch, rowType, endKey)
+				rr = bigtable.NewRange(rStart, rEnd)
+			}
 
-				var addErr error
-				err := b.table.ReadRows(ctx, rr, func(row bigtable.Row) bool {
-					addErr = result.Add(shard, row)
-					return addErr == nil
-				}, filtersToReadOptions(filters)...)
-				if err != nil {
-					return err
-				}
-				return addErr
-			})
-		}(shard)
+			var addErr error
+			err := b.table.ReadRows(ctx, rr, func(row bigtable.Row) bool {
+				addErr = result.Add(shard, row)
+				return addErr == nil
+			}, filtersToReadOptions(filters)...)
+			if err != nil {
+				return err
+			}
+			return addErr
+		})
 	}
 
 	if err := egroup.Wait(); err != nil {
@@ -567,18 +592,18 @@ func (b *BigTableGitStore) iterShardedRange(ctx context.Context, branch, rowType
 
 // simpleMutation assembles a simple mutation consisting of a column family, a timestamp and a
 // set of column/value pairs. The timestamp is applied to all column/pairs.
-func (b *BigTableGitStore) simpleMutation(cfFam string, timeStamp time.Time, colValPairs ...[2]string) *bigtable.Mutation {
-	ts := bigtable.Time(timeStamp.UTC())
+func (b *BigTableGitStore) simpleMutation(cfFam string, colValPairs ...[2]string) *bigtable.Mutation {
 	ret := bigtable.NewMutation()
 	for _, pair := range colValPairs {
-		ret.Set(cfFam, pair[0], ts, []byte(pair[1]))
+		ret.DeleteCellsInColumn(cfFam, pair[0])
+		ret.Set(cfFam, pair[0], bigtable.ServerTime, []byte(pair[1]))
 	}
 	return ret
 }
 
 // getCommitMutation gets the mutation to write a long commit. Since the timestamp is set to the
 // timestamp of the commit this is idempotent.
-func (b *BigTableGitStore) getCommitMutation(commit *vcsinfo.LongCommit) *bigtable.Mutation {
+func (b *BigTableGitStore) getCommitMutation(commit *vcsinfo.LongCommit) (*bigtable.Mutation, error) {
 	ts := bigtable.Time(commit.Timestamp.UTC())
 	ret := bigtable.NewMutation()
 	ret.Set(cfCommit, colHash, ts, []byte(commit.Hash))
@@ -586,7 +611,13 @@ func (b *BigTableGitStore) getCommitMutation(commit *vcsinfo.LongCommit) *bigtab
 	ret.Set(cfCommit, colSubject, ts, []byte(commit.Subject))
 	ret.Set(cfCommit, colParents, ts, []byte(strings.Join(commit.Parents, ":")))
 	ret.Set(cfCommit, colBody, ts, []byte(commit.Body))
-	return ret
+	encBranches, err := json.Marshal(commit.Branches)
+	if err != nil {
+		return nil, err
+	}
+	ret.Set(cfCommit, colBranches, ts, encBranches)
+	ret.Set(cfCommit, colIndex, ts, []byte(strconv.Itoa(commit.Index)))
+	return ret, nil
 }
 
 // rowName returns that BT rowName based on the tuple: (branch,rowType,Key).
