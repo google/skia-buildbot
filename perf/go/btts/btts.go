@@ -4,6 +4,7 @@ See BIGTABLE.md for tiles and traces are stored in BigTable.
 package btts
 
 import (
+	"bytes"
 	"context"
 	"crypto/md5"
 	"encoding/binary"
@@ -11,6 +12,7 @@ import (
 	"hash/crc32"
 	"math"
 	"regexp"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -640,6 +642,15 @@ func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q
 	return ret, nil
 }
 
+func getGID() uint64 {
+	b := make([]byte, 64)
+	b = b[:runtime.Stack(b, false)]
+	b = bytes.TrimPrefix(b, []byte("goroutine "))
+	b = b[:bytes.IndexByte(b, ' ')]
+	n, _ := strconv.ParseUint(string(b), 10, 64)
+	return n
+}
+
 // QueryTracesByIndex returns a map of encoded keys to a slice of floats for all
 // traces that match the given query.
 //
@@ -647,6 +658,8 @@ func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q
 func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey TileKey, q *query.Query) (types.TraceSet, error) {
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.QueryTracesByIndex")
 	defer span.End()
+
+	gid := getGID()
 
 	ops, err := b.GetOrderedParamSet(ctx, tileKey)
 	if err != nil {
@@ -661,7 +674,7 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 		return b.allTraces(ctx, tileKey)
 	}
 	plan, err := q.QueryPlan(ops)
-	sklog.Infof("Plan %#v", plan)
+	sklog.Infof("%d Plan %#v", gid, plan)
 	if err != nil {
 		// Not an error, we just won't match anything in this tile.
 		return nil, nil
@@ -701,6 +714,7 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 			// Strip off the family name which is prefixed.
 			traceKeys = append(traceKeys, col.Column[2:])
 		}
+		sklog.Infof("%d Found %d indices for %s=%s", gid, len(traceKeys), paramKey, paramValue)
 		var ok bool
 		ps := paramtools.ParamSet{}
 		if ps, ok = indices[paramKey]; !ok {
@@ -717,7 +731,7 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 	),
 	)
 
-	sklog.Infof("indices len = %d\n", len(indices))
+	sklog.Infof("%d indices len = %d\n", gid, len(indices))
 
 	var ss util.StringSet = nil
 	// Now consolidate the indices into a set of keys to request.
@@ -739,7 +753,7 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 		return nil, nil
 	}
 
-	sklog.Infof("All traces ids len = %d", len(ss.Keys()))
+	sklog.Infof("%d All traces ids len = %d", gid, len(ss.Keys()))
 
 	allKeys := ss.Keys()
 	sort.Strings(allKeys)
@@ -907,7 +921,10 @@ func (b *BigTableTraceStore) TileKeys(ctx context.Context, tileKey TileKey) ([]s
 		g.Go(func() error {
 			return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
 				parts := strings.Split(row.Key(), ":")
-				ss[parts[2]] = true
+				// Make a copy to avoid keeping the entire row from being freed.
+				var b strings.Builder
+				b.WriteString(parts[2])
+				ss[b.String()] = true
 				return true
 			}, bigtable.RowFilter(
 				bigtable.ChainFilters(
