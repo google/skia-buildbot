@@ -101,9 +101,8 @@ var (
 )
 
 // Below is the sample data that belongs to legacyGoldCtlFile
-// It doesn't need to be a super complex example because we can have tests that
-// test toTryJobResults directly, which should handle the more complex
-// file types there.
+// It doesn't need to be a super complex example because we have tests that
+// test parseDMResults directly.
 const (
 	sampleCLID = "1762193"
 	samplePSID = "2"
