@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/golden/go/diffstore/metricsstore"
 	"go.skia.org/infra/golden/go/diffstore/metricsstore/bolt_metricsstore"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/validation"
 )
 
 const (
@@ -272,7 +273,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 		var localRelPath string
 		if dir == DEFAULT_IMG_DIR_NAME {
 			// Validate the requested image ID.
-			if !mapper.IsValidImgID(imgID) {
+			if !validation.IsValidDigest(imgID) {
 				noCacheNotFound(w, r)
 				return
 			}
