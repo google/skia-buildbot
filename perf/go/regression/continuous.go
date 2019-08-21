@@ -102,6 +102,10 @@ func (c *Continuous) reportRegressions(ctx context.Context, resps []*ClusterResp
 		midPoint := headerLength / 2
 
 		midOffset := resp.Frame.DataFrame.Header[midPoint].Offset
+		if resp.Summary.AlertID != cfg.IdAsString() {
+			c.current.Alert.IdAsString()
+			sklog.Errorf("AlertID mismatch: %q != %q", resp.Summary.AlertID, cfg.IdAsString())
+		}
 
 		id := &cid.CommitID{
 			Source: "master",
@@ -114,13 +118,15 @@ func (c *Continuous) reportRegressions(ctx context.Context, resps []*ClusterResp
 			continue
 		}
 		for _, cl := range resp.Summary.Clusters {
+			// Zero out the DataFrame ParamSet since it is never used.
+			resp.Frame.DataFrame.ParamSet = paramtools.ParamSet{}
 			// Update database if regression at the midpoint is found.
 			if cl.StepPoint.Offset == midOffset {
 				if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.Direction == alerts.DOWN || cfg.Direction == alerts.BOTH) {
-					sklog.Infof("Found Low regression at %s: %v", details[0].Message, *cl.StepFit)
+					sklog.Infof("Found Low regression at %s: StepFit: %v Shortcut: %s AlertID: %d", details[0].Message, *cl.StepFit, cl.Shortcut, cfg.ID)
 					isNew, err := c.store.SetLow(details[0], key, resp.Frame, cl)
 					if err != nil {
-						sklog.Errorf("Failed to save newly found cluster: %s", err)
+						sklog.Errorf("Failed to save newly found cluster for alert %q length=%d: %s", key, len(cl.Keys), err)
 						continue
 					}
 					if isNew {
@@ -130,7 +136,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, resps []*ClusterResp
 					}
 				}
 				if cl.StepFit.Status == stepfit.HIGH && len(cl.Keys) >= cfg.MinimumNum && (cfg.Direction == alerts.UP || cfg.Direction == alerts.BOTH) {
-					sklog.Infof("Found High regression at %s: %v", id.ID(), *cl.StepFit)
+					sklog.Infof("Found High regression at %s: StepFit: %v Shortcut: %s AlertID: %d", details[0].Message, *cl.StepFit, cl.Shortcut, cfg.ID)
 					isNew, err := c.store.SetHigh(details[0], key, resp.Frame, cl)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster for alert %q length=%d: %s", key, len(cl.Keys), err)

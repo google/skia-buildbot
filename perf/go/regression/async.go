@@ -72,6 +72,7 @@ type ClusterRequest struct {
 	Type        ClusterRequestType `json:"type"`
 	N           int32              `json:"n"`
 	End         time.Time          `json:"end"`
+	AlertID     string             `json:"alert_id"`
 }
 
 func (c *ClusterRequest) Id() string {
@@ -367,6 +368,7 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 		sklog.Infof("Clustering with K=%d", k)
 
 		var summary *clustering2.ClusterSummaries
+		summary.AlertID = p.request.AlertID
 		switch p.request.Algo {
 		case types.KMEANS_ALGO:
 			summary, err = clustering2.CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)

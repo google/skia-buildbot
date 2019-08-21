@@ -701,6 +701,7 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 			// Strip off the family name which is prefixed.
 			traceKeys = append(traceKeys, col.Column[2:])
 		}
+		sklog.Infof("Found %d indices for %s=%s", len(traceKeys), paramKey, paramValue)
 		var ok bool
 		ps := paramtools.ParamSet{}
 		if ps, ok = indices[paramKey]; !ok {
@@ -907,7 +908,10 @@ func (b *BigTableTraceStore) TileKeys(ctx context.Context, tileKey TileKey) ([]s
 		g.Go(func() error {
 			return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
 				parts := strings.Split(row.Key(), ":")
-				ss[parts[2]] = true
+				// Make a copy to avoid keeping the entire row from being freed.
+				var b strings.Builder
+				b.WriteString(parts[2])
+				ss[b.String()] = true
 				return true
 			}, bigtable.RowFilter(
 				bigtable.ChainFilters(

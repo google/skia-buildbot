@@ -81,6 +81,7 @@ type ClusterSummaries struct {
 	Clusters        []*ClusterSummary
 	StdDevThreshold float32
 	K               int
+	AlertID         string
 }
 
 // chooseK chooses a random sample of k observations. Used as the starting
