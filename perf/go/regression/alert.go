@@ -43,6 +43,7 @@ func RegressionsForAlert(ctx context.Context, cfg *alerts.Config, ps paramtools.
 			Type:        CLUSTERING_REQUEST_TYPE_LAST_N,
 			N:           int32(numContinuous),
 			End:         end,
+			AlertID:     cfg.IdAsString(),
 		}
 		_, err := Run(ctx, req, vcs, cidl, dfBuilder, clusterResponseProcessor)
 		if err != nil {
