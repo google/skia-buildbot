@@ -22,6 +22,30 @@
       "revId": "5b842dd76d1827954c8339548fc60baff3e4cb3b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dabfd56d_d5328471",
+        "filename": "golden/go/tjstore/tjstore.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-21T18:53:05Z",
+      "side": 1,
+      "message": "yep - they should be roughly sanitized in that Gerrit and BuildBucket say they are valid IDs.",
+      "parentUuid": "31e8a6cd_d19bcd3e",
+      "range": {
+        "startLine": 78,
+        "startChar": 33,
+        "endLine": 78,
+        "endChar": 51
+      },
+      "revId": "5b842dd76d1827954c8339548fc60baff3e4cb3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
