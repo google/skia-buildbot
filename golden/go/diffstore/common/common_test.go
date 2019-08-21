@@ -1,4 +1,4 @@
-package mapper
+package common
 
 import (
 	"testing"
