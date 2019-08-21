@@ -121,6 +121,7 @@ github.com/syndtr/goleveldb/leveldb/table
 github.com/syndtr/goleveldb/leveldb/util
 github.com/texttheater/golang-levenshtein/levenshtein
 github.com/unrolled/secure
+github.com/willf/bitset
 github.com/zeebo/bencode
 gopkg.in/fsnotify.v1
 gopkg.in/inf.v0

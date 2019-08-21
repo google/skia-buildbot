@@ -30,6 +30,9 @@ func TestFindCommit(t *testing.T) {
 	commits1 := shared_tests.GitSetup(t, ctx1, g1, repo1, rf1)
 	ctx2, g2, repo2, rf2, cleanup2 := setupRepo(t)
 	defer cleanup2()
+	// Use a different random seed for the second repo, to ensure that we
+	// end up with different commit hashes.
+	g2.Seed(42)
 	commits2 := shared_tests.GitSetup(t, ctx2, g2, repo2, rf2)
 
 	m := repograph.Map{

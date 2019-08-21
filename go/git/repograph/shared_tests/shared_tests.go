@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"sort"
+	"time"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
@@ -41,9 +42,24 @@ func CommonSetup(t sktest.TestingT) (context.Context, *git_testutils.GitBuilder,
 // c1--c2------c4--c5--
 //       \-c3-----/
 func GitSetup(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilder, repo *repograph.Graph, rf RepoImplRefresher) []*repograph.Commit {
-	c1hash := g.CommitGen(ctx, "myfile.txt")
-	c1details, err := git.GitDir(g.Dir()).Details(ctx, c1hash)
-	assert.NoError(t, err)
+	t0 := time.Unix(1564963200, 0) // Arbitrary time to fix commit hashes.
+	ts := t0
+	fileNum := 0
+	doGit := func(hash string) *vcsinfo.LongCommit {
+		ts = ts.Add(time.Second)
+		fileNum++
+		details, err := git.GitDir(g.Dir()).Details(ctx, hash)
+		assert.NoError(t, err)
+		return details
+	}
+	commit := func() *vcsinfo.LongCommit {
+		return doGit(g.CommitGenAt(ctx, fmt.Sprintf("file%d", fileNum), ts))
+	}
+	merge := func(branch string) *vcsinfo.LongCommit {
+		return doGit(g.MergeBranchAt(ctx, branch, ts))
+	}
+
+	c1details := commit()
 	rf.Refresh(c1details)
 	assert.NoError(t, repo.Update(ctx))
 
@@ -52,9 +68,7 @@ func GitSetup(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilde
 	assert.Equal(t, 0, len(c1.GetParents()))
 	assert.False(t, util.TimeIsZero(c1.Timestamp))
 
-	c2hash := g.CommitGen(ctx, "myfile.txt")
-	c2details, err := git.GitDir(g.Dir()).Details(ctx, c2hash)
-	assert.NoError(t, err)
+	c2details := commit()
 	rf.Refresh(c2details)
 	assert.NoError(t, repo.Update(ctx))
 	c2 := repo.Get("master")
@@ -66,10 +80,8 @@ func GitSetup(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilde
 
 	// Create a second branch.
 	g.CreateBranchTrackBranch(ctx, "branch2", "origin/master")
-	c3hash := g.CommitGen(ctx, "anotherfile.txt")
-	c3details, err := git.GitDir(g.Dir()).Details(ctx, c3hash)
-	assert.NoError(t, err)
-	rf.Refresh(c3details)
+	c3details := commit()
+	rf.Refresh(c1details, c2details, c3details)
 	assert.NoError(t, repo.Update(ctx))
 	c3 := repo.Get("branch2")
 	assert.NotNil(t, c3)
@@ -79,9 +91,7 @@ func GitSetup(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilde
 
 	// Commit again to master.
 	g.CheckoutBranch(ctx, "master")
-	c4hash := g.CommitGen(ctx, "myfile.txt")
-	c4details, err := git.GitDir(g.Dir()).Details(ctx, c4hash)
-	assert.NoError(t, err)
+	c4details := commit()
 	rf.Refresh(c4details)
 	assert.NoError(t, repo.Update(ctx))
 	assert.Equal(t, c3, repo.Get("branch2"))
@@ -89,11 +99,9 @@ func GitSetup(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilde
 	assert.NotNil(t, c4)
 	assert.False(t, util.TimeIsZero(c4.Timestamp))
 
-	// Merge branch1 into master.
-	c5hash := g.MergeBranch(ctx, "branch2")
-	c5details, err := git.GitDir(g.Dir()).Details(ctx, c5hash)
-	assert.NoError(t, err)
-	rf.Refresh(c5details)
+	// Merge branch2 into master.
+	c5details := merge("branch2")
+	rf.Refresh(c1details, c2details, c3details, c4details, c5details)
 	assert.NoError(t, repo.Update(ctx))
 	assert.Equal(t, []string{"branch2", "master"}, repo.Branches())
 	c5 := repo.Get("master")
@@ -741,10 +749,31 @@ func TestBranchMembership(t sktest.TestingT, ctx context.Context, gb *git_testut
 			assert.True(t, c.Branches[b])
 		}
 	}
+	up := func(expect ...*repograph.Commit) {
+		actual := repo.UpdateBranchInfo()
+		// Some implementations of RepoImpl call UpdateBranchInfo() in
+		// their UpdateCallback(), so it's possible that when the test
+		// calls UpdateBranchInfo(), no commits are changed.
+		if len(actual) == 0 {
+			return
+		}
+		assert.Equal(t, len(actual), len(expect))
+		commitMap := make(map[string]*vcsinfo.LongCommit, len(actual))
+		for _, c := range actual {
+			commitMap[c.Hash] = c
+		}
+		for _, c := range expect {
+			_, ok := commitMap[c.Hash]
+			assert.True(t, ok, "%s not modified", c.Hash)
+		}
+		// TODO(borenet): We'd like to assert that any Branches maps
+		// which contain the same set of branches are the exact same
+		// instance, but I don't know of a way to do that.
+	}
 
 	// Update branch info. Ensure that all commits were updated with the
 	// correct branch membership.
-	repo.UpdateBranchInfo()
+	up(c1, c2, c3, c4, c5)
 	test(c1, "master", "branch2")
 	test(c2, "master", "branch2")
 	test(c3, "branch2") // c3 is reachable from master, but not via first-parent.
@@ -755,7 +784,7 @@ func TestBranchMembership(t sktest.TestingT, ctx context.Context, gb *git_testut
 	gb.CreateBranchTrackBranch(ctx, "b3", "master")
 	rf.Refresh()
 	assert.NoError(t, repo.Update(ctx))
-	repo.UpdateBranchInfo()
+	up(c1, c2, c4, c5)
 	test(c1, "master", "branch2", "b3")
 	test(c2, "master", "branch2", "b3")
 	test(c3, "branch2") // c3 is reachable from b3, but not via first-parent.
@@ -766,11 +795,23 @@ func TestBranchMembership(t sktest.TestingT, ctx context.Context, gb *git_testut
 	gb.Reset(ctx, "--hard", "branch2")
 	rf.Refresh()
 	assert.NoError(t, repo.Update(ctx))
-	repo.UpdateBranchInfo()
+	up(c3, c4, c5)
 	test(c1, "master", "branch2", "b3")
 	test(c2, "master", "branch2", "b3")
 	test(c3, "branch2", "b3")
 	test(c4, "master")
+	test(c5, "master")
+
+	// Reset branch2 to c4.
+	gb.CheckoutBranch(ctx, "branch2")
+	gb.Reset(ctx, "--hard", c4.Hash)
+	rf.Refresh()
+	assert.NoError(t, repo.Update(ctx))
+	up(c3, c4)
+	test(c1, "master", "branch2", "b3")
+	test(c2, "master", "branch2", "b3")
+	test(c3, "b3")
+	test(c4, "master", "branch2")
 	test(c5, "master")
 
 	// Delete b3. We should get the same results as before it was added.
@@ -778,26 +819,26 @@ func TestBranchMembership(t sktest.TestingT, ctx context.Context, gb *git_testut
 	gb.UpdateRef(ctx, "-d", "refs/heads/b3")
 	rf.Refresh()
 	assert.NoError(t, repo.Update(ctx))
-	repo.UpdateBranchInfo()
+	up(c1, c2, c3)
 	test(c1, "master", "branch2")
 	test(c2, "master", "branch2")
-	test(c3, "branch2")
-	test(c4, "master")
+	test(c3)
+	test(c4, "master", "branch2")
 	test(c5, "master")
 
 	// Add a commit.
-	c6hash := gb.CommitGen(ctx, "blah")
+	c6hash := gb.CommitGenAt(ctx, "blah", c5.Timestamp.Add(time.Second))
 	c6details, err := git.GitDir(gb.Dir()).Details(ctx, c6hash)
 	assert.NoError(t, err)
 	rf.Refresh(c6details)
 	assert.NoError(t, repo.Update(ctx))
-	repo.UpdateBranchInfo()
 	c6 := repo.Get(c6hash)
 	assert.NotNil(t, c6)
+	up(c6)
 	test(c1, "master", "branch2")
 	test(c2, "master", "branch2")
-	test(c3, "branch2")
-	test(c4, "master")
+	test(c3)
+	test(c4, "master", "branch2")
 	test(c5, "master")
 	test(c6, "master")
 }
