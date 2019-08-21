@@ -294,7 +294,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 			fileServer.ServeHTTP(w, r)
 		} else {
 			// Validate the requested diff image ID.
-			if !mapper.IsValidDiffImgID(imgID) {
+			if !validation.IsValidDiffImgID(imgID) {
 				noCacheNotFound(w, r)
 				return
 			}
