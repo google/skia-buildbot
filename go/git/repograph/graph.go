@@ -14,10 +14,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/willf/bitset"
+
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -191,8 +194,10 @@ type RepoImpl interface {
 	// UpdateCallback is a function which is called after the Graph is
 	// updated but before the changes are committed. If UpdateCallback
 	// returns an error, the changes are not committed. This allows the
-	// RepoImpl to perform caching, for example.
-	UpdateCallback(context.Context, *Graph) error
+	// RepoImpl to perform caching, for example. The parameters are the
+	// list of commits which were added during the current Update, the
+	// list of commits which were removed, and the new state of the Graph.
+	UpdateCallback(context.Context, []*vcsinfo.LongCommit, []*vcsinfo.LongCommit, *Graph) error
 }
 
 // Graph represents an entire Git repo.
@@ -272,28 +277,60 @@ func (r *Graph) Len() int {
 // this will result in different branch membership than would be obtained by
 // `git branch --all --list --contains <hash>` as is used elsewhere. Modifies
 // the Commit objects stored in the graph and returns the LongCommits associated
-// with the modified Commits.
+// with the modified Commits. Clients MUST NOT modify the Branches on the
+// returned LongCommits; as a space-saving optimization, we use the same map
+// instance for all commits which belong to the same set of branches.
 func (r *Graph) UpdateBranchInfo() []*vcsinfo.LongCommit {
-	membership := make(map[*Commit]util.StringSet, r.Len())
-	for _, branch := range r.BranchHeads() {
+	sklog.Infof("UpdateBranchInfo")
+	defer timer.New("UpdateBranchInfo").Stop()
+	branches := r.BranchHeads()
+	commits := r.GetAll()
+
+	// Use a map of Commit pointers to BitSets. Pointers are a little faster
+	// than keying by commit hash and is safe because our commit pointers
+	// never change (the parent pointers rely on this behavior). The BitSet
+	// indicates which branch (by index in the branches slice) the commit
+	// belongs to.
+	membership := make(map[*Commit]*bitset.BitSet, len(commits))
+	for _, c := range commits {
+		membership[c] = bitset.New(uint(len(branches)))
+	}
+	for idx, branch := range branches {
 		// Our func never returns an error, so we don't need to check
 		// the return value here.
-		_ = r.Get(branch.Head).RecurseFirstParent(func(c *Commit) error {
-			m := membership[c]
-			if m == nil {
-				m = util.NewStringSet()
-				membership[c] = m
-			}
-			m[branch.Name] = true
+		_ = commits[branch.Head].RecurseFirstParent(func(c *Commit) error {
+			membership[c].Set(uint(idx))
 			return nil
 		})
 	}
+	total := int64(0)
 	rv := []*vcsinfo.LongCommit{}
-	for _, c := range r.GetAll() {
-		if !util.StringSet(c.Branches).Equals(membership[c]) {
+	// branchMaps stores all of the combinations of branch memberships
+	// for all commits, keyed by bitset in string form.
+	branchMaps := map[string]map[string]bool{}
+	for _, c := range commits {
+		bs := membership[c]
+		if bs != nil {
+			key := bs.String()
+			branchMap, ok := branchMaps[key]
+			if !ok {
+				branchMap = make(map[string]bool, bs.Count())
+				for idx, branch := range branches {
+					if bs.Test(uint(idx)) {
+						branchMap[branch.Name] = true
+					}
+				}
+				branchMaps[key] = branchMap
+			}
+			if !util.StringSet(c.Branches).Equals(branchMap) {
+				rv = append(rv, c.LongCommit)
+				c.Branches = branchMap
+			}
+		} else if len(c.Branches) != 0 {
+			c.Branches = nil
 			rv = append(rv, c.LongCommit)
-			c.Branches = membership[c]
 		}
+		total += int64(len(c.Branches))
 	}
 	return rv
 }
@@ -323,6 +360,9 @@ func (r *Graph) addCommit(lc *vcsinfo.LongCommit) error {
 		LongCommit: lc,
 		parents:    parents,
 	}
+	// Ignore any previously-set branch information. If desired, the client
+	// can call UpdateBranchInfo.
+	c.Branches = nil
 	r.commits[c.Hash] = c
 	return nil
 }
@@ -486,7 +526,7 @@ func (r *Graph) update(ctx context.Context, cb func(*Graph) error) ([]*vcsinfo.L
 			return nil, nil, err
 		}
 	}
-	if err := r.repoImpl.UpdateCallback(ctx, newGraph); err != nil {
+	if err := r.repoImpl.UpdateCallback(ctx, added, removed, newGraph); err != nil {
 		return nil, nil, err
 	}
 	r.graphMtx.Lock()
