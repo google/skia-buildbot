@@ -2,10 +2,8 @@ package mapper
 
 import (
 	"image"
-	"strings"
 
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/diffstore/common"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -28,27 +26,4 @@ type Mapper interface {
 	// TODO(kjlubick): It might be nice to have Mapper just focus on the
 	// diff metric and have a different interface for the disk storing.
 	ImagePaths(id types.Digest) (string, string)
-}
-
-// Takes two image IDs and returns a unique diff ID.
-// Note: DiffID(a,b) == DiffID(b, a) holds.
-func DiffID(left, right types.Digest) string {
-	_, _, diffID := getOrderedDiffID(left, right)
-	return diffID
-}
-
-// Inverse function of DiffID.
-// SplitDiffID(DiffID(a,b)) deterministically returns (a,b) or (b,a).
-func SplitDiffID(diffID string) (types.Digest, types.Digest) {
-	imageIDs := strings.Split(diffID, common.DiffImageSeparator)
-
-	return types.Digest(imageIDs[0]), types.Digest(imageIDs[1])
-}
-
-func getOrderedDiffID(left, right types.Digest) (types.Digest, types.Digest, string) {
-	if right < left {
-		// Make sure the smaller digest is left imageID.
-		left, right = right, left
-	}
-	return left, right, string(left) + common.DiffImageSeparator + string(right)
 }
