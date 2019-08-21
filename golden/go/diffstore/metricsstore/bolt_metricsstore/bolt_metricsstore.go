@@ -11,7 +11,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
-	"go.skia.org/infra/golden/go/diffstore/mapper"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -98,7 +97,7 @@ func New(baseDir string, codec util.LRUCodec) (*BoltImpl, error) {
 	factoryCodec := &metricsRecFactory{
 		LRUCodec: util.JSONCodec(&metricsRec{}),
 		splitFn: func(toSplit string) (string, string) {
-			a, b := mapper.SplitDiffID(toSplit)
+			a, b := common.SplitDiffID(toSplit)
 			return string(a), string(b)
 		},
 	}
@@ -228,7 +227,7 @@ func (m *BoltImpl) fixLegacyRecord(id string, recBytes []byte) *diff.DiffMetrics
 		newRec = legRec.DiffMetrics
 	}
 	// Regenerate the diffID to filter out the old format.
-	newID := mapper.DiffID(mapper.SplitDiffID(id))
+	newID := common.DiffID(common.SplitDiffID(id))
 
 	// Write the new record to the database in the background.
 	go func() {

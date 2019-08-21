@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/diffstore/common"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/validation"
 )
@@ -30,30 +31,9 @@ type Mapper interface {
 	ImagePaths(id types.Digest) (string, string)
 }
 
-const (
-	// DiffImageSeparator is the character that separates two image ids in the
-	// resulting diff image.
-	DiffImageSeparator = "-"
-)
-
-// Takes two image IDs and returns a unique diff ID.
-// Note: DiffID(a,b) == DiffID(b, a) holds.
-func DiffID(left, right types.Digest) string {
-	_, _, diffID := getOrderedDiffID(left, right)
-	return diffID
-}
-
-// Inverse function of DiffID.
-// SplitDiffID(DiffID(a,b)) deterministically returns (a,b) or (b,a).
-func SplitDiffID(diffID string) (types.Digest, types.Digest) {
-	imageIDs := strings.Split(diffID, DiffImageSeparator)
-
-	return types.Digest(imageIDs[0]), types.Digest(imageIDs[1])
-}
-
 // IsValidDiffImgID returns true if the given diffImgID is in the correct format.
 func IsValidDiffImgID(diffID string) bool {
-	imageIDs := strings.Split(diffID, DiffImageSeparator)
+	imageIDs := strings.Split(diffID, common.DiffImageSeparator)
 	if len(imageIDs) != 2 {
 		return false
 	}
@@ -63,12 +43,4 @@ func IsValidDiffImgID(diffID string) bool {
 // IsValidImgID returns true if the given imgID is in the correct format.
 func IsValidImgID(imgID string) bool {
 	return validation.IsValidDigest(imgID)
-}
-
-func getOrderedDiffID(left, right types.Digest) (types.Digest, types.Digest, string) {
-	if right < left {
-		// Make sure the smaller digest is left imageID.
-		left, right = right, left
-	}
-	return left, right, string(left) + DiffImageSeparator + string(right)
 }
