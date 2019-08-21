@@ -72,7 +72,7 @@ func (gs *testGitStore) RangeN(ctx context.Context, startIndex, endIndex int, br
 
 // See documentation for GitStore interface.
 func (gs *testGitStore) RangeByTime(ctx context.Context, start, end time.Time, branch string) ([]*vcsinfo.IndexCommit, error) {
-	if branch != "" {
+	if branch != ALL_BRANCHES {
 		return nil, skerr.Fmt("RangeByTime not implemented for single branches in testGitStore.")
 	}
 	rv := make([]*vcsinfo.IndexCommit, 0, len(gs.commits))
@@ -85,11 +85,6 @@ func (gs *testGitStore) RangeByTime(ctx context.Context, start, end time.Time, b
 		}
 	}
 	return rv, nil
-}
-
-// See documentation for GitStore interface.
-func (gs *testGitStore) GetGraph(ctx context.Context) (*CommitGraph, error) {
-	return nil, skerr.Fmt("GetGraph not implemented for testGitStore.")
 }
 
 // gitstoreRefresher is an implementation of repograph_shared_tests.RepoImplRefresher
@@ -121,7 +116,7 @@ func (u *gitstoreRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 	oldBranches, err := u.gs.GetBranches(ctx)
 	assert.NoError(u.t, err)
 	for name := range oldBranches {
-		if name == "" {
+		if name == ALL_BRANCHES {
 			continue
 		}
 		if _, ok := putBranches[name]; !ok {

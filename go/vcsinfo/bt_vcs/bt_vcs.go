@@ -55,7 +55,7 @@ type BigTableVCS struct {
 
 // NewVCS returns an instance of vcsinfo.VCS that is backed by the given GitStore and uses the
 // gittiles.Repo to retrieve files. Each instance provides an interface to one branch.
-// If defaultBranch is "" all commits in the repository are considered.
+// If defaultBranch is gitstore.ALL_BRANCHES all commits in the repository are considered.
 // The instances of gitiles.Repo is only used to fetch files.
 func New(ctx context.Context, gitStore gitstore.GitStore, defaultBranch string, repo *gitiles.Repo) (*BigTableVCS, error) {
 	if gitStore == nil {
@@ -91,7 +91,7 @@ func (b *BigTableVCS) Update(ctx context.Context, pull, allBranches bool) error 
 	// Check if we need to pull across all branches.
 	targetBranch := b.defaultBranch
 	if allBranches {
-		targetBranch = ""
+		targetBranch = gitstore.ALL_BRANCHES
 	}
 
 	// Simulate a pull by fetching the latest head of the target branch.
@@ -288,7 +288,7 @@ func (b *BigTableVCS) getBranchInfo(ctx context.Context, c *vcsinfo.LongCommit, 
 	var mutex sync.Mutex
 	var egroup errgroup.Group
 	for branchName := range allBranches {
-		if branchName != "" {
+		if branchName != gitstore.ALL_BRANCHES {
 			func(branchName string) {
 				egroup.Go(func() error {
 					// Since we cannot look up a commit in a branch directly we query for all commits that

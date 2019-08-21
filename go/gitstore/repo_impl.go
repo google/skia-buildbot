@@ -49,7 +49,7 @@ func (g *gitStoreRepoImpl) Update(ctx context.Context) error {
 	}
 	branches := make([]*git.Branch, 0, len(branchPtrs))
 	for name, ptr := range branchPtrs {
-		if name != "" {
+		if name != ALL_BRANCHES {
 			branches = append(branches, &git.Branch{
 				Name: name,
 				Head: ptr.Head,
@@ -60,7 +60,7 @@ func (g *gitStoreRepoImpl) Update(ctx context.Context) error {
 	from := g.lastUpdate.Add(-10 * time.Minute)
 	now := time.Now()
 	to := now.Add(time.Second)
-	indexCommits, err := g.gs.RangeByTime(ctx, from, to, "")
+	indexCommits, err := g.gs.RangeByTime(ctx, from, to, ALL_BRANCHES)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to read IndexCommits from GitStore")
 	}
@@ -92,7 +92,7 @@ func (g *gitStoreRepoImpl) Details(ctx context.Context, hash string) (*vcsinfo.L
 	// Update() should have pre-fetched all of the commits for us, so we
 	// shouldn't have hit this code. Log a warning and fall back to
 	// retrieving the commit from GitStore.
-	sklog.Warningf("Commit %q not found in results; performing explicit lookup.", hash)
+	sklog.Warningf("Commit %q not found in cache; performing explicit lookup.", hash)
 	got, err := g.gs.Get(ctx, []string{hash})
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to read commit %s from GitStore", hash)

@@ -24,7 +24,7 @@ func main() {
 		listRepos    = flag.Bool("list_repos", false, "List all repositories quit")
 		loadGraph    = flag.Bool("load_graph", false, "Load the entire commit graph. For performance check only.")
 		projectID    = flag.String("project", "skia-public", "ID of the GCP project")
-		branch       = flag.String("branch", "", "Name of the branch to list. Empty means all commits across all branches.")
+		branch       = flag.String("branch", gitstore.ALL_BRANCHES, "Name of the branch to list. By default, show all commits across all branches.")
 		limit        = flag.Int("limit", 100, "Number of commits to show. 0 means no limit")
 		repoURL      = flag.String("repo_url", "", "URL of the git repo.")
 		verbose      = flag.Bool("verbose", false, "Indicate whether to log the commits we find.")

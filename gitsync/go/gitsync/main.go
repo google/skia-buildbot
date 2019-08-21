@@ -28,7 +28,7 @@ import (
 // Default config/flag values
 var defaultConf = gitSyncConfig{
 	BTInstanceID:    "production",
-	BTTableID:       "git-repos",
+	BTTableID:       "git-repos2",
 	HttpPort:        ":9091",
 	Local:           false,
 	ProjectID:       "skia-public",

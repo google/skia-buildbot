@@ -48,13 +48,8 @@ func AllRepos(ctx context.Context, conf *BTConfig) (map[string]*gitstore.RepoInf
 		if readRowErr != nil {
 			return false
 		}
-		// save the repo info and set the all-commits branch.
+		// save the repo info.
 		ret[repoInfo.RepoURL] = repoInfo
-		if found, ok := repoInfo.Branches[allCommitsBranch]; ok {
-			repoInfo.Branches[""] = found
-			delete(repoInfo.Branches, allCommitsBranch)
-		}
-
 		return true
 	}, bigtable.RowFilter(bigtable.LatestNFilter(1)))
 

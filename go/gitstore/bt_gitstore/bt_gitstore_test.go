@@ -3,6 +3,7 @@ package bt_gitstore_test
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -16,6 +17,7 @@ import (
 	gitstore_testutils "go.skia.org/infra/go/gitstore/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	vcs_testutils "go.skia.org/infra/go/vcsinfo/testutils"
 )
@@ -28,6 +30,7 @@ const (
 // If not present, syncs skia.git to /tmp/skia first.
 func TestGitStoreSkiaRepo(t *testing.T) {
 	unittest.ManualTest(t)
+	t.Skip()
 	skiaRepoDir := filepath.Join(os.TempDir(), "skia")
 	if _, err := os.Stat(skiaRepoDir); os.IsNotExist(err) {
 		_, err = git.NewRepo(context.Background(), common.REPO_SKIA, os.TempDir())
@@ -43,12 +46,16 @@ func TestGitStoreLocalRepo(t *testing.T) {
 
 	repoDir, cleanup := vcs_testutils.InitTempRepo()
 	defer cleanup()
-	testGitStore(t, localRepoURL, repoDir, true)
+	testGitStore(t, "file://"+repoDir, repoDir, true)
 }
 
 func testGitStore(t *testing.T, repoURL, repoDir string, freshLoad bool) {
+	wd, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer util.RemoveAll(wd)
+
 	// Get all commits that have been added to the gitstore.
-	_, longCommits, gitStore := gitstore_testutils.SetupAndLoadBTGitStore(t, repoURL, repoDir, freshLoad)
+	_, longCommits, gitStore := gitstore_testutils.SetupAndLoadBTGitStore(t, context.Background(), wd, repoURL, freshLoad)
 
 	// Sort long commits they way they are sorted by BigTable (by timestamp/hash)
 	sort.Slice(longCommits, func(i, j int) bool {
@@ -66,7 +73,7 @@ func testGitStore(t *testing.T, repoURL, repoDir string, freshLoad bool) {
 	}
 
 	// Find all the commits in the repository independent of branches.
-	foundIndexCommits, foundLongCommits := getFromRange(t, gitStore, 0, len(longCommits), "")
+	foundIndexCommits, foundLongCommits := getFromRange(t, gitStore, 0, len(longCommits), gitstore.ALL_BRANCHES)
 	assert.Equal(t, len(indexCommits), len(foundIndexCommits))
 	assert.Equal(t, len(longCommits), len(foundLongCommits))
 
@@ -132,7 +139,6 @@ func getFromRange(t *testing.T, gitStore gitstore.GitStore, startIdx, endIdx int
 	for _, commit := range foundIndexCommits {
 		hashes = append(hashes, commit.Hash)
 	}
-
 	tLongCommits := timer.New(fmt.Sprintf("Get %d LongCommits from branch %q", len(hashes), branchName))
 	foundLongCommits, err := gitStore.Get(ctx, hashes)
 	assert.NoError(t, err)
