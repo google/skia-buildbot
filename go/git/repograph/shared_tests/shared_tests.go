@@ -6,7 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"reflect"
 	"sort"
+	"strings"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
@@ -766,9 +768,19 @@ func TestBranchMembership(t sktest.TestingT, ctx context.Context, gb *git_testut
 			_, ok := commitMap[c.Hash]
 			assert.True(t, ok, "%s not modified", c.Hash)
 		}
-		// TODO(borenet): We'd like to assert that any Branches maps
-		// which contain the same set of branches are the exact same
-		// instance, but I don't know of a way to do that.
+		// Verify that we deduplicated the branch maps.
+		maps := map[string]uintptr{}
+		for _, c := range actual {
+			keys := util.StringSet(c.Branches).Keys()
+			sort.Strings(keys)
+			str := strings.Join(keys, ",")
+			ptr := reflect.ValueOf(c.Branches).Pointer()
+			if exist, ok := maps[str]; ok {
+				assert.Equal(t, exist, ptr)
+			} else {
+				maps[str] = ptr
+			}
+		}
 	}
 
 	// Update branch info. Ensure that all commits were updated with the
