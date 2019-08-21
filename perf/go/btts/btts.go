@@ -4,6 +4,7 @@ See BIGTABLE.md for tiles and traces are stored in BigTable.
 package btts
 
 import (
+	"bytes"
 	"context"
 	"crypto/md5"
 	"encoding/binary"
@@ -11,6 +12,7 @@ import (
 	"hash/crc32"
 	"math"
 	"regexp"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -198,6 +200,7 @@ type BigTableTraceStore struct {
 	indexWritesCounter metrics2.Counter
 	table              *bigtable.Table
 	indexed            *lru.Cache // LRU cache of all the trace row keys that have been added to the index.
+	readIndicesCache   *lru.Cache // LRU cache of all the index rows.
 
 	// lookup maps column names as strings, "V:2", to the index, 2.
 	// Used to speed up reading values out of rows.
@@ -233,11 +236,16 @@ func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.PerfBigTab
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't create index lru cache: %s", err)
 	}
+	readIndicesCache, err := lru.New(MAX_INDEX_LRU_CACHE)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't create readIndicesCache lru cache: %s", err)
+	}
 	ret := &BigTableTraceStore{
 		tileSize:           cfg.TileSize,
 		shards:             cfg.Shards,
 		table:              client.Open(cfg.Table),
 		indexed:            indexed,
+		readIndicesCache:   readIndicesCache,
 		writesCounter:      metrics2.GetCounter("bt_perf_writes", nil),
 		indexWritesCounter: metrics2.GetCounter("bt_perf_index_writes", nil),
 		lookup:             lookup,
@@ -640,6 +648,15 @@ func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q
 	return ret, nil
 }
 
+func getGID() uint64 {
+	b := make([]byte, 64)
+	b = b[:runtime.Stack(b, false)]
+	b = bytes.TrimPrefix(b, []byte("goroutine "))
+	b = b[:bytes.IndexByte(b, ' ')]
+	n, _ := strconv.ParseUint(string(b), 10, 64)
+	return n
+}
+
 // QueryTracesByIndex returns a map of encoded keys to a slice of floats for all
 // traces that match the given query.
 //
@@ -647,6 +664,8 @@ func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q
 func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey TileKey, q *query.Query) (types.TraceSet, error) {
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.QueryTracesByIndex")
 	defer span.End()
+
+	gid := getGID()
 
 	ops, err := b.GetOrderedParamSet(ctx, tileKey)
 	if err != nil {
@@ -661,7 +680,7 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 		return b.allTraces(ctx, tileKey)
 	}
 	plan, err := q.QueryPlan(ops)
-	sklog.Infof("Plan %#v", plan)
+	sklog.Infof("%d Plan %#v", gid, plan)
 	if err != nil {
 		// Not an error, we just won't match anything in this tile.
 		return nil, nil
@@ -701,12 +720,14 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 			// Strip off the family name which is prefixed.
 			traceKeys = append(traceKeys, col.Column[2:])
 		}
+		sklog.Infof("%d Found %d indices for %s=%s", gid, len(traceKeys), paramKey, paramValue)
 		var ok bool
 		ps := paramtools.ParamSet{}
 		if ps, ok = indices[paramKey]; !ok {
 			ps = paramtools.NewParamSet()
 		}
 		ps[paramValue] = traceKeys
+		// TODO(jcgregorio) Memoize some of these results in an lru.Cache with an expiration of 5 minutes keyed by row.Key().
 		indices[paramKey] = ps
 		return true
 	}, bigtable.RowFilter(
@@ -717,7 +738,7 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 	),
 	)
 
-	sklog.Infof("indices len = %d\n", len(indices))
+	sklog.Infof("%d indices len = %d\n", gid, len(indices))
 
 	var ss util.StringSet = nil
 	// Now consolidate the indices into a set of keys to request.
@@ -736,10 +757,11 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 	}
 
 	if len(ss) == 0 {
+		sklog.Infof("%d Bailing out len(ss) == 0", gid)
 		return nil, nil
 	}
 
-	sklog.Infof("All traces ids len = %d", len(ss.Keys()))
+	sklog.Infof("%d All traces ids len = %d", gid, len(ss.Keys()))
 
 	allKeys := ss.Keys()
 	sort.Strings(allKeys)
@@ -907,7 +929,10 @@ func (b *BigTableTraceStore) TileKeys(ctx context.Context, tileKey TileKey) ([]s
 		g.Go(func() error {
 			return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
 				parts := strings.Split(row.Key(), ":")
-				ss[parts[2]] = true
+				// Make a copy to avoid keeping the entire row from being freed.
+				var b strings.Builder
+				b.WriteString(parts[2])
+				ss[b.String()] = true
 				return true
 			}, bigtable.RowFilter(
 				bigtable.ChainFilters(
