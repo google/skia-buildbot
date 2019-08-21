@@ -71,6 +71,30 @@
     },
     {
       "key": {
+        "uuid": "d9cd9d6a_eb43edc2",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-21T18:44:14Z",
+      "side": 1,
+      "message": "IngesterConfig is shared (at least in theory) by non-gold things, so there\u0027s a generic map[string]string for specific ingester configuration.\n\nI could fork it or fold it into Gold (since Perf now uses its own thing, I think), but I don\u0027t want to handle those worms today.",
+      "parentUuid": "ce4311d5_0e1f8202",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 53
+      },
+      "revId": "a29ae4dfb0104a26721f2cb5c2d247dc058b9e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c7d8a33b_732debc3",
         "filename": "golden/go/tjstore/tjstore.go",
         "patchSetId": 10
@@ -91,6 +115,30 @@
       "revId": "a29ae4dfb0104a26721f2cb5c2d247dc058b9e8f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85a189de_b8757b97",
+        "filename": "golden/go/tjstore/tjstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-21T18:44:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c7d8a33b_732debc3",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 24
+      },
+      "revId": "a29ae4dfb0104a26721f2cb5c2d247dc058b9e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

@@ -22,6 +22,30 @@
       "revId": "4c16477e82d70a12a3e5e56dd31f2a5b1d6b7fe5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92e2ad91_db26620b",
+        "filename": "golden/go/code_review/types.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-21T18:44:14Z",
+      "side": 0,
+      "message": "This simplifies the database schema - I don\u0027t have to keep two tables in sync. I heard the voice of a code reviewer talking about potential race conditions and decided to keep it simple.",
+      "parentUuid": "39654943_6b5e64c1",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 17
+      },
+      "revId": "4c16477e82d70a12a3e5e56dd31f2a5b1d6b7fe5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
