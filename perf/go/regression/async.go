@@ -72,6 +72,7 @@ type ClusterRequest struct {
 	Type        ClusterRequestType `json:"type"`
 	N           int32              `json:"n"`
 	End         time.Time          `json:"end"`
+	AlertID     string             `json:"alert_id"`
 }
 
 func (c *ClusterRequest) Id() string {
@@ -374,12 +375,15 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 			summary, err = StepFit(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
 		case types.TAIL_ALGO:
 			summary, err = Tail(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
-
+		default:
+			p.reportError(err, "Invalid algorithm.")
+			return
 		}
 		if err != nil {
 			p.reportError(err, "Invalid clustering.")
 			return
 		}
+		summary.AlertID = p.request.AlertID
 		if err := ShortcutFromKeys(summary); err != nil {
 			p.reportError(err, "Failed to write shortcut for keys.")
 			return
@@ -389,6 +393,11 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 		frame, err := dataframe.ResponseFromDataFrame(ctx, df, p.vcs, false, p.request.TZ)
 		if err != nil {
 			p.reportError(err, "Failed to convert DataFrame to FrameResponse.")
+			return
+		}
+
+		if p.request.AlertID != summary.AlertID {
+			sklog.Errorf("Found alertid mismatch: %q != %q", p.request.AlertID != summary.AlertID)
 			return
 		}
 
