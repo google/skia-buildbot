@@ -419,7 +419,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	defer s.Cleanup()
 	isolateTasks := []*isolate.Task{}
 	// Get path to isolate files.
-	pathToIsolates := GetPathToIsolates(local)
+	pathToIsolates := GetPathToIsolates(local, false)
 	numPagesPerBot := GetNumPagesPerBot(repeatValue, maxPagesPerBot)
 	numTasks := int(math.Ceil(float64(numPages) / float64(numPagesPerBot)))
 	osType := "linux"
@@ -557,12 +557,20 @@ func getServiceAccount(dimensions map[string]string) string {
 }
 
 // GetPathToIsolates returns the location of CT's isolates.
-func GetPathToIsolates(local bool) string {
+// local should be set to true if we need the location of isolates when debugging locally.
+// runOnMaster should be set if we need the location of isolates on the ct-master.
+// If both are false then it is assumed that we are running on a swarming bot.
+func GetPathToIsolates(local, runOnMaster bool) string {
+	fmt.Println("XXXXXXXXXXXXX")
 	if local {
 		_, currentFile, _, _ := runtime.Caller(0)
 		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
-	} else {
+	} else if runOnMaster {
 		return filepath.Join("/", "usr", "local", "share", "ct-master", "isolates")
+	} else {
+		fmt.Println("HERE IN GET PATH TO ISOLATES!!!!")
+		fmt.Println(filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ct-master", "isolates"))
+		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ct-master", "isolates")
 	}
 }
 
@@ -976,7 +984,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	defer s.Cleanup()
 	// Create isolated.gen.json.
 	// Get path to isolate files.
-	pathToIsolates := GetPathToIsolates(local)
+	pathToIsolates := GetPathToIsolates(local, false)
 	isolateArgs := map[string]string{
 		"RUN_ID":        runID,
 		"CHROMIUM_HASH": chromiumHash,
@@ -1020,6 +1028,47 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	return strings.Trim(string(contents), "\n"), nil
 }
 
+// HERE HERE
+func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isolateFileName, serviceAccountJSON string, local bool, isolateArgs map[string]string) error {
+	// Instantiate the swarming client.
+	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
+	if err != nil {
+		return fmt.Errorf("Could not get temp dir: %s", err)
+	}
+	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountJSON)
+	if err != nil {
+		// Cleanup workdir.
+		if err := os.RemoveAll(workDir); err != nil {
+			sklog.Errorf("Could not cleanup swarming work dir: %s", err)
+		}
+		return fmt.Errorf("Could not instantiate swarming client: %s", err)
+	}
+	defer s.Cleanup()
+	// Create isolated.gen.json.
+	// Get path to isolate files.
+	pathToIsolates := GetPathToIsolates(local, true)
+	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, isolateFileName), s.WorkDir, "linux", taskName, isolateArgs, []string{})
+	if err != nil {
+		return fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
+	}
+	// Batcharchive the task.
+	tasksToHashes, err := s.BatchArchiveTargets(ctx, []string{genJSON}, BATCHARCHIVE_TIMEOUT)
+	if err != nil {
+		return fmt.Errorf("Could not batch archive target: %s", err)
+	}
+	// Trigger swarming using the isolate hash.
+	dimensions := GCE_LINUX_MASTER_DIMENSIONS
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, nil, swarming.RECOMMENDED_PRIORITY, 7*24*time.Hour, 3*24*time.Hour, 3*24*time.Hour, false, true, getServiceAccount(dimensions))
+	if err != nil {
+		return fmt.Errorf("Could not trigger swarming task: %s", err)
+	}
+	if len(tasks) != 1 {
+		return fmt.Errorf("Expected a single task instead got: %v", tasks)
+	}
+	// HERE HERE: No need to collect tasks? just trigger and forget about it??
+	return nil
+}
+
 // TriggerBuildRepoSwarmingTask creates a isolated.gen.json file using BUILD_REPO_ISOLATE,
 // archives it, and triggers it's swarming task. The swarming task will run the build_repo
 // worker script which will return a list of remote build directories.
@@ -1040,7 +1089,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	defer s.Cleanup()
 	// Create isolated.gen.json.
 	// Get path to isolate files.
-	pathToIsolates := GetPathToIsolates(local)
+	pathToIsolates := GetPathToIsolates(local, false)
 	isolateArgs := map[string]string{
 		"RUN_ID":          runID,
 		"REPO_AND_TARGET": repoAndTarget,
