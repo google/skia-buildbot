@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "75024c61_26d91229",
+        "filename": "golden/go/ingestion_processors/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-21T17:56:01Z",
+      "side": 1,
+      "message": "It wouldn\u0027t help in this instance, but it just came to mind: is there any reason not to make skerr.Wrap* return nil if the passed-in error is nil?  Then we could do things like this:\n\nreturn skerr.Wrap(someFuncThatReturnsError())",
+      "range": {
+        "startLine": 39,
+        "startChar": 14,
+        "endLine": 39,
+        "endChar": 25
+      },
+      "revId": "4cfd5b1ed4d6938efc61fd127bb4a458198ac620",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
