@@ -542,7 +542,7 @@ groups:
       description: '{{ $labels.app }} has not checked for expired ignore rules in a while. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldignoremonitoring'
 
   - alert: GoldPollingIngestionStalled
-    expr: liveness_gold_bt_s{metric="since-last-run"} > 60*60
+    expr: liveness_gold_bt_s{metric="since-last-run"} > 150*60
     labels:
       category: infra
       severity: warning
