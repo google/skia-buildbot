@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "feba2996_e0084c49",
+        "filename": "golden/go/ingestion_processors/old_tryjob_ingestion.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-21T18:11:09Z",
+      "side": 1,
+      "message": "I assumed this was just renamed and did not review.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 28
+      },
+      "revId": "a29ae4dfb0104a26721f2cb5c2d247dc058b9e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "528ade78_b3164c48",
+        "filename": "golden/go/ingestion_processors/old_tryjob_ingestion_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-21T18:11:09Z",
+      "side": 1,
+      "message": "I assumed this was just renamed and did not review.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 28
+      },
+      "revId": "a29ae4dfb0104a26721f2cb5c2d247dc058b9e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ce4311d5_0e1f8202",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-21T18:11:09Z",
+      "side": 1,
+      "message": "Seems like all of these could be a struct nested inside sharedconfig.IngesterConfig?  That would make validation cleaner, ie. just add \"func Validate() error\"",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 53
+      },
+      "revId": "a29ae4dfb0104a26721f2cb5c2d247dc058b9e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c7d8a33b_732debc3",
+        "filename": "golden/go/tjstore/tjstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-21T18:11:09Z",
+      "side": 1,
+      "message": "Is there any reason this shouldn\u0027t just be a struct with three strings?",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 24
+      },
+      "revId": "a29ae4dfb0104a26721f2cb5c2d247dc058b9e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

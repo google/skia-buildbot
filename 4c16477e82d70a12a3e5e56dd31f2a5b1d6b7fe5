@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "39654943_6b5e64c1",
+        "filename": "golden/go/code_review/types.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-21T18:11:09Z",
+      "side": 0,
+      "message": "Is this because we\u0027ll always load all patchsets (there could be many...)?  Or because we have a different way of knowing which patchsets we want?",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 17
+      },
+      "revId": "4c16477e82d70a12a3e5e56dd31f2a5b1d6b7fe5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
