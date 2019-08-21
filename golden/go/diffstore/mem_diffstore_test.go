@@ -12,7 +12,7 @@ import (
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/golden/go/diff"
-	"go.skia.org/infra/golden/go/diffstore/mapper"
+	"go.skia.org/infra/golden/go/diffstore/common"
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
 	d_utils "go.skia.org/infra/golden/go/diffstore/testutils"
 	"go.skia.org/infra/golden/go/types"
@@ -77,7 +77,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	for _, d1 := range digests {
 		for _, d2 := range digests {
 			if d1 != d2 {
-				id := mapper.DiffID(d1, d2)
+				id := common.DiffID(d1, d2)
 				diffIDs = append(diffIDs, id)
 				assert.True(t, memDiffStore.diffMetricsCache.Contains(id))
 			}
@@ -94,7 +94,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 
 		// Load the diff from disk and compare.
 		for twoDigest, dr := range found {
-			id := mapper.DiffID(oneDigest, twoDigest)
+			id := common.DiffID(oneDigest, twoDigest)
 			loadedDr, err := memDiffStore.metricsStore.LoadDiffMetrics(id)
 			assert.NoError(t, err)
 			assert.Equal(t, dr, loadedDr, "Comparing: %s", id)
@@ -183,7 +183,7 @@ func TestCodec(t *testing.T) {
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
-	diffID := mapper.DiffID(types.Digest("abc"), types.Digest("def"))
+	diffID := common.DiffID(types.Digest("abc"), types.Digest("def"))
 	diffMetrics := &d_utils.DummyDiffMetrics{
 		NumDiffPixels:     100,
 		PercentDiffPixels: 0.5,

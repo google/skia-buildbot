@@ -3,7 +3,7 @@ package validation
 import (
 	"strings"
 
-	"go.skia.org/infra/golden/go/diffstore/mapper"
+	"go.skia.org/infra/golden/go/diffstore/common"
 )
 
 // IsValidDigest returns true if the given string is a valid digest
@@ -29,7 +29,7 @@ func IsValidDigest(hash string) bool {
 
 // IsValidDiffImgID returns true if the given diffImgID is in the correct format.
 func IsValidDiffImgID(diffID string) bool {
-	imageIDs := strings.Split(diffID, mapper.DiffImageSeparator)
+	imageIDs := strings.Split(diffID, common.DiffImageSeparator)
 	if len(imageIDs) != 2 {
 		return false
 	}

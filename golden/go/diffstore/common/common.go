@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/boltdb/bolt"
 	"go.skia.org/infra/go/fileutil"
@@ -18,6 +19,10 @@ import (
 const (
 	// IMG_EXTENSION is the default extension of images.
 	IMG_EXTENSION = "png"
+
+	// DiffImageSeparator is the character that separates two image ids in the
+	// resulting diff image.
+	DiffImageSeparator = "-"
 )
 
 // SaveFile writes the given file to disk.
@@ -95,4 +100,27 @@ func AsStrings(xd types.DigestSlice) []string {
 		s = append(s, string(d))
 	}
 	return s
+}
+
+// Takes two image IDs and returns a unique diff ID.
+// Note: DiffID(a,b) == DiffID(b, a) holds.
+func DiffID(left, right types.Digest) string {
+	_, _, diffID := getOrderedDiffID(left, right)
+	return diffID
+}
+
+// Inverse function of DiffID.
+// SplitDiffID(DiffID(a,b)) deterministically returns (a,b) or (b,a).
+func SplitDiffID(diffID string) (types.Digest, types.Digest) {
+	imageIDs := strings.Split(diffID, DiffImageSeparator)
+
+	return types.Digest(imageIDs[0]), types.Digest(imageIDs[1])
+}
+
+func getOrderedDiffID(left, right types.Digest) (types.Digest, types.Digest, string) {
+	if right < left {
+		// Make sure the smaller digest is left imageID.
+		left, right = right, left
+	}
+	return left, right, string(left) + DiffImageSeparator + string(right)
 }
