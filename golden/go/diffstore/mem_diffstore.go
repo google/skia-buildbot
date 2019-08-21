@@ -177,7 +177,7 @@ func (d *MemDiffStore) Get(priority int64, mainDigest types.Digest, rightDigests
 					wg.Done()
 					<-d.maxGoRoutinesCh
 				}()
-				id := mapper.DiffID(mainDigest, right)
+				id := common.DiffID(mainDigest, right)
 				ret, err := d.diffMetricsCache.Get(priority, id)
 				if err != nil {
 					sklog.Errorf("Unable to calculate diff for %s. Got error: %s", id, err)
@@ -219,7 +219,7 @@ func (m *MemDiffStore) PurgeDigests(digests types.DigestSlice, purgeGCS bool) er
 	}
 	removeKeys := make([]string, 0, len(digests))
 	for _, key := range m.diffMetricsCache.Keys() {
-		d1, d2 := mapper.SplitDiffID(key)
+		d1, d2 := common.SplitDiffID(key)
 		if digestSet[d1] || digestSet[d2] {
 			removeKeys = append(removeKeys, key)
 		}
@@ -299,7 +299,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 			}
 
 			// Extract the left and right image digests.
-			leftImgDigest, rightImgDigest := mapper.SplitDiffID(imgID)
+			leftImgDigest, rightImgDigest := common.SplitDiffID(imgID)
 
 			// Make sure both files exist.
 			for _, imgDigest := range []types.Digest{leftImgDigest, rightImgDigest} {
@@ -361,7 +361,7 @@ func noCacheNotFound(w http.ResponseWriter, r *http.Request) {
 // diffMetricsWorker calculates the diff if it's not in the cache.
 func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}, error) {
 	defer metrics2.FuncTimer().Stop()
-	leftDigest, rightDigest := mapper.SplitDiffID(id)
+	leftDigest, rightDigest := common.SplitDiffID(id)
 
 	// Load it from disk cache if necessary.
 	if dm, err := d.metricsStore.LoadDiffMetrics(id); err != nil {
@@ -408,7 +408,7 @@ func getDiffIds(leftDigests, rightDigests types.DigestSlice) []string {
 	for _, left := range leftDigests {
 		for _, right := range rightDigests {
 			if left != right {
-				diffIDsSet[mapper.DiffID(left, right)] = true
+				diffIDsSet[common.DiffID(left, right)] = true
 			}
 		}
 	}
