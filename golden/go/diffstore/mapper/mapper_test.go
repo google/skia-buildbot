@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/validation"
 )
 
 const (
@@ -42,7 +43,7 @@ func TestSplitDiffID(t *testing.T) {
 func TestIsValidImgID(t *testing.T) {
 	unittest.SmallTest(t)
 
-	assert.True(t, IsValidImgID(string(imgOne)))
-	assert.True(t, IsValidImgID(string(imgTwo)))
-	assert.False(t, IsValidImgID("nope"))
+	assert.True(t, validation.IsValidDigest(string(imgOne)))
+	assert.True(t, validation.IsValidDigest(string(imgTwo)))
+	assert.False(t, validation.IsValidDigest("nope"))
 }
