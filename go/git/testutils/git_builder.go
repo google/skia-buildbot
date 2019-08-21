@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path"
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/git_common"
@@ -22,6 +22,7 @@ type GitBuilder struct {
 	t      sktest.TestingT
 	dir    string
 	branch string
+	rng    *rand.Rand
 }
 
 // GitInit creates a new git repo in a temporary directory and returns a
@@ -42,6 +43,7 @@ func GitInitWithDir(t sktest.TestingT, ctx context.Context, dir string) *GitBuil
 		t:      t,
 		dir:    dir,
 		branch: "master",
+		rng:    rand.New(rand.NewSource(0)),
 	}
 
 	g.run(ctx, "git", "init")
@@ -64,6 +66,11 @@ func (g *GitBuilder) Dir() string {
 // RepoUrl returns a git-friendly URL for the repo.
 func (g *GitBuilder) RepoUrl() string {
 	return fmt.Sprintf("file://%s", g.Dir())
+}
+
+// Seed replaces the random seed used by the GitBuilder.
+func (g *GitBuilder) Seed(seed int64) {
+	g.rng.Seed(seed)
 }
 
 func (g *GitBuilder) run(ctx context.Context, cmd ...string) string {
@@ -94,8 +101,8 @@ func (g *GitBuilder) push(ctx context.Context) {
 }
 
 // genString returns a string with arbitrary content.
-func genString() string {
-	return uuid.New().String()
+func (g *GitBuilder) genString() string {
+	return fmt.Sprintf("%d", g.rng.Int())
 }
 
 // Add writes contents to file and adds it to the index.
@@ -106,7 +113,7 @@ func (g *GitBuilder) Add(ctx context.Context, file, contents string) {
 
 // AddGen writes arbitrary content to file and adds it to the index.
 func (g *GitBuilder) AddGen(ctx context.Context, file string) {
-	g.Add(ctx, file, genString())
+	g.Add(ctx, file, g.genString())
 }
 
 func (g *GitBuilder) lastCommitHash(ctx context.Context) string {
@@ -136,13 +143,13 @@ func (g *GitBuilder) CommitMsg(ctx context.Context, msg string) string {
 // Commit commits files in the index. The current branch is then pushed. Uses an
 // arbitrary commit message. Returns the hash of the new commit.
 func (g *GitBuilder) Commit(ctx context.Context) string {
-	return g.CommitMsg(ctx, genString())
+	return g.CommitMsg(ctx, g.genString())
 }
 
 // CommitGen commits arbitrary content to the given file. The current branch is
 // then pushed. Returns the hash of the new commit.
 func (g *GitBuilder) CommitGen(ctx context.Context, file string) string {
-	s := genString()
+	s := g.genString()
 	g.Add(ctx, file, s)
 	return g.CommitMsg(ctx, s)
 }
@@ -152,7 +159,7 @@ func (g *GitBuilder) CommitGen(ctx context.Context, file string) string {
 // dropped. Returns the hash of the new commit.
 func (g *GitBuilder) CommitGenAt(ctx context.Context, file string, ts time.Time) string {
 	g.AddGen(ctx, file)
-	return g.CommitMsgAt(ctx, genString(), ts)
+	return g.CommitMsgAt(ctx, g.genString(), ts)
 }
 
 // CommitGenMsg commits arbitrary content to the given file and uses the given
@@ -192,19 +199,29 @@ func (g *GitBuilder) CheckoutBranch(ctx context.Context, name string) {
 	g.branch = name
 }
 
-// MergeBranch merges the given branch into the current branch and pushes the
-// current branch. Returns the hash of the new commit.
-func (g *GitBuilder) MergeBranch(ctx context.Context, name string) string {
+// MergeBranchAt merges the given branch into the current branch at the given
+// time and pushes the current branch. Returns the hash of the new commit.
+func (g *GitBuilder) MergeBranchAt(ctx context.Context, name string, ts time.Time) string {
 	assert.NotEqual(g.t, g.branch, name, "Can't merge a branch into itself.")
-	cmd := []string{"git", "merge", name}
+	args := []string{"merge", name}
 	major, minor, err := git_common.Version(ctx)
 	assert.NoError(g.t, err)
 	if (major == 2 && minor >= 9) || major > 2 {
-		cmd = append(cmd, "--allow-unrelated-histories")
+		args = append(args, "--allow-unrelated-histories")
 	}
-	g.run(ctx, cmd...)
+	g.runCommand(ctx, &exec.Command{
+		Name: "git",
+		Args: args,
+		Env:  []string{fmt.Sprintf("GIT_AUTHOR_DATE=%d +0000", ts.Unix()), fmt.Sprintf("GIT_COMMITTER_DATE=%d +0000", ts.Unix())},
+	})
 	g.push(ctx)
 	return g.lastCommitHash(ctx)
+}
+
+// MergeBranch merges the given branch into the current branch and pushes the
+// current branch. Returns the hash of the new commit.
+func (g *GitBuilder) MergeBranch(ctx context.Context, name string) string {
+	return g.MergeBranchAt(ctx, name, time.Now())
 }
 
 // Reset runs "git reset" in the repo.

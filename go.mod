@@ -106,6 +106,7 @@ require (
 	github.com/ugorji/go v1.1.7 // indirect
 	github.com/unrolled/secure v1.0.1
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
+	github.com/willf/bitset v1.1.10
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/luci v0.0.0-20190815000333-f3d772c3b3fb
