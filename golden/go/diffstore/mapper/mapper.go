@@ -57,12 +57,7 @@ func IsValidDiffImgID(diffID string) bool {
 	if len(imageIDs) != 2 {
 		return false
 	}
-	return IsValidImgID(imageIDs[0]) && IsValidImgID(imageIDs[1])
-}
-
-// IsValidImgID returns true if the given imgID is in the correct format.
-func IsValidImgID(imgID string) bool {
-	return validation.IsValidDigest(imgID)
+	return validation.IsValidDigest(imageIDs[0]) && validation.IsValidDigest(imageIDs[1])
 }
 
 func getOrderedDiffID(left, right types.Digest) (types.Digest, types.Digest, string) {

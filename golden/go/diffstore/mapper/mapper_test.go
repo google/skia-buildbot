@@ -38,11 +38,3 @@ func TestSplitDiffID(t *testing.T) {
 	assert.Equal(t, imgOne, actualLeft)
 	assert.Equal(t, imgTwo, actualRight)
 }
-
-func TestIsValidImgID(t *testing.T) {
-	unittest.SmallTest(t)
-
-	assert.True(t, IsValidImgID(string(imgOne)))
-	assert.True(t, IsValidImgID(string(imgTwo)))
-	assert.False(t, IsValidImgID("nope"))
-}
