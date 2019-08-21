@@ -18,6 +18,10 @@ import (
 const (
 	// IMG_EXTENSION is the default extension of images.
 	IMG_EXTENSION = "png"
+
+	// DiffImageSeparator is the character that separates two image ids in the
+	// resulting diff image.
+	DiffImageSeparator = "-"
 )
 
 // SaveFile writes the given file to disk.
