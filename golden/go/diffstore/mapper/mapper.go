@@ -6,7 +6,6 @@ import (
 
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/validation"
 )
 
 // Mapper is the interface to define how the diff metric between two images
@@ -49,20 +48,6 @@ func SplitDiffID(diffID string) (types.Digest, types.Digest) {
 	imageIDs := strings.Split(diffID, DiffImageSeparator)
 
 	return types.Digest(imageIDs[0]), types.Digest(imageIDs[1])
-}
-
-// IsValidDiffImgID returns true if the given diffImgID is in the correct format.
-func IsValidDiffImgID(diffID string) bool {
-	imageIDs := strings.Split(diffID, DiffImageSeparator)
-	if len(imageIDs) != 2 {
-		return false
-	}
-	return IsValidImgID(imageIDs[0]) && IsValidImgID(imageIDs[1])
-}
-
-// IsValidImgID returns true if the given imgID is in the correct format.
-func IsValidImgID(imgID string) bool {
-	return validation.IsValidDigest(imgID)
 }
 
 func getOrderedDiffID(left, right types.Digest) (types.Digest, types.Digest, string) {
