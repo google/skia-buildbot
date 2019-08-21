@@ -22,6 +22,30 @@
       "revId": "4cfd5b1ed4d6938efc61fd127bb4a458198ac620",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab38eb8_f9defb4f",
+        "filename": "golden/go/ingestion_processors/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-21T18:45:20Z",
+      "side": 1,
+      "message": "That\u0027s a good idea.",
+      "parentUuid": "75024c61_26d91229",
+      "range": {
+        "startLine": 39,
+        "startChar": 14,
+        "endLine": 39,
+        "endChar": 25
+      },
+      "revId": "4cfd5b1ed4d6938efc61fd127bb4a458198ac620",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
