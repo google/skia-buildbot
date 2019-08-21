@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "65334076_f59c3d59",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-21T17:34:59Z",
+      "side": 1,
+      "message": "That\u0027d be nice!  We *could* create a custom BranchMap type and prevent editing, but I suspect that\u0027d require updating a lot of call sites.",
+      "parentUuid": "675746e7_6ff5f470",
+      "range": {
+        "startLine": 280,
+        "startChar": 30,
+        "endLine": 280,
+        "endChar": 53
+      },
+      "revId": "460cb7874469344efd53da06c0870d8f8b65dc7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3099082b_7cd14dae",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "460cb7874469344efd53da06c0870d8f8b65dc7a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec4cb861_d96caa5f",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-21T17:34:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3099082b_7cd14dae",
+      "range": {
+        "startLine": 308,
+        "startChar": 15,
+        "endLine": 308,
+        "endChar": 43
+      },
+      "revId": "460cb7874469344efd53da06c0870d8f8b65dc7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
