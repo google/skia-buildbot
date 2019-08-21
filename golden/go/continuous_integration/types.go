@@ -11,11 +11,11 @@ import (
 // The Client interface is an abstraction around a Continuous Integration System.
 type Client interface {
 	// GetTryjob returns the TryJob corresponding to the given id.
-	// Returns NotFound if it doesn't exist.
+	// Returns ErrNotFound if it doesn't exist.
 	GetTryJob(ctx context.Context, id string) (TryJob, error)
 }
 
-var NotFound = errors.New("not found")
+var ErrNotFound = errors.New("not found")
 
 type TryJob struct {
 	// SystemID is expected to be unique between all TryJobs.
