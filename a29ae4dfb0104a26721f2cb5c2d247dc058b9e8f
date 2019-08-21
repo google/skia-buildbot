@@ -95,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "c9a5ae70_7d2985bd",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-21T18:48:44Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "d9cd9d6a_eb43edc2",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 53
+      },
+      "revId": "a29ae4dfb0104a26721f2cb5c2d247dc058b9e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c7d8a33b_732debc3",
         "filename": "golden/go/tjstore/tjstore.go",
         "patchSetId": 10
