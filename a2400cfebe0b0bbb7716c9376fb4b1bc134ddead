@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "167ba203_a589553f",
+        "filename": "go/git/repograph/shared_tests/shared_tests.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 769,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-21T20:01:57Z",
+      "side": 1,
+      "message": "Take two branches - add something to one and verify that the other also has it?\n\nMaybe also reflect.ValueOf().Pointer()?",
+      "revId": "a2400cfebe0b0bbb7716c9376fb4b1bc134ddead",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
