@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/validation"
 )
 
 const (
