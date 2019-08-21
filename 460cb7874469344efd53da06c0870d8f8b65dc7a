@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "675746e7_6ff5f470",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-21T14:37:21Z",
+      "side": 1,
+      "message": "idea for Go 2 - read only maps that you can cast a normal map to.\n\nhttps://github.com/golang/go/issues/22876",
+      "range": {
+        "startLine": 280,
+        "startChar": 30,
+        "endLine": 280,
+        "endChar": 53
+      },
+      "revId": "460cb7874469344efd53da06c0870d8f8b65dc7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3099082b_7cd14dae",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-21T14:37:21Z",
+      "side": 1,
+      "message": "add comment that this essentially maps branches to the branch map, using the bitset\u0027s (deterministic) representation as a key",
+      "range": {
+        "startLine": 308,
+        "startChar": 15,
+        "endLine": 308,
+        "endChar": 43
+      },
+      "revId": "460cb7874469344efd53da06c0870d8f8b65dc7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
