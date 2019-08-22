@@ -9,13 +9,11 @@ import (
 	"image"
 	"io"
 	"net/http"
-	"os"
 	"path/filepath"
 	"sync"
 	"time"
 
 	"cloud.google.com/go/storage"
-	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/rtcache"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -61,13 +59,9 @@ type ImageLoader struct {
 	mapper mapper.Mapper
 }
 
-// ImagePaths returns the storage paths for a given image ID. The first return
-// value is the local file path used to store the image on disk and serve it
-// over HTTP. The second return value is the GCS path (not including the bucket).
-func ImagePaths(imageID types.Digest) (string, string) {
-	gsPath := fmt.Sprintf("%s.%s", imageID, common.IMG_EXTENSION)
-	localPath := fileutil.TwoLevelRadixPath(gsPath)
-	return localPath, gsPath
+// getGSRelPath returns the GCS path for a given image ID (excluding the bucket).
+func getGSRelPath(imageID types.Digest) string {
+	return fmt.Sprintf("%s.%s", imageID, common.IMG_EXTENSION)
 }
 
 // Creates a new instance of ImageLoader.
@@ -101,26 +95,22 @@ func NewImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []s
 }
 
 // Warm makes sure the images are cached.
-// If synchronous is true the call blocks until all fetched images are written to disk.
+// If synchronous is true the call blocks until all images are fetched.
 // It works in sync with Get, any image that is scheduled to be retrieved by Get
 // will not be fetched again.
 func (il *ImageLoader) Warm(priority int64, images types.DigestSlice, synchronous bool) {
-	var pendingWritesWG *sync.WaitGroup
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		var err error
-		_, pendingWritesWG, err = il.Get(priority, images)
-		if err != nil {
+		if _, err := il.Get(priority, images); err != nil {
 			sklog.Errorf("Unable to warm images. Got error: %s", err)
 		}
 	}()
 
 	if synchronous {
-		// Wait for the get to finish and for all images to be written to disk.
+		// Wait for the get to finish.
 		wg.Wait()
-		pendingWritesWG.Wait()
 	}
 }
 
@@ -135,36 +125,26 @@ type errResult struct {
 // The returned instance of WaitGroup can be used to wait until all images are
 // not just loaded but also written to disk. Calling the Wait() function of the
 // WaitGroup is optional and the client should not call any of its other functions.
-func (il *ImageLoader) Get(priority int64, images types.DigestSlice) ([]*image.NRGBA, *sync.WaitGroup, error) {
+func (il *ImageLoader) Get(priority int64, images types.DigestSlice) ([]*image.NRGBA, error) {
 	// Parallel load the requested images.
 	result := make([]*image.NRGBA, len(images))
-	imgWrappers := make(imgRetSlice, len(images))
 	errCh := make(chan errResult, len(images))
-	sklog.Debugf("About to Get %d images", len(images))
+	sklog.Debugf("About to Get %d images.", len(images))
 	var wg sync.WaitGroup
 	wg.Add(len(images))
 	for idx, id := range images {
 		go func(idx int, id types.Digest) {
 			defer wg.Done()
-			tmp, err := il.imageCache.Get(priority, string(id))
+			img, err := il.imageCache.Get(priority, string(id))
 			if err != nil {
 				errCh <- errResult{err: err, id: id}
 			} else {
-				// Extract the image and make sure after the first retrieval the channels
-				// are removed as well.
-				ret := tmp.(*imgRet)
-				result[idx] = ret.img
-				imgWrappers[idx] = ret
+				result[idx] = img.(*image.NRGBA)
 			}
 		}(idx, id)
 	}
 	wg.Wait()
-	sklog.Debugf("Done getting images, might need some cleanup")
-
-	// Cleanup the open channels in the background and extract the wait group to
-	// return. Note: This is advised even if there are errors since it deallocates
-	// the channels used to signal completion of writes.
-	pendingWritesWG := imgWrappers.cleanupPendingOps()
+	sklog.Debugf("Done getting images.")
 
 	if len(errCh) > 0 {
 		close(errCh)
@@ -176,29 +156,22 @@ func (il *ImageLoader) Get(priority int64, images types.DigestSlice) ([]*image.N
 			// This captures the edge case when the error is cached in the image loader.
 			util.LogErr(il.failureStore.AddDigestFailureIfNew(diff.NewDigestFailure(errRet.id, diff.OTHER)))
 		}
-		return nil, nil, errors.New(msg.String())
+		return nil, errors.New(msg.String())
 	}
 
-	return result, pendingWritesWG, nil
+	return result, nil
 }
 
-// IsOnDisk returns true if the image that corresponds to the given imageID is in the disk cache.
-func (il *ImageLoader) IsOnDisk(imageID types.Digest) bool {
-	localRelPath, _ := ImagePaths(imageID)
-	return fileutil.FileExists(filepath.Join(il.localImgDir, localRelPath))
+// Contains returns true if the image with the given digest is cached in memory.
+func (il *ImageLoader) Contains(image types.Digest) bool {
+	return il.imageCache.Contains(string(image))
 }
 
 // PurgeImages removes the images that correspond to the given images.
+// TODO(lovisolo): Can we get rid of this now that we're no longer removing images from disk?
 func (il *ImageLoader) PurgeImages(images types.DigestSlice, purgeGCS bool) error {
 	for _, id := range images {
-		localRelPath, gsRelPath := ImagePaths(id)
-		localPath := filepath.Join(il.localImgDir, localRelPath)
-		if fileutil.FileExists(localPath) {
-			if err := os.Remove(localPath); err != nil {
-				sklog.Errorf("Unable to remove image %s. Got error: %s", localPath, err)
-			}
-		}
-
+		gsRelPath := getGSRelPath(id)
 		if purgeGCS {
 			il.removeImg(gsRelPath)
 		}
@@ -207,24 +180,12 @@ func (il *ImageLoader) PurgeImages(images types.DigestSlice, purgeGCS bool) erro
 }
 
 // imageLoadWorker implements the rtcache.ReadThroughFunc signature.
-// It loads an image file either from disk or from Google storage.
+// It loads an image file from Google storage.
 func (il *ImageLoader) imageLoadWorker(priority int64, imageID types.Digest) (interface{}, error) {
-	// Check if the image is in the disk cache.
-	localRelPath, gsRelPath := ImagePaths(imageID)
-	localPath := filepath.Join(il.localImgDir, localRelPath)
-	sklog.Debugf("Looking for image with id %s", imageID)
-	if fileutil.FileExists(localPath) {
-		img, err := common.LoadImg(localPath)
-		if err != nil {
-			util.LogErr(il.failureStore.AddDigestFailure(diff.NewDigestFailure(imageID, diff.CORRUPTED)))
-			return nil, skerr.Fmt("Could not load %s from disk: %s", localPath, err)
-		}
-		sklog.Debugf("Found it on disk at %s", localPath)
-		util.LogErr(il.failureStore.PurgeDigestFailures(types.DigestSlice{imageID}))
-		return &imgRet{img: img}, nil
-	}
+	sklog.Debugf("Downloading (and caching) image with ID %s", imageID)
 
-	// Download the image from GCS
+	// Download the image from GCS.
+	gsRelPath := getGSRelPath(imageID)
 	imgBytes, err := il.downloadImg(gsRelPath)
 	if err != nil {
 		util.LogErr(il.failureStore.AddDigestFailure(diff.NewDigestFailure(imageID, diff.HTTP)))
@@ -237,23 +198,7 @@ func (il *ImageLoader) imageLoadWorker(priority int64, imageID types.Digest) (in
 		util.LogErr(il.failureStore.AddDigestFailure(diff.NewDigestFailure(imageID, diff.CORRUPTED)))
 		return nil, err
 	}
-
-	// Save the file to disk.
-	writeDoneCh := il.saveImgInfoAsync(imageID, imgBytes)
-	return &imgRet{writtenCh: writeDoneCh, img: img}, nil
-}
-
-func (il *ImageLoader) saveImgInfoAsync(imageID types.Digest, imgBytes []byte) <-chan bool {
-	writeDoneCh := make(chan bool)
-	go func() {
-		defer close(writeDoneCh)
-		localRelPath, _ := ImagePaths(imageID)
-		p := filepath.Join(il.localImgDir, localRelPath)
-		if err := common.SaveFilePath(p, bytes.NewBuffer(imgBytes)); err != nil {
-			sklog.Errorf("Could not write file to disk at %s: %s", p, err)
-		}
-	}()
-	return writeDoneCh
+	return img, nil
 }
 
 // downloadImg retrieves the given image from Google storage. If bucket is not empty
@@ -355,49 +300,4 @@ func (il *ImageLoader) removeImg(gsRelPath string) {
 			continue
 		}
 	}
-}
-
-// imgRet is a container type used to return the loaded image and a channel
-// that is closed after the image had been written to disk or nil if the image
-// was already on disk and/or RAM.
-type imgRet struct {
-	writtenCh <-chan bool // will be closed after the image has been written to disk
-	img       *image.NRGBA
-	mutex     sync.Mutex
-}
-
-// waitForDone blocks until the pending write is done and then disposes of writtenCh
-// since the value will be in the read-through-cache or on disk.
-func (i *imgRet) waitForDone() {
-	if i == nil {
-		return
-	}
-
-	i.mutex.Lock()
-	defer i.mutex.Unlock()
-	if i.writtenCh == nil {
-		return
-	}
-	<-i.writtenCh
-	i.writtenCh = nil
-}
-
-// imgRetSlice allows to synchronize many independent operations by using
-// closed channels to signal completion. It also converts all the channels into
-// a single WaitGroup.
-type imgRetSlice []*imgRet
-
-// cleanupPendingOps blocks until the pending operations are finished, i.e. all the underlying
-// channels are either nil or closed. It also returns a WaitGroup that allows to
-// wait for all operations to be done.
-func (i imgRetSlice) cleanupPendingOps() *sync.WaitGroup {
-	ret := &sync.WaitGroup{}
-	ret.Add(len(i))
-	go func() {
-		for _, pendingWrite := range i {
-			pendingWrite.waitForDone()
-			ret.Done()
-		}
-	}()
-	return ret
 }

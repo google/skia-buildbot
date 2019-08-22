@@ -53,9 +53,9 @@ func TestImageLoader(t *testing.T) {
 	}
 
 	// Fetch images from the secondary bucket.
-	_, _, err := imageLoader.Get(1, types.DigestSlice{TEST_IMG_DIGEST})
+	_, err := imageLoader.Get(1, types.DigestSlice{TEST_IMG_DIGEST})
 	assert.NoError(t, err)
-	_, _, err = imageLoader.Get(1, types.DigestSlice{"some-image-that-does-not-exist-at-all-in-any-bucket"})
+	_, err = imageLoader.Get(1, types.DigestSlice{"some-image-that-does-not-exist-at-all-in-any-bucket"})
 	assert.Error(t, err)
 }
 
@@ -74,13 +74,11 @@ func getImageLoaderAndTile(t sktest.TestingT, m mapper.Mapper) (string, *tiling.
 	return workingDir, tile, imgLoader, cleanup
 }
 
-func TestImagePaths(t *testing.T) {
+func TestGetGSRelPath(t *testing.T) {
 	unittest.SmallTest(t)
 
 	digest := types.Digest("098f6bcd4621d373cade4e832627b4f6")
-	expectedLocalPath := filepath.Join("09", "8f", string(digest)+".png")
 	expectedGSPath := string(digest + ".png")
-	localPath, gsPath := ImagePaths(digest)
-	assert.Equal(t, expectedLocalPath, localPath)
+	gsPath := getGSRelPath(digest)
 	assert.Equal(t, expectedGSPath, gsPath)
 }
