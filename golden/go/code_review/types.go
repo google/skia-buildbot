@@ -30,11 +30,10 @@ type ChangeList struct {
 	// SystemID is expected to be unique between all ChangeLists.
 	SystemID string
 
-	NumPatchSets int
-	Owner        string
-	Status       CLStatus
-	Subject      string
-	Updated      time.Time
+	Owner   string
+	Status  CLStatus
+	Subject string
+	Updated time.Time
 }
 
 type CLStatus int

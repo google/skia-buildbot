@@ -105,13 +105,28 @@ type GoldResults struct {
 	Results []*Result         `json:"results"  validate:"min=1"`
 
 	// Required fields for tryjobs.
+	// TODO(kjlubick): Replace these with more general ids for
+	// a CodeReviewSystem and ContinuousIntegrationSystem.
+	// These new ones should be strings, as outlined in
+	// design doc for https://bugs.chromium.org/p/skia/issues/detail?id=9340
 	BuildBucketID      int64 `json:"buildbucket_build_id,string"`
 	GerritChangeListID int64 `json:"issue,string"`
 	GerritPatchSet     int64 `json:"patchset,string"`
 
+	// Newly added fields for tryjobs - will be required one day
+	CodeReviewSystem            string `json:"crs"`
+	ContinuousIntegrationSystem string `json:"cis"`
+
 	// Optional fields for tryjobs - can make debugging easier
 	Builder string `json:"builder"`
 	TaskID  string `json:"task_id"`
+}
+
+// Result holds the individual result of one test.
+type Result struct {
+	Key     map[string]string `json:"key"      validate:"required"`
+	Options map[string]string `json:"options"  validate:"required"`
+	Digest  types.Digest      `json:"md5"      validate:"required"`
 }
 
 // rawGoldResults used to embed GoldResults, but in newer versions of Go (1.12+), it became
@@ -125,6 +140,10 @@ type rawGoldResults struct {
 	BuildBucketID      string `json:"buildbucket_build_id"`
 	GerritChangeListID string `json:"issue"`
 	GerritPatchSet     string `json:"patchset"`
+
+	// Newly added fields for tryjobs - will be required one day
+	CodeReviewSystem            string `json:"crs"`
+	ContinuousIntegrationSystem string `json:"cis"`
 
 	// Optional fields for tryjobs - can make debugging easier
 	Builder string `json:"builder"`
@@ -203,13 +222,6 @@ func (g *GoldResults) Validate(ignoreResults bool) ([]string, error) {
 		return errMsg, skerr.Fmt("errors in Validate: %s", messagesToError(errMsg))
 	}
 	return nil, nil
-}
-
-// Result holds the individual result of one test.
-type Result struct {
-	Key     map[string]string `json:"key"      validate:"required"`
-	Options map[string]string `json:"options"  validate:"required"`
-	Digest  types.Digest      `json:"md5"      validate:"required"`
 }
 
 // validate the Result instance.
