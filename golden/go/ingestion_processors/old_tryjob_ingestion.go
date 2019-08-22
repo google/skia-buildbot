@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/bbstate"
 	"go.skia.org/infra/golden/go/config"
+	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/tryjobstore/ds_tryjobstore"
 	"go.skia.org/infra/golden/go/types"
@@ -155,41 +156,41 @@ func deprecated_newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.Ing
 
 // See ingestion.Processor interface.
 func (g *deprecatedGoldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
-	dmResults, err := processDMResults(resultsFile)
+	gr, err := processGoldResults(resultsFile)
 	if err != nil {
 		sklog.Errorf("Error processing result: %s", err)
 		return ingestion.IgnoreResultsFileErr
 	}
 
 	// Make sure we have an issue, patchset and a buildbucket id.
-	if (dmResults.GerritChangeListID <= 0) || (dmResults.GerritPatchSet <= 0) || (dmResults.BuildBucketID <= 0) {
-		sklog.Errorf("Invalid data. issue, patchset and buildbucket id must be > 0. Got (%d, %d, %d).", dmResults.GerritChangeListID, dmResults.GerritPatchSet, dmResults.BuildBucketID)
+	if (gr.GerritChangeListID <= 0) || (gr.GerritPatchSet <= 0) || (gr.BuildBucketID <= 0) {
+		sklog.Errorf("Invalid data. issue, patchset and buildbucket id must be > 0. Got (%d, %d, %d).", gr.GerritChangeListID, gr.GerritPatchSet, gr.BuildBucketID)
 		return ingestion.IgnoreResultsFileErr
 	}
 
-	entries, err := extractTraceStoreEntries(dmResults)
+	entries, err := extractTraceStoreEntries(gr, resultsFile.Name())
 	if err != nil {
 		sklog.Errorf("Error getting tracedb entries: %s", err)
 		return ingestion.IgnoreResultsFileErr
 	}
 
 	// Save the results to the trybot store.
-	issueID := dmResults.GerritChangeListID
-	tryjob, err := g.tryjobStore.GetTryjob(issueID, dmResults.BuildBucketID)
+	issueID := gr.GerritChangeListID
+	tryjob, err := g.tryjobStore.GetTryjob(issueID, gr.BuildBucketID)
 	if err != nil {
 		sklog.Errorf("Error retrieving tryjob: %s", err)
 		return ingestion.IgnoreResultsFileErr
 	}
 
-	tryjob, err = g.syncIssueAndTryjob(issueID, tryjob, dmResults, resultsFile.Name())
+	tryjob, err = g.syncIssueAndTryjob(issueID, tryjob, gr, resultsFile.Name())
 	if err != nil {
 		return err
 	}
 
 	// Add the Githash of the underlying result.
 	if tryjob.MasterCommit == "" {
-		tryjob.MasterCommit = dmResults.GitHash
-	} else if tryjob.MasterCommit != dmResults.GitHash {
+		tryjob.MasterCommit = gr.GitHash
+	} else if tryjob.MasterCommit != gr.GitHash {
 		sklog.Errorf("Master commit in tryjob and ingested results do not match.")
 		return ingestion.IgnoreResultsFileErr
 	}
@@ -229,7 +230,7 @@ func (g *deprecatedGoldTryjobProcessor) Process(ctx context.Context, resultsFile
 	return nil
 }
 
-func (g *deprecatedGoldTryjobProcessor) syncIssueAndTryjob(issueID int64, tryjob *tryjobstore.Tryjob, dmResults *dmResults, resultFileName string) (*tryjobstore.Tryjob, error) {
+func (g *deprecatedGoldTryjobProcessor) syncIssueAndTryjob(issueID int64, tryjob *tryjobstore.Tryjob, gr *jsonio.GoldResults, resultFileName string) (*tryjobstore.Tryjob, error) {
 	// Only let one thread in at time for each issueID. In most cases they will follow the fast
 	// path of finding the issue and having an non-nil tryjob.
 	defer g.syncMonitor.Enter(issueID).Release()
@@ -245,7 +246,7 @@ func (g *deprecatedGoldTryjobProcessor) syncIssueAndTryjob(issueID int64, tryjob
 	// be picket up by BuildBucketState as they are added.
 	if (tryjob == nil) || (issue == nil) || !issue.HasPatchset(tryjob.PatchsetID) {
 		var err error
-		if issue, tryjob, err = g.buildIssueSync.SyncIssueTryjob(issueID, dmResults.BuildBucketID); err != nil {
+		if issue, tryjob, err = g.buildIssueSync.SyncIssueTryjob(issueID, gr.BuildBucketID); err != nil {
 			if err != bbstate.SkipTryjob {
 				sklog.Errorf("Error fetching the issue and tryjob information: %s", err)
 			}

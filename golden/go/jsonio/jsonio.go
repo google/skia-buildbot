@@ -109,6 +109,9 @@ type GoldResults struct {
 	// a CodeReviewSystem and ContinuousIntegrationSystem.
 	// These new ones should be strings, as outlined in
 	// design doc for https://bugs.chromium.org/p/skia/issues/detail?id=9340
+	// Of note - the only reader of GerritChangeListID is old_tryjob_ingestion
+	// nobody reads GerritPatchSet and BuildBucketID is used in several
+	// places involving bbstate and the old tryjobstore implementation.
 	BuildBucketID      int64 `json:"buildbucket_build_id,string"`
 	GerritChangeListID int64 `json:"issue,string"`
 	GerritPatchSet     int64 `json:"patchset,string"`

@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
 	"go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/continuous_integration/buildbucket_cis"
+	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/tjstore/fs_tjstore"
@@ -127,7 +128,7 @@ func continuousIntegrationSystemFactory(cisName string, config *sharedconfig.Ing
 
 func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFileLocation) error {
 	defer metrics2.FuncTimer().Stop()
-	dmResults, err := processDMResults(rf)
+	gr, err := processGoldResults(rf)
 	if err != nil {
 		sklog.Errorf("Error processing result: %s", err)
 		return ingestion.IgnoreResultsFileErr
@@ -135,12 +136,12 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 
 	clID := ""
 	psID := ""
-	crs := dmResults.CodeReviewSystem
+	crs := gr.CodeReviewSystem
 	if crs == "" || crs == g.crsName {
 		// Default to Gerrit
 		crs = gerritCRS
-		clID = strconv.FormatInt(dmResults.GerritChangeListID, 10)
-		psID = strconv.FormatInt(dmResults.GerritPatchSet, 10)
+		clID = strconv.FormatInt(gr.GerritChangeListID, 10)
+		psID = strconv.FormatInt(gr.GerritPatchSet, 10)
 	} else {
 		sklog.Warningf("Result %s said it was for crs %q, but this ingester is configured for %s", rf.Name(), crs, g.crsName)
 		// We only support one CRS and one CIS at the moment, but if needed, we can have
@@ -149,11 +150,11 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	}
 
 	tjID := ""
-	cis := dmResults.ContinuousIntegrationSystem
+	cis := gr.ContinuousIntegrationSystem
 	if cis == "" || cis == g.cisName {
 		// Default to BuildBucket
 		cis = buildbucketCIS
-		tjID = strconv.FormatInt(dmResults.BuildBucketID, 10)
+		tjID = strconv.FormatInt(gr.BuildBucketID, 10)
 	} else {
 		sklog.Warningf("Result %s said it was for cis %q, but this ingester is configured for %s", rf.Name(), cis, g.cisName)
 		// We only support one CRS and one CIS at the moment, but if needed, we can have
@@ -230,7 +231,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	defer shared.NewMetricsTimer("put_tryjobstore_entries").Stop()
 
 	// Store the results from the file.
-	tjr := toTryJobResults(dmResults)
+	tjr := toTryJobResults(gr)
 	err = g.tryjobStore.PutResults(ctx, combinedID, tjr)
 	if err != nil {
 		return skerr.Wrapf(err, "putting %d results for CL %s, PS %s, TJ %s, file %s", len(tjr), clID, psID, tjID, rf.Name())
@@ -240,7 +241,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 }
 
 // toTryJobResults converts the JSON file to a slize of TryJobResult.
-func toTryJobResults(j *dmResults) []tjstore.TryJobResult {
+func toTryJobResults(j *jsonio.GoldResults) []tjstore.TryJobResult {
 	var tjr []tjstore.TryJobResult
 	for _, r := range j.Results {
 		tjr = append(tjr, tjstore.TryJobResult{
