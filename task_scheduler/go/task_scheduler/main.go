@@ -28,7 +28,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitauth"
-	"go.skia.org/infra/go/gitstore/bt_gitstore"
+	"go.skia.org/infra/go/gitstore_deprecated/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/isolate"

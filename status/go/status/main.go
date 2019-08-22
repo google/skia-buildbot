@@ -32,7 +32,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitauth"
-	"go.skia.org/infra/go/gitstore/bt_gitstore"
+	"go.skia.org/infra/go/gitstore_deprecated/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
