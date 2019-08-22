@@ -29,4 +29,4 @@ type Store interface {
 	PutPatchSet(ctx context.Context, clID string, ps code_review.PatchSet) error
 }
 
-var NotFound = errors.New("not found")
+var ErrNotFound = errors.New("not found")
