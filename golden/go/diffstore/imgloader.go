@@ -173,6 +173,15 @@ func (il *ImageLoader) Get(priority int64, images types.DigestSlice) ([]*image.N
 	return result, pendingWritesWG, nil
 }
 
+// ImagePaths returns the storage paths for a given image ID. The first return
+// value is the local file path used to store the image on disk and serve it
+// over HTTP. The second return value is the GCS path (not including the bucket).
+func (il *ImageLoader) ImagePaths(imageID types.Digest) (string, string) {
+	gsPath := fmt.Sprintf("%s.%s", imageID, common.IMG_EXTENSION)
+	localPath := fileutil.TwoLevelRadixPath(gsPath)
+	return localPath, gsPath
+}
+
 // IsOnDisk returns true if the image that corresponds to the given imageID is in the disk cache.
 func (il *ImageLoader) IsOnDisk(imageID types.Digest) bool {
 	localRelPath, _ := il.mapper.ImagePaths(imageID)
