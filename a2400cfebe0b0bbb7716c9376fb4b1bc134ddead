@@ -16,6 +16,24 @@
       "revId": "a2400cfebe0b0bbb7716c9376fb4b1bc134ddead",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f39996c_3f006588",
+        "filename": "go/git/repograph/shared_tests/shared_tests.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 769,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-22T00:01:19Z",
+      "side": 1,
+      "message": "Good idea! Done.",
+      "parentUuid": "167ba203_a589553f",
+      "revId": "a2400cfebe0b0bbb7716c9376fb4b1bc134ddead",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
