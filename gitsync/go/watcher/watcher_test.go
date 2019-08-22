@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -59,8 +60,15 @@ func TestIngestCommits(t *testing.T) {
 		totalIngested += numNew
 		assert.Equal(t, totalIngested, len(ri.Commits))
 	}
+	// There's a data race between the mocked GitStore's use of reflection
+	// and the lock/unlock of a mutex in Context.Err(). We add a mutex here
+	// to avoid that problem.
+	var ctxMtx sync.Mutex
 	process := func(ctx context.Context, cb *commitBatch) error {
-		if err := ri.gitstore.Put(ctx, cb.commits); err != nil {
+		ctxMtx.Lock()
+		err := ri.gitstore.Put(ctx, cb.commits)
+		ctxMtx.Unlock()
+		if err != nil {
 			return err
 		}
 		for _, c := range cb.commits {
@@ -115,7 +123,11 @@ func TestIngestCommits(t *testing.T) {
 	// Ensure that the context gets canceled if ingestion fails.
 	err = ri.processCommits(ctx, process, func(ctx context.Context, ch chan<- *commitBatch) error {
 		for i := 5; i < 10; i++ {
-			if err := ctx.Err(); err != nil {
+			// See the above comment about mocks, reflect, and race.
+			ctxMtx.Lock()
+			err := ctx.Err()
+			ctxMtx.Unlock()
+			if err != nil {
 				return err
 			}
 			hashes := make([]string, 0, i)
