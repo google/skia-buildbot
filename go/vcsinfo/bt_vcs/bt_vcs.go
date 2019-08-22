@@ -12,8 +12,8 @@ import (
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/gitstore"
-	"go.skia.org/infra/go/gitstore/bt_gitstore"
+	"go.skia.org/infra/go/gitstore_deprecated"
+	"go.skia.org/infra/go/gitstore_deprecated/bt_gitstore"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -38,13 +38,13 @@ const (
 
 // BigTableVCS implements the vcsinfo.VCS interface based on a BT-backed GitStore.
 type BigTableVCS struct {
-	gitStore           gitstore.GitStore
+	gitStore           gitstore_deprecated.GitStore
 	repo               *gitiles.Repo
 	defaultBranch      string
 	secondaryVCS       vcsinfo.VCS
 	secondaryExtractor depot_tools.DEPSExtractor
 
-	branchInfo *gitstore.BranchPointer
+	branchInfo *gitstore_deprecated.BranchPointer
 
 	// This mutex protects detailsCache and indexCommits
 	mutex sync.RWMutex
@@ -57,7 +57,7 @@ type BigTableVCS struct {
 // gittiles.Repo to retrieve files. Each instance provides an interface to one branch.
 // If defaultBranch is gitstore.ALL_BRANCHES all commits in the repository are considered.
 // The instances of gitiles.Repo is only used to fetch files.
-func New(ctx context.Context, gitStore gitstore.GitStore, defaultBranch string, repo *gitiles.Repo) (*BigTableVCS, error) {
+func New(ctx context.Context, gitStore gitstore_deprecated.GitStore, defaultBranch string, repo *gitiles.Repo) (*BigTableVCS, error) {
 	if gitStore == nil {
 		return nil, errors.New("Cannot have nil gitStore")
 	}
@@ -91,7 +91,7 @@ func (b *BigTableVCS) Update(ctx context.Context, pull, allBranches bool) error 
 	// Check if we need to pull across all branches.
 	targetBranch := b.defaultBranch
 	if allBranches {
-		targetBranch = gitstore.ALL_BRANCHES
+		targetBranch = gitstore_deprecated.ALL_BRANCHES
 	}
 
 	// Simulate a pull by fetching the latest head of the target branch.
@@ -283,12 +283,12 @@ func (b *BigTableVCS) details(ctx context.Context, hash string, includeBranchInf
 
 // getBranchInfo determines which branches contain the given commit 'c'.
 // This function can potentially spawn a huge number of goroutines (one per branch).
-func (b *BigTableVCS) getBranchInfo(ctx context.Context, c *vcsinfo.LongCommit, allBranches map[string]*gitstore.BranchPointer) (map[string]bool, error) {
+func (b *BigTableVCS) getBranchInfo(ctx context.Context, c *vcsinfo.LongCommit, allBranches map[string]*gitstore_deprecated.BranchPointer) (map[string]bool, error) {
 	ret := make(map[string]bool, len(allBranches))
 	var mutex sync.Mutex
 	var egroup errgroup.Group
 	for branchName := range allBranches {
-		if branchName != gitstore.ALL_BRANCHES {
+		if branchName != gitstore_deprecated.ALL_BRANCHES {
 			func(branchName string) {
 				egroup.Go(func() error {
 					// Since we cannot look up a commit in a branch directly we query for all commits that
@@ -401,8 +401,8 @@ func (b *BigTableVCS) ResolveCommit(ctx context.Context, commitHash string) (str
 	return foundCommit, nil
 }
 
-// GetGitStore implements the gitstore.GitStoreBased interface
-func (b *BigTableVCS) GetGitStore() gitstore.GitStore {
+// GetGitStore implements the gitstore_deprecated.GitStoreBased interface
+func (b *BigTableVCS) GetGitStore() gitstore_deprecated.GitStore {
 	return b.gitStore
 }
 

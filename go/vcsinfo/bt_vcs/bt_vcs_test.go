@@ -2,18 +2,16 @@ package bt_vcs
 
 import (
 	"context"
-	"io/ioutil"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/gitstore"
-	"go.skia.org/infra/go/gitstore/mocks"
-	gs_testutils "go.skia.org/infra/go/gitstore/testutils"
+	"go.skia.org/infra/go/gitstore_deprecated"
+	"go.skia.org/infra/go/gitstore_deprecated/mocks"
+	gs_testutils "go.skia.org/infra/go/gitstore_deprecated/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	vcs_testutils "go.skia.org/infra/go/vcsinfo/testutils"
 )
@@ -39,14 +37,14 @@ func TestVCSSuite(t *testing.T) {
 
 func TestBranchInfo(t *testing.T) {
 	unittest.LargeTest(t)
-	vcs, gitStore, cleanup := setupVCSLocalRepo(t, gitstore.ALL_BRANCHES)
+	vcs, gitStore, cleanup := setupVCSLocalRepo(t, gitstore_deprecated.ALL_BRANCHES)
 	defer cleanup()
 
 	branchPointers, err := gitStore.GetBranches(context.Background())
 	assert.NoError(t, err)
 	branches := []string{}
 	for branchName := range branchPointers {
-		if branchName != gitstore.ALL_BRANCHES {
+		if branchName != gitstore_deprecated.ALL_BRANCHES {
 			branches = append(branches, branchName)
 		}
 	}
@@ -260,18 +258,12 @@ func TestDetailsMultiPartialCaching(t *testing.T) {
 }
 
 // setupVCSLocalRepo loads the test repo into a new GitStore and returns an instance of vcsinfo.VCS.
-func setupVCSLocalRepo(t *testing.T, branch string) (vcsinfo.VCS, gitstore.GitStore, func()) {
+func setupVCSLocalRepo(t *testing.T, branch string) (vcsinfo.VCS, gitstore_deprecated.GitStore, func()) {
 	repoDir, cleanup := vcs_testutils.InitTempRepo()
-	wd, err := ioutil.TempDir("", "")
+	_, _, btgs := gs_testutils.SetupAndLoadBTGitStore(t, localRepoURL, repoDir, true)
+	vcs, err := New(context.Background(), btgs, branch, nil)
 	assert.NoError(t, err)
-	ctx := context.Background()
-	_, _, btgs := gs_testutils.SetupAndLoadBTGitStore(t, ctx, wd, "file://"+repoDir, true)
-	vcs, err := New(ctx, btgs, branch, nil)
-	assert.NoError(t, err)
-	return vcs, btgs, func() {
-		util.RemoveAll(wd)
-		cleanup()
-	}
+	return vcs, btgs, cleanup
 }
 
 func startWithEmptyCache(mg *mocks.GitStore) {
@@ -363,8 +355,8 @@ func makeTestIndexCommits() []*vcsinfo.IndexCommit {
 	}
 }
 
-func makeTestBranchPointerMap() map[string]*gitstore.BranchPointer {
-	return map[string]*gitstore.BranchPointer{
+func makeTestBranchPointerMap() map[string]*gitstore_deprecated.BranchPointer {
+	return map[string]*gitstore_deprecated.BranchPointer{
 		"master": {
 			Head:  "master",
 			Index: 3,
