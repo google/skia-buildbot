@@ -156,7 +156,16 @@ const (
 	// Timeouts.
 	BATCHARCHIVE_TIMEOUT = 10 * time.Minute
 	XVFB_TIMEOUT         = 5 * time.Minute
-	// Isolate files.
+
+	// Isolate files for master scripts.
+	CREATE_PAGESETS_MASTER_ISOLATE   = "create_pagesets_on_workers.isolate"
+	CAPTURE_ARCHIVES_MASTER_ISOLATE  = "capture_archives_on_workers.isolate"
+	CAPTURE_SKPS_MASTER_ISOLATE      = "capture_skps_on_workers.isolate"
+	RUN_LUA_MASTER_ISOLATE           = "run_lua_on_workers.isolate"
+	CHROMIUM_ANALYSIS_MASTER_ISOLATE = "run_chromium_analysis_on_workers.isolate"
+	CHROMIUM_PERF_MASTER_ISOLATE     = "run_chromium_perf_on_workers.isolate"
+	METRICS_ANALYSIS_MASTER_ISOLATE  = "metrics_analysis_on_workers.isolate"
+	// Isolate files for worker scripts.
 	CREATE_PAGESETS_ISOLATE   = "create_pagesets.isolate"
 	CAPTURE_ARCHIVES_ISOLATE  = "capture_archives.isolate"
 	CAPTURE_SKPS_ISOLATE      = "capture_skps.isolate"
@@ -164,8 +173,10 @@ const (
 	CHROMIUM_ANALYSIS_ISOLATE = "chromium_analysis.isolate"
 	CHROMIUM_PERF_ISOLATE     = "chromium_perf.isolate"
 	METRICS_ANALYSIS_ISOLATE  = "metrics_analysis.isolate"
+	// Isolate files for build scripts.
 	BUILD_REPO_ISOLATE        = "build_repo.isolate"
 	ISOLATE_TELEMETRY_ISOLATE = "isolate_telemetry.isolate"
+
 	// Swarming links and params.
 	// TODO(rmistry): The below link contains "st=1262304000000" which is from 2010. This is done so
 	// that swarming will not use today's timestamp as default. See if there is a better way to handle
@@ -201,7 +212,8 @@ var (
 
 	// Email address of cluster telemetry admins. They will be notified everytime
 	// a task has started and completed.
-	CtAdmins = []string{"rmistry@google.com", "benjaminwagner@google.com"}
+	//	CtAdmins = []string{"rmistry@google.com", "benjaminwagner@google.com"}
+	CtAdmins = []string{"rmistry@google.com"}
 
 	// Names of local directories and files.
 	StorageDir             = filepath.Join("/", "b", STORAGE_DIR_NAME)
@@ -326,6 +338,10 @@ var (
 	}
 
 	// Swarming machine dimensions.
+	// Right now this is the same as GCE_LINUX_WORKER_DIMENSIONS. This will change after we bring up a
+	// new pool for CT masters.
+	GCE_LINUX_MASTER_DIMENSIONS = map[string]string{"pool": SWARMING_POOL, "os": "Linux", "cores": "4"}
+
 	GCE_LINUX_WORKER_DIMENSIONS   = map[string]string{"pool": SWARMING_POOL, "os": "Linux", "cores": "4"}
 	GCE_WINDOWS_WORKER_DIMENSIONS = map[string]string{"pool": SWARMING_POOL, "os": "Windows", "cores": "4"}
 

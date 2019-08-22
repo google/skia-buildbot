@@ -22,22 +22,13 @@ ctfe_debug: res/css/ctfe.css debug skiaversion
 	go install -v ./go/ctfe
 
 .PHONY: ctfe_release
-ctfe_release: ctfe
+ctfe_release: all ctfe
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/ctfe
 	./build_ctfe_release
 
 .PHONY: ctfe_push
-ctfe_push: ctfe skia-public
+ctfe_push: all ctfe skia-public
 	pushk ctfe
-
-.PHONY: ctmaster_release
-ctmaster_release: all
-	GOOS=linux go install -a ./go/...
-	./build_ctmaster_release
-
-.PHONY: ctmaster_push
-ctmaster_push: all skia-public
-	pushk ct-master
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug

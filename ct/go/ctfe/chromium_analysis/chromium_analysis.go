@@ -273,6 +273,10 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 	return t, nil
 }
 
+func (task *AddTaskVars) TriggerSwarmingTask(ctx context.Context, t task_common.Task) error {
+	return nil
+}
+
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.AddTaskHandler(w, r, &AddTaskVars{})
 }
