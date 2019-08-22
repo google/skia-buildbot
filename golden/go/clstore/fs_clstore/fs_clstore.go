@@ -6,21 +6,51 @@ import (
 	"context"
 	"errors"
 
-	"go.skia.org/infra/go/firestore"
+	ifirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/code_review"
 )
 
+const (
+	// These are the collections in Firestore.
+	changelistCollection = "clstore_changelist"
+	patchsetCollection   = "clstore_patchset"
+
+	// These are the fields we query by
+	systemIDField = "systemid"
+	clIDField     = "changelistid"
+
+	maxAttempts = 10
+
+	maxDuration = time.Minute
+)
+
 type StoreImpl struct {
-	fsClient *firestore.Client
+	fsClient *ifirestore.Client
 	crsName  string
 }
 
-func New(client *firestore.Client, crsName string) *StoreImpl {
+func New(client *ifirestore.Client, crsName string) *StoreImpl {
 	return &StoreImpl{
 		fsClient: client,
 		crsName:  crsName,
 	}
+}
+
+type changeListEntry struct {
+	SystemID string               `firestore:"systemid"`
+	System   string               `firestore:"system"`
+	Owner    string               `firestore:"owner"`
+	Status   code_review.CLStatus `firestore:"status"`
+	Subject  string               `firestore:"subject"`
+	Updated  time.Time            `firestore:"updated"`
+}
+
+type patchSetEntry struct {
+	SystemID     string `firestore:"systemid"`
+	ChangeListID string `firestore:"changelistid"`
+	Order        int    `firestore:"order"`
+	GitHash      string `firestore:"githash"`
 }
 
 // GetChangeList implements the clstore.Store interface.
