@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "43bee1af_e2a51a09",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-22T17:35:36Z",
+      "side": 1,
+      "message": "Since ImagePaths doesn\u0027t depend on actually reading or writing to disk, I think we can just do:\nimageLoader :\u003d ImageLoader{}\n\nand make this a SmallTest, since it doesn\u0027t do anything disk related. (comment on why we can take this shortcut)",
+      "range": {
+        "startLine": 78,
+        "startChar": 1,
+        "endLine": 82,
+        "endChar": 16
+      },
+      "revId": "988ad65e7f03493c316e48ee7e1a247f3705bfb6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
