@@ -72,6 +72,7 @@ type ClusterRequest struct {
 	Type        ClusterRequestType `json:"type"`
 	N           int32              `json:"n"`
 	End         time.Time          `json:"end"`
+	AlertID     string             `json:"alert_id"`
 }
 
 func (c *ClusterRequest) Id() string {
@@ -201,7 +202,7 @@ func (fr *RunningClusterRequests) Add(ctx context.Context, req *ClusterRequest) 
 			delete(fr.inProcess, id)
 		}
 	}
-	clusterResponseProcessor := func(resps []*ClusterResponse) {}
+	clusterResponseProcessor := func(req *ClusterRequest, resps []*ClusterResponse) {}
 	if _, ok := fr.inProcess[id]; !ok {
 		proc, err := newRunningProcess(ctx, req, fr.vcs, fr.cidl, fr.dfBuilder, clusterResponseProcessor)
 		if err != nil {
@@ -374,12 +375,15 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 			summary, err = StepFit(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
 		case types.TAIL_ALGO:
 			summary, err = Tail(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
-
+		default:
+			p.reportError(err, "Invalid algorithm.")
+			return
 		}
 		if err != nil {
 			p.reportError(err, "Invalid clustering.")
 			return
 		}
+		summary.AlertID = p.request.AlertID
 		if err := ShortcutFromKeys(summary); err != nil {
 			p.reportError(err, "Failed to write shortcut for keys.")
 			return
@@ -392,6 +396,11 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 			return
 		}
 
+		if p.request.AlertID != summary.AlertID {
+			sklog.Errorf("Found alertid mismatch: %q != %q", p.request.AlertID, summary.AlertID)
+			return
+		}
+
 		p.mutex.Lock()
 		p.state = PROCESS_SUCCESS
 		p.message = ""
@@ -399,7 +408,7 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 			Summary: summary,
 			Frame:   frame,
 		}
-		p.clusterResponseProcessor([]*ClusterResponse{cr})
+		p.clusterResponseProcessor(p.request, []*ClusterResponse{cr})
 		p.response = append(p.response, cr)
 		p.mutex.Unlock()
 	}
