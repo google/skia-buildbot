@@ -58,9 +58,9 @@ const jsonEditor = (ele) => {
 
 const gallery = (ele) => html`
 Check out these examples ==>
-<a href="/a879da270cf25c70600810cb42ed78ff">spiral</a>
-<a href="/1afc7fa7bc923aad06f538982ddf5ba8">swirl</a>
-<a href="/7c132e60cc25fd6893998bd797eafb65">text</a>
+<a href="/a6bf9351984016000e9a32e42a69715e">spiral</a>
+<a href="/c60c75d1a5570233057856cbbcf7d836">swirl</a>
+<a href="/a911b06d0a274201e3f9192687f459a8">text</a>
 `;
 
 const displayLoaded = (ele) => html`
@@ -267,7 +267,7 @@ define('particles-sk', class extends HTMLElement {
     let match = window.location.pathname.match(/\/([a-zA-Z0-9]+)/);
     if (!match) {
       // Make this the hash of the particles file you want to play on startup.
-      this._hash = 'a879da270cf25c70600810cb42ed78ff'; // spiral.json
+      this._hash = 'a6bf9351984016000e9a32e42a69715e'; // spiral.json
     } else {
       this._hash = match[1];
     }
