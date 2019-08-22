@@ -73,3 +73,14 @@ func getImageLoaderAndTile(t sktest.TestingT, m mapper.Mapper) (string, *tiling.
 	assert.NoError(t, err)
 	return workingDir, tile, imgLoader, cleanup
 }
+
+func TestImagePaths(t *testing.T) {
+	unittest.SmallTest(t)
+
+	digest := types.Digest("098f6bcd4621d373cade4e832627b4f6")
+	expectedLocalPath := filepath.Join("09", "8f", string(digest)+".png")
+	expectedGSPath := string(digest + ".png")
+	localPath, gsPath := ImagePaths(digest)
+	assert.Equal(t, expectedLocalPath, localPath)
+	assert.Equal(t, expectedGSPath, gsPath)
+}

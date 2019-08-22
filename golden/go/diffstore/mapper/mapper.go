@@ -4,7 +4,6 @@ import (
 	"image"
 
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/types"
 )
 
 // Mapper is the interface to define how the diff metric between two images
@@ -19,11 +18,4 @@ type Mapper interface {
 	// above. It is also what is returned by the Get(...) function of the
 	// DiffStore interface.
 	DiffFn(*image.NRGBA, *image.NRGBA) interface{}
-
-	// ImagePaths returns the storage paths for a given image ID. The first return
-	// value is the local file path used to store the image on disk and serve it
-	// over HTTP. The second return value is the GCS path (not including the bucket).
-	// TODO(kjlubick): It might be nice to have Mapper just focus on the
-	// diff metric and have a different interface for the disk storing.
-	ImagePaths(id types.Digest) (string, string)
 }

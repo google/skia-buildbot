@@ -1,18 +1,11 @@
 package disk_mapper
 
 import (
-	"fmt"
 	"image"
 
-	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/mapper"
-	"go.skia.org/infra/golden/go/types"
-)
-
-const (
-	imgExtension = "png"
 )
 
 // DiskMapper implements the Mapper interface.
@@ -35,13 +28,6 @@ func New(diffInstance interface{}) *DiskMapper {
 // DiffFn implements the DiffStoreMapper interface.
 func (g *DiskMapper) DiffFn(left *image.NRGBA, right *image.NRGBA) interface{} {
 	return diff.DefaultDiffFn(left, right)
-}
-
-// ImagePaths implements the DiffStoreMapper interface.
-func (g *DiskMapper) ImagePaths(imageID types.Digest) (string, string) {
-	gsPath := fmt.Sprintf("%s.%s", imageID, imgExtension)
-	localPath := fileutil.TwoLevelRadixPath(gsPath)
-	return localPath, gsPath
 }
 
 // Make sure DiskMapper fulfills the Mapper interface
