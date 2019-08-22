@@ -1,0 +1,97 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c7b2c941_c92889fd",
+        "filename": "golden/go/code_review/gerrit_crs/gerrit_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-22T13:38:36Z",
+      "side": 1,
+      "message": "\u003e \"fetchs\" is a possible misspelling of \"fetches\".\n\nPlease Fix",
+      "parentUuid": "37222101_d188d7c8",
+      "range": {
+        "startLine": 36,
+        "startChar": 9,
+        "endLine": 36,
+        "endChar": 15
+      },
+      "revId": "c58fde73e367c0954815908c6bb3dfc262d20574",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "355af9e0_f8ca07a6",
+        "filename": "golden/go/code_review/gerrit_crs/gerrit_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-22T13:38:36Z",
+      "side": 1,
+      "message": "I know I missed this on the previous round, but why isn\u0027t this a pointer?",
+      "range": {
+        "startLine": 37,
+        "startChar": 56,
+        "endLine": 37,
+        "endChar": 78
+      },
+      "revId": "c58fde73e367c0954815908c6bb3dfc262d20574",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a745aec3_00b3555b",
+        "filename": "golden/go/code_review/gerrit_crs/gerrit_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-22T13:38:36Z",
+      "side": 1,
+      "message": "Is this necessarily a commit hash?",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 22
+      },
+      "revId": "c58fde73e367c0954815908c6bb3dfc262d20574",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "781b814e_995ef0c6",
+        "filename": "golden/go/code_review/gerrit_crs/gerrit_crs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-22T13:38:36Z",
+      "side": 1,
+      "message": "Same question: AFAIK all of the sources for LongCommits return pointers, so you\u0027re going to have to dereference it to pass it to this function; what\u0027s the benefit?",
+      "range": {
+        "startLine": 97,
+        "startChar": 69,
+        "endLine": 97,
+        "endChar": 87
+      },
+      "revId": "c58fde73e367c0954815908c6bb3dfc262d20574",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
