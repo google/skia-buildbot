@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/cid"
@@ -59,6 +60,7 @@ func NewDataFrameIterator(ctx context.Context, progress types.Progress, req *Clu
 	if err != nil {
 		return nil, err
 	}
+	sklog.Infof("Building frames from Query: %s", q.String())
 	df, err := dfBuilder.NewNFromQuery(ctx, req.End, q, req.N, progress)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to build dataframe iterator: %s", err)
