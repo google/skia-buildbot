@@ -32,13 +32,13 @@ const (
 
 // Start creates a GitStore with the provided information and starts periodic
 // ingestion.
-func Start(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL, gitcookiesPath, gcsBucket, gcsPath string, interval time.Duration) error {
+func Start(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL, gitilesURL, gitcookiesPath, gcsBucket, gcsPath string, interval time.Duration) error {
 	sklog.Infof("Initializing watcher for %s", repoURL)
 	gitStore, err := bt_gitstore.New(ctx, conf, repoURL)
 	if err != nil {
 		return skerr.Wrapf(err, "Error instantiating git store for %s.", repoURL)
 	}
-	gr := gitiles.NewRepo(repoURL, gitcookiesPath, nil)
+	gr := gitiles.NewRepo(gitilesURL, gitcookiesPath, nil)
 	s, err := storage.NewClient(ctx)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create storage client for %s.", gcsBucket)
