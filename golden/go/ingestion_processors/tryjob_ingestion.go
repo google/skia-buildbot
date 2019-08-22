@@ -2,346 +2,253 @@ package ingestion_processors
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
-	"regexp"
+	"strconv"
 	"strings"
-	"time"
 
-	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/ingestion"
-	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/golden/go/bbstate"
-	"go.skia.org/infra/golden/go/config"
-	"go.skia.org/infra/golden/go/tryjobstore"
-	"go.skia.org/infra/golden/go/tryjobstore/ds_tryjobstore"
-	"go.skia.org/infra/golden/go/types"
-	gstorage "google.golang.org/api/storage/v1"
+	"go.skia.org/infra/golden/go/clstore"
+	"go.skia.org/infra/golden/go/clstore/fs_clstore"
+	"go.skia.org/infra/golden/go/code_review"
+	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
+	"go.skia.org/infra/golden/go/continuous_integration"
+	"go.skia.org/infra/golden/go/continuous_integration/buildbucket_cis"
+	"go.skia.org/infra/golden/go/shared"
+	"go.skia.org/infra/golden/go/tjstore"
+	"go.skia.org/infra/golden/go/tjstore/fs_tjstore"
 )
 
-// Define configuration options to be used in the config file under
-// ExtraParams.
 const (
-	buildBucketNameParam         = "BuildBucketName"
-	buildBucketPollIntervalParam = "BuildBucketPollInterval"
-	buildBucketTimeWindowParam   = "BuildBucketTimeWindow"
-	buildBucketURLParam          = "BuildBucketURL"
-	builderRegexParam            = "BuilderRegEx"
-	datastoreNamespaceParam      = "DSNamespace"
-	datastoreProjectIDParam      = "DSProjectID"
-	gerritCodeReviewURLParam     = "GerritCodeReviewURL"
-	jobConfigFileParam           = "JobConfigFile"
+	firestoreProjectIDParam = "FirestoreProjectID"
+	firestoreNamespaceParam = "FirestoreNamespace"
+
+	codeReviewSystemParam = "CodeReviewSystem"
+	gerritURLParam        = "GerritURL"
+
+	continuousIntegrationSystemParam = "ContinuousIntegrationSystem"
+	buildBucketNameParam             = "BuildBucketName"
+
+	gerritCRS      = "gerrit"
+	buildbucketCIS = "buildbucket"
 )
 
-// Register the ingestion Processor with the ingestion framework.
-func init() {
-	ingestion.Register(config.CONSTRUCTOR_GOLD_TRYJOB, newGoldTryjobProcessor)
-}
-
-// goldTryjobProcessor implements the ingestion.Processor interface to ingest
-// tryjob results.
 type goldTryjobProcessor struct {
-	buildIssueSync bbstate.BuildIssueSync
-	tryjobStore    tryjobstore.TryjobStore
-	vcs            vcsinfo.VCS
-	cfgFile        string
-	syncMonitor    *util.CondMonitor
+	reviewClient      code_review.Client
+	integrationClient continuous_integration.Client
+
+	changelistStore clstore.Store
+	tryjobStore     tjstore.Store
+
+	crsName string
+	cisName string
 }
 
-// newGoldTryjobProcessor implements the ingestion.Constructor function.
-func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, ignoreClient *http.Client, eventBus eventbus.EventBus) (ingestion.Processor, error) {
-	gerritURL := config.ExtraParams[gerritCodeReviewURLParam]
-	if strings.TrimSpace(gerritURL) == "" {
-		return nil, skerr.Fmt("Missing URL for the Gerrit code review systems. Got value: '%s'", gerritURL)
+func newGoldTryjobProcessor(_ vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, eventBus eventbus.EventBus) (ingestion.Processor, error) {
+	crsName := config.ExtraParams[codeReviewSystemParam]
+	if strings.TrimSpace(crsName) == "" {
+		return nil, skerr.Fmt("missing code review system (e.g. 'gerrit')")
 	}
 
-	pollInterval, err := parseDuration(config.ExtraParams[buildBucketPollIntervalParam], bbstate.DefaultPollInterval)
+	crs, err := codeReviewSystemFactory(crsName, config, client)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "invalid poll interval")
+		return nil, skerr.Wrapf(err, "could not create client for CRS %q", crsName)
 	}
 
-	timeWindow, err := parseDuration(config.ExtraParams[buildBucketTimeWindowParam], bbstate.DefaultTimeWindow)
+	cisName := config.ExtraParams[continuousIntegrationSystemParam]
+	if strings.TrimSpace(cisName) == "" {
+		return nil, skerr.Fmt("missing continuous integration system (e.g. 'buildbucket')")
+	}
+
+	cis, err := continuousIntegrationSystemFactory(cisName, config, client)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "invalid time window")
+		return nil, skerr.Wrapf(err, "could not create client for CIS %q", cisName)
 	}
 
-	buildBucketURL := config.ExtraParams[buildBucketURLParam]
-	buildBucketName := config.ExtraParams[buildBucketNameParam]
-	if buildBucketURL == "" || buildBucketName == "" {
-		return nil, skerr.Fmt("BuildBucketName and BuildBucketURL must not be empty.")
+	fsProjectID := config.ExtraParams[firestoreProjectIDParam]
+	if strings.TrimSpace(fsProjectID) == "" {
+		return nil, skerr.Fmt("missing firestore project id")
 	}
 
-	builderRegExp := config.ExtraParams[builderRegexParam]
-	if builderRegExp == "" {
-		builderRegExp = bbstate.DefaultTestBuilderRegex
+	fsNamespace := config.ExtraParams[firestoreNamespaceParam]
+	if strings.TrimSpace(fsNamespace) == "" {
+		return nil, skerr.Fmt("missing firestore namespace")
 	}
 
-	dsID := config.ExtraParams[datastoreProjectIDParam]
-	dsNamespace := config.ExtraParams[datastoreNamespaceParam]
-	if dsID == "" || dsNamespace == "" {
-		return nil, skerr.Fmt("DSProjectID and DSNamespace must not be empty.")
-	}
-
-	// InitWithOpt will use the authentication that looks at the GOOGLE_APPLICATION_CREDENTIALS
-	// environment variable
-	if err := ds.InitWithOpt(dsID, dsNamespace); err != nil {
-		return nil, skerr.Wrapf(err, "initializing datastore")
-	}
-	// Create the cloud tryjob store.
-	tryjobStore, err := ds_tryjobstore.New(ds.DS, eventBus)
+	fsClient, err := firestore.NewClient(context.TODO(), fsProjectID, "gold", fsNamespace, nil)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "creating datastore-based tryjobstore")
-	}
-	sklog.Infof("Cloud Tryjobstore Store created")
-
-	// Instantiate the Gerrit API client.
-	ts, err := auth.NewDefaultTokenSource(false, gstorage.CloudPlatformScope, auth.SCOPE_USERINFO_EMAIL)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "creating token source")
-	}
-	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	sklog.Infof("HTTP client instantiated")
-
-	gerritReview, err := gerrit.NewGerrit(gerritURL, "", client)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "creating gerrit client for %s", gerritURL)
-	}
-	sklog.Infof("Gerrit client instantiated")
-
-	bbConf := &bbstate.Config{
-		BuildBucketURL:  buildBucketURL,
-		BuildBucketName: buildBucketName,
-		Client:          client,
-		TryjobStore:     tryjobStore,
-		GerritClient:    gerritReview,
-		PollInterval:    pollInterval,
-		TimeWindow:      timeWindow,
-		BuilderRegexp:   builderRegExp,
+		return nil, skerr.Wrapf(err, "could not init firestore in project %s, namespace %s", fsProjectID, fsNamespace)
 	}
 
-	bbGerritClient, err := bbstate.NewBuildBucketState(bbConf)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "creating BuildBucket client: %s %s", buildBucketURL, buildBucketName)
-	}
-	sklog.Infof("BuildBucketState created")
-
-	// Get the config file in the repo that should be parsed to determine whether a
-	// bot uploads results. Currently only applies to the Skia repo.
-	cfgFile := config.ExtraParams[jobConfigFileParam]
-
-	ret := &goldTryjobProcessor{
-		buildIssueSync: bbGerritClient,
-		tryjobStore:    tryjobStore,
-		vcs:            vcs,
-		cfgFile:        cfgFile,
-
-		// The argument to NewCondMonitor is 1 because we always want exactly one go-routine per unique
-		// issue ID to enter the critical section. See the syncIssueAndTryjob function.
-		syncMonitor: util.NewCondMonitor(1),
-	}
-	eventBus.SubscribeAsync(tryjobstore.EV_TRYJOB_UPDATED, ret.tryjobUpdatedHandler)
-
-	return ret, nil
+	return &goldTryjobProcessor{
+		reviewClient:      crs,
+		integrationClient: cis,
+		changelistStore:   fs_clstore.New(fsClient, crsName),
+		tryjobStore:       fs_tjstore.New(fsClient, cisName),
+		crsName:           crsName,
+		cisName:           cisName,
+	}, nil
 }
 
-// See ingestion.Processor interface.
-func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
-	dmResults, err := processDMResults(resultsFile)
+func codeReviewSystemFactory(crsName string, config *sharedconfig.IngesterConfig, client *http.Client) (code_review.Client, error) {
+	if crsName == gerritCRS {
+		gerritURL := config.ExtraParams[gerritURLParam]
+		if strings.TrimSpace(gerritURL) == "" {
+			return nil, skerr.Fmt("missing URL for the Gerrit code review system")
+		}
+		gerritClient, err := gerrit.NewGerrit(gerritURL, "", client)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "creating gerrit client for %s", gerritURL)
+		}
+		return gerrit_crs.New(gerritClient), nil
+	}
+	return nil, skerr.Fmt("CodeReviewSystem %q not recognized", crsName)
+}
+
+func continuousIntegrationSystemFactory(cisName string, config *sharedconfig.IngesterConfig, client *http.Client) (continuous_integration.Client, error) {
+	if cisName == buildbucketCIS {
+		bbBucket := config.ExtraParams[buildBucketNameParam]
+		if strings.TrimSpace(bbBucket) == "" {
+			return nil, skerr.Fmt("missing bucket name for BuildBucket")
+		}
+		bbClient := buildbucket.NewClient(client)
+		return buildbucket_cis.New(bbClient, bbBucket), nil
+	}
+	return nil, skerr.Fmt("ContinuousIntegrationSystem %q not recognized", cisName)
+}
+
+func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFileLocation) error {
+	defer metrics2.FuncTimer().Stop()
+	dmResults, err := processDMResults(rf)
 	if err != nil {
 		sklog.Errorf("Error processing result: %s", err)
 		return ingestion.IgnoreResultsFileErr
 	}
 
-	// Make sure we have an issue, patchset and a buildbucket id.
-	if (dmResults.GerritChangeListID <= 0) || (dmResults.GerritPatchSet <= 0) || (dmResults.BuildBucketID <= 0) {
-		sklog.Errorf("Invalid data. issue, patchset and buildbucket id must be > 0. Got (%d, %d, %d).", dmResults.GerritChangeListID, dmResults.GerritPatchSet, dmResults.BuildBucketID)
+	clID := ""
+	psID := ""
+	crs := dmResults.CodeReviewSystem
+	if crs == "" || crs == g.crsName {
+		// Default to Gerrit
+		crs = gerritCRS
+		clID = strconv.FormatInt(dmResults.GerritChangeListID, 10)
+		psID = strconv.FormatInt(dmResults.GerritPatchSet, 10)
+	} else {
+		sklog.Warningf("Result %s said it was for crs %q, but this ingester is configured for %s", rf.Name(), crs, g.crsName)
+		// We only support one CRS and one CIS at the moment, but if needed, we can have
+		// multiple configured and pivot to the one we need.
 		return ingestion.IgnoreResultsFileErr
 	}
 
-	entries, err := extractTraceStoreEntries(dmResults)
-	if err != nil {
-		sklog.Errorf("Error getting tracedb entries: %s", err)
+	tjID := ""
+	cis := dmResults.ContinuousIntegrationSystem
+	if cis == "" || cis == g.cisName {
+		// Default to BuildBucket
+		cis = buildbucketCIS
+		tjID = strconv.FormatInt(dmResults.BuildBucketID, 10)
+	} else {
+		sklog.Warningf("Result %s said it was for cis %q, but this ingester is configured for %s", rf.Name(), cis, g.cisName)
+		// We only support one CRS and one CIS at the moment, but if needed, we can have
+		// multiple configured and pivot to the one we need.
 		return ingestion.IgnoreResultsFileErr
 	}
 
-	// Save the results to the trybot store.
-	issueID := dmResults.GerritChangeListID
-	tryjob, err := g.tryjobStore.GetTryjob(issueID, dmResults.BuildBucketID)
-	if err != nil {
-		sklog.Errorf("Error retrieving tryjob: %s", err)
-		return ingestion.IgnoreResultsFileErr
+	// Fetch CL from clstore if we have seen it before, from CRS if we have not.
+	_, err = g.changelistStore.GetChangeList(ctx, clID)
+	if err == clstore.NotFound {
+		cl, err := g.reviewClient.GetChangeList(ctx, clID)
+		if err == code_review.NotFound {
+			sklog.Warningf("Unknown %s CL with id %q", crs, clID)
+			// Try again later - maybe the input was created before the CL?
+			return ingestion.IgnoreResultsFileErr
+		} else if err != nil {
+			return skerr.Wrapf(err, "fetching CL from %s with id %q", crs, clID)
+		}
+		err = g.changelistStore.PutChangeList(ctx, cl)
+		if err != nil {
+			return skerr.Wrapf(err, "storing CL with id %q to clstore", clID)
+		}
+	} else if err != nil {
+		return skerr.Wrapf(err, "fetching CL from clstore with id %q", clID)
 	}
 
-	tryjob, err = g.syncIssueAndTryjob(issueID, tryjob, dmResults, resultsFile.Name())
-	if err != nil {
-		return err
-	}
-
-	// Add the Githash of the underlying result.
-	if tryjob.MasterCommit == "" {
-		tryjob.MasterCommit = dmResults.GitHash
-	} else if tryjob.MasterCommit != dmResults.GitHash {
-		sklog.Errorf("Master commit in tryjob and ingested results do not match.")
-		return ingestion.IgnoreResultsFileErr
-	}
-
-	// Convert to a trybotstore.TryjobResult slice by aggregating parameters for each test/digest pair.
-	resultsMap := make(map[string]*tryjobstore.TryjobResult, len(entries))
-	for _, entry := range entries {
-		testName := types.TestName(entry.Params[types.PRIMARY_KEY_FIELD])
-		key := string(testName) + string(entry.Digest)
-		if found, ok := resultsMap[key]; ok {
-			found.Params.AddParams(entry.Params)
-		} else {
-			resultsMap[key] = &tryjobstore.TryjobResult{
-				BuildBucketID: tryjob.BuildBucketID,
-				TestName:      testName,
-				Digest:        entry.Digest,
-				Params:        paramtools.NewParamSet(entry.Params),
+	// Fetch PS from clstore if we have seen it before, from CRS if we have not.
+	_, err = g.changelistStore.GetPatchSet(ctx, clID, psID)
+	if err == clstore.NotFound {
+		xps, err := g.reviewClient.GetPatchSets(ctx, clID)
+		if err != nil {
+			return skerr.Wrapf(err, "could not get patchsets for %s cl %s", crs, clID)
+		}
+		// It should be ok to put any PatchSets we've seen before - they should be immutable.
+		found := false
+		for _, p := range xps {
+			err := g.changelistStore.PutPatchSet(ctx, clID, p)
+			if err != nil {
+				return skerr.Wrapf(err, "could not store PS %q of CL %q to clstore", psID, clID)
 			}
+			// Only store PatchSets up to the latest one we know has data
+			if p.SystemID == psID {
+				found = true
+				break
+			}
+		}
+		if !found {
+			sklog.Warningf("Unknown %s PS with id %q for CL %q", crs, psID, clID)
+			// Try again later - maybe the input was created before the CL uploaded its PS?
+			return ingestion.IgnoreResultsFileErr
+		}
+	} else if err != nil {
+		return skerr.Wrapf(err, "fetching PS from clstore with id %q for CL %q", psID, clID)
+	}
+
+	combinedID := tjstore.CombinedPSID{CL: clID, PS: psID, CRS: crs}
+
+	_, err = g.tryjobStore.GetTryJob(ctx, tjID)
+	if err == tjstore.NotFound {
+		tj, err := g.integrationClient.GetTryJob(ctx, tjID)
+		if err == tjstore.NotFound {
+			sklog.Warningf("Unknown %s Tryjob with id %q", cis, tjID)
+			// Try again later - maybe there's some lag with the Integration System?
+			return ingestion.IgnoreResultsFileErr
+		} else if err != nil {
+			return skerr.Wrapf(err, "fetching tryjob from %s with id %q", cis, tjID)
+		}
+		err = g.tryjobStore.PutTryJob(ctx, combinedID, tj)
+		if err != nil {
+			return skerr.Wrapf(err, "storing tryjob %q to tryjobstore", tjID)
 		}
 	}
 
-	tjResults := make([]*tryjobstore.TryjobResult, 0, len(resultsMap))
-	for _, result := range resultsMap {
-		tjResults = append(tjResults, result)
+	defer shared.NewMetricsTimer("put_tryjobstore_entries").Stop()
+
+	// Store the results from the file.
+	tjr := toTryJobResults(dmResults)
+	err = g.tryjobStore.PutResults(ctx, combinedID, tjr)
+	if err != nil {
+		return skerr.Wrapf(err, "putting %d results for CL %s, PS %s, TJ %s, file %s", len(tjr), clID, psID, tjID, rf.Name())
 	}
 
-	// Update the database with the results.
-	if err := g.tryjobStore.UpdateTryjobResult(tjResults); err != nil {
-		return skerr.Wrapf(err, "updating tryjob results")
-	}
-
-	tryjob.Status = tryjobstore.TRYJOB_INGESTED
-	if err := g.tryjobStore.UpdateTryjob(0, tryjob, nil); err != nil {
-		return err
-	}
-	sklog.Infof("Ingested: %s", resultsFile.Name())
 	return nil
 }
 
-func (g *goldTryjobProcessor) syncIssueAndTryjob(issueID int64, tryjob *tryjobstore.Tryjob, dmResults *dmResults, resultFileName string) (*tryjobstore.Tryjob, error) {
-	// Only let one thread in at time for each issueID. In most cases they will follow the fast
-	// path of finding the issue and having an non-nil tryjob.
-	defer g.syncMonitor.Enter(issueID).Release()
-
-	// Fetch the issue and check if the trybot is contained.
-	issue, err := g.tryjobStore.GetIssue(issueID, false)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "retrieving issue %d to process file %s", issueID, resultFileName)
+// toTryJobResults converts the JSON file to a slize of TryJobResult.
+func toTryJobResults(j *dmResults) []tjstore.TryJobResult {
+	var tjr []tjstore.TryJobResult
+	for _, r := range j.Results {
+		tjr = append(tjr, tjstore.TryJobResult{
+			GroupParams:  j.Key,
+			ResultParams: r.Key,
+			Options:      r.Options,
+			Digest:       r.Digest,
+		})
 	}
-
-	// If we haven't loaded the tryjob then see if we can fetch it from
-	// Gerrit and Buildbucket. This should be the exception since tryjobs should
-	// be picket up by BuildBucketState as they are added.
-	if (tryjob == nil) || (issue == nil) || !issue.HasPatchset(tryjob.PatchsetID) {
-		var err error
-		if issue, tryjob, err = g.buildIssueSync.SyncIssueTryjob(issueID, dmResults.BuildBucketID); err != nil {
-			if err != bbstate.SkipTryjob {
-				sklog.Errorf("Error fetching the issue and tryjob information: %s", err)
-			}
-			return nil, ingestion.IgnoreResultsFileErr
-		}
-
-		// If the issue is nil, that means it could not be found (404) and we don't want to ingest this
-		// file again (and avoid repeated errors).
-		if issue == nil {
-			sklog.Errorf("Unable to find issue %d. Received 404 from Gerrit.", issueID)
-			return nil, ingestion.IgnoreResultsFileErr
-		}
-	}
-	return tryjob, nil
-}
-
-// setTryjobToState is a utility function that updates the status of a tryjob
-// to the new status if the new status is a logical successor to the current status.
-// If tryjob is nil, issueID and tryjobID will be used to fetch the tryjob record.
-func (g *goldTryjobProcessor) setTryjobToStatus(tryjob *tryjobstore.Tryjob, minStatus tryjobstore.TryjobStatus, newStatus tryjobstore.TryjobStatus) error {
-	return g.tryjobStore.UpdateTryjob(tryjob.BuildBucketID, nil, func(curr interface{}) interface{} {
-		tryjob := curr.(*tryjobstore.Tryjob)
-		// Only update if it is at the minimum status level and the status increases.
-		if (tryjob.Status < minStatus) || (tryjob.Status >= newStatus) {
-			return nil
-		}
-
-		tryjob.Status = newStatus
-		return tryjob
-	})
-}
-
-// See ingestion.Processor interface.
-func (g *goldTryjobProcessor) BatchFinished() error { return nil }
-
-// parseDuration parses the given duration. If strVal is empty the default value
-// will be returned. If the given duration is invalid an error will be returned.
-func parseDuration(strVal string, defaultVal time.Duration) (time.Duration, error) {
-	if strVal == "" {
-		return defaultVal, nil
-	}
-	return human.ParseDuration(strVal)
-}
-
-// tryjobUpdateHandler is the event handler for when a tryjob is updated in the
-// underlying tryjob store.
-func (g *goldTryjobProcessor) tryjobUpdatedHandler(evData interface{}) {
-	// Make a shallow copy of the tryjob.
-	tryjob := *(evData.(*tryjobstore.Tryjob))
-
-	// Check if this is a no-upload bot. If that's the case mark the bot as ingested.
-	if g.noUpload(tryjob.Builder, tryjob.MasterCommit) {
-		// Mark as ingested if it has completed.
-		if err := g.setTryjobToStatus(&tryjob, tryjobstore.TRYJOB_COMPLETE, tryjobstore.TRYJOB_INGESTED); err != nil {
-			sklog.Errorf("Unable to set tryjob (%d, %d) to status 'ingested': %s", tryjob.IssueID, tryjob.BuildBucketID, err)
-		}
-		sklog.Infof("Job %d for issue %d marked as ingested.", tryjob.BuildBucketID, tryjob.IssueID)
-	}
-}
-
-// TODO(stephana): Make the noUpload code use the same code as gen_tasks.go in the
-// skia repo. This is essentially a copy of the code, but uses the same source of
-// information (the cfg.json file from skia).
-
-// noUpload returns true if this builder does not upload results and we should
-// therefore not wait for results to appear.
-func (g *goldTryjobProcessor) noUpload(builder, commit string) bool {
-	if g.cfgFile == "" {
-		return false
-	}
-
-	ctx := context.Background()
-	cfgContent, err := g.vcs.GetFile(ctx, g.cfgFile, commit)
-	if err != nil {
-		sklog.Errorf("Error retrieving %s: %s", g.cfgFile, err)
-	}
-
-	// Parse the config file used to generate the tasks.
-	config := struct {
-		NoUpload []string `json:"no_upload"`
-	}{}
-	if err := json.Unmarshal([]byte(cfgContent), &config); err != nil {
-		sklog.Errorf("Unable to parse %s. Got error: %s", g.cfgFile, err)
-	}
-
-	// See if we match the builders that should not be uploaded.
-	for _, s := range config.NoUpload {
-		m, err := regexp.MatchString(s, builder)
-		if err != nil {
-			sklog.Errorf("Error matching regex: %s", err)
-			continue
-		}
-		if m {
-			return true
-		}
-	}
-	return false
+	return tjr
 }

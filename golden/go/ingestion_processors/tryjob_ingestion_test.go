@@ -2,199 +2,183 @@ package ingestion_processors
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/ds"
-	"go.skia.org/infra/go/ds/testutil"
-	"go.skia.org/infra/go/eventbus"
 	ingestion_mocks "go.skia.org/infra/go/ingestion/mocks"
-	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/go/vcsinfo/mocks"
-	"go.skia.org/infra/golden/go/tryjobstore"
-	"go.skia.org/infra/golden/go/tryjobstore/ds_tryjobstore"
+	"go.skia.org/infra/golden/go/clstore"
+	mockclstore "go.skia.org/infra/golden/go/clstore/mocks"
+	"go.skia.org/infra/golden/go/code_review"
+	mockcrs "go.skia.org/infra/golden/go/code_review/mocks"
+	ci "go.skia.org/infra/golden/go/continuous_integration"
+	mockcis "go.skia.org/infra/golden/go/continuous_integration/mocks"
+	"go.skia.org/infra/golden/go/tjstore"
+	mocktjstore "go.skia.org/infra/golden/go/tjstore/mocks"
 )
 
 const (
-	// directory with the test data.
-	TEST_DATA_DIR = "./testdata"
-
-	// name of the input file containing test data.
-	TRYJOB_INGESTION_FILE = TEST_DATA_DIR + "/tryjob-dm.json"
+	legacyGoldCtlFile = "testdata/legacy-tryjob-goldctl.json"
 )
 
-// Tests the processor in conjunction with the vcs.
-// TODO(kjlubick): make this test use mocks for tryjobstore and VCS.
-func TestTryjobGoldProcessor(t *testing.T) {
-	unittest.LargeTest(t)
+func TestGerritBuildBucketFactory(t *testing.T) {
+	unittest.SmallTest(t)
 
-	cleanup := testutil.InitDatastore(t,
-		ds.ISSUE,
-		ds.TRYJOB,
-		ds.TRYJOB_RESULT)
-	defer cleanup()
+	config := &sharedconfig.IngesterConfig{
+		ExtraParams: map[string]string{
+			firestoreProjectIDParam: "should-use-emulator",
+			firestoreNamespaceParam: "testing",
 
-	issueUpdated, err := time.Parse("2006-01-02 15:04:05 MST", "2017-12-07 14:54:05 EST")
+			codeReviewSystemParam: "gerrit",
+			gerritURLParam:        "https://example-review.googlesource.com",
+
+			continuousIntegrationSystemParam: "buildbucket",
+			buildBucketNameParam:             "my.bucket.here",
+		},
+	}
+
+	p, err := newGoldTryjobProcessor(nil, config, nil, nil)
+	assert.NoError(t, err)
+	assert.NotNil(t, p)
+
+	gtp, ok := p.(*goldTryjobProcessor)
+	assert.True(t, ok)
+	assert.NotNil(t, gtp.reviewClient)
+	assert.NotNil(t, gtp.integrationClient)
+}
+
+// TestTryJobProcessFreshStartSunnyDay tests the scenario in which
+// we see data uploaded for a brand new CL, PS, and TryJob.
+func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mcls := &mockclstore.Store{}
+	mtjs := &mocktjstore.Store{}
+	mcrs := &mockcrs.Client{}
+	mcis := &mockcis.Client{}
+	defer mcls.AssertExpectations(t)
+	defer mtjs.AssertExpectations(t)
+	defer mcrs.AssertExpectations(t)
+	defer mcis.AssertExpectations(t)
+
+	mcrs.On("GetChangeList", anyctx, sampleCLID).Return(makeChangeList(), nil)
+	mcrs.On("GetPatchSets", anyctx, sampleCLID).Return(makePatchSets(), nil)
+
+	mcls.On("GetChangeList", anyctx, sampleCLID).Return(code_review.ChangeList{}, clstore.NotFound)
+	mcls.On("GetPatchSet", anyctx, sampleCLID, samplePSID).Return(code_review.PatchSet{}, clstore.NotFound)
+	mcls.On("PutChangeList", anyctx, makeChangeList()).Return(nil)
+	xps := makePatchSets()
+	mcls.On("PutPatchSet", anyctx, sampleCLID, xps[0]).Return(nil)
+	mcls.On("PutPatchSet", anyctx, sampleCLID, xps[1]).Return(nil)
+
+	mcis.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
+
+	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(ci.TryJob{}, tjstore.NotFound)
+	mtjs.On("PutTryJob", anyctx, sampleCombinedID, makeTryJob()).Return(nil)
+	mtjs.On("PutResults", anyctx, sampleCombinedID, makeTryJobResults()).Return(nil)
+
+	gtp := goldTryjobProcessor{
+		reviewClient:      mcrs,
+		integrationClient: mcis,
+		changelistStore:   mcls,
+		tryjobStore:       mtjs,
+		crsName:           "gerrit",
+		cisName:           "buildbucket",
+	}
+
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
 	assert.NoError(t, err)
 
-	testIssue := &tryjobstore.Issue{
-		ID:      81300,
-		Subject: "[infra] Move commands from isolates to gen_tasks.go",
-		Owner:   "someone@example.com",
-		Status:  "MERGED",
-		Updated: issueUpdated,
-		PatchsetDetails: []*tryjobstore.PatchsetDetail{
-			{
-				ID: 9,
+	err = gtp.Process(context.Background(), fsResult)
+	assert.NoError(t, err)
+}
+
+var (
+	anyctx = mock.AnythingOfType("*context.emptyCtx")
+)
+
+// Below is the sample data that belongs to legacyGoldCtlFile
+// It doesn't need to be a super complex example because we can have tests that
+// test toTryJobResults directly, which should handle the more complex
+// file types there.
+const (
+	sampleCLID = "1762193"
+	samplePSID = "2"
+	sampleTJID = "8904604368086838672"
+)
+
+var (
+	sampleCombinedID = tjstore.CombinedPSID{CL: sampleCLID, PS: samplePSID, CRS: "gerrit"}
+)
+
+// These are functions to avoid mutations causing issues for future tests/checks
+func makeTryJobResults() []tjstore.TryJobResult {
+	return []tjstore.TryJobResult{
+		{
+			Digest: "690f72c0b56ae014c8ac66e7f25c0779",
+			GroupParams: map[string]string{
+				"device_id":     "0x1cb3",
+				"device_string": "None",
+				"model_name":    "",
+				"msaa":          "True",
+				"vendor_id":     "0x10de",
+				"vendor_string": "None",
+			},
+			ResultParams: map[string]string{
+				"name":        "Pixel_CanvasDisplayLinearRGBUnaccelerated2DGPUCompositing",
+				"source_type": "chrome-gpu",
+			},
+			Options: map[string]string{
+				"ext": "png",
 			},
 		},
 	}
-	testTryjob := &tryjobstore.Tryjob{
-		BuildBucketID: 8960860541739306896,
-		IssueID:       81300,
-		PatchsetID:    9,
-		Builder:       "Test-iOS-Clang-iPhone7-GPU-GT7600-arm64-Debug-All",
-		Status:        tryjobstore.TRYJOB_COMPLETE,
-		Updated:       time.Unix(1512655545, 180550*int64(time.Microsecond)),
-	}
-
-	noUploadTryjob := &tryjobstore.Tryjob{
-		BuildBucketID: 8960860541739406896,
-		IssueID:       81300,
-		PatchsetID:    9,
-		Builder:       "Test-iOS-Clang-iPhone7-GPU-GT7600-arm64-Debug-ASAN",
-		Status:        tryjobstore.TRYJOB_COMPLETE,
-		Updated:       time.Unix(1512655545, 180550*int64(time.Microsecond)),
-	}
-
-	// Set up the TryjobStore.
-	eventBus := eventbus.New()
-	tryjobStore, err := ds_tryjobstore.New(ds.DS, eventBus)
-	assert.NoError(t, err)
-
-	// Map the path of the file to its content
-	cfgFile := "infra/bots/cfg.json"
-	fileContentMap := map[string]string{
-		cfgFile: `{
-			"gs_bucket_gm": "skia-infra-gm",
-			"gs_bucket_nano": "skia-perf",
-			"gs_bucket_coverage": "skia-coverage",
-			"gs_bucket_calm": "skia-calmbench",
-			"pool": "Skia",
-			"no_upload": [
-				"ASAN",
-				"Coverage",
-				"MSAN",
-				"TSAN",
-				"UBSAN",
-				"Valgrind",
-				"AbandonGpuContext",
-				"SKQP"
-			]
-		}`,
-	}
-	mockVCS := mocks.DeprecatedMockVCS([]*vcsinfo.LongCommit{}, nil, fileContentMap)
-
-	// Make sure the issue is removed.
-	assert.NoError(t, tryjobStore.DeleteIssue(testIssue.ID))
-	mockedIBF := &mockIBF{
-		issue:       testIssue,
-		tryjob:      testTryjob,
-		tryjobStore: tryjobStore,
-	}
-
-	// Instantiate the processor and add a channel to capture the callback.
-	callbackCh := make(chan interface{}, 20)
-	processor := &goldTryjobProcessor{
-		buildIssueSync: mockedIBF,
-		tryjobStore:    tryjobStore,
-		vcs:            mockVCS,
-		cfgFile:        cfgFile,
-		syncMonitor:    util.NewCondMonitor(1),
-	}
-	eventBus.SubscribeAsync(tryjobstore.EV_TRYJOB_UPDATED, func(data interface{}) {
-		processor.tryjobUpdatedHandler(data)
-		callbackCh <- data
-	})
-
-	// Call process for the input file.
-	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(TRYJOB_INGESTION_FILE)
-	assert.NoError(t, err)
-	assert.NoError(t, processor.Process(context.Background(), fsResult))
-
-	foundIssue, err := tryjobStore.GetIssue(testIssue.ID, false)
-	assert.NoError(t, err)
-	foundIssue.Updated = testIssue.Updated
-	assert.Equal(t, testIssue, foundIssue)
-
-	foundTryjob, err := tryjobStore.GetTryjob(testIssue.ID, testTryjob.BuildBucketID)
-	assert.NoError(t, err)
-
-	// At this point the tryjob should be marked ingested.
-	testTryjob.Status = tryjobstore.TRYJOB_INGESTED
-	foundTryjob.Key = nil
-	assert.Equal(t, testTryjob, foundTryjob)
-
-	// Write a tryjob result that doesn't upload and make sure the status is
-	// updated correct upon completion.
-	assert.NoError(t, tryjobStore.UpdateTryjob(0, noUploadTryjob, nil))
-
-	calledBack := false
-	eventsFound := 0
-	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
-		data := <-callbackCh
-		tryjob := data.(*tryjobstore.Tryjob)
-		calledBack = calledBack || (tryjob.Builder == noUploadTryjob.Builder)
-
-		// At this point we should have gathered 5 events.
-		// Two for each ingested tryjob and one for the UpdateTryjob call above.
-		eventsFound++
-		if eventsFound == 5 {
-			return nil
-		}
-		return testutils.TryAgainErr
-	}))
-
-	assert.True(t, calledBack)
-	assert.Equal(t, 0, len(callbackCh))
-
-	// Closing the channel in an earlier version caused a data race. Close it
-	// to make sure that is resolved.
-	close(callbackCh)
-
-	foundTryjob, err = tryjobStore.GetTryjob(testIssue.ID, noUploadTryjob.BuildBucketID)
-	assert.NoError(t, err)
-	assert.Equal(t, tryjobstore.TRYJOB_INGESTED, foundTryjob.Status)
 }
 
-type mockIBF struct {
-	issue       *tryjobstore.Issue
-	tryjob      *tryjobstore.Tryjob
-	tryjobStore tryjobstore.TryjobStore
+func makeChangeList() code_review.ChangeList {
+	return code_review.ChangeList{
+		SystemID: "1762193",
+		Owner:    "test@example.com",
+		Status:   code_review.Open,
+		Subject:  "initial commit",
+		Updated:  time.Date(2019, time.August, 19, 18, 17, 16, 0, time.UTC),
+	}
 }
 
-func (m *mockIBF) SyncIssueTryjob(issueID, buildBucketID int64) (*tryjobstore.Issue, *tryjobstore.Tryjob, error) {
-	if issueID != m.issue.ID {
-		return nil, nil, fmt.Errorf("Unknown issued.")
+func makePatchSets() []code_review.PatchSet {
+	return []code_review.PatchSet{
+		{
+			SystemID:     "1",
+			ChangeListID: "1762193",
+			Order:        1,
+			GitHash:      "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+			ParentHash:   "0000000000000000000000000000000000000000",
+		},
+		{
+			SystemID:     "2",
+			ChangeListID: "1762193",
+			Order:        2,
+			GitHash:      "e1681c90cf6a4c3b6be2bc4b4cea59849c16a438",
+			ParentHash:   "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+		},
+		{
+			SystemID:     "3",
+			ChangeListID: "1762193",
+			Order:        3,
+			GitHash:      "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+			ParentHash:   "e1681c90cf6a4c3b6be2bc4b4cea59849c16a438",
+		},
 	}
+}
 
-	if buildBucketID != m.tryjob.BuildBucketID {
-		return nil, nil, fmt.Errorf("Unknown buildbucket id.")
+func makeTryJob() ci.TryJob {
+	return ci.TryJob{
+		SystemID: "8904604368086838672",
+		Name:     "iphone 7 test",
+		Status:   ci.Running,
+		Updated:  time.Date(2019, time.August, 19, 18, 20, 10, 0, time.UTC),
 	}
-
-	// Make sure the issue tryjob are in the store.
-	if err := m.tryjobStore.UpdateIssue(m.issue, nil); err != nil {
-		return nil, nil, err
-	}
-
-	if err := m.tryjobStore.UpdateTryjob(0, m.tryjob, nil); err != nil {
-		return nil, nil, err
-	}
-
-	return m.issue, m.tryjob, nil
 }
