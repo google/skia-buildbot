@@ -14,7 +14,7 @@ import { $$ } from 'common-sk/modules/dom.js';
 import { upgradeProperty } from 'elements-sk/upgradeProperty';
 
 const template = (ele) => html`
-<div @click=${(e) => ele._click(e)} class=linkish><pre>${ele.cid.message}</pre></div>
+<div @click=${(e) => ele._click(e)} class=linkish><pre>${ele.cid ? ele.cid.message : ''}</pre></div>
 <div class="tip hidden">
   <a href="/g/e/${ele.cid.hash}">Explore</a>
   <a href="/g/c/${ele.cid.hash}">Cluster</a>
