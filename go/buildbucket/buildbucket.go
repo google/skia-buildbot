@@ -73,6 +73,15 @@ type Build struct {
 	Status     string      `json:"status"`
 }
 
+type BuildBucketInterface interface {
+	// GetBuild retrieves the build with the given ID.
+	GetBuild(ctx context.Context, buildId string) (*Build, error)
+	// Search retrieves Builds which match the given criteria.
+	Search(ctx context.Context, pred *buildbucketpb.BuildPredicate) ([]*Build, error)
+	// GetTrybotsForCL retrieves trybot results for the given CL.
+	GetTrybotsForCL(ctx context.Context, issue, patchset int64, gerritUrl string) ([]*Build, error)
+}
+
 // Client is used for interacting with the BuildBucket API.
 type Client struct {
 	bc   buildbucketpb.BuildsClient
@@ -156,7 +165,7 @@ func (c *Client) convertBuild(b *buildbucketpb.Build) *Build {
 	}
 }
 
-// GetBuild retrieves the build with the given ID.
+// GetBuild implements the BuildBucketInterface.
 func (c *Client) GetBuild(ctx context.Context, buildId string) (*Build, error) {
 	id, err := strconv.ParseInt(buildId, 10, 64)
 	if err != nil {
@@ -172,7 +181,7 @@ func (c *Client) GetBuild(ctx context.Context, buildId string) (*Build, error) {
 	return c.convertBuild(b), nil
 }
 
-// Search retrieves Builds which match the given criteria.
+// GetBuild implements the BuildBucketInterface.
 func (c *Client) Search(ctx context.Context, pred *buildbucketpb.BuildPredicate) ([]*Build, error) {
 	rv := []*Build{}
 	cursor := ""
@@ -200,7 +209,7 @@ func (c *Client) Search(ctx context.Context, pred *buildbucketpb.BuildPredicate)
 	return rv, nil
 }
 
-// GetTrybotsForCL retrieves trybot results for the given CL.
+// GetBuild implements the BuildBucketInterface.
 func (c *Client) GetTrybotsForCL(ctx context.Context, issue, patchset int64, gerritUrl string) ([]*Build, error) {
 	pred, err := common.GetTrybotsForCLPredicate(issue, patchset, gerritUrl)
 	if err != nil {
@@ -208,3 +217,6 @@ func (c *Client) GetTrybotsForCL(ctx context.Context, issue, patchset int64, ger
 	}
 	return c.Search(ctx, pred)
 }
+
+// Make sure Client fulfills the BuildBucketInterface interface.
+var _ BuildBucketInterface = (*Client)(nil)
