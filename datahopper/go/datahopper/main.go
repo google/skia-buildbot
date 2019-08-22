@@ -22,7 +22,7 @@ import (
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
-	"go.skia.org/infra/go/gitstore_deprecated/bt_gitstore"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -43,7 +43,7 @@ var (
 	btInstance        = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject         = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
-	gitstoreTable     = flag.String("gitstore_bt_table", "git-repos", "BigTable table used for GitStore.")
+	gitstoreTable     = flag.String("gitstore_bt_table", "git-repos2", "BigTable table used for GitStore.")
 	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	perfBucket        = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
 	perfPrefix        = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric should be written.")
