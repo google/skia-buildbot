@@ -9,11 +9,11 @@ import (
 )
 
 type CISImpl struct {
-	bbClient *buildbucket.Client
+	bbClient buildbucket.BuildBucketInterface
 	bucket   string
 }
 
-func New(client *buildbucket.Client, bucket string) *CISImpl {
+func New(client buildbucket.BuildBucketInterface, bucket string) *CISImpl {
 	return &CISImpl{
 		bbClient: client,
 		bucket:   bucket,
