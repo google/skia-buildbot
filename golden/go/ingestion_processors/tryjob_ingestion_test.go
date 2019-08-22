@@ -67,8 +67,8 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 	mcrs.On("GetChangeList", anyctx, sampleCLID).Return(makeChangeList(), nil)
 	mcrs.On("GetPatchSets", anyctx, sampleCLID).Return(makePatchSets(), nil)
 
-	mcls.On("GetChangeList", anyctx, sampleCLID).Return(code_review.ChangeList{}, clstore.NotFound)
-	mcls.On("GetPatchSet", anyctx, sampleCLID, samplePSID).Return(code_review.PatchSet{}, clstore.NotFound)
+	mcls.On("GetChangeList", anyctx, sampleCLID).Return(code_review.ChangeList{}, clstore.ErrNotFound)
+	mcls.On("GetPatchSet", anyctx, sampleCLID, samplePSID).Return(code_review.PatchSet{}, clstore.ErrNotFound)
 	mcls.On("PutChangeList", anyctx, makeChangeList()).Return(nil)
 	xps := makePatchSets()
 	mcls.On("PutPatchSet", anyctx, sampleCLID, xps[0]).Return(nil)
@@ -76,7 +76,7 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 
 	mcis.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
 
-	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(ci.TryJob{}, tjstore.NotFound)
+	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(ci.TryJob{}, tjstore.ErrNotFound)
 	mtjs.On("PutTryJob", anyctx, sampleCombinedID, makeTryJob()).Return(nil)
 	mtjs.On("PutResults", anyctx, sampleCombinedID, makeTryJobResults()).Return(nil)
 
@@ -113,14 +113,14 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 	mcrs.On("GetPatchSets", anyctx, sampleCLID).Return(makePatchSets(), nil)
 
 	mcls.On("GetChangeList", anyctx, sampleCLID).Return(makeChangeList(), nil)
-	mcls.On("GetPatchSet", anyctx, sampleCLID, samplePSID).Return(code_review.PatchSet{}, clstore.NotFound)
+	mcls.On("GetPatchSet", anyctx, sampleCLID, samplePSID).Return(code_review.PatchSet{}, clstore.ErrNotFound)
 	xps := makePatchSets()
 	mcls.On("PutPatchSet", anyctx, sampleCLID, xps[0]).Return(nil)
 	mcls.On("PutPatchSet", anyctx, sampleCLID, xps[1]).Return(nil)
 
 	mcis.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
 
-	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(ci.TryJob{}, tjstore.NotFound)
+	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(ci.TryJob{}, tjstore.ErrNotFound)
 	mtjs.On("PutTryJob", anyctx, sampleCombinedID, makeTryJob()).Return(nil)
 	mtjs.On("PutResults", anyctx, sampleCombinedID, makeTryJobResults()).Return(nil)
 
@@ -160,7 +160,7 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 
 	mcis.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
 
-	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(ci.TryJob{}, tjstore.NotFound)
+	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(ci.TryJob{}, tjstore.ErrNotFound)
 	mtjs.On("PutTryJob", anyctx, sampleCombinedID, makeTryJob()).Return(nil)
 	mtjs.On("PutResults", anyctx, sampleCombinedID, makeTryJobResults()).Return(nil)
 
@@ -275,21 +275,18 @@ func makePatchSets() []code_review.PatchSet {
 			ChangeListID: "1762193",
 			Order:        1,
 			GitHash:      "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
-			ParentHash:   "0000000000000000000000000000000000000000",
 		},
 		{
 			SystemID:     "2",
 			ChangeListID: "1762193",
 			Order:        2,
 			GitHash:      "e1681c90cf6a4c3b6be2bc4b4cea59849c16a438",
-			ParentHash:   "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
 		},
 		{
 			SystemID:     "3",
 			ChangeListID: "1762193",
 			Order:        3,
 			GitHash:      "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
-			ParentHash:   "e1681c90cf6a4c3b6be2bc4b4cea59849c16a438",
 		},
 	}
 }
