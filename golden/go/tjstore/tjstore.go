@@ -37,7 +37,7 @@ type Store interface {
 	PutResults(ctx context.Context, psID CombinedPSID, r []TryJobResult) error
 }
 
-var NotFound = errors.New("not found")
+var ErrNotFound = errors.New("not found")
 
 type TryJobResult struct {
 	// GroupParams describe the general configuration that produced

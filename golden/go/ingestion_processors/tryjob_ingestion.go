@@ -164,9 +164,9 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 
 	// Fetch CL from clstore if we have seen it before, from CRS if we have not.
 	_, err = g.changelistStore.GetChangeList(ctx, clID)
-	if err == clstore.NotFound {
+	if err == clstore.ErrNotFound {
 		cl, err := g.reviewClient.GetChangeList(ctx, clID)
-		if err == code_review.NotFound {
+		if err == code_review.ErrNotFound {
 			sklog.Warningf("Unknown %s CL with id %q", crs, clID)
 			// Try again later - maybe the input was created before the CL?
 			return ingestion.IgnoreResultsFileErr
@@ -183,7 +183,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 
 	// Fetch PS from clstore if we have seen it before, from CRS if we have not.
 	_, err = g.changelistStore.GetPatchSet(ctx, clID, psID)
-	if err == clstore.NotFound {
+	if err == clstore.ErrNotFound {
 		xps, err := g.reviewClient.GetPatchSets(ctx, clID)
 		if err != nil {
 			return skerr.Wrapf(err, "could not get patchsets for %s cl %s", crs, clID)
@@ -213,9 +213,9 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	combinedID := tjstore.CombinedPSID{CL: clID, PS: psID, CRS: crs}
 
 	_, err = g.tryjobStore.GetTryJob(ctx, tjID)
-	if err == tjstore.NotFound {
+	if err == tjstore.ErrNotFound {
 		tj, err := g.integrationClient.GetTryJob(ctx, tjID)
-		if err == tjstore.NotFound {
+		if err == tjstore.ErrNotFound {
 			sklog.Warningf("Unknown %s Tryjob with id %q", cis, tjID)
 			// Try again later - maybe there's some lag with the Integration System?
 			return ingestion.IgnoreResultsFileErr
