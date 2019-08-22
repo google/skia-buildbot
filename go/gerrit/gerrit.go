@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -353,13 +354,13 @@ func (g *Gerrit) ExtractIssueFromCommit(commitMsg string) (int64, error) {
 		if len(result) == 2 {
 			ret, err := strconv.ParseInt(result[1], 10, 64)
 			if err != nil {
-				return 0, sklog.FmtErrorf("Unable to parse issue id '%s'. Got error: %s", err)
+				return 0, skerr.Wrapf(err, "parsing issue id '%s'", result[1])
 			}
 
 			return ret, nil
 		}
 	}
-	return 0, sklog.FmtErrorf("Unable to extract issue id from commit message.")
+	return 0, skerr.Fmt("unable to find Reviewed-on line")
 }
 
 // Fix up a ChangeInfo object, received via the Gerrit API, to contain all of
