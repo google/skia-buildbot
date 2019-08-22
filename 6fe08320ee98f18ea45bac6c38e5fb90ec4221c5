@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8ec29910_99c62f37",
+        "filename": "go/gitstore_deprecated/types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-22T19:11:41Z",
+      "side": 1,
+      "message": "This is the only thing that should\u0027ve changed from the old impl.",
+      "revId": "6fe08320ee98f18ea45bac6c38e5fb90ec4221c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
