@@ -145,7 +145,7 @@ func (b *BigTableGitStore) Put(ctx context.Context, commits []*vcsinfo.LongCommi
 			close(mutations)
 		}()
 		// Create IndexCommits mutations for each branch for each commit.
-		for _, c := range commits {
+		for i, c := range commits {
 			// Validation.
 			if c.Index == 0 && len(c.Parents) != 0 {
 				return skerr.Fmt("Commit %s has index zero but has at least one parent. This cannot be correct.", c.Hash)
@@ -175,6 +175,9 @@ func (b *BigTableGitStore) Put(ctx context.Context, commits []*vcsinfo.LongCommi
 					mutations <- b.mutationForIndexCommit(branch, ic)
 					mutations <- b.mutationForTimestampCommit(branch, ic)
 				}
+			}
+			if i%1000 == 0 {
+				sklog.Infof("Created mutations for %d of %d commits.", i+1, len(commits))
 			}
 		}
 		return nil

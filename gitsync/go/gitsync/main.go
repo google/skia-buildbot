@@ -6,15 +6,12 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/flynn/json5"
+	"go.skia.org/infra/gitsync/go/watcher"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
@@ -27,15 +24,15 @@ import (
 
 // Default config/flag values
 var defaultConf = gitSyncConfig{
-	BTInstanceID:    "production",
-	BTTableID:       "git-repos2",
-	HttpPort:        ":9091",
-	Local:           false,
-	ProjectID:       "skia-public",
-	PromPort:        ":20000",
-	RepoURLs:        []string{},
-	RefreshInterval: human.JSONDuration(10 * time.Minute),
-	WorkDir:         "",
+	BTInstanceID:      "production",
+	BTTableID:         "git-repos2",
+	BTWriteGoroutines: bt_gitstore.DefaultWriteGoroutines,
+	HttpPort:          ":9091",
+	Local:             false,
+	ProjectID:         "skia-public",
+	PromPort:          ":20000",
+	RepoURLs:          []string{},
+	RefreshInterval:   human.JSONDuration(10 * time.Minute),
 }
 
 func main() {
@@ -45,17 +42,19 @@ func main() {
 	// Flags that cause the flags below to be disregarded.
 	configFile := flag.String("config", "", "Disregard flags and load the configuration from this JSON5 config file. The keys and types of the config file match the flags.")
 	runInit := flag.Bool("init", false, "Initialize the BigTable instance and quit. This should be run with a different different user who has admin rights.")
+	gcsBucket := flag.String("gcs_bucket", "", "GCS bucket used for temporary storage during ingestion.")
+	gcsPath := flag.String("gcs_path", "", "GCS path used for temporary storage during ingestion.")
 
 	// Define flags that map to field in the configuration struct.
 	flag.StringVar(&config.BTInstanceID, "bt_instance", defaultConf.BTInstanceID, "Big Table instance")
 	flag.StringVar(&config.BTTableID, "bt_table", defaultConf.BTTableID, "BigTable table ID")
+	flag.IntVar(&config.BTWriteGoroutines, "bt_write_goroutines", defaultConf.BTWriteGoroutines, "Number of goroutines to use when writing to BigTable.")
 	flag.StringVar(&config.HttpPort, "http_port", defaultConf.HttpPort, "The http port where ready-ness endpoints are served.")
 	flag.BoolVar(&config.Local, "local", defaultConf.Local, "Running locally if true. As opposed to in production.")
 	flag.StringVar(&config.ProjectID, "project", defaultConf.ProjectID, "ID of the GCP project")
 	flag.StringVar(&config.PromPort, "prom_port", defaultConf.PromPort, "Metrics service address (e.g., ':10110')")
 	common.MultiStringFlagVar(&config.RepoURLs, "repo_url", defaultConf.RepoURLs, "Repo url")
 	flag.DurationVar((*time.Duration)(&config.RefreshInterval), "refresh", time.Duration(defaultConf.RefreshInterval), "Interval in which to poll git and refresh the GitStore.")
-	flag.StringVar(&config.WorkDir, "workdir", defaultConf.WorkDir, "Working directory where repos are cached. Use the same directory between calls to speed up checkout time.")
 
 	common.InitWithMust(
 		"gitsync",
@@ -81,9 +80,10 @@ func main() {
 
 	// Configure the bigtable instance.
 	btConfig := &bt_gitstore.BTConfig{
-		ProjectID:  config.ProjectID,
-		InstanceID: config.BTInstanceID,
-		TableID:    config.BTTableID,
+		ProjectID:       config.ProjectID,
+		InstanceID:      config.BTInstanceID,
+		TableID:         config.BTTableID,
+		WriteGoroutines: config.BTWriteGoroutines,
 	}
 
 	// Initialize bigtable if invoked with --init and quit.
@@ -96,12 +96,6 @@ func main() {
 		sklog.Infof("BigTable instance %s and table %s in project %s initialized.", btConfig.InstanceID, btConfig.TableID, btConfig.ProjectID)
 		return
 	}
-
-	// Make sure we have a data directory and it exists or can be created.
-	if config.WorkDir == "" {
-		sklog.Fatal("No workdir specified.")
-	}
-	useWorkDir := fileutil.Must(fileutil.EnsureDirExists(config.WorkDir))
 
 	// Make sure we have at least one repo configured.
 	if len(config.RepoURLs) == 0 {
@@ -117,9 +111,10 @@ func main() {
 	}
 
 	// Set up Git authentication if a service account email was set.
+	gitcookiesPath := ""
 	if !config.Local {
 		// Use the gitcookie created by the gitauth package.
-		gitcookiesPath := "/tmp/gitcookies"
+		gitcookiesPath = "/tmp/gitcookies"
 		sklog.Infof("Writing gitcookies to %s", gitcookiesPath)
 		if _, err := gitauth.New(ts, gitcookiesPath, true, ""); err != nil {
 			sklog.Fatalf("Failed to create git cookie updater: %s", err)
@@ -127,24 +122,12 @@ func main() {
 		sklog.Infof("Git authentication set up successfully.")
 	}
 
-	// Start all repo watchers in the background.
+	// Start all repo watchers.
 	ctx := context.Background()
 	for _, repoURL := range config.RepoURLs {
-		go func(repoURL string) {
-			repoDir, err := git.NormalizeURL(repoURL)
-			if err != nil {
-				sklog.Fatalf("Error getting normalized URL for %q:  %s", repoURL, err)
-			}
-			repoDir = strings.Replace(repoDir, "/", "_", -1)
-			repoDir = filepath.Join(useWorkDir, repoDir)
-			sklog.Infof("Checking out %s into %s", repoURL, repoDir)
-
-			watcher, err := NewRepoWatcher(ctx, btConfig, repoURL, repoDir)
-			if err != nil {
-				sklog.Fatalf("Error initializing repo watcher: %s", err)
-			}
-			watcher.Start(ctx, time.Duration(config.RefreshInterval))
-		}(repoURL)
+		if err := watcher.Start(ctx, btConfig, repoURL, gitcookiesPath, *gcsBucket, *gcsPath, time.Duration(config.RefreshInterval)); err != nil {
+			sklog.Fatalf("Error initializing repo watcher: %s", err)
+		}
 	}
 
 	// Set up the http handler to indicate ready-ness and start serving.
