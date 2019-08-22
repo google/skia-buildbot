@@ -20,12 +20,14 @@ const (
 )
 
 // Tests parsing and processing of a single file.
+// There don't need to be more of these here because we should
+// depend on jsonio.ParseGoldResults which has its own test suite.
 func TestDMResults(t *testing.T) {
 	unittest.SmallTest(t)
 	f, err := os.Open(TEST_INGESTION_FILE)
 	assert.NoError(t, err)
 
-	dmResults, err := parseDMResultsFromReader(f, TEST_INGESTION_FILE)
+	gr, err := parseGoldResultsFromReader(f)
 	assert.NoError(t, err)
 
 	assert.Equal(t, &jsonio.GoldResults{
@@ -75,7 +77,7 @@ func TestDMResults(t *testing.T) {
 				},
 			},
 		},
-	}, dmResults.GoldResults)
+	}, gr)
 }
 
 // TestGetCanonicalCommitHashPrimary tests the case where the commit hash

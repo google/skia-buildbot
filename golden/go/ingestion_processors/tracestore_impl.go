@@ -65,24 +65,24 @@ type btProcessor struct {
 // Process implements the ingestion.Processor interface.
 func (b *btProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
 	defer metrics2.FuncTimer().Stop()
-	dmResults, err := processDMResults(resultsFile)
+	gr, err := processGoldResults(resultsFile)
 	if err != nil {
-		return skerr.Wrapf(err, "could not process results file: %s", resultsFile.Name())
+		return skerr.Wrapf(err, "could not process results file")
 	}
 
-	if len(dmResults.Results) == 0 {
+	if len(gr.Results) == 0 {
 		sklog.Infof("ignoring file %s because it has no results", resultsFile.Name())
 		return ingestion.IgnoreResultsFileErr
 	}
 
 	// If the target commit is not in the primary repository we look it up
 	// in the secondary that has the primary as a dependency.
-	targetHash, err := getCanonicalCommitHash(ctx, b.vcs, dmResults.GitHash)
+	targetHash, err := getCanonicalCommitHash(ctx, b.vcs, gr.GitHash)
 	if err != nil {
 		if err == ingestion.IgnoreResultsFileErr {
 			return ingestion.IgnoreResultsFileErr
 		}
-		return skerr.Wrapf(err, "could not identify canonical commit from %q", dmResults.GitHash)
+		return skerr.Wrapf(err, "could not identify canonical commit from %q", gr.GitHash)
 	}
 
 	if ok, err := b.isOnMaster(ctx, targetHash); err != nil {
@@ -93,9 +93,9 @@ func (b *btProcessor) Process(ctx context.Context, resultsFile ingestion.ResultF
 	}
 
 	// Get the entries that should be added to the tracestore.
-	entries, err := extractTraceStoreEntries(dmResults)
+	entries, err := extractTraceStoreEntries(gr, resultsFile.Name())
 	if err != nil {
-		return skerr.Fmt("could not create entries for results: %s", err)
+		return skerr.Wrapf(err, "could not create entries")
 	}
 
 	t := time.Unix(resultsFile.TimeStamp(), 0)
@@ -106,7 +106,7 @@ func (b *btProcessor) Process(ctx context.Context, resultsFile ingestion.ResultF
 	// Write the result to the tracestore.
 	err = b.ts.Put(ctx, targetHash, entries, t)
 	if err != nil {
-		return skerr.Wrapf(err, "could not add to tracestore")
+		return skerr.Wrapf(err, "could not add entries to tracestore")
 	}
 	return nil
 }
@@ -135,12 +135,12 @@ func (b *btProcessor) BatchFinished() error { return nil }
 // extractTraceStoreEntries creates a slice of tracestore.Entry for the given
 // file. It will omit any entries that should be ignored. It returns an
 // error if there were no un-ignored entries in the file.
-func extractTraceStoreEntries(dm *dmResults) ([]*tracestore.Entry, error) {
-	ret := make([]*tracestore.Entry, 0, len(dm.Results))
-	for _, result := range dm.Results {
-		params, options := paramsAndOptions(dm, result)
+func extractTraceStoreEntries(gr *jsonio.GoldResults, name string) ([]*tracestore.Entry, error) {
+	ret := make([]*tracestore.Entry, 0, len(gr.Results))
+	for _, result := range gr.Results {
+		params, options := paramsAndOptions(gr, result)
 		if err := shouldIngest(params, options); err != nil {
-			sklog.Infof("Not ingesting %s : %s", dm.name, err)
+			sklog.Infof("Not ingesting %s : %s", name, err)
 			continue
 		}
 
@@ -153,16 +153,16 @@ func extractTraceStoreEntries(dm *dmResults) ([]*tracestore.Entry, error) {
 
 	// If all results were ignored then we return an error.
 	if len(ret) == 0 {
-		return nil, fmt.Errorf("No valid results in file %s.", dm.name)
+		return nil, skerr.Fmt("no valid results in file")
 	}
 
 	return ret, nil
 }
 
 // paramsAndOptions creates the params and options maps from a given file and entry.
-func paramsAndOptions(dm *dmResults, r *jsonio.Result) (map[string]string, map[string]string) {
-	params := make(map[string]string, len(dm.Key)+len(r.Key))
-	for k, v := range dm.Key {
+func paramsAndOptions(gr *jsonio.GoldResults, r *jsonio.Result) (map[string]string, map[string]string) {
+	params := make(map[string]string, len(gr.Key)+len(r.Key))
+	for k, v := range gr.Key {
 		params[k] = v
 	}
 	for k, v := range r.Key {

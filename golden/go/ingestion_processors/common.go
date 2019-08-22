@@ -2,7 +2,6 @@ package ingestion_processors
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	"go.skia.org/infra/go/ingestion"
@@ -14,44 +13,32 @@ import (
 	"go.skia.org/infra/golden/go/shared"
 )
 
-// dmResults enhances GoldResults with fields used for internal processing.
-type dmResults struct {
-	*jsonio.GoldResults
-
-	// name is the name/path of the file where this came from.
-	name string
-}
-
-// Name returns the name/path from which these results were parsed.
-func (d *dmResults) Name() string {
-	return d.name
-}
-
-// parseDMResultsFromReader parses the JSON stream out of the io.ReadCloser
-// into a DMResults instance and closes the reader.
-func parseDMResultsFromReader(r io.ReadCloser, name string) (*dmResults, error) {
+// parseGoldResultsFromReader parses the JSON stream out of the io.ReadCloser
+// into a jsonio.GoldResults instance and closes the reader.
+func parseGoldResultsFromReader(r io.ReadCloser) (*jsonio.GoldResults, error) {
 	defer util.Close(r)
 
-	goldResults, _, err := jsonio.ParseGoldResults(r)
+	gr, _, err := jsonio.ParseGoldResults(r)
 	if err != nil {
-		return nil, skerr.Fmt("Failed to decode JSON: %s", err)
+		return nil, skerr.Wrap(err)
 	}
-
-	dmResults := &dmResults{GoldResults: goldResults}
-	dmResults.name = name
-	return dmResults, nil
+	return gr, nil
 }
 
-// processDMResults opens the given JSON input file and processes it, converting
-// it into a goldingestion.dmResults object and returning it.
-func processDMResults(rf ingestion.ResultFileLocation) (*dmResults, error) {
+// processGoldResults opens the given JSON input file and processes it, converting
+// it into a jsonio.GoldResults object and returning it.
+func processGoldResults(rf ingestion.ResultFileLocation) (*jsonio.GoldResults, error) {
 	defer shared.NewMetricsTimer("read_dm_results").Stop()
 	r, err := rf.Open()
 	if err != nil {
-		return nil, skerr.Fmt("could not open file %s: %s", rf.Name(), err)
+		return nil, skerr.Wrapf(err, "opening ResultFileLocation %s", rf.Name())
 	}
 
-	return parseDMResultsFromReader(r, rf.Name())
+	gr, err := parseGoldResultsFromReader(r)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "parsing ResultFileLocation %s", rf.Name())
+	}
+	return gr, nil
 }
 
 // getCanonicalCommitHash returns the commit hash in the primary repository. If the given
@@ -63,7 +50,7 @@ func getCanonicalCommitHash(ctx context.Context, vcs vcsinfo.VCS, targetHash str
 		// Extract the commit.
 		foundCommit, err := vcs.ResolveCommit(ctx, targetHash)
 		if err != nil && err != vcsinfo.NoSecondaryRepo {
-			return "", fmt.Errorf("Unable to resolve commit %s in primary or secondary repo. Got err: %s", targetHash, err)
+			return "", skerr.Wrapf(err, "resolving commit %s in primary or secondary repo", targetHash)
 		}
 
 		if foundCommit == "" {
@@ -86,7 +73,7 @@ func getCanonicalCommitHash(ctx context.Context, vcs vcsinfo.VCS, targetHash str
 		// Check if the found commit is actually in the primary repository. This could indicate misconfiguration
 		// of the secondary repo.
 		if !isCommit(ctx, vcs, foundCommit) {
-			return "", fmt.Errorf("Found invalid commit %s in secondary repo at commit %s. Not contained in primary repo.", foundCommit, targetHash)
+			return "", skerr.Fmt("Found invalid commit %s in secondary repo at commit %s. Not contained in primary repo.", foundCommit, targetHash)
 		}
 		sklog.Infof("Commit translation: %s -> %s", targetHash, foundCommit)
 		targetHash = foundCommit

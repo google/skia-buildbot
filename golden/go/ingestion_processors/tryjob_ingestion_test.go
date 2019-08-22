@@ -96,14 +96,134 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+// TestTryJobProcessCLExistsSunnyDay tests that the ingestion works when the
+// CL already exists.
+func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mcls := &mockclstore.Store{}
+	mtjs := &mocktjstore.Store{}
+	mcrs := &mockcrs.Client{}
+	mcis := &mockcis.Client{}
+	defer mcls.AssertExpectations(t)
+	defer mtjs.AssertExpectations(t)
+	defer mcrs.AssertExpectations(t)
+	defer mcis.AssertExpectations(t)
+
+	mcrs.On("GetPatchSets", anyctx, sampleCLID).Return(makePatchSets(), nil)
+
+	mcls.On("GetChangeList", anyctx, sampleCLID).Return(makeChangeList(), nil)
+	mcls.On("GetPatchSet", anyctx, sampleCLID, samplePSID).Return(code_review.PatchSet{}, clstore.NotFound)
+	xps := makePatchSets()
+	mcls.On("PutPatchSet", anyctx, sampleCLID, xps[0]).Return(nil)
+	mcls.On("PutPatchSet", anyctx, sampleCLID, xps[1]).Return(nil)
+
+	mcis.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
+
+	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(ci.TryJob{}, tjstore.NotFound)
+	mtjs.On("PutTryJob", anyctx, sampleCombinedID, makeTryJob()).Return(nil)
+	mtjs.On("PutResults", anyctx, sampleCombinedID, makeTryJobResults()).Return(nil)
+
+	gtp := goldTryjobProcessor{
+		reviewClient:      mcrs,
+		integrationClient: mcis,
+		changelistStore:   mcls,
+		tryjobStore:       mtjs,
+		crsName:           "gerrit",
+		cisName:           "buildbucket",
+	}
+
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
+	assert.NoError(t, err)
+
+	err = gtp.Process(context.Background(), fsResult)
+	assert.NoError(t, err)
+}
+
+// TestTryJobProcessPSExistsSunnyDay tests that the ingestion works when the
+// CL and the PS already exists.
+func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mcls := &mockclstore.Store{}
+	mtjs := &mocktjstore.Store{}
+	mcrs := &mockcrs.Client{}
+	mcis := &mockcis.Client{}
+	defer mcls.AssertExpectations(t)
+	defer mtjs.AssertExpectations(t)
+	defer mcrs.AssertExpectations(t)
+	defer mcis.AssertExpectations(t)
+
+	mcls.On("GetChangeList", anyctx, sampleCLID).Return(makeChangeList(), nil)
+	xps := makePatchSets()
+	mcls.On("GetPatchSet", anyctx, sampleCLID, samplePSID).Return(xps[1], nil)
+
+	mcis.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
+
+	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(ci.TryJob{}, tjstore.NotFound)
+	mtjs.On("PutTryJob", anyctx, sampleCombinedID, makeTryJob()).Return(nil)
+	mtjs.On("PutResults", anyctx, sampleCombinedID, makeTryJobResults()).Return(nil)
+
+	gtp := goldTryjobProcessor{
+		reviewClient:      mcrs,
+		integrationClient: mcis,
+		changelistStore:   mcls,
+		tryjobStore:       mtjs,
+		crsName:           "gerrit",
+		cisName:           "buildbucket",
+	}
+
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
+	assert.NoError(t, err)
+
+	err = gtp.Process(context.Background(), fsResult)
+	assert.NoError(t, err)
+}
+
+// TestTryJobProcessTJExistsSunnyDay tests that the ingestion works when the
+// CL, PS and TryJob already exists.
+func TestTryJobProcessTJExistsSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mcls := &mockclstore.Store{}
+	mtjs := &mocktjstore.Store{}
+	mcrs := &mockcrs.Client{}
+	mcis := &mockcis.Client{}
+	defer mcls.AssertExpectations(t)
+	defer mtjs.AssertExpectations(t)
+	defer mcrs.AssertExpectations(t)
+	defer mcis.AssertExpectations(t)
+
+	mcls.On("GetChangeList", anyctx, sampleCLID).Return(makeChangeList(), nil)
+	xps := makePatchSets()
+	mcls.On("GetPatchSet", anyctx, sampleCLID, samplePSID).Return(xps[1], nil)
+
+	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
+	mtjs.On("PutResults", anyctx, sampleCombinedID, makeTryJobResults()).Return(nil)
+
+	gtp := goldTryjobProcessor{
+		reviewClient:      mcrs,
+		integrationClient: mcis,
+		changelistStore:   mcls,
+		tryjobStore:       mtjs,
+		crsName:           "gerrit",
+		cisName:           "buildbucket",
+	}
+
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
+	assert.NoError(t, err)
+
+	err = gtp.Process(context.Background(), fsResult)
+	assert.NoError(t, err)
+}
+
 var (
 	anyctx = mock.AnythingOfType("*context.emptyCtx")
 )
 
 // Below is the sample data that belongs to legacyGoldCtlFile
-// It doesn't need to be a super complex example because we can have tests that
-// test toTryJobResults directly, which should handle the more complex
-// file types there.
+// It doesn't need to be a super complex example because we have tests that
+// test parseDMResults directly.
 const (
 	sampleCLID = "1762193"
 	samplePSID = "2"
