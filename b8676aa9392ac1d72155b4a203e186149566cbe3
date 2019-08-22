@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1e758f2a_231569ea",
+        "filename": "go/buildbucket/buildbucket.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-22T15:11:05Z",
+      "side": 1,
+      "message": "Not necessary for this CL, but this really should be GetBuildsForCL, to be consistent with Buildbucket lingo.  We could also just remove this, since it\u0027s just a helper function which calls Search() after building search predicates to find Builds for the given CL.",
+      "range": {
+        "startLine": 82,
+        "startChar": 1,
+        "endLine": 82,
+        "endChar": 16
+      },
+      "revId": "b8676aa9392ac1d72155b4a203e186149566cbe3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
