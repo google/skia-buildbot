@@ -254,7 +254,7 @@ func main() {
 	}
 
 	// Merge all CSV files and upload.
-	pathToPyFiles := util.GetPathToPyFiles(*master_common.Local, true /* runOnMaster */)
+	pathToPyFiles := util.GetPathToPyFiles(*master_common.Local, false /* runOnMaster */)
 	outputCSVLocalPath, noOutputSlaves, err := util.MergeUploadCSVFiles(ctx, *runID, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1))
 	if err != nil {
 		sklog.Errorf("Unable to merge and upload CSV files for %s: %s", *runID, err)

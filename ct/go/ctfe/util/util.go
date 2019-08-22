@@ -7,6 +7,7 @@ package util
 import (
 	"encoding/csv"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
@@ -161,4 +162,16 @@ func GetQualifiedCustomWebpages(customWebpages, benchmarkArgs string) ([]string,
 		}
 	}
 	return qualifiedWebpages, nil
+}
+
+func GetDsNamespaceFlagVal() string {
+	return flag.Lookup("namespace").Value.String()
+}
+
+func GetDsProjectNameFlagVal() string {
+	return flag.Lookup("project_name").Value.String()
+}
+
+func GetServiceAccountFileFlagVal() string {
+	return flag.Lookup("service_account_file").Value.String()
 }

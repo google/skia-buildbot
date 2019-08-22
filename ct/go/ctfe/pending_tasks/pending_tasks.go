@@ -24,7 +24,6 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/ctfe/task_types"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
-	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
 	"google.golang.org/api/iterator"
@@ -101,33 +100,6 @@ func GetRunningTasks(ctx context.Context) ([]task_common.Task, error) {
 		}
 	}
 	return runningTasks, nil
-}
-
-func TerminateRunningTasks(ctx context.Context) error {
-	runningTasks, err := GetRunningTasks(ctx)
-	if err != nil {
-		return fmt.Errorf("Could not get list of running tasks: %s", err)
-	}
-	runningTasksOwners := []string{}
-	for _, task := range runningTasks {
-		updateVars := task.GetUpdateTaskVars()
-		commonUpdateVars := updateVars.GetUpdateTaskCommonVars()
-		commonUpdateVars.Id = task.GetCommonCols().DatastoreKey.ID
-		commonUpdateVars.SetCompleted(false)
-		if err := task_common.UpdateTask(ctx, updateVars, task); err != nil {
-			return fmt.Errorf("Failed to update %T task: %s", updateVars, err)
-		}
-		runningTasksOwners = append(runningTasksOwners, task.GetCommonCols().Username)
-	}
-	// Email all owners + admins.
-	if len(runningTasksOwners) > 0 {
-		emailRecipients := append(runningTasksOwners, ctutil.CtAdmins...)
-		if err := ctutil.SendTasksTerminatedEmail(emailRecipients); err != nil {
-			return fmt.Errorf("Failed to send task termination email: %s", err)
-		}
-	}
-
-	return nil
 }
 
 // Union of all task types, to be easily marshalled/unmarshalled to/from JSON. At most one field
@@ -218,14 +190,6 @@ func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getTerminateRunningTasksHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	if err := TerminateRunningTasks(r.Context()); err != nil {
-		httputils.ReportError(w, r, err, "Failed to terminate running tasks")
-		return
-	}
-}
-
 // GetPendingTaskCount returns the total number of pending tasks of all types. On error, the first
 // return value will be -1 and the second return value will be non-nil.
 func GetPendingTaskCount(ctx context.Context) (int64, error) {
@@ -263,7 +227,8 @@ func AddHandlers(externalRouter, internalRouter *mux.Router) {
 	// Task Queue handlers.
 	externalRouter.HandleFunc("/"+ctfeutil.PENDING_TASKS_URI, pendingTasksView).Methods("GET")
 
-	// getOldestPendingTaskHandler and getTerminateRunningTasksHandler is done via the internal router.
-	internalRouter.HandleFunc("/"+ctfeutil.GET_OLDEST_PENDING_TASK_URI, getOldestPendingTaskHandler).Methods("GET")
-	internalRouter.HandleFunc("/"+ctfeutil.TERMINATE_RUNNING_TASKS_URI, getTerminateRunningTasksHandler).Methods("POST")
+	// getOldestPendingTaskHandler is done via the internal router.
+	// internalRouter.HandleFunc("/"+ctfeutil.GET_OLDEST_PENDING_TASK_URI, getOldestPendingTaskHandler).Methods("GET")
+	// Just for testing poller on my desktop.
+	externalRouter.HandleFunc("/"+ctfeutil.GET_OLDEST_PENDING_TASK_URI, getOldestPendingTaskHandler).Methods("GET")
 }

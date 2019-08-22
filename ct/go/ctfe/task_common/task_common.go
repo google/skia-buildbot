@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -91,6 +92,16 @@ func AsTaskSlice(selectResult interface{}) []Task {
 	return result
 }
 
+// Generates a hopefully-unique ID for this task.
+func GetRunID(task Task) string {
+	// DO THE STUFF BELOW with a mutex
+	//		// Sleeping for a second to avoid the small probability of ending up
+	//		// with 2 tasks with the same runID. For context see
+	//		// https://skia-review.googlesource.com/c/26941/8/ct/go/poller/main.go#96
+	//		time.Sleep(time.Second)
+	return strings.SplitN(task.GetCommonCols().Username, "@", 2)[0] + "-" + ctutil.GetCurrentTs()
+}
+
 // Data included in all tasks; set by AddTaskHandler.
 type AddTaskCommonVars struct {
 	Username        string
@@ -103,6 +114,7 @@ type AddTaskVars interface {
 	IsAdminTask() bool
 	GetDatastoreKind() ds.Kind
 	GetPopulatedDatastoreTask(ctx context.Context) (Task, error)
+	TriggerSwarmingTask(ctx context.Context, t Task) error
 }
 
 func (vars *AddTaskCommonVars) GetAddTaskCommonVars() *AddTaskCommonVars {
@@ -136,14 +148,54 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 		return
 	}
 
-	if _, err := AddTask(r.Context(), task); err != nil {
+	if _, err := AddAndTriggerTask(r.Context(), task); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task: %s", task, err))
 		return
 	}
+
+	// Trigger task on swarming.
+	//runId := runId(task)
+	//emails := []string{task.Username}
+	//emails = append(emails, task.CCList...)
+	//isolateArgs := map[string]string{
+	//	"EMAILS":                            strings.Join(emails, ","),
+	//	"DESCRIPTION":                       task.Description,
+	//	"TASK_ID":                           strconv.FormatInt(task.DatastoreKey.ID, 10),
+	//	"PAGESET_TYPE":                      task.PageSets,
+	//	"BENCHMARK":                         task.Benchmark,
+	//	"BENCHMARK_ARGS":                    task.BenchmarkArgs,
+	//	"BROWSER_EXTRA_ARGS_NOPATCH":        task.BrowserArgsNoPatch,
+	//	"BROWSER_EXTRA_ARGS_WITHPATCH":      task.BrowserArgsWithPatch,
+	//	"REPEAT_BENCHMARK":                  strconv.FormatInt(task.RepeatRuns, 10),
+	//	"RUN_IN_PARALLEL":                   strconv.FormatBool(task.RunInParallel),
+	//	"TARGET_PLATFORM":                   task.Platform,
+	//	"RUN_ON_GCE":                        strconv.FormatBool(task.RunsOnGCEWorkers()),
+	//	"CHROMIUM_HASH":                     task.ChromiumHash,
+	//	"RUN_ID":                            runId,
+	//	"TASK_PRIORITY":                     strconv.Itoa(task.TaskPriority),
+	//	"GROUP_NAME":                        task.GroupName,
+	//	"CHROMIUM_PATCH_GS_PATH":            task.ChromiumPatchGSPath,
+	//	"SKIA_PATCH_GS_PATH":                task.SkiaPatchGSPath,
+	//	"V8_PATCH_GS_PATH":                  task.V8PatchGSPath,
+	//	"CATAPULT_PATCH_GS_PATH":            task.CatapultPatchGSPath,
+	//	"CHROMIUM_BASE_BUILD_PATCH_GS_PATH": task.ChromiumPatchBaseBuildGSPath,
+	//	"CUSTOM_WEBPAGES_CSV_GS_PATH":       task.CustomWebpagesGSPath,
+	//}
+	//return executeAndPrintTaskOutput(ctx, "run_chromium_perf_on_workers", runId, ctutil.CHROMIUM_PERF_MASTER_ISOLATE, isolateArgs)
+
+	//if err = task.Execute(ctx, getPatchFunc); err == nil {
+	//	sklog.Infof("Completed triggering task %s", taskId)
+	//} else {
+	//	sklog.Errorf("Triggering task %s failed: %s", taskId, err)
+	//	if err := updateWebappTaskSetFailed(task); err != nil {
+	//		sklog.Error(err)
+	//	}
+	//}
 }
 
+// Does not need to return anything really....
 // Returns the ID of the inserted task if the operation was successful.
-func AddTask(ctx context.Context, task AddTaskVars) (int64, error) {
+func AddAndTriggerTask(ctx context.Context, task AddTaskVars) (int64, error) {
 	datastoreTask, err := task.GetPopulatedDatastoreTask(ctx)
 	if err != nil {
 		return -1, fmt.Errorf("Could not get populated datastore task: %s", err)
@@ -175,6 +227,12 @@ func AddTask(ctx context.Context, task AddTaskVars) (int64, error) {
 	if err != nil {
 		return -1, fmt.Errorf("Error putting task in datastore: %s", err)
 	}
+
+	// Now trigger the task on swarming.
+	if err := task.TriggerSwarmingTask(ctx, datastoreTask); err != nil {
+		return -1, fmt.Errorf("Error triggering task on swarming: %s", err)
+	}
+
 	return ret.ID, nil
 }
 
@@ -455,6 +513,50 @@ func UpdateTaskHandler(vars UpdateTaskVars, prototype Task, w http.ResponseWrite
 	}
 }
 
+//func UpdateWebappTaskV2(vars task_common.UpdateTaskVars) error {
+//	postUrl := InternalWebappRoot + vars.UriPath()
+//	sklog.Infof("Updating %v on %s", vars, postUrl)
+
+//	json, err := json.Marshal(vars)
+//	if err != nil {
+//		return fmt.Errorf("Failed to marshal %v: %s", vars, err)
+//	}
+//	resp, err := httpClient.Post(postUrl, "application/json", bytes.NewReader(json))
+//	if err != nil {
+//		return fmt.Errorf("Could not update webapp task: %s", err)
+//	}
+//	defer util.Close(resp.Body)
+//	if resp.StatusCode != 200 {
+//		response, _ := ioutil.ReadAll(resp.Body)
+//		return fmt.Errorf("Could not update webapp task, response status code was %d: %s", resp.StatusCode, response)
+//	}
+//	return nil
+//}
+
+func UpdateTaskSetStarted(ctx context.Context, vars UpdateTaskVars, prototype Task, id int64, runID string) error {
+	vars.GetUpdateTaskCommonVars().Id = id
+	vars.GetUpdateTaskCommonVars().SetStarted(runID)
+	return FindAndUpdateTask(ctx, vars, prototype)
+}
+
+func FindAndUpdateTask(ctx context.Context, vars UpdateTaskVars, prototype Task) error {
+	key := ds.NewKey(prototype.GetDatastoreKind())
+	key.ID = vars.GetUpdateTaskCommonVars().Id
+	task, err := prototype.Get(ctx, key)
+	if err != nil {
+		return fmt.Errorf("Failed to find %T task", vars)
+	}
+
+	if err := updateDatastoreTask(vars, task); err != nil {
+		return fmt.Errorf("Failed to marshal %T update: %v", vars, err)
+	}
+
+	if _, err := ds.DS.Put(ctx, task.GetCommonCols().DatastoreKey, task); err != nil {
+		return fmt.Errorf("Failed to update task %d in the datastore: %s", task.GetCommonCols().DatastoreKey.ID, err)
+	}
+	return nil
+}
+
 func UpdateTask(ctx context.Context, vars UpdateTaskVars, task Task) error {
 	if err := updateDatastoreTask(vars, task); err != nil {
 		return fmt.Errorf("Failed to marshal %T update: %v", vars, err)
@@ -543,7 +645,7 @@ func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	// Do not preserve repeat_after_days for retried tasks. Carrying over
 	// repeat_after_days causes the same task to be unknowingly repeated.
 	addTaskVars.GetAddTaskCommonVars().RepeatAfterDays = "0"
-	if _, err := AddTask(r.Context(), addTaskVars); err != nil {
+	if _, err := AddAndTriggerTask(r.Context(), addTaskVars); err != nil {
 		httputils.ReportError(w, r, err, "Could not redo the task.")
 		return
 	}
