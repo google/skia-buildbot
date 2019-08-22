@@ -22,6 +22,30 @@
       "revId": "988ad65e7f03493c316e48ee7e1a247f3705bfb6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "347a6548_a1f70f3e",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-22T17:41:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "43bee1af_e2a51a09",
+      "range": {
+        "startLine": 78,
+        "startChar": 1,
+        "endLine": 82,
+        "endChar": 16
+      },
+      "revId": "988ad65e7f03493c316e48ee7e1a247f3705bfb6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
