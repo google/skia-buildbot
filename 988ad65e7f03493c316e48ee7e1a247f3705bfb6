@@ -46,6 +46,30 @@
       "revId": "988ad65e7f03493c316e48ee7e1a247f3705bfb6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc79f5d9_f6942bb3",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-22T17:45:19Z",
+      "side": 1,
+      "message": "Add a comment explaining the shortcut we are taking.",
+      "parentUuid": "347a6548_a1f70f3e",
+      "range": {
+        "startLine": 78,
+        "startChar": 1,
+        "endLine": 82,
+        "endChar": 16
+      },
+      "revId": "988ad65e7f03493c316e48ee7e1a247f3705bfb6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
