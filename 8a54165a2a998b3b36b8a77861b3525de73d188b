@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "694a1a76_bea32566",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-22T14:34:56Z",
+      "side": 1,
+      "message": "So this is now slightly confusing, because r.gitiles.URL is not necessarily the same as the URL used for GitStore. We only use this in logging, so I didn\u0027t bother adding it as a field to repoImpl.",
+      "range": {
+        "startLine": 228,
+        "startChar": 55,
+        "endLine": 228,
+        "endChar": 68
+      },
+      "revId": "8a54165a2a998b3b36b8a77861b3525de73d188b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
