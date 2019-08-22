@@ -109,8 +109,11 @@ func wrap(err error, startAt int) error {
 }
 
 // Wrap adds stack trace info to err, if not already present. The return value will be of type
-// ErrorWithContext.
+// ErrorWithContext. If err is nil, nil is returned instead.
 func Wrap(err error) error {
+	if err == nil {
+		return nil
+	}
 	return wrap(err, 3)
 }
 
@@ -130,7 +133,11 @@ func Fmt(fmtStr string, args ...interface{}) error {
 // Wrapf adds context and stack trace info to err. Existing stack trace info will be preserved. The
 // return value will be of type ErrorWithContext.
 // Example: sklog.Wrapf(err, "When loading %d items from %s", count, url)
+//  If err is nil, nil is returned instead.
 func Wrapf(err error, fmtStr string, args ...interface{}) error {
+	if err == nil {
+		return nil
+	}
 	newContext := fmt.Sprintf(fmtStr, args...)
 	if wrapper, ok := tryCast(err); ok {
 		callStack := wrapper.CallStack
