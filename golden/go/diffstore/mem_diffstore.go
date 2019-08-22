@@ -286,7 +286,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 				noCacheNotFound(w, r)
 				return
 			}
-			localRelPath, _ = m.mapper.ImagePaths(imgDigest)
+			localRelPath, _ = ImagePaths(imgDigest)
 
 			// Rewrite the path to include the mapper's custom local path construction format.
 			r.URL.Path = path.Join(DEFAULT_IMG_DIR_NAME, localRelPath)
@@ -312,8 +312,8 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 			}
 
 			// Get their absolute paths.
-			leftImgLocalRelPath, _ := m.mapper.ImagePaths(leftImgDigest)
-			rightImgLocalRelPath, _ := m.mapper.ImagePaths(rightImgDigest)
+			leftImgLocalRelPath, _ := ImagePaths(leftImgDigest)
+			rightImgLocalRelPath, _ := ImagePaths(rightImgDigest)
 			leftImgPath := filepath.Join(absPath, DEFAULT_IMG_DIR_NAME, leftImgLocalRelPath)
 			rightImgPath := filepath.Join(absPath, DEFAULT_IMG_DIR_NAME, rightImgLocalRelPath)
 
