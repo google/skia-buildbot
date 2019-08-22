@@ -22,6 +22,30 @@
       "revId": "8a54165a2a998b3b36b8a77861b3525de73d188b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da47ec42_287b6100",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-22T14:45:34Z",
+      "side": 1,
+      "message": "It should be enough to tell us \"which repo is having issues\", which is useful enough",
+      "parentUuid": "694a1a76_bea32566",
+      "range": {
+        "startLine": 228,
+        "startChar": 55,
+        "endLine": 228,
+        "endChar": 68
+      },
+      "revId": "8a54165a2a998b3b36b8a77861b3525de73d188b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
