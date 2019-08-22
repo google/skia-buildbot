@@ -6,11 +6,11 @@ package master_common
 
 import (
 	"flag"
+	"path/filepath"
 
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/sklog"
 )
 
 var (
@@ -20,7 +20,8 @@ var (
 
 	EmailClientSecretFile = flag.String("email_client_secret_file", "/etc/ct-email-secrets/client_secret.json", "OAuth client secret JSON file for sending email.")
 	EmailTokenCacheFile   = flag.String("email_token_cache_file", "/etc/ct-email-secrets/client_token.json", "OAuth token cache file for sending email.")
-	ServiceAccountFile    = flag.String("service_account_file", "/var/secrets/google/key.json", "Service account JSON file.")
+	// Should use token stuff for this?
+	// ServiceAccountFile    = flag.String("service_account_file", "/var/secrets/google/key.json", "Service account JSON file.")
 )
 
 func Init(appName string) {
@@ -43,8 +44,6 @@ func initRest() {
 		util.SetVarsForLocal()
 	} else {
 		// Initialize mailing library.
-		if err := util.MailInit(*EmailClientSecretFile, *EmailTokenCacheFile); err != nil {
-			sklog.Fatalf("Could not initialize mailing library: %s", err)
-		}
+		util.MailInit(filepath.Join(util.StorageDir, "email.data"))
 	}
 }

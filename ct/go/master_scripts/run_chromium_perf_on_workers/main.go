@@ -7,6 +7,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -46,6 +47,13 @@ var (
 	chromiumHash              = flag.String("chromium_hash", "", "The Chromium full hash the checkout should be synced to before applying patches.")
 	taskPriority              = flag.Int("task_priority", util.TASKS_PRIORITY_MEDIUM, "The priority swarming tasks should run at.")
 	groupName                 = flag.String("group_name", "", "The group name of this run. It will be used as the key when uploading data to ct-perf.skia.org.")
+
+	chromiumPatchGSPath          = flag.String("chromium_patch_gs_path", "", "The location of the Chromium patch in Google storage.")
+	skiaPatchGSPath              = flag.String("skia_patch_gs_path", "", "The location of the Skia patch in Google storage.")
+	v8PatchGSPath                = flag.String("v8_patch_gs_path", "", "The location of the V8 patch in Google storage.")
+	catapultPatchGSPath          = flag.String("catapult_patch_gs_path", "", "The location of the Catapult patch in Google storage.")
+	chromiumBaseBuildPatchGSPath = flag.String("chromium_base_build_patch_gs_path", "", "The location of the Chromium base build patch in Google storage.")
+	customWebpagesCsvGSPath      = flag.String("custom_webpages_csv_gs_path", "", "The location of the custom webpages CSV in Google storage.")
 
 	taskCompletedSuccessfully = false
 
@@ -117,6 +125,8 @@ func updateWebappTask() {
 func main() {
 	master_common.Init("run_chromium_perf")
 
+	fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+
 	ctx := context.Background()
 
 	// Send start email.
@@ -162,6 +172,45 @@ func main() {
 	}
 	remoteOutputDir := path.Join(util.ChromiumPerfRunsStorageDir, *runID)
 
+	// TODO(rmistry): Fix the below.
+	//
+	// This is dumb, we do the following here:
+	// * Downloads patches from the location specified by CTFE.
+	// * Locally "fixes" them (adds an extra newline at the end).
+	// * Uses the locally downloaded the files to check if all patches are
+	//   empty to determine if we should use a single build.
+	// * Re-uploads them in a location expected by the builder tasks.
+	//
+	// What we should be doing instead is using the CTFE locations and passing them
+	// around to all the worker scripts that need them by being explicit. Eg:
+	// "skiaPatchGSPath". rmistry@ started doing this but it made the effort of
+	// making CT interruptable more difficult. Should tackle this as a separate
+	// effort here and in all other similar master scripts.
+	//
+	for fileSuffix, patchGSPath := range map[string]string{
+		".chromium.patch":            *chromiumPatchGSPath,
+		".skia.patch":                *skiaPatchGSPath,
+		".v8.patch":                  *v8PatchGSPath,
+		".catapult.patch":            *catapultPatchGSPath,
+		".chromium_base_build.patch": *chromiumBaseBuildPatchGSPath,
+		".custom_webpages.csv":       *customWebpagesCsvGSPath,
+	} {
+		patch, err := util.GetPatchFromStorage(patchGSPath)
+		if err != nil {
+			sklog.Errorf("Could not download patch %s from Google storage: %s", patchGSPath, err)
+			return
+		}
+		// Add an extra newline at the end because git sometimes rejects patches due to
+		// missing newlines.
+		patch = patch + "\n"
+		patchPath := filepath.Join(os.TempDir(), *runID+fileSuffix)
+		if err := ioutil.WriteFile(patchPath, []byte(patch), 0666); err != nil {
+			sklog.Errorf("Could not write patch %s to %s: %s", patch, patchPath, err)
+			return
+		}
+		defer skutil.Remove(patchPath)
+	}
+
 	// Copy the patches and custom webpages to Google Storage.
 	skiaPatchName := *runID + ".skia.patch"
 	chromiumPatchName := *runID + ".chromium.patch"
@@ -196,14 +245,18 @@ func main() {
 	}
 
 	// Trigger both the build repo and isolate telemetry tasks in parallel.
+	//chromiumBuildNoPatch := "try-723327cd9d7dc2---20190821183537-withpatch"
+	//chromiumBuildWithPatch := "try-723327cd9d7dc2---20190821183537-withpatch"
+	//isolateDeps := []string{"32f08fb76b444a3ea19410783d68f9dbd3fc8a56"}
+
 	group := skutil.NewNamedErrGroup()
 	var chromiumBuildNoPatch, chromiumBuildWithPatch string
 	group.Go("build chromium", func() error {
 		if util.PatchesAreEmpty(localPatches) {
 			// Create only one chromium build.
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-				ctx, "build_chromium", *runID, "chromium", *targetPlatform, *master_common.ServiceAccountFile, []string{*chromiumHash}, remotePatches, []string{},
-				/*singlebuild*/ true, *master_common.Local, 3*time.Hour, 1*time.Hour)
+				ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, remotePatches, []string{},
+				true, *master_common.Local, 3*time.Hour, 1*time.Hour)
 			if err != nil {
 				return sklog.FmtErrorf("Error encountered when swarming build repo task: %s", err)
 			}
@@ -216,8 +269,8 @@ func main() {
 		} else {
 			// Create the two required chromium builds (with patch and without the patch).
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-				ctx, "build_chromium", *runID, "chromium", *targetPlatform, *master_common.ServiceAccountFile, []string{*chromiumHash}, remotePatches, []string{},
-				/*singlebuild*/ false, *master_common.Local, 3*time.Hour, 1*time.Hour)
+				ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, remotePatches, []string{},
+				false, *master_common.Local, 3*time.Hour, 1*time.Hour)
 			if err != nil {
 				return sklog.FmtErrorf("Error encountered when swarming build repo task: %s", err)
 			}
@@ -234,7 +287,7 @@ func main() {
 	isolateDeps := []string{}
 	group.Go("isolate telemetry", func() error {
 		telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
-		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, *master_common.ServiceAccountFile, *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
+		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, "", *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
 		if err != nil {
 			return fmt.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
 		}
@@ -279,7 +332,7 @@ func main() {
 	var hardTimeout = time.Duration(skutil.MinInt(12**repeatBenchmark, util.MAX_SWARMING_HARD_TIMEOUT_HOURS)) * time.Hour
 	// Calculate the max pages to run per bot.
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, MAX_PAGES_PER_SWARMING_BOT)
-	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, *master_common.ServiceAccountFile, *targetPlatform, hardTimeout, 1*time.Hour, *taskPriority, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark), isolateDeps)
+	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, "", *targetPlatform, hardTimeout, 1*time.Hour, *taskPriority, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark), isolateDeps)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
