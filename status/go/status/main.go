@@ -32,7 +32,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitauth"
-	"go.skia.org/infra/go/gitstore_deprecated/bt_gitstore"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
@@ -107,7 +107,7 @@ var (
 	btProject                   = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
 	capacityRecalculateInterval = flag.Duration("capacity_recalculate_interval", 10*time.Minute, "How often to re-calculate capacity statistics.")
 	firestoreInstance           = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
-	gitstoreTable               = flag.String("gitstore_bt_table", "git-repos", "BigTable table used for GitStore.")
+	gitstoreTable               = flag.String("gitstore_bt_table", "git-repos2", "BigTable table used for GitStore.")
 	host                        = flag.String("host", "localhost", "HTTP service host")
 	port                        = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	promPort                    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
