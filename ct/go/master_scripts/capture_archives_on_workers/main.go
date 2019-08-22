@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
+	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
@@ -53,11 +54,11 @@ func sendEmail(recipients []string) {
 	}
 }
 
-func updateWebappTask() {
+func updateWebappTask(ctx context.Context) {
 	vars := admin_tasks.RecreateWebpageArchivesUpdateVars{}
 	vars.Id = *taskID
 	vars.SetCompleted(*taskCompletedSuccessfully)
-	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
+	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars, &admin_tasks.RecreateWebpageArchivesDatastoreTask{}))
 }
 
 func main() {
@@ -72,10 +73,10 @@ func main() {
 		sklog.Error("At least one email address must be specified")
 		return
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&admin_tasks.RecreateWebpageArchivesUpdateVars{}, *taskID, *runID))
+	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &admin_tasks.RecreateWebpageArchivesUpdateVars{}, &admin_tasks.RecreateWebpageArchivesDatastoreTask{}, *taskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Capture archives", *runID, "", ""))
 	// Ensure webapp is updated and completion email is sent even if task fails.
-	defer updateWebappTask()
+	defer updateWebappTask(ctx)
 	defer sendEmail(emailsArr)
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Capture archives on Workers")
@@ -103,7 +104,7 @@ func main() {
 	}
 
 	// Trigger task to return hash of telemetry isolates.
-	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, *master_common.ServiceAccountFile, util.PLATFORM_LINUX, []string{}, 1*time.Hour, 1*time.Hour, *master_common.Local)
+	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, "", util.PLATFORM_LINUX, []string{}, 1*time.Hour, 1*time.Hour, *master_common.Local)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
 		return
@@ -115,7 +116,7 @@ func main() {
 	isolateDeps := []string{telemetryHash}
 
 	// Archive, trigger and collect swarming tasks.
-	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_archives", util.CAPTURE_ARCHIVES_ISOLATE, *runID, *master_common.ServiceAccountFile, util.PLATFORM_LINUX, 4*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_LOW, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, map[string]string{}, *runOnGCE, *master_common.Local, 1, isolateDeps); err != nil {
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_archives", util.CAPTURE_ARCHIVES_ISOLATE, *runID, "", util.PLATFORM_LINUX, 4*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_LOW, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, map[string]string{}, *runOnGCE, *master_common.Local, 1, isolateDeps); err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}

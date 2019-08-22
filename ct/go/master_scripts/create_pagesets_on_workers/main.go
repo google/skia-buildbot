@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
+	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
@@ -54,11 +55,11 @@ func sendEmail(recipients []string) {
 	}
 }
 
-func updateWebappTask() {
+func updateWebappTask(ctx context.Context) {
 	vars := admin_tasks.RecreatePageSetsUpdateVars{}
 	vars.Id = *taskID
 	vars.SetCompleted(*taskCompletedSuccessfully)
-	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
+	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars, &admin_tasks.RecreatePageSetsDatastoreTask{}))
 }
 
 func main() {
@@ -73,10 +74,10 @@ func main() {
 		sklog.Error("At least one email address must be specified")
 		return
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&admin_tasks.RecreatePageSetsUpdateVars{}, *taskID, *runID))
+	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &admin_tasks.RecreatePageSetsUpdateVars{}, &admin_tasks.RecreatePageSetsDatastoreTask{}, *taskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Creating pagesets", *runID, "", ""))
 	// Ensure webapp is updated and completion email is sent even if task fails.
-	defer updateWebappTask()
+	defer updateWebappTask(ctx)
 	defer sendEmail(emailsArr)
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Creating Pagesets on Workers")
@@ -97,7 +98,7 @@ func main() {
 	skutil.LogErr(gs.DeleteRemoteDir(gsBaseDir))
 
 	// Archive, trigger and collect swarming tasks.
-	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "create_pagesets", util.CREATE_PAGESETS_ISOLATE, *runID, *master_common.ServiceAccountFile, util.PLATFORM_LINUX, 5*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_LOW, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, map[string]string{}, *runOnGCE, *master_common.Local, 1, []string{} /* isolateDeps */); err != nil {
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "create_pagesets", util.CREATE_PAGESETS_ISOLATE, *runID, "", util.PLATFORM_LINUX, 5*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_LOW, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, map[string]string{}, *runOnGCE, *master_common.Local, 1, []string{} /* isolateDeps */); err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}
