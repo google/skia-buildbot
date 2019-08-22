@@ -29,6 +29,10 @@ type gitSyncConfig struct {
 	HttpPort string `json:"http_port"`
 	// Indicating whether this is running local.
 	Local bool `json:"local"`
+	// Mirrors indicate that the data obtained for a given repo should come
+	// from a Gitiles mirror at a different location. These are given in the
+	// format: <repo URL>=<gitiles mirror URL>
+	Mirrors []string `json:"mirrors"`
 	// GCP project ID.
 	ProjectID string `json:"project"`
 	// Port at which the Prometheus metrics are be exposed.
@@ -51,6 +55,9 @@ func (g *gitSyncConfig) String() string {
 	ret += fmt.Sprintf("%s bt_write_goroutines: %d\n", prefix, g.BTWriteGoroutines)
 	ret += fmt.Sprintf("%s http_port          : %s\n", prefix, g.HttpPort)
 	ret += fmt.Sprintf("%s local              : %s\n", prefix, strconv.FormatBool(g.Local))
+	for _, mirror := range g.Mirrors {
+		ret += fmt.Sprintf("%s mirror             : %s\n", prefix, mirror)
+	}
 	ret += fmt.Sprintf("%s project            : %s\n", prefix, g.ProjectID)
 	ret += fmt.Sprintf("%s prom_port          : %s\n", prefix, g.PromPort)
 	for _, url := range g.RepoURLs {

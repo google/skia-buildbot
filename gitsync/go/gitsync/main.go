@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/flynn/json5"
@@ -29,6 +30,7 @@ var defaultConf = gitSyncConfig{
 	BTWriteGoroutines: bt_gitstore.DefaultWriteGoroutines,
 	HttpPort:          ":9091",
 	Local:             false,
+	Mirrors:           []string{},
 	ProjectID:         "skia-public",
 	PromPort:          ":20000",
 	RepoURLs:          []string{},
@@ -54,6 +56,7 @@ func main() {
 	flag.StringVar(&config.ProjectID, "project", defaultConf.ProjectID, "ID of the GCP project")
 	flag.StringVar(&config.PromPort, "prom_port", defaultConf.PromPort, "Metrics service address (e.g., ':10110')")
 	common.MultiStringFlagVar(&config.RepoURLs, "repo_url", defaultConf.RepoURLs, "Repo url")
+	common.MultiStringFlagVar(&config.Mirrors, "mirror", defaultConf.Mirrors, "Obtain data for the given repo url from the given mirror, eg. --mirror=<repo URL>=<gitiles mirror URL>")
 	flag.DurationVar((*time.Duration)(&config.RefreshInterval), "refresh", time.Duration(defaultConf.RefreshInterval), "Interval in which to poll git and refresh the GitStore.")
 
 	common.InitWithMust(
@@ -102,6 +105,23 @@ func main() {
 		sklog.Fatalf("At least one repository URL must be configured.")
 	}
 
+	// Obtain the Gitiles URLs for each of the repos; by default, assume
+	// that the Git repo URL is the Gitiles URL, but allow the user to
+	// specify the Gitiles URL where that is not the case.
+	gitilesURLs := make(map[string]string, len(config.RepoURLs))
+	for _, url := range config.RepoURLs {
+		gitilesURLs[url] = url
+	}
+	if len(config.Mirrors) > 0 {
+		for _, mirror := range config.Mirrors {
+			split := strings.Split(mirror, "=")
+			if len(split) != 2 {
+				sklog.Fatalf("Invalid value for --mirror: %q; must be separated by a single '='", mirror)
+			}
+			gitilesURLs[split[0]] = split[1]
+		}
+	}
+
 	// TODO(stephana): Pass the token source explicitly to the BigTable related functions below.
 
 	// Create token source.
@@ -125,7 +145,7 @@ func main() {
 	// Start all repo watchers.
 	ctx := context.Background()
 	for _, repoURL := range config.RepoURLs {
-		if err := watcher.Start(ctx, btConfig, repoURL, gitcookiesPath, *gcsBucket, *gcsPath, time.Duration(config.RefreshInterval)); err != nil {
+		if err := watcher.Start(ctx, btConfig, repoURL, gitilesURLs[repoURL], gitcookiesPath, *gcsBucket, *gcsPath, time.Duration(config.RefreshInterval)); err != nil {
 			sklog.Fatalf("Error initializing repo watcher: %s", err)
 		}
 	}
