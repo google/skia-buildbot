@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1d2ef28e_6a692364",
+        "filename": "gitsync/go/gitsync/config.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-22T13:09:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "605d9661_3208aba9",
+      "range": {
+        "startLine": 15,
+        "startChar": 102,
+        "endLine": 15,
+        "endChar": 123
+      },
+      "revId": "3b8197c3d6e94c92c28cdad411980535d3cb397d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a8fff493_ba163a9c",
         "filename": "gitsync/go/gitsync/main.go",
         "patchSetId": 30
@@ -45,6 +69,30 @@
       "revId": "3b8197c3d6e94c92c28cdad411980535d3cb397d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cebb59f2_574ccaae",
+        "filename": "gitsync/go/gitsync/main.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-22T13:09:17Z",
+      "side": 1,
+      "message": "Removed, although as I understand it this has ~zero cost except when it\u0027s actually used, so it seems reasonable to me to enable this by default for all of our apps.",
+      "parentUuid": "a8fff493_ba163a9c",
+      "range": {
+        "startLine": 9,
+        "startChar": 1,
+        "endLine": 9,
+        "endChar": 19
+      },
+      "revId": "3b8197c3d6e94c92c28cdad411980535d3cb397d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "0a00b644_b10fb7a7",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-22T13:09:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3f944781_e1a72b06",
+      "range": {
+        "startLine": 61,
+        "startChar": 18,
+        "endLine": 61,
+        "endChar": 49
+      },
+      "revId": "3b8197c3d6e94c92c28cdad411980535d3cb397d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d49b8568_4fd9bbe5",
         "filename": "gitsync/go/watcher/watcher.go",
         "patchSetId": 30
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "f2f058f2_7b2155dc",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 419,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-22T13:09:17Z",
+      "side": 1,
+      "message": "Done, here and below.",
+      "parentUuid": "d49b8568_4fd9bbe5",
+      "range": {
+        "startLine": 419,
+        "startChar": 7,
+        "endLine": 419,
+        "endChar": 12
+      },
+      "revId": "3b8197c3d6e94c92c28cdad411980535d3cb397d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ef9ecd71_d5d97c6f",
         "filename": "gitsync/go/watcher/watcher_test.go",
         "patchSetId": 30
@@ -114,6 +210,30 @@
       "revId": "3b8197c3d6e94c92c28cdad411980535d3cb397d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e24ae75c_ce9b309c",
+        "filename": "gitsync/go/watcher/watcher_test.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-22T13:09:17Z",
+      "side": 1,
+      "message": "Done. That at least gives us a maximum wait time, which we didn\u0027t have before.",
+      "parentUuid": "ef9ecd71_d5d97c6f",
+      "range": {
+        "startLine": 248,
+        "startChar": 2,
+        "endLine": 248,
+        "endChar": 56
+      },
+      "revId": "3b8197c3d6e94c92c28cdad411980535d3cb397d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
