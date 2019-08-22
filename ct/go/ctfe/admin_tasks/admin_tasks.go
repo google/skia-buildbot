@@ -207,6 +207,10 @@ func (task *AddRecreatePageSetsTaskVars) GetPopulatedDatastoreTask(ctx context.C
 	return t, nil
 }
 
+func (task *AddRecreatePageSetsTaskVars) TriggerSwarmingTask(ctx context.Context, t task_common.Task) error {
+	return nil
+}
+
 func addRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.AddTaskHandler(w, r, &AddRecreatePageSetsTaskVars{})
 }
@@ -239,6 +243,10 @@ func (task *AddRecreateWebpageArchivesTaskVars) GetPopulatedDatastoreTask(ctx co
 		SkiaRev:       task.ChromiumBuild.SkiaRev,
 	}
 	return t, nil
+}
+
+func (task *AddRecreateWebpageArchivesTaskVars) TriggerSwarmingTask(ctx context.Context, t task_common.Task) error {
+	return nil
 }
 
 func addRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {

@@ -14,14 +14,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/user"
+	//"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"go.skia.org/infra/ct/go/ct_autoscaler"
+	//"go.skia.org/infra/ct/go/ct_autoscaler"
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
@@ -31,21 +31,25 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/metrics_analysis"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/frontend"
-	"go.skia.org/infra/ct/go/master_scripts/master_common"
+	//"go.skia.org/infra/ct/go/master_scripts/master_common"
 	ctutil "go.skia.org/infra/ct/go/util"
-	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gitauth"
-	"go.skia.org/infra/go/metrics2"
+	//"go.skia.org/infra/go/auth"
+	//"go.skia.org/infra/go/gitauth"
+	//"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
 
 // flags
 var (
-	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
-	pollInterval   = flag.Duration("poll_interval", 30*time.Second, "How often to poll CTFE for new pending tasks.")
-	serviceAccount = flag.String("service_account", "", "Should be set when running in K8s.")
+	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	pollInterval       = flag.Duration("poll_interval", 30*time.Second, "How often to poll CTFE for new pending tasks.")
+	serviceAccount     = flag.String("service_account", "", "Should be set when running in K8s.")
+	serviceAccountFile = flag.String("service_account_file", "/var/secrets/google/key.json", "Service account JSON file.")
+	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	ctfeURL            = flag.String("ctfe_url", "https://ct.skia.org/", "The CTFE frontend URL.")
+	ctfeInternalURL    = flag.String("ctfe_internal_url", "http://ctfe:9000/", "The CTFE internal URL. Accessible from within the same cloud project.")
 
 	// Map that holds all picked up tasks. Used to ensure same task is not picked up more than once.
 	pickedUpTasks = map[string]string{}
@@ -59,6 +63,7 @@ type GetPatchFunc func(patchId string) (string, error)
 type Task interface {
 	GetTaskName() string
 	GetCommonCols() *task_common.CommonCols
+	// TODO(Rmistry): Rename to trigger on SWARMING.
 	// Writes any files required by the task and then uses exec.Run to run the task command.
 	Execute(ctx context.Context, getPatchFunc GetPatchFunc) error
 	// Returns the corresponding UpdateTaskVars instance of this Task. The
@@ -73,41 +78,48 @@ func runId(task Task) string {
 	return strings.SplitN(task.GetCommonCols().Username, "@", 2)[0] + "-" + ctutil.GetCurrentTs()
 }
 
-func executeAndPrintTaskOutput(ctx context.Context, taskName, runId string, args []string) error {
+// HERE HERE
+// Rename to something about triggering on swarming..
+func executeAndPrintTaskOutput(ctx context.Context, taskName, runID, isolateFileName string, isolateArgs map[string]string) error {
+
 	var b bytes.Buffer
-	if _, err := b.WriteString(fmt.Sprintf("========== Start of stdout and stderr for %s %s ==========\n", taskName, runId)); err != nil {
+	if _, err := b.WriteString(fmt.Sprintf("========== Start of stdout and stderr for %s %s ==========\n", taskName, runID)); err != nil {
 		return fmt.Errorf("Error writing to output buffer: %s", err)
 	}
 
-	if taskErr := exec.Run(ctx, &exec.Command{
-		Name:      taskName,
-		Args:      args,
-		LogStdout: false,
-		LogStderr: false,
-		Stdout:    &b,
-		Stderr:    &b,
-	}); taskErr != nil {
-		output, getErr := getTaskOutput(b, taskName, runId)
-		skutil.LogErr(getErr)
-		fmt.Println(output)
-		return fmt.Errorf("%s failed with: %s", taskName, taskErr)
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, taskName, isolateFileName, *serviceAccountFile, *local, isolateArgs); err != nil {
+		return fmt.Errorf("Could not trigger master script for %s with isolate args %T: %s", taskName, isolateArgs, err)
 	}
 
-	output, err := getTaskOutput(b, taskName, runId)
-	if err != nil {
-		return fmt.Errorf("Could not get output: %s", err)
-	}
-	// Print the output and return.
-	fmt.Println(output)
+	//if taskErr := exec.Run(ctx, &exec.Command{
+	//	Name:      taskName,
+	//	Args:      args,
+	//	LogStdout: false,
+	//	LogStderr: false,
+	//	Stdout:    &b,
+	//	Stderr:    &b,
+	//}); taskErr != nil {
+	//	output, getErr := getTaskOutput(b, taskName, runId)
+	//	skutil.LogErr(getErr)
+	//	fmt.Println(output)
+	//	return fmt.Errorf("%s failed with: %s", taskName, taskErr)
+	//}
+
+	//output, err := getTaskOutput(b, taskName, runId)
+	//if err != nil {
+	//	return fmt.Errorf("Could not get output: %s", err)
+	//}
+	//// Print the output and return.
+	//fmt.Println(output)
 	return nil
 }
 
-func getTaskOutput(b bytes.Buffer, taskName, runId string) (string, error) {
-	if _, err := b.WriteString(fmt.Sprintf("========== End of stdout and stderr for %s %s ==========\n", taskName, runId)); err != nil {
-		return "", fmt.Errorf("Error writing to output buffer: %s", err)
-	}
-	return b.String(), nil
-}
+//func getTaskOutput(b bytes.Buffer, taskName, runId string) (string, error) {
+//	if _, err := b.WriteString(fmt.Sprintf("========== End of stdout and stderr for %s %s ==========\n", taskName, runId)); err != nil {
+//		return "", fmt.Errorf("Error writing to output buffer: %s", err)
+//	}
+//	return b.String(), nil
+//}
 
 // Define frontend.ChromiumAnalysisDatastoreTask here so we can add methods.
 type ChromiumAnalysisTask struct {
@@ -154,14 +166,15 @@ func (task *ChromiumAnalysisTask) Execute(ctx context.Context, getPatchFunc GetP
 		"--chromium_hash=" + task.ChromiumHash,
 		"--run_id=" + runId,
 		"--logtostderr",
-		"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
-		"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
-		"--service_account_file=" + *master_common.ServiceAccountFile,
+		//"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+		//"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+		//"--service_account_file=" + *master_common.ServiceAccountFile,
 		"--task_priority=" + strconv.Itoa(task.TaskPriority),
 		"--group_name=" + task.GroupName,
-		fmt.Sprintf("--local=%t", *master_common.Local),
+		//fmt.Sprintf("--local=%t", *master_common.Local),
 	}
-	return executeAndPrintTaskOutput(ctx, "run_chromium_analysis_on_workers", runId, args)
+	fmt.Println(args)
+	return executeAndPrintTaskOutput(ctx, "run_chromium_analysis_on_workers", runId, ctutil.CHROMIUM_ANALYSIS_MASTER_ISOLATE, map[string]string{})
 }
 
 // Define frontend.ChromiumPerfDatastoreTask here so we can add methods.
@@ -171,57 +184,33 @@ type ChromiumPerfTask struct {
 
 func (task *ChromiumPerfTask) Execute(ctx context.Context, getPatchFunc GetPatchFunc) error {
 	runId := runId(task)
-	// TODO(benjaminwagner): Since run_chromium_perf_on_workers only reads these in order to
-	// upload to Google Storage, eventually we should move the upload step here to avoid writing
-	// to disk.
-	for fileSuffix, patchGSPath := range map[string]string{
-		".chromium.patch":            task.ChromiumPatchGSPath,
-		".skia.patch":                task.SkiaPatchGSPath,
-		".v8.patch":                  task.V8PatchGSPath,
-		".catapult.patch":            task.CatapultPatchGSPath,
-		".chromium_base_build.patch": task.ChromiumPatchBaseBuildGSPath,
-		".custom_webpages.csv":       task.CustomWebpagesGSPath,
-	} {
-		patch, err := getPatchFunc(patchGSPath)
-		if err != nil {
-			return err
-		}
-		// Add an extra newline at the end because git sometimes rejects patches due to
-		// missing newlines.
-		patch = patch + "\n"
-		patchPath := filepath.Join(os.TempDir(), runId+fileSuffix)
-		if err := ioutil.WriteFile(patchPath, []byte(patch), 0666); err != nil {
-			return err
-		}
-		defer skutil.Remove(patchPath)
-	}
-
 	emails := []string{task.Username}
 	emails = append(emails, task.CCList...)
-	args := []string{
-		"--emails=" + strings.Join(emails, ","),
-		"--description=" + task.Description,
-		"--task_id=" + strconv.FormatInt(task.DatastoreKey.ID, 10),
-		"--pageset_type=" + task.PageSets,
-		"--benchmark_name=" + task.Benchmark,
-		"--benchmark_extra_args=" + task.BenchmarkArgs,
-		"--browser_extra_args_nopatch=" + task.BrowserArgsNoPatch,
-		"--browser_extra_args_withpatch=" + task.BrowserArgsWithPatch,
-		"--repeat_benchmark=" + strconv.FormatInt(task.RepeatRuns, 10),
-		"--run_in_parallel=" + strconv.FormatBool(task.RunInParallel),
-		"--target_platform=" + task.Platform,
-		"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
-		"--chromium_hash=" + task.ChromiumHash,
-		"--run_id=" + runId,
-		"--logtostderr",
-		"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
-		"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
-		"--service_account_file=" + *master_common.ServiceAccountFile,
-		"--task_priority=" + strconv.Itoa(task.TaskPriority),
-		"--group_name=" + task.GroupName,
-		fmt.Sprintf("--local=%t", *master_common.Local),
+	isolateArgs := map[string]string{
+		"EMAILS":                            strings.Join(emails, ","),
+		"DESCRIPTION":                       task.Description,
+		"TASK_ID":                           strconv.FormatInt(task.DatastoreKey.ID, 10),
+		"PAGESET_TYPE":                      task.PageSets,
+		"BENCHMARK":                         task.Benchmark,
+		"BENCHMARK_ARGS":                    task.BenchmarkArgs,
+		"BROWSER_EXTRA_ARGS_NOPATCH":        task.BrowserArgsNoPatch,
+		"BROWSER_EXTRA_ARGS_WITHPATCH":      task.BrowserArgsWithPatch,
+		"REPEAT_BENCHMARK":                  strconv.FormatInt(task.RepeatRuns, 10),
+		"RUN_IN_PARALLEL":                   strconv.FormatBool(task.RunInParallel),
+		"TARGET_PLATFORM":                   task.Platform,
+		"RUN_ON_GCE":                        strconv.FormatBool(task.RunsOnGCEWorkers()),
+		"CHROMIUM_HASH":                     task.ChromiumHash,
+		"RUN_ID":                            runId,
+		"TASK_PRIORITY":                     strconv.Itoa(task.TaskPriority),
+		"GROUP_NAME":                        task.GroupName,
+		"CHROMIUM_PATCH_GS_PATH":            task.ChromiumPatchGSPath,
+		"SKIA_PATCH_GS_PATH":                task.SkiaPatchGSPath,
+		"V8_PATCH_GS_PATH":                  task.V8PatchGSPath,
+		"CATAPULT_PATCH_GS_PATH":            task.CatapultPatchGSPath,
+		"CHROMIUM_BASE_BUILD_PATCH_GS_PATH": task.ChromiumPatchBaseBuildGSPath,
+		"CUSTOM_WEBPAGES_CSV_GS_PATH":       task.CustomWebpagesGSPath,
 	}
-	return executeAndPrintTaskOutput(ctx, "run_chromium_perf_on_workers", runId, args)
+	return executeAndPrintTaskOutput(ctx, "run_chromium_perf_on_workers", runId, ctutil.CHROMIUM_PERF_MASTER_ISOLATE, isolateArgs)
 }
 
 // Define frontend.MetricsAnalysisDatastoreTask here so we can add methods.
@@ -262,13 +251,14 @@ func (task *MetricsAnalysisTask) Execute(ctx context.Context, getPatchFunc GetPa
 		"--value_column_name=" + task.ValueColumnName,
 		"--run_id=" + runId,
 		"--logtostderr",
-		"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
-		"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
-		"--service_account_file=" + *master_common.ServiceAccountFile,
+		//"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+		//"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+		//"--service_account_file=" + *master_common.ServiceAccountFile,
 		"--task_priority=" + strconv.Itoa(task.TaskPriority),
-		fmt.Sprintf("--local=%t", *master_common.Local),
+		//fmt.Sprintf("--local=%t", *master_common.Local),
 	}
-	return executeAndPrintTaskOutput(ctx, "metrics_analysis_on_workers", runId, args)
+	fmt.Println(args)
+	return executeAndPrintTaskOutput(ctx, "metrics_analysis_on_workers", runId, ctutil.METRICS_ANALYSIS_MASTER_ISOLATE, map[string]string{})
 }
 
 // Define frontend.CaptureSkpsDatastoreTask here so we can add methods.
@@ -289,12 +279,13 @@ func (task *CaptureSkpsTask) Execute(ctx context.Context, getPatchFunc GetPatchF
 		"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 		"--run_id=" + runId,
 		"--logtostderr",
-		"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
-		"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
-		"--service_account_file=" + *master_common.ServiceAccountFile,
-		fmt.Sprintf("--local=%t", *master_common.Local),
+		//"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+		//"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+		//"--service_account_file=" + *master_common.ServiceAccountFile,
+		//fmt.Sprintf("--local=%t", *master_common.Local),
 	}
-	return executeAndPrintTaskOutput(ctx, "capture_skps_on_workers", runId, args)
+	fmt.Println(args)
+	return executeAndPrintTaskOutput(ctx, "capture_skps_on_workers", runId, ctutil.CAPTURE_SKPS_ISOLATE, map[string]string{})
 }
 
 // Define frontend.LuaScriptDatastoreTask here so we can add methods.
@@ -332,12 +323,13 @@ func (task *LuaScriptTask) Execute(ctx context.Context, getPatchFunc GetPatchFun
 		"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 		"--run_id=" + runId,
 		"--logtostderr",
-		"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
-		"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
-		"--service_account_file=" + *master_common.ServiceAccountFile,
-		fmt.Sprintf("--local=%t", *master_common.Local),
+		//"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+		//"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+		//"--service_account_file=" + *master_common.ServiceAccountFile,
+		//fmt.Sprintf("--local=%t", *master_common.Local),
 	}
-	return executeAndPrintTaskOutput(ctx, "run_lua_on_workers", runId, args)
+	fmt.Println(args)
+	return executeAndPrintTaskOutput(ctx, "run_lua_on_workers", runId, ctutil.RUN_LUA_ISOLATE, map[string]string{})
 }
 
 // Define frontend.ChromiumBuildDatastoreTask here so we can add methods.
@@ -357,12 +349,13 @@ func (task *ChromiumBuildTask) Execute(ctx context.Context, getPatchFunc GetPatc
 		"--chromium_hash=" + task.ChromiumRev,
 		"--skia_hash=" + task.SkiaRev,
 		"--logtostderr",
-		"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
-		"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
-		"--service_account_file=" + *master_common.ServiceAccountFile,
-		fmt.Sprintf("--local=%t", *master_common.Local),
+		//"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+		//"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+		//"--service_account_file=" + *master_common.ServiceAccountFile,
+		//fmt.Sprintf("--local=%t", *master_common.Local),
 	}
-	return executeAndPrintTaskOutput(ctx, "build_chromium", runId, args)
+	fmt.Println(args)
+	return executeAndPrintTaskOutput(ctx, "build_chromium", runId, ctutil.RUN_LUA_MASTER_ISOLATE, map[string]string{})
 }
 
 // Define frontend.RecreatePageSetsDatastoreTask here so we can add methods.
@@ -379,12 +372,13 @@ func (task *RecreatePageSetsTask) Execute(ctx context.Context, getPatchFunc GetP
 		"--run_id=" + runId,
 		"--pageset_type=" + task.PageSets,
 		"--logtostderr",
-		"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
-		"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
-		"--service_account_file=" + *master_common.ServiceAccountFile,
-		fmt.Sprintf("--local=%t", *master_common.Local),
+		//"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+		//"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+		//"--service_account_file=" + *master_common.ServiceAccountFile,
+		//fmt.Sprintf("--local=%t", *master_common.Local),
 	}
-	return executeAndPrintTaskOutput(ctx, "create_pagesets_on_workers", runId, args)
+	fmt.Println(args)
+	return executeAndPrintTaskOutput(ctx, "create_pagesets_on_workers", runId, ctutil.CREATE_PAGESETS_MASTER_ISOLATE, map[string]string{})
 }
 
 // Define frontend.RecreateWebpageArchivesDatastoreTask here so we can add methods.
@@ -401,12 +395,13 @@ func (task *RecreateWebpageArchivesTask) Execute(ctx context.Context, getPatchFu
 		"--run_id=" + runId,
 		"--pageset_type=" + task.PageSets,
 		"--logtostderr",
-		"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
-		"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
-		"--service_account_file=" + *master_common.ServiceAccountFile,
-		fmt.Sprintf("--local=%t", *master_common.Local),
+		//"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+		//"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+		//"--service_account_file=" + *master_common.ServiceAccountFile,
+		//fmt.Sprintf("--local=%t", *master_common.Local),
 	}
-	return executeAndPrintTaskOutput(ctx, "capture_archives_on_workers", runId, args)
+	fmt.Println(args)
+	return executeAndPrintTaskOutput(ctx, "capture_archives_on_workers", runId, ctutil.CAPTURE_ARCHIVES_MASTER_ISOLATE, map[string]string{})
 }
 
 // Returns a poller Task containing the given task_common.Task, or nil if otherTask is nil.
@@ -437,118 +432,140 @@ func asPollerTask(ctx context.Context, otherTask task_common.Task) Task {
 	}
 }
 
-// Notifies the frontend that task failed.
+// Notifies the frontend that triggering the task failed.
 func updateWebappTaskSetFailed(task Task) error {
 	updateVars := task.GetUpdateTaskVars()
 	updateVars.GetUpdateTaskCommonVars().Id = task.GetCommonCols().DatastoreKey.ID
+	updateVars.GetUpdateTaskCommonVars().TsStarted = ctutil.GetCurrentTs()
 	updateVars.GetUpdateTaskCommonVars().SetCompleted(false)
-	return frontend.UpdateWebappTaskV2(updateVars)
+	//return frontend.UpdateWebappTaskV2(updateVars)
+	return nil
 }
 
-// pollAndExecOnce looks for the oldest pending task in CTFE. If one is found, then
-// the local checkout is synced and built, and the picked up task is started in a
-// go routine. The function returns without waiting for the task to finish and the
-// WaitGroup of the goroutine is returned to the caller. The caller can then call
-// wg.Wait() if they would like to wait for the task to finish.
-func pollAndExecOnce(ctx context.Context, autoscaler ct_autoscaler.ICTAutoscaler, getPatchFunc GetPatchFunc) *sync.WaitGroup {
-	pending, err := frontend.GetOldestPendingTaskV2()
-	var wg sync.WaitGroup
-	if err != nil {
-		sklog.Error(err)
-		return &wg
-	}
-	task := asPollerTask(ctx, pending)
-	if task == nil {
-		return &wg
-	}
+//// pollAndExecOnce looks for the oldest pending task in CTFE. If one is found, then
+//// the local checkout is synced and built, and the picked up task is started in a
+//// go routine. The function returns without waiting for the task to finish and the
+//// WaitGroup of the goroutine is returned to the caller. The caller can then call
+//// wg.Wait() if they would like to wait for the task to finish.
+//func pollAndExecOnce(ctx context.Context, autoscaler ct_autoscaler.ICTAutoscaler, getPatchFunc GetPatchFunc) *sync.WaitGroup {
+//	pending, err := frontend.GetOldestPendingTaskV2()
+//	var wg sync.WaitGroup
+//	if err != nil {
+//		sklog.Error(err)
+//		return &wg
+//	}
+//	task := asPollerTask(ctx, pending)
+//	if task == nil {
+//		return &wg
+//	}
 
-	taskId := fmt.Sprintf("%s.%d", task.GetTaskName(), task.GetCommonCols().DatastoreKey.ID)
-	tasksMtx.Lock()
-	_, exists := pickedUpTasks[taskId]
-	tasksMtx.Unlock()
-	if exists {
-		return &wg
-	}
-	tasksMtx.Lock()
-	pickedUpTasks[taskId] = "1"
-	tasksMtx.Unlock()
+//	taskId := fmt.Sprintf("%s.%d", task.GetTaskName(), task.GetCommonCols().DatastoreKey.ID)
+//	tasksMtx.Lock()
+//	_, exists := pickedUpTasks[taskId]
+//	tasksMtx.Unlock()
+//	if exists {
+//		return &wg
+//	}
+//	tasksMtx.Lock()
+//	pickedUpTasks[taskId] = "1"
+//	tasksMtx.Unlock()
 
-	if task.RunsOnGCEWorkers() {
-		if err := autoscaler.RegisterGCETask(taskId); err != nil {
-			sklog.Errorf("Error when registering GCE task in CT autoscaler: %s", err)
-			return &wg
-		}
-	}
+//	//if task.RunsOnGCEWorkers() {
+//	//	if err := autoscaler.RegisterGCETask(taskId); err != nil {
+//	//		sklog.Errorf("Error when registering GCE task in CT autoscaler: %s", err)
+//	//		return &wg
+//	//	}
+//	//}
 
-	sklog.Infof("Executing task %s", taskId)
-	// Increment the WaitGroup counter.
-	wg.Add(1)
-	go func() {
-		// Decrement the counter when the goroutine completes.
-		defer wg.Done()
-		if err = task.Execute(ctx, getPatchFunc); err == nil {
-			sklog.Infof("Completed task %s", taskId)
-		} else {
-			sklog.Errorf("Task %s failed: %s", taskId, err)
-			if err := updateWebappTaskSetFailed(task); err != nil {
-				sklog.Error(err)
-			}
-		}
-		tasksMtx.Lock()
-		delete(pickedUpTasks, taskId)
-		tasksMtx.Unlock()
+//	sklog.Infof("Executing task %s", taskId)
+//	// Increment the WaitGroup counter.
+//	wg.Add(1)
+//	go func() {
+//		// Decrement the counter when the goroutine completes.
+//		defer wg.Done()
+//		if err = task.Execute(ctx, getPatchFunc); err == nil {
+//			sklog.Infof("Completed triggering task %s", taskId)
+//		} else {
+//			sklog.Errorf("Triggering task %s failed: %s", taskId, err)
+//			if err := updateWebappTaskSetFailed(task); err != nil {
+//				sklog.Error(err)
+//			}
+//		}
+//		tasksMtx.Lock()
+//		delete(pickedUpTasks, taskId)
+//		tasksMtx.Unlock()
 
-		if task.RunsOnGCEWorkers() {
-			if err := autoscaler.UnregisterGCETask(taskId); err != nil {
-				sklog.Errorf("Error when unregistering GCE task in CT autoscaler: %s", err)
-			}
-		}
-	}()
-	// Return the WaitGroup to allow some callers to call wg.Wait()
-	return &wg
-}
+//		//if task.RunsOnGCEWorkers() {
+//		//	if err := autoscaler.UnregisterGCETask(taskId); err != nil {
+//		//		sklog.Errorf("Error when unregistering GCE task in CT autoscaler: %s", err)
+//		//	}
+//		//}
+//	}()
+//	// Return the WaitGroup to allow some callers to call wg.Wait()
+//	return &wg
+//}
 
 func main() {
-	master_common.InitWithMetrics2("ct-poller", promPort)
+	fmt.Println("IN POLLER")
 
-	autoscaler, err := ct_autoscaler.NewCTAutoscaler(*master_common.Local)
-	if err != nil {
-		sklog.Fatalf("Could not instantiate the CT autoscaler: %s", err)
-	}
-	healthyGauge := metrics2.GetInt64Metric("healthy")
-
-	// Terminate all tasks which were in running state when the poller was restarted.
-	// See skbug.com/7062.
-	if err := frontend.TerminateRunningTasks(); err != nil {
-		sklog.Fatalf("Could not terminate running tasks: %s", err)
-	}
-
-	if !*master_common.Local {
-		user, err := user.Current()
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		// Create token source.
-		ts, err := auth.NewDefaultTokenSource(*master_common.Local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
-		if err != nil {
-			sklog.Fatalf("Problem setting up default token source: %s", err)
-		}
-		// Use the gitcookie created by gitauth package if .gitcookies does not already exist.
-		gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")
-		if _, err := gitauth.New(ts, gitcookiesPath, true, *serviceAccount); err != nil {
-			sklog.Fatalf("Failed to create git cookie updater: %s", err)
-		}
-	}
+	common.InitWithMust(
+		"testing-ct-poller",
+		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
+	)
+	frontend.MustInit(*ctfeURL)
 
 	// Run immediately, since pollTick will not fire until after pollInterval.
-	ctx := context.Background()
-	pollAndExecOnce(ctx, autoscaler, ctutil.GetPatchFromStorage)
+	//ctx := context.Background()
+	//pollAndExecOnce(ctx, nil, ctutil.GetPatchFromStorage)
 	for range time.Tick(*pollInterval) {
-		healthyGauge.Update(1)
-		pollAndExecOnce(ctx, autoscaler, ctutil.GetPatchFromStorage)
+		//pollAndExecOnce(ctx, nil, ctutil.GetPatchFromStorage)
 		// Sleeping for a second to avoid the small probability of ending up
 		// with 2 tasks with the same runID. For context see
 		// https://skia-review.googlesource.com/c/26941/8/ct/go/poller/main.go#96
 		time.Sleep(time.Second)
 	}
+
+	//	master_common.InitWithMetrics2("ct-poller", promPort)
+
+	//	autoscaler, err := ct_autoscaler.NewCTAutoscaler(*master_common.Local)
+	//	if err != nil {
+	//		sklog.Fatalf("Could not instantiate the CT autoscaler: %s", err)
+	//	}
+	//	healthyGauge := metrics2.GetInt64Metric("healthy")
+
+	//	// Terminate all tasks which were in running state when the poller was restarted.
+	//	// See skbug.com/7062.
+	//	if err := frontend.TerminateRunningTasks(); err != nil {
+	//		sklog.Fatalf("Could not terminate running tasks: %s", err)
+	//	}
+
+	//	if !*master_common.Local {
+	//		user, err := user.Current()
+	//		if err != nil {
+	//			sklog.Fatal(err)
+	//		}
+	//		// Create token source.
+	//		ts, err := auth.NewDefaultTokenSource(*master_common.Local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+	//		if err != nil {
+	//			sklog.Fatalf("Problem setting up default token source: %s", err)
+	//		}
+	//		// Use the gitcookie created by gitauth package if .gitcookies does not already exist.
+	//		gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")
+	//		if _, err := gitauth.New(ts, gitcookiesPath, true, *serviceAccount); err != nil {
+	//			sklog.Fatalf("Failed to create git cookie updater: %s", err)
+	//		}
+	//	}
+
+	//	// Run immediately, since pollTick will not fire until after pollInterval.
+	//	ctx := context.Background()
+	//	pollAndExecOnce(ctx, autoscaler, ctutil.GetPatchFromStorage)
+	//	for range time.Tick(*pollInterval) {
+	//		healthyGauge.Update(1)
+	//		pollAndExecOnce(ctx, autoscaler, ctutil.GetPatchFromStorage)
+	//		// Sleeping for a second to avoid the small probability of ending up
+	//		// with 2 tasks with the same runID. For context see
+	//		// https://skia-review.googlesource.com/c/26941/8/ct/go/poller/main.go#96
+	//		time.Sleep(time.Second)
+	//	}
 }
