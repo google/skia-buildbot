@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "605d9661_3208aba9",
+        "filename": "gitsync/go/gitsync/config.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-22T12:28:46Z",
+      "side": 1,
+      "message": "nit: maybe put all of these comments before the struct members so they don\u0027t exceed 100 cols.\n\nnit: maybe add some guidance on picking a number for go routines.  At least a range.",
+      "range": {
+        "startLine": 15,
+        "startChar": 102,
+        "endLine": 15,
+        "endChar": 123
+      },
+      "revId": "3b8197c3d6e94c92c28cdad411980535d3cb397d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8fff493_ba163a9c",
+        "filename": "gitsync/go/gitsync/main.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-22T12:28:46Z",
+      "side": 1,
+      "message": "Do you want to keep this on for production?\n\nIf so, I\u0027d move it to bottom of the imports and add a comment explaining \"enables pprof [HttpPort]/debug/pprof\"",
+      "range": {
+        "startLine": 9,
+        "startChar": 1,
+        "endLine": 9,
+        "endChar": 19
+      },
+      "revId": "3b8197c3d6e94c92c28cdad411980535d3cb397d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f944781_e1a72b06",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-22T12:28:46Z",
+      "side": 1,
+      "message": "nit: may be more succinct to do \n\"Sync \" + repoURL",
+      "range": {
+        "startLine": 61,
+        "startChar": 18,
+        "endLine": 61,
+        "endChar": 49
+      },
+      "revId": "3b8197c3d6e94c92c28cdad411980535d3cb397d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d49b8568_4fd9bbe5",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 419,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-22T12:28:46Z",
+      "side": 1,
+      "message": "If you are keeping this in, would it make sense to log the url?",
+      "range": {
+        "startLine": 419,
+        "startChar": 7,
+        "endLine": 419,
+        "endChar": 12
+      },
+      "revId": "3b8197c3d6e94c92c28cdad411980535d3cb397d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef9ecd71_d5d97c6f",
+        "filename": "gitsync/go/watcher/watcher_test.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-22T12:28:46Z",
+      "side": 1,
+      "message": "Would testutils.EventuallyConsistent help you here?",
+      "range": {
+        "startLine": 248,
+        "startChar": 2,
+        "endLine": 248,
+        "endChar": 56
+      },
+      "revId": "3b8197c3d6e94c92c28cdad411980535d3cb397d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
