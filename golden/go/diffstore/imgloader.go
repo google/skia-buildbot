@@ -173,16 +173,25 @@ func (il *ImageLoader) Get(priority int64, images types.DigestSlice) ([]*image.N
 	return result, pendingWritesWG, nil
 }
 
+// ImagePaths returns the storage paths for a given image ID. The first return
+// value is the local file path used to store the image on disk and serve it
+// over HTTP. The second return value is the GCS path (not including the bucket).
+func (il *ImageLoader) ImagePaths(imageID types.Digest) (string, string) {
+	gsPath := fmt.Sprintf("%s.%s", imageID, common.IMG_EXTENSION)
+	localPath := fileutil.TwoLevelRadixPath(gsPath)
+	return localPath, gsPath
+}
+
 // IsOnDisk returns true if the image that corresponds to the given imageID is in the disk cache.
 func (il *ImageLoader) IsOnDisk(imageID types.Digest) bool {
-	localRelPath, _ := il.mapper.ImagePaths(imageID)
+	localRelPath, _ := il.ImagePaths(imageID)
 	return fileutil.FileExists(filepath.Join(il.localImgDir, localRelPath))
 }
 
 // PurgeImages removes the images that correspond to the given images.
 func (il *ImageLoader) PurgeImages(images types.DigestSlice, purgeGCS bool) error {
 	for _, id := range images {
-		localRelPath, gsRelPath := il.mapper.ImagePaths(id)
+		localRelPath, gsRelPath := il.ImagePaths(id)
 		localPath := filepath.Join(il.localImgDir, localRelPath)
 		if fileutil.FileExists(localPath) {
 			if err := os.Remove(localPath); err != nil {
@@ -201,7 +210,7 @@ func (il *ImageLoader) PurgeImages(images types.DigestSlice, purgeGCS bool) erro
 // It loads an image file either from disk or from Google storage.
 func (il *ImageLoader) imageLoadWorker(priority int64, imageID types.Digest) (interface{}, error) {
 	// Check if the image is in the disk cache.
-	localRelPath, gsRelPath := il.mapper.ImagePaths(imageID)
+	localRelPath, gsRelPath := il.ImagePaths(imageID)
 	localPath := filepath.Join(il.localImgDir, localRelPath)
 	sklog.Debugf("Looking for image with id %s", imageID)
 	if fileutil.FileExists(localPath) {
@@ -238,7 +247,7 @@ func (il *ImageLoader) saveImgInfoAsync(imageID types.Digest, imgBytes []byte) <
 	writeDoneCh := make(chan bool)
 	go func() {
 		defer close(writeDoneCh)
-		localRelPath, _ := il.mapper.ImagePaths(imageID)
+		localRelPath, _ := il.ImagePaths(imageID)
 		p := filepath.Join(il.localImgDir, localRelPath)
 		if err := common.SaveFilePath(p, bytes.NewBuffer(imgBytes)); err != nil {
 			sklog.Errorf("Could not write file to disk at %s: %s", p, err)
