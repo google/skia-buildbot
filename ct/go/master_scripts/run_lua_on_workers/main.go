@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
+	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
@@ -87,7 +88,7 @@ func sendEmail(recipients []string) {
 	}
 }
 
-func updateWebappTask() {
+func updateWebappTask(ctx context.Context) {
 	vars := lua_scripts.UpdateVars{}
 	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
@@ -97,7 +98,7 @@ func updateWebappTask() {
 	if luaAggregatorOutputRemoteLink != "" {
 		vars.AggregatedOutput = luaAggregatorOutputRemoteLink
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
+	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars, &lua_scripts.DatastoreTask{}))
 }
 
 func main() {
@@ -112,10 +113,10 @@ func main() {
 		sklog.Error("At least one email address must be specified")
 		return
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&lua_scripts.UpdateVars{}, *taskID, *runID))
+	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &lua_scripts.UpdateVars{}, &lua_scripts.DatastoreTask{}, *taskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Lua script", *runID, *description, ""))
 	// Ensure webapp is updated and email is sent even if task fails.
-	defer updateWebappTask()
+	defer updateWebappTask(ctx)
 	defer sendEmail(emailsArr)
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running Lua script on workers")
@@ -157,7 +158,7 @@ func main() {
 		return
 	}
 	remoteDirNames, err := util.TriggerBuildRepoSwarmingTask(
-		ctx, "build_lua_pictures", *runID, "skiaLuaPictures", util.PLATFORM_LINUX, *master_common.ServiceAccountFile, []string{}, []string{}, []string{cipdPackage}, true, *master_common.Local, 3*time.Hour, 1*time.Hour)
+		ctx, "build_lua_pictures", *runID, "skiaLuaPictures", util.PLATFORM_LINUX, "", []string{}, []string{}, []string{cipdPackage}, true, *master_common.Local, 3*time.Hour, 1*time.Hour)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming build lua_pictures task: %s", err)
 		return
@@ -175,7 +176,7 @@ func main() {
 		"RUN_ID":                   *runID,
 		"LUA_PICTURES_REMOTE_PATH": luaPicturesRemotePath,
 	}
-	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "run_lua", util.RUN_LUA_ISOLATE, *runID, *master_common.ServiceAccountFile, util.PLATFORM_LINUX, 3*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_MEDIUM, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, *master_common.Local, 1, []string{} /* isolateDeps */); err != nil {
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "run_lua", util.RUN_LUA_ISOLATE, *runID, "", util.PLATFORM_LINUX, 3*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_MEDIUM, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, *master_common.Local, 1, []string{} /* isolateDeps */); err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}

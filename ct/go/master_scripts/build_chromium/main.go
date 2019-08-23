@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
+	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
@@ -48,11 +49,11 @@ func sendEmail(recipients []string) {
 	}
 }
 
-func updateWebappTask() {
+func updateWebappTask(ctx context.Context) {
 	vars := chromium_builds.UpdateVars{}
 	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
-	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
+	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars, &chromium_builds.DatastoreTask{}))
 }
 
 func main() {
@@ -67,10 +68,10 @@ func main() {
 		sklog.Error("At least one email address must be specified")
 		return
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_builds.UpdateVars{}, *taskID, *runID))
+	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &chromium_builds.UpdateVars{}, &chromium_builds.DatastoreTask{}, *taskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Build chromium", *runID, "", ""))
 	// Ensure webapp is updated and completion email is sent even if task fails.
-	defer updateWebappTask()
+	defer updateWebappTask(ctx)
 	defer sendEmail(emailsArr)
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running build chromium")
@@ -90,7 +91,7 @@ func main() {
 	//       "-DSK_WHITELIST_SERIALIZED_TYPEFACES" flag only when *runID is empty.
 	//       Since builds created by this master script will be consumed only by the
 	//       capture_skps tasks (which require that flag) specify runID as empty here.
-	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", "", "chromium", "Linux", *master_common.ServiceAccountFile, []string{*chromiumHash, *skiaHash}, []string{}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour)
+	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", "", "chromium", "Linux", "", []string{*chromiumHash, *skiaHash}, []string{}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming build repo task: %s", err)
 		return

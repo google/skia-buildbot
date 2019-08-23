@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/ct/go/ctfe/metrics_analysis"
+	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
@@ -94,12 +95,12 @@ func sendEmail(recipients []string, gs *util.GcsUtil) {
 	}
 }
 
-func updateWebappTask() {
+func updateWebappTask(ctx context.Context) {
 	vars := metrics_analysis.UpdateVars{}
 	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
 	vars.RawOutput = outputLink
-	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
+	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars, &metrics_analysis.DatastoreTask{}))
 }
 
 func main() {
@@ -121,10 +122,10 @@ func main() {
 		return
 	}
 
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&metrics_analysis.UpdateVars{}, *taskID, *runID))
+	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &metrics_analysis.UpdateVars{}, &metrics_analysis.DatastoreTask{}, *taskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Metrics analysis", *runID, *description, ""))
 	// Ensure webapp is updated and email is sent even if task fails.
-	defer updateWebappTask()
+	defer updateWebappTask(ctx)
 	defer sendEmail(emailsArr, gs)
 	// Cleanup dirs after run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
@@ -184,7 +185,7 @@ func main() {
 
 	// Trigger task to return hash of telemetry isolates.
 	telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName)}
-	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, *master_common.ServiceAccountFile, util.PLATFORM_LINUX, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
+	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, "", util.PLATFORM_LINUX, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
 		return
@@ -204,7 +205,7 @@ func main() {
 		"METRIC_NAME":       *metricName,
 		"VALUE_COLUMN_NAME": *valueColumnName,
 	}
-	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, *master_common.ServiceAccountFile, util.PLATFORM_LINUX, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, len(traces), isolateExtraArgs, true /* runOnGCE */, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
+	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, "", util.PLATFORM_LINUX, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, len(traces), isolateExtraArgs, true /* runOnGCE */, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
@@ -212,7 +213,7 @@ func main() {
 
 	// If "--output-format=csv" is specified then merge all CSV files and upload.
 	noOutputSlaves := []string{}
-	pathToPyFiles := util.GetPathToPyFiles(*master_common.Local, true /* runOnMaster */)
+	pathToPyFiles := util.GetPathToPyFiles(*master_common.Local, false /* runOnMaster */)
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
 		if _, noOutputSlaves, err = util.MergeUploadCSVFiles(ctx, *runID, pathToPyFiles, gs, len(traces), maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1)); err != nil {
 			sklog.Errorf("Unable to merge and upload CSV files for %s: %s", *runID, err)
