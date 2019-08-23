@@ -83,8 +83,7 @@ func (idx *SearchIndex) CpxTile() types.ComplexTile {
 	return idx.cpxTile
 }
 
-// GetIgnoreMatcher returns a matcher for the ignore rules that were used to
-// build the tile with ignores.
+// GetIgnoreMatcher implements the IndexSearcher interface
 func (idx *SearchIndex) GetIgnoreMatcher() paramtools.ParamMatcher {
 	return idx.cpxTile.IgnoreRules()
 }
@@ -223,10 +222,16 @@ func New(ic IndexerConfig, interval time.Duration) (*Indexer, error) {
 }
 
 // GetIndex returns the current index, which is updated continuously in the
-// background. The returned instances of SearchIndex can be considered immutable
+// background. The returned instances of IndexSearcher can be considered immutable
 // and is not going to change. It should be used to handle an entire request
 // to provide consistent information.
-func (ix *Indexer) GetIndex() *SearchIndex {
+func (ix *Indexer) GetIndex() IndexSearcher {
+	return ix.getIndex()
+}
+
+// getIndex is like GetIndex but returns the bare struct, for
+// internal package use.
+func (ix *Indexer) getIndex() *SearchIndex {
 	ix.mutex.RLock()
 	defer ix.mutex.RUnlock()
 	return ix.lastIndex
@@ -343,7 +348,7 @@ func (ix *Indexer) indexTests(testChanges []types.Expectations) {
 
 // cloneLastIndex returns a copy of the most recent index.
 func (ix *Indexer) cloneLastIndex() *SearchIndex {
-	lastIdx := ix.GetIndex()
+	lastIdx := ix.getIndex()
 	sic := searchIndexConfig{
 		diffStore:         ix.DiffStore,
 		expectationsStore: ix.ExpectationsStore,
