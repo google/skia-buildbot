@@ -770,14 +770,13 @@ server {
     error_log /var/log/nginx/fuzzer.error.log error;
 
     location / {
-        proxy_pass https://35.201.76.220;
-        proxy_set_header Host $host;
+        return 301 https://bugs.chromium.org/p/oss-fuzz/issues/list?q=label:Proj-skia;
     }
 }
 server {
     listen      80;
     server_name fuzzer.skia.org;
-    return 301 https://fuzzer.skia.org$request_uri;
+    return 301 https://bugs.chromium.org/p/oss-fuzz/issues/list?q=label:Proj-skia;
 }
 
 ####   health.skia.org   ################
@@ -1462,6 +1461,24 @@ server {
     listen      80;
     server_name lottie-gold.skia.org;
     return 301 https://lottie-gold.skia.org$request_uri;
+}
+
+#####   chrome-gold.skia.org   ###########################
+server {
+    listen      443;
+    server_name chrome-gold.skia.org;
+    ssl on;
+    access_log /var/log/nginx/chrome-gold.access.log;
+    error_log /var/log/nginx/chrome-gold.error.log error;
+    location / {
+        proxy_pass https://35.201.76.220;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name chrome-gold.skia.org;
+    return 301 https://chrome-gold.skia.org$request_uri;
 }
 
 #####   chrome-gpu-gold.skia.org   ###########################
