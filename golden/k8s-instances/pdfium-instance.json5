@@ -15,9 +15,8 @@
     "PUBSUB_PROJECT":          "skia-public",
     "SITE_URL":                "https://pdfium-gold.skia.org",
 
-
     // Git BigTable settings
-    "GIT_BT_TABLE":            "git-repos",
+    "GIT_BT_TABLE":            "git-repos2",
 
     // Settings for skiacorrectness instance
     "AUTHORIZED_PARAMS":       "", // defaults to "all"

@@ -20,7 +20,7 @@ import (
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/gitstore_deprecated/bt_gitstore"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
