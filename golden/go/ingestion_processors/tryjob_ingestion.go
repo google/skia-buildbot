@@ -36,7 +36,6 @@ const (
 	gerritURLParam        = "GerritURL"
 
 	continuousIntegrationSystemParam = "ContinuousIntegrationSystem"
-	buildBucketNameParam             = "BuildBucketName"
 
 	gerritCRS      = "gerrit"
 	buildbucketCIS = "buildbucket"
@@ -116,12 +115,8 @@ func codeReviewSystemFactory(crsName string, config *sharedconfig.IngesterConfig
 
 func continuousIntegrationSystemFactory(cisName string, config *sharedconfig.IngesterConfig, client *http.Client) (continuous_integration.Client, error) {
 	if cisName == buildbucketCIS {
-		bbBucket := config.ExtraParams[buildBucketNameParam]
-		if strings.TrimSpace(bbBucket) == "" {
-			return nil, skerr.Fmt("missing bucket name for BuildBucket")
-		}
 		bbClient := buildbucket.NewClient(client)
-		return buildbucket_cis.New(bbClient, bbBucket), nil
+		return buildbucket_cis.New(bbClient), nil
 	}
 	return nil, skerr.Fmt("ContinuousIntegrationSystem %q not recognized", cisName)
 }

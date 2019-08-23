@@ -18,8 +18,7 @@ import (
 	gstorage "google.golang.org/api/storage/v1"
 )
 
-// TODO(kjlubick): Factor out BuildBucketState into an interface to make it
-// more testable. Supply a mock version of the interface.
+// TODO(kjlubick): Delete this after skia:9340 is in
 
 func TestBuildBucketState(t *testing.T) {
 	unittest.LargeTest(t)
