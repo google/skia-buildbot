@@ -36,20 +36,20 @@ func (_m *Store) GetChangeList(ctx context.Context, id string) (code_review.Chan
 	return r0, r1
 }
 
-// GetPatchSet provides a mock function with given fields: ctx, clId, psID
-func (_m *Store) GetPatchSet(ctx context.Context, clId string, psID string) (code_review.PatchSet, error) {
-	ret := _m.Called(ctx, clId, psID)
+// GetPatchSet provides a mock function with given fields: ctx, clID, psID
+func (_m *Store) GetPatchSet(ctx context.Context, clID string, psID string) (code_review.PatchSet, error) {
+	ret := _m.Called(ctx, clID, psID)
 
 	var r0 code_review.PatchSet
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) code_review.PatchSet); ok {
-		r0 = rf(ctx, clId, psID)
+		r0 = rf(ctx, clID, psID)
 	} else {
 		r0 = ret.Get(0).(code_review.PatchSet)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, clId, psID)
+		r1 = rf(ctx, clID, psID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -71,13 +71,13 @@ func (_m *Store) PutChangeList(ctx context.Context, cl code_review.ChangeList) e
 	return r0
 }
 
-// PutPatchSet provides a mock function with given fields: ctx, clID, ps
-func (_m *Store) PutPatchSet(ctx context.Context, clID string, ps code_review.PatchSet) error {
-	ret := _m.Called(ctx, clID, ps)
+// PutPatchSet provides a mock function with given fields: ctx, ps
+func (_m *Store) PutPatchSet(ctx context.Context, ps code_review.PatchSet) error {
+	ret := _m.Called(ctx, ps)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, code_review.PatchSet) error); ok {
-		r0 = rf(ctx, clID, ps)
+	if rf, ok := ret.Get(0).(func(context.Context, code_review.PatchSet) error); ok {
+		r0 = rf(ctx, ps)
 	} else {
 		r0 = ret.Error(0)
 	}

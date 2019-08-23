@@ -70,8 +70,8 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 	mcls.On("GetPatchSet", anyctx, sampleCLID, samplePSID).Return(code_review.PatchSet{}, clstore.ErrNotFound)
 	mcls.On("PutChangeList", anyctx, makeChangeList()).Return(nil)
 	xps := makePatchSets()
-	mcls.On("PutPatchSet", anyctx, sampleCLID, xps[0]).Return(nil)
-	mcls.On("PutPatchSet", anyctx, sampleCLID, xps[1]).Return(nil)
+	mcls.On("PutPatchSet", anyctx, xps[0]).Return(nil)
+	mcls.On("PutPatchSet", anyctx, xps[1]).Return(nil)
 
 	mcis.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
 
@@ -114,8 +114,8 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 	mcls.On("GetChangeList", anyctx, sampleCLID).Return(makeChangeList(), nil)
 	mcls.On("GetPatchSet", anyctx, sampleCLID, samplePSID).Return(code_review.PatchSet{}, clstore.ErrNotFound)
 	xps := makePatchSets()
-	mcls.On("PutPatchSet", anyctx, sampleCLID, xps[0]).Return(nil)
-	mcls.On("PutPatchSet", anyctx, sampleCLID, xps[1]).Return(nil)
+	mcls.On("PutPatchSet", anyctx, xps[0]).Return(nil)
+	mcls.On("PutPatchSet", anyctx, xps[1]).Return(nil)
 
 	mcis.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
 
