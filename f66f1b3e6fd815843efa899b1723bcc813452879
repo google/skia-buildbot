@@ -22,6 +22,30 @@
       "revId": "f66f1b3e6fd815843efa899b1723bcc813452879",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74af54e4_6fba09d1",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-23T17:27:52Z",
+      "side": 1,
+      "message": "I can\u0027t simply use the SystemID as the ID in firestore. The ID for a changelist is something like \"1234\" and if we have a Gerrit CL and a GitHub CL with the same ID, we will have issues.\n\nThus I have to do a search by SystemID and what CRS (\"gerrit\" or \"github\") we are in.\n\nFor PatchSets, the PS ID isn\u0027t guaranteed to be unique, so I have to include the ChangeListID.",
+      "parentUuid": "c3dfec21_8f45d802",
+      "range": {
+        "startLine": 72,
+        "startChar": 17,
+        "endLine": 72,
+        "endChar": 25
+      },
+      "revId": "f66f1b3e6fd815843efa899b1723bcc813452879",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
