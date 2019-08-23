@@ -70,6 +70,30 @@
       "revId": "f66f1b3e6fd815843efa899b1723bcc813452879",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca9ba31d_fd4ccbf6",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-23T17:51:46Z",
+      "side": 1,
+      "message": "Good idea. Done.",
+      "parentUuid": "088dc9b7_200da5a2",
+      "range": {
+        "startLine": 72,
+        "startChar": 17,
+        "endLine": 72,
+        "endChar": 25
+      },
+      "revId": "f66f1b3e6fd815843efa899b1723bcc813452879",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
