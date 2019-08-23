@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "783836e9_46122e89",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 2
+      },
+      "lineNbr": 773,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-23T16:18:21Z",
+      "side": 0,
+      "message": "looks like I forgot a semicolon",
+      "range": {
+        "startLine": 773,
+        "startChar": 83,
+        "endLine": 773,
+        "endChar": 85
+      },
+      "revId": "99d4cceae828173c9bde4fa8f3fe8673ff462642",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
