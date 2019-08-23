@@ -22,7 +22,7 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gevent"
-	"go.skia.org/infra/go/gitstore_deprecated/bt_gitstore"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/ingestion/fs_ingestionstore"
