@@ -85,6 +85,7 @@ var (
 var (
 	algo                  = flag.String("algo", "kmeans", "The algorithm to use for detecting regressions (kmeans|stepfit).")
 	bigTableConfig        = flag.String("big_table_config", "nano", "The name of the config to use when using a BigTable trace store.")
+	clusterOnly           = flag.Bool("cluster_only", true, "If true then run continuous clustering and not the UI.")
 	commitRangeURL        = flag.String("commit_range_url", "", "A URI Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. See cluster-summary2-sk.")
 	dataFrameSize         = flag.Int("dataframe_size", dataframe.DEFAULT_NUM_COMMITS, "The number of commits to include in the default dataframe.")
 	defaultSparse         = flag.Bool("default_sparse", false, "The default value for 'Sparse' in Alerts.")
@@ -321,10 +322,12 @@ func Init() {
 	sklog.Info("About to build cidl.")
 	cidl = cid.New(ctx, vcs, btConfig.GitUrl)
 
-	sklog.Info("About to build dataframe refresher.")
-	freshDataFrame, err = dataframe.NewRefresher(vcs, dfBuilder, 15*time.Minute, *numTilesRefresher)
-	if err != nil {
-		sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
+	if !*clusterOnly {
+		sklog.Info("About to build dataframe refresher.")
+		freshDataFrame, err = dataframe.NewRefresher(vcs, dfBuilder, 15*time.Minute, *numTilesRefresher)
+		if err != nil {
+			sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
+		}
 	}
 
 	alerts.DefaultSparse = *defaultSparse
