@@ -315,6 +315,44 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 	return t, nil
 }
 
+func (task *AddTaskVars) TriggerSwarmingTask(ctx context.Context, t task_common.Task) error {
+	datastoreTask := t.(*DatastoreTask)
+	runID := task_common.GetRunID(datastoreTask)
+	emails := []string{datastoreTask.Username}
+	emails = append(emails, datastoreTask.CCList...)
+	isolateArgs := map[string]string{
+		"EMAILS":                            strings.Join(emails, ","),
+		"DESCRIPTION":                       datastoreTask.Description,
+		"TASK_ID":                           strconv.FormatInt(datastoreTask.DatastoreKey.ID, 10),
+		"PAGESET_TYPE":                      datastoreTask.PageSets,
+		"BENCHMARK":                         datastoreTask.Benchmark,
+		"BENCHMARK_ARGS":                    datastoreTask.BenchmarkArgs,
+		"BROWSER_EXTRA_ARGS_NOPATCH":        datastoreTask.BrowserArgsNoPatch,
+		"BROWSER_EXTRA_ARGS_WITHPATCH":      datastoreTask.BrowserArgsWithPatch,
+		"REPEAT_BENCHMARK":                  strconv.FormatInt(datastoreTask.RepeatRuns, 10),
+		"RUN_IN_PARALLEL":                   strconv.FormatBool(datastoreTask.RunInParallel),
+		"TARGET_PLATFORM":                   datastoreTask.Platform,
+		"RUN_ON_GCE":                        strconv.FormatBool(datastoreTask.RunsOnGCEWorkers()),
+		"CHROMIUM_HASH":                     datastoreTask.ChromiumHash,
+		"RUN_ID":                            runID,
+		"TASK_PRIORITY":                     strconv.Itoa(datastoreTask.TaskPriority),
+		"GROUP_NAME":                        datastoreTask.GroupName,
+		"CHROMIUM_PATCH_GS_PATH":            datastoreTask.ChromiumPatchGSPath,
+		"SKIA_PATCH_GS_PATH":                datastoreTask.SkiaPatchGSPath,
+		"V8_PATCH_GS_PATH":                  datastoreTask.V8PatchGSPath,
+		"CATAPULT_PATCH_GS_PATH":            datastoreTask.CatapultPatchGSPath,
+		"CHROMIUM_BASE_BUILD_PATCH_GS_PATH": datastoreTask.ChromiumPatchBaseBuildGSPath,
+		"CUSTOM_WEBPAGES_CSV_GS_PATH":       datastoreTask.CustomWebpagesGSPath,
+		"DS_NAMESPACE":                      ctfeutil.GetDsNamespaceFlagVal(),
+		"DS_PROJECT_NAME":                   ctfeutil.GetDsProjectNameFlagVal(),
+	}
+
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_chromium_perf_on_workers", ctutil.CHROMIUM_PERF_MASTER_ISOLATE, ctfeutil.GetServiceAccountFileFlagVal(), datastoreTask.Platform, false, isolateArgs); err != nil {
+		return fmt.Errorf("Could not trigger master script for run_chromium_perf_on_workers with isolate args %T: %s", isolateArgs, err)
+	}
+	return nil
+}
+
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.AddTaskHandler(w, r, &AddTaskVars{})
 }

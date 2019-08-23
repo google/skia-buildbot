@@ -160,6 +160,42 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 	return t, nil
 }
 
+// lua scripts and lua aggregator
+func (task *AddTaskVars) TriggerSwarmingTask(ctx context.Context, t task_common.Task) error {
+	datastoreTask := t.(*DatastoreTask)
+	runID := task_common.GetRunID(datastoreTask)
+	luaScriptGSPath, err := ctutil.SavePatchToStorage(task.LuaScript)
+	if err != nil {
+		return nil
+	}
+	luaAggregatorScriptGSPath := ""
+	if task.LuaAggregatorScript != "" {
+		luaAggregatorScriptGSPath, err = ctutil.SavePatchToStorage(task.LuaScript)
+		if err != nil {
+			return nil
+		}
+	}
+
+	isolateArgs := map[string]string{
+		"EMAILS":                        datastoreTask.Username,
+		"DESCRIPTION":                   datastoreTask.Description,
+		"TASK_ID":                       strconv.FormatInt(datastoreTask.DatastoreKey.ID, 10),
+		"PAGESET_TYPE":                  datastoreTask.PageSets,
+		"CHROMIUM_BUILD":                ctutil.ChromiumBuildDir(task.SkpRepository.ChromiumRev, task.SkpRepository.SkiaRev, ""),
+		"RUN_ON_GCE":                    strconv.FormatBool(datastoreTask.RunsOnGCEWorkers()),
+		"RUN_ID":                        runID,
+		"LUA_SCRIPT_GS_PATH":            luaScriptGSPath,
+		"LUA_AGGREGATOR_SCRIPT_GS_PATH": luaAggregatorScriptGSPath,
+		"DS_NAMESPACE":                  ctfeutil.GetDsNamespaceFlagVal(),
+		"DS_PROJECT_NAME":               ctfeutil.GetDsProjectNameFlagVal(),
+	}
+
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_lua_on_workers", ctutil.RUN_LUA_MASTER_ISOLATE, ctfeutil.GetServiceAccountFileFlagVal(), ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
+		return fmt.Errorf("Could not trigger master script for run_lua_on_workers with isolate args %T: %s", isolateArgs, err)
+	}
+	return nil
+}
+
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.AddTaskHandler(w, r, &AddTaskVars{})
 }
