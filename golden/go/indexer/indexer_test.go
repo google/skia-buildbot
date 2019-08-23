@@ -220,7 +220,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 		UntHashes: types.DigestSlice{},
 		Num:       1,
 		Corpus:    "gm",
-		Blame:     []*blame.WeightedBlame{},
+		Blame:     []blame.WeightedBlame{},
 	}, sm[data.BetaTest])
 	// Block until all async calls are finished so the assertExpectations calls
 	// can properly check that their functions were called.

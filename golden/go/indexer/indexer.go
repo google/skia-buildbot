@@ -137,11 +137,11 @@ func (idx *SearchIndex) GetParamsetSummaryByTest(is types.IgnoreState) map[types
 }
 
 // Proxy to blame.Blamer.GetBlame.
-func (idx *SearchIndex) GetBlame(test types.TestName, digest types.Digest, commits []*tiling.Commit) *blame.BlameDistribution {
+func (idx *SearchIndex) GetBlame(test types.TestName, digest types.Digest, commits []*tiling.Commit) blame.BlameDistribution {
 	if idx.blamer == nil {
 		// should never happen - indexer should have this initialized
 		// before the web server starts serving requests.
-		return nil
+		return blame.BlameDistribution{}
 	}
 	return idx.blamer.GetBlame(test, digest, commits)
 }
