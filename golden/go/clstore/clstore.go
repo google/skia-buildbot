@@ -19,14 +19,14 @@ type Store interface {
 	GetChangeList(ctx context.Context, id string) (code_review.ChangeList, error)
 	// GetPatchSet returns the PatchSet matching the given ChangeList ID and PatchSet ID.
 	// Returns NotFound if it doesn't exist.
-	GetPatchSet(ctx context.Context, clId, psID string) (code_review.PatchSet, error)
+	GetPatchSet(ctx context.Context, clID, psID string) (code_review.PatchSet, error)
 
 	// PutChangeList stores the given ChangeList, overwriting any values for
 	// that ChangeList if they already existed.
 	PutChangeList(ctx context.Context, cl code_review.ChangeList) error
-	// PutChangeList stores the given PatchSet (which belongs to the ChangeList of the given id),
-	// overwriting any values for that ChangeList if they already existed.
-	PutPatchSet(ctx context.Context, clID string, ps code_review.PatchSet) error
+	// PutPatchSet stores the given PatchSet, overwriting any values for
+	// that PatchSet if they already existed.
+	PutPatchSet(ctx context.Context, ps code_review.PatchSet) error
 }
 
 var ErrNotFound = errors.New("not found")

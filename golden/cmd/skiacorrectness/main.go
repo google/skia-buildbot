@@ -122,6 +122,8 @@ func main() {
 		tileFreshness       = flag.Duration("tile_freshness", time.Minute, "How often to re-fetch the tile")
 		traceBTTableID      = flag.String("trace_bt_table", "", "BigTable table ID for the traces.")
 	)
+	// Parse the options. So we can configure logging.
+	flag.Parse()
 
 	var err error
 
@@ -130,8 +132,8 @@ func main() {
 
 	mainTimer := timer.New("main init")
 
-	// Parse the options. So we can configure logging.
-	flag.Parse()
+	// If we are running this, we really don't want to talk to the emulator.
+	firestore.EnsureNotEmulator()
 
 	// Set up the logging options.
 	logOpts := []common.Opt{
