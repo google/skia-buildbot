@@ -67,8 +67,15 @@ func (c *commitsCache) Update(ctx context.Context, w *window.Window, reset bool,
 		// Add any new commits to the return value. The branch heads get
 		// updated if there are any new commits OR if the branch heads
 		// have changed (eg. in the case of a reset or empty merge).
-		if reset || len(newCommits) > 0 {
-			rvCommits[repoUrl] = newCommits
+		if len(newCommits) > 0 {
+			// Only add new commits which are in the window.
+			filtered := make([]*vcsinfo.LongCommit, 0, len(newCommits))
+			for _, c := range newCommits {
+				if w.TestTime(repoUrl, c.Timestamp) {
+					filtered = append(filtered, c)
+				}
+			}
+			rvCommits[repoUrl] = filtered
 			rvBranchHeads[repoUrl] = bh
 		} else if !reflect.DeepEqual(c.oldBranchHeads[repoUrl], bhMap) {
 			rvBranchHeads[repoUrl] = bh
