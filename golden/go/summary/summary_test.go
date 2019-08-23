@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/summary"
+	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -191,6 +192,41 @@ func TestCalcSummaries(t *testing.T) {
 	} else {
 		assert.Equal(t, 0, len(sum))
 	}
+}
+
+// Calculates the summaries of the bug_revert data example.
+func TestCalcSummariesRevert(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mes := &mocks.ExpectationsStore{}
+	defer mes.AssertExpectations(t)
+
+	mes.On("Get").Return(bug_revert.MakeTestExpectations(), nil)
+
+	dc := digest_counter.New(bug_revert.MakeTestTile())
+	blamer, err := blame.New(bug_revert.MakeTestTile(), bug_revert.MakeTestExpectations())
+	assert.NoError(t, err)
+
+	smc := summary.SummaryMapConfig{
+		ExpectationsStore: mes,
+		DiffStore:         nil, // diameter is disabled, so this can be nil.
+		DigestCounter:     dc,
+		Blamer:            blamer,
+	}
+
+	tile := bug_revert.MakeTestTile()
+
+	sum, err := summary.NewSummaryMap(smc, tile, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false)
+	assert.NoError(t, err)
+	assert.Equal(t, bug_revert.MakeTestSummaryMap(), sum)
+
+	sum, err = summary.NewSummaryMap(smc, tile, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, true)
+	assert.NoError(t, err)
+	assert.Equal(t, bug_revert.MakeTestSummaryMapHead(), sum)
+
+	sum, err = summary.NewSummaryMap(smc, tile, nil, url.Values{types.CORPUS_FIELD: {"does-not-exist"}}, false)
+	assert.NoError(t, err)
+	assert.Equal(t, summary.SummaryMap{}, sum)
 }
 
 // TestCombine ensures we can combine two summaries to make sure

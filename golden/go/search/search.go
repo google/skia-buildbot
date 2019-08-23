@@ -564,7 +564,7 @@ func (c *SearchAPI) filterTileWithMatch(query *Query, matchFields []string, cond
 }
 
 // getCTRows returns the instance of CTRow that correspond to the given set of row digests.
-func getCTRows(entries map[types.Digest]paramtools.ParamSet, sortField, sortDir string, limit int32, is types.IgnoreState, idx *indexer.SearchIndex) []*CTRow {
+func getCTRows(entries map[types.Digest]paramtools.ParamSet, sortField, sortDir string, limit int32, is types.IgnoreState, idx indexer.IndexSearcher) []*CTRow {
 	talliesByTest := idx.DigestCountsByTest(is)
 	ret := make([]*CTRow, 0, len(entries))
 	for digest, paramSet := range entries {
