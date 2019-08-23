@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6713c9e9_9769f818",
+        "filename": "perf/go/psrefresh/psrefresh.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-23T20:33:42Z",
+      "side": 1,
+      "message": "I would much prefer NewParamSetRefresher not take in the duration, but has a Start(duration) method on it.\n\nMakes the testing a bit cleaner and makes it more explicit that \"I am running something in the background)",
+      "range": {
+        "startLine": 34,
+        "startChar": 25,
+        "endLine": 34,
+        "endChar": 71
+      },
+      "revId": "a7e97e33b15d7ee8b37e488cb768e679df2b79a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "334afbc9_2f49ebd6",
+        "filename": "perf/go/psrefresh/psrefresh.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-23T20:33:42Z",
+      "side": 1,
+      "message": "skerr.Wrapf(err, \"building the initial ParamSet\")",
+      "range": {
+        "startLine": 41,
+        "startChar": 14,
+        "endLine": 41,
+        "endChar": 24
+      },
+      "revId": "a7e97e33b15d7ee8b37e488cb768e679df2b79a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04ba8001_d2fe9760",
+        "filename": "perf/go/psrefresh/psrefresh.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-23T20:33:42Z",
+      "side": 1,
+      "message": "Perhaps add some context with skerr.Wrapf(err, \"...\") or skerr.Wrap(err). Here and other returns",
+      "range": {
+        "startLine": 52,
+        "startChar": 9,
+        "endLine": 52,
+        "endChar": 12
+      },
+      "revId": "a7e97e33b15d7ee8b37e488cb768e679df2b79a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57795340_7c13256b",
+        "filename": "perf/go/regression/async.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-23T20:33:42Z",
+      "side": 1,
+      "message": "nit: also _ ?",
+      "range": {
+        "startLine": 204,
+        "startChar": 53,
+        "endLine": 204,
+        "endChar": 58
+      },
+      "revId": "a7e97e33b15d7ee8b37e488cb768e679df2b79a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ef8b382_ce2dfcb6",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-23T20:33:42Z",
+      "side": 1,
+      "message": "should this be a command line flag or a constant?",
+      "range": {
+        "startLine": 373,
+        "startChar": 15,
+        "endLine": 373,
+        "endChar": 30
+      },
+      "revId": "a7e97e33b15d7ee8b37e488cb768e679df2b79a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
