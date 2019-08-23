@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b83aa7c7_551c8230",
+        "filename": "perf/go/psrefresh/psrefresh.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-23T20:59:54Z",
+      "side": 1,
+      "message": "nit: function docs",
+      "revId": "3c6783d676e76761e32d4b08d8e0f928e1538cc3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8381abc1_cdd17542",
+        "filename": "perf/go/psrefresh/psrefresh_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-23T20:59:54Z",
+      "side": 1,
+      "message": "nit: add a comment that, for the purposes of this test, the duration doesn\u0027t matter.",
+      "range": {
+        "startLine": 36,
+        "startChar": 17,
+        "endLine": 36,
+        "endChar": 28
+      },
+      "revId": "3c6783d676e76761e32d4b08d8e0f928e1538cc3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
