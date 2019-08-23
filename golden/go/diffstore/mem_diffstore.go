@@ -1,6 +1,7 @@
 package diffstore
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"net/http"
@@ -10,7 +11,10 @@ import (
 	"strings"
 	"sync"
 
+	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/rtcache"
 	"go.skia.org/infra/go/skerr"
@@ -23,6 +27,7 @@ import (
 	"go.skia.org/infra/golden/go/diffstore/metricsstore/bolt_metricsstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/validation"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -91,8 +96,18 @@ func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string
 		return nil, skerr.Fmt("Could not make image directory %s: %s", imgPath, err)
 	}
 
+	// Build buckets to GCSClient map.
+	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	if err != nil {
+		return nil, skerr.Fmt("Could not create storage client: %s", err)
+	}
+	gsBucketClients := make(map[string]gcs.GCSClient, len(gsBucketNames))
+	for _, bucketName := range gsBucketNames {
+		gsBucketClients[bucketName] = gcsclient.New(storageClient, bucketName)
+	}
+
 	// Set up image retrieval, caching and serving.
-	imgLoader, err := NewImgLoader(client, baseDir, imgDir, gsBucketNames, gsImageBaseDir, imageCacheCount, m)
+	imgLoader, err := NewImgLoader(gsBucketClients, baseDir, imgDir, gsImageBaseDir, imageCacheCount, m)
 	if err != nil {
 		return nil, skerr.Fmt("Could not create img loader %s", err)
 	}
