@@ -189,11 +189,22 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 		g.Go(func() error {
 			defer timer.New("dfbuilder_by_tile").Stop()
 
-			// Query for matching traces in the given tile.
-			traces, err := b.store.QueryTracesByIndex(ctx, tileKey, q)
+			// Just use QueryTraces, the ByIndex seems to have a bug.
+			traces, err := b.store.QueryTraces(ctx, tileKey, q)
 			if err != nil {
 				return err
 			}
+			/*
+				// Query for matching traces in the given tile.
+				traces, err := b.store.QueryTracesByIndex(ctx, tileKey, q)
+				if err != nil {
+					// Fall back to the old querying system if QueryTracesByIndex fails.
+					traces, err = b.store.QueryTraces(ctx, tileKey, q)
+					if err != nil {
+						return err
+					}
+				}
+			*/
 			sklog.Debugf("found %d traces for %s", len(traces), tileKey.OpsRowName())
 
 			traceSetBuilder.Add(traceMap, traces)

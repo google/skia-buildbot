@@ -16,6 +16,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"cloud.google.com/go/bigtable"
@@ -32,6 +33,7 @@ import (
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramreducer"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
@@ -89,6 +91,7 @@ var (
 	dataFrameSize         = flag.Int("dataframe_size", dataframe.DEFAULT_NUM_COMMITS, "The number of commits to include in the default dataframe.")
 	defaultSparse         = flag.Bool("default_sparse", false, "The default value for 'Sparse' in Alerts.")
 	doClustering          = flag.Bool("do_clustering", true, "If true then run continuous clustering over all the alerts.")
+	clusterOnly           = flag.Bool("cluster_only", true, "If true then run continuous clustering and not the UI.")
 	noemail               = flag.Bool("noemail", false, "Do not send emails.")
 	emailClientIdFlag     = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
 	emailClientSecretFile = flag.String("email_client_secret_file", "client_secret.json", "OAuth client secret JSON file for sending email.")
@@ -143,7 +146,73 @@ var (
 	btConfig *config.PerfBigTableConfig
 
 	dryrunRequests *dryrun.Requests
+
+	paramsetRefresher *ParamSetRefresher
 )
+
+// ParamSetRefresher implements regression.ParamsetProvider
+type ParamSetRefresher struct {
+	ts     *btts.BigTableTraceStore
+	period time.Duration
+
+	mutex sync.Mutex // protects ps.
+	ps    paramtools.ParamSet
+}
+
+func NewParamSetRefresher(ts *btts.BigTableTraceStore, period time.Duration) (*ParamSetRefresher, error) {
+	ret := &ParamSetRefresher{
+		ts:     ts,
+		period: period,
+		ps:     paramtools.ParamSet{},
+	}
+	if err := ret.oneStep(); err != nil {
+		return nil, fmt.Errorf("Failed to build the initial ParamSet: %s", err)
+	}
+
+	go ret.refresh()
+	return ret, nil
+}
+
+func (pf *ParamSetRefresher) oneStep() error {
+	ctx := context.Background()
+	tileKey, err := pf.ts.GetLatestTile()
+	if err != nil {
+		return nil
+	}
+	ops, err := pf.ts.GetOrderedParamSet(ctx, tileKey)
+	if err != nil {
+		return err
+	}
+	ps := ops.ParamSet
+	tileKey = tileKey.PrevTile()
+	ops2, err := pf.ts.GetOrderedParamSet(ctx, tileKey)
+	if err != nil {
+		return err
+	}
+	ps.AddParamSet(ops2.ParamSet)
+
+	pf.mutex.Lock()
+	defer pf.mutex.Unlock()
+	pf.ps = ps
+
+	return nil
+}
+
+func (pf *ParamSetRefresher) refresh() {
+	stepFailures := metrics2.GetCounter("paramset_refresh_failures", nil)
+	for range time.Tick(pf.period) {
+		if err := pf.oneStep(); err != nil {
+			sklog.Errorf("Failed to refresh the ParamSet: %s", err)
+			stepFailures.Inc(1)
+		}
+	}
+}
+
+func (pf *ParamSetRefresher) Get() paramtools.ParamSet {
+	pf.mutex.Lock()
+	defer pf.mutex.Unlock()
+	return pf.ps
+}
 
 func loadTemplates() {
 	templates = template.Must(template.New("").ParseFiles(
@@ -210,9 +279,9 @@ func scriptHandler(name string) http.HandlerFunc {
 // newParamsetProvider returns a regression.ParamsetProvider which produces a paramset
 // for the current tiles.
 //
-func newParamsetProvider(freshDataFrame *dataframe.Refresher) regression.ParamsetProvider {
+func newParamsetProvider(pf *ParamSetRefresher) regression.ParamsetProvider {
 	return func() paramtools.ParamSet {
-		return freshDataFrame.Get().ParamSet
+		return pf.Get()
 	}
 }
 
@@ -322,9 +391,11 @@ func Init() {
 	cidl = cid.New(ctx, vcs, btConfig.GitUrl)
 
 	sklog.Info("About to build dataframe refresher.")
-	freshDataFrame, err = dataframe.NewRefresher(vcs, dfBuilder, 15*time.Minute, *numTilesRefresher)
-	if err != nil {
-		sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
+	if !*clusterOnly {
+		freshDataFrame, err = dataframe.NewRefresher(vcs, dfBuilder, 15*time.Minute, *numTilesRefresher)
+		if err != nil {
+			sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
+		}
 	}
 
 	alerts.DefaultSparse = *defaultSparse
@@ -346,14 +417,20 @@ func Init() {
 	clusterRequests = regression.NewRunningClusterRequests(vcs, cidl, float32(*interesting), dfBuilder)
 	regStore = regression.NewStore()
 	configProvider = newAlertsConfigProvider(clusterAlgo)
-	paramsProvider := newParamsetProvider(freshDataFrame)
+
+	paramsetRefresher, err = NewParamSetRefresher(traceStore, 5*time.Minute)
+	if err != nil {
+		sklog.Fatalf("Failed to initialize the paramsetRefresher: %s", err)
+	}
+	paramsProvider := newParamsetProvider(paramsetRefresher)
+
 	dryrunRequests = dryrun.New(cidl, dfBuilder, paramsProvider, vcs)
 
 	if *doClustering {
 		go func() {
 			for i := 0; i < *numContinuousParallel; i++ {
 				// Start running continuous clustering looking for regressions.
-				time.Sleep(time.Minute)
+				time.Sleep(2 * time.Second)
 				c := regression.NewContinuous(vcs, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder)
 				continuous = append(continuous, c)
 				go c.Run(context.Background())

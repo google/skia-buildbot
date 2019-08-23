@@ -63,6 +63,9 @@ type ClusterSummary struct {
 
 	// Num is the number of observations that are in this cluster.
 	Num int `json:"num"`
+
+	// AlertID is the ID that the alert came from.
+	AlertID string `json:"alert_id"`
 }
 
 // NewClusterSummary returns a new ClusterSummary.
@@ -81,6 +84,7 @@ type ClusterSummaries struct {
 	Clusters        []*ClusterSummary
 	StdDevThreshold float32
 	K               int
+	AlertID         string
 }
 
 // chooseK chooses a random sample of k observations. Used as the starting

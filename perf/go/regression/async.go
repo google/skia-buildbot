@@ -72,6 +72,7 @@ type ClusterRequest struct {
 	Type        ClusterRequestType `json:"type"`
 	N           int32              `json:"n"`
 	End         time.Time          `json:"end"`
+	AlertID     string             `json:"alert_id"`
 }
 
 func (c *ClusterRequest) Id() string {
@@ -116,6 +117,10 @@ func newProcess(ctx context.Context, req *ClusterRequest, vcs vcsinfo.VCS, cidl 
 	} else {
 		// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
 		iter, err := NewDataFrameIterator(ctx, ret.progress, req, dfBuilder)
+		if err == NoTracesFromQueryError {
+			// Leave ret.iter set to nil, which Run() checks for.
+			return ret, nil
+		}
 		if err != nil {
 			return nil, fmt.Errorf("Failed to create iterator: %s", err)
 		} else {
@@ -201,7 +206,7 @@ func (fr *RunningClusterRequests) Add(ctx context.Context, req *ClusterRequest) 
 			delete(fr.inProcess, id)
 		}
 	}
-	clusterResponseProcessor := func(resps []*ClusterResponse) {}
+	clusterResponseProcessor := func(req *ClusterRequest, resps []*ClusterResponse) {}
 	if _, ok := fr.inProcess[id]; !ok {
 		proc, err := newRunningProcess(ctx, req, fr.vcs, fr.cidl, fr.dfBuilder, clusterResponseProcessor)
 		if err != nil {
@@ -335,6 +340,9 @@ func ShortcutFromKeys(summary *clustering2.ClusterSummaries) error {
 // Run does the work in a ClusterRequestProcess. It does not return until all the
 // work is done or the request failed. Should be run as a Go routine.
 func (p *ClusterRequestProcess) Run(ctx context.Context) {
+	if p.iter == nil {
+		return
+	}
 	if p.request.Algo == "" {
 		p.request.Algo = types.KMEANS_ALGO
 	}
@@ -374,12 +382,18 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 			summary, err = StepFit(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
 		case types.TAIL_ALGO:
 			summary, err = Tail(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
-
+		default:
+			p.reportError(err, "Invalid algorithm.")
+			return
 		}
 		if err != nil {
 			p.reportError(err, "Invalid clustering.")
 			return
 		}
+		if len(summary.Clusters) > 0 {
+			sklog.Infof("Found some regressions: %s", len(summary.Clusters))
+		}
+		summary.AlertID = p.request.AlertID
 		if err := ShortcutFromKeys(summary); err != nil {
 			p.reportError(err, "Failed to write shortcut for keys.")
 			return
@@ -392,6 +406,11 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 			return
 		}
 
+		if p.request.AlertID != summary.AlertID {
+			sklog.Errorf("Found alertid mismatch: %q != %q", p.request.AlertID, summary.AlertID)
+			return
+		}
+
 		p.mutex.Lock()
 		p.state = PROCESS_SUCCESS
 		p.message = ""
@@ -399,7 +418,7 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 			Summary: summary,
 			Frame:   frame,
 		}
-		p.clusterResponseProcessor([]*ClusterResponse{cr})
+		p.clusterResponseProcessor(p.request, []*ClusterResponse{cr})
 		p.response = append(p.response, cr)
 		p.mutex.Unlock()
 	}
