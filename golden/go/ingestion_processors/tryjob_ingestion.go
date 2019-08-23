@@ -186,7 +186,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 		// It should be ok to put any PatchSets we've seen before - they should be immutable.
 		found := false
 		for _, p := range xps {
-			err := g.changelistStore.PutPatchSet(ctx, clID, p)
+			err := g.changelistStore.PutPatchSet(ctx, p)
 			if err != nil {
 				return skerr.Wrapf(err, "could not store PS %q of CL %q to clstore", psID, clID)
 			}

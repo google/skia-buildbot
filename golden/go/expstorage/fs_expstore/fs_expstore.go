@@ -386,7 +386,7 @@ func (f *Store) flatten(now time.Time, newExp types.Expectations) ([]expectation
 // QueryLog implements the ExpectationsStore interface.
 func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([]expstorage.TriageLogEntry, int, error) {
 	if offset < 0 || size <= 0 {
-		return nil, 0, fmt.Errorf("offset: %d and size: %d must be positive", offset, size)
+		return nil, 0, skerr.Fmt("offset: %d and size: %d must be positive", offset, size)
 	}
 	tags := map[string]string{
 		"with_details": "false",
@@ -408,7 +408,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 		tr := triageRecord{}
 		if err := doc.DataTo(&tr); err != nil {
 			id := doc.Ref.ID
-			return skerr.Fmt("corrupt data in firestore, could not unmarshal triage record with id %s: %s", id, err)
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triage record with id %s", id)
 		}
 		rv = append(rv, expstorage.TriageLogEntry{
 			ID:          doc.Ref.ID,
@@ -419,7 +419,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 		return nil
 	})
 	if err != nil {
-		return nil, 0, skerr.Fmt("could not request triage records [%d: %d]: %s", offset, size, err)
+		return nil, 0, skerr.Wrapf(err, "could not request triage records [%d: %d]", offset, size)
 	}
 
 	if len(rv) == 0 || !details {
@@ -443,7 +443,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 		tc := triageChanges{}
 		if err := doc.DataTo(&tc); err != nil {
 			id := doc.Ref.ID
-			return skerr.Fmt("corrupt data in firestore, could not unmarshal triage changes with id %s: %s", id, err)
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triage changes with id %s", id)
 		}
 		rv[i].Details = append(rv[i].Details, expstorage.TriageDetail{
 			TestName: tc.Grouping,
@@ -453,7 +453,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 		return nil
 	})
 	if err != nil {
-		return nil, 0, skerr.Fmt("could not query details: %s", err)
+		return nil, 0, skerr.Wrapf(err, "could not query details")
 	}
 
 	return rv, len(rv), nil
@@ -469,7 +469,7 @@ func (f *Store) UndoChange(ctx context.Context, changeID, userID string) (types.
 	dr := f.client.Collection(triageRecordsCollection).Doc(changeID)
 	doc, err := f.client.Get(dr, 3, maxOperationTime)
 	if err != nil || !doc.Exists() {
-		return nil, skerr.Fmt("could not find change to undo with id %s: %s", changeID, err)
+		return nil, skerr.Wrapf(err, "could not find change to undo with id %s", changeID)
 	}
 
 	q := f.client.Collection(triageChangesCollection).Where(recordIDField, "==", changeID)
@@ -481,17 +481,17 @@ func (f *Store) UndoChange(ctx context.Context, changeID, userID string) (types.
 		tc := triageChanges{}
 		if err := doc.DataTo(&tc); err != nil {
 			id := doc.Ref.ID
-			return skerr.Fmt("corrupt data in firestore, could not unmarshal triage changes with id %s: %s", id, err)
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triage changes with id %s", id)
 		}
 		delta.AddDigest(tc.Grouping, tc.Digest, tc.LabelBefore)
 		return nil
 	})
 	if err != nil {
-		return nil, skerr.Fmt("could not get delta to undo %s: %s", changeID, err)
+		return nil, skerr.Wrapf(err, "could not get delta to undo %s", changeID)
 	}
 
 	if err = f.AddChange(ctx, delta, userID); err != nil {
-		return nil, skerr.Fmt("could not apply delta to undo %s: %s", changeID, err)
+		return nil, skerr.Wrapf(err, "could not apply delta to undo %s", changeID)
 	}
 
 	return delta, nil
