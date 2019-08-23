@@ -95,7 +95,7 @@ func (c *Continuous) reportUntriaged(newClustersGauge metrics2.Int64Metric) {
 	}()
 }
 
-func (c *Continuous) reportRegressions(ctx context.Context, resps []*ClusterResponse, cfg *alerts.Config) {
+func (c *Continuous) reportRegressions(ctx context.Context, req *ClusterRequest, resps []*ClusterResponse, cfg *alerts.Config) {
 	key := cfg.IdAsString()
 	for _, resp := range resps {
 		headerLength := len(resp.Frame.DataFrame.Header)
@@ -119,7 +119,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, resps []*ClusterResp
 			// Update database if regression at the midpoint is found.
 			if cl.StepPoint.Offset == midOffset {
 				if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.Direction == alerts.DOWN || cfg.Direction == alerts.BOTH) {
-					sklog.Infof("Found Low regression at %s: %v", details[0].Message, *cl.StepFit)
+					sklog.Infof("Found Low regression at %s: StepFit: %v Shortcut: %s AlertID: %d %d req: %#v", details[0].Message, *cl.StepFit, cl.Shortcut, cfg.ID, c.current.Alert.ID, *req)
 					isNew, err := c.store.SetLow(details[0], key, resp.Frame, cl)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster: %s", err)
@@ -132,7 +132,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, resps []*ClusterResp
 					}
 				}
 				if cl.StepFit.Status == stepfit.HIGH && len(cl.Keys) >= cfg.MinimumNum && (cfg.Direction == alerts.UP || cfg.Direction == alerts.BOTH) {
-					sklog.Infof("Found High regression at %s: %v", id.ID(), *cl.StepFit)
+					sklog.Infof("Found High regression at %s: StepFit: %v Shortcut: %s AlertID: %d %d req: %#v", details[0].Message, *cl.StepFit, cl.Shortcut, cfg.ID, c.current.Alert.ID, *req)
 					isNew, err := c.store.SetHigh(details[0], key, resp.Frame, cl)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster for alert %q length=%d: %s", key, len(cl.Keys), err)
@@ -216,8 +216,8 @@ func (c *Continuous) Run(ctx context.Context) {
 				sklog.Infof("Alert %q passed smoketest.", cfg.DisplayName)
 			}
 
-			clusterResponseProcessor := func(resps []*ClusterResponse) {
-				c.reportRegressions(ctx, resps, cfg)
+			clusterResponseProcessor := func(req *ClusterRequest, resps []*ClusterResponse) {
+				c.reportRegressions(ctx, req, resps, cfg)
 			}
 			if cfg.Radius == 0 {
 				cfg.Radius = c.radius

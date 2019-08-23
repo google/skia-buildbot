@@ -49,6 +49,7 @@ import (
 	"go.skia.org/infra/perf/go/dfbuilder"
 	"go.skia.org/infra/perf/go/dryrun"
 	"go.skia.org/infra/perf/go/notify"
+	"go.skia.org/infra/perf/go/psrefresh"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut2"
 	"go.skia.org/infra/perf/go/types"
@@ -64,6 +65,14 @@ const (
 
 	// DEFAULT_ALERT_CATEGORY is the category that will be used by the /_/alerts/ endpoint.
 	DEFAULT_ALERT_CATEGORY = "Prod"
+
+	// PARAMSET_REFRESHER_PERIOD is how often we refresh our canonical paramset from the OPS's
+	// stored in the last two bigtable tiles.
+	PARAMSET_REFRESHER_PERIOD = 5 * time.Minute
+
+	// START_CLUSTER_DELAY is the time we wait between starting each clusterer, to avoid hammering
+	// the trace store all at once.
+	START_CLUSTER_DELAY = 2 * time.Second
 )
 
 var (
@@ -85,6 +94,7 @@ var (
 var (
 	algo                  = flag.String("algo", "kmeans", "The algorithm to use for detecting regressions (kmeans|stepfit).")
 	bigTableConfig        = flag.String("big_table_config", "nano", "The name of the config to use when using a BigTable trace store.")
+	clusterOnly           = flag.Bool("cluster_only", true, "If true then run continuous clustering and not the UI.")
 	commitRangeURL        = flag.String("commit_range_url", "", "A URI Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. See cluster-summary2-sk.")
 	dataFrameSize         = flag.Int("dataframe_size", dataframe.DEFAULT_NUM_COMMITS, "The number of commits to include in the default dataframe.")
 	defaultSparse         = flag.Bool("default_sparse", false, "The default value for 'Sparse' in Alerts.")
@@ -143,6 +153,8 @@ var (
 	btConfig *config.PerfBigTableConfig
 
 	dryrunRequests *dryrun.Requests
+
+	paramsetRefresher *psrefresh.ParamSetRefresher
 )
 
 func loadTemplates() {
@@ -210,9 +222,9 @@ func scriptHandler(name string) http.HandlerFunc {
 // newParamsetProvider returns a regression.ParamsetProvider which produces a paramset
 // for the current tiles.
 //
-func newParamsetProvider(freshDataFrame *dataframe.Refresher) regression.ParamsetProvider {
+func newParamsetProvider(pf *psrefresh.ParamSetRefresher) regression.ParamsetProvider {
 	return func() paramtools.ParamSet {
-		return freshDataFrame.Get().ParamSet
+		return pf.Get()
 	}
 }
 
@@ -316,15 +328,23 @@ func Init() {
 	if err != nil {
 		sklog.Fatalf("Failed to open trace store: %s", err)
 	}
+
+	paramsetRefresher = psrefresh.NewParamSetRefresher(traceStore)
+	if err := paramsetRefresher.Start(PARAMSET_REFRESHER_PERIOD); err != nil {
+		sklog.Fatalf("Failed to build paramsetRefresher: %s", err)
+	}
+
 	dfBuilder = dfbuilder.NewDataFrameBuilderFromBTTS(vcs, traceStore)
 
 	sklog.Info("About to build cidl.")
 	cidl = cid.New(ctx, vcs, btConfig.GitUrl)
 
-	sklog.Info("About to build dataframe refresher.")
-	freshDataFrame, err = dataframe.NewRefresher(vcs, dfBuilder, 15*time.Minute, *numTilesRefresher)
-	if err != nil {
-		sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
+	if *clusterOnly {
+		sklog.Info("About to build dataframe refresher.")
+		freshDataFrame, err = dataframe.NewRefresher(vcs, dfBuilder, 15*time.Minute, *numTilesRefresher)
+		if err != nil {
+			sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
+		}
 	}
 
 	alerts.DefaultSparse = *defaultSparse
@@ -346,14 +366,15 @@ func Init() {
 	clusterRequests = regression.NewRunningClusterRequests(vcs, cidl, float32(*interesting), dfBuilder)
 	regStore = regression.NewStore()
 	configProvider = newAlertsConfigProvider(clusterAlgo)
-	paramsProvider := newParamsetProvider(freshDataFrame)
+	paramsProvider := newParamsetProvider(paramsetRefresher)
+
 	dryrunRequests = dryrun.New(cidl, dfBuilder, paramsProvider, vcs)
 
 	if *doClustering {
 		go func() {
 			for i := 0; i < *numContinuousParallel; i++ {
 				// Start running continuous clustering looking for regressions.
-				time.Sleep(time.Minute)
+				time.Sleep(START_CLUSTER_DELAY)
 				c := regression.NewContinuous(vcs, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder)
 				continuous = append(continuous, c)
 				go c.Run(context.Background())

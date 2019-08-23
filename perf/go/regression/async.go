@@ -201,7 +201,7 @@ func (fr *RunningClusterRequests) Add(ctx context.Context, req *ClusterRequest) 
 			delete(fr.inProcess, id)
 		}
 	}
-	clusterResponseProcessor := func(resps []*ClusterResponse) {}
+	clusterResponseProcessor := func(_ *ClusterRequest, _ []*ClusterResponse) {}
 	if _, ok := fr.inProcess[id]; !ok {
 		proc, err := newRunningProcess(ctx, req, fr.vcs, fr.cidl, fr.dfBuilder, clusterResponseProcessor)
 		if err != nil {
@@ -399,7 +399,7 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 			Summary: summary,
 			Frame:   frame,
 		}
-		p.clusterResponseProcessor([]*ClusterResponse{cr})
+		p.clusterResponseProcessor(p.request, []*ClusterResponse{cr})
 		p.response = append(p.response, cr)
 		p.mutex.Unlock()
 	}
