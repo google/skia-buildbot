@@ -114,6 +114,8 @@ func (c *Continuous) reportRegressions(ctx context.Context, resps []*ClusterResp
 			continue
 		}
 		for _, cl := range resp.Summary.Clusters {
+			// Zero out the DataFrame ParamSet since it is never used.
+			resp.Frame.DataFrame.ParamSet = paramtools.ParamSet{}
 			// Update database if regression at the midpoint is found.
 			if cl.StepPoint.Offset == midOffset {
 				if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.Direction == alerts.DOWN || cfg.Direction == alerts.BOTH) {
