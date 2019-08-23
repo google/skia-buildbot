@@ -33,6 +33,7 @@ import (
 // Define configuration options to be used in the config file under
 // ExtraParams.
 const (
+	buildBucketNameParam         = "BuildBucketName"
 	buildBucketPollIntervalParam = "BuildBucketPollInterval"
 	buildBucketTimeWindowParam   = "BuildBucketTimeWindow"
 	buildBucketURLParam          = "BuildBucketURL"

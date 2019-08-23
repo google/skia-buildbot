@@ -21,7 +21,6 @@ type TryJob struct {
 	// SystemID is expected to be unique between all TryJobs.
 	SystemID string
 
-	Name    string
 	Status  TJStatus
 	Updated time.Time
 }
