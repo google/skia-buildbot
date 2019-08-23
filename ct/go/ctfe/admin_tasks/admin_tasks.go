@@ -207,6 +207,25 @@ func (task *AddRecreatePageSetsTaskVars) GetPopulatedDatastoreTask(ctx context.C
 	return t, nil
 }
 
+func (task *AddRecreatePageSetsTaskVars) TriggerSwarmingTask(ctx context.Context, t task_common.Task) error {
+	datastoreTask := t.(*RecreateWebpageArchivesDatastoreTask)
+	runID := task_common.GetRunID(datastoreTask)
+	isolateArgs := map[string]string{
+		"EMAILS":          datastoreTask.Username,
+		"TASK_ID":         strconv.FormatInt(datastoreTask.DatastoreKey.ID, 10),
+		"RUN_ON_GCE":      strconv.FormatBool(datastoreTask.RunsOnGCEWorkers()),
+		"RUN_ID":          runID,
+		"PAGESET_TYPE":    datastoreTask.PageSets,
+		"DS_NAMESPACE":    ctfeutil.GetDsNamespaceFlagVal(),
+		"DS_PROJECT_NAME": ctfeutil.GetDsProjectNameFlagVal(),
+	}
+
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "create_pagesets_on_workers", ctutil.CREATE_PAGESETS_MASTER_ISOLATE, ctfeutil.GetServiceAccountFileFlagVal(), ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
+		return fmt.Errorf("Could not trigger master script for create_pagesets_on_workers with isolate args %T: %s", isolateArgs, err)
+	}
+	return nil
+}
+
 func addRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.AddTaskHandler(w, r, &AddRecreatePageSetsTaskVars{})
 }
@@ -239,6 +258,25 @@ func (task *AddRecreateWebpageArchivesTaskVars) GetPopulatedDatastoreTask(ctx co
 		SkiaRev:       task.ChromiumBuild.SkiaRev,
 	}
 	return t, nil
+}
+
+func (task *AddRecreateWebpageArchivesTaskVars) TriggerSwarmingTask(ctx context.Context, t task_common.Task) error {
+	datastoreTask := t.(*RecreateWebpageArchivesDatastoreTask)
+	runID := task_common.GetRunID(datastoreTask)
+	isolateArgs := map[string]string{
+		"EMAILS":          datastoreTask.Username,
+		"TASK_ID":         strconv.FormatInt(datastoreTask.DatastoreKey.ID, 10),
+		"RUN_ON_GCE":      strconv.FormatBool(datastoreTask.RunsOnGCEWorkers()),
+		"RUN_ID":          runID,
+		"PAGESET_TYPE":    datastoreTask.PageSets,
+		"DS_NAMESPACE":    ctfeutil.GetDsNamespaceFlagVal(),
+		"DS_PROJECT_NAME": ctfeutil.GetDsProjectNameFlagVal(),
+	}
+
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_archives_on_workers", ctutil.CAPTURE_ARCHIVES_MASTER_ISOLATE, ctfeutil.GetServiceAccountFileFlagVal(), ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
+		return fmt.Errorf("Could not trigger master script for capture_archives_on_workers with isolate args %T: %s", isolateArgs, err)
+	}
+	return nil
 }
 
 func addRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
