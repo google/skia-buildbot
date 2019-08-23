@@ -10,7 +10,7 @@ import (
 )
 
 // ClusterResponseProcessor is a callback that is called with ClusterResponses as a ClusterRequest is being processed.
-type ClusterResponseProcessor func([]*ClusterResponse)
+type ClusterResponseProcessor func(*ClusterRequest, []*ClusterResponse)
 
 // Run takes a ClusterRequest and runs it to completion before returning the results.
 func Run(ctx context.Context, req *ClusterRequest, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, clusterResponseProcessor ClusterResponseProcessor) ([]*ClusterResponse, error) {
