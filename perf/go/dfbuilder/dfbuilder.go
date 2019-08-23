@@ -192,7 +192,11 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 			// Query for matching traces in the given tile.
 			traces, err := b.store.QueryTracesByIndex(ctx, tileKey, q)
 			if err != nil {
-				return err
+				// Fall back to the old querying system if QueryTracesByIndex fails.
+				traces, err = b.store.QueryTraces(ctx, tileKey, q)
+				if err != nil {
+					return err
+				}
 			}
 			sklog.Debugf("found %d traces for %s", len(traces), tileKey.OpsRowName())
 

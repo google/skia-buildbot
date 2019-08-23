@@ -26,6 +26,7 @@ require (
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f // indirect
 	github.com/danjacques/gofslock v0.0.0-20180405201223-afa47669cc54 // indirect
 	github.com/davecgh/go-spew v1.1.1
+	github.com/davecheney/junk v0.0.0-20170418064243-155060ce6d56 // indirect
 	github.com/dgryski/go-sip13 v0.0.0-20190329191031-25c5027a8c7b // indirect
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
