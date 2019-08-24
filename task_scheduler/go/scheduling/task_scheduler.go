@@ -269,18 +269,6 @@ func (s *TaskScheduler) Start(ctx context.Context, enableTryjobs bool, beforeMai
 			lvUpdateUnfinishedTasks.Reset()
 		}
 	})
-	lvUpdateRepos := metrics2.NewLiveness("last_successful_repo_update")
-	cleanup.Repeat(10*time.Second, func(_ context.Context) {
-		// Explicitly ignore the passed-in context; this allows us to
-		// continue running even if the context is canceled, which helps
-		// to prevent partial insertions of new jobs.
-		ctx := context.Background()
-		if err := s.updateRepos(ctx); err != nil {
-			sklog.Errorf("Failed to update repos: %s", err)
-		} else {
-			lvUpdateRepos.Reset()
-		}
-	}, nil)
 }
 
 // initCaches ensures that all of the RepoStates we care about are present
@@ -1735,19 +1723,29 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	return nil
 }
 
-// updateRepos syncs the scheduler's repos and inserts any new jobs into the
-// database.
-func (s *TaskScheduler) updateRepos(ctx context.Context) error {
-	defer metrics2.FuncTimer().Stop()
-	var newJobs []*types.Job
-	if err := s.repos.UpdateWithCallback(ctx, func(repoUrl string, g *repograph.Graph) error {
-		newJobsForRepo, err := s.gatherNewJobs(ctx, repoUrl, g)
-		if err != nil {
-			return err
-		}
-		newJobs = append(newJobs, newJobsForRepo...)
-		return nil
-	}); err != nil {
+// HandleRepoUpdate is a pubsub.AutoUpdateMapCallback which is called when any
+// of the repos is updated.
+func (s *TaskScheduler) HandleRepoUpdate(ctx context.Context, repoUrl string, g *repograph.Graph, ack, nack func()) error {
+	newJobs, err := s.gatherNewJobs(ctx, repoUrl, g)
+	if err != nil {
+		// gatherNewJobs does not return an error if the
+		// commit is invalid; so the error indicates
+		// something transient that should be retried.
+		nack()
+		return err
+	}
+	if err := s.db.PutJobsInChunks(newJobs); err != nil {
+		// nack the pubsub message so that we'll have
+		// another chance to add these jobs.
+		nack()
+		return fmt.Errorf("Failed to insert new jobs into the DB: %s", err)
+	}
+	// Now we've inserted jobs for the new commits. We don't
+	// want to go through and do it again, so ack the pubsub
+	// message without waiting to see if the cache refreshes
+	// below succeed.
+	ack()
+	if err := s.jCache.Update(); err != nil {
 		return err
 	}
 	if err := s.window.Update(); err != nil {
@@ -1756,10 +1754,7 @@ func (s *TaskScheduler) updateRepos(ctx context.Context) error {
 	if err := s.taskCfgCache.Cleanup(ctx, time.Now().Sub(s.window.EarliestStart())); err != nil {
 		return fmt.Errorf("Failed to Cleanup TaskCfgCache: %s", err)
 	}
-	if err := s.db.PutJobsInChunks(newJobs); err != nil {
-		return fmt.Errorf("Failed to insert new jobs into the DB: %s", err)
-	}
-	return s.jCache.Update()
+	return nil
 }
 
 // QueueLen returns the length of the queue.
