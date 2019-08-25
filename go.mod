@@ -56,6 +56,7 @@ require (
 	github.com/gorilla/csrf v1.6.0
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/securecookie v1.1.1
+	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.9.6 // indirect
 	github.com/hashicorp/go-multierror v1.0.0
@@ -123,7 +124,7 @@ require (
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
-	golang.org/x/tools v0.0.0-20190823170909-c4a336ef6a2f // indirect
+	golang.org/x/tools v0.0.0-20190825031127-d72b05d2b1b6 // indirect
 	golang.org/x/tools/gopls v0.1.3 // indirect
 	google.golang.org/api v0.9.0
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
