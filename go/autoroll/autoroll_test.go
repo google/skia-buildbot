@@ -271,15 +271,17 @@ func TestUpdateFromGerritChangeInfo(t *testing.T) {
 	expect.TryResults[0].Status = TRYBOT_STATUS_SCHEDULED
 	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
 	expect.Closed = true
+	expect.CqFinished = true
 	expect.DryRunFinished = true
 	expect.Result = ROLL_RESULT_DRY_RUN_FAILURE
 	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
+	deepequal.AssertDeepEqual(t, expect, a)
 
 	// The CL was landed while the dry run was running.
-	deepequal.AssertDeepEqual(t, expect, a)
 	ci.Committed = true
 	ci.Status = gerrit.CHANGE_STATUS_MERGED
 	expect.Committed = true
+	expect.CqSuccess = true
 	expect.DryRunSuccess = true
 	expect.Result = ROLL_RESULT_DRY_RUN_SUCCESS
 	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
@@ -290,6 +292,8 @@ func TestUpdateFromGerritChangeInfo(t *testing.T) {
 	ci.Status = gerrit.CHANGE_STATUS_NEW
 	expect.Closed = false
 	expect.Committed = false
+	expect.CqFinished = false
+	expect.CqSuccess = false
 	expect.DryRunSuccess = true
 	expect.Result = ROLL_RESULT_DRY_RUN_SUCCESS
 	expect.TryResults[0].Result = TRYBOT_RESULT_SUCCESS
@@ -435,15 +439,17 @@ func TestUpdateFromGerritChangeInfoAndroid(t *testing.T) {
 	ci.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL].All[0].Value = gerrit.PRESUBMIT_VERIFIED_LABEL_RUNNING
 	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
 	expect.Closed = true
+	expect.CqFinished = true
 	expect.DryRunFinished = true
 	expect.Result = ROLL_RESULT_DRY_RUN_FAILURE
 	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
+	deepequal.AssertDeepEqual(t, expect, a)
 
 	// The CL was landed while the dry run was running.
-	deepequal.AssertDeepEqual(t, expect, a)
 	ci.Committed = true
 	ci.Status = gerrit.CHANGE_STATUS_MERGED
 	expect.Committed = true
+	expect.CqSuccess = true
 	expect.DryRunSuccess = true
 	expect.Result = ROLL_RESULT_DRY_RUN_SUCCESS
 	assert.NoError(t, a.UpdateFromGerritChangeInfo(ci, true))
@@ -460,6 +466,8 @@ func TestUpdateFromGerritChangeInfoAndroid(t *testing.T) {
 	ci.Committed = false
 	ci.Status = gerrit.CHANGE_STATUS_NEW
 	expect.Closed = false
+	expect.CqFinished = false
+	expect.CqSuccess = false
 	expect.Committed = false
 	expect.DryRunSuccess = true
 	expect.Result = ROLL_RESULT_DRY_RUN_SUCCESS
@@ -568,12 +576,14 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.TryResults[0].Status = TRYBOT_STATUS_SCHEDULED
 	pr.State = &github.CLOSED_STATE
 	expect.Closed = true
+	expect.CqFinished = true
 	assert.NoError(t, a.UpdateFromGitHubPullRequest(pr))
 	deepequal.AssertDeepEqual(t, expect, a)
 
 	// CL was landed while dry run was still running.
 	pr.Merged = boolPtr(true)
 	expect.Committed = true
+	expect.CqSuccess = true
 	expect.DryRunSuccess = true
 	expect.Result = ROLL_RESULT_DRY_RUN_SUCCESS
 	assert.NoError(t, a.UpdateFromGitHubPullRequest(pr))
@@ -584,6 +594,8 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	pr.State = stringPtr("")
 	expect.Closed = false
 	expect.Committed = false
+	expect.CqFinished = false
+	expect.CqSuccess = false
 	expect.DryRunSuccess = true
 	expect.Result = ROLL_RESULT_DRY_RUN_SUCCESS
 	expect.TryResults[0].Result = TRYBOT_RESULT_SUCCESS
