@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ce99efe_8c2c9e07",
+        "filename": "golden/go/blame/blame.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T16:16:34Z",
+      "side": 1,
+      "message": "nit: The old code avoids a copy, is more concise, and seems equivalent.",
+      "range": {
+        "startLine": 259,
+        "startChar": 0,
+        "endLine": 261,
+        "endChar": 29
+      },
+      "revId": "4647be846b57c5bae59700c6df4a9f3e80d4cc64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fda21e01_1744c537",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T16:16:34Z",
+      "side": 1,
+      "message": "nit: maybe change to \"empty\"",
+      "range": {
+        "startLine": 119,
+        "startChar": 20,
+        "endLine": 119,
+        "endChar": 23
+      },
+      "revId": "4647be846b57c5bae59700c6df4a9f3e80d4cc64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
