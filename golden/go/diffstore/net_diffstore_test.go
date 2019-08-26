@@ -1,17 +1,21 @@
 package diffstore
 
 import (
+	"context"
 	"net"
 	"net/http/httptest"
 	"path"
 	"testing"
 
+	"cloud.google.com/go/storage"
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
 	d_utils "go.skia.org/infra/golden/go/diffstore/testutils"
+	"google.golang.org/api/option"
 	"google.golang.org/grpc"
 )
 
@@ -22,9 +26,12 @@ func TestNetDiffStore(t *testing.T) {
 	defer cleanup()
 	baseDir := path.Join(w, d_utils.TEST_DATA_BASE_DIR+"-netdiffstore")
 	client, tile := d_utils.GetSetupAndTile(t, baseDir)
+	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	assert.NoError(t, err)
+	gcsClient := gcsclient.New(storageClient, d_utils.TEST_GCS_BUCKET_NAME)
 
 	m := disk_mapper.New(&diff.DiffMetrics{})
-	memDiffStore, err := NewMemDiffStore(client, baseDir, []string{d_utils.TEST_GCS_BUCKET_NAME}, d_utils.TEST_GCS_IMAGE_DIR, 10, m)
+	memDiffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, m)
 	assert.NoError(t, err)
 
 	// Start the server that wraps around the MemDiffStore.

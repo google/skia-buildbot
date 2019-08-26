@@ -1,12 +1,15 @@
 package diffstore
 
 import (
+	"context"
 	"fmt"
 	"path"
 	"sort"
 	"testing"
 
+	"cloud.google.com/go/storage"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
@@ -16,6 +19,7 @@ import (
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
 	d_utils "go.skia.org/infra/golden/go/diffstore/testutils"
 	"go.skia.org/infra/golden/go/types"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -33,9 +37,12 @@ func TestMemDiffStore(t *testing.T) {
 	defer cleanup()
 	baseDir := path.Join(w, d_utils.TEST_DATA_BASE_DIR+"-diffstore")
 	client, tile := d_utils.GetSetupAndTile(t, baseDir)
+	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	assert.NoError(t, err)
+	gcsClient := gcsclient.New(storageClient, d_utils.TEST_GCS_BUCKET_NAME)
 
 	m := disk_mapper.New(&diff.DiffMetrics{})
-	diffStore, err := NewMemDiffStore(client, baseDir, []string{d_utils.TEST_GCS_BUCKET_NAME}, d_utils.TEST_GCS_IMAGE_DIR, 10, m)
+	diffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, m)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
@@ -136,9 +143,12 @@ func TestFailureHandling(t *testing.T) {
 	defer cleanup()
 	baseDir := path.Join(w, d_utils.TEST_DATA_BASE_DIR+"-diffstore-failure")
 	client, tile := d_utils.GetSetupAndTile(t, baseDir)
+	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	assert.NoError(t, err)
+	gcsClient := gcsclient.New(storageClient, d_utils.TEST_GCS_BUCKET_NAME)
 
 	m := disk_mapper.New(&diff.DiffMetrics{})
-	diffStore, err := NewMemDiffStore(client, baseDir, []string{d_utils.TEST_GCS_BUCKET_NAME}, d_utils.TEST_GCS_IMAGE_DIR, 10, m)
+	diffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, m)
 	assert.NoError(t, err)
 
 	validDigestSet := types.DigestSet{}
@@ -176,10 +186,13 @@ func TestCodec(t *testing.T) {
 	defer cleanup()
 	baseDir := path.Join(w, d_utils.TEST_DATA_BASE_DIR+"-codec")
 	client, _ := d_utils.GetSetupAndTile(t, baseDir)
+	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	assert.NoError(t, err)
+	gcsClient := gcsclient.New(storageClient, d_utils.TEST_GCS_BUCKET_NAME)
 
 	// Instantiate a new MemDiffStore with a codec for the test struct defined above.
 	m := disk_mapper.New(&d_utils.DummyDiffMetrics{})
-	diffStore, err := NewMemDiffStore(client, baseDir, []string{d_utils.TEST_GCS_BUCKET_NAME}, d_utils.TEST_GCS_IMAGE_DIR, 10, m)
+	diffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, m)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
