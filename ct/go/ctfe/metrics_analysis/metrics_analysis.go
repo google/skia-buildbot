@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"text/template"
 
 	"cloud.google.com/go/datastore"
@@ -227,6 +228,33 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 	return t, nil
 }
 
+func (task *AddTaskVars) TriggerSwarmingTask(ctx context.Context, t task_common.Task) error {
+	datastoreTask := t.(*DatastoreTask)
+	runID := task_common.GetRunID(datastoreTask)
+	emails := []string{datastoreTask.Username}
+	emails = append(emails, datastoreTask.CCList...)
+	isolateArgs := map[string]string{
+		"EMAILS":                    strings.Join(emails, ","),
+		"DESCRIPTION":               datastoreTask.Description,
+		"TASK_ID":                   strconv.FormatInt(datastoreTask.DatastoreKey.ID, 10),
+		"METRIC_NAME":               datastoreTask.MetricName,
+		"ANALYSIS_OUTPUT_LINK":      datastoreTask.AnalysisOutputLink,
+		"BENCHMARK_ARGS":            datastoreTask.BenchmarkArgs,
+		"VALUE_COLUMN_NAME":         datastoreTask.ValueColumnName,
+		"RUN_ID":                    runID,
+		"CHROMIUM_PATCH_GS_PATH":    datastoreTask.ChromiumPatchGSPath,
+		"CATAPULT_PATCH_GS_PATH":    datastoreTask.CatapultPatchGSPath,
+		"CUSTOM_TRACES_CSV_GS_PATH": datastoreTask.CustomTracesGSPath,
+		"DS_NAMESPACE":              ctfeutil.GetDsNamespaceFlagVal(),
+		"DS_PROJECT_NAME":           ctfeutil.GetDsProjectNameFlagVal(),
+	}
+
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "metrics_analysis_on_workers", ctutil.METRICS_ANALYSIS_MASTER_ISOLATE, ctfeutil.GetServiceAccountFileFlagVal(), ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
+		return fmt.Errorf("Could not trigger master script for metrics_analysis_on_workers with isolate args %T: %s", isolateArgs, err)
+	}
+	return nil
+}
+
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.AddTaskHandler(w, r, &AddTaskVars{})
 }
@@ -241,20 +269,12 @@ type UpdateVars struct {
 	RawOutput string
 }
 
-func (vars *UpdateVars) UriPath() string {
-	return ctfeutil.UPDATE_METRICS_ANALYSIS_TASK_POST_URI
-}
-
 func (vars *UpdateVars) UpdateExtraFields(t task_common.Task) error {
 	task := t.(*DatastoreTask)
 	if vars.RawOutput != "" {
 		task.RawOutput = vars.RawOutput
 	}
 	return nil
-}
-
-func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&UpdateVars{}, &DatastoreTask{}, w, r)
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -277,7 +297,4 @@ func AddHandlers(externalRouter, internalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.GET_METRICS_ANALYSIS_TASKS_POST_URI, getTasksHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.DELETE_METRICS_ANALYSIS_TASK_POST_URI, deleteTaskHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.REDO_METRICS_ANALYSIS_TASK_POST_URI, redoTaskHandler).Methods("POST")
-
-	// Updating tasks is done via the internal router.
-	internalRouter.HandleFunc("/"+ctfeutil.UPDATE_METRICS_ANALYSIS_TASK_POST_URI, updateTaskHandler).Methods("POST")
 }

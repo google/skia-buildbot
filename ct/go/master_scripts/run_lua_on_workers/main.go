@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -17,6 +18,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
+	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
@@ -30,13 +32,15 @@ const (
 )
 
 var (
-	emails        = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
-	description   = flag.String("description", "", "The description of the run as entered by the requester.")
-	taskID        = flag.Int64("task_id", -1, "The key of the CT task in CTFE. The task will be updated when it is started and also when it completes.")
-	pagesetType   = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
-	chromiumBuild = flag.String("chromium_build", "", "The chromium build to use for this capture_archives run.")
-	runOnGCE      = flag.Bool("run_on_gce", true, "Run on Linux GCE instances.")
-	runID         = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
+	emails                    = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
+	description               = flag.String("description", "", "The description of the run as entered by the requester.")
+	taskID                    = flag.Int64("task_id", -1, "The key of the CT task in CTFE. The task will be updated when it is started and also when it completes.")
+	pagesetType               = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
+	chromiumBuild             = flag.String("chromium_build", "", "The chromium build to use for this capture_archives run.")
+	runOnGCE                  = flag.Bool("run_on_gce", true, "Run on Linux GCE instances.")
+	runID                     = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
+	luaScriptGSPath           = flag.String("lua_script_gs_path", "", "The location of the lua script to run on workers in Google storage.")
+	luaAggregatorScriptGSPath = flag.String("lua_aggregator_script_gs_path", "", "The location of the lua aggregator script in Google storage.")
 
 	taskCompletedSuccessfully     = false
 	luaOutputRemoteLink           = ""
@@ -87,7 +91,7 @@ func sendEmail(recipients []string) {
 	}
 }
 
-func updateWebappTask() {
+func updateWebappTask(ctx context.Context) {
 	vars := lua_scripts.UpdateVars{}
 	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
@@ -97,10 +101,10 @@ func updateWebappTask() {
 	if luaAggregatorOutputRemoteLink != "" {
 		vars.AggregatedOutput = luaAggregatorOutputRemoteLink
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
+	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars, &lua_scripts.DatastoreTask{}))
 }
 
-func main() {
+func runLuaOnWorkers() error {
 	master_common.Init("run_lua")
 
 	ctx := context.Background()
@@ -109,58 +113,42 @@ func main() {
 	emailsArr := util.ParseEmails(*emails)
 	emailsArr = append(emailsArr, util.CtAdmins...)
 	if len(emailsArr) == 0 {
-		sklog.Error("At least one email address must be specified")
-		return
+		return errors.New("At least one email address must be specified")
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&lua_scripts.UpdateVars{}, *taskID, *runID))
+	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &lua_scripts.UpdateVars{}, &lua_scripts.DatastoreTask{}, *taskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Lua script", *runID, *description, ""))
 	// Ensure webapp is updated and email is sent even if task fails.
-	defer updateWebappTask()
+	defer updateWebappTask(ctx)
 	defer sendEmail(emailsArr)
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running Lua script on workers")
 	defer sklog.Flush()
 
 	if *pagesetType == "" {
-		sklog.Error("Must specify --pageset_type")
-		return
+		return errors.New("Must specify --pageset_type")
 	}
 	if *chromiumBuild == "" {
-		sklog.Error("Must specify --chromium_build")
-		return
+		return errors.New("Must specify --chromium_build")
 	}
 	if *runID == "" {
-		sklog.Error("Must specify --run_id")
-		return
+		return errors.New("Must specify --run_id")
 	}
 
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
-		sklog.Error(err)
-		return
-	}
-
-	// Upload the lua script for this run to Google storage.
-	luaScriptName := *runID + ".lua"
-	defer skutil.Remove(filepath.Join(os.TempDir(), luaScriptName))
-	luaScriptRemoteDir := filepath.Join(util.LuaRunsDir, *runID, "scripts")
-	if err := gs.UploadFile(luaScriptName, os.TempDir(), luaScriptRemoteDir); err != nil {
-		sklog.Errorf("Could not upload %s to %s: %s", luaScriptName, luaScriptRemoteDir, err)
-		return
+		return err
 	}
 
 	// Build lua_pictures.
 	cipdPackage, err := util.GetCipdPackageFromAsset("clang_linux")
 	if err != nil {
-		sklog.Errorf("Could not get cipd package for clang_linux: %s", err)
-		return
+		return fmt.Errorf("Could not get cipd package for clang_linux: %s", err)
 	}
 	remoteDirNames, err := util.TriggerBuildRepoSwarmingTask(
-		ctx, "build_lua_pictures", *runID, "skiaLuaPictures", util.PLATFORM_LINUX, *master_common.ServiceAccountFile, []string{}, []string{}, []string{cipdPackage}, true, *master_common.Local, 3*time.Hour, 1*time.Hour)
+		ctx, "build_lua_pictures", *runID, "skiaLuaPictures", util.PLATFORM_LINUX, "", []string{}, []string{}, []string{cipdPackage}, true, *master_common.Local, 3*time.Hour, 1*time.Hour)
 	if err != nil {
-		sklog.Errorf("Error encountered when swarming build lua_pictures task: %s", err)
-		return
+		return fmt.Errorf("Error encountered when swarming build lua_pictures task: %s", err)
 	}
 	luaPicturesRemoteDirName := remoteDirNames[0]
 	luaPicturesRemotePath := path.Join(util.BINARIES_DIR_NAME, luaPicturesRemoteDirName, util.BINARY_LUA_PICTURES)
@@ -174,10 +162,10 @@ func main() {
 		"CHROMIUM_BUILD":           *chromiumBuild,
 		"RUN_ID":                   *runID,
 		"LUA_PICTURES_REMOTE_PATH": luaPicturesRemotePath,
+		"LUA_SCRIPT_GS_PATH":       *luaScriptGSPath,
 	}
-	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "run_lua", util.RUN_LUA_ISOLATE, *runID, *master_common.ServiceAccountFile, util.PLATFORM_LINUX, 3*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_MEDIUM, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, *master_common.Local, 1, []string{} /* isolateDeps */); err != nil {
-		sklog.Errorf("Error encountered when swarming tasks: %s", err)
-		return
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "run_lua", util.RUN_LUA_ISOLATE, *runID, "", util.PLATFORM_LINUX, 3*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_MEDIUM, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, *master_common.Local, 1, []string{} /* isolateDeps */); err != nil {
+		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}
 
 	// Copy outputs from all slaves locally and combine it into one file.
@@ -186,13 +174,11 @@ func main() {
 	// If the file already exists it could be that there is another lua task running on this machine.
 	// Wait for the file to be deleted within a deadline.
 	if err := waitForOutputFile(consolidatedLuaOutput); err != nil {
-		sklog.Error(err)
-		return
+		return err
 	}
 	defer skutil.Remove(consolidatedLuaOutput)
 	if err := ioutil.WriteFile(consolidatedLuaOutput, []byte{}, 0660); err != nil {
-		sklog.Errorf("Could not create %s: %s", consolidatedLuaOutput, err)
-		return
+		return fmt.Errorf("Could not create %s: %s", consolidatedLuaOutput, err)
 	}
 	numTasks := int(math.Ceil(float64(util.PagesetTypeToInfo[*pagesetType].NumPages) / float64(MAX_PAGES_PER_SWARMING_BOT)))
 	for i := 1; i <= numTasks; i++ {
@@ -200,39 +186,37 @@ func main() {
 		workerRemoteOutputPath := filepath.Join(util.LuaRunsDir, *runID, startRange, "outputs", *runID+".output")
 		respBody, err := gs.GetRemoteFileContents(workerRemoteOutputPath)
 		if err != nil {
-			sklog.Errorf("Could not fetch %s: %s", workerRemoteOutputPath, err)
-			continue
+			return fmt.Errorf("Could not fetch %s: %s", workerRemoteOutputPath, err)
 		}
 		defer skutil.Close(respBody)
 		out, err := os.OpenFile(consolidatedLuaOutput, os.O_RDWR|os.O_APPEND, 0660)
 		if err != nil {
-			sklog.Errorf("Unable to open file %s: %s", consolidatedLuaOutput, err)
-			return
+			return fmt.Errorf("Unable to open file %s: %s", consolidatedLuaOutput, err)
 		}
 		defer skutil.Close(out)
 		if _, err = io.Copy(out, respBody); err != nil {
-			sklog.Errorf("Unable to write out %s to %s: %s", workerRemoteOutputPath, consolidatedLuaOutput, err)
-			return
+			return fmt.Errorf("Unable to write out %s to %s: %s", workerRemoteOutputPath, consolidatedLuaOutput, err)
 		}
 	}
 	// Copy the consolidated file into Google Storage.
 	consolidatedOutputRemoteDir := filepath.Join(util.LuaRunsDir, *runID, "consolidated_outputs")
 	luaOutputRemoteLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, consolidatedOutputRemoteDir, consolidatedFileName)
 	if err := gs.UploadFile(consolidatedFileName, os.TempDir(), consolidatedOutputRemoteDir); err != nil {
-		sklog.Errorf("Unable to upload %s to %s: %s", consolidatedLuaOutput, consolidatedOutputRemoteDir, err)
-		return
+		return fmt.Errorf("Unable to upload %s to %s: %s", consolidatedLuaOutput, consolidatedOutputRemoteDir, err)
 	}
 
-	// Upload the lua aggregator (if specified) for this run to Google storage.
-	luaAggregatorName := *runID + ".aggregator"
-	luaAggregatorPath := filepath.Join(os.TempDir(), luaAggregatorName)
-	defer skutil.Remove(luaAggregatorPath)
-	luaAggregatorFileInfo, err := os.Stat(luaAggregatorPath)
-	if !os.IsNotExist(err) && luaAggregatorFileInfo.Size() > 10 {
-		if err := gs.UploadFile(luaAggregatorName, os.TempDir(), luaScriptRemoteDir); err != nil {
-			sklog.Errorf("Could not upload %s to %s: %s", luaAggregatorName, luaScriptRemoteDir, err)
-			return
+	// Download the lua aggregator (if specified) from Google storage and run it.
+	if *luaAggregatorScriptGSPath != "" {
+		luaAggregator, err := util.GetPatchFromStorage(*luaAggregatorScriptGSPath)
+		if err != nil {
+			return fmt.Errorf("Could not download lua aggregator script %s from Google storage: %s", *luaAggregatorScriptGSPath, err)
 		}
+		luaAggregatorPath := filepath.Join(os.TempDir(), *runID+".aggregator")
+		if err := ioutil.WriteFile(luaAggregatorPath, []byte(luaAggregator), 0666); err != nil {
+			return fmt.Errorf("Could not write lua aggregator %s to %s: %s", luaAggregator, luaAggregatorPath, err)
+		}
+		defer skutil.Remove(luaAggregatorPath)
+
 		// Run the aggregator and save stdout.
 		luaAggregatorOutputFileName := *runID + ".agg.output"
 		luaAggregatorOutputFilePath := filepath.Join(os.TempDir(), luaAggregatorOutputFileName)
@@ -240,26 +224,24 @@ func main() {
 		defer skutil.Close(luaAggregatorOutputFile)
 		defer skutil.Remove(luaAggregatorOutputFilePath)
 		if err != nil {
-			sklog.Errorf("Could not create %s: %s", luaAggregatorOutputFilePath, err)
-			return
+			return fmt.Errorf("Could not create %s: %s", luaAggregatorOutputFilePath, err)
 		}
 		err = util.ExecuteCmd(ctx, util.BINARY_LUA, []string{luaAggregatorPath}, []string{},
 			util.LUA_AGGREGATOR_TIMEOUT, luaAggregatorOutputFile, nil)
 		if err != nil {
-			sklog.Errorf("Could not execute the lua aggregator %s: %s", luaAggregatorPath, err)
-			return
+			return fmt.Errorf("Could not execute the lua aggregator %s: %s", luaAggregatorPath, err)
 		}
 		// Copy the aggregator output into Google Storage.
 		luaAggregatorOutputRemoteLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, consolidatedOutputRemoteDir, luaAggregatorOutputFileName)
 		if err := gs.UploadFile(luaAggregatorOutputFileName, os.TempDir(), consolidatedOutputRemoteDir); err != nil {
-			sklog.Errorf("Unable to upload %s to %s: %s", luaAggregatorOutputFileName, consolidatedOutputRemoteDir, err)
-			return
+			return fmt.Errorf("Unable to upload %s to %s: %s", luaAggregatorOutputFileName, consolidatedOutputRemoteDir, err)
 		}
 	} else {
 		sklog.Info("A lua aggregator has not been specified.")
 	}
 
 	taskCompletedSuccessfully = true
+	return nil
 }
 
 func waitForOutputFile(luaOutput string) error {
@@ -280,4 +262,13 @@ func waitForOutputFile(luaOutput string) error {
 			return fmt.Errorf("%s still existed after %v secs", luaOutput, deadline.Seconds())
 		}
 	}
+}
+
+func main() {
+	retCode := 0
+	if err := runLuaOnWorkers(); err != nil {
+		sklog.Errorf("Error while running lua on workers: %s", err)
+		retCode = 255
+	}
+	os.Exit(retCode)
 }
