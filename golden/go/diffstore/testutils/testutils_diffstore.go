@@ -61,7 +61,8 @@ func GetSetupAndTile(t assert.TestingT, baseDir string) (*http.Client, *tiling.T
 // or by querying meta data in the cloud.
 func GetHTTPClient(t assert.TestingT) *http.Client {
 	// Get the service account client from meta data or a local config file.
-	ts, err := auth.NewJWTServiceAccountTokenSource("", auth.DEFAULT_JWT_FILENAME, storage.ScopeFullControl)
+	//ts, err := auth.NewJWTServiceAccountTokenSource("", auth.DEFAULT_JWT_FILENAME, storage.ScopeFullControl)
+	ts, err := auth.NewDefaultTokenSource(true, storage.ScopeFullControl)
 	if err != nil {
 		fmt.Println("If you are running this test locally, be sure you have a service-account.json in the test folder.")
 	}
