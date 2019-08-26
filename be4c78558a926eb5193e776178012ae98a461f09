@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b88b0830_c7e39556",
+        "filename": "perf/BIGTABLE.md",
+        "patchSetId": 9
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-26T16:13:37Z",
+      "side": 1,
+      "message": "nit: wrap to 100 cols",
+      "range": {
+        "startLine": 134,
+        "startChar": 93,
+        "endLine": 134,
+        "endChar": 102
+      },
+      "revId": "be4c78558a926eb5193e776178012ae98a461f09",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5ac927c_c27bc0b6",
+        "filename": "perf/BIGTABLE.md",
+        "patchSetId": 9
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-26T16:13:37Z",
+      "side": 1,
+      "message": "nit: emphasize this. Maybe draw a comparison to MergeSort for faster grockability.",
+      "range": {
+        "startLine": 184,
+        "startChar": 11,
+        "endLine": 184,
+        "endChar": 19
+      },
+      "revId": "be4c78558a926eb5193e776178012ae98a461f09",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "559ea81f_ac56949c",
+        "filename": "perf/go/btts/engine/intersect.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-26T16:13:37Z",
+      "side": 1,
+      "message": "nit: comma splice that makes the sentence hard to parse at first",
+      "range": {
+        "startLine": 14,
+        "startChar": 53,
+        "endLine": 14,
+        "endChar": 58
+      },
+      "revId": "be4c78558a926eb5193e776178012ae98a461f09",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0cd86523_f1db2523",
+        "filename": "perf/go/btts/engine/intersect.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-26T16:13:37Z",
+      "side": 1,
+      "message": "nit: add a const loadNext \u003d \"\" and use that value here and below. Same for union.go",
+      "range": {
+        "startLine": 47,
+        "startChar": 12,
+        "endLine": 47,
+        "endChar": 14
+      },
+      "revId": "be4c78558a926eb5193e776178012ae98a461f09",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a9f9c5ac_243dcce6",
+        "filename": "perf/go/btts/engine/intersect.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-26T16:13:37Z",
+      "side": 1,
+      "message": "can\u0027t you just \ncase \u003c-cancel:\n\n?",
+      "range": {
+        "startLine": 59,
+        "startChar": 4,
+        "endLine": 59,
+        "endChar": 21
+      },
+      "revId": "be4c78558a926eb5193e776178012ae98a461f09",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
