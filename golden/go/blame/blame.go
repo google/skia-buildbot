@@ -57,10 +57,6 @@ type BlameDistribution struct {
 	// TODO(kjlubick): refactor this into two structs, one for each condition
 	// mentioned by dogben.
 	Freq []int `json:"freq"`
-
-	// Old indicates whether the digest has been seen prior to the current
-	// tile. In that case the blame might be unreliable.
-	Old bool `json:"old"`
 }
 
 func (b *BlameDistribution) IsEmpty() bool {
@@ -128,10 +124,9 @@ func (b *BlamerImpl) GetBlamesForTest(testName types.TestName) []WeightedBlame {
 // GetBlame fulfills the Blamer interface.
 func (b *BlamerImpl) GetBlame(testName types.TestName, digest types.Digest, commits []*tiling.Commit) BlameDistribution {
 	blameLists, blameCommits := b.GetAllBlameLists()
-	commitIndices, maxCount := b.getBlame(blameLists[testName][digest], blameCommits, commits)
+	commitIndices, _ := b.getBlame(blameLists[testName][digest], blameCommits, commits)
 	return BlameDistribution{
 		Freq: commitIndices,
-		Old:  (maxCount != 0) && blameLists[testName][digest].Old,
 	}
 }
 
@@ -208,25 +203,21 @@ func (b *BlamerImpl) calculate(tile *tiling.Tile, exp types.Expectations) error 
 				}
 
 				// Check if the digest was first seen outside the current tile.
-				isOld := false
 				commitRange := []int{startIdx, endIdx}
 				if blameStartFound, ok := blameStart[testName]; !ok {
 					blameStart[testName] = map[types.Digest]int{digest: startIdx}
 					blameEnd[testName] = map[types.Digest]int{digest: endIdx}
 					blameRange[testName] = map[types.Digest][][]int{digest: {commitRange}}
-					ret[testName] = map[types.Digest]BlameDistribution{digest: {Old: isOld}}
+					ret[testName] = map[types.Digest]BlameDistribution{digest: {}}
 				} else if currentStart, ok := blameStartFound[digest]; !ok {
 					blameStart[testName][digest] = startIdx
 					blameEnd[testName][digest] = endIdx
 					blameRange[testName][digest] = [][]int{commitRange}
-					ret[testName][digest] = BlameDistribution{Old: isOld}
+					ret[testName][digest] = BlameDistribution{}
 				} else {
 					blameStart[testName][digest] = util.MinInt(currentStart, startIdx)
 					blameEnd[testName][digest] = util.MinInt(blameEnd[testName][digest], endIdx)
 					blameRange[testName][digest] = append(blameRange[testName][digest], commitRange)
-					bd := ret[testName][digest]
-					bd.Old = isOld || bd.Old
-					ret[testName][digest] = bd
 				}
 			}
 			lastIdx = idx

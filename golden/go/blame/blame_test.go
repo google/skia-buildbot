@@ -54,7 +54,6 @@ func TestBlamerGetBlameThreeDevices(t *testing.T) {
 	assert.NotNil(t, bd)
 	assert.Equal(t, BlameDistribution{
 		Freq: []int{},
-		Old:  false,
 	}, bd)
 
 	// Searching in the whole range should indicates that
@@ -64,7 +63,6 @@ func TestBlamerGetBlameThreeDevices(t *testing.T) {
 	assert.NotNil(t, bd)
 	assert.Equal(t, BlameDistribution{
 		Freq: []int{2},
-		Old:  false,
 	}, bd)
 
 	// The BetaUntriaged1Digest only shows up in the first commit (index 0)
@@ -72,7 +70,6 @@ func TestBlamerGetBlameThreeDevices(t *testing.T) {
 	assert.NotNil(t, bd)
 	assert.Equal(t, BlameDistribution{
 		Freq: []int{0},
-		Old:  false,
 	}, bd)
 
 	// Good digests have no blame ever
@@ -80,7 +77,6 @@ func TestBlamerGetBlameThreeDevices(t *testing.T) {
 	assert.NotNil(t, bd)
 	assert.Equal(t, BlameDistribution{
 		Freq: []int{},
-		Old:  false,
 	}, bd)
 
 	// Negative digests have no blame ever
@@ -88,7 +84,6 @@ func TestBlamerGetBlameThreeDevices(t *testing.T) {
 	assert.NotNil(t, bd)
 	assert.Equal(t, BlameDistribution{
 		Freq: []int{},
-		Old:  false,
 	}, bd)
 }
 
