@@ -1,17 +1,20 @@
-package blame
+package blame_test
 
 import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/golden/go/blame"
+	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
 	three_devices "go.skia.org/infra/golden/go/testutils/data_three_devices"
 )
 
 func TestBlamerGetBlamesForTestThreeDevices(t *testing.T) {
 	unittest.SmallTest(t)
 
-	blamer := blamerWithCalculate(t)
+	blamer, err := blame.New(three_devices.MakeTestTile(), three_devices.MakeTestExpectations())
+	assert.NoError(t, err)
 
 	bd := blamer.GetBlamesForTest(three_devices.AlphaTest)
 	assert.Len(t, bd, 1)
@@ -21,7 +24,7 @@ func TestBlamerGetBlamesForTestThreeDevices(t *testing.T) {
 	// The AlphaTest becomes untriaged in exactly the third commit for exactly
 	// one trace, so blame is able to identify that author as the one
 	// and only culprit.
-	assert.Equal(t, WeightedBlame{
+	assert.Equal(t, blame.WeightedBlame{
 		Author: three_devices.ThirdCommitAuthor,
 		Prob:   1,
 	}, *b)
@@ -33,7 +36,7 @@ func TestBlamerGetBlamesForTestThreeDevices(t *testing.T) {
 
 	// The BetaTest has an untriaged digest in the first commit and is missing
 	// data after that, so this is the best that blamer can do.
-	assert.Equal(t, WeightedBlame{
+	assert.Equal(t, blame.WeightedBlame{
 		Author: three_devices.FirstCommitAuthor,
 		Prob:   1,
 	}, *b)
@@ -45,14 +48,15 @@ func TestBlamerGetBlamesForTestThreeDevices(t *testing.T) {
 func TestBlamerGetBlameThreeDevices(t *testing.T) {
 	unittest.SmallTest(t)
 
-	blamer := blamerWithCalculate(t)
+	blamer, err := blame.New(three_devices.MakeTestTile(), three_devices.MakeTestExpectations())
+	assert.NoError(t, err)
 	commits := three_devices.MakeTestCommits()
 
 	// In the first two commits, this untriaged image doesn't show up
 	// so GetBlame should return empty.
 	bd := blamer.GetBlame(three_devices.AlphaTest, three_devices.AlphaUntriaged1Digest, commits[0:2])
 	assert.NotNil(t, bd)
-	assert.Equal(t, BlameDistribution{
+	assert.Equal(t, blame.BlameDistribution{
 		Freq: []int{},
 		Old:  false,
 	}, *bd)
@@ -62,7 +66,7 @@ func TestBlamerGetBlameThreeDevices(t *testing.T) {
 	// has the blame
 	bd = blamer.GetBlame(three_devices.AlphaTest, three_devices.AlphaUntriaged1Digest, commits[0:3])
 	assert.NotNil(t, bd)
-	assert.Equal(t, BlameDistribution{
+	assert.Equal(t, blame.BlameDistribution{
 		Freq: []int{2},
 		Old:  false,
 	}, *bd)
@@ -70,7 +74,7 @@ func TestBlamerGetBlameThreeDevices(t *testing.T) {
 	// The BetaUntriaged1Digest only shows up in the first commit (index 0)
 	bd = blamer.GetBlame(three_devices.BetaTest, three_devices.BetaUntriaged1Digest, commits[0:3])
 	assert.NotNil(t, bd)
-	assert.Equal(t, BlameDistribution{
+	assert.Equal(t, blame.BlameDistribution{
 		Freq: []int{0},
 		Old:  false,
 	}, *bd)
@@ -78,7 +82,7 @@ func TestBlamerGetBlameThreeDevices(t *testing.T) {
 	// Good digests have no blame ever
 	bd = blamer.GetBlame(three_devices.BetaTest, three_devices.BetaGood1Digest, commits[0:3])
 	assert.NotNil(t, bd)
-	assert.Equal(t, BlameDistribution{
+	assert.Equal(t, blame.BlameDistribution{
 		Freq: []int{},
 		Old:  false,
 	}, *bd)
@@ -86,20 +90,37 @@ func TestBlamerGetBlameThreeDevices(t *testing.T) {
 	// Negative digests have no blame ever
 	bd = blamer.GetBlame(three_devices.AlphaTest, three_devices.AlphaBad1Digest, commits[0:3])
 	assert.NotNil(t, bd)
-	assert.Equal(t, BlameDistribution{
+	assert.Equal(t, blame.BlameDistribution{
 		Freq: []int{},
 		Old:  false,
 	}, *bd)
 }
 
-// Returns a Blamer filled out with the data from three_devices.
-func blamerWithCalculate(t *testing.T) Blamer {
-	exp := three_devices.MakeTestExpectations()
+func TestBlamerGetBlameBugRevert(t *testing.T) {
+	unittest.SmallTest(t)
 
-	blamer, err := New(three_devices.MakeTestTile(), exp)
+	blamer, err := blame.New(bug_revert.MakeTestTile(), bug_revert.MakeTestExpectations())
 	assert.NoError(t, err)
+	commits := bug_revert.MakeTestCommits()
 
-	return blamer
+	// The data in bug_revert's TestOne are designed to have the second commit be unambiguously
+	// determined to be at fault.
+	bd := blamer.GetBlame(bug_revert.TestOne, bug_revert.UntriagedDigestBravo, commits)
+	assert.NotNil(t, bd)
+	assert.Equal(t, blame.BlameDistribution{
+		Freq: []int{1},
+		Old:  false,
+	}, *bd)
+
+	// The data in bug_revert's TestTwo are designed to have the second commit be mostly at fault,
+	// with some chance of the third commit being at fault.
+	bd = blamer.GetBlame(bug_revert.TestTwo, bug_revert.UntriagedDigestFoxtrot, commits)
+	assert.NotNil(t, bd)
+	assert.Equal(t, blame.BlameDistribution{
+		Freq: []int{2}, // TODO(kjlubick): I think the data should be determined as
+		// "commit index 1 is mostly at fault, with a hint of commit 2, maybe"
+		Old: false,
+	}, *bd)
 }
 
 const (

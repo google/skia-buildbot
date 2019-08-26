@@ -73,9 +73,12 @@ type WeightedBlame struct {
 // Sorting wrapper around WeightedBlame.
 type WeightedBlameSlice []*WeightedBlame
 
-func (w WeightedBlameSlice) Len() int           { return len(w) }
-func (w WeightedBlameSlice) Less(i, j int) bool { return w[i].Prob < w[j].Prob }
-func (w WeightedBlameSlice) Swap(i, j int)      { w[i], w[j] = w[j], w[i] }
+func (w WeightedBlameSlice) Len() int { return len(w) }
+func (w WeightedBlameSlice) Less(i, j int) bool {
+	// Use author on tie-breaks (for determinism in tests)
+	return w[i].Prob < w[j].Prob || (w[i].Prob == w[j].Prob && w[i].Author < w[j].Author)
+}
+func (w WeightedBlameSlice) Swap(i, j int) { w[i], w[j] = w[j], w[i] }
 
 // New returns a new Blamer instance and error. The error is not
 // nil if the first run of calculating the blame lists failed.
