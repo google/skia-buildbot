@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "256a56ad_6efd2875",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-26T18:36:26Z",
+      "side": 1,
+      "message": "Good catch, done.",
+      "parentUuid": "92ecf320_c756336d",
+      "range": {
+        "startLine": 53,
+        "startChar": 123,
+        "endLine": 53,
+        "endChar": 128
+      },
+      "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "92901923_df3a2714",
         "filename": "go/gitstore/pubsub/graph.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3258043c_3fae05d8",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-26T18:36:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "92901923_df3a2714",
+      "range": {
+        "startLine": 72,
+        "startChar": 22,
+        "endLine": 72,
+        "endChar": 29
+      },
+      "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -94,6 +142,54 @@
     },
     {
       "key": {
+        "uuid": "335361ec_b9b91cce",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-26T18:36:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "44f651b0_8d72b355",
+      "range": {
+        "startLine": 80,
+        "startChar": 5,
+        "endLine": 80,
+        "endChar": 20
+      },
+      "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ef0c4f42_9dd33360",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-26T18:36:26Z",
+      "side": 1,
+      "message": "I grouped some into bt_gitstore.BTConfig and made this function private; I think all clients will want to use AutoUpdateMap rather than manually initializing individual Graphs.",
+      "parentUuid": "79757941_10a693cc",
+      "range": {
+        "startLine": 80,
+        "startChar": 21,
+        "endLine": 80,
+        "endChar": 215
+      },
+      "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0532aa1b_da0c1636",
         "filename": "go/gitstore/pubsub/pubsub.go",
         "patchSetId": 2
@@ -114,6 +210,30 @@
       "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2cdb3f5c_5d3c2166",
+        "filename": "go/gitstore/pubsub/pubsub.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-26T18:36:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0532aa1b_da0c1636",
+      "range": {
+        "startLine": 38,
+        "startChar": 49,
+        "endLine": 38,
+        "endChar": 62
+      },
+      "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "8ffa1161_a0a59065",
+        "filename": "go/gitstore/pubsub/pubsub.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-26T18:36:26Z",
+      "side": 1,
+      "message": "It potentially makes gitsync slower to exit, since it waits for all pubsub messages to be sent first. We do this for task scheduler\u0027s pubsub messages because we consider them to be important.  I don\u0027t think it\u0027s a significant enough overhead not to do it here.",
+      "parentUuid": "71b73fc0_9c141a9b",
+      "range": {
+        "startLine": 74,
+        "startChar": 1,
+        "endLine": 77,
+        "endChar": 5
+      },
+      "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3bddf683_91f04753",
         "filename": "go/gitstore/pubsub/pubsub.go",
         "patchSetId": 2
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "12250f6a_fe1109fc",
+        "filename": "go/gitstore/pubsub/pubsub.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-26T18:36:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3bddf683_91f04753",
+      "range": {
+        "startLine": 138,
+        "startChar": 24,
+        "endLine": 138,
+        "endChar": 36
+      },
+      "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "359f2e8a_8be8fbe3",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -183,6 +351,30 @@
       "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da79ae06_a3b23b60",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1741,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-26T18:36:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "359f2e8a_8be8fbe3",
+      "range": {
+        "startLine": 1741,
+        "startChar": 9,
+        "endLine": 1741,
+        "endChar": 19
+      },
+      "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
