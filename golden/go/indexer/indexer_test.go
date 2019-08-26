@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/golden/go/testutils"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
+	mock_warmer "go.skia.org/infra/golden/go/warmer/mocks"
 )
 
 // TestIndexerInitialTriggerSunnyDay tests a full indexing run, assuming
@@ -27,7 +28,7 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mds := &mocks.DiffStore{}
-	mdw := &mocks.DiffWarmer{}
+	mdw := &mock_warmer.DiffWarmer{}
 	meb := &mock_eventbus.EventBus{}
 	mes := &mocks.ExpectationsStore{}
 	mgc := &mocks.GCSClient{}
@@ -136,7 +137,7 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 func TestIndexerPartialUpdate(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mdw := &mocks.DiffWarmer{}
+	mdw := &mock_warmer.DiffWarmer{}
 	meb := &mock_eventbus.EventBus{}
 	mes := &mocks.ExpectationsStore{}
 
