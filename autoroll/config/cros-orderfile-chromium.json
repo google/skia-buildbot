@@ -26,7 +26,7 @@
 If this roll has caused a breakage, revert this CL and stop the roller\n\
 using the controls here:\n\
 {{.ServerURL}}\n\
-Please CC {{stringsJoin .Reviewers ","}} on the revert to ensure that a human\n\
+Please CC {{stringsJoin .Reviewers \",\"}} on the revert to ensure that a human\n\
 is aware of the problem.\n\
 \n\
 To report a problem with the AutoRoller itself, please file a bug:\n\

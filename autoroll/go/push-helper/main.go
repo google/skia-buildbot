@@ -12,7 +12,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -26,6 +25,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcr"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
 
@@ -158,7 +158,7 @@ func kubeConfGenFe(ctx context.Context, tmpl, srcConfig, dstConfig string, cfgBa
 			Configs: cfgs,
 		})
 	}); err != nil {
-		return false, err
+		return false, skerr.Wrapf(err, "failed kube-conf-gen")
 	}
 
 	// Generate the k8s config.
@@ -173,7 +173,7 @@ func getActiveImage(ctx context.Context, k8sCfg string) (string, error) {
 	// TODO(borenet): Should we parse the config as YAML?
 	b, err := ioutil.ReadFile(k8sCfg)
 	if err != nil {
-		return "", err
+		return "", skerr.Wrapf(err, "failed to read k8s config file %s", k8sCfg)
 	}
 	for _, line := range strings.Split(string(b), "\n") {
 		if strings.Contains(line, "image:") {
@@ -183,18 +183,18 @@ func getActiveImage(ctx context.Context, k8sCfg string) (string, error) {
 			}
 		}
 	}
-	return "", fmt.Errorf("Failed to find the image name from %s", k8sCfg)
+	return "", skerr.Fmt("Failed to find the image name from %s", k8sCfg)
 }
 
 // getLatestImage returns the most recently uploaded image.
 func getLatestImage(image string) (string, error) {
 	ts, err := auth.NewDefaultTokenSource(true, auth.SCOPE_USERINFO_EMAIL)
 	if err != nil {
-		return "", err
+		return "", skerr.Wrapf(err, "Failed to get latest image for %s; failed to get token source", image)
 	}
 	imageTags, err := gcr.NewClient(ts, GCR_PROJECT, image).Tags()
 	if err != nil {
-		return "", err
+		return "", skerr.Wrapf(err, "Failed to get latest image for %s; failed to get tags", image)
 	}
 	sort.Strings(imageTags)
 	return fmt.Sprintf("gcr.io/%s/%s:%s", GCR_PROJECT, image, imageTags[len(imageTags)-1]), nil
@@ -208,7 +208,7 @@ func switchCluster(ctx context.Context, project string) (kubecfg string, cleanup
 	// Use a temporary dir to avoid clobbering the global kube config.
 	wd, err := ioutil.TempDir("", "")
 	if err != nil {
-		return "", nil, err
+		return "", nil, skerr.Wrapf(err, "Failed to switch cluster; failed to create temp dir")
 	}
 	cleanup = func() {
 		util.RemoveAll(wd)
@@ -228,7 +228,7 @@ func switchCluster(ctx context.Context, project string) (kubecfg string, cleanup
 		InheritEnv:  true,
 		InheritPath: true,
 	}); err != nil {
-		return "", nil, err
+		return "", nil, skerr.Wrapf(err, "Failed to switch cluster")
 	}
 	return
 }
@@ -239,7 +239,7 @@ func switchCluster(ctx context.Context, project string) (kubecfg string, cleanup
 func updateConfigs(ctx context.Context, cfgDir *configDir, latestImageFe, latestImageBe string, configs map[string]*roller.AutoRollerConfig) (rvErr error) {
 	kubecfg, cleanup, err := switchCluster(ctx, cfgDir.Project)
 	if err != nil {
-		return err
+		return skerr.Wrapf(err, "Failed to update k8s configs")
 	}
 	defer cleanup()
 
@@ -250,14 +250,14 @@ func updateConfigs(ctx context.Context, cfgDir *configDir, latestImageFe, latest
 	if err := util.WithReadFile(cfgDir.FeConfigFile, func(f io.Reader) error {
 		return json5.NewDecoder(f).Decode(&configFe)
 	}); err != nil {
-		return fmt.Errorf("Failed to decode frontend config file %s: %s", cfgDir.FeConfigFile, err)
+		return skerr.Wrapf(err, "Failed to decode frontend config file %s", cfgDir.FeConfigFile)
 	}
 
 	var k8sConfigCheckout *git.Checkout
 	if *useTmpCheckout {
 		co, err := git.NewTempCheckout(ctx, cfgDir.K8sConfigRepo)
 		if err != nil {
-			return fmt.Errorf("Failed to create temporary checkout: %s", err)
+			return skerr.Wrapf(err, "Failed to create temporary checkout")
 		}
 		defer co.Delete()
 		k8sConfigCheckout = (*git.Checkout)(co)
@@ -272,23 +272,23 @@ func updateConfigs(ctx context.Context, cfgDir *configDir, latestImageFe, latest
 	cfgBase64ByRollerName := map[string]string{}
 	b, err := ioutil.ReadFile(k8sFeConfigFile)
 	if err != nil && !os.IsNotExist(err) {
-		return err
+		return skerr.Wrapf(err, "failed to read k8s config file for frontend")
 	} else if err == nil {
 		// TODO(borenet): Should we parse the config as YAML?
 		for _, line := range strings.Split(string(b), "\n") {
 			if strings.Contains(line, "--config=") {
 				split := strings.Split(line, "--config=")
 				if len(split) != 2 {
-					return fmt.Errorf("Failed to parse k8s config; invalid format --config line: %s", line)
+					return skerr.Fmt("Failed to parse k8s config; invalid format --config line: %s", line)
 				}
 				cfgBase64 := strings.TrimSuffix(strings.TrimSpace(split[1]), "\"")
 				dec, err := base64.StdEncoding.DecodeString(cfgBase64)
 				if err != nil {
-					return fmt.Errorf("Failed to decode existing roller config as base64: %s", err)
+					return skerr.Fmt("Failed to decode existing roller config as base64: %s", err)
 				}
 				var cfg roller.AutoRollerConfig
 				if err := json.Unmarshal(dec, &cfg); err != nil {
-					return fmt.Errorf("Failed to decode existing roller config as JSON: %s", err)
+					return skerr.Fmt("Failed to decode existing roller config as JSON: %s", err)
 				}
 				cfgBase64ByRollerName[cfg.RollerName] = cfgBase64
 			}
@@ -307,7 +307,7 @@ func updateConfigs(ctx context.Context, cfgDir *configDir, latestImageFe, latest
 			// a "different" config.
 			b, err := json.Marshal(config)
 			if err != nil {
-				return err
+				return skerr.Wrapf(err, "Failed to encode roller config as JSON")
 			}
 			cfgBase64ByRollerName[config.RollerName] = base64.StdEncoding.EncodeToString(b)
 		}
@@ -322,12 +322,12 @@ func updateConfigs(ctx context.Context, cfgDir *configDir, latestImageFe, latest
 		if _, err := os.Stat(dstFe); err == nil && !*updateFeImage {
 			imageFe, err = getActiveImage(ctx, dstFe)
 			if err != nil {
-				return err
+				return skerr.Wrapf(err, "Failed to get active image for frontend")
 			}
 		}
 		modifiedFe, err := kubeConfGenFe(ctx, tmplFe, cfgDir.FeConfigFile, dstFe, cfgBase64ByRollerName, imageFe)
 		if err != nil {
-			return err
+			return skerr.Wrapf(err, "Failed to generate k8s config for frontend")
 		}
 		if modifiedFe {
 			modified = append(modified, filepath.Base(dstFe))
@@ -355,11 +355,11 @@ func updateConfigs(ctx context.Context, cfgDir *configDir, latestImageFe, latest
 					fmt.Fprintf(os.Stderr, "--update-be-image was not provided, but destination config file %q does not exist. Defaulting to use the latest image: %s\n", dst, latestImageBe)
 				}
 			} else if err != nil {
-				return err
+				return skerr.Wrapf(err, "Failed to read backend k8s config file %s", dst)
 			} else if !*updateBeImage {
 				image, err = getActiveImage(ctx, dst)
 				if err != nil {
-					return err
+					return skerr.Wrapf(err, "Failed to get active image for backend")
 				}
 			}
 
@@ -368,7 +368,7 @@ func updateConfigs(ctx context.Context, cfgDir *configDir, latestImageFe, latest
 			cfgFilePath := filepath.Join(cfgDir.Dir, cfgFile)
 			modifiedBe, err := kubeConfGenBe(ctx, tmplBe, cfgFilePath, dst, cfgFileBase64, image)
 			if err != nil {
-				return err
+				return skerr.Wrapf(err, "Failed to generate k8s config file for backend: %s", dst)
 			}
 			if modifiedBe {
 				modified = append(modified, filepath.Base(dst))
@@ -404,26 +404,26 @@ func updateConfigs(ctx context.Context, cfgDir *configDir, latestImageFe, latest
 		InheritEnv:  true,
 		InheritPath: true,
 	}); err != nil {
-		return err
+		return skerr.Wrapf(err, "Failed to apply k8s config file(s)")
 	}
 
 	// Commit and push the modified configs.
 	if *commitMsg != "" {
 		cmd := append([]string{"add"}, modified...)
 		if _, err := k8sConfigCheckout.Git(ctx, cmd...); err != nil {
-			return err
+			return skerr.Wrapf(err, "Failed to 'git add' k8s config file(s)")
 		}
 		if _, err := k8sConfigCheckout.Git(ctx, "commit", "-m", *commitMsg); err != nil {
-			return err
+			return skerr.Wrapf(err, "Failed to 'git commit' k8s config file(s)")
 		}
 		if _, err := k8sConfigCheckout.Git(ctx, "push", "origin", "HEAD:master"); err != nil {
 			// The upstream might have changed while we were
 			// working. Rebase and try again.
 			if err2 := k8sConfigCheckout.Fetch(ctx); err2 != nil {
-				return fmt.Errorf("Failed to push with: %s\nAnd failed to fetch with: %s", err, err2)
+				return skerr.Wrapf(err, "Failed to push and failed to fetch with: %s", err2)
 			}
 			if _, err2 := k8sConfigCheckout.Git(ctx, "rebase"); err2 != nil {
-				return fmt.Errorf("Failed to push with: %s\nAnd failed to rebase with: %s", err, err2)
+				return skerr.Wrapf(err, "Failed to push and failed to rebase with: %s", err2)
 			}
 		}
 	}
@@ -520,16 +520,17 @@ func main() {
 	for _, dir := range cfgDirs {
 		dirEntries, err := ioutil.ReadDir(dir.Dir)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("Failed to read roller configs in %s: %s", dir, err)
 		}
 		cfgsInDir := make(map[string]*roller.AutoRollerConfig, len(dirEntries))
 		for _, entry := range dirEntries {
 			if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".json") {
+				cfgPath := filepath.Join(dir.Dir, entry.Name())
 				var cfg roller.AutoRollerConfig
-				if err := util.WithReadFile(path.Join(dir.Dir, entry.Name()), func(f io.Reader) error {
+				if err := util.WithReadFile(cfgPath, func(f io.Reader) error {
 					return json5.NewDecoder(f).Decode(&cfg)
 				}); err != nil {
-					log.Fatal(err)
+					log.Fatalf("Failed to parse roller config %s: %s", cfgPath, err)
 				}
 				if rollerRegex == nil || rollerRegex.MatchString(cfg.RollerName) {
 					cfgsInDir[filepath.Base(entry.Name())] = &cfg
@@ -549,17 +550,17 @@ func main() {
 	// Get the latest images for frontend and backend.
 	latestImageFe, err := getLatestImage(GCR_IMAGE_FE)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to get latest image for %s: %s", GCR_IMAGE_FE, err)
 	}
 	latestImageBe, err := getLatestImage(GCR_IMAGE_BE)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to get latest image for %s: %s", GCR_IMAGE_BE, err)
 	}
 
 	ctx := context.Background()
 	for cfgDir, cfgs := range configs {
 		if err := updateConfigs(ctx, cfgDir, latestImageFe, latestImageBe, cfgs); err != nil {
-			log.Fatal(err)
+			log.Fatalf("Failed to update configs: %s", err)
 		}
 	}
 }
