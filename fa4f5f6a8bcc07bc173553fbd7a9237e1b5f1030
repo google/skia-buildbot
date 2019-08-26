@@ -1,0 +1,314 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "70fae648_7c4fa19b",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T20:48:09Z",
+      "side": 1,
+      "message": "nit: may want to doc that this can be nil",
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95db1691_63fc2aaf",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 560,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T20:48:09Z",
+      "side": 1,
+      "message": "nit: may want to update doc on PutBranches to clarify what happens with branches that are not mentioned in the branches param.",
+      "range": {
+        "startLine": 560,
+        "startChar": 22,
+        "endLine": 560,
+        "endChar": 33
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14788e95_4db74d17",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T20:48:09Z",
+      "side": 1,
+      "message": "Is it difficult to test this?",
+      "range": {
+        "startLine": 563,
+        "startChar": 0,
+        "endLine": 565,
+        "endChar": 2
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f6edee9c_913109fd",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T20:48:09Z",
+      "side": 1,
+      "message": "It\u0027s not clear to me whether ack or nack are called if the function returns with/without an error.",
+      "range": {
+        "startLine": 67,
+        "startChar": 20,
+        "endLine": 70,
+        "endChar": 28
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28bea758_2c12e99a",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T20:48:09Z",
+      "side": 1,
+      "message": "nit: maybe use parameter names to disambiguate",
+      "range": {
+        "startLine": 71,
+        "startChar": 64,
+        "endLine": 71,
+        "endChar": 78
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5e5131e_d1c3726d",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T20:48:09Z",
+      "side": 1,
+      "message": "nit: probably simplest to just \"defer ticker.Stop()\" immediately after NewTicker. It should be OK to call Stop multiple times.\n\nI don\u0027t see why you would want to stop the ticker only if \"err !\u003d nil\"",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 2
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f7bb5fe2_bc0412b7",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T20:48:09Z",
+      "side": 1,
+      "message": "nit: This is a little scary. Probably better to not close the channel; instead manually do the loop in updateUsingPubSubHelper.\n\nI.e. instead of\nfor req :\u003d range ch {\n  ...\n}\n\nreplace with:\nfor {\n  select {\n  case \u003c-ctx.Done():\n    return\n  case req :\u003d \u003c-ch:\n    ...\n  }\n}",
+      "range": {
+        "startLine": 112,
+        "startChar": 0,
+        "endLine": 116,
+        "endChar": 4
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa916c72_801f3cca",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T20:48:09Z",
+      "side": 1,
+      "message": "len(ch) \u003d\u003d 0 will always be true unless you make the capacity of ch nonzero.",
+      "range": {
+        "startLine": 208,
+        "startChar": 0,
+        "endLine": 210,
+        "endChar": 20
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e2114a6_d3275e73",
+        "filename": "go/gitstore/pubsub/pubsub.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T20:48:09Z",
+      "side": 1,
+      "message": "nit: doc this param",
+      "range": {
+        "startLine": 111,
+        "startChar": 159,
+        "endLine": 111,
+        "endChar": 176
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "deb8fa9d_2e559e9b",
+        "filename": "go/gitstore/pubsub/pubsub_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T20:48:09Z",
+      "side": 1,
+      "message": "nit: I don\u0027t see why this is in a different goroutine.",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 10
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce3dc96a_d36ccd80",
+        "filename": "go/gitstore/pubsub/pubsub_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T20:48:09Z",
+      "side": 1,
+      "message": "nit: maybe add another commit() then tickAndTest().",
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ac4be304_06a1a4cc",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T20:48:09Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 255,
+        "startChar": 90,
+        "endLine": 255,
+        "endChar": 118
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ed141fb_753b6c23",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T20:48:09Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 255,
+        "startChar": 70,
+        "endLine": 255,
+        "endChar": 88
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "858ec21d_6497a27c",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T20:48:09Z",
+      "side": 1,
+      "message": "nit: might be nice to assert ack is called and nack is not called",
+      "range": {
+        "startLine": 257,
+        "startChar": 45,
+        "endLine": 257,
+        "endChar": 65
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

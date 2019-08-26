@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fea6e70e_7cc37ecb",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T20:48:09Z",
+      "side": 0,
+      "message": "nit: would be nice to keep the liveness",
+      "revId": "3c3d10957dda0326449615f8169568cdcbfc48f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
