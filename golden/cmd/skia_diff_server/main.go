@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -23,7 +22,7 @@ import (
 // Command line flags.
 var (
 	cacheSize          = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
-	gsBucketNames      = flag.String("gs_buckets", "", "[required] Comma-separated list of google storage bucket that hold uploaded images.")
+	gsBucketName       = flag.String("gs_bucket", "", "[required] Name of the Google Storage bucket that holds the uploaded images.")
 	gsBaseDir          = flag.String("gs_basedir", diffstore.DEFAULT_GCS_IMG_DIR_NAME, "String that represents the google storage directory/directories following the GS bucket")
 	imageDir           = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
 	imagePort          = flag.String("image_port", ":9001", "Address that serves image files via HTTP.")
@@ -57,8 +56,8 @@ func main() {
 	// Get the version of the repo.
 	skiaversion.MustLogVersion()
 
-	if *gsBucketNames == "" {
-		sklog.Fatalf("Must specify --gs_buckets")
+	if *gsBucketName == "" {
+		sklog.Fatalf("Must specify --gs_bucket")
 	}
 
 	// Get the client to be used to access GCS.
@@ -70,7 +69,7 @@ func main() {
 
 	// Get the DiffStore that does the work loading and diffing images.
 	mapper := disk_mapper.New(&diff.DiffMetrics{})
-	memDiffStore, err := diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), *gsBaseDir, *cacheSize, mapper)
+	memDiffStore, err := diffstore.NewMemDiffStore(client, *imageDir, []string{*gsBucketName}, *gsBaseDir, *cacheSize, mapper)
 	if err != nil {
 		sklog.Fatalf("Allocating DiffStore failed: %s", err)
 	}
