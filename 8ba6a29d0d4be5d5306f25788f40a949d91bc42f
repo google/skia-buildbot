@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c5e60790_17873be7",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-26T19:13:13Z",
+      "side": 1,
+      "message": "In production, there is only one bucket.  I think this multi-bucket code was related to a time in which we were transferring between buckets.\n\nWhile we are knees-deep in the yak shave, let\u0027s assume there will only be one bucket.  I think it will greatly simplify some bits.\n\n(alternatively, we need a struct {\n Bucket string\n Client gcs.GCSClient\n} so that we can have slice of these and have a deterministic load order.)",
+      "range": {
+        "startLine": 69,
+        "startChar": 33,
+        "endLine": 69,
+        "endChar": 58
+      },
+      "revId": "8ba6a29d0d4be5d5306f25788f40a949d91bc42f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "131a6533_253d0ecf",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-26T19:13:13Z",
+      "side": 1,
+      "message": "Since this argument is unused, let\u0027s turn it into a single (see other comment) gcs.GCSClient param.\n\nThat way, we can more easily inject this dependency for tests, etc.\n\nThe constructor bits can get moved to diffserver main.go",
+      "range": {
+        "startLine": 90,
+        "startChar": 21,
+        "endLine": 90,
+        "endChar": 40
+      },
+      "revId": "8ba6a29d0d4be5d5306f25788f40a949d91bc42f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c6566cb2_e7d6d89e",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-26T19:13:13Z",
+      "side": 1,
+      "message": "I realize this was modeled off of pre-existing code, but we prefer skerr.Wrapf(err, \"msg\", ...) for wrapping context around an error and skerr.Fmt() for creating a brand new error.\n\nFWIW, the reason we have skerr.Wrapf/Fmt is to include stacktrace data.",
+      "range": {
+        "startLine": 102,
+        "startChar": 14,
+        "endLine": 102,
+        "endChar": 23
+      },
+      "revId": "8ba6a29d0d4be5d5306f25788f40a949d91bc42f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
