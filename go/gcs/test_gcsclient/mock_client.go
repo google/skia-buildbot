@@ -11,8 +11,7 @@ import (
 
 // MockGCSClient is a mock of gcs.GCSClient. All the methods are mocked using testify's mocking
 // library. See the README in this directory for some example mocks.
-// This struct can be embedded to extend to instance-specific GCS functions. See
-// fuzzer for an example.
+// This struct can be embedded to extend to instance-specific GCS functions.
 type MockGCSClient struct {
 	mock.Mock
 }

@@ -1,9 +1,0 @@
-Fuzzing RasterN32Canvas...
-ASAN:DEADLYSIGNAL
-=================================================================
-==19506==ERROR: AddressSanitizer: SEGV on unknown address 0x7ffebb1b3b48 (pc 0x000001f49305 bp 0x7ffcbb1b2470 sp 0x7ffcbb1b2418 T0)
-    #0 0x1f49304 in _sk_evenly_spaced_gradient_sse2 (/mnt/ssd0/aggregator-wd/analyzer13/fuzz_asan_debug+0x1f49304)
-
-AddressSanitizer can not provide additional info.
-SUMMARY: AddressSanitizer: SEGV (/mnt/ssd0/aggregator-wd/analyzer13/fuzz_asan_debug+0x1f49304) in _sk_evenly_spaced_gradient_sse2
-==19506==ABORTING

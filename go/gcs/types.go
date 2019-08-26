@@ -10,8 +10,7 @@ import (
 // GCSClient is an interface for interacting with Google Cloud Storage (GCS). Introducing
 // the interface allows for easier mocking and testing for unit (small) tests. GCSClient
 // should have common, general functionality. Users should feel free to create a
-// instance-specific GCSClient that creates an abstraction for more instance-specific method calls
-// (see fuzzer for an example).
+// instance-specific GCSClient that creates an abstraction for more instance-specific method calls.
 // One intentional thing missing from these method calls is bucket name. The bucket name
 // is given at creation time, so as to simplify the method signatures.
 // In all methods, context.Background() is a safe value for ctx if you don't want to use

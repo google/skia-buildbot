@@ -1,4 +1,0 @@
-Fuzzing Gradients...
-LinearGradient
-../../src/effects/gradients/SkLinearGradient.cpp:496: fatal error: "assert(tiledX >= 0 && tiledX <= 1)"
-Aborted
