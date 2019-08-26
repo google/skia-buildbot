@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "92ecf320_c756336d",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-26T16:28:36Z",
+      "side": 1,
+      "message": "Does this need to be in a closure too?",
+      "range": {
+        "startLine": 53,
+        "startChar": 123,
+        "endLine": 53,
+        "endChar": 128
+      },
+      "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92901923_df3a2714",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-26T16:28:36Z",
+      "side": 1,
+      "message": "nit: is like",
+      "range": {
+        "startLine": 72,
+        "startChar": 22,
+        "endLine": 72,
+        "endChar": 29
+      },
+      "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "44f651b0_8d72b355",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-26T16:28:36Z",
+      "side": 1,
+      "message": "bikeshed on name: UpdateUsingPubSub\n\nI\u0027m fine with the type being called AutoUpdateMap",
+      "range": {
+        "startLine": 80,
+        "startChar": 5,
+        "endLine": 80,
+        "endChar": 20
+      },
+      "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "79757941_10a693cc",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-26T16:28:36Z",
+      "side": 1,
+      "message": "This is a lot of params - should some of them be put into a config struct?",
+      "range": {
+        "startLine": 80,
+        "startChar": 21,
+        "endLine": 80,
+        "endChar": 215
+      },
+      "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0532aa1b_da0c1636",
+        "filename": "go/gitstore/pubsub/pubsub.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-26T16:28:36Z",
+      "side": 1,
+      "message": "nit; add \"for project\"",
+      "range": {
+        "startLine": 38,
+        "startChar": 49,
+        "endLine": 38,
+        "endChar": 62
+      },
+      "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71b73fc0_9c141a9b",
+        "filename": "go/gitstore/pubsub/pubsub.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-26T16:28:36Z",
+      "side": 1,
+      "message": "Did you figure this out?",
+      "range": {
+        "startLine": 74,
+        "startChar": 1,
+        "endLine": 77,
+        "endChar": 5
+      },
+      "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3bddf683_91f04753",
+        "filename": "go/gitstore/pubsub/pubsub.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-26T16:28:36Z",
+      "side": 1,
+      "message": "nit: include subscription id",
+      "range": {
+        "startLine": 138,
+        "startChar": 24,
+        "endLine": 138,
+        "endChar": 36
+      },
+      "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "359f2e8a_8be8fbe3",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1741,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-26T16:28:36Z",
+      "side": 1,
+      "message": "nit: use skerr.Wrapf here",
+      "range": {
+        "startLine": 1741,
+        "startChar": 9,
+        "endLine": 1741,
+        "endChar": 19
+      },
+      "revId": "6873ab7480cf30f74eebbc585127e06931f2b72e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
