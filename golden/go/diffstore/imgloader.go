@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"image"
@@ -302,8 +303,9 @@ func (il *ImageLoader) downloadImgFromBucket(objLocation, bucketName string) ([]
 			}
 
 			// Check the MD5.
-			if !bytes.Equal(md5Hash.Sum(nil), attrs.MD5) {
-				return skerr.Fmt("MD5 hash for digest %s incorrect.", objLocation)
+			hashBytes := md5Hash.Sum(nil)
+			if !bytes.Equal(hashBytes, attrs.MD5) {
+				return skerr.Fmt("MD5 hash for digest %s incorrect: computed hash is %s", objLocation, hex.EncodeToString(hashBytes))
 			}
 
 			return nil
