@@ -235,6 +235,53 @@ There are two other forms of trace ids:
 
       norm(filter("#54"))
 
+Query Engine
+------------
+
+We keep indices for each Tile for each key=value pair that appears
+in any trace ID. These indices can be quite large and can't be stored
+in memory, so querying has to be done in a streaming manner. Each box
+
+```
++---------+
+|key=value|
++---------+
+```
+
+in the diagram below represents a query against BigTable against the indices
+for that key-value pair, and the arrow out is a channel that provides the
+trace IDs for all traces that match that query. Any query in Perf can be
+boiled down to just a union of queries across matching keys, and an
+intersection of queries across different keys.
+
+
+```
+                           ^
+                           |
+                        +--+--+
+                        |  ∩  |
+                        +-----+
+                         ^  ^
+                         |  |
+             +-----------+  +--------+
+             |                       |
+          +--+--+                    |
+          |  ∪  |                    |
+          +-----+                    |
+           ^   ^                     |
+           |   |                     |
++----------++ ++---------+      +----+---+
+|config=8888| |config=565|      |arch=x86|
++-----------+ +----------+      +--------+
+```
+
+The ∪ and ∩ nodes are running Go routines that take in N incoming channels
+of strings in order and produce either the union or the intersection respectively
+of the incoming channel. This allows the amount of memory used to be kept
+to a minimum while providing a stream of trace ids that match a query, which
+can incrementally be bundled into requests back to BT to retrieve the actual
+trace values.
+
 Installation
 ------------
 See the README file.
