@@ -34,14 +34,14 @@ spec:
             - "--port=:8000"
             - "--prom_port=:20000"
             - "--recipes_cfg=/usr/local/share/autoroll/recipes.cfg"
-            - "--workdir=/data"
+            - "--workdir={{if .kubernetes.disk}}/data{{else}}/tmp{{end}}"
             - "--chat_webhooks_file=/etc/notifier-chat-config/chat_config.txt"
           ports:
             - containerPort: 8000
             - containerPort: 20000
-          volumeMounts:
+          volumeMounts:{{if .kubernetes.disk}}
             - name: autoroll-be-{{.rollerName}}-storage
-              mountPath: /data
+              mountPath: /data{{end}}
             - name: autoroll-be-{{$svcAcct}}-sa
               mountPath: /var/secrets/google
             - name: autoroll-email-creds
@@ -56,7 +56,7 @@ spec:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/key.json
             - name: TMPDIR
-              value: /data/tmp
+              value: {{if .kubernetes.disk}}/data{{end}}/tmp
           resources:
             limits:
               memory: "{{.kubernetes.memory}}"
@@ -82,7 +82,7 @@ spec:
         - name: {{$secret.name}}
           secret:
             secretName: {{$secret.name}}
-        {{- end}}
+        {{- end}}{{if .kubernetes.disk}}
   volumeClaimTemplates:
     - metadata:
         name: autoroll-be-{{.rollerName}}-storage
@@ -90,4 +90,4 @@ spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
-            storage: {{.kubernetes.disk}}
+            storage: {{.kubernetes.disk}}{{end}}
