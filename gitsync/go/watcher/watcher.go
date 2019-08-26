@@ -17,11 +17,13 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
+	"go.skia.org/infra/go/gitstore/pubsub"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/vcsinfo"
+	"golang.org/x/oauth2"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -32,7 +34,7 @@ const (
 
 // Start creates a GitStore with the provided information and starts periodic
 // ingestion.
-func Start(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL, gitilesURL, gitcookiesPath, gcsBucket, gcsPath string, interval time.Duration) error {
+func Start(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL, gitilesURL, gitcookiesPath, gcsBucket, gcsPath string, interval time.Duration, ts oauth2.TokenSource) error {
 	sklog.Infof("Initializing watcher for %s", repoURL)
 	gitStore, err := bt_gitstore.New(ctx, conf, repoURL)
 	if err != nil {
@@ -44,7 +46,11 @@ func Start(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL, gitilesURL,
 		return skerr.Wrapf(err, "Failed to create storage client for %s.", gcsBucket)
 	}
 	gcsClient := gcsclient.New(s, gcsBucket)
-	ri, err := newRepoImpl(ctx, gitStore, gr, gcsClient, gcsPath)
+	p, err := pubsub.NewPublisher(ctx, conf, gitStore.RepoID, ts)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to create PubSub publisher for %s", repoURL)
+	}
+	ri, err := newRepoImpl(ctx, gitStore, gr, gcsClient, gcsPath, p)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create RepoImpl for %s; using gs://%s/%s.", repoURL, gcsBucket, gcsPath)
 	}
@@ -93,11 +99,12 @@ type repoImpl struct {
 	gcsPath   string
 	gitiles   *gitiles.Repo
 	gitstore  gitstore.GitStore
+	pubsub    *pubsub.Publisher
 }
 
 // newRepoImpl returns a repograph.RepoImpl which uses both Gitiles and
 // GitStore.
-func newRepoImpl(ctx context.Context, gs gitstore.GitStore, repo *gitiles.Repo, gcsClient gcs.GCSClient, gcsPath string) (repograph.RepoImpl, error) {
+func newRepoImpl(ctx context.Context, gs gitstore.GitStore, repo *gitiles.Repo, gcsClient gcs.GCSClient, gcsPath string, p *pubsub.Publisher) (repograph.RepoImpl, error) {
 	indexCommits, err := gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, gitstore.ALL_BRANCHES)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed loading IndexCommits from GitStore.")
@@ -138,6 +145,7 @@ func newRepoImpl(ctx context.Context, gs gitstore.GitStore, repo *gitiles.Repo, 
 		gcsPath:          gcsPath,
 		gitiles:          repo,
 		gitstore:         gs,
+		pubsub:           p,
 	}, nil
 }
 
@@ -524,25 +532,32 @@ func (r *repoImpl) UpdateCallback(ctx context.Context, added, removed []*vcsinfo
 	for _, c := range modifiedMap {
 		putCommits = append(putCommits, c)
 	}
+	// TODO(borenet): Should we delete commits which were removed?
 	sklog.Infof("Put %d new and %d modified commits for %s.", len(added), len(modified), r.gitiles.URL)
 	if err := r.gitstore.Put(ctx, putCommits); err != nil {
 		return skerr.Wrapf(err, "Failed putting commits into GitStore.")
 	}
-	// TODO(borenet): Should we delete commits which were removed?
-	branchHeads := graph.BranchHeads()
-	branches := make(map[string]string, len(branchHeads))
-	for _, b := range branchHeads {
-		branches[b.Name] = b.Head
-	}
-	// Explicitly delete any old branches which are no longer present.
+	// Figure out which branches changed.
 	oldBranches, err := r.gitstore.GetBranches(ctx)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to retrieve old branch heads.")
 	}
+	branchHeads := graph.BranchHeads()
+	branches := make(map[string]string, len(branchHeads))
+	for _, b := range branchHeads {
+		if oldBranches[b.Name].Head != b.Head {
+			branches[b.Name] = b.Head
+		}
+	}
+	// Explicitly delete any old branches which are no longer present.
 	for name := range oldBranches {
 		if _, ok := branches[name]; !ok {
 			branches[name] = gitstore.DELETE_BRANCH
 		}
 	}
-	return r.gitstore.PutBranches(ctx, branches)
+	if err := r.gitstore.PutBranches(ctx, branches); err != nil {
+		return skerr.Wrapf(err, "Failed to put new branch heads.")
+	}
+	r.pubsub.Publish(ctx, branches)
+	return nil
 }
