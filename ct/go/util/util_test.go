@@ -24,7 +24,7 @@ func TestGetStartRange(t *testing.T) {
 func TestGetPathToPyFiles(t *testing.T) {
 	unittest.SmallTest(t)
 	expectedLocalPathSuffix := filepath.Join("ct", "py")
-	expectedMasterPath := filepath.Join("/", "usr", "local", "share", "ct-master", "py")
+	expectedMasterPath := filepath.Join("/", "usr", "local", "share", "ctfe", "py")
 	expectedSwarmingPathSuffix := "py"
 
 	// Test local path.
