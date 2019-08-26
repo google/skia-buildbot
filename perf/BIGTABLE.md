@@ -126,10 +126,13 @@ ops:
                  OPS - The serialized Ordered ParamSet
 
 indices
-   - row name = 'i' + TileKey:ParamKey:ParamValue
+   - row name = 'j' + TileKey:ParamKey:ParamValue:traceID
+      (A previous indexing scheme used 'i' as a prefix, so we avoid using that prefix.)
 
-       I - Column family stores row names of traceIds that match the given ParamKey:ParamValue.
-         - Columns: The column names are the trace row names. They have the empty byte slice as a value.
+       I - Column family stores the empty string.
+         - Columns: E - An empty string. (You can't create a row w/o writing to at least one
+             column, so we store the smallest amount of data possible since all the data is in
+             the rowname.)
 
 hashes:
    - row name = '&' + md5('gs://...')
@@ -138,3 +141,49 @@ hashes:
     H - Column family stores md5 hash of source file name written as hex string.
       - Columns: S   - Source (The full name of the source file, gs://....)
 
+Query Engine
+------------
+
+We keep indices for each Tile for each key=value pair that appears in any trace
+ID. These indices can be quite large and can't be stored in memory, so querying
+has to be done in a streaming manner. Each box
+
+```
++---------+
+|key=value|
++---------+
+```
+
+in the diagram below represents a query against BigTable against the indices for
+that key-value pair, and the arrow out is a channel that provides the trace IDs
+for all traces that match that query, provided in ascending order with no
+duplicates. Any query in Perf can be boiled down to just a union of queries
+across matching keys, and an intersection of queries across different keys.
+
+
+```
+                           ^
+                           |
+                        +--+--+
+                        |  ∩  |
+                        +-----+
+                         ^  ^
+                         |  |
+             +-----------+  +--------+
+             |                       |
+          +--+--+                    |
+          |  ∪  |                    |
+          +-----+                    |
+           ^   ^                     |
+           |   |                     |
++----------++ ++---------+      +----+---+
+|config=8888| |config=565|      |arch=x86|
++-----------+ +----------+      +--------+
+```
+
+The ∪ and ∩ nodes are running Go routines that take in N incoming channels of
+strings in order and produce either the union or the intersection respectively
+of the incoming channel. This allows the amount of memory used to be kept to a
+minimum while providing a stream of trace ids that match a query, which can
+incrementally be bundled into requests back to BT to retrieve the actual trace
+values.
