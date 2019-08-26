@@ -210,13 +210,17 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	to := rm.NextRollRev()
 	commitMsg := fmt.Sprintf(`Roll Fuchsia SDK from %s to %s
 
-The AutoRoll server is located here: fake.server.com
+If this roll has caused a breakage, revert this CL and stop the roller
+using the controls here:
+fake.server.com
+Please CC reviewer@chromium.org on the revert to ensure that a human
+is aware of the problem.
+
+To report a problem with the AutoRoller itself, please file a bug:
+https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
-
-If the roll is causing failures, please contact the current sheriff, who should
-be CC'd on the roll, and stop the roller if necessary.
 
 TBR=reviewer@chromium.org
 Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.`, from, to)

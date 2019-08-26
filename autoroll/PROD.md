@@ -30,23 +30,19 @@ alert is only enabled for Skia.
 http_latency
 ------------
 
-One of the AutoRoll servers is taking too long to respond. The name of the
-prober which triggered the alert should indicate which roller is slow.
+The frontend server is taking too long to respond. Check the logs for any
+obvious cause; if load is high, we may need to bring up more replicas.
 
 
 error_rate
 ----------
 
 The AutoRoll server on the given host is logging errors at a higher-than-normal
-rate. This warrants investigation in the logs.
-
-The state machine may throw errors like this: "Transition is already in
-progress; did a previous transition get interrupted?"  That is intended to
-detect the case where we interrupted the process during a state transition, and
-we may be in an undefined state. This requires manual investigation, after which
-you should remove the /mnt/pd0/autoroll_workdir/state_machine_transitioning
-file. This error may also prevent the roller from starting up, which is by
-design.
+rate. This warrants investigation in the logs. The most common cause of this
+alert is transient errors while communicating with Git or Gerrit. In that case,
+there is not much which can be done other than to silence the alert and hope
+that things improve. If the failure persists, contact the current on-call for
+the Git service.
 
 If this happened on the Skia->Flutter roller then also take a look at the
 flutter_license_script_failure section below.
@@ -104,3 +100,20 @@ Useful documentation links:
 * How to checkout flutter is documented [here](https://github.com/flutter/flutter/wiki/Setting-up-the-Engine-development-environment).
 * License script documentation is [here](https://github.com/flutter/engine/blob/master/tools/licenses/README.md).
 * The code for the pre-upload license step used by the autoroller is [here](https://skia.googlesource.com/buildbot/+/master/autoroll/go/repo_manager/pre_upload_steps.go).
+
+
+Other Troubleshooting Tips
+--------------------------
+
+#### The autoroll page displays "Status: error" and doesn't upload CLs ####
+
+Some issue is preventing the roller from running normally. You'll need to look
+through the logs for more information. Normally this is transient, but it can
+also be caused by mis-configuration of the roller, eg. the configured reviewer
+is not a committer.
+
+
+#### Something is wrong, and I need to shut down the roller ASAP! ####
+
+Setting the roller mode to "Stopped" should be enough in most cases. If not,
+you can use `kubectl delete -f <file>` to kill it.

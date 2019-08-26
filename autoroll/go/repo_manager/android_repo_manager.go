@@ -35,13 +35,17 @@ const (
 {{range .Revisions}}{{.Timestamp.Format "2006-01-02"}} {{.Author}} {{.Description}}
 {{end}}{{end}}
 
-The AutoRoll server is located here: {{.ServerURL}}
+If this roll has caused a breakage, revert this CL and stop the roller
+using the controls here:
+{{.ServerURL}}
+Please CC {{stringsJoin .Reviewers ","}} on the revert to ensure that a human
+is aware of the problem.
+
+To report a problem with the AutoRoller itself, please file a bug:
+https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
-
-If the roll is causing failures, please contact the current sheriff, who should
-be CC'd on the roll, and stop the roller if necessary.
 
 Test: Presubmit checks will test this change.
 Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
