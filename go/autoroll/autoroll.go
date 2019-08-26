@@ -104,9 +104,6 @@ func (i *AutoRollIssue) Validate() error {
 			return errors.New("AutoRollIssue cannot be Committed without being Closed.")
 		}
 	}
-	if i.CqFinished && i.IsDryRun {
-		return errors.New("CqFinished cannot be true for dry runs.")
-	}
 	if i.DryRunFinished && !i.IsDryRun {
 		return errors.New("DryRunFinished cannot be true unless the roll is a dry run.")
 	}
@@ -170,14 +167,12 @@ func (i *AutoRollIssue) UpdateFromGitHubPullRequest(pullRequest *github_api.Pull
 	} else if i.Issue != prNum {
 		return fmt.Errorf("Pull request number %d differs from existing issue number %d!", prNum, i.Issue)
 	}
+	i.CqFinished = pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged()
+	i.CqSuccess = pullRequest.GetMerged()
 	if i.IsDryRun {
-		i.CqFinished = false
-		i.CqSuccess = false
 		i.DryRunFinished = i.AllTrybotsFinished() || pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged()
 		i.DryRunSuccess = (i.DryRunFinished && i.AllTrybotsSucceeded()) || pullRequest.GetMerged()
 	} else {
-		i.CqFinished = pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged()
-		i.CqSuccess = pullRequest.GetMerged()
 		i.DryRunFinished = false
 		i.DryRunSuccess = false
 	}
@@ -247,14 +242,13 @@ func (i *AutoRollIssue) UpdateFromGerritChangeInfo(ci *gerrit.ChangeInfo, rollIn
 		}
 	}
 
+	i.CqFinished = ci.IsClosed()
+	i.CqSuccess = ci.Status == gerrit.CHANGE_STATUS_MERGED
 	if i.IsDryRun {
-		i.CqFinished = false
-		i.CqSuccess = false
 		i.DryRunFinished = dryRunFinished || ci.IsClosed()
 		i.DryRunSuccess = dryRunSuccess || ci.Status == gerrit.CHANGE_STATUS_MERGED
 	} else {
-		i.CqFinished = ci.IsClosed() || cqFinished
-		i.CqSuccess = ci.Status == gerrit.CHANGE_STATUS_MERGED
+		i.CqFinished = i.CqFinished || cqFinished
 		i.DryRunFinished = false
 		i.DryRunSuccess = false
 	}
