@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dda20e36_fa815697",
+        "filename": "status/res/imp/status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-26T12:22:08Z",
+      "side": 0,
+      "message": "Is there an equivalent to this that we could get from OSS-fuzz?",
+      "range": {
+        "startLine": 190,
+        "startChar": 7,
+        "endLine": 190,
+        "endChar": 98
+      },
+      "revId": "a9a21956f8f14f786e080ef072e307067afb858a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
