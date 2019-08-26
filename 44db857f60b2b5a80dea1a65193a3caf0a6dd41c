@@ -1,0 +1,170 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2a91e376_976ab801",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T18:44:47Z",
+      "side": 1,
+      "message": "nit: maybe add var _ IndexSearcher \u003d (SearchIndex*)(nil)",
+      "revId": "44db857f60b2b5a80dea1a65193a3caf0a6dd41c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3594b4e9_3435ef11",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T18:44:47Z",
+      "side": 1,
+      "message": "nit: maybe add var _ IndexMaker \u003d (Indexer*)(nil)",
+      "revId": "44db857f60b2b5a80dea1a65193a3caf0a6dd41c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ebe0a78_9ea028dc",
+        "filename": "golden/go/indexer/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T18:44:47Z",
+      "side": 1,
+      "message": "nit: maybe \"IndexSource\" (analogous to TileSource)?",
+      "range": {
+        "startLine": 14,
+        "startChar": 5,
+        "endLine": 14,
+        "endChar": 15
+      },
+      "revId": "44db857f60b2b5a80dea1a65193a3caf0a6dd41c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d33358b_88e6618c",
+        "filename": "golden/go/indexer/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T18:44:47Z",
+      "side": 1,
+      "message": "nit: The first sentence appears to contradict the second two sentences. I think the first sentence really belongs on indexer.New.",
+      "range": {
+        "startLine": 15,
+        "startChar": 4,
+        "endLine": 18,
+        "endChar": 38
+      },
+      "revId": "44db857f60b2b5a80dea1a65193a3caf0a6dd41c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c18ac623_2c737c5d",
+        "filename": "golden/go/indexer/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T18:44:47Z",
+      "side": 1,
+      "message": "nit: missing comma",
+      "range": {
+        "startLine": 24,
+        "startChar": 10,
+        "endLine": 24,
+        "endChar": 11
+      },
+      "revId": "44db857f60b2b5a80dea1a65193a3caf0a6dd41c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d11970d_180f7423",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T18:44:47Z",
+      "side": 1,
+      "message": "nit: Debugf?",
+      "revId": "44db857f60b2b5a80dea1a65193a3caf0a6dd41c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d4cb7a7_af426273",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T18:44:47Z",
+      "side": 1,
+      "message": "nit: The old code avoids a copy, is more concise, and seems equivalent.",
+      "range": {
+        "startLine": 170,
+        "startChar": 0,
+        "endLine": 172,
+        "endChar": 29
+      },
+      "revId": "44db857f60b2b5a80dea1a65193a3caf0a6dd41c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5435afe_0edda5a0",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-26T18:44:47Z",
+      "side": 1,
+      "message": "nit: maybe move this earlier, use in \u0027On(\"GetBlame\"\u0027",
+      "range": {
+        "startLine": 52,
+        "startChar": 1,
+        "endLine": 52,
+        "endChar": 40
+      },
+      "revId": "44db857f60b2b5a80dea1a65193a3caf0a6dd41c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
