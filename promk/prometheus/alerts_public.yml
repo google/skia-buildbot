@@ -121,50 +121,7 @@ groups:
     annotations:
       description: 'There are more than 50 CQ trybots triggered by at least one CL. Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_trybots_triggered Direct link to logs: https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container%2Fcluster_name%2Fskia-public%2Fnamespace_id%2Fdefault&logName=projects%2Fskia-public%2Flogs%2Fcq-watcher&filters=text:CQCLsCountError'
 
-  # Fuzzer
-  - alert: FuzzerUploadQueueFull
-    expr: fuzzer_queue_size_upload > 90
-    for: 2m
-    labels:
-      category: infra
-      severity: critical
-      owner: kjlubick@google.com
-    annotations:
-      abbr: '{{ $labels.kubernetes_pod_name }}'
-      description: 'Fuzzer upload queue has been very full on {{ $labels.kubernetes_pod_name }}. https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#full_upload'
-
-  - alert: FuzzerVersionStale
-    expr: fuzzer_version_age{type="current"}/60/60/24 > 10
-    labels:
-      category: infra
-      severity: warning
-      owner: kjlubick@google.com
-    annotations:
-      abbr: '{{ $labels.kubernetes_pod_name }}'
-      description: 'The Fuzzer on {{ $labels.kubernetes_pod_name }} hasnt rolled its version forward in 10 days.  Roll it forward on fuzzer.skia.org https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#stale_version'
-
-  - alert: FuzzerSlowRoll
-    expr: fuzzer_version_age{type="pending"}/60/60 > 2
-    labels:
-      category: infra
-      severity: critical
-      owner: kjlubick@google.com
-    annotations:
-      abbr: '{{ $labels.kubernetes_pod_name }}'
-      description: 'The fuzzer on {{ $labels.kubernetes_pod_name }} hasnt finished rolling its version forward in 2 hours.  Something might be wrong.  https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#broken_roll'
-
-  - alert: FuzzerAnalysisQueueFull
-    expr: fuzzer_queue_size_analysis > 900000
-    for: 2m
-    labels:
-      category: infra
-      severity: critical
-      owner: kjlubick@google.com
-    annotations:
-      abbr: '{{ $labels.kubernetes_pod_name }}'
-      description: 'Fuzzer analysis queue has been very full on {{ $labels.kubernetes_pod_name }}. https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#full_analysis'
-
-# datatore backups
+ # datatore backups
   - alert: BackupNotDone
     expr: liveness_backup_success_s/60/60 > 25
     labels:

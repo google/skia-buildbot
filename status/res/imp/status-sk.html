@@ -43,7 +43,6 @@
 <link rel="import" href="commits-canvas-sk.html">
 <link rel="import" href="commits-data-sk.html">
 <link rel="import" href="commits-table-sk.html">
-<link rel="import" href="fuzzer-widget-sk.html">
 <link rel="import" href="gold-status-sk.html">
 <link rel="import" href="perf-status-sk.html">
 <link rel="import" href="status-menu-section-sk.html">
@@ -183,11 +182,6 @@
       <div class="container" navigation>
         <h2>Gold</h2>
         <gold-status-sk title="Skia Gold: Untriaged image count" reload="[[reload]]"></gold-status-sk>
-      </div>
-
-      <div class="container" navigation>
-        <h2>Fuzzer</h2>
-        <fuzzer-widget-sk title="Skia Fuzzer: fuzz counts" reload="[[reload]]"></fuzzer-widget-sk>
       </div>
 
       <div class="container" navigation>
@@ -351,7 +345,7 @@
         type: Boolean,
         computed: "_isUser(email, trooper)",
       },
-      login_data: { 
+      login_data: {
         type: Object,
       },
       narrow: {

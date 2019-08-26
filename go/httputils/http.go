@@ -476,7 +476,7 @@ func CorsHandler(h func(http.ResponseWriter, *http.Request)) func(http.ResponseW
 
 // CorsCredentialsHandler is an HTTPS handler function which adds the necessary header
 // for a CORS request using credentials. This allows, for example, status.skia.org to
-// make a request to fuzzer.skia.org using the *.skia.org cookie that is shared
+// make a request to gold.skia.org using the *.skia.org cookie that is shared
 // between them.
 //
 // To have the browser use the cookie, the withCredentials on the XMLHttpRequest

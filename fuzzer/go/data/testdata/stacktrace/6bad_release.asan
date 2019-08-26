@@ -1,6 +1,0 @@
-Decoding
-ASAN:SIGSEGV
-=================================================================
-==115578==ERROR: AddressSanitizer: SEGV on unknown address 0x000100000000 (pc 0x000100000000 bp 0x7ffcd01141d0 sp 0x7ffcd0114198 T0)
-ASAN:SIGSEGV
-==115578==AddressSanitizer: while reporting a bug found another one. Ignoring.

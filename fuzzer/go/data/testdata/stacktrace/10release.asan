@@ -1,6 +1,0 @@
-Decoding
-==125704==WARNING: AddressSanitizer failed to allocate 0xffffffffffffffff bytes
-../../src/core/SkPictureData.cpp:392:17: runtime error: store to null pointer of type 'SkFlattenable::Factory' (aka 'sk_sp<SkFlattenable> (*)(SkReadBuffer &)')
-SUMMARY: AddressSanitizer: SEGV /tmp/skia/out/Debug/../../src/core/SkPictureData.cpp:377 SkPictureData::parseStreamTag(SkStream*, unsigned int, unsigned int, bool (*)(void const*, unsigned long, SkBitmap*), SkTypefacePlayback*)
-==75298==ABORTING
-
