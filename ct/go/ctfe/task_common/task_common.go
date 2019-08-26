@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -91,6 +92,16 @@ func AsTaskSlice(selectResult interface{}) []Task {
 	return result
 }
 
+// Generates a hopefully-unique ID for this task.
+func GetRunID(task Task) string {
+	// DO THE STUFF BELOW with a mutex
+	//		// Sleeping for a second to avoid the small probability of ending up
+	//		// with 2 tasks with the same runID. For context see
+	//		// https://skia-review.googlesource.com/c/26941/8/ct/go/poller/main.go#96
+	//		time.Sleep(time.Second)
+	return strings.SplitN(task.GetCommonCols().Username, "@", 2)[0] + "-" + ctutil.GetCurrentTs()
+}
+
 // Data included in all tasks; set by AddTaskHandler.
 type AddTaskCommonVars struct {
 	Username        string
@@ -103,6 +114,7 @@ type AddTaskVars interface {
 	IsAdminTask() bool
 	GetDatastoreKind() ds.Kind
 	GetPopulatedDatastoreTask(ctx context.Context) (Task, error)
+	TriggerSwarmingTask(ctx context.Context, t Task) error
 }
 
 func (vars *AddTaskCommonVars) GetAddTaskCommonVars() *AddTaskCommonVars {
@@ -136,23 +148,36 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 		return
 	}
 
-	if _, err := AddTask(r.Context(), task); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task: %s", task, err))
+	if err := AddAndTriggerTask(r.Context(), task); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to insert or trigger %T task: %s", task, err))
 		return
 	}
 }
 
-// Returns the ID of the inserted task if the operation was successful.
-func AddTask(ctx context.Context, task AddTaskVars) (int64, error) {
+func AddAndTriggerTask(ctx context.Context, task AddTaskVars) error {
+	datastoreTask, err := AddTaskToDatastore(ctx, task)
+	if err != nil {
+		return fmt.Errorf("Failed to insert %T task: %s", task, err)
+	}
+	if err := TriggerTaskOnSwarming(ctx, task, datastoreTask); err != nil {
+		if err := UpdateTaskSetFailed(ctx, datastoreTask); err != nil {
+			sklog.Error(err)
+		}
+		return fmt.Errorf("Failed to trigger on swarming %T task: %s", task, err)
+	}
+	return nil
+}
+
+func AddTaskToDatastore(ctx context.Context, task AddTaskVars) (Task, error) {
 	datastoreTask, err := task.GetPopulatedDatastoreTask(ctx)
 	if err != nil {
-		return -1, fmt.Errorf("Could not get populated datastore task: %s", err)
+		return nil, fmt.Errorf("Could not get populated datastore task: %s", err)
 	}
 
 	// Create the key.
 	id, err := GetNextId(ctx, task.GetDatastoreKind(), datastoreTask)
 	if err != nil {
-		return -1, fmt.Errorf("Could not get highest id for %s: %s", task.GetDatastoreKind(), err)
+		return nil, fmt.Errorf("Could not get highest id for %s: %s", task.GetDatastoreKind(), err)
 	}
 	key := ds.NewKey(task.GetDatastoreKind())
 	key.ID = id
@@ -161,21 +186,24 @@ func AddTask(ctx context.Context, task AddTaskVars) (int64, error) {
 	// Add the common columns to the task.
 	tsAdded, err := strconv.ParseInt(task.GetAddTaskCommonVars().TsAdded, 10, 64)
 	if err != nil {
-		return -1, fmt.Errorf("%s is not int64: %s", task.GetAddTaskCommonVars().TsAdded, err)
+		return nil, fmt.Errorf("%s is not int64: %s", task.GetAddTaskCommonVars().TsAdded, err)
 	}
 	datastoreTask.GetCommonCols().TsAdded = tsAdded
 	datastoreTask.GetCommonCols().Username = task.GetAddTaskCommonVars().Username
 	repeatAfterDays, err := strconv.ParseInt(task.GetAddTaskCommonVars().RepeatAfterDays, 10, 64)
 	if err != nil {
-		return -1, fmt.Errorf("%s is not int64: %s", task.GetAddTaskCommonVars().RepeatAfterDays, err)
+		return nil, fmt.Errorf("%s is not int64: %s", task.GetAddTaskCommonVars().RepeatAfterDays, err)
 	}
 	datastoreTask.GetCommonCols().RepeatAfterDays = repeatAfterDays
 
-	ret, err := ds.DS.Put(ctx, key, datastoreTask)
-	if err != nil {
-		return -1, fmt.Errorf("Error putting task in datastore: %s", err)
+	if _, err := ds.DS.Put(ctx, key, datastoreTask); err != nil {
+		return nil, fmt.Errorf("Error putting task in datastore: %s", err)
 	}
-	return ret.ID, nil
+	return datastoreTask, nil
+}
+
+func TriggerTaskOnSwarming(ctx context.Context, task AddTaskVars, datastoreTask Task) error {
+	return task.TriggerSwarmingTask(ctx, datastoreTask)
 }
 
 // Returns true if the string is non-empty, unless strconv.ParseBool parses the string as false.
@@ -389,7 +417,6 @@ func (vars *UpdateTaskCommonVars) GetUpdateTaskCommonVars() *UpdateTaskCommonVar
 
 type UpdateTaskVars interface {
 	GetUpdateTaskCommonVars() *UpdateTaskCommonVars
-	UriPath() string
 	// Adds CT task specific updates for fields not in UpdateTaskCommonVars.
 	UpdateExtraFields(Task) error
 }
@@ -453,6 +480,38 @@ func UpdateTaskHandler(vars UpdateTaskVars, prototype Task, w http.ResponseWrite
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to update %T task", vars))
 		return
 	}
+}
+
+func UpdateTaskSetStarted(ctx context.Context, vars UpdateTaskVars, prototype Task, id int64, runID string) error {
+	vars.GetUpdateTaskCommonVars().Id = id
+	vars.GetUpdateTaskCommonVars().SetStarted(runID)
+	return FindAndUpdateTask(ctx, vars, prototype)
+}
+
+func UpdateTaskSetFailed(ctx context.Context, task Task) error {
+	updateVars := task.GetUpdateTaskVars()
+	updateVars.GetUpdateTaskCommonVars().Id = task.GetCommonCols().DatastoreKey.ID
+	updateVars.GetUpdateTaskCommonVars().TsStarted = ctutil.GetCurrentTs()
+	updateVars.GetUpdateTaskCommonVars().SetCompleted(false)
+	return UpdateTask(ctx, updateVars, task)
+}
+
+func FindAndUpdateTask(ctx context.Context, vars UpdateTaskVars, prototype Task) error {
+	key := ds.NewKey(prototype.GetDatastoreKind())
+	key.ID = vars.GetUpdateTaskCommonVars().Id
+	task, err := prototype.Get(ctx, key)
+	if err != nil {
+		return fmt.Errorf("Failed to find %T task", vars)
+	}
+
+	if err := updateDatastoreTask(vars, task); err != nil {
+		return fmt.Errorf("Failed to marshal %T update: %v", vars, err)
+	}
+
+	if _, err := ds.DS.Put(ctx, task.GetCommonCols().DatastoreKey, task); err != nil {
+		return fmt.Errorf("Failed to update task %d in the datastore: %s", task.GetCommonCols().DatastoreKey.ID, err)
+	}
+	return nil
 }
 
 func UpdateTask(ctx context.Context, vars UpdateTaskVars, task Task) error {
@@ -543,8 +602,8 @@ func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	// Do not preserve repeat_after_days for retried tasks. Carrying over
 	// repeat_after_days causes the same task to be unknowingly repeated.
 	addTaskVars.GetAddTaskCommonVars().RepeatAfterDays = "0"
-	if _, err := AddTask(r.Context(), addTaskVars); err != nil {
-		httputils.ReportError(w, r, err, "Could not redo the task.")
+	if err := AddAndTriggerTask(r.Context(), addTaskVars); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to insert or trigger %T task: %s", task, err))
 		return
 	}
 }
@@ -738,7 +797,7 @@ func isAdminHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func AddHandlers(externalRouter, internalRouter *mux.Router) {
+func AddHandlers(externalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.PAGE_SETS_PARAMETERS_POST_URI, pageSetsHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.CL_DATA_POST_URI, getCLHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.BENCHMARKS_PLATFORMS_POST_URI, benchmarksPlatformsHandler).Methods("POST")
