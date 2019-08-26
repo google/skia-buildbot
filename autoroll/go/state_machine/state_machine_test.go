@@ -100,6 +100,7 @@ func (r *TestRollCLImpl) RollingTo() *revision.Revision {
 // Mark the roll as a success.
 func (r *TestRollCLImpl) SetSucceeded() {
 	r.normalResult = "SUCCESS"
+	r.closedStatus = autoroll.ROLL_RESULT_SUCCESS
 }
 
 // Mark the roll as a failure.

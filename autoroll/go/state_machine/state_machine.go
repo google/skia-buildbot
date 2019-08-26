@@ -594,9 +594,13 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		if currentRoll == nil {
 			return S_CURRENT_ROLL_MISSING, nil
 		}
-		// The roll may have been manually submitted.
-		if currentRoll.IsFinished() && currentRoll.IsSuccess() {
-			return S_NORMAL_SUCCESS, nil
+		// The roll may have been manually submitted or abandoned.
+		if currentRoll.IsClosed() {
+			if currentRoll.IsSuccess() {
+				return S_NORMAL_SUCCESS, nil
+			} else {
+				return S_NORMAL_FAILURE, nil
+			}
 		}
 		if desiredMode == modes.MODE_STOPPED {
 			return S_STOPPED, nil
@@ -642,19 +646,19 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		if currentRoll == nil {
 			return S_CURRENT_ROLL_MISSING, nil
 		}
-		if currentRoll.IsDryRunFinished() {
-			if currentRoll.IsDryRunSuccess() {
-				return S_DRY_RUN_SUCCESS, nil
-			} else {
-				return S_DRY_RUN_FAILURE, nil
-			}
-		} else if currentRoll.IsFinished() {
+		if currentRoll.IsClosed() {
 			if currentRoll.IsSuccess() {
 				// Someone manually landed the roll.
 				return S_NORMAL_SUCCESS, nil
 			} else {
 				// Someone manually closed the roll.
 				return S_NORMAL_FAILURE, nil
+			}
+		} else if currentRoll.IsDryRunFinished() {
+			if currentRoll.IsDryRunSuccess() {
+				return S_DRY_RUN_SUCCESS, nil
+			} else {
+				return S_DRY_RUN_FAILURE, nil
 			}
 		} else {
 			desiredMode := s.a.GetMode()
@@ -681,6 +685,10 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 	case S_DRY_RUN_SUCCESS_LEAVING_OPEN:
 		if currentRoll == nil {
 			return S_CURRENT_ROLL_MISSING, nil
+		}
+		// The roll may have been manually submitted or abandoned.
+		if currentRoll.IsClosed() {
+			return S_DRY_RUN_IDLE, nil
 		}
 		if desiredMode == modes.MODE_RUNNING {
 			return S_NORMAL_ACTIVE, nil
@@ -712,8 +720,8 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		if currentRoll == nil {
 			return S_CURRENT_ROLL_MISSING, nil
 		}
-		// The roll may have been manually submitted.
-		if currentRoll.IsFinished() && currentRoll.IsSuccess() {
+		// The roll may have been manually submitted or abandoned.
+		if currentRoll.IsClosed() {
 			return S_DRY_RUN_IDLE, nil
 		}
 		if desiredMode == modes.MODE_STOPPED {
