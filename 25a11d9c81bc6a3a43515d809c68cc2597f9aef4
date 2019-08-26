@@ -1,0 +1,91 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "14d4e3f5_f3588ea5",
+        "filename": "autoroll/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-26T13:58:37Z",
+      "side": 1,
+      "message": "you should \"first\" stop the roller (otherwise there might be timing issues?)",
+      "range": {
+        "startLine": 12,
+        "startChar": 17,
+        "endLine": 12,
+        "endChar": 48
+      },
+      "revId": "25a11d9c81bc6a3a43515d809c68cc2597f9aef4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9462f74d_c86b0f33",
+        "filename": "autoroll/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-26T13:58:37Z",
+      "side": 1,
+      "message": "which team?",
+      "range": {
+        "startLine": 15,
+        "startChar": 11,
+        "endLine": 15,
+        "endChar": 20
+      },
+      "revId": "25a11d9c81bc6a3a43515d809c68cc2597f9aef4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "149ddeec_0846aa68",
+        "filename": "autoroll/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-26T13:58:37Z",
+      "side": 1,
+      "message": "\u003e \"agin\" is a possible misspelling of \"again\".\n\nPlease Fix",
+      "parentUuid": "e5e3b9c2_130f7156",
+      "range": {
+        "startLine": 15,
+        "startChar": 73,
+        "endLine": 15,
+        "endChar": 77
+      },
+      "revId": "25a11d9c81bc6a3a43515d809c68cc2597f9aef4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e039c230_860a672d",
+        "filename": "autoroll/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-26T13:58:37Z",
+      "side": 1,
+      "message": "This should probably moved to the section in PROD.md.\nShould everything here be moved there with maybe a link to PROD.md?",
+      "revId": "25a11d9c81bc6a3a43515d809c68cc2597f9aef4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
