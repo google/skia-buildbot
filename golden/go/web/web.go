@@ -112,7 +112,7 @@ func (wh *WebHandlers) JsonByBlameHandler(w http.ResponseWriter, r *http.Request
 	for test, s := range sum {
 		for _, d := range s.UntHashes {
 			dist := idx.GetBlame(test, d, commits)
-			if dist == nil {
+			if dist.IsEmpty() {
 				// Should only happen if the index isn't quite ready being prepared.
 				// Since we wait until the index is created before exposing the web
 				// server, this should never happen.
@@ -225,10 +225,10 @@ func (b ByBlameEntrySlice) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
 
 // ByBlame describes a single digest and it's blames.
 type ByBlame struct {
-	Test          types.TestName           `json:"test"`
-	Digest        types.Digest             `json:"digest"`
-	Blame         *blame.BlameDistribution `json:"blame"`
-	CommitIndices []int                    `json:"commit_indices"`
+	Test          types.TestName          `json:"test"`
+	Digest        types.Digest            `json:"digest"`
+	Blame         blame.BlameDistribution `json:"blame"`
+	CommitIndices []int                   `json:"commit_indices"`
 	Key           string
 }
 

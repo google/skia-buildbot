@@ -16,16 +16,16 @@ import (
 // A Blamer should be immutable after creation.
 type Blamer interface {
 	// GetAllBlameLists returns all BlameLists that have been computed.
-	GetAllBlameLists() (map[types.TestName]map[types.Digest]*BlameDistribution, []*tiling.Commit)
+	GetAllBlameLists() (map[types.TestName]map[types.Digest]BlameDistribution, []*tiling.Commit)
 
 	// GetBlamesForTest returns the list of WeightedBlame for the given test.
-	GetBlamesForTest(testName types.TestName) []*WeightedBlame
+	GetBlamesForTest(testName types.TestName) []WeightedBlame
 
 	// GetBlame returns the indices of the provided list of commits that likely
 	// caused the given test name/digest pair. If the result is empty we are not
 	// able to determine blame, because the test name/digest appeared prior
 	// to the current tile.
-	GetBlame(testName types.TestName, digest types.Digest, commits []*tiling.Commit) *BlameDistribution
+	GetBlame(testName types.TestName, digest types.Digest, commits []*tiling.Commit) BlameDistribution
 }
 
 // BlamerImpl implements the Blamer interface.
@@ -34,7 +34,7 @@ type BlamerImpl struct {
 	commits []*tiling.Commit
 
 	// testBlameLists are the blamelists keyed by testName and digest.
-	testBlameLists map[types.TestName]map[types.Digest]*BlameDistribution
+	testBlameLists map[types.TestName]map[types.Digest]BlameDistribution
 }
 
 // BlameDistribution contains a rough estimation of the probabilities that
@@ -63,6 +63,10 @@ type BlameDistribution struct {
 	Old bool `json:"old"`
 }
 
+func (b *BlameDistribution) IsEmpty() bool {
+	return len(b.Freq) == 0
+}
+
 // WeightedBlame combines an authors name with a probability that they
 // are on a blamelist. This is aggregated over the digests of a test.
 type WeightedBlame struct {
@@ -71,7 +75,7 @@ type WeightedBlame struct {
 }
 
 // Sorting wrapper around WeightedBlame.
-type WeightedBlameSlice []*WeightedBlame
+type WeightedBlameSlice []WeightedBlame
 
 func (w WeightedBlameSlice) Len() int           { return len(w) }
 func (w WeightedBlameSlice) Less(i, j int) bool { return w[i].Prob < w[j].Prob }
@@ -85,12 +89,12 @@ func New(tile *tiling.Tile, exp types.Expectations) (*BlamerImpl, error) {
 }
 
 // GetAllBlameLists fulfills the Blamer interface.
-func (b *BlamerImpl) GetAllBlameLists() (map[types.TestName]map[types.Digest]*BlameDistribution, []*tiling.Commit) {
+func (b *BlamerImpl) GetAllBlameLists() (map[types.TestName]map[types.Digest]BlameDistribution, []*tiling.Commit) {
 	return b.testBlameLists, b.commits
 }
 
 // GetBlamesForTest fulfills the Blamer interface.
-func (b *BlamerImpl) GetBlamesForTest(testName types.TestName) []*WeightedBlame {
+func (b *BlamerImpl) GetBlamesForTest(testName types.TestName) []WeightedBlame {
 	blameLists, commits := b.GetAllBlameLists()
 
 	digestBlameList := blameLists[testName]
@@ -104,9 +108,12 @@ func (b *BlamerImpl) GetBlamesForTest(testName types.TestName) []*WeightedBlame 
 		total += float64(maxCount * len(commitIndices))
 	}
 
-	ret := make([]*WeightedBlame, 0, len(blameMap))
+	ret := make([]WeightedBlame, 0, len(blameMap))
 	for author, count := range blameMap {
-		ret = append(ret, &WeightedBlame{author, float64(count) / total})
+		ret = append(ret, WeightedBlame{
+			Author: author,
+			Prob:   float64(count) / total,
+		})
 	}
 
 	sort.Sort(sort.Reverse(WeightedBlameSlice(ret)))
@@ -119,17 +126,17 @@ func (b *BlamerImpl) GetBlamesForTest(testName types.TestName) []*WeightedBlame 
 // format).
 
 // GetBlame fulfills the Blamer interface.
-func (b *BlamerImpl) GetBlame(testName types.TestName, digest types.Digest, commits []*tiling.Commit) *BlameDistribution {
+func (b *BlamerImpl) GetBlame(testName types.TestName, digest types.Digest, commits []*tiling.Commit) BlameDistribution {
 	blameLists, blameCommits := b.GetAllBlameLists()
 	commitIndices, maxCount := b.getBlame(blameLists[testName][digest], blameCommits, commits)
-	return &BlameDistribution{
+	return BlameDistribution{
 		Freq: commitIndices,
 		Old:  (maxCount != 0) && blameLists[testName][digest].Old,
 	}
 }
 
-func (b *BlamerImpl) getBlame(blameDistribution *BlameDistribution, blameCommits, commits []*tiling.Commit) ([]int, int) {
-	if (blameDistribution == nil) || (len(blameDistribution.Freq) == 0) {
+func (b *BlamerImpl) getBlame(blameDistribution BlameDistribution, blameCommits, commits []*tiling.Commit) ([]int, int) {
+	if len(blameDistribution.Freq) == 0 {
 		return []int{}, 0
 	}
 
@@ -170,7 +177,7 @@ func (b *BlamerImpl) calculate(tile *tiling.Tile, exp types.Expectations) error 
 	// blameRange stores the candidate ranges for a testName/digest pair.
 	blameRange := map[types.TestName]map[types.Digest][][]int{}
 	tileLen := tile.LastCommitIndex() + 1
-	ret := map[types.TestName]map[types.Digest]*BlameDistribution{}
+	ret := map[types.TestName]map[types.Digest]BlameDistribution{}
 
 	for _, trace := range tile.Traces {
 		gtr := trace.(*types.GoldenTrace)
@@ -207,17 +214,19 @@ func (b *BlamerImpl) calculate(tile *tiling.Tile, exp types.Expectations) error 
 					blameStart[testName] = map[types.Digest]int{digest: startIdx}
 					blameEnd[testName] = map[types.Digest]int{digest: endIdx}
 					blameRange[testName] = map[types.Digest][][]int{digest: {commitRange}}
-					ret[testName] = map[types.Digest]*BlameDistribution{digest: {Old: isOld}}
+					ret[testName] = map[types.Digest]BlameDistribution{digest: {Old: isOld}}
 				} else if currentStart, ok := blameStartFound[digest]; !ok {
 					blameStart[testName][digest] = startIdx
 					blameEnd[testName][digest] = endIdx
 					blameRange[testName][digest] = [][]int{commitRange}
-					ret[testName][digest] = &BlameDistribution{Old: isOld}
+					ret[testName][digest] = BlameDistribution{Old: isOld}
 				} else {
 					blameStart[testName][digest] = util.MinInt(currentStart, startIdx)
 					blameEnd[testName][digest] = util.MinInt(blameEnd[testName][digest], endIdx)
 					blameRange[testName][digest] = append(blameRange[testName][digest], commitRange)
-					ret[testName][digest].Old = isOld || ret[testName][digest].Old
+					bd := ret[testName][digest]
+					bd.Old = isOld || bd.Old
+					ret[testName][digest] = bd
 				}
 			}
 			lastIdx = idx
@@ -247,8 +256,9 @@ func (b *BlamerImpl) calculate(tile *tiling.Tile, exp types.Expectations) error 
 					freq[i-start]++
 				}
 			}
-
-			ret[testName][digest].Freq = freq
+			bd := ret[testName][digest]
+			bd.Freq = freq
+			ret[testName][digest] = bd
 		}
 	}
 

@@ -70,7 +70,7 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *i
 				if query.BlameGroupID != "" {
 					if cl == types.UNTRIAGED {
 						b := idx.GetBlame(test, digest, selectedTile.Commits)
-						if b == nil || query.BlameGroupID != blameGroupID(b, selectedTile.Commits) {
+						if b.IsEmpty() || query.BlameGroupID != blameGroupID(b, selectedTile.Commits) {
 							continue
 						}
 					} else {
