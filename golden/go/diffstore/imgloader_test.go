@@ -1,13 +1,17 @@
 package diffstore
 
 import (
+	"context"
 	"os"
 	"path"
 	"path/filepath"
 	"testing"
 
+	"cloud.google.com/go/storage"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -17,6 +21,7 @@ import (
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
 	d_utils "go.skia.org/infra/golden/go/diffstore/testutils"
 	"go.skia.org/infra/golden/go/types"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -68,8 +73,18 @@ func getImageLoaderAndTile(t sktest.TestingT, m mapper.Mapper) (string, *tiling.
 	assert.Nil(t, os.Mkdir(workingDir, 0777))
 
 	imgCacheCount, _ := getCacheCounts(10)
-	gsBuckets := []string{d_utils.TEST_GCS_BUCKET_NAME, d_utils.TEST_GCS_SECONDARY_BUCKET}
-	imgLoader, err := NewImgLoader(client, baseDir, workingDir, gsBuckets, d_utils.TEST_GCS_IMAGE_DIR, imgCacheCount, m)
+
+	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	assert.NoError(t, err)
+
+	// Build buckets to GCSClient map.
+	bucketNames := []string{d_utils.TEST_GCS_BUCKET_NAME, d_utils.TEST_GCS_SECONDARY_BUCKET}
+	gsBucketClients := make(map[string]gcs.GCSClient, len(bucketNames))
+	for _, bucketName := range bucketNames {
+		gsBucketClients[bucketName] = gcsclient.New(storageClient, bucketName)
+	}
+
+	imgLoader, err := NewImgLoader(gsBucketClients, baseDir, workingDir, d_utils.TEST_GCS_IMAGE_DIR, imgCacheCount, m)
 	assert.NoError(t, err)
 	return workingDir, tile, imgLoader, cleanup
 }

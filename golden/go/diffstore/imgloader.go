@@ -8,14 +8,13 @@ import (
 	"fmt"
 	"image"
 	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
 	"time"
 
-	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/rtcache"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -26,7 +25,6 @@ import (
 	"go.skia.org/infra/golden/go/diffstore/failurestore/bolt_failurestore"
 	"go.skia.org/infra/golden/go/diffstore/mapper"
 	"go.skia.org/infra/golden/go/types"
-	"google.golang.org/api/option"
 )
 
 const (
@@ -39,14 +37,11 @@ const (
 
 // ImageLoader facilitates to continuously download images and cache them in RAM.
 type ImageLoader struct {
-	// storageClient is the Google client to local content from GCS.
-	storageClient *storage.Client
+	// gsBucketClients is a dictionary of GCSClients keyed by their corresponding GCS bucket name.
+	gsBucketClients map[string]gcs.GCSClient
 
 	// localImgDir is the local directory where images should be written to.
 	localImgDir string
-
-	// gsBucketNames is the list of GCS bucket where images are stored.
-	gsBucketNames []string
 
 	// gsImageBaseDir is the GCS directory (prefix) where images are stored.
 	gsImageBaseDir string
@@ -71,11 +66,7 @@ func ImagePaths(imageID types.Digest) (string, string) {
 }
 
 // Creates a new instance of ImageLoader.
-func NewImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []string, gsImageBaseDir string, maxCacheSize int, m mapper.Mapper) (*ImageLoader, error) {
-	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
-	if err != nil {
-		return nil, err
-	}
+func NewImgLoader(gsBucketClients map[string]gcs.GCSClient, baseDir, imgDir string, gsImageBaseDir string, maxCacheSize int, m mapper.Mapper) (*ImageLoader, error) {
 	fStore, err := bolt_failurestore.New(baseDir)
 	if err != nil {
 		return nil, err
@@ -83,12 +74,11 @@ func NewImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []s
 	sklog.Infof("failure store created at %s", baseDir)
 
 	ret := &ImageLoader{
-		storageClient:  storageClient,
-		localImgDir:    imgDir,
-		gsBucketNames:  gsBucketNames,
-		gsImageBaseDir: gsImageBaseDir,
-		failureStore:   fStore,
-		mapper:         m,
+		gsBucketClients: gsBucketClients,
+		localImgDir:     imgDir,
+		gsImageBaseDir:  gsImageBaseDir,
+		failureStore:    fStore,
+		mapper:          m,
 	}
 
 	// Set up the work queues that balance the load.
@@ -260,12 +250,13 @@ func (il *ImageLoader) saveImgInfoAsync(imageID types.Digest, imgBytes []byte) <
 // the gsPath is considered absolute within the bucket, otherwise it is relative to gsImageBaseDir.
 // We will look in every bucket we are configured for.
 func (il *ImageLoader) downloadImg(gsPath string) ([]byte, error) {
-	bucketNames := il.gsBucketNames
 	objLocation := filepath.Join(il.gsImageBaseDir, gsPath)
 
 	var err error
 	var imgData []byte
-	for _, bucketName := range bucketNames {
+	bucketNames := make([]string, len(il.gsBucketClients))
+	for bucketName := range il.gsBucketClients {
+		bucketNames = append(bucketNames, bucketName)
 		imgData, err = il.downloadImgFromBucket(objLocation, bucketName)
 		if err == nil {
 			return imgData, nil
@@ -280,7 +271,7 @@ func (il *ImageLoader) downloadImgFromBucket(objLocation, bucketName string) ([]
 	ctx := context.Background()
 
 	// Retrieve the attributes.
-	attrs, err := il.storageClient.Bucket(bucketName).Object(objLocation).Attrs(ctx)
+	attrs, err := il.gsBucketClients[bucketName].GetFileObjectAttrs(ctx, objLocation)
 	if err != nil {
 		return nil, skerr.Fmt("Unable to retrieve attributes for %s/%s: %.80s", bucketName, objLocation, err)
 	}
@@ -294,17 +285,18 @@ func (il *ImageLoader) downloadImgFromBucket(objLocation, bucketName string) ([]
 			time.Sleep(2 * time.Second)
 		}
 		err = func() error {
-			reader, err := il.storageClient.Bucket(bucketName).Object(objLocation).NewReader(ctx)
+			// Create reader.
+			reader, err := il.gsBucketClients[bucketName].FileReader(ctx, objLocation)
 			if err != nil {
 				return fmt.Errorf("New reader failed for %s/%s: %s", bucketName, objLocation, err)
 			}
 			defer util.Close(reader)
 
-			size := reader.Attrs.Size
+			// Read file.
+			size := attrs.Size
 			buf = bytes.NewBuffer(make([]byte, 0, size))
 			md5Hash := md5.New()
 			multiOut := io.MultiWriter(md5Hash, buf)
-
 			if _, err = io.Copy(multiOut, reader); err != nil {
 				return err
 			}
@@ -336,12 +328,11 @@ func (il *ImageLoader) downloadImgFromBucket(objLocation, bucketName string) ([]
 func (il *ImageLoader) removeImg(gsRelPath string) {
 	// If the bucket is not empty then look there otherwise use the default buckets.
 	objLocation := filepath.Join(il.gsImageBaseDir, gsRelPath)
-	bucketNames := il.gsBucketNames
 
 	ctx := context.Background()
-	for _, bucketName := range bucketNames {
+	for _, client := range il.gsBucketClients {
 		// Retrieve the attributes to test if the file exists.
-		_, err := il.storageClient.Bucket(bucketName).Object(objLocation).Attrs(ctx)
+		_, err := client.GetFileObjectAttrs(ctx, objLocation)
 		if err != nil {
 			// We ignore the error because it most likely indicates that the requested object
 			// does not exist. Currently the Attrs(...) call does not return ErrObjectNotExist
@@ -350,7 +341,7 @@ func (il *ImageLoader) removeImg(gsRelPath string) {
 		}
 
 		// Log an error and continue to the next bucket if we cannot delete the existing file.
-		if err := il.storageClient.Bucket(bucketName).Object(objLocation).Delete(ctx); err != nil {
+		if err := client.DeleteFile(ctx, objLocation); err != nil {
 			sklog.Errorf("Unable to delete existing object at %s. Got error: %s", objLocation, err)
 			continue
 		}
