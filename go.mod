@@ -53,7 +53,7 @@ require (
 	github.com/gophercloud/gophercloud v0.3.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20190812055157-5d271430af9f // indirect
 	github.com/gorilla/context v1.1.1 // indirect
-	github.com/gorilla/csrf v1.6.0
+	github.com/gorilla/csrf v1.6.1
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/websocket v1.4.1 // indirect
@@ -113,7 +113,7 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190620211143-2580da480a89 // indirect
-	go.chromium.org/luci v0.0.0-20190824040823-e227b2df3928
+	go.chromium.org/luci v0.0.0-20190826031057-6157cc7ca4bc
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.opencensus.io v0.22.0
 	golang.org/x/crypto v0.0.0-20190820162420-60c769a6c586
@@ -122,7 +122,7 @@ require (
 	golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a // indirect
+	golang.org/x/sys v0.0.0-20190825160603-fb81701db80f // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 	golang.org/x/tools v0.0.0-20190825031127-d72b05d2b1b6 // indirect
 	golang.org/x/tools/gopls v0.1.3 // indirect
