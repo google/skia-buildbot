@@ -1,4 +1,6 @@
 /*
+Package btts contains the BigTableTraceStore.
+
 See BIGTABLE.md for tiles and traces are stored in BigTable.
 */
 package btts
@@ -44,7 +46,7 @@ const (
 	INDEX_FAMILY   = "I"
 
 	// Row prefixes.
-	INDEX_PREFIX = "i"
+	INDEX_PREFIX = "j"
 
 	// Columns in the "H" column family.
 	HASHES_SOURCE_COLUMN        = "S" // Column
@@ -55,6 +57,10 @@ const (
 	OPS_OPS_COLUMN     = "OPS" // Column
 	HASH_FULL_COL_NAME = OPS_FAMILY + ":" + OPS_HASH_COLUMN
 	OPS_FULL_COL_NAME  = OPS_FAMILY + ":" + OPS_OPS_COLUMN
+
+	// Columns in the "I" column family.
+	EMPTY_INDEX_COLUMN        = "E"
+	EMPTY_INDEX_FULL_COL_NAME = INDEX_FAMILY + ":" + EMPTY_INDEX_COLUMN
 
 	// MAX_MUTATIONS is the max number of mutations we can send in a single ApplyBulk call. Can be up to 100,000 according to BigTable docs.
 	MAX_MUTATIONS = 100000
