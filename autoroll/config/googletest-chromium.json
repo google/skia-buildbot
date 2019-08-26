@@ -39,7 +39,6 @@
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
-    "disk": "2Gi",
     "readinessInitialDelaySeconds": "30",
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"

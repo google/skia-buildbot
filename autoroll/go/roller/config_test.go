@@ -36,6 +36,11 @@ func validBaseConfig() *AutoRollerConfig {
 			ChildBranch: "master",
 			ChildRepo:   "my-repo",
 		},
+		Kubernetes: &KubernetesConfig{
+			CPU:    "1",
+			Memory: "2Gb",
+			Disk:   "10Gb",
+		},
 	}
 }
 
@@ -94,6 +99,37 @@ func TestConfigs(t *testing.T) {
 			},
 		}
 	}, "Exactly one notification config must be supplied, but got 0")
+
+	testErr(func(c *AutoRollerConfig) {
+		c.Kubernetes = nil
+	}, "Kubernetes config is required.")
+
+	testErr(func(c *AutoRollerConfig) {
+		c.Kubernetes.CPU = ""
+	}, "KubernetesConfig validation failed: CPU is required.")
+
+	testErr(func(c *AutoRollerConfig) {
+		c.Kubernetes.Memory = ""
+	}, "KubernetesConfig validation failed: Memory is required.")
+
+	testErr(func(c *AutoRollerConfig) {
+		c.Kubernetes.Disk = ""
+	}, "kubernetes.disk is required for repo managers which use a checkout.")
+
+	testErr(func(c *AutoRollerConfig) {
+		c.Google3RepoManager = nil
+		c.NoCheckoutDEPSRepoManager = &repo_manager.NoCheckoutDEPSRepoManagerConfig{
+			NoCheckoutRepoManagerConfig: repo_manager.NoCheckoutRepoManagerConfig{
+				CommonRepoManagerConfig: repo_manager.CommonRepoManagerConfig{
+					ChildBranch:  "master",
+					ChildPath:    "child",
+					ParentBranch: "master",
+				},
+				ParentRepo: "fake",
+			},
+			ChildRepo: "fake",
+		}
+	}, "kubernetes.disk is not valid for no-checkout repo managers.")
 
 	// Helper function: create a valid base config, allow the caller to
 	// mutate it, then assert that validation succeeds.

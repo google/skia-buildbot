@@ -100,24 +100,18 @@ type KubernetesConfig struct {
 	CPU string `json:"cpu"`
 	// Requested memory, eg. "2Gi"
 	Memory string `json:"memory"`
-	// Requested disk size, eg. "200Gi"
+	// Requested persistent disk size, eg. "200Gi". If empty, no persistent
+	// disk is used.
 	Disk string `json:"disk"`
 }
 
 // Validate the KubernetesConfig.
 func (c *KubernetesConfig) Validate() error {
-	// KubernetesConfig is optional for now.
-	if c == nil {
-		return nil
-	}
 	if c.CPU == "" {
 		return errors.New("CPU is required.")
 	}
 	if c.Memory == "" {
 		return errors.New("Memory is required.")
-	}
-	if c.Disk == "" {
-		return errors.New("Disk is required.")
 	}
 	return nil
 }
@@ -169,7 +163,6 @@ type AutoRollerConfig struct {
 	SemVerGCSRepoManager         *repo_manager.SemVerGCSRepoManagerConfig         `json:"semVerGCSRepoManager,omitempty"`
 
 	// Kubernetes config.
-	// TODO(borenet): Optional right now, but will eventually be required.
 	Kubernetes *KubernetesConfig `json:"kubernetes"`
 
 	// Optional Fields.
@@ -235,6 +228,7 @@ func (c *AutoRollerConfig) Validate() error {
 		return err
 	}
 
+	isNoCheckout := false
 	rm := []util.Validator{}
 	if c.AndroidRepoManager != nil {
 		rm = append(rm, c.AndroidRepoManager)
@@ -253,6 +247,7 @@ func (c *AutoRollerConfig) Validate() error {
 	}
 	if c.FuchsiaSDKRepoManager != nil {
 		rm = append(rm, c.FuchsiaSDKRepoManager)
+		isNoCheckout = true
 	}
 	if c.GithubRepoManager != nil {
 		rm = append(rm, c.GithubRepoManager)
@@ -268,9 +263,11 @@ func (c *AutoRollerConfig) Validate() error {
 	}
 	if c.NoCheckoutDEPSRepoManager != nil {
 		rm = append(rm, c.NoCheckoutDEPSRepoManager)
+		isNoCheckout = true
 	}
 	if c.SemVerGCSRepoManager != nil {
 		rm = append(rm, c.SemVerGCSRepoManager)
+		isNoCheckout = true
 	}
 	if len(rm) != 1 {
 		return fmt.Errorf("Exactly one repo manager must be supplied, but got %d", len(rm))
@@ -279,8 +276,16 @@ func (c *AutoRollerConfig) Validate() error {
 		return err
 	}
 
+	if c.Kubernetes == nil {
+		return errors.New("Kubernetes config is required.")
+	}
 	if err := c.Kubernetes.Validate(); err != nil {
 		return fmt.Errorf("KubernetesConfig validation failed: %s", err)
+	}
+	if isNoCheckout && c.Kubernetes.Disk != "" {
+		return errors.New("kubernetes.disk is not valid for no-checkout repo managers.")
+	} else if !isNoCheckout && c.Kubernetes.Disk == "" {
+		return errors.New("kubernetes.disk is required for repo managers which use a checkout.")
 	}
 
 	// Verify that the notifier configs are valid.
