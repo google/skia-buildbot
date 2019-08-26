@@ -208,7 +208,7 @@ func TestCombine(t *testing.T) {
 			UntHashes: types.DigestSlice{AlphaDigest},
 			Num:       6,
 			Corpus:    "gm",
-			Blame: []*blame.WeightedBlame{
+			Blame: []blame.WeightedBlame{
 				{
 					Author: "test@example.com",
 					Prob:   1.00,
@@ -224,7 +224,7 @@ func TestCombine(t *testing.T) {
 			UntHashes: types.DigestSlice{BetaDigest},
 			Num:       26,
 			Corpus:    "gm",
-			Blame: []*blame.WeightedBlame{
+			Blame: []blame.WeightedBlame{
 				{
 					Author: "other@example.com",
 					Prob:   0.5,
@@ -247,7 +247,7 @@ func TestCombine(t *testing.T) {
 			UntHashes: types.DigestSlice{},
 			Num:       45,
 			Corpus:    "gm",
-			Blame:     []*blame.WeightedBlame{},
+			Blame:     []blame.WeightedBlame{},
 		},
 		ThirdTest: {
 			Name:      ThirdTest,
@@ -258,7 +258,7 @@ func TestCombine(t *testing.T) {
 			UntHashes: types.DigestSlice{GammaDigest},
 			Num:       66,
 			Corpus:    "gm",
-			Blame: []*blame.WeightedBlame{
+			Blame: []blame.WeightedBlame{
 				{
 					Author: "nobody@example.com",
 					Prob:   1.0,

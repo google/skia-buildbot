@@ -22,15 +22,15 @@ type SummaryMap map[types.TestName]*Summary
 // Summary contains rolled up metrics for one test.
 // It is immutable and should be thread safe.
 type Summary struct {
-	Name      types.TestName         `json:"name"`
-	Diameter  int                    `json:"diameter"`
-	Pos       int                    `json:"pos"`
-	Neg       int                    `json:"neg"`
-	Untriaged int                    `json:"untriaged"`
-	UntHashes types.DigestSlice      `json:"untHashes"`
-	Num       int                    `json:"num"`
-	Corpus    string                 `json:"corpus"`
-	Blame     []*blame.WeightedBlame `json:"blame"`
+	Name      types.TestName        `json:"name"`
+	Diameter  int                   `json:"diameter"`
+	Pos       int                   `json:"pos"`
+	Neg       int                   `json:"neg"`
+	Untriaged int                   `json:"untriaged"`
+	UntHashes types.DigestSlice     `json:"untHashes"`
+	Num       int                   `json:"num"`
+	Corpus    string                `json:"corpus"`
+	Blame     []blame.WeightedBlame `json:"blame"`
 }
 
 // TODO(jcgregorio) Make diameter faster, and also make the actual diameter

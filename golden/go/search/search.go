@@ -204,7 +204,7 @@ func digestIndex(d types.Digest, digestInfo []DigestStatus) int {
 // blameGroupID takes a blame distribution with just indices of commits and
 // returns an id for the blame group, which is just a string, the concatenated
 // git hashes in commit time order.
-func blameGroupID(b *blame.BlameDistribution, commits []*tiling.Commit) string {
+func blameGroupID(b blame.BlameDistribution, commits []*tiling.Commit) string {
 	ret := []string{}
 	for _, index := range b.Freq {
 		ret = append(ret, commits[index].Hash)
