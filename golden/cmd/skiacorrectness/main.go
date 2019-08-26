@@ -48,7 +48,6 @@ import (
 	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
-	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
 	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/ignore/ds_ignorestore"
@@ -84,7 +83,6 @@ func main() {
 		authorizedUsers     = flag.String("auth_users", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 		btInstanceID        = flag.String("bt_instance", "production", "ID of the BigTable instance that contains Git metadata")
 		btProjectID         = flag.String("bt_project_id", "skia-public", "project id with BigTable instance")
-		cacheSize           = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
 		clientSecretFile    = flag.String("client_secret", "", "Client secret file for OAuth2 authentication.")
 		cpuProfile          = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
 		defaultCorpus       = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
@@ -102,9 +100,7 @@ func main() {
 		gitBTTableID        = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
 		gitRepoDir          = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 		gitRepoURL          = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
-		gsBucketNames       = flag.String("gs_buckets", "", "Comma-separated list of google storage bucket that hold uploaded images.")
 		hashesGSPath        = flag.String("hashes_gs_path", "", "GS path, where the known hashes file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
-		imageDir            = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
 		indexInterval       = flag.Duration("idx_interval", 5*time.Minute, "Interval at which the indexer calculates the search index.")
 		internalPort        = flag.String("internal_port", "", "HTTP service address for internal clients, e.g. probers. No authentication on this port.")
 		local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
@@ -262,15 +258,7 @@ func main() {
 		}
 		sklog.Infof("DiffStore: NetDiffStore initiated.")
 	} else {
-		if *gsBucketNames == "" {
-			sklog.Fatalf("Must specify --gs_buckets or (--diff_server_http and --diff_server_grpc)")
-		}
-		mapper := disk_mapper.New(&diff.DiffMetrics{})
-		diffStore, err = diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize, mapper)
-		if err != nil {
-			sklog.Fatalf("Allocating local DiffStore failed: %s", err)
-		}
-		sklog.Infof("DiffStore: MemDiffStore initiated.")
+		sklog.Fatalf("Must specify --diff_server_http and --diff_server_grpc")
 	}
 
 	// Set up the event bus which can either be in-process or distributed
