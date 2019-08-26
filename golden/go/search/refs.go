@@ -32,10 +32,10 @@ const (
 type RefDiffer struct {
 	exp       ExpSlice
 	diffStore diff.DiffStore
-	idx       *indexer.SearchIndex
+	idx       indexer.IndexSearcher
 }
 
-func NewRefDiffer(exp ExpSlice, diffStore diff.DiffStore, idx *indexer.SearchIndex) *RefDiffer {
+func NewRefDiffer(exp ExpSlice, diffStore diff.DiffStore, idx indexer.IndexSearcher) *RefDiffer {
 	return &RefDiffer{
 		exp:       exp,
 		diffStore: diffStore,
