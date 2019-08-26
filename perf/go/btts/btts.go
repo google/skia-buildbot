@@ -1,4 +1,6 @@
 /*
+Package btts contains the BigTableTraceStore.
+
 See BIGTABLE.md for tiles and traces are stored in BigTable.
 */
 package btts
@@ -44,7 +46,7 @@ const (
 	INDEX_FAMILY   = "I"
 
 	// Row prefixes.
-	INDEX_PREFIX = "i"
+	INDEX_PREFIX = "j"
 
 	// Columns in the "H" column family.
 	HASHES_SOURCE_COLUMN        = "S" // Column
@@ -55,6 +57,10 @@ const (
 	OPS_OPS_COLUMN     = "OPS" // Column
 	HASH_FULL_COL_NAME = OPS_FAMILY + ":" + OPS_HASH_COLUMN
 	OPS_FULL_COL_NAME  = OPS_FAMILY + ":" + OPS_OPS_COLUMN
+
+	// Columns in the "I" column family.
+	EMPTY_INDEX_COLUMN        = "E"
+	EMPTY_INDEX_FULL_COL_NAME = INDEX_FAMILY + ":" + EMPTY_INDEX_COLUMN
 
 	// MAX_MUTATIONS is the max number of mutations we can send in a single ApplyBulk call. Can be up to 100,000 according to BigTable docs.
 	MAX_MUTATIONS = 100000
@@ -394,9 +400,9 @@ func (b *BigTableTraceStore) writeTraceIndices(tctx context.Context, tileKey Til
 		}
 		for k, v := range p {
 			mut := bigtable.NewMutation()
-			mut.Set(INDEX_FAMILY, rowKey, ts, EMPTY_VALUE)
+			mut.Set(INDEX_FAMILY, EMPTY_INDEX_COLUMN, ts, EMPTY_VALUE)
 			muts = append(muts, mut)
-			indexRowKeys = append(indexRowKeys, fmt.Sprintf("%s:%s:%s", tileKey.IndexRowPrefix(), k, v))
+			indexRowKeys = append(indexRowKeys, fmt.Sprintf("%s:%s:%s:%s", tileKey.IndexRowPrefix(), k, v, rowKey))
 			if len(muts) >= MAX_MUTATIONS {
 				if err := b.writeBatchOfIndices(tctx, indexRowKeys, muts); err != nil {
 					return err
