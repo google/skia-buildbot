@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/pubsub"
+	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
@@ -20,7 +22,9 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/gitstore/mocks"
+	gs_pubsub "go.skia.org/infra/go/gitstore/pubsub"
 	gitstore_testutils "go.skia.org/infra/go/gitstore/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/sklog"
@@ -147,7 +151,6 @@ func TestIngestCommits(t *testing.T) {
 		}
 		return nil
 	})
-	sklog.Errorf("Error: %s", err.Error())
 	assert.True(t, strings.Contains(err.Error(), "commit ingestion failed"))
 	assert.True(t, strings.Contains(err.Error(), "and commit-loading func failed with: context canceled"))
 	assertNew(5 + 6)
@@ -161,6 +164,7 @@ type gitsyncRefresher struct {
 	gs          gitstore.GitStore
 	initialSync bool
 	oldBranches map[string]string
+	pubsubCh    chan map[string]string
 	repo        *git.Repo
 	t           *testing.T
 }
@@ -173,12 +177,22 @@ func newGitsyncRefresher(t *testing.T, ctx context.Context, gs gitstore.GitStore
 	for _, b := range branches {
 		oldBranches[b.Name] = b.Head
 	}
+	pubsubCh := make(chan map[string]string)
+	dedupeMsgs := map[string]bool{}
+	assert.NoError(t, gs_pubsub.NewSubscriber(ctx, gitstore_testutils.BtConf, uuid.New().String(), gs.(*bt_gitstore.BigTableGitStore).RepoID, nil, func(msg *pubsub.Message, branches map[string]string) {
+		if _, ok := dedupeMsgs[msg.ID]; !ok {
+			dedupeMsgs[msg.ID] = true
+			pubsubCh <- branches
+		}
+		msg.Ack()
+	}))
 	return &gitsyncRefresher{
 		gitiles:     mr,
 		graph:       nil, // Set later in setupGitsync, after the graph is created.
 		gs:          gs,
 		initialSync: true,
 		oldBranches: oldBranches,
+		pubsubCh:    pubsubCh,
 		repo:        repo,
 		t:           t,
 	}
@@ -308,6 +322,20 @@ func (u *gitsyncRefresher) checkIngestion(ctx context.Context) {
 		assert.NoError(u.t, err)
 		deepequal.AssertDeepEqual(u.t, expectIndexCommits, gotIndexCommits)
 	}
+
+	// Verify that we received a pubsub message with the branch heads.
+	select {
+	case pubsubBranches := <-u.pubsubCh:
+		for name, head := range pubsubBranches {
+			expect, ok := expectBranches[name]
+			if ok {
+				assert.Equal(u.t, expect, head)
+			} else {
+				assert.Equal(u.t, gitstore.DELETE_BRANCH, head)
+			}
+		}
+	default:
+	}
 }
 
 // setupGitsync performs common setup for GitStore based Graphs.
@@ -321,7 +349,9 @@ func setupGitsync(t *testing.T) (context.Context, *git_testutils.GitBuilder, *re
 	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.GitDir(g.Dir()), urlMock)
 	repo := gitiles.NewRepo(g.RepoUrl(), "", urlMock.Client())
 	gcsClient := test_gcsclient.NewMemoryClient("fake-bucket")
-	ri, err := newRepoImpl(ctx, gs, repo, gcsClient, "repo-ingestion")
+	p, err := gs_pubsub.NewPublisher(ctx, gitstore_testutils.BtConf, gs.RepoID, nil)
+	assert.NoError(t, err)
+	ri, err := newRepoImpl(ctx, gs, repo, gcsClient, "repo-ingestion", p)
 	assert.NoError(t, err)
 	ud := newGitsyncRefresher(t, ctx, gs, g, mockRepo)
 	graph, err := repograph.NewWithRepoImpl(ctx, ri)
