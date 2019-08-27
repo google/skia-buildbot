@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "50c43b6d_1ef9019d",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-27T19:29:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0733f873_95f88f26",
+      "range": {
+        "startLine": 137,
+        "startChar": 54,
+        "endLine": 137,
+        "endChar": 59
+      },
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fda9d43b_1982393d",
         "filename": "perf/go/btts/btts.go",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2019-08-27T18:35:57Z",
       "side": 1,
       "message": "if you are wrapping around an error, skerr.Wrapf is better than skerr.Fmt() The latter is better for creating your own erros (like line 228)\n\nMany of the ones below seem to fall into this category.",
+      "range": {
+        "startLine": 232,
+        "startChar": 14,
+        "endLine": 232,
+        "endChar": 23
+      },
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7738bf98_08743244",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-27T19:29:58Z",
+      "side": 1,
+      "message": "Moved back fmt.Errof.",
+      "parentUuid": "fda9d43b_1982393d",
       "range": {
         "startLine": 232,
         "startChar": 14,
@@ -134,6 +182,30 @@
     },
     {
       "key": {
+        "uuid": "d99c4546_e15d5393",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 408,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-27T19:29:58Z",
+      "side": 1,
+      "message": "Updated BIGTABLE.md",
+      "parentUuid": "4fc9af80_72595c96",
+      "range": {
+        "startLine": 408,
+        "startChar": 49,
+        "endLine": 408,
+        "endChar": 68
+      },
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ad0ce6a9_3ea86f65",
         "filename": "perf/go/btts/btts.go",
         "patchSetId": 5
@@ -154,6 +226,30 @@
       "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8b6e5d3_19188584",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-27T19:29:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ad0ce6a9_3ea86f65",
+      "range": {
+        "startLine": 411,
+        "startChar": 92,
+        "endLine": 411,
+        "endChar": 96
+      },
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -180,6 +276,30 @@
     },
     {
       "key": {
+        "uuid": "c6569dd2_e3e1a538",
+        "filename": "perf/go/btts/btts_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-27T19:29:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a7837c70_e0ca739b",
+      "range": {
+        "startLine": 146,
+        "startChar": 60,
+        "endLine": 147,
+        "endChar": 19
+      },
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a3514e9_04476317",
         "filename": "perf/go/btts/btts_test.go",
         "patchSetId": 5
@@ -203,6 +323,30 @@
     },
     {
       "key": {
+        "uuid": "e31d196f_868b5287",
+        "filename": "perf/go/btts/btts_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-27T19:29:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a3514e9_04476317",
+      "range": {
+        "startLine": 149,
+        "startChar": 2,
+        "endLine": 149,
+        "endChar": 13
+      },
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8229b993_aad433b7",
         "filename": "perf/go/btts/btts_test.go",
         "patchSetId": 5
@@ -214,6 +358,30 @@
       "writtenOn": "2019-08-27T18:35:57Z",
       "side": 1,
       "message": "delete or uncomment",
+      "range": {
+        "startLine": 234,
+        "startChar": 1,
+        "endLine": 234,
+        "endChar": 3
+      },
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e385ab2e_d2dff51f",
+        "filename": "perf/go/btts/btts_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-27T19:29:58Z",
+      "side": 1,
+      "message": "No, this is code that will be uncommented shortly when the new QueryTracesByIndex lands.\n\nHere and below.",
+      "parentUuid": "8229b993_aad433b7",
       "range": {
         "startLine": 234,
         "startChar": 1,
