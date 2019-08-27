@@ -22,6 +22,30 @@
       "revId": "a6544f97e7424196db0839d332b797966f71a5d7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "10fc6632_7559feda",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T14:58:21Z",
+      "side": 1,
+      "message": "Maybe - I would expect looking at the routes next to the handlers below makes it decently clear that most of them are JSON",
+      "parentUuid": "940ee034_ac92b1e9",
+      "range": {
+        "startLine": 471,
+        "startChar": 1,
+        "endLine": 471,
+        "endChar": 28
+      },
+      "revId": "a6544f97e7424196db0839d332b797966f71a5d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
