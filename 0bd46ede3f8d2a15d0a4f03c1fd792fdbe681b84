@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4db9e95a_c9c93e84",
+        "filename": "go/autoroll/autoroll.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-27T18:51:26Z",
+      "side": 1,
+      "message": "Can this be \n\"i.CqFinished \u003d ci.IsClosed() || cqFinished\"\nbecause cqFinished should be false anyway for dry runs? can remove line 251 then",
+      "revId": "0bd46ede3f8d2a15d0a4f03c1fd792fdbe681b84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
