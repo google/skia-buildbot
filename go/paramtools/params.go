@@ -4,7 +4,6 @@ package paramtools
 import (
 	"bytes"
 	"encoding/gob"
-	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -427,18 +426,43 @@ func (p *paramsEncoder) encodeAsString(params Params) (string, error) {
 		}
 		keyIndex, ok := p.keys[key]
 		if !ok {
-			return "", fmt.Errorf("Unknown key.")
+			return "", skerr.Fmt("Unknown key: %s", key)
 		}
 		valueIndex, ok := p.values[keyIndex][value]
 		if !ok {
-			return "", fmt.Errorf("Unknown value.")
+			return "", skerr.Fmt("Unknown value: %s", value)
 		}
 		ret = append(ret, keyIndex, "=", valueIndex, ",")
 	}
 	if len(ret) == 1 {
-		return "", fmt.Errorf("No params encoded.")
+		return "", skerr.Fmt("No params encoded.")
 	}
 	return strings.Join(ret, ""), nil
+}
+
+// encode takes a Params and encodes all the keys and values via
+// the OrderedParamSet.
+func (p *paramsEncoder) encode(params Params) (Params, error) {
+	ret := Params{}
+	for _, key := range p.keyOrder {
+		value, ok := params[key]
+		if !ok {
+			continue
+		}
+		keyIndex, ok := p.keys[key]
+		if !ok {
+			return nil, skerr.Fmt("Unknown key: %s", key)
+		}
+		valueIndex, ok := p.values[keyIndex][value]
+		if !ok {
+			return nil, skerr.Fmt("Unknown value: %s", value)
+		}
+		ret[keyIndex] = valueIndex
+	}
+	if len(ret) == 0 {
+		return nil, skerr.Fmt("No params encoded.")
+	}
+	return ret, nil
 }
 
 func (o *OrderedParamSet) getParamsEncoder() *paramsEncoder {
@@ -455,6 +479,11 @@ func (o *OrderedParamSet) getParamsEncoder() *paramsEncoder {
 // EncodeParamsAsString encodes the Params as a string containing indices.
 func (o *OrderedParamSet) EncodeParamsAsString(p Params) (string, error) {
 	return o.getParamsEncoder().encodeAsString(p)
+}
+
+// EncodeParams encodes the Params via the OrderedParamSet.
+func (o *OrderedParamSet) EncodeParams(p Params) (Params, error) {
+	return o.getParamsEncoder().encode(p)
 }
 
 func (o *OrderedParamSet) getParamsDecoder() *paramsDecoder {

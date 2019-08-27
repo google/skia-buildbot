@@ -375,13 +375,18 @@ func TestOrderedParamSet(t *testing.T) {
 	s, err := p.EncodeParamsAsString(params)
 	assert.NoError(t, err)
 	assert.Equal(t, ",0=0,1=1,2=0,", s)
+	ep, err := p.EncodeParams(params)
+	assert.NoError(t, err)
+	assert.Equal(t, Params{"0": "0", "1": "1", "2": "0"}, ep)
 	paramsDecoded, err := p.DecodeParamsFromString(s)
 	assert.NoError(t, err)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, params, paramsDecoded)
 
-	// Test encoding and empty Params.
+	// Test encoding an empty Params.
 	s, err = p.EncodeParamsAsString(Params{})
+	assert.Error(t, err)
+	_, err = p.EncodeParams(Params{})
 	assert.Error(t, err)
 
 	// Test values at the end of the ParamSet.
@@ -393,6 +398,10 @@ func TestOrderedParamSet(t *testing.T) {
 	s, err = p.EncodeParamsAsString(params)
 	assert.NoError(t, err)
 	assert.Equal(t, ",0=3,1=68,2=1,", s)
+	ep, err = p.EncodeParams(params)
+	assert.NoError(t, err)
+	assert.Equal(t, Params{"0": "3", "1": "68", "2": "1"}, ep)
+
 	paramsDecoded, err = p.DecodeParamsFromString(s)
 	assert.NoError(t, err)
 	assert.Equal(t, params, paramsDecoded)
@@ -402,6 +411,8 @@ func TestOrderedParamSet(t *testing.T) {
 		"config": "some unknown value",
 	}
 	_, err = p.EncodeParamsAsString(params)
+	assert.Error(t, err)
+	_, err = p.EncodeParams(params)
 	assert.Error(t, err)
 
 	_, err = p.DecodeParamsFromString("")
