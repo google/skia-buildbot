@@ -130,7 +130,7 @@ indices
       (A previous indexing scheme used 'i' as a prefix, so we avoid using that prefix.)
 
        I - Column family stores the empty string.
-         - Columns: E - An empty string. (You can't create a row w/o writing to at least one
+         - Columns: E - An empty byte slice. (You can't create a row w/o writing to at least one
              column, so we store the smallest amount of data possible since all the data is in
              the rowname.)
 
@@ -187,3 +187,6 @@ of the incoming channel. This allows the amount of memory used to be kept to a
 minimum while providing a stream of trace ids that match a query, which can
 incrementally be bundled into requests back to BT to retrieve the actual trace
 values.
+
+Note that while we use normal keys and values in the example above, the
+implementation will use encoded keys and values for space savings.
