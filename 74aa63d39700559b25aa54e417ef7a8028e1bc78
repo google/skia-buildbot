@@ -16,6 +16,24 @@
       "revId": "74aa63d39700559b25aa54e417ef7a8028e1bc78",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c31d03d1_8085ba1e",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-27T19:30:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d6dfbfed_d7bbcf86",
+      "revId": "74aa63d39700559b25aa54e417ef7a8028e1bc78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
