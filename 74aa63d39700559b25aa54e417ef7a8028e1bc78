@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d6dfbfed_d7bbcf86",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T19:03:16Z",
+      "side": 1,
+      "message": "nit: add a b/ link",
+      "revId": "74aa63d39700559b25aa54e417ef7a8028e1bc78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
