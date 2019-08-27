@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa1939e6_4d72d89f",
+        "filename": "go/paramtools/params.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-27T13:17:58Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f551a08f_54ea8082",
+      "range": {
+        "startLine": 444,
+        "startChar": 3,
+        "endLine": 444,
+        "endChar": 9
+      },
+      "revId": "c335e258b47538180e4680afd02f0e0ee6434b95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "98be9133_61df596a",
         "filename": "go/paramtools/params.go",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "d822acab_92a799ca",
+        "filename": "go/paramtools/params.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 455,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-27T13:17:58Z",
+      "side": 1,
+      "message": "Done, also changed in encodeAsString.",
+      "parentUuid": "98be9133_61df596a",
+      "range": {
+        "startLine": 455,
+        "startChar": 15,
+        "endLine": 455,
+        "endChar": 25
+      },
+      "revId": "c335e258b47538180e4680afd02f0e0ee6434b95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "42643883_46e859e3",
         "filename": "go/paramtools/params.go",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2019-08-27T13:07:44Z",
       "side": 1,
       "message": "It almost seems that you are validating the params here, so maybe call this ValidateParams and have it return a Params, bool (ok) ?",
+      "range": {
+        "startLine": 486,
+        "startChar": 26,
+        "endLine": 486,
+        "endChar": 38
+      },
+      "revId": "c335e258b47538180e4680afd02f0e0ee6434b95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6dc2bb0c_c555a869",
+        "filename": "go/paramtools/params.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 486,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-08-27T13:17:58Z",
+      "side": 1,
+      "message": "No, this is returning a params with completely different values in it.\n\nDo we need to add Validate to the name of every func that returns an error?",
+      "parentUuid": "42643883_46e859e3",
       "range": {
         "startLine": 486,
         "startChar": 26,
