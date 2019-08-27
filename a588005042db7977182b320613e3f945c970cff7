@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "9a2886e9_b090c32c",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T17:53:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c2c8001f_de2807dd",
+      "range": {
+        "startLine": 251,
+        "startChar": 16,
+        "endLine": 251,
+        "endChar": 28
+      },
+      "revId": "a588005042db7977182b320613e3f945c970cff7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9eea9e67_b3d23416",
         "filename": "golden/go/diffstore/imgloader.go",
         "patchSetId": 7
@@ -68,6 +92,30 @@
       "revId": "a588005042db7977182b320613e3f945c970cff7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d1c647a_96f3e4fc",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T17:53:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9eea9e67_b3d23416",
+      "range": {
+        "startLine": 272,
+        "startChar": 11,
+        "endLine": 272,
+        "endChar": 21
+      },
+      "revId": "a588005042db7977182b320613e3f945c970cff7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "cdfca3ed_e1ef6ee5",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T17:53:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "11c8cc17_f0935836",
+      "range": {
+        "startLine": 305,
+        "startChar": 21,
+        "endLine": 305,
+        "endChar": 24
+      },
+      "revId": "a588005042db7977182b320613e3f945c970cff7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "053d1af7_ed585481",
         "filename": "golden/go/diffstore/imgloader_test.go",
         "patchSetId": 7
@@ -108,6 +180,24 @@
       "revId": "a588005042db7977182b320613e3f945c970cff7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "79450cc2_7cb7ab7f",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T17:53:45Z",
+      "side": 1,
+      "message": "You\u0027re correct. I\u0027m tackling that in https://skia-review.googlesource.com/c/buildbot/+/237153/.",
+      "parentUuid": "053d1af7_ed585481",
+      "revId": "a588005042db7977182b320613e3f945c970cff7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
