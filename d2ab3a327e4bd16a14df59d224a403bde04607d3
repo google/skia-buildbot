@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "78c9fadb_7f2de515",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T22:03:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1dfb4d0b_324c7b34",
+      "range": {
+        "startLine": 287,
+        "startChar": 3,
+        "endLine": 288,
+        "endChar": 42
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "71316a3c_59307e75",
         "filename": "golden/go/diffstore/imgloader_test.go",
         "patchSetId": 8
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "256e33b2_caedb16a",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T22:03:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "71316a3c_59307e75",
+      "range": {
+        "startLine": 29,
+        "startChar": 1,
+        "endLine": 29,
+        "endChar": 2
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a5d4ee95_72bb61aa",
         "filename": "golden/go/diffstore/imgloader_test.go",
         "patchSetId": 8
@@ -62,6 +110,24 @@
       "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "abc50e09_aad1078e",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T22:03:36Z",
+      "side": 1,
+      "message": "They depend on the skTextImages below.",
+      "parentUuid": "a5d4ee95_72bb61aa",
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "28426794_d8a4575c",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T22:03:36Z",
+      "side": 1,
+      "message": "As discussed offline, we\u0027re keeping the TestImageLoader prefix as the diffstore package namespace is shared with other tests (e.g. mem_diffstore_test.go).",
+      "parentUuid": "3e8b2190_c4ae6bcc",
+      "range": {
+        "startLine": 54,
+        "startChar": 5,
+        "endLine": 54,
+        "endChar": 53
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ace800b_182bb27b",
         "filename": "golden/go/diffstore/imgloader_test.go",
         "patchSetId": 8
@@ -102,6 +192,24 @@
       "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a1b2cc8_60a9b4ca",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T22:03:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ace800b_182bb27b",
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -151,6 +259,54 @@
     },
     {
       "key": {
+        "uuid": "b829e258_213b642d",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T22:03:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9bd8d6b9_d165a370",
+      "range": {
+        "startLine": 68,
+        "startChar": 49,
+        "endLine": 68,
+        "endChar": 50
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f51ea3d2_c06ed580",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T22:03:36Z",
+      "side": 1,
+      "message": "Since this is only referenced here I figured I\u0027d inline it, but let me know if you feel strongly about making it a constant.",
+      "parentUuid": "60cedaab_2980568d",
+      "range": {
+        "startLine": 68,
+        "startChar": 38,
+        "endLine": 68,
+        "endChar": 49
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d32209b_270bb514",
         "filename": "golden/go/diffstore/imgloader_test.go",
         "patchSetId": 8
@@ -171,6 +327,30 @@
       "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85d768f5_a9066a34",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T22:03:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7d32209b_270bb514",
+      "range": {
+        "startLine": 81,
+        "startChar": 10,
+        "endLine": 81,
+        "endChar": 22
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -197,6 +377,30 @@
     },
     {
       "key": {
+        "uuid": "fe3ab959_e5c5c448",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T22:03:36Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "21f63fd1_360edfc0",
+      "range": {
+        "startLine": 83,
+        "startChar": 14,
+        "endLine": 83,
+        "endChar": 24
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "66b7d11f_4cb19d39",
         "filename": "golden/go/diffstore/imgloader_test.go",
         "patchSetId": 8
@@ -217,6 +421,30 @@
       "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba9e1234_0e83ebb5",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T22:03:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "66b7d11f_4cb19d39",
+      "range": {
+        "startLine": 89,
+        "startChar": 14,
+        "endLine": 89,
+        "endChar": 15
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -243,6 +471,30 @@
     },
     {
       "key": {
+        "uuid": "d254bd2d_fe5299fa",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T22:03:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "af3faace_9ebac40b",
+      "range": {
+        "startLine": 91,
+        "startChar": 2,
+        "endLine": 91,
+        "endChar": 42
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "336d0d65_de74e441",
         "filename": "golden/go/diffstore/imgloader_test.go",
         "patchSetId": 8
@@ -263,6 +515,30 @@
       "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0462b893_412ea010",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T22:03:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "336d0d65_de74e441",
+      "range": {
+        "startLine": 109,
+        "startChar": 1,
+        "endLine": 109,
+        "endChar": 36
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -289,6 +565,30 @@
     },
     {
       "key": {
+        "uuid": "b6b85d2e_a97966f5",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T22:03:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a425cda_cf7c64ff",
+      "range": {
+        "startLine": 132,
+        "startChar": 1,
+        "endLine": 132,
+        "endChar": 33
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9b538b52_2522a5b0",
         "filename": "golden/go/diffstore/imgloader_test.go",
         "patchSetId": 8
@@ -309,6 +609,30 @@
       "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0219ffd8_ee19fc71",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T22:03:36Z",
+      "side": 1,
+      "message": "You\u0027re right, I just tried it and it does panic. Thanks!",
+      "parentUuid": "9b538b52_2522a5b0",
+      "range": {
+        "startLine": 279,
+        "startChar": 4,
+        "endLine": 279,
+        "endChar": 20
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -335,6 +659,30 @@
     },
     {
       "key": {
+        "uuid": "388005ad_cd0c24d6",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T22:03:36Z",
+      "side": 1,
+      "message": "I went in a slightly different direction by introducing two global vars with the result of skTextToImage() for each image.\n\nLet me know what you think.",
+      "parentUuid": "20df6854_8be914dd",
+      "range": {
+        "startLine": 296,
+        "startChar": 102,
+        "endLine": 296,
+        "endChar": 106
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e749c6dd_4883c9fe",
         "filename": "golden/go/diffstore/imgloader_test.go",
         "patchSetId": 8
@@ -355,6 +703,30 @@
       "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e3579f78_e9e69bc0",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-27T22:03:36Z",
+      "side": 1,
+      "message": "Actually assert.Equal is perfectly sufficient. Thanks for pointing this out.",
+      "parentUuid": "e749c6dd_4883c9fe",
+      "range": {
+        "startLine": 304,
+        "startChar": 0,
+        "endLine": 304,
+        "endChar": 21
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
