@@ -1,0 +1,153 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ee2bb575_a82fefbc",
+        "filename": "golden/go/blame/blame.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-27T01:45:16Z",
+      "side": 1,
+      "message": "nit: maybe add TODO to delete this struct and just return []*tiling.Commit from GetBlame?\n\nAlso, am I correct that frontend/res/imp/blame-sk.html is unused? I.e. this type is only used in go code?",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 1
+      },
+      "revId": "acd2b046ff1dcbb93b275c7a5ff8ddd1be6908d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d08d27da_83f2d879",
+        "filename": "golden/go/blame/blame_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-27T01:45:16Z",
+      "side": 1,
+      "message": "nit: Can we test a case that produces more than one commit index?",
+      "revId": "acd2b046ff1dcbb93b275c7a5ff8ddd1be6908d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0916e22b_7a9d85bb",
+        "filename": "golden/go/blame/blame_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-27T01:45:16Z",
+      "side": 1,
+      "message": "I think this is expected due to https://skia.googlesource.com/buildbot/+/d844e74cef99b67a0ee4dc2c0a92df69a318e687/golden/go/blame/blame.go#219 and https://skia.googlesource.com/buildbot/+/d844e74cef99b67a0ee4dc2c0a92df69a318e687/golden/go/blame/blame.go#245. I\u0027m not 100% sure of the logic behind using the min there.",
+      "revId": "acd2b046ff1dcbb93b275c7a5ff8ddd1be6908d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4f8a757c_4054c823",
+        "filename": "golden/go/summary/summary_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-27T01:45:16Z",
+      "side": 1,
+      "message": "nit: missing Head",
+      "range": {
+        "startLine": 514,
+        "startChar": 3,
+        "endLine": 514,
+        "endChar": 26
+      },
+      "revId": "acd2b046ff1dcbb93b275c7a5ff8ddd1be6908d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b4b121d_1eeccb6b",
+        "filename": "golden/go/summary/summary_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-27T01:45:16Z",
+      "side": 1,
+      "message": "Is it correct that there is a blame when there are no untriaged?",
+      "range": {
+        "startLine": 525,
+        "startChar": 10,
+        "endLine": 530,
+        "endChar": 5
+      },
+      "revId": "acd2b046ff1dcbb93b275c7a5ff8ddd1be6908d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8a51770_6655d24b",
+        "filename": "golden/go/testutils/data_bug_revert/bug_revert.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-27T01:45:16Z",
+      "side": 1,
+      "message": "nit: use consistent spelling: Alfa or Alpha\n\nIf you meant for digests and devices to have different names, something more obviously different would be better, e.g. name devices after Canadian game shows (https://en.wikipedia.org/wiki/List_of_English-language_Canadian_game_shows) and name digests after unsolved problems in mathematics (https://en.wikipedia.org/wiki/List_of_unsolved_problems_in_mathematics). \n\n(TIL: https://en.wikipedia.org/wiki/List_of_lists_of_lists)",
+      "range": {
+        "startLine": 17,
+        "startChar": 11,
+        "endLine": 17,
+        "endChar": 15
+      },
+      "revId": "acd2b046ff1dcbb93b275c7a5ff8ddd1be6908d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9564dab0_880e40c4",
+        "filename": "golden/go/testutils/data_bug_revert/bug_revert.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-27T01:45:16Z",
+      "side": 1,
+      "message": "nit: five",
+      "range": {
+        "startLine": 45,
+        "startChar": 4,
+        "endLine": 45,
+        "endChar": 9
+      },
+      "revId": "acd2b046ff1dcbb93b275c7a5ff8ddd1be6908d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
