@@ -561,7 +561,7 @@ func (r *repoImpl) UpdateCallback(ctx context.Context, added, removed []*vcsinfo
 	if err := r.gitstore.PutBranches(ctx, updateBranches); err != nil {
 		return skerr.Wrapf(err, "Failed to put new branch heads.")
 	}
-	if r.pubsub != nil {
+	if r.pubsub != nil && len(updateBranches) > 0 {
 		r.pubsub.Publish(ctx, updateBranches)
 	}
 	return nil
