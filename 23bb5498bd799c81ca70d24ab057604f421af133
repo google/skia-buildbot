@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f0df27e5_26739956",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 532,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-27T18:39:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9b4a6b66_9f914c54",
+      "range": {
+        "startLine": 532,
+        "startChar": 20,
+        "endLine": 532,
+        "endChar": 27
+      },
+      "revId": "23bb5498bd799c81ca70d24ab057604f421af133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cc6f6e2a_02c60505",
         "filename": "promk/prometheus/alerts_general.yml",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "23bb5498bd799c81ca70d24ab057604f421af133",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63479d95_28aeedf5",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 535,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-27T18:39:55Z",
+      "side": 1,
+      "message": "I copy/pasted from a different error-rate alert and shortened the period from 60m...  lowered to 5m.",
+      "parentUuid": "cc6f6e2a_02c60505",
+      "range": {
+        "startLine": 535,
+        "startChar": 61,
+        "endLine": 535,
+        "endChar": 64
+      },
+      "revId": "23bb5498bd799c81ca70d24ab057604f421af133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
