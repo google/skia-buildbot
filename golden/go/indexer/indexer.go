@@ -77,44 +77,42 @@ func newSearchIndex(sic searchIndexConfig, cpxTile types.ComplexTile) *SearchInd
 	}
 }
 
-// CpxTile returns the current complex tile from which simpler tiles, like one without ignored
-// traces can be retrieved
-func (idx *SearchIndex) CpxTile() types.ComplexTile {
+// Tile implements the IndexSearcher interface.
+func (idx *SearchIndex) Tile() types.ComplexTile {
 	return idx.cpxTile
 }
 
-// GetIgnoreMatcher returns a matcher for the ignore rules that were used to
-// build the tile with ignores.
+// GetIgnoreMatcher implements the IndexSearcher interface.
 func (idx *SearchIndex) GetIgnoreMatcher() paramtools.ParamMatcher {
 	return idx.cpxTile.IgnoreRules()
 }
 
-// Proxy to digest_counter.DigestCounter.ByTest
+// DigestCountsByTest implements the IndexSearcher interface.
 func (idx *SearchIndex) DigestCountsByTest(is types.IgnoreState) map[types.TestName]digest_counter.DigestCount {
 	return idx.dCounters[is].ByTest()
 }
 
-// Proxy to digest_counter.DigestCounter.MaxDigestsByTest
+// MaxDigestsByTest implements the IndexSearcher interface.
 func (idx *SearchIndex) MaxDigestsByTest(is types.IgnoreState) map[types.TestName]types.DigestSet {
 	return idx.dCounters[is].MaxDigestsByTest()
 }
 
-// Proxy to digest_counter.DigestCounter.ByTrace
+// DigestCountsByTrace implements the IndexSearcher interface.
 func (idx *SearchIndex) DigestCountsByTrace(is types.IgnoreState) map[tiling.TraceId]digest_counter.DigestCount {
 	return idx.dCounters[is].ByTrace()
 }
 
-// ByQuery returns a DigestCount of all the digests that match the given query.
+// DigestCountsByQuery implements the IndexSearcher interface.
 func (idx *SearchIndex) DigestCountsByQuery(query url.Values, is types.IgnoreState) digest_counter.DigestCount {
 	return idx.dCounters[is].ByQuery(idx.cpxTile.GetTile(is), query)
 }
 
-// Proxy to summary.Summary.Get.
+// GetSummaries implements the IndexSearcher interface.
 func (idx *SearchIndex) GetSummaries(is types.IgnoreState) summary.SummaryMap {
 	return idx.summaries[is]
 }
 
-// Proxy to summary.CalcSummaries.
+// CalcSummaries implements the IndexSearcher interface.
 func (idx *SearchIndex) CalcSummaries(testNames types.TestNameSet, query url.Values, is types.IgnoreState, head bool) (summary.SummaryMap, error) {
 	dCounter := idx.dCounters[is]
 	smc := summary.SummaryMapConfig{
@@ -126,17 +124,17 @@ func (idx *SearchIndex) CalcSummaries(testNames types.TestNameSet, query url.Val
 	return summary.NewSummaryMap(smc, idx.cpxTile.GetTile(is), testNames, query, head)
 }
 
-// Proxy to paramsets.Get
+// GetParamsetSummary implements the IndexSearcher interface.
 func (idx *SearchIndex) GetParamsetSummary(test types.TestName, digest types.Digest, is types.IgnoreState) paramtools.ParamSet {
 	return idx.paramsetSummaries[is].Get(test, digest)
 }
 
-// Proxy to paramsets.GetByTest
+// GetParamsetSummaryByTest implements the IndexSearcher interface.
 func (idx *SearchIndex) GetParamsetSummaryByTest(is types.IgnoreState) map[types.TestName]map[types.Digest]paramtools.ParamSet {
 	return idx.paramsetSummaries[is].GetByTest()
 }
 
-// Proxy to blame.Blamer.GetBlame.
+// GetBlame implements the IndexSearcher interface.
 func (idx *SearchIndex) GetBlame(test types.TestName, digest types.Digest, commits []*tiling.Commit) blame.BlameDistribution {
 	if idx.blamer == nil {
 		// should never happen - indexer should have this initialized
@@ -168,7 +166,7 @@ type Indexer struct {
 	mutex          sync.RWMutex
 }
 
-// New returns a new Indexer instance. It synchronously indexes the initially
+// New returns a new IndexSource instance. It synchronously indexes the initially
 // available tile. If the indexing fails an error is returned.
 // The provided interval defines how often the index should be refreshed.
 func New(ic IndexerConfig, interval time.Duration) (*Indexer, error) {
@@ -222,11 +220,14 @@ func New(ic IndexerConfig, interval time.Duration) (*Indexer, error) {
 	return ret, ret.start(interval)
 }
 
-// GetIndex returns the current index, which is updated continuously in the
-// background. The returned instances of SearchIndex can be considered immutable
-// and is not going to change. It should be used to handle an entire request
-// to provide consistent information.
-func (ix *Indexer) GetIndex() *SearchIndex {
+// GetIndex implements the IndexSource interface.
+func (ix *Indexer) GetIndex() IndexSearcher {
+	return ix.getIndex()
+}
+
+// getIndex is like GetIndex but returns the bare struct, for
+// internal package use.
+func (ix *Indexer) getIndex() *SearchIndex {
 	ix.mutex.RLock()
 	defer ix.mutex.RUnlock()
 	return ix.lastIndex
@@ -343,7 +344,7 @@ func (ix *Indexer) indexTests(testChanges []types.Expectations) {
 
 // cloneLastIndex returns a copy of the most recent index.
 func (ix *Indexer) cloneLastIndex() *SearchIndex {
-	lastIdx := ix.GetIndex()
+	lastIdx := ix.getIndex()
 	sic := searchIndexConfig{
 		diffStore:         ix.DiffStore,
 		expectationsStore: ix.ExpectationsStore,
@@ -518,3 +519,9 @@ func runWarmer(state interface{}) error {
 	go idx.warmer.PrecomputeDiffs(idx.summaries[is], idx.testNames, idx.dCounters[is], d)
 	return nil
 }
+
+// Make sure SearchIndex fulfills the IndexSearcher interface
+var _ IndexSearcher = (*SearchIndex)(nil)
+
+// Make sure Indexer fulfills the IndexSource interface
+var _ IndexSource = (*Indexer)(nil)

@@ -84,7 +84,7 @@ type SRDigestDetails struct {
 type SearchAPI struct {
 	DiffStore         diff.DiffStore
 	ExpectationsStore expstorage.ExpectationsStore
-	Indexer           *indexer.Indexer
+	Indexer           indexer.IndexSource
 	TryjobStore       tryjobstore.TryjobStore
 	// optional. If specified, will only show the params that match this query. This is
 	// opt-in, to avoid leaking.
@@ -92,7 +92,7 @@ type SearchAPI struct {
 }
 
 // NewSearchAPI returns a new SearchAPI instance.
-func NewSearchAPI(diffStore diff.DiffStore, expectationsStore expstorage.ExpectationsStore, indexer *indexer.Indexer, tryjobStore tryjobstore.TryjobStore, publiclyViewableParams paramtools.ParamSet) *SearchAPI {
+func NewSearchAPI(diffStore diff.DiffStore, expectationsStore expstorage.ExpectationsStore, indexer indexer.IndexSource, tryjobStore tryjobstore.TryjobStore, publiclyViewableParams paramtools.ParamSet) *SearchAPI {
 	return &SearchAPI{
 		DiffStore:              diffStore,
 		ExpectationsStore:      expectationsStore,
@@ -168,7 +168,7 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 		Digests: ret,
 		Offset:  offset,
 		Size:    len(displayRet),
-		Commits: idx.CpxTile().GetTile(types.ExcludeIgnoredTraces).Commits,
+		Commits: idx.Tile().GetTile(types.ExcludeIgnoredTraces).Commits,
 		Issue:   issue,
 	}
 	return searchRet, nil
@@ -225,7 +225,7 @@ func (s *SearchAPI) Summary(issueID int64) (*IssueSummary, error) {
 func (s *SearchAPI) GetDigestDetails(test types.TestName, digest types.Digest) (*SRDigestDetails, error) {
 	ctx := context.Background()
 	idx := s.Indexer.GetIndex()
-	tile := idx.CpxTile().GetTile(types.IncludeIgnoredTraces)
+	tile := idx.Tile().GetTile(types.IncludeIgnoredTraces)
 
 	exp, err := s.getExpectationsFromQuery(nil)
 	if err != nil {
@@ -300,7 +300,7 @@ func (s *SearchAPI) getExpectationsFromQuery(q *Query) (ExpSlice, error) {
 }
 
 // query issue returns the digest related to this issues in intermediate representation.
-func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.Issue, error) {
+func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, idx indexer.IndexSearcher, exp ExpSlice) (srInterMap, *tryjobstore.Issue, error) {
 	ctx, span := trace.StartSpan(ctx, "search/queryIssue")
 	defer span.End()
 
@@ -332,7 +332,7 @@ type filterAddFn func(test types.TestName, digest types.Digest, traceID tiling.T
 
 // extractIssueDigests loads the issue and its tryjob results and then filters the
 // results via the given query. For each testName/digest pair addFn is called.
-func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx *indexer.SearchIndex, exp ExpSlice, addFn filterAddFn) (*tryjobstore.Issue, error) {
+func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx indexer.IndexSearcher, exp ExpSlice, addFn filterAddFn) (*tryjobstore.Issue, error) {
 	_, span := trace.StartSpan(ctx, "search/queryIssue")
 	defer span.End()
 
@@ -424,7 +424,7 @@ func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx *inde
 
 // filterTile iterates over the tile and accumulates the traces
 // that match the given query creating the initial search result.
-func (s *SearchAPI) filterTile(ctx context.Context, q *Query, exp ExpSlice, idx *indexer.SearchIndex) (srInterMap, error) {
+func (s *SearchAPI) filterTile(ctx context.Context, q *Query, exp ExpSlice, idx indexer.IndexSearcher) (srInterMap, error) {
 	_, span := trace.StartSpan(ctx, "search/filterTile")
 	defer span.End()
 
@@ -480,7 +480,7 @@ func (s *SearchAPI) getDigestRecs(inter srInterMap, exps ExpSlice) []*SRDigest {
 
 // getReferenceDiffs compares all digests collected in the intermediate representation
 // and compares them to the other known results for the test at hand.
-func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState, exp ExpSlice, idx *indexer.SearchIndex) {
+func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState, exp ExpSlice, idx indexer.IndexSearcher) {
 	_, span := trace.StartSpan(ctx, "search/getReferenceDiffs")
 	defer span.End()
 
@@ -571,11 +571,11 @@ func (s *SearchAPI) sortAndLimitDigests(ctx context.Context, q *Query, digestInf
 // to draw them, i.e. the information what digest/image appears at what commit and
 // what were the union of parameters that generate the digest. This should be
 // only done for digests that are intended to be displayed.
-func (s *SearchAPI) addParamsAndTraces(ctx context.Context, digestInfo []*SRDigest, inter srInterMap, exp ExpSlice, idx *indexer.SearchIndex) {
+func (s *SearchAPI) addParamsAndTraces(ctx context.Context, digestInfo []*SRDigest, inter srInterMap, exp ExpSlice, idx indexer.IndexSearcher) {
 	_, span := trace.StartSpan(ctx, "search/addParamsAndTraces")
 	defer span.End()
 
-	tile := idx.CpxTile().GetTile(types.ExcludeIgnoredTraces)
+	tile := idx.Tile().GetTile(types.ExcludeIgnoredTraces)
 	last := tile.LastCommitIndex()
 	for _, di := range digestInfo {
 		// Add the parameters and the drawable traces to the result.
