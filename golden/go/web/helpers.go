@@ -8,16 +8,10 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
-// TODO(stephana): Simplify
-// the ResponseEnvelope and use it solely to wrap JSON arrays.
-// Remove sendResponse and sendErrorResponse in favor of sendJsonResponse
-// and httputils.ReportError.
-
 // ResponseEnvelope wraps all responses. Some fields might be empty depending
 // on context or whether there was an error or not.
 type ResponseEnvelope struct {
 	Data       *interface{}                  `json:"data"`
-	Err        *string                       `json:"err"`
 	Status     int                           `json:"status"`
 	Pagination *httputils.ResponsePagination `json:"pagination"`
 }
@@ -30,10 +24,14 @@ func setJSONHeaders(w http.ResponseWriter) {
 	h.Set("X-Content-Type-Options", "nosniff")
 }
 
-// sendResponse wraps the data of a successful response in a response envelope
+// sendResponseWithPagination wraps the data of a successful response in a response envelope
 // and sends it to the client.
-func sendResponse(w http.ResponseWriter, data interface{}, status int, pagination *httputils.ResponsePagination) {
-	resp := ResponseEnvelope{&data, nil, status, pagination}
+func sendResponseWithPagination(w http.ResponseWriter, data interface{}, status int, pagination *httputils.ResponsePagination) {
+	resp := ResponseEnvelope{
+		Data:       &data,
+		Status:     status,
+		Pagination: pagination,
+	}
 	setJSONHeaders(w)
 	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
@@ -42,19 +40,18 @@ func sendResponse(w http.ResponseWriter, data interface{}, status int, paginatio
 	}
 }
 
-// sendJsonResponse serializes resp to JSON. If an error occurs
+// sendJSONResponse serializes resp to JSON. If an error occurs
 // a text based error code is send to the client.
-func sendJsonResponse(w http.ResponseWriter, resp interface{}) {
+func sendJSONResponse(w http.ResponseWriter, resp interface{}) {
 	setJSONHeaders(w)
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		httputils.ReportError(w, nil, err, "Failed to encode JSON response.")
 	}
 }
 
-// parseJson extracts the body from the request and parses it into the
+// parseJSON extracts the body from the request and parses it into the
 // provided interface.
-func parseJson(r *http.Request, v interface{}) error {
-	// TODO (stephana): validate the JSON against a schema. Might not be necessary !
+func parseJSON(r *http.Request, v interface{}) error {
 	defer util.Close(r.Body)
 	decoder := json.NewDecoder(r.Body)
 	return decoder.Decode(v)
