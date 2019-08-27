@@ -35,7 +35,6 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
@@ -456,8 +455,6 @@ func main() {
 
 	sklog.Infof("Search API created")
 
-	issueTracker := issues.NewMonorailIssueTracker(client, issues.PROJECT_SKIA)
-
 	swc := status.StatusWatcherConfig{
 		VCS:               vcs,
 		EventBus:          evt,
@@ -478,7 +475,6 @@ func main() {
 		GCSClient:         gsClient,
 		IgnoreStore:       ignoreStore,
 		Indexer:           ixr,
-		IssueTracker:      issueTracker,
 		SearchAPI:         searchAPI,
 		StatusWatcher:     statusWatcher,
 		TileSource:        tileSource,
@@ -513,46 +509,46 @@ func main() {
 
 	// Set up a subrouter for the '/json' routes which make up the Gold API.
 	// This makes routing faster, but also returns a failure when an /json route is
-	// requested that doesn't exit. If we did this differently a call to a non-existing endpoint
+	// requested that doesn't exist. If we did this differently a call to a non-existing endpoint
 	// would be handled by the route that handles the returning the index template and make debugging
 	// confusing.
 	jsonRouter := loggedRouter.PathPrefix("/json").Subrouter()
 	trim := func(r string) string { return strings.TrimPrefix(r, "/json") }
 
 	jsonRouter.HandleFunc(trim(shared.KNOWN_HASHES_ROUTE), handlers.TextKnownHashesProxy).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/byblame"), handlers.JsonByBlameHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/cleardigests"), handlers.JsonClearDigests).Methods("POST")
-	jsonRouter.HandleFunc(trim("/json/clusterdiff"), handlers.JsonClusterDiffHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/cmp"), handlers.JsonCompareTestHandler).Methods("POST")
-	jsonRouter.HandleFunc(trim("/json/commits"), handlers.JsonCommitsHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/details"), handlers.JsonDetailsHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/diff"), handlers.JsonDiffHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/export"), handlers.JsonExportHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/failure"), handlers.JsonListFailureHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/failure/clear"), handlers.JsonClearFailureHandler).Methods("POST")
-	jsonRouter.HandleFunc(trim("/json/gitlog"), handlers.JsonGitLogHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/list"), handlers.JsonListTestsHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/paramset"), handlers.JsonParamsHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/search"), handlers.JsonSearchHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/triage"), handlers.JsonTriageHandler).Methods("POST")
-	jsonRouter.HandleFunc(trim("/json/triagelog"), handlers.JsonTriageLogHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/triagelog/undo"), handlers.JsonTriageUndoHandler).Methods("POST")
-	jsonRouter.HandleFunc(trim("/json/tryjob"), handlers.JsonTryjobListHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/tryjob/{id}"), handlers.JsonTryjobSummaryHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/byblame"), handlers.ByBlameHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/cleardigests"), handlers.ClearDigests).Methods("POST")
+	jsonRouter.HandleFunc(trim("/json/clusterdiff"), handlers.ClusterDiffHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/cmp"), handlers.CompareTestHandler).Methods("POST")
+	jsonRouter.HandleFunc(trim("/json/commits"), handlers.CommitsHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/details"), handlers.DetailsHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/diff"), handlers.DiffHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/export"), handlers.ExportHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/failure"), handlers.ListFailureHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/failure/clear"), handlers.ClearFailureHandler).Methods("POST")
+	jsonRouter.HandleFunc(trim("/json/gitlog"), handlers.GitLogHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/list"), handlers.ListTestsHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/paramset"), handlers.ParamsHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/search"), handlers.SearchHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/triage"), handlers.TriageHandler).Methods("POST")
+	jsonRouter.HandleFunc(trim("/json/triagelog"), handlers.TriageLogHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/triagelog/undo"), handlers.TriageUndoHandler).Methods("POST")
+	jsonRouter.HandleFunc(trim("/json/tryjob"), handlers.DeprecatedTryjobListHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/tryjob/{id}"), handlers.DeprecatedTryjobSummaryHandler).Methods("GET")
 
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
 	// These routes can be served with baseline_server for higher availability.
-	jsonRouter.HandleFunc(trim(shared.EXPECTATIONS_ROUTE), handlers.JsonBaselineHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim(shared.EXPECTATIONS_ISSUE_ROUTE), handlers.JsonBaselineHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim(shared.EXPECTATIONS_ROUTE), handlers.BaselineHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim(shared.EXPECTATIONS_ISSUE_ROUTE), handlers.BaselineHandler).Methods("GET")
 
-	jsonRouter.HandleFunc(trim("/json/refresh/{id}"), handlers.JsonRefreshIssue).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/refresh/{id}"), handlers.RefreshIssue).Methods("GET")
 
 	// Only expose these endpoints if login is enforced across the app or this an open site.
 	if openSite {
-		jsonRouter.HandleFunc(trim("/json/ignores"), handlers.JsonIgnoresHandler).Methods("GET")
-		jsonRouter.HandleFunc(trim("/json/ignores/add/"), handlers.JsonIgnoresAddHandler).Methods("POST")
-		jsonRouter.HandleFunc(trim("/json/ignores/del/{id}"), handlers.JsonIgnoresDeleteHandler).Methods("POST")
-		jsonRouter.HandleFunc(trim("/json/ignores/save/{id}"), handlers.JsonIgnoresUpdateHandler).Methods("POST")
+		jsonRouter.HandleFunc(trim("/json/ignores"), handlers.IgnoresHandler).Methods("GET")
+		jsonRouter.HandleFunc(trim("/json/ignores/add/"), handlers.IgnoresAddHandler).Methods("POST")
+		jsonRouter.HandleFunc(trim("/json/ignores/del/{id}"), handlers.IgnoresDeleteHandler).Methods("POST")
+		jsonRouter.HandleFunc(trim("/json/ignores/save/{id}"), handlers.IgnoresUpdateHandler).Methods("POST")
 	}
 
 	// Make sure we return a 404 for anything that starts with /json and could not be found.
@@ -613,7 +609,7 @@ func main() {
 	// (aka the K8s container) which requires that some routes are never logged or authenticated.
 	rootRouter := mux.NewRouter()
 	rootRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
-	rootRouter.HandleFunc("/json/trstatus", httputils.CorsHandler(handlers.JsonStatusHandler))
+	rootRouter.HandleFunc("/json/trstatus", httputils.CorsHandler(handlers.StatusHandler))
 
 	rootRouter.PathPrefix("/").Handler(appHandler)
 
