@@ -1,4 +1,6 @@
 /*
+Package btts contains the BigTableTraceStore.
+
 See BIGTABLE.md for tiles and traces are stored in BigTable.
 */
 package btts
@@ -24,6 +26,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -44,7 +47,7 @@ const (
 	INDEX_FAMILY   = "I"
 
 	// Row prefixes.
-	INDEX_PREFIX = "i"
+	INDEX_PREFIX = "j"
 
 	// Columns in the "H" column family.
 	HASHES_SOURCE_COLUMN        = "S" // Column
@@ -55,6 +58,10 @@ const (
 	OPS_OPS_COLUMN     = "OPS" // Column
 	HASH_FULL_COL_NAME = OPS_FAMILY + ":" + OPS_HASH_COLUMN
 	OPS_FULL_COL_NAME  = OPS_FAMILY + ":" + OPS_OPS_COLUMN
+
+	// Columns in the "I" column family.
+	EMPTY_INDEX_COLUMN        = "E"
+	EMPTY_INDEX_FULL_COL_NAME = INDEX_FAMILY + ":" + EMPTY_INDEX_COLUMN
 
 	// MAX_MUTATIONS is the max number of mutations we can send in a single ApplyBulk call. Can be up to 100,000 according to BigTable docs.
 	MAX_MUTATIONS = 100000
@@ -128,7 +135,7 @@ func (t TileKey) Offset() int32 {
 
 func TileKeyFromOpsRowName(s string) (TileKey, error) {
 	if s[:1] != "@" {
-		return BadTileKey, fmt.Errorf("TileKey strings must beginw with @: Got %q", s)
+		return BadTileKey, skerr.Fmt("TileKey strings must beginw with @: Got %q", s)
 	}
 	i, err := strconv.ParseInt(s[1:], 10, 32)
 	if err != nil {
@@ -162,7 +169,7 @@ func NewOpsCacheEntry() (*OpsCacheEntry, error) {
 func NewOpsCacheEntryFromRow(row bigtable.Row) (*OpsCacheEntry, error) {
 	family := row[OPS_FAMILY]
 	if len(family) != 2 {
-		return nil, fmt.Errorf("Didn't get the right number of columns from BT.")
+		return nil, skerr.Fmt("Didn't get the right number of columns from BT.")
 	}
 	ops := &paramtools.OrderedParamSet{}
 	hash := ""
@@ -185,7 +192,7 @@ func NewOpsCacheEntryFromRow(row bigtable.Row) (*OpsCacheEntry, error) {
 	// You might be tempted to check that entry.hash == hash here, but that will fail
 	// because GoB encoding of maps is not deterministic.
 	if hash == "" {
-		return nil, fmt.Errorf("Didn't read hash from BT.")
+		return nil, skerr.Fmt("Didn't read hash from BT.")
 	}
 	entry.hash = hash
 	return entry, nil
@@ -219,11 +226,11 @@ func (b *BigTableTraceStore) getTable() *bigtable.Table {
 
 func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.PerfBigTableConfig, ts oauth2.TokenSource, cacheOps bool) (*BigTableTraceStore, error) {
 	if cfg.TileSize <= 0 {
-		return nil, fmt.Errorf("tileSize must be >0. %d", cfg.TileSize)
+		return nil, skerr.Fmt("tileSize must be >0. %d", cfg.TileSize)
 	}
 	client, err := bigtable.NewClient(ctx, cfg.Project, cfg.Instance, option.WithTokenSource(ts))
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't create client: %s", err)
+		return nil, skerr.Fmt("Couldn't create client: %s", err)
 	}
 	lookup := map[string]int{}
 	for i := 0; int32(i) < cfg.TileSize; i++ {
@@ -231,7 +238,7 @@ func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.PerfBigTab
 	}
 	indexed, err := lru.New(MAX_INDEX_LRU_CACHE)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't create index lru cache: %s", err)
+		return nil, skerr.Fmt("Couldn't create index lru cache: %s", err)
 	}
 	ret := &BigTableTraceStore{
 		tileSize:           cfg.TileSize,
@@ -279,7 +286,7 @@ func (b *BigTableTraceStore) getOPS(tileKey TileKey) (*OpsCacheEntry, bool, erro
 	defer cancel()
 	row, err := b.getTable().ReadRow(tctx, tileKey.OpsRowName(), bigtable.RowFilter(bigtable.LatestNFilter(1)))
 	if err != nil {
-		return nil, false, fmt.Errorf("Failed to read OPS from BigTable for %s: %s", tileKey.OpsRowName(), err)
+		return nil, false, skerr.Fmt("Failed to read OPS from BigTable for %s: %s", tileKey.OpsRowName(), err)
 	}
 	// If there is no entry in BigTable then return an empty OPS.
 	if len(row) == 0 {
@@ -323,7 +330,7 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 	tileKey := b.TileKey(index)
 	ops, err := b.updateOrderedParamSet(tileKey, paramset)
 	if err != nil {
-		return fmt.Errorf("Could not write traces, failed to update OPS: %s", err)
+		return skerr.Fmt("Could not write traces, failed to update OPS: %s", err)
 	}
 
 	sourceHash := md5.Sum([]byte(source))
@@ -340,7 +347,7 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 	muts = append(muts, mut)
 	rowKeys = append(rowKeys, fmt.Sprintf("&%x", sourceHash))
 
-	// indices maps rowKeys to Params.
+	// indices maps rowKeys to encoded Params.
 	indices := map[string]paramtools.Params{}
 
 	tctx, cancel := context.WithTimeout(context.Background(), WRITE_TIMEOUT)
@@ -360,7 +367,11 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 		}
 		rowKey := tileKey.TraceRowName(encodedKey, b.shards)
 		rowKeys = append(rowKeys, rowKey)
-		indices[rowKey] = params[i]
+		indices[encodedKey], err = ops.EncodeParams(params[i])
+		if err != nil {
+			sklog.Warningf("Failed to encode key %q: %s", params[i], err)
+			continue
+		}
 		if len(muts) >= MAX_MUTATIONS {
 			if err := b.writeBatchOfTraces(tctx, rowKeys, muts); err != nil {
 				return err
@@ -380,7 +391,7 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 
 // writeTraceIndices writes the indices for the given traces.
 //
-// The 'indices' maps encoded keys to the Params of the unencoded key.
+// The 'indices' maps encoded keys to the encoded Params of the key.
 // If bypassCache is true then we don't look in the lru cache to see if we've already writtin the indices for a given key.
 func (b *BigTableTraceStore) writeTraceIndices(tctx context.Context, tileKey TileKey, indices map[string]paramtools.Params, ts bigtable.Timestamp, bypassCache bool) error {
 	// Write indices as batches of mutations.
@@ -394,9 +405,11 @@ func (b *BigTableTraceStore) writeTraceIndices(tctx context.Context, tileKey Til
 		}
 		for k, v := range p {
 			mut := bigtable.NewMutation()
-			mut.Set(INDEX_FAMILY, rowKey, ts, EMPTY_VALUE)
+			// The row keys for index rows contain all the data, but we have to
+			// write some data into a cell, so we write an empty byte slice.
+			mut.Set(INDEX_FAMILY, EMPTY_INDEX_COLUMN, ts, EMPTY_VALUE)
 			muts = append(muts, mut)
-			indexRowKeys = append(indexRowKeys, fmt.Sprintf("%s:%s:%s", tileKey.IndexRowPrefix(), k, v))
+			indexRowKeys = append(indexRowKeys, fmt.Sprintf("%s:%s:%s:%s", tileKey.IndexRowPrefix(), k, v, rowKey))
 			if len(muts) >= MAX_MUTATIONS {
 				if err := b.writeBatchOfIndices(tctx, indexRowKeys, muts); err != nil {
 					return err
@@ -440,11 +453,11 @@ func (b *BigTableTraceStore) WriteIndices(ctx context.Context, tileKey TileKey) 
 	keys, err := b.TileKeys(ctx, tileKey)
 	sklog.Info("WriteIndices - Finished reading keys.")
 	if err != nil {
-		return fmt.Errorf("Failed reading keys for tile %d: %s", tileKey.Offset(), err)
+		return skerr.Fmt("Failed reading keys for tile %d: %s", tileKey.Offset(), err)
 	}
 	ops, err := b.GetOrderedParamSet(ctx, tileKey)
 	if err != nil {
-		return fmt.Errorf("Failed to get OPS: %s", err)
+		return skerr.Fmt("Failed to get OPS: %s", err)
 	}
 	sklog.Info("WriteIndices - OPS Loaded.")
 	indices := map[string]paramtools.Params{}
@@ -459,8 +472,12 @@ func (b *BigTableTraceStore) WriteIndices(ctx context.Context, tileKey TileKey) 
 			sklog.Warningf("Failed to encode key: %s", err)
 			continue
 		}
-		rowKey := tileKey.TraceRowName(encodedKey, b.shards)
-		indices[rowKey] = p
+		p, err = ops.EncodeParams(p)
+		if err != nil {
+			sklog.Warningf("Failed to encode params: %s", err)
+			continue
+		}
+		indices[encodedKey] = p
 	}
 	sklog.Info("WriteIndices - Indices calculated.")
 	return b.writeTraceIndices(ctx, tileKey, indices, bigtable.Time(time.Now()), true)
@@ -473,10 +490,10 @@ func (b *BigTableTraceStore) WriteIndices(ctx context.Context, tileKey TileKey) 
 func (b *BigTableTraceStore) writeBatchOfTraces(ctx context.Context, rowKeys []string, muts []*bigtable.Mutation) error {
 	errs, err := b.getTable().ApplyBulk(ctx, rowKeys, muts)
 	if err != nil {
-		return fmt.Errorf("Failed writing traces: %s", err)
+		return skerr.Fmt("Failed writing traces: %s", err)
 	}
 	if errs != nil {
-		return fmt.Errorf("Failed writing some traces: %v", errs)
+		return skerr.Fmt("Failed writing some traces: %v", errs)
 	}
 	b.writesCounter.Inc(int64(len(muts)))
 	return nil
@@ -490,10 +507,10 @@ func (b *BigTableTraceStore) writeBatchOfIndices(ctx context.Context, indexRowKe
 	sklog.Infof("writeBatchOfIndices %d", len(indexRowKeys))
 	errs, err := b.getTable().ApplyBulk(ctx, indexRowKeys, muts)
 	if err != nil {
-		return fmt.Errorf("Failed writing indices: %s", err)
+		return skerr.Fmt("Failed writing indices: %s", err)
 	}
 	if errs != nil {
-		return fmt.Errorf("Failed writing some indices: %v", errs)
+		return skerr.Fmt("Failed writing some indices: %v", errs)
 	}
 	b.indexWritesCounter.Inc(int64(len(muts)))
 	return nil
@@ -508,7 +525,7 @@ func (b *BigTableTraceStore) ReadTraces(tileKey TileKey, keys []string) (map[str
 	// First encode all the keys by the OrderedParamSet of the given tile.
 	ops, err := b.GetOrderedParamSet(context.TODO(), tileKey)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get OPS: %s", err)
+		return nil, skerr.Fmt("Failed to get OPS: %s", err)
 	}
 	// Also map[encodedKey]originalKey so we can construct our response.
 	encodedKeys := map[string]string{}
@@ -516,7 +533,7 @@ func (b *BigTableTraceStore) ReadTraces(tileKey TileKey, keys []string) (map[str
 	for _, key := range keys {
 		params, err := query.ParseKey(key)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to parse key %q: %s", key, err)
+			return nil, skerr.Fmt("Failed to parse key %q: %s", key, err)
 		}
 		// Not all keys may appear in all tiles, that's ok.
 		encodedKey, err := ops.EncodeParamsAsString(paramtools.Params(params))
@@ -559,14 +576,14 @@ func (b *BigTableTraceStore) regexpFromQuery(ctx context.Context, tileKey TileKe
 	// Convert query to regex.
 	r, err := q.Regexp(ops)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to compile query regex: %s", err)
+		return nil, skerr.Fmt("Failed to compile query regex: %s", err)
 	}
 	if !q.Empty() && r.String() == "" {
 		// Not an error, we just won't match anything in this tile. This
 		// condition occurs if a new key appears from one tile to the next, in
 		// which case Regexp(ops) returns "" for the Tile that's never seen the
 		// key.
-		return nil, fmt.Errorf("Query matches all traces, which we'll ignore.")
+		return nil, skerr.Fmt("Query matches all traces, which we'll ignore.")
 	}
 	return r, nil
 }
@@ -574,7 +591,7 @@ func (b *BigTableTraceStore) regexpFromQuery(ctx context.Context, tileKey TileKe
 func traceIdFromEncoded(ops *paramtools.OrderedParamSet, encoded string) (string, error) {
 	p, err := ops.DecodeParamsFromString(encoded)
 	if err != nil {
-		return "", fmt.Errorf("Failed to decode key: %s", err)
+		return "", skerr.Fmt("Failed to decode key: %s", err)
 	}
 	return query.MakeKeyFast(p)
 }
@@ -587,7 +604,7 @@ func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q
 
 	ops, err := b.GetOrderedParamSet(ctx, tileKey)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get OPS: %s", err)
+		return nil, skerr.Fmt("Failed to get OPS: %s", err)
 	}
 
 	// Convert query to regex.
@@ -634,7 +651,7 @@ func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q
 		})
 	}
 	if err := g.Wait(); err != nil {
-		return nil, fmt.Errorf("Failed to query: %s", err)
+		return nil, skerr.Fmt("Failed to query: %s", err)
 	}
 
 	return ret, nil
@@ -650,7 +667,7 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 
 	ops, err := b.GetOrderedParamSet(ctx, tileKey)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get OPS: %s", err)
+		return nil, skerr.Fmt("Failed to get OPS: %s", err)
 	}
 
 	// We need to differentiate between two cases:
@@ -786,7 +803,7 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 		})
 	}
 	if err := g.Wait(); err != nil {
-		return nil, fmt.Errorf("Failed to query: %s", err)
+		return nil, skerr.Fmt("Failed to query: %s", err)
 	}
 
 	return ret, nil
@@ -799,7 +816,7 @@ func (b *BigTableTraceStore) allTraces(ctx context.Context, tileKey TileKey) (ty
 
 	ops, err := b.GetOrderedParamSet(ctx, tileKey)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get OPS: %s", err)
+		return nil, skerr.Fmt("Failed to get OPS: %s", err)
 	}
 
 	defer timer.New("btts_all_traces").Stop()
@@ -838,7 +855,7 @@ func (b *BigTableTraceStore) allTraces(ctx context.Context, tileKey TileKey) (ty
 		})
 	}
 	if err := g.Wait(); err != nil {
-		return nil, fmt.Errorf("Failed to query: %s", err)
+		return nil, skerr.Fmt("Failed to query: %s", err)
 	}
 
 	return ret, nil
@@ -879,7 +896,7 @@ func (b *BigTableTraceStore) QueryCount(ctx context.Context, tileKey TileKey, q 
 		})
 	}
 	if err := g.Wait(); err != nil {
-		return -1, fmt.Errorf("Failed to query: %s", err)
+		return -1, skerr.Fmt("Failed to query: %s", err)
 	}
 
 	return ret, nil
@@ -891,7 +908,7 @@ func (b *BigTableTraceStore) TileKeys(ctx context.Context, tileKey TileKey) ([]s
 
 	ops, err := b.GetOrderedParamSet(ctx, tileKey)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get OPS for TileKeys: %s", err)
+		return nil, skerr.Fmt("Failed to get OPS for TileKeys: %s", err)
 	}
 
 	// Track the StringSets, one per shard.
@@ -922,7 +939,7 @@ func (b *BigTableTraceStore) TileKeys(ctx context.Context, tileKey TileKey) ([]s
 		})
 	}
 	if err := g.Wait(); err != nil {
-		return nil, fmt.Errorf("Failed to query: %s", err)
+		return nil, skerr.Fmt("Failed to query: %s", err)
 	}
 
 	// Now sum up all the StringSets.
@@ -949,15 +966,15 @@ func (b *BigTableTraceStore) GetSource(ctx context.Context, index int32, traceId
 	tileKey := b.TileKey(index)
 	ops, err := b.GetOrderedParamSet(ctx, tileKey)
 	if err != nil {
-		return "", fmt.Errorf("Failed to load OrderedParamSet for tile: %s", err)
+		return "", skerr.Fmt("Failed to load OrderedParamSet for tile: %s", err)
 	}
 	p, err := query.ParseKey(traceId)
 	if err != nil {
-		return "", fmt.Errorf("Invalid traceid: %s", err)
+		return "", skerr.Fmt("Invalid traceid: %s", err)
 	}
 	encodedTraceId, err := ops.EncodeParamsAsString(p)
 	if err != nil {
-		return "", fmt.Errorf("Failed to encode key: %s", err)
+		return "", skerr.Fmt("Failed to encode key: %s", err)
 	}
 	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
@@ -969,10 +986,10 @@ func (b *BigTableTraceStore) GetSource(ctx context.Context, index int32, traceId
 		),
 	))
 	if err != nil {
-		return "", fmt.Errorf("Failed to read source row: %s", err)
+		return "", skerr.Fmt("Failed to read source row: %s", err)
 	}
 	if len(row) == 0 {
-		return "", fmt.Errorf("No source found.")
+		return "", skerr.Fmt("No source found.")
 	}
 	sourceHash := fmt.Sprintf("&%x", row[SOURCES_FAMILY][0].Value)
 
@@ -983,10 +1000,10 @@ func (b *BigTableTraceStore) GetSource(ctx context.Context, index int32, traceId
 		),
 	))
 	if err != nil {
-		return "", fmt.Errorf("Failed to read source row: %s", err)
+		return "", skerr.Fmt("Failed to read source row: %s", err)
 	}
 	if len(row) == 0 {
-		return "", fmt.Errorf("No source found.")
+		return "", skerr.Fmt("No source found.")
 	}
 
 	return string(row[HASHES_FAMILY][0].Value), nil
@@ -1006,10 +1023,10 @@ func (b *BigTableTraceStore) GetLatestTile() (TileKey, error) {
 		return false
 	}, bigtable.LimitRows(1))
 	if err != nil {
-		return BadTileKey, fmt.Errorf("Failed to scan OPS: %s", err)
+		return BadTileKey, skerr.Fmt("Failed to scan OPS: %s", err)
 	}
 	if ret == BadTileKey {
-		return BadTileKey, fmt.Errorf("Failed to read any OPS from BigTable: %s", err)
+		return BadTileKey, skerr.Fmt("Failed to read any OPS from BigTable: %s", err)
 	}
 	return ret, nil
 }
@@ -1025,7 +1042,7 @@ func (b *BigTableTraceStore) updateOrderedParamSet(tileKey TileKey, p paramtools
 		// Get OPS.
 		entry, existsInBT, err := b.getOPS(tileKey)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to get OPS: %s", err)
+			return nil, skerr.Fmt("Failed to get OPS: %s", err)
 		}
 
 		// If the OPS contains our paramset then we're done.
@@ -1041,7 +1058,7 @@ func (b *BigTableTraceStore) updateOrderedParamSet(tileKey TileKey, p paramtools
 		encodedOps, err := newEntry.ops.Encode()
 		sklog.Infof("Writing updated OPS for %s. hash: new: %q old: %q", tileKey.OpsRowName(), newEntry.hash, entry.hash)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to encode new ops: %s", err)
+			return nil, skerr.Fmt("Failed to encode new ops: %s", err)
 		}
 
 		now := bigtable.Time(time.Now())
