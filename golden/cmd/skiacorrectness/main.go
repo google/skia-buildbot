@@ -35,6 +35,7 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
@@ -455,6 +456,8 @@ func main() {
 
 	sklog.Infof("Search API created")
 
+	issueTracker := issues.NewMonorailIssueTracker(client, issues.PROJECT_SKIA)
+
 	swc := status.StatusWatcherConfig{
 		VCS:               vcs,
 		EventBus:          evt,
@@ -475,6 +478,7 @@ func main() {
 		GCSClient:         gsClient,
 		IgnoreStore:       ignoreStore,
 		Indexer:           ixr,
+		IssueTracker:      issueTracker,
 		SearchAPI:         searchAPI,
 		StatusWatcher:     statusWatcher,
 		TileSource:        tileSource,
@@ -535,6 +539,10 @@ func main() {
 	jsonRouter.HandleFunc(trim("/json/triagelog/undo"), handlers.TriageUndoHandler).Methods("POST")
 	jsonRouter.HandleFunc(trim("/json/tryjob"), handlers.DeprecatedTryjobListHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/tryjob/{id}"), handlers.DeprecatedTryjobSummaryHandler).Methods("GET")
+	// FIXME(kjlubick): The following will not work until the new ChangeListStore/TryJobStore etc
+	// is piped into web.go
+	jsonRouter.HandleFunc(trim("/json/changelists"), handlers.ChangeListsHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/changelist/{system}/{id}"), handlers.ChangeListSummaryHandler).Methods("GET")
 
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
 	// These routes can be served with baseline_server for higher availability.

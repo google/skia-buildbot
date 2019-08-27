@@ -22,6 +22,10 @@ type Store interface {
 	// GetRunningTryJobs returns any TryJobs stored in the Running state.
 	// The returned slice could be empty.
 	GetRunningTryJobs(ctx context.Context) ([]ci.TryJob, error)
+	// GetTryJobs returns all TryJobs associated with a given ChangeList and PatchSet.
+	// The returned slice could be empty if the CL or PS don't exist.
+	GetTryJobs(ctx context.Context, psID CombinedPSID) ([]ci.TryJob, error)
+
 	// GetResults returns any TryJobResults for a given ChangeList and PatchSet.
 	// The returned slice could be empty.
 	GetResults(ctx context.Context, psID CombinedPSID) ([]TryJobResult, error)
