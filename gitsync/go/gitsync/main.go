@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
+	"go.skia.org/infra/go/gitstore/pubsub"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/sklog"
@@ -125,7 +126,7 @@ func main() {
 	// TODO(stephana): Pass the token source explicitly to the BigTable related functions below.
 
 	// Create token source.
-	ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+	ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, pubsub.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatalf("Problem setting up default token source: %s", err)
 	}
@@ -145,7 +146,7 @@ func main() {
 	// Start all repo watchers.
 	ctx := context.Background()
 	for _, repoURL := range config.RepoURLs {
-		if err := watcher.Start(ctx, btConfig, repoURL, gitilesURLs[repoURL], gitcookiesPath, *gcsBucket, *gcsPath, time.Duration(config.RefreshInterval)); err != nil {
+		if err := watcher.Start(ctx, btConfig, repoURL, gitilesURLs[repoURL], gitcookiesPath, *gcsBucket, *gcsPath, time.Duration(config.RefreshInterval), ts); err != nil {
 			sklog.Fatalf("Error initializing repo watcher: %s", err)
 		}
 	}

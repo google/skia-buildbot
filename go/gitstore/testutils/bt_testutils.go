@@ -21,7 +21,7 @@ const (
 )
 
 var (
-	btConf = &bt_gitstore.BTConfig{
+	BtConf = &bt_gitstore.BTConfig{
 		ProjectID:  "skia-public",
 		InstanceID: "staging",
 		TableID:    "test-git-repos",
@@ -32,12 +32,12 @@ var (
 func SetupAndLoadBTGitStore(t sktest.TestingT, ctx context.Context, workdir, repoURL string, load bool) ([]*vcsinfo.IndexCommit, []*vcsinfo.LongCommit, *bt_gitstore.BigTableGitStore) {
 	if load {
 		// Delete the tables.
-		assert.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-		assert.NoError(t, bt_gitstore.InitBT(btConf))
+		assert.NoError(t, bt.DeleteTables(BtConf.ProjectID, BtConf.InstanceID, BtConf.TableID))
+		assert.NoError(t, bt_gitstore.InitBT(BtConf))
 	}
 
 	// Get a new gitstore.
-	gitStore, err := bt_gitstore.New(ctx, btConf, repoURL)
+	gitStore, err := bt_gitstore.New(ctx, BtConf, repoURL)
 	assert.NoError(t, err)
 
 	// Get all commits and load them into the GitStore.

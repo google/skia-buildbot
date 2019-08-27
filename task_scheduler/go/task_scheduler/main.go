@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
+	gs_pubsub "go.skia.org/infra/go/gitstore/pubsub"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/isolate"
@@ -58,6 +59,9 @@ const (
 
 	PUBSUB_SUBSCRIBER_TASK_SCHEDULER          = "task-scheduler"
 	PUBSUB_SUBSCRIBER_TASK_SCHEDULER_INTERNAL = "task-scheduler-internal"
+
+	// PubSub subscriber ID used for GitStore.
+	GITSTORE_SUBSCRIBER_ID = "task-scheduler"
 )
 
 var (
@@ -704,10 +708,11 @@ func main() {
 		InstanceID: *btInstance,
 		TableID:    *gitstoreTable,
 	}
-	repos, err = bt_gitstore.NewBTGitStoreMap(ctx, *repoUrls, btConf)
+	autoUpdateRepos, err := gs_pubsub.NewAutoUpdateMap(ctx, *repoUrls, btConf)
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	repos = autoUpdateRepos.Map
 
 	// Initialize Swarming client.
 	if *local {
@@ -767,6 +772,9 @@ func main() {
 
 	sklog.Infof("Created task scheduler. Starting loop.")
 	ts.Start(ctx, !*disableTryjobs, func() {})
+	if err := autoUpdateRepos.Start(ctx, GITSTORE_SUBSCRIBER_ID, tokenSource, 5*time.Minute, ts.HandleRepoUpdate); err != nil {
+		sklog.Fatal(err)
+	}
 
 	// Set up periodic triggers.
 	if err := periodic.Listen(ctx, fmt.Sprintf("task-scheduler-%s", *pubsubTopicSet), tokenSource, func(ctx context.Context, name, id string) bool {
