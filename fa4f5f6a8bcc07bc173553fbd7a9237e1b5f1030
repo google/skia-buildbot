@@ -131,6 +131,30 @@
     },
     {
       "key": {
+        "uuid": "ae2bb27b_38f71be5",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-27T14:38:25Z",
+      "side": 1,
+      "message": "Yeah, I had to revert this addition to the test.  It\u0027s too difficult to know exactly what pubsub messages we should be getting at what point, due to the use of repograph shared tests.",
+      "parentUuid": "a439feb8_7329e385",
+      "range": {
+        "startLine": 563,
+        "startChar": 0,
+        "endLine": 565,
+        "endChar": 2
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f6edee9c_913109fd",
         "filename": "go/gitstore/pubsub/graph.go",
         "patchSetId": 4
