@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "051d0fd5_4f19b270",
+        "filename": "golden/cmd/skia_diff_server/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T12:06:52Z",
+      "side": 1,
+      "message": "note to self: get rid of this",
+      "range": {
+        "startLine": 68,
+        "startChar": 16,
+        "endLine": 68,
+        "endChar": 48
+      },
+      "revId": "a588005042db7977182b320613e3f945c970cff7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c2c8001f_de2807dd",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T12:06:52Z",
+      "side": 1,
+      "message": "context.TODO() would be better here, as we likely should thread a context from the http/grpc request through here.",
+      "range": {
+        "startLine": 251,
+        "startChar": 16,
+        "endLine": 251,
+        "endChar": 28
+      },
+      "revId": "a588005042db7977182b320613e3f945c970cff7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9eea9e67_b3d23416",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T12:06:52Z",
+      "side": 1,
+      "message": "use skerr.Wrapf here and line 257, e.g.\nreturn skerr.Wrapf(err, \"making reader for %s/%s\", il.gsBucketClient.Bucket(), objLocation)",
+      "range": {
+        "startLine": 272,
+        "startChar": 11,
+        "endLine": 272,
+        "endChar": 21
+      },
+      "revId": "a588005042db7977182b320613e3f945c970cff7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11c8cc17_f0935836",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T12:06:52Z",
+      "side": 1,
+      "message": "drive-by-nit: make this explicitly nil",
+      "range": {
+        "startLine": 305,
+        "startChar": 21,
+        "endLine": 305,
+        "endChar": 24
+      },
+      "revId": "a588005042db7977182b320613e3f945c970cff7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "053d1af7_ed585481",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T12:06:52Z",
+      "side": 1,
+      "message": "I was under the impression the benefit of the CL was to remove this test\u0027s (and other tests\u0027) dependence on really hitting the wire. Is that the plan in a followup CL?",
+      "revId": "a588005042db7977182b320613e3f945c970cff7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
