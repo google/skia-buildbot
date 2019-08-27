@@ -1,0 +1,360 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1dfb4d0b_324c7b34",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:59:47Z",
+      "side": 1,
+      "message": "if hashBytes :\u003d md5Hash.Sum(nil); !bytes.Equal(hashBytes, attrs.MD5) {\n\n\nis more idiomatic",
+      "range": {
+        "startLine": 287,
+        "startChar": 3,
+        "endLine": 288,
+        "endChar": 42
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71316a3c_59307e75",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:59:47Z",
+      "side": 1,
+      "message": "nit: these consts are likely not meant to be exported, so they should start with lowercase letters.",
+      "range": {
+        "startLine": 29,
+        "startChar": 1,
+        "endLine": 29,
+        "endChar": 2
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a5d4ee95_72bb61aa",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:59:47Z",
+      "side": 1,
+      "message": "Are these digests arbitrary or do they depend on real data?",
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e8b2190_c4ae6bcc",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:59:47Z",
+      "side": 1,
+      "message": "This name doesn\u0027t seem super idiomatic to me. I\u0027m fine with the camel having 6-7 humps if necessary. When a test fails, we\u0027ll know what package and file it\u0027s in, so we can omit those sorts of things for brevity.  I\u0027ve never seen a mix of snake_case and camelCase (golang super prefers camelCase).\n\nI would probably go with something like:\n\n// TestExpectedDigestsAreCorrect makes sure the test data matches up\n// with the computed MD5 hashs, upon which all other tests rely.\nfunc TestExpectedDigestsAreCorrect(t *testing.T) {\n\nSimilar feedback for test names below.",
+      "range": {
+        "startLine": 54,
+        "startChar": 5,
+        "endLine": 54,
+        "endChar": 53
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ace800b_182bb27b",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:59:47Z",
+      "side": 1,
+      "message": "All functions should have a little documentation explaining what and how (and why, if that\u0027s not clear)",
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60cedaab_2980568d",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:59:47Z",
+      "side": 1,
+      "message": "Should this be a constant?",
+      "range": {
+        "startLine": 68,
+        "startChar": 38,
+        "endLine": 68,
+        "endChar": 49
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9bd8d6b9_d165a370",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:59:47Z",
+      "side": 1,
+      "message": "You can tack on .Maybe() here (for use with mock.AssertExpectations(t) below).",
+      "range": {
+        "startLine": 68,
+        "startChar": 49,
+        "endLine": 68,
+        "endChar": 50
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d32209b_270bb514",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:59:47Z",
+      "side": 1,
+      "message": "If a test reads/writes to disk, I usually classify it as Medium, just because there can be some variance in the time that takes - we don\u0027t want flaky timeouts.",
+      "range": {
+        "startLine": 81,
+        "startChar": 10,
+        "endLine": 81,
+        "endChar": 22
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21f63fd1_360edfc0",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:59:47Z",
+      "side": 1,
+      "message": "You should have\ndefer mockClient.AssertExpectations(t)\nhere and for every mock.\nThat way, if you have an expectation that didn\u0027t happen, the test will fail.",
+      "range": {
+        "startLine": 83,
+        "startChar": 14,
+        "endLine": 83,
+        "endChar": 24
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66b7d11f_4cb19d39",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:59:47Z",
+      "side": 1,
+      "message": "https://github.com/golang/go/wiki/CodeReviewComments#line-length\n\nI\u0027d probably not break this up here on the arguments, but maybe:\n\nmockClient.On(...).\n   Return(...)\n\nI\u0027d also consider doing something like:\n\noa :\u003d \u0026storage.ObjectAttrs{MD5: digestToMD5Bytes(t, Digest1)}\nmockClient.On(...).Return(oa, nil)\n\nPlease rework the breaking here and below.",
+      "range": {
+        "startLine": 89,
+        "startChar": 14,
+        "endLine": 89,
+        "endChar": 15
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af3faace_9ebac40b",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:59:47Z",
+      "side": 1,
+      "message": "I usually make a\nvar anyctx \u003d mock.AnythingOfType(\"*context.emptyCtx\")\nin my tests with mocks and use that all over the place.",
+      "range": {
+        "startLine": 91,
+        "startChar": 2,
+        "endLine": 91,
+        "endChar": 42
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "336d0d65_de74e441",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:59:47Z",
+      "side": 1,
+      "message": "bikeshed: assertImageExistsOnDisk",
+      "range": {
+        "startLine": 109,
+        "startChar": 1,
+        "endLine": 109,
+        "endChar": 36
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a425cda_cf7c64ff",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:59:47Z",
+      "side": 1,
+      "message": "assert.Contains( might be less brittle",
+      "range": {
+        "startLine": 132,
+        "startChar": 1,
+        "endLine": 132,
+        "endChar": 33
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b538b52_2522a5b0",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:59:47Z",
+      "side": 1,
+      "message": "nit: it panics, IIRC",
+      "range": {
+        "startLine": 279,
+        "startChar": 4,
+        "endLine": 279,
+        "endChar": 20
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20df6854_8be914dd",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:59:47Z",
+      "side": 1,
+      "message": "It appears you always call this with the result of skTextToImage()\nCould you just have this take a string, e.g. SkTextImage2 and do the conversion for the caller?\n\nSame for assertImageEqual",
+      "range": {
+        "startLine": 296,
+        "startChar": 102,
+        "endLine": 296,
+        "endChar": 106
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e749c6dd_4883c9fe",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:59:47Z",
+      "side": 1,
+      "message": "add comment explaining why assert.Equal is not sufficient",
+      "range": {
+        "startLine": 304,
+        "startChar": 0,
+        "endLine": 304,
+        "endChar": 21
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
