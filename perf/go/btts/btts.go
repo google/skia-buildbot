@@ -1,4 +1,6 @@
 /*
+Package btts contains the BigTableTraceStore.
+
 See BIGTABLE.md for tiles and traces are stored in BigTable.
 */
 package btts
@@ -44,7 +46,7 @@ const (
 	INDEX_FAMILY   = "I"
 
 	// Row prefixes.
-	INDEX_PREFIX = "i"
+	INDEX_PREFIX = "j"
 
 	// Columns in the "H" column family.
 	HASHES_SOURCE_COLUMN        = "S" // Column
@@ -55,6 +57,10 @@ const (
 	OPS_OPS_COLUMN     = "OPS" // Column
 	HASH_FULL_COL_NAME = OPS_FAMILY + ":" + OPS_HASH_COLUMN
 	OPS_FULL_COL_NAME  = OPS_FAMILY + ":" + OPS_OPS_COLUMN
+
+	// Columns in the "I" column family.
+	EMPTY_INDEX_COLUMN        = "E"
+	EMPTY_INDEX_FULL_COL_NAME = INDEX_FAMILY + ":" + EMPTY_INDEX_COLUMN
 
 	// MAX_MUTATIONS is the max number of mutations we can send in a single ApplyBulk call. Can be up to 100,000 according to BigTable docs.
 	MAX_MUTATIONS = 100000
@@ -340,8 +346,8 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 	muts = append(muts, mut)
 	rowKeys = append(rowKeys, fmt.Sprintf("&%x", sourceHash))
 
-	// indices maps rowKeys to Params.
-	indices := map[string]paramtools.Params{}
+	// indices maps rowKeys to encoded Params.
+	indices := map[string]paramtools.EncodedParams{}
 
 	tctx, cancel := context.WithTimeout(context.Background(), WRITE_TIMEOUT)
 	defer cancel()
@@ -360,7 +366,11 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 		}
 		rowKey := tileKey.TraceRowName(encodedKey, b.shards)
 		rowKeys = append(rowKeys, rowKey)
-		indices[rowKey] = params[i]
+		indices[encodedKey], err = ops.EncodeParams(params[i])
+		if err != nil {
+			sklog.Warningf("Failed to encode key %q: %s", params[i], err)
+			continue
+		}
 		if len(muts) >= MAX_MUTATIONS {
 			if err := b.writeBatchOfTraces(tctx, rowKeys, muts); err != nil {
 				return err
@@ -380,9 +390,9 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 
 // writeTraceIndices writes the indices for the given traces.
 //
-// The 'indices' maps encoded keys to the Params of the unencoded key.
+// The 'indices' maps encoded keys to the encoded Params of the key.
 // If bypassCache is true then we don't look in the lru cache to see if we've already writtin the indices for a given key.
-func (b *BigTableTraceStore) writeTraceIndices(tctx context.Context, tileKey TileKey, indices map[string]paramtools.Params, ts bigtable.Timestamp, bypassCache bool) error {
+func (b *BigTableTraceStore) writeTraceIndices(tctx context.Context, tileKey TileKey, indices map[string]paramtools.EncodedParams, ts bigtable.Timestamp, bypassCache bool) error {
 	// Write indices as batches of mutations.
 	indexRowKeys := []string{}
 	muts := []*bigtable.Mutation{}
@@ -394,9 +404,11 @@ func (b *BigTableTraceStore) writeTraceIndices(tctx context.Context, tileKey Til
 		}
 		for k, v := range p {
 			mut := bigtable.NewMutation()
-			mut.Set(INDEX_FAMILY, rowKey, ts, EMPTY_VALUE)
+			// The row keys for index rows contain all the data, but we have to
+			// write some data into a cell, so we write an empty byte slice.
+			mut.Set(INDEX_FAMILY, EMPTY_INDEX_COLUMN, ts, EMPTY_VALUE)
 			muts = append(muts, mut)
-			indexRowKeys = append(indexRowKeys, fmt.Sprintf("%s:%s:%s", tileKey.IndexRowPrefix(), k, v))
+			indexRowKeys = append(indexRowKeys, fmt.Sprintf("%s:%s:%s:%s", tileKey.IndexRowPrefix(), k, v, rowKey))
 			if len(muts) >= MAX_MUTATIONS {
 				if err := b.writeBatchOfIndices(tctx, indexRowKeys, muts); err != nil {
 					return err
@@ -447,7 +459,7 @@ func (b *BigTableTraceStore) WriteIndices(ctx context.Context, tileKey TileKey) 
 		return fmt.Errorf("Failed to get OPS: %s", err)
 	}
 	sklog.Info("WriteIndices - OPS Loaded.")
-	indices := map[string]paramtools.Params{}
+	indices := map[string]paramtools.EncodedParams{}
 	for _, key := range keys {
 		p, err := query.ParseKey(key)
 		if err != nil {
@@ -459,8 +471,12 @@ func (b *BigTableTraceStore) WriteIndices(ctx context.Context, tileKey TileKey) 
 			sklog.Warningf("Failed to encode key: %s", err)
 			continue
 		}
-		rowKey := tileKey.TraceRowName(encodedKey, b.shards)
-		indices[rowKey] = p
+		p, err = ops.EncodeParams(p)
+		if err != nil {
+			sklog.Warningf("Failed to encode params: %s", err)
+			continue
+		}
+		indices[encodedKey] = p
 	}
 	sklog.Info("WriteIndices - Indices calculated.")
 	return b.writeTraceIndices(ctx, tileKey, indices, bigtable.Time(time.Now()), true)

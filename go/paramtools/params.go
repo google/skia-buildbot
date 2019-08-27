@@ -17,6 +17,8 @@ import (
 // Params is a set of key,value pairs.
 type Params map[string]string
 
+type EncodedParams Params
+
 // ParamSet is a set of keys and the possible values that the keys could have. I.e.
 // the []string should contain no duplicates.
 type ParamSet map[string][]string
@@ -441,6 +443,31 @@ func (p *paramsEncoder) encodeAsString(params Params) (string, error) {
 	return strings.Join(ret, ""), nil
 }
 
+// encode takes a Params and encodes all the keys and values via
+// the OrderedParamSet.
+func (p *paramsEncoder) encode(params Params) (EncodedParams, error) {
+	ret := EncodedParams{}
+	for _, key := range p.keyOrder {
+		value, ok := params[key]
+		if !ok {
+			continue
+		}
+		keyIndex, ok := p.keys[key]
+		if !ok {
+			return nil, fmt.Errorf("Unknown key.")
+		}
+		valueIndex, ok := p.values[keyIndex][value]
+		if !ok {
+			return nil, fmt.Errorf("Unknown value.")
+		}
+		ret[keyIndex] = valueIndex
+	}
+	if len(ret) == 0 {
+		return nil, fmt.Errorf("No params encoded.")
+	}
+	return ret, nil
+}
+
 func (o *OrderedParamSet) getParamsEncoder() *paramsEncoder {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
@@ -455,6 +482,11 @@ func (o *OrderedParamSet) getParamsEncoder() *paramsEncoder {
 // EncodeParamsAsString encodes the Params as a string containing indices.
 func (o *OrderedParamSet) EncodeParamsAsString(p Params) (string, error) {
 	return o.getParamsEncoder().encodeAsString(p)
+}
+
+// EncodeParams encodes the Params via the OrderedParamSet.
+func (o *OrderedParamSet) EncodeParams(p Params) (EncodedParams, error) {
+	return o.getParamsEncoder().encode(p)
 }
 
 func (o *OrderedParamSet) getParamsDecoder() *paramsDecoder {
