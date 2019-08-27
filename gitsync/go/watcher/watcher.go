@@ -10,6 +10,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/cleanup"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/git"
@@ -30,6 +31,20 @@ import (
 const (
 	// batchSize is the number of commits retrieved at a time from Gitiles.
 	batchSize = 10000
+)
+
+var (
+	// Don't delete these branches. For some reason, this branch is
+	// occasionally missing from the branch heads we get back from Gitiles,
+	// And updating the branch info and re-ingesting the commits wastes
+	// time. Maps repo URL to branch name to bool, indicating that deletion
+	// of this branch in this repo should be skipped.
+	// See http://b/139938100 for more information.
+	ignoreDeletedBranch = map[string]map[string]bool{
+		common.REPO_SKIA: {
+			"chrome/m65": true,
+		},
+	}
 )
 
 // Start creates a GitStore with the provided information and starts periodic
@@ -64,7 +79,7 @@ func Start(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL, gitilesURL,
 	// Start periodic ingestion.
 	lvGitSync := metrics2.NewLiveness("last_successful_git_sync", map[string]string{"repo": repoURL})
 	cleanup.Repeat(interval, func(ctx context.Context) {
-		defer timer.New("Sync " + repoURL).Stop()
+		defer metrics2.FuncTimer().Stop()
 		// Catch any panic and log relevant information to find the root cause.
 		defer func() {
 			if err := recover(); err != nil {
@@ -235,7 +250,7 @@ func (r *repoImpl) loadCommitsFromGitiles(ctx context.Context, branch, logExpr s
 // initialIngestion performs the first-time ingestion of the repo.
 func (r *repoImpl) initialIngestion(ctx context.Context) error {
 	sklog.Warningf("Performing initial ingestion of %s.", r.gitiles.URL)
-	defer timer.New("Initial ingestion").Stop()
+	defer metrics2.FuncTimer().Stop()
 
 	// Create a tmpGitStore.
 	sklog.Info("Retrieving graph from temporary store.")
@@ -426,7 +441,7 @@ func (r *repoImpl) initialIngestion(ctx context.Context) error {
 // See documentation for RepoImpl interface.
 func (r *repoImpl) Update(ctx context.Context) error {
 	sklog.Infof("repoImpl.Update for %s", r.gitiles.URL)
-	defer timer.New("repoImpl.Update for " + r.gitiles.URL).Stop()
+	defer metrics2.FuncTimer().Stop()
 	if len(r.BranchList) == 0 {
 		if err := r.initialIngestion(ctx); err != nil {
 			return skerr.Wrapf(err, "Failed initial ingestion.")
@@ -442,6 +457,16 @@ func (r *repoImpl) Update(ctx context.Context) error {
 	branches, err := r.gitiles.Branches(ctx)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed loading branches from Gitiles.")
+	}
+	// If any of the whitelisted old branches disappeared, add it back.
+	newBranches := make(map[string]string, len(branches))
+	for _, branch := range branches {
+		newBranches[branch.Name] = branch.Head
+	}
+	for name, b := range oldBranches {
+		if _, ok := newBranches[name]; !ok && ignoreDeletedBranch[r.gitiles.URL][name] {
+			branches = append(branches, b)
+		}
 	}
 
 	// Download any new commits and add them to the local cache.
@@ -515,7 +540,7 @@ func (r *repoImpl) Details(ctx context.Context, hash string) (*vcsinfo.LongCommi
 // See documentation for RepoImpl interface.
 func (r *repoImpl) UpdateCallback(ctx context.Context, added, removed []*vcsinfo.LongCommit, graph *repograph.Graph) error {
 	sklog.Infof("repoImpl.UpdateCallback for %s", r.gitiles.URL)
-	defer timer.New("repoImpl.UpdateCallback for " + r.gitiles.URL).Stop()
+	defer metrics2.FuncTimer().Stop()
 	// Ensure that branch membership is up to date.
 	modified := graph.UpdateBranchInfo()
 	modifiedMap := make(map[string]*vcsinfo.LongCommit, len(modified)+len(added))
