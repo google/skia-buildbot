@@ -1,15 +1,3 @@
-package data_three_devices
-
-import (
-	"fmt"
-	"time"
-
-	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/baseline"
-	"go.skia.org/infra/golden/go/types"
-)
-
 // This package supplies test data that matches the following scenario:
 // There are 3 devices (angler, bullhead, crosshatch, each running 2 tests (test_alpha, test_beta).
 //
@@ -24,6 +12,17 @@ import (
 //
 // These helper functions all return a fresh copy of their objects so that
 // tests can mutate them w/o impacting future tests.
+package data_three_devices
+
+import (
+	"fmt"
+	"time"
+
+	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/baseline"
+	"go.skia.org/infra/golden/go/types"
+)
 
 // human-readable variable names for the data (values are arbitrary, but valid)
 const (
