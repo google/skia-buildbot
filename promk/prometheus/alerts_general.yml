@@ -520,15 +520,27 @@ groups:
       abbr: '{{ $labels.container }}'
       description: 'For app {{ $labels.app }} and container {{ $labels.container }} the running image differs from the image in {{ $labels.repo }}/+/refs/heads/master/{{ $labels.yaml }} : {{ $labels.liveImage }} != {{ $labels.committedImage }}'
 
+# GitSync.
   - alert: GitSyncStalled
-    expr: liveness_last_successful_git_sync_s > 10*60
+    expr: liveness_last_successful_git_sync_s > 5*60
     labels:
       category: infra
       severity: critical
-      owner: kjlubick
+      owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.repo }}'
-      description: 'gitsync has failed to update {{ $labels.repo }} for the last 10 minutes. Check out pod {{ $labels.statefulset_kubernetes_io_pod_name }} in project {{ $labels.project }}.'
+      description: 'gitsync has failed to update {{ $labels.repo }} for the last 5 minutes. Check out pod {{ $labels.statefulset_kubernetes_io_pod_name }} in project {{ $labels.project }}. https://skia.googlesource.com/buildbot/+/refs/heads/master/gitsync/PROD.md#GitSyncStalled'
+
+  - alert: GitSyncErrorRate
+    expr: rate(num_log_lines{level="ERROR",app=~"gitsync.*"}[5m]) > 0.005
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: 'The error rate for {{ $labels.app }} is too high.
+      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }} https://skia.googlesource.com/buildbot/+/refs/heads/master/gitsync/PROD.md#GitSyncErrorRate'
 
 # Gold Alerts
   - alert: GoldIgnoreMonitoring
