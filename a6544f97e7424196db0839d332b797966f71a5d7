@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "940ee034_ac92b1e9",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-27T14:51:34Z",
+      "side": 1,
+      "message": "nit: maybe should add \"json\" to the naming here? It\u0027s useful to know when looking at a handler whether it\u0027s supposed to return json or html (or text, for KnownHashesProxy).",
+      "range": {
+        "startLine": 471,
+        "startChar": 1,
+        "endLine": 471,
+        "endChar": 28
+      },
+      "revId": "a6544f97e7424196db0839d332b797966f71a5d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
