@@ -1,11 +1,14 @@
 package diffstore
 
 import (
+	"context"
 	"os"
 	"sync"
 	"testing"
 
+	"cloud.google.com/go/storage"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
@@ -13,6 +16,7 @@ import (
 	"go.skia.org/infra/golden/go/ignore/mem_ignorestore"
 	"go.skia.org/infra/golden/go/serialize"
 	"go.skia.org/infra/golden/go/types"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -25,6 +29,9 @@ func BenchmarkMemDiffStore(b *testing.B) {
 
 	baseDir := d_utils.TEST_DATA_BASE_DIR + "-bench-diffstore"
 	client := d_utils.GetHTTPClient(b)
+	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	assert.NoError(b, err)
+	gcsClient := gcsclient.New(storageClient, d_utils.TEST_GCS_BUCKET_NAME)
 	defer testutils.RemoveAll(b, baseDir)
 
 	memIgnoreStore := mem_ignorestore.New()
@@ -49,7 +56,7 @@ func BenchmarkMemDiffStore(b *testing.B) {
 	}
 
 	mapper := disk_mapper.New(&diff.DiffMetrics{})
-	diffStore, err := NewMemDiffStore(client, baseDir, []string{d_utils.TEST_GCS_BUCKET_NAME}, d_utils.TEST_GCS_IMAGE_DIR, 10, mapper)
+	diffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, mapper)
 	assert.NoError(b, err)
 	allDigests := make([]types.DigestSlice, 0, PROCESS_N_TESTS)
 	processed := 0

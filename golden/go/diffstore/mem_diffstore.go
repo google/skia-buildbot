@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/rtcache"
 	"go.skia.org/infra/go/skerr"
@@ -82,7 +83,7 @@ type MemDiffStore struct {
 // If diffFn is not specified, the diff.DefaultDiffFn will be used. If codec is
 // not specified, a JSON codec for the diff.DiffMetrics struct will be used.
 // If mapper is not specified, GoldIDPathMapper will be used.
-func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string, gsImageBaseDir string, gigs int, m mapper.Mapper) (diff.DiffStore, error) {
+func NewMemDiffStore(client gcs.GCSClient, baseDir string, gsImageBaseDir string, gigs int, m mapper.Mapper) (diff.DiffStore, error) {
 	imageCacheCount, diffCacheCount := getCacheCounts(gigs)
 
 	imgPath := filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME)
@@ -92,7 +93,7 @@ func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string
 	}
 
 	// Set up image retrieval, caching and serving.
-	imgLoader, err := NewImgLoader(client, baseDir, imgDir, gsBucketNames, gsImageBaseDir, imageCacheCount, m)
+	imgLoader, err := NewImgLoader(client, baseDir, imgDir, gsImageBaseDir, imageCacheCount, m)
 	if err != nil {
 		return nil, skerr.Fmt("Could not create img loader %s", err)
 	}

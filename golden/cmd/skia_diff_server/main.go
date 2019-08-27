@@ -1,20 +1,24 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"net"
 	"net/http"
 	"os"
 	"path/filepath"
 
+	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
+	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
 	"google.golang.org/grpc"
 )
@@ -67,9 +71,16 @@ func main() {
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
+	// Build the storage.Client client and wrap it around a gcs.GCSClient.
+	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	if err != nil {
+		sklog.Fatalf("Could not create storage client: %s.", err)
+	}
+	gcsClient := gcsclient.New(storageClient, *gsBucketName)
+
 	// Get the DiffStore that does the work loading and diffing images.
 	mapper := disk_mapper.New(&diff.DiffMetrics{})
-	memDiffStore, err := diffstore.NewMemDiffStore(client, *imageDir, []string{*gsBucketName}, *gsBaseDir, *cacheSize, mapper)
+	memDiffStore, err := diffstore.NewMemDiffStore(gcsClient, *imageDir, *gsBaseDir, *cacheSize, mapper)
 	if err != nil {
 		sklog.Fatalf("Allocating DiffStore failed: %s", err)
 	}

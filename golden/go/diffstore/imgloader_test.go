@@ -1,13 +1,16 @@
 package diffstore
 
 import (
+	"context"
 	"os"
 	"path"
 	"path/filepath"
 	"testing"
 
+	"cloud.google.com/go/storage"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -17,6 +20,7 @@ import (
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
 	d_utils "go.skia.org/infra/golden/go/diffstore/testutils"
 	"go.skia.org/infra/golden/go/types"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -52,10 +56,7 @@ func TestImageLoader(t *testing.T) {
 		assert.True(t, fileutil.FileExists(fileutil.TwoLevelRadixPath(workingDir, fn)))
 	}
 
-	// Fetch images from the secondary bucket.
-	_, _, err := imageLoader.Get(1, types.DigestSlice{TEST_IMG_DIGEST})
-	assert.NoError(t, err)
-	_, _, err = imageLoader.Get(1, types.DigestSlice{"some-image-that-does-not-exist-at-all-in-any-bucket"})
+	_, _, err := imageLoader.Get(1, types.DigestSlice{"some-image-that-does-not-exist-at-all-in-any-bucket"})
 	assert.Error(t, err)
 }
 
@@ -68,8 +69,12 @@ func getImageLoaderAndTile(t sktest.TestingT, m mapper.Mapper) (string, *tiling.
 	assert.Nil(t, os.Mkdir(workingDir, 0777))
 
 	imgCacheCount, _ := getCacheCounts(10)
-	gsBuckets := []string{d_utils.TEST_GCS_BUCKET_NAME, d_utils.TEST_GCS_SECONDARY_BUCKET}
-	imgLoader, err := NewImgLoader(client, baseDir, workingDir, gsBuckets, d_utils.TEST_GCS_IMAGE_DIR, imgCacheCount, m)
+
+	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	assert.NoError(t, err)
+	gcsClient := gcsclient.New(storageClient, d_utils.TEST_GCS_BUCKET_NAME)
+
+	imgLoader, err := NewImgLoader(gcsClient, baseDir, workingDir, d_utils.TEST_GCS_IMAGE_DIR, imgCacheCount, m)
 	assert.NoError(t, err)
 	return workingDir, tile, imgLoader, cleanup
 }
