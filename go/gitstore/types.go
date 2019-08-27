@@ -38,7 +38,8 @@ type GitStore interface {
 	// PutBranches updates the given branch heads in the GitStore. The 'branches' parameter
 	// maps branch name to commit hash to indicate the head of a branch. All of the referenced
 	// commits must already exist in the GitStore. If the DELETE_BRANCH string is used instead
-	// of a commit hash, then the branch is removed.
+	// of a commit hash, then the branch is removed. Any existing branches which are not
+	// included in the call to PutBranches are left unchanged.
 	PutBranches(ctx context.Context, branches map[string]string) error
 
 	// GetBranches returns the current branches in the store. It maps[branchName]->BranchPointer.

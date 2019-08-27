@@ -147,7 +147,6 @@ func TestIngestCommits(t *testing.T) {
 		}
 		return nil
 	})
-	sklog.Errorf("Error: %s", err.Error())
 	assert.True(t, strings.Contains(err.Error(), "commit ingestion failed"))
 	assert.True(t, strings.Contains(err.Error(), "and commit-loading func failed with: context canceled"))
 	assertNew(5 + 6)
@@ -321,7 +320,7 @@ func setupGitsync(t *testing.T) (context.Context, *git_testutils.GitBuilder, *re
 	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.GitDir(g.Dir()), urlMock)
 	repo := gitiles.NewRepo(g.RepoUrl(), "", urlMock.Client())
 	gcsClient := test_gcsclient.NewMemoryClient("fake-bucket")
-	ri, err := newRepoImpl(ctx, gs, repo, gcsClient, "repo-ingestion")
+	ri, err := newRepoImpl(ctx, gs, repo, gcsClient, "repo-ingestion", nil)
 	assert.NoError(t, err)
 	ud := newGitsyncRefresher(t, ctx, gs, g, mockRepo)
 	graph, err := repograph.NewWithRepoImpl(ctx, ri)
