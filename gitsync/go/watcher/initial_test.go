@@ -140,7 +140,7 @@ func setupTestInitial(t *testing.T) (context.Context, *git_testutils.GitBuilder,
 	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.GitDir(g.Dir()), urlMock)
 	repo := gitiles.NewRepo(g.RepoUrl(), "", urlMock.Client())
 	gcsClient := test_gcsclient.NewMemoryClient("fake-bucket")
-	ri, err := newRepoImpl(ctx, &gs, repo, gcsClient, "repo-ingestion")
+	ri, err := newRepoImpl(ctx, &gs, repo, gcsClient, "repo-ingestion", nil)
 	assert.NoError(t, err)
 	return ctx, g, mockRepo, ri.(*repoImpl), g.Cleanup
 }
