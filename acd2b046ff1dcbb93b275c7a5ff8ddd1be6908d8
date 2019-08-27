@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "97c2b417_baf5bbd7",
+        "filename": "golden/go/blame/blame.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T12:24:56Z",
+      "side": 1,
+      "message": "Added a TODO to investigate unusedness and replacing the struct with a slice of commits",
+      "parentUuid": "ee2bb575_a82fefbc",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 1
+      },
+      "revId": "acd2b046ff1dcbb93b275c7a5ff8ddd1be6908d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d08d27da_83f2d879",
         "filename": "golden/go/blame/blame_test.go",
         "patchSetId": 6
@@ -39,6 +63,24 @@
       "revId": "acd2b046ff1dcbb93b275c7a5ff8ddd1be6908d8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af008b5d_594b610e",
+        "filename": "golden/go/blame/blame_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T12:24:56Z",
+      "side": 1,
+      "message": "I would like to, but I\u0027m not sure how to construct that.  Added TODO",
+      "parentUuid": "d08d27da_83f2d879",
+      "revId": "acd2b046ff1dcbb93b275c7a5ff8ddd1be6908d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -82,6 +124,30 @@
     },
     {
       "key": {
+        "uuid": "b0d844dd_29126ff3",
+        "filename": "golden/go/summary/summary_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T12:24:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4f8a757c_4054c823",
+      "range": {
+        "startLine": 514,
+        "startChar": 3,
+        "endLine": 514,
+        "endChar": 26
+      },
+      "revId": "acd2b046ff1dcbb93b275c7a5ff8ddd1be6908d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4b4b121d_1eeccb6b",
         "filename": "golden/go/summary/summary_test.go",
         "patchSetId": 6
@@ -102,6 +168,30 @@
       "revId": "acd2b046ff1dcbb93b275c7a5ff8ddd1be6908d8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c53eac9f_564fe692",
+        "filename": "golden/go/summary/summary_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T12:24:56Z",
+      "side": 1,
+      "message": "Added a comment to fix this in the future.  For now, I\u0027m fine with verifying existing behavior.",
+      "parentUuid": "4b4b121d_1eeccb6b",
+      "range": {
+        "startLine": 525,
+        "startChar": 10,
+        "endLine": 530,
+        "endChar": 5
+      },
+      "revId": "acd2b046ff1dcbb93b275c7a5ff8ddd1be6908d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -128,6 +218,30 @@
     },
     {
       "key": {
+        "uuid": "67757fbc_85e9238a",
+        "filename": "golden/go/testutils/data_bug_revert/bug_revert.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T12:24:56Z",
+      "side": 1,
+      "message": "Alfa in that NATO alphabet is spelled differently than Alpha of the Greek alphabet:\nhttps://en.wikipedia.org/wiki/NATO_phonetic_alphabet\n\nI like the canadian game show idea, but for now, it\u0027s different enough",
+      "parentUuid": "c8a51770_6655d24b",
+      "range": {
+        "startLine": 17,
+        "startChar": 11,
+        "endLine": 17,
+        "endChar": 15
+      },
+      "revId": "acd2b046ff1dcbb93b275c7a5ff8ddd1be6908d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9564dab0_880e40c4",
         "filename": "golden/go/testutils/data_bug_revert/bug_revert.go",
         "patchSetId": 6
@@ -148,6 +262,30 @@
       "revId": "acd2b046ff1dcbb93b275c7a5ff8ddd1be6908d8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c7084f5_9e350fcf",
+        "filename": "golden/go/testutils/data_bug_revert/bug_revert.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T12:24:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9564dab0_880e40c4",
+      "range": {
+        "startLine": 45,
+        "startChar": 4,
+        "endLine": 45,
+        "endChar": 9
+      },
+      "revId": "acd2b046ff1dcbb93b275c7a5ff8ddd1be6908d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
