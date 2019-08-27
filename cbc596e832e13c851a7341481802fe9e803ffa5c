@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e6a82ff1_10ba70de",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-27T14:39:14Z",
+      "side": 1,
+      "message": "Why not just call graph.UpdateWithCallback here? I.e. get rid of ch.",
+      "range": {
+        "startLine": 125,
+        "startChar": 0,
+        "endLine": 128,
+        "endChar": 11
+      },
+      "revId": "cbc596e832e13c851a7341481802fe9e803ffa5c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "325f6b3d_bc2f9e2b",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-27T14:39:14Z",
+      "side": 1,
+      "message": "nit: this might be slightly simpler:\nif req.msg \u003d\u003d nil {\n  return func() {}\n}\nreturn req.msg.Ack",
+      "range": {
+        "startLine": 133,
+        "startChar": 0,
+        "endLine": 137,
+        "endChar": 2
+      },
+      "revId": "cbc596e832e13c851a7341481802fe9e803ffa5c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
