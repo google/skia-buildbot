@@ -325,6 +325,7 @@ func TestTraces(t *testing.T) {
 	assert.Equal(t, 10, count)
 
 	// Remove indices and repopulate with WriteIndices.
+
 	muts := []*bigtable.Mutation{}
 	indexRowKeys := getIndexRowKeys(t, b)
 	for range indexRowKeys {
@@ -339,7 +340,7 @@ func TestTraces(t *testing.T) {
 	}
 
 	// Confirm they have all been deleted.
-	count = assertIndices(t, ops, b, expectedParams, "Add new trace")
+	count = assertIndices(t, ops, b, []paramtools.Params{}, "Confirm deleted")
 	assert.Equal(t, 0, count)
 
 	// Write fresh indices.
@@ -361,6 +362,7 @@ func TestTraces(t *testing.T) {
 	s, err = b.GetSource(context.Background(), 259, traceId)
 	assert.Error(t, err)
 	assert.Equal(t, "", s)
+
 }
 
 func TestTileKey(t *testing.T) {
