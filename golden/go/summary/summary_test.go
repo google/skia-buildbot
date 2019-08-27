@@ -1,4 +1,4 @@
-package summary_test
+package summary
 
 import (
 	"net/url"
@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/mocks"
-	"go.skia.org/infra/golden/go/summary"
 	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -92,7 +91,7 @@ func TestCalcSummaries(t *testing.T) {
 	blamer, err := blame.New(makeFullTile(), makeExpectations())
 	assert.NoError(t, err)
 
-	smc := summary.SummaryMapConfig{
+	smc := SummaryMapConfig{
 		ExpectationsStore: mes,
 		DiffStore:         nil, // diameter is disabled, so this can be nil.
 		DigestCounter:     dc,
@@ -100,7 +99,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Query all gms with ignores
-	if sum, err := summary.NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
+	if sum, err := NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 2, len(sum))
@@ -113,7 +112,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Query all gms with full tile.
-	if sum, err := summary.NewSummaryMap(smc, makeFullTile(), nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
+	if sum, err := NewSummaryMap(smc, makeFullTile(), nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 2, len(sum))
@@ -125,7 +124,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Query gms belonging to test FirstTest from full tile
-	if sum, err := summary.NewSummaryMap(smc, makeFullTile(), types.TestNameSet{FirstTest: true}, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
+	if sum, err := NewSummaryMap(smc, makeFullTile(), types.TestNameSet{FirstTest: true}, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 1, len(sum))
@@ -136,7 +135,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Query all digests belonging to test FirstTest from tile with ignores applied
-	if sum, err := summary.NewSummaryMap(smc, makeTileWithIgnores(), types.TestNameSet{FirstTest: true}, nil, false); err != nil {
+	if sum, err := NewSummaryMap(smc, makeTileWithIgnores(), types.TestNameSet{FirstTest: true}, nil, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 1, len(sum))
@@ -148,7 +147,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// query any digest in 8888 OR 565 from tile with ignores applied
-	if sum, err := summary.NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"8888", "565"}}, false); err != nil {
+	if sum, err := NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"8888", "565"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 3, len(sum))
@@ -162,7 +161,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// query any digest in 8888 OR 565 from tile with ignores applied at Head
-	if sum, err := summary.NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"8888", "565"}}, true); err != nil {
+	if sum, err := NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"8888", "565"}}, true); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 3, len(sum))
@@ -177,7 +176,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Query any digest with the gpu config
-	if sum, err := summary.NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"gpu"}}, false); err != nil {
+	if sum, err := NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"gpu"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 1, len(sum))
@@ -187,7 +186,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	// Nothing should show up from an unknown query
-	if sum, err := summary.NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"unknown"}}, false); err != nil {
+	if sum, err := NewSummaryMap(smc, makeTileWithIgnores(), nil, url.Values{"config": {"unknown"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	} else {
 		assert.Equal(t, 0, len(sum))
@@ -207,7 +206,7 @@ func TestCalcSummariesRevert(t *testing.T) {
 	blamer, err := blame.New(bug_revert.MakeTestTile(), bug_revert.MakeTestExpectations())
 	assert.NoError(t, err)
 
-	smc := summary.SummaryMapConfig{
+	smc := SummaryMapConfig{
 		ExpectationsStore: mes,
 		DiffStore:         nil, // diameter is disabled, so this can be nil.
 		DigestCounter:     dc,
@@ -216,17 +215,17 @@ func TestCalcSummariesRevert(t *testing.T) {
 
 	tile := bug_revert.MakeTestTile()
 
-	sum, err := summary.NewSummaryMap(smc, tile, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false)
+	sum, err := NewSummaryMap(smc, tile, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false)
 	assert.NoError(t, err)
 	assert.Equal(t, MakeBugRevertSummaryMap(), sum)
 
-	sum, err = summary.NewSummaryMap(smc, tile, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, true)
+	sum, err = NewSummaryMap(smc, tile, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, true)
 	assert.NoError(t, err)
 	assert.Equal(t, MakeBugRevertSummaryMapHead(), sum)
 
-	sum, err = summary.NewSummaryMap(smc, tile, nil, url.Values{types.CORPUS_FIELD: {"does-not-exist"}}, false)
+	sum, err = NewSummaryMap(smc, tile, nil, url.Values{types.CORPUS_FIELD: {"does-not-exist"}}, false)
 	assert.NoError(t, err)
-	assert.Equal(t, summary.SummaryMap{}, sum)
+	assert.Equal(t, SummaryMap{}, sum)
 }
 
 // TestCombine ensures we can combine two summaries to make sure
@@ -234,7 +233,7 @@ func TestCalcSummariesRevert(t *testing.T) {
 func TestCombine(t *testing.T) {
 	unittest.SmallTest(t)
 
-	first := summary.SummaryMap{
+	first := SummaryMap{
 		FirstTest: {
 			Name:      FirstTest,
 			Diameter:  4,
@@ -273,7 +272,7 @@ func TestCombine(t *testing.T) {
 		},
 	}
 
-	second := summary.SummaryMap{
+	second := SummaryMap{
 		FirstTest: {
 			Name:      FirstTest,
 			Diameter:  24,
@@ -319,7 +318,7 @@ func TestCombine(t *testing.T) {
 	assert.Contains(t, result, ThirdTest)
 }
 
-func triageCountsCorrect(t *testing.T, sum summary.SummaryMap, name types.TestName, pos, neg, unt int) {
+func triageCountsCorrect(t *testing.T, sum SummaryMap, name types.TestName, pos, neg, unt int) {
 	s, ok := sum[name]
 	assert.True(t, ok, "Could not find %s in %#v", name, sum)
 	assert.Equal(t, pos, s.Pos, "Postive count wrong")
@@ -474,8 +473,8 @@ func makeExpectations() types.Expectations {
 }
 
 // MakeBugRevertSummaryMap returns the SummaryMap for the whole tile.
-func MakeBugRevertSummaryMap() summary.SummaryMap {
-	return summary.SummaryMap{
+func MakeBugRevertSummaryMap() SummaryMap {
+	return SummaryMap{
 		bug_revert.TestOne: {
 			Name:      bug_revert.TestOne,
 			Pos:       1,
@@ -513,8 +512,8 @@ func MakeBugRevertSummaryMap() summary.SummaryMap {
 
 // MakeBugRevertSummaryMapHead returns the SummaryMap for "head", that is,
 // the most recent commit only.
-func MakeBugRevertSummaryMapHead() summary.SummaryMap {
-	return summary.SummaryMap{
+func MakeBugRevertSummaryMapHead() SummaryMap {
+	return SummaryMap{
 		bug_revert.TestOne: {
 			Name:      bug_revert.TestOne,
 			Pos:       1,
