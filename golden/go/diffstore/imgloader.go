@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"image"
@@ -283,8 +284,8 @@ func (il *ImageLoader) downloadImg(gsPath string) ([]byte, error) {
 			}
 
 			// Check the MD5.
-			if !bytes.Equal(md5Hash.Sum(nil), attrs.MD5) {
-				return skerr.Fmt("MD5 hash for digest %s incorrect.", objLocation)
+			if hashBytes := md5Hash.Sum(nil); !bytes.Equal(hashBytes, attrs.MD5) {
+				return skerr.Fmt("MD5 hash for digest %s incorrect: computed hash is %s.", objLocation, hex.EncodeToString(hashBytes))
 			}
 
 			return nil
