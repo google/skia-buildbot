@@ -24,7 +24,7 @@ import (
 	"go.skia.org/infra/golden/go/warmer"
 )
 
-func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qStr string, exp types.Expectations, buf *bytes.Buffer) int {
+func checkQuery(t assert.TestingT, api *SearchAPI, idx indexer.IndexSearcher, qStr string, exp types.Expectations, buf *bytes.Buffer) int {
 	q := &Query{}
 
 	// We ignore incorrect queries. They are tested somewhere else.
@@ -32,7 +32,7 @@ func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qSt
 	if err != nil {
 		return 0
 	}
-	tile := idx.CpxTile().GetTile(q.IgnoreState())
+	tile := idx.Tile().GetTile(q.IgnoreState())
 
 	// TODO(stephana): Remove the lines below to also exercise the search for
 	// issues. This requires to refresh the set of input queries.
@@ -132,13 +132,13 @@ func getTargetDigests(t assert.TestingT, q *Query, tile *tiling.Tile, exp types.
 	return result
 }
 
-func getAPIIndexTile(t *testing.T, bucket, storagePath, outputPath string, randomize bool) (SearchAPI, *indexer.SearchIndex, *tiling.Tile) {
+func getAPIIndexTile(t *testing.T, bucket, storagePath, outputPath string, randomize bool) (SearchAPI, indexer.IndexSearcher, *tiling.Tile) {
 	err := gcs_testutils.DownloadTestDataFile(t, bucket, storagePath, outputPath)
 	assert.NoError(t, err, "Unable to download testdata.")
 	return getAPIAndIndexerFromTile(t, outputPath, randomize)
 }
 
-func getAPIAndIndexerFromTile(t sktest.TestingT, path string, randomize bool) (SearchAPI, *indexer.SearchIndex, *tiling.Tile) {
+func getAPIAndIndexerFromTile(t sktest.TestingT, path string, randomize bool) (SearchAPI, indexer.IndexSearcher, *tiling.Tile) {
 	sample := loadSample(t, path, randomize)
 
 	mds := &mocks.DiffStore{}
@@ -169,7 +169,7 @@ func getAPIAndIndexerFromTile(t sktest.TestingT, path string, randomize bool) (S
 	ixr, err := indexer.New(ic, 10*time.Minute)
 	assert.NoError(t, err)
 	idx := ixr.GetIndex()
-	tile := idx.CpxTile().GetTile(types.ExcludeIgnoredTraces)
+	tile := idx.Tile().GetTile(types.ExcludeIgnoredTraces)
 
 	api := SearchAPI{
 		DiffStore:         mds,
