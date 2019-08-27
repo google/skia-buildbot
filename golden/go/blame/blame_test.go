@@ -5,18 +5,20 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
+	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
 	three_devices "go.skia.org/infra/golden/go/testutils/data_three_devices"
+	"go.skia.org/infra/golden/go/types"
 )
 
 func TestBlamerGetBlamesForTestThreeDevices(t *testing.T) {
 	unittest.SmallTest(t)
 
-	blamer := blamerWithCalculate(t)
+	blamer, err := New(three_devices.MakeTestTile(), three_devices.MakeTestExpectations())
+	assert.NoError(t, err)
 
 	bd := blamer.GetBlamesForTest(three_devices.AlphaTest)
 	assert.Len(t, bd, 1)
 	b := bd[0]
-	assert.NotNil(t, b)
 
 	// The AlphaTest becomes untriaged in exactly the third commit for exactly
 	// one trace, so blame is able to identify that author as the one
@@ -29,7 +31,6 @@ func TestBlamerGetBlamesForTestThreeDevices(t *testing.T) {
 	bd = blamer.GetBlamesForTest(three_devices.BetaTest)
 	assert.Len(t, bd, 1)
 	b = bd[0]
-	assert.NotNil(t, b)
 
 	// The BetaTest has an untriaged digest in the first commit and is missing
 	// data after that, so this is the best that blamer can do.
@@ -45,13 +46,13 @@ func TestBlamerGetBlamesForTestThreeDevices(t *testing.T) {
 func TestBlamerGetBlameThreeDevices(t *testing.T) {
 	unittest.SmallTest(t)
 
-	blamer := blamerWithCalculate(t)
+	blamer, err := New(three_devices.MakeTestTile(), three_devices.MakeTestExpectations())
+	assert.NoError(t, err)
 	commits := three_devices.MakeTestCommits()
 
 	// In the first two commits, this untriaged image doesn't show up
 	// so GetBlame should return empty.
 	bd := blamer.GetBlame(three_devices.AlphaTest, three_devices.AlphaUntriaged1Digest, commits[0:2])
-	assert.NotNil(t, bd)
 	assert.Equal(t, BlameDistribution{
 		Freq: []int{},
 	}, bd)
@@ -60,39 +61,155 @@ func TestBlamerGetBlameThreeDevices(t *testing.T) {
 	// the commit with index 2 (i.e. the third and last one)
 	// has the blame
 	bd = blamer.GetBlame(three_devices.AlphaTest, three_devices.AlphaUntriaged1Digest, commits[0:3])
-	assert.NotNil(t, bd)
 	assert.Equal(t, BlameDistribution{
 		Freq: []int{2},
 	}, bd)
 
 	// The BetaUntriaged1Digest only shows up in the first commit (index 0)
 	bd = blamer.GetBlame(three_devices.BetaTest, three_devices.BetaUntriaged1Digest, commits[0:3])
-	assert.NotNil(t, bd)
 	assert.Equal(t, BlameDistribution{
 		Freq: []int{0},
 	}, bd)
 
 	// Good digests have no blame ever
 	bd = blamer.GetBlame(three_devices.BetaTest, three_devices.BetaGood1Digest, commits[0:3])
-	assert.NotNil(t, bd)
 	assert.Equal(t, BlameDistribution{
 		Freq: []int{},
 	}, bd)
 
 	// Negative digests have no blame ever
 	bd = blamer.GetBlame(three_devices.AlphaTest, three_devices.AlphaBad1Digest, commits[0:3])
-	assert.NotNil(t, bd)
 	assert.Equal(t, BlameDistribution{
 		Freq: []int{},
 	}, bd)
 }
 
-// Returns a Blamer filled out with the data from three_devices.
-func blamerWithCalculate(t *testing.T) Blamer {
-	exp := three_devices.MakeTestExpectations()
+func TestBlamerGetBlamesForTestBugRevert(t *testing.T) {
+	unittest.SmallTest(t)
 
-	blamer, err := New(three_devices.MakeTestTile(), exp)
+	blamer, err := New(bug_revert.MakeTestTile(), bug_revert.MakeTestExpectations())
 	assert.NoError(t, err)
 
-	return blamer
+	// The data in bug_revert's TestOne are designed to have the second commit be unambiguously
+	// determined to be at fault.
+	bd := blamer.GetBlamesForTest(bug_revert.TestOne)
+	assert.Len(t, bd, 1)
+
+	assert.Equal(t, WeightedBlame{
+		Author: bug_revert.BuggyAuthor,
+		Prob:   1,
+	}, bd[0])
+
+	// TestTwo is a little less clear, given some flaky tests and missing data.
+	bd = blamer.GetBlamesForTest(bug_revert.TestTwo)
+	assert.Len(t, bd, 2)
+
+	assert.Equal(t, []WeightedBlame{
+		{
+			Author: bug_revert.InnocentAuthor,
+			Prob:   0.5,
+		},
+		{
+			Author: bug_revert.BuggyAuthor,
+			Prob:   0.5,
+		},
+	}, bd)
+}
+
+func TestBlamerGetBlameBugRevert(t *testing.T) {
+	unittest.SmallTest(t)
+
+	blamer, err := New(bug_revert.MakeTestTile(), bug_revert.MakeTestExpectations())
+	assert.NoError(t, err)
+	commits := bug_revert.MakeTestCommits()
+
+	// The data in bug_revert's TestOne are designed to have the second commit be unambiguously
+	// determined to be at fault.
+	bd := blamer.GetBlame(bug_revert.TestOne, bug_revert.UntriagedDigestBravo, commits)
+	assert.NotNil(t, bd)
+	assert.Equal(t, BlameDistribution{
+		Freq: []int{1},
+	}, bd)
+
+	// The data in bug_revert's TestTwo are a bit more wishy-washy, with something going on
+	// at either the second or third commit.
+	bd = blamer.GetBlame(bug_revert.TestTwo, bug_revert.UntriagedDigestDelta, commits)
+	assert.NotNil(t, bd)
+	assert.Equal(t, BlameDistribution{
+		Freq: []int{1},
+	}, bd)
+
+	bd = blamer.GetBlame(bug_revert.TestTwo, bug_revert.UntriagedDigestFoxtrot, commits)
+	assert.NotNil(t, bd)
+	assert.Equal(t, BlameDistribution{
+		// From the (incomplete and slightly misleading) data the blamer has to go on,
+		// this is the best guess it can make, because it didn't see Foxtrot before
+		// the third commit.
+		Freq: []int{2},
+	}, bd)
+
+	// TODO(kjlubick): Is it possible to have a test case that has more than 1 index in Freq?
+}
+
+// TestBlamerCalculateBugRevert checks that the initial calculate returns the correct data.
+func TestBlamerCalculateBugRevert(t *testing.T) {
+	unittest.SmallTest(t)
+
+	blamer, err := New(bug_revert.MakeTestTile(), bug_revert.MakeTestExpectations())
+	assert.NoError(t, err)
+
+	assert.Equal(t, bug_revert.MakeTestCommits(), blamer.commits)
+	assert.Equal(t, map[types.TestName]map[types.Digest]blameCounts{
+		bug_revert.TestOne: {
+			bug_revert.UntriagedDigestBravo: {
+				4, 0, 0, 0,
+			},
+		},
+		bug_revert.TestTwo: {
+			bug_revert.UntriagedDigestDelta: {
+				2, 0, 0, 0,
+			},
+			bug_revert.UntriagedDigestFoxtrot: {
+				1, 2, 0, 0,
+			},
+		},
+	}, blamer.blameLists)
+}
+
+func TestBlamerCalculateBugRevertPossibleGlitch(t *testing.T) {
+	unittest.SmallTest(t)
+
+	tile := bug_revert.MakeTestTile()
+
+	tile.Traces[",device=alpha,name=test_one,source_type=gm,"] = &types.GoldenTrace{
+		Digests: types.DigestSlice{
+			bug_revert.GoodDigestAlfa, bug_revert.GoodDigestAlfa, bug_revert.UntriagedDigestBravo,
+			bug_revert.GoodDigestAlfa, bug_revert.GoodDigestAlfa,
+		},
+		Keys: map[string]string{
+			"device":                bug_revert.AlphaDevice,
+			types.PRIMARY_KEY_FIELD: string(bug_revert.TestOne),
+			types.CORPUS_FIELD:      "gm",
+		},
+	}
+
+	blamer, err := New(tile, bug_revert.MakeTestExpectations())
+	assert.NoError(t, err)
+
+	assert.Equal(t, bug_revert.MakeTestCommits(), blamer.commits)
+	assert.Equal(t, map[types.TestName]map[types.Digest]blameCounts{
+		bug_revert.TestOne: {
+			bug_revert.UntriagedDigestBravo: {
+				3, 0, 0, 0, // TODO(kjlubick): I would have expected this to be 3, 1, 0, 0
+			},
+		},
+		bug_revert.TestTwo: {
+			bug_revert.UntriagedDigestDelta: {
+				2, 0, 0, 0,
+			},
+			bug_revert.UntriagedDigestFoxtrot: {
+				1, 2, 0, 0,
+			},
+		},
+	}, blamer.blameLists)
 }
