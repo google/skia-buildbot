@@ -1,4 +1,6 @@
 /*
+Package btts contains the BigTableTraceStore.
+
 See BIGTABLE.md for tiles and traces are stored in BigTable.
 */
 package btts
@@ -44,7 +46,7 @@ const (
 	INDEX_FAMILY   = "I"
 
 	// Row prefixes.
-	INDEX_PREFIX = "i"
+	INDEX_PREFIX = "j"
 
 	// Columns in the "H" column family.
 	HASHES_SOURCE_COLUMN        = "S" // Column
@@ -55,6 +57,10 @@ const (
 	OPS_OPS_COLUMN     = "OPS" // Column
 	HASH_FULL_COL_NAME = OPS_FAMILY + ":" + OPS_HASH_COLUMN
 	OPS_FULL_COL_NAME  = OPS_FAMILY + ":" + OPS_OPS_COLUMN
+
+	// Columns in the "I" column family.
+	EMPTY_INDEX_COLUMN        = "E"
+	EMPTY_INDEX_FULL_COL_NAME = INDEX_FAMILY + ":" + EMPTY_INDEX_COLUMN
 
 	// MAX_MUTATIONS is the max number of mutations we can send in a single ApplyBulk call. Can be up to 100,000 according to BigTable docs.
 	MAX_MUTATIONS = 100000
@@ -213,7 +219,7 @@ func (b *BigTableTraceStore) TileSize() int32 {
 	return b.tileSize
 }
 
-func (b *BigTableTraceStore) getTable() *bigtable.Table {
+func (b *BigTableTraceStore) GetTable() *bigtable.Table {
 	return b.table
 }
 
@@ -277,7 +283,7 @@ func (b *BigTableTraceStore) getOPS(tileKey TileKey) (*OpsCacheEntry, bool, erro
 	}
 	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
-	row, err := b.getTable().ReadRow(tctx, tileKey.OpsRowName(), bigtable.RowFilter(bigtable.LatestNFilter(1)))
+	row, err := b.GetTable().ReadRow(tctx, tileKey.OpsRowName(), bigtable.RowFilter(bigtable.LatestNFilter(1)))
 	if err != nil {
 		return nil, false, fmt.Errorf("Failed to read OPS from BigTable for %s: %s", tileKey.OpsRowName(), err)
 	}
@@ -340,7 +346,7 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 	muts = append(muts, mut)
 	rowKeys = append(rowKeys, fmt.Sprintf("&%x", sourceHash))
 
-	// indices maps rowKeys to Params.
+	// indices maps rowKeys to encoded Params.
 	indices := map[string]paramtools.Params{}
 
 	tctx, cancel := context.WithTimeout(context.Background(), WRITE_TIMEOUT)
@@ -360,7 +366,11 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 		}
 		rowKey := tileKey.TraceRowName(encodedKey, b.shards)
 		rowKeys = append(rowKeys, rowKey)
-		indices[rowKey] = params[i]
+		indices[encodedKey], err = ops.EncodeParams(params[i])
+		if err != nil {
+			sklog.Warningf("Failed to encode key %q: %s", params[i], err)
+			continue
+		}
 		if len(muts) >= MAX_MUTATIONS {
 			if err := b.writeBatchOfTraces(tctx, rowKeys, muts); err != nil {
 				return err
@@ -380,7 +390,7 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 
 // writeTraceIndices writes the indices for the given traces.
 //
-// The 'indices' maps encoded keys to the Params of the unencoded key.
+// The 'indices' maps encoded keys to the encoded Params of the key.
 // If bypassCache is true then we don't look in the lru cache to see if we've already writtin the indices for a given key.
 func (b *BigTableTraceStore) writeTraceIndices(tctx context.Context, tileKey TileKey, indices map[string]paramtools.Params, ts bigtable.Timestamp, bypassCache bool) error {
 	// Write indices as batches of mutations.
@@ -394,9 +404,11 @@ func (b *BigTableTraceStore) writeTraceIndices(tctx context.Context, tileKey Til
 		}
 		for k, v := range p {
 			mut := bigtable.NewMutation()
-			mut.Set(INDEX_FAMILY, rowKey, ts, EMPTY_VALUE)
+			// The row keys for index rows contain all the data, but we have to
+			// write some data into a cell, so we write an empty byte slice.
+			mut.Set(INDEX_FAMILY, EMPTY_INDEX_COLUMN, ts, EMPTY_VALUE)
 			muts = append(muts, mut)
-			indexRowKeys = append(indexRowKeys, fmt.Sprintf("%s:%s:%s", tileKey.IndexRowPrefix(), k, v))
+			indexRowKeys = append(indexRowKeys, fmt.Sprintf("%s:%s:%s:%s", tileKey.IndexRowPrefix(), k, v, rowKey))
 			if len(muts) >= MAX_MUTATIONS {
 				if err := b.writeBatchOfIndices(tctx, indexRowKeys, muts); err != nil {
 					return err
@@ -421,7 +433,7 @@ func (b *BigTableTraceStore) writeTraceIndices(tctx context.Context, tileKey Til
 func (b *BigTableTraceStore) CountIndices(ctx context.Context, tileKey TileKey) (int64, error) {
 	ret := int64(0)
 	rowRegex := tileKey.IndexRowPrefix() + ":.*"
-	err := b.getTable().ReadRows(ctx, bigtable.PrefixRange(tileKey.IndexRowPrefix()+":"), func(row bigtable.Row) bool {
+	err := b.GetTable().ReadRows(ctx, bigtable.PrefixRange(tileKey.IndexRowPrefix()+":"), func(row bigtable.Row) bool {
 		ret++
 		return true
 	}, bigtable.RowFilter(
@@ -459,8 +471,12 @@ func (b *BigTableTraceStore) WriteIndices(ctx context.Context, tileKey TileKey) 
 			sklog.Warningf("Failed to encode key: %s", err)
 			continue
 		}
-		rowKey := tileKey.TraceRowName(encodedKey, b.shards)
-		indices[rowKey] = p
+		p, err = ops.EncodeParams(p)
+		if err != nil {
+			sklog.Warningf("Failed to encode params: %s", err)
+			continue
+		}
+		indices[encodedKey] = p
 	}
 	sklog.Info("WriteIndices - Indices calculated.")
 	return b.writeTraceIndices(ctx, tileKey, indices, bigtable.Time(time.Now()), true)
@@ -471,7 +487,7 @@ func (b *BigTableTraceStore) WriteIndices(ctx context.Context, tileKey TileKey) 
 // Note that 'rowKeys' are the keys for 'muts', so they need to be the
 // same length and be ordered accordingly.
 func (b *BigTableTraceStore) writeBatchOfTraces(ctx context.Context, rowKeys []string, muts []*bigtable.Mutation) error {
-	errs, err := b.getTable().ApplyBulk(ctx, rowKeys, muts)
+	errs, err := b.GetTable().ApplyBulk(ctx, rowKeys, muts)
 	if err != nil {
 		return fmt.Errorf("Failed writing traces: %s", err)
 	}
@@ -488,7 +504,7 @@ func (b *BigTableTraceStore) writeBatchOfTraces(ctx context.Context, rowKeys []s
 // same length and be ordered accordingly.
 func (b *BigTableTraceStore) writeBatchOfIndices(ctx context.Context, indexRowKeys []string, muts []*bigtable.Mutation) error {
 	sklog.Infof("writeBatchOfIndices %d", len(indexRowKeys))
-	errs, err := b.getTable().ApplyBulk(ctx, indexRowKeys, muts)
+	errs, err := b.GetTable().ApplyBulk(ctx, indexRowKeys, muts)
 	if err != nil {
 		return fmt.Errorf("Failed writing indices: %s", err)
 	}
@@ -531,7 +547,7 @@ func (b *BigTableTraceStore) ReadTraces(tileKey TileKey, keys []string) (map[str
 
 	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
-	err = b.getTable().ReadRows(tctx, rowSet, func(row bigtable.Row) bool {
+	err = b.GetTable().ReadRows(tctx, rowSet, func(row bigtable.Row) bool {
 		vec := vec32.New(int(b.tileSize))
 		for _, col := range row[VALUES_FAMILY] {
 			vec[b.lookup[col.Column]] = math.Float32frombits(binary.LittleEndian.Uint32(col.Value))
@@ -610,7 +626,7 @@ func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q
 		i := i
 		g.Go(func() error {
 			rowRegex := tileKey.TraceRowPrefix(i) + ".*" + r.String()
-			return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
+			return b.GetTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
 				vec := vec32.New(int(b.tileSize))
 				for _, col := range row[VALUES_FAMILY] {
 					vec[b.lookup[col.Column]] = math.Float32frombits(binary.LittleEndian.Uint32(col.Value))
@@ -687,7 +703,7 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 	}
 	// indices maps the plan keys to paramsets, which map plan values to slices of keys.
 	indices := map[string]paramtools.ParamSet{}
-	err = b.getTable().ReadRows(context.Background(), rowSet, func(row bigtable.Row) bool {
+	err = b.GetTable().ReadRows(context.Background(), rowSet, func(row bigtable.Row) bool {
 		// rowKey looks like "i2147483646:config:565".
 		rowParts := strings.Split(row.Key(), ":")
 		if len(rowParts) != 3 {
@@ -763,7 +779,7 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 		rowSet = rowSet[sliceSize:]
 
 		g.Go(func() error {
-			return b.getTable().ReadRows(tctx, rowSetSubset, func(row bigtable.Row) bool {
+			return b.GetTable().ReadRows(tctx, rowSetSubset, func(row bigtable.Row) bool {
 				vec := vec32.New(int(b.tileSize))
 				for _, col := range row[VALUES_FAMILY] {
 					vec[b.lookup[col.Column]] = math.Float32frombits(binary.LittleEndian.Uint32(col.Value))
@@ -814,7 +830,7 @@ func (b *BigTableTraceStore) allTraces(ctx context.Context, tileKey TileKey) (ty
 		i := i
 		g.Go(func() error {
 			rowRegex := tileKey.TraceRowPrefix(i) + ".*"
-			return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
+			return b.GetTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
 				vec := vec32.New(int(b.tileSize))
 				for _, col := range row[VALUES_FAMILY] {
 					vec[b.lookup[col.Column]] = math.Float32frombits(binary.LittleEndian.Uint32(col.Value))
@@ -865,7 +881,7 @@ func (b *BigTableTraceStore) QueryCount(ctx context.Context, tileKey TileKey, q 
 		i := i
 		g.Go(func() error {
 			rowRegex := tileKey.TraceRowPrefix(i) + ".*" + r.String()
-			return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
+			return b.GetTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
 				_ = atomic.AddInt64(&ret, 1)
 				return true
 			}, bigtable.RowFilter(
@@ -905,7 +921,7 @@ func (b *BigTableTraceStore) TileKeys(ctx context.Context, tileKey TileKey) ([]s
 		ss := util.StringSet{}
 		stringSets = append(stringSets, &ss)
 		g.Go(func() error {
-			return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
+			return b.GetTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
 				parts := strings.Split(row.Key(), ":")
 				// Make a copy to avoid keeping the entire row from being freed.
 				var b strings.Builder
@@ -961,7 +977,7 @@ func (b *BigTableTraceStore) GetSource(ctx context.Context, index int32, traceId
 	}
 	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
-	row, err := b.getTable().ReadRow(tctx, tileKey.TraceRowName(encodedTraceId, b.shards), bigtable.RowFilter(
+	row, err := b.GetTable().ReadRow(tctx, tileKey.TraceRowName(encodedTraceId, b.shards), bigtable.RowFilter(
 		bigtable.ChainFilters(
 			bigtable.LatestNFilter(1),
 			bigtable.FamilyFilter(SOURCES_FAMILY),
@@ -976,7 +992,7 @@ func (b *BigTableTraceStore) GetSource(ctx context.Context, index int32, traceId
 	}
 	sourceHash := fmt.Sprintf("&%x", row[SOURCES_FAMILY][0].Value)
 
-	row, err = b.getTable().ReadRow(tctx, sourceHash, bigtable.RowFilter(
+	row, err = b.GetTable().ReadRow(tctx, sourceHash, bigtable.RowFilter(
 		bigtable.ChainFilters(
 			bigtable.LatestNFilter(1),
 			bigtable.FamilyFilter(HASHES_FAMILY),
@@ -997,7 +1013,7 @@ func (b *BigTableTraceStore) GetLatestTile() (TileKey, error) {
 	ret := BadTileKey
 	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
-	err := b.getTable().ReadRows(tctx, bigtable.PrefixRange("@"), func(row bigtable.Row) bool {
+	err := b.GetTable().ReadRows(tctx, bigtable.PrefixRange("@"), func(row bigtable.Row) bool {
 		var err error
 		ret, err = TileKeyFromOpsRowName(row.Key())
 		if err != nil {
@@ -1064,7 +1080,7 @@ func (b *BigTableTraceStore) updateOrderedParamSet(tileKey TileKey, p paramtools
 			updateMutation.DeleteTimestampRange(OPS_FAMILY, OPS_OPS_COLUMN, 0, before)
 			condUpdate := bigtable.NewCondMutation(cond, updateMutation, nil)
 
-			if err := b.getTable().Apply(tctx, tileKey.OpsRowName(), condUpdate, bigtable.GetCondMutationResult(&condTrue)); err != nil {
+			if err := b.GetTable().Apply(tctx, tileKey.OpsRowName(), condUpdate, bigtable.GetCondMutationResult(&condTrue)); err != nil {
 				sklog.Warningf("Failed to apply: %s", err)
 				return nil, err
 			}
@@ -1091,7 +1107,7 @@ func (b *BigTableTraceStore) updateOrderedParamSet(tileKey TileKey, p paramtools
 			updateMutation.Set(OPS_FAMILY, OPS_OPS_COLUMN, now, encodedOps)
 
 			condUpdate := bigtable.NewCondMutation(cond, nil, updateMutation)
-			if err := b.getTable().Apply(tctx, tileKey.OpsRowName(), condUpdate, bigtable.GetCondMutationResult(&condTrue)); err != nil {
+			if err := b.GetTable().Apply(tctx, tileKey.OpsRowName(), condUpdate, bigtable.GetCondMutationResult(&condTrue)); err != nil {
 				sklog.Warningf("Failed to apply: %s", err)
 				continue
 			}
