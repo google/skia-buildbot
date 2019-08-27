@@ -31,9 +31,10 @@ func TestGetTryJobSunnyDay(t *testing.T) {
 	tj, err := c.GetTryJob(context.Background(), id)
 	assert.NoError(t, err)
 	assert.Equal(t, continuous_integration.TryJob{
-		SystemID: id,
-		Status:   continuous_integration.Complete,
-		Updated:  ts,
+		SystemID:    id,
+		DisplayName: "Infra-PerCommit-Medium",
+		Status:      continuous_integration.Complete,
+		Updated:     ts,
 	}, tj)
 }
 
@@ -54,9 +55,10 @@ func TestGetTryJobRunning(t *testing.T) {
 	tj, err := c.GetTryJob(context.Background(), id)
 	assert.NoError(t, err)
 	assert.Equal(t, continuous_integration.TryJob{
-		SystemID: id,
-		Status:   continuous_integration.Running,
-		Updated:  ts,
+		SystemID:    id,
+		DisplayName: "linux-rel",
+		Status:      continuous_integration.Running,
+		Updated:     ts,
 	}, tj)
 }
 
@@ -99,6 +101,14 @@ var (
 	anyctx = mock.AnythingOfType("*context.emptyCtx")
 )
 
+// This code can be used to fetch real data from buildbucket
+// func TestReal(t *testing.T) {
+// 	bb := buildbucket.NewClient(httputils.DefaultClientConfig().Client())
+// 	b, err := bb.GetBuild(context.Background(), "8904415893681430384")
+// 	spew.Dump(b)
+// 	fmt.Printf("err: %v\n", err)
+// }
+
 // Based on a real-world query for a Tryjob that completed
 func getCompletedBuild() buildbucket.Build {
 	return buildbucket.Build{
@@ -108,7 +118,10 @@ func getCompletedBuild() buildbucket.Build {
 		Created:   time.Date(2019, time.August, 22, 13, 14, 31, 0, time.UTC),
 		Id:        "8904420728436446512",
 		Url:       "https://cr-buildbucket.appspot.com/build/8904420728436446512",
-		// Parameters omitted for brevity
+		Parameters: &buildbucket.Parameters{
+			BuilderName: "Infra-PerCommit-Medium",
+			// Properties omitted for brevity
+		},
 		Result: "SUCCESS",
 		Status: "COMPLETED",
 	}
@@ -123,7 +136,10 @@ func getRunningBuild() buildbucket.Build {
 		Created:   time.Date(2019, time.August, 22, 14, 31, 21, 0, time.UTC),
 		Id:        "8904415893681430384",
 		Url:       "https://cr-buildbucket.appspot.com/build/8904415893681430384",
-		// Parameters omitted for brevity
+		Parameters: &buildbucket.Parameters{
+			BuilderName: "linux-rel",
+			// Properties omitted for brevity
+		},
 		Result: "",
 		Status: "STARTED",
 	}

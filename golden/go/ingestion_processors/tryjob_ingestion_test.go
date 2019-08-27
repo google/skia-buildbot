@@ -292,8 +292,9 @@ func makePatchSets() []code_review.PatchSet {
 
 func makeTryJob() ci.TryJob {
 	return ci.TryJob{
-		SystemID: "8904604368086838672",
-		Status:   ci.Running,
-		Updated:  time.Date(2019, time.August, 19, 18, 20, 10, 0, time.UTC),
+		SystemID:    "8904604368086838672",
+		DisplayName: "my-task",
+		Status:      ci.Running,
+		Updated:     time.Date(2019, time.August, 19, 18, 20, 10, 0, time.UTC),
 	}
 }

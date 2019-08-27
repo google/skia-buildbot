@@ -34,9 +34,10 @@ func (c *CISImpl) GetTryJob(ctx context.Context, id string) (ci.TryJob, error) {
 		ts = tj.Completed
 	}
 	return ci.TryJob{
-		SystemID: id,
-		Status:   st,
-		Updated:  ts,
+		SystemID:    id,
+		DisplayName: tj.Parameters.BuilderName,
+		Status:      st,
+		Updated:     ts,
 	}, nil
 }
 
