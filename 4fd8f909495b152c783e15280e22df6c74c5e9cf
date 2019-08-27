@@ -1,0 +1,274 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0733f873_95f88f26",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:35:57Z",
+      "side": 1,
+      "message": "nit: typo",
+      "range": {
+        "startLine": 137,
+        "startChar": 54,
+        "endLine": 137,
+        "endChar": 59
+      },
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fda9d43b_1982393d",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:35:57Z",
+      "side": 1,
+      "message": "if you are wrapping around an error, skerr.Wrapf is better than skerr.Fmt() The latter is better for creating your own erros (like line 228)\n\nMany of the ones below seem to fall into this category.",
+      "range": {
+        "startLine": 232,
+        "startChar": 14,
+        "endLine": 232,
+        "endChar": 23
+      },
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54d04fad_10bcf954",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:35:57Z",
+      "side": 1,
+      "message": "Explain what you mean by \"encoded Params\", i.e. {\"0\":\"3\"}\n\nMaybe add *why* it\u0027s better to use encoded params instead of normal params",
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "73724751_4a094cf7",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:35:57Z",
+      "side": 1,
+      "message": "nit: rename to encodedParam, since it\u0027s easy to forget.",
+      "range": {
+        "startLine": 399,
+        "startChar": 13,
+        "endLine": 399,
+        "endChar": 14
+      },
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d35970f_1be2b5c7",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 405,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:35:57Z",
+      "side": 1,
+      "message": "nit, maybe rename to encK, encV",
+      "range": {
+        "startLine": 405,
+        "startChar": 6,
+        "endLine": 405,
+        "endChar": 7
+      },
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4fc9af80_72595c96",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 408,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:35:57Z",
+      "side": 1,
+      "message": "nit: perf/BIGTABLE.md says \"empty string\", but I guess that\u0027s similar enough.",
+      "range": {
+        "startLine": 408,
+        "startChar": 49,
+        "endLine": 408,
+        "endChar": 68
+      },
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad0ce6a9_3ea86f65",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:35:57Z",
+      "side": 1,
+      "message": "You should update the BIGTABLE.md to note that these are not ParamKey:ParamValue, but EncodedParamKey:EncodedParamValue, i.e. ints, not strings.",
+      "range": {
+        "startLine": 411,
+        "startChar": 92,
+        "endLine": 411,
+        "endChar": 96
+      },
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a7837c70_e0ca739b",
+        "filename": "perf/go/btts/btts_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:35:57Z",
+      "side": 1,
+      "message": "\"encoded structured key (i.e. the traceID)\"",
+      "range": {
+        "startLine": 146,
+        "startChar": 60,
+        "endLine": 147,
+        "endChar": 19
+      },
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a3514e9_04476317",
+        "filename": "perf/go/btts/btts_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:35:57Z",
+      "side": 1,
+      "message": "assert.Contains should work here",
+      "range": {
+        "startLine": 149,
+        "startChar": 2,
+        "endLine": 149,
+        "endChar": 13
+      },
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8229b993_aad433b7",
+        "filename": "perf/go/btts/btts_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:35:57Z",
+      "side": 1,
+      "message": "delete or uncomment",
+      "range": {
+        "startLine": 234,
+        "startChar": 1,
+        "endLine": 234,
+        "endChar": 3
+      },
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48af0d5b_e0d8808b",
+        "filename": "perf/go/btts/btts_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:35:57Z",
+      "side": 1,
+      "message": "delete or uncomment",
+      "range": {
+        "startLine": 271,
+        "startChar": 1,
+        "endLine": 271,
+        "endChar": 3
+      },
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d053b4f3_6411b532",
+        "filename": "perf/go/btts/btts_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T18:35:57Z",
+      "side": 1,
+      "message": "delete or uncomment",
+      "range": {
+        "startLine": 302,
+        "startChar": 1,
+        "endLine": 302,
+        "endChar": 3
+      },
+      "revId": "4fd8f909495b152c783e15280e22df6c74c5e9cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
