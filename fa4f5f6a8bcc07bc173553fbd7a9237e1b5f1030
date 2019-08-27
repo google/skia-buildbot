@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5253788e_29d89ea3",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-27T13:26:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "70fae648_7c4fa19b",
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "95db1691_63fc2aaf",
         "filename": "gitsync/go/watcher/watcher.go",
         "patchSetId": 4
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "d78140f4_77c0ddd0",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 560,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-27T13:26:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "95db1691_63fc2aaf",
+      "range": {
+        "startLine": 560,
+        "startChar": 22,
+        "endLine": 560,
+        "endChar": 33
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "14788e95_4db74d17",
         "filename": "gitsync/go/watcher/watcher.go",
         "patchSetId": 4
@@ -53,6 +95,30 @@
       "writtenOn": "2019-08-26T20:48:09Z",
       "side": 1,
       "message": "Is it difficult to test this?",
+      "range": {
+        "startLine": 563,
+        "startChar": 0,
+        "endLine": 565,
+        "endChar": 2
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a439feb8_7329e385",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-27T13:26:57Z",
+      "side": 1,
+      "message": "I didn\u0027t bother because it seemed redundant and the watcher tests are already fairly complicated.  Done, but I suspect it might be race-y because the callback where we check the ingestion isn\u0027t 1:1 with calls to PutBranches, and because of the way pubsub messages are delivered.",
+      "parentUuid": "14788e95_4db74d17",
       "range": {
         "startLine": 563,
         "startChar": 0,
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "3dc1d2cb_7d02f7e9",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-27T13:26:57Z",
+      "side": 1,
+      "message": "Added a note indicating that the callback is responsible for ack/nack.",
+      "parentUuid": "f6edee9c_913109fd",
+      "range": {
+        "startLine": 67,
+        "startChar": 20,
+        "endLine": 70,
+        "endChar": 28
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "28bea758_2c12e99a",
         "filename": "go/gitstore/pubsub/graph.go",
         "patchSetId": 4
@@ -108,6 +198,30 @@
       "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c87932a_d866b219",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-27T13:26:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "28bea758_2c12e99a",
+      "range": {
+        "startLine": 71,
+        "startChar": 64,
+        "endLine": 71,
+        "endChar": 78
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "c2d773ff_0b2ac572",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-27T13:26:57Z",
+      "side": 1,
+      "message": "We can\u0027t just defer ticker.Stop(), because updateUsingPubSubHelper() spins up goroutines and returns immediately.  If we stopped the ticker when we returned, we\u0027d never end up using it.  We stop it when returning an error to ensure that it gets cleaned up.",
+      "parentUuid": "d5e5131e_d1c3726d",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 2
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f7bb5fe2_bc0412b7",
         "filename": "go/gitstore/pubsub/graph.go",
         "patchSetId": 4
@@ -145,6 +283,30 @@
       "writtenOn": "2019-08-26T20:48:09Z",
       "side": 1,
       "message": "nit: This is a little scary. Probably better to not close the channel; instead manually do the loop in updateUsingPubSubHelper.\n\nI.e. instead of\nfor req :\u003d range ch {\n  ...\n}\n\nreplace with:\nfor {\n  select {\n  case \u003c-ctx.Done():\n    return\n  case req :\u003d \u003c-ch:\n    ...\n  }\n}",
+      "range": {
+        "startLine": 112,
+        "startChar": 0,
+        "endLine": 116,
+        "endChar": 4
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd6e0721_747d6429",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-27T13:26:57Z",
+      "side": 1,
+      "message": "I didn\u0027t do that, because there\u0027s a race condition which might cause the goroutine which reads from ch to exit while another goroutine is trying to send on ch, which would cause it to block and never be able to exit.",
+      "parentUuid": "f7bb5fe2_bc0412b7",
       "range": {
         "startLine": 112,
         "startChar": 0,
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "a93485fb_b98c8790",
+        "filename": "go/gitstore/pubsub/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-27T13:26:57Z",
+      "side": 1,
+      "message": "Removed the batching. We shouldn\u0027t be receiving messages at too high a rate anyway.",
+      "parentUuid": "fa916c72_801f3cca",
+      "range": {
+        "startLine": 208,
+        "startChar": 0,
+        "endLine": 210,
+        "endChar": 20
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8e2114a6_d3275e73",
         "filename": "go/gitstore/pubsub/pubsub.go",
         "patchSetId": 4
@@ -200,6 +386,30 @@
       "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb8d9ff7_d285518e",
+        "filename": "go/gitstore/pubsub/pubsub.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-27T13:26:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8e2114a6_d3275e73",
+      "range": {
+        "startLine": 111,
+        "startChar": 159,
+        "endLine": 111,
+        "endChar": 176
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -226,6 +436,30 @@
     },
     {
       "key": {
+        "uuid": "3cf21885_36cac2dc",
+        "filename": "go/gitstore/pubsub/pubsub_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-27T13:26:57Z",
+      "side": 1,
+      "message": "I think I was doing something else in addition while I was writing this, and then removed...",
+      "parentUuid": "deb8fa9d_2e559e9b",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 10
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ce3dc96a_d36ccd80",
         "filename": "go/gitstore/pubsub/pubsub_test.go",
         "patchSetId": 4
@@ -240,6 +474,24 @@
       "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a032ae18_62c11729",
+        "filename": "go/gitstore/pubsub/pubsub_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-27T13:26:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ce3dc96a_d36ccd80",
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -289,6 +541,54 @@
     },
     {
       "key": {
+        "uuid": "c3624ed9_98edbe3b",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-27T13:26:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ac4be304_06a1a4cc",
+      "range": {
+        "startLine": 255,
+        "startChar": 90,
+        "endLine": 255,
+        "endChar": 118
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "69c4856b_1558ef3f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-27T13:26:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ed141fb_753b6c23",
+      "range": {
+        "startLine": 255,
+        "startChar": 70,
+        "endLine": 255,
+        "endChar": 88
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "858ec21d_6497a27c",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 4
@@ -309,6 +609,30 @@
       "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "22b00ec8_71edf890",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-27T13:26:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "858ec21d_6497a27c",
+      "range": {
+        "startLine": 257,
+        "startChar": 45,
+        "endLine": 257,
+        "endChar": 65
+      },
+      "revId": "fa4f5f6a8bcc07bc173553fbd7a9237e1b5f1030",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
