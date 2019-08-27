@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9b4a6b66_9f914c54",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 532,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T16:47:56Z",
+      "side": 1,
+      "message": "It would be nice for gitsync to have a PROD.md and have these alerts link to them.  Gold\u0027s PROD.md has some hints for debugging and possible causes for future troopers.",
+      "range": {
+        "startLine": 532,
+        "startChar": 20,
+        "endLine": 532,
+        "endChar": 27
+      },
+      "revId": "23bb5498bd799c81ca70d24ab057604f421af133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cc6f6e2a_02c60505",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 535,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-27T16:47:56Z",
+      "side": 1,
+      "message": "This is a pretty long window, i.e. we\u0027d be at least 30 minutes away from responding.  Where\u0027d you come up with this?",
+      "range": {
+        "startLine": 535,
+        "startChar": 61,
+        "endLine": 535,
+        "endChar": 64
+      },
+      "revId": "23bb5498bd799c81ca70d24ab057604f421af133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
