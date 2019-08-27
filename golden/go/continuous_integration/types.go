@@ -19,7 +19,8 @@ var ErrNotFound = errors.New("not found")
 
 type TryJob struct {
 	// SystemID is expected to be unique between all TryJobs.
-	SystemID string
+	SystemID    string
+	DisplayName string
 
 	Status  TJStatus
 	Updated time.Time
