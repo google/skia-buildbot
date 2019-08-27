@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,6 +15,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
+	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
@@ -23,6 +25,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/blame"
+	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
@@ -50,18 +53,20 @@ const (
 // WebHandlers holds the environment needed by the various http hander functions
 // that have WebHandlers as its receiver.
 type WebHandlers struct {
-	Baseliner         baseline.BaselineFetcher
-	DiffStore         diff.DiffStore
-	ExpectationsStore expstorage.ExpectationsStore
-	GCSClient         storage.GCSClient
-	IgnoreStore       ignore.IgnoreStore
-	Indexer           indexer.IndexSource
-	SearchAPI         *search.SearchAPI
-	StatusWatcher     *status.StatusWatcher
-	TileSource        tilesource.TileSource
-	TryjobMonitor     tryjobs.TryjobMonitor
-	TryjobStore       tryjobstore.TryjobStore
-	VCS               vcsinfo.VCS
+	Baseliner               baseline.BaselineFetcher
+	DiffStore               diff.DiffStore
+	ExpectationsStore       expstorage.ExpectationsStore
+	GCSClient               storage.GCSClient
+	IgnoreStore             ignore.IgnoreStore
+	Indexer                 indexer.IndexSource
+	IssueTracker            issues.IssueTracker
+	SearchAPI               *search.SearchAPI
+	StatusWatcher           *status.StatusWatcher
+	TileSource              tilesource.TileSource
+	DeprecatedTryjobMonitor tryjobs.TryjobMonitor
+	DeprecatedTryjobStore   tryjobstore.TryjobStore
+	ChangeListStore         clstore.Store
+	VCS                     vcsinfo.VCS
 }
 
 // TODO(stephana): once the byBlameHandler is removed, refactor this to
@@ -264,7 +269,7 @@ func (wh *WebHandlers) DeprecatedTryjobListHandler(w http.ResponseWriter, r *htt
 
 	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, pageSize, maxPageSize)
 	if err == nil {
-		tryjobRuns, total, err = wh.TryjobStore.ListIssues(offset, size)
+		tryjobRuns, total, err = wh.DeprecatedTryjobStore.ListIssues(offset, size)
 	}
 
 	if err != nil {
@@ -278,6 +283,62 @@ func (wh *WebHandlers) DeprecatedTryjobListHandler(w http.ResponseWriter, r *htt
 		Total:  total,
 	}
 	sendResponseWithPagination(w, tryjobRuns, 200, pagination)
+}
+
+// ChangeListsHandler returns the list of code_review.ChangeLists that have
+// uploaded results to Gold (via TryJobs).
+func (wh *WebHandlers) ChangeListsHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, pageSize, maxPageSize)
+
+	cls, pagination, err := wh.getChangeListsWithTryJobs(r.Context(), offset, size)
+
+	if err != nil {
+		httputils.ReportError(w, r, err, "Retrieving changelists results failed.")
+		return
+	}
+
+	sendResponseWithPagination(w, cls, 200, pagination)
+}
+
+// changeList encapsulates how the frontend expects to get information
+// about a code_review.ChangeList that has Gold results associated with it.
+// We have a separate struct so we can decouple the JSON representation
+// and the backend representation (if it needs changing or use by another project
+// with its own JSON requirements).
+type changeList struct {
+	System   string    `json:"system"`
+	SystemID string    `json:"id"`
+	Owner    string    `json:"owner"`
+	Status   string    `json:"status"`
+	Subject  string    `json:"subject"`
+	Updated  time.Time `json:"updated"`
+}
+
+func (wh *WebHandlers) getChangeListsWithTryJobs(ctx context.Context, offset, size int) ([]changeList, *httputils.ResponsePagination, error) {
+	cls, total, err := wh.ChangeListStore.GetChangeLists(ctx, offset, size)
+	if err != nil {
+		return nil, nil, skerr.Wrapf(err, "fetching ChangeLists from [%d:%d)", offset, offset+size)
+	}
+	s := wh.ChangeListStore.System()
+	var retCls []changeList
+	for _, cl := range cls {
+		retCls = append(retCls, changeList{
+			System:   s,
+			SystemID: cl.SystemID,
+			Owner:    cl.Owner,
+			Status:   cl.Status.String(),
+			Subject:  cl.Subject,
+			Updated:  cl.Updated,
+		})
+	}
+
+	pagination := &httputils.ResponsePagination{
+		Offset: offset,
+		Size:   size,
+		Total:  total,
+	}
+	return retCls, pagination, nil
 }
 
 // DeprecatedTryjobsSummaryHandler is the endpoint to get a summary of the tryjob
@@ -1237,7 +1298,7 @@ func (wh *WebHandlers) RefreshIssue(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := wh.TryjobMonitor.ForceRefresh(issueID); err != nil {
+	if err := wh.DeprecatedTryjobMonitor.ForceRefresh(issueID); err != nil {
 		httputils.ReportError(w, r, err, "Refreshing issue failed.")
 		return
 	}

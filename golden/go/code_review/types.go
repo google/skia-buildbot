@@ -46,6 +46,18 @@ const (
 	Landed
 )
 
+func (c CLStatus) String() string {
+	switch c {
+	case Open:
+		return "Open"
+	case Abandoned:
+		return "Abandoned"
+	case Landed:
+		return "Landed"
+	}
+	return "<unknown>"
+}
+
 type PatchSet struct {
 	// SystemID may or may not be unique for all PatchSets globally.
 	// Definitely unique within a given ChangeList.

@@ -35,6 +35,7 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
@@ -455,6 +456,8 @@ func main() {
 
 	sklog.Infof("Search API created")
 
+	issueTracker := issues.NewMonorailIssueTracker(client, issues.PROJECT_SKIA)
+
 	swc := status.StatusWatcherConfig{
 		VCS:               vcs,
 		EventBus:          evt,
@@ -475,6 +478,7 @@ func main() {
 		GCSClient:         gsClient,
 		IgnoreStore:       ignoreStore,
 		Indexer:           ixr,
+		IssueTracker:      issueTracker,
 		SearchAPI:         searchAPI,
 		StatusWatcher:     statusWatcher,
 		TileSource:        tileSource,
