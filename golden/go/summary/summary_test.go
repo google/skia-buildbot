@@ -217,11 +217,11 @@ func TestCalcSummariesRevert(t *testing.T) {
 
 	sum, err := NewSummaryMap(smc, tile, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false)
 	assert.NoError(t, err)
-	assert.Equal(t, MakeBugRevertSummaryMap(), sum)
+	assert.Equal(t, makeBugRevertSummaryMap(), sum)
 
 	sum, err = NewSummaryMap(smc, tile, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, true)
 	assert.NoError(t, err)
-	assert.Equal(t, MakeBugRevertSummaryMapHead(), sum)
+	assert.Equal(t, makeBugRevertSummaryMapHead(), sum)
 
 	sum, err = NewSummaryMap(smc, tile, nil, url.Values{types.CORPUS_FIELD: {"does-not-exist"}}, false)
 	assert.NoError(t, err)
@@ -472,8 +472,8 @@ func makeExpectations() types.Expectations {
 	}
 }
 
-// MakeBugRevertSummaryMap returns the SummaryMap for the whole tile.
-func MakeBugRevertSummaryMap() SummaryMap {
+// makeBugRevertSummaryMap returns the SummaryMap for the whole tile.
+func makeBugRevertSummaryMap() SummaryMap {
 	return SummaryMap{
 		bug_revert.TestOne: {
 			Name:      bug_revert.TestOne,
@@ -510,9 +510,9 @@ func MakeBugRevertSummaryMap() SummaryMap {
 	}
 }
 
-// MakeBugRevertSummaryMapHead returns the SummaryMap for "head", that is,
+// makeBugRevertSummaryMapHead returns the SummaryMap for "head", that is,
 // the most recent commit only.
-func MakeBugRevertSummaryMapHead() SummaryMap {
+func makeBugRevertSummaryMapHead() SummaryMap {
 	return SummaryMap{
 		bug_revert.TestOne: {
 			Name:      bug_revert.TestOne,
