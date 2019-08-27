@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8a02f27d_f3c60e65",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-27T16:39:54Z",
+      "side": 1,
+      "message": "Would be nice to auto-populate from the CL\u0027s base revision.",
+      "range": {
+        "startLine": 163,
+        "startChar": 10,
+        "endLine": 164,
+        "endChar": 41
+      },
+      "revId": "be6904b276f416a56423ad19d11b99f917d4f352",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
