@@ -99,8 +99,8 @@ func main() {
 	appRouter.HandleFunc(shared.LEGACY_KNOWN_HASHES_ROUTE, handlers.TextKnownHashesProxy).Methods("GET")
 
 	// Serve the expectations for the master branch and for CLs in progress.
-	appRouter.HandleFunc(shared.EXPECTATIONS_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
-	appRouter.HandleFunc(shared.EXPECTATIONS_ISSUE_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
+	appRouter.HandleFunc(shared.EXPECTATIONS_ROUTE, handlers.BaselineHandler).Methods("GET")
+	appRouter.HandleFunc(shared.EXPECTATIONS_ISSUE_ROUTE, handlers.BaselineHandler).Methods("GET")
 
 	// Only log and compress the app routes, but not the health check.
 	router := mux.NewRouter()

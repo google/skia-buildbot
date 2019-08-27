@@ -42,19 +42,18 @@ func sendResponse(w http.ResponseWriter, data interface{}, status int, paginatio
 	}
 }
 
-// sendJsonResponse serializes resp to JSON. If an error occurs
+// sendJSONResponse serializes resp to JSON. If an error occurs
 // a text based error code is send to the client.
-func sendJsonResponse(w http.ResponseWriter, resp interface{}) {
+func sendJSONResponse(w http.ResponseWriter, resp interface{}) {
 	setJSONHeaders(w)
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		httputils.ReportError(w, nil, err, "Failed to encode JSON response.")
 	}
 }
 
-// parseJson extracts the body from the request and parses it into the
+// parseJSON extracts the body from the request and parses it into the
 // provided interface.
-func parseJson(r *http.Request, v interface{}) error {
-	// TODO (stephana): validate the JSON against a schema. Might not be necessary !
+func parseJSON(r *http.Request, v interface{}) error {
 	defer util.Close(r.Body)
 	decoder := json.NewDecoder(r.Body)
 	return decoder.Decode(v)
