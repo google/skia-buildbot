@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "06968255_29137e66",
+        "filename": "perf/go/btts/paramindex.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T16:41:58Z",
+      "side": 1,
+      "message": "you probably want to return here to avoid out of bounds error",
+      "range": {
+        "startLine": 33,
+        "startChar": 3,
+        "endLine": 33,
+        "endChar": 4
+      },
+      "revId": "40b6a453d80ff8d86dc3c8f10758d64fcb430d0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db4d7a8c_0cd026f1",
+        "filename": "perf/go/btts/paramindex.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T16:41:58Z",
+      "side": 1,
+      "message": "make a copy of this to send through the channel so as not to hold onto the whole string (and possibly the row object itself)",
+      "range": {
+        "startLine": 34,
+        "startChar": 10,
+        "endLine": 34,
+        "endChar": 18
+      },
+      "revId": "40b6a453d80ff8d86dc3c8f10758d64fcb430d0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd37bcb3_1e33569e",
+        "filename": "perf/go/btts/paramindex_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T16:41:58Z",
+      "side": 1,
+      "message": "nit: add a comma",
+      "range": {
+        "startLine": 51,
+        "startChar": 33,
+        "endLine": 51,
+        "endChar": 34
+      },
+      "revId": "40b6a453d80ff8d86dc3c8f10758d64fcb430d0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "461eb139_7c8264e5",
+        "filename": "perf/go/btts/paramindex_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T16:41:58Z",
+      "side": 1,
+      "message": "Why not just hard code in \"cpu\", \"x86\" or whatever?  (or there encoded versions)  What you currently have appears to be nondeterministic, which I\u0027d rather avoid in tests.\n\nSame question for below",
+      "range": {
+        "startLine": 68,
+        "startChar": 47,
+        "endLine": 68,
+        "endChar": 57
+      },
+      "revId": "40b6a453d80ff8d86dc3c8f10758d64fcb430d0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "31a0bd0f_ab209793",
+        "filename": "perf/go/btts/paramindex_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T16:41:58Z",
+      "side": 1,
+      "message": "known?",
+      "range": {
+        "startLine": 119,
+        "startChar": 61,
+        "endLine": 119,
+        "endChar": 65
+      },
+      "revId": "40b6a453d80ff8d86dc3c8f10758d64fcb430d0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "06e1c1ae_7712a1a1",
+        "filename": "perf/go/btts/paramindex_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T16:41:58Z",
+      "side": 1,
+      "message": "Would https://godoc.org/github.com/stretchr/testify/require#Assertions.Empty work here?  Same question for out above.",
+      "range": {
+        "startLine": 160,
+        "startChar": 1,
+        "endLine": 171,
+        "endChar": 26
+      },
+      "revId": "40b6a453d80ff8d86dc3c8f10758d64fcb430d0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
