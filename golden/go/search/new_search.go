@@ -125,6 +125,8 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 	var inter srInterMap = nil
 	var issue *tryjobstore.Issue = nil
 
+	// TODO(kjlubick): add in check for query param here to go into non-deprecated
+	// tryjobstore path.
 	// Find the digests (left hand side) we are interested in.
 	if isTryjobSearch {
 		// Search the tryjob results for the issue at hand.

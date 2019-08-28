@@ -14,6 +14,8 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
+// TODO(kjlubick): replace this with mock-based code and the tiles that are checked in testutils/data*
+
 const (
 	// Directory with testdata.
 	TEST_DATA_DIR = "./testdata"
