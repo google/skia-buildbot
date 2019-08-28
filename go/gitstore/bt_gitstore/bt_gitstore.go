@@ -18,12 +18,15 @@ import (
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore"
-	deprecated "go.skia.org/infra/go/gitstore_deprecated/bt_gitstore"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"golang.org/x/sync/errgroup"
+)
+
+const (
+	DEPRECATED_TABLE_ID = "git-repos"
 )
 
 // BigTableGitStore implements the GitStore interface based on BigTable.
@@ -39,8 +42,8 @@ type BigTableGitStore struct {
 // The given repoURL serves to identify the repository. Internally it is stored normalized
 // via a call to git.NormalizeURL.
 func New(ctx context.Context, config *BTConfig, repoURL string) (*BigTableGitStore, error) {
-	if config.TableID == deprecated.DEPRECATED_TABLE_ID {
-		return nil, skerr.Fmt("This implementation of BigTableGitStore cannot be used with deprecated table %q", deprecated.DEPRECATED_TABLE_ID)
+	if config.TableID == DEPRECATED_TABLE_ID {
+		return nil, skerr.Fmt("This implementation of BigTableGitStore cannot be used with deprecated table %q", DEPRECATED_TABLE_ID)
 	}
 	// Create the client.
 	client, err := bigtable.NewClient(ctx, config.ProjectID, config.InstanceID)
