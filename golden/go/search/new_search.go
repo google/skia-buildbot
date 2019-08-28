@@ -333,7 +333,7 @@ type filterAddFn func(test types.TestName, digest types.Digest, traceID tiling.T
 // extractIssueDigests loads the issue and its tryjob results and then filters the
 // results via the given query. For each testName/digest pair addFn is called.
 func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx indexer.IndexSearcher, exp ExpSlice, addFn filterAddFn) (*tryjobstore.Issue, error) {
-	_, span := trace.StartSpan(ctx, "search/queryIssue")
+	_, span := trace.StartSpan(ctx, "search/extractIssueDigests")
 	defer span.End()
 
 	// Get the issue.
