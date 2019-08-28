@@ -33,7 +33,7 @@ var (
 	noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
 	grpcPort           = flag.String("grpc_port", ":9000", "gRPC service address (e.g., ':9000')")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
+	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 )
 
 const (
@@ -65,7 +65,7 @@ func main() {
 	}
 
 	// Get the client to be used to access GCS.
-	ts, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	ts, err := auth.NewDefaultTokenSource(*local, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
