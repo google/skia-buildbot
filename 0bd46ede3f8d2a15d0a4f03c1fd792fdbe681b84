@@ -16,6 +16,24 @@
       "revId": "0bd46ede3f8d2a15d0a4f03c1fd792fdbe681b84",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28da4aaf_e27d5710",
+        "filename": "go/autoroll/autoroll.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-28T12:21:33Z",
+      "side": 1,
+      "message": "Unfortunately, cqFinished is true if we didn\u0027t find gerrit.COMMITQUEUE_LABEL_SUBMIT.  That would cause CqFinished to be true for all dry runs, all the time.",
+      "parentUuid": "4db9e95a_c9c93e84",
+      "revId": "0bd46ede3f8d2a15d0a4f03c1fd792fdbe681b84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
