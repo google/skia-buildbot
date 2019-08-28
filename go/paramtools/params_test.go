@@ -372,12 +372,17 @@ func TestOrderedParamSet(t *testing.T) {
 		"arch":   "x86",
 		"name":   "test01",
 	}
+	ps := NewParamSet(params)
 	s, err := p.EncodeParamsAsString(params)
 	assert.NoError(t, err)
 	assert.Equal(t, ",0=0,1=1,2=0,", s)
 	ep, err := p.EncodeParams(params)
 	assert.NoError(t, err)
 	assert.Equal(t, Params{"0": "0", "1": "1", "2": "0"}, ep)
+	eps, err := p.EncodeParamSet(ps)
+	assert.NoError(t, err)
+	assert.Equal(t, ParamSet{"0": []string{"0"}, "1": []string{"1"}, "2": []string{"0"}}, eps)
+
 	paramsDecoded, err := p.DecodeParamsFromString(s)
 	assert.NoError(t, err)
 	assert.Equal(t, nil, err)

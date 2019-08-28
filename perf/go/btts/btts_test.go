@@ -232,11 +232,10 @@ func TestTraces(t *testing.T) {
 		",config=8888,cpu=arm,": vec2,
 	}
 	assert.Equal(t, expected, results)
-	/*
-		results, err = b.QueryTracesByIndex(context.Background(), tileKey, q)
-		assert.NoError(t, err)
-		assert.Equal(t, expected, results)
-	*/
+
+	results, err = b.QueryTracesByIndex(context.Background(), tileKey, q)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, results)
 
 	keys, err := b.TileKeys(ctx, tileKey)
 	assert.NoError(t, err)
