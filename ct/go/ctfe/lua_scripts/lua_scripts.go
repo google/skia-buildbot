@@ -160,6 +160,41 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 	return t, nil
 }
 
+func (task *AddTaskVars) TriggerSwarmingTask(ctx context.Context, t task_common.Task) error {
+	datastoreTask := t.(*DatastoreTask)
+	runID := task_common.GetRunID(datastoreTask)
+	luaScriptGSPath, err := ctutil.SavePatchToStorage(task.LuaScript)
+	if err != nil {
+		return nil
+	}
+	luaAggregatorScriptGSPath := ""
+	if task.LuaAggregatorScript != "" {
+		luaAggregatorScriptGSPath, err = ctutil.SavePatchToStorage(task.LuaAggregatorScript)
+		if err != nil {
+			return nil
+		}
+	}
+
+	isolateArgs := map[string]string{
+		"EMAILS":                        datastoreTask.Username,
+		"DESCRIPTION":                   datastoreTask.Description,
+		"TASK_ID":                       strconv.FormatInt(datastoreTask.DatastoreKey.ID, 10),
+		"PAGESET_TYPE":                  datastoreTask.PageSets,
+		"CHROMIUM_BUILD":                ctutil.ChromiumBuildDir(task.SkpRepository.ChromiumRev, task.SkpRepository.SkiaRev, ""),
+		"RUN_ON_GCE":                    strconv.FormatBool(datastoreTask.RunsOnGCEWorkers()),
+		"RUN_ID":                        runID,
+		"LUA_SCRIPT_GS_PATH":            luaScriptGSPath,
+		"LUA_AGGREGATOR_SCRIPT_GS_PATH": luaAggregatorScriptGSPath,
+		"DS_NAMESPACE":                  ctfeutil.GetDsNamespaceFlagVal(),
+		"DS_PROJECT_NAME":               ctfeutil.GetDsProjectNameFlagVal(),
+	}
+
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_lua_on_workers", ctutil.RUN_LUA_MASTER_ISOLATE, ctfeutil.GetServiceAccountFileFlagVal(), ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
+		return fmt.Errorf("Could not trigger master script for run_lua_on_workers with isolate args %T: %s", isolateArgs, err)
+	}
+	return nil
+}
+
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.AddTaskHandler(w, r, &AddTaskVars{})
 }
@@ -174,10 +209,6 @@ type UpdateVars struct {
 	AggregatedOutput string
 }
 
-func (vars *UpdateVars) UriPath() string {
-	return ctfeutil.UPDATE_LUA_SCRIPT_TASK_POST_URI
-}
-
 func (vars *UpdateVars) UpdateExtraFields(t task_common.Task) error {
 	task := t.(*DatastoreTask)
 	if vars.ScriptOutput != "" {
@@ -187,10 +218,6 @@ func (vars *UpdateVars) UpdateExtraFields(t task_common.Task) error {
 		task.AggregatedOutput = vars.AggregatedOutput
 	}
 	return nil
-}
-
-func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&UpdateVars{}, &DatastoreTask{}, w, r)
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -205,7 +232,7 @@ func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(runsHistoryTemplate, w, r)
 }
 
-func AddHandlers(externalRouter, internalRouter *mux.Router) {
+func AddHandlers(externalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.LUA_SCRIPT_URI, addTaskView).Methods("GET")
 	externalRouter.HandleFunc("/"+ctfeutil.LUA_SCRIPT_RUNS_URI, runsHistoryView).Methods("GET")
 
@@ -213,7 +240,4 @@ func AddHandlers(externalRouter, internalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.GET_LUA_SCRIPT_TASKS_POST_URI, getTasksHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.DELETE_LUA_SCRIPT_TASK_POST_URI, deleteTaskHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.REDO_LUA_SCRIPT_TASK_POST_URI, redoTaskHandler).Methods("POST")
-
-	// Updating tasks is done via the internal router.
-	internalRouter.HandleFunc("/"+ctfeutil.UPDATE_LUA_SCRIPT_TASK_POST_URI, updateTaskHandler).Methods("POST")
 }
