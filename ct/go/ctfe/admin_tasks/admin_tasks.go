@@ -207,6 +207,25 @@ func (task *AddRecreatePageSetsTaskVars) GetPopulatedDatastoreTask(ctx context.C
 	return t, nil
 }
 
+func (task *AddRecreatePageSetsTaskVars) TriggerSwarmingTask(ctx context.Context, t task_common.Task) error {
+	datastoreTask := t.(*RecreatePageSetsDatastoreTask)
+	runID := task_common.GetRunID(datastoreTask)
+	isolateArgs := map[string]string{
+		"EMAILS":          datastoreTask.Username,
+		"TASK_ID":         strconv.FormatInt(datastoreTask.DatastoreKey.ID, 10),
+		"RUN_ON_GCE":      strconv.FormatBool(datastoreTask.RunsOnGCEWorkers()),
+		"RUN_ID":          runID,
+		"PAGESET_TYPE":    datastoreTask.PageSets,
+		"DS_NAMESPACE":    ctfeutil.GetDsNamespaceFlagVal(),
+		"DS_PROJECT_NAME": ctfeutil.GetDsProjectNameFlagVal(),
+	}
+
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "create_pagesets_on_workers", ctutil.CREATE_PAGESETS_MASTER_ISOLATE, ctfeutil.GetServiceAccountFileFlagVal(), ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
+		return fmt.Errorf("Could not trigger master script for create_pagesets_on_workers with isolate args %T: %s", isolateArgs, err)
+	}
+	return nil
+}
+
 func addRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.AddTaskHandler(w, r, &AddRecreatePageSetsTaskVars{})
 }
@@ -241,6 +260,25 @@ func (task *AddRecreateWebpageArchivesTaskVars) GetPopulatedDatastoreTask(ctx co
 	return t, nil
 }
 
+func (task *AddRecreateWebpageArchivesTaskVars) TriggerSwarmingTask(ctx context.Context, t task_common.Task) error {
+	datastoreTask := t.(*RecreateWebpageArchivesDatastoreTask)
+	runID := task_common.GetRunID(datastoreTask)
+	isolateArgs := map[string]string{
+		"EMAILS":          datastoreTask.Username,
+		"TASK_ID":         strconv.FormatInt(datastoreTask.DatastoreKey.ID, 10),
+		"RUN_ON_GCE":      strconv.FormatBool(datastoreTask.RunsOnGCEWorkers()),
+		"RUN_ID":          runID,
+		"PAGESET_TYPE":    datastoreTask.PageSets,
+		"DS_NAMESPACE":    ctfeutil.GetDsNamespaceFlagVal(),
+		"DS_PROJECT_NAME": ctfeutil.GetDsProjectNameFlagVal(),
+	}
+
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_archives_on_workers", ctutil.CAPTURE_ARCHIVES_MASTER_ISOLATE, ctfeutil.GetServiceAccountFileFlagVal(), ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
+		return fmt.Errorf("Could not trigger master script for capture_archives_on_workers with isolate args %T: %s", isolateArgs, err)
+	}
+	return nil
+}
+
 func addRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.AddTaskHandler(w, r, &AddRecreateWebpageArchivesTaskVars{})
 }
@@ -249,32 +287,16 @@ type RecreatePageSetsUpdateVars struct {
 	task_common.UpdateTaskCommonVars
 }
 
-func (vars *RecreatePageSetsUpdateVars) UriPath() string {
-	return ctfeutil.UPDATE_RECREATE_PAGE_SETS_TASK_POST_URI
-}
-
 func (task *RecreatePageSetsUpdateVars) UpdateExtraFields(t task_common.Task) error {
 	return nil
-}
-
-func updateRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&RecreatePageSetsUpdateVars{}, &RecreatePageSetsDatastoreTask{}, w, r)
 }
 
 type RecreateWebpageArchivesUpdateVars struct {
 	task_common.UpdateTaskCommonVars
 }
 
-func (vars *RecreateWebpageArchivesUpdateVars) UriPath() string {
-	return ctfeutil.UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI
-}
-
 func (task *RecreateWebpageArchivesUpdateVars) UpdateExtraFields(t task_common.Task) error {
 	return nil
-}
-
-func updateRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&RecreateWebpageArchivesUpdateVars{}, &RecreateWebpageArchivesDatastoreTask{}, w, r)
 }
 
 func deleteRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -309,7 +331,7 @@ func getRecreateWebpageArchivesTasksHandler(w http.ResponseWriter, r *http.Reque
 	task_common.GetTasksHandler(&RecreateWebpageArchivesDatastoreTask{}, w, r)
 }
 
-func AddHandlers(externalRouter, internalRouter *mux.Router) {
+func AddHandlers(externalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.ADMIN_TASK_URI, addTaskView).Methods("GET")
 	externalRouter.HandleFunc("/"+ctfeutil.RECREATE_PAGE_SETS_RUNS_URI, recreatePageSetsRunsHistoryView).Methods("GET")
 	externalRouter.HandleFunc("/"+ctfeutil.RECREATE_WEBPAGE_ARCHIVES_RUNS_URI, recreateWebpageArchivesRunsHistoryView).Methods("GET")
@@ -322,8 +344,4 @@ func AddHandlers(externalRouter, internalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.DELETE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, deleteRecreateWebpageArchivesTaskHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.REDO_RECREATE_PAGE_SETS_TASK_POST_URI, redoRecreatePageSetsTaskHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.REDO_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, redoRecreateWebpageArchivesTaskHandler).Methods("POST")
-
-	// Updating tasks is done via the internal router.
-	internalRouter.HandleFunc("/"+ctfeutil.UPDATE_RECREATE_PAGE_SETS_TASK_POST_URI, updateRecreatePageSetsTaskHandler).Methods("POST")
-	internalRouter.HandleFunc("/"+ctfeutil.UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, updateRecreateWebpageArchivesTaskHandler).Methods("POST")
 }
