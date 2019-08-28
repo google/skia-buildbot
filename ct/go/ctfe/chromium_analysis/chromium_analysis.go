@@ -273,6 +273,42 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 	return t, nil
 }
 
+func (task *AddTaskVars) TriggerSwarmingTask(ctx context.Context, t task_common.Task) error {
+	datastoreTask := t.(*DatastoreTask)
+	runID := task_common.GetRunID(datastoreTask)
+	emails := []string{datastoreTask.Username}
+	emails = append(emails, datastoreTask.CCList...)
+	isolateArgs := map[string]string{
+		"EMAILS":                      strings.Join(emails, ","),
+		"DESCRIPTION":                 datastoreTask.Description,
+		"TASK_ID":                     strconv.FormatInt(datastoreTask.DatastoreKey.ID, 10),
+		"PAGESET_TYPE":                datastoreTask.PageSets,
+		"BENCHMARK":                   datastoreTask.Benchmark,
+		"BENCHMARK_ARGS":              datastoreTask.BenchmarkArgs,
+		"BROWSER_EXTRA_ARGS":          datastoreTask.BrowserArgs,
+		"RUN_IN_PARALLEL":             strconv.FormatBool(datastoreTask.RunInParallel),
+		"TARGET_PLATFORM":             datastoreTask.Platform,
+		"RUN_ON_GCE":                  strconv.FormatBool(datastoreTask.RunsOnGCEWorkers()),
+		"MATCH_STDOUT_TXT":            datastoreTask.MatchStdoutTxt,
+		"CHROMIUM_HASH":               datastoreTask.ChromiumHash,
+		"RUN_ID":                      runID,
+		"TASK_PRIORITY":               strconv.Itoa(datastoreTask.TaskPriority),
+		"GROUP_NAME":                  datastoreTask.GroupName,
+		"CHROMIUM_PATCH_GS_PATH":      datastoreTask.ChromiumPatchGSPath,
+		"SKIA_PATCH_GS_PATH":          datastoreTask.SkiaPatchGSPath,
+		"V8_PATCH_GS_PATH":            datastoreTask.V8PatchGSPath,
+		"CATAPULT_PATCH_GS_PATH":      datastoreTask.CatapultPatchGSPath,
+		"CUSTOM_WEBPAGES_CSV_GS_PATH": datastoreTask.CustomWebpagesGSPath,
+		"DS_NAMESPACE":                ctfeutil.GetDsNamespaceFlagVal(),
+		"DS_PROJECT_NAME":             ctfeutil.GetDsProjectNameFlagVal(),
+	}
+
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_chromium_analysis_on_workers", ctutil.CHROMIUM_ANALYSIS_MASTER_ISOLATE, ctfeutil.GetServiceAccountFileFlagVal(), datastoreTask.Platform, false, isolateArgs); err != nil {
+		return fmt.Errorf("Could not trigger master script for run_chromium_analysis_on_workers with isolate args %T: %s", isolateArgs, err)
+	}
+	return nil
+}
+
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.AddTaskHandler(w, r, &AddTaskVars{})
 }
@@ -287,20 +323,12 @@ type UpdateVars struct {
 	RawOutput string
 }
 
-func (vars *UpdateVars) UriPath() string {
-	return ctfeutil.UPDATE_CHROMIUM_ANALYSIS_TASK_POST_URI
-}
-
 func (vars *UpdateVars) UpdateExtraFields(t task_common.Task) error {
 	task := t.(*DatastoreTask)
 	if vars.RawOutput != "" {
 		task.RawOutput = vars.RawOutput
 	}
 	return nil
-}
-
-func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&UpdateVars{}, &DatastoreTask{}, w, r)
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -315,7 +343,7 @@ func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(runsHistoryTemplate, w, r)
 }
 
-func AddHandlers(externalRouter, internalRouter *mux.Router) {
+func AddHandlers(externalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.CHROMIUM_ANALYSIS_URI, addTaskView).Methods("GET")
 	externalRouter.HandleFunc("/"+ctfeutil.CHROMIUM_ANALYSIS_RUNS_URI, runsHistoryView).Methods("GET")
 
@@ -323,7 +351,4 @@ func AddHandlers(externalRouter, internalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.GET_CHROMIUM_ANALYSIS_TASKS_POST_URI, getTasksHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.DELETE_CHROMIUM_ANALYSIS_TASK_POST_URI, deleteTaskHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.REDO_CHROMIUM_ANALYSIS_TASK_POST_URI, redoTaskHandler).Methods("POST")
-
-	// Updating tasks is done via the internal router.
-	internalRouter.HandleFunc("/"+ctfeutil.UPDATE_CHROMIUM_ANALYSIS_TASK_POST_URI, updateTaskHandler).Methods("POST")
 }
