@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c8398f94_69dd29b5",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-28T15:06:02Z",
+      "side": 1,
+      "message": "I\u0027m calling AssertExpectations here (and on line 254) explicitly as opposed to deferring it to assert that calling Get after the cache is warmed up doesn\u0027t cause any interactions with GCS.\n\nI think this is clear from the inline comments after the Once() calls, but let me know if you\u0027d like me to explicitly mention this.",
+      "range": {
+        "startLine": 239,
+        "startChar": 0,
+        "endLine": 241,
+        "endChar": 33
+      },
+      "revId": "170bf6dd23f024e058c18789a0aa73c5129a713d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

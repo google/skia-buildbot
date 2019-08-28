@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "de52a9f2_56a15bf8",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-28T15:06:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e1bfee28_3c4983f9",
+      "range": {
+        "startLine": 55,
+        "startChar": 3,
+        "endLine": 55,
+        "endChar": 15
+      },
+      "revId": "ec68d4593b4bb0eb12bf7d9c0eb76acd660f0637",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aa53354c_a6238cd9",
         "filename": "golden/go/diffstore/imgloader_test.go",
         "patchSetId": 11
@@ -45,6 +69,30 @@
       "revId": "ec68d4593b4bb0eb12bf7d9c0eb76acd660f0637",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7aa29da4_5578509f",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-28T15:06:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aa53354c_a6238cd9",
+      "range": {
+        "startLine": 108,
+        "startChar": 1,
+        "endLine": 108,
+        "endChar": 11
+      },
+      "revId": "ec68d4593b4bb0eb12bf7d9c0eb76acd660f0637",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "d4e48a89_5c3b8406",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-28T15:06:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "66569848_beef9369",
+      "range": {
+        "startLine": 111,
+        "startChar": 7,
+        "endLine": 111,
+        "endChar": 13
+      },
+      "revId": "ec68d4593b4bb0eb12bf7d9c0eb76acd660f0637",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4067e0a0_4c2670fc",
         "filename": "golden/go/diffstore/imgloader_test.go",
         "patchSetId": 11
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "c827cd70_dabc97a9",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-28T15:06:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4067e0a0_4c2670fc",
+      "range": {
+        "startLine": 118,
+        "startChar": 48,
+        "endLine": 118,
+        "endChar": 54
+      },
+      "revId": "ec68d4593b4bb0eb12bf7d9c0eb76acd660f0637",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "855e4fb1_3c65a75a",
         "filename": "golden/go/diffstore/imgloader_test.go",
         "patchSetId": 11
@@ -105,6 +201,30 @@
       "writtenOn": "2019-08-28T12:44:26Z",
       "side": 1,
       "message": "simply putting nil here should work. FWIW, the idiomatic way to write line 124 is\nvar oa *storage.ObjectAttrs",
+      "range": {
+        "startLine": 125,
+        "startChar": 66,
+        "endLine": 125,
+        "endChar": 68
+      },
+      "revId": "ec68d4593b4bb0eb12bf7d9c0eb76acd660f0637",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d98df1d_cdd2d9c8",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-28T15:06:02Z",
+      "side": 1,
+      "message": "If I just write nil, I get the following panic:\n\npanic: interface conversion: interface {} is nil, not *storage.ObjectAttrs\n\nI\u0027ve replaced line 124 (and also line 193) with your suggested var oa *storage.ObjectAttrs \u003d nil. Please let me know if you can think of a better way to avoid the panic.",
+      "parentUuid": "855e4fb1_3c65a75a",
       "range": {
         "startLine": 125,
         "startChar": 66,
@@ -137,6 +257,30 @@
       "revId": "ec68d4593b4bb0eb12bf7d9c0eb76acd660f0637",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c0e8774_a18b140e",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-28T15:06:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "28d8f1ec_d96548b7",
+      "range": {
+        "startLine": 284,
+        "startChar": 2,
+        "endLine": 284,
+        "endChar": 8
+      },
+      "revId": "ec68d4593b4bb0eb12bf7d9c0eb76acd660f0637",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
