@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3840fb26_f86f6ca1",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T18:52:59Z",
+      "side": 1,
+      "message": "It looks like we will rerun this query every 5m. Just wondering if there\u0027s a better way to do this than querying BuildBucket for every tryjob in the last 7d every 5m (plus again for tryjobs in the last 24h).",
+      "revId": "23fbeb1df1f67208956abf0eaf3a690cd59e4668",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
