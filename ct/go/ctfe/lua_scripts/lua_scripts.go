@@ -160,6 +160,7 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 	return t, nil
 }
 
+// lua scripts and lua aggregator
 func (task *AddTaskVars) TriggerSwarmingTask(ctx context.Context, t task_common.Task) error {
 	datastoreTask := t.(*DatastoreTask)
 	runID := task_common.GetRunID(datastoreTask)
