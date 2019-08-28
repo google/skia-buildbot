@@ -30,6 +30,7 @@
   },
   "cqExtraTrybots": [
     "luci.chromium.try:android_optional_gpu_tests_rel",
+    "luci.chromium.try:linux_chromium_msan_rel_ng",
     "luci.chromium.try:linux_optional_gpu_tests_rel",
     "luci.chromium.try:mac_optional_gpu_tests_rel",
     "luci.chromium.try:win_optional_gpu_tests_rel"
