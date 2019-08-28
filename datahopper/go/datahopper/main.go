@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/datahopper/go/supported_branches"
 	"go.skia.org/infra/datahopper/go/swarming_metrics"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/git"
@@ -91,6 +92,7 @@ func main() {
 	}
 	storageClient := gcsclient.New(gsClient, *perfBucket)
 	pc := perfclient.New(*perfPrefix, storageClient)
+	bb := buildbucket.NewClient(httpClient)
 
 	tnp := taskname.DefaultTaskNameParser()
 
@@ -170,7 +172,7 @@ func main() {
 	}
 
 	// Jobs metrics.
-	if err := StartJobMetrics(ctx, d, *firestoreInstance, repos, tcc); err != nil {
+	if err := StartJobMetrics(ctx, d, *firestoreInstance, repos, tcc, bb); err != nil {
 		sklog.Fatal(err)
 	}
 
