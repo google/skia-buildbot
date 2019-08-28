@@ -119,7 +119,7 @@ func (t *SwarmingTask) Trigger(ctx context.Context, s *SwarmingClient, hardTimeo
 	return nil
 }
 
-func (t *SwarmingTask) Collect(ctx context.Context, s *SwarmingClient) (string, string, error) {
+func (t *SwarmingTask) Collect(ctx context.Context, s *SwarmingClient, logStdout, logStderr bool) (string, string, error) {
 	if err := _VerifyBinaryExists(ctx, s.SwarmingPy); err != nil {
 		return "", "", fmt.Errorf("Could not find swarming binary: %s", err)
 	}
@@ -140,8 +140,8 @@ func (t *SwarmingTask) Collect(ctx context.Context, s *SwarmingClient) (string, 
 		Name:      s.SwarmingPy,
 		Args:      collectArgs,
 		Timeout:   t.Expiration,
-		LogStdout: true,
-		LogStderr: true,
+		LogStdout: logStdout,
+		LogStderr: logStderr,
 	})
 	if err != nil {
 		return "", "", fmt.Errorf("Swarming trigger for %s failed with: %s", t.Title, err)
