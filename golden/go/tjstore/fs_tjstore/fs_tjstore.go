@@ -33,6 +33,11 @@ func (s *StoreImpl) GetRunningTryJobs(ctx context.Context) ([]ci.TryJob, error) 
 	return []ci.TryJob{}, errors.New("not impl")
 }
 
+// GetTryJobs implements the tjstore.Store interface.
+func (s *StoreImpl) GetTryJobs(ctx context.Context, psID tjstore.CombinedPSID) ([]ci.TryJob, error) {
+	return []ci.TryJob{}, errors.New("not impl")
+}
+
 // GetResults implements the tjstore.Store interface.
 func (s *StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID) ([]tjstore.TryJobResult, error) {
 	return []tjstore.TryJobResult{}, errors.New("not impl")

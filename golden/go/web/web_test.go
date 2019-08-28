@@ -1,13 +1,19 @@
 package web
 
 import (
+	"context"
 	"net/url"
 	"testing"
+	"time"
 
+	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
+	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
+	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/summary"
 	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
@@ -146,4 +152,143 @@ func makeBugRevertFoxtrotBlame() blame.BlameDistribution {
 	return blame.BlameDistribution{
 		Freq: []int{2},
 	}
+}
+
+var anyctx = mock.AnythingOfType("*context.emptyCtx")
+
+// TestGetChangeListsSunnyDay tests the core functionality of
+// listing all ChangeLists that have Gold results.
+func TestGetChangeListsSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mcls := &mock_clstore.Store{}
+	defer mcls.AssertExpectations(t)
+
+	mcls.On("GetChangeLists", anyctx, 0, 50).Return(makeCodeReviewCLs(), 3, nil)
+	mcls.On("System").Return("gerrit")
+
+	wh := WebHandlers{
+		ChangeListStore: mcls,
+	}
+
+	cls, pagination, err := wh.getChangeListsWithTryJobs(context.Background(), 0, 50)
+	assert.NoError(t, err)
+	assert.Len(t, cls, 3)
+	assert.NotNil(t, pagination)
+
+	assert.Equal(t, &httputils.ResponsePagination{
+		Offset: 0,
+		Size:   50,
+		Total:  3,
+	}, pagination)
+
+	expected := makeWebCLs()
+	assert.Equal(t, expected, cls)
+}
+
+func makeCodeReviewCLs() []code_review.ChangeList {
+	return []code_review.ChangeList{
+		{
+			SystemID: "1002",
+			Owner:    "other@example.com",
+			Status:   code_review.Open,
+			Subject:  "new feature",
+			Updated:  time.Date(2019, time.August, 27, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			SystemID: "1001",
+			Owner:    "test@example.com",
+			Status:   code_review.Landed,
+			Subject:  "land gold",
+			Updated:  time.Date(2019, time.August, 26, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			SystemID: "1000",
+			Owner:    "test@example.com",
+			Status:   code_review.Abandoned,
+			Subject:  "gold experiment",
+			Updated:  time.Date(2019, time.August, 25, 0, 0, 0, 0, time.UTC),
+		},
+	}
+}
+
+func makeWebCLs() []changeList {
+	return []changeList{
+		{
+			System:   "gerrit",
+			SystemID: "1002",
+			Owner:    "other@example.com",
+			Status:   "Open",
+			Subject:  "new feature",
+			Updated:  time.Date(2019, time.August, 27, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			System:   "gerrit",
+			SystemID: "1001",
+			Owner:    "test@example.com",
+			Status:   "Landed",
+			Subject:  "land gold",
+			Updated:  time.Date(2019, time.August, 26, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			System:   "gerrit",
+			SystemID: "1000",
+			Owner:    "test@example.com",
+			Status:   "Abandoned",
+			Subject:  "gold experiment",
+			Updated:  time.Date(2019, time.August, 25, 0, 0, 0, 0, time.UTC),
+		},
+	}
+}
+
+// TestGetCLSummarySunnyDay represents a case where we have a CL that
+// has 2 patchsets with data, PS with order 1, ps with order 4
+func TestGetCLSummarySunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mcls := &mock_clstore.Store{}
+	//defer mcls.AssertExpectations(t)
+
+	wh := WebHandlers{
+		ChangeListStore: mcls,
+	}
+
+	cl, err := wh.getCLSummary(context.Background(), "1002")
+	assert.NoError(t, err)
+	assert.Equal(t, changeListSummary{
+		CL:                makeWebCLs()[1],
+		NumTotalPatchSets: 4,
+		PatchSets: []patchSet{
+			{
+				SystemID: "ps-1",
+				Order:    1,
+				TryJobs: []tryJob{
+					{
+						SystemID:    "bb1",
+						DisplayName: "Test-Build",
+						Status:      "Completed",
+						Updated:     time.Date(2019, time.August, 27, 1, 0, 0, 0, time.UTC),
+					},
+				},
+			},
+			{
+				SystemID: "ps-4",
+				Order:    4,
+				TryJobs: []tryJob{
+					{
+						SystemID:    "bb2",
+						DisplayName: "Test-Build",
+						Status:      "Running",
+						Updated:     time.Date(2019, time.August, 27, 0, 15, 0, 0, time.UTC),
+					},
+					{
+						SystemID:    "bb3",
+						DisplayName: "Test-Code",
+						Status:      "Completed",
+						Updated:     time.Date(2019, time.August, 27, 0, 20, 0, 0, time.UTC),
+					},
+				},
+			},
+		},
+	}, cl)
 }
