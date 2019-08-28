@@ -23,6 +23,11 @@
       width: 20em;
     }
 
+    .triggering-spinner {
+      margin: auto;
+      vertical-align: middle;
+    }
+
     .iron-selected {
       background-color: #D6ECF2;
     }
@@ -264,7 +269,10 @@
 
       <tr>
         <td colspan="2" class="center">
-          <paper-button raised id="submit_task">Queue Task</paper-button>
+          <div class="triggering-spinner">
+            <paper-spinner active="[[ triggeringTask ]]" alt="Trigger task"></paper-spinner>
+          </div>
+          <paper-button raised id="submit_task" disabled="[[ triggeringTask ]]">Queue Task</paper-button>
         </td>
       </tr>
       <tr>
@@ -310,6 +318,10 @@
        pageSets: {
          type: Array,
          observer: 'pageSetsChanged',
+       },
+       triggeringTask: {
+         type: Boolean,
+         value: false,
        },
        chromiumClDescription: String,
        skiaClDescription: String,
@@ -453,6 +465,7 @@
      },
 
      queueTask: function() {
+       this.triggeringTask = true;
        var params = {};
        params["benchmark"] = this.selectedBenchmarkName;
        params["page_sets"] = this.$.page_sets.selected;
@@ -481,7 +494,10 @@
        var that = this;
        sk.post("/_/add_chromium_analysis_task", JSON.stringify(params)).then(function(resp) {
          that.gotoRunsHistory();
-       }).catch(sk.errorMessage);
+       }).catch(function(e) {
+         that.triggeringTask = false;
+         sk.errorMessage(e);
+       });
      },
 
      gotoRunsHistory: function() {
