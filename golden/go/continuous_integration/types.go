@@ -21,14 +21,5 @@ type TryJob struct {
 	// SystemID is expected to be unique between all TryJobs.
 	SystemID    string
 	DisplayName string
-
-	Status  TJStatus
-	Updated time.Time
+	Updated     time.Time
 }
-
-type TJStatus int
-
-const (
-	Running TJStatus = iota
-	Complete
-)
