@@ -13,7 +13,6 @@ import (
 	"hash/crc32"
 	"math"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -21,6 +20,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigtable"
+	multierror "github.com/hashicorp/go-multierror"
 	lru "github.com/hashicorp/golang-lru"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
@@ -672,9 +672,13 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 	//   - The query is empty, which means we want all traces.
 	//   - The query plan is empty, which means it won't match any
 	//     traces in this tile, so pre-emptively return an empty TraceSet.
+
+	// TODO(jcgregorio) Make this case go away as all the traces may exceed available
+	// memory.
 	if q.Empty() {
 		return b.allTraces(ctx, tileKey)
 	}
+
 	plan, err := q.QueryPlan(ops)
 	sklog.Infof("Plan %#v", plan)
 	if err != nil {
@@ -685,123 +689,87 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileKey Til
 		// We won't match anything in this tile.
 		return nil, nil
 	}
+	encodedPlan, err := ops.EncodeParamSet(plan)
+	if err != nil {
+		return nil, nil
+	}
 
 	defer timer.New("btts_query_traces_by_index").Stop()
 	defer metrics2.FuncTimer().Stop()
+
 	var mutex sync.Mutex
 	ret := types.TraceSet{}
 	var g errgroup.Group
 	tctx, cancel := context.WithTimeout(ctx, TIMEOUT)
 	defer cancel()
 
-	rowSet := bigtable.RowList{}
-	for key, values := range plan {
-		for _, value := range values {
-			rowSet = append(rowSet, fmt.Sprintf("%s:%s:%s", tileKey.IndexRowPrefix(), key, value))
-		}
-	}
-	// indices maps the plan keys to paramsets, which map plan values to slices of keys.
-	indices := map[string]paramtools.ParamSet{}
-	err = b.getTable().ReadRows(context.Background(), rowSet, func(row bigtable.Row) bool {
-		// rowKey looks like "i2147483646:config:565".
-		rowParts := strings.Split(row.Key(), ":")
-		if len(rowParts) != 3 {
-			sklog.Errorf("Invalid index row key: %s", row.Key())
-			return true
-		}
-		paramKey := rowParts[1]
-		paramValue := rowParts[2]
-		traceKeys := []string{}
-		for _, col := range row[INDEX_FAMILY] {
-			// Strip off the family name which is prefixed.
-			traceKeys = append(traceKeys, col.Column[2:])
-		}
-		var ok bool
-		ps := paramtools.ParamSet{}
-		if ps, ok = indices[paramKey]; !ok {
-			ps = paramtools.NewParamSet()
-		}
-		ps[paramValue] = traceKeys
-		indices[paramKey] = ps
-		return true
-	}, bigtable.RowFilter(
-		bigtable.ChainFilters(
-			bigtable.LatestNFilter(1),
-			bigtable.FamilyFilter(INDEX_FAMILY),
-		),
-	),
-	)
+	out, errCh, err := ExecutePlan(tctx, encodedPlan, b.getTable(), tileKey)
 
-	sklog.Infof("indices len = %d\n", len(indices))
-
-	var ss util.StringSet = nil
-	// Now consolidate the indices into a set of keys to request.
-	for _ /* paramKey */, ps := range indices {
-		valueSS := util.StringSet{}
-		for _ /* paramValue */, traceRowKeys := range ps {
-			// Union across paramKeys.
-			valueSS.AddLists(traceRowKeys)
-		}
-		// Intersect across paramValues.
-		if ss == nil {
-			ss = valueSS
-		} else {
-			ss = ss.Intersect(valueSS)
-		}
-	}
-
-	if len(ss) == 0 {
-		return nil, nil
-	}
-
-	sklog.Infof("All traces ids len = %d", len(ss.Keys()))
-
-	allKeys := ss.Keys()
-	sort.Strings(allKeys)
-	rowSet = bigtable.RowList(allKeys)
-	// Break the rowSet into batches of MAX_ROW_KEYS
-	for {
-		if len(rowSet) == 0 {
-			break
-		}
-
-		size := 0
-		rowSetSubset := bigtable.RowList{}
-		for _, r := range rowSet {
-			rowSetSubset = append(rowSetSubset, r)
-			size += len(r)
-			if size > MAX_ROW_KEYS {
-				break
-			}
-		}
-		sliceSize := len(rowSetSubset)
-		rowSet = rowSet[sliceSize:]
-
+	// Start a fixed number of goroutines to load trace values.
+	poolRequestCh := make(chan bigtable.RowList)
+	const numDigesters = 10
+	for i := 0; i < numDigesters; i++ {
 		g.Go(func() error {
-			return b.getTable().ReadRows(tctx, rowSetSubset, func(row bigtable.Row) bool {
-				vec := vec32.New(int(b.tileSize))
-				for _, col := range row[VALUES_FAMILY] {
-					vec[b.lookup[col.Column]] = math.Float32frombits(binary.LittleEndian.Uint32(col.Value))
-				}
-				parts := strings.Split(row.Key(), ":")
-				traceId, err := traceIdFromEncoded(ops, parts[2])
-				if err != nil {
-					sklog.Infof("Found encoded key %q that can't be decoded: %s", parts[2], err)
+			for rowSetSubset := range poolRequestCh {
+				err := b.getTable().ReadRows(tctx, rowSetSubset, func(row bigtable.Row) bool {
+					vec := vec32.New(int(b.tileSize))
+					for _, col := range row[VALUES_FAMILY] {
+						vec[b.lookup[col.Column]] = math.Float32frombits(binary.LittleEndian.Uint32(col.Value))
+					}
+					parts := strings.Split(row.Key(), ":")
+					traceId, err := traceIdFromEncoded(ops, parts[2])
+					if err != nil {
+						sklog.Infof("Found encoded key %q that can't be decoded: %s", parts[2], err)
+						return true
+					}
+					mutex.Lock()
+					defer mutex.Unlock()
+					ret[traceId] = vec
 					return true
+				}, bigtable.RowFilter(
+					bigtable.ChainFilters(
+						bigtable.LatestNFilter(1),
+						bigtable.FamilyFilter(VALUES_FAMILY),
+					)))
+				if err != nil {
+					return err
 				}
-				mutex.Lock()
-				defer mutex.Unlock()
-				ret[traceId] = vec
-				return true
-			}, bigtable.RowFilter(
-				bigtable.ChainFilters(
-					bigtable.LatestNFilter(1),
-					bigtable.FamilyFilter(VALUES_FAMILY),
-				)))
+			}
+			return nil
 		})
 	}
+
+	// Break the rowSet into batches of MAX_ROW_KEYS that are sent to the worker
+	// pools.
+
+	// TODO(jcgregorio) Should we limit the total number of traces?
+	size := 0
+	rowSetSubset := bigtable.RowList{}
+	for encodedTraceId := range out {
+		fullKey := tileKey.TraceRowName(encodedTraceId, b.shards)
+		rowSetSubset = append(rowSetSubset, fullKey)
+		size += len(fullKey)
+		if size > MAX_ROW_KEYS {
+			poolRequestCh <- rowSetSubset
+		}
+	}
+	if len(rowSetSubset) > 0 {
+		poolRequestCh <- rowSetSubset
+	}
+	close(poolRequestCh)
+
 	if err := g.Wait(); err != nil {
 		return nil, fmt.Errorf("Failed to query: %s", err)
+	}
+	close(errCh)
+
+	// Check for errors in errCh.
+	var multipleErrors error
+	for err := range errCh {
+		multipleErrors = multierror.Append(err, multipleErrors)
+	}
+	if multipleErrors != nil {
+		return nil, multipleErrors
 	}
 
 	return ret, nil
