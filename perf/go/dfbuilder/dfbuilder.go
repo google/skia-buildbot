@@ -7,13 +7,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hashicorp/go-multierror"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/btts"
@@ -591,48 +591,82 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 	return ret, nil
 }
 
-func (b *builder) tracelessStep(tileKey btts.TileKey, keys *util.StringSet, ps *paramtools.ParamSet) {
-	ops, err := b.store.GetOrderedParamSet(context.TODO(), tileKey)
-	if err != nil {
-		return
-	}
-	(*ps).AddParamSet(ops.ParamSet)
-	newKeys, err := b.store.TileKeys(context.Background(), tileKey)
-	if err != nil {
-		return
-	}
-
-	for _, key := range newKeys {
-		(*keys)[key] = true
-	}
-}
-
 // See DataFrameBuilder.
-func (b *builder) NewKeysOnly(numTiles int) (*dataframe.DataFrame, error) {
-	keys := util.StringSet{}
+func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Query) (int64, paramtools.ParamSet, error) {
+	var count int64
 	ps := paramtools.ParamSet{}
 
 	tileKey, err := b.store.GetLatestTile()
 	if err != nil {
-		return nil, err
+		return -1, ps, err
 	}
-	for i := 0; i < numTiles; i++ {
-		b.tracelessStep(tileKey, &keys, &ps)
-		tileKey = tileKey.PrevTile()
-	}
-	if len(keys) == 0 {
-		return nil, fmt.Errorf("Failed to find any traces.")
-	}
-	ts := types.TraceSet{}
-	for _, key := range keys.Keys() {
-		ts[key] = types.Trace{}
-	}
-	ps.Normalize()
 
-	return &dataframe.DataFrame{
-		TraceSet: ts,
-		ParamSet: ps,
-	}, nil
+	if q.Empty() {
+		// If the query is empty then we have a shortcut for building the
+		// ParamSet by just using the OPS. In that case we only need to count
+		// encodedKeys to get the count.
+
+		for i := 0; i < 2; i++ {
+			ops, err := b.store.GetOrderedParamSet(ctx, tileKey)
+			if err != nil {
+				return -1, ps, err
+			}
+			ps.AddParamSet(ops.ParamSet)
+			tileKey = tileKey.PrevTile()
+		}
+
+		// Note that we only count rows in the next to last tile, since the most
+		// recent tile might not be fully populated.
+		out, errCh := b.store.TileKeys(ctx, tileKey)
+		for range out {
+			count++
+		}
+		var multipleErrors error
+		for err := range errCh {
+			multipleErrors = multierror.Append(err, multipleErrors)
+		}
+		if multipleErrors != nil {
+			return -1, ps, multipleErrors
+		}
+	} else {
+		// Since the query isn't empty we'll have to run a partial query
+		// to build the ParamSet.
+		out, errCh, err := b.store.QueryTracesIDOnlyByIndex(ctx, tileKey, q)
+		if err != nil {
+			return -1, ps, fmt.Errorf("Failed to query traces: %s", err)
+		}
+		for p := range out {
+			ps.AddParams(p)
+		}
+		var multipleErrors error
+		for err := range errCh {
+			multipleErrors = multierror.Append(err, multipleErrors)
+		}
+		if multipleErrors != nil {
+			return -1, ps, multipleErrors
+		}
+		// We only start counting when we get to the second to last tile, since
+		// the latest tile might not be fully populated.
+		tileKey = tileKey.PrevTile()
+		out, errCh, err = b.store.QueryTracesIDOnlyByIndex(ctx, tileKey, q)
+		if err != nil {
+			return -1, ps, fmt.Errorf("Failed to query traces: %s", err)
+		}
+		for p := range out {
+			count++
+			ps.AddParams(p)
+		}
+		for err := range errCh {
+			multipleErrors = multierror.Append(err, multipleErrors)
+		}
+		if multipleErrors != nil {
+			return -1, ps, multipleErrors
+		}
+	}
+
+	ps.Normalize()
+	return count, ps, nil
+
 }
 
 // Validate that the concrete bttsDataFrameBuilder faithfully implements the DataFrameBuidler interface.
