@@ -18,17 +18,8 @@ type Client interface {
 var ErrNotFound = errors.New("not found")
 
 type TryJob struct {
-	// SystemID is expected to be unique between all TryJobs.
+	// SystemID is expected to be unique between all TryJobs for a given System.
 	SystemID    string
 	DisplayName string
-
-	Status  TJStatus
-	Updated time.Time
+	Updated     time.Time
 }
-
-type TJStatus int
-
-const (
-	Running TJStatus = iota
-	Complete
-)
