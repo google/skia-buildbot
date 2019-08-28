@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c71bded0_d26cd62d",
+        "filename": "perf/go/btts/execute_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T17:26:55Z",
+      "side": 1,
+      "message": "Same question from previous CL - could this value just be hardcoded (and deterministic)?",
+      "range": {
+        "startLine": 80,
+        "startChar": 1,
+        "endLine": 82,
+        "endChar": 2
+      },
+      "revId": "15650ba2869523e68120f620856b13c0e1d74e37",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b637b39_457489ba",
+        "filename": "perf/go/btts/execute_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T17:26:55Z",
+      "side": 1,
+      "message": "This is just an arbitrary number, right?",
+      "range": {
+        "startLine": 135,
+        "startChar": 21,
+        "endLine": 135,
+        "endChar": 24
+      },
+      "revId": "15650ba2869523e68120f620856b13c0e1d74e37",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74e86c14_e4c84e11",
+        "filename": "perf/go/btts/execute_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T17:26:55Z",
+      "side": 1,
+      "message": "similar to previous cl, would assert.Empty(t, out) work?",
+      "range": {
+        "startLine": 199,
+        "startChar": 5,
+        "endLine": 199,
+        "endChar": 19
+      },
+      "revId": "15650ba2869523e68120f620856b13c0e1d74e37",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
