@@ -28,29 +28,15 @@ func (c *CISImpl) GetTryJob(ctx context.Context, id string) (ci.TryJob, error) {
 		}
 		return ci.TryJob{}, skerr.Wrapf(err, "fetching Tryjob %s from buildbucket", id)
 	}
-	st := statusToEnum(tj.Status)
 	ts := tj.Created
-	if st == ci.Complete {
+	if tj.Status == buildbucket.STATUS_COMPLETED {
 		ts = tj.Completed
 	}
 	return ci.TryJob{
 		SystemID:    id,
 		DisplayName: tj.Parameters.BuilderName,
-		Status:      st,
 		Updated:     ts,
 	}, nil
-}
-
-func statusToEnum(s string) ci.TJStatus {
-	switch s {
-	case buildbucket.STATUS_STARTED:
-		return ci.Running
-	case buildbucket.STATUS_COMPLETED:
-		return ci.Complete
-	}
-	// would only be possible if somehow BB thought the job was scheduled, even
-	// though it had run.
-	return ci.Running
 }
 
 // Make sure CISImpl fulfills the continuous_integration.Client interface.

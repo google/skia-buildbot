@@ -33,7 +33,6 @@ func TestGetTryJobSunnyDay(t *testing.T) {
 	assert.Equal(t, continuous_integration.TryJob{
 		SystemID:    id,
 		DisplayName: "Infra-PerCommit-Medium",
-		Status:      continuous_integration.Complete,
 		Updated:     ts,
 	}, tj)
 }
@@ -57,7 +56,6 @@ func TestGetTryJobRunning(t *testing.T) {
 	assert.Equal(t, continuous_integration.TryJob{
 		SystemID:    id,
 		DisplayName: "linux-rel",
-		Status:      continuous_integration.Running,
 		Updated:     ts,
 	}, tj)
 }
