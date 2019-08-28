@@ -34,6 +34,24 @@
       "revId": "0bd46ede3f8d2a15d0a4f03c1fd792fdbe681b84",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3e8b7b2_4511419d",
+        "filename": "go/autoroll/autoroll.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-28T12:54:32Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "28da4aaf_e27d5710",
+      "revId": "0bd46ede3f8d2a15d0a4f03c1fd792fdbe681b84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
