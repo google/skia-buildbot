@@ -249,7 +249,7 @@ define('skottie-player-sk', class extends HTMLElement {
 
     this._render(); // re-render for animation-dependent elements (properties, etc).
 
-    this._drawFrame();
+    this._drawFrame(true);
   }
 
   _updateSeekPoint() {
@@ -267,7 +267,7 @@ define('skottie-player-sk', class extends HTMLElement {
     }
   }
 
-  _drawFrame() {
+  _drawFrame(firstFrame) {
     if (!this._engine.animation || !this._engine.canvas) {
       return;
     }
@@ -279,13 +279,17 @@ define('skottie-player-sk', class extends HTMLElement {
     }
 
     this._engine.kit.setCurrentContext(this._engine.context);
-    this._engine.animation.seek(this._state.seekPoint);
-    this._engine.animation.render(this._engine.canvas, {
-                                  fLeft: 0,
-                                  fTop:  0,
-                                  fRight:  this._config.width  * window.devicePixelRatio,
-                                  fBottom: this._config.height * window.devicePixelRatio });
-    this._engine.surface.flush();
+    var damage = this._engine.animation.seek(this._state.seekPoint);
+    // Only draw frames when the content changes.
+    // TODO: SkRect::isEmpty()?
+    if (firstFrame || (damage.fRight > damage.fLeft && damage.fBottom > damage.fTop)) {
+      this._engine.animation.render(this._engine.canvas, {
+                                    fLeft: 0,
+                                    fTop:  0,
+                                    fRight:  this._config.width  * window.devicePixelRatio,
+                                    fBottom: this._config.height * window.devicePixelRatio });
+      this._engine.surface.flush();
+    }
   }
 
   _render() {
