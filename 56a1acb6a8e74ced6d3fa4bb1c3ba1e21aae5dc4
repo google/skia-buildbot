@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6ddb0b3d_c1a0d49d",
+        "filename": "go/gce/ct/ct_vm.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T19:18:33Z",
+      "side": 1,
+      "message": "nit: Maybe we can just count how many flags are set and make sure it\u0027s 1? (Maybe also add an explicit --worker flag?)",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 2
+      },
+      "revId": "56a1acb6a8e74ced6d3fa4bb1c3ba1e21aae5dc4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3a2aea5_46e615fc",
+        "filename": "go/gce/ct/instance_types/instance_types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T19:18:33Z",
+      "side": 1,
+      "message": "nit: maybe just inline this like the ones below",
+      "range": {
+        "startLine": 68,
+        "startChar": 32,
+        "endLine": 68,
+        "endChar": 34
+      },
+      "revId": "56a1acb6a8e74ced6d3fa4bb1c3ba1e21aae5dc4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
