@@ -485,6 +485,23 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemoteAndBranch(ctx conte
 		}
 	}
 
+	// Run "gclient config".
+	args := []string{r.gclient, "config"}
+	if r.gclientSpec != "" {
+		args = append(args, fmt.Sprintf("--spec=%s", r.gclientSpec))
+	} else {
+		args = append(args, r.parentRepo, "--unmanaged")
+	}
+	if _, err := exec.RunCommand(ctx, &exec.Command{
+		Dir:  r.workdir,
+		Env:  r.depotToolsEnv,
+		Name: "python",
+		Args: args,
+	}); err != nil {
+		return err
+	}
+
+	// Clean/reset the parent and child checkouts.
 	if _, err := os.Stat(path.Join(r.parentDir, ".git")); err == nil {
 		if err := r.cleanParentWithRemoteAndBranch(ctx, remote, localBranch, remoteBranch); err != nil {
 			return err
@@ -503,20 +520,7 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemoteAndBranch(ctx conte
 		}
 	}
 
-	args := []string{r.gclient, "config"}
-	if r.gclientSpec != "" {
-		args = append(args, fmt.Sprintf("--spec=%s", r.gclientSpec))
-	} else {
-		args = append(args, r.parentRepo, "--unmanaged")
-	}
-	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  r.workdir,
-		Env:  r.depotToolsEnv,
-		Name: "python",
-		Args: args,
-	}); err != nil {
-		return err
-	}
+	// Run "gclient sync".
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
 		Env:  r.depotToolsEnv,
