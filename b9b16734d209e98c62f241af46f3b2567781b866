@@ -226,6 +226,30 @@
     },
     {
       "key": {
+        "uuid": "c99c0db6_4f7afd19",
+        "filename": "ct/go/ctfe/util/util.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:17:23Z",
+      "side": 1,
+      "message": "Sorry, your comment didn\u0027t show up when I was reviewing.\n\nFor GetServiceAccountFileFlagVal, I think we should probably instantiate the SwarmingClient in main and pass it around (or if you don\u0027t want to pass it around, a global in util.go is probably ok too).\n\nFor DS flags, either pass them around or make an explicit global that main sets. Doing a flag lookup in another file is waaaay too magical.",
+      "parentUuid": "7a84e2b6_6b500ecb",
+      "range": {
+        "startLine": 157,
+        "startChar": 0,
+        "endLine": 167,
+        "endChar": 1
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0953d025_6a49b6e0",
         "filename": "ct/go/frontend/frontend.go",
         "patchSetId": 7
