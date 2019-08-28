@@ -21,6 +21,11 @@
       width: 42ch;
     }
 
+    .triggering-spinner {
+      margin: auto;
+      vertical-align: middle;
+    }
+
     table.options td {
       padding: 1em 2em;
     }
@@ -99,7 +104,10 @@
 
       <tr>
         <td colspan="3" class="center">
-          <paper-button raised id="submit_task">Queue Task</paper-button>
+          <div class="triggering-spinner">
+            <paper-spinner active="[[ triggeringTask ]]" alt="Trigger task"></paper-spinner>
+          </div>
+          <paper-button raised id="submit_task" disabled="[[ triggeringTask ]]">Queue Task</paper-button>
         </td>
       </tr>
       <tr>
@@ -142,6 +150,10 @@
       skiaRevDetail: {
         type: String,
         computed: "formatRevData(skiaRevData)",
+      },
+      triggeringTask: {
+        type: Boolean,
+        value: false,
       },
     },
 
@@ -243,6 +255,7 @@
     },
 
     queueTask: function() {
+      this.triggeringTask = true;
       var params = {};
       params["chromium_rev"] = this.chromiumRevData.commit;
       params["chromium_rev_ts"] = this.chromiumRevData.committer.time;
@@ -252,7 +265,10 @@
       sk.post("/_/add_chromium_build_task", JSON.stringify(params))
         .then(function(resp) {
           this.gotoRunsHistory();
-        }.bind(this)).catch(sk.errorMessage);
+        }.bind(this)).catch(function(e) {
+          this.triggeringTask = false;
+          sk.errorMessage(e);
+        }.bind(this));
     },
 
     gotoRunsHistory: function() {
