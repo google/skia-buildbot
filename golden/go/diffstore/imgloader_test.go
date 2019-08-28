@@ -8,14 +8,11 @@ import (
 	"fmt"
 	"image"
 	"io/ioutil"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"cloud.google.com/go/storage"
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -68,10 +65,8 @@ func TestImageLoaderExpectedDigestsAreCorrect(t *testing.T) {
 
 // Sets up the mock GCSClient and temp folder for images, and returns the test ImageLoader instance.
 func setUp(t *testing.T) (*ImageLoader, *test_gcsclient.MockGCSClient, func()) {
-	// Create temporary directories.
+	// Create temporary directory.
 	tmpDir, cleanup := testutils.TempDir(t)
-	imgDir := filepath.Join(tmpDir, "images")
-	assert.Nil(t, os.Mkdir(imgDir, 0777))
 
 	// Build mock GCSClient.
 	mockBucketClient := test_gcsclient.NewMockClient()
@@ -83,7 +78,7 @@ func setUp(t *testing.T) (*ImageLoader, *test_gcsclient.MockGCSClient, func()) {
 	imgCacheCount, _ := getCacheCounts(10)
 
 	// Create the ImageLoader instance.
-	imageLoader, err := NewImgLoader(mockBucketClient, tmpDir, imgDir, gsImageBaseDir, imgCacheCount, &disk_mapper.DiskMapper{})
+	imageLoader, err := NewImgLoader(mockBucketClient, tmpDir, gsImageBaseDir, imgCacheCount, &disk_mapper.DiskMapper{})
 	assert.NoError(t, err)
 
 	return imageLoader, mockBucketClient, cleanup
@@ -95,9 +90,6 @@ func TestImageLoaderGetSingleDigestFoundInBucket(t *testing.T) {
 	defer tearDown()
 	defer mockClient.AssertExpectations(t)
 
-	// Start with an empty cache.
-	assertImagesDirExistsAndIsEmpty(t, imageLoader.localImgDir)
-
 	// digest1 is present in the GCS bucket.
 	oa := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
 	mockClient.On("GetFileObjectAttrs", anyCtx, image1GsPath).Return(oa, nil)
@@ -106,14 +98,12 @@ func TestImageLoaderGetSingleDigestFoundInBucket(t *testing.T) {
 	reader := ioutil.NopCloser(imageToPng(image1))
 	mockClient.On("FileReader", anyCtx, image1GsPath).Return(reader, nil)
 
-	// Get image and persist it to disk.
-	images, pendingWritesWG, _ := imageLoader.Get(1, types.DigestSlice{digest1})
-	pendingWritesWG.Wait()
+	// Get image.
+	images, _ := imageLoader.Get(1, types.DigestSlice{digest1})
 
-	// Assert that the correct image was returned and persisted to disk.
+	// Assert that the correct image was returned.
 	assert.Len(t, images, 1)
 	assert.Equal(t, images[0], image1)
-	assertImageExistsOnDisk(t, imageLoader.localImgDir, digest1, image1)
 }
 
 func TestImageLoaderGetSingleDigestNotFound(t *testing.T) {
@@ -122,20 +112,16 @@ func TestImageLoaderGetSingleDigestNotFound(t *testing.T) {
 	defer tearDown()
 	defer mockClient.AssertExpectations(t)
 
-	// Start with an empty cache.
-	assertImagesDirExistsAndIsEmpty(t, imageLoader.localImgDir)
-
 	// digest1 is NOT present in the GCS bucket.
 	var oa *storage.ObjectAttrs = nil
 	mockClient.On("GetFileObjectAttrs", anyCtx, image1GsPath).Return(oa, errors.New("not found"))
 
 	// Get images.
-	_, _, err := imageLoader.Get(1, types.DigestSlice{digest1})
+	_, err := imageLoader.Get(1, types.DigestSlice{digest1})
 
-	// Assert that retrieval failed and no images were written to disk.
+	// Assert that retrieval failed.
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "Unable to retrieve attributes")
-	assertImagesDirExistsAndIsEmpty(t, imageLoader.localImgDir)
 }
 
 func TestImageLoaderGetMultipleDigestsAllFoundInBucket(t *testing.T) {
@@ -143,9 +129,6 @@ func TestImageLoaderGetMultipleDigestsAllFoundInBucket(t *testing.T) {
 	imageLoader, mockClient, tearDown := setUp(t)
 	defer tearDown()
 	defer mockClient.AssertExpectations(t)
-
-	// Start with an empty cache.
-	assertImagesDirExistsAndIsEmpty(t, imageLoader.localImgDir)
 
 	// digest1 is present in the GCS bucket.
 	oa1 := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
@@ -163,16 +146,13 @@ func TestImageLoaderGetMultipleDigestsAllFoundInBucket(t *testing.T) {
 	reader2 := ioutil.NopCloser(imageToPng(image2))
 	mockClient.On("FileReader", anyCtx, image2GsPath).Return(reader2, nil)
 
-	// Get images and persist them to disk.
-	images, pendingWritesWG, _ := imageLoader.Get(1, types.DigestSlice{digest1, digest2})
-	pendingWritesWG.Wait()
+	// Get images.
+	images, _ := imageLoader.Get(1, types.DigestSlice{digest1, digest2})
 
-	// Assert that the correct images were returned and persisted to disk.
+	// Assert that the correct images were returned.
 	assert.Len(t, images, 2)
 	assert.Equal(t, images[0], image1)
 	assert.Equal(t, images[1], image2)
-	assertImageExistsOnDisk(t, imageLoader.localImgDir, digest1, image1)
-	assertImageExistsOnDisk(t, imageLoader.localImgDir, digest2, image2)
 }
 
 func TestImageLoaderGetMultipleDigestsDigest1FoundInBucketDigest2NotFound(t *testing.T) {
@@ -180,9 +160,6 @@ func TestImageLoaderGetMultipleDigestsDigest1FoundInBucketDigest2NotFound(t *tes
 	imageLoader, mockClient, tearDown := setUp(t)
 	defer tearDown()
 	defer mockClient.AssertExpectations(t)
-
-	// Start with an empty cache.
-	assertImagesDirExistsAndIsEmpty(t, imageLoader.localImgDir)
 
 	// digest1 is present in the GCS bucket.
 	oa1 := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
@@ -196,8 +173,8 @@ func TestImageLoaderGetMultipleDigestsDigest1FoundInBucketDigest2NotFound(t *tes
 	var oa2 *storage.ObjectAttrs = nil
 	mockClient.On("GetFileObjectAttrs", anyCtx, image2GsPath).Return(oa2, errors.New("not found"))
 
-	// Get images and persist them to disk.
-	_, _, err := imageLoader.Get(1, types.DigestSlice{digest1, digest2})
+	// Get images.
+	_, err := imageLoader.Get(1, types.DigestSlice{digest1, digest2})
 
 	// Assert that retrieval failed.
 	assert.Error(t, err)
@@ -208,9 +185,6 @@ func TestImageLoaderWarm(t *testing.T) {
 	unittest.MediumTest(t)
 	imageLoader, mockClient, tearDown := setUp(t)
 	defer tearDown()
-
-	// Start with an empty cache.
-	assertImagesDirExistsAndIsEmpty(t, imageLoader.localImgDir)
 
 	// digest1 is present in the GCS bucket.
 	oa1 := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
@@ -232,44 +206,24 @@ func TestImageLoaderWarm(t *testing.T) {
 	mockClient.On("FileReader", anyCtx, image2GsPath).Return(reader2, nil).
 		Once() // This ensures that Get doesn't hit GCS after a call to Warm for the same digest.
 
-	// Download both images to disk and cache them in memory.
+	// Fetch both images from GCS and cache them in memory.
 	imageLoader.Warm(1, types.DigestSlice{digest1, digest2}, true)
 
 	// Assert that the mocked methods were called as expected.
 	mockClient.AssertExpectations(t)
 
-	// Assert that the images were persisted to disk.
-	assert.True(t, imageLoader.IsOnDisk(digest1))
-	assert.True(t, imageLoader.IsOnDisk(digest2))
-	assertImageExistsOnDisk(t, imageLoader.localImgDir, digest1, image1)
-	assertImageExistsOnDisk(t, imageLoader.localImgDir, digest2, image2)
+	// Assert that the images are in the cache.
+	assert.True(t, imageLoader.Contains(digest1))
+	assert.True(t, imageLoader.Contains(digest2))
 
 	// Get cached images from memory. This shouldn't hit GCS. If it does, the mockClient will panic
 	// as per the Once() calls.
-	images, _, _ := imageLoader.Get(1, types.DigestSlice{digest1, digest2})
+	images, _ := imageLoader.Get(1, types.DigestSlice{digest1, digest2})
 
 	// Assert that the correct images were returned.
 	assert.Len(t, images, 2)
 	assert.Equal(t, images[0], image1)
 	assert.Equal(t, images[1], image2)
-}
-
-// Asserts that the local images directory exists and does not contain any images known by these tests.
-func assertImagesDirExistsAndIsEmpty(t *testing.T, localImgDir string) {
-	assert.DirExists(t, localImgDir)
-	image1LocalPath, _ := ImagePaths(digest1)
-	image2LocalPath, _ := ImagePaths(digest2)
-	assert.False(t, fileutil.FileExists(filepath.Join(localImgDir, image1LocalPath)))
-	assert.False(t, fileutil.FileExists(filepath.Join(localImgDir, image2LocalPath)))
-}
-
-// Asserts that the given digest exists on disk and matches the given image.
-func assertImageExistsOnDisk(t *testing.T, localImgDir string, digest types.Digest, want *image.NRGBA) {
-	localRelPath, _ := ImagePaths(digest)
-	localAbsolutePath := filepath.Join(localImgDir, localRelPath)
-	got, err := common.LoadImg(localAbsolutePath)
-	assert.NoError(t, err)
-	assert.Equal(t, got, want)
 }
 
 // Decodes an SKTEXTSIMPLE image.
@@ -314,13 +268,11 @@ func digestToMD5Bytes(digest types.Digest) []byte {
 	return bytes
 }
 
-func TestImagePaths(t *testing.T) {
+func TestGetGSRelPath(t *testing.T) {
 	unittest.SmallTest(t)
 
 	digest := types.Digest("098f6bcd4621d373cade4e832627b4f6")
-	expectedLocalPath := filepath.Join("09", "8f", string(digest)+".png")
 	expectedGSPath := string(digest + ".png")
-	localPath, gsPath := ImagePaths(digest)
-	assert.Equal(t, expectedLocalPath, localPath)
+	gsPath := getGSRelPath(digest)
 	assert.Equal(t, expectedGSPath, gsPath)
 }
