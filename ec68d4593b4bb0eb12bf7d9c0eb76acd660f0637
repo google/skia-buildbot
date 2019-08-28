@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e1bfee28_3c4983f9",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T12:44:26Z",
+      "side": 1,
+      "message": "in general, comments in Go should be complete sentences.\n\n\"These images (of type *image.NRGBA) are the pixel, numeric versions of the above images\"\n\nor something like that may be more expository.  You may also wish to note that we assume\nthese images are not mutated at all throughout the tests.  If that\u0027s not a safe assumption, you can call skTextToImage in places to make sure it\u0027s \"fresh\".\n\n(I\u0027ve written tests where they accidentally modify the test data [e.g. add something to a map], so I\u0027ve become a bit extra paranoid about modifying test data).",
+      "range": {
+        "startLine": 55,
+        "startChar": 3,
+        "endLine": 55,
+        "endChar": 15
+      },
+      "revId": "ec68d4593b4bb0eb12bf7d9c0eb76acd660f0637",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aa53354c_a6238cd9",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T12:44:26Z",
+      "side": 1,
+      "message": "I\u0027d prefer you call this via defer - it\u0027s consistent with how other tests in other packages do this check.\nimageLoader, mockClient, tearDown :\u003d setUp(t)\ndefer tearDown()\ndefer mockClient.AssertExpectations(t)\n\nThere are, of course, some cases in when you might want to very carefully make sure that the assertions are called, but I\u0027ve found those to be more rare.",
+      "range": {
+        "startLine": 108,
+        "startChar": 1,
+        "endLine": 108,
+        "endChar": 11
+      },
+      "revId": "ec68d4593b4bb0eb12bf7d9c0eb76acd660f0637",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66569848_beef9369",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T12:44:26Z",
+      "side": 1,
+      "message": "assert.Len might be more clear",
+      "range": {
+        "startLine": 111,
+        "startChar": 7,
+        "endLine": 111,
+        "endChar": 13
+      },
+      "revId": "ec68d4593b4bb0eb12bf7d9c0eb76acd660f0637",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4067e0a0_4c2670fc",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T12:44:26Z",
+      "side": 1,
+      "message": "gofmt might not like this. Having the defer after is fine",
+      "range": {
+        "startLine": 118,
+        "startChar": 48,
+        "endLine": 118,
+        "endChar": 54
+      },
+      "revId": "ec68d4593b4bb0eb12bf7d9c0eb76acd660f0637",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "855e4fb1_3c65a75a",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T12:44:26Z",
+      "side": 1,
+      "message": "simply putting nil here should work. FWIW, the idiomatic way to write line 124 is\nvar oa *storage.ObjectAttrs",
+      "range": {
+        "startLine": 125,
+        "startChar": 66,
+        "endLine": 125,
+        "endChar": 68
+      },
+      "revId": "ec68d4593b4bb0eb12bf7d9c0eb76acd660f0637",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28d8f1ec_d96548b7",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T12:44:26Z",
+      "side": 1,
+      "message": "making this panic is fine, since it\u0027s called in the initialization phase. I would maybe add a comment explaining why you panic here instead of failing (we are only dealing with static data, so it would indicate a failure beyond the test). Same for panics below.",
+      "range": {
+        "startLine": 284,
+        "startChar": 2,
+        "endLine": 284,
+        "endChar": 8
+      },
+      "revId": "ec68d4593b4bb0eb12bf7d9c0eb76acd660f0637",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

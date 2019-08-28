@@ -307,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "ec0c6731_5f6de0e5",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T12:44:26Z",
+      "side": 1,
+      "message": "If it\u0027s only referenced once, seems fine to inline.  Also, that\u0027s a good use of Maybe().",
+      "parentUuid": "f51ea3d2_c06ed580",
+      "range": {
+        "startLine": 68,
+        "startChar": 38,
+        "endLine": 68,
+        "endChar": 49
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d32209b_270bb514",
         "filename": "golden/go/diffstore/imgloader_test.go",
         "patchSetId": 8
@@ -671,6 +695,30 @@
       "side": 1,
       "message": "I went in a slightly different direction by introducing two global vars with the result of skTextToImage() for each image.\n\nLet me know what you think.",
       "parentUuid": "20df6854_8be914dd",
+      "range": {
+        "startLine": 296,
+        "startChar": 102,
+        "endLine": 296,
+        "endChar": 106
+      },
+      "revId": "d2ab3a327e4bd16a14df59d224a403bde04607d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f252740f_ef686217",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T12:44:26Z",
+      "side": 1,
+      "message": "That\u0027s fine, assuming there\u0027s no fear of mutation of the underlying images. (of note, if you leave a Gerrit comment thread \"unresolved\", it makes it more clear to me that you want a response)",
+      "parentUuid": "388005ad_cd0c24d6",
       "range": {
         "startLine": 296,
         "startChar": 102,
