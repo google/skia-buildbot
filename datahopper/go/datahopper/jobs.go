@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
@@ -44,6 +45,10 @@ var (
 	// Measurement indicating the lag time between a commit landing and a
 	// job being added.
 	MEASUREMENT_JOB_CREATION_LAG = "job_creation_lag_s"
+
+	// Measurement indicating the lag time between a tryjob being requested
+	// and a job being added.
+	MEASUREMENT_TRYJOB_CREATION_LAG = "tryjob_creation_lag_s"
 )
 
 const (
@@ -321,8 +326,40 @@ func computeJobLagTime(ev []*events.Event, repos repograph.Map) (float64, error)
 	return float64(total) / float64(count), nil
 }
 
+// computeTryJobLagTime is an events.AggregateFn that computes the average time
+// between a commit landing and jobs being created for it.
+func computeTryJobLagTime(ev []*events.Event, bb buildbucket.BuildBucketInterface) (float64, error) {
+	if len(ev) == 0 {
+		return 0.0, nil
+	}
+	count := 0
+	total := time.Duration(0)
+	for _, e := range ev {
+		var job types.Job
+		if err := gob.NewDecoder(bytes.NewReader(e.Data)).Decode(&job); err != nil {
+			return 0.0, skerr.Wrapf(err, "Failed to decode job")
+		}
+		// Only consider try jobs.
+		if !job.IsTryJob() {
+			continue
+		}
+		if job.BuildbucketBuildId == 0 {
+			sklog.Errorf("Try job %s has no BuildbucketBuildId!", job.Id)
+			continue
+		}
+		build, err := bb.GetBuild(context.Background(), fmt.Sprintf("%d", job.BuildbucketBuildId))
+		if err != nil {
+			return 0.0, skerr.Wrapf(err, "Failed to retrieve BuildbucketBuildId %d", job.BuildbucketBuildId)
+		}
+		lag := job.Created.Sub(build.Created)
+		total += lag
+		count++
+	}
+	return float64(total) / float64(count), nil
+}
+
 // addJobAggregates adds aggregation functions for job events to the EventStream.
-func addJobAggregates(s *events.EventStream, instance string, repos repograph.Map) error {
+func addJobAggregates(s *events.EventStream, instance string, repos repograph.Map, bb buildbucket.BuildBucketInterface) error {
 	for _, period := range TIME_PERIODS {
 		// Average job duration.
 		if err := s.DynamicMetric(map[string]string{"metric": "avg-duration", "instance": instance}, period, computeAvgJobDuration); err != nil {
@@ -343,13 +380,23 @@ func addJobAggregates(s *events.EventStream, instance string, repos repograph.Ma
 		}); err != nil {
 			return err
 		}
+
+		// Average lag time between try request and job creation.
+		if err := s.AggregateMetric(map[string]string{
+			"metric":   MEASUREMENT_TRYJOB_CREATION_LAG,
+			"instance": instance,
+		}, period, func(ev []*events.Event) (float64, error) {
+			return computeTryJobLagTime(ev, bb)
+		}); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 // StartJobMetrics starts a goroutine which ingests metrics data based on Jobs.
 // The caller is responsible for updating the passed-in repos and TaskCfgCache.
-func StartJobMetrics(ctx context.Context, jobDb db.JobReader, instance string, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache) error {
+func StartJobMetrics(ctx context.Context, jobDb db.JobReader, instance string, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, bb buildbucket.BuildBucketInterface) error {
 	edb := &jobEventDB{
 		cached: []*events.Event{},
 		db:     jobDb,
@@ -361,7 +408,7 @@ func StartJobMetrics(ctx context.Context, jobDb db.JobReader, instance string, r
 	edb.em = em
 
 	s := em.GetEventStream(JOB_STREAM)
-	if err := addJobAggregates(s, instance, repos); err != nil {
+	if err := addJobAggregates(s, instance, repos, bb); err != nil {
 		return err
 	}
 
