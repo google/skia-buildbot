@@ -46,6 +46,30 @@
       "revId": "170bf6dd23f024e058c18789a0aa73c5129a713d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12b721fe_d26c0f8d",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-28T15:24:52Z",
+      "side": 1,
+      "message": "You\u0027re right about the second call to AssertExpectations being redundant. I removed it and added a call to mockClient.GetFileObjectAttrs() after imageLoader.Get(), and got:\n\n\u003e assert: mock: The method has been called over 1 times.\n\nRemoving the second AssertExpectations.",
+      "parentUuid": "627286b4_6d537428",
+      "range": {
+        "startLine": 239,
+        "startChar": 0,
+        "endLine": 241,
+        "endChar": 33
+      },
+      "revId": "170bf6dd23f024e058c18789a0aa73c5129a713d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
