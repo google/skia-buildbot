@@ -1,0 +1,153 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9181dbaf_e8051a2f",
+        "filename": "ct/go/ctfe/lua_scripts/lua_scripts.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:35:24Z",
+      "side": 1,
+      "message": "It looks like we should make this a method of DatastoreTask rather than AddTaskVars.",
+      "range": {
+        "startLine": 164,
+        "startChar": 1,
+        "endLine": 164,
+        "endChar": 36
+      },
+      "revId": "8bd6fc510be04f4842675dacccec5629e2695aff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11e8b4db_0f02f366",
+        "filename": "ct/go/ctfe/lua_scripts/lua_scripts.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:35:24Z",
+      "side": 1,
+      "message": "Should be return err, right? x2",
+      "range": {
+        "startLine": 168,
+        "startChar": 9,
+        "endLine": 168,
+        "endChar": 12
+      },
+      "revId": "8bd6fc510be04f4842675dacccec5629e2695aff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "baf86b5f_1b51fa84",
+        "filename": "ct/go/ctfe/lua_scripts/lua_scripts.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:35:24Z",
+      "side": 1,
+      "message": "I think you meant %v or %#v?",
+      "range": {
+        "startLine": 193,
+        "startChar": 94,
+        "endLine": 193,
+        "endChar": 96
+      },
+      "revId": "8bd6fc510be04f4842675dacccec5629e2695aff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ebe2634b_bf799200",
+        "filename": "ct/go/master_scripts/master_common/master_common.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:35:24Z",
+      "side": 1,
+      "message": "Is there a way to avoid this? Seems risky to be using Swarming\u0027s dir for other things.",
+      "revId": "8bd6fc510be04f4842675dacccec5629e2695aff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d7a18b5_d89c06c9",
+        "filename": "ct/go/master_scripts/run_lua_on_workers/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:35:24Z",
+      "side": 1,
+      "message": "nit: Might be easier to add a method GetTaskPrototype() to task_common.UpdateTaskVars",
+      "range": {
+        "startLine": 104,
+        "startChar": 57,
+        "endLine": 104,
+        "endChar": 85
+      },
+      "revId": "8bd6fc510be04f4842675dacccec5629e2695aff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45f26177_6a23921e",
+        "filename": "ct/go/master_scripts/run_lua_on_workers/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:35:24Z",
+      "side": 1,
+      "message": "Can we change them to use $TMPDIR instead?",
+      "range": {
+        "startLine": 173,
+        "startChar": 4,
+        "endLine": 173,
+        "endChar": 52
+      },
+      "revId": "8bd6fc510be04f4842675dacccec5629e2695aff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bebeb629_609aa0b1",
+        "filename": "ct/go/master_scripts/run_lua_on_workers/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:35:24Z",
+      "side": 1,
+      "message": "Did you intend to change this from a continue to a return?",
+      "revId": "8bd6fc510be04f4842675dacccec5629e2695aff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
