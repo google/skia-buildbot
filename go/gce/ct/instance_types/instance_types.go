@@ -16,6 +16,7 @@ const (
 	GS_URL_BOTO      = "gs://cluster-telemetry-bucket/artifacts/bots/.boto_ct"
 
 	CT_WORKER_PREFIX = "ct-gce-"
+	CT_MASTER_PREFIX = "ct-master-"
 
 	LINUX_SOURCE_IMAGE = "projects/ubuntu-os-cloud/global/images/ubuntu-1804-bionic-v20190722a"
 	WIN_SOURCE_IMAGE   = "projects/windows-cloud/global/images/windows-server-2016-dc-v20190108"
@@ -59,8 +60,12 @@ func CT20170602(name string, useSSDDataDisk bool) *gce.Instance {
 }
 
 // CT GCE instances.
-func CTInstance(num int) *gce.Instance {
+func CTWorkerInstance(num int) *gce.Instance {
 	return CT20170602(fmt.Sprintf("%s%03d", CT_WORKER_PREFIX, num), false /* useSSDDataDisk */)
+}
+
+func CTMasterInstance(num int) *gce.Instance {
+	return CT20170602(fmt.Sprintf("%s%03d", CT_MASTER_PREFIX, num), false /* useSSDDataDisk */)
 }
 
 // CT Android Builder GCE instances.
