@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8973e10a_08969537",
+        "filename": "ct/go/ctfe/util/util.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-28T17:16:37Z",
+      "side": 1,
+      "message": "Example usage: https://skia-review.googlesource.com/c/buildbot/+/237807/3/ct/go/ctfe/lua_scripts/lua_scripts.go#189",
+      "revId": "8d9bd26f77692d06c3d8f7d2ef14986b796f64c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "95b9a5fa_2ab235a7",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-28T17:16:37Z",
+      "side": 1,
+      "message": "Changing MailInit to be exactly like it was pre-moving ct-master to k8s.",
+      "revId": "8d9bd26f77692d06c3d8f7d2ef14986b796f64c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "69c74b57_6217eaea",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 528,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-28T17:16:37Z",
+      "side": 1,
+      "message": "Fix for https://bugs.chromium.org/p/skia/issues/detail?id\u003d8118: CT Swarming task reruns should be prioritized ahead of CT tasks created later",
+      "revId": "8d9bd26f77692d06c3d8f7d2ef14986b796f64c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
