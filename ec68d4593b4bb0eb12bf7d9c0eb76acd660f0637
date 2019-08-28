@@ -237,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "3370e25c_e6e8d8cd",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T15:14:20Z",
+      "side": 1,
+      "message": "I would not have expected that, but I\u0027m still a little weak on the intricacies of an \"untyped nil\" in golang (vs a pointer type that happens to be nil). Seems fine, although you don\u0027t necessarily need the \"\u003d nil\" on line 129, since that\u0027s the default.  It\u0027s fine as is, if you want to be explicit.",
+      "parentUuid": "4d98df1d_cdd2d9c8",
+      "range": {
+        "startLine": 125,
+        "startChar": 66,
+        "endLine": 125,
+        "endChar": 68
+      },
+      "revId": "ec68d4593b4bb0eb12bf7d9c0eb76acd660f0637",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "28d8f1ec_d96548b7",
         "filename": "golden/go/diffstore/imgloader_test.go",
         "patchSetId": 11

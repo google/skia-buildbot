@@ -22,6 +22,30 @@
       "revId": "170bf6dd23f024e058c18789a0aa73c5129a713d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "627286b4_6d537428",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-28T15:14:20Z",
+      "side": 1,
+      "message": "Sure, it\u0027s fine by me.  The second one on line 254 is likely redundant, since the .Once() would cause a panic if it were to be called a second time.\n\nIIRC, testify/mock removes the .On() \"expectation\" after it is called N times (n defaults to infinity), so the N+1th call would panic as if you had never done .On()",
+      "parentUuid": "c8398f94_69dd29b5",
+      "range": {
+        "startLine": 239,
+        "startChar": 0,
+        "endLine": 241,
+        "endChar": 33
+      },
+      "revId": "170bf6dd23f024e058c18789a0aa73c5129a713d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
