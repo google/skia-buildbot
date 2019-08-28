@@ -29,6 +29,7 @@ var (
 	androidBuilder  = flag.Bool("android-builder", false, "Whether or not this is an android builder instance.")
 	linuxBuilder    = flag.Bool("linux-builder", false, "Whether or not this is a linux builder instance.")
 	windowsBuilder  = flag.Bool("windows-builder", false, "Whether or not this is a windows builder instance.")
+	master          = flag.Bool("master", false, "Whether or not this is a linux master instance.")
 	create          = flag.Bool("create", false, "Create the instance. Either --create or --delete is required.")
 	delete          = flag.Bool("delete", false, "Delete the instance. Either --create or --delete is required.")
 	deleteDataDisk  = flag.Bool("delete-data-disk", false, "Delete the data disk. Only valid with --delete")
@@ -55,6 +56,8 @@ func main() {
 		sklog.Fatal("Cannot specify both --android-builder and --windows-builder.")
 	} else if *linuxBuilder && *windowsBuilder {
 		sklog.Fatal("Cannot specify both --linux-builder and --windows-builder.")
+	} else if *master && (*androidBuilder || *linuxBuilder || *windowsBuilder) {
+		sklog.Fatal("Instances cannot be a master and a builder.")
 	}
 
 	if *windowsBuilder && !*windowsInstance {
@@ -112,8 +115,10 @@ func main() {
 			} else {
 				vm = instance_types.CTWindowsInstance(num, winSetupScript, winStartupScript, winChromebotScript)
 			}
+		} else if *master {
+			vm = instance_types.CTMasterInstance(num)
 		} else {
-			vm = instance_types.CTInstance(num)
+			vm = instance_types.CTWorkerInstance(num)
 		}
 
 		group.Go(vm.Name, func() error {
