@@ -1,0 +1,297 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5d05a3d2_b5d6f8c2",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:09:48Z",
+      "side": 1,
+      "message": "nit: docs should make it clearer that this is the count of CT tasks, not Swarming tasks.",
+      "range": {
+        "startLine": 48,
+        "startChar": 54,
+        "endLine": 48,
+        "endChar": 70
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57430496_e465c972",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:09:48Z",
+      "side": 1,
+      "message": "nit: maybe use a.GetOnlineInstances(). Hopefully bots are up iff there are running GCE tasks, but I could imagine that could get out-of-sync somehow...",
+      "range": {
+        "startLine": 82,
+        "startChar": 20,
+        "endLine": 82,
+        "endChar": 40
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f1a0871_047f8c39",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:09:48Z",
+      "side": 1,
+      "message": "nit: \"watch\" sounds like an ongoing process, like the function is meant to be called in a goroutine. Maybe \"maybeScaleDown\" or something like that would be clearer.",
+      "range": {
+        "startLine": 96,
+        "startChar": 23,
+        "endLine": 96,
+        "endChar": 28
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0efcd814_3b71614d",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:09:48Z",
+      "side": 1,
+      "message": "nit: Move this line before RegisterGCETask or this test could flakily fail due to goroutine calling watchRunningGCETasks",
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23e9672b_118b8e02",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:09:48Z",
+      "side": 1,
+      "message": "nit: naming: GetGCEPendingTaskCount",
+      "range": {
+        "startLine": 83,
+        "startChar": 5,
+        "endLine": 83,
+        "endChar": 23
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "31329e38_0567c65b",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:09:48Z",
+      "side": 1,
+      "message": "What is this protecting?",
+      "range": {
+        "startLine": 45,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 11
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a0001a7d_fba06fbd",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:09:48Z",
+      "side": 1,
+      "message": "nit: I think you want this method on Task rather than AddTaskVars.",
+      "range": {
+        "startLine": 123,
+        "startChar": 1,
+        "endLine": 123,
+        "endChar": 55
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "83afe956_a6305ce3",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 516,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:09:48Z",
+      "side": 1,
+      "message": "nit: include Id and err in error string",
+      "range": {
+        "startLine": 516,
+        "startChar": 21,
+        "endLine": 516,
+        "endChar": 43
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "30c319fb_0ed23c1a",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 618,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:09:48Z",
+      "side": 1,
+      "message": "Shouldn\u0027t include err in HTML response.",
+      "range": {
+        "startLine": 618,
+        "startChar": 85,
+        "endLine": 618,
+        "endChar": 87
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7a84e2b6_6b500ecb",
+        "filename": "ct/go/ctfe/util/util.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:09:48Z",
+      "side": 1,
+      "message": "I\u0027m not entirely sure what this is about, but it seems pretty hacky. Is there a better way?",
+      "range": {
+        "startLine": 157,
+        "startChar": 0,
+        "endLine": 167,
+        "endChar": 1
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0953d025_6a49b6e0",
+        "filename": "ct/go/frontend/frontend.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:09:48Z",
+      "side": 1,
+      "message": "We should probably just make these constants, or even inline them into the email templates. I\u0027m pretty sure that\u0027s the only place they\u0027re used.\n\nI think the rest of the vars above are unused.",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 69
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a665ced_c74083e4",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:09:48Z",
+      "side": 1,
+      "message": "nit: Let\u0027s continue to use a temp file for this.\n\nI.e.:\nfout, err :\u003d ioutil.TempFile(\"\", \"\")\n\u003chandle err\u003e\n_, err :\u003d fout.Write([]byte(cachedGMailToken)\n\u003chandle err\u003e\nerr :\u003d fout.Close()\n\u003chandle err\u003e\nemailTokenPath \u003d fout.Name()",
+      "range": {
+        "startLine": 22,
+        "startChar": 14,
+        "endLine": 22,
+        "endChar": 30
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3c0df57_0448ed37",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-28T21:09:48Z",
+      "side": 1,
+      "message": "We might want to put the master Swarming bots in a different GCE project so workers don\u0027t have access to the GMAIL token.",
+      "range": {
+        "startLine": 26,
+        "startChar": 55,
+        "endLine": 26,
+        "endChar": 73
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
