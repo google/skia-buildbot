@@ -22,6 +22,30 @@
       "revId": "cb5e3be6e1b49d9eb59e234b8789ff8686bbdc6e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "89ad09ac_c3ee6628",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-28T12:57:15Z",
+      "side": 1,
+      "message": "Great! Given the opportunity, I will always forget to update something.",
+      "parentUuid": "4dcaab64_df8b63dd",
+      "range": {
+        "startLine": 46,
+        "startChar": 2,
+        "endLine": 46,
+        "endChar": 127
+      },
+      "revId": "cb5e3be6e1b49d9eb59e234b8789ff8686bbdc6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
