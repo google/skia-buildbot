@@ -19,6 +19,7 @@ import (
 
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
+	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/email"
@@ -100,7 +101,7 @@ func updateTaskInDatastore(ctx context.Context) {
 	if luaAggregatorOutputRemoteLink != "" {
 		vars.AggregatedOutput = luaAggregatorOutputRemoteLink
 	}
-	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars))
+	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars, &lua_scripts.DatastoreTask{}))
 }
 
 func runLuaOnWorkers() error {
