@@ -16,6 +16,24 @@
       "revId": "8b966115f7e3434489fa5faa28593b68012d93cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2d9aa58_6aa4e0d9",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-29T16:38:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c0d9780f_bfd78aef",
+      "revId": "8b966115f7e3434489fa5faa28593b68012d93cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
