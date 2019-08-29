@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "58c8bab7_7358823d",
+        "filename": "go/gce/ct/ct_vm.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T14:58:31Z",
+      "side": 1,
+      "message": "If this were anything other than golang, I would have a better suggestion.",
+      "parentUuid": "07e16e7c_d078fa18",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 2
+      },
+      "revId": "56a1acb6a8e74ced6d3fa4bb1c3ba1e21aae5dc4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d3a2aea5_46e615fc",
         "filename": "go/gce/ct/instance_types/instance_types.go",
         "patchSetId": 5
