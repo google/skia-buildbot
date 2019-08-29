@@ -62,6 +62,9 @@ const (
 	// This error reason indicates that we already marked the build as
 	// finished.
 	BUILDBUCKET_API_ERROR_REASON_COMPLETED = "BUILD_IS_COMPLETED"
+
+	secondsToMicros = 1000000
+	microsToNanos   = 1000
 )
 
 // TryJobIntegrator is responsible for communicating with Buildbucket to
@@ -204,7 +207,7 @@ func (t *TryJobIntegrator) updateJobs(now time.Time) error {
 func (t *TryJobIntegrator) sendHeartbeats(now time.Time, jobs []*types.Job) error {
 	defer metrics2.FuncTimer().Stop()
 
-	expiration := now.Add(LEASE_DURATION).Unix() * 1000000
+	expiration := now.Add(LEASE_DURATION).Unix() * secondsToMicros
 
 	errs := []error{}
 
@@ -334,7 +337,7 @@ func (t *TryJobIntegrator) remoteCancelBuild(id int64, msg string) error {
 }
 
 func (t *TryJobIntegrator) tryLeaseBuild(id int64) (int64, error) {
-	expiration := time.Now().Add(LEASE_DURATION_INITIAL).Unix() * 1000000
+	expiration := time.Now().Add(LEASE_DURATION_INITIAL).Unix() * secondsToMicros
 	sklog.Infof("Attempting to lease build %d", id)
 	resp, err := t.bb.Lease(id, &buildbucket_api.LegacyApiLeaseRequestBodyMessage{
 		LeaseExpirationTs: expiration,
@@ -395,6 +398,7 @@ func (t *TryJobIntegrator) insertNewJob(ctx context.Context, b *buildbucket_api.
 	if err != nil {
 		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to create Job from JobSpec: %s; \n\n%v", err, params))
 	}
+	j.Requested = time.Unix(0, b.CreatedTs*microsToNanos)
 
 	// Determine if this is a manual retry of a previously-run try job. If
 	// so, set IsForce to ensure that we don't immediately de-duplicate all
