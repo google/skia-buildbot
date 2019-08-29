@@ -254,6 +254,40 @@ func TestImageLoaderWarm(t *testing.T) {
 	assert.Equal(t, images[1], image2)
 }
 
+// TODO(lovisolo): Add test cases for purgeGCS=false and multiple digests.
+func TestImageLoaderPurgeImages(t *testing.T) {
+	unittest.MediumTest(t)
+	imageLoader, mockClient, tearDown := setUp(t)
+	defer tearDown()
+
+	// Start with an empty cache.
+	assertImagesDirExistsAndIsEmpty(t, imageLoader.localImgDir)
+
+	// digest1 is present in the GCS bucket.
+	oa := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
+	mockClient.On("GetFileObjectAttrs", anyCtx, image1GsPath).Return(oa, nil)
+
+	// digest1 is read.
+	reader1 := ioutil.NopCloser(imageToPng(image1))
+	mockClient.On("FileReader", anyCtx, image1GsPath).Return(reader1, nil)
+
+	// Download both images to disk and cache them in memory.
+	imageLoader.Warm(1, types.DigestSlice{digest1}, true)
+
+	// Assert that the image was persisted to disk.
+	assert.True(t, imageLoader.IsOnDisk(digest1))
+
+	// digest1 is deleted.
+	mockClient.On("DeleteFile", anyCtx, image1GsPath).Return(nil)
+
+	// Purge image.
+	err := imageLoader.PurgeImages(types.DigestSlice{digest1}, true)
+	assert.NoError(t, err)
+
+	// Assert that the image was deleted from disk and that the images directory is empty.
+	assertImagesDirExistsAndIsEmpty(t, imageLoader.localImgDir)
+}
+
 // Asserts that the local images directory exists and does not contain any images known by these tests.
 func assertImagesDirExistsAndIsEmpty(t *testing.T, localImgDir string) {
 	assert.DirExists(t, localImgDir)
