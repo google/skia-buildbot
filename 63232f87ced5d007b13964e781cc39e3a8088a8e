@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "89e1b99e_eedff7ce",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1601,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T18:08:03Z",
+      "side": 1,
+      "message": "nits:\n1. Probably should ensure this is UTC.\n2. Probably need to firestore.FixTimestamp this.\n3. Just for sanity, we might want to ensure j.Requested is before j.Created. I can think of two reasons for this:\n A. It would be nice to be able to filter out manually-triggered and periodic jobs later. One way to do so would be to filter out anything where j.Requested \u003d\u003d j.Created. (We could do this other ways, but I think that\u0027s the cleanest/easiest.)\n B. Just in case clocks are slightly out-of-sync and/or timestamps are rounded to a coarser precision, it would be nice to not have to deal with negative numbers for j.Created.Sub(j.Requested).\n\nSame nits for tryjobs.",
+      "revId": "63232f87ced5d007b13964e781cc39e3a8088a8e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "109adbe9_a9629f8b",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T18:08:03Z",
+      "side": 1,
+      "message": "500 years from now, someone will be mad at you for making this overflow.",
+      "range": {
+        "startLine": 401,
+        "startChar": 28,
+        "endLine": 401,
+        "endChar": 53
+      },
+      "revId": "63232f87ced5d007b13964e781cc39e3a8088a8e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
