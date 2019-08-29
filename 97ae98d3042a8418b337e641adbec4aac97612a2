@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "b5220d0a_a8f9d67a",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T15:23:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "35ec1d45_9e05105c",
+      "revId": "97ae98d3042a8418b337e641adbec4aac97612a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "03356315_cc445f4c",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 10
@@ -33,6 +51,24 @@
       "revId": "97ae98d3042a8418b337e641adbec4aac97612a2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "62e81e81_2acf31f2",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T15:23:15Z",
+      "side": 1,
+      "message": "Kept it here because we do task_common.Init from ctfe/main.go and seemed to make some sense to leave them here.",
+      "parentUuid": "03356315_cc445f4c",
+      "revId": "97ae98d3042a8418b337e641adbec4aac97612a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -56,6 +92,30 @@
       "revId": "97ae98d3042a8418b337e641adbec4aac97612a2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a352d9f1_ab8d665c",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T15:23:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bf90df85_0e4191a0",
+      "range": {
+        "startLine": 20,
+        "startChar": 14,
+        "endLine": 20,
+        "endChar": 30
+      },
+      "revId": "97ae98d3042a8418b337e641adbec4aac97612a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
