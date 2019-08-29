@@ -6,24 +6,22 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"time"
-
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
+	"time"
 )
 
 var (
-	emails         = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
-	taskID         = flag.Int64("task_id", -1, "The key of the CT task in CTFE. The task will be updated when it is started and also when it completes.")
-	runID          = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
-	targetPlatform = flag.String("target_platform", util.PLATFORM_ANDROID, "The platform the benchmark will run on (Android / Linux).")
-	chromiumHash   = flag.String("chromium_hash", "", "The Chromium commit hash the checkout should be synced to. If not specified then Chromium's ToT hash is used.")
-	skiaHash       = flag.String("skia_hash", "", "The Skia commit hash the checkout should be synced to. If not specified then Skia's LKGR hash is used (the hash in Chromium's DEPS file).")
-
+	emails                    = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
+	taskID                    = flag.Int64("task_id", -1, "The key of the CT task in CTFE. The task will be updated when it is started and also when it completes.")
+	runID                     = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
+	targetPlatform            = flag.String("target_platform", util.PLATFORM_ANDROID, "The platform the benchmark will run on (Android / Linux).")
+	chromiumHash              = flag.String("chromium_hash", "", "The Chromium commit hash the checkout should be synced to. If not specified then Chromium's ToT hash is used.")
+	skiaHash                  = flag.String("skia_hash", "", "The Skia commit hash the checkout should be synced to. If not specified then Skia's LKGR hash is used (the hash in Chromium's DEPS file).")
 	taskCompletedSuccessfully = false
 	chromiumBuildTimestamp    = ""
 )
@@ -47,19 +45,15 @@ func sendEmail(recipients []string) {
 		return
 	}
 }
-
 func updateWebappTask() {
 	vars := chromium_builds.UpdateVars{}
 	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
-
 func main() {
 	master_common.Init("build_chromium")
-
 	ctx := context.Background()
-
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)
 	emailsArr = append(emailsArr, util.CtAdmins...)
@@ -75,7 +69,6 @@ func main() {
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running build chromium")
 	defer sklog.Flush()
-
 	if *chromiumHash == "" {
 		sklog.Error("Must specify --chromium_hash")
 		return
@@ -84,7 +77,6 @@ func main() {
 		sklog.Error("Must specify --skia_hash")
 		return
 	}
-
 	// Create the required chromium build.
 	// Note: chromium_builds.CreateChromiumBuildOnSwarming specifies the
 	//       "-DSK_WHITELIST_SERIALIZED_TYPEFACES" flag only when *runID is empty.
@@ -99,6 +91,5 @@ func main() {
 		sklog.Errorf("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
 		return
 	}
-
 	taskCompletedSuccessfully = true
 }

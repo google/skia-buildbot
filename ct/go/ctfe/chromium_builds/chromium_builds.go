@@ -1,26 +1,15 @@
 /*
 	Handlers and types specific to Chromium builds.
 */
-
 package chromium_builds
 
 import (
 	"bufio"
 	"bytes"
+	"cloud.google.com/go/datastore"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"path/filepath"
-	"regexp"
-	"strconv"
-	"strings"
-	"text/template"
-	"time"
-
-	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
@@ -31,6 +20,15 @@ import (
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"path/filepath"
+	"regexp"
+	"strconv"
+	"strings"
+	"text/template"
+	"time"
 )
 
 const (
@@ -47,8 +45,7 @@ const (
 var (
 	addTaskTemplate     *template.Template = nil
 	runsHistoryTemplate *template.Template = nil
-
-	httpClient = httputils.NewTimeoutClient()
+	httpClient                             = httputils.NewTimeoutClient()
 )
 
 func ReloadTemplates(resourcesDir string) {
@@ -66,7 +63,6 @@ func ReloadTemplates(resourcesDir string) {
 
 type DatastoreTask struct {
 	task_common.CommonCols
-
 	ChromiumRev   string
 	ChromiumRevTs int64
 	SkiaRev       string
@@ -75,37 +71,30 @@ type DatastoreTask struct {
 func (task DatastoreTask) GetTaskName() string {
 	return "ChromiumBuild"
 }
-
 func (task DatastoreTask) GetResultsLink() string {
 	return ""
 }
-
 func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, error) {
 	taskVars := &AddTaskVars{}
 	taskVars.Username = task.Username
 	taskVars.TsAdded = ctutil.GetCurrentTs()
 	taskVars.RepeatAfterDays = strconv.FormatInt(task.RepeatAfterDays, 10)
-
 	taskVars.ChromiumRev = task.ChromiumRev
 	taskVars.ChromiumRevTs = strconv.FormatInt(task.ChromiumRevTs, 10)
 	taskVars.SkiaRev = task.SkiaRev
 	return taskVars, nil
 }
-
 func (task DatastoreTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 	return &UpdateVars{}
 }
-
 func (task DatastoreTask) RunsOnGCEWorkers() bool {
 	// Unused for chromium_builds because it always runs on the GCE builders not
 	// the workers or bare-metal machines.
 	return false
 }
-
 func (task DatastoreTask) GetDatastoreKind() ds.Kind {
 	return ds.CHROMIUM_BUILD_TASKS
 }
-
 func (task DatastoreTask) Query(it *datastore.Iterator) (interface{}, error) {
 	tasks := []*DatastoreTask{}
 	for {
@@ -118,10 +107,8 @@ func (task DatastoreTask) Query(it *datastore.Iterator) (interface{}, error) {
 		}
 		tasks = append(tasks, t)
 	}
-
 	return tasks, nil
 }
-
 func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_common.Task, error) {
 	t := &DatastoreTask{}
 	if err := ds.DS.Get(c, key, t); err != nil {
@@ -129,14 +116,12 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	}
 	return t, nil
 }
-
 func addTaskView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(addTaskTemplate, w, r)
 }
 
 type AddTaskVars struct {
 	task_common.AddTaskCommonVars
-
 	ChromiumRev   string `json:"chromium_rev"`
 	ChromiumRevTs string `json:"chromium_rev_ts"`
 	SkiaRev       string `json:"skia_rev"`
@@ -145,14 +130,12 @@ type AddTaskVars struct {
 func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
 	return ds.CHROMIUM_BUILD_TASKS
 }
-
 func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_common.Task, error) {
 	if task.ChromiumRev == "" ||
 		task.SkiaRev == "" ||
 		task.ChromiumRevTs == "" {
 		return nil, fmt.Errorf("Invalid parameters")
 	}
-
 	// Example timestamp format: "Wed Jul 15 13:42:19 2015"
 	var chromiumRevTs int64
 	if parsedTs, err := time.Parse(time.ANSIC, task.ChromiumRevTs); err != nil {
@@ -168,7 +151,6 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 			return nil, fmt.Errorf("%s is not int64: %s", ts, err)
 		}
 	}
-
 	t := &DatastoreTask{
 		ChromiumRev:   task.ChromiumRev,
 		SkiaRev:       task.SkiaRev,
@@ -176,11 +158,9 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 	}
 	return t, nil
 }
-
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.AddTaskHandler(w, r, &AddTaskVars{})
 }
-
 func getRevDataHandler(getLkgr func() (string, error), gitRepoUrl string, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	revString := r.FormValue("rev")
@@ -188,7 +168,6 @@ func getRevDataHandler(getLkgr func() (string, error), gitRepoUrl string, w http
 		httputils.ReportError(w, r, nil, "No revision specified")
 		return
 	}
-
 	if strings.EqualFold(revString, "LKGR") {
 		lkgr, err := getLkgr()
 		if err != nil {
@@ -243,7 +222,6 @@ func getChromiumLkgr() (string, error) {
 	}
 	return bytes.NewBuffer(body).String(), nil
 }
-
 func getChromiumRevDataHandler(w http.ResponseWriter, r *http.Request) {
 	getRevDataHandler(getChromiumLkgr, CHROMIUM_GIT_REPO_URL, w, r)
 }
@@ -253,7 +231,6 @@ var skiaRevisionRegexp = regexp.MustCompile("'skia_revision': '([0-9a-fA-F]{2,40
 func getSkiaLkgr() (string, error) {
 	return buildskia.GetSkiaHash(httpClient)
 }
-
 func getSkiaRevDataHandler(w http.ResponseWriter, r *http.Request) {
 	getRevDataHandler(getSkiaLkgr, SKIA_GIT_REPO_URL, w, r)
 }
@@ -265,31 +242,24 @@ type UpdateVars struct {
 func (vars UpdateVars) UriPath() string {
 	return ctfeutil.UPDATE_CHROMIUM_BUILD_TASK_POST_URI
 }
-
 func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
 	return nil, nil, nil
 }
-
 func (task *UpdateVars) UpdateExtraFields(t task_common.Task) error {
 	return nil
 }
-
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.UpdateTaskHandler(&UpdateVars{}, &DatastoreTask{}, w, r)
 }
-
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.DeleteTaskHandler(&DatastoreTask{}, w, r)
 }
-
 func redoTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.RedoTaskHandler(&DatastoreTask{}, w, r)
 }
-
 func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(runsHistoryTemplate, w, r)
 }
-
 func getTasksHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.GetTasksHandler(&DatastoreTask{}, w, r)
 }
@@ -301,7 +271,6 @@ func Validate(ctx context.Context, chromiumBuild DatastoreTask) error {
 	q = q.Filter("SkiaRev =", chromiumBuild.SkiaRev)
 	q = q.Filter("TaskDone =", true)
 	q = q.Filter("Failure =", false)
-
 	count, err := ds.DS.Count(ctx, q)
 	if err != nil {
 		sklog.Info(err)
@@ -312,18 +281,15 @@ func Validate(ctx context.Context, chromiumBuild DatastoreTask) error {
 	}
 	return nil
 }
-
 func AddHandlers(externalRouter, internalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.CHROMIUM_BUILD_URI, addTaskView).Methods("GET")
 	externalRouter.HandleFunc("/"+ctfeutil.CHROMIUM_BUILD_RUNS_URI, runsHistoryView).Methods("GET")
-
 	externalRouter.HandleFunc("/"+ctfeutil.CHROMIUM_REV_DATA_POST_URI, getChromiumRevDataHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.SKIA_REV_DATA_POST_URI, getSkiaRevDataHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.ADD_CHROMIUM_BUILD_TASK_POST_URI, addTaskHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.GET_CHROMIUM_BUILD_TASKS_POST_URI, getTasksHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.DELETE_CHROMIUM_BUILD_TASK_POST_URI, deleteTaskHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.REDO_CHROMIUM_BUILD_TASK_POST_URI, redoTaskHandler).Methods("POST")
-
 	// Updating tasks is done via the internal router.
 	internalRouter.HandleFunc("/"+ctfeutil.UPDATE_CHROMIUM_BUILD_TASK_POST_URI, updateTaskHandler).Methods("POST")
 }
