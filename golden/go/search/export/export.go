@@ -1,4 +1,6 @@
-package search
+// package export has the functionality needed to export results from search
+// to JSON. It is primarily used by the skia_knowledge executable.
+package export
 
 import (
 	"encoding/json"
@@ -9,29 +11,30 @@ import (
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/types"
 )
 
 const urlTemplate = "%s/img/images/%s.png"
 
-// ExportDigestInfo contains information about one test result. This include
+// DigestInfo contains information about one test result. This include
 // the parameter sets.
-type ExportDigestInfo struct {
-	*SRDigest        // Same digest information as returned by search results.
-	URL       string // URL from which to retrieve the image.
+type DigestInfo struct {
+	*search.SRDigest        // Same digest information as returned by search results.
+	URL              string // URL from which to retrieve the image.
 }
 
-// ExportTestRecord accumulates the images/digests generated for one test.
+// TestRecord accumulates the images/digests generated for one test.
 // This is the format of the meta.json file.
-type ExportTestRecord struct {
-	TestName types.TestName      `json:"testName"`
-	Digests  []*ExportDigestInfo `json:"digests"`
+type TestRecord struct {
+	TestName types.TestName `json:"testName"`
+	Digests  []*DigestInfo  `json:"digests"`
 }
 
-// GetExportRecords converts a given search response into a slice of ExportTestRecords.
-func GetExportRecords(searchResp *NewSearchResponse, imgBaseURL string) []*ExportTestRecord {
+// ToTestRecords converts a given search response into a slice of TestRecords.
+func ToTestRecords(searchResp *search.NewSearchResponse, imgBaseURL string) []*TestRecord {
 	// Group the results by test.
-	retMap := map[types.TestName]*ExportTestRecord{}
+	retMap := map[types.TestName]*TestRecord{}
 	for _, oneDigest := range searchResp.Digests {
 		testNameVal := oneDigest.ParamSet[types.PRIMARY_KEY_FIELD]
 		if len(testNameVal) == 0 {
@@ -39,7 +42,7 @@ func GetExportRecords(searchResp *NewSearchResponse, imgBaseURL string) []*Expor
 			continue
 		}
 
-		digestInfo := &ExportDigestInfo{
+		digestInfo := &DigestInfo{
 			SRDigest: oneDigest,
 			URL:      DigestUrl(imgBaseURL, oneDigest.Digest),
 		}
@@ -48,15 +51,15 @@ func GetExportRecords(searchResp *NewSearchResponse, imgBaseURL string) []*Expor
 		if found, ok := retMap[testName]; ok {
 			found.Digests = append(found.Digests, digestInfo)
 		} else {
-			retMap[testName] = &ExportTestRecord{
+			retMap[testName] = &TestRecord{
 				TestName: testName,
-				Digests:  []*ExportDigestInfo{digestInfo},
+				Digests:  []*DigestInfo{digestInfo},
 			}
 		}
 	}
 
 	// Put the records into an array and return them.
-	ret := make([]*ExportTestRecord, 0, len(retMap))
+	ret := make([]*TestRecord, 0, len(retMap))
 	for _, oneTestRec := range retMap {
 		ret = append(ret, oneTestRec)
 	}
@@ -64,24 +67,24 @@ func GetExportRecords(searchResp *NewSearchResponse, imgBaseURL string) []*Expor
 	return ret
 }
 
-// WriteExportTestRecordsFile writes the retrieved information about tests to a file as JSON.
-func WriteExportTestRecordsFile(testRecs []*ExportTestRecord, outputPath string) error {
+// WriteTestRecordsFile writes the retrieved information about tests to a file as JSON.
+func WriteTestRecordsFile(testRecs []*TestRecord, outputPath string) error {
 	f, err := os.Create(outputPath)
 	if err != nil {
 		return err
 	}
 	defer util.Close(f)
-	return WriteExportTestRecords(testRecs, f)
+	return WriteTestRecords(testRecs, f)
 }
 
 // WriteTestRecords writes the retrieved information about tests to the given writer JSON.
-func WriteExportTestRecords(testRecs []*ExportTestRecord, writer io.Writer) error {
+func WriteTestRecords(testRecs []*TestRecord, writer io.Writer) error {
 	return json.NewEncoder(writer).Encode(testRecs)
 }
 
-// ReadExportTestRecords loads a file with test records.
-func ReadExportTestRecords(reader io.Reader) ([]*ExportTestRecord, error) {
-	ret := []*ExportTestRecord{}
+// ReadTestRecords loads a file with test records.
+func ReadTestRecords(reader io.Reader) ([]*TestRecord, error) {
+	ret := []*TestRecord{}
 	if err := json.NewDecoder(reader).Decode(&ret); err != nil {
 		return nil, err
 	}
