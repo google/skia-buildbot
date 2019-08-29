@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8ab92318_ea08734f",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T14:34:53Z",
+      "side": 1,
+      "message": "Added a comment, let me know if more is necessary.",
+      "parentUuid": "5d05a3d2_b5d6f8c2",
+      "range": {
+        "startLine": 48,
+        "startChar": 54,
+        "endLine": 48,
+        "endChar": 70
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "57430496_e465c972",
         "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb6b3d7e_00fd70a0",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T14:34:53Z",
+      "side": 1,
+      "message": "Yes, that\u0027s why I never relied on GetOnlineInstances except for logging.",
+      "parentUuid": "57430496_e465c972",
+      "range": {
+        "startLine": 82,
+        "startChar": 20,
+        "endLine": 82,
+        "endChar": 40
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "a6d33da1_575b245f",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T14:34:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4f1a0871_047f8c39",
+      "range": {
+        "startLine": 96,
+        "startChar": 23,
+        "endLine": 96,
+        "endChar": 28
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0efcd814_3b71614d",
         "filename": "ct/go/ct_autoscaler/ct_autoscaler_test.go",
         "patchSetId": 7
@@ -85,6 +157,24 @@
       "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c6fbcd5d_672c9f35",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T14:34:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0efcd814_3b71614d",
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "721167ba_5dae5196",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T14:34:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "23e9672b_118b8e02",
+      "range": {
+        "startLine": 83,
+        "startChar": 5,
+        "endLine": 83,
+        "endChar": 23
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "31329e38_0567c65b",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 7
@@ -131,6 +245,30 @@
       "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59551165_76de895c",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T14:34:53Z",
+      "side": 1,
+      "message": "GetRunID to maybe help a little with not creating the same runID, though it probably doesnt matter.",
+      "parentUuid": "31329e38_0567c65b",
+      "range": {
+        "startLine": 45,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 11
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "7a92cf3c_c987485d",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T14:34:53Z",
+      "side": 1,
+      "message": "Yes, that makes more sense. Done.",
+      "parentUuid": "a0001a7d_fba06fbd",
+      "range": {
+        "startLine": 123,
+        "startChar": 1,
+        "endLine": 123,
+        "endChar": 55
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "83afe956_a6305ce3",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 7
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "45a5db20_b5d0a62b",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 516,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T14:34:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "83afe956_a6305ce3",
+      "range": {
+        "startLine": 516,
+        "startChar": 21,
+        "endLine": 516,
+        "endChar": 43
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "30c319fb_0ed23c1a",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 7
@@ -200,6 +386,30 @@
       "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c617350f_41beda4d",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 618,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T14:34:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "30c319fb_0ed23c1a",
+      "range": {
+        "startLine": 618,
+        "startChar": 85,
+        "endLine": 618,
+        "endChar": 87
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -250,6 +460,30 @@
     },
     {
       "key": {
+        "uuid": "2556964c_af7fd7b7",
+        "filename": "ct/go/ctfe/util/util.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T14:34:53Z",
+      "side": 1,
+      "message": "Done. Not sure why I did not do globals to began with. Doing serviceAccountFile instead of SwarmingClient to minimize diff for now.",
+      "parentUuid": "c99c0db6_4f7afd19",
+      "range": {
+        "startLine": 157,
+        "startChar": 0,
+        "endLine": 167,
+        "endChar": 1
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0953d025_6a49b6e0",
         "filename": "ct/go/frontend/frontend.go",
         "patchSetId": 7
@@ -270,6 +504,30 @@
       "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36db2fe9_38950fdb",
+        "filename": "ct/go/frontend/frontend.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T14:34:53Z",
+      "side": 1,
+      "message": "Yea I\u0027ll just inline it in master scripts. There is already a *ctfeURL in master_common.",
+      "parentUuid": "0953d025_6a49b6e0",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 69
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -296,6 +554,30 @@
     },
     {
       "key": {
+        "uuid": "923f3ad5_a9019e89",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T14:34:53Z",
+      "side": 1,
+      "message": "Done.\nThis should have been in the first master script change instead, oh well.",
+      "parentUuid": "6a665ced_c74083e4",
+      "range": {
+        "startLine": 22,
+        "startChar": 14,
+        "endLine": 22,
+        "endChar": 30
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c3c0df57_0448ed37",
         "filename": "ct/go/util/mail.go",
         "patchSetId": 7
@@ -316,6 +598,30 @@
       "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37c65ab0_c2686aee",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T14:34:53Z",
+      "side": 1,
+      "message": "I really don\u0027t want to have to create and setup another CT GCE project.",
+      "parentUuid": "c3c0df57_0448ed37",
+      "range": {
+        "startLine": 26,
+        "startChar": 55,
+        "endLine": 26,
+        "endChar": 73
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
