@@ -16,6 +16,24 @@
       "revId": "23fbeb1df1f67208956abf0eaf3a690cd59e4668",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "94ce5263_53f0ffc7",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-29T12:33:57Z",
+      "side": 1,
+      "message": "Hrm, yeah, this is bad. My thought process just now:\n- Well, we could use an in-memory cache of Buildbucket builds, but we\u0027d still have to load a ton of builds when datahopper restarts.\n- I could attach the build creation timestamp to the Event data and only retrieve it if it\u0027s missing, but I\u0027m slightly skittish about changing the format after we have so much data already stored here.\n- What if we just added a Requested field to the Job struct?  For tryjobs it would be equal to the build creation time, for \"normal\" jobs it\u0027d be equal to the commit timestamp, etc.  That not only fixes this problem, but it would also make it easy to show the delay in the job timeline page.  WDYT?",
+      "parentUuid": "3840fb26_f86f6ca1",
+      "revId": "23fbeb1df1f67208956abf0eaf3a690cd59e4668",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
