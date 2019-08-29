@@ -446,6 +446,7 @@ func (s *TaskScheduler) MaybeTriggerPeriodicJobs(ctx context.Context, triggerNam
 				if err != nil {
 					return fmt.Errorf("Failed to create job: %s", err)
 				}
+				job.Requested = job.Created
 				jobs = append(jobs, job)
 			}
 		}
@@ -502,6 +503,7 @@ func (s *TaskScheduler) TriggerJob(ctx context.Context, repo, commit, jobName st
 	if err != nil {
 		return "", err
 	}
+	j.Requested = j.Created
 	j.IsForce = true
 	if err := s.db.PutJob(j); err != nil {
 		return "", err
@@ -1595,6 +1597,11 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context, repoUrl string, repo 
 							continue
 						}
 						return err
+					}
+					j.Requested = c.Timestamp.UTC()
+					if !j.Requested.Before(j.Created) {
+						sklog.Errorf("Try job created time %s is before requested time %s! Setting equal.", j.Created, j.Requested)
+						j.Requested = j.Created.Add(-time.Nanosecond)
 					}
 					newJobs = append(newJobs, j)
 				}
