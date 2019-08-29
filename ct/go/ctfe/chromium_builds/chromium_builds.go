@@ -130,6 +130,25 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	return t, nil
 }
 
+func (task *DatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
+	runID := task_common.GetRunID(task)
+	isolateArgs := map[string]string{
+		"EMAILS":          task.Username,
+		"TASK_ID":         strconv.FormatInt(task.DatastoreKey.ID, 10),
+		"RUN_ID":          runID,
+		"TARGET_PLATFORM": ctutil.PLATFORM_LINUX,
+		"CHROMIUM_HASH":   task.ChromiumRev,
+		"SKIA_HASH":       task.SkiaRev,
+		"DS_NAMESPACE":    task_common.DsNamespace,
+		"DS_PROJECT_NAME": task_common.DsProjectName,
+	}
+
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "build_chromium", ctutil.BUILD_CHROMIUM_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
+		return fmt.Errorf("Could not trigger master script for build_chromium with isolate args %v: %s", isolateArgs, err)
+	}
+	return nil
+}
+
 func addTaskView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(addTaskTemplate, w, r)
 }
@@ -175,26 +194,6 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		ChromiumRevTs: chromiumRevTs,
 	}
 	return t, nil
-}
-
-func (task *AddTaskVars) TriggerSwarmingTask(ctx context.Context, t task_common.Task) error {
-	datastoreTask := t.(*DatastoreTask)
-	runID := task_common.GetRunID(datastoreTask)
-	isolateArgs := map[string]string{
-		"EMAILS":          datastoreTask.Username,
-		"TASK_ID":         strconv.FormatInt(datastoreTask.DatastoreKey.ID, 10),
-		"RUN_ID":          runID,
-		"TARGET_PLATFORM": ctutil.PLATFORM_LINUX,
-		"CHROMIUM_HASH":   datastoreTask.ChromiumRev,
-		"SKIA_HASH":       datastoreTask.SkiaRev,
-		"DS_NAMESPACE":    ctfeutil.GetDsNamespaceFlagVal(),
-		"DS_PROJECT_NAME": ctfeutil.GetDsProjectNameFlagVal(),
-	}
-
-	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "build_chromium", ctutil.BUILD_CHROMIUM_MASTER_ISOLATE, ctfeutil.GetServiceAccountFileFlagVal(), ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
-		return fmt.Errorf("Could not trigger master script for build_chromium with isolate args %T: %s", isolateArgs, err)
-	}
-	return nil
 }
 
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -280,6 +279,10 @@ func getSkiaRevDataHandler(w http.ResponseWriter, r *http.Request) {
 
 type UpdateVars struct {
 	task_common.UpdateTaskCommonVars
+}
+
+func (task *UpdateVars) GetTaskPrototype() task_common.Task {
+	return &DatastoreTask{}
 }
 
 func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
