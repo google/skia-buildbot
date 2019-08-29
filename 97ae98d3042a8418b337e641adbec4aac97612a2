@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "35ec1d45_9e05105c",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T15:09:57Z",
+      "side": 1,
+      "message": "nit: doc these vars",
+      "revId": "97ae98d3042a8418b337e641adbec4aac97612a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03356315_cc445f4c",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T15:09:57Z",
+      "side": 1,
+      "message": "nit: Maybe wants to be in util.go?",
+      "revId": "97ae98d3042a8418b337e641adbec4aac97612a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf90df85_0e4191a0",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T15:09:57Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 20,
+        "startChar": 14,
+        "endLine": 20,
+        "endChar": 30
+      },
+      "revId": "97ae98d3042a8418b337e641adbec4aac97612a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

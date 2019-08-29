@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "e7be9a20_66d2cf31",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T15:09:57Z",
+      "side": 1,
+      "message": "I think I\u0027m not understanding something.",
+      "parentUuid": "fb6b3d7e_00fd70a0",
+      "range": {
+        "startLine": 82,
+        "startChar": 20,
+        "endLine": 82,
+        "endChar": 40
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4f1a0871_047f8c39",
         "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
         "patchSetId": 7
@@ -269,6 +293,30 @@
       "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "037209de_73d166a6",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T15:09:57Z",
+      "side": 1,
+      "message": "Yeah, if it were nanosecond precision, this would be useful (until CPUs/memory get so fast that they have sub-nanosecond latency), but at second precision, this isn\u0027t going to help at all.\n\nIf you want unique run IDs, you\u0027ll have to do something similar to GetNextId. (You can still make it time-based if you want; just need to make sure it increases each time.)",
+      "parentUuid": "59551165_76de895c",
+      "range": {
+        "startLine": 45,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 11
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
@@ -613,6 +661,30 @@
       "side": 1,
       "message": "I really don\u0027t want to have to create and setup another CT GCE project.",
       "parentUuid": "c3c0df57_0448ed37",
+      "range": {
+        "startLine": 26,
+        "startChar": 55,
+        "endLine": 26,
+        "endChar": 73
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fe63c715_601dcf38",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T15:09:57Z",
+      "side": 1,
+      "message": "Yeah, just making sure we both understand the risk.",
+      "parentUuid": "37c65ab0_c2686aee",
       "range": {
         "startLine": 26,
         "startChar": 55,
