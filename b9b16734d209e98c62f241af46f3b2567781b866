@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "0317c7e2_4d375fc7",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T16:12:26Z",
+      "side": 1,
+      "message": "Discussed in person -- ack.",
+      "parentUuid": "e7be9a20_66d2cf31",
+      "range": {
+        "startLine": 82,
+        "startChar": 20,
+        "endLine": 82,
+        "endChar": 40
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4f1a0871_047f8c39",
         "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
         "patchSetId": 7
