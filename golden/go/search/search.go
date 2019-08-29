@@ -83,7 +83,7 @@ type Diff struct {
 	Blame *blame.BlameDistribution `json:"blame"`
 }
 
-// Digest's are returned from Search, one for each match to Query.
+// Digests are returned from Search, one for each match to Query.
 type Digest struct {
 	Test     string              `json:"test"`
 	Digest   string              `json:"digest"`
@@ -105,6 +105,9 @@ const (
 )
 
 // Query is the query that Search understands.
+// TODO(kjlubick): This seems to handle everything and the kitchen sink.
+// Would it be possible to have different query objects for different types
+// of queries?
 type Query struct {
 	// Diff metric to use.
 	Metric string   `json:"metric"`
@@ -130,6 +133,8 @@ type Query struct {
 	RQuery    paramtools.ParamSet `json:"-"`
 
 	// Trybot support.
+	// TODO(kjlubick): This needs to be adapted to take a string
+	// as an "issue" ID and be called ChangeListID.
 	IssueStr      string  `json:"issue"`
 	Issue         int64   `json:"-"`
 	PatchsetsStr  string  `json:"patchsets"` // Comma-separated list of patchsets.
