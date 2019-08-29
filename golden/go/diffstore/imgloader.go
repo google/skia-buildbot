@@ -250,7 +250,7 @@ func (il *ImageLoader) saveImgInfoAsync(imageID types.Digest, imgBytes []byte) <
 // downloadImg retrieves the given image from Google storage.
 func (il *ImageLoader) downloadImg(gsPath string) ([]byte, error) {
 	ctx := context.TODO()
-	objLocation := filepath.Join(il.gsImageBaseDir, gsPath)
+	objLocation := il.gsImageBaseDir + "/" + gsPath
 
 	// Retrieve the attributes.
 	attrs, err := il.gsBucketClient.GetFileObjectAttrs(ctx, objLocation)
@@ -309,7 +309,7 @@ func (il *ImageLoader) downloadImg(gsPath string) ([]byte, error) {
 // removeImg removes the image that corresponds to the given relative path from GCS.
 func (il *ImageLoader) removeImg(gsRelPath string) {
 	// If the bucket is not empty then look there otherwise use the default buckets.
-	objLocation := filepath.Join(il.gsImageBaseDir, gsRelPath)
+	objLocation := il.gsImageBaseDir + "/" + gsRelPath
 
 	ctx := context.Background()
 	// Retrieve the attributes to test if the file exists.
