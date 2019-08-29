@@ -19,6 +19,7 @@
           '--pageset_type=<(PAGESET_TYPE)',
           '--chromium_build=<(CHROMIUM_BUILD)',
           '--lua_pictures_remote_path=<(LUA_PICTURES_REMOTE_PATH)',
+          '--lua_script_gs_path=<(LUA_SCRIPT_GS_PATH)',
           '--run_id=<(RUN_ID)'
         ],
       },
