@@ -44,7 +44,7 @@ func RegressionsForAlert(ctx context.Context, cfg *alerts.Config, ps paramtools.
 			N:           int32(numContinuous),
 			End:         end,
 		}
-		_, err := Run(ctx, req, vcs, cidl, dfBuilder, clusterResponseProcessor)
+		_, err := Run(context.Background(), req, vcs, cidl, dfBuilder, clusterResponseProcessor)
 		if err != nil {
 			sklog.Warningf("Failed while clustering %v %s", *req, err)
 			continue

@@ -7,6 +7,7 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/perf/go/btts/engine"
 )
 
 // ParamIndex returns a channel that emits the OPS encoded trace keys in
@@ -20,27 +21,27 @@ import (
 //
 // The returned channel is closed once the last trace id is sent, or the context
 // is cancelled.
-func ParamIndex(ctx context.Context, table *bigtable.Table, tileKey TileKey, key, value string, errCh chan<- error) <-chan string {
-	ret := make(chan string)
+func ParamIndex(ctx context.Context, table *bigtable.Table, tileKey TileKey, key, value string) <-chan string {
+	ch := make(chan string, engine.QUERY_ENGINE_CHANNEL_SIZE)
 
-	go func() {
-		defer close(ret)
-		prefix := fmt.Sprintf("%s:%s:%s", tileKey.IndexRowPrefix(), key, value)
+	go func(ch chan string) {
+		defer close(ch)
+		prefix := fmt.Sprintf("%s:%s:%s:", tileKey.IndexRowPrefix(), key, value)
 		if err := table.ReadRows(ctx, bigtable.PrefixRange(prefix), func(row bigtable.Row) bool {
 			parts := strings.Split(row.Key(), ":")
 			if len(parts) != 4 {
 				sklog.Errorf("Invalid index row key doesn't contain 4 parts: %q", row.Key())
 			}
-			ret <- parts[3]
+			ch <- parts[3]
 			return true
 		}, bigtable.RowFilter(
 			bigtable.ChainFilters(
 				bigtable.LatestNFilter(1),
 				bigtable.FamilyFilter(INDEX_FAMILY),
 			))); err != nil {
-			errCh <- fmt.Errorf("BigTable failure at Tile: %d key=%q value=%q: %s", tileKey, key, value, err)
+			sklog.Warningf("BigTable failure at Tile: %d key=%q value=%q: %s", tileKey, key, value, err)
 		}
-	}()
+	}(ch)
 
-	return ret
+	return ch
 }
