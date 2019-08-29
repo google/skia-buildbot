@@ -1,3 +1,5 @@
+// TODO(kjlubick): move this file into a query subpackage and rename CTQuery ->
+// CompareTests (query.CompareTests) and Query to Search (query.Search).
 package search
 
 import (
@@ -7,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/shared"
@@ -108,7 +111,7 @@ func ParseCTQuery(r io.ReadCloser, limitDefault int32, ctQuery *CTQuery) error {
 // form parameters and stores the parsed and validated values in query.
 func ParseQuery(r *http.Request, query *Query) error {
 	if err := r.ParseForm(); err != nil {
-		return err
+		return skerr.Wrapf(err, "parsing form")
 	}
 
 	// Parse the list of fields that need to match and ensure the
@@ -167,6 +170,7 @@ func ParseQuery(r *http.Request, query *Query) error {
 
 	// Check if we want diffs.
 	query.NoDiff = r.FormValue("nodiff") == "true"
+	query.NewCLStore = r.FormValue("new_clstore") == "true"
 
 	return nil
 }
