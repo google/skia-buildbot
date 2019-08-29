@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "05298b47_aaa8e0a6",
+        "filename": "ct/go/master_scripts/master_common/master_common.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T20:36:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "15c70298_e8492547",
+      "revId": "d77dcf86b7390b6f3005c98f9a0bbed2aa9308a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ea553e49_4f49fa86",
         "filename": "ct/isolates/run_lua_on_workers.isolate",
         "patchSetId": 13
@@ -30,6 +48,24 @@
       "writtenOn": "2019-08-29T20:19:14Z",
       "side": 1,
       "message": "I wonder if it would be better/easier to isolate all sub-task inputs on CTFE and just pass in the isolated hashes to the master task.",
+      "revId": "d77dcf86b7390b6f3005c98f9a0bbed2aa9308a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4bbc04d8_736f2459",
+        "filename": "ct/isolates/run_lua_on_workers.isolate",
+        "patchSetId": 13
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T20:36:48Z",
+      "side": 1,
+      "message": "I don\u0027t know. But since I already did the work here this is easier.",
+      "parentUuid": "ea553e49_4f49fa86",
       "revId": "d77dcf86b7390b6f3005c98f9a0bbed2aa9308a9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
