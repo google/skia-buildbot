@@ -344,6 +344,30 @@
     },
     {
       "key": {
+        "uuid": "72204338_6ff77e58",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T16:24:09Z",
+      "side": 1,
+      "message": "Removed",
+      "parentUuid": "037209de_73d166a6",
+      "range": {
+        "startLine": 45,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 11
+      },
+      "revId": "b9b16734d209e98c62f241af46f3b2567781b866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a0001a7d_fba06fbd",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 7
