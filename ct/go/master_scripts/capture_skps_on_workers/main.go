@@ -16,7 +16,6 @@ import (
 
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
-	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/sklog"
@@ -55,7 +54,7 @@ func sendEmail(recipients []string) {
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, frontend.CaptureSKPsTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, master_common.CaptureSKPsTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		sklog.Errorf("Error while sending email: %s", err)
 		return
@@ -66,7 +65,7 @@ func updateTaskInDatastore(ctx context.Context) {
 	vars := capture_skps.UpdateVars{}
 	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
-	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars, &capture_skps.DatastoreTask{}))
+	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars))
 }
 
 func captureSKPsOnWorkers() error {
@@ -80,7 +79,7 @@ func captureSKPsOnWorkers() error {
 	if len(emailsArr) == 0 {
 		return errors.New("At least one email address must be specified")
 	}
-	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &capture_skps.UpdateVars{}, &capture_skps.DatastoreTask{}, *taskID, *runID))
+	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &capture_skps.UpdateVars{}, *taskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Capture SKPs", *runID, *description, ""))
 	// Ensure test is updated and completion email is sent even if task fails.
 	defer updateTaskInDatastore(ctx)

@@ -14,7 +14,6 @@ import (
 
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
-	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/sklog"
@@ -49,7 +48,7 @@ func sendEmail(recipients []string) {
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), failureHtml, frontend.AdminTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), failureHtml, master_common.AdminTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		sklog.Errorf("Error while sending email: %s", err)
 		return
@@ -60,7 +59,7 @@ func updateTaskInDatastore(ctx context.Context) {
 	vars := admin_tasks.RecreateWebpageArchivesUpdateVars{}
 	vars.Id = *taskID
 	vars.SetCompleted(*taskCompletedSuccessfully)
-	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars, &admin_tasks.RecreateWebpageArchivesDatastoreTask{}))
+	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars))
 }
 
 func captureArchivesOnWorkers() error {
@@ -74,7 +73,7 @@ func captureArchivesOnWorkers() error {
 	if len(emailsArr) == 0 {
 		return errors.New("At least one email address must be specified")
 	}
-	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &admin_tasks.RecreateWebpageArchivesUpdateVars{}, &admin_tasks.RecreateWebpageArchivesDatastoreTask{}, *taskID, *runID))
+	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &admin_tasks.RecreateWebpageArchivesUpdateVars{}, *taskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Capture archives", *runID, "", ""))
 	// Ensure task is updated and completion email is sent even if task fails.
 	defer updateTaskInDatastore(ctx)

@@ -19,7 +19,6 @@ import (
 
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
-	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/email"
@@ -84,7 +83,7 @@ func sendEmail(recipients []string) {
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, scriptOutputHtml, aggregatorOutputHtml, frontend.LuaTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, scriptOutputHtml, aggregatorOutputHtml, master_common.LuaTasksWebapp)
 	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		sklog.Errorf("Error while sending email: %s", err)
 		return
@@ -101,7 +100,7 @@ func updateTaskInDatastore(ctx context.Context) {
 	if luaAggregatorOutputRemoteLink != "" {
 		vars.AggregatedOutput = luaAggregatorOutputRemoteLink
 	}
-	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars, &lua_scripts.DatastoreTask{}))
+	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars))
 }
 
 func runLuaOnWorkers() error {
@@ -115,7 +114,7 @@ func runLuaOnWorkers() error {
 	if len(emailsArr) == 0 {
 		return errors.New("At least one email address must be specified")
 	}
-	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &lua_scripts.UpdateVars{}, &lua_scripts.DatastoreTask{}, *taskID, *runID))
+	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &lua_scripts.UpdateVars{}, *taskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Lua script", *runID, *description, ""))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateTaskInDatastore(ctx)
@@ -187,7 +186,8 @@ func runLuaOnWorkers() error {
 		workerRemoteOutputPath := filepath.Join(util.LuaRunsDir, *runID, startRange, "outputs", *runID+".output")
 		respBody, err := gs.GetRemoteFileContents(workerRemoteOutputPath)
 		if err != nil {
-			return fmt.Errorf("Could not fetch %s: %s", workerRemoteOutputPath, err)
+			sklog.Errorf("Could not fetch %s: %s", workerRemoteOutputPath, err)
+			continue
 		}
 		defer skutil.Close(respBody)
 		out, err := os.OpenFile(consolidatedLuaOutput, os.O_RDWR|os.O_APPEND, 0660)

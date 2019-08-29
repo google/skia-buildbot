@@ -17,7 +17,6 @@ import (
 
 	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
-	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/email"
@@ -110,7 +109,7 @@ func sendEmail(recipients []string, gs *util.GcsUtil) {
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, ctPerfHtml, outputLink, archivedWebpagesText, chromiumPatchLink, skiaPatchLink, v8PatchLink, catapultPatchLink, customWebpagesLink, frontend.ChromiumAnalysisTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, ctPerfHtml, outputLink, archivedWebpagesText, chromiumPatchLink, skiaPatchLink, v8PatchLink, catapultPatchLink, customWebpagesLink, master_common.ChromiumAnalysisTasksWebapp)
 	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		sklog.Errorf("Error while sending email: %s", err)
 		return
@@ -122,7 +121,7 @@ func updateTaskInDatastore(ctx context.Context) {
 	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
 	vars.RawOutput = outputLink
-	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars, &chromium_analysis.DatastoreTask{}))
+	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars))
 }
 
 func runChromiumAnalysisOnWorkers() error {
@@ -142,7 +141,7 @@ func runChromiumAnalysisOnWorkers() error {
 		return fmt.Errorf("Could not instantiate gsutil object: %s", err)
 	}
 
-	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &chromium_analysis.UpdateVars{}, &chromium_analysis.DatastoreTask{}, *taskID, *runID))
+	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &chromium_analysis.UpdateVars{}, *taskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Chromium analysis", *runID, *description, fmt.Sprintf("Triggered %s benchmark on %s %s pageset.", *benchmarkName, *targetPlatform, *pagesetType)))
 	// Ensure task is updated and email is sent even if task fails.
 	defer updateTaskInDatastore(ctx)

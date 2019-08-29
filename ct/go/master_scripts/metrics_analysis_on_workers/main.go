@@ -10,6 +10,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -19,7 +20,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/ct/go/ctfe/metrics_analysis"
-	"go.skia.org/infra/ct/go/frontend"
+	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/email"
@@ -43,6 +44,10 @@ var (
 	analysisOutputLink = flag.String("analysis_output_link", "", "Cloud trace links will be gathered from this specified CT analysis run Id. If not specified, trace links will be read from ${TMPDIR}/<run_id>.traces.csv")
 	valueColumnName    = flag.String("value_column_name", "", "Which column's entries to use as field values when combining CSVs.")
 	taskPriority       = flag.Int("task_priority", util.TASKS_PRIORITY_MEDIUM, "The priority swarming tasks should run at.")
+
+	chromiumPatchGSPath   = flag.String("chromium_patch_gs_path", "", "The location of the Chromium patch in Google storage.")
+	catapultPatchGSPath   = flag.String("catapult_patch_gs_path", "", "The location of the Catapult patch in Google storage.")
+	customTracesCsvGSPath = flag.String("custom_traces_csv_gs_path", "", "The location of the custom traces CSV in Google storage.")
 
 	taskCompletedSuccessfully = false
 
@@ -87,22 +92,22 @@ func sendEmail(recipients []string, gs *util.GcsUtil) {
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, util.GetSwarmingLogsLink(*runID), *description, failureHtml, outputLink, chromiumPatchLink, catapultPatchLink, tracesLink, frontend.MetricsAnalysisTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, util.GetSwarmingLogsLink(*runID), *description, failureHtml, outputLink, chromiumPatchLink, catapultPatchLink, tracesLink, master_common.MetricsAnalysisTasksWebapp)
 	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		sklog.Errorf("Error while sending email: %s", err)
 		return
 	}
 }
 
-func updateWebappTask() {
+func updateTaskInDatastore(ctx context.Context) {
 	vars := metrics_analysis.UpdateVars{}
 	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
 	vars.RawOutput = outputLink
-	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
+	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars))
 }
 
-func main() {
+func metricsAnalysisOnWorkers() error {
 	master_common.Init("run_metrics_analysis")
 
 	ctx := context.Background()
@@ -111,20 +116,18 @@ func main() {
 	emailsArr := util.ParseEmails(*emails)
 	emailsArr = append(emailsArr, util.CtAdmins...)
 	if len(emailsArr) == 0 {
-		sklog.Error("At least one email address must be specified")
-		return
+		return errors.New("At least one email address must be specified")
 	}
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
-		sklog.Errorf("Could not instantiate gsutil object: %s", err)
-		return
+		return fmt.Errorf("Could not instantiate gsutil object: %s", err)
 	}
 
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&metrics_analysis.UpdateVars{}, *taskID, *runID))
+	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &metrics_analysis.UpdateVars{}, *taskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Metrics analysis", *runID, *description, ""))
-	// Ensure webapp is updated and email is sent even if task fails.
-	defer updateWebappTask()
+	// Ensure task is updated and email is sent even if task fails.
+	defer updateTaskInDatastore(ctx)
 	defer sendEmail(emailsArr, gs)
 	// Cleanup dirs after run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
@@ -133,12 +136,10 @@ func main() {
 	defer sklog.Flush()
 
 	if *runID == "" {
-		sklog.Error("Must specify --run_id")
-		return
+		return errors.New("Must specify --run_id")
 	}
 	if *metricName == "" {
-		sklog.Error("Must specify --metric_name")
-		return
+		return errors.New("Must specify --metric_name")
 	}
 
 	// Use defaults.
@@ -146,19 +147,36 @@ func main() {
 		*valueColumnName = util.DEFAULT_VALUE_COLUMN_NAME
 	}
 
+	for fileSuffix, patchGSPath := range map[string]string{
+		".chromium.patch": *chromiumPatchGSPath,
+		".catapult.patch": *catapultPatchGSPath,
+		".traces.csv":     *customTracesCsvGSPath,
+	} {
+		patch, err := util.GetPatchFromStorage(patchGSPath)
+		if err != nil {
+			return fmt.Errorf("Could not download patch %s from Google storage: %s", patchGSPath, err)
+		}
+		// Add an extra newline at the end because git sometimes rejects patches due to
+		// missing newlines.
+		patch = patch + "\n"
+		patchPath := filepath.Join(os.TempDir(), *runID+fileSuffix)
+		if err := ioutil.WriteFile(patchPath, []byte(patch), 0666); err != nil {
+			return fmt.Errorf("Could not write patch %s to %s: %s", patch, patchPath, err)
+		}
+		defer skutil.Remove(patchPath)
+	}
+
 	tracesFileName := *runID + ".traces.csv"
 	tracesFilePath := filepath.Join(os.TempDir(), tracesFileName)
 	if *analysisOutputLink != "" {
 		if err := extractTracesFromAnalysisRun(tracesFilePath, gs); err != nil {
-			sklog.Errorf("Error when extracting traces from run %s to %s: %s", *analysisOutputLink, tracesFilePath, err)
-			return
+			return fmt.Errorf("Error when extracting traces from run %s to %s: %s", *analysisOutputLink, tracesFilePath, err)
 		}
 	}
 	// Figure out how many traces we are dealing with.
 	traces, err := util.GetCustomPages(tracesFilePath)
 	if err != nil {
-		sklog.Errorf("Could not read %s: %s", tracesFilePath, err)
-		return
+		return fmt.Errorf("Could not read %s: %s", tracesFilePath, err)
 	}
 
 	// Copy the patches and traces to Google Storage.
@@ -167,8 +185,7 @@ func main() {
 	catapultPatchName := *runID + ".catapult.patch"
 	for _, patchName := range []string{chromiumPatchName, catapultPatchName, tracesFileName} {
 		if err := gs.UploadFile(patchName, os.TempDir(), remoteOutputDir); err != nil {
-			sklog.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
-			return
+			return fmt.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
 		}
 	}
 	chromiumPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, chromiumPatchName)
@@ -178,20 +195,17 @@ func main() {
 	// Find which chromium hash the workers should use.
 	chromiumHash, err := util.GetChromiumHash(ctx)
 	if err != nil {
-		sklog.Errorf("Could not find the latest chromium hash: %s", err)
-		return
+		return fmt.Errorf("Could not find the latest chromium hash: %s", err)
 	}
 
 	// Trigger task to return hash of telemetry isolates.
 	telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName)}
-	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, *master_common.ServiceAccountFile, util.PLATFORM_LINUX, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
+	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, "", util.PLATFORM_LINUX, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
 	if err != nil {
-		sklog.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
-		return
+		return fmt.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
 	}
 	if telemetryHash == "" {
-		sklog.Error("Found empty telemetry hash!")
-		return
+		return errors.New("Found empty telemetry hash!")
 	}
 	isolateDeps := []string{telemetryHash}
 
@@ -204,15 +218,14 @@ func main() {
 		"METRIC_NAME":       *metricName,
 		"VALUE_COLUMN_NAME": *valueColumnName,
 	}
-	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, *master_common.ServiceAccountFile, util.PLATFORM_LINUX, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, len(traces), isolateExtraArgs, true /* runOnGCE */, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
+	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, "", util.PLATFORM_LINUX, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, len(traces), isolateExtraArgs, true /* runOnGCE */, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
 	if err != nil {
-		sklog.Errorf("Error encountered when swarming tasks: %s", err)
-		return
+		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}
 
 	// If "--output-format=csv" is specified then merge all CSV files and upload.
 	noOutputSlaves := []string{}
-	pathToPyFiles := util.GetPathToPyFiles(*master_common.Local, true /* runOnMaster */)
+	pathToPyFiles := util.GetPathToPyFiles(*master_common.Local, false /* runOnMaster */)
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
 		if _, noOutputSlaves, err = util.MergeUploadCSVFiles(ctx, *runID, pathToPyFiles, gs, len(traces), maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1)); err != nil {
 			sklog.Errorf("Unable to merge and upload CSV files for %s: %s", *runID, err)
@@ -220,8 +233,7 @@ func main() {
 	}
 	// If the number of noOutputSlaves is the same as the total number of triggered slaves then consider the run failed.
 	if len(noOutputSlaves) == numSlaves {
-		sklog.Errorf("All %d slaves produced no output", numSlaves)
-		return
+		return fmt.Errorf("All %d slaves produced no output", numSlaves)
 	}
 
 	// Construct the output link.
@@ -234,6 +246,7 @@ func main() {
 	}
 
 	taskCompletedSuccessfully = true
+	return nil
 }
 
 // extractTracesFromAnalysisRuns gathers all traceURLs from the specified analysis
@@ -273,4 +286,13 @@ func extractTracesFromAnalysisRun(outputPath string, gs *util.GcsUtil) error {
 		return fmt.Errorf("Could not write traceURLs to %s: %s", outputPath, err)
 	}
 	return nil
+}
+
+func main() {
+	retCode := 0
+	if err := metricsAnalysisOnWorkers(); err != nil {
+		sklog.Errorf("Error while running metrics analysis on workers: %s", err)
+		retCode = 255
+	}
+	os.Exit(retCode)
 }

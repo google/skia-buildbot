@@ -1,0 +1,38 @@
+# Copyright (c) 2019 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+{
+  'includes': [
+    'py.isolate',
+    'isolate_telemetry.isolate',
+    'metrics_analysis.isolate',
+  ],
+  'conditions': [
+    ['OS=="linux" or OS=="win"', {
+      'variables': {
+        'files': [
+          '../../../bin/metrics_analysis_on_workers',
+          'py.isolate',
+          'isolate_telemetry.isolate',
+          'metrics_analysis.isolate',
+        ],
+      'command': [
+        '../../../bin/metrics_analysis_on_workers',
+        '-logtostderr',
+        '--emails=<(EMAILS)',
+        '--description=<(DESCRIPTION)',
+        '--task_id=<(TASK_ID)',
+        '--metric_name=<(METRIC_NAME)',
+        '--analysis_output_link=<(ANALYSIS_OUTPUT_LINK)',
+        '--benchmark_extra_args=<(BENCHMARK_ARGS)',
+        '--value_column_name=<(VALUE_COLUMN_NAME)',
+        '--run_id=<(RUN_ID)',
+        '--chromium_patch_gs_path=<(CHROMIUM_PATCH_GS_PATH)',
+        '--catapult_patch_gs_path=<(CATAPULT_PATCH_GS_PATH)',
+        '--custom_traces_csv_gs_path=<(CUSTOM_TRACES_CSV_GS_PATH)',
+        '--ds_namespace=<(DS_NAMESPACE)',
+        '--ds_project_name=<(DS_PROJECT_NAME)',
+      ]},
+    }],
+  ]
+}

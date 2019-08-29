@@ -108,6 +108,27 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	return t, nil
 }
 
+func (task DatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
+	runID := task_common.GetRunID(&task)
+	isolateArgs := map[string]string{
+		"EMAILS":          task.Username,
+		"DESCRIPTION":     task.Description,
+		"TASK_ID":         strconv.FormatInt(task.DatastoreKey.ID, 10),
+		"PAGESET_TYPE":    task.PageSets,
+		"CHROMIUM_BUILD":  ctutil.ChromiumBuildDir(task.ChromiumRev, task.SkiaRev, ""),
+		"TARGET_PLATFORM": ctutil.PLATFORM_LINUX,
+		"RUN_ON_GCE":      strconv.FormatBool(task.RunsOnGCEWorkers()),
+		"RUN_ID":          runID,
+		"DS_NAMESPACE":    task_common.DsNamespace,
+		"DS_PROJECT_NAME": task_common.DsProjectName,
+	}
+
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_skps_on_workers", ctutil.CAPTURE_SKPS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
+		return fmt.Errorf("Could not trigger master script for capture_skps_on_workers with isolate args %v: %s", isolateArgs, err)
+	}
+	return nil
+}
+
 func addTaskView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(addTaskTemplate, w, r)
 }
@@ -146,28 +167,6 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 	return t, nil
 }
 
-func (task *AddTaskVars) TriggerSwarmingTask(ctx context.Context, t task_common.Task) error {
-	datastoreTask := t.(*DatastoreTask)
-	runID := task_common.GetRunID(datastoreTask)
-	isolateArgs := map[string]string{
-		"EMAILS":          datastoreTask.Username,
-		"DESCRIPTION":     datastoreTask.Description,
-		"TASK_ID":         strconv.FormatInt(datastoreTask.DatastoreKey.ID, 10),
-		"PAGESET_TYPE":    datastoreTask.PageSets,
-		"CHROMIUM_BUILD":  ctutil.ChromiumBuildDir(datastoreTask.ChromiumRev, datastoreTask.SkiaRev, ""),
-		"TARGET_PLATFORM": ctutil.PLATFORM_LINUX,
-		"RUN_ON_GCE":      strconv.FormatBool(datastoreTask.RunsOnGCEWorkers()),
-		"RUN_ID":          runID,
-		"DS_NAMESPACE":    ctfeutil.GetDsNamespaceFlagVal(),
-		"DS_PROJECT_NAME": ctfeutil.GetDsProjectNameFlagVal(),
-	}
-
-	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_skps_on_workers", ctutil.CAPTURE_SKPS_MASTER_ISOLATE, ctfeutil.GetServiceAccountFileFlagVal(), ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
-		return fmt.Errorf("Could not trigger master script for capture_skps_on_workers with isolate args %T: %s", isolateArgs, err)
-	}
-	return nil
-}
-
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.AddTaskHandler(w, r, &AddTaskVars{})
 }
@@ -198,6 +197,10 @@ func Validate(ctx context.Context, skpRepository DatastoreTask) error {
 
 type UpdateVars struct {
 	task_common.UpdateTaskCommonVars
+}
+
+func (task *UpdateVars) GetTaskPrototype() task_common.Task {
+	return &DatastoreTask{}
 }
 
 func (task *UpdateVars) UpdateExtraFields(t task_common.Task) error {
