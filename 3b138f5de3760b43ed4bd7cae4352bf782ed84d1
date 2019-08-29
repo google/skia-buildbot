@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "48f8c0ca_78ee80f3",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T19:48:17Z",
+      "side": 1,
+      "message": "It appears to be the number of results (commits x traces) for this digest in the tile.",
+      "range": {
+        "startLine": 49,
+        "startChar": 44,
+        "endLine": 49,
+        "endChar": 79
+      },
+      "revId": "3b138f5de3760b43ed4bd7cae4352bf782ed84d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "71f60771_f8388220",
+        "filename": "golden/go/search/new_search_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T19:48:17Z",
+      "side": 1,
+      "message": "I\u0027m in suspense...",
+      "revId": "3b138f5de3760b43ed4bd7cae4352bf782ed84d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "173a1130_fbc2bed6",
+        "filename": "golden/go/search/new_search_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T19:48:17Z",
+      "side": 1,
+      "message": "I did some research and concluded this field is unused. It\u0027s only set in CompareDigests, which is only used by the /json/diff endpoint, which is only used by the digest-details-sk element, which never looks at right.test.\n\nThe Test field of SRDigest is used, though.",
+      "range": {
+        "startLine": 133,
+        "startChar": 26,
+        "endLine": 133,
+        "endChar": 60
+      },
+      "revId": "3b138f5de3760b43ed4bd7cae4352bf782ed84d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43e21f08_299fda18",
+        "filename": "golden/go/search/refs.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T19:48:17Z",
+      "side": 1,
+      "message": "nit: maybe rename",
+      "range": {
+        "startLine": 70,
+        "startChar": 1,
+        "endLine": 70,
+        "endChar": 10
+      },
+      "revId": "3b138f5de3760b43ed4bd7cae4352bf782ed84d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46d9fe7e_f8a5daf2",
+        "filename": "golden/go/search/refs.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T19:48:17Z",
+      "side": 1,
+      "message": "nit: maybe rename",
+      "range": {
+        "startLine": 73,
+        "startChar": 5,
+        "endLine": 73,
+        "endChar": 11
+      },
+      "revId": "3b138f5de3760b43ed4bd7cae4352bf782ed84d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8751920a_baf98d58",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T19:48:17Z",
+      "side": 1,
+      "message": "Probably not. At least, pretty much all of these options are available in the UI and are things that I have used and would be sad to see go away. (Except FCommitBegin/FCommitEnd, which I don\u0027t think are exposed, and FGroupTest, although that would probably require changing certain UI pages.)\n\nFor tryjobs, some of these don\u0027t make sense, like BlameGroupID and Head. The rest probably should stick around.",
+      "range": {
+        "startLine": 103,
+        "startChar": 0,
+        "endLine": 104,
+        "endChar": 14
+      },
+      "revId": "3b138f5de3760b43ed4bd7cae4352bf782ed84d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
