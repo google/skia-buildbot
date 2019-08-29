@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "74d82780_2e135e5d",
+        "filename": "ct/go/ctfe/lua_scripts/lua_scripts.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T18:10:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9181dbaf_e8051a2f",
+      "range": {
+        "startLine": 164,
+        "startChar": 1,
+        "endLine": 164,
+        "endChar": 36
+      },
+      "revId": "8bd6fc510be04f4842675dacccec5629e2695aff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "11e8b4db_0f02f366",
         "filename": "ct/go/ctfe/lua_scripts/lua_scripts.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "8bd6fc510be04f4842675dacccec5629e2695aff",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "308aa05c_895b4f39",
+        "filename": "ct/go/ctfe/lua_scripts/lua_scripts.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T18:10:57Z",
+      "side": 1,
+      "message": "I cannot figure out why I did that..",
+      "parentUuid": "11e8b4db_0f02f366",
+      "range": {
+        "startLine": 168,
+        "startChar": 9,
+        "endLine": 168,
+        "endChar": 12
+      },
+      "revId": "8bd6fc510be04f4842675dacccec5629e2695aff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "d14ff98e_7b28ea31",
+        "filename": "ct/go/ctfe/lua_scripts/lua_scripts.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T18:10:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baf86b5f_1b51fa84",
+      "range": {
+        "startLine": 193,
+        "startChar": 94,
+        "endLine": 193,
+        "endChar": 96
+      },
+      "revId": "8bd6fc510be04f4842675dacccec5629e2695aff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ebe2634b_bf799200",
         "filename": "ct/go/master_scripts/master_common/master_common.go",
         "patchSetId": 6
@@ -85,6 +157,24 @@
       "revId": "8bd6fc510be04f4842675dacccec5629e2695aff",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3732258_e98b9075",
+        "filename": "ct/go/master_scripts/master_common/master_common.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T18:10:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ebe2634b_bf799200",
+      "revId": "8bd6fc510be04f4842675dacccec5629e2695aff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "6b66f227_891a5422",
+        "filename": "ct/go/master_scripts/run_lua_on_workers/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T18:10:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9d7a18b5_d89c06c9",
+      "range": {
+        "startLine": 104,
+        "startChar": 57,
+        "endLine": 104,
+        "endChar": 85
+      },
+      "revId": "8bd6fc510be04f4842675dacccec5629e2695aff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "45f26177_6a23921e",
         "filename": "ct/go/master_scripts/run_lua_on_workers/main.go",
         "patchSetId": 6
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "ed9970a8_43b23f78",
+        "filename": "ct/go/master_scripts/run_lua_on_workers/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T18:10:57Z",
+      "side": 1,
+      "message": "All previously run aggregate lua scripts use /tmp/lua-output. Much simpler to let them continue using /tmp/lua-output.",
+      "parentUuid": "45f26177_6a23921e",
+      "range": {
+        "startLine": 173,
+        "startChar": 4,
+        "endLine": 173,
+        "endChar": 52
+      },
+      "revId": "8bd6fc510be04f4842675dacccec5629e2695aff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bebeb629_609aa0b1",
         "filename": "ct/go/master_scripts/run_lua_on_workers/main.go",
         "patchSetId": 6
@@ -148,6 +286,24 @@
       "revId": "8bd6fc510be04f4842675dacccec5629e2695aff",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad0b6a71_f157bec6",
+        "filename": "ct/go/master_scripts/run_lua_on_workers/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-29T18:10:57Z",
+      "side": 1,
+      "message": "Oops. That was completely unintentional.",
+      "parentUuid": "bebeb629_609aa0b1",
+      "revId": "8bd6fc510be04f4842675dacccec5629e2695aff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
