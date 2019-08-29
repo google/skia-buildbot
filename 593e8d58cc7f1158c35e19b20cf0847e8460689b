@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b8fe997b_eb9a71fc",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1602,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T19:53:05Z",
+      "side": 1,
+      "message": "I think you want to FixTimestamp before doing this comparison.",
+      "revId": "593e8d58cc7f1158c35e19b20cf0847e8460689b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "27b0825a_f11a1ace",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1604,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T19:53:05Z",
+      "side": 1,
+      "message": "I think you want to subtract firestore.TS_RESOLUTION.",
+      "revId": "593e8d58cc7f1158c35e19b20cf0847e8460689b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
