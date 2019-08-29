@@ -419,7 +419,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	defer s.Cleanup()
 	isolateTasks := []*isolate.Task{}
 	// Get path to isolate files.
-	pathToIsolates := GetPathToIsolates(local)
+	pathToIsolates := GetPathToIsolates(local, false)
 	numPagesPerBot := GetNumPagesPerBot(repeatValue, maxPagesPerBot)
 	numTasks := int(math.Ceil(float64(numPages) / float64(numPagesPerBot)))
 	osType := "linux"
@@ -523,16 +523,16 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 			task := task // https://golang.org/doc/faq#closures_and_goroutines
 			go func() {
 				defer wg.Done()
-				if _, _, err := task.Collect(ctx, s); err != nil {
+				if _, _, err := task.Collect(ctx, s, false, false); err != nil {
 					sklog.Errorf("task %s failed: %s", task.Title, err)
-					sklog.Infof("Retrying task %s", task.Title)
-					retryTask, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, []string{}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+					sklog.Infof("Retrying task %s with high priority %d", task.Title, TASKS_PRIORITY_HIGH)
+					retryTask, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, []string{}, TASKS_PRIORITY_HIGH, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 					if err != nil {
 						sklog.Errorf("Could not trigger retry of task %s: %s", task.Title, err)
 						return
 					}
 					// Collect the retried task.
-					if _, _, err := retryTask[0].Collect(ctx, s); err != nil {
+					if _, _, err := retryTask[0].Collect(ctx, s, false, false); err != nil {
 						sklog.Errorf("task %s failed inspite of a retry: %s", retryTask[0].Title, err)
 						return
 					}
@@ -549,7 +549,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 // getServiceAccount returns the service account that should be used when triggering swarming tasks.
 func getServiceAccount(dimensions map[string]string) string {
 	serviceAccount := ""
-	if util.MapsEqual(dimensions, GCE_LINUX_WORKER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_LINUX_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_ANDROID_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_WINDOWS_BUILDER_DIMENSIONS) {
+	if util.MapsEqual(dimensions, GCE_LINUX_WORKER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_LINUX_MASTER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_LINUX_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_ANDROID_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_WINDOWS_BUILDER_DIMENSIONS) {
 		// GCE bots need to use "bot". See skbug.com/6611.
 		serviceAccount = "bot"
 	}
@@ -557,27 +557,32 @@ func getServiceAccount(dimensions map[string]string) string {
 }
 
 // GetPathToIsolates returns the location of CT's isolates.
-func GetPathToIsolates(local bool) string {
+// local should be set to true if we need the location of isolates when debugging locally.
+// runOnMaster should be set if we need the location of isolates on ctfe.
+// If both are false then it is assumed that we are running on a swarming bot.
+func GetPathToIsolates(local, runOnMaster bool) string {
 	if local {
 		_, currentFile, _, _ := runtime.Caller(0)
 		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
+	} else if runOnMaster {
+		return filepath.Join("/", "usr", "local", "share", "ctfe", "isolates")
 	} else {
-		return filepath.Join("/", "usr", "local", "share", "ct-master", "isolates")
+		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ctfe", "isolates")
 	}
 }
 
 // GetPathToPyFiles returns the location of CT's python scripts.
 // local should be set to true if we need the location of py files when debugging locally.
-// runOnMaster should be set if we need the location of py files on the ct-master.
+// runOnMaster should be set if we need the location of py files on ctfe.
 // If both are false then it is assumed that we are running on a swarming bot.
 func GetPathToPyFiles(local, runOnMaster bool) string {
 	if local {
 		_, currentFile, _, _ := runtime.Caller(0)
 		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "py")
 	} else if runOnMaster {
-		return filepath.Join("/", "usr", "local", "share", "ct-master", "py")
+		return filepath.Join("/", "usr", "local", "share", "ctfe", "py")
 	} else {
-		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ct-master", "py")
+		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ctfe", "py")
 	}
 }
 
@@ -976,7 +981,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	defer s.Cleanup()
 	// Create isolated.gen.json.
 	// Get path to isolate files.
-	pathToIsolates := GetPathToIsolates(local)
+	pathToIsolates := GetPathToIsolates(local, false)
 	isolateArgs := map[string]string{
 		"RUN_ID":        runID,
 		"CHROMIUM_HASH": chromiumHash,
@@ -1008,7 +1013,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	}
 	// Collect all tasks and log the ones that fail.
 	task := tasks[0]
-	_, outputDir, err := task.Collect(ctx, s)
+	_, outputDir, err := task.Collect(ctx, s, false, false)
 	if err != nil {
 		return "", fmt.Errorf("task %s failed: %s", task.Title, err)
 	}
@@ -1018,6 +1023,49 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 		return "", fmt.Errorf("Could not read outputfile %s: %s", outputFile, err)
 	}
 	return strings.Trim(string(contents), "\n"), nil
+}
+
+func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isolateFileName, serviceAccountJSON, targetPlatform string, local bool, isolateArgs map[string]string) error {
+	// Instantiate the swarming client.
+	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
+	if err != nil {
+		return fmt.Errorf("Could not get temp dir: %s", err)
+	}
+	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountJSON)
+	if err != nil {
+		// Cleanup workdir.
+		if err := os.RemoveAll(workDir); err != nil {
+			sklog.Errorf("Could not cleanup swarming work dir: %s", err)
+		}
+		return fmt.Errorf("Could not instantiate swarming client: %s", err)
+	}
+	defer s.Cleanup()
+	osType := "linux"
+	if targetPlatform == PLATFORM_WINDOWS {
+		osType = "win"
+	}
+	// Create isolated.gen.json.
+	// Get path to isolate files.
+	pathToIsolates := GetPathToIsolates(local, true)
+	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, isolateFileName), s.WorkDir, osType, taskName, isolateArgs, []string{})
+	if err != nil {
+		return fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
+	}
+	// Batcharchive the task.
+	tasksToHashes, err := s.BatchArchiveTargets(ctx, []string{genJSON}, BATCHARCHIVE_TIMEOUT)
+	if err != nil {
+		return fmt.Errorf("Could not batch archive target: %s", err)
+	}
+	// Trigger swarming using the isolate hash.
+	dimensions := GCE_LINUX_MASTER_DIMENSIONS
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, nil, swarming.RECOMMENDED_PRIORITY, 7*24*time.Hour, 3*24*time.Hour, 3*24*time.Hour, false, true, getServiceAccount(dimensions))
+	if err != nil {
+		return fmt.Errorf("Could not trigger swarming task: %s", err)
+	}
+	if len(tasks) != 1 {
+		return fmt.Errorf("Expected a single task instead got: %v", tasks)
+	}
+	return nil
 }
 
 // TriggerBuildRepoSwarmingTask creates a isolated.gen.json file using BUILD_REPO_ISOLATE,
@@ -1040,7 +1088,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	defer s.Cleanup()
 	// Create isolated.gen.json.
 	// Get path to isolate files.
-	pathToIsolates := GetPathToIsolates(local)
+	pathToIsolates := GetPathToIsolates(local, false)
 	isolateArgs := map[string]string{
 		"RUN_ID":          runID,
 		"REPO_AND_TARGET": repoAndTarget,
@@ -1080,7 +1128,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	}
 	// Collect all tasks and log the ones that fail.
 	task := tasks[0]
-	_, outputDir, err := task.Collect(ctx, s)
+	_, outputDir, err := task.Collect(ctx, s, false, false)
 	if err != nil {
 		return nil, fmt.Errorf("task %s failed: %s", task.Title, err)
 	}
