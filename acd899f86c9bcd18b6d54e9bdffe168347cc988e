@@ -1,0 +1,371 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ad33e645_4480a39f",
+        "filename": "golden/go/clstore/clstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T17:50:26Z",
+      "side": 1,
+      "message": "nit: return value",
+      "range": {
+        "startLine": 29,
+        "startChar": 56,
+        "endLine": 29,
+        "endChar": 65
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d662b22_71403691",
+        "filename": "golden/go/clstore/clstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T17:50:26Z",
+      "side": 1,
+      "message": "I think you meant \"exists.\"",
+      "range": {
+        "startLine": 35,
+        "startChar": 54,
+        "endLine": 35,
+        "endChar": 67
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bbe6a501_518141b1",
+        "filename": "golden/go/clstore/clstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T17:50:26Z",
+      "side": 1,
+      "message": "Seems like you would want to use a value that\u0027s not a valid return value. There certainly could be 9999 CLs. Maybe math.MaxInt32?",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 20
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "389a1e63_cc6295a1",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T17:50:26Z",
+      "side": 1,
+      "message": "nit: \"scoped by a Gold instance\"",
+      "range": {
+        "startLine": 139,
+        "startChar": 14,
+        "endLine": 139,
+        "endChar": 15
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eed45eab_43f9db09",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T17:50:26Z",
+      "side": 1,
+      "message": "Is underscore disallowed for psID, crsName, and clID?",
+      "range": {
+        "startLine": 141,
+        "startChar": 16,
+        "endLine": 141,
+        "endChar": 17
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6035808e_e11b7076",
+        "filename": "golden/go/code_review/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T17:50:26Z",
+      "side": 1,
+      "message": "nit: \"and Gold instance\"",
+      "range": {
+        "startLine": 32,
+        "startChar": 80,
+        "endLine": 32,
+        "endChar": 81
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f75ec3c_1b03fdb2",
+        "filename": "golden/go/code_review/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T17:50:26Z",
+      "side": 1,
+      "message": "nit: document (per design doc discussion, I thought this was the same as SystemID)",
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58f0df39_708ad774",
+        "filename": "golden/go/continuous_integration/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T17:50:26Z",
+      "side": 1,
+      "message": "nit: \"and Gold instance\"",
+      "range": {
+        "startLine": 21,
+        "startChar": 76,
+        "endLine": 21,
+        "endChar": 77
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d82ed2e_57676f43",
+        "filename": "golden/go/tjstore/tjstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T17:50:26Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 38,
+        "startChar": 11,
+        "endLine": 38,
+        "endChar": 15
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8f6666e_05cea171",
+        "filename": "golden/go/tjstore/tjstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T17:50:26Z",
+      "side": 1,
+      "message": "In the design doc, a TryJobResult stores which TryJob it is associated with, but that seems to be missing here. Is that intentional?",
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec34f72c_2cd3a145",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T17:50:26Z",
+      "side": 1,
+      "message": "nit: http.StatusOK\n\n(OTOH, it\u0027s hard for me to imagine sending any response but StatusOK in sendResponseWithPagination -- is there any reason for that to be a parameter?)",
+      "range": {
+        "startLine": 327,
+        "startChar": 36,
+        "endLine": 327,
+        "endChar": 39
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7e26cf27_f05dc24a",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T17:50:26Z",
+      "side": 1,
+      "message": "nit: \"WithTryJobs\" confused me -- I thought this would return info about the changelists and the tryjobs for those changelists. Maybe \"getIngestedChangeLists\" or \"getRelevantChangeLists\" or \"getChangeListsWithIngestedData\" or just \"getChangeLists\" since we probably already know that ChangeListStore will only return ChangeLists that are relevant to Gold?",
+      "range": {
+        "startLine": 358,
+        "startChar": 37,
+        "endLine": 358,
+        "endChar": 48
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "10de70bb_9f641027",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 372,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T17:50:26Z",
+      "side": 1,
+      "message": "What happens if this is CountMany?",
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f7dcfcd_732a4c7a",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 459,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T17:50:26Z",
+      "side": 1,
+      "message": "nit: \"patch_sets\" or \"patchSets\" would be more consistent.\n\n(Looks like we\u0027re using both snake_case and camelCase for json field names in Gold.)",
+      "range": {
+        "startLine": 459,
+        "startChar": 37,
+        "endLine": 459,
+        "endChar": 46
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57e6ab1c_900b1c17",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 460,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T17:50:26Z",
+      "side": 1,
+      "message": "nit: This seems misnamed; I think \"num_total_patch_sets\" would be fine. There may be previous patch sets that are counted here but do not have any data and are not included in the PatchSets field.",
+      "range": {
+        "startLine": 460,
+        "startChar": 37,
+        "endLine": 460,
+        "endChar": 56
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "728ccae3_41f24792",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T17:50:26Z",
+      "side": 1,
+      "message": "nit: \"try_jobs\" or \"tryJobs\"",
+      "range": {
+        "startLine": 467,
+        "startChar": 26,
+        "endLine": 467,
+        "endChar": 33
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d406f340_42b54bb0",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T17:50:26Z",
+      "side": 1,
+      "message": "Unintentional? Also for mtjs.",
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
