@@ -448,6 +448,24 @@
     },
     {
       "key": {
+        "uuid": "721857ea_1b736a89",
+        "filename": "golden/go/tjstore/tjstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T19:59:14Z",
+      "side": 1,
+      "message": "Ah, ok, so it\u0027s part of the TryJobResult key, but not a field?",
+      "parentUuid": "40f49c0f_d0e7f428",
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ec34f72c_2cd3a145",
         "filename": "golden/go/web/web.go",
         "patchSetId": 7
@@ -529,6 +547,24 @@
       "writtenOn": "2019-08-29T17:50:26Z",
       "side": 1,
       "message": "What happens if this is CountMany?",
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51389c79_c0a1181e",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 372,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T19:59:14Z",
+      "side": 1,
+      "message": "I suspect it ends up creating tons and tons of pagination elements?",
+      "parentUuid": "10de70bb_9f641027",
       "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
