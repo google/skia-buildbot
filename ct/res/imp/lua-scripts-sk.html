@@ -19,6 +19,11 @@
       width: 20em;
     }
 
+    .triggering-spinner {
+      margin: auto;
+      vertical-align: middle;
+    }
+
     .iron-selected {
       background-color: #D6ECF2;
     }
@@ -85,7 +90,10 @@
 
       <tr>
         <td colspan="2" class="center">
-          <paper-button raised id="submit_task">Queue Task</paper-button>
+          <div class="triggering-spinner">
+            <paper-spinner active="[[ triggeringTask ]]" alt="Trigger task"></paper-spinner>
+          </div>
+          <paper-button raised id="submit_task" disabled="[[ triggeringTask ]]">Queue Task</paper-button>
         </td>
       </tr>
       <tr>
@@ -107,6 +115,10 @@
        skpRepositories: {
          type: Array,
          observer: "skpRepositoriesChanged",
+       },
+       triggeringTask: {
+         type: Boolean,
+         value: false,
        },
      },
 
@@ -160,6 +172,7 @@
      },
 
      queueTask: function() {
+       this.triggeringTask = true;
        var params = {};
        params["skp_repository"] = this.$.skp_repository.selected;
        params["lua_script"] = this.$.lua_script.textarea.value;
@@ -170,7 +183,10 @@
        var that = this;
        sk.post("/_/add_lua_script_task", JSON.stringify(params)).then(function(resp) {
          that.gotoRunsHistory();
-       }).catch(sk.errorMessage);
+       }).catch(function(e) {
+         that.triggeringTask = false;
+         sk.errorMessage(e);
+       });
      },
 
      gotoRunsHistory: function() {
