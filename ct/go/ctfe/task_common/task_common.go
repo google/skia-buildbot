@@ -42,6 +42,7 @@ const (
 var (
 	httpClient       = httputils.NewTimeoutClient()
 	datastoreIdMutex sync.Mutex
+	runIdMutex       sync.Mutex
 
 	// CT autoscaler.
 	autoscaler ct_autoscaler.ICTAutoscaler
@@ -110,6 +111,8 @@ func AsTaskSlice(selectResult interface{}) []Task {
 // runID. This should only happen if a user has 2 (or more) open tabs and hits trigger
 // task quickly in all tabs.
 func GetRunID(task Task) string {
+	runIdMutex.Lock()
+	defer runIdMutex.Unlock()
 	return strings.SplitN(task.GetCommonCols().Username, "@", 2)[0] + "-" + ctutil.GetCurrentTs()
 }
 
