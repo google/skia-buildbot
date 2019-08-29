@@ -3,39 +3,41 @@ package dataframe
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"sync"
 	"time"
 
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
-// Refresher keeps a fresh DataFrame.
+// Refresher keeps a fresh paramset and total trace count.
 //
-// N.B. that the Paramset and keys of TraceSet are valid.  The Header and the
-// values of the traces in the TraceSet are not representative of a full tile.
 type Refresher struct {
-	numTiles  int
 	period    time.Duration
 	dfBuilder DataFrameBuilder
 	vcs       vcsinfo.VCS
 
 	mutex sync.Mutex // protects df.
-	df    *DataFrame
+	count int64
+	ps    paramtools.ParamSet
 }
 
-// NewRefresher creates a new Refresher that updates the dataframe every
-// 'period'.
+// NewRefresher creates a new Refresher that updates every 'period'.
 //
-// A non-nil error will be returned if the initial DataFrame cannot be
-// populated. I.e. if NewRefresher returns w/o error than the caller
-// can be assured that Get() will return a non-nil DataFrame.
-func NewRefresher(vcs vcsinfo.VCS, dfBuilder DataFrameBuilder, period time.Duration, numTiles int) (*Refresher, error) {
+// A non-nil error will be returned if the initial data cannot be
+// populated. I.e. if NewRefresher returns w/o error than the caller can be
+// assured that Get() will return valid data.
+//
+// It also periodically refreshes vcs.
+// TODO(jcgregorio) Move to another process, or drop once we move to gitsync.
+func NewRefresher(vcs vcsinfo.VCS, dfBuilder DataFrameBuilder, period time.Duration) (*Refresher, error) {
 	ret := &Refresher{
 		dfBuilder: dfBuilder,
 		period:    period,
-		numTiles:  numTiles,
 		vcs:       vcs,
 	}
 	if err := ret.oneStep(); err != nil {
@@ -49,13 +51,18 @@ func (f *Refresher) oneStep() error {
 	if err := f.vcs.Update(context.Background(), true, false); err != nil {
 		return err
 	}
-	newDf, err := f.dfBuilder.NewKeysOnly(f.numTiles)
+	emptyQuery, err := query.New(url.Values{})
+	if err != nil {
+		return err
+	}
+	count, ps, err := f.dfBuilder.PreflightQuery(context.Background(), time.Now(), emptyQuery)
 	if err != nil {
 		return err
 	}
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
-	f.df = newDf
+	f.count = count
+	f.ps = ps
 	return nil
 }
 
@@ -73,8 +80,8 @@ func (f *Refresher) refresh() {
 //
 // N.B. that the Paramset and keys of TraceSet are valid.  The Header and the
 // values of the traces in the TraceSet are not representative of a full tile.
-func (f *Refresher) Get() *DataFrame {
+func (f *Refresher) Get() (int64, paramtools.ParamSet) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
-	return f.df
+	return f.count, f.ps
 }
