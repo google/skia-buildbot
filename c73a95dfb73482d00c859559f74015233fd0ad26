@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a422b6e6_83259ea9",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 1061,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T20:58:32Z",
+      "side": 1,
+      "message": "I suspect that in the long run we will be happier if we keep track of master tasks in CTFE. I think it will be somewhat common that a task will fail in Swarming without recording the failure in DS, leaving a CT task that will never finish.\n\nI also suspect we will be happier if we move the code to send start/completion emails and mark tasks as started/completed to CTFE. I don\u0027t see anything in the emails that couldn\u0027t be generated from the DS task by CTFE, if we add runID to the DS task (or switch to using DS ID instead of runID).",
+      "range": {
+        "startLine": 1061,
+        "startChar": 1,
+        "endLine": 1061,
+        "endChar": 6
+      },
+      "revId": "c73a95dfb73482d00c859559f74015233fd0ad26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
