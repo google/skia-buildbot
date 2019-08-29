@@ -24,9 +24,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/ctfe/task_types"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
-	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
-	"go.skia.org/infra/go/httputils"
 	"google.golang.org/api/iterator"
 )
 
@@ -81,9 +79,9 @@ func GetOldestPendingTask(ctx context.Context) (task_common.Task, error) {
 	return oldestTask, nil
 }
 
-// GetRunningTasks returns all running tasks from all task types.
-func GetRunningTasks(ctx context.Context) ([]task_common.Task, error) {
-	runningTasks := []task_common.Task{}
+// GetGCEPendingTaskCount returns count of pending GCE CT tasks from all task types.
+func GetGCEPendingTaskCount(ctx context.Context) (int, error) {
+	pendingGCETasksCount := 0
 	for _, task := range task_types.Prototypes() {
 		q := ds.NewQuery(task.GetDatastoreKind())
 		q = q.Filter("TaskDone =", false)
@@ -91,43 +89,16 @@ func GetRunningTasks(ctx context.Context) ([]task_common.Task, error) {
 		it := ds.DS.Run(ctx, q)
 		s, err := task.Query(it)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to query datastore for running tasks: %s", err)
+			return -1, fmt.Errorf("Failed to query datastore for GCE pending tasks: %s", err)
 		}
 		tasks := task_common.AsTaskSlice(s)
 		for _, t := range tasks {
-			if t.GetCommonCols().TsStarted != 0 {
-				runningTasks = append(runningTasks, t)
+			if t.RunsOnGCEWorkers() {
+				pendingGCETasksCount++
 			}
 		}
 	}
-	return runningTasks, nil
-}
-
-func TerminateRunningTasks(ctx context.Context) error {
-	runningTasks, err := GetRunningTasks(ctx)
-	if err != nil {
-		return fmt.Errorf("Could not get list of running tasks: %s", err)
-	}
-	runningTasksOwners := []string{}
-	for _, task := range runningTasks {
-		updateVars := task.GetUpdateTaskVars()
-		commonUpdateVars := updateVars.GetUpdateTaskCommonVars()
-		commonUpdateVars.Id = task.GetCommonCols().DatastoreKey.ID
-		commonUpdateVars.SetCompleted(false)
-		if err := task_common.UpdateTask(ctx, updateVars, task); err != nil {
-			return fmt.Errorf("Failed to update %T task: %s", updateVars, err)
-		}
-		runningTasksOwners = append(runningTasksOwners, task.GetCommonCols().Username)
-	}
-	// Email all owners + admins.
-	if len(runningTasksOwners) > 0 {
-		emailRecipients := append(runningTasksOwners, ctutil.CtAdmins...)
-		if err := ctutil.SendTasksTerminatedEmail(emailRecipients); err != nil {
-			return fmt.Errorf("Failed to send task termination email: %s", err)
-		}
-	}
-
-	return nil
+	return pendingGCETasksCount, nil
 }
 
 // Union of all task types, to be easily marshalled/unmarshalled to/from JSON. At most one field
@@ -203,29 +174,6 @@ func DecodeTask(taskJson io.Reader) (task_common.Task, error) {
 	}
 }
 
-func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	oldestTask, err := GetOldestPendingTask(r.Context())
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get oldest pending task")
-		return
-	}
-
-	if err := EncodeTask(w, oldestTask); err != nil {
-		httputils.ReportError(w, r, err,
-			fmt.Sprintf("Failed to encode JSON for %#v", oldestTask))
-		return
-	}
-}
-
-func getTerminateRunningTasksHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	if err := TerminateRunningTasks(r.Context()); err != nil {
-		httputils.ReportError(w, r, err, "Failed to terminate running tasks")
-		return
-	}
-}
-
 // GetPendingTaskCount returns the total number of pending tasks of all types. On error, the first
 // return value will be -1 and the second return value will be non-nil.
 func GetPendingTaskCount(ctx context.Context) (int64, error) {
@@ -256,14 +204,10 @@ func pendingTasksView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(pendingTasksTemplate, w, r)
 }
 
-func AddHandlers(externalRouter, internalRouter *mux.Router) {
+func AddHandlers(externalRouter *mux.Router) {
 	// Runs history handlers.
 	externalRouter.HandleFunc("/"+ctfeutil.RUNS_HISTORY_URI, runsHistoryView).Methods("GET")
 
 	// Task Queue handlers.
 	externalRouter.HandleFunc("/"+ctfeutil.PENDING_TASKS_URI, pendingTasksView).Methods("GET")
-
-	// getOldestPendingTaskHandler and getTerminateRunningTasksHandler is done via the internal router.
-	internalRouter.HandleFunc("/"+ctfeutil.GET_OLDEST_PENDING_TASK_URI, getOldestPendingTaskHandler).Methods("GET")
-	internalRouter.HandleFunc("/"+ctfeutil.TERMINATE_RUNNING_TASKS_URI, getTerminateRunningTasksHandler).Methods("POST")
 }
