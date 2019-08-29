@@ -19,9 +19,17 @@ import (
 )
 
 const (
+	// TEST_STORAGE_DIR_SEARCH_API is the path in the testdata bucket where
+	// the test data files are stored.
+	TEST_STORAGE_DIR_SEARCH_API = "gold-testdata"
+
 	// TEST_DATA_DIR_PARSE is the directory where test data for the parse
 	// function are downloaded.
 	TEST_DATA_DIR_PARSE = "testdata_parse"
+
+	// QUERIES_FNAME_SEARCH_API contains the file name of the list of queries
+	// that were extracted from the Gold application log.
+	QUERIES_FNAME_SEARCH_API = "live_queries.txt"
 )
 
 func TestParseCTQuery(t *testing.T) {
