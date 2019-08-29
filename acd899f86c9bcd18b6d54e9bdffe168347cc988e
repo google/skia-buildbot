@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a3eebf85_37283441",
+        "filename": "golden/go/clstore/clstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-29T18:53:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ad33e645_4480a39f",
+      "range": {
+        "startLine": 29,
+        "startChar": 56,
+        "endLine": 29,
+        "endChar": 65
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4d662b22_71403691",
         "filename": "golden/go/clstore/clstore.go",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9605c4ba_4944df95",
+        "filename": "golden/go/clstore/clstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-29T18:53:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4d662b22_71403691",
+      "range": {
+        "startLine": 35,
+        "startChar": 54,
+        "endLine": 35,
+        "endChar": 67
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "4e0e7adc_a88c8802",
+        "filename": "golden/go/clstore/clstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-29T18:53:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bbe6a501_518141b1",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 20
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "389a1e63_cc6295a1",
         "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
         "patchSetId": 7
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "f9f7f785_f7ddb1f9",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-29T18:53:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "389a1e63_cc6295a1",
+      "range": {
+        "startLine": 139,
+        "startChar": 14,
+        "endLine": 139,
+        "endChar": 15
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eed45eab_43f9db09",
         "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
         "patchSetId": 7
@@ -105,6 +201,30 @@
       "writtenOn": "2019-08-29T17:50:26Z",
       "side": 1,
       "message": "Is underscore disallowed for psID, crsName, and clID?",
+      "range": {
+        "startLine": 141,
+        "startChar": 16,
+        "endLine": 141,
+        "endChar": 17
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e159a8da_19aef63f",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-29T18:53:20Z",
+      "side": 1,
+      "message": "See above comment\u0027s assumption on sanitization. All implementations we plan to support at the moment do not allow underscores for psID or clID. We control crsName, so can avoid using underscore.",
+      "parentUuid": "eed45eab_43f9db09",
       "range": {
         "startLine": 141,
         "startChar": 16,
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "177342c3_7c2c25a3",
+        "filename": "golden/go/code_review/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-29T18:53:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6035808e_e11b7076",
+      "range": {
+        "startLine": 32,
+        "startChar": 80,
+        "endLine": 32,
+        "endChar": 81
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2f75ec3c_1b03fdb2",
         "filename": "golden/go/code_review/types.go",
         "patchSetId": 7
@@ -154,6 +298,24 @@
       "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a85ada1_bb6bd385",
+        "filename": "golden/go/code_review/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-29T18:53:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2f75ec3c_1b03fdb2",
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "bfcf6c5c_3c448ec8",
+        "filename": "golden/go/continuous_integration/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-29T18:53:20Z",
+      "side": 1,
+      "message": "For the two systems I\u0027ve looked at (BuildBucket and CirrusCI), their tryjob ids are\nactually globally unique.",
+      "parentUuid": "58f0df39_708ad774",
+      "range": {
+        "startLine": 21,
+        "startChar": 76,
+        "endLine": 21,
+        "endChar": 77
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8d82ed2e_57676f43",
         "filename": "golden/go/tjstore/tjstore.go",
         "patchSetId": 7
@@ -203,6 +389,30 @@
     },
     {
       "key": {
+        "uuid": "fdcbd147_964e20c9",
+        "filename": "golden/go/tjstore/tjstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-29T18:53:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8d82ed2e_57676f43",
+      "range": {
+        "startLine": 38,
+        "startChar": 11,
+        "endLine": 38,
+        "endChar": 15
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e8f6666e_05cea171",
         "filename": "golden/go/tjstore/tjstore.go",
         "patchSetId": 7
@@ -217,6 +427,24 @@
       "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40f49c0f_d0e7f428",
+        "filename": "golden/go/tjstore/tjstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-29T18:53:20Z",
+      "side": 1,
+      "message": "The schema links them for searching purposes, but I don\u0027t see any need to surface that in the Result object itself. I could be proven wrong as I fill out more of the system.",
+      "parentUuid": "e8f6666e_05cea171",
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -240,6 +468,30 @@
       "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6fed36e_023d9041",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-29T18:53:20Z",
+      "side": 1,
+      "message": "Removed",
+      "parentUuid": "ec34f72c_2cd3a145",
+      "range": {
+        "startLine": 327,
+        "startChar": 36,
+        "endLine": 327,
+        "endChar": 39
+      },
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -366,6 +618,24 @@
       "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a181ff0c_646792bc",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-29T18:53:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d406f340_42b54bb0",
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
