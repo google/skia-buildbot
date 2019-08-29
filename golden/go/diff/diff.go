@@ -69,12 +69,13 @@ type DiffMetrics struct {
 	PixelDiffPercent float32 `json:"pixelDiffPercent"`
 
 	// MaxRGBADiffs contains the maximum difference of each channel.
+	// TODO(kjlubick): make this an array [4]int
 	MaxRGBADiffs []int `json:"maxRGBADiffs"`
 
 	// DimDiffer is true if the dimensions between the two images are different.
 	DimDiffer bool `json:"dimDiffer"`
 
-	// Diffs contains different diff metrics for the to images.
+	// Diffs contains different diff metrics for the two images.
 	Diffs map[string]float32 `json:"diffs"`
 }
 
