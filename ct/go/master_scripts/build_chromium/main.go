@@ -69,7 +69,7 @@ func buildChromium() error {
 		return errors.New("At least one email address must be specified")
 	}
 	vars := chromium_builds.UpdateVars{}
-	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &vars, *taskID, *runID))
+	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &chromium_builds.UpdateVars{}, *taskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Build chromium", *runID, "", ""))
 	// Ensure task is updated and completion email is sent even if task fails.
 	defer updateTaskInDatastore(ctx)
