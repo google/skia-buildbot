@@ -34,6 +34,24 @@
       "revId": "23fbeb1df1f67208956abf0eaf3a690cd59e4668",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "baaf598e_92ba9981",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T14:27:32Z",
+      "side": 1,
+      "message": "IDK, maybe just do whatever\u0027s easiest. We could use a Float64SummaryMetric and just record the delay somewhere around this line: https://skia.googlesource.com/buildbot/+/f01a92e2ba12af91348115b3338c019cd6cd6188/task_scheduler/go/tryjobs/tryjobs.go#424",
+      "parentUuid": "94ce5263_53f0ffc7",
+      "revId": "23fbeb1df1f67208956abf0eaf3a690cd59e4668",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
