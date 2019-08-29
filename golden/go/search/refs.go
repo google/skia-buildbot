@@ -21,12 +21,14 @@ import (
 // should be added here.
 
 const (
-	// REF_CLOSEST_POSTIVE identifies the diff to the closest positive digest.
-	REF_CLOSEST_POSTIVE = "pos"
+	// positive identifies the diff to the closest positive digest.
+	positive = RefClosest("pos")
 
-	// REF_CLOSEST_NEGATIVE identifies the diff to the closest negative digest.
-	REF_CLOSEST_NEGATIVE = "neg"
+	// negative identifies the diff to the closest negative digest.
+	negative = RefClosest("neg")
 )
+
+type RefClosest string
 
 // RefDiffer aggregates the helper objects needed to calculate reference diffs.
 type RefDiffer struct {
@@ -48,7 +50,7 @@ func NewRefDiffer(exp ExpSlice, diffStore diff.DiffStore, idx indexer.IndexSearc
 // metric. 'match' is the list of parameters that need to match between
 // the digests that are compared, i.e. this allows to restrict comparison
 // of gamma correct images to other digests that are also gamma correct.
-func (r *RefDiffer) GetRefDiffs(metric string, match []string, test types.TestName, digest types.Digest, params paramtools.ParamSet, rhsQuery paramtools.ParamSet, is types.IgnoreState) (types.Digest, map[types.Digest]*SRDiffDigest) {
+func (r *RefDiffer) GetRefDiffs(metric string, match []string, test types.TestName, digest types.Digest, params paramtools.ParamSet, rhsQuery paramtools.ParamSet, is types.IgnoreState) (RefClosest, map[RefClosest]*SRDiffDigest) {
 	unavailableDigests := r.diffStore.UnavailableDigests()
 	if _, ok := unavailableDigests[digest]; ok {
 		return "", nil
@@ -58,32 +60,33 @@ func (r *RefDiffer) GetRefDiffs(metric string, match []string, test types.TestNa
 	posDigests := r.getDigestsWithLabel(test, match, params, paramsByDigest, unavailableDigests, rhsQuery, types.POSITIVE)
 	negDigests := r.getDigestsWithLabel(test, match, params, paramsByDigest, unavailableDigests, rhsQuery, types.NEGATIVE)
 
-	ret := make(map[types.Digest]*SRDiffDigest, 3)
-	ret[REF_CLOSEST_POSTIVE] = r.getClosestDiff(metric, digest, posDigests)
-	ret[REF_CLOSEST_NEGATIVE] = r.getClosestDiff(metric, digest, negDigests)
+	ret := make(map[RefClosest]*SRDiffDigest, 3)
+	ret[positive] = r.getClosestDiff(metric, digest, posDigests)
+	ret[negative] = r.getClosestDiff(metric, digest, negDigests)
 
 	// TODO(stephana): Add a diff to the previous digest in the trace.
 
 	// Find the minimum according to the diff metric.
-	minDigest := types.Digest("")
+	closest := RefClosest("")
 	minDiff := float32(math.Inf(1))
 	dCount := r.idx.DigestCountsByTest(is)[test]
-	for digest, srdd := range ret {
+	for ref, srdd := range ret {
 		if srdd != nil {
 			// Fill in the missing fields.
 			srdd.Status = r.exp.Classification(test, srdd.Digest).String()
 			srdd.ParamSet = paramsByDigest[srdd.Digest]
-			srdd.N = dCount[srdd.Digest]
+			srdd.ParamSet.Normalize()
+			srdd.OccurrencesInTile = dCount[srdd.Digest]
 
 			// Find the minimum.
 			if srdd.DiffMetrics.Diffs[metric] < minDiff {
-				minDigest = digest
+				closest = ref
 				minDiff = srdd.DiffMetrics.Diffs[metric]
 			}
 		}
 	}
 
-	return minDigest, ret
+	return closest, ret
 }
 
 // getDigestsWithLabel return all digests within the given test that
@@ -121,7 +124,11 @@ func (r *RefDiffer) getClosestDiff(metric string, digest types.Digest, compDiges
 	minDiff := float32(math.Inf(1))
 	minDigest := types.Digest("")
 	for resultDigest, diffInfo := range diffs {
-		diffMetrics := diffInfo.(*diff.DiffMetrics)
+		diffMetrics, ok := diffInfo.(*diff.DiffMetrics)
+		if !ok {
+			sklog.Warningf("unexpected diffmetric type: %#v", diffInfo)
+			continue
+		}
 		if diffMetrics.Diffs[metric] < minDiff {
 			minDiff = diffMetrics.Diffs[metric]
 			minDigest = resultDigest
