@@ -272,6 +272,30 @@
     },
     {
       "key": {
+        "uuid": "e20cda66_0710f399",
+        "filename": "ct/go/master_scripts/run_lua_on_workers/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-29T20:19:14Z",
+      "side": 1,
+      "message": "Well, I think running on Swarming will resolve an issue we didn\u0027t know we had: Currently parallel Lua tasks will scribble on each others\u0027 /tmp/lua-output. :-)",
+      "parentUuid": "ed9970a8_43b23f78",
+      "range": {
+        "startLine": 173,
+        "startChar": 4,
+        "endLine": 173,
+        "endChar": 52
+      },
+      "revId": "8bd6fc510be04f4842675dacccec5629e2695aff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bebeb629_609aa0b1",
         "filename": "ct/go/master_scripts/run_lua_on_workers/main.go",
         "patchSetId": 6
