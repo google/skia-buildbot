@@ -26,14 +26,14 @@ func setJSONHeaders(w http.ResponseWriter) {
 
 // sendResponseWithPagination wraps the data of a successful response in a response envelope
 // and sends it to the client.
-func sendResponseWithPagination(w http.ResponseWriter, data interface{}, status int, pagination *httputils.ResponsePagination) {
+func sendResponseWithPagination(w http.ResponseWriter, data interface{}, pagination *httputils.ResponsePagination) {
 	resp := ResponseEnvelope{
 		Data:       &data,
-		Status:     status,
+		Status:     http.StatusOK,
 		Pagination: pagination,
 	}
 	setJSONHeaders(w)
-	w.WriteHeader(status)
+	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

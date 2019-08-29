@@ -5,6 +5,7 @@ package clstore
 import (
 	"context"
 	"errors"
+	"math"
 
 	"go.skia.org/infra/golden/go/code_review"
 )
@@ -13,6 +14,8 @@ import (
 // for storing ChangeLists and PatchSets. Of note, we will only store data for
 // ChangeLists and PatchSets that have uploaded data to Gold (e.g. via ingestion);
 // the purpose of this interface is not to store every CL.
+// A single Store interface should only be responsible for one "system", i.e.
+// Gerrit or GitHub.
 type Store interface {
 	// GetChangeList returns the ChangeList corresponding to the given id.
 	// Returns NotFound if it doesn't exist.
@@ -21,12 +24,29 @@ type Store interface {
 	// Returns NotFound if it doesn't exist.
 	GetPatchSet(ctx context.Context, clID, psID string) (code_review.PatchSet, error)
 
+	// GetChangeLists returns a slice of ChangeList objects sorted such that the
+	// most recently updated ones come first. The slice starts at the given
+	// index and should be no longer than limit specifies.
+	// If it is computationally cheap to do so, the second return value can be
+	// a count of the total number of CLs, or CountMany otherwise.
+	GetChangeLists(ctx context.Context, startIdx, limit int) ([]code_review.ChangeList, int, error)
+
+	// GetPatchSets returns a slice of PatchSets belonging to the given ChangeList.
+	// They should be ordered in increasing Order index.
+	// The returned slice could be empty, even if the CL exists.
+	GetPatchSets(ctx context.Context, clID string) ([]code_review.PatchSet, error)
+
 	// PutChangeList stores the given ChangeList, overwriting any values for
 	// that ChangeList if they already existed.
 	PutChangeList(ctx context.Context, cl code_review.ChangeList) error
 	// PutPatchSet stores the given PatchSet, overwriting any values for
 	// that PatchSet if they already existed.
 	PutPatchSet(ctx context.Context, ps code_review.PatchSet) error
+
+	// Returns the underlying system (e.g. "gerrit")
+	System() string
 }
 
 var ErrNotFound = errors.New("not found")
+
+var CountMany = math.MaxInt32

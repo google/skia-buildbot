@@ -29,7 +29,7 @@ type Client interface {
 var ErrNotFound = errors.New("not found")
 
 type ChangeList struct {
-	// SystemID is expected to be unique between all ChangeLists.
+	// SystemID is expected to be unique between all ChangeLists for a given system and repo.
 	SystemID string
 
 	Owner   string
@@ -46,11 +46,24 @@ const (
 	Landed
 )
 
+func (c CLStatus) String() string {
+	switch c {
+	case Open:
+		return "Open"
+	case Abandoned:
+		return "Abandoned"
+	case Landed:
+		return "Landed"
+	}
+	return "<unknown>"
+}
+
 type PatchSet struct {
-	// SystemID may or may not be unique for all PatchSets globally.
-	// Definitely unique within a given ChangeList.
+	// SystemID may or may not be unique for all PatchSets for a given system.
+	// Definitely unique for a given ChangeList.
 	SystemID string
 
+	// ChangeListID is the id that the PatchSet belongs to.
 	ChangeListID string
 	// It is convenient to think about PatchSets starting at 1 and increasing
 	// monotonically. This gives some measure of time/progress. Order is the

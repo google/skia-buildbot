@@ -98,6 +98,11 @@ func (s *StoreImpl) changeListFirestoreID(clID string) string {
 	return clID + "_" + s.crsName
 }
 
+// GetChangeLists implements the clstore.Store interface.
+func (s *StoreImpl) GetChangeLists(ctx context.Context, startIdx, limit int) ([]code_review.ChangeList, int, error) {
+	return nil, 0, skerr.Fmt("not impl")
+}
+
 // GetPatchSet implements the clstore.Store interface.
 func (s *StoreImpl) GetPatchSet(ctx context.Context, clID, psID string) (code_review.PatchSet, error) {
 	defer metrics2.FuncTimer().Stop()
@@ -128,8 +133,17 @@ func (s *StoreImpl) GetPatchSet(ctx context.Context, clID, psID string) (code_re
 	return ps, nil
 }
 
+// patchSetFirestoreID creates a deterministic id for a PatchSet, allowing for
+// direct lookups. Assuming the two inputs are sanitized (e.g. they are valid IDs
+// in one of the supported system), the ID will be unique for all PatchSets across
+// all systems scoped by a Gold instance.
 func (s *StoreImpl) patchSetFirestoreID(psID, clID string) string {
 	return psID + "_" + s.crsName + "_" + clID
+}
+
+// GetPatchSets implements the clstore.Store interface.
+func (s *StoreImpl) GetPatchSets(ctx context.Context, clID string) ([]code_review.PatchSet, error) {
+	return nil, skerr.Fmt("not impl")
 }
 
 // PutChangeList implements the clstore.Store interface.
@@ -168,6 +182,11 @@ func (s *StoreImpl) PutPatchSet(ctx context.Context, ps code_review.PatchSet) er
 		return skerr.Wrapf(err, "could not write PS %v to clstore", ps)
 	}
 	return nil
+}
+
+// System implements the clstore.Store interface.
+func (s *StoreImpl) System() string {
+	return s.crsName
 }
 
 // Make sure StoreImpl fulfills the clstore.Store interface.

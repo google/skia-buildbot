@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -23,6 +24,9 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/blame"
+	"go.skia.org/infra/golden/go/clstore"
+	"go.skia.org/infra/golden/go/code_review"
+	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
@@ -33,6 +37,7 @@ import (
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tilesource"
+	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/tryjobs"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
@@ -50,18 +55,20 @@ const (
 // WebHandlers holds the environment needed by the various http hander functions
 // that have WebHandlers as its receiver.
 type WebHandlers struct {
-	Baseliner         baseline.BaselineFetcher
-	DiffStore         diff.DiffStore
-	ExpectationsStore expstorage.ExpectationsStore
-	GCSClient         storage.GCSClient
-	IgnoreStore       ignore.IgnoreStore
-	Indexer           indexer.IndexSource
-	SearchAPI         *search.SearchAPI
-	StatusWatcher     *status.StatusWatcher
-	TileSource        tilesource.TileSource
-	TryjobMonitor     tryjobs.TryjobMonitor
-	TryjobStore       tryjobstore.TryjobStore
-	VCS               vcsinfo.VCS
+	Baseliner               baseline.BaselineFetcher
+	ChangeListStore         clstore.Store
+	DeprecatedTryjobMonitor tryjobs.TryjobMonitor
+	DeprecatedTryjobStore   tryjobstore.TryjobStore
+	DiffStore               diff.DiffStore
+	ExpectationsStore       expstorage.ExpectationsStore
+	GCSClient               storage.GCSClient
+	IgnoreStore             ignore.IgnoreStore
+	Indexer                 indexer.IndexSource
+	SearchAPI               *search.SearchAPI
+	StatusWatcher           *status.StatusWatcher
+	TileSource              tilesource.TileSource
+	TryJobStore             tjstore.Store
+	VCS                     vcsinfo.VCS
 }
 
 // TODO(stephana): once the byBlameHandler is removed, refactor this to
@@ -264,7 +271,7 @@ func (wh *WebHandlers) DeprecatedTryjobListHandler(w http.ResponseWriter, r *htt
 
 	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, pageSize, maxPageSize)
 	if err == nil {
-		tryjobRuns, total, err = wh.TryjobStore.ListIssues(offset, size)
+		tryjobRuns, total, err = wh.DeprecatedTryjobStore.ListIssues(offset, size)
 	}
 
 	if err != nil {
@@ -277,11 +284,12 @@ func (wh *WebHandlers) DeprecatedTryjobListHandler(w http.ResponseWriter, r *htt
 		Size:   size,
 		Total:  total,
 	}
-	sendResponseWithPagination(w, tryjobRuns, 200, pagination)
+	sendResponseWithPagination(w, tryjobRuns, pagination)
 }
 
 // DeprecatedTryjobsSummaryHandler is the endpoint to get a summary of the tryjob
 // results for a Gerrit issue.
+// This appears to be unreached by the frontend.
 func (wh *WebHandlers) DeprecatedTryjobSummaryHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	issueID, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
@@ -303,7 +311,184 @@ func (wh *WebHandlers) DeprecatedTryjobSummaryHandler(w http.ResponseWriter, r *
 	sendJSONResponse(w, resp)
 }
 
-// SearchHandler is the endpoint for all searches.
+// ChangeListsHandler returns the list of code_review.ChangeLists that have
+// uploaded results to Gold (via TryJobs).
+func (wh *WebHandlers) ChangeListsHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, pageSize, maxPageSize)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Invalid pagination params.")
+		return
+	}
+
+	cls, pagination, err := wh.getChangeListsWithTryJobs(r.Context(), offset, size)
+
+	if err != nil {
+		httputils.ReportError(w, r, err, "Retrieving changelists results failed.")
+		return
+	}
+
+	sendResponseWithPagination(w, cls, pagination)
+}
+
+// changeList encapsulates how the frontend expects to get information
+// about a code_review.ChangeList that has Gold results associated with it.
+// We have a separate struct so we can decouple the JSON representation
+// and the backend representation (if it needs changing or use by another project
+// with its own JSON requirements).
+type changeList struct {
+	System   string    `json:"system"`
+	SystemID string    `json:"id"`
+	Owner    string    `json:"owner"`
+	Status   string    `json:"status"`
+	Subject  string    `json:"subject"`
+	Updated  time.Time `json:"updated"`
+}
+
+// convertChangeList turns a code_review.ChangeList into a changeList for the frontend.
+func convertChangeList(cl code_review.ChangeList, system string) changeList {
+	return changeList{
+		System:   system,
+		SystemID: cl.SystemID,
+		Owner:    cl.Owner,
+		Status:   cl.Status.String(),
+		Subject:  cl.Subject,
+		Updated:  cl.Updated,
+	}
+}
+
+// getChangeListsWithTryJobs performs the core of the logic for ChangeListsHandler,
+// by fetching N ChangeLists given an offset.
+func (wh *WebHandlers) getChangeListsWithTryJobs(ctx context.Context, offset, size int) ([]changeList, *httputils.ResponsePagination, error) {
+	cls, total, err := wh.ChangeListStore.GetChangeLists(ctx, offset, size)
+	if err != nil {
+		return nil, nil, skerr.Wrapf(err, "fetching ChangeLists from [%d:%d)", offset, offset+size)
+	}
+	crs := wh.ChangeListStore.System()
+	var retCls []changeList
+	for _, cl := range cls {
+		retCls = append(retCls, convertChangeList(cl, crs))
+	}
+
+	pagination := &httputils.ResponsePagination{
+		Offset: offset,
+		Size:   size,
+		Total:  total,
+	}
+	return retCls, pagination, nil
+}
+
+// ChangeListSummaryHandler returns a summary of the data we have collected
+// for a given ChangeList, specifically any TryJobs that have uploaded data
+// to Gold belonging to various patchsets in it.
+func (wh *WebHandlers) ChangeListSummaryHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	// mux.Vars also has "system", which can be used if we ever need to implement
+	// the functionality to handle two code review systems at once.
+	clID, ok := mux.Vars(r)["id"]
+	if !ok {
+		httputils.ReportError(w, r, nil, "Must specify 'id' of ChangeList.")
+		return
+	}
+
+	rv, err := wh.getCLSummary(r.Context(), clID)
+	if err != nil {
+		httputils.ReportError(w, r, err, "could not retrieve data for the specified CL.")
+		return
+	}
+	sendJSONResponse(w, rv)
+}
+
+// getCLSummary does a bulk of the work for ChangeListSummaryHandler, specifically
+// fetching the ChangeList and PatchSets from clstore and any associated TryJobs from
+// the tjstore.
+func (wh *WebHandlers) getCLSummary(ctx context.Context, clID string) (changeListSummary, error) {
+	cl, err := wh.ChangeListStore.GetChangeList(ctx, clID)
+	if err != nil {
+		return changeListSummary{}, skerr.Wrapf(err, "getting CL %s", clID)
+	}
+
+	// We know xps is sorted by order, if it is non-nil
+	xps, err := wh.ChangeListStore.GetPatchSets(ctx, clID)
+	if err != nil {
+		return changeListSummary{}, skerr.Wrapf(err, "getting PatchSets for CL %s", clID)
+	}
+
+	crs := wh.ChangeListStore.System()
+	var patchsets []patchSet
+	maxOrder := 0
+
+	// TODO(kjlubick): maybe fetch these in parallel (with errgroup)
+	for _, ps := range xps {
+		if ps.Order > maxOrder {
+			maxOrder = ps.Order
+		}
+		psID := tjstore.CombinedPSID{
+			CL:  clID,
+			CRS: wh.ChangeListStore.System(),
+			PS:  ps.SystemID,
+		}
+		xtj, err := wh.TryJobStore.GetTryJobs(ctx, psID)
+		if err != nil {
+			return changeListSummary{}, skerr.Wrapf(err, "getting TryJobs for CL %s - PS %s", clID, ps.SystemID)
+		}
+		cis := wh.TryJobStore.System()
+		var tryjobs []tryJob
+		for _, tj := range xtj {
+			tryjobs = append(tryjobs, convertTryJob(tj, cis))
+		}
+
+		patchsets = append(patchsets, patchSet{
+			SystemID: ps.SystemID,
+			Order:    ps.Order,
+			TryJobs:  tryjobs,
+		})
+	}
+
+	return changeListSummary{
+		CL:                convertChangeList(cl, crs),
+		PatchSets:         patchsets,
+		NumTotalPatchSets: maxOrder,
+	}, nil
+}
+
+// changeListSummary encapsulates how the frontend expects to get a summary of
+// the TryJob information we have associated with a given ChangeList. These
+// TryJobs are those we've noticed that uploaded results to Gold.
+type changeListSummary struct {
+	CL changeList `json:"cl"`
+	// these are only those patchsets with data.
+	PatchSets         []patchSet `json:"patchsets"`
+	NumTotalPatchSets int        `json:"patchsets_with_data"`
+}
+
+// patchSet represents the data the frontend needs for PatchSets.
+type patchSet struct {
+	SystemID string   `json:"id"`
+	Order    int      `json:"order"`
+	TryJobs  []tryJob `json:"tryjobs"`
+}
+
+// tryJob represents the data the frontend needs for TryJobs.
+type tryJob struct {
+	SystemID    string    `json:"id"`
+	DisplayName string    `json:"name"`
+	Updated     time.Time `json:"updated"`
+	System      string    `json:"system"`
+}
+
+// convertTryJob turns a ci.TryJob into a tryJob for the frontend.
+func convertTryJob(tj ci.TryJob, system string) tryJob {
+	return tryJob{
+		System:      system,
+		SystemID:    tj.SystemID,
+		DisplayName: tj.DisplayName,
+		Updated:     tj.Updated,
+	}
+}
+
+// SearchHandler is the endpoint for all searches, including accessing
+// results that belong to a tryjob.
 func (wh *WebHandlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	query, ok := parseSearchQuery(w, r)
@@ -942,7 +1127,7 @@ func (wh *WebHandlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) 
 		Total:  total,
 	}
 
-	sendResponseWithPagination(w, logEntries, http.StatusOK, pagination)
+	sendResponseWithPagination(w, logEntries, pagination)
 }
 
 // TriageUndoHandler performs an "undo" for a given change id.
@@ -1237,7 +1422,7 @@ func (wh *WebHandlers) RefreshIssue(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := wh.TryjobMonitor.ForceRefresh(issueID); err != nil {
+	if err := wh.DeprecatedTryjobMonitor.ForceRefresh(issueID); err != nil {
 		httputils.ReportError(w, r, err, "Refreshing issue failed.")
 		return
 	}
