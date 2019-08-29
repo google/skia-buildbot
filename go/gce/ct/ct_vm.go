@@ -29,6 +29,8 @@ var (
 	androidBuilder  = flag.Bool("android-builder", false, "Whether or not this is an android builder instance.")
 	linuxBuilder    = flag.Bool("linux-builder", false, "Whether or not this is a linux builder instance.")
 	windowsBuilder  = flag.Bool("windows-builder", false, "Whether or not this is a windows builder instance.")
+	master          = flag.Bool("master", false, "Whether or not this is a linux master instance.")
+	worker          = flag.Bool("worker", false, "Whether or not this is a linux worker instance.")
 	create          = flag.Bool("create", false, "Create the instance. Either --create or --delete is required.")
 	delete          = flag.Bool("delete", false, "Delete the instance. Either --create or --delete is required.")
 	deleteDataDisk  = flag.Bool("delete-data-disk", false, "Delete the data disk. Only valid with --delete")
@@ -49,12 +51,24 @@ func main() {
 		sklog.Fatal("Please specify --create or --delete, but not both.")
 	}
 
-	if *androidBuilder && *linuxBuilder {
-		sklog.Fatal("Cannot specify both --android-builder and --linux-builder.")
-	} else if *androidBuilder && *windowsBuilder {
-		sklog.Fatal("Cannot specify both --android-builder and --windows-builder.")
-	} else if *linuxBuilder && *windowsBuilder {
-		sklog.Fatal("Cannot specify both --linux-builder and --windows-builder.")
+	numInstanceTypeFlagsSet := 0
+	if *androidBuilder {
+		numInstanceTypeFlagsSet++
+	}
+	if *linuxBuilder {
+		numInstanceTypeFlagsSet++
+	}
+	if *windowsBuilder {
+		numInstanceTypeFlagsSet++
+	}
+	if *master {
+		numInstanceTypeFlagsSet++
+	}
+	if *worker {
+		numInstanceTypeFlagsSet++
+	}
+	if numInstanceTypeFlagsSet != 1 {
+		sklog.Fatal("Must specify exactly one of the builder flags or --master or --worker")
 	}
 
 	if *windowsBuilder && !*windowsInstance {
@@ -112,8 +126,12 @@ func main() {
 			} else {
 				vm = instance_types.CTWindowsInstance(num, winSetupScript, winStartupScript, winChromebotScript)
 			}
+		} else if *master {
+			vm = instance_types.CTMasterInstance(num)
+		} else if *worker {
+			vm = instance_types.CTWorkerInstance(num)
 		} else {
-			vm = instance_types.CTInstance(num)
+			sklog.Fatal("Must specify exactly one of the builder flags or --master or --worker")
 		}
 
 		group.Go(vm.Name, func() error {
