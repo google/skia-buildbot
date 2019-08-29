@@ -187,7 +187,7 @@ func runLuaOnWorkers() error {
 		respBody, err := gs.GetRemoteFileContents(workerRemoteOutputPath)
 		if err != nil {
 			sklog.Errorf("Could not fetch %s: %s", workerRemoteOutputPath, err)
-			continue
+			return
 		}
 		defer skutil.Close(respBody)
 		out, err := os.OpenFile(consolidatedLuaOutput, os.O_RDWR|os.O_APPEND, 0660)
