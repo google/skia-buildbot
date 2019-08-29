@@ -32,7 +32,6 @@ import (
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/paramreducer"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
@@ -155,6 +154,8 @@ var (
 	dryrunRequests *dryrun.Requests
 
 	paramsetRefresher *psrefresh.ParamSetRefresher
+
+	dfBuilder dataframe.DataFrameBuilder
 )
 
 func loadTemplates() {
@@ -323,7 +324,7 @@ func Init() {
 	}
 
 	sklog.Info("About to build dataframebuilder.")
-	var dfBuilder dataframe.DataFrameBuilder
+
 	traceStore, err = btts.NewBigTableTraceStoreFromConfig(ctx, btConfig, ts, false)
 	if err != nil {
 		sklog.Fatalf("Failed to open trace store: %s", err)
@@ -341,7 +342,7 @@ func Init() {
 
 	if *clusterOnly {
 		sklog.Info("About to build dataframe refresher.")
-		freshDataFrame, err = dataframe.NewRefresher(vcs, dfBuilder, 15*time.Minute, *numTilesRefresher)
+		freshDataFrame, err = dataframe.NewRefresher(vcs, dfBuilder, 15*time.Minute)
 		if err != nil {
 			sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
 		}
@@ -468,11 +469,11 @@ func alertsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func initpageHandler(w http.ResponseWriter, r *http.Request) {
-	df := freshDataFrame.Get()
+	_, ps := freshDataFrame.Get()
 
 	resp := &dataframe.FrameResponse{
 		DataFrame: &dataframe.DataFrame{
-			ParamSet: df.ParamSet,
+			ParamSet: ps,
 		},
 		Ticks: []interface{}{},
 		Skps:  []int{},
@@ -649,6 +650,11 @@ type CountRequest struct {
 	End   int    `json:"end"`
 }
 
+type countHandlerResponse struct {
+	Count    int                 `json:"count"`
+	Paramset paramtools.ParamSet `json:"paramset"`
+}
+
 // countHandler takes the POST'd query and runs that against the current
 // dataframe and returns how many traces match the query.
 func countHandler(w http.ResponseWriter, r *http.Request) {
@@ -670,27 +676,21 @@ func countHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Invalid query.")
 		return
 	}
-	df := freshDataFrame.Get()
-	reducer, err := paramreducer.New(u, df.ParamSet)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to calculate new paramset.")
-		return
-	}
-
-	count := 0
-	for key := range df.TraceSet {
-		if q.Matches(key) {
-			count += 1
+	resp := countHandlerResponse{}
+	if cr.Q == "" {
+		count, ps := freshDataFrame.Get()
+		resp.Count = int(count)
+		resp.Paramset = ps
+	} else {
+		count, ps, err := dfBuilder.PreflightQuery(r.Context(), time.Now(), q)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to Preflight the query.")
 		}
-		reducer.Add(key)
+
+		resp.Count = int(count)
+		resp.Paramset = ps
 	}
-	if err := json.NewEncoder(w).Encode(struct {
-		Count    int                 `json:"count"`
-		Paramset paramtools.ParamSet `json:"paramset"`
-	}{
-		Count:    count,
-		Paramset: reducer.Reduce(),
-	}); err != nil {
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
 }

@@ -232,13 +232,16 @@ func TestTraces(t *testing.T) {
 		",config=8888,cpu=arm,": vec2,
 	}
 	assert.Equal(t, expected, results)
-	/*
-		results, err = b.QueryTracesByIndex(context.Background(), tileKey, q)
-		assert.NoError(t, err)
-		assert.Equal(t, expected, results)
-	*/
 
-	keys, err := b.TileKeys(ctx, tileKey)
+	results, err = b.QueryTracesByIndex(context.Background(), tileKey, q)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, results)
+
+	out, _ := b.TileKeys(ctx, tileKey)
+	keys := []string{}
+	for s := range out {
+		keys = append(keys, s)
+	}
 	assert.NoError(t, err)
 	sort.Strings(keys)
 	assert.Equal(t, []string{",config=565,cpu=arm,", ",config=565,cpu=x86,", ",config=8888,cpu=arm,", ",config=8888,cpu=x86,"}, keys)
@@ -269,11 +272,10 @@ func TestTraces(t *testing.T) {
 		",config=8888,cpu=arm,": vec2,
 	}
 	assert.Equal(t, expected, results)
-	/*
-		results, err = b.QueryTracesByIndex(context.Background(), tileKey, q)
-		assert.NoError(t, err)
-		assert.Equal(t, expected, results)
-	*/
+
+	results, err = b.QueryTracesByIndex(context.Background(), tileKey, q)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, results)
 
 	// Write in the next column.
 	writeParams := []paramtools.Params{
@@ -300,11 +302,10 @@ func TestTraces(t *testing.T) {
 	assert.Equal(t, expected, results)
 	count = assertIndices(t, ops, b, expectedParams, "Write new value.")
 	assert.Equal(t, 8, count)
-	/*
-		results, err = b.QueryTracesByIndex(context.Background(), tileKey, q)
-		assert.NoError(t, err)
-		assert.Equal(t, expected, results)
-	*/
+
+	results, err = b.QueryTracesByIndex(context.Background(), tileKey, q)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, results)
 
 	// Write to a new trace.
 	writeParams = []paramtools.Params{
