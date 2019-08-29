@@ -77,20 +77,3 @@ func (sm srInterMap) numDigests() int {
 	}
 	return ret
 }
-
-// IssueSummary contains a highl level summary of a Gerrit issue.
-type IssueSummary struct {
-	ID          int64              `json:"id"`          // issue ID
-	TimeStampMs int64              `json:"timeStampMs"` // timestamp of the last update
-	PatchSets   []*PatchsetSummary `json:"patchsets"`   // patchset information
-}
-
-// PatchsetSummary contains a high level summary of a Gerrit patchset.
-type PatchsetSummary struct {
-	PatchsetID   int64 `json:"patchsetID"`   // id of the patchset withing the issue
-	TotalJobs    int   `json:"totalJobs"`    // total number of tryjobs known to gold
-	FinishedJobs int   `json:"finishedJobs"` // number of tryjobs ingested by gold
-	TotalImg     int   `json:"totalImg"`     // total images created by all tryjobs
-	NewImg       int   `json:"newImg"`       // number of new images (not in master)
-	UntriagedImg int   `json:"untriagedImg"` // number of untriaged images (<= newImg)
-}

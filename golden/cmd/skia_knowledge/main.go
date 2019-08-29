@@ -16,7 +16,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/search"
+	"go.skia.org/infra/golden/go/search/export"
 )
 
 const (
@@ -67,7 +67,7 @@ func main() {
 	sklog.Infoln("Meta data loaded from Gold.")
 
 	// Write the index file to disk.
-	if err := search.WriteExportTestRecordsFile(testRecords, useIndexPath); err != nil {
+	if err := export.WriteTestRecordsFile(testRecords, useIndexPath); err != nil {
 		sklog.Fatalf("Error writing index file: %s", err)
 	}
 	sklog.Infoln("Index file written to disk.")
@@ -83,7 +83,7 @@ func main() {
 }
 
 // loadMetaData makes a query to a Gold instance and parses the JSON response.
-func loadMetaData(client *http.Client, baseURL, query, metaDataFileName string) ([]*search.ExportTestRecord, error) {
+func loadMetaData(client *http.Client, baseURL, query, metaDataFileName string) ([]*export.TestRecord, error) {
 	url := strings.TrimRight(baseURL, "/") + SEARCH_PATH + "?" + query
 	sklog.Infof("Requesting url: %s", url)
 	resp, err := client.Get(url)
@@ -91,12 +91,12 @@ func loadMetaData(client *http.Client, baseURL, query, metaDataFileName string) 
 		return nil, err
 	}
 	defer util.Close(resp.Body)
-	return search.ReadExportTestRecords(resp.Body)
+	return export.ReadTestRecords(resp.Body)
 }
 
 // downloadImages downloads all images referenced in the meta data to disk.
 // One directory is created for each test.
-func downloadImages(baseDir string, client *http.Client, testRecs []*search.ExportTestRecord) error {
+func downloadImages(baseDir string, client *http.Client, testRecs []*export.TestRecord) error {
 	for _, testRec := range testRecs {
 		testDir := filepath.Join(baseDir, string(testRec.TestName))
 		absDirPath, err := fileutil.EnsureDirExists(testDir)
