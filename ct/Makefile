@@ -21,23 +21,14 @@ ctfe: res/css/ctfe.css clean_webtools core_js elements_html skiaversion
 ctfe_debug: res/css/ctfe.css debug skiaversion
 	go install -v ./go/ctfe
 
-.PHONY: ctfe_release
-ctfe_release: ctfe
+.PHONY: release
+release: all
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/ctfe
 	./build_ctfe_release
 
-.PHONY: ctfe_push
-ctfe_push: ctfe skia-public
+.PHONY: push
+push: all skia-public
 	pushk ctfe
-
-.PHONY: ctmaster_release
-ctmaster_release: all
-	GOOS=linux go install -a ./go/...
-	./build_ctmaster_release
-
-.PHONY: ctmaster_push
-ctmaster_push: all skia-public
-	pushk ct-master
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
@@ -120,10 +111,6 @@ run_chromium_analysis:
 metrics_analysis:
 	go install -v ./go/worker_scripts/metrics_analysis/
 
-.PHONY: poller
-poller:
-	go install -v ./go/poller/
-
 # This is the quick version triggered by the presubmit script.
 .PHONY: testgo
 testgo:
@@ -137,7 +124,7 @@ test:
 master_scripts: build_chromium \
 	create_pagesets_on_workers capture_archives_on_workers \
 	run_lua_on_workers capture_skps_on_workers \
-        run_chromium_perf_on_workers poller \
+        run_chromium_perf_on_workers \
         run_chromium_analysis_on_workers metrics_analysis_on_workers
 
 .PHONY: worker_scripts
@@ -147,7 +134,7 @@ worker_scripts: create_pagesets capture_archives run_lua capture_skps \
                 isolate_telemetry
 
 .PHONY: all
-all: master_scripts worker_scripts testgo
+all: ctfe master_scripts worker_scripts testgo
 
 .PHONY: e2e_tests
 e2e_tests:
