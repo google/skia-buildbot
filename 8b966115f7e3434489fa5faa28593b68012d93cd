@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c0d9780f_bfd78aef",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-29T16:35:13Z",
+      "side": 1,
+      "message": "Try path.Join, which always uses forward slashes.\n\nhttps://golang.org/pkg/path/",
+      "revId": "8b966115f7e3434489fa5faa28593b68012d93cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
