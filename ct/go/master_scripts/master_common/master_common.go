@@ -6,12 +6,14 @@ package master_common
 
 import (
 	"flag"
+	"path/filepath"
 
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/sklog"
+	skutil "go.skia.org/infra/go/util"
 )
 
 var (
@@ -62,6 +64,7 @@ func initRest() {
 	if *Local {
 		util.SetVarsForLocal()
 	} else {
+		skutil.MkdirAll(util.StorageDir, 0700)
 		// Initialize mailing library.
 		util.MailInit()
 	}
