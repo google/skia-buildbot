@@ -53,7 +53,8 @@ func MakeFullJob(now time.Time) *Job {
 		RepoState: RepoState{
 			Repo: DEFAULT_TEST_REPO,
 		},
-		Status: JOB_STATUS_SUCCESS,
+		Requested: now,
+		Status:    JOB_STATUS_SUCCESS,
 		Tasks: map[string][]*TaskSummary{
 			"task-name": {&TaskSummary{
 				Id:             "12345",

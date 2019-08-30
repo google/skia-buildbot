@@ -178,9 +178,9 @@ func Build(t sktest.TestingT, now time.Time) *buildbucket_api.LegacyApiCommonBui
 	return &buildbucket_api.LegacyApiCommonBuildMessage{
 		Bucket:            BUCKET_TESTING,
 		CreatedBy:         "tests",
-		CreatedTs:         now.Unix() * 1000000,
+		CreatedTs:         now.Unix() * secondsToMicros,
 		Id:                rand.Int63(),
-		LeaseExpirationTs: now.Add(LEASE_DURATION_INITIAL).Unix() * 1000000,
+		LeaseExpirationTs: now.Add(LEASE_DURATION_INITIAL).Unix() * secondsToMicros,
 		LeaseKey:          987654321,
 		ParametersJson:    testutils.MarshalJSON(t, Params(t, "fake-job", patchProject, "master", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset)),
 		Status:            "SCHEDULED",
@@ -222,7 +222,7 @@ type heartbeatResp struct {
 
 func MockHeartbeats(t sktest.TestingT, mock *mockhttpclient.URLMock, now time.Time, jobs []*types.Job, resps map[string]*heartbeatResp) {
 	// Create the request data.
-	expiry := fmt.Sprintf("%d", now.Add(LEASE_DURATION).Unix()*1000000)
+	expiry := fmt.Sprintf("%d", now.Add(LEASE_DURATION).Unix()*secondsToMicros)
 	heartbeats := make([]*heartbeat, 0, len(jobs))
 	for _, j := range jobs {
 		heartbeats = append(heartbeats, &heartbeat{

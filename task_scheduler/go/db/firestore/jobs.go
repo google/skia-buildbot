@@ -25,6 +25,7 @@ func fixJobTimestamps(job *types.Job) {
 	job.Created = firestore.FixTimestamp(job.Created)
 	job.DbModified = firestore.FixTimestamp(job.DbModified)
 	job.Finished = firestore.FixTimestamp(job.Finished)
+	job.Requested = firestore.FixTimestamp(job.Requested)
 }
 
 // jobs returns a reference to the jobs collection.
