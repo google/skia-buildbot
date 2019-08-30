@@ -67,13 +67,6 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 		},
 	})
 
-	mds.On("WarmDigests", diff.PRIORITY_NOW, mock.AnythingOfType("types.DigestSlice"), true).Run(asyncWrapper(func(args mock.Arguments) {
-		digests := args.Get(1).(types.DigestSlice)
-		sort.Sort(digests)
-
-		assert.Equal(t, allTestDigests, digests)
-	}))
-
 	mgc.On("WriteKnownDigests", mock.AnythingOfType("types.DigestSlice")).Run(asyncWrapper(func(args mock.Arguments) {
 		digests := args.Get(0).(types.DigestSlice)
 		sort.Sort(digests)
