@@ -7,6 +7,9 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/perf/go/btts/engine"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // ParamIndex returns a channel that emits the OPS encoded trace keys in
@@ -20,27 +23,41 @@ import (
 //
 // The returned channel is closed once the last trace id is sent, or the context
 // is cancelled.
-func ParamIndex(ctx context.Context, table *bigtable.Table, tileKey TileKey, key, value string, errCh chan<- error) <-chan string {
-	ret := make(chan string)
+//
+// The desc is a descriptive string to add to any error logs this function produces.
+func ParamIndex(ctx context.Context, table *bigtable.Table, tileKey TileKey, key, value, desc string) <-chan string {
+	ch := make(chan string, engine.QUERY_ENGINE_CHANNEL_SIZE)
 
-	go func() {
-		defer close(ret)
-		prefix := fmt.Sprintf("%s:%s:%s", tileKey.IndexRowPrefix(), key, value)
+	go func(ch chan string) {
+		defer close(ch)
+		prefix := fmt.Sprintf("%s:%s:%s:", tileKey.IndexRowPrefix(), key, value)
 		if err := table.ReadRows(ctx, bigtable.PrefixRange(prefix), func(row bigtable.Row) bool {
 			parts := strings.Split(row.Key(), ":")
 			if len(parts) != 4 {
 				sklog.Errorf("Invalid index row key doesn't contain 4 parts: %q", row.Key())
 			}
-			ret <- parts[3]
+			ch <- parts[3]
 			return true
 		}, bigtable.RowFilter(
 			bigtable.ChainFilters(
 				bigtable.LatestNFilter(1),
 				bigtable.FamilyFilter(INDEX_FAMILY),
 			))); err != nil {
-			errCh <- fmt.Errorf("BigTable failure at Tile: %d key=%q value=%q: %s", tileKey, key, value, err)
+			// It is completely possible that this request gets cancelled before
+			// it is finished if it feeds into Intersect and the other query
+			// runs out of keys first. But we want to report an error into the
+			// logs if it's not that kind of error. So we convert it to a
+			// grpc.Status, and if our context cancelled the operation then the
+			// status code will be 'unknown'. Not sure why it isn't 'timeout',
+			// but I think that's because the timeout occurred outside the grpc
+			// error space. See:
+			// https://godoc.org/google.golang.org/grpc/codes#Code
+			st := status.FromContextError(err)
+			if st != nil && st.Code() != codes.Unknown {
+				sklog.Errorf("ReadRows failed: %q, %v", desc, st)
+			}
 		}
-	}()
+	}(ch)
 
-	return ret
+	return ch
 }

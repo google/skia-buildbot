@@ -1,6 +1,8 @@
 package engine
 
-import "context"
+import (
+	"context"
+)
 
 // NewUnion takes the ordered values coming from all the 'inputs' channels
 // and collates them into a single output channel, removing duplicates
@@ -42,7 +44,7 @@ func NewUnion(ctx context.Context, inputs []<-chan string) <-chan string {
 //
 // The context is cancellable and cancelling will close the returned output channel.
 func newUnion2(ctx context.Context, a, b <-chan string) <-chan string {
-	out := make(chan string)
+	out := make(chan string, QUERY_ENGINE_CHANNEL_SIZE)
 	go func() {
 		defer close(out)
 
