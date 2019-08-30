@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a26388f_98b156e7",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-30T19:14:47Z",
+      "side": 1,
+      "message": "Since we aren\u0027t writing to disk anymore, can we get rid of this and the cleanup() ?",
+      "range": {
+        "startLine": 69,
+        "startChar": 20,
+        "endLine": 69,
+        "endChar": 40
+      },
+      "revId": "c8cd43f8032076841105ec6a3c7f8a05420de2dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e54423cd_c1287352",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-30T19:14:47Z",
+      "side": 1,
+      "message": "If we aren\u0027t writing to disk, this can be small, right? same below.",
+      "range": {
+        "startLine": 88,
+        "startChar": 1,
+        "endLine": 88,
+        "endChar": 23
+      },
+      "revId": "c8cd43f8032076841105ec6a3c7f8a05420de2dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97ef4c43_fe9c045f",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-30T19:14:47Z",
+      "side": 1,
+      "message": "This should be err, followed by assert.NoError(t, err)\n\nSame below",
+      "range": {
+        "startLine": 102,
+        "startChar": 9,
+        "endLine": 102,
+        "endChar": 10
+      },
+      "revId": "c8cd43f8032076841105ec6a3c7f8a05420de2dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c174bd9_edfe62cd",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-30T19:14:47Z",
+      "side": 1,
+      "message": "drive-by: I\u0027d like to avoid returning bare errors. Either skerr.Wrap(err) or skerr.Wrapf(err, \"doing something: %s\", foo)",
+      "range": {
+        "startLine": 340,
+        "startChar": 14,
+        "endLine": 340,
+        "endChar": 17
+      },
+      "revId": "c8cd43f8032076841105ec6a3c7f8a05420de2dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
