@@ -44,6 +44,10 @@ var (
 	// Measurement indicating the lag time between a commit landing and a
 	// job being added.
 	MEASUREMENT_JOB_CREATION_LAG = "job_creation_lag_s"
+
+	// Measurement indicating the lag time between a tryjob being requested
+	// and a job being added.
+	MEASUREMENT_TRYJOB_CREATION_LAG = "tryjob_creation_lag_s"
 )
 
 const (
@@ -290,7 +294,7 @@ func isPeriodic(job *types.Job) bool {
 
 // computeJobLagTime is an events.AggregateFn that computes the average time
 // between a commit landing and jobs being created for it.
-func computeJobLagTime(ev []*events.Event, repos repograph.Map) (float64, error) {
+func computeJobLagTime(ev []*events.Event) (float64, error) {
 	if len(ev) == 0 {
 		return 0.0, nil
 	}
@@ -306,15 +310,31 @@ func computeJobLagTime(ev []*events.Event, repos repograph.Map) (float64, error)
 		if job.IsTryJob() || job.IsForce || isPeriodic(&job) {
 			continue
 		}
-		repo := repos[job.Repo]
-		if repo == nil {
-			return 0.0, skerr.Fmt("Unknown repo %q for job %s while computing job lag time.", job.Repo, job.Id)
+		lag := job.Created.Sub(job.Requested)
+		total += lag
+		count++
+	}
+	return float64(total) / float64(count), nil
+}
+
+// computeTryJobLagTime is an events.AggregateFn that computes the average time
+// between a try request being triggered and a job being created for it.
+func computeTryJobLagTime(ev []*events.Event) (float64, error) {
+	if len(ev) == 0 {
+		return 0.0, nil
+	}
+	count := 0
+	total := time.Duration(0)
+	for _, e := range ev {
+		var job types.Job
+		if err := gob.NewDecoder(bytes.NewReader(e.Data)).Decode(&job); err != nil {
+			return 0.0, skerr.Wrapf(err, "Failed to decode job")
 		}
-		commit := repo.Get(job.Revision)
-		if commit == nil {
-			return 0.0, skerr.Fmt("Unknown commit %s in %s for job %s while computing job lag time.", job.Revision, job.Repo, job.Id)
+		// Only consider try jobs.
+		if !job.IsTryJob() {
+			continue
 		}
-		lag := job.Created.Sub(commit.Timestamp)
+		lag := job.Created.Sub(job.Requested)
 		total += lag
 		count++
 	}
@@ -322,7 +342,7 @@ func computeJobLagTime(ev []*events.Event, repos repograph.Map) (float64, error)
 }
 
 // addJobAggregates adds aggregation functions for job events to the EventStream.
-func addJobAggregates(s *events.EventStream, instance string, repos repograph.Map) error {
+func addJobAggregates(s *events.EventStream, instance string) error {
 	for _, period := range TIME_PERIODS {
 		// Average job duration.
 		if err := s.DynamicMetric(map[string]string{"metric": "avg-duration", "instance": instance}, period, computeAvgJobDuration); err != nil {
@@ -338,9 +358,15 @@ func addJobAggregates(s *events.EventStream, instance string, repos repograph.Ma
 		if err := s.AggregateMetric(map[string]string{
 			"metric":   MEASUREMENT_JOB_CREATION_LAG,
 			"instance": instance,
-		}, period, func(ev []*events.Event) (float64, error) {
-			return computeJobLagTime(ev, repos)
-		}); err != nil {
+		}, period, computeJobLagTime); err != nil {
+			return err
+		}
+
+		// Average lag time between try request and job creation.
+		if err := s.AggregateMetric(map[string]string{
+			"metric":   MEASUREMENT_TRYJOB_CREATION_LAG,
+			"instance": instance,
+		}, period, computeTryJobLagTime); err != nil {
 			return err
 		}
 	}
@@ -361,7 +387,7 @@ func StartJobMetrics(ctx context.Context, jobDb db.JobReader, instance string, r
 	edb.em = em
 
 	s := em.GetEventStream(JOB_STREAM)
-	if err := addJobAggregates(s, instance, repos); err != nil {
+	if err := addJobAggregates(s, instance); err != nil {
 		return err
 	}
 
