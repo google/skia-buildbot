@@ -465,6 +465,7 @@ func (r *repoImpl) Update(ctx context.Context) error {
 	}
 	for name, b := range oldBranches {
 		if _, ok := newBranches[name]; !ok && ignoreDeletedBranch[r.gitiles.URL][name] {
+			sklog.Warningf("Branch %q missing from new branches; ignoring due to explicit whitelist.", name)
 			branches = append(branches, b)
 		}
 	}
