@@ -46,6 +46,30 @@
       "revId": "c73a95dfb73482d00c859559f74015233fd0ad26",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2b9e64ae_bfb6efd4",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 1061,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-30T14:16:39Z",
+      "side": 1,
+      "message": "\u003e that makes retries complicated.\n\nI\u0027m not sure what you mean.",
+      "parentUuid": "18384cfd_c9c8297d",
+      "range": {
+        "startLine": 1061,
+        "startChar": 1,
+        "endLine": 1061,
+        "endChar": 6
+      },
+      "revId": "c73a95dfb73482d00c859559f74015233fd0ad26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
