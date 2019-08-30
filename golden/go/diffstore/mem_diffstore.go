@@ -5,12 +5,10 @@ import (
 	"image"
 	"math"
 	"net/http"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
 
-	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/rtcache"
@@ -83,14 +81,9 @@ type MemDiffStore struct {
 func NewMemDiffStore(client gcs.GCSClient, baseDir string, gsImageBaseDir string, gigs int, m mapper.Mapper) (diff.DiffStore, error) {
 	imageCacheCount, diffCacheCount := getCacheCounts(gigs)
 
-	imgPath := filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME)
-	imgDir, err := fileutil.EnsureDirExists(imgPath)
-	if err != nil {
-		return nil, skerr.Fmt("Could not make image directory %s: %s", imgPath, err)
-	}
-
 	// Set up image retrieval, caching and serving.
-	imgLoader, err := NewImgLoader(client, baseDir, imgDir, gsImageBaseDir, imageCacheCount, m)
+	sklog.Debugf("Creating img loader with cache of size %d", imageCacheCount)
+	imgLoader, err := NewImgLoader(client, baseDir, gsImageBaseDir, imageCacheCount, m)
 	if err != nil {
 		return nil, skerr.Fmt("Could not create img loader %s", err)
 	}
@@ -108,6 +101,7 @@ func NewMemDiffStore(client gcs.GCSClient, baseDir string, gsImageBaseDir string
 		maxGoRoutinesCh: make(chan bool, maxGoRoutines),
 	}
 
+	sklog.Debugf("Creating diffMetricsCache of size %d", diffCacheCount)
 	if ret.diffMetricsCache, err = rtcache.New(ret.diffMetricsWorker, diffCacheCount, runtime.NumCPU()); err != nil {
 		return nil, skerr.Fmt("Could not create diffMetricsCache: %s", err)
 	}
@@ -119,7 +113,7 @@ func NewMemDiffStore(client gcs.GCSClient, baseDir string, gsImageBaseDir string
 func (d *MemDiffStore) WarmDigests(priority int64, digests types.DigestSlice, sync bool) {
 	missingDigests := make(types.DigestSlice, 0, len(digests))
 	for _, digest := range digests {
-		if !d.imgLoader.IsOnDisk(digest) {
+		if !d.imgLoader.Contains(digest) {
 			missingDigests = append(missingDigests, digest)
 		}
 	}
@@ -272,9 +266,8 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 				return
 			}
 
-			// Retrieve the image from the in-memory cache, ignoring the pendingWrites wait group as we
-			// do not need to wait until the image is written to disk.
-			imgs, _, err := m.imgLoader.Get(diff.PRIORITY_NOW, types.DigestSlice{imgDigest})
+			// Retrieve the image from the in-memory cache.
+			imgs, err := m.imgLoader.Get(diff.PRIORITY_NOW, types.DigestSlice{imgDigest})
 			if err != nil {
 				sklog.Errorf("Error retrieving digest: %s", imgID)
 				noCacheNotFound(w, r)
@@ -292,9 +285,8 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 			// Extract the left and right image digests.
 			leftImgDigest, rightImgDigest := common.SplitDiffID(imgID)
 
-			// Retrieve the images from the in-memory cache, ignoring the pendingWrites wait group as we
-			// do not need to wait until the image is written to disk.
-			imgs, _, err := m.imgLoader.Get(diff.PRIORITY_NOW, types.DigestSlice{leftImgDigest, rightImgDigest})
+			// Retrieve the images from the in-memory cache.
+			imgs, err := m.imgLoader.Get(diff.PRIORITY_NOW, types.DigestSlice{leftImgDigest, rightImgDigest})
 			if err != nil {
 				sklog.Errorf("Error retrieving digests to compute diff: %s", imgID)
 				noCacheNotFound(w, r)
@@ -342,11 +334,10 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 		return dm, nil
 	}
 
-	// Get the images, but we don't need to wait for them to be written to disk,
-	// since we are not e.g. serving them over http.
-	imgs, _, err := d.imgLoader.Get(priority, types.DigestSlice{leftDigest, rightDigest})
+	// Get the images.
+	imgs, err := d.imgLoader.Get(priority, types.DigestSlice{leftDigest, rightDigest})
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrapf(err, "Failed retrieving the following digests from ImageLoader: %s, %s.", leftDigest, rightDigest)
 	}
 
 	// We are guaranteed to have two images at this point.
