@@ -36,6 +36,24 @@ function gantt(svg) {
   };
 
   /**
+   * Set an explicit start Date for the chart. If not set, or if any tasks occur
+   * earlier than the given Date, the earliest task start Date is used.
+   */
+  rv.start = function(ts) {
+    this._start = ts;
+    return this;
+  };
+
+  /**
+   * Set an explicit end Date for the chart. If not set, or if any tasks occur
+   * after the given Date, the latest task end Date is used.
+   */
+  rv.end = function(ts) {
+    this._end = ts;
+    return this;
+  };
+
+  /**
    * Draw the chart into the given SVG element.
    */
   rv.draw = function() {
@@ -96,8 +114,8 @@ function gantt(svg) {
     const blocksWidth = totalWidth - blockStartX - chartMarginRight;
 
     // Find the time range which encompasses all tasks.
-    let tStart = Number.MAX_SAFE_INTEGER;
-    let tEnd = 0;
+    let tStart = this._start ? this._start.getTime() : Number.MAX_SAFE_INTEGER;
+    let tEnd = this._end ? this._end.getTime() : 0;
     for (const category of categories) {
       const tasks = tasksByCategory[category] || [];
       for (const task of tasks) {
