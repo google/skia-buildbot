@@ -59,20 +59,15 @@ func TestCloseOnCancel(t *testing.T) {
 		break
 	}
 	assert.NoError(t, err)
-	errCh := make(chan error, 10)
 
 	// Create a cancellable context.
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Start the querying.
-	out := ParamIndex(ctx, b.getTable(), tileKey, key, value, errCh)
+	out := ParamIndex(ctx, b.getTable(), tileKey, key, value, "test")
 
 	// Cancel the context which should abort the BigTable read.
 	cancel()
-
-	// Confirm that we get an error on the errCh.
-	err = <-errCh
-	assert.Error(t, err)
 
 	// Confirm that the channel is closed.
 	_, ok := <-out
@@ -131,7 +126,7 @@ func TestParamIndex(t *testing.T) {
 	errCh := make(chan error, 10)
 
 	// Start the query.
-	out := ParamIndex(context.Background(), b.getTable(), tileKey, key, value, errCh)
+	out := ParamIndex(context.Background(), b.getTable(), tileKey, key, value, "test")
 
 	// Confirm that we get the keys to traces that match the key=value pair.
 	expected := []paramtools.Params{
@@ -148,7 +143,7 @@ func TestParamIndex(t *testing.T) {
 	assert.Equal(t, 2, count)
 
 	// Now do a query for a key=value pair that doesn't exist.
-	out = ParamIndex(context.Background(), b.getTable(), tileKey, "unknown", "unknown", errCh)
+	out = ParamIndex(context.Background(), b.getTable(), tileKey, "unknown", "unknown", "test")
 
 	// Confirm that we get no trace ids.
 	count = 0
