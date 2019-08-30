@@ -107,8 +107,10 @@ func TestImageLoaderGetSingleDigestFoundInBucket(t *testing.T) {
 	assert.Equal(t, images[0], image1)
 }
 
+// TODO(lovisolo): This test is broken on Windows; re-enable it once the failurestore dependency
+// is injected as a constructor parameter and mocked out here and in other tests.
 func TestImageLoaderGetSingleDigestNotFound(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.ManualTest(t) // TODO(lovisolo): Re-enable once Windows bug is fixed.
 	imageLoader, mockClient, tearDown := setUp(t)
 	defer tearDown()
 	defer mockClient.AssertExpectations(t)
@@ -157,8 +159,10 @@ func TestImageLoaderGetMultipleDigestsAllFoundInBucket(t *testing.T) {
 	assert.Equal(t, images[1], image2)
 }
 
+// TODO(lovisolo): This test is broken on Windows; re-enable it once the failurestore dependency
+// is injected as a constructor parameter and mocked out here and in other tests.
 func TestImageLoaderGetMultipleDigestsDigest1FoundInBucketDigest2NotFound(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.ManualTest(t) // TODO(lovisolo): Re-enable once Windows bug is fixed.
 	imageLoader, mockClient, tearDown := setUp(t)
 	defer tearDown()
 	defer mockClient.AssertExpectations(t)
