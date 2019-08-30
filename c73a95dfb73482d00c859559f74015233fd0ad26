@@ -22,6 +22,30 @@
       "revId": "c73a95dfb73482d00c859559f74015233fd0ad26",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "18384cfd_c9c8297d",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 1061,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-08-30T13:09:37Z",
+      "side": 1,
+      "message": "\u003e I suspect that in the long run we will be happier if we keep track of master tasks in CTFE. I think it will be somewhat common that a task will fail in Swarming without recording the failure in DS, leaving a CT task that will never finish.\n\nIt is possible, used to see a few rare instances of DS CT tasks being open in the old architecture as well.\nI do not though know how to keep track of master tasks in CTFE. The master script could put in DS all the swarming task ids it triggered and then let CTFE figure out when they are done, that makes retries complicated. The whole thing sounds fragile though.\n\n\u003e \n\u003e I also suspect we will be happier if we move the code to send start/completion emails and mark tasks as started/completed to CTFE. I don\u0027t see anything in the emails that couldn\u0027t be generated from the DS task by CTFE, if we add runID to the DS task (or switch to using DS ID instead of runID).\n\nSame problem here, I do not know how to keep track of master tasks in CTFE.",
+      "parentUuid": "a422b6e6_83259ea9",
+      "range": {
+        "startLine": 1061,
+        "startChar": 1,
+        "endLine": 1061,
+        "endChar": 6
+      },
+      "revId": "c73a95dfb73482d00c859559f74015233fd0ad26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
