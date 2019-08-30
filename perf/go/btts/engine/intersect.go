@@ -1,6 +1,8 @@
 package engine
 
-import "context"
+import (
+	"context"
+)
 
 // NewIntersect returns a channel of ordered strings that is the intersection
 // of the 'inputs' channels of ordered strings.
@@ -40,7 +42,7 @@ func NewIntersect(ctx context.Context, inputs []<-chan string) <-chan string {
 //
 // The context is cancellable and cancelling will close the returned output channel.
 func newIntersect2(ctx context.Context, a, b <-chan string) <-chan string {
-	out := make(chan string)
+	out := make(chan string, QUERY_ENGINE_CHANNEL_SIZE)
 	go func() {
 		defer close(out)
 
