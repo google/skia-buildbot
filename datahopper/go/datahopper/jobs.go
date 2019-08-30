@@ -41,13 +41,9 @@ var (
 	// name, in seconds.
 	MEASUREMENT_LATEST_JOB_AGE = "latest_job_age_s"
 
-	// Measurement indicating the lag time between a commit landing and a
-	// job being added.
+	// Measurement indicating the lag time between a job being requested
+	// (eg. a commit landing or tryjob requested) and a job being added.
 	MEASUREMENT_JOB_CREATION_LAG = "job_creation_lag_s"
-
-	// Measurement indicating the lag time between a tryjob being requested
-	// and a job being added.
-	MEASUREMENT_TRYJOB_CREATION_LAG = "tryjob_creation_lag_s"
 )
 
 const (
@@ -358,14 +354,22 @@ func addJobAggregates(s *events.EventStream, instance string) error {
 		if err := s.AggregateMetric(map[string]string{
 			"metric":   MEASUREMENT_JOB_CREATION_LAG,
 			"instance": instance,
+			// The metrics package crashes if we don't use the same
+			// set of tags for every Aggregate/Dynamic metric...
+			"job_name": "",
+			"job_type": string(NORMAL),
 		}, period, computeJobLagTime); err != nil {
 			return err
 		}
 
 		// Average lag time between try request and job creation.
 		if err := s.AggregateMetric(map[string]string{
-			"metric":   MEASUREMENT_TRYJOB_CREATION_LAG,
+			"metric":   MEASUREMENT_JOB_CREATION_LAG,
 			"instance": instance,
+			// The metrics package crashes if we don't use the same
+			// set of tags for every Aggregate/Dynamic metric...
+			"job_name": "",
+			"job_type": string(TRYJOB),
 		}, period, computeTryJobLagTime); err != nil {
 			return err
 		}
