@@ -55,6 +55,7 @@ type ExpectationsStore interface {
 	// ExpectationStore will be kept separate from the master branch. Any Expectations
 	// returned should be treated as the delta between the MasterBranch and the given issue.
 	// This issue id is the Gerrit id or GitHub id.
+	// TODO(kjlubick): This should be changed to take a string.
 	ForIssue(id int64) ExpectationsStore
 }
 

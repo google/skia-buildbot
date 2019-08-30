@@ -174,7 +174,7 @@ func TestGetChangeListsSunnyDay(t *testing.T) {
 		ChangeListStore: mcls,
 	}
 
-	cls, pagination, err := wh.getChangeListsWithTryJobs(context.Background(), 0, 50)
+	cls, pagination, err := wh.getIngestedChangeLists(context.Background(), 0, 50)
 	assert.NoError(t, err)
 	assert.Len(t, cls, 3)
 	assert.NotNil(t, pagination)
