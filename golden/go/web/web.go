@@ -32,6 +32,7 @@ import (
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
+	"go.skia.org/infra/golden/go/search/export"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
@@ -287,30 +288,6 @@ func (wh *WebHandlers) DeprecatedTryjobListHandler(w http.ResponseWriter, r *htt
 	sendResponseWithPagination(w, tryjobRuns, pagination)
 }
 
-// DeprecatedTryjobsSummaryHandler is the endpoint to get a summary of the tryjob
-// results for a Gerrit issue.
-// This appears to be unreached by the frontend.
-func (wh *WebHandlers) DeprecatedTryjobSummaryHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	issueID, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
-	if err != nil {
-		httputils.ReportError(w, r, err, "ID must be valid integer.")
-		return
-	}
-
-	if types.IsMasterBranch(issueID) || issueID < 0 {
-		httputils.ReportError(w, r, fmt.Errorf("Issue id is <= 0"), "Valid issue ID required.")
-		return
-	}
-
-	resp, err := wh.SearchAPI.Summary(issueID)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Unable to retrieve tryjobs summary.")
-		return
-	}
-	sendJSONResponse(w, resp)
-}
-
 // ChangeListsHandler returns the list of code_review.ChangeLists that have
 // uploaded results to Gold (via TryJobs).
 func (wh *WebHandlers) ChangeListsHandler(w http.ResponseWriter, r *http.Request) {
@@ -321,7 +298,7 @@ func (wh *WebHandlers) ChangeListsHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	cls, pagination, err := wh.getChangeListsWithTryJobs(r.Context(), offset, size)
+	cls, pagination, err := wh.getIngestedChangeLists(r.Context(), offset, size)
 
 	if err != nil {
 		httputils.ReportError(w, r, err, "Retrieving changelists results failed.")
@@ -357,9 +334,9 @@ func convertChangeList(cl code_review.ChangeList, system string) changeList {
 	}
 }
 
-// getChangeListsWithTryJobs performs the core of the logic for ChangeListsHandler,
+// getIngestedChangeLists performs the core of the logic for ChangeListsHandler,
 // by fetching N ChangeLists given an offset.
-func (wh *WebHandlers) getChangeListsWithTryJobs(ctx context.Context, offset, size int) ([]changeList, *httputils.ResponsePagination, error) {
+func (wh *WebHandlers) getIngestedChangeLists(ctx context.Context, offset, size int) ([]changeList, *httputils.ResponsePagination, error) {
 	cls, total, err := wh.ChangeListStore.GetChangeLists(ctx, offset, size)
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "fetching ChangeLists from [%d:%d)", offset, offset+size)
@@ -458,15 +435,15 @@ func (wh *WebHandlers) getCLSummary(ctx context.Context, clID string) (changeLis
 type changeListSummary struct {
 	CL changeList `json:"cl"`
 	// these are only those patchsets with data.
-	PatchSets         []patchSet `json:"patchsets"`
-	NumTotalPatchSets int        `json:"patchsets_with_data"`
+	PatchSets         []patchSet `json:"patch_sets"`
+	NumTotalPatchSets int        `json:"num_total_patch_sets"`
 }
 
 // patchSet represents the data the frontend needs for PatchSets.
 type patchSet struct {
 	SystemID string   `json:"id"`
 	Order    int      `json:"order"`
-	TryJobs  []tryJob `json:"tryjobs"`
+	TryJobs  []tryJob `json:"try_jobs"`
 }
 
 // tryJob represents the data the frontend needs for TryJobs.
@@ -540,13 +517,13 @@ func (wh *WebHandlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
 		baseURL = "https://" + r.Host
 	}
 
-	ret := search.GetExportRecords(searchResponse, baseURL)
+	ret := export.ToTestRecords(searchResponse, baseURL)
 
 	// Set it up so that it triggers a save in the browser.
 	setJSONHeaders(w)
 	w.Header().Set("Content-Disposition", "attachment; filename=meta.json")
 
-	if err := search.WriteExportTestRecords(ret, w); err != nil {
+	if err := export.WriteTestRecords(ret, w); err != nil {
 		httputils.ReportError(w, r, err, "Unable to serialized knowledge base.")
 	}
 }

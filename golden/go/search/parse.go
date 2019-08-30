@@ -14,22 +14,22 @@ import (
 )
 
 const (
-	// SORT_FIELD_COUNT indicates that the image counts should be used for sorting.
-	SORT_FIELD_COUNT = "count"
+	// countSortField indicates that the image counts should be used for sorting.
+	countSortField = "count"
 
-	// SORT_FIELD_DIFF indicates that the diff field should be used for sorting.
-	SORT_FIELD_DIFF = "diff"
+	// diffSortField indicates that the diff field should be used for sorting.
+	diffSortField = "diff"
 )
 
 var (
 	// sortDirections are the valid options for any of the sort direction fields.
-	sortDirections = []string{SORT_ASC, SORT_DESC}
+	sortDirections = []string{sortAscending, sortDescending}
 
 	// rowSortFields are the valid options for the sort field for rows.
-	rowSortFields = []string{SORT_FIELD_COUNT, SORT_FIELD_DIFF}
+	rowSortFields = []string{countSortField, diffSortField}
 
 	// columnSortFields are the valid options for the sort field for columns.
-	columnSortFields = []string{SORT_FIELD_DIFF}
+	columnSortFields = []string{diffSortField}
 )
 
 // ParseCTQuery parses JSON from the given ReadCloser into the given
@@ -77,12 +77,12 @@ func ParseCTQuery(r io.ReadCloser, limitDefault int32, ctQuery *CTQuery) error {
 	if ctQuery.RowQuery.Limit == 0 {
 		ctQuery.RowQuery.Limit = int32(limitDefault)
 	}
-	ctQuery.RowQuery.Limit = util.MinInt32(ctQuery.RowQuery.Limit, MAX_LIMIT)
+	ctQuery.RowQuery.Limit = util.MinInt32(ctQuery.RowQuery.Limit, maxLimit)
 
 	if ctQuery.ColumnQuery.Limit == 0 {
 		ctQuery.ColumnQuery.Limit = limitDefault
 	}
-	ctQuery.ColumnQuery.Limit = util.MinInt32(ctQuery.ColumnQuery.Limit, MAX_LIMIT)
+	ctQuery.ColumnQuery.Limit = util.MinInt32(ctQuery.ColumnQuery.Limit, maxLimit)
 
 	validate := shared.Validation{}
 
@@ -94,10 +94,10 @@ func ParseCTQuery(r io.ReadCloser, limitDefault int32, ctQuery *CTQuery) error {
 	ctQuery.RowQuery.Issue = validate.Int64Value("row.issue", ctQuery.RowQuery.IssueStr, 0)
 
 	// Parse the general parameters of the query.
-	validate.StrValue("sortRows", &ctQuery.SortRows, rowSortFields, SORT_FIELD_COUNT)
-	validate.StrValue("rowsDir", &ctQuery.RowsDir, sortDirections, SORT_DESC)
-	validate.StrValue("sortColumns", &ctQuery.SortColumns, columnSortFields, SORT_FIELD_DIFF)
-	validate.StrValue("columnsDir", &ctQuery.ColumnsDir, sortDirections, SORT_ASC)
+	validate.StrValue("sortRows", &ctQuery.SortRows, rowSortFields, countSortField)
+	validate.StrValue("rowsDir", &ctQuery.RowsDir, sortDirections, sortDescending)
+	validate.StrValue("sortColumns", &ctQuery.SortColumns, columnSortFields, diffSortField)
+	validate.StrValue("columnsDir", &ctQuery.ColumnsDir, sortDirections, sortAscending)
 	validate.StrValue("metrics", &ctQuery.Metric, diff.GetDiffMetricIDs(), diff.METRIC_PERCENT)
 	return validate.Errors()
 }
@@ -135,7 +135,7 @@ func ParseQuery(r *http.Request, query *Query) error {
 	query.Offset = util.MaxInt32(query.Offset, 0)
 
 	validate.StrFormValue(r, "metric", &query.Metric, diff.GetDiffMetricIDs(), diff.METRIC_COMBINED)
-	validate.StrFormValue(r, "sort", &query.Sort, []string{SORT_DESC, SORT_ASC}, SORT_DESC)
+	validate.StrFormValue(r, "sort", &query.Sort, []string{sortDescending, sortAscending}, sortDescending)
 
 	// Parse and validate the filter values.
 	query.FRGBAMin = int32(validate.Int64FormValue(r, "frgbamin", 0))

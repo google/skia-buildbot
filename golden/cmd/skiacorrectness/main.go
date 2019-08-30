@@ -534,7 +534,6 @@ func main() {
 	jsonRouter.HandleFunc(trim("/json/triagelog"), handlers.TriageLogHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/triagelog/undo"), handlers.TriageUndoHandler).Methods("POST")
 	jsonRouter.HandleFunc(trim("/json/tryjob"), handlers.DeprecatedTryjobListHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/tryjob/{id}"), handlers.DeprecatedTryjobSummaryHandler).Methods("GET")
 	// FIXME(kjlubick): The following will not work until the new ChangeListStore/TryJobStore etc
 	// is piped into web.go
 	jsonRouter.HandleFunc(trim("/json/changelists"), handlers.ChangeListsHandler).Methods("GET")

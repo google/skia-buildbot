@@ -1,12 +1,8 @@
 package search
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
 	"math/rand"
 	"os"
-	"sort"
 	"testing"
 	"time"
 
@@ -23,114 +19,6 @@ import (
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/warmer"
 )
-
-func checkQuery(t assert.TestingT, api *SearchAPI, idx indexer.IndexSearcher, qStr string, exp types.Expectations, buf *bytes.Buffer) int {
-	q := &Query{}
-
-	// We ignore incorrect queries. They are tested somewhere else.
-	err := clearParseQuery(q, qStr)
-	if err != nil {
-		return 0
-	}
-	tile := idx.Tile().GetTile(q.IgnoreState())
-
-	// TODO(stephana): Remove the lines below to also exercise the search for
-	// issues. This requires to refresh the set of input queries.
-
-	// Ignore queries for gerrit issues right now.
-	if !types.IsMasterBranch(q.Issue) {
-		return 0
-	}
-
-	// Ignore queries with blames since they are ephemeral.
-	if q.BlameGroupID != "" {
-		return 0
-	}
-
-	// Addjust the old default value for MaxRGBA
-	if q.FRGBAMax < 0 {
-		q.FRGBAMax = 255
-	}
-
-	resp, err := api.Search(context.Background(), q)
-	assert.NoError(t, err)
-
-	// Serialize the response to json.
-	buf.Reset()
-	assert.NoError(t, json.NewEncoder(buf).Encode(resp))
-
-	expDigests := getTargetDigests(t, q, tile, exp)
-
-	foundDigests := types.DigestSet{}
-	for _, digestRec := range resp.Digests {
-		foundDigests[digestRec.Digest] = true
-	}
-
-	set1 := expDigests.Keys()
-	set2 := foundDigests.Keys()
-	sort.Sort(set1)
-	sort.Sort(set2)
-	assert.Equal(t, set1, set2)
-	return 1
-}
-
-func getTargetDigests(t assert.TestingT, q *Query, tile *tiling.Tile, exp types.Expectations) types.DigestSet {
-	// Account for a given commit range.
-	startIdx := 0
-	endIdx := tile.LastCommitIndex()
-
-	if q.FCommitBegin != "" {
-		startIdx, _ = tiling.FindCommit(tile.Commits, q.FCommitBegin)
-		assert.True(t, startIdx >= 0)
-	}
-
-	if q.FCommitEnd != "" {
-		endIdx, _ = tiling.FindCommit(tile.Commits, q.FCommitEnd)
-		assert.True(t, endIdx >= 0)
-	}
-	assert.True(t, startIdx <= endIdx)
-
-	digestSet := types.DigestSet{}
-	for _, trace := range tile.Traces {
-		gTrace := trace.(*types.GoldenTrace)
-		digestSet.AddLists(gTrace.Digests)
-	}
-	allDigests := map[types.Digest]int{}
-	for idx, digest := range digestSet.Keys() {
-		allDigests[digest] = idx
-	}
-
-	result := types.DigestSet{}
-	lastIdx := endIdx - startIdx
-	for _, trace := range tile.Traces {
-		if tiling.Matches(trace, q.Query) {
-			gTrace := trace.(*types.GoldenTrace)
-			vals := gTrace.Digests[startIdx : endIdx+1]
-			test := gTrace.TestName()
-
-			relevantDigests := types.DigestSlice{}
-			if q.Head {
-				idx := lastIdx
-				for (idx >= 0) && (vals[idx] == types.MISSING_DIGEST) {
-					idx--
-				}
-				if idx >= 0 {
-					relevantDigests = types.DigestSlice{vals[idx]}
-				}
-			} else {
-				relevantDigests = vals
-			}
-
-			for _, digest := range relevantDigests {
-				if !q.excludeClassification(exp.Classification(test, digest)) {
-					result[digest] = true
-				}
-			}
-		}
-	}
-	delete(result, types.MISSING_DIGEST)
-	return result
-}
 
 func getAPIIndexTile(t *testing.T, bucket, storagePath, outputPath string, randomize bool) (SearchAPI, indexer.IndexSearcher, *tiling.Tile) {
 	err := gcs_testutils.DownloadTestDataFile(t, bucket, storagePath, outputPath)

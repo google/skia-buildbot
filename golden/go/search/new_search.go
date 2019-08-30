@@ -7,6 +7,7 @@ import (
 
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
@@ -24,30 +25,16 @@ const (
 	MAX_REF_DIGESTS = 9
 )
 
-// TODO (stephana): Remove the Search(...) function in
-// search.go once the Search function below is feature
-// complete. This requires renaming some of the types that
-// currently have a "SR" prefix. Changes will include these types:
-//     SRDigest
-//     SRDiffDigest
-//     NewSearchResponse
-//
-// Some function currently at the module level should
-// be merged into the SearchAPI type. Some of these are:
-//     CompareDigests
-//     GetDigestDetails
-//
-
 // SRDigest is a single search result digest returned
 // by the Search function below.
 type SRDigest struct {
-	Test       types.TestName                 `json:"test"`
-	Digest     types.Digest                   `json:"digest"`
-	Status     string                         `json:"status"`
-	ParamSet   map[string][]string            `json:"paramset"`
-	Traces     *Traces                        `json:"traces"`
-	ClosestRef types.Digest                   `json:"closestRef"`
-	RefDiffs   map[types.Digest]*SRDiffDigest `json:"refDiffs"`
+	Test       types.TestName               `json:"test"`
+	Digest     types.Digest                 `json:"digest"`
+	Status     string                       `json:"status"`
+	ParamSet   paramtools.ParamSet          `json:"paramset"`
+	Traces     *TraceGroup                  `json:"traces"`
+	ClosestRef RefClosest                   `json:"closestRef"` // "pos" or "neg"
+	RefDiffs   map[RefClosest]*SRDiffDigest `json:"refDiffs"`
 }
 
 // SRDiffDigest captures the diff information between
@@ -55,11 +42,10 @@ type SRDigest struct {
 // digest is given by the context where this is used.
 type SRDiffDigest struct {
 	*diff.DiffMetrics
-	Test     types.TestName      `json:"test"`
-	Digest   types.Digest        `json:"digest"`
-	Status   string              `json:"status"`
-	ParamSet map[string][]string `json:"paramset"`
-	N        int                 `json:"n"`
+	Digest            types.Digest        `json:"digest"`
+	Status            string              `json:"status"`
+	ParamSet          paramtools.ParamSet `json:"paramset"`
+	OccurrencesInTile int                 `json:"n"`
 }
 
 // NewSearchResponse is the structure returned by the
@@ -105,6 +91,9 @@ func NewSearchAPI(diffStore diff.DiffStore, expectationsStore expstorage.Expecta
 // Search queries the current tile based on the parameters specified in
 // the instance of Query.
 func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, error) {
+	if q == nil {
+		return nil, skerr.Fmt("nil query")
+	}
 	ctx, span := trace.StartSpan(ctx, "search/Search")
 	defer span.End()
 
@@ -116,15 +105,17 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 
 	// Get the expectations and the current index, which we assume constant
 	// for the duration of this query.
-	exp, err := s.getExpectationsFromQuery(q)
+	exp, err := s.getExpectationsFromQuery(q.Issue)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	idx := s.Indexer.GetIndex()
 
 	var inter srInterMap = nil
 	var issue *tryjobstore.Issue = nil
 
+	// TODO(kjlubick): add in check for query param here to go into non-deprecated
+	// tryjobstore path.
 	// Find the digests (left hand side) we are interested in.
 	if isTryjobSearch {
 		// Search the tryjob results for the issue at hand.
@@ -135,7 +126,7 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 		inter, err = s.filterTile(ctx, q, exp, idx)
 	}
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	// Convert the intermediate representation to the list of digests that we
@@ -147,9 +138,6 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 		// Diff stage: Compare all digests found in the previous stages and find
 		// reference points (positive, negative etc.) for each digest.
 		s.getReferenceDiffs(ctx, ret, q.Metric, q.Match, q.RQuery, q.IgnoreState(), exp, idx)
-		if err != nil {
-			return nil, err
-		}
 
 		// Post-diff stage: Apply all filters that are relevant once we have
 		// diff values for the digests.
@@ -174,60 +162,13 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 	return searchRet, nil
 }
 
-// Summary returns a high level summary of a Gerrit issue and the tryjobs
-// that have been run for it.
-func (s *SearchAPI) Summary(issueID int64) (*IssueSummary, error) {
-	// TODO(stephana): Implement this function, which currently serves dummy
-	// data so we can implement the frontend and nail down the API.
-	ret := &IssueSummary{
-		ID:          issueID,
-		TimeStampMs: util.TimeStampMs(),
-		PatchSets: []*PatchsetSummary{
-			{
-				PatchsetID:   1,
-				TotalJobs:    10,
-				FinishedJobs: 10,
-				TotalImg:     1520,
-				NewImg:       91,
-				UntriagedImg: 44,
-			},
-			{
-				PatchsetID:   2,
-				TotalJobs:    8,
-				FinishedJobs: 8,
-				TotalImg:     884,
-				NewImg:       64,
-				UntriagedImg: 12,
-			},
-			{
-				PatchsetID:   5,
-				TotalJobs:    8,
-				FinishedJobs: 8,
-				TotalImg:     553,
-				NewImg:       12,
-				UntriagedImg: 6,
-			},
-			{
-				PatchsetID:   6,
-				TotalJobs:    8,
-				FinishedJobs: 4,
-				TotalImg:     1912,
-				NewImg:       8,
-				UntriagedImg: 0,
-			},
-		},
-	}
-
-	return ret, nil
-}
-
 // GetDigestDetails returns details about a digest as an instance of SRDigestDetails.
 func (s *SearchAPI) GetDigestDetails(test types.TestName, digest types.Digest) (*SRDigestDetails, error) {
 	ctx := context.Background()
 	idx := s.Indexer.GetIndex()
 	tile := idx.Tile().GetTile(types.IncludeIgnoredTraces)
 
-	exp, err := s.getExpectationsFromQuery(nil)
+	exp, err := s.getExpectationsFromQuery(types.MasterBranch)
 	if err != nil {
 		return nil, err
 	}
@@ -279,21 +220,21 @@ func (s *SearchAPI) GetDigestDetails(test types.TestName, digest types.Digest) (
 // used in the given query. It will add the issue expectations if this is
 // querying tryjob results. If query is nil the expectations of the master
 // tile are returned.
-func (s *SearchAPI) getExpectationsFromQuery(q *Query) (ExpSlice, error) {
+func (s *SearchAPI) getExpectationsFromQuery(clID int64) (ExpSlice, error) {
 	ret := make(ExpSlice, 0, 2)
 
-	if q != nil && !types.IsMasterBranch(q.Issue) {
-		issueExpStore := s.ExpectationsStore.ForIssue(q.Issue)
+	if !types.IsMasterBranch(clID) {
+		issueExpStore := s.ExpectationsStore.ForIssue(clID)
 		tjExp, err := issueExpStore.Get()
 		if err != nil {
-			return nil, sklog.FmtErrorf("Unable to load expectations for issue %d from tryjobstore: %s", q.Issue, err)
+			return nil, skerr.Wrapf(err, "loading expectations for issue %d", clID)
 		}
 		ret = append(ret, tjExp)
 	}
 
 	exp, err := s.ExpectationsStore.Get()
 	if err != nil {
-		return nil, sklog.FmtErrorf("Unable to load expectations for master: %s", err)
+		return nil, skerr.Wrapf(err, "loading expectations for master")
 	}
 	ret = append(ret, exp)
 	return ret, nil
@@ -449,7 +390,7 @@ func (s *SearchAPI) filterTile(ctx context.Context, q *Query, exp ExpSlice, idx 
 	}
 
 	if err := iterTile(q, addFn, acceptFn, exp, idx); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	return ret, nil
@@ -554,7 +495,7 @@ func (s *SearchAPI) sortAndLimitDigests(ctx context.Context, q *Query, digestInf
 	}
 
 	sortSlice := sort.Interface(newSRDigestSlice(q.Metric, digestInfo))
-	if q.Sort == SORT_DESC {
+	if q.Sort == sortDescending {
 		sortSlice = sort.Reverse(sortSlice)
 	}
 	sort.Sort(sortSlice)
@@ -580,14 +521,15 @@ func (s *SearchAPI) addParamsAndTraces(ctx context.Context, digestInfo []*SRDige
 	for _, di := range digestInfo {
 		// Add the parameters and the drawable traces to the result.
 		di.ParamSet = inter[di.Test][di.Digest].params
+		di.ParamSet.Normalize()
 		di.Traces = s.getDrawableTraces(di.Test, di.Digest, last, exp, inter[di.Test][di.Digest].traces)
 		di.Traces.TileSize = len(tile.Commits)
 	}
 }
 
-// getDrawableTraces returns an instance of Traces which allows to draw the
-// traces for the given test/digest.
-func (s *SearchAPI) getDrawableTraces(test types.TestName, digest types.Digest, last int, exp ExpSlice, traces map[tiling.TraceId]*types.GoldenTrace) *Traces {
+// getDrawableTraces returns an instance of TraceGroup which allows us
+// to draw the traces for the given test/digest.
+func (s *SearchAPI) getDrawableTraces(test types.TestName, digest types.Digest, last int, exp ExpSlice, traces map[tiling.TraceId]*types.GoldenTrace) *TraceGroup {
 	// Get the information necessary to draw the traces.
 	traceIDs := make(tiling.TraceIdSlice, 0, len(traces))
 	for traceID := range traces {
@@ -647,7 +589,7 @@ func (s *SearchAPI) getDrawableTraces(test types.TestName, digest types.Digest, 
 		tr.Data = tr.Data[insertNext+1:]
 	}
 
-	return &Traces{
+	return &TraceGroup{
 		Digests: digestStatuses,
 		Traces:  outputTraces,
 	}

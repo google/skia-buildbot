@@ -22,18 +22,18 @@ import (
 )
 
 const (
-	// SORT_ASC indicates that we want to sort in ascending order.
-	SORT_ASC = "asc"
+	// sortAscending indicates that we want to sort in ascending order.
+	sortAscending = "asc"
 
-	// SORT_DESC indicates that we want to sort in descending order.
-	SORT_DESC = "desc"
+	// sortDescending indicates that we want to sort in descending order.
+	sortDescending = "desc"
 
-	// MAX_ROW_DIGESTS is the maximum number of digests we'll compare against
+	// maxRowDigests is the maximum number of digests we'll compare against
 	// before limiting the result to avoid overload.
-	MAX_ROW_DIGESTS = 200
+	maxRowDigests = 200
 
-	// MAX_LIMIT is the maximum limit we will return.
-	MAX_LIMIT = 200
+	// maxLimit is the maximum number of digests we will return.
+	maxLimit = 200
 )
 
 // Point is a single point. Used in Trace.
@@ -56,8 +56,8 @@ type DigestStatus struct {
 	Status string       `json:"status"`
 }
 
-// Traces is info about a group of traces. Used in Digest.
-type Traces struct {
+// TraceGroup is info about a group of traces.
+type TraceGroup struct {
 	TileSize int            `json:"tileSize"`
 	Traces   []Trace        `json:"traces"`  // The traces where this digest appears.
 	Digests  []DigestStatus `json:"digests"` // The other digests that appear in Traces.
@@ -83,20 +83,14 @@ type Diff struct {
 	Blame *blame.BlameDistribution `json:"blame"`
 }
 
-// Digest's are returned from Search, one for each match to Query.
+// Digests are returned from Search, one for each match to Query.
 type Digest struct {
 	Test     string              `json:"test"`
 	Digest   string              `json:"digest"`
 	Status   string              `json:"status"`
 	ParamSet map[string][]string `json:"paramset"`
-	Traces   *Traces             `json:"traces"`
+	Traces   *TraceGroup         `json:"traces"`
 	Diff     *Diff               `json:"diff"`
-}
-
-// CommitRange is a range of commits, starting at the git hash Begin and ending at End, inclusive.
-//
-// Currently unimplemented in search.
-type CommitRange struct {
 }
 
 // TODO: filter within tests.
@@ -130,6 +124,8 @@ type Query struct {
 	RQuery    paramtools.ParamSet `json:"-"`
 
 	// Trybot support.
+	// TODO(kjlubick): This needs to be adapted to take a string
+	// as an "issue" ID and be called ChangeListID.
 	IssueStr      string  `json:"issue"`
 	Issue         int64   `json:"-"`
 	PatchsetsStr  string  `json:"patchsets"` // Comma-separated list of patchsets.
@@ -283,7 +279,6 @@ func (c *SearchAPI) CompareDigests(test types.TestName, left, right types.Digest
 			ParamSet: idx.GetParamsetSummary(test, left, types.IncludeIgnoredTraces),
 		},
 		Right: &SRDiffDigest{
-			Test:        test,
 			Digest:      right,
 			Status:      exp.Classification(test, right).String(),
 			ParamSet:    idx.GetParamsetSummary(test, right, types.IncludeIgnoredTraces),
@@ -396,13 +391,13 @@ func (c *SearchAPI) CompareTest(ctq *CTQuery) (*CTResponse, error) {
 	rows := getCTRows(rowDigests, ctq.SortRows, ctq.RowsDir, ctq.RowQuery.Limit, ctq.RowQuery.IgnoreState(), c.Indexer.GetIndex())
 
 	// If the number exceeds the maximum we always sort and trim by frequency.
-	if len(rows) > MAX_ROW_DIGESTS {
-		ctq.SortRows = SORT_FIELD_COUNT
+	if len(rows) > maxRowDigests {
+		ctq.SortRows = countSortField
 	}
 
 	// If we sort by image frequency then we can sort and limit now, reducing the
 	// number of diffs we need to make.
-	sortEarly := (ctq.SortRows == SORT_FIELD_COUNT)
+	sortEarly := (ctq.SortRows == countSortField)
 	var uniqueTests types.TestNameSet = nil
 	if sortEarly {
 		uniqueTests = sortAndLimitRows(&rows, rowDigests, ctq.SortRows, ctq.RowsDir, ctq.Metric, ctq.RowQuery.Limit)
@@ -585,7 +580,7 @@ func getCTRows(entries map[types.Digest]paramtools.ParamSet, sortField, sortDir 
 func sortAndLimitRows(rows *[]*CTRow, rowDigests map[types.Digest]paramtools.ParamSet, field, direction string, diffMetric string, limit int32) types.TestNameSet {
 	// Determine the less function used for sorting the rows.
 	var lessFn ctRowSliceLessFn
-	if field == SORT_FIELD_COUNT {
+	if field == countSortField {
 		lessFn = func(c *ctRowSlice, i, j int) bool { return c.data[i].N < c.data[j].N }
 	} else {
 		lessFn = func(c *ctRowSlice, i, j int) bool {
@@ -594,7 +589,7 @@ func sortAndLimitRows(rows *[]*CTRow, rowDigests map[types.Digest]paramtools.Par
 	}
 
 	sortSlice := sort.Interface(newCTRowSlice(*rows, lessFn))
-	if direction == SORT_DESC {
+	if direction == sortDescending {
 		sortSlice = sort.Reverse(sortSlice)
 	}
 
@@ -656,7 +651,7 @@ func getDiffs(diffStore diff.DiffStore, digest types.Digest, colDigests types.Di
 		return c.data[i].Diffs[diffMetric] < c.data[j].Diffs[diffMetric]
 	}
 	sortSlice := sort.Interface(newCTDiffMetricsSlice(ret, lessFn))
-	if sortDir == SORT_DESC {
+	if sortDir == sortDescending {
 		sortSlice = sort.Reverse(sortSlice)
 	}
 	sort.Sort(sortSlice)

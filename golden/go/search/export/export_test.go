@@ -1,4 +1,4 @@
-package search
+package export
 
 import (
 	"bytes"
@@ -7,16 +7,17 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/golden/go/search"
 )
 
 func TestWriteReadExport(t *testing.T) {
 	unittest.SmallTest(t)
-	testRecs := []*ExportTestRecord{
+	testRecs := []*TestRecord{
 		{
 			TestName: "test-1",
-			Digests: []*ExportDigestInfo{
+			Digests: []*DigestInfo{
 				{
-					SRDigest: &SRDigest{
+					SRDigest: &search.SRDigest{
 						Digest: "abc-efg",
 					},
 					URL: fmt.Sprintf(urlTemplate, "https://example.com", "abc-efg"),
@@ -26,8 +27,8 @@ func TestWriteReadExport(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	assert.NoError(t, WriteExportTestRecords(testRecs, &buf))
-	found, err := ReadExportTestRecords(&buf)
+	assert.NoError(t, WriteTestRecords(testRecs, &buf))
+	found, err := ReadTestRecords(&buf)
 	assert.NoError(t, err)
 	assert.Equal(t, testRecs, found)
 }

@@ -10,6 +10,17 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
+const (
+	// Directory with testdata.
+	TEST_DATA_DIR = "./testdata"
+
+	// Local file location of the test data.
+	TEST_DATA_PATH = TEST_DATA_DIR + "/10-test-sample-4bytes.tile"
+
+	// Folder in the testdata bucket. See go/testutils for details.
+	TEST_DATA_STORAGE_PATH = "gold-testdata/10-test-sample-4bytes.tile"
+)
+
 func TestTraceViewFn(t *testing.T) {
 	unittest.MediumTest(t)
 
