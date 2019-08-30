@@ -480,9 +480,6 @@ func writeKnownHashesList(state interface{}) error {
 			}
 		}
 
-		// Make sure they all fetched already. This will block until all digests
-		// are on disk or have failed to load repeatedly.
-		idx.diffStore.WarmDigests(diff.PRIORITY_NOW, hashes.Keys(), true)
 		unavailableDigests = idx.diffStore.UnavailableDigests()
 		for h := range hashes {
 			if _, ok := unavailableDigests[h]; ok {
