@@ -190,3 +190,25 @@ values.
 
 Note that while we use normal keys and values in the example above, the
 implementation will use encoded keys and values for space savings.
+
+perf-tool
+=========
+
+There is a command line tool to inspect aspects of the BigTable store.
+
+    perf-tool help
+
+The --big_table_config flag takes the name of a known config for Perf. See
+the file go/config/config.go for the full list of configs.
+
+You can find the index of the most recent tile:
+
+    perf-tool tiles last
+
+Or force the index for a tile to be re-written:
+
+    perf-tool --logtostderr indices write --big_table_config=nano
+
+Or try queries:
+
+    perf-tool traces list-by-index --query=name=A_large_blank_world_map_with_oceans_marked_in_blue.svg\&sub_result=min_ms
