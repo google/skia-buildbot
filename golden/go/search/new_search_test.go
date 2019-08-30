@@ -7,12 +7,14 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
+	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
 	mock_index "go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/paramsets"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
+	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -32,7 +34,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
 
-	s := NewSearchAPI(mds, mes, mi, nil, everythingPublic)
+	s := NewSearchAPI(mds, mes, mi, nil, nil, nil, everythingPublic)
 
 	mes.On("Get").Return(data.MakeTestExpectations(), nil)
 
@@ -68,9 +70,10 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 		Return(map[types.Digest]interface{}{}, nil)
 
 	q := &Query{
-		Issue: types.MasterBranch,
-		Unt:   true,
-		Head:  true,
+		ChangeListID:    "",
+		DeprecatedIssue: types.LegacyMasterBranch,
+		Unt:             true,
+		Head:            true,
 
 		Metric:   diff.METRIC_COMBINED,
 		FRGBAMin: 0,
@@ -205,6 +208,75 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 			},
 		},
 	}, resp)
+}
+
+// TestSearchThreeDevicesChangeListSunnyDay covers the case
+// where tryjobs on a given CL produce the results in
+// the third commit of the ThreeDevices, except for BetaBrandNewDigest
+// instead of MISSING_DIGEST in CrosshatchBetaTraceID. It covers
+// the case where there is one new expectation for this CL
+// (stored in ExpectationsStore). Since we have queried IncludeMaster=false
+// (the current default in the UI), we should only see data on that
+// brand-new digest.
+func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	clInt := int64(1234)
+	clID := "1234"
+	AlphaNowGoodDigest := data.AlphaUntriaged1Digest
+	//BetaBrandNewDigest := types.Digest("be7a03256511bec3a7453c3186bb2e07")
+
+	mes := &mocks.ExpectationsStore{}
+	issueStore := &mocks.ExpectationsStore{}
+	mi := &mock_index.IndexSource{}
+	mis := &mock_index.IndexSearcher{}
+	mds := &mocks.DiffStore{}
+	mcls := &mock_clstore.Store{}
+	mtjs := &mock_tjstore.Store{}
+	//defer mcls.AssertExpectations(t)
+	// defer mes.AssertExpectations(t)
+	// defer mi.AssertExpectations(t)
+	// defer mis.AssertExpectations(t)
+	// defer mds.AssertExpectations(t)
+
+	mes.On("ForIssue", clInt).Return(issueStore, nil)
+	issueStore.On("Get").Return(types.Expectations{
+		data.AlphaTest: {
+			AlphaNowGoodDigest: types.POSITIVE,
+		},
+	}, nil)
+	mes.On("Get").Return(data.MakeTestExpectations(), nil)
+
+	mi.On("GetIndex").Return(mis)
+
+	dc := digest_counter.New(data.MakeTestTile())
+	mis.On("DigestCountsByTest", types.ExcludeIgnoredTraces).Return(dc.ByTest())
+
+	// ps := paramsets.NewParamSummary(data.MakeTestTile(), dc)
+	// mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(ps.GetByTest())
+
+	s := NewSearchAPI(mds, mes, mi, nil, mcls, mtjs, everythingPublic)
+
+	q := &Query{
+		ChangeListID:    clID,
+		DeprecatedIssue: clInt,
+		NewCLStore:      true,
+		IncludeMaster:   false,
+
+		Unt:  true,
+		Head: true,
+
+		Metric:   diff.METRIC_COMBINED,
+		FRGBAMin: 0,
+		FRGBAMax: 255,
+		FDiffMax: -1,
+		Sort:     sortAscending,
+	}
+
+	resp, err := s.Search(context.Background(), q)
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+
 }
 
 var everythingPublic = paramtools.ParamSet{}

@@ -22,7 +22,7 @@ func TestIntermediate(t *testing.T) {
 	unittest.SmallTest(t)
 
 	srMap := srInterMap{}
-	srMap.add(TEST_1, DIGEST_01, "", nil, PARAMS_01)
+	srMap.Add(TEST_1, DIGEST_01, "", nil, PARAMS_01)
 	assert.Equal(t, srInterMap{TEST_1: map[types.Digest]*srIntermediate{
 		DIGEST_01: {
 			test:   TEST_1,
