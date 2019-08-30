@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "28a43562_cbfbe020",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-30T19:30:47Z",
+      "side": 1,
+      "message": "le sigh, I forgot.",
+      "parentUuid": "1005d6a2_ad37af04",
+      "range": {
+        "startLine": 69,
+        "startChar": 20,
+        "endLine": 69,
+        "endChar": 40
+      },
+      "revId": "c8cd43f8032076841105ec6a3c7f8a05420de2dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e54423cd_c1287352",
         "filename": "golden/go/diffstore/imgloader_test.go",
         "patchSetId": 11
