@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "483ea427_852935f7",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1602,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-30T11:24:29Z",
+      "side": 1,
+      "message": "Done. It makes me sad that we have to consider the database implementation here.",
+      "parentUuid": "b8fe997b_eb9a71fc",
+      "revId": "593e8d58cc7f1158c35e19b20cf0847e8460689b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "27b0825a_f11a1ace",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -33,6 +51,24 @@
       "revId": "593e8d58cc7f1158c35e19b20cf0847e8460689b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd86b8fe_020cade9",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1604,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-30T11:24:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "27b0825a_f11a1ace",
+      "revId": "593e8d58cc7f1158c35e19b20cf0847e8460689b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
