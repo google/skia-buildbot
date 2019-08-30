@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "ad5a23a7_a9febb88",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1602,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-08-30T12:44:46Z",
+      "side": 1,
+      "message": "I suppose we could put this code in the DB layer instead...",
+      "parentUuid": "483ea427_852935f7",
+      "revId": "593e8d58cc7f1158c35e19b20cf0847e8460689b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "27b0825a_f11a1ace",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
