@@ -276,6 +276,7 @@ func indicesWriteAllAction(c *cobra.Command, args []string) error {
 		if err := store.WriteIndices(context.Background(), tileKey); err != nil {
 			return err
 		}
+		sklog.Infof("Wrote index for tile %d", tileKey.Offset())
 		tileKey = tileKey.PrevTile()
 		count, err := store.QueryCount(context.Background(), tileKey, q)
 		if err != nil {
