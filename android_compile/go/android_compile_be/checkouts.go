@@ -316,7 +316,7 @@ func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) err
 
 		// Sync the current branch, only fetch projects fixed to sha1 if revision
 		// does not exist locally, and delete refs that no longer exist on server.
-		if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "sync", "-c", "-j25", "--optimized-fetch", "--prune", "-f"); err != nil {
+		if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "sync", "-c", "-j25", "--optimized-fetch", "--prune", "--force-broken=FORCE_BROKEN"); err != nil {
 			errMsg := fmt.Sprintf("Failed to sync the repo at %s: %s", checkoutBase, err)
 			sklog.Errorln(errMsg)
 			return errors.New(errMsg)
