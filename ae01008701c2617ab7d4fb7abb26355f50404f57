@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2212073f_63ef324f",
+        "filename": "golden/go/search/new_search_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-08-30T18:26:56Z",
+      "side": 1,
+      "message": "Any suggestions you have to make the two tests in this file less long-winded are appreciated.",
+      "revId": "ae01008701c2617ab7d4fb7abb26355f50404f57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
