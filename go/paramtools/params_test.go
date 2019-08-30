@@ -366,7 +366,7 @@ func TestOrderedParamSet(t *testing.T) {
 	assert.Equal(t, []string{"true", "false"}, p.ParamSet["srgb"])
 	assert.Equal(t, []string{"8888", "565", "gpu", "gles"}, p.ParamSet["config"])
 
-	// Confirm the updated OPS encodes and decodes Params correctly.
+	// Confirm the updated OPS encodes and decodes Params and ParamSets correctly.
 	params := Params{
 		"config": "8888",
 		"arch":   "x86",
@@ -378,6 +378,10 @@ func TestOrderedParamSet(t *testing.T) {
 	ep, err := p.EncodeParams(params)
 	assert.NoError(t, err)
 	assert.Equal(t, Params{"0": "0", "1": "1", "2": "0"}, ep)
+	eps, err := p.EncodeParamSet(NewParamSet(params))
+	assert.NoError(t, err)
+	assert.Equal(t, ParamSet{"0": []string{"0"}, "1": []string{"1"}, "2": []string{"0"}}, eps)
+
 	paramsDecoded, err := p.DecodeParamsFromString(s)
 	assert.NoError(t, err)
 	assert.Equal(t, nil, err)
@@ -387,6 +391,8 @@ func TestOrderedParamSet(t *testing.T) {
 	s, err = p.EncodeParamsAsString(Params{})
 	assert.Error(t, err)
 	_, err = p.EncodeParams(Params{})
+	assert.Error(t, err)
+	_, err = p.EncodeParamSet(ParamSet{})
 	assert.Error(t, err)
 
 	// Test values at the end of the ParamSet.
@@ -401,6 +407,9 @@ func TestOrderedParamSet(t *testing.T) {
 	ep, err = p.EncodeParams(params)
 	assert.NoError(t, err)
 	assert.Equal(t, Params{"0": "3", "1": "68", "2": "1"}, ep)
+	eps, err = p.EncodeParamSet(NewParamSet(params))
+	assert.NoError(t, err)
+	assert.Equal(t, ParamSet{"0": []string{"3"}, "1": []string{"68"}, "2": []string{"1"}}, eps)
 
 	paramsDecoded, err = p.DecodeParamsFromString(s)
 	assert.NoError(t, err)
@@ -413,6 +422,8 @@ func TestOrderedParamSet(t *testing.T) {
 	_, err = p.EncodeParamsAsString(params)
 	assert.Error(t, err)
 	_, err = p.EncodeParams(params)
+	assert.Error(t, err)
+	_, err = p.EncodeParamSet(NewParamSet(params))
 	assert.Error(t, err)
 
 	_, err = p.DecodeParamsFromString("")

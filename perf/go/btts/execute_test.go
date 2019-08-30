@@ -85,15 +85,11 @@ func TestExecuteCancel(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Start the querying.
-	out, errCh, err := ExecutePlan(ctx, plan, b.getTable(), tileKey)
+	out, err := ExecutePlan(ctx, plan, b.getTable(), tileKey, "test")
 	assert.NoError(t, err)
 
 	// Cancel the context which should abort the BigTable read.
 	cancel()
-
-	// Confirm that we get at least one error on the errCh.
-	err = <-errCh
-	assert.Error(t, err)
 
 	// Confirm that the channel is closed.
 	_, ok := <-out
@@ -145,14 +141,13 @@ func TestExecuteGoodQuery(t *testing.T) {
 	plan := paramtools.NewParamSet(p)
 
 	// Start the querying.
-	out, errCh, err := ExecutePlan(context.Background(), plan, b.getTable(), tileKey)
+	out, err := ExecutePlan(context.Background(), plan, b.getTable(), tileKey, "test")
 	assert.NoError(t, err)
 
 	expected := []paramtools.Params{
 		{"cpu": "x86", "config": "8888"},
 	}
 	assertExpectedTraces(t, expected, ops, out)
-	assertNoErrors(t, errCh)
 
 	// Confirm that the channel is closed.
 	_, ok := <-out
@@ -164,7 +159,7 @@ func TestExecuteGoodQuery(t *testing.T) {
 	plan = paramtools.NewParamSet(p)
 
 	// Start the querying.
-	out, errCh, err = ExecutePlan(context.Background(), plan, b.getTable(), tileKey)
+	out, err = ExecutePlan(context.Background(), plan, b.getTable(), tileKey, "test")
 	assert.NoError(t, err)
 
 	expected = []paramtools.Params{
@@ -172,7 +167,6 @@ func TestExecuteGoodQuery(t *testing.T) {
 		{"cpu": "arm", "config": "8888"},
 	}
 	assertExpectedTraces(t, expected, ops, out)
-	assertNoErrors(t, errCh)
 
 	// Confirm that the channel is closed.
 	_, ok = <-out
@@ -184,29 +178,15 @@ func TestExecuteGoodQuery(t *testing.T) {
 	plan = paramtools.NewParamSet(p)
 
 	// Start the querying.
-	out, errCh, err = ExecutePlan(context.Background(), plan, b.getTable(), tileKey)
+	out, err = ExecutePlan(context.Background(), plan, b.getTable(), tileKey, "test")
 	assert.NoError(t, err)
 
 	expected = []paramtools.Params{}
 	assertExpectedTraces(t, expected, ops, out)
-	assertNoErrors(t, errCh)
 
 	// Confirm that the channel is closed.
 	_, ok = <-out
 	assert.False(t, ok)
-}
-
-func assertNoErrors(t *testing.T, errCh chan error) {
-	close(errCh)
-	count := 0
-	for {
-		_, ok := <-errCh
-		if !ok {
-			break
-		}
-		count++
-	}
-	assert.Equal(t, 0, count)
 }
 
 func assertExpectedTraces(t *testing.T, expected []paramtools.Params, ops *paramtools.OrderedParamSet, out <-chan string) {
