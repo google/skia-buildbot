@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1005d6a2_ad37af04",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-30T19:22:32Z",
+      "side": 1,
+      "message": "ImageLoader still needs a temporary directory for the failure database.",
+      "parentUuid": "5a26388f_98b156e7",
+      "range": {
+        "startLine": 69,
+        "startChar": 20,
+        "endLine": 69,
+        "endChar": 40
+      },
+      "revId": "c8cd43f8032076841105ec6a3c7f8a05420de2dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e54423cd_c1287352",
         "filename": "golden/go/diffstore/imgloader_test.go",
         "patchSetId": 11
@@ -45,6 +69,30 @@
       "revId": "c8cd43f8032076841105ec6a3c7f8a05420de2dc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a06ab69_99e00e15",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-30T19:22:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e54423cd_c1287352",
+      "range": {
+        "startLine": 88,
+        "startChar": 1,
+        "endLine": 88,
+        "endChar": 23
+      },
+      "revId": "c8cd43f8032076841105ec6a3c7f8a05420de2dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "2c807611_f622fb4a",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-30T19:22:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "97ef4c43_fe9c045f",
+      "range": {
+        "startLine": 102,
+        "startChar": 9,
+        "endLine": 102,
+        "endChar": 10
+      },
+      "revId": "c8cd43f8032076841105ec6a3c7f8a05420de2dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6c174bd9_edfe62cd",
         "filename": "golden/go/diffstore/mem_diffstore.go",
         "patchSetId": 11
@@ -91,6 +163,30 @@
       "revId": "c8cd43f8032076841105ec6a3c7f8a05420de2dc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef7e7a48_c4acf4e2",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-08-30T19:22:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6c174bd9_edfe62cd",
+      "range": {
+        "startLine": 340,
+        "startChar": 14,
+        "endLine": 340,
+        "endChar": 17
+      },
+      "revId": "c8cd43f8032076841105ec6a3c7f8a05420de2dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
