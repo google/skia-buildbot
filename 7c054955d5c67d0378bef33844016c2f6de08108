@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f0d25c72_ba0f4468",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 367,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-08-30T14:49:23Z",
+      "side": 1,
+      "message": "Now that we\u0027re using the job_type label, we don\u0027t need a separate metric name.",
+      "range": {
+        "startLine": 367,
+        "startChar": 15,
+        "endLine": 367,
+        "endChar": 43
+      },
+      "revId": "7c054955d5c67d0378bef33844016c2f6de08108",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
