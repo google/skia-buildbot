@@ -152,7 +152,11 @@
         for (const epoch of this.epochs) {
           epochs.push(ts(epoch));
         }
-        this._chart.tasks(tasks).epochs(epochs).draw();
+        let g = this._chart.tasks(tasks).epochs(epochs);
+        if (this.job.requested) {
+          g.start(ts(this.job.requested));
+        }
+        g.draw();
       }
     });
   })();
