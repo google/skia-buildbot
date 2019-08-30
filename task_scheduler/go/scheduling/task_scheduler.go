@@ -20,6 +20,7 @@ import (
 	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
@@ -34,7 +35,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/cacher"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
-	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/syncer"
@@ -446,6 +446,7 @@ func (s *TaskScheduler) MaybeTriggerPeriodicJobs(ctx context.Context, triggerNam
 				if err != nil {
 					return fmt.Errorf("Failed to create job: %s", err)
 				}
+				job.Requested = job.Created
 				jobs = append(jobs, job)
 			}
 		}
@@ -502,6 +503,7 @@ func (s *TaskScheduler) TriggerJob(ctx context.Context, repo, commit, jobName st
 	if err != nil {
 		return "", err
 	}
+	j.Requested = j.Created
 	j.IsForce = true
 	if err := s.db.PutJob(j); err != nil {
 		return "", err
@@ -1595,6 +1597,12 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context, repoUrl string, repo 
 							continue
 						}
 						return err
+					}
+					j.Requested = firestore.FixTimestamp(c.Timestamp)
+					j.Created = firestore.FixTimestamp(j.Created)
+					if !j.Requested.Before(j.Created) {
+						sklog.Errorf("Job created time %s is before requested time %s! Setting equal.", j.Created, j.Requested)
+						j.Requested = j.Created.Add(-firestore.TS_RESOLUTION)
 					}
 					newJobs = append(newJobs, j)
 				}

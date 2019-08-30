@@ -142,6 +142,11 @@ type Job struct {
 	// RepoState is the current state of the repository for this Job.
 	RepoState
 
+	// Requested is the time at which this Job was requested. This is a
+	// commit timestamp, tryjob request creation timestamp, time at which
+	// the server received a force trigger job request, etc.
+	Requested time.Time `json:"requested"`
+
 	// Status is the current Job status, default JOB_STATUS_IN_PROGRESS.
 	Status JobStatus `json:"status"`
 
@@ -185,6 +190,7 @@ func (j *Job) Copy() *Job {
 		Name:                j.Name,
 		Priority:            j.Priority,
 		RepoState:           j.RepoState.Copy(),
+		Requested:           j.Requested,
 		Status:              j.Status,
 		Tasks:               tasks,
 	}
