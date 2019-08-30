@@ -45,22 +45,22 @@ func validatePlan(plan paramtools.ParamSet) error {
 //
 // An error will be returned if the query is invalid.
 //
+// The desc is a descriptive string to add to any error logs this function produces.
+//
 // See Query Engine in BIGTABLE.md for the design.
-func ExecutePlan(ctx context.Context, plan paramtools.ParamSet, table *bigtable.Table, tileKey TileKey) (<-chan string, chan error, error) {
+func ExecutePlan(ctx context.Context, plan paramtools.ParamSet, table *bigtable.Table, tileKey TileKey, desc string) (<-chan string, error) {
 	if err := validatePlan(plan); err != nil {
-		return nil, nil, skerr.Fmt("Plan is invalid: %s", err)
+		return nil, skerr.Fmt("Plan is invalid: %s", err)
 	}
-	// Only ParamIndex's can produce errors, and at max they produce 1, so size
-	// the errCh accordingly.
-	errCh := make(chan error, sizeOfPlan(plan))
+
 	intersectChannels := make([]<-chan string, 0, len(plan))
 	for key, values := range plan {
 		unionChannels := make([]<-chan string, len(values))
 		for i, value := range values {
-			unionChannels[i] = ParamIndex(ctx, table, tileKey, key, value, errCh)
+			unionChannels[i] = ParamIndex(ctx, table, tileKey, key, value, desc)
 		}
 		intersectChannels = append(intersectChannels, engine.NewUnion(ctx, unionChannels))
 	}
 	out := engine.NewIntersect(ctx, intersectChannels)
-	return out, errCh, nil
+	return out, nil
 }
