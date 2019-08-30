@@ -25,8 +25,6 @@ import (
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/clstore"
-	"go.skia.org/infra/golden/go/code_review"
-	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
@@ -43,6 +41,7 @@ import (
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/validation"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 const (
@@ -308,43 +307,17 @@ func (wh *WebHandlers) ChangeListsHandler(w http.ResponseWriter, r *http.Request
 	sendResponseWithPagination(w, cls, pagination)
 }
 
-// changeList encapsulates how the frontend expects to get information
-// about a code_review.ChangeList that has Gold results associated with it.
-// We have a separate struct so we can decouple the JSON representation
-// and the backend representation (if it needs changing or use by another project
-// with its own JSON requirements).
-type changeList struct {
-	System   string    `json:"system"`
-	SystemID string    `json:"id"`
-	Owner    string    `json:"owner"`
-	Status   string    `json:"status"`
-	Subject  string    `json:"subject"`
-	Updated  time.Time `json:"updated"`
-}
-
-// convertChangeList turns a code_review.ChangeList into a changeList for the frontend.
-func convertChangeList(cl code_review.ChangeList, system string) changeList {
-	return changeList{
-		System:   system,
-		SystemID: cl.SystemID,
-		Owner:    cl.Owner,
-		Status:   cl.Status.String(),
-		Subject:  cl.Subject,
-		Updated:  cl.Updated,
-	}
-}
-
 // getIngestedChangeLists performs the core of the logic for ChangeListsHandler,
 // by fetching N ChangeLists given an offset.
-func (wh *WebHandlers) getIngestedChangeLists(ctx context.Context, offset, size int) ([]changeList, *httputils.ResponsePagination, error) {
+func (wh *WebHandlers) getIngestedChangeLists(ctx context.Context, offset, size int) ([]frontend.ChangeList, *httputils.ResponsePagination, error) {
 	cls, total, err := wh.ChangeListStore.GetChangeLists(ctx, offset, size)
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "fetching ChangeLists from [%d:%d)", offset, offset+size)
 	}
 	crs := wh.ChangeListStore.System()
-	var retCls []changeList
+	var retCls []frontend.ChangeList
 	for _, cl := range cls {
-		retCls = append(retCls, convertChangeList(cl, crs))
+		retCls = append(retCls, frontend.ConvertChangeList(cl, crs))
 	}
 
 	pagination := &httputils.ResponsePagination{
@@ -379,20 +352,20 @@ func (wh *WebHandlers) ChangeListSummaryHandler(w http.ResponseWriter, r *http.R
 // getCLSummary does a bulk of the work for ChangeListSummaryHandler, specifically
 // fetching the ChangeList and PatchSets from clstore and any associated TryJobs from
 // the tjstore.
-func (wh *WebHandlers) getCLSummary(ctx context.Context, clID string) (changeListSummary, error) {
+func (wh *WebHandlers) getCLSummary(ctx context.Context, clID string) (frontend.ChangeListSummary, error) {
 	cl, err := wh.ChangeListStore.GetChangeList(ctx, clID)
 	if err != nil {
-		return changeListSummary{}, skerr.Wrapf(err, "getting CL %s", clID)
+		return frontend.ChangeListSummary{}, skerr.Wrapf(err, "getting CL %s", clID)
 	}
 
 	// We know xps is sorted by order, if it is non-nil
 	xps, err := wh.ChangeListStore.GetPatchSets(ctx, clID)
 	if err != nil {
-		return changeListSummary{}, skerr.Wrapf(err, "getting PatchSets for CL %s", clID)
+		return frontend.ChangeListSummary{}, skerr.Wrapf(err, "getting PatchSets for CL %s", clID)
 	}
 
 	crs := wh.ChangeListStore.System()
-	var patchsets []patchSet
+	var patchsets []frontend.PatchSet
 	maxOrder := 0
 
 	// TODO(kjlubick): maybe fetch these in parallel (with errgroup)
@@ -407,61 +380,26 @@ func (wh *WebHandlers) getCLSummary(ctx context.Context, clID string) (changeLis
 		}
 		xtj, err := wh.TryJobStore.GetTryJobs(ctx, psID)
 		if err != nil {
-			return changeListSummary{}, skerr.Wrapf(err, "getting TryJobs for CL %s - PS %s", clID, ps.SystemID)
+			return frontend.ChangeListSummary{}, skerr.Wrapf(err, "getting TryJobs for CL %s - PS %s", clID, ps.SystemID)
 		}
 		cis := wh.TryJobStore.System()
-		var tryjobs []tryJob
+		var tryjobs []frontend.TryJob
 		for _, tj := range xtj {
-			tryjobs = append(tryjobs, convertTryJob(tj, cis))
+			tryjobs = append(tryjobs, frontend.ConvertTryJob(tj, cis))
 		}
 
-		patchsets = append(patchsets, patchSet{
+		patchsets = append(patchsets, frontend.PatchSet{
 			SystemID: ps.SystemID,
 			Order:    ps.Order,
 			TryJobs:  tryjobs,
 		})
 	}
 
-	return changeListSummary{
-		CL:                convertChangeList(cl, crs),
+	return frontend.ChangeListSummary{
+		CL:                frontend.ConvertChangeList(cl, crs),
 		PatchSets:         patchsets,
 		NumTotalPatchSets: maxOrder,
 	}, nil
-}
-
-// changeListSummary encapsulates how the frontend expects to get a summary of
-// the TryJob information we have associated with a given ChangeList. These
-// TryJobs are those we've noticed that uploaded results to Gold.
-type changeListSummary struct {
-	CL changeList `json:"cl"`
-	// these are only those patchsets with data.
-	PatchSets         []patchSet `json:"patch_sets"`
-	NumTotalPatchSets int        `json:"num_total_patch_sets"`
-}
-
-// patchSet represents the data the frontend needs for PatchSets.
-type patchSet struct {
-	SystemID string   `json:"id"`
-	Order    int      `json:"order"`
-	TryJobs  []tryJob `json:"try_jobs"`
-}
-
-// tryJob represents the data the frontend needs for TryJobs.
-type tryJob struct {
-	SystemID    string    `json:"id"`
-	DisplayName string    `json:"name"`
-	Updated     time.Time `json:"updated"`
-	System      string    `json:"system"`
-}
-
-// convertTryJob turns a ci.TryJob into a tryJob for the frontend.
-func convertTryJob(tj ci.TryJob, system string) tryJob {
-	return tryJob{
-		System:      system,
-		SystemID:    tj.SystemID,
-		DisplayName: tj.DisplayName,
-		Updated:     tj.Updated,
-	}
 }
 
 // SearchHandler is the endpoint for all searches, including accessing
@@ -492,7 +430,7 @@ func (wh *WebHandlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !types.IsMasterBranch(query.Issue) || (query.BlameGroupID != "") {
+	if !types.IsMasterBranch(query.DeprecatedIssue) || (query.BlameGroupID != "") {
 		msg := "Search query cannot contain blame or issue information."
 		httputils.ReportError(w, r, errors.New(msg), msg)
 		return

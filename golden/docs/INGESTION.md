@@ -164,6 +164,9 @@ In the root of the object these fields are required:
     - options.ext: The file type. This needs to be "png" for the test to be
       ingested.
 
+ * options: these keys are meant as an FYI - they don't impact filtering or sorting.
+   Additionally, they do not impact the trace uniqueness.
+
 Validating Gold input with goldctl
 ----------------------------------
 
