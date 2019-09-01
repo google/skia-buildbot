@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b9331488_2d1e1982",
+        "filename": "go/paramtools/params.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 468,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-01T15:13:40Z",
+      "side": 1,
+      "message": "ParamSet",
+      "range": {
+        "startLine": 468,
+        "startChar": 18,
+        "endLine": 468,
+        "endChar": 24
+      },
+      "revId": "1803833f3ed16c3173c7a36f82278fd46b4ad878",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d07996e6_06e30b56",
+        "filename": "go/paramtools/params.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 468,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-01T15:13:40Z",
+      "side": 1,
+      "message": "nit: encodeParamSet",
+      "range": {
+        "startLine": 468,
+        "startChar": 3,
+        "endLine": 468,
+        "endChar": 9
+      },
+      "revId": "1803833f3ed16c3173c7a36f82278fd46b4ad878",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7e6e1cce_1d0b28f9",
+        "filename": "go/paramtools/params.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 485,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-01T15:13:40Z",
+      "side": 1,
+      "message": "You might want to call ps.Normalize() for determinism\nhttps://github.com/google/skia-buildbot/blob/master/go/paramtools/params.go#L162",
+      "revId": "1803833f3ed16c3173c7a36f82278fd46b4ad878",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bcfd9d32_6ecf7de4",
+        "filename": "go/paramtools/params_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 410,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-01T15:13:40Z",
+      "side": 1,
+      "message": "It would be nice if you had a ParamSet that had multiple values for a key.\n\nEspecially if the values are the same, just in a different order:\n{\"a\": []string{\"delta\", \"epsilon\"}}\nand\n{\"a\": []string{\"epsilon\", \"delta\"}}\nshould encode to the same thing",
+      "range": {
+        "startLine": 410,
+        "startChar": 29,
+        "endLine": 410,
+        "endChar": 48
+      },
+      "revId": "1803833f3ed16c3173c7a36f82278fd46b4ad878",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
