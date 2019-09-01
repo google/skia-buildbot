@@ -466,6 +466,24 @@
     },
     {
       "key": {
+        "uuid": "034ebd01_0d5980f4",
+        "filename": "golden/go/tjstore/tjstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-01T16:09:42Z",
+      "side": 1,
+      "message": "Yes",
+      "parentUuid": "721857ea_1b736a89",
+      "revId": "acd899f86c9bcd18b6d54e9bdffe168347cc988e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ec34f72c_2cd3a145",
         "filename": "golden/go/web/web.go",
         "patchSetId": 7
