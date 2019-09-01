@@ -139,11 +139,10 @@ require (
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 	honnef.co/go/tools v0.0.1-2019.2.2 // indirect
-	k8s.io/api v0.0.0-20190830074751-c43c3e1d5a79 // indirect
-	k8s.io/apimachinery v0.0.0-20190830234655-7e74522506c1
+	k8s.io/api v0.0.0-20190831074750-7364b6bdad65 // indirect
+	k8s.io/apimachinery v0.0.0-20190831074630-461753078381
 	k8s.io/client-go v0.0.0-20190425172711-65184652c889
 	k8s.io/gengo v0.0.0-20190826232639-a874a240740c // indirect
-	k8s.io/kube-openapi v0.0.0-20190816220812-743ec37842bf // indirect
 	k8s.io/utils v0.0.0-20190829053155-3a4a5477acf8 // indirect
 	sigs.k8s.io/structured-merge-diff v0.0.0-20190820212518-960c3cc04183 // indirect
 )
