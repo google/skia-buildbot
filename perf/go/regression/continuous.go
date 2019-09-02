@@ -39,15 +39,17 @@ type Current struct {
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
 type Continuous struct {
-	vcs            vcsinfo.VCS
-	cidl           *cid.CommitIDLookup
-	store          *Store
-	numCommits     int // Number of recent commits to do clustering over.
-	radius         int
-	provider       ConfigProvider
-	notifier       *notify.Notifier
-	paramsProvider ParamsetProvider
-	dfBuilder      dataframe.DataFrameBuilder
+	vcs                    vcsinfo.VCS
+	cidl                   *cid.CommitIDLookup
+	store                  *Store
+	numCommits             int // Number of recent commits to do clustering over.
+	radius                 int
+	eventDriven            bool
+	pubSubSubscriptionName string
+	provider               ConfigProvider
+	notifier               *notify.Notifier
+	paramsProvider         ParamsetProvider
+	dfBuilder              dataframe.DataFrameBuilder
 
 	mutex   sync.Mutex // Protects current.
 	current *Current
@@ -175,6 +177,17 @@ func (c *Continuous) Run(ctx context.Context) {
 	// TODO(jcgregorio) Add liveness metrics.
 	sklog.Infof("Continuous starting.")
 	c.reportUntriaged(newClustersGauge)
+
+	// Instead of ranging over time, we should be ranging over PubSub
+	// events that list the ids of the last file that was ingested. Then we
+	// should loop over each config and see if it matches any configs, and
+	// if so at that point we start running the regresions. So we can actually range over
+	// a channel that supplies a slice of configs and a paramset representing
+	// all the traceids we should be running over. If this is just a timer
+	// then the paramset is the full paramset, if it is pubsub driven then
+	// the paramset is built from the list of trace ids we received.
+	//
+	//
 	for range time.Tick(time.Second) {
 		clusteringLatency.Start()
 		configs, err := c.provider()
@@ -190,8 +203,11 @@ func (c *Continuous) Run(ctx context.Context) {
 			continue
 		}
 		sklog.Infof("Clustering over %d configs.", len(configs))
+
 		for _, cfg := range configs {
 			c.setCurrentConfig(cfg)
+
+			// Don't do the smoketest if we are in event driven mode.
 			if cfg.GroupBy != "" {
 				sklog.Infof("Alert contains a GroupBy, doing a smoketest first: %q", cfg.DisplayName)
 				u, err := url.ParseQuery(cfg.Query)
