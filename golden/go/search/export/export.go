@@ -11,7 +11,7 @@ import (
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/search"
+	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -20,8 +20,8 @@ const urlTemplate = "%s/img/images/%s.png"
 // DigestInfo contains information about one test result. This include
 // the parameter sets.
 type DigestInfo struct {
-	*search.SRDigest        // Same digest information as returned by search results.
-	URL              string // URL from which to retrieve the image.
+	*frontend.SRDigest        // Same digest information as returned by search results.
+	URL                string // URL from which to retrieve the image.
 }
 
 // TestRecord accumulates the images/digests generated for one test.
@@ -32,7 +32,7 @@ type TestRecord struct {
 }
 
 // ToTestRecords converts a given search response into a slice of TestRecords.
-func ToTestRecords(searchResp *search.NewSearchResponse, imgBaseURL string) []*TestRecord {
+func ToTestRecords(searchResp *frontend.SearchResponse, imgBaseURL string) []*TestRecord {
 	// Group the results by test.
 	retMap := map[types.TestName]*TestRecord{}
 	for _, oneDigest := range searchResp.Digests {
