@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
-// Params is a set of key,value pairs.
 type Params map[string]string
 
 // ParamSet is a set of keys and the possible values that the keys could have. I.e.
