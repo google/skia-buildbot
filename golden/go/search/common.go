@@ -6,6 +6,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -29,7 +30,7 @@ type AddFn func(test types.TestName, digest types.Digest, traceID tiling.TraceId
 // acceptFn to determine whether to keep a trace (after it has already been
 // tested against the query) and calls addFn to add a digest and its trace.
 // acceptFn == nil equals unconditional acceptance.
-func iterTile(q *query.Search, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx indexer.IndexSearcher) error {
+func iterTile(q *query.Search, addFn AddFn, acceptFn AcceptFn, exp common.ExpSlice, idx indexer.IndexSearcher) error {
 	cpxTile := idx.Tile()
 	selectedTile := cpxTile.GetTile(q.IgnoreState())
 

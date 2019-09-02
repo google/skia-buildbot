@@ -6,17 +6,6 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-type ExpSlice []types.Expectations
-
-func (e ExpSlice) Classification(test types.TestName, digest types.Digest) types.Label {
-	for _, exp := range e {
-		if label := exp.Classification(test, digest); label != types.UNTRIAGED {
-			return label
-		}
-	}
-	return types.UNTRIAGED
-}
-
 // srIntermediate is the intermediate representation of a single digest
 // found by the search. It is used to avoid multiple passes through the tile
 // by accumulating the parameters that generated a specific digest and by
