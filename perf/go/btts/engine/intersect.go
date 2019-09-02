@@ -56,6 +56,12 @@ func newIntersect2(ctx context.Context, a, b <-chan string) <-chan string {
 				case aValue, ok = <-a:
 					if !ok {
 						// Channel is closed, we can't possibly have more matches.
+
+						// Drain the b channel. If we don't then the Union feeding
+						// the b channel may never get a chance to see the cancelled
+						// context and we get a Go routine leak.
+						for range b {
+						}
 						return
 					}
 				case <-cancel:
@@ -68,6 +74,12 @@ func newIntersect2(ctx context.Context, a, b <-chan string) <-chan string {
 				case bValue, ok = <-b:
 					if !ok {
 						// Channel is closed, we can't possibly have more matches.
+
+						// Drain the a channel. If we don't then the Union feeding
+						// the a channel may never get a chance to see the cancelled
+						// context and we get a Go routine leak.
+						for range a {
+						}
 						return
 					}
 				case <-cancel:
