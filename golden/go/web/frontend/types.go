@@ -1,5 +1,6 @@
 // package frontend houses a variety of types that represent how the frontend
-// expects the format of data.
+// expects the format of data. The data types here are those shared by
+// multiple packages.
 package frontend
 
 import (

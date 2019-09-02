@@ -754,10 +754,9 @@ func (wh *WebHandlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// TODO(stephana): Check if this is still necessary.
+	// TODO(kjlubick): Check if we need to sort these
 	// // Sort the digests so they are displayed with untriaged last, which means
 	// // they will be displayed 'on top', because in SVG document order is z-order.
-	// sort.Sort(SearchDigestSlice(searchResponse.Digests))
 
 	digests := types.DigestSlice{}
 	for _, digest := range searchResponse.Digests {
@@ -808,20 +807,6 @@ func (wh *WebHandlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request
 
 	sendJSONResponse(w, d3)
 }
-
-// SearchDigestSlice is for sorting search.Digest's in the order of digest status.
-type SearchDigestSlice []*search.Digest
-
-func (p SearchDigestSlice) Len() int { return len(p) }
-func (p SearchDigestSlice) Less(i, j int) bool {
-	if p[i].Status == p[j].Status {
-		return p[i].Digest < p[j].Digest
-	} else {
-		// Alphabetical order, so neg, pos, unt.
-		return p[i].Status < p[j].Status
-	}
-}
-func (p SearchDigestSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 
 // Node represents a single node in a d3 diagram. Used in ClusterDiffResult.
 type Node struct {
