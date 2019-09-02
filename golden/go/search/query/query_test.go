@@ -19,7 +19,7 @@ import (
 
 func TestParseCTQuery(t *testing.T) {
 	unittest.SmallTest(t)
-	testQuery := CompareTests{
+	testQuery := DigestTable{
 		RowQuery: &Search{
 			Pos:            true,
 			Neg:            false,
@@ -44,7 +44,7 @@ func TestParseCTQuery(t *testing.T) {
 	jsonBytes, err := json.Marshal(&testQuery)
 	assert.NoError(t, err)
 
-	var ctQuery CompareTests
+	var ctQuery DigestTable
 	assert.NoError(t, ParseCTQuery(ioutil.NopCloser(bytes.NewBuffer(jsonBytes)), 9, &ctQuery))
 	exp := url.Values{"source_type": []string{"gm"}, "param": []string{"value"}}
 	assert.True(t, util.In(types.PRIMARY_KEY_FIELD, ctQuery.Match))

@@ -44,12 +44,12 @@ var (
 )
 
 // ParseCTQuery parses JSON from the given ReadCloser into the given
-// pointer to an instance of CompareTests. It will fill in values and validate key
+// pointer to an instance of DigestTable. It will fill in values and validate key
 // fields of the query. It will return an error if parsing failed
 // for some reason and always close the ReadCloser. testName is the name of the
 // test that should be compared and limitDefault is the default limit for the
 // row and column queries.
-func ParseCTQuery(r io.ReadCloser, limitDefault int32, q *CompareTests) error {
+func ParseCTQuery(r io.ReadCloser, limitDefault int32, q *DigestTable) error {
 	defer util.Close(r)
 	var err error
 
