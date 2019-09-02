@@ -252,3 +252,38 @@ For example, for Perf ingestion of Skia data the topic will be:
     perf-ingestion-skia
 
 
+Event Driven Alerting
+---------------------
+
+Instead of running continously over all Alert configs and running the
+regressions found there it may be beneficial in some cases to look for
+regressions only when new data has arrived.
+
+The current system for Alerting was built on the assumption of smaller data sets
+with dense data arriving at a steady rate, i.e. kicking off Alerting once an
+hour and having it finish in much less than an hour was expected.
+
+With the arrival of Android data which is sparse but also combinatorially much
+larger than Skia's data set, and Alerts that need to be Group'd along both
+Branch and BuildFlavor, the continuous clustering process is now consuming a
+huge number of cores and BT bandwidth and also has high latency, even after the
+indexing system has been rebuilt.
+
+To solve this problem Alerting should optionally be done on an incremental
+process, that is, as data arrives, i.e. as it passes through the ingesters, a
+PubSub event will be generated which will include the names of all the traces
+that have just been updated. Since PubSub events have a size limit, this data is
+passed off through BigTable by sorting and then hashing the list of trace ids
+and then storing the list of trace ids in BigTable and then including the hash
+in the PubSub event. We use BT because Datastore has a size limit of 1MB per entity
+and we could easily surpass that, as some Skia tests contain 30,000 test results and
+trace ids can be as large as 300 chars long.
+Hashing the set of sorted keys should get a lot of
+duplicates, since each set of traces is from a single data file which comes from
+a single bot, so the number of hashes should be O(number of bots), which will
+save on storage. As each PubSub event arrives at a clusterer it will be checked
+against each Alert to see if the new traces match the Alert, if so then the
+Alert will be run, but for only the Group By configs that match the paramset
+that represents all the traceids, a savings of to 1000x for Android alerts
+today. This will also dramatically reduce the latency of Alerts sent down from 1
+day to less than a minute.

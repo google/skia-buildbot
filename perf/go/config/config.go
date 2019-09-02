@@ -30,6 +30,10 @@ type PerfBigTableConfig struct {
 	Shards   int32
 	Sources  []string // List of gs: locations.
 	Branches []string // If populated then restrict to ingesting just these branches.
+
+	// IngestionSubscriptionName is the PubSub subscription name we should use
+	// if doing event driven regression detection.
+	IngestionSubscriptionName string
 }
 
 const (
