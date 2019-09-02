@@ -141,6 +141,13 @@ hashes:
     H - Column family stores md5 hash of source file name written as hex string.
       - Columns: S   - Source (The full name of the source file, gs://....)
 
+ingestion event hashes:
+   - row name = '%' + md5('sorted list of all trace ids ingested in one file')
+
+   H - Column family stores the trace ids of all the traces found in a single ingestion file.
+       Each trace id is stored as a single column name and the cell value is the empty
+       byte slice.
+
 Query Engine
 ------------
 
