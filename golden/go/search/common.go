@@ -2,10 +2,15 @@
 package search
 
 import (
+	"strings"
+
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/golden/go/blame"
+	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -29,7 +34,7 @@ type AddFn func(test types.TestName, digest types.Digest, traceID tiling.TraceId
 // acceptFn to determine whether to keep a trace (after it has already been
 // tested against the query) and calls addFn to add a digest and its trace.
 // acceptFn == nil equals unconditional acceptance.
-func iterTile(q *query.Search, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx indexer.IndexSearcher) error {
+func iterTile(q *query.Search, addFn AddFn, acceptFn AcceptFn, exp common.ExpSlice, idx indexer.IndexSearcher) error {
 	cpxTile := idx.Tile()
 	selectedTile := cpxTile.GetTile(q.IgnoreState())
 
@@ -132,4 +137,48 @@ func getTraceViewFn(tile *tiling.Tile, startHash, endHash string) (int, traceVie
 	}
 
 	return (endIdx - startIdx) - 1, ret, nil
+}
+
+// digestsFromTrace returns all the digests in the given trace, controlled by
+// 'head', and being robust to tallies not having been calculated for the
+// trace.
+func digestsFromTrace(id tiling.TraceId, tr *types.GoldenTrace, head bool, lastCommitIndex int, digestsByTrace map[tiling.TraceId]digest_counter.DigestCount) types.DigestSlice {
+	digests := types.DigestSet{}
+	if head {
+		// Find the last non-missing value in the trace.
+		for i := lastCommitIndex; i >= 0; i-- {
+			if tr.IsMissing(i) {
+				continue
+			} else {
+				digests[tr.Digests[i]] = true
+				break
+			}
+		}
+	} else {
+		// Use the digestsByTrace if available, otherwise just inspect the trace.
+		if t, ok := digestsByTrace[id]; ok {
+			for k := range t {
+				digests[k] = true
+			}
+		} else {
+			for i := lastCommitIndex; i >= 0; i-- {
+				if !tr.IsMissing(i) {
+					digests[tr.Digests[i]] = true
+				}
+			}
+		}
+	}
+
+	return digests.Keys()
+}
+
+// blameGroupID takes a blame distribution with just indices of commits and
+// returns an id for the blame group, which is just a string, the concatenated
+// git hashes in commit time order.
+func blameGroupID(b blame.BlameDistribution, commits []*tiling.Commit) string {
+	ret := []string{}
+	for _, index := range b.Freq {
+		ret = append(ret, commits[index].Hash)
+	}
+	return strings.Join(ret, ":")
 }

@@ -4,18 +4,16 @@ package search
 import (
 	"fmt"
 	"sort"
-	"strings"
 	"sync"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
-	"go.skia.org/infra/golden/go/digest_counter"
-	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/search/common"
+	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/types"
@@ -27,159 +25,9 @@ const (
 	maxRowDigests = 200
 )
 
-// TODO(kjlubick): A lot of these are types just used for frontend output.
-// Move them to web/frontend
-
-// Point is a single point. Used in Trace.
-type Point struct {
-	X int `json:"x"` // The commit index [0-49].
-	Y int `json:"y"`
-	S int `json:"s"` // Status of the digest: 0 if the digest matches our search, 1-8 otherwise.
-}
-
-// Trace describes a single trace, used in Traces.
-type Trace struct {
-	Data   []Point           `json:"data"`  // One Point for each test result.
-	ID     tiling.TraceId    `json:"label"` // The id of the trace. Keep the json as label to be compatible with dots-sk.
-	Params map[string]string `json:"params"`
-}
-
-// DigestStatus is a digest and its status, used in Traces.
-type DigestStatus struct {
-	Digest types.Digest `json:"digest"`
-	Status string       `json:"status"`
-}
-
-// TraceGroup is info about a group of traces.
-type TraceGroup struct {
-	TileSize int            `json:"tileSize"`
-	Traces   []Trace        `json:"traces"`  // The traces where this digest appears.
-	Digests  []DigestStatus `json:"digests"` // The other digests that appear in Traces.
-}
-
-// DiffDigest is information about a digest different from the one in Digest.
-type DiffDigest struct {
-	Closest  *digesttools.Closest `json:"closest"`
-	ParamSet map[string][]string  `json:"paramset"`
-}
-
-// Diff is only populated for digests that are untriaged?
-// Might still be useful to find diffs to closest pos for a neg, and vice-versa.
-// Will also be useful if we ever get a canonical trace or centroid.
-type Diff struct {
-	Diff float32 `json:"diff"` // The smaller of the Pos and Neg diff.
-
-	// Either may be nil if there's no positive or negative to compare against.
-	Pos *DiffDigest `json:"pos"`
-	Neg *DiffDigest `json:"neg"`
-	//Centroid *DiffDigest
-
-	Blame *blame.BlameDistribution `json:"blame"`
-}
-
-// Digests are returned from Search, one for each match to Query.
-type Digest struct {
-	Test     string              `json:"test"`
-	Digest   string              `json:"digest"`
-	Status   string              `json:"status"`
-	ParamSet map[string][]string `json:"paramset"`
-	Traces   *TraceGroup         `json:"traces"`
-	Diff     *Diff               `json:"diff"`
-}
-
-// TODO: filter within tests.
-const (
-	GROUP_TEST_MAX_COUNT = "count"
-)
-
-// SearchResponse is the standard search response. Depending on the query some fields
-// might be empty, i.e. IssueDetails only makes sense if a trybot isssue was given in the query.
-type SearchResponse struct {
-	Digests       []*Digest
-	Total         int32
-	Commits       []*tiling.Commit
-	IssueResponse *IssueResponse
-}
-
-// IssueResponse contains specific query responses when we search for a trybot issue. Currently
-// it extends trybot.IssueDetails.
-type IssueResponse struct {
-	QueryPatchsets []int64
-}
-
-// DigestSlice is a utility type for sorting slices of Digest by their max diff.
-type DigestSlice []*Digest
-
-func (p DigestSlice) Len() int           { return len(p) }
-func (p DigestSlice) Less(i, j int) bool { return p[i].Diff.Diff > p[j].Diff.Diff }
-func (p DigestSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
-// digestIndex returns the index of the digest d in digestInfo, or -1 if not found.
-func digestIndex(d types.Digest, digestInfo []DigestStatus) int {
-	for i, di := range digestInfo {
-		if di.Digest == d {
-			return i
-		}
-	}
-	return -1
-}
-
-// blameGroupID takes a blame distribution with just indices of commits and
-// returns an id for the blame group, which is just a string, the concatenated
-// git hashes in commit time order.
-func blameGroupID(b blame.BlameDistribution, commits []*tiling.Commit) string {
-	ret := []string{}
-	for _, index := range b.Freq {
-		ret = append(ret, commits[index].Hash)
-	}
-	return strings.Join(ret, ":")
-}
-
-// digestsFromTrace returns all the digests in the given trace, controlled by
-// 'head', and being robust to tallies not having been calculated for the
-// trace.
-func digestsFromTrace(id tiling.TraceId, tr *types.GoldenTrace, head bool, lastCommitIndex int, digestsByTrace map[tiling.TraceId]digest_counter.DigestCount) types.DigestSlice {
-	digests := types.DigestSet{}
-	if head {
-		// Find the last non-missing value in the trace.
-		for i := lastCommitIndex; i >= 0; i-- {
-			if tr.IsMissing(i) {
-				continue
-			} else {
-				digests[tr.Digests[i]] = true
-				break
-			}
-		}
-	} else {
-		// Use the digestsByTrace if available, otherwise just inspect the trace.
-		if t, ok := digestsByTrace[id]; ok {
-			for k := range t {
-				digests[k] = true
-			}
-		} else {
-			for i := lastCommitIndex; i >= 0; i-- {
-				if !tr.IsMissing(i) {
-					digests[tr.Digests[i]] = true
-				}
-			}
-		}
-	}
-
-	return digests.Keys()
-}
-
-// TODO(stephana): Replace digesttools.Closest here and above with an overall
-// consolidated structure to measure the distance between two digests.
-
-// SRDigestDiff contains the result of comparing two digests.
-type SRDigestDiff struct {
-	Left  *SRDigest     `json:"left"`  // The left hand digest and its params.
-	Right *SRDiffDigest `json:"right"` // The right hand digest, its params and the diff result.
-}
-
 // CompareDigests compares two digests that were generated by the given test. It returns
 // an instance of DigestDiff.
-func (c *SearchAPI) CompareDigests(test types.TestName, left, right types.Digest) (*SRDigestDiff, error) {
+func (c *SearchAPI) CompareDigests(test types.TestName, left, right types.Digest) (*frontend.SRDigestDiff, error) {
 	// Get the diff between the two digests
 	diffResult, err := c.DiffStore.Get(diff.PRIORITY_NOW, left, types.DigestSlice{right})
 	if err != nil {
@@ -198,14 +46,14 @@ func (c *SearchAPI) CompareDigests(test types.TestName, left, right types.Digest
 
 	idx := c.Indexer.GetIndex()
 
-	return &SRDigestDiff{
-		Left: &SRDigest{
+	return &frontend.SRDigestDiff{
+		Left: &frontend.SRDigest{
 			Test:     test,
 			Digest:   left,
 			Status:   exp.Classification(test, left).String(),
 			ParamSet: idx.GetParamsetSummary(test, left, types.IncludeIgnoredTraces),
 		},
-		Right: &SRDiffDigest{
+		Right: &frontend.SRDiffDigest{
 			Digest:      right,
 			Status:      exp.Classification(test, right).String(),
 			ParamSet:    idx.GetParamsetSummary(test, right, types.IncludeIgnoredTraces),
@@ -384,7 +232,7 @@ func (c *SearchAPI) filterTileCompare(q *query.Search) (map[types.Digest]paramto
 		return nil, err
 	}
 
-	if err := iterTile(q, addFn, nil, ExpSlice{exp}, c.Indexer.GetIndex()); err != nil {
+	if err := iterTile(q, addFn, nil, common.ExpSlice{exp}, c.Indexer.GetIndex()); err != nil {
 		return nil, err
 	}
 	return ret, nil
@@ -450,7 +298,7 @@ func (c *SearchAPI) filterTileWithMatch(q *query.Search, matchFields []string, c
 		return nil, err
 	}
 
-	if err := iterTile(q, addFn, acceptFn, ExpSlice{exp}, c.Indexer.GetIndex()); err != nil {
+	if err := iterTile(q, addFn, acceptFn, common.ExpSlice{exp}, c.Indexer.GetIndex()); err != nil {
 		return nil, err
 	}
 	return ret, nil

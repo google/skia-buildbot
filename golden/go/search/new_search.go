@@ -15,7 +15,10 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/search/common"
+	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
+	"go.skia.org/infra/golden/go/search/ref_differ"
 	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
@@ -26,49 +29,23 @@ const (
 	// in a dotted line of traces. We assume that showing more digests yields
 	// no additional information, because the trace is likely to be flaky.
 	MAX_REF_DIGESTS = 9
+
+	// TODO(kjlubick): no tests for this option yet.
+	GROUP_TEST_MAX_COUNT = "count"
 )
-
-// SRDigest is a single search result digest returned
-// by the Search function below.
-type SRDigest struct {
-	Test       types.TestName               `json:"test"`
-	Digest     types.Digest                 `json:"digest"`
-	Status     string                       `json:"status"`
-	ParamSet   paramtools.ParamSet          `json:"paramset"`
-	Traces     *TraceGroup                  `json:"traces"`
-	ClosestRef RefClosest                   `json:"closestRef"` // "pos" or "neg"
-	RefDiffs   map[RefClosest]*SRDiffDigest `json:"refDiffs"`
-}
-
-// SRDiffDigest captures the diff information between
-// a primary digest and the digest given here. The primary
-// digest is given by the context where this is used.
-type SRDiffDigest struct {
-	*diff.DiffMetrics
-	Digest            types.Digest        `json:"digest"`
-	Status            string              `json:"status"`
-	ParamSet          paramtools.ParamSet `json:"paramset"`
-	OccurrencesInTile int                 `json:"n"`
-}
 
 // NewSearchResponse is the structure returned by the
 // Search(...) function of SearchAPI and intended to be
 // returned as JSON in an HTTP response.
 type NewSearchResponse struct {
-	Digests         []*SRDigest        `json:"digests"`
-	Offset          int                `json:"offset"`
-	Size            int                `json:"size"`
-	Commits         []*tiling.Commit   `json:"commits"`
-	DeprecatedIssue *tryjobstore.Issue `json:"issue"`
+	Digests         []*frontend.SRDigest `json:"digests"`
+	Offset          int                  `json:"offset"`
+	Size            int                  `json:"size"`
+	Commits         []*tiling.Commit     `json:"commits"`
+	DeprecatedIssue *tryjobstore.Issue   `json:"issue"`
 	// Rather than bundling in the ChangeListSummary with the search response,
 	// the web client should poll web.ChangeListSummaryHandler for
 	// that information.
-}
-
-// DigestDetails contains details about a digest.
-type SRDigestDetails struct {
-	Digest  *SRDigest        `json:"digest"`
-	Commits []*tiling.Commit `json:"commits"`
 }
 
 // SearchAPI is type that exposes a search API to query the
@@ -183,8 +160,8 @@ func (s *SearchAPI) Search(ctx context.Context, q *query.Search) (*NewSearchResp
 	return searchRet, nil
 }
 
-// GetDigestDetails returns details about a digest as an instance of SRDigestDetails.
-func (s *SearchAPI) GetDigestDetails(test types.TestName, digest types.Digest) (*SRDigestDetails, error) {
+// GetDigestDetails returns details about a digest as an instance of frontend.SRDigestDetails.
+func (s *SearchAPI) GetDigestDetails(test types.TestName, digest types.Digest) (*frontend.SRDigestDetails, error) {
 	ctx := context.Background()
 	idx := s.Indexer.GetIndex()
 	tile := idx.Tile().GetTile(types.IncludeIgnoredTraces)
@@ -231,7 +208,7 @@ func (s *SearchAPI) GetDigestDetails(test types.TestName, digest types.Digest) (
 		s.addParamsAndTraces(ctx, ret, inter, exp, idx)
 	}
 
-	return &SRDigestDetails{
+	return &frontend.SRDigestDetails{
 		Digest:  ret[0],
 		Commits: tile.Commits,
 	}, nil
@@ -241,8 +218,8 @@ func (s *SearchAPI) GetDigestDetails(test types.TestName, digest types.Digest) (
 // used in the given query. It will add the issue expectations if this is
 // querying tryjob results. If query is nil the expectations of the master
 // tile are returned.
-func (s *SearchAPI) getExpectationsFromQuery(clID int64) (ExpSlice, error) {
-	ret := make(ExpSlice, 0, 2)
+func (s *SearchAPI) getExpectationsFromQuery(clID int64) (common.ExpSlice, error) {
+	ret := make(common.ExpSlice, 0, 2)
 
 	if !types.IsMasterBranch(clID) {
 		issueExpStore := s.ExpectationsStore.ForIssue(clID)
@@ -263,7 +240,7 @@ func (s *SearchAPI) getExpectationsFromQuery(clID int64) (ExpSlice, error) {
 
 // TODO(kjlubick): remove this deprecated stuff after the new tjstore/clstore lands
 // deprecatedQueryIssue returns the digest related to this issues in intermediate representation.
-func (s *SearchAPI) deprecatedQueryIssue(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp ExpSlice) (srInterMap, *tryjobstore.Issue, error) {
+func (s *SearchAPI) deprecatedQueryIssue(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp common.ExpSlice) (srInterMap, *tryjobstore.Issue, error) {
 	ctx, span := trace.StartSpan(ctx, "search/deprecatedQueryIssue")
 	defer span.End()
 
@@ -293,7 +270,7 @@ type deprecatedFilterAddFn func(types.TestName, types.Digest, tiling.TraceId, *t
 
 // deprecatedExtractIssueDigests loads the issue and its tryjob results and then filters the
 // results via the given query. For each testName/digest pair addFn is called.
-func (s *SearchAPI) deprecatedExtractIssueDigests(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp ExpSlice, addFn deprecatedFilterAddFn) (*tryjobstore.Issue, error) {
+func (s *SearchAPI) deprecatedExtractIssueDigests(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp common.ExpSlice, addFn deprecatedFilterAddFn) (*tryjobstore.Issue, error) {
 	_, span := trace.StartSpan(ctx, "search/deprecatedExtractIssueDigests")
 	defer span.End()
 
@@ -381,7 +358,7 @@ func (s *SearchAPI) deprecatedExtractIssueDigests(ctx context.Context, q *query.
 
 // queryChangeList returns the digests from this ChangeList in intermediate representation.
 // It applies the query to those digests before returning it.
-func (s *SearchAPI) queryChangeList(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp ExpSlice) (srInterMap, error) {
+func (s *SearchAPI) queryChangeList(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp common.ExpSlice) (srInterMap, error) {
 	ctx, span := trace.StartSpan(ctx, "search/queryChangeList")
 	defer span.End()
 
@@ -424,7 +401,7 @@ type tryjobResult struct {
 // Then, it filters those results with the given query. For each testName/digest pair that
 // matches the query, it calls addFn (which the supplier will likely use to build up a list
 // of those results..
-func (s *SearchAPI) extractChangeListDigests(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp ExpSlice, addFn filterAddFn) error {
+func (s *SearchAPI) extractChangeListDigests(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp common.ExpSlice, addFn filterAddFn) error {
 	_, span := trace.StartSpan(ctx, "search/extractChangeListDigests")
 	defer span.End()
 
@@ -531,7 +508,7 @@ func (s *SearchAPI) extractChangeListDigests(ctx context.Context, q *query.Searc
 
 // filterTile iterates over the tile and accumulates the traces
 // that match the given query creating the initial search result.
-func (s *SearchAPI) filterTile(ctx context.Context, q *query.Search, exp ExpSlice, idx indexer.IndexSearcher) (srInterMap, error) {
+func (s *SearchAPI) filterTile(ctx context.Context, q *query.Search, exp common.ExpSlice, idx indexer.IndexSearcher) (srInterMap, error) {
 	_, span := trace.StartSpan(ctx, "search/filterTile")
 	defer span.End()
 
@@ -564,17 +541,17 @@ func (s *SearchAPI) filterTile(ctx context.Context, q *query.Search, exp ExpSlic
 
 // getDigestRecs takes the intermediate results and converts them to the list
 // of records that will be returned to the client.
-func (s *SearchAPI) getDigestRecs(inter srInterMap, exps ExpSlice) []*SRDigest {
+func (s *SearchAPI) getDigestRecs(inter srInterMap, exps common.ExpSlice) []*frontend.SRDigest {
 	// Get the total number of digests we have at this point.
 	nDigests := 0
 	for _, digestInfo := range inter {
 		nDigests += len(digestInfo)
 	}
 
-	retDigests := make([]*SRDigest, 0, nDigests)
+	retDigests := make([]*frontend.SRDigest, 0, nDigests)
 	for _, testDigests := range inter {
 		for _, interValue := range testDigests {
-			retDigests = append(retDigests, &SRDigest{
+			retDigests = append(retDigests, &frontend.SRDigest{
 				Test:     interValue.test,
 				Digest:   interValue.digest,
 				Status:   exps.Classification(interValue.test, interValue.digest).String(),
@@ -587,15 +564,15 @@ func (s *SearchAPI) getDigestRecs(inter srInterMap, exps ExpSlice) []*SRDigest {
 
 // getReferenceDiffs compares all digests collected in the intermediate representation
 // and compares them to the other known results for the test at hand.
-func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState, exp ExpSlice, idx indexer.IndexSearcher) {
+func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState, exp common.ExpSlice, idx indexer.IndexSearcher) {
 	_, span := trace.StartSpan(ctx, "search/getReferenceDiffs")
 	defer span.End()
 
-	refDiffer := NewRefDiffer(exp, s.DiffStore, idx)
+	refDiffer := ref_differ.New(exp, s.DiffStore, idx)
 	var wg sync.WaitGroup
 	wg.Add(len(resultDigests))
 	for _, retDigest := range resultDigests {
-		go func(retDigest *SRDigest) {
+		go func(retDigest *frontend.SRDigest) {
 			closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, retDigest.Test, retDigest.Digest, retDigest.ParamSet, rhsQuery, is)
 			retDigest.ClosestRef = closestRef
 			retDigest.RefDiffs = refDiffs
@@ -609,11 +586,11 @@ func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDi
 }
 
 // afterDiffResultFilter filters the results based on the diff results in 'digestInfo'.
-func (s *SearchAPI) afterDiffResultFilter(ctx context.Context, digestInfo []*SRDigest, q *query.Search) []*SRDigest {
+func (s *SearchAPI) afterDiffResultFilter(ctx context.Context, digestInfo []*frontend.SRDigest, q *query.Search) []*frontend.SRDigest {
 	_, span := trace.StartSpan(ctx, "search/afterDiffResultFilter")
 	defer span.End()
 
-	newDigestInfo := make([]*SRDigest, 0, len(digestInfo))
+	newDigestInfo := make([]*frontend.SRDigest, 0, len(digestInfo))
 	filterRGBADiff := (q.FRGBAMin > 0) || (q.FRGBAMax < 255)
 	filterDiffMax := (q.FDiffMax >= 0)
 	for _, digest := range digestInfo {
@@ -651,13 +628,13 @@ func (s *SearchAPI) afterDiffResultFilter(ctx context.Context, digestInfo []*SRD
 // instance. It then paginates the digests according to the query and returns
 // the slice that should be shown on the page with its offset in the entire
 // result set.
-func (s *SearchAPI) sortAndLimitDigests(ctx context.Context, q *query.Search, digestInfo []*SRDigest, offset, limit int) ([]*SRDigest, int) {
+func (s *SearchAPI) sortAndLimitDigests(ctx context.Context, q *query.Search, digestInfo []*frontend.SRDigest, offset, limit int) ([]*frontend.SRDigest, int) {
 	_, span := trace.StartSpan(ctx, "search/sortAndLimitDigests")
 	defer span.End()
 
 	fullLength := len(digestInfo)
 	if offset >= fullLength {
-		return []*SRDigest{}, 0
+		return []*frontend.SRDigest{}, 0
 	}
 
 	sortSlice := sort.Interface(newSRDigestSlice(q.Metric, digestInfo))
@@ -678,7 +655,7 @@ func (s *SearchAPI) sortAndLimitDigests(ctx context.Context, q *query.Search, di
 // to draw them, i.e. the information what digest/image appears at what commit and
 // what were the union of parameters that generate the digest. This should be
 // only done for digests that are intended to be displayed.
-func (s *SearchAPI) addParamsAndTraces(ctx context.Context, digestInfo []*SRDigest, inter srInterMap, exp ExpSlice, idx indexer.IndexSearcher) {
+func (s *SearchAPI) addParamsAndTraces(ctx context.Context, digestInfo []*frontend.SRDigest, inter srInterMap, exp common.ExpSlice, idx indexer.IndexSearcher) {
 	_, span := trace.StartSpan(ctx, "search/addParamsAndTraces")
 	defer span.End()
 
@@ -695,7 +672,7 @@ func (s *SearchAPI) addParamsAndTraces(ctx context.Context, digestInfo []*SRDige
 
 // getDrawableTraces returns an instance of TraceGroup which allows us
 // to draw the traces for the given test/digest.
-func (s *SearchAPI) getDrawableTraces(test types.TestName, digest types.Digest, last int, exp ExpSlice, traces map[tiling.TraceId]*types.GoldenTrace) *TraceGroup {
+func (s *SearchAPI) getDrawableTraces(test types.TestName, digest types.Digest, last int, exp common.ExpSlice, traces map[tiling.TraceId]*types.GoldenTrace) *frontend.TraceGroup {
 	// Get the information necessary to draw the traces.
 	traceIDs := make(tiling.TraceIdSlice, 0, len(traces))
 	for traceID := range traces {
@@ -704,20 +681,20 @@ func (s *SearchAPI) getDrawableTraces(test types.TestName, digest types.Digest, 
 	sort.Sort(traceIDs)
 
 	// Get the status for all digests in the traces.
-	digestStatuses := make([]DigestStatus, 0, MAX_REF_DIGESTS)
-	digestStatuses = append(digestStatuses, DigestStatus{
+	digestStatuses := make([]frontend.DigestStatus, 0, MAX_REF_DIGESTS)
+	digestStatuses = append(digestStatuses, frontend.DigestStatus{
 		Digest: digest,
 		Status: exp.Classification(test, digest).String(),
 	})
 
-	outputTraces := make([]Trace, len(traces))
+	outputTraces := make([]frontend.Trace, len(traces))
 	for i, traceID := range traceIDs {
 		// Create a new trace entry.
 		oneTrace := traces[traceID]
 		tr := &outputTraces[i]
 		tr.ID = traceID
 		tr.Params = oneTrace.Keys
-		tr.Data = make([]Point, last+1)
+		tr.Data = make([]frontend.Point, last+1)
 		insertNext := last
 
 		for j := last; j >= 0; j-- {
@@ -731,7 +708,7 @@ func (s *SearchAPI) getDrawableTraces(test types.TestName, digest types.Digest, 
 					refDigestStatus = index
 				} else {
 					if len(digestStatuses) < MAX_REF_DIGESTS {
-						digestStatuses = append(digestStatuses, DigestStatus{
+						digestStatuses = append(digestStatuses, frontend.DigestStatus{
 							Digest: d,
 							Status: exp.Classification(test, d).String(),
 						})
@@ -744,7 +721,7 @@ func (s *SearchAPI) getDrawableTraces(test types.TestName, digest types.Digest, 
 			}
 
 			// Insert the trace points from last to first.
-			tr.Data[insertNext] = Point{
+			tr.Data[insertNext] = frontend.Point{
 				X: j,
 				Y: i,
 				S: refDigestStatus,
@@ -755,25 +732,35 @@ func (s *SearchAPI) getDrawableTraces(test types.TestName, digest types.Digest, 
 		tr.Data = tr.Data[insertNext+1:]
 	}
 
-	return &TraceGroup{
+	return &frontend.TraceGroup{
 		Digests: digestStatuses,
 		Traces:  outputTraces,
 	}
 }
 
-// srDigestSlice is a utility type for sorting slices of SRDigest by their max diff.
-type srDigestSliceLessFn func(i, j *SRDigest) bool
+// digestIndex returns the index of the digest d in digestInfo, or -1 if not found.
+func digestIndex(d types.Digest, digestInfo []frontend.DigestStatus) int {
+	for i, di := range digestInfo {
+		if di.Digest == d {
+			return i
+		}
+	}
+	return -1
+}
+
+// srDigestSlice is a utility type for sorting slices of frontend.SRDigest by their max diff.
+type srDigestSliceLessFn func(i, j *frontend.SRDigest) bool
 type srDigestSlice struct {
-	slice  []*SRDigest
+	slice  []*frontend.SRDigest
 	lessFn srDigestSliceLessFn
 }
 
 // newSRDigestSlice creates a new instance of srDigestSlice that wraps around
 // a slice of result digests.
-func newSRDigestSlice(metric string, slice []*SRDigest) *srDigestSlice {
+func newSRDigestSlice(metric string, slice []*frontend.SRDigest) *srDigestSlice {
 	// Sort by increasing by diff metric. Not having a diff metric puts the item at the bottom
 	// of the list.
-	lessFn := func(i, j *SRDigest) bool {
+	lessFn := func(i, j *frontend.SRDigest) bool {
 		if (i.ClosestRef == "") && (j.ClosestRef == "") {
 			return i.Digest < j.Digest
 		}
