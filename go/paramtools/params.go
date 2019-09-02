@@ -16,6 +16,9 @@ import (
 // Params is a set of key,value pairs.
 type Params map[string]string
 
+// Params is a set of key,value pairs, but they keys and values are encodede.
+type ParamsEncoded Params
+
 // ParamSet is a set of keys and the possible values that the keys could have. I.e.
 // the []string should contain no duplicates.
 type ParamSet map[string][]string
