@@ -14,11 +14,12 @@ import (
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
-	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
 	"go.skia.org/infra/golden/go/image/text"
+	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -64,31 +65,32 @@ func TestImageLoaderExpectedDigestsAreCorrect(t *testing.T) {
 }
 
 // Sets up the mock GCSClient and temp folder for images, and returns the test ImageLoader instance.
-func setUp(t *testing.T) (*ImageLoader, *test_gcsclient.MockGCSClient, func()) {
-	// Create temporary directory.
-	tmpDir, cleanup := testutils.TempDir(t)
-
+func setUp(t *testing.T) (*ImageLoader, *test_gcsclient.MockGCSClient, *mocks.FailureStore) {
 	// Build mock GCSClient.
 	mockBucketClient := test_gcsclient.NewMockClient()
 
 	// Only used for logging errors, which only some tests produce.
 	mockBucketClient.On("Bucket").Return("test-bucket").Maybe()
 
+	// Build mock FailureStore.
+	mockFailureStore := &mocks.FailureStore{}
+
 	// Compute an arbitrary cache size.
 	imgCacheCount, _ := getCacheCounts(10)
 
 	// Create the ImageLoader instance.
-	imageLoader, err := NewImgLoader(mockBucketClient, tmpDir, gsImageBaseDir, imgCacheCount, &disk_mapper.DiskMapper{})
+	imageLoader, err := NewImgLoader(mockBucketClient, mockFailureStore, gsImageBaseDir, imgCacheCount, &disk_mapper.DiskMapper{})
 	assert.NoError(t, err)
 
-	return imageLoader, mockBucketClient, cleanup
+	return imageLoader, mockBucketClient, mockFailureStore
 }
 
 func TestImageLoaderGetSingleDigestFoundInBucket(t *testing.T) {
 	unittest.SmallTest(t)
-	imageLoader, mockClient, tearDown := setUp(t)
-	defer tearDown()
+	imageLoader, mockClient, mockFailureStore := setUp(t)
+
 	defer mockClient.AssertExpectations(t)
+	defer mockFailureStore.AssertExpectations(t)
 
 	// digest1 is present in the GCS bucket.
 	oa := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
@@ -107,17 +109,20 @@ func TestImageLoaderGetSingleDigestFoundInBucket(t *testing.T) {
 	assert.Equal(t, images[0], image1)
 }
 
-// TODO(lovisolo): This test is broken on Windows; re-enable it once the failurestore dependency
-// is injected as a constructor parameter and mocked out here and in other tests.
 func TestImageLoaderGetSingleDigestNotFound(t *testing.T) {
-	unittest.ManualTest(t) // TODO(lovisolo): Re-enable once Windows bug is fixed.
-	imageLoader, mockClient, tearDown := setUp(t)
-	defer tearDown()
+	unittest.SmallTest(t)
+	imageLoader, mockClient, mockFailureStore := setUp(t)
+
 	defer mockClient.AssertExpectations(t)
+	defer mockFailureStore.AssertExpectations(t)
 
 	// digest1 is NOT present in the GCS bucket.
 	var oa *storage.ObjectAttrs = nil
 	mockClient.On("GetFileObjectAttrs", anyCtx, image1GsPath).Return(oa, errors.New("not found"))
+
+	// Failure is stored.
+	mockFailureStore.On("AddDigestFailure", diffFailureMatcher(digest1, "http_error")).Return(nil)
+	mockFailureStore.On("AddDigestFailureIfNew", diffFailureMatcher(digest1, "other")).Return(nil)
 
 	// Get images.
 	_, err := imageLoader.Get(1, types.DigestSlice{digest1})
@@ -129,9 +134,10 @@ func TestImageLoaderGetSingleDigestNotFound(t *testing.T) {
 
 func TestImageLoaderGetMultipleDigestsAllFoundInBucket(t *testing.T) {
 	unittest.SmallTest(t)
-	imageLoader, mockClient, tearDown := setUp(t)
-	defer tearDown()
+	imageLoader, mockClient, mockFailureStore := setUp(t)
+
 	defer mockClient.AssertExpectations(t)
+	defer mockFailureStore.AssertExpectations(t)
 
 	// digest1 is present in the GCS bucket.
 	oa1 := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
@@ -159,13 +165,12 @@ func TestImageLoaderGetMultipleDigestsAllFoundInBucket(t *testing.T) {
 	assert.Equal(t, images[1], image2)
 }
 
-// TODO(lovisolo): This test is broken on Windows; re-enable it once the failurestore dependency
-// is injected as a constructor parameter and mocked out here and in other tests.
 func TestImageLoaderGetMultipleDigestsDigest1FoundInBucketDigest2NotFound(t *testing.T) {
-	unittest.ManualTest(t) // TODO(lovisolo): Re-enable once Windows bug is fixed.
-	imageLoader, mockClient, tearDown := setUp(t)
-	defer tearDown()
+	unittest.SmallTest(t)
+	imageLoader, mockClient, mockFailureStore := setUp(t)
+
 	defer mockClient.AssertExpectations(t)
+	defer mockFailureStore.AssertExpectations(t)
 
 	// digest1 is present in the GCS bucket.
 	oa1 := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
@@ -179,6 +184,10 @@ func TestImageLoaderGetMultipleDigestsDigest1FoundInBucketDigest2NotFound(t *tes
 	var oa2 *storage.ObjectAttrs = nil
 	mockClient.On("GetFileObjectAttrs", anyCtx, image2GsPath).Return(oa2, errors.New("not found"))
 
+	// Failure is stored.
+	mockFailureStore.On("AddDigestFailure", diffFailureMatcher(digest2, "http_error")).Return(nil)
+	mockFailureStore.On("AddDigestFailureIfNew", diffFailureMatcher(digest2, "other")).Return(nil)
+
 	// Get images.
 	_, err := imageLoader.Get(1, types.DigestSlice{digest1, digest2})
 
@@ -189,8 +198,9 @@ func TestImageLoaderGetMultipleDigestsDigest1FoundInBucketDigest2NotFound(t *tes
 
 func TestImageLoaderWarm(t *testing.T) {
 	unittest.SmallTest(t)
-	imageLoader, mockClient, tearDown := setUp(t)
-	defer tearDown()
+	imageLoader, mockClient, mockFailureStore := setUp(t)
+
+	defer mockFailureStore.AssertExpectations(t)
 
 	// digest1 is present in the GCS bucket.
 	oa1 := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
@@ -236,8 +246,10 @@ func TestImageLoaderWarm(t *testing.T) {
 // TODO(lovisolo): Add test cases for multiple digests, and decide what to do about purgeGCS=false.
 func TestImageLoaderPurgeImages(t *testing.T) {
 	unittest.SmallTest(t)
-	imageLoader, mockClient, tearDown := setUp(t)
-	defer tearDown()
+	imageLoader, mockClient, mockFailureStore := setUp(t)
+
+	defer mockClient.AssertExpectations(t)
+	defer mockFailureStore.AssertExpectations(t)
 
 	// digest1 is present in the GCS bucket.
 	oa := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
@@ -304,6 +316,13 @@ func digestToMD5Bytes(digest types.Digest) []byte {
 		panic(fmt.Sprintf("Failed to encode digest as MD5 bytes: %s", err))
 	}
 	return bytes
+}
+
+// This matcher is necessary due to the timestamp stored in field DigestFailure.TS.
+func diffFailureMatcher(digest types.Digest, reason diff.DiffErr) interface{} {
+	return mock.MatchedBy(func(failure *diff.DigestFailure) bool {
+		return failure.Digest == digest && failure.Reason == reason
+	})
 }
 
 func TestGetGSRelPath(t *testing.T) {

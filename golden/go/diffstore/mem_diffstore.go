@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
+	"go.skia.org/infra/golden/go/diffstore/failurestore"
 	"go.skia.org/infra/golden/go/diffstore/mapper"
 	"go.skia.org/infra/golden/go/diffstore/metricsstore"
 	"go.skia.org/infra/golden/go/diffstore/metricsstore/bolt_metricsstore"
@@ -78,12 +79,12 @@ type MemDiffStore struct {
 // If diffFn is not specified, the diff.DefaultDiffFn will be used. If codec is
 // not specified, a JSON codec for the diff.DiffMetrics struct will be used.
 // If mapper is not specified, GoldIDPathMapper will be used.
-func NewMemDiffStore(client gcs.GCSClient, baseDir string, gsImageBaseDir string, gigs int, m mapper.Mapper) (diff.DiffStore, error) {
+func NewMemDiffStore(client gcs.GCSClient, baseDir string, gsImageBaseDir string, gigs int, m mapper.Mapper, fStore failurestore.FailureStore) (diff.DiffStore, error) {
 	imageCacheCount, diffCacheCount := getCacheCounts(gigs)
 
 	// Set up image retrieval, caching and serving.
 	sklog.Debugf("Creating img loader with cache of size %d", imageCacheCount)
-	imgLoader, err := NewImgLoader(client, baseDir, gsImageBaseDir, imageCacheCount, m)
+	imgLoader, err := NewImgLoader(client, fStore, gsImageBaseDir, imageCacheCount, m)
 	if err != nil {
 		return nil, skerr.Fmt("Could not create img loader %s", err)
 	}

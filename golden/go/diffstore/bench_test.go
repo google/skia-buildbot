@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
 	d_utils "go.skia.org/infra/golden/go/diffstore/testutils"
 	"go.skia.org/infra/golden/go/ignore/mem_ignorestore"
+	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/serialize"
 	"go.skia.org/infra/golden/go/types"
 	"google.golang.org/api/option"
@@ -56,7 +57,8 @@ func BenchmarkMemDiffStore(b *testing.B) {
 	}
 
 	mapper := disk_mapper.New(&diff.DiffMetrics{})
-	diffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, mapper)
+	mfs := &mocks.FailureStore{}
+	diffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, mapper, mfs)
 	assert.NoError(b, err)
 	allDigests := make([]types.DigestSlice, 0, PROCESS_N_TESTS)
 	processed := 0
