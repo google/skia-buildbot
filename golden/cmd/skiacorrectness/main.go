@@ -45,6 +45,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
+	"go.skia.org/infra/golden/go/clstore/fs_clstore"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
@@ -56,6 +57,7 @@ import (
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tilesource"
+	"go.skia.org/infra/golden/go/tjstore/fs_tjstore"
 	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
 	"go.skia.org/infra/golden/go/tryjobs/gerrit_tryjob_monitor"
 	"go.skia.org/infra/golden/go/tryjobstore/ds_tryjobstore"
@@ -381,11 +383,11 @@ func main() {
 		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
 	}
 
-	tryjobStore, err := ds_tryjobstore.New(ds.DS, evt)
+	deprecatedTJS, err := ds_tryjobstore.New(ds.DS, evt)
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
 	}
-	tryjobMonitor := gerrit_tryjob_monitor.New(tryjobStore, expStore, gerritAPI, *siteURL, evt, *authoritative)
+	tryjobMonitor := gerrit_tryjob_monitor.New(deprecatedTJS, expStore, gerritAPI, *siteURL, evt, *authoritative)
 
 	baseliner := simple_baseliner.New(expStore)
 
@@ -451,7 +453,10 @@ func main() {
 	}
 	sklog.Infof("Indexer created.")
 
-	searchAPI := search.NewSearchAPI(diffStore, expStore, ixr, tryjobStore, publiclyViewableParams)
+	cls := fs_clstore.New(fsClient, "gerrit")
+	tjs := fs_tjstore.New(fsClient, "buildbucket")
+
+	searchAPI := search.NewSearchAPI(diffStore, expStore, ixr, deprecatedTJS, cls, tjs, publiclyViewableParams)
 
 	sklog.Infof("Search API created")
 
@@ -471,7 +476,7 @@ func main() {
 	handlers := web.WebHandlers{
 		Baseliner:               baseliner,
 		DeprecatedTryjobMonitor: tryjobMonitor,
-		DeprecatedTryjobStore:   tryjobStore,
+		DeprecatedTryjobStore:   deprecatedTJS,
 		DiffStore:               diffStore,
 		ExpectationsStore:       expStore,
 		GCSClient:               gsClient,

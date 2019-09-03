@@ -36,6 +36,9 @@ const (
 	maxLimit = 200
 )
 
+// TODO(kjlubick): A lot of these are types just used for frontend output.
+// Move them to web/frontend or somewhere similar.
+
 // Point is a single point. Used in Trace.
 type Point struct {
 	X int `json:"x"` // The commit index [0-49].
@@ -126,11 +129,11 @@ type Query struct {
 	// Trybot support.
 	// TODO(kjlubick): This needs to be adapted to take a string
 	// as an "issue" ID and be called ChangeListID.
-	IssueStr      string  `json:"issue"`
-	Issue         int64   `json:"-"`
-	PatchsetsStr  string  `json:"patchsets"` // Comma-separated list of patchsets.
-	Patchsets     []int64 `json:"-"`
-	IncludeMaster bool    `json:"master"` // Include digests also contained in master when searching code review issues.
+	ChangeListID    string  `json:"issue"`
+	DeprecatedIssue int64   `json:"-"`
+	PatchsetsStr    string  `json:"patchsets"` // Comma-separated list of patchsets.
+	Patchsets       []int64 `json:"-"`
+	IncludeMaster   bool    `json:"master"` // Include digests also contained in master when searching code review issues.
 
 	// Filtering.
 	FCommitBegin string  `json:"fbegin"`     // Start commit
@@ -147,6 +150,10 @@ type Query struct {
 
 	// Do not include diffs in search.
 	NoDiff bool `json:"nodiff"`
+
+	// Use the new (Aug 2019) clstore, instead of the old one
+	// skbug.com/9340
+	NewCLStore bool `json:"new_clstore"`
 }
 
 func (q *Query) IgnoreState() types.IgnoreState {

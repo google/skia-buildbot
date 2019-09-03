@@ -1,3 +1,5 @@
+// TODO(kjlubick): move this file into a query subpackage and rename CTQuery ->
+// CompareTests (query.CompareTests) and Query to Search (query.Search).
 package search
 
 import (
@@ -7,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/shared"
@@ -90,8 +93,8 @@ func ParseCTQuery(r io.ReadCloser, limitDefault int32, ctQuery *CTQuery) error {
 	ctQuery.ColumnQuery.Patchsets = validate.Int64SliceValue("patchsets", ctQuery.ColumnQuery.PatchsetsStr, nil)
 	ctQuery.RowQuery.Patchsets = validate.Int64SliceValue("patchsets", ctQuery.RowQuery.PatchsetsStr, nil)
 
-	ctQuery.ColumnQuery.Issue = validate.Int64Value("column.issue", ctQuery.ColumnQuery.IssueStr, 0)
-	ctQuery.RowQuery.Issue = validate.Int64Value("row.issue", ctQuery.RowQuery.IssueStr, 0)
+	ctQuery.ColumnQuery.DeprecatedIssue = validate.Int64Value("column.issue", ctQuery.ColumnQuery.ChangeListID, 0)
+	ctQuery.RowQuery.DeprecatedIssue = validate.Int64Value("row.issue", ctQuery.RowQuery.ChangeListID, 0)
 
 	// Parse the general parameters of the query.
 	validate.StrValue("sortRows", &ctQuery.SortRows, rowSortFields, countSortField)
@@ -108,7 +111,7 @@ func ParseCTQuery(r io.ReadCloser, limitDefault int32, ctQuery *CTQuery) error {
 // form parameters and stores the parsed and validated values in query.
 func ParseQuery(r *http.Request, query *Query) error {
 	if err := r.ParseForm(); err != nil {
-		return err
+		return skerr.Wrapf(err, "parsing form")
 	}
 
 	// Parse the list of fields that need to match and ensure the
@@ -144,7 +147,8 @@ func ParseQuery(r *http.Request, query *Query) error {
 
 	// Parse out the issue and patchsets.
 	query.Patchsets = validate.Int64SliceFormValue(r, "patchsets", nil)
-	query.Issue = validate.Int64FormValue(r, "issue", 0)
+	query.ChangeListID = r.FormValue("issue")
+	query.DeprecatedIssue = validate.Int64FormValue(r, "issue", types.LegacyMasterBranch)
 
 	// Check wether any of the validations failed.
 	if err := validate.Errors(); err != nil {
@@ -167,6 +171,7 @@ func ParseQuery(r *http.Request, query *Query) error {
 
 	// Check if we want diffs.
 	query.NoDiff = r.FormValue("nodiff") == "true"
+	query.NewCLStore = r.FormValue("new_clstore") == "true"
 
 	return nil
 }

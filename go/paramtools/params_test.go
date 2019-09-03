@@ -193,7 +193,7 @@ func TestParamSetCopy(t *testing.T) {
 	assert.Equal(t, ParamSet{}, ParamSet{}.Copy())
 }
 
-func TestMatching(t *testing.T) {
+func TestMatchAny(t *testing.T) {
 	unittest.SmallTest(t)
 	recParams := ParamSet{
 		"foo": {"1", "2"},
@@ -219,7 +219,7 @@ func TestMatching(t *testing.T) {
 	assert.False(t, ParamMatcher{rule2, rule4}.MatchAny(recParams))
 	assert.True(t, ParamMatcher{rule2, rule4, empty}.MatchAny(recParams))
 
-	// Test with some realistice data.
+	// Test with some realistic data.
 	testVal := ParamSet{
 		"cpu_or_gpu":       {"GPU"},
 		"config":           {"gles", "glesdft"},
@@ -242,6 +242,33 @@ func TestMatching(t *testing.T) {
 		"source_type": {"gm"},
 	}
 	assert.True(t, ParamMatcher{testRule}.MatchAny(testVal))
+}
+
+func TestMatchAnyParams(t *testing.T) {
+	unittest.SmallTest(t)
+	recParams := Params{
+		"foo": "1",
+		"bar": "a",
+		"baz": "v",
+	}
+
+	rule1 := ParamSet{"foo": {"1"}}
+	rule2 := ParamSet{"bar": {"e"}}
+	rule3 := ParamSet{"baz": {"v", "w"}}
+	rule4 := ParamSet{"x": {"something"}}
+	empty := ParamSet{}
+
+	assert.True(t, ParamMatcher{rule1}.MatchAnyParams(recParams))
+	assert.False(t, ParamMatcher{rule2}.MatchAnyParams(recParams))
+	assert.True(t, ParamMatcher{rule3}.MatchAnyParams(recParams))
+	assert.False(t, ParamMatcher{rule4}.MatchAnyParams(recParams))
+	assert.True(t, ParamMatcher{empty}.MatchAnyParams(recParams))
+
+	assert.True(t, ParamMatcher{rule1, rule2}.MatchAnyParams(recParams))
+	assert.True(t, ParamMatcher{rule1, rule3}.MatchAnyParams(recParams))
+	assert.True(t, ParamMatcher{rule2, rule3}.MatchAnyParams(recParams))
+	assert.False(t, ParamMatcher{rule2, rule4}.MatchAnyParams(recParams))
+	assert.True(t, ParamMatcher{rule2, rule4, empty}.MatchAnyParams(recParams))
 }
 
 // roundTripsEncode tests that an OrdererParamSet survives a round-trip

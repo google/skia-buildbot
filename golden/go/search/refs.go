@@ -57,6 +57,7 @@ func (r *RefDiffer) GetRefDiffs(metric string, match []string, test types.TestNa
 	}
 
 	paramsByDigest := r.idx.GetParamsetSummaryByTest(types.ExcludeIgnoredTraces)[test]
+
 	posDigests := r.getDigestsWithLabel(test, match, params, paramsByDigest, unavailableDigests, rhsQuery, types.POSITIVE)
 	negDigests := r.getDigestsWithLabel(test, match, params, paramsByDigest, unavailableDigests, rhsQuery, types.NEGATIVE)
 
@@ -111,6 +112,10 @@ func (r *RefDiffer) getDigestsWithLabel(test types.TestName, match []string, par
 
 // getClosestDiff returns the closest diff between a digest and a set of digest.
 func (r *RefDiffer) getClosestDiff(metric string, digest types.Digest, compDigests types.DigestSlice) *SRDiffDigest {
+	if len(compDigests) == 0 {
+		return nil
+	}
+
 	diffs, err := r.diffStore.Get(diff.PRIORITY_NOW, digest, compDigests)
 	if err != nil {
 		sklog.Errorf("Error diffing %s %v: %s", digest, compDigests, err)
@@ -142,7 +147,7 @@ func (r *RefDiffer) getClosestDiff(metric string, digest types.Digest, compDiges
 }
 
 // paramSetsMatch returns true if the two param sets have matching
-// values for the parameters listed in 'match'. If one of the is nil
+// values for the parameters listed in 'match'. If one of them is nil
 // there is always a match.
 func paramSetsMatch(match []string, p1, p2 paramtools.ParamSet) bool {
 	if (p1 == nil) || (p2 == nil) {
