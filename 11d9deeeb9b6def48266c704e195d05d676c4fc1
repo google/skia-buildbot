@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "482eaade_383bf034",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-03T19:21:23Z",
+      "side": 1,
+      "message": "Add comment explaining that we use a custom matcher because of the time thing.",
+      "revId": "11d9deeeb9b6def48266c704e195d05d676c4fc1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04adc526_5b00ced6",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-03T19:21:23Z",
+      "side": 1,
+      "message": "You could use nil here with a comment explaining that this test won\u0027t use FailureStore. Same for line 222",
+      "range": {
+        "startLine": 47,
+        "startChar": 90,
+        "endLine": 47,
+        "endChar": 93
+      },
+      "revId": "11d9deeeb9b6def48266c704e195d05d676c4fc1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c9379474_bff7d745",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-03T19:21:23Z",
+      "side": 1,
+      "message": "either delete or complete the thought.",
+      "range": {
+        "startLine": 173,
+        "startChar": 1,
+        "endLine": 173,
+        "endChar": 39
+      },
+      "revId": "11d9deeeb9b6def48266c704e195d05d676c4fc1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
