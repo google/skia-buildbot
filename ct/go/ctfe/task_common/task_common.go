@@ -164,6 +164,8 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	}
 }
 
+// rmistry:
+// Send email HERE and start poller to watch the task? no.. there should be a separate poller..
 func AddAndTriggerTask(ctx context.Context, task AddTaskVars) error {
 	datastoreTask, err := AddTaskToDatastore(ctx, task)
 	if err != nil {

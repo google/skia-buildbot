@@ -116,6 +116,8 @@ func (t *SwarmingTask) Trigger(ctx context.Context, s *SwarmingClient, hardTimeo
 	if err != nil {
 		return fmt.Errorf("Swarming trigger for %s failed with: %s", t.Title, err)
 	}
+
+	// Read the taskID from the dumpJSON and setup it to the task object.
 	return nil
 }
 

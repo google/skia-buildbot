@@ -2,13 +2,14 @@
 package util
 
 import (
+	"encoding/json"
 	"fmt"
+	"go.skia.org/infra/go/email"
+	skutil "go.skia.org/infra/go/util"
 	"html"
+	"io"
 	"io/ioutil"
 	"strings"
-
-	"go.skia.org/infra/go/email"
-	"go.skia.org/infra/go/metadata"
 )
 
 var (
@@ -17,22 +18,42 @@ var (
 	emailTokenPath    string
 )
 
-func MailInit() error {
-	emailClientId = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
-	emailClientSecret = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_SECRET))
+type ClientConfig struct {
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+}
+type Installed struct {
+	Installed ClientConfig `json:"installed"`
+}
 
-	cachedGMailToken := metadata.Must(metadata.ProjectGet(GMAIL_CACHED_TOKEN))
+func MailInit(emailClientSecretFile, emailTokenCacheFile string) error {
+	var cfg Installed
+	err := skutil.WithReadFile(emailClientSecretFile, func(f io.Reader) error {
+		return json.NewDecoder(f).Decode(&cfg)
+	})
+	if err != nil {
+		return fmt.Errorf("Failed to read client secrets from %q: %s", emailClientSecretFile, err)
+	}
+	// Create a copy of the token cache file since mounted secrets are read-only
+	// and the access token will need to be updated for the oauth2 flow.
 	fout, err := ioutil.TempFile("", "")
 	if err != nil {
 		return fmt.Errorf("Unable to create temp file: %s", err)
 	}
-	if _, err := fout.Write([]byte(cachedGMailToken)); err != nil {
-		return fmt.Errorf("Could not write to temp file: %s", err)
+	err = skutil.WithReadFile(emailTokenCacheFile, func(fin io.Reader) error {
+		_, err := io.Copy(fout, fin)
+		if err != nil {
+			err = fout.Close()
+		}
+		return err
+	})
+	if err != nil {
+		return fmt.Errorf("Failed to write token cache file from %q to %q: %s", emailTokenCacheFile, fout.Name(), err)
 	}
-	if err := fout.Close(); err != nil {
-		return fmt.Errorf("Could not close temp file: %s", err)
-	}
-	emailTokenPath = fout.Name()
+	emailTokenCacheFile = fout.Name()
+	emailClientId = cfg.Installed.ClientID
+	emailClientSecret = cfg.Installed.ClientSecret
+	emailTokenPath = emailTokenCacheFile
 	return nil
 }
 
@@ -55,7 +76,6 @@ func SendEmail(recipients []string, subject, body string) error {
 	if err := gmail.Send(CT_EMAIL_DISPLAY_NAME, recipients, subject, body); err != nil {
 		return fmt.Errorf("Could not send email: %s", err)
 	}
-
 	return nil
 }
 
@@ -71,10 +91,8 @@ func SendEmailWithMarkup(recipients []string, subject, body, markup string) erro
 	if err := gmail.SendWithMarkup(CT_EMAIL_DISPLAY_NAME, recipients, subject, body, markup); err != nil {
 		return fmt.Errorf("Could not send email with markup: %s", err)
 	}
-
 	return nil
 }
-
 func GetFailureEmailHtml(runID string) string {
 	return fmt.Sprintf(
 		"<br/>There were <b>failures</b> in the run. "+
@@ -82,7 +100,6 @@ func GetFailureEmailHtml(runID string) string {
 			"<br/>Contact the admins %s for assistance.<br/><br/>",
 		fmt.Sprintf(SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID), CtAdmins)
 }
-
 func GetCTPerfEmailHtml(groupName string) string {
 	if groupName == "" {
 		return ""
@@ -99,11 +116,9 @@ func GetCTPerfEmailHtml(groupName string) string {
 			html.EscapeString(groupName))
 	}
 }
-
 func SendTaskStartEmail(taskId int64, recipients []string, taskName, runID, runDescription, additionalDescription string) error {
 	emailSubject := fmt.Sprintf("%s cluster telemetry task has started (#%d)", taskName, taskId)
 	swarmingLogsLink := fmt.Sprintf(SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID)
-
 	viewActionMarkup, err := email.GetViewActionMarkup(swarmingLogsLink, "View Logs", "Direct link to the swarming logs")
 	if err != nil {
 		return fmt.Errorf("Failed to get view action markup: %s", err)
@@ -138,7 +153,6 @@ func SendTasksTerminatedEmail(recipients []string) error {
 	Please reschedule your tasks. You can redo your tasks by clicking on the redo icon in the 'Runs History' page on http://ct.skia.org.<br/><br/>
 	Sorry for the inconvenience!
 	`
-
 	if err := SendEmail(recipients, emailSubject, body); err != nil {
 		return fmt.Errorf("Error while sending tasks termination email: %s", err)
 	}

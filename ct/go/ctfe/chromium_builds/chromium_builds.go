@@ -130,10 +130,12 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	return t, nil
 }
 
+// rmistry: Rename this...
 func (task DatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
 	runID := task_common.GetRunID(&task)
+	emails := []string{task.Username}
 	isolateArgs := map[string]string{
-		"EMAILS":          task.Username,
+		"EMAILS":          strings.Join(emails, ","),
 		"TASK_ID":         strconv.FormatInt(task.DatastoreKey.ID, 10),
 		"RUN_ID":          runID,
 		"TARGET_PLATFORM": ctutil.PLATFORM_LINUX,
@@ -143,9 +145,13 @@ func (task DatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
 		"DS_PROJECT_NAME": task_common.DsProjectName,
 	}
 
+	// This needs to return the swarming task ID.
 	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "build_chromium", ctutil.BUILD_CHROMIUM_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
 		return fmt.Errorf("Could not trigger master script for build_chromium with isolate args %v: %s", isolateArgs, err)
 	}
+
+	// Send start email.
+	skutil.LogErr(ctutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Build chromium", runID, "", ""))
 	return nil
 }
 
