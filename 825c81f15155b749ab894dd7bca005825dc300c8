@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7cdedd08_b1139a02",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-03T16:38:25Z",
+      "side": 1,
+      "message": "If it\u0027s not too much effort, I think I\u0027d prefer having these with the real values, to make sure we are adding the correct failure to the failurestore.\n\nSame on line 125, 189, 190. Hopefully that DigestFailure can be a \"const\" variable or something.",
+      "range": {
+        "startLine": 124,
+        "startChar": 41,
+        "endLine": 124,
+        "endChar": 44
+      },
+      "revId": "825c81f15155b749ab894dd7bca005825dc300c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f7c9c64_f8703aa1",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-03T16:38:25Z",
+      "side": 1,
+      "message": "Make failurestore injectable here also, otherwise our MemDiffStore tests risk a similar error.",
+      "range": {
+        "startLine": 82,
+        "startChar": 43,
+        "endLine": 82,
+        "endChar": 57
+      },
+      "revId": "825c81f15155b749ab894dd7bca005825dc300c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
