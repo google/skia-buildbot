@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ab8a0a85_4e7061ec",
+        "filename": "perf/DESIGN.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-03T12:34:04Z",
+      "side": 1,
+      "message": "nit: This paragraph is one large run-on. Suggestion:\n\nThis processing of alerts does not work with the influx of data, which is:\n  1) Very sparse ... (how sparse?)\n  2) Much (how much?) larger than Skia\u0027s\n  3) Requires alerts that ...\nEven with a redesigned indexing system, the continuous clustering process would consume a\nhuge number of cores and BT bandwidth and take many hours.",
+      "revId": "31422cb3bc40d9f250b67afdce07e140b9eb2438",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e53ad2c7_a515cec1",
+        "filename": "perf/DESIGN.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-03T12:34:04Z",
+      "side": 1,
+      "message": "nit: Android\u0027s",
+      "range": {
+        "startLine": 267,
+        "startChar": 20,
+        "endLine": 267,
+        "endChar": 27
+      },
+      "revId": "31422cb3bc40d9f250b67afdce07e140b9eb2438",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a753fc2_c125e82f",
+        "filename": "perf/DESIGN.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-03T12:34:04Z",
+      "side": 1,
+      "message": "nit: grouped?",
+      "range": {
+        "startLine": 268,
+        "startChar": 56,
+        "endLine": 268,
+        "endChar": 63
+      },
+      "revId": "31422cb3bc40d9f250b67afdce07e140b9eb2438",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3a813ee_f9af892f",
+        "filename": "perf/DESIGN.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-03T12:34:04Z",
+      "side": 1,
+      "message": "nit: e.g tens of hours?",
+      "range": {
+        "startLine": 270,
+        "startChar": 51,
+        "endLine": 270,
+        "endChar": 63
+      },
+      "revId": "31422cb3bc40d9f250b67afdce07e140b9eb2438",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4f7bb67_1ed7af24",
+        "filename": "perf/DESIGN.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-03T12:34:04Z",
+      "side": 1,
+      "message": "nit: \"body\" of the event is stored in BigTable, then the row is passed via PubSub.  The body consists of ...",
+      "range": {
+        "startLine": 278,
+        "startChar": 44,
+        "endLine": 278,
+        "endChar": 48
+      },
+      "revId": "31422cb3bc40d9f250b67afdce07e140b9eb2438",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86d1f45d_40cd6277",
+        "filename": "perf/DESIGN.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-03T12:34:04Z",
+      "side": 1,
+      "message": "nit: how big?",
+      "range": {
+        "startLine": 278,
+        "startChar": 27,
+        "endLine": 278,
+        "endChar": 37
+      },
+      "revId": "31422cb3bc40d9f250b67afdce07e140b9eb2438",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6484a24f_f83a45d4",
+        "filename": "perf/DESIGN.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-03T12:34:04Z",
+      "side": 1,
+      "message": "Alerts are based on the keys and values of the data, right? (i.e. Params)  TraceIDs are a verbose way to encapsulate those keys/values, right?\n\nIf these Params are generate from a file, i.e. from a bot, then couldn\u0027t you send:\nstruct {\n  GroupParams Params\n  IndividualParams []Params\n}\n\nAssuming 20 group params (\u003c 300 bytes for key and value), 9k tests (each with 1k of params), you\u0027d be right at the 10 MB data limit for PubSub.\n\nIf all you care about are group params and \"name\", \"source_type\", \"bench_type\", then you could have up to 100k tests, without having to write to BT.",
+      "range": {
+        "startLine": 279,
+        "startChar": 31,
+        "endLine": 280,
+        "endChar": 21
+      },
+      "revId": "31422cb3bc40d9f250b67afdce07e140b9eb2438",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b731fedd_106402ba",
+        "filename": "perf/DESIGN.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-03T12:34:04Z",
+      "side": 1,
+      "message": "even the encoded ones?  Or do these have to be unencoded?",
+      "range": {
+        "startLine": 283,
+        "startChar": 9,
+        "endLine": 283,
+        "endChar": 23
+      },
+      "revId": "31422cb3bc40d9f250b67afdce07e140b9eb2438",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "83d3fca4_e0e8cd37",
+        "filename": "perf/go/regression/continuous.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-03T12:34:04Z",
+      "side": 1,
+      "message": "nit: smoketest?",
+      "range": {
+        "startLine": 214,
+        "startChar": 6,
+        "endLine": 214,
+        "endChar": 14
+      },
+      "revId": "31422cb3bc40d9f250b67afdce07e140b9eb2438",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
