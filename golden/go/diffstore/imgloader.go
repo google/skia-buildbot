@@ -21,7 +21,6 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
 	"go.skia.org/infra/golden/go/diffstore/failurestore"
-	"go.skia.org/infra/golden/go/diffstore/failurestore/bolt_failurestore"
 	"go.skia.org/infra/golden/go/diffstore/mapper"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -58,13 +57,7 @@ func getGSRelPath(imageID types.Digest) string {
 }
 
 // Creates a new instance of ImageLoader.
-func NewImgLoader(client gcs.GCSClient, baseDir, gsImageBaseDir string, maxCacheSize int, m mapper.Mapper) (*ImageLoader, error) {
-	fStore, err := bolt_failurestore.New(baseDir)
-	if err != nil {
-		return nil, err
-	}
-	sklog.Infof("failure store created at %s", baseDir)
-
+func NewImgLoader(client gcs.GCSClient, fStore failurestore.FailureStore, gsImageBaseDir string, maxCacheSize int, m mapper.Mapper) (*ImageLoader, error) {
 	ret := &ImageLoader{
 		gsBucketClient: client,
 		gsImageBaseDir: gsImageBaseDir,
@@ -73,6 +66,7 @@ func NewImgLoader(client gcs.GCSClient, baseDir, gsImageBaseDir string, maxCache
 	}
 
 	// Set up the work queues that balance the load.
+	var err error
 	if ret.imageCache, err = rtcache.New(func(priority int64, digest string) (interface{}, error) {
 		return ret.imageLoadWorker(priority, types.Digest(digest))
 	}, maxCacheSize, N_IMG_WORKERS); err != nil {
