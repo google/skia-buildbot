@@ -596,7 +596,7 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 
 	tileKey, err := b.store.GetLatestTile()
 	if err != nil {
-		return -1, ps, err
+		return -1, nil, err
 	}
 
 	if q.Empty() {
@@ -606,7 +606,7 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 		for i := 0; i < 2; i++ {
 			ops, err := b.store.GetOrderedParamSet(ctx, tileKey)
 			if err != nil {
-				return -1, ps, err
+				return -1, nil, err
 			}
 			ps.AddParamSet(ops.ParamSet)
 			tileKey = tileKey.PrevTile()
@@ -614,7 +614,7 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 
 		count, err = b.store.TraceCount(ctx, tileKey)
 		if err != nil {
-			return -1, ps, err
+			return -1, nil, err
 		}
 
 	} else {
@@ -622,7 +622,7 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 		// to build the ParamSet.
 		out, err := b.store.QueryTracesIDOnlyByIndex(ctx, tileKey, q)
 		if err != nil {
-			return -1, ps, fmt.Errorf("Failed to query traces: %s", err)
+			return -1, nil, fmt.Errorf("Failed to query traces: %s", err)
 		}
 		for p := range out {
 			ps.AddParams(p)
@@ -632,7 +632,7 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 		tileKey = tileKey.PrevTile()
 		out, err = b.store.QueryTracesIDOnlyByIndex(ctx, tileKey, q)
 		if err != nil {
-			return -1, ps, fmt.Errorf("Failed to query traces: %s", err)
+			return -1, nil, fmt.Errorf("Failed to query traces: %s", err)
 		}
 		for p := range out {
 			count++
@@ -648,11 +648,11 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 		// the client which already has a copy of the full ParamSet.
 		ops, err := b.store.GetOrderedParamSet(ctx, tileKey)
 		if err != nil {
-			return -1, ps, err
+			return -1, nil, err
 		}
 		queryPlan, err := q.QueryPlan(ops)
 		if err != nil {
-			return -1, ps, err
+			return -1, nil, err
 		}
 		for key := range queryPlan {
 			ps[key] = ops.ParamSet[key]
