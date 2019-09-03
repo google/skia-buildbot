@@ -25,6 +25,7 @@ var (
 	pagesetType           = flag.String("pageset_type", util.PAGESET_TYPE_MOBILE_10k, "The type of pagesets to create from the Alexa CSV list. Eg: 10k, Mobile10k, All.")
 	chromiumBuild         = flag.String("chromium_build", "", "The chromium build that was used to create the SKPs we would like to run lua scripts against.")
 	luaPicturesRemotePath = flag.String("lua_pictures_remote_path", "", "The location of the lua_pictures binary in Google Storage.")
+	luaScriptGSPath       = flag.String("lua_script_gs_path", "", "The location of the lua script to run on workers in Google storage.")
 	runID                 = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 )
 
@@ -64,10 +65,9 @@ func runLua() error {
 	luaScriptName := *runID + ".lua"
 	luaScriptLocalPath := filepath.Join(os.TempDir(), luaScriptName)
 	remoteDir := filepath.Join(util.LuaRunsDir, *runID)
-	luaScriptRemotePath := filepath.Join(remoteDir, "scripts", luaScriptName)
-	respBody, err := gs.GetRemoteFileContents(luaScriptRemotePath)
+	respBody, err := gs.GetRemoteFileContents(*luaScriptGSPath)
 	if err != nil {
-		return fmt.Errorf("Could not fetch %s: %s", luaScriptRemotePath, err)
+		return fmt.Errorf("Could not fetch %s: %s", *luaScriptGSPath, err)
 	}
 	defer skutil.Close(respBody)
 	out, err := os.Create(luaScriptLocalPath)

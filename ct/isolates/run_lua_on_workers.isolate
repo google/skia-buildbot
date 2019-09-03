@@ -1,0 +1,36 @@
+# Copyright (c) 2019 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+{
+  'includes': [
+    'py.isolate',
+    'build_repo.isolate',
+    'run_lua.isolate',
+  ],
+  'conditions': [
+    ['OS=="linux" or OS=="win"', {
+      'variables': {
+        'files': [
+          '../../../bin/run_lua_on_workers',
+          'py.isolate',
+          'build_repo.isolate',
+          'run_lua.isolate',
+        ],
+      'command': [
+        '../../../bin/run_lua_on_workers',
+        '-logtostderr',
+        '--emails=<(EMAILS)',
+        '--description=<(DESCRIPTION)',
+        '--task_id=<(TASK_ID)',
+        '--pageset_type=<(PAGESET_TYPE)',
+        '--chromium_build=<(CHROMIUM_BUILD)',
+        '--run_on_gce=<(RUN_ON_GCE)',
+        '--run_id=<(RUN_ID)',
+        '--lua_script_gs_path=<(LUA_SCRIPT_GS_PATH)',
+        '--lua_aggregator_script_gs_path=<(LUA_AGGREGATOR_SCRIPT_GS_PATH)',
+        '--ds_namespace=<(DS_NAMESPACE)',
+        '--ds_project_name=<(DS_PROJECT_NAME)',
+      ]},
+    }],
+  ]
+}
