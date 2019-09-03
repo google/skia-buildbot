@@ -323,7 +323,7 @@ func runChromiumPerfOnWorkers() error {
 	// If "--output-format=csv" is specified then merge all CSV files and upload.
 	runIDNoPatch := fmt.Sprintf("%s-nopatch", *runID)
 	runIDWithPatch := fmt.Sprintf("%s-withpatch", *runID)
-	pathToPyFiles := util.GetPathToPyFiles(*master_common.Local, false /* runOnMaster */)
+	pathToPyFiles := util.GetPathToPyFiles(*master_common.Local)
 	var noOutputSlaves []string
 
 	// Nopatch CSV file processing.

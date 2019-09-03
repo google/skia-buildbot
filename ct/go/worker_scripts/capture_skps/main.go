@@ -122,7 +122,7 @@ func captureSkps() error {
 	defer skutil.RemoveAll(pathToSkps)
 
 	// Construct path to the ct_run_benchmark python script.
-	pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local, false /* runOnMaster */)
+	pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local)
 
 	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].CaptureSKPsTimeoutSecs
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)

@@ -24,21 +24,14 @@ func TestGetStartRange(t *testing.T) {
 func TestGetPathToPyFiles(t *testing.T) {
 	unittest.SmallTest(t)
 	expectedLocalPathSuffix := filepath.Join("ct", "py")
-	expectedMasterPath := filepath.Join("/", "usr", "local", "share", "ctfe", "py")
 	expectedSwarmingPathSuffix := "py"
 
 	// Test local path.
-	pathToPyFiles := GetPathToPyFiles(true /* local */, false /* runOnMaster */)
+	pathToPyFiles := GetPathToPyFiles(true /* local */)
 	assert.True(t, strings.HasSuffix(pathToPyFiles, expectedLocalPathSuffix))
-	pathToPyFiles = GetPathToPyFiles(true /* local */, true /* runOnMaster */)
-	assert.True(t, strings.HasSuffix(pathToPyFiles, expectedLocalPathSuffix))
-
-	// Test master path.
-	pathToPyFiles = GetPathToPyFiles(false /* local */, true /* runOnMaster */)
-	assert.Equal(t, pathToPyFiles, expectedMasterPath)
 
 	// Test swarming path.
-	pathToPyFiles = GetPathToPyFiles(false /* local */, false /* runOnMaster */)
+	pathToPyFiles = GetPathToPyFiles(false /* local */)
 	assert.True(t, strings.HasSuffix(pathToPyFiles, expectedSwarmingPathSuffix))
 }
 
