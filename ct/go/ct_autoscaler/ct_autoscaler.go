@@ -1,10 +1,13 @@
 package ct_autoscaler
 
 import (
+	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/autoscaler"
 	"go.skia.org/infra/go/gce/ct/instance_types"
@@ -23,7 +26,6 @@ const (
 // Interface useful for mocking.
 type ICTAutoscaler interface {
 	RegisterGCETask(taskId string) error
-	UnregisterGCETask(taskId string) error
 }
 
 // The CTAutoscaler is a CT friendly wrapper around autoscaler.Autoscaller
@@ -33,15 +35,19 @@ type ICTAutoscaler interface {
 // * Automatically brings down all CT GCE instances when there are no registered
 //   GCE tasks.
 type CTAutoscaler struct {
-	a              autoscaler.IAutoscaler
-	s              swarming.ApiClient
-	activeGCETasks int
-	mtx            sync.Mutex
-	upGauge        metrics2.Int64Metric
+	a                autoscaler.IAutoscaler
+	s                swarming.ApiClient
+	ctx              context.Context
+	mtx              sync.Mutex
+	upGauge          metrics2.Int64Metric
+	getGCETasksCount func(ctx context.Context) (int, error)
+	botsUp           bool
 }
 
 // NewCTAutoscaler returns a CT Autoscaler instance.
-func NewCTAutoscaler(local bool) (*CTAutoscaler, error) {
+// getGCETasksCount refers to a function that returns the number of GCE CT tasks
+// (not swarming tasks).
+func NewCTAutoscaler(ctx context.Context, local bool, getGCETasksCount func(ctx context.Context) (int, error)) (*CTAutoscaler, error) {
 	// Authenticated HTTP client.
 	scopes := append(util.CopyStringSlice(gce.AUTH_SCOPES), swarming.AUTH_SCOPE)
 	ts, err := auth.NewDefaultTokenSource(local, scopes...)
@@ -51,7 +57,7 @@ func NewCTAutoscaler(local bool) (*CTAutoscaler, error) {
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Instantiate the GCE scaler.
-	instances := autoscaler.GetInstanceRange(MIN_CT_INSTANCE_NUM, MAX_CT_INSTANCE_NUM, instance_types.CTInstance)
+	instances := autoscaler.GetInstanceRange(MIN_CT_INSTANCE_NUM, MAX_CT_INSTANCE_NUM, instance_types.CTWorkerInstance)
 	a, err := autoscaler.NewAutoscaler(gce.PROJECT_ID_CT_SWARMING, gce.ZONE_CT, ts, instances)
 	if err != nil {
 		return nil, fmt.Errorf("Could not instantiate Autoscaler: %s", err)
@@ -63,35 +69,72 @@ func NewCTAutoscaler(local bool) (*CTAutoscaler, error) {
 		return nil, fmt.Errorf("Could not instantiate swarming client: %s", err)
 	}
 
-	// The following metric will be set to 1 when prometheus should alert on
-	// missing CT GCE bots and 0 otherwise.
-	upGauge := metrics2.GetInt64Metric("ct_gce_bots_up")
-
-	// Start from a clean slate by bringing down all CT instances since
-	// activeGCETasks is initially 0. Also delete them from swarming.
-	upGauge.Update(0)
-	if err := a.StopAllInstances(); err != nil {
-		return nil, err
-	}
-	if err := s.DeleteBots(a.GetNamesOfManagedInstances()); err != nil {
-		sklog.Errorf("Could not delete all bots: %s", err)
+	// Get the running GCE tasks count.
+	runningGCETasksCount, err := getGCETasksCount(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("Could not getGCETasksCount: %s", err)
 	}
 
-	return &CTAutoscaler{a: a, s: s, upGauge: upGauge}, nil
+	c := &CTAutoscaler{
+		a:                a,
+		s:                s,
+		ctx:              ctx,
+		upGauge:          metrics2.GetInt64Metric("ct_gce_bots_up"),
+		getGCETasksCount: getGCETasksCount,
+		botsUp:           runningGCETasksCount != 0,
+	}
+
+	// Start a goroutine that watches to see if the number of running GCE tasks
+	// goes to 0 and bots should be autoscaled down.
+	cleanup.Repeat(2*time.Minute, func(ctx context.Context) {
+		if err := c.maybeScaleDown(); err != nil {
+			sklog.Error(err)
+		}
+	}, nil)
+
+	return c, nil
+}
+
+func (c *CTAutoscaler) maybeScaleDown() error {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+
+	// Get the running GCE tasks count.
+	runningGCETasksCount, err := c.getGCETasksCount(c.ctx)
+	if err != nil {
+		return fmt.Errorf("Could not getGCETasksCount: %s", err)
+	}
+
+	if runningGCETasksCount == 0 && c.botsUp {
+		sklog.Info("Stopping all CT GCE instances...")
+		if c.upGauge != nil {
+			c.upGauge.Update(0)
+		}
+		if err := c.a.StopAllInstances(); err != nil {
+			sklog.Errorf("Could not stop all instances: %s", err)
+		}
+		if err := c.logRunningGCEInstances(); err != nil {
+			sklog.Errorf("Could not log running instances: %s", err)
+		}
+
+		if err := c.s.DeleteBots(c.a.GetNamesOfManagedInstances()); err != nil {
+			sklog.Errorf("Could not delete all bots: %s", err)
+		}
+		c.botsUp = false
+	}
+	return nil
 }
 
 func (c *CTAutoscaler) RegisterGCETask(taskId string) error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
-	sklog.Debugf("Currently have %d active GCE tasks.", c.activeGCETasks)
 	sklog.Debugf("Registering task %s in CTAutoscaler.", taskId)
 	if err := c.logRunningGCEInstances(); err != nil {
 		return err
 	}
 
-	c.activeGCETasks += 1
-	if c.activeGCETasks == 1 {
+	if !c.botsUp {
 		sklog.Debugf("Starting all CT GCE instances...")
 		if err := c.a.StartAllInstances(); err != nil {
 			return err
@@ -103,36 +146,7 @@ func (c *CTAutoscaler) RegisterGCETask(taskId string) error {
 			return err
 		}
 	}
-	return nil
-}
-
-func (c *CTAutoscaler) UnregisterGCETask(taskId string) error {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-
-	sklog.Debugf("Currently have %d active GCE tasks.", c.activeGCETasks)
-	sklog.Debugf("Unregistering task %s in CTAutoscaler.", taskId)
-	if err := c.logRunningGCEInstances(); err != nil {
-		return err
-	}
-
-	c.activeGCETasks -= 1
-	if c.activeGCETasks == 0 {
-		sklog.Info("Stopping all CT GCE instances...")
-		if c.upGauge != nil {
-			c.upGauge.Update(0)
-		}
-		if err := c.a.StopAllInstances(); err != nil {
-			return err
-		}
-		if err := c.logRunningGCEInstances(); err != nil {
-			return err
-		}
-
-		if err := c.s.DeleteBots(c.a.GetNamesOfManagedInstances()); err != nil {
-			sklog.Errorf("Could not delete all bots: %s", err)
-		}
-	}
+	c.botsUp = true
 	return nil
 }
 

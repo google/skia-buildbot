@@ -44,22 +44,19 @@ import (
 
 var (
 	// flags
-	host         = flag.String("host", "localhost", "HTTP service host")
-	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
-	port         = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
-	internalPort = flag.String("internal_port", ":9000", "HTTP service internal port (e.g., ':9000')")
-	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	host               = flag.String("host", "localhost", "HTTP service host")
+	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	port               = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
+	internalPort       = flag.String("internal_port", ":9000", "HTTP service internal port (e.g., ':9000')")
+	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	serviceAccountFile = flag.String("service_account_file", "/var/secrets/google/key.json", "Service account JSON file.")
 
 	resourcesDir           = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	tasksSchedulerWaitTime = flag.Duration("tasks_scheduler_wait_time", 5*time.Minute, "How often the repeated tasks scheduler should run.")
 
-	// Email params
-	emailClientSecretFile = flag.String("email_client_secret_file", "/etc/ct-email-secrets/client_secret.json", "OAuth client secret JSON file for sending email.")
-	emailTokenCacheFile   = flag.String("email_token_cache_file", "/etc/ct-email-secrets/client_token.json", "OAuth token cache file for sending email.")
-
 	// Datastore params
 	namespace   = flag.String("namespace", "cluster-telemetry", "The Cloud Datastore namespace, such as 'cluster-telemetry'.")
-	projectName = flag.String("project_name", "google.com:skia-buildbots", "The Google Cloud project name.")
+	projectName = flag.String("project_name", "skia-public", "The Google Cloud project name.")
 
 	// authenticated http client
 	client *http.Client
@@ -102,20 +99,17 @@ func getIntParam(name string, r *http.Request) (*int, error) {
 func runServer(serverURL string) {
 	externalRouter := mux.NewRouter()
 	externalRouter.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
-	// Router for URLs that do not need to be exposed externally. Eg:
-	// updating tasks, querying for pending tasks, terminating tasks.
-	internalRouter := mux.NewRouter()
 
-	admin_tasks.AddHandlers(externalRouter, internalRouter)
-	capture_skps.AddHandlers(externalRouter, internalRouter)
-	chromium_analysis.AddHandlers(externalRouter, internalRouter)
-	chromium_builds.AddHandlers(externalRouter, internalRouter)
-	chromium_perf.AddHandlers(externalRouter, internalRouter) // Note: chromium_perf adds a handler for "/".
-	lua_scripts.AddHandlers(externalRouter, internalRouter)
-	metrics_analysis.AddHandlers(externalRouter, internalRouter)
-	pending_tasks.AddHandlers(externalRouter, internalRouter)
+	admin_tasks.AddHandlers(externalRouter)
+	capture_skps.AddHandlers(externalRouter)
+	chromium_analysis.AddHandlers(externalRouter)
+	chromium_builds.AddHandlers(externalRouter)
+	chromium_perf.AddHandlers(externalRouter) // Note: chromium_perf adds a handler for "/".
+	lua_scripts.AddHandlers(externalRouter)
+	metrics_analysis.AddHandlers(externalRouter)
+	pending_tasks.AddHandlers(externalRouter)
 
-	task_common.AddHandlers(externalRouter, internalRouter)
+	task_common.AddHandlers(externalRouter)
 
 	// Handler for displaying results stored in Google Storage.
 	externalRouter.PathPrefix(ctfeutil.RESULTS_URI).HandlerFunc(resultsHandler)
@@ -131,11 +125,6 @@ func runServer(serverURL string) {
 	}
 	h = httputils.HealthzAndHTTPS(h)
 	http.Handle("/", h)
-
-	go func() {
-		sklog.Infof("Internal server is accessible via %s", *internalPort)
-		sklog.Fatal(http.ListenAndServe(*internalPort, internalRouter))
-	}()
 
 	sklog.Infof("Ready to serve on %s", serverURL)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
@@ -215,8 +204,8 @@ func repeatedTasksScheduler(ctx context.Context) {
 						sklog.Errorf("Failed to get populated addTaskVars %v: %s", task, err)
 						continue
 					}
-					if _, err := task_common.AddTask(ctx, addTaskVars); err != nil {
-						sklog.Errorf("Failed to add task %v: %s", task, err)
+					if err := task_common.AddAndTriggerTask(ctx, addTaskVars); err != nil {
+						sklog.Errorf("Failed to add or trigger task %v: %s", task, err)
 						continue
 					}
 
@@ -281,18 +270,12 @@ func main() {
 		common.MetricsLoggingOpt(),
 	)
 	skiaversion.MustLogVersion()
+	ctx := context.Background()
 
 	Init()
 	serverURL := "https://" + *host
 	if *local {
 		serverURL = "http://" + *host + *port
-	}
-
-	if !*local {
-		// Initialize mailing library.
-		if err := ctutil.MailInit(*emailClientSecretFile, *emailTokenCacheFile); err != nil {
-			sklog.Fatalf("Could not initialize mailing library: %s", err)
-		}
 	}
 
 	if *local {
@@ -312,14 +295,17 @@ func main() {
 		sklog.Fatalf("Could not init datastore: %s", err)
 	}
 
+	// Initialize the autoscaler and globals in task_common.
+	if err := task_common.Init(ctx, *local, *namespace, *projectName, *serviceAccountFile, pending_tasks.GetGCEPendingTaskCount); err != nil {
+		sklog.Fatalf("Could not init task_common: %s", err)
+	}
+
 	// Create authenticated HTTP client.
 	storageTokenSource, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_READ_ONLY)
 	if err != nil {
 		sklog.Fatalf("Problem setting up default token source: %s", err)
 	}
 	client = httputils.DefaultClientConfig().WithTokenSource(storageTokenSource).With2xxOnly().Client()
-
-	ctx := context.Background()
 
 	startCtfeMetrics(ctx)
 
