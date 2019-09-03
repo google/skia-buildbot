@@ -24,6 +24,7 @@
   "sheriffBackup": [
     "ynovikov@chromium.org"
   ],
+  "supportsManualRolls": true,
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "./third_party/spirv-tools/src",

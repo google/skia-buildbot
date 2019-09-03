@@ -23,6 +23,7 @@
     "radial-bots+chrome-roll@google.com",
     "https://rota-ng.appspot.com/legacy/sheriff_angle.json"
   ],
+  "supportsManualRolls": true,
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/SPIRV-Tools/src",
