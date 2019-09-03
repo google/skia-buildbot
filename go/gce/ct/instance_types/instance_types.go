@@ -59,8 +59,12 @@ func CT20170602(name string, useSSDDataDisk bool) *gce.Instance {
 }
 
 // CT GCE instances.
-func CTInstance(num int) *gce.Instance {
+func CTWorkerInstance(num int) *gce.Instance {
 	return CT20170602(fmt.Sprintf("%s%03d", CT_WORKER_PREFIX, num), false /* useSSDDataDisk */)
+}
+
+func CTMasterInstance(num int) *gce.Instance {
+	return CT20170602(fmt.Sprintf("ct-master-%03d", num), false /* useSSDDataDisk */)
 }
 
 // CT Android Builder GCE instances.
