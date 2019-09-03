@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8cfd23e5_5ddbdaf6",
+        "filename": "ct/go/master_scripts/run_chromium_perf_on_workers/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-03T13:22:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f3069fbd_f3cd9ba8",
+      "range": {
+        "startLine": 170,
+        "startChar": 12,
+        "endLine": 170,
+        "endChar": 16
+      },
+      "revId": "de3b4febcc29c0c40eeee0a1ec72861f9cc7f726",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2a389082_9fc5eaa9",
         "filename": "ct/go/master_scripts/run_chromium_perf_on_workers/main.go",
         "patchSetId": 10
@@ -36,6 +60,30 @@
       "writtenOn": "2019-08-29T21:39:08Z",
       "side": 1,
       "message": "If this arg is always false after this series of CLs, we should remove this arg.",
+      "range": {
+        "startLine": 326,
+        "startChar": 62,
+        "endLine": 326,
+        "endChar": 67
+      },
+      "revId": "de3b4febcc29c0c40eeee0a1ec72861f9cc7f726",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8dfe7126_9dc35c7e",
+        "filename": "ct/go/master_scripts/run_chromium_perf_on_workers/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-03T13:22:42Z",
+      "side": 1,
+      "message": "I will send follow up CL for this and another cleanup I had in mind.",
+      "parentUuid": "2a389082_9fc5eaa9",
       "range": {
         "startLine": 326,
         "startChar": 62,

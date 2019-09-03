@@ -22,6 +22,30 @@
       "revId": "45e64197b6a79c69581e3a4560893ce5cf7b16f4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c47db4ea_6e6fd0bb",
+        "filename": "ct/go/master_scripts/run_chromium_perf_on_workers/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-03T13:22:42Z",
+      "side": 0,
+      "message": "Yes, I frequently comment out these sections for testing and having \"/* ... */\" in here always makes that a little harder than necessary.",
+      "parentUuid": "b95c74e1_f7345d2e",
+      "range": {
+        "startLine": 206,
+        "startChar": 4,
+        "endLine": 206,
+        "endChar": 20
+      },
+      "revId": "45e64197b6a79c69581e3a4560893ce5cf7b16f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
