@@ -25,14 +25,13 @@ import (
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/clstore"
-	"go.skia.org/infra/golden/go/code_review"
-	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/search/export"
+	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
@@ -43,6 +42,7 @@ import (
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/validation"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 const (
@@ -79,12 +79,12 @@ type WebHandlers struct {
 func (wh *WebHandlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 
-	// Extract the corpus from the query.
-	var query url.Values = nil
+	// Extract the corpus from the query parameters.
+	var qp url.Values = nil
 	var err error = nil
-	if q := r.FormValue("query"); q != "" {
+	if v := r.FormValue("query"); v != "" {
 		// TODO(kjlubick): this error handling does not make sense.
-		if query, err = url.ParseQuery(q); query.Get(types.CORPUS_FIELD) == "" {
+		if qp, err = url.ParseQuery(v); qp.Get(types.CORPUS_FIELD) == "" {
 			err = fmt.Errorf("Got query field, but did not contain %s field.", types.CORPUS_FIELD)
 		}
 	}
@@ -95,9 +95,9 @@ func (wh *WebHandlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	blameEntries, err := wh.computeByBlame(query)
+	blameEntries, err := wh.computeByBlame(qp)
 	if err != nil {
-		httputils.ReportError(w, r, skerr.Wrapf(err, "computing blame %v", query), "")
+		httputils.ReportError(w, r, skerr.Wrapf(err, "computing blame %v", qp), "")
 		return
 	}
 
@@ -108,12 +108,12 @@ func (wh *WebHandlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 
 // computeByBlame creates several ByBlameEntry structs based on the state
 // of HEAD and returns them in a slice, for use by the frontend.
-func (wh *WebHandlers) computeByBlame(query url.Values) ([]ByBlameEntry, error) {
+func (wh *WebHandlers) computeByBlame(qp url.Values) ([]ByBlameEntry, error) {
 	idx := wh.Indexer.GetIndex()
 	// At this point query contains at least a corpus.
-	untriagedSummaries, err := idx.CalcSummaries(nil, query, types.ExcludeIgnoredTraces, true /*=head*/)
+	untriagedSummaries, err := idx.CalcSummaries(nil, qp, types.ExcludeIgnoredTraces, true /*=head*/)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "could not get untriaged summaries for query %v", query)
+		return nil, skerr.Wrapf(err, "could not get untriaged summaries for query %v", qp)
 	}
 	commits := idx.Tile().DataCommits()
 
@@ -308,43 +308,17 @@ func (wh *WebHandlers) ChangeListsHandler(w http.ResponseWriter, r *http.Request
 	sendResponseWithPagination(w, cls, pagination)
 }
 
-// changeList encapsulates how the frontend expects to get information
-// about a code_review.ChangeList that has Gold results associated with it.
-// We have a separate struct so we can decouple the JSON representation
-// and the backend representation (if it needs changing or use by another project
-// with its own JSON requirements).
-type changeList struct {
-	System   string    `json:"system"`
-	SystemID string    `json:"id"`
-	Owner    string    `json:"owner"`
-	Status   string    `json:"status"`
-	Subject  string    `json:"subject"`
-	Updated  time.Time `json:"updated"`
-}
-
-// convertChangeList turns a code_review.ChangeList into a changeList for the frontend.
-func convertChangeList(cl code_review.ChangeList, system string) changeList {
-	return changeList{
-		System:   system,
-		SystemID: cl.SystemID,
-		Owner:    cl.Owner,
-		Status:   cl.Status.String(),
-		Subject:  cl.Subject,
-		Updated:  cl.Updated,
-	}
-}
-
 // getIngestedChangeLists performs the core of the logic for ChangeListsHandler,
 // by fetching N ChangeLists given an offset.
-func (wh *WebHandlers) getIngestedChangeLists(ctx context.Context, offset, size int) ([]changeList, *httputils.ResponsePagination, error) {
+func (wh *WebHandlers) getIngestedChangeLists(ctx context.Context, offset, size int) ([]frontend.ChangeList, *httputils.ResponsePagination, error) {
 	cls, total, err := wh.ChangeListStore.GetChangeLists(ctx, offset, size)
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "fetching ChangeLists from [%d:%d)", offset, offset+size)
 	}
 	crs := wh.ChangeListStore.System()
-	var retCls []changeList
+	var retCls []frontend.ChangeList
 	for _, cl := range cls {
-		retCls = append(retCls, convertChangeList(cl, crs))
+		retCls = append(retCls, frontend.ConvertChangeList(cl, crs))
 	}
 
 	pagination := &httputils.ResponsePagination{
@@ -379,20 +353,20 @@ func (wh *WebHandlers) ChangeListSummaryHandler(w http.ResponseWriter, r *http.R
 // getCLSummary does a bulk of the work for ChangeListSummaryHandler, specifically
 // fetching the ChangeList and PatchSets from clstore and any associated TryJobs from
 // the tjstore.
-func (wh *WebHandlers) getCLSummary(ctx context.Context, clID string) (changeListSummary, error) {
+func (wh *WebHandlers) getCLSummary(ctx context.Context, clID string) (frontend.ChangeListSummary, error) {
 	cl, err := wh.ChangeListStore.GetChangeList(ctx, clID)
 	if err != nil {
-		return changeListSummary{}, skerr.Wrapf(err, "getting CL %s", clID)
+		return frontend.ChangeListSummary{}, skerr.Wrapf(err, "getting CL %s", clID)
 	}
 
 	// We know xps is sorted by order, if it is non-nil
 	xps, err := wh.ChangeListStore.GetPatchSets(ctx, clID)
 	if err != nil {
-		return changeListSummary{}, skerr.Wrapf(err, "getting PatchSets for CL %s", clID)
+		return frontend.ChangeListSummary{}, skerr.Wrapf(err, "getting PatchSets for CL %s", clID)
 	}
 
 	crs := wh.ChangeListStore.System()
-	var patchsets []patchSet
+	var patchsets []frontend.PatchSet
 	maxOrder := 0
 
 	// TODO(kjlubick): maybe fetch these in parallel (with errgroup)
@@ -407,61 +381,26 @@ func (wh *WebHandlers) getCLSummary(ctx context.Context, clID string) (changeLis
 		}
 		xtj, err := wh.TryJobStore.GetTryJobs(ctx, psID)
 		if err != nil {
-			return changeListSummary{}, skerr.Wrapf(err, "getting TryJobs for CL %s - PS %s", clID, ps.SystemID)
+			return frontend.ChangeListSummary{}, skerr.Wrapf(err, "getting TryJobs for CL %s - PS %s", clID, ps.SystemID)
 		}
 		cis := wh.TryJobStore.System()
-		var tryjobs []tryJob
+		var tryjobs []frontend.TryJob
 		for _, tj := range xtj {
-			tryjobs = append(tryjobs, convertTryJob(tj, cis))
+			tryjobs = append(tryjobs, frontend.ConvertTryJob(tj, cis))
 		}
 
-		patchsets = append(patchsets, patchSet{
+		patchsets = append(patchsets, frontend.PatchSet{
 			SystemID: ps.SystemID,
 			Order:    ps.Order,
 			TryJobs:  tryjobs,
 		})
 	}
 
-	return changeListSummary{
-		CL:                convertChangeList(cl, crs),
+	return frontend.ChangeListSummary{
+		CL:                frontend.ConvertChangeList(cl, crs),
 		PatchSets:         patchsets,
 		NumTotalPatchSets: maxOrder,
 	}, nil
-}
-
-// changeListSummary encapsulates how the frontend expects to get a summary of
-// the TryJob information we have associated with a given ChangeList. These
-// TryJobs are those we've noticed that uploaded results to Gold.
-type changeListSummary struct {
-	CL changeList `json:"cl"`
-	// these are only those patchsets with data.
-	PatchSets         []patchSet `json:"patch_sets"`
-	NumTotalPatchSets int        `json:"num_total_patch_sets"`
-}
-
-// patchSet represents the data the frontend needs for PatchSets.
-type patchSet struct {
-	SystemID string   `json:"id"`
-	Order    int      `json:"order"`
-	TryJobs  []tryJob `json:"try_jobs"`
-}
-
-// tryJob represents the data the frontend needs for TryJobs.
-type tryJob struct {
-	SystemID    string    `json:"id"`
-	DisplayName string    `json:"name"`
-	Updated     time.Time `json:"updated"`
-	System      string    `json:"system"`
-}
-
-// convertTryJob turns a ci.TryJob into a tryJob for the frontend.
-func convertTryJob(tj ci.TryJob, system string) tryJob {
-	return tryJob{
-		System:      system,
-		SystemID:    tj.SystemID,
-		DisplayName: tj.DisplayName,
-		Updated:     tj.Updated,
-	}
 }
 
 // SearchHandler is the endpoint for all searches, including accessing
@@ -492,7 +431,7 @@ func (wh *WebHandlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !types.IsMasterBranch(query.Issue) || (query.BlameGroupID != "") {
+	if !types.IsMasterBranch(query.DeprecatedIssue) || (query.BlameGroupID != "") {
 		msg := "Search query cannot contain blame or issue information."
 		httputils.ReportError(w, r, errors.New(msg), msg)
 		return
@@ -529,13 +468,13 @@ func (wh *WebHandlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // parseSearchQuery extracts the search query from request.
-func parseSearchQuery(w http.ResponseWriter, r *http.Request) (*search.Query, bool) {
-	query := search.Query{Limit: 50}
-	if err := search.ParseQuery(r, &query); err != nil {
+func parseSearchQuery(w http.ResponseWriter, r *http.Request) (*query.Search, bool) {
+	q := query.Search{Limit: 50}
+	if err := query.ParseSearch(r, &q); err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return nil, false
 	}
-	return &query, true
+	return &q, true
 }
 
 // DetailsHandler returns the details about a single digest.
@@ -797,12 +736,12 @@ func (wh *WebHandlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request
 	ctx := r.Context()
 
 	// Extract the test name as we only allow clustering within a test.
-	q := search.Query{Limit: 50}
-	if err := search.ParseQuery(r, &q); err != nil {
+	q := query.Search{Limit: 50}
+	if err := query.ParseSearch(r, &q); err != nil {
 		httputils.ReportError(w, r, err, "Unable to parse query parameter.")
 		return
 	}
-	testName := q.Query.Get(types.PRIMARY_KEY_FIELD)
+	testName := q.Values.Get(types.PRIMARY_KEY_FIELD)
 	if testName == "" {
 		httputils.ReportError(w, r, fmt.Errorf("test name parameter missing"), "No test name provided.")
 		return
@@ -934,8 +873,8 @@ type ClusterDiffResult struct {
 func (wh *WebHandlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	// Parse the query object like with the other searches.
-	query := search.Query{}
-	if err := search.ParseQuery(r, &query); err != nil {
+	q := query.Search{}
+	if err := query.ParseSearch(r, &q); err != nil {
 		httputils.ReportError(w, r, err, "Failed to parse form data.")
 		return
 	}
@@ -949,25 +888,25 @@ func (wh *WebHandlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	idx := wh.Indexer.GetIndex()
-	corpus, hasSourceType := query.Query[types.CORPUS_FIELD]
+	corpus, hasSourceType := q.Values[types.CORPUS_FIELD]
 	sumSlice := []*summary.Summary{}
-	if !query.IncludeIgnores && query.Head && len(query.Query) == 1 && hasSourceType {
+	if !q.IncludeIgnores && q.Head && len(q.Values) == 1 && hasSourceType {
 		sumMap := idx.GetSummaries(types.ExcludeIgnoredTraces)
-		for _, s := range sumMap {
-			if util.In(s.Corpus, corpus) && includeSummary(s, &query) {
-				sumSlice = append(sumSlice, s)
+		for _, sum := range sumMap {
+			if util.In(sum.Corpus, corpus) && includeSummary(sum, &q) {
+				sumSlice = append(sumSlice, sum)
 			}
 		}
 	} else {
 		sklog.Infof("%q %q %q", r.FormValue("query"), r.FormValue("include"), r.FormValue("head"))
-		sumMap, err := idx.CalcSummaries(nil, query.Query, query.IgnoreState(), query.Head)
+		sumMap, err := idx.CalcSummaries(nil, q.Values, q.IgnoreState(), q.Head)
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to calculate summaries.")
 			return
 		}
-		for _, s := range sumMap {
-			if includeSummary(s, &query) {
-				sumSlice = append(sumSlice, s)
+		for _, sum := range sumMap {
+			if includeSummary(sum, &q) {
+				sumSlice = append(sumSlice, sum)
 			}
 		}
 	}
@@ -981,7 +920,7 @@ func (wh *WebHandlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 // includeSummary returns true if the given summary matches the query flags.
-func includeSummary(s *summary.Summary, q *search.Query) bool {
+func includeSummary(s *summary.Summary, q *query.Search) bool {
 	return ((s.Pos > 0) && (q.Pos)) ||
 		((s.Neg > 0) && (q.Neg)) ||
 		((s.Untriaged > 0) && (q.Unt))
@@ -1312,13 +1251,13 @@ func (wh *WebHandlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Reque
 func (wh *WebHandlers) CompareTestHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	// Note that testName cannot be empty by definition of the route that got us here.
-	var ctQuery search.CTQuery
-	if err := search.ParseCTQuery(r.Body, 5, &ctQuery); err != nil {
+	var q query.CompareTests
+	if err := query.ParseCTQuery(r.Body, 5, &q); err != nil {
 		httputils.ReportError(w, r, err, err.Error())
 		return
 	}
 
-	compareResult, err := wh.SearchAPI.CompareTest(&ctQuery)
+	compareResult, err := wh.SearchAPI.CompareTest(&q)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
