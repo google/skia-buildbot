@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "4542446a_1ee7cf55",
+        "filename": "go/paramtools/params.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 468,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-03T14:48:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b9331488_2d1e1982",
+      "range": {
+        "startLine": 468,
+        "startChar": 18,
+        "endLine": 468,
+        "endChar": 24
+      },
+      "revId": "1803833f3ed16c3173c7a36f82278fd46b4ad878",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "15b2b632_ba23c24c",
+        "filename": "go/paramtools/params.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 468,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-03T14:48:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d07996e6_06e30b56",
+      "range": {
+        "startLine": 468,
+        "startChar": 3,
+        "endLine": 468,
+        "endChar": 9
+      },
+      "revId": "1803833f3ed16c3173c7a36f82278fd46b4ad878",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7e6e1cce_1d0b28f9",
         "filename": "go/paramtools/params.go",
         "patchSetId": 2
@@ -62,6 +110,24 @@
       "revId": "1803833f3ed16c3173c7a36f82278fd46b4ad878",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c08c4bd1_d8472d7c",
+        "filename": "go/paramtools/params.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 485,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-03T14:48:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7e6e1cce_1d0b28f9",
+      "revId": "1803833f3ed16c3173c7a36f82278fd46b4ad878",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -85,6 +151,30 @@
       "revId": "1803833f3ed16c3173c7a36f82278fd46b4ad878",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ecf13eb_5b8b8c83",
+        "filename": "go/paramtools/params_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 410,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-03T14:48:43Z",
+      "side": 1,
+      "message": "EncodeParamSet now calls Normalize() on the returned ParamSet, so they will be the same.",
+      "parentUuid": "bcfd9d32_6ecf7de4",
+      "range": {
+        "startLine": 410,
+        "startChar": 29,
+        "endLine": 410,
+        "endChar": 48
+      },
+      "revId": "1803833f3ed16c3173c7a36f82278fd46b4ad878",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
