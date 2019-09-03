@@ -6,6 +6,7 @@ import (
 	"context"
 	"time"
 
+	"cloud.google.com/go/firestore"
 	ifirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
@@ -21,9 +22,8 @@ const (
 	patchsetCollection   = "clstore_patchset"
 
 	// These are the fields we query by
-	systemIDField = "systemid"
-	systemField   = "system"
-	clIDField     = "changelistid"
+	systemField = "system"
+	clIDField   = "changelistid"
 
 	maxAttempts = 10
 
@@ -143,7 +143,34 @@ func (s *StoreImpl) patchSetFirestoreID(psID, clID string) string {
 
 // GetPatchSets implements the clstore.Store interface.
 func (s *StoreImpl) GetPatchSets(ctx context.Context, clID string) ([]code_review.PatchSet, error) {
-	return nil, skerr.Fmt("not impl")
+	q := s.client.Collection(patchsetCollection).Where(clIDField, "==", clID).
+		Where(systemField, "==", s.crsName)
+
+	var xps []code_review.PatchSet
+
+	maxRetries := 3
+	err := s.client.IterDocs("GetPatchSets", clID, q, maxRetries, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+		if doc == nil {
+			return nil
+		}
+		entry := patchSetEntry{}
+		if err := doc.DataTo(&entry); err != nil {
+			id := doc.Ref.ID
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal entry with id %s", id)
+		}
+		xps = append(xps, code_review.PatchSet{
+			SystemID:     entry.SystemID,
+			ChangeListID: entry.ChangeListID,
+			Order:        entry.Order,
+			GitHash:      entry.GitHash,
+		})
+		return nil
+	})
+	if err != nil {
+		return nil, skerr.Wrapf(err, "fetching patchsets for cl %s", clID)
+	}
+
+	return xps, nil
 }
 
 // PutChangeList implements the clstore.Store interface.

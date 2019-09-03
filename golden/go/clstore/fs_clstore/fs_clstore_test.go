@@ -2,6 +2,7 @@ package fs_clstore
 
 import (
 	"context"
+	"strconv"
 	"testing"
 	"time"
 
@@ -38,9 +39,9 @@ func TestSetGetChangeList(t *testing.T) {
 	err = f.PutChangeList(ctx, cl)
 	assert.NoError(t, err)
 
-	acutal, err := f.GetChangeList(ctx, expectedID)
+	actual, err := f.GetChangeList(ctx, expectedID)
 	assert.NoError(t, err)
-	assert.Equal(t, cl, acutal)
+	assert.Equal(t, cl, actual)
 }
 
 func TestSetGetPatchSet(t *testing.T) {
@@ -69,9 +70,9 @@ func TestSetGetPatchSet(t *testing.T) {
 	err = f.PutPatchSet(ctx, ps)
 	assert.NoError(t, err)
 
-	acutal, err := f.GetPatchSet(ctx, expectedCLID, expectedPSID)
+	actual, err := f.GetPatchSet(ctx, expectedCLID, expectedPSID)
 	assert.NoError(t, err)
-	assert.Equal(t, ps, acutal)
+	assert.Equal(t, ps, actual)
 }
 
 // TestDifferentSystems makes sure that two systems in the same
@@ -117,4 +118,61 @@ func TestDifferentSystems(t *testing.T) {
 	assert.NotEqual(t, actualGerrit, actualGithub)
 	assert.Equal(t, gerritCL, actualGerrit)
 	assert.Equal(t, githubCL, actualGithub)
+}
+
+// TestGetPatchSets stores several patchsets and then makes sure
+// we can fetch the ones for a specific CL and they arrive sorted by Order.
+func TestGetPatchSets(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+
+	f := New(c, "gerrit")
+	ctx := context.Background()
+
+	expectedID := "987654"
+	// None should not exist initially
+	xps, err := f.GetPatchSets(ctx, expectedID)
+	assert.NoError(t, err)
+	assert.Empty(t, xps)
+
+	for i := 0; i < 3; i++ {
+		ps := code_review.PatchSet{
+			SystemID:     "other_id" + strconv.Itoa(i),
+			ChangeListID: "not this CL",
+			GitHash:      "nope",
+			Order:        i + 1,
+		}
+		assert.NoError(t, f.PutPatchSet(ctx, ps))
+	}
+	// put them in backwards to make sure they get resorted by order
+	for i := 4; i > 0; i-- {
+		ps := code_review.PatchSet{
+			SystemID:     "id" + strconv.Itoa(i),
+			ChangeListID: expectedID,
+			GitHash:      "whatever",
+			Order:        i,
+		}
+		assert.NoError(t, f.PutPatchSet(ctx, ps))
+	}
+
+	for i := 0; i < 3; i++ {
+		ps := code_review.PatchSet{
+			SystemID:     "other_other_id" + strconv.Itoa(i),
+			ChangeListID: "nor this one",
+			GitHash:      "nope",
+			Order:        i + 1,
+		}
+		assert.NoError(t, f.PutPatchSet(ctx, ps))
+	}
+
+	xps, err = f.GetPatchSets(ctx, expectedID)
+	assert.NoError(t, err)
+	assert.Len(t, xps, 4)
+	// Make sure they are in order
+	for i, ps := range xps {
+		assert.Equal(t, i+1, ps.Order)
+		assert.Equal(t, expectedID, ps.ChangeListID)
+		assert.Equal(t, "whatever", ps.GitHash)
+	}
 }
