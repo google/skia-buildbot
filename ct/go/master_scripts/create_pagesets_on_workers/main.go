@@ -5,13 +5,15 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
+	"os"
 	"path/filepath"
 	"time"
 
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
-	"go.skia.org/infra/ct/go/frontend"
+	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/sklog"
@@ -47,21 +49,21 @@ func sendEmail(recipients []string) {
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), failureHtml, frontend.AdminTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), failureHtml, master_common.AdminTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		sklog.Errorf("Error while sending email: %s", err)
 		return
 	}
 }
 
-func updateWebappTask() {
+func updateTaskInDatastore(ctx context.Context) {
 	vars := admin_tasks.RecreatePageSetsUpdateVars{}
 	vars.Id = *taskID
 	vars.SetCompleted(*taskCompletedSuccessfully)
-	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
+	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars))
 }
 
-func main() {
+func createPagesetsOnWorkers() error {
 	master_common.Init("create_pagesets")
 
 	ctx := context.Background()
@@ -70,37 +72,43 @@ func main() {
 	emailsArr := util.ParseEmails(*emails)
 	emailsArr = append(emailsArr, util.CtAdmins...)
 	if len(emailsArr) == 0 {
-		sklog.Error("At least one email address must be specified")
-		return
+		return errors.New("At least one email address must be specified")
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&admin_tasks.RecreatePageSetsUpdateVars{}, *taskID, *runID))
+	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &admin_tasks.RecreatePageSetsUpdateVars{}, *taskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Creating pagesets", *runID, "", ""))
-	// Ensure webapp is updated and completion email is sent even if task fails.
-	defer updateWebappTask()
+	// Ensure task is updated and completion email is sent even if task fails.
+	defer updateTaskInDatastore(ctx)
 	defer sendEmail(emailsArr)
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Creating Pagesets on Workers")
 	defer sklog.Flush()
 
 	if *pagesetType == "" {
-		sklog.Error("Must specify --pageset_type")
-		return
+		return errors.New("Must specify --pageset_type")
 	}
 
 	// Empty the remote dir before the workers upload to it.
 	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
-		sklog.Error(err)
-		return
+		return err
 	}
 	gsBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.PAGESETS_DIR_NAME, *pagesetType)
 	skutil.LogErr(gs.DeleteRemoteDir(gsBaseDir))
 
 	// Archive, trigger and collect swarming tasks.
-	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "create_pagesets", util.CREATE_PAGESETS_ISOLATE, *runID, *master_common.ServiceAccountFile, util.PLATFORM_LINUX, 5*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_LOW, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, map[string]string{}, *runOnGCE, *master_common.Local, 1, []string{} /* isolateDeps */); err != nil {
-		sklog.Errorf("Error encountered when swarming tasks: %s", err)
-		return
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "create_pagesets", util.CREATE_PAGESETS_ISOLATE, *runID, "", util.PLATFORM_LINUX, 5*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_LOW, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, map[string]string{}, *runOnGCE, *master_common.Local, 1, []string{} /* isolateDeps */); err != nil {
+		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}
 
 	*taskCompletedSuccessfully = true
+	return nil
+}
+
+func main() {
+	retCode := 0
+	if err := createPagesetsOnWorkers(); err != nil {
+		sklog.Errorf("Error while creating pagesets on workers: %s", err)
+		retCode = 255
+	}
+	os.Exit(retCode)
 }
