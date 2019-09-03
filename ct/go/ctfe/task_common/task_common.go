@@ -64,12 +64,13 @@ type CommonCols struct {
 	RepeatAfterDays int64
 	SwarmingLogs    string
 	TaskDone        bool
+	SwarmingTaskID  string
 }
 
 type Task interface {
 	GetCommonCols() *CommonCols
 	RunsOnGCEWorkers() bool
-	TriggerSwarmingTask(ctx context.Context) error
+	TriggerSwarmingTask(ctx context.Context) (string, error)
 	GetTaskName() string
 	GetDatastoreKind() ds.Kind
 	// Returns a slice of the struct type.
@@ -164,16 +165,24 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	}
 }
 
+// rmistry:
+// Send email HERE and start poller to watch the task? no.. there should be a separate poller..
 func AddAndTriggerTask(ctx context.Context, task AddTaskVars) error {
 	datastoreTask, err := AddTaskToDatastore(ctx, task)
 	if err != nil {
 		return fmt.Errorf("Failed to insert %T task: %s", task, err)
 	}
-	if err := TriggerTaskOnSwarming(ctx, task, datastoreTask); err != nil {
+	swarmingTaskID, err := TriggerTaskOnSwarming(ctx, task, datastoreTask)
+	if err != nil {
 		if err := UpdateTaskSetFailed(ctx, datastoreTask); err != nil {
 			sklog.Error(err)
 		}
 		return fmt.Errorf("Failed to trigger on swarming %T task: %s", task, err)
+	}
+	// Update the masterSwarmingTaskID in datastore here!
+	datastoreTask.GetCommonCols().SwarmingTaskID = swarmingTaskID
+	if err := UpdateTaskSetFailed(ctx, datastoreTask); err != nil {
+		return fmt.Errorf("Could not update task in dastastore: %s", err)
 	}
 	return nil
 }
@@ -212,7 +221,7 @@ func AddTaskToDatastore(ctx context.Context, task AddTaskVars) (Task, error) {
 	return datastoreTask, nil
 }
 
-func TriggerTaskOnSwarming(ctx context.Context, task AddTaskVars, datastoreTask Task) error {
+func TriggerTaskOnSwarming(ctx context.Context, task AddTaskVars, datastoreTask Task) (string, error) {
 	if datastoreTask.RunsOnGCEWorkers() {
 		taskId := fmt.Sprintf("%s.%d", datastoreTask.GetTaskName(), datastoreTask.GetCommonCols().DatastoreKey.ID)
 		if err := autoscaler.RegisterGCETask(taskId); err != nil {
