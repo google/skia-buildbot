@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d13508aa_2099851a",
+        "filename": "golden/go/search/query/types.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-03T22:06:10Z",
+      "side": 1,
+      "message": "Field name should match, i.e. RValues. (\"rvalue\" already means something else, though.)",
+      "range": {
+        "startLine": 62,
+        "startChar": 1,
+        "endLine": 62,
+        "endChar": 7
+      },
+      "revId": "e0f5e2fbdb1324f55aae08f3cd77307127c4dad4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
