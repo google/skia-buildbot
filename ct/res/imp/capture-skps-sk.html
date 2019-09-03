@@ -21,6 +21,11 @@
       background-color: #D6ECF2;
     }
 
+    .triggering-spinner {
+      margin: auto;
+      vertical-align: middle;
+    }
+
     table.options td {
       padding: 1em 2em;
     }
@@ -72,7 +77,10 @@
 
       <tr>
         <td colspan="2" class="center">
-          <paper-button raised id="submit_task">Queue Task</paper-button>
+          <div class="triggering-spinner">
+            <paper-spinner active="[[ triggeringTask ]]" alt="Trigger task"></paper-spinner>
+          </div>
+          <paper-button raised id="submit_task" disabled="[[ triggeringTask ]]">Queue Task</paper-button>
         </td>
       </tr>
       <tr>
@@ -95,7 +103,11 @@
       chromiumBuilds: {
         type: Array,
         observer: "chromiumBuildsChanged"
-      }
+      },
+      triggeringTask: {
+        type: Boolean,
+        value: false,
+      },
     },
 
     ready: function() {
@@ -153,6 +165,7 @@
     },
 
     queueTask: function() {
+      this.triggeringTask = true;
       var params = {};
       params["page_sets"] = this.$.page_sets.selected;
       params["chromium_build"] = this.$.chromium_build.selected;
@@ -162,7 +175,10 @@
       sk.post("/_/add_capture_skps_task", JSON.stringify(params))
         .then(function(resp) {
           this.gotoRunsHistory();
-        }.bind(this)).catch(sk.errorMessage);
+        }.bind(this)).catch(function(e) {
+          this.triggeringTask = false;
+          sk.errorMessage(e);
+        }.bind(this));
     },
 
     gotoRunsHistory: function() {
