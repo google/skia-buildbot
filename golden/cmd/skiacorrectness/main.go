@@ -456,7 +456,7 @@ func main() {
 	cls := fs_clstore.New(fsClient, "gerrit")
 	tjs := fs_tjstore.New(fsClient, "buildbucket")
 
-	searchAPI := search.NewSearchAPI(diffStore, expStore, ixr, deprecatedTJS, cls, tjs, publiclyViewableParams)
+	searchAPI := search.New(diffStore, expStore, ixr, deprecatedTJS, cls, tjs, publiclyViewableParams)
 
 	sklog.Infof("Search API created")
 
@@ -524,7 +524,7 @@ func main() {
 	jsonRouter.HandleFunc(trim("/json/byblame"), handlers.ByBlameHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/cleardigests"), handlers.ClearDigests).Methods("POST")
 	jsonRouter.HandleFunc(trim("/json/clusterdiff"), handlers.ClusterDiffHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/cmp"), handlers.CompareTestHandler).Methods("POST")
+	jsonRouter.HandleFunc(trim("/json/cmp"), handlers.DigestTableHandler).Methods("POST")
 	jsonRouter.HandleFunc(trim("/json/commits"), handlers.CommitsHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/details"), handlers.DetailsHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/diff"), handlers.DiffHandler).Methods("GET")
