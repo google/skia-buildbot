@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8b8d2c5f_14acb52a",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-03T19:16:11Z",
+      "side": 1,
+      "message": "I can\u0027t make it a const since DigestFailure includes a timestamp field, so I\u0027m now using a custom matcher instead.",
+      "parentUuid": "7cdedd08_b1139a02",
+      "range": {
+        "startLine": 124,
+        "startChar": 41,
+        "endLine": 124,
+        "endChar": 44
+      },
+      "revId": "825c81f15155b749ab894dd7bca005825dc300c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7f7c9c64_f8703aa1",
         "filename": "golden/go/diffstore/mem_diffstore.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "825c81f15155b749ab894dd7bca005825dc300c8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c35ae563_d4c996dd",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-03T19:16:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7f7c9c64_f8703aa1",
+      "range": {
+        "startLine": 82,
+        "startChar": 43,
+        "endLine": 82,
+        "endChar": 57
+      },
+      "revId": "825c81f15155b749ab894dd7bca005825dc300c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
