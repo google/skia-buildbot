@@ -5,13 +5,16 @@ FROM debian:9.5
 
 USER root
 
-RUN apt-get update && apt-get install -y git file ca-certificates procps wget
+RUN apt-get update && apt-get install -y git file ca-certificates procps wget python
 
 #Add user so we don't have to run as root (prevents us from over-writing files in /SRC)
 RUN groupadd -g 2000 skia \
     && useradd -u 2000 -g 2000 skia \
     && mkdir -p /home/skia \
     && chown -R skia:skia /home/skia
+
+# Create required dirs.
+RUN mkdir --parents /b/storage/ && chown skia:skia /b/storage
 
 USER skia
 
