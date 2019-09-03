@@ -5,8 +5,10 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -15,7 +17,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
-	"go.skia.org/infra/ct/go/frontend"
+	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/email"
@@ -46,6 +48,13 @@ var (
 	chromiumHash              = flag.String("chromium_hash", "", "The Chromium full hash the checkout should be synced to before applying patches.")
 	taskPriority              = flag.Int("task_priority", util.TASKS_PRIORITY_MEDIUM, "The priority swarming tasks should run at.")
 	groupName                 = flag.String("group_name", "", "The group name of this run. It will be used as the key when uploading data to ct-perf.skia.org.")
+
+	chromiumPatchGSPath          = flag.String("chromium_patch_gs_path", "", "The location of the Chromium patch in Google storage.")
+	skiaPatchGSPath              = flag.String("skia_patch_gs_path", "", "The location of the Skia patch in Google storage.")
+	v8PatchGSPath                = flag.String("v8_patch_gs_path", "", "The location of the V8 patch in Google storage.")
+	catapultPatchGSPath          = flag.String("catapult_patch_gs_path", "", "The location of the Catapult patch in Google storage.")
+	chromiumBaseBuildPatchGSPath = flag.String("chromium_base_build_patch_gs_path", "", "The location of the Chromium base build patch in Google storage.")
+	customWebpagesCsvGSPath      = flag.String("custom_webpages_csv_gs_path", "", "The location of the custom webpages CSV in Google storage.")
 
 	taskCompletedSuccessfully = false
 
@@ -97,24 +106,24 @@ func sendEmail(recipients []string) {
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, ctPerfHtml, htmlOutputLink, chromiumPatchLink, skiaPatchLink, v8PatchLink, catapultPatchLink, chromiumPatchBaseBuildLink, customWebpagesLink, frontend.ChromiumPerfTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, ctPerfHtml, htmlOutputLink, chromiumPatchLink, skiaPatchLink, v8PatchLink, catapultPatchLink, chromiumPatchBaseBuildLink, customWebpagesLink, master_common.ChromiumPerfTasksWebapp)
 	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		sklog.Errorf("Error while sending email: %s", err)
 		return
 	}
 }
 
-func updateWebappTask() {
+func updateTaskInDatastore(ctx context.Context) {
 	vars := chromium_perf.UpdateVars{}
 	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
 	vars.Results = htmlOutputLink
 	vars.NoPatchRawOutput = noPatchOutputLink
 	vars.WithPatchRawOutput = withPatchOutputLink
-	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
+	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars))
 }
 
-func main() {
+func runChromiumPerfOnWorkers() error {
 	master_common.Init("run_chromium_perf")
 
 	ctx := context.Background()
@@ -123,13 +132,12 @@ func main() {
 	emailsArr := util.ParseEmails(*emails)
 	emailsArr = append(emailsArr, util.CtAdmins...)
 	if len(emailsArr) == 0 {
-		sklog.Error("At least one email address must be specified")
-		return
+		return errors.New("At least one email address must be specified")
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_perf.UpdateVars{}, *taskID, *runID))
+	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &chromium_perf.UpdateVars{}, *taskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Chromium perf", *runID, *description, fmt.Sprintf("Triggered %s benchmark on %s %s pageset.", *benchmarkName, *targetPlatform, *pagesetType)))
-	// Ensure webapp is updated and email is sent even if task fails.
-	defer updateWebappTask()
+	// Ensure task is updated and email is sent even if task fails.
+	defer updateTaskInDatastore(ctx)
 	defer sendEmail(emailsArr)
 	// Cleanup dirs after run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir, *runID))
@@ -138,29 +146,61 @@ func main() {
 	defer sklog.Flush()
 
 	if *pagesetType == "" {
-		sklog.Error("Must specify --pageset_type")
-		return
+		return errors.New("Must specify --pageset_type")
 	}
 	if *benchmarkName == "" {
-		sklog.Error("Must specify --benchmark_name")
-		return
+		return errors.New("Must specify --benchmark_name")
 	}
 	if *runID == "" {
-		sklog.Error("Must specify --run_id")
-		return
+		return errors.New("Must specify --run_id")
 	}
 	if *description == "" {
-		sklog.Error("Must specify --description")
-		return
+		return errors.New("Must specify --description")
 	}
 
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
-		sklog.Errorf("Could not instantiate gsutil object: %s", err)
-		return
+		return fmt.Errorf("Could not instantiate gsutil object: %s", err)
 	}
 	remoteOutputDir := path.Join(util.ChromiumPerfRunsStorageDir, *runID)
+
+	// TODO(rmistry): Fix the below.
+	//
+	// This is silly, we do the following here:
+	// * Downloads patches from the location specified by CTFE.
+	// * Locally "fixes" them (adds an extra newline at the end).
+	// * Uses the locally downloaded the files to check if all patches are
+	//   empty to determine if we should use a single build.
+	// * Re-uploads them in a location expected by the builder tasks.
+	//
+	// What we should be doing instead is using the CTFE locations and passing them
+	// around to all the worker scripts that need them by being explicit. Eg:
+	// "skiaPatchGSPath". rmistry@ started doing this but it made the effort of
+	// making CT interruptible more difficult. Should tackle this as a separate
+	// effort here and in all other similar master scripts.
+	//
+	for fileSuffix, patchGSPath := range map[string]string{
+		".chromium.patch":            *chromiumPatchGSPath,
+		".skia.patch":                *skiaPatchGSPath,
+		".v8.patch":                  *v8PatchGSPath,
+		".catapult.patch":            *catapultPatchGSPath,
+		".chromium_base_build.patch": *chromiumBaseBuildPatchGSPath,
+		".custom_webpages.csv":       *customWebpagesCsvGSPath,
+	} {
+		patch, err := util.GetPatchFromStorage(patchGSPath)
+		if err != nil {
+			return fmt.Errorf("Could not download patch %s from Google storage: %s", patchGSPath, err)
+		}
+		// Add an extra newline at the end because git sometimes rejects patches due to
+		// missing newlines.
+		patch = patch + "\n"
+		patchPath := filepath.Join(os.TempDir(), *runID+fileSuffix)
+		if err := ioutil.WriteFile(patchPath, []byte(patch), 0666); err != nil {
+			return fmt.Errorf("Could not write patch %s to %s: %s", patch, patchPath, err)
+		}
+		defer skutil.Remove(patchPath)
+	}
 
 	// Copy the patches and custom webpages to Google Storage.
 	skiaPatchName := *runID + ".skia.patch"
@@ -171,8 +211,7 @@ func main() {
 	customWebpagesName := *runID + ".custom_webpages.csv"
 	for _, patchName := range []string{skiaPatchName, chromiumPatchName, v8PatchName, catapultPatchName, chromiumPatchNameBaseBuild, customWebpagesName} {
 		if err := gs.UploadFile(patchName, os.TempDir(), remoteOutputDir); err != nil {
-			sklog.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
-			return
+			return fmt.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
 		}
 	}
 	skiaPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, skiaPatchName)
@@ -190,8 +229,7 @@ func main() {
 	if *chromiumHash == "" {
 		*chromiumHash, err = util.GetChromiumHash(ctx)
 		if err != nil {
-			sklog.Errorf("Could not find the latest chromium hash: %s", err)
-			return
+			return fmt.Errorf("Could not find the latest chromium hash: %s", err)
 		}
 	}
 
@@ -202,8 +240,8 @@ func main() {
 		if util.PatchesAreEmpty(localPatches) {
 			// Create only one chromium build.
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-				ctx, "build_chromium", *runID, "chromium", *targetPlatform, *master_common.ServiceAccountFile, []string{*chromiumHash}, remotePatches, []string{},
-				/*singlebuild*/ true, *master_common.Local, 3*time.Hour, 1*time.Hour)
+				ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, remotePatches, []string{},
+				true, *master_common.Local, 3*time.Hour, 1*time.Hour)
 			if err != nil {
 				return sklog.FmtErrorf("Error encountered when swarming build repo task: %s", err)
 			}
@@ -216,8 +254,8 @@ func main() {
 		} else {
 			// Create the two required chromium builds (with patch and without the patch).
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-				ctx, "build_chromium", *runID, "chromium", *targetPlatform, *master_common.ServiceAccountFile, []string{*chromiumHash}, remotePatches, []string{},
-				/*singlebuild*/ false, *master_common.Local, 3*time.Hour, 1*time.Hour)
+				ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, remotePatches, []string{},
+				false, *master_common.Local, 3*time.Hour, 1*time.Hour)
 			if err != nil {
 				return sklog.FmtErrorf("Error encountered when swarming build repo task: %s", err)
 			}
@@ -234,7 +272,7 @@ func main() {
 	isolateDeps := []string{}
 	group.Go("isolate telemetry", func() error {
 		telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
-		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, *master_common.ServiceAccountFile, *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
+		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, "", *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
 		if err != nil {
 			return fmt.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
 		}
@@ -247,8 +285,7 @@ func main() {
 
 	// Wait for chromium build task and isolate telemetry task to complete.
 	if err := group.Wait(); err != nil {
-		sklog.Error(err)
-		return
+		return err
 	}
 
 	// Clean up the chromium builds from Google storage after the run completes.
@@ -271,58 +308,51 @@ func main() {
 	customWebPagesFilePath := filepath.Join(os.TempDir(), customWebpagesName)
 	numPages, err := util.GetNumPages(*pagesetType, customWebPagesFilePath)
 	if err != nil {
-		sklog.Errorf("Error encountered when calculating number of pages: %s", err)
-		return
+		return fmt.Errorf("Error encountered when calculating number of pages: %s", err)
 	}
 	// Determine hard timeout according to the number of times benchmark should be repeated.
 	// Cap it off at the max allowable hours.
 	var hardTimeout = time.Duration(skutil.MinInt(12**repeatBenchmark, util.MAX_SWARMING_HARD_TIMEOUT_HOURS)) * time.Hour
 	// Calculate the max pages to run per bot.
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, MAX_PAGES_PER_SWARMING_BOT)
-	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, *master_common.ServiceAccountFile, *targetPlatform, hardTimeout, 1*time.Hour, *taskPriority, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark), isolateDeps)
+	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, "", *targetPlatform, hardTimeout, 1*time.Hour, *taskPriority, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark), isolateDeps)
 	if err != nil {
-		sklog.Errorf("Error encountered when swarming tasks: %s", err)
-		return
+		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}
 
 	// If "--output-format=csv" is specified then merge all CSV files and upload.
 	runIDNoPatch := fmt.Sprintf("%s-nopatch", *runID)
 	runIDWithPatch := fmt.Sprintf("%s-withpatch", *runID)
-	pathToPyFiles := util.GetPathToPyFiles(*master_common.Local, true /* runOnMaster */)
+	pathToPyFiles := util.GetPathToPyFiles(*master_common.Local, false /* runOnMaster */)
 	var noOutputSlaves []string
 
 	// Nopatch CSV file processing.
 	noPatchCSVLocalPath, noOutputSlaves, err := util.MergeUploadCSVFiles(ctx, runIDNoPatch, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark))
 	if err != nil {
-		sklog.Errorf("Unable to merge and upload CSV files for %s: %s", runIDNoPatch, err)
-		return
+		return fmt.Errorf("Unable to merge and upload CSV files for %s: %s", runIDNoPatch, err)
 	}
 	// Cleanup created dir after the run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDNoPatch))
 	// If the number of noOutputSlaves is the same as the total number of triggered slaves then consider the run failed.
 	if len(noOutputSlaves) == numSlaves {
-		sklog.Errorf("All %d slaves produced no output for nopatch run", numSlaves)
-		return
+		return fmt.Errorf("All %d slaves produced no output for nopatch run", numSlaves)
 	}
 
 	// Withpatch CSV file processing.
 	withPatchCSVLocalPath, noOutputSlaves, err := util.MergeUploadCSVFiles(ctx, runIDWithPatch, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark))
 	if err != nil {
-		sklog.Errorf("Unable to merge and upload CSV files for %s: %s", runIDWithPatch, err)
-		return
+		return fmt.Errorf("Unable to merge and upload CSV files for %s: %s", runIDWithPatch, err)
 	}
 	// Cleanup created dir after the run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDWithPatch))
 	// If the number of noOutputSlaves is the same as the total number of triggered slaves then consider the run failed.
 	if len(noOutputSlaves) == numSlaves {
-		sklog.Errorf("All %d slaves produced no output for withpatch run", numSlaves)
-		return
+		return fmt.Errorf("All %d slaves produced no output for withpatch run", numSlaves)
 	}
 
 	totalArchivedWebpages, err := util.GetArchivesNum(gs, *benchmarkExtraArgs, *pagesetType)
 	if err != nil {
-		sklog.Errorf("Error when calculating number of archives: %s", err)
-		return
+		return fmt.Errorf("Error when calculating number of archives: %s", err)
 	}
 
 	// Compare the resultant CSV files using csv_comparer.py
@@ -363,22 +393,29 @@ func main() {
 	}
 	err = util.ExecuteCmd(ctx, "python", args, []string{}, util.CSV_COMPARER_TIMEOUT, nil, nil)
 	if err != nil {
-		sklog.Errorf("Error running csv_comparer.py: %s", err)
-		return
+		return fmt.Errorf("Error running csv_comparer.py: %s", err)
 	}
 
 	// Copy the HTML files to Google Storage.
 	if err := gs.UploadDir(htmlOutputDir, htmlRemoteDir, true); err != nil {
-		sklog.Errorf("Could not upload %s to %s: %s", htmlOutputDir, htmlRemoteDir, err)
-		return
+		return fmt.Errorf("Could not upload %s to %s: %s", htmlOutputDir, htmlRemoteDir, err)
 	}
 
 	if *groupName != "" {
 		if err := util.AddCTRunDataToPerf(ctx, *groupName, *runID, withPatchCSVLocalPath, gs); err != nil {
-			sklog.Errorf("Could not add CT run data to ct-perf.skia.org: %s", err)
-			return
+			return fmt.Errorf("Could not add CT run data to ct-perf.skia.org: %s", err)
 		}
 	}
 
 	taskCompletedSuccessfully = true
+	return nil
+}
+
+func main() {
+	retCode := 0
+	if err := runChromiumPerfOnWorkers(); err != nil {
+		sklog.Errorf("Error while running chromium perf on workers: %s", err)
+		retCode = 255
+	}
+	os.Exit(retCode)
 }
