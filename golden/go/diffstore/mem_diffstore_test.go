@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"cloud.google.com/go/storage"
+	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/testutils"
@@ -18,6 +19,7 @@ import (
 	"go.skia.org/infra/golden/go/diffstore/common"
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
 	d_utils "go.skia.org/infra/golden/go/diffstore/testutils"
+	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/types"
 	"google.golang.org/api/option"
 )
@@ -42,7 +44,8 @@ func TestMemDiffStore(t *testing.T) {
 	gcsClient := gcsclient.New(storageClient, d_utils.TEST_GCS_BUCKET_NAME)
 
 	m := disk_mapper.New(&diff.DiffMetrics{})
-	diffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, m)
+	mfs := &mocks.FailureStore{}
+	diffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mfs)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
@@ -147,8 +150,35 @@ func TestFailureHandling(t *testing.T) {
 	assert.NoError(t, err)
 	gcsClient := gcsclient.New(storageClient, d_utils.TEST_GCS_BUCKET_NAME)
 
+	invalidDigest_1 := types.Digest("invaliddigest1")
+	invalidDigest_2 := types.Digest("invaliddigest2")
+
+	// Set up mock FailureStore.
+	mfs := &mocks.FailureStore{}
+	defer mfs.AssertExpectations(t)
+
+	// FailureStore calls for invalid digest #1.
+	mfs.On("AddDigestFailure", mock.MatchedBy(diffFailureMatcher(invalidDigest_1, "http_error"))).Return(nil)
+	mfs.On("AddDigestFailureIfNew", mock.MatchedBy(diffFailureMatcher(invalidDigest_1, "other"))).Return(nil)
+
+	// FailureStore calls for invalid digest #2.
+	mfs.On("AddDigestFailure", mock.MatchedBy(diffFailureMatcher(invalidDigest_2, "http_error"))).Return(nil)
+	mfs.On("AddDigestFailureIfNew", mock.MatchedBy(diffFailureMatcher(invalidDigest_2, "other"))).Return(nil)
+
+	// FailureStore.UnavailableDigests() call after trying to retrieve invalid digests.
+	mfs.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure {
+		invalidDigest_1: {Digest: invalidDigest_1, Reason: "http_error"},
+		invalidDigest_2: {Digest: invalidDigest_2, Reason: "http_error"},
+	}).Once()
+
+	// FailureStore.PurgeDigestFailures().
+	mfs.On("PurgeDigestFailures", types.DigestSlice{invalidDigest_1, invalidDigest_2}).Return(nil)
+
+	// FailureStore.UnavailableDigests() call after purging the above digest failures.
+	mfs.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure {})
+
 	m := disk_mapper.New(&diff.DiffMetrics{})
-	diffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, m)
+	diffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mfs)
 	assert.NoError(t, err)
 
 	validDigestSet := types.DigestSet{}
@@ -157,9 +187,6 @@ func TestFailureHandling(t *testing.T) {
 		validDigestSet.AddLists(gTrace.Digests)
 	}
 	delete(validDigestSet, types.MISSING_DIGEST)
-
-	invalidDigest_1 := types.Digest("invaliddigest1")
-	invalidDigest_2 := types.Digest("invaliddigest2")
 
 	validDigests := validDigestSet.Keys()
 	mainDigest := validDigests[0]
@@ -192,7 +219,8 @@ func TestCodec(t *testing.T) {
 
 	// Instantiate a new MemDiffStore with a codec for the test struct defined above.
 	m := disk_mapper.New(&d_utils.DummyDiffMetrics{})
-	diffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, m)
+	mfs := &mocks.FailureStore{}
+	diffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mfs)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
