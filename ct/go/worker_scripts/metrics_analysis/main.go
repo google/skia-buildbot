@@ -173,7 +173,7 @@ func metricsAnalysis() error {
 	// If "--output-format=csv" was specified then merge all CSV files and upload.
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
 		// Construct path to CT's python scripts.
-		pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local, false /* runOnMaster */)
+		pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local)
 		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDir, pathToPyFiles, *runID, remoteDir, *valueColumnName, gs, *startRange, true /* handleStrings */, false /* addRanks */, map[string]map[string]string{} /* pageRankToAdditionalFields */); err != nil {
 			return fmt.Errorf("Error while processing withpatch CSV files: %s", err)
 		}

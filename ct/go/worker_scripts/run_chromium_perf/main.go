@@ -168,7 +168,7 @@ func runChromiumPerf() error {
 	remoteDirWithPatch := path.Join(util.BenchmarkRunsStorageDir, runIDWithPatch)
 
 	// Construct path to the ct_run_benchmark python script.
-	pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local, false /* runOnMaster */)
+	pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local)
 
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {

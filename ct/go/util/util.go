@@ -573,14 +573,10 @@ func GetPathToIsolates(local, runOnMaster bool) string {
 
 // GetPathToPyFiles returns the location of CT's python scripts.
 // local should be set to true if we need the location of py files when debugging locally.
-// runOnMaster should be set if we need the location of py files on ctfe.
-// If both are false then it is assumed that we are running on a swarming bot.
-func GetPathToPyFiles(local, runOnMaster bool) string {
+func GetPathToPyFiles(local bool) string {
 	if local {
 		_, currentFile, _, _ := runtime.Caller(0)
 		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "py")
-	} else if runOnMaster {
-		return filepath.Join("/", "usr", "local", "share", "ctfe", "py")
 	} else {
 		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ctfe", "py")
 	}

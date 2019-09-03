@@ -68,7 +68,7 @@ func buildRepo() error {
 				}
 			}
 		}
-		pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local, false /* runOnMaster */)
+		pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local)
 		chromiumHash, skiaHash, err := util.CreateChromiumBuildOnSwarming(ctx, *runID, *targetPlatform, chromiumHash, skiaHash, pathToPyFiles, applyPatches, *uploadSingleBuild)
 		if err != nil {
 			return fmt.Errorf("Could not create chromium build: %s", err)

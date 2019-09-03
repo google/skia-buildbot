@@ -149,7 +149,7 @@ func runChromiumAnalysis() error {
 	remoteDir := path.Join(util.BenchmarkRunsStorageDir, *runID)
 
 	// Construct path to CT's python scripts.
-	pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local, false /* runOnMaster */)
+	pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local)
 
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
