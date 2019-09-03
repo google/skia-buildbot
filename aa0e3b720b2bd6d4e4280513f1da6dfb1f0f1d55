@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b3463cd2_33d53380",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-03T19:06:34Z",
+      "side": 1,
+      "message": "it: is",
+      "range": {
+        "startLine": 230,
+        "startChar": 12,
+        "endLine": 230,
+        "endChar": 14
+      },
+      "revId": "aa0e3b720b2bd6d4e4280513f1da6dfb1f0f1d55",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
