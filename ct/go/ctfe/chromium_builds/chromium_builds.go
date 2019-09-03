@@ -130,6 +130,25 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	return t, nil
 }
 
+func (task DatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
+	runID := task_common.GetRunID(&task)
+	isolateArgs := map[string]string{
+		"EMAILS":          task.Username,
+		"TASK_ID":         strconv.FormatInt(task.DatastoreKey.ID, 10),
+		"RUN_ID":          runID,
+		"TARGET_PLATFORM": ctutil.PLATFORM_LINUX,
+		"CHROMIUM_HASH":   task.ChromiumRev,
+		"SKIA_HASH":       task.SkiaRev,
+		"DS_NAMESPACE":    task_common.DsNamespace,
+		"DS_PROJECT_NAME": task_common.DsProjectName,
+	}
+
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "build_chromium", ctutil.BUILD_CHROMIUM_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
+		return fmt.Errorf("Could not trigger master script for build_chromium with isolate args %v: %s", isolateArgs, err)
+	}
+	return nil
+}
+
 func addTaskView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(addTaskTemplate, w, r)
 }
@@ -262,8 +281,8 @@ type UpdateVars struct {
 	task_common.UpdateTaskCommonVars
 }
 
-func (vars UpdateVars) UriPath() string {
-	return ctfeutil.UPDATE_CHROMIUM_BUILD_TASK_POST_URI
+func (task *UpdateVars) GetTaskPrototype() task_common.Task {
+	return &DatastoreTask{}
 }
 
 func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
@@ -272,10 +291,6 @@ func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}
 
 func (task *UpdateVars) UpdateExtraFields(t task_common.Task) error {
 	return nil
-}
-
-func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&UpdateVars{}, &DatastoreTask{}, w, r)
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -313,7 +328,7 @@ func Validate(ctx context.Context, chromiumBuild DatastoreTask) error {
 	return nil
 }
 
-func AddHandlers(externalRouter, internalRouter *mux.Router) {
+func AddHandlers(externalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.CHROMIUM_BUILD_URI, addTaskView).Methods("GET")
 	externalRouter.HandleFunc("/"+ctfeutil.CHROMIUM_BUILD_RUNS_URI, runsHistoryView).Methods("GET")
 
@@ -323,7 +338,4 @@ func AddHandlers(externalRouter, internalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.GET_CHROMIUM_BUILD_TASKS_POST_URI, getTasksHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.DELETE_CHROMIUM_BUILD_TASK_POST_URI, deleteTaskHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.REDO_CHROMIUM_BUILD_TASK_POST_URI, redoTaskHandler).Methods("POST")
-
-	// Updating tasks is done via the internal router.
-	internalRouter.HandleFunc("/"+ctfeutil.UPDATE_CHROMIUM_BUILD_TASK_POST_URI, updateTaskHandler).Methods("POST")
 }
