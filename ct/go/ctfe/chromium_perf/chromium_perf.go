@@ -174,6 +174,43 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	return t, nil
 }
 
+func (task DatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
+	runID := task_common.GetRunID(&task)
+	emails := []string{task.Username}
+	emails = append(emails, task.CCList...)
+	isolateArgs := map[string]string{
+		"EMAILS":                            strings.Join(emails, ","),
+		"DESCRIPTION":                       task.Description,
+		"TASK_ID":                           strconv.FormatInt(task.DatastoreKey.ID, 10),
+		"PAGESET_TYPE":                      task.PageSets,
+		"BENCHMARK":                         task.Benchmark,
+		"BENCHMARK_ARGS":                    task.BenchmarkArgs,
+		"BROWSER_EXTRA_ARGS_NOPATCH":        task.BrowserArgsNoPatch,
+		"BROWSER_EXTRA_ARGS_WITHPATCH":      task.BrowserArgsWithPatch,
+		"REPEAT_BENCHMARK":                  strconv.FormatInt(task.RepeatRuns, 10),
+		"RUN_IN_PARALLEL":                   strconv.FormatBool(task.RunInParallel),
+		"TARGET_PLATFORM":                   task.Platform,
+		"RUN_ON_GCE":                        strconv.FormatBool(task.RunsOnGCEWorkers()),
+		"CHROMIUM_HASH":                     task.ChromiumHash,
+		"RUN_ID":                            runID,
+		"TASK_PRIORITY":                     strconv.Itoa(task.TaskPriority),
+		"GROUP_NAME":                        task.GroupName,
+		"CHROMIUM_PATCH_GS_PATH":            task.ChromiumPatchGSPath,
+		"SKIA_PATCH_GS_PATH":                task.SkiaPatchGSPath,
+		"V8_PATCH_GS_PATH":                  task.V8PatchGSPath,
+		"CATAPULT_PATCH_GS_PATH":            task.CatapultPatchGSPath,
+		"CHROMIUM_BASE_BUILD_PATCH_GS_PATH": task.ChromiumPatchBaseBuildGSPath,
+		"CUSTOM_WEBPAGES_CSV_GS_PATH":       task.CustomWebpagesGSPath,
+		"DS_NAMESPACE":                      task_common.DsNamespace,
+		"DS_PROJECT_NAME":                   task_common.DsProjectName,
+	}
+
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_chromium_perf_on_workers", ctutil.CHROMIUM_PERF_MASTER_ISOLATE, task_common.ServiceAccountFile, task.Platform, false, isolateArgs); err != nil {
+		return fmt.Errorf("Could not trigger master script for run_chromium_perf_on_workers with isolate args %v: %s", isolateArgs, err)
+	}
+	return nil
+}
+
 func addTaskView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(addTaskTemplate, w, r)
 }
@@ -331,8 +368,8 @@ type UpdateVars struct {
 	WithPatchRawOutput string
 }
 
-func (vars *UpdateVars) UriPath() string {
-	return ctfeutil.UPDATE_CHROMIUM_PERF_TASK_POST_URI
+func (task *UpdateVars) GetTaskPrototype() task_common.Task {
+	return &DatastoreTask{}
 }
 
 func (vars *UpdateVars) UpdateExtraFields(t task_common.Task) error {
@@ -349,10 +386,6 @@ func (vars *UpdateVars) UpdateExtraFields(t task_common.Task) error {
 	return nil
 }
 
-func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&UpdateVars{}, &DatastoreTask{}, w, r)
-}
-
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.DeleteTaskHandler(&DatastoreTask{}, w, r)
 }
@@ -365,7 +398,7 @@ func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(runsHistoryTemplate, w, r)
 }
 
-func AddHandlers(externalRouter, internalRouter *mux.Router) {
+func AddHandlers(externalRouter *mux.Router) {
 	externalRouter.HandleFunc("/", addTaskView).Methods("GET")
 	externalRouter.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_URI, addTaskView).Methods("GET")
 	externalRouter.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_RUNS_URI, runsHistoryView).Methods("GET")
@@ -374,7 +407,4 @@ func AddHandlers(externalRouter, internalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.GET_CHROMIUM_PERF_TASKS_POST_URI, getTasksHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.DELETE_CHROMIUM_PERF_TASK_POST_URI, deleteTaskHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.REDO_CHROMIUM_PERF_TASK_POST_URI, redoTaskHandler).Methods("POST")
-
-	// Updating tasks is done via the internal router.
-	internalRouter.HandleFunc("/"+ctfeutil.UPDATE_CHROMIUM_PERF_TASK_POST_URI, updateTaskHandler).Methods("POST")
 }

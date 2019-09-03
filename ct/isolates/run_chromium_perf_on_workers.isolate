@@ -1,0 +1,51 @@
+# Copyright (c) 2019 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+{
+  'includes': [
+    'py.isolate',
+    'build_repo.isolate',
+    'isolate_telemetry.isolate',
+    'chromium_perf.isolate',
+  ],
+  'conditions': [
+    ['OS=="linux" or OS=="win"', {
+      'variables': {
+        'files': [
+          '../../../bin/run_chromium_perf_on_workers',
+          'py.isolate',
+          'build_repo.isolate',
+          'isolate_telemetry.isolate',
+          'chromium_perf.isolate',
+        ],
+      'command': [
+        '../../../bin/run_chromium_perf_on_workers',
+        '-logtostderr',
+        '--emails=<(EMAILS)',
+        '--description=<(DESCRIPTION)',
+        '--task_id=<(TASK_ID)',
+        '--pageset_type=<(PAGESET_TYPE)',
+        '--benchmark_name=<(BENCHMARK)',
+        '--benchmark_extra_args=<(BENCHMARK_ARGS)',
+        '--browser_extra_args_nopatch=<(BROWSER_EXTRA_ARGS_NOPATCH)',
+        '--browser_extra_args_withpatch=<(BROWSER_EXTRA_ARGS_WITHPATCH)',
+        '--repeat_benchmark=<(REPEAT_BENCHMARK)',
+        '--run_in_parallel=<(RUN_IN_PARALLEL)',
+        '--target_platform=<(TARGET_PLATFORM)',
+        '--run_on_gce=<(RUN_ON_GCE)',
+        '--chromium_hash=<(CHROMIUM_HASH)',
+        '--run_id=<(RUN_ID)',
+        '--task_priority=<(TASK_PRIORITY)',
+        '--group_name=<(GROUP_NAME)',
+        '--chromium_patch_gs_path=<(CHROMIUM_PATCH_GS_PATH)',
+        '--skia_patch_gs_path=<(SKIA_PATCH_GS_PATH)',
+        '--v8_patch_gs_path=<(V8_PATCH_GS_PATH)',
+        '--catapult_patch_gs_path=<(CATAPULT_PATCH_GS_PATH)',
+        '--chromium_base_build_patch_gs_path=<(CHROMIUM_BASE_BUILD_PATCH_GS_PATH)',
+        '--custom_webpages_csv_gs_path=<(CUSTOM_WEBPAGES_CSV_GS_PATH)',
+        '--ds_namespace=<(DS_NAMESPACE)',
+        '--ds_project_name=<(DS_PROJECT_NAME)',
+      ]},
+    }],
+  ]
+}
