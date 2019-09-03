@@ -465,8 +465,8 @@ func (p *paramsEncoder) encode(params Params) (Params, error) {
 	return ret, nil
 }
 
-// encode takes a Params and encodes all the keys and values via
-// the OrderedParamSet.
+// encodeParamSet takes a ParamSet and encodes all the keys and values via the
+// OrderedParamSet.
 func (p *paramsEncoder) encodeParamSet(ps ParamSet) (ParamSet, error) {
 	ret := ParamSet{}
 	for _, key := range p.keyOrder {
@@ -494,6 +494,7 @@ func (p *paramsEncoder) encodeParamSet(ps ParamSet) (ParamSet, error) {
 	if len(ret) == 0 {
 		return nil, skerr.Fmt("No params encoded.")
 	}
+	ret.Normalize()
 	return ret, nil
 }
 
