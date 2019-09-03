@@ -5,15 +5,17 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
-	"go.skia.org/infra/ct/go/frontend"
+	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/sklog"
@@ -52,21 +54,21 @@ func sendEmail(recipients []string) {
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, frontend.CaptureSKPsTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, master_common.CaptureSKPsTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		sklog.Errorf("Error while sending email: %s", err)
 		return
 	}
 }
 
-func updateWebappTask() {
+func updateTaskInDatastore(ctx context.Context) {
 	vars := capture_skps.UpdateVars{}
 	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
-	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
+	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars))
 }
 
-func main() {
+func captureSKPsOnWorkers() error {
 	master_common.Init("capture_skps")
 
 	ctx := context.Background()
@@ -75,14 +77,12 @@ func main() {
 	emailsArr := util.ParseEmails(*emails)
 	emailsArr = append(emailsArr, util.CtAdmins...)
 	if len(emailsArr) == 0 {
-		sklog.Error("At least one email address must be specified")
-		return
+		return errors.New("At least one email address must be specified")
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&capture_skps.UpdateVars{}, *taskID, *runID))
+	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &capture_skps.UpdateVars{}, *taskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Capture SKPs", *runID, *description, ""))
-	// Ensure webapp is updated and completion email is sent even if task
-	// fails.
-	defer updateWebappTask()
+	// Ensure task is updated and completion email is sent even if task fails.
+	defer updateTaskInDatastore(ctx)
 	defer sendEmail(emailsArr)
 
 	// Finish with glog flush and how long the task took.
@@ -90,23 +90,19 @@ func main() {
 	defer sklog.Flush()
 
 	if *pagesetType == "" {
-		sklog.Error("Must specify --pageset_type")
-		return
+		return errors.New("Must specify --pageset_type")
 	}
 	if *chromiumBuild == "" {
-		sklog.Error("Must specify --chromium_build")
-		return
+		return errors.New("Must specify --chromium_build")
 	}
 	if *runID == "" {
-		sklog.Error("Must specify --run_id")
-		return
+		return errors.New("Must specify --run_id")
 	}
 
 	// Empty the remote dir before the workers upload to it.
 	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
-		sklog.Error(err)
-		return
+		return err
 	}
 	skpGCSBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.SKPS_DIR_NAME, *pagesetType, *chromiumBuild)
 	skutil.LogErr(gs.DeleteRemoteDir(skpGCSBaseDir))
@@ -120,7 +116,7 @@ func main() {
 			return fmt.Errorf("Could not get cipd package for clang_linux: %s", err)
 		}
 		remoteDirNames, err := util.TriggerBuildRepoSwarmingTask(
-			ctx, "build_skpinfo", *runID, "skiaSKPInfo", util.PLATFORM_LINUX, *master_common.ServiceAccountFile, []string{}, []string{}, []string{cipdPackage}, true, *master_common.Local, 3*time.Hour, 1*time.Hour)
+			ctx, "build_skpinfo", *runID, "skiaSKPInfo", util.PLATFORM_LINUX, "", []string{}, []string{}, []string{cipdPackage}, true, *master_common.Local, 3*time.Hour, 1*time.Hour)
 		if err != nil {
 			return fmt.Errorf("Error encountered when swarming build skpinfo task: %s", err)
 		}
@@ -134,7 +130,7 @@ func main() {
 	group.Go("isolate telemetry", func() error {
 		tokens := strings.Split(*chromiumBuild, "-")
 		chromiumHash := tokens[0]
-		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, *master_common.ServiceAccountFile, *targetPlatform, []string{}, 1*time.Hour, 1*time.Hour, *master_common.Local)
+		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, "", *targetPlatform, []string{}, 1*time.Hour, 1*time.Hour, *master_common.Local)
 		if err != nil {
 			return sklog.FmtErrorf("Error encountered when swarming isolate telemetry task: %s", err)
 		}
@@ -147,8 +143,7 @@ func main() {
 
 	// Wait for skpinfo build task and isolate telemetry task to complete.
 	if err := group.Wait(); err != nil {
-		sklog.Error(err)
-		return
+		return err
 	}
 
 	// Archive, trigger and collect swarming tasks.
@@ -157,10 +152,19 @@ func main() {
 		"RUN_ID":              *runID,
 		"SKPINFO_REMOTE_PATH": skpinfoRemotePath,
 	}
-	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_skps", util.CAPTURE_SKPS_ISOLATE, *runID, *master_common.ServiceAccountFile, *targetPlatform, 3*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_LOW, MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, *master_common.Local, 1, isolateDeps); err != nil {
-		sklog.Errorf("Error encountered when swarming tasks: %s", err)
-		return
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_skps", util.CAPTURE_SKPS_ISOLATE, *runID, "", *targetPlatform, 3*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_LOW, MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, *master_common.Local, 1, isolateDeps); err != nil {
+		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}
 
 	taskCompletedSuccessfully = true
+	return nil
+}
+
+func main() {
+	retCode := 0
+	if err := captureSKPsOnWorkers(); err != nil {
+		sklog.Errorf("Error while running capture skps on workers: %s", err)
+		retCode = 255
+	}
+	os.Exit(retCode)
 }

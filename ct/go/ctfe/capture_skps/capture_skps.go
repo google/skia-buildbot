@@ -108,6 +108,27 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	return t, nil
 }
 
+func (task DatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
+	runID := task_common.GetRunID(&task)
+	isolateArgs := map[string]string{
+		"EMAILS":          task.Username,
+		"DESCRIPTION":     task.Description,
+		"TASK_ID":         strconv.FormatInt(task.DatastoreKey.ID, 10),
+		"PAGESET_TYPE":    task.PageSets,
+		"CHROMIUM_BUILD":  ctutil.ChromiumBuildDir(task.ChromiumRev, task.SkiaRev, ""),
+		"TARGET_PLATFORM": ctutil.PLATFORM_LINUX,
+		"RUN_ON_GCE":      strconv.FormatBool(task.RunsOnGCEWorkers()),
+		"RUN_ID":          runID,
+		"DS_NAMESPACE":    task_common.DsNamespace,
+		"DS_PROJECT_NAME": task_common.DsProjectName,
+	}
+
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_skps_on_workers", ctutil.CAPTURE_SKPS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
+		return fmt.Errorf("Could not trigger master script for capture_skps_on_workers with isolate args %v: %s", isolateArgs, err)
+	}
+	return nil
+}
+
 func addTaskView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(addTaskTemplate, w, r)
 }
@@ -178,16 +199,12 @@ type UpdateVars struct {
 	task_common.UpdateTaskCommonVars
 }
 
-func (vars *UpdateVars) UriPath() string {
-	return ctfeutil.UPDATE_CAPTURE_SKPS_TASK_POST_URI
+func (task *UpdateVars) GetTaskPrototype() task_common.Task {
+	return &DatastoreTask{}
 }
 
 func (task *UpdateVars) UpdateExtraFields(t task_common.Task) error {
 	return nil
-}
-
-func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&UpdateVars{}, &DatastoreTask{}, w, r)
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -202,7 +219,7 @@ func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(runsHistoryTemplate, w, r)
 }
 
-func AddHandlers(externalRouter, internalRouter *mux.Router) {
+func AddHandlers(externalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.CAPTURE_SKPS_URI, addTaskView).Methods("GET")
 	externalRouter.HandleFunc("/"+ctfeutil.CAPTURE_SKPS_RUNS_URI, runsHistoryView).Methods("GET")
 
@@ -210,7 +227,4 @@ func AddHandlers(externalRouter, internalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.GET_CAPTURE_SKPS_TASKS_POST_URI, getTasksHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.DELETE_CAPTURE_SKPS_TASK_POST_URI, deleteTaskHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.REDO_CAPTURE_SKPS_TASK_POST_URI, redoTaskHandler).Methods("POST")
-
-	// Updating tasks is done via the internal router.
-	internalRouter.HandleFunc("/"+ctfeutil.UPDATE_CAPTURE_SKPS_TASK_POST_URI, updateTaskHandler).Methods("POST")
 }
