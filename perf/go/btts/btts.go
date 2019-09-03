@@ -70,8 +70,15 @@ const (
 	// shard the requests enough to be sufficient.
 	MAX_ROW_KEYS = 10 * 1000
 
-	// MAX_INDEX_LRU_CACHE is the size of the lru cache where we remember if we've already stored indices for a rowKey.
+	// MAX_INDEX_LRU_CACHE is the size of the lru cache where we remember if
+	// we've already stored indices for a rowKey.
 	MAX_INDEX_LRU_CACHE = 20 * 1000 * 1000
+
+	// MAX_WRITE_INDICES_BATCH_SIZE is the size of a batch of trace ids to write
+	// indices for in WriteIndices. We need to cap the size otherwise we will
+	// read all the trace ids into memory before starting to write indices,
+	// which uses too much memory at one time.
+	MAX_WRITE_INDICES_BATCH_SIZE = 100000
 
 	TIMEOUT       = 4 * time.Minute
 	WRITE_TIMEOUT = 10 * time.Minute
@@ -120,13 +127,18 @@ func (t TileKey) IndexRowPrefix() string {
 	return fmt.Sprintf("%s%07d", INDEX_PREFIX, t)
 }
 
-// TraceRowName returns the BigTable row name for the given trace, for the given number of shards.
+// TraceRowName returns the BigTable row name for the given trace, for the given
+// number of shards. The returned row name includes the shard.
+//
 // TraceRowName(",0=1,", 3) -> 2:2147483647:,0=1,
 func (t TileKey) TraceRowName(traceId string, shards int32) string {
-	return fmt.Sprintf("%d:%07d:%s", crc32.ChecksumIEEE([]byte(traceId))%uint32(shards), t, traceId)
+	ret, _ := t.TraceRowNameAndShard(traceId, shards)
+	return ret
 }
 
-// TraceRowName returns the BigTable row name for the given trace, for the given number of shards.
+// TraceRowName returns the BigTable row name for the given trace, for the given
+// number of shards. The returned row name includes the shard.
+//
 // TraceRowName(",0=1,", 3) -> 2:2147483647:,0=1,
 func (t TileKey) TraceRowNameAndShard(traceId string, shards int32) (string, uint32) {
 	shard := crc32.ChecksumIEEE([]byte(traceId)) % uint32(shards)
@@ -209,7 +221,12 @@ type BigTableTraceStore struct {
 	writesCounter      metrics2.Counter
 	indexWritesCounter metrics2.Counter
 	table              *bigtable.Table
-	indexed            *lru.Cache // LRU cache of all the trace row keys that have been added to the index.
+
+	// indexed in an LRU cache of all the trace row keys that have been added to
+	// the index. Note that the trace row keys include the tile and the shard,
+	// so we don't get any duplicates. Since the number of incoming trace ids is
+	// unbounded we can only use an LRU cache here.
+	indexed *lru.Cache
 
 	// lookup maps column names as strings, "V:2", to the index, 2.
 	// Used to speed up reading values out of rows.
@@ -355,7 +372,8 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 	// indices maps rowKeys to encoded Params.
 	indices := map[string]paramtools.Params{}
 
-	tctx := context.Background()
+	// TODO(jcgregorio) Pass in a context to WriteTraces.
+	tctx := context.TODO()
 	for i, v := range values {
 		mut := bigtable.NewMutation()
 
@@ -395,8 +413,9 @@ func (b *BigTableTraceStore) WriteTraces(index int32, params []paramtools.Params
 
 // writeTraceIndices writes the indices for the given traces.
 //
-// The 'indices' maps encoded keys to the encoded Params of the key.
-// If bypassCache is true then we don't look in the lru cache to see if we've already writtin the indices for a given key.
+// The 'indices' maps encoded keys to the encoded Params of the key. If
+// bypassCache is true then we don't look in the lru cache to see if we've
+// already written the indices for a given key.
 func (b *BigTableTraceStore) writeTraceIndices(tctx context.Context, tileKey TileKey, indices map[string]paramtools.Params, ts bigtable.Timestamp, bypassCache bool) error {
 	// Write indices as batches of mutations.
 	indexRowKeys := []string{}
@@ -460,7 +479,6 @@ func (b *BigTableTraceStore) CountIndices(ctx context.Context, tileKey TileKey) 
 func (b *BigTableTraceStore) WriteIndices(ctx context.Context, tileKey TileKey) error {
 	// The full set of trace ids can't fit in memory, do this as an incremental process.
 	total := 0
-	const maxBatchSize = 100000
 	out, errCh := b.tileKeys(ctx, tileKey)
 	indices := map[string]paramtools.Params{}
 	for encodedKey := range out {
@@ -471,7 +489,7 @@ func (b *BigTableTraceStore) WriteIndices(ctx context.Context, tileKey TileKey) 
 			continue
 		}
 		indices[encodedKey] = encodedParams
-		if len(indices) >= maxBatchSize {
+		if len(indices) >= MAX_WRITE_INDICES_BATCH_SIZE {
 			if err := b.writeTraceIndices(ctx, tileKey, indices, bigtable.Time(time.Now()), true); err != nil {
 				return err
 			}
