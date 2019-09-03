@@ -127,20 +127,3 @@ func TestIntersect(t *testing.T) {
 		})
 	}
 }
-
-func TestIntersectCancel(t *testing.T) {
-	unittest.SmallTest(t)
-	a := make(chan string)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	var wg sync.WaitGroup
-	go func() {
-		wg.Add(1)
-		s := fromChan(NewIntersect(ctx, []<-chan string{a}))
-		assert.Equal(t, []string{}, s)
-		wg.Done()
-	}()
-	cancel()
-	wg.Wait()
-	// The test passes by not timing out.
-}
