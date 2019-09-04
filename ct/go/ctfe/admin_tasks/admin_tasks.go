@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"text/template"
 
 	"cloud.google.com/go/datastore"
@@ -20,6 +21,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
+	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
 
@@ -108,10 +110,12 @@ func (task RecreatePageSetsDatastoreTask) Get(c context.Context, key *datastore.
 	return t, nil
 }
 
-func (task RecreatePageSetsDatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
+func (task RecreatePageSetsDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) (string, error) {
 	runID := task_common.GetRunID(&task)
+	emails := []string{task.Username}
+	emails = append(emails, ctutil.CtAdmins...)
 	isolateArgs := map[string]string{
-		"EMAILS":          task.Username,
+		"EMAILS":          strings.Join(emails, ","),
 		"TASK_ID":         strconv.FormatInt(task.DatastoreKey.ID, 10),
 		"RUN_ON_GCE":      strconv.FormatBool(task.RunsOnGCEWorkers()),
 		"RUN_ID":          runID,
@@ -120,10 +124,13 @@ func (task RecreatePageSetsDatastoreTask) TriggerSwarmingTask(ctx context.Contex
 		"DS_PROJECT_NAME": task_common.DsProjectName,
 	}
 
-	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_archives_on_workers", ctutil.CAPTURE_ARCHIVES_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
-		return fmt.Errorf("Could not trigger master script for capture_archives_on_workers with isolate args %v: %s", isolateArgs, err)
+	taskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_archives_on_workers", ctutil.CAPTURE_ARCHIVES_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs)
+	if err != nil {
+		return "", fmt.Errorf("Could not trigger master script for capture_archives_on_workers with isolate args %v: %s", isolateArgs, err)
 	}
-	return nil
+	// Send start email.
+	skutil.LogErr(ctutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Creating pagesets", runID, "", ""))
+	return taskID, nil
 }
 
 func addRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -195,8 +202,10 @@ func (task RecreateWebpageArchivesDatastoreTask) Get(c context.Context, key *dat
 	return t, nil
 }
 
-func (task RecreateWebpageArchivesDatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
+func (task RecreateWebpageArchivesDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) (string, error) {
 	runID := task_common.GetRunID(&task)
+	emails := []string{task.Username}
+	emails = append(emails, ctutil.CtAdmins...)
 	isolateArgs := map[string]string{
 		"EMAILS":          task.Username,
 		"TASK_ID":         strconv.FormatInt(task.DatastoreKey.ID, 10),
@@ -207,10 +216,13 @@ func (task RecreateWebpageArchivesDatastoreTask) TriggerSwarmingTask(ctx context
 		"DS_PROJECT_NAME": task_common.DsProjectName,
 	}
 
-	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "create_pagesets_on_workers", ctutil.CREATE_PAGESETS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
-		return fmt.Errorf("Could not trigger master script for create_pagesets_on_workers with isolate args %v: %s", isolateArgs, err)
+	taskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "create_pagesets_on_workers", ctutil.CREATE_PAGESETS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs)
+	if err != nil {
+		return "", fmt.Errorf("Could not trigger master script for create_pagesets_on_workers with isolate args %v: %s", isolateArgs, err)
 	}
-	return nil
+	// Send start email.
+	skutil.LogErr(ctutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Capture archives", runID, "", ""))
+	return taskID, nil
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
