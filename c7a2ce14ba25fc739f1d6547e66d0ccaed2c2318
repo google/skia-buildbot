@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "c48cfa65_49f71136",
+        "filename": "go/paramtools/params_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T13:20:00Z",
+      "side": 1,
+      "message": "I don\u0027t think an empty value is valid, but added the others",
+      "parentUuid": "27370663_6f599cb1",
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e5a0359e_76bc3970",
         "filename": "golden/docs/INGESTION.md",
         "patchSetId": 10
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "e4853f2e_230559a4",
+        "filename": "golden/docs/INGESTION.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T13:20:00Z",
+      "side": 1,
+      "message": "You seem to be correct - I\u0027ll amend the code and the documentation",
+      "parentUuid": "e5a0359e_76bc3970",
+      "range": {
+        "startLine": 167,
+        "startChar": 63,
+        "endLine": 167,
+        "endChar": 72
+      },
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f2d41530_1d1001a3",
         "filename": "golden/go/search/new_search.go",
         "patchSetId": 10
@@ -53,6 +95,30 @@
       "writtenOn": "2019-09-03T21:34:45Z",
       "side": 1,
       "message": "IWBN to rename this \"DigestQuery\" and rename the Query and RQuery fields of DigestQuery TraceQuery and RTraceQuery (or ParamQuery and RParamQuery). (At least those names make more sense to me, not sure if something else would be better for you.)",
+      "range": {
+        "startLine": 103,
+        "startChar": 51,
+        "endLine": 103,
+        "endChar": 56
+      },
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f2288d4_f4db72c4",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T13:20:00Z",
+      "side": 1,
+      "message": "That happens in the next CL.  query.Search is what I went with",
+      "parentUuid": "f2d41530_1d1001a3",
       "range": {
         "startLine": 103,
         "startChar": 51,
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "83bd9fa3_ebd6d461",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T13:20:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "910da9b0_76c57988",
+      "range": {
+        "startLine": 127,
+        "startChar": 4,
+        "endLine": 127,
+        "endChar": 18
+      },
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8118b5f6_276bdd11",
         "filename": "golden/go/search/new_search.go",
         "patchSetId": 10
@@ -108,6 +198,30 @@
       "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "586f2827_9b6578d2",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 381,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T13:20:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8118b5f6_276bdd11",
+      "range": {
+        "startLine": 381,
+        "startChar": 44,
+        "endLine": 381,
+        "endChar": 59
+      },
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "fb46f97f_e11dcb2d",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T13:20:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "707c51e6_29a2dd37",
+      "range": {
+        "startLine": 382,
+        "startChar": 3,
+        "endLine": 382,
+        "endChar": 61
+      },
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3496d876_a8465baf",
         "filename": "golden/go/search/new_search.go",
         "patchSetId": 10
@@ -154,6 +292,30 @@
       "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e6ac3f6_4220237d",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T13:20:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3496d876_a8465baf",
+      "range": {
+        "startLine": 383,
+        "startChar": 67,
+        "endLine": 383,
+        "endChar": 106
+      },
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "4e641eab_d09c4b81",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 422,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T13:20:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "58c8ffc6_da8790c3",
+      "range": {
+        "startLine": 422,
+        "startChar": 34,
+        "endLine": 422,
+        "endChar": 46
+      },
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bb009626_ac750e7a",
         "filename": "golden/go/search/new_search.go",
         "patchSetId": 10
@@ -200,6 +386,30 @@
       "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6f2a070_c8891249",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 435,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T13:20:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bb009626_ac750e7a",
+      "range": {
+        "startLine": 432,
+        "startChar": 0,
+        "endLine": 435,
+        "endChar": 2
+      },
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -226,6 +436,30 @@
     },
     {
       "key": {
+        "uuid": "a3020143_784dc7c6",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T13:20:00Z",
+      "side": 1,
+      "message": "Ack. Can handle that when working on frontend presentation.",
+      "parentUuid": "308620af_f8339e92",
+      "range": {
+        "startLine": 444,
+        "startChar": 9,
+        "endLine": 444,
+        "endChar": 45
+      },
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "43c3a1a8_4617dcd9",
         "filename": "golden/go/search/new_search.go",
         "patchSetId": 10
@@ -237,6 +471,30 @@
       "writtenOn": "2019-09-03T21:34:45Z",
       "side": 1,
       "message": "There may be a reason for that -- in the Gerrit UI, tryjobs for multiple patchsets may be shown together if there were only trivial changes between those patchsets.",
+      "range": {
+        "startLine": 450,
+        "startChar": 5,
+        "endLine": 450,
+        "endChar": 59
+      },
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "47459a56_13607c89",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 450,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T13:20:00Z",
+      "side": 1,
+      "message": "I\u0027m aware - GitHub won\u0027t do that, so I removed that as a feature.",
+      "parentUuid": "43c3a1a8_4617dcd9",
       "range": {
         "startLine": 450,
         "startChar": 5,
@@ -272,6 +530,30 @@
     },
     {
       "key": {
+        "uuid": "4662d5ed_80b5ead0",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T13:20:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b7f9f012_47eaa782",
+      "range": {
+        "startLine": 477,
+        "startChar": 1,
+        "endLine": 477,
+        "endChar": 45
+      },
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7719734f_99fb50d4",
         "filename": "golden/go/search/new_search.go",
         "patchSetId": 10
@@ -286,6 +568,24 @@
       "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ce856ba_41759370",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 483,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T13:20:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7719734f_99fb50d4",
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -312,6 +612,30 @@
     },
     {
       "key": {
+        "uuid": "07f053ee_c5579dc5",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 501,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T13:20:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "69bf8a4f_91bfcf11",
+      "range": {
+        "startLine": 501,
+        "startChar": 24,
+        "endLine": 501,
+        "endChar": 26
+      },
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b3ec1a78_2d628a3e",
         "filename": "golden/go/search/new_search_test.go",
         "patchSetId": 10
@@ -335,6 +659,30 @@
     },
     {
       "key": {
+        "uuid": "762f9700_e48a6256",
+        "filename": "golden/go/search/new_search_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T13:20:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b3ec1a78_2d628a3e",
+      "range": {
+        "startLine": 226,
+        "startChar": 34,
+        "endLine": 226,
+        "endChar": 42
+      },
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "28ab8e50_f93aa2ea",
         "filename": "golden/go/search/new_search_test.go",
         "patchSetId": 10
@@ -346,6 +694,30 @@
       "writtenOn": "2019-09-03T21:34:45Z",
       "side": 1,
       "message": "IWBN to test when the CL/patchsets/results are not fully ingested.",
+      "range": {
+        "startLine": 230,
+        "startChar": 37,
+        "endLine": 230,
+        "endChar": 45
+      },
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "97dab9e2_5492bd41",
+        "filename": "golden/go/search/new_search_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T13:20:00Z",
+      "side": 1,
+      "message": "I\u0027m not sure what you mean - if we had another tryjob that ran on Crosshatch, but it hadn\u0027t been ingested yet, it would be indistinguishable from what we have, right?",
+      "parentUuid": "28ab8e50_f93aa2ea",
       "range": {
         "startLine": 230,
         "startChar": 37,
@@ -378,6 +750,30 @@
       "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b09c413c_2a5900ea",
+        "filename": "golden/go/search/new_search_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T13:20:00Z",
+      "side": 1,
+      "message": "I agree to all the IWBN - I think I have an idea or two how to incorporate some of those without a heck of a lot of copy-paste, but I don\u0027t want to put them into this CL, as it\u0027s big enough already.",
+      "parentUuid": "fbc59315_4848667e",
+      "range": {
+        "startLine": 267,
+        "startChar": 35,
+        "endLine": 267,
+        "endChar": 60
+      },
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -461,6 +857,30 @@
       "writtenOn": "2019-09-03T21:34:45Z",
       "side": 1,
       "message": "Seems like commits could be omitted for tryjob queries.",
+      "range": {
+        "startLine": 378,
+        "startChar": 11,
+        "endLine": 378,
+        "endChar": 33
+      },
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a70f554c_4e8f8ccf",
+        "filename": "golden/go/search/new_search_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 378,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T13:20:00Z",
+      "side": 1,
+      "message": "counter-nit: These are ChangeList queries, not tryjob queries.\n\nAdded TODO",
+      "parentUuid": "37369451_99d67c38",
       "range": {
         "startLine": 378,
         "startChar": 11,
