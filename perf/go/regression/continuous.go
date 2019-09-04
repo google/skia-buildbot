@@ -39,15 +39,17 @@ type Current struct {
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
 type Continuous struct {
-	vcs            vcsinfo.VCS
-	cidl           *cid.CommitIDLookup
-	store          *Store
-	numCommits     int // Number of recent commits to do clustering over.
-	radius         int
-	provider       ConfigProvider
-	notifier       *notify.Notifier
-	paramsProvider ParamsetProvider
-	dfBuilder      dataframe.DataFrameBuilder
+	vcs                    vcsinfo.VCS
+	cidl                   *cid.CommitIDLookup
+	store                  *Store
+	numCommits             int // Number of recent commits to do clustering over.
+	radius                 int
+	eventDriven            bool
+	pubSubSubscriptionName string
+	provider               ConfigProvider
+	notifier               *notify.Notifier
+	paramsProvider         ParamsetProvider
+	dfBuilder              dataframe.DataFrameBuilder
 
 	mutex   sync.Mutex // Protects current.
 	current *Current
@@ -175,6 +177,22 @@ func (c *Continuous) Run(ctx context.Context) {
 	// TODO(jcgregorio) Add liveness metrics.
 	sklog.Infof("Continuous starting.")
 	c.reportUntriaged(newClustersGauge)
+
+	// Instead of ranging over time, we should be ranging over PubSub events
+	// that list the ids of the last file that was ingested. Then we should loop
+	// over each config and see if that list of trace ids matches any configs,
+	// and if so at that point we start running the regresions. But we also want
+	// to preserve continuous regression detection for the cases where it makes
+	// sense, e.g. Skia.
+	//
+	// So we can actually range over a channel here that supplies a slice of
+	// configs and a paramset representing all the traceids we should be running
+	// over. If this is just a timer then the paramset is the full paramset and
+	// the slice of configs is just the full slice of configs. If it is PubSub
+	// driven then the paramset is built from the list of trace ids we received
+	// and the list of configs is built by matching the full list of configs
+	// against the list of incoming trace ids.
+	//
 	for range time.Tick(time.Second) {
 		clusteringLatency.Start()
 		configs, err := c.provider()
@@ -192,7 +210,9 @@ func (c *Continuous) Run(ctx context.Context) {
 		sklog.Infof("Clustering over %d configs.", len(configs))
 		for _, cfg := range configs {
 			c.setCurrentConfig(cfg)
-			if cfg.GroupBy != "" {
+
+			// Smoketest the query, but only if we are not in event driven mode.
+			if cfg.GroupBy != "" && !c.eventDriven {
 				sklog.Infof("Alert contains a GroupBy, doing a smoketest first: %q", cfg.DisplayName)
 				u, err := url.ParseQuery(cfg.Query)
 				if err != nil {
@@ -204,6 +224,7 @@ func (c *Continuous) Run(ctx context.Context) {
 					sklog.Warningf("Alert failed smoketest: Alert contains invalid query: %q: %s", cfg.Query, err)
 					continue
 				}
+				// Should be changed to PreflightQuery.
 				df, err := c.dfBuilder.NewNFromQuery(context.Background(), time.Time{}, q, 20, nil)
 				if err != nil {
 					sklog.Warningf("Alert failed smoketest: %q Failed while trying generic query: %s", cfg.DisplayName, err)

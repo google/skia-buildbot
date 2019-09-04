@@ -17,45 +17,45 @@ Architecture
 ------------
 
 This is the general flow of data for the Skia performance application.
-The frontend is available at http://skiaperf.com.
+The frontend is available at http://perf.skia.org for Skia.
 
 ```
-                                         
-               +-------------+             
-               |             |             
-               |   Ingress   |             
-               |             |             
-               |             |             
-               |             |             
-               +-------------+             
+
+               +-------------+
+               |             |
+               |   Ingress   |
+               |             |
+               |             |
+               |             |
+               +-------------+
                           ^
-                          |                
-              GKE Instance| skia-perf     
-                          |               
+                          |
+              GKE Instance| skia-perf
+                          |
                        ---+
-                       |                  
-            +----------+-------------+    
-            |        Perf (Go)       |    
-            +------------------------+    
-              ^    ^ 
-              |    |                      
-              |    |                      
-              |    | +--------------------+ 
-              |    | | Perf Ingester (Go) | 
-              |    | +--+-----------------+ 
-              |    |    |       ^ 
-              |    |    |       |       
-              v    |    |       |        
-    +---------+-+  |    | +-----+----+     
-    | Datastore |  |    | | Google   |     
-    |           |  |    | | Storage  |     
-    +-----------+  |    | +----------+     
-                   |    v                  
-                 +-+--------+              
-                 |   Tile   |              
-                 |   Store  |              
-                 +----------+              
-                                         
+                       |
+            +----------+-------------+
+            |        Perf (Go)       |
+            +------------------------+
+              ^    ^       ^
+              |    |       | (PubSub Events)
+              |    |       |
+              |    | +-----+--------------+
+              |    | | Perf Ingester (Go) |
+              |    | +--+-----------------+
+              |    |    |       ^
+              |    |    |       |
+              v    |    |       |
+    +---------+-+  |    | +-----+----+
+    | Datastore |  |    | | Google   |
+    |           |  |    | | Storage  |
+    +-----------+  |    | +----------+
+                   |    v
+                 +-+--------+
+                 |   Tile   |
+                 |   Store  |
+                 +----------+
+
 ```
 
 Perf is a Go application that serves the HTML, CSS, JS and the JSON representations
@@ -64,8 +64,9 @@ It combines that data with data about commits and annotations from Google Datast
 and serves that the UI.
 
 The Perf Ingester is a separate application that periodically queries for fresh
-data from Google Storage and then writes Traces into the Tile Store. The Tile Store
-is currently implemented on top of Google BigTable.
+data from Google Storage and then writes Traces into the Tile Store. It
+generates PubSub events for each file it ingests. The Tile Store is currently
+implemented on top of Google BigTable.
 
 Users
 -----
@@ -252,3 +253,47 @@ For example, for Perf ingestion of Skia data the topic will be:
     perf-ingestion-skia
 
 
+Event Driven Alerting
+---------------------
+
+Instead of running continuously over all Alert configs and running the
+regressions found there it may be beneficial in some cases to look for
+regressions only when new data has arrived.
+
+The current system for Alerting was built on the assumption of smaller data sets
+with dense data arriving at a steady rate, i.e. kicking off Alerting once an
+hour and having it finish in much less than an hour was expected.
+
+With the arrival of Android's data which is:
+
+   1. Sparse
+   2. Combinatorially much larger than Skia's data set, 40M traces as compared to Skia's 400K.
+   3. Alerts that need to be grouped along both Branch and BuildFlavor.
+
+Because of this the continuous clustering process for Android is now consuming a
+huge number of cores (60 GCE cores and 10 BT cores) and BT bandwidth (15M
+rows/s) and also has high latency (on the order of 12-24 hours), even after the
+indexing system has been rebuilt.
+
+To solve this problem Alerting should optionally be done on an incremental
+process, that is, as data arrives, i.e. as it passes through the ingesters, a
+PubSub event will be generated which will include the names of all the traces
+that have just been updated.
+
+PubSub has a limit of 10MB for data in a single event, so we can send a gzipped
+list of trace ids as the body, the trace ids are highly redundant and should
+compress down to a very small size. A spot check of Skia JSON files shows them
+to be about 300K zipped and since the values are being dropped the zipped size
+should be even smaller.
+
+As each PubSub event arrives at a clusterer it will be checked against each
+Alert to see if the new traces match the Alert, if so then the Alert will be
+run, but for only the Group By configs that match the paramset that represents
+all the traceids, a savings of up to 1000x for Android alerts today. This will
+also dramatically reduce the latency of Alerts sent down from 1 day to less than
+a minute.
+
+Note that this system will not work for CT where data arrives in batches of 1M
+trace ids, nor will it be a savings for dense data sets like Skia, so those
+instances should stick with the existing system that clusters continuously over
+all Alerts.
