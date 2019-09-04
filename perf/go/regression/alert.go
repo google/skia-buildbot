@@ -19,6 +19,10 @@ import (
 func RegressionsForAlert(ctx context.Context, cfg *alerts.Config, ps paramtools.ParamSet, clusterResponseProcessor ClusterResponseProcessor, numContinuous int, end time.Time, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, stepProvider StepProvider) {
 	queriesCounter := metrics2.GetCounter("perf_clustering_queries", nil)
 	sklog.Infof("About to cluster for: %#v", *cfg)
+
+	// This set of queries is restricted by the incoming set of trace ids, if
+	// that's the kind of loop we're doing, by restricting 'ps' to just the
+	// trace ids.
 	queries, err := cfg.QueriesFromParamset(ps)
 	if err != nil {
 		sklog.Errorf("Failed to build GroupBy combinations: %s", err)
