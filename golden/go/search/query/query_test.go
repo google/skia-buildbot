@@ -17,9 +17,9 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-func TestParseCTQuery(t *testing.T) {
+func TestParseDTQuery(t *testing.T) {
 	unittest.SmallTest(t)
-	testQuery := CompareTests{
+	testQuery := DigestTable{
 		RowQuery: &Search{
 			Pos:            true,
 			Neg:            false,
@@ -44,8 +44,8 @@ func TestParseCTQuery(t *testing.T) {
 	jsonBytes, err := json.Marshal(&testQuery)
 	assert.NoError(t, err)
 
-	var ctQuery CompareTests
-	assert.NoError(t, ParseCTQuery(ioutil.NopCloser(bytes.NewBuffer(jsonBytes)), 9, &ctQuery))
+	var ctQuery DigestTable
+	assert.NoError(t, ParseDTQuery(ioutil.NopCloser(bytes.NewBuffer(jsonBytes)), 9, &ctQuery))
 	exp := url.Values{"source_type": []string{"gm"}, "param": []string{"value"}}
 	assert.True(t, util.In(types.PRIMARY_KEY_FIELD, ctQuery.Match))
 	assert.Equal(t, exp, ctQuery.RowQuery.TraceValues)
@@ -55,7 +55,7 @@ func TestParseCTQuery(t *testing.T) {
 	testQuery.RowQuery.QueryStr = ""
 	jsonBytes, err = json.Marshal(&testQuery)
 	assert.NoError(t, err)
-	assert.Error(t, ParseCTQuery(ioutil.NopCloser(bytes.NewBuffer(jsonBytes)), 10, &ctQuery))
+	assert.Error(t, ParseDTQuery(ioutil.NopCloser(bytes.NewBuffer(jsonBytes)), 10, &ctQuery))
 }
 
 // TestParseQuery spot checks the parsing of a string and makes sure the object produced

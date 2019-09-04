@@ -1,4 +1,5 @@
-package search
+// This package contains routines to calculate reference diffs for digests.
+package ref_differ
 
 import (
 	"math"
@@ -8,37 +9,37 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/search/common"
+	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/types"
 )
 
-// This file contains routines to calculate reference diffs for digests.
-// 'digest' is synonymous with image, because the digests are
-// hashes of the pixel buffer when the image was generated.
+// RefDiffer is an interface for calculating the ReferenceDiffs for a given test+digest pair.
 // A 'diff' captures the difference between two digests.
 // To deal with digests in a human friendly way we calculate reference
-// diffs for each digest, most notably the closest positive and closest
-// negative digest. But other reference diffs might make sense and
+// diffs for each digest, most notably the closest negative and
+// positive digest. But other reference diffs might make sense and
 // should be added here.
+type RefDiffer interface {
+	// GetRefDiffs returns the closest negative and positive images (digests) for a given
+	// Digest and TestName. It uses "metric" to determine "closeness". If match is non-nil,
+	// it only returns those digest that match the given Digest's params in that slice. If
+	// rhsQuery is not empty, it only compares against digests that match rhsQuery.
+	// TODO(kjlubick) bundle t, d, pSet together (maybe *frontend.SRDigest?)
+	GetRefDiffs(metric string, match []string, t types.TestName, d types.Digest, pSet paramtools.ParamSet,
+		rhsQuery paramtools.ParamSet, is types.IgnoreState) (common.RefClosest, map[common.RefClosest]*frontend.SRDiffDigest)
+}
 
-const (
-	// positive identifies the diff to the closest positive digest.
-	positive = RefClosest("pos")
-
-	// negative identifies the diff to the closest negative digest.
-	negative = RefClosest("neg")
-)
-
-type RefClosest string
-
-// RefDiffer aggregates the helper objects needed to calculate reference diffs.
-type RefDiffer struct {
-	exp       ExpSlice
+// DiffImpl aggregates the helper objects needed to calculate reference diffs.
+type DiffImpl struct {
+	exp       common.ExpSlice
 	diffStore diff.DiffStore
 	idx       indexer.IndexSearcher
 }
 
-func NewRefDiffer(exp ExpSlice, diffStore diff.DiffStore, idx indexer.IndexSearcher) *RefDiffer {
-	return &RefDiffer{
+// New returns a *DiffImpl using given types.
+func New(exp common.ExpSlice, diffStore diff.DiffStore, idx indexer.IndexSearcher) *DiffImpl {
+	return &DiffImpl{
 		exp:       exp,
 		diffStore: diffStore,
 		idx:       idx,
@@ -50,7 +51,7 @@ func NewRefDiffer(exp ExpSlice, diffStore diff.DiffStore, idx indexer.IndexSearc
 // metric. 'match' is the list of parameters that need to match between
 // the digests that are compared, i.e. this allows to restrict comparison
 // of gamma correct images to other digests that are also gamma correct.
-func (r *RefDiffer) GetRefDiffs(metric string, match []string, test types.TestName, digest types.Digest, params paramtools.ParamSet, rhsQuery paramtools.ParamSet, is types.IgnoreState) (RefClosest, map[RefClosest]*SRDiffDigest) {
+func (r *DiffImpl) GetRefDiffs(metric string, match []string, test types.TestName, digest types.Digest, params paramtools.ParamSet, rhsQuery paramtools.ParamSet, is types.IgnoreState) (common.RefClosest, map[common.RefClosest]*frontend.SRDiffDigest) {
 	unavailableDigests := r.diffStore.UnavailableDigests()
 	if _, ok := unavailableDigests[digest]; ok {
 		return "", nil
@@ -61,14 +62,14 @@ func (r *RefDiffer) GetRefDiffs(metric string, match []string, test types.TestNa
 	posDigests := r.getDigestsWithLabel(test, match, params, paramsByDigest, unavailableDigests, rhsQuery, types.POSITIVE)
 	negDigests := r.getDigestsWithLabel(test, match, params, paramsByDigest, unavailableDigests, rhsQuery, types.NEGATIVE)
 
-	ret := make(map[RefClosest]*SRDiffDigest, 3)
-	ret[positive] = r.getClosestDiff(metric, digest, posDigests)
-	ret[negative] = r.getClosestDiff(metric, digest, negDigests)
+	ret := make(map[common.RefClosest]*frontend.SRDiffDigest, 3)
+	ret[common.PositiveRef] = r.getClosestDiff(metric, digest, posDigests)
+	ret[common.NegativeRef] = r.getClosestDiff(metric, digest, negDigests)
 
 	// TODO(stephana): Add a diff to the previous digest in the trace.
 
 	// Find the minimum according to the diff metric.
-	closest := RefClosest("")
+	closest := common.RefClosest("")
 	minDiff := float32(math.Inf(1))
 	dCount := r.idx.DigestCountsByTest(is)[test]
 	for ref, srdd := range ret {
@@ -93,7 +94,7 @@ func (r *RefDiffer) GetRefDiffs(metric string, match []string, test types.TestNa
 // getDigestsWithLabel return all digests within the given test that
 // have the given label assigned to them and where the parameters
 // listed in 'match' match.
-func (r *RefDiffer) getDigestsWithLabel(test types.TestName, match []string, params paramtools.ParamSet, paramsByDigest map[types.Digest]paramtools.ParamSet, unavailable map[types.Digest]*diff.DigestFailure, rhsQuery paramtools.ParamSet, targetLabel types.Label) types.DigestSlice {
+func (r *DiffImpl) getDigestsWithLabel(test types.TestName, match []string, params paramtools.ParamSet, paramsByDigest map[types.Digest]paramtools.ParamSet, unavailable map[types.Digest]*diff.DigestFailure, rhsQuery paramtools.ParamSet, targetLabel types.Label) types.DigestSlice {
 	ret := types.DigestSlice{}
 	for d, digestParams := range paramsByDigest {
 		// Accept all digests that are: available, in the set of allowed digests
@@ -111,7 +112,7 @@ func (r *RefDiffer) getDigestsWithLabel(test types.TestName, match []string, par
 }
 
 // getClosestDiff returns the closest diff between a digest and a set of digest.
-func (r *RefDiffer) getClosestDiff(metric string, digest types.Digest, compDigests types.DigestSlice) *SRDiffDigest {
+func (r *DiffImpl) getClosestDiff(metric string, digest types.Digest, compDigests types.DigestSlice) *frontend.SRDiffDigest {
 	if len(compDigests) == 0 {
 		return nil
 	}
@@ -140,7 +141,7 @@ func (r *RefDiffer) getClosestDiff(metric string, digest types.Digest, compDiges
 		}
 	}
 
-	return &SRDiffDigest{
+	return &frontend.SRDiffDigest{
 		DiffMetrics: diffs[minDigest].(*diff.DiffMetrics),
 		Digest:      minDigest,
 	}
@@ -173,3 +174,6 @@ func paramSetsMatch(match []string, p1, p2 paramtools.ParamSet) bool {
 	}
 	return true
 }
+
+// Make sure DiffImpl fulfills the RefDiffer interface.
+var _ RefDiffer = (*DiffImpl)(nil)
