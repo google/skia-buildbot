@@ -7,8 +7,8 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-// CompareTests represents the params to CompareTest function.
-type CompareTests struct {
+// DigestTable represents the params to GetDigestTable function.
+type DigestTable struct {
 	// RowQuery is the query to select the row digests.
 	RowQuery *Search `json:"rowQuery"`
 
