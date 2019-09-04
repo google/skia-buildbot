@@ -36,7 +36,9 @@ func ParamIndex(ctx context.Context, table *bigtable.Table, tileKey TileKey, key
 			if len(parts) != 4 {
 				sklog.Errorf("Invalid index row key doesn't contain 4 parts: %q", row.Key())
 			}
-			ch <- parts[3]
+			b := &strings.Builder{}
+			b.WriteString(parts[3])
+			ch <- b.String()
 			return true
 		}, bigtable.RowFilter(
 			bigtable.ChainFilters(

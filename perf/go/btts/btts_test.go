@@ -237,9 +237,21 @@ func TestTraces(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, results)
 
+	outCh, err := b.QueryTracesIDOnlyByIndex(ctx, tileKey, q)
+	keys := []string{}
+	for key := range expected {
+		keys = append(keys, key)
+	}
+	assert.NoError(t, err)
+	for p := range outCh {
+		key, err := query.MakeKeyFast(p)
+		assert.NoError(t, err)
+		assert.Contains(t, keys, key)
+	}
+
 	out, errCh := b.tileKeys(ctx, tileKey)
 	assert.Empty(t, errCh)
-	keys := []string{}
+	keys = []string{}
 	for s := range out {
 		ps, err := ops.DecodeParamsFromString(s)
 		assert.NoError(t, err)
@@ -379,12 +391,21 @@ func TestTileKey(t *testing.T) {
 	assert.Equal(t, "@2147483647", tileKey.OpsRowName())
 	assert.Equal(t, "2:2147483647:", tileKey.TraceRowPrefix(2))
 	assert.Equal(t, "1:2147483647:,0=1,", tileKey.TraceRowName(",0=1,", numShards))
+	rowName, shard := tileKey.TraceRowNameAndShard(",0=1,", numShards)
+	assert.Equal(t, "1:2147483647:,0=1,", rowName)
+	assert.Equal(t, uint32(1), shard)
 
 	tileKey = TileKeyFromOffset(1)
 	assert.Equal(t, int32(math.MaxInt32-1), int32(tileKey))
 	assert.Equal(t, "@2147483646", tileKey.OpsRowName())
 	assert.Equal(t, "3:2147483646:", tileKey.TraceRowPrefix(3))
-	assert.Equal(t, "1:2147483646:,0=1,", tileKey.TraceRowName(",0=1,", numShards))
+	rowName, shard = tileKey.TraceRowNameAndShard(",0=1,", numShards)
+	assert.Equal(t, "1:2147483646:,0=1,", rowName)
+	assert.Equal(t, uint32(1), shard)
+
+	rowName, shard = tileKey.TraceRowNameAndShard(",0=2,", numShards)
+	assert.Equal(t, "0:2147483646:,0=2,", rowName)
+	assert.Equal(t, uint32(0), shard)
 
 	tileKey = TileKeyFromOffset(-1)
 	assert.Equal(t, BadTileKey, tileKey)

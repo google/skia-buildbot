@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -21,7 +22,7 @@ type Refresher struct {
 	dfBuilder DataFrameBuilder
 	vcs       vcsinfo.VCS
 
-	mutex sync.Mutex // protects df.
+	mutex sync.Mutex // protects count and ps.
 	count int64
 	ps    paramtools.ParamSet
 }
@@ -49,15 +50,15 @@ func NewRefresher(vcs vcsinfo.VCS, dfBuilder DataFrameBuilder, period time.Durat
 
 func (f *Refresher) oneStep() error {
 	if err := f.vcs.Update(context.Background(), true, false); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	emptyQuery, err := query.New(url.Values{})
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	count, ps, err := f.dfBuilder.PreflightQuery(context.Background(), time.Now(), emptyQuery)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	f.mutex.Lock()
 	defer f.mutex.Unlock()

@@ -39,9 +39,6 @@ func validatePlan(plan paramtools.ParamSet) error {
 // ExecutePlan takes a query plan and executes it over a table for the given
 // TileKey. The result is a channel that will produce encoded keys in
 // alphabetical order and will close after the query is done executing.
-// It will also return a buffered error channel that will contain errors
-// if any were encountered. The error channel should only be read after the
-// index channel has been closed.
 //
 // An error will be returned if the query is invalid.
 //
@@ -50,7 +47,7 @@ func validatePlan(plan paramtools.ParamSet) error {
 // See Query Engine in BIGTABLE.md for the design.
 func ExecutePlan(ctx context.Context, plan paramtools.ParamSet, table *bigtable.Table, tileKey TileKey, desc string) (<-chan string, error) {
 	if err := validatePlan(plan); err != nil {
-		return nil, skerr.Fmt("Plan is invalid: %s", err)
+		return nil, skerr.Wrapf(err, "Plan is invalid")
 	}
 
 	intersectChannels := make([]<-chan string, 0, len(plan))
