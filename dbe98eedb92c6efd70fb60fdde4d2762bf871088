@@ -22,6 +22,30 @@
       "revId": "dbe98eedb92c6efd70fb60fdde4d2762bf871088",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "89946886_98634aa9",
+        "filename": "golden/go/search/query/query.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T14:17:30Z",
+      "side": 1,
+      "message": "hysterical raisins, I\u0027d guess",
+      "parentUuid": "4981e990_18625fa4",
+      "range": {
+        "startLine": 133,
+        "startChar": 29,
+        "endLine": 134,
+        "endChar": 45
+      },
+      "revId": "dbe98eedb92c6efd70fb60fdde4d2762bf871088",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
