@@ -19,6 +19,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
+	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
 
@@ -108,8 +109,10 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	return t, nil
 }
 
-func (task DatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
+func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) (string, error) {
 	runID := task_common.GetRunID(&task)
+	emails := []string{task.Username}
+	emails = append(emails, ctutil.CtAdmins...)
 	isolateArgs := map[string]string{
 		"EMAILS":          task.Username,
 		"DESCRIPTION":     task.Description,
@@ -123,10 +126,13 @@ func (task DatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
 		"DS_PROJECT_NAME": task_common.DsProjectName,
 	}
 
-	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_skps_on_workers", ctutil.CAPTURE_SKPS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
-		return fmt.Errorf("Could not trigger master script for capture_skps_on_workers with isolate args %v: %s", isolateArgs, err)
+	taskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_skps_on_workers", ctutil.CAPTURE_SKPS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs)
+	if err != nil {
+		return "", fmt.Errorf("Could not trigger master script for capture_skps_on_workers with isolate args %v: %s", isolateArgs, err)
 	}
-	return nil
+	// Send start email.
+	skutil.LogErr(ctutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Capture SKPs", runID, task.Description, ""))
+	return taskID, nil
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {

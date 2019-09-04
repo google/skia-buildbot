@@ -30,6 +30,7 @@ var (
 	chromiumBuildTimestamp    = ""
 )
 
+// Set this on prototype ????
 func sendEmail(recipients []string) {
 	emailSubject := "Chromium build task has completed"
 	failureHtml := ""
@@ -50,6 +51,8 @@ func sendEmail(recipients []string) {
 	}
 }
 
+// Do not update datastore from the master scripts as well!
+// Can update from some tasks because they will need to set certain things on them...
 func updateTaskInDatastore(ctx context.Context) {
 	vars := chromium_builds.UpdateVars{}
 	vars.Id = *taskID

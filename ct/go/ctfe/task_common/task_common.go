@@ -52,6 +52,15 @@ var (
 	DsProjectName string
 	// The location of the service account JSON file.
 	ServiceAccountFile string
+
+	// Webapp URLs
+	AdminTasksWebapp            string
+	LuaTasksWebapp              string
+	CaptureSKPsTasksWebapp      string
+	MetricsAnalysisTasksWebapp  string
+	ChromiumPerfTasksWebapp     string
+	ChromiumAnalysisTasksWebapp string
+	ChromiumBuildTasksWebapp    string
 )
 
 type CommonCols struct {
@@ -64,12 +73,14 @@ type CommonCols struct {
 	RepeatAfterDays int64
 	SwarmingLogs    string
 	TaskDone        bool
+	SwarmingTaskID  string
 }
 
 type Task interface {
 	GetCommonCols() *CommonCols
 	RunsOnGCEWorkers() bool
-	TriggerSwarmingTask(ctx context.Context) error
+	TriggerSwarmingTaskAndMail(ctx context.Context) (string, error)
+	SendCompletionEmail(ctx context.Context, completedSuccessfully bool) error
 	GetTaskName() string
 	GetDatastoreKind() ds.Kind
 	// Returns a slice of the struct type.
@@ -105,12 +116,9 @@ func AsTaskSlice(selectResult interface{}) []Task {
 	return result
 }
 
-// Generates a hopefully-unique ID for this task.
-// There is a very small probability that we could end up with 2 tasks with the same
-// runID. This should only happen if a user has 2 (or more) open tabs and hits trigger
-// task quickly in all tabs.
+// Generates a unique ID for this task.
 func GetRunID(task Task) string {
-	return strings.SplitN(task.GetCommonCols().Username, "@", 2)[0] + "-" + ctutil.GetCurrentTs()
+	return fmt.Sprintf("%s-%s-%d", strings.SplitN(task.GetCommonCols().Username, "@", 2)[0], task.GetTaskName(), task.GetCommonCols().DatastoreKey.ID)
 }
 
 // Data included in all tasks; set by AddTaskHandler.
@@ -164,16 +172,24 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	}
 }
 
+// rmistry:
+// Send email HERE and start poller to watch the task? no.. there should be a separate poller..
 func AddAndTriggerTask(ctx context.Context, task AddTaskVars) error {
 	datastoreTask, err := AddTaskToDatastore(ctx, task)
 	if err != nil {
 		return fmt.Errorf("Failed to insert %T task: %s", task, err)
 	}
-	if err := TriggerTaskOnSwarming(ctx, task, datastoreTask); err != nil {
+	swarmingTaskID, err := TriggerTaskOnSwarming(ctx, task, datastoreTask)
+	if err != nil {
 		if err := UpdateTaskSetFailed(ctx, datastoreTask); err != nil {
 			sklog.Error(err)
 		}
 		return fmt.Errorf("Failed to trigger on swarming %T task: %s", task, err)
+	}
+	// Update the masterSwarmingTaskID in datastore here!
+	datastoreTask.GetCommonCols().SwarmingTaskID = swarmingTaskID
+	if err := UpdateTaskSetFailed(ctx, datastoreTask); err != nil {
+		return fmt.Errorf("Could not update task in dastastore: %s", err)
 	}
 	return nil
 }
@@ -212,14 +228,14 @@ func AddTaskToDatastore(ctx context.Context, task AddTaskVars) (Task, error) {
 	return datastoreTask, nil
 }
 
-func TriggerTaskOnSwarming(ctx context.Context, task AddTaskVars, datastoreTask Task) error {
+func TriggerTaskOnSwarming(ctx context.Context, task AddTaskVars, datastoreTask Task) (string, error) {
 	if datastoreTask.RunsOnGCEWorkers() {
 		taskId := fmt.Sprintf("%s.%d", datastoreTask.GetTaskName(), datastoreTask.GetCommonCols().DatastoreKey.ID)
 		if err := autoscaler.RegisterGCETask(taskId); err != nil {
 			sklog.Errorf("Error when registering GCE task in CT autoscaler: %s", err)
 		}
 	}
-	return datastoreTask.TriggerSwarmingTask(ctx)
+	return datastoreTask.TriggerSwarmingTaskAndMail(ctx)
 }
 
 // Returns true if the string is non-empty, unless strconv.ParseBool parses the string as false.
@@ -804,6 +820,15 @@ func taskPrioritiesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func GetEmailRecipients(runOwner string, ccList []string) []string {
+	emails := []string{runOwner}
+	if ccList != nil {
+		emails = append(emails, ccList...)
+	}
+	emails = append(emails, ctutil.CtAdmins...)
+	return emails
+}
+
 func isAdminHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	data := map[string]interface{}{
@@ -823,7 +848,15 @@ func AddHandlers(externalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.IS_ADMIN_GET_URI, isAdminHandler).Methods("GET")
 }
 
-func Init(ctx context.Context, local bool, dsNamespaceFlagVal, dsProjectNameFlagVal, serviceAccountFileFlagVal string, getGCETasksCount func(ctx context.Context) (int, error)) error {
+func Init(ctx context.Context, local bool, ctfeURL, dsNamespaceFlagVal, dsProjectNameFlagVal, serviceAccountFileFlagVal string, getGCETasksCount func(ctx context.Context) (int, error)) error {
+	AdminTasksWebapp = ctfeURL + ctfeutil.ADMIN_TASK_URI
+	LuaTasksWebapp = ctfeURL + ctfeutil.LUA_SCRIPT_URI
+	CaptureSKPsTasksWebapp = ctfeURL + ctfeutil.CAPTURE_SKPS_URI
+	MetricsAnalysisTasksWebapp = ctfeURL + ctfeutil.METRICS_ANALYSIS_URI
+	ChromiumPerfTasksWebapp = ctfeURL + ctfeutil.CHROMIUM_PERF_URI
+	ChromiumAnalysisTasksWebapp = ctfeURL + ctfeutil.CHROMIUM_ANALYSIS_URI
+	ChromiumBuildTasksWebapp = ctfeURL + ctfeutil.CHROMIUM_BUILD_URI
+
 	DsNamespace = dsNamespaceFlagVal
 	DsProjectName = dsProjectNameFlagVal
 	ServiceAccountFile = serviceAccountFileFlagVal

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"text/template"
 
 	"cloud.google.com/go/datastore"
@@ -19,6 +20,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
+	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
 
@@ -119,22 +121,24 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	return t, nil
 }
 
-func (task DatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
+func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) (string, error) {
 	runID := task_common.GetRunID(&task)
 	luaScriptGSPath, err := ctutil.SavePatchToStorage(task.LuaScript)
 	if err != nil {
-		return err
+		return "", err
 	}
 	luaAggregatorScriptGSPath := ""
 	if task.LuaAggregatorScript != "" {
 		luaAggregatorScriptGSPath, err = ctutil.SavePatchToStorage(task.LuaAggregatorScript)
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 
+	emails := []string{task.Username}
+	emails = append(emails, ctutil.CtAdmins...)
 	isolateArgs := map[string]string{
-		"EMAILS":                        task.Username,
+		"EMAILS":                        strings.Join(emails, ","),
 		"DESCRIPTION":                   task.Description,
 		"TASK_ID":                       strconv.FormatInt(task.DatastoreKey.ID, 10),
 		"PAGESET_TYPE":                  task.PageSets,
@@ -147,10 +151,13 @@ func (task DatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
 		"DS_PROJECT_NAME":               task_common.DsProjectName,
 	}
 
-	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_lua_on_workers", ctutil.RUN_LUA_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
-		return fmt.Errorf("Could not trigger master script for run_lua_on_workers with isolate args %v: %s", isolateArgs, err)
+	taskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_lua_on_workers", ctutil.RUN_LUA_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs)
+	if err != nil {
+		return "", fmt.Errorf("Could not trigger master script for run_lua_on_workers with isolate args %v: %s", isolateArgs, err)
 	}
-	return nil
+	// Send start email.
+	skutil.LogErr(ctutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Lua script", runID, task.Description, ""))
+	return taskID, nil
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
