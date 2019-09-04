@@ -11,7 +11,7 @@ Schema
 ------
 
 We should have two Firestore Collections (i.e. tables), one for ChangeList
-and one for PatchSet.
+and a subcollection for PatchSet.
 
 	ChangeList
 		ID         string  # SystemID + System
@@ -21,24 +21,16 @@ and one for PatchSet.
 		Owner      string  # email address
 		Updated    time.Time
 		Subject    string
-
-	PatchSet
-		ID            string  # SystemID + System + ChangeListID
-		SystemID      string  # The id of the PS in, for example, Gerrit
-		System        string  # "gerrit", "github", etc
-		ChangeListID  string  # SystemID from ChangeList
-		Order         int     # number of this PS
-		GitHash       string
+		[]PatchSet
+			SystemID      string  # The id of the PS in, for example, Gerrit
+			System        string  # "gerrit", "github", etc
+			ChangeListID  string  # SystemID from ChangeList
+			Order         int     # number of this PS
+			GitHash       string
 
 Indexing
 --------
-We'll need some complex indices because we are adding a "System matches" addendum
-to all queries (to avoid the small possibility being conflicts between two Systems
-with the same ID) and because we care about most recent ChangeLists.
-
-We'll need the following composite indexes:
-TODO(kjlubick): once we try running this on a real database, we'll see what
-indices we need.
+Due to the hirearchical structure, we should avoid all composite indices.
 
 
 We should mark ChangeList.Subject as no-index, to save some index space.
@@ -48,10 +40,10 @@ Usage
 -----
 We'll be querying:
  - ChangeLists by SystemID, System
- - PatchSets by SystemID, System, and ChangeListID
+ - PatchSets belonging to a ChangeList ordered by Order.
 
-We have to use all these keys to make sure we don't have any collisions by CLs or
-PSs with the same ID from different systems.
+With this hierarchical setup, we should avoid conflicts
+between multiple systems.
 
 Growth Opportunities
 -------------------
