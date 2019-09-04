@@ -9,6 +9,7 @@ import (
 
 	fs "cloud.google.com/go/firestore"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/modified"
@@ -36,6 +37,9 @@ const (
 
 	// Firestore key for a Task or Job's Created field.
 	KEY_CREATED = "Created"
+
+	// Firestore key for a Task or Job's DbModified field.
+	KEY_DB_MODIFIED = "DbModified"
 
 	// Firestore key for a Task or Job's Repo field.
 	KEY_REPO = "Repo"
@@ -128,6 +132,7 @@ func (d *firestoreDB) dateRangeHelper(name string, baseQuery fs.Query, start, en
 
 	// Run the given init function.
 	init(len(queries))
+	sklog.Infof("Running %d queries", len(queries))
 
 	// Run the queries.
 	return d.client.IterDocsInParallel(name, fmt.Sprintf("%s - %s", start, end), queries, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, elem)

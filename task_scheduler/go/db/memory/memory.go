@@ -106,7 +106,7 @@ func (d *inMemoryTaskDB) PutTasks(tasks []*types.Task) error {
 
 		// TODO(borenet): Keep tasks in a sorted slice.
 		d.tasks[task.Id] = task.Copy()
-		d.TrackModifiedTask(task)
+		d.TrackModifiedTask(task.Copy())
 	}
 	return nil
 }
@@ -222,7 +222,7 @@ func (d *inMemoryJobDB) PutJobs(jobs []*types.Job) error {
 
 		// TODO(borenet): Keep jobs in a sorted slice.
 		d.jobs[job.Id] = job.Copy()
-		d.TrackModifiedJob(job)
+		d.TrackModifiedJob(job.Copy())
 	}
 	return nil
 }

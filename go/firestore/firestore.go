@@ -646,3 +646,39 @@ FIRESTORE_EMULATOR_HOST
 `)
 	}
 }
+
+// WatchQuery calls the given callback function once for every document matching
+// the given query and once for every subsequent change (ie. document added,
+// removed, or changed) to the query results. The callback takes two parameters:
+// the DocumentSnapshot, and a bool indicating whether the document was deleted.
+// If the document was deleted, the DocumentSnapshot will represent the state of
+// the document at the time of deletion. QuerySnapshotIterater first returns a
+// QuerySnapshot representing the current results of the query, and subsequent
+// QuerySnapshots represent the changes. If the ignoreFirst parameter is true,
+// this initial snapshot is ignored and the callback is only called for changes.
+// Note that the initial result set is still computed even if ignoreFirst is
+// true; callers should construct the query to avoid an expensive initial load.
+func WatchQuery(ctx context.Context, q firestore.Query, ignoreFirst bool, cb func(*firestore.DocumentSnapshot, bool) error) error {
+	iter := q.Snapshots(ctx)
+	ignore := ignoreFirst
+	for {
+		qsnap, err := iter.Next()
+		if err != nil {
+			// Note: iter.Next() may return iterator.Done, but I
+			// don't think it makes a difference in this case; we're
+			// expecting to iterate forever, so if we stop we need
+			// to return an error so that the client is able to
+			// restart us if desired.
+			return err
+		}
+		if ignore {
+			ignore = false
+		} else {
+			for _, ch := range qsnap.Changes {
+				if err := cb(ch.Doc, ch.Kind == firestore.DocumentRemoved); err != nil {
+					return err
+				}
+			}
+		}
+	}
+}
