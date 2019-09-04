@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
@@ -100,7 +101,7 @@ func NewSearchAPI(ds diff.DiffStore, es expstorage.ExpectationsStore, i indexer.
 
 // Search queries the current tile based on the parameters specified in
 // the instance of Query.
-func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, error) {
+func (s *SearchAPI) Search(ctx context.Context, q *query.Search) (*NewSearchResponse, error) {
 	if q == nil {
 		return nil, skerr.Fmt("nil query")
 	}
@@ -155,7 +156,7 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 	if getRefDiffs {
 		// Diff stage: Compare all digests found in the previous stages and find
 		// reference points (positive, negative etc.) for each digest.
-		s.getReferenceDiffs(ctx, ret, q.Metric, q.Match, q.RQuery, q.IgnoreState(), exp, idx)
+		s.getReferenceDiffs(ctx, ret, q.Metric, q.Match, q.RTraceValues, q.IgnoreState(), exp, idx)
 
 		// Post-diff stage: Apply all filters that are relevant once we have
 		// diff values for the digests.
@@ -237,7 +238,7 @@ func (s *SearchAPI) GetDigestDetails(test types.TestName, digest types.Digest) (
 
 // getExpectationsFromQuery returns a slice of expectations that should be
 // used in the given query. It will add the issue expectations if this is
-// querying ChangeList results. If query is nil the expectations of the master
+// querying tryjob results. If query is nil the expectations of the master
 // tile are returned.
 func (s *SearchAPI) getExpectationsFromQuery(clID int64) (ExpSlice, error) {
 	ret := make(ExpSlice, 0, 2)
@@ -261,7 +262,7 @@ func (s *SearchAPI) getExpectationsFromQuery(clID int64) (ExpSlice, error) {
 
 // TODO(kjlubick): remove this deprecated stuff after the new tjstore/clstore lands
 // deprecatedQueryIssue returns the digest related to this issues in intermediate representation.
-func (s *SearchAPI) deprecatedQueryIssue(ctx context.Context, q *Query, idx indexer.IndexSearcher, exp ExpSlice) (srInterMap, *tryjobstore.Issue, error) {
+func (s *SearchAPI) deprecatedQueryIssue(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp ExpSlice) (srInterMap, *tryjobstore.Issue, error) {
 	ctx, span := trace.StartSpan(ctx, "search/deprecatedQueryIssue")
 	defer span.End()
 
@@ -291,7 +292,7 @@ type deprecatedFilterAddFn func(types.TestName, types.Digest, tiling.TraceId, *t
 
 // deprecatedExtractIssueDigests loads the issue and its tryjob results and then filters the
 // results via the given query. For each testName/digest pair addFn is called.
-func (s *SearchAPI) deprecatedExtractIssueDigests(ctx context.Context, q *Query, idx indexer.IndexSearcher, exp ExpSlice, addFn deprecatedFilterAddFn) (*tryjobstore.Issue, error) {
+func (s *SearchAPI) deprecatedExtractIssueDigests(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp ExpSlice, addFn deprecatedFilterAddFn) (*tryjobstore.Issue, error) {
 	_, span := trace.StartSpan(ctx, "search/deprecatedExtractIssueDigests")
 	defer span.End()
 
@@ -306,7 +307,7 @@ func (s *SearchAPI) deprecatedExtractIssueDigests(ctx context.Context, q *Query,
 	}
 
 	// If no patchsets were given we pick the last one that has tryjobs.
-	issue.QueryPatchsets = q.Patchsets
+	issue.QueryPatchsets = q.PatchSets
 	if len(issue.QueryPatchsets) == 0 {
 		issue.QueryPatchsets = make([]int64, 0, len(issue.PatchsetDetails))
 		for i := len(issue.PatchsetDetails) - 1; i >= 0; i-- {
@@ -359,7 +360,7 @@ func (s *SearchAPI) deprecatedExtractIssueDigests(ctx context.Context, q *Query,
 	}
 
 	// Iterate over the remaining results.
-	pq := paramtools.ParamSet(q.Query)
+	pq := paramtools.ParamSet(q.TraceValues)
 	for _, tryjobResults := range tjResults {
 		for _, tjr := range tryjobResults {
 			if tjr != nil {
@@ -367,7 +368,7 @@ func (s *SearchAPI) deprecatedExtractIssueDigests(ctx context.Context, q *Query,
 				if pq.Matches(tjr.Params) {
 					// Filter by classification.
 					cl := exp.Classification(tjr.TestName, tjr.Digest)
-					if !q.excludeClassification(cl) {
+					if !q.ExcludesClassification(cl) {
 						addFn(tjr.TestName, tjr.Digest, tiling.TraceId(""), nil, tjr.Params)
 					}
 				}
@@ -380,7 +381,7 @@ func (s *SearchAPI) deprecatedExtractIssueDigests(ctx context.Context, q *Query,
 // queryChangeList returns the digests associated with the ChangeList referenced by q.ChangeListID
 // in intermediate representation. It returns the filtered digests as specified by q. The param
 // exp should contain the expectations for the given ChangeList.
-func (s *SearchAPI) queryChangeList(ctx context.Context, q *Query, idx indexer.IndexSearcher, exp ExpSlice) (srInterMap, error) {
+func (s *SearchAPI) queryChangeList(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp ExpSlice) (srInterMap, error) {
 	ctx, span := trace.StartSpan(ctx, "search/queryChangeList")
 	defer span.End()
 
@@ -414,7 +415,7 @@ type filterAddFn func(test types.TestName, digest types.Digest, params paramtool
 // associated with it. Then, it filters those results with the given query. For each
 // testName/digest pair that matches the query, it calls addFn (which the supplier will likely use
 // to build up a list of those results.
-func (s *SearchAPI) extractChangeListDigests(ctx context.Context, q *Query, idx indexer.IndexSearcher, exp ExpSlice, addFn filterAddFn) error {
+func (s *SearchAPI) extractChangeListDigests(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp ExpSlice, addFn filterAddFn) error {
 	_, span := trace.StartSpan(ctx, "search/extractChangeListDigests")
 	defer span.End()
 
@@ -431,10 +432,10 @@ func (s *SearchAPI) extractChangeListDigests(ctx context.Context, q *Query, idx 
 
 	// Default to the latest PatchSet
 	ps := xps[len(xps)-1]
-	if len(q.Patchsets) > 0 {
+	if len(q.PatchSets) > 0 {
 		// legacy code used to request multiple patchsets at once - we don't do that
 		// so we just look at the first one mentioned by the query.
-		psOrder := int(q.Patchsets[0])
+		psOrder := int(q.PatchSets[0])
 		found := false
 		for _, p := range xps {
 			if p.Order == psOrder {
@@ -459,7 +460,7 @@ func (s *SearchAPI) extractChangeListDigests(ctx context.Context, q *Query, idx 
 		return skerr.Wrapf(err, "getting tryjob results for %v", id)
 	}
 
-	queryParams := paramtools.ParamSet(q.Query)
+	queryParams := paramtools.ParamSet(q.TraceValues)
 
 	for _, tr := range xtr {
 		p := paramtools.Params(tr.ResultParams)
@@ -489,11 +490,10 @@ func (s *SearchAPI) extractChangeListDigests(ctx context.Context, q *Query, idx 
 			tn := types.TestName(p[types.PRIMARY_KEY_FIELD])
 			// Filter by classification.
 			cl := exp.Classification(tn, tr.Digest)
-			if !q.excludeClassification(cl) {
+			if !q.ExcludesClassification(cl) {
 				addFn(tn, tr.Digest, p)
 			}
 		}
-
 	}
 	return nil
 }
@@ -503,7 +503,7 @@ func (s *SearchAPI) extractChangeListDigests(ctx context.Context, q *Query, idx 
 
 // filterTile iterates over the tile and accumulates the traces
 // that match the given query creating the initial search result.
-func (s *SearchAPI) filterTile(ctx context.Context, q *Query, exp ExpSlice, idx indexer.IndexSearcher) (srInterMap, error) {
+func (s *SearchAPI) filterTile(ctx context.Context, q *query.Search, exp ExpSlice, idx indexer.IndexSearcher) (srInterMap, error) {
 	_, span := trace.StartSpan(ctx, "search/filterTile")
 	defer span.End()
 
@@ -581,7 +581,7 @@ func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDi
 }
 
 // afterDiffResultFilter filters the results based on the diff results in 'digestInfo'.
-func (s *SearchAPI) afterDiffResultFilter(ctx context.Context, digestInfo []*SRDigest, q *Query) []*SRDigest {
+func (s *SearchAPI) afterDiffResultFilter(ctx context.Context, digestInfo []*SRDigest, q *query.Search) []*SRDigest {
 	_, span := trace.StartSpan(ctx, "search/afterDiffResultFilter")
 	defer span.End()
 
@@ -623,7 +623,7 @@ func (s *SearchAPI) afterDiffResultFilter(ctx context.Context, digestInfo []*SRD
 // instance. It then paginates the digests according to the query and returns
 // the slice that should be shown on the page with its offset in the entire
 // result set.
-func (s *SearchAPI) sortAndLimitDigests(ctx context.Context, q *Query, digestInfo []*SRDigest, offset, limit int) ([]*SRDigest, int) {
+func (s *SearchAPI) sortAndLimitDigests(ctx context.Context, q *query.Search, digestInfo []*SRDigest, offset, limit int) ([]*SRDigest, int) {
 	_, span := trace.StartSpan(ctx, "search/sortAndLimitDigests")
 	defer span.End()
 
@@ -633,7 +633,7 @@ func (s *SearchAPI) sortAndLimitDigests(ctx context.Context, q *Query, digestInf
 	}
 
 	sortSlice := sort.Interface(newSRDigestSlice(q.Metric, digestInfo))
-	if q.Sort == sortDescending {
+	if q.Sort == query.SortDescending {
 		sortSlice = sort.Reverse(sortSlice)
 	}
 	sort.Sort(sortSlice)

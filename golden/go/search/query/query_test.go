@@ -1,4 +1,4 @@
-package search
+package query
 
 import (
 	"bytes"
@@ -35,8 +35,8 @@ const (
 
 func TestParseCTQuery(t *testing.T) {
 	unittest.SmallTest(t)
-	testQuery := CTQuery{
-		RowQuery: &Query{
+	testQuery := CompareTests{
+		RowQuery: &Search{
 			Pos:            true,
 			Neg:            false,
 			Head:           true,
@@ -45,7 +45,7 @@ func TestParseCTQuery(t *testing.T) {
 			QueryStr:       "source_type=gm&param=value",
 			Limit:          20,
 		},
-		ColumnQuery: &Query{
+		ColumnQuery: &Search{
 			Pos:            true,
 			Neg:            false,
 			Head:           true,
@@ -60,12 +60,12 @@ func TestParseCTQuery(t *testing.T) {
 	jsonBytes, err := json.Marshal(&testQuery)
 	assert.NoError(t, err)
 
-	var ctQuery CTQuery
+	var ctQuery CompareTests
 	assert.NoError(t, ParseCTQuery(ioutil.NopCloser(bytes.NewBuffer(jsonBytes)), 9, &ctQuery))
 	exp := url.Values{"source_type": []string{"gm"}, "param": []string{"value"}}
 	assert.True(t, util.In(types.PRIMARY_KEY_FIELD, ctQuery.Match))
-	assert.Equal(t, exp, ctQuery.RowQuery.Query)
-	assert.Equal(t, exp, ctQuery.ColumnQuery.Query)
+	assert.Equal(t, exp, ctQuery.RowQuery.TraceValues)
+	assert.Equal(t, exp, ctQuery.ColumnQuery.TraceValues)
 	assert.Equal(t, int32(9), ctQuery.ColumnQuery.Limit)
 
 	testQuery.RowQuery.QueryStr = ""
@@ -80,11 +80,11 @@ func TestParseQuery(t *testing.T) {
 	assertQueryValidity(t, true, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true")
 	assertQueryValidity(t, false, "fdiffmax=abc&fref=false&frgbamax=-1&head=true&include=false&limit=50&")
 
-	q := &Query{}
+	q := &Search{}
 	err := clearParseQuery(q, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&issue=2370153003&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true")
 	assert.NoError(t, err)
 
-	assert.Equal(t, &Query{
+	assert.Equal(t, &Search{
 		Metric:         "combined",
 		Sort:           "desc",
 		Match:          []string{"gamma_correct", "name"},
@@ -95,15 +95,15 @@ func TestParseQuery(t *testing.T) {
 		Unt:            true,
 		IncludeIgnores: false,
 		QueryStr:       "",
-		Query: url.Values{
+		TraceValues: url.Values{
 			"source_type": []string{"gm"},
 		},
 		RQueryStr:       "",
-		RQuery:          paramtools.ParamSet{},
+		RTraceValues:    paramtools.ParamSet{},
 		ChangeListID:    "2370153003",
 		DeprecatedIssue: 2370153003,
-		PatchsetsStr:    "",
-		Patchsets:       []int64(nil),
+		PatchSetsStr:    "",
+		PatchSets:       []int64(nil),
 		IncludeMaster:   false,
 		FCommitBegin:    "",
 		FCommitEnd:      "",
@@ -136,7 +136,7 @@ func TestParseQueryLarge(t *testing.T) {
 	queries, err := fileutil.ReadLines(localQueriesPath)
 	assert.NoError(t, err)
 
-	q := &Query{}
+	q := &Search{}
 	wrongQueries := 0
 	for _, qStr := range queries {
 		err := clearParseQuery(q, qStr)
@@ -155,15 +155,15 @@ func assertQueryValidity(t *testing.T, isCorrect bool, qStr string) {
 	if !isCorrect {
 		assertFn = assert.Error
 	}
-	q := &Query{}
+	q := &Search{}
 	assertFn(t, clearParseQuery(q, qStr))
 }
 
-func clearParseQuery(q *Query, qStr string) error {
-	*q = Query{}
+func clearParseQuery(q *Search, qStr string) error {
+	*q = Search{}
 	r, err := http.NewRequest("GET", "/?"+qStr, nil)
 	if err != nil {
 		return err
 	}
-	return ParseQuery(r, q)
+	return ParseSearch(r, q)
 }
