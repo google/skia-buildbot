@@ -18,6 +18,9 @@ const (
 	COLLECTION_COMMIT_COMMENTS    = "commit-comments"
 	COLLECTION_TASK_COMMENTS      = "task-comments"
 	COLLECTION_TASK_SPEC_COMMENTS = "task-spec-comments"
+
+	// Firestore key for a comment's Timestamp field.
+	KEY_TIMESTAMP = "Timestamp"
 )
 
 // commitComments returns a reference to the commit comments collection.
@@ -47,7 +50,7 @@ func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*ty
 		}
 	}
 
-	q := d.commitComments().Where("Timestamp", ">=", from).OrderBy("Timestamp", fs.Asc)
+	q := d.commitComments().Where(KEY_TIMESTAMP, ">=", from).OrderBy(KEY_TIMESTAMP, fs.Asc)
 	if err := d.client.IterDocs("GetCommitCommentsForRepos", from.String(), q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
 		var c types.CommitComment
 		if err := doc.DataTo(&c); err != nil {
@@ -64,7 +67,7 @@ func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*ty
 		return nil, err
 	}
 
-	q = d.taskComments().Where("Timestamp", ">=", from).OrderBy("Timestamp", fs.Asc)
+	q = d.taskComments().Where(KEY_TIMESTAMP, ">=", from).OrderBy(KEY_TIMESTAMP, fs.Asc)
 	if err := d.client.IterDocs("GetTaskCommentsForRepos", from.String(), q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
 		var c types.TaskComment
 		if err := doc.DataTo(&c); err != nil {
@@ -86,7 +89,7 @@ func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*ty
 		return nil, err
 	}
 
-	q = d.taskSpecComments().OrderBy("Timestamp", fs.Asc)
+	q = d.taskSpecComments().OrderBy(KEY_TIMESTAMP, fs.Asc)
 	if err := d.client.IterDocs("GetTaskSpecCommentsForRepos", "", q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
 		var c types.TaskSpecComment
 		if err := doc.DataTo(&c); err != nil {

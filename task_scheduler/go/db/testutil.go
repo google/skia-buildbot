@@ -1073,13 +1073,13 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 		assert.NoError(t, err)
 		AssertDeepEqual(t, expected, actual)
 		deleted := true
-		tc1different.Deleted = &deleted
-		sc1different.Deleted = &deleted
-		cc1different.Deleted = &deleted
+		tc1.Deleted = &deleted
+		sc1.Deleted = &deleted
+		cc1.Deleted = &deleted
 		tc3.Deleted = &deleted
 		sc3.Deleted = &deleted
 		cc3.Deleted = &deleted
-		findModifiedComments(t, db, id, []*types.TaskComment{tc1different, tc3}, []*types.TaskSpecComment{sc1different, sc3}, []*types.CommitComment{cc1different, cc3})
+		findModifiedComments(t, db, id, []*types.TaskComment{tc1, tc3}, []*types.TaskSpecComment{sc1, sc3}, []*types.CommitComment{cc1, cc3})
 	}
 
 	// Delete all the comments.
