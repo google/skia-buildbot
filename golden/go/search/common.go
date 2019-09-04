@@ -6,6 +6,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -28,16 +29,16 @@ type AddFn func(test types.TestName, digest types.Digest, traceID tiling.TraceId
 // acceptFn to determine whether to keep a trace (after it has already been
 // tested against the query) and calls addFn to add a digest and its trace.
 // acceptFn == nil equals unconditional acceptance.
-func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx indexer.IndexSearcher) error {
+func iterTile(q *query.Search, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx indexer.IndexSearcher) error {
 	cpxTile := idx.Tile()
-	selectedTile := cpxTile.GetTile(query.IgnoreState())
+	selectedTile := cpxTile.GetTile(q.IgnoreState())
 
 	if acceptFn == nil {
 		acceptFn = func(params paramtools.Params, digests types.DigestSlice) (bool, interface{}) { return true, nil }
 	}
 
-	digestCountsByTrace := idx.DigestCountsByTrace(query.IgnoreState())
-	lastTraceIdx, traceView, err := getTraceViewFn(selectedTile, query.FCommitBegin, query.FCommitEnd)
+	digestCountsByTrace := idx.DigestCountsByTrace(q.IgnoreState())
+	lastTraceIdx, traceView, err := getTraceViewFn(selectedTile, q.FCommitBegin, q.FCommitEnd)
 	if err != nil {
 		return err
 	}
@@ -45,11 +46,11 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx in
 	// Iterate through the tile.
 	for id, trace := range selectedTile.Traces {
 		// Check if the query matches.
-		if tiling.Matches(trace, query.Query) {
+		if tiling.Matches(trace, q.TraceValues) {
 			fullTr := trace.(*types.GoldenTrace)
 			params := fullTr.Keys
 			reducedTr := traceView(fullTr)
-			digests := digestsFromTrace(id, reducedTr, query.Head, lastTraceIdx, digestCountsByTrace)
+			digests := digestsFromTrace(id, reducedTr, q.Head, lastTraceIdx, digestCountsByTrace)
 
 			// If there is an acceptFn defined then check whether
 			// we should include this trace.
@@ -62,15 +63,15 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx in
 			test := fullTr.TestName()
 			for _, digest := range digests {
 				cl := exp.Classification(test, digest)
-				if query.excludeClassification(cl) {
+				if q.ExcludesClassification(cl) {
 					continue
 				}
 
 				// Fix blamer to make this easier.
-				if query.BlameGroupID != "" {
+				if q.BlameGroupID != "" {
 					if cl == types.UNTRIAGED {
 						b := idx.GetBlame(test, digest, selectedTile.Commits)
-						if b.IsEmpty() || query.BlameGroupID != blameGroupID(b, selectedTile.Commits) {
+						if b.IsEmpty() || q.BlameGroupID != blameGroupID(b, selectedTile.Commits) {
 							continue
 						}
 					} else {
