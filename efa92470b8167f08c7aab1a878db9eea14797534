@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "90201a7b_a7e16605",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T23:23:58Z",
+      "side": 1,
+      "message": "Can this happen?",
+      "range": {
+        "startLine": 148,
+        "startChar": 0,
+        "endLine": 150,
+        "endChar": 3
+      },
+      "revId": "efa92470b8167f08c7aab1a878db9eea14797534",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ccc3076d_faee9f21",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T23:23:58Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 134,
+        "startChar": 16,
+        "endLine": 134,
+        "endChar": 20
+      },
+      "revId": "efa92470b8167f08c7aab1a878db9eea14797534",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb6a820f_ce733d16",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T23:23:58Z",
+      "side": 1,
+      "message": "nit: maybe use a different ID to test that we\u0027re really going by order rather than ID",
+      "range": {
+        "startLine": 160,
+        "startChar": 17,
+        "endLine": 160,
+        "endChar": 39
+      },
+      "revId": "efa92470b8167f08c7aab1a878db9eea14797534",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bce7e448_41420846",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T23:23:58Z",
+      "side": 1,
+      "message": "nit: maybe also test gaps in order",
+      "range": {
+        "startLine": 163,
+        "startChar": 17,
+        "endLine": 163,
+        "endChar": 18
+      },
+      "revId": "efa92470b8167f08c7aab1a878db9eea14797534",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
