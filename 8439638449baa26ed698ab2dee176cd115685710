@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ffbb5127_68d2a0a1",
+        "filename": "golden/go/search/ref_differ/ref_differ.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T23:49:20Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 28,
+        "startChar": 4,
+        "endLine": 28,
+        "endChar": 6
+      },
+      "revId": "8439638449baa26ed698ab2dee176cd115685710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c242931a_923d27f2",
+        "filename": "golden/go/search/ref_differ/ref_differ_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T23:49:20Z",
+      "side": 1,
+      "message": "Should GetParamsetSummaryByTest and DigestCountsByTest return results for untriagedDigest also? (Same for other tests.)",
+      "range": {
+        "startLine": 41,
+        "startChar": 9,
+        "endLine": 41,
+        "endChar": 33
+      },
+      "revId": "8439638449baa26ed698ab2dee176cd115685710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "364cdaca_0f2c36fa",
+        "filename": "golden/go/search/ref_differ/ref_differ_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T23:49:20Z",
+      "side": 1,
+      "message": "Is this used for anything?",
+      "range": {
+        "startLine": 94,
+        "startChar": 3,
+        "endLine": 94,
+        "endChar": 20
+      },
+      "revId": "8439638449baa26ed698ab2dee176cd115685710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bcdc99a3_bcd4d256",
+        "filename": "golden/go/search/ref_differ/ref_differ_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T23:49:20Z",
+      "side": 1,
+      "message": "nit: It\u0027s probably good to test the case when there is really only one digest (and maybe even when we get a test name that doesn\u0027t exist), but I think a more common case is that all digests are untriaged.",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 124,
+        "endChar": 113
+      },
+      "revId": "8439638449baa26ed698ab2dee176cd115685710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81e6eb0c_41d6b704",
+        "filename": "golden/go/search/ref_differ/ref_differ_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T23:49:20Z",
+      "side": 1,
+      "message": "IWBN to test other match queries.",
+      "revId": "8439638449baa26ed698ab2dee176cd115685710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "60b2cf7d_5dee5dad",
+        "filename": "golden/go/search/ref_differ/ref_differ_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T23:49:20Z",
+      "side": 1,
+      "message": "I\u0027m confused why this is 1-n/10 rather than n/10.",
+      "range": {
+        "startLine": 241,
+        "startChar": 20,
+        "endLine": 241,
+        "endChar": 41
+      },
+      "revId": "8439638449baa26ed698ab2dee176cd115685710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "64ee3804_4b6ee0d3",
+        "filename": "golden/go/search/ref_differ/ref_differ_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T23:49:20Z",
+      "side": 1,
+      "message": "typo, x2",
+      "range": {
+        "startLine": 261,
+        "startChar": 49,
+        "endLine": 261,
+        "endChar": 54
+      },
+      "revId": "8439638449baa26ed698ab2dee176cd115685710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
