@@ -224,7 +224,7 @@ func cycle(repos []*gitiles.Repo, oldMetrics map[metrics2.Int64Metric]struct{}, 
 func Start(ctx context.Context, repoUrls []string, gitcookiesPath string, client *http.Client, swarm swarming.ApiClient, pools []string) {
 	repos := make([]*gitiles.Repo, 0, len(repoUrls))
 	for _, repo := range repoUrls {
-		repos = append(repos, gitiles.NewRepo(repo, gitcookiesPath, client))
+		repos = append(repos, gitiles.NewRepo(repo, client))
 	}
 	lv := metrics2.NewLiveness("last_successful_supported_branches_update")
 	oldMetrics := map[metrics2.Int64Metric]struct{}{}

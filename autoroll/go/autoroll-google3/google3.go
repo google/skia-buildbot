@@ -65,7 +65,7 @@ func NewAutoRoller(ctx context.Context, gitcookiesPath string, cfg *roller.AutoR
 		recent:      recent,
 		status:      cache,
 		childBranch: cfg.Google3RepoManager.ChildBranch,
-		childRepo:   gitiles.NewRepo(cfg.Google3RepoManager.ChildRepo, gitcookiesPath, client),
+		childRepo:   gitiles.NewRepo(cfg.Google3RepoManager.ChildRepo, client),
 		liveness:    metrics2.NewLiveness("last_autoroll_landed"),
 	}
 

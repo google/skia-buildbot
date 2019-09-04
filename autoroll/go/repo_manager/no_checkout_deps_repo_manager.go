@@ -102,7 +102,7 @@ func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 	}
 
 	rv := &noCheckoutDEPSRepoManager{
-		childRepo:      gitiles.NewRepo(c.ChildRepo, gitcookiesPath, client),
+		childRepo:      gitiles.NewRepo(c.ChildRepo, client),
 		childRepoUrl:   c.ChildRepo,
 		depotTools:     depotTools,
 		gclient:        path.Join(depotTools, GCLIENT),

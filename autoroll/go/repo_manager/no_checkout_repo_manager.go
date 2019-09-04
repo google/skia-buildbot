@@ -77,7 +77,7 @@ func newNoCheckoutRepoManager(ctx context.Context, c NoCheckoutRepoManagerConfig
 		commonRepoManager: crm,
 		createRoll:        createRoll,
 		gerritConfig:      cr.Config().(*codereview.GerritConfig),
-		parentRepo:        gitiles.NewRepo(c.ParentRepo, gitcookiesPath, client),
+		parentRepo:        gitiles.NewRepo(c.ParentRepo, client),
 		updateHelper:      updateHelper,
 	}
 	return rv, nil
