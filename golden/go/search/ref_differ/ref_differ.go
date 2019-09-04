@@ -10,6 +10,7 @@ package ref_differ
 
 import (
 	"math"
+	"sort"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
@@ -22,6 +23,11 @@ import (
 )
 
 type RefDiffer interface {
+	// GetRefDiffs calculates the reference diffs between the given
+	// digest and the other digests in the same test based on the given
+	// metric. 'match' is the list of parameters that need to match between
+	// the digests that are compared, i.e. this allows to restrict comparison
+	// of gamma correct images to other digests that are also gamma correct.
 	GetRefDiffs(metric string, match []string, t types.TestName, d types.Digest, pSet paramtools.ParamSet,
 		rhsQuery paramtools.ParamSet, is types.IgnoreState) (common.RefClosest, map[common.RefClosest]*frontend.SRDiffDigest)
 }
@@ -42,11 +48,7 @@ func New(exp common.ExpSlice, diffStore diff.DiffStore, idx indexer.IndexSearche
 	}
 }
 
-// GetRefDiffs calculates the reference diffs between the given
-// digest and the other digests in the same test based on the given
-// metric. 'match' is the list of parameters that need to match between
-// the digests that are compared, i.e. this allows to restrict comparison
-// of gamma correct images to other digests that are also gamma correct.
+// GetRefDiffs implements the RefDiffer interface.
 func (r *DiffImpl) GetRefDiffs(metric string, match []string, test types.TestName, digest types.Digest, params paramtools.ParamSet, rhsQuery paramtools.ParamSet, is types.IgnoreState) (common.RefClosest, map[common.RefClosest]*frontend.SRDiffDigest) {
 	unavailableDigests := r.diffStore.UnavailableDigests()
 	if _, ok := unavailableDigests[digest]; ok {
@@ -62,10 +64,8 @@ func (r *DiffImpl) GetRefDiffs(metric string, match []string, test types.TestNam
 	ret[common.PositiveRef] = r.getClosestDiff(metric, digest, posDigests)
 	ret[common.NegativeRef] = r.getClosestDiff(metric, digest, negDigests)
 
-	// TODO(stephana): Add a diff to the previous digest in the trace.
-
 	// Find the minimum according to the diff metric.
-	closest := common.RefClosest("")
+	closest := common.NoRef
 	minDiff := float32(math.Inf(1))
 	dCount := r.idx.DigestCountsByTest(is)[test]
 	for ref, srdd := range ret {
@@ -104,6 +104,8 @@ func (r *DiffImpl) getDigestsWithLabel(test types.TestName, match []string, para
 			ret = append(ret, d)
 		}
 	}
+	// Sort for determinism
+	sort.Sort(ret)
 	return ret
 }
 
