@@ -65,7 +65,7 @@ type WebHandlers struct {
 	GCSClient               storage.GCSClient
 	IgnoreStore             ignore.IgnoreStore
 	Indexer                 indexer.IndexSource
-	SearchAPI               *search.SearchAPI
+	SearchAPI               search.SearchAPI
 	StatusWatcher           *status.StatusWatcher
 	TileSource              tilesource.TileSource
 	TryJobStore             tjstore.Store
@@ -516,7 +516,7 @@ func (wh *WebHandlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ret, err := wh.SearchAPI.CompareDigests(types.TestName(test), types.Digest(left), types.Digest(right))
+	ret, err := wh.SearchAPI.DiffDigests(types.TestName(test), types.Digest(left), types.Digest(right))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to compare digests")
 		return
@@ -754,10 +754,9 @@ func (wh *WebHandlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// TODO(stephana): Check if this is still necessary.
+	// TODO(kjlubick): Check if we need to sort these
 	// // Sort the digests so they are displayed with untriaged last, which means
 	// // they will be displayed 'on top', because in SVG document order is z-order.
-	// sort.Sort(SearchDigestSlice(searchResponse.Digests))
 
 	digests := types.DigestSlice{}
 	for _, digest := range searchResponse.Digests {
@@ -808,20 +807,6 @@ func (wh *WebHandlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request
 
 	sendJSONResponse(w, d3)
 }
-
-// SearchDigestSlice is for sorting search.Digest's in the order of digest status.
-type SearchDigestSlice []*search.Digest
-
-func (p SearchDigestSlice) Len() int { return len(p) }
-func (p SearchDigestSlice) Less(i, j int) bool {
-	if p[i].Status == p[j].Status {
-		return p[i].Digest < p[j].Digest
-	} else {
-		// Alphabetical order, so neg, pos, unt.
-		return p[i].Status < p[j].Status
-	}
-}
-func (p SearchDigestSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 
 // Node represents a single node in a d3 diagram. Used in ClusterDiffResult.
 type Node struct {
@@ -1240,7 +1225,7 @@ func (wh *WebHandlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-// CompareTestHandler returns a JSON description for the given test.
+// DigestTableHandler returns a JSON description for the given test.
 // The result is intended to be displayed in a grid-like fashion.
 //
 // Input format of a POST request:
@@ -1248,21 +1233,21 @@ func (wh *WebHandlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Reque
 // Output format in JSON:
 //
 //
-func (wh *WebHandlers) CompareTestHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) DigestTableHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	// Note that testName cannot be empty by definition of the route that got us here.
-	var q query.CompareTests
-	if err := query.ParseCTQuery(r.Body, 5, &q); err != nil {
+	var q query.DigestTable
+	if err := query.ParseDTQuery(r.Body, 5, &q); err != nil {
 		httputils.ReportError(w, r, err, err.Error())
 		return
 	}
 
-	compareResult, err := wh.SearchAPI.CompareTest(&q)
+	table, err := wh.SearchAPI.GetDigestTable(&q)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
 	}
-	sendJSONResponse(w, compareResult)
+	sendJSONResponse(w, table)
 }
 
 // BaselineHandler returns a JSON representation of that baseline including

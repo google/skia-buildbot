@@ -15,6 +15,8 @@ import (
 	mock_index "go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/paramsets"
+	"go.skia.org/infra/golden/go/search/common"
+	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/tjstore"
@@ -38,7 +40,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
 
-	s := NewSearchAPI(mds, mes, mi, nil, nil, nil, everythingPublic)
+	s := New(mds, mes, mi, nil, nil, nil, everythingPublic)
 
 	mes.On("Get").Return(data.MakeTestExpectations(), nil)
 
@@ -88,11 +90,11 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 
-	assert.Equal(t, &NewSearchResponse{
+	assert.Equal(t, &frontend.SearchResponse{
 		Commits: data.MakeTestCommits(),
 		Offset:  0,
 		Size:    2,
-		Digests: []*SRDigest{
+		Digests: []*frontend.SRDigest{
 			// AlphaTest comes first because we are sorting by ascending
 			// "combined" metric, and AlphaTest's closest match is the
 			// small diff metric, whereas BetaTest's only match is the
@@ -106,11 +108,11 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 					types.PRIMARY_KEY_FIELD: {string(data.AlphaTest)},
 					types.CORPUS_FIELD:      {"gm"},
 				},
-				Traces: &TraceGroup{
+				Traces: &frontend.TraceGroup{
 					TileSize: 3, // 3 commits in tile
-					Traces: []Trace{
+					Traces: []frontend.Trace{
 						{
-							Data: []Point{
+							Data: []frontend.Point{
 								{X: 0, Y: 0, S: 1},
 								{X: 1, Y: 0, S: 1},
 								{X: 2, Y: 0, S: 0},
@@ -123,7 +125,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 							},
 						},
 					},
-					Digests: []DigestStatus{
+					Digests: []frontend.DigestStatus{
 						{
 							Digest: data.AlphaUntriaged1Digest,
 							Status: "untriaged",
@@ -134,9 +136,9 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 						},
 					},
 				},
-				ClosestRef: positive,
-				RefDiffs: map[RefClosest]*SRDiffDigest{
-					positive: {
+				ClosestRef: common.PositiveRef,
+				RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+					common.PositiveRef: {
 						DiffMetrics: makeSmallDiffMetric(),
 						Digest:      data.AlphaGood1Digest,
 						Status:      "positive",
@@ -147,7 +149,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 						},
 						OccurrencesInTile: 2,
 					},
-					negative: {
+					common.NegativeRef: {
 						DiffMetrics: makeBigDiffMetric(),
 						Digest:      data.AlphaBad1Digest,
 						Status:      "negative",
@@ -169,11 +171,11 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 					types.PRIMARY_KEY_FIELD: {string(data.BetaTest)},
 					types.CORPUS_FIELD:      {"gm"},
 				},
-				Traces: &TraceGroup{
+				Traces: &frontend.TraceGroup{
 					TileSize: 3,
-					Traces: []Trace{
+					Traces: []frontend.Trace{
 						{
-							Data: []Point{
+							Data: []frontend.Point{
 								{X: 0, Y: 0, S: 0},
 								// Other two commits were missing
 							},
@@ -185,16 +187,16 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 							},
 						},
 					},
-					Digests: []DigestStatus{
+					Digests: []frontend.DigestStatus{
 						{
 							Digest: data.BetaUntriaged1Digest,
 							Status: "untriaged",
 						},
 					},
 				},
-				ClosestRef: positive,
-				RefDiffs: map[RefClosest]*SRDiffDigest{
-					positive: {
+				ClosestRef: common.PositiveRef,
+				RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+					common.PositiveRef: {
 						DiffMetrics: makeBigDiffMetric(),
 						Digest:      data.BetaGood1Digest,
 						Status:      "positive",
@@ -205,7 +207,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 						},
 						OccurrencesInTile: 6,
 					},
-					negative: nil,
+					common.NegativeRef: nil,
 				},
 			},
 		},
@@ -347,7 +349,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 			data.BetaGood1Digest: makeSmallDiffMetric(),
 		}, nil)
 
-	s := NewSearchAPI(mds, mes, mi, nil, mcls, mtjs, everythingPublic)
+	s := New(mds, mes, mi, nil, mcls, mtjs, everythingPublic)
 
 	q := &query.Search{
 		ChangeListID:    clID,
@@ -373,11 +375,11 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	assert.Len(t, bullheadGroup, 1)
 	assert.Len(t, options, 1)
 
-	assert.Equal(t, &NewSearchResponse{
+	assert.Equal(t, &frontend.SearchResponse{
 		Commits: data.MakeTestCommits(),
 		Offset:  0,
 		Size:    1,
-		Digests: []*SRDigest{
+		Digests: []*frontend.SRDigest{
 			{
 				Test:   data.BetaTest,
 				Digest: BetaBrandNewDigest,
@@ -388,19 +390,19 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 					types.CORPUS_FIELD:      {"gm"},
 					"ext":                   {"png"},
 				},
-				Traces: &TraceGroup{
+				Traces: &frontend.TraceGroup{
 					TileSize: 3,
-					Traces:   []Trace{},
-					Digests: []DigestStatus{
+					Traces:   []frontend.Trace{},
+					Digests: []frontend.DigestStatus{
 						{
 							Digest: BetaBrandNewDigest,
 							Status: "untriaged",
 						},
 					},
 				},
-				ClosestRef: positive,
-				RefDiffs: map[RefClosest]*SRDiffDigest{
-					positive: {
+				ClosestRef: common.PositiveRef,
+				RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
+					common.PositiveRef: {
 						DiffMetrics: makeSmallDiffMetric(),
 						Digest:      data.BetaGood1Digest,
 						Status:      "positive",
@@ -413,7 +415,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 						},
 						OccurrencesInTile: 6,
 					},
-					negative: nil,
+					common.NegativeRef: nil,
 				},
 			},
 		},
