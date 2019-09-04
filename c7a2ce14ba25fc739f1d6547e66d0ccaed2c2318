@@ -730,6 +730,30 @@
     },
     {
       "key": {
+        "uuid": "bc239c89_503a8c0f",
+        "filename": "golden/go/search/new_search_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T13:44:35Z",
+      "side": 1,
+      "message": "Basically just a test that the code doesn\u0027t panic if the requested CL doesn\u0027t exist, or the CL exists but has no patchsets, or if the requested patchset doesn\u0027t exist, or if the CL and patchset exist but there are no results.",
+      "parentUuid": "97dab9e2_5492bd41",
+      "range": {
+        "startLine": 230,
+        "startChar": 37,
+        "endLine": 230,
+        "endChar": 45
+      },
+      "revId": "c7a2ce14ba25fc739f1d6547e66d0ccaed2c2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fbc59315_4848667e",
         "filename": "golden/go/search/new_search_test.go",
         "patchSetId": 10
