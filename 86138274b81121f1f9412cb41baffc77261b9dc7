@@ -1,0 +1,187 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0aaa105c_290c3875",
+        "filename": "golden/go/search/digest_table.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T17:37:40Z",
+      "side": 1,
+      "message": "I wonder if this should be using the same index as above.",
+      "range": {
+        "startLine": 94,
+        "startChar": 18,
+        "endLine": 94,
+        "endChar": 42
+      },
+      "revId": "86138274b81121f1f9412cb41baffc77261b9dc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "15f3486c_6087d243",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T17:37:40Z",
+      "side": 1,
+      "message": "SearchAPI?",
+      "range": {
+        "startLine": 15,
+        "startChar": 27,
+        "endLine": 15,
+        "endChar": 37
+      },
+      "revId": "86138274b81121f1f9412cb41baffc77261b9dc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "75950377_1d508f1c",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T17:37:40Z",
+      "side": 1,
+      "message": "typo SearchAPI",
+      "range": {
+        "startLine": 29,
+        "startChar": 6,
+        "endLine": 29,
+        "endChar": 7
+      },
+      "revId": "86138274b81121f1f9412cb41baffc77261b9dc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e046292_e569e0ac",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T17:37:40Z",
+      "side": 1,
+      "message": "typo remove \"the\"",
+      "range": {
+        "startLine": 90,
+        "startChar": 44,
+        "endLine": 90,
+        "endChar": 48
+      },
+      "revId": "86138274b81121f1f9412cb41baffc77261b9dc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91568da3_82cab536",
+        "filename": "golden/go/search/ref_differ/ref_differ.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T17:37:40Z",
+      "side": 1,
+      "message": "nit: move doc here",
+      "revId": "86138274b81121f1f9412cb41baffc77261b9dc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a09b1723_8356f9fc",
+        "filename": "golden/go/search/ref_differ/ref_differ.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T17:37:40Z",
+      "side": 1,
+      "message": "nit: assert implements RefDiffer",
+      "revId": "86138274b81121f1f9412cb41baffc77261b9dc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca725a2f_366d7d36",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T17:37:40Z",
+      "side": 1,
+      "message": "nit: assert implements SearchAPI",
+      "revId": "86138274b81121f1f9412cb41baffc77261b9dc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a17e2597_5d1e6daa",
+        "filename": "golden/go/search/types.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T17:37:40Z",
+      "side": 1,
+      "message": "FWIW, I\u0027ve used this to compare digests from different tests, but it might be accidental that it works.",
+      "revId": "86138274b81121f1f9412cb41baffc77261b9dc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3af06e3e_1613713b",
+        "filename": "golden/go/search/util.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T17:37:40Z",
+      "side": 1,
+      "message": "typo add",
+      "range": {
+        "startLine": 257,
+        "startChar": 3,
+        "endLine": 257,
+        "endChar": 6
+      },
+      "revId": "86138274b81121f1f9412cb41baffc77261b9dc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
