@@ -1021,11 +1021,11 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	return strings.Trim(string(contents), "\n"), nil
 }
 
-func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isolateFileName, serviceAccountJSON, targetPlatform string, local bool, isolateArgs map[string]string) error {
+func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isolateFileName, serviceAccountJSON, targetPlatform string, local bool, isolateArgs map[string]string) (string, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
-		return fmt.Errorf("Could not get temp dir: %s", err)
+		return "", fmt.Errorf("Could not get temp dir: %s", err)
 	}
 	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountJSON)
 	if err != nil {
@@ -1033,7 +1033,7 @@ func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isola
 		if err := os.RemoveAll(workDir); err != nil {
 			sklog.Errorf("Could not cleanup swarming work dir: %s", err)
 		}
-		return fmt.Errorf("Could not instantiate swarming client: %s", err)
+		return "", fmt.Errorf("Could not instantiate swarming client: %s", err)
 	}
 	defer s.Cleanup()
 	osType := "linux"
@@ -1045,23 +1045,23 @@ func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isola
 	pathToIsolates := GetPathToIsolates(local, true)
 	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, isolateFileName), s.WorkDir, osType, taskName, isolateArgs, []string{})
 	if err != nil {
-		return fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
+		return "", fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
 	}
 	// Batcharchive the task.
 	tasksToHashes, err := s.BatchArchiveTargets(ctx, []string{genJSON}, BATCHARCHIVE_TIMEOUT)
 	if err != nil {
-		return fmt.Errorf("Could not batch archive target: %s", err)
+		return "", fmt.Errorf("Could not batch archive target: %s", err)
 	}
 	// Trigger swarming using the isolate hash.
 	dimensions := GCE_LINUX_MASTER_DIMENSIONS
 	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, nil, swarming.RECOMMENDED_PRIORITY, 7*24*time.Hour, 3*24*time.Hour, 3*24*time.Hour, false, true, getServiceAccount(dimensions))
 	if err != nil {
-		return fmt.Errorf("Could not trigger swarming task: %s", err)
+		return "", fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
 	if len(tasks) != 1 {
-		return fmt.Errorf("Expected a single task instead got: %v", tasks)
+		return "", fmt.Errorf("Expected a single task instead got: %v", tasks)
 	}
-	return nil
+	return tasks[0].TaskID, nil
 }
 
 // TriggerBuildRepoSwarmingTask creates a isolated.gen.json file using BUILD_REPO_ISOLATE,

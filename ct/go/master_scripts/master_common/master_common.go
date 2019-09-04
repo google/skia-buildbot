@@ -46,6 +46,7 @@ func InitWithMetrics2(appName string, promPort *string) {
 	initRest()
 }
 
+// remove lots of things from here.
 func initRest() {
 	AdminTasksWebapp = *ctfeURL + ctfeutil.ADMIN_TASK_URI
 	LuaTasksWebapp = *ctfeURL + ctfeutil.LUA_SCRIPT_URI
