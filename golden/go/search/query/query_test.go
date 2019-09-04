@@ -3,34 +3,18 @@ package query
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
-)
-
-const (
-	// TEST_STORAGE_DIR_SEARCH_API is the path in the testdata bucket where
-	// the test data files are stored.
-	TEST_STORAGE_DIR_SEARCH_API = "gold-testdata"
-
-	// TEST_DATA_DIR_PARSE is the directory where test data for the parse
-	// function are downloaded.
-	TEST_DATA_DIR_PARSE = "testdata_parse"
-
-	// QUERIES_FNAME_SEARCH_API contains the file name of the list of queries
-	// that were extracted from the Gold application log.
-	QUERIES_FNAME_SEARCH_API = "live_queries.txt"
 )
 
 func TestParseCTQuery(t *testing.T) {
@@ -74,11 +58,10 @@ func TestParseCTQuery(t *testing.T) {
 	assert.Error(t, ParseCTQuery(ioutil.NopCloser(bytes.NewBuffer(jsonBytes)), 10, &ctQuery))
 }
 
+// TestParseQuery spot checks the parsing of a string and makes sure the object produced
+// is consistent.
 func TestParseQuery(t *testing.T) {
 	unittest.SmallTest(t)
-	assertQueryValidity(t, true, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&issue=2370153003&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true")
-	assertQueryValidity(t, true, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true")
-	assertQueryValidity(t, false, "fdiffmax=abc&fref=false&frgbamax=-1&head=true&include=false&limit=50&")
 
 	q := &Search{}
 	err := clearParseQuery(q, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&issue=2370153003&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true")
@@ -119,35 +102,36 @@ func TestParseQuery(t *testing.T) {
 	}, q)
 }
 
-// TODO(kjlubick): replace this test with one that 1) reads from testdata/ and
-// 2) explicitly has a list of valid and invalid queries.
-func TestParseQueryLarge(t *testing.T) {
-	unittest.LargeTest(t)
-
-	// Reuse the paths from the SearchAPI benchmarks.
-	cloudQueriesPath := TEST_STORAGE_DIR_SEARCH_API + "/" + QUERIES_FNAME_SEARCH_API + ".gz"
-	localQueriesPath := TEST_DATA_DIR_PARSE + "/" + QUERIES_FNAME_SEARCH_API
-	defer testutils.RemoveAll(t, TEST_DATA_DIR_PARSE)
-
-	// Download the list of queries.
-	assert.NoError(t, gcs_testutils.DownloadTestDataFile(t, gcs_testutils.TEST_DATA_BUCKET, cloudQueriesPath, localQueriesPath))
+// TestParseSearchValidList checks a list of queries from live data
+// processes as valid.
+func TestParseSearchValidList(t *testing.T) {
+	unittest.SmallTest(t)
 
 	// Load the list of of live queries.
-	queries, err := fileutil.ReadLines(localQueriesPath)
+	contents, err := testutils.ReadFile("valid_queries.txt")
 	assert.NoError(t, err)
 
-	q := &Search{}
-	wrongQueries := 0
-	for _, qStr := range queries {
-		err := clearParseQuery(q, qStr)
-		if err != nil {
-			wrongQueries++
-		}
-	}
+	queries := strings.Split(contents, "\n")
 
-	// Accept as long as 10% of all queries are wrong.
-	errFraction := float64(wrongQueries) / float64(len(queries))
-	assert.True(t, errFraction < 0.1, fmt.Sprintf("Fraction of wrong queries is too high: %f > %f", errFraction, 0.1))
+	for _, qStr := range queries {
+		assertQueryValidity(t, true, qStr)
+	}
+}
+
+// TestParseSearchInvalidList checks a list of queries from live data
+// processes as invalid.
+func TestParseSearchInvalidList(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Load the list of of live queries.
+	contents, err := testutils.ReadFile("invalid_queries.txt")
+	assert.NoError(t, err)
+
+	queries := strings.Split(contents, "\n")
+
+	for _, qStr := range queries {
+		assertQueryValidity(t, false, qStr)
+	}
 }
 
 func assertQueryValidity(t *testing.T, isCorrect bool, qStr string) {
@@ -156,7 +140,7 @@ func assertQueryValidity(t *testing.T, isCorrect bool, qStr string) {
 		assertFn = assert.Error
 	}
 	q := &Search{}
-	assertFn(t, clearParseQuery(q, qStr))
+	assertFn(t, clearParseQuery(q, qStr), qStr)
 }
 
 func clearParseQuery(q *Search, qStr string) error {
