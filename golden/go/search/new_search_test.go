@@ -15,6 +15,7 @@ import (
 	mock_index "go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/paramsets"
+	"go.skia.org/infra/golden/go/search/query"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/tjstore"
 	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
@@ -70,7 +71,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 		}, nil)
 	// BetaUntriaged1Digest has no negative images to compare against, so diffstore isn't queried.
 
-	q := &Query{
+	q := &query.Search{
 		ChangeListID:    "",
 		DeprecatedIssue: types.LegacyMasterBranch,
 		Unt:             true,
@@ -80,7 +81,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 		FRGBAMin: 0,
 		FRGBAMax: 255,
 		FDiffMax: -1,
-		Sort:     sortAscending,
+		Sort:     query.SortAscending,
 	}
 
 	resp, err := s.Search(context.Background(), q)
@@ -348,7 +349,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 
 	s := NewSearchAPI(mds, mes, mi, nil, mcls, mtjs, everythingPublic)
 
-	q := &Query{
+	q := &query.Search{
 		ChangeListID:    clID,
 		DeprecatedIssue: clInt,
 		NewCLStore:      true,
@@ -361,7 +362,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 		FRGBAMin: 0,
 		FRGBAMax: 255,
 		FDiffMax: -1,
-		Sort:     sortAscending,
+		Sort:     query.SortAscending,
 	}
 
 	resp, err := s.Search(context.Background(), q)

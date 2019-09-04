@@ -3,7 +3,6 @@ package search
 
 import (
 	"fmt"
-	"net/url"
 	"sort"
 	"strings"
 	"sync"
@@ -17,23 +16,15 @@ import (
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/types"
 )
 
 const (
-	// sortAscending indicates that we want to sort in ascending order.
-	sortAscending = "asc"
-
-	// sortDescending indicates that we want to sort in descending order.
-	sortDescending = "desc"
-
 	// maxRowDigests is the maximum number of digests we'll compare against
 	// before limiting the result to avoid overload.
 	maxRowDigests = 200
-
-	// maxLimit is the maximum number of digests we will return.
-	maxLimit = 200
 )
 
 // TODO(kjlubick): A lot of these are types just used for frontend output.
@@ -101,69 +92,6 @@ const (
 	GROUP_TEST_MAX_COUNT = "count"
 )
 
-// Query is the query that Search understands.
-type Query struct {
-	// Diff metric to use.
-	Metric string   `json:"metric"`
-	Sort   string   `json:"sort"`
-	Match  []string `json:"match"`
-
-	// Blaming
-	BlameGroupID string `json:"blame"`
-
-	// Image classification
-	Pos            bool `json:"pos"`
-	Neg            bool `json:"neg"`
-	Head           bool `json:"head"`
-	Unt            bool `json:"unt"`
-	IncludeIgnores bool `json:"include"`
-
-	// URL encoded query string
-	QueryStr string     `json:"query"`
-	Query    url.Values `json:"-"`
-
-	// URL encoded query string to select the right hand side of comparisons.
-	RQueryStr string              `json:"rquery"`
-	RQuery    paramtools.ParamSet `json:"-"`
-
-	// Trybot support.
-	// TODO(kjlubick): This needs to be adapted to take a string
-	// as an "issue" ID and be called ChangeListID.
-	ChangeListID    string  `json:"issue"`
-	DeprecatedIssue int64   `json:"-"`
-	PatchsetsStr    string  `json:"patchsets"` // Comma-separated list of patchsets.
-	Patchsets       []int64 `json:"-"`
-	IncludeMaster   bool    `json:"master"` // Include digests also contained in master when searching code review issues.
-
-	// Filtering.
-	FCommitBegin string  `json:"fbegin"`     // Start commit
-	FCommitEnd   string  `json:"fend"`       // End commit
-	FRGBAMin     int32   `json:"frgbamin"`   // Min RGBA delta
-	FRGBAMax     int32   `json:"frgbamax"`   // Max RGBA delta
-	FDiffMax     float32 `json:"fdiffmax"`   // Max diff according to metric
-	FGroupTest   string  `json:"fgrouptest"` // Op within grouped by test.
-	FRef         bool    `json:"fref"`       // Only digests with reference.
-
-	// Pagination.
-	Offset int32 `json:"offset"`
-	Limit  int32 `json:"limit"`
-
-	// Do not include diffs in search.
-	NoDiff bool `json:"nodiff"`
-
-	// Use the new (Aug 2019) clstore, instead of the old one
-	// skbug.com/9340
-	NewCLStore bool `json:"new_clstore"`
-}
-
-func (q *Query) IgnoreState() types.IgnoreState {
-	is := types.ExcludeIgnoredTraces
-	if q.IncludeIgnores {
-		is = types.IncludeIgnoredTraces
-	}
-	return is
-}
-
 // SearchResponse is the standard search response. Depending on the query some fields
 // might be empty, i.e. IssueDetails only makes sense if a trybot isssue was given in the query.
 type SearchResponse struct {
@@ -177,14 +105,6 @@ type SearchResponse struct {
 // it extends trybot.IssueDetails.
 type IssueResponse struct {
 	QueryPatchsets []int64
-}
-
-// excludeClassification returns true if the given label/status for a digest
-// should be excluded based on the values in the query.
-func (q *Query) excludeClassification(cl types.Label) bool {
-	return ((cl == types.NEGATIVE) && !q.Neg) ||
-		((cl == types.POSITIVE) && !q.Pos) ||
-		((cl == types.UNTRIAGED) && !q.Unt)
 }
 
 // DigestSlice is a utility type for sorting slices of Digest by their max diff.
@@ -294,35 +214,6 @@ func (c *SearchAPI) CompareDigests(test types.TestName, left, right types.Digest
 	}, nil
 }
 
-// CTQuery is the input structure to the CompareTest function.
-type CTQuery struct {
-	// RowQuery is the query to select the row digests.
-	RowQuery *Query `json:"rowQuery"`
-
-	// ColumnQuery is the query to select the column digests.
-	ColumnQuery *Query `json:"columnQuery"`
-
-	// Match is the list of parameter fields where the column digests have to match
-	// the value of the row digests. That means column digests will only be included
-	// if the corresponding parameter values match the corresponding row digest.
-	Match []string `json:"match"`
-
-	// SortRows defines by what to sort the rows.
-	SortRows string `json:"sortRows"`
-
-	// SortColumns defines by what to sort the digest.
-	SortColumns string `json:"sortColumns"`
-
-	// RowsDir defines the sort direction for rows.
-	RowsDir string `json:"rowsDir"`
-
-	// ColumnsDir defines the sort direction for columns.
-	ColumnsDir string `json:"columnsDir"`
-
-	// Metric is the diff metric to use for sorting.
-	Metric string `json:"metric"`
-}
-
 // CTResponse is the structure returned by the CompareTest.
 type CTResponse struct {
 	Grid      *CTGrid                       `json:"grid"`
@@ -384,9 +275,9 @@ func ctSummaryFromSummary(sum *summary.Summary) *CTSummary {
 }
 
 // CompareTest allows to compare the digests within one test. It assumes that
-// the provided instance of CTQuery is consistent in that the row query and
+// the provided instance of query.CompareTests is consistent in that the row query and
 // column query contain the same test names and the same corpus field.
-func (c *SearchAPI) CompareTest(ctq *CTQuery) (*CTResponse, error) {
+func (c *SearchAPI) CompareTest(ctq *query.CompareTests) (*CTResponse, error) {
 	// Retrieve the row digests.
 	rowDigests, err := c.filterTileCompare(ctq.RowQuery)
 	if err != nil {
@@ -399,12 +290,12 @@ func (c *SearchAPI) CompareTest(ctq *CTQuery) (*CTResponse, error) {
 
 	// If the number exceeds the maximum we always sort and trim by frequency.
 	if len(rows) > maxRowDigests {
-		ctq.SortRows = countSortField
+		ctq.SortRows = query.SortByImageCounts
 	}
 
 	// If we sort by image frequency then we can sort and limit now, reducing the
 	// number of diffs we need to make.
-	sortEarly := (ctq.SortRows == countSortField)
+	sortEarly := (ctq.SortRows == query.SortByImageCounts)
 	var uniqueTests types.TestNameSet = nil
 	if sortEarly {
 		uniqueTests = sortAndLimitRows(&rows, rowDigests, ctq.SortRows, ctq.RowsDir, ctq.Metric, ctq.RowQuery.Limit)
@@ -466,7 +357,7 @@ func (c *SearchAPI) CompareTest(ctq *CTQuery) (*CTResponse, error) {
 			Columns:      columns,
 			ColumnsTotal: columnsTotal,
 		},
-		Corpus:    ctq.RowQuery.Query.Get(types.CORPUS_FIELD),
+		Corpus:    ctq.RowQuery.TraceValues.Get(types.CORPUS_FIELD),
 		Summaries: ctSummaries,
 	}
 
@@ -476,7 +367,7 @@ func (c *SearchAPI) CompareTest(ctq *CTQuery) (*CTResponse, error) {
 // filterTileCompare iterates over the tile and finds digests that match the given query.
 // It returns a map[digest]ParamSet which contains all the found digests and
 // the paramsets that generated them.
-func (c *SearchAPI) filterTileCompare(query *Query) (map[types.Digest]paramtools.ParamSet, error) {
+func (c *SearchAPI) filterTileCompare(q *query.Search) (map[types.Digest]paramtools.ParamSet, error) {
 	ret := map[types.Digest]paramtools.ParamSet{}
 
 	// Add digest/trace to the result.
@@ -493,7 +384,7 @@ func (c *SearchAPI) filterTileCompare(query *Query) (map[types.Digest]paramtools
 		return nil, err
 	}
 
-	if err := iterTile(query, addFn, nil, ExpSlice{exp}, c.Indexer.GetIndex()); err != nil {
+	if err := iterTile(q, addFn, nil, ExpSlice{exp}, c.Indexer.GetIndex()); err != nil {
 		return nil, err
 	}
 	return ret, nil
@@ -517,7 +408,7 @@ func paramsMatch(matchFields []string, condParamSets paramtools.ParamSet, params
 // fields listed in matchFields. condDigests contains the digests their
 // parameter sets for which we would like to find a set of digests for
 // comparison. It returns a set of digests for each digest in condDigests.
-func (c *SearchAPI) filterTileWithMatch(query *Query, matchFields []string, condDigests map[types.Digest]paramtools.ParamSet) (map[types.Digest]types.DigestSet, error) {
+func (c *SearchAPI) filterTileWithMatch(q *query.Search, matchFields []string, condDigests map[types.Digest]paramtools.ParamSet) (map[types.Digest]types.DigestSet, error) {
 	if len(condDigests) == 0 {
 		return map[types.Digest]types.DigestSet{}, nil
 	}
@@ -559,7 +450,7 @@ func (c *SearchAPI) filterTileWithMatch(query *Query, matchFields []string, cond
 		return nil, err
 	}
 
-	if err := iterTile(query, addFn, acceptFn, ExpSlice{exp}, c.Indexer.GetIndex()); err != nil {
+	if err := iterTile(q, addFn, acceptFn, ExpSlice{exp}, c.Indexer.GetIndex()); err != nil {
 		return nil, err
 	}
 	return ret, nil
@@ -587,16 +478,17 @@ func getCTRows(entries map[types.Digest]paramtools.ParamSet, sortField, sortDir 
 func sortAndLimitRows(rows *[]*CTRow, rowDigests map[types.Digest]paramtools.ParamSet, field, direction string, diffMetric string, limit int32) types.TestNameSet {
 	// Determine the less function used for sorting the rows.
 	var lessFn ctRowSliceLessFn
-	if field == countSortField {
+	if field == query.SortByImageCounts {
 		lessFn = func(c *ctRowSlice, i, j int) bool { return c.data[i].N < c.data[j].N }
-	} else {
+	} else if field == query.SortByDiff {
 		lessFn = func(c *ctRowSlice, i, j int) bool {
-			return (len(c.data[i].Values) > 0) && (len(c.data[j].Values) > 0) && (c.data[i].Values[0].Diffs[diffMetric] < c.data[j].Values[0].Diffs[diffMetric])
+			return (len(c.data[i].Values) > 0) && (len(c.data[j].Values) > 0) &&
+				(c.data[i].Values[0].Diffs[diffMetric] < c.data[j].Values[0].Diffs[diffMetric])
 		}
 	}
 
 	sortSlice := sort.Interface(newCTRowSlice(*rows, lessFn))
-	if direction == sortDescending {
+	if direction == query.SortDescending {
 		sortSlice = sort.Reverse(sortSlice)
 	}
 
@@ -658,7 +550,7 @@ func getDiffs(diffStore diff.DiffStore, digest types.Digest, colDigests types.Di
 		return c.data[i].Diffs[diffMetric] < c.data[j].Diffs[diffMetric]
 	}
 	sortSlice := sort.Interface(newCTDiffMetricsSlice(ret, lessFn))
-	if sortDir == sortDescending {
+	if sortDir == query.SortDescending {
 		sortSlice = sort.Reverse(sortSlice)
 	}
 	sort.Sort(sortSlice)

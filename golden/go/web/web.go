@@ -31,6 +31,7 @@ import (
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/search/export"
+	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
@@ -78,12 +79,12 @@ type WebHandlers struct {
 func (wh *WebHandlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 
-	// Extract the corpus from the query.
-	var query url.Values = nil
+	// Extract the corpus from the query parameters.
+	var qp url.Values = nil
 	var err error = nil
-	if q := r.FormValue("query"); q != "" {
+	if v := r.FormValue("query"); v != "" {
 		// TODO(kjlubick): this error handling does not make sense.
-		if query, err = url.ParseQuery(q); query.Get(types.CORPUS_FIELD) == "" {
+		if qp, err = url.ParseQuery(v); qp.Get(types.CORPUS_FIELD) == "" {
 			err = fmt.Errorf("Got query field, but did not contain %s field.", types.CORPUS_FIELD)
 		}
 	}
@@ -94,9 +95,9 @@ func (wh *WebHandlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	blameEntries, err := wh.computeByBlame(query)
+	blameEntries, err := wh.computeByBlame(qp)
 	if err != nil {
-		httputils.ReportError(w, r, skerr.Wrapf(err, "computing blame %v", query), "")
+		httputils.ReportError(w, r, skerr.Wrapf(err, "computing blame %v", qp), "")
 		return
 	}
 
@@ -107,12 +108,12 @@ func (wh *WebHandlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 
 // computeByBlame creates several ByBlameEntry structs based on the state
 // of HEAD and returns them in a slice, for use by the frontend.
-func (wh *WebHandlers) computeByBlame(query url.Values) ([]ByBlameEntry, error) {
+func (wh *WebHandlers) computeByBlame(qp url.Values) ([]ByBlameEntry, error) {
 	idx := wh.Indexer.GetIndex()
 	// At this point query contains at least a corpus.
-	untriagedSummaries, err := idx.CalcSummaries(nil, query, types.ExcludeIgnoredTraces, true /*=head*/)
+	untriagedSummaries, err := idx.CalcSummaries(nil, qp, types.ExcludeIgnoredTraces, true /*=head*/)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "could not get untriaged summaries for query %v", query)
+		return nil, skerr.Wrapf(err, "could not get untriaged summaries for query %v", qp)
 	}
 	commits := idx.Tile().DataCommits()
 
@@ -467,13 +468,13 @@ func (wh *WebHandlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // parseSearchQuery extracts the search query from request.
-func parseSearchQuery(w http.ResponseWriter, r *http.Request) (*search.Query, bool) {
-	query := search.Query{Limit: 50}
-	if err := search.ParseQuery(r, &query); err != nil {
+func parseSearchQuery(w http.ResponseWriter, r *http.Request) (*query.Search, bool) {
+	q := query.Search{Limit: 50}
+	if err := query.ParseSearch(r, &q); err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return nil, false
 	}
-	return &query, true
+	return &q, true
 }
 
 // DetailsHandler returns the details about a single digest.
@@ -735,12 +736,12 @@ func (wh *WebHandlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request
 	ctx := r.Context()
 
 	// Extract the test name as we only allow clustering within a test.
-	q := search.Query{Limit: 50}
-	if err := search.ParseQuery(r, &q); err != nil {
+	q := query.Search{Limit: 50}
+	if err := query.ParseSearch(r, &q); err != nil {
 		httputils.ReportError(w, r, err, "Unable to parse query parameter.")
 		return
 	}
-	testName := q.Query.Get(types.PRIMARY_KEY_FIELD)
+	testName := q.TraceValues.Get(types.PRIMARY_KEY_FIELD)
 	if testName == "" {
 		httputils.ReportError(w, r, fmt.Errorf("test name parameter missing"), "No test name provided.")
 		return
@@ -872,8 +873,8 @@ type ClusterDiffResult struct {
 func (wh *WebHandlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	// Parse the query object like with the other searches.
-	query := search.Query{}
-	if err := search.ParseQuery(r, &query); err != nil {
+	q := query.Search{}
+	if err := query.ParseSearch(r, &q); err != nil {
 		httputils.ReportError(w, r, err, "Failed to parse form data.")
 		return
 	}
@@ -887,25 +888,25 @@ func (wh *WebHandlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	idx := wh.Indexer.GetIndex()
-	corpus, hasSourceType := query.Query[types.CORPUS_FIELD]
+	corpus, hasSourceType := q.TraceValues[types.CORPUS_FIELD]
 	sumSlice := []*summary.Summary{}
-	if !query.IncludeIgnores && query.Head && len(query.Query) == 1 && hasSourceType {
+	if !q.IncludeIgnores && q.Head && len(q.TraceValues) == 1 && hasSourceType {
 		sumMap := idx.GetSummaries(types.ExcludeIgnoredTraces)
-		for _, s := range sumMap {
-			if util.In(s.Corpus, corpus) && includeSummary(s, &query) {
-				sumSlice = append(sumSlice, s)
+		for _, sum := range sumMap {
+			if util.In(sum.Corpus, corpus) && includeSummary(sum, &q) {
+				sumSlice = append(sumSlice, sum)
 			}
 		}
 	} else {
 		sklog.Infof("%q %q %q", r.FormValue("query"), r.FormValue("include"), r.FormValue("head"))
-		sumMap, err := idx.CalcSummaries(nil, query.Query, query.IgnoreState(), query.Head)
+		sumMap, err := idx.CalcSummaries(nil, q.TraceValues, q.IgnoreState(), q.Head)
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to calculate summaries.")
 			return
 		}
-		for _, s := range sumMap {
-			if includeSummary(s, &query) {
-				sumSlice = append(sumSlice, s)
+		for _, sum := range sumMap {
+			if includeSummary(sum, &q) {
+				sumSlice = append(sumSlice, sum)
 			}
 		}
 	}
@@ -919,7 +920,7 @@ func (wh *WebHandlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 // includeSummary returns true if the given summary matches the query flags.
-func includeSummary(s *summary.Summary, q *search.Query) bool {
+func includeSummary(s *summary.Summary, q *query.Search) bool {
 	return ((s.Pos > 0) && (q.Pos)) ||
 		((s.Neg > 0) && (q.Neg)) ||
 		((s.Untriaged > 0) && (q.Unt))
@@ -1250,13 +1251,13 @@ func (wh *WebHandlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Reque
 func (wh *WebHandlers) CompareTestHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	// Note that testName cannot be empty by definition of the route that got us here.
-	var ctQuery search.CTQuery
-	if err := search.ParseCTQuery(r.Body, 5, &ctQuery); err != nil {
+	var q query.CompareTests
+	if err := query.ParseCTQuery(r.Body, 5, &q); err != nil {
 		httputils.ReportError(w, r, err, err.Error())
 		return
 	}
 
-	compareResult, err := wh.SearchAPI.CompareTest(&ctQuery)
+	compareResult, err := wh.SearchAPI.CompareTest(&q)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
