@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0783ba54_09ede0d3",
+        "filename": "golden/go/search/query/query_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T17:51:09Z",
+      "side": 0,
+      "message": "I would LGTM just based on this.",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 1
+      },
+      "revId": "d37e2cfca4428d6b0dd628556d20caf8feb2989f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
