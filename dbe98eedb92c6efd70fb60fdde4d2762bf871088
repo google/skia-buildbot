@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4981e990_18625fa4",
+        "filename": "golden/go/search/query/query.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-04T13:48:53Z",
+      "side": 1,
+      "message": "I wonder if there\u0027s a good reason for them to be different types...",
+      "range": {
+        "startLine": 133,
+        "startChar": 29,
+        "endLine": 134,
+        "endChar": 45
+      },
+      "revId": "dbe98eedb92c6efd70fb60fdde4d2762bf871088",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
