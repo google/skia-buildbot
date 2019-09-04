@@ -366,6 +366,9 @@
 
           this.set('data', displayData);
           this.set('_issue', json.issue);
+          // TODO(kjlubick): update this to handle the .changelist
+          // returned by the new clstore/tjstore.
+          // Maybe fork the current trybot controls or make a new one in lit-html
           this.$.trybotControls.setIssue(json.issue);
           this.$.activityBar.stopSpinner();
         }.bind(this)).catch(function(e) {
