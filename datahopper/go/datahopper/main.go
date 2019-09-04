@@ -7,7 +7,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"regexp"
 	"time"
 
@@ -38,8 +37,7 @@ import (
 
 // flags
 var (
-	// TODO(borenet): Combine btInstance, firestoreInstance, and
-	// pubsubTopicSet.
+	// TODO(borenet): Combine btInstance and firestoreInstance.
 	btInstance        = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject         = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
@@ -49,8 +47,6 @@ var (
 	perfPrefix        = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric should be written.")
 	port              = flag.String("port", ":8000", "HTTP service port for the health check server (e.g., ':8000')")
 	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	pubsubProject     = flag.String("pubsub_project", "", "GCE project to use for PubSub.")
-	pubsubTopicSet    = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
 	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
 	swarmingServer    = flag.String("swarming_server", "", "Host name of the Swarming server.")
 	swarmingPools     = common.NewMultiStringFlag("swarming_pool", nil, "Swarming pools to use.")
@@ -156,12 +152,7 @@ func main() {
 	}()
 
 	// Tasks metrics.
-	label := "datahopper"
-	mod, err := pubsub.NewModifiedData(*pubsubProject, *pubsubTopicSet, label, ts)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	d, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts, mod)
+	d, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts, nil)
 	if err != nil {
 		sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 	}
