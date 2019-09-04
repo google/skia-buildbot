@@ -22,6 +22,10 @@ func setup(t *testing.T) (db.DBCloser, func()) {
 	c, cleanup := firestore.NewClientForTesting(t)
 	d, err := NewDB(context.Background(), c, nil)
 	assert.NoError(t, err)
+	// TODO(borenet): The Firestore ModifiedData impl should become the
+	// default (or ModifiedData should be removed in favor of WatchModified
+	// functions) once the clients have been updated.
+	d.(*firestoreDB).ModifiedData = NewModifiedData(d)
 	return d, cleanup
 }
 
