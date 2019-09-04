@@ -23,6 +23,53 @@
       "revId": "c0c8eda720032f572c02240340d739cb2af78c83",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "77c6e998_4e11a069",
+        "filename": "perf/DESIGN.md",
+        "patchSetId": 13
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T14:36:56Z",
+      "side": 1,
+      "message": "\u003e \"Anroid\" is a possible misspelling of \"Android\".\n\nPlease Fix",
+      "parentUuid": "ba8ba689_ef5a1842",
+      "range": {
+        "startLine": 273,
+        "startChar": 54,
+        "endLine": 273,
+        "endChar": 60
+      },
+      "revId": "c0c8eda720032f572c02240340d739cb2af78c83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03031fab_e9373385",
+        "filename": "perf/DESIGN.md",
+        "patchSetId": 13
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T14:36:56Z",
+      "side": 1,
+      "message": "Suppose you have 3 traces being watched by an alert:\ntrace_a: ---...\ntrace_b: - - . \ntrace_c: --   .\n\nAt the 4th commit, a regression is added (as seen in trace_a)\n\ntrace_b and trace_c get new data (filling in the missing points). Will they just be clustered against each other or will trace_a be included (since it also had the downshift)?",
+      "range": {
+        "startLine": 291,
+        "startChar": 22,
+        "endLine": 291,
+        "endChar": 38
+      },
+      "revId": "c0c8eda720032f572c02240340d739cb2af78c83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
