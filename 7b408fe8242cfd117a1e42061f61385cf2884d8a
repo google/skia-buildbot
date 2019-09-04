@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "23946986_e4d600a1",
+        "filename": "perf/go/perf-tool/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-04T17:28:39Z",
+      "side": 1,
+      "message": "May be useful to have context on these errors, e.g. cfg.Topic/name, etc",
+      "range": {
+        "startLine": 351,
+        "startChar": 9,
+        "endLine": 351,
+        "endChar": 12
+      },
+      "revId": "7b408fe8242cfd117a1e42061f61385cf2884d8a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
