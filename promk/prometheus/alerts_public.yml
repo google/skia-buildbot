@@ -144,16 +144,6 @@ groups:
 
 # CT
 # TODO(rmistry): Add error rate alert once logmetrics is ported to skia-public.
-  - alert: CTPollerHealthCheckFailed
-    expr: healthy{app="ct-master"} != 1
-    for: 5m
-    labels:
-      category: infra
-      severity: critical
-      owner: rmistry@google.com
-    annotations:
-      description: 'CT poller health check is failing. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ct_poller_health_check'
-
   - alert: CTFEPendingTaskCount
     expr: num_pending_tasks{app="ctfe"} >= 10
     for: 5m

@@ -38,10 +38,3 @@ This alert indicates there are many tasks in the
 - Open the `SwarmingLogs` link shown in the "Task Details." If `build_chromium`
   has been running for > 1h, something is probably wrong.
 
-
-ct_poller_health_check
-----------------------
-The CT poller health check is failing. The poller's error logs are
-[here](https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fct-master%22%20AND%20severity%3DERROR).
-The poller runs on the CT master (ct-master Google Cloud Kubernetes service).
-
