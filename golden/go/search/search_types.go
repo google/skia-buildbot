@@ -30,26 +30,26 @@ type srIntermediate struct {
 
 // newSrIntermediate creates a new srIntermediate for a digest and adds
 // the given trace to it.
-func newSrIntermediate(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace tiling.Trace, params paramtools.ParamSet) *srIntermediate {
+func newSrIntermediate(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace tiling.Trace, pset paramtools.ParamSet) *srIntermediate {
 	ret := &srIntermediate{
 		test:   test,
 		digest: digest,
 		params: paramtools.ParamSet{},
 		traces: map[tiling.TraceId]*types.GoldenTrace{},
 	}
-	ret.add(traceID, trace, params)
+	ret.add(traceID, trace, pset)
 	return ret
 }
 
 // Add adds a new trace to an existing intermediate value for a digest
 // found in search. If traceID or trace are "" or nil they will not be added.
 // 'params' will always be added to the internal parameter set.
-func (s *srIntermediate) add(traceID tiling.TraceId, trace tiling.Trace, params paramtools.ParamSet) {
+func (s *srIntermediate) add(traceID tiling.TraceId, trace tiling.Trace, pset paramtools.ParamSet) {
 	if (traceID != "") && (trace != nil) {
 		s.traces[traceID] = trace.(*types.GoldenTrace)
 		s.params.AddParams(trace.Params())
 	} else {
-		s.params.AddParamSet(params)
+		s.params.AddParamSet(pset)
 	}
 }
 
@@ -57,14 +57,41 @@ func (s *srIntermediate) add(traceID tiling.TraceId, trace tiling.Trace, params 
 // aggregates values during a search.
 type srInterMap map[types.TestName]map[types.Digest]*srIntermediate
 
-// add adds the given information to the srInterMap instance.
-func (sm srInterMap) add(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace *types.GoldenTrace, params paramtools.ParamSet) {
+// Add adds the paramset associated with the given test and digest to the srInterMap instance.
+func (sm srInterMap) Add(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace *types.GoldenTrace, pset paramtools.ParamSet) {
 	if testMap, ok := sm[test]; !ok {
-		sm[test] = map[types.Digest]*srIntermediate{digest: newSrIntermediate(test, digest, traceID, trace, params)}
+		sm[test] = map[types.Digest]*srIntermediate{digest: newSrIntermediate(test, digest, traceID, trace, pset)}
 	} else if entry, ok := testMap[digest]; !ok {
-		testMap[digest] = newSrIntermediate(test, digest, traceID, trace, params)
+		testMap[digest] = newSrIntermediate(test, digest, traceID, trace, pset)
 	} else {
-		entry.add(traceID, trace, params)
+		entry.add(traceID, trace, pset)
+	}
+}
+
+// AddTestParams adds the params associated with the given test and digest to the srInterMap instance.
+func (sm srInterMap) AddTestParams(test types.TestName, digest types.Digest, params paramtools.Params) {
+	if testMap, ok := sm[test]; !ok {
+		ns := &srIntermediate{
+			test:   test,
+			digest: digest,
+			params: paramtools.ParamSet{},
+			traces: map[tiling.TraceId]*types.GoldenTrace{},
+		}
+		ns.params.AddParams(params)
+		sm[test] = map[types.Digest]*srIntermediate{
+			digest: ns,
+		}
+	} else if entry, ok := testMap[digest]; !ok {
+		ns := &srIntermediate{
+			test:   test,
+			digest: digest,
+			params: paramtools.ParamSet{},
+			traces: map[tiling.TraceId]*types.GoldenTrace{},
+		}
+		ns.params.AddParams(params)
+		testMap[digest] = ns
+	} else {
+		entry.params.AddParams(params)
 	}
 }
 

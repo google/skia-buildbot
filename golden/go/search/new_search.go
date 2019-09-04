@@ -11,9 +11,11 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -52,11 +54,14 @@ type SRDiffDigest struct {
 // Search(...) function of SearchAPI and intended to be
 // returned as JSON in an HTTP response.
 type NewSearchResponse struct {
-	Digests []*SRDigest        `json:"digests"`
-	Offset  int                `json:"offset"`
-	Size    int                `json:"size"`
-	Commits []*tiling.Commit   `json:"commits"`
-	Issue   *tryjobstore.Issue `json:"issue"`
+	Digests         []*SRDigest        `json:"digests"`
+	Offset          int                `json:"offset"`
+	Size            int                `json:"size"`
+	Commits         []*tiling.Commit   `json:"commits"`
+	DeprecatedIssue *tryjobstore.Issue `json:"issue"`
+	// Rather than bundling in the ChangeListSummary with the search response,
+	// the web client should poll web.ChangeListSummaryHandler for
+	// that information.
 }
 
 // DigestDetails contains details about a digest.
@@ -68,22 +73,27 @@ type SRDigestDetails struct {
 // SearchAPI is type that exposes a search API to query the
 // current tile (all images for the most recent commits).
 type SearchAPI struct {
-	DiffStore         diff.DiffStore
-	ExpectationsStore expstorage.ExpectationsStore
-	Indexer           indexer.IndexSource
-	TryjobStore       tryjobstore.TryjobStore
+	DiffStore             diff.DiffStore
+	ExpectationsStore     expstorage.ExpectationsStore
+	Indexer               indexer.IndexSource
+	ChangeListStore       clstore.Store
+	TryJobStore           tjstore.Store
+	DeprecatedTryJobStore tryjobstore.TryjobStore
 	// optional. If specified, will only show the params that match this query. This is
 	// opt-in, to avoid leaking.
 	PubliclyViewableParams paramtools.ParamSet
 }
 
 // NewSearchAPI returns a new SearchAPI instance.
-func NewSearchAPI(diffStore diff.DiffStore, expectationsStore expstorage.ExpectationsStore, indexer indexer.IndexSource, tryjobStore tryjobstore.TryjobStore, publiclyViewableParams paramtools.ParamSet) *SearchAPI {
+func NewSearchAPI(ds diff.DiffStore, es expstorage.ExpectationsStore, i indexer.IndexSource, deprecatedTJ tryjobstore.TryjobStore,
+	cls clstore.Store, tjs tjstore.Store, publiclyViewableParams paramtools.ParamSet) *SearchAPI {
 	return &SearchAPI{
-		DiffStore:              diffStore,
-		ExpectationsStore:      expectationsStore,
-		Indexer:                indexer,
-		TryjobStore:            tryjobStore,
+		DiffStore:              ds,
+		ExpectationsStore:      es,
+		Indexer:                i,
+		DeprecatedTryJobStore:  deprecatedTJ,
+		ChangeListStore:        cls,
+		TryJobStore:            tjs,
 		PubliclyViewableParams: publiclyViewableParams,
 	}
 }
@@ -101,11 +111,11 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 	// for the majority of queries.
 	getRefDiffs := !q.NoDiff
 
-	isTryjobSearch := !types.IsMasterBranch(q.Issue)
+	isChangeListSearch := !types.IsMasterBranch(q.DeprecatedIssue)
 
 	// Get the expectations and the current index, which we assume constant
 	// for the duration of this query.
-	exp, err := s.getExpectationsFromQuery(q.Issue)
+	exp, err := s.getExpectationsFromQuery(q.DeprecatedIssue)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -114,19 +124,27 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 	var inter srInterMap = nil
 	var issue *tryjobstore.Issue = nil
 
-	// TODO(kjlubick): add in check for query param here to go into non-deprecated
-	// tryjobstore path.
 	// Find the digests (left hand side) we are interested in.
-	if isTryjobSearch {
-		// Search the tryjob results for the issue at hand.
-		inter, issue, err = s.queryIssue(ctx, q, idx, exp)
+	if isChangeListSearch {
+		if q.NewCLStore {
+			inter, err = s.queryChangeList(ctx, q, idx, exp)
+			if err != nil {
+				return nil, skerr.Wrapf(err, "getting digests from new clstore/tjstore")
+			}
+		} else {
+			// Search the tryjob results for the issue at hand.
+			inter, issue, err = s.deprecatedQueryIssue(ctx, q, idx, exp)
+			if err != nil {
+				return nil, skerr.Wrapf(err, "getting digests from old tryjobstore")
+			}
+		}
 	} else {
 		// Iterate through the tile and get an intermediate
 		// representation that contains all the traces matching the queries.
 		inter, err = s.filterTile(ctx, q, exp, idx)
-	}
-	if err != nil {
-		return nil, skerr.Wrap(err)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "getting digests from master tile")
+		}
 	}
 
 	// Convert the intermediate representation to the list of digests that we
@@ -156,8 +174,9 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 		Digests: ret,
 		Offset:  offset,
 		Size:    len(displayRet),
-		Commits: idx.Tile().GetTile(types.ExcludeIgnoredTraces).Commits,
-		Issue:   issue,
+		// TODO(kjlubick) maybe omit Commits for ChangeList Queries.
+		Commits:         idx.Tile().GetTile(types.ExcludeIgnoredTraces).Commits,
+		DeprecatedIssue: issue,
 	}
 	return searchRet, nil
 }
@@ -218,7 +237,7 @@ func (s *SearchAPI) GetDigestDetails(test types.TestName, digest types.Digest) (
 
 // getExpectationsFromQuery returns a slice of expectations that should be
 // used in the given query. It will add the issue expectations if this is
-// querying tryjob results. If query is nil the expectations of the master
+// querying ChangeList results. If query is nil the expectations of the master
 // tile are returned.
 func (s *SearchAPI) getExpectationsFromQuery(clID int64) (ExpSlice, error) {
 	ret := make(ExpSlice, 0, 2)
@@ -240,51 +259,50 @@ func (s *SearchAPI) getExpectationsFromQuery(clID int64) (ExpSlice, error) {
 	return ret, nil
 }
 
-// query issue returns the digest related to this issues in intermediate representation.
-func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, idx indexer.IndexSearcher, exp ExpSlice) (srInterMap, *tryjobstore.Issue, error) {
-	ctx, span := trace.StartSpan(ctx, "search/queryIssue")
+// TODO(kjlubick): remove this deprecated stuff after the new tjstore/clstore lands
+// deprecatedQueryIssue returns the digest related to this issues in intermediate representation.
+func (s *SearchAPI) deprecatedQueryIssue(ctx context.Context, q *Query, idx indexer.IndexSearcher, exp ExpSlice) (srInterMap, *tryjobstore.Issue, error) {
+	ctx, span := trace.StartSpan(ctx, "search/deprecatedQueryIssue")
 	defer span.End()
 
 	// Build the intermediate map to compare against the tile
 	ret := srInterMap{}
 
 	// Adjust the add function to exclude digests already in the master branch
-	addFn := ret.add
+	addFn := ret.Add
 	if !q.IncludeMaster {
 		talliesByTest := idx.DigestCountsByTest(q.IgnoreState())
-		addFn = func(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace *types.GoldenTrace, params paramtools.ParamSet) {
+		addFn = func(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace *types.GoldenTrace, pSet paramtools.ParamSet) {
 			// Include the digest if either the test or the digest is not in the master tile.
 			if _, ok := talliesByTest[test][digest]; !ok {
-				ret.add(test, digest, traceID, trace, params)
+				ret.Add(test, digest, traceID, trace, pSet)
 			}
 		}
 	}
 
-	issue, err := s.extractIssueDigests(ctx, q, idx, exp, addFn)
+	issue, err := s.deprecatedExtractIssueDigests(ctx, q, idx, exp, addFn)
 	if err != nil {
 		return nil, nil, err
 	}
 	return ret, issue, nil
 }
 
-// filterAddFn is a filter and add function that is passed to the getIssueDigest interface. It will
-// be called for each testName/digest combination and should accumulate the digests of interest.
-type filterAddFn func(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace *types.GoldenTrace, params paramtools.ParamSet)
+type deprecatedFilterAddFn func(types.TestName, types.Digest, tiling.TraceId, *types.GoldenTrace, paramtools.ParamSet)
 
-// extractIssueDigests loads the issue and its tryjob results and then filters the
+// deprecatedExtractIssueDigests loads the issue and its tryjob results and then filters the
 // results via the given query. For each testName/digest pair addFn is called.
-func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx indexer.IndexSearcher, exp ExpSlice, addFn filterAddFn) (*tryjobstore.Issue, error) {
-	_, span := trace.StartSpan(ctx, "search/extractIssueDigests")
+func (s *SearchAPI) deprecatedExtractIssueDigests(ctx context.Context, q *Query, idx indexer.IndexSearcher, exp ExpSlice, addFn deprecatedFilterAddFn) (*tryjobstore.Issue, error) {
+	_, span := trace.StartSpan(ctx, "search/deprecatedExtractIssueDigests")
 	defer span.End()
 
 	// Get the issue.
-	issue, err := s.TryjobStore.GetIssue(q.Issue, true)
+	issue, err := s.DeprecatedTryJobStore.GetIssue(q.DeprecatedIssue, true)
 	if err != nil {
 		return nil, err
 	}
 
 	if issue == nil {
-		return nil, sklog.FmtErrorf("Unable to find issue %d", q.Issue)
+		return nil, sklog.FmtErrorf("Unable to find issue %d", q.DeprecatedIssue)
 	}
 
 	// If no patchsets were given we pick the last one that has tryjobs.
@@ -312,7 +330,7 @@ func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx index
 	}
 
 	// Get the results
-	tjResults, err := s.TryjobStore.GetTryjobResults(tryjobs)
+	tjResults, err := s.DeprecatedTryJobStore.GetTryjobResults(tryjobs)
 	if err != nil {
 		return nil, err
 	}
@@ -350,14 +368,134 @@ func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx index
 					// Filter by classification.
 					cl := exp.Classification(tjr.TestName, tjr.Digest)
 					if !q.excludeClassification(cl) {
-						tn := types.TestName(tjr.Params[types.PRIMARY_KEY_FIELD][0])
-						addFn(tn, tjr.Digest, tiling.TraceId(""), nil, tjr.Params)
+						addFn(tjr.TestName, tjr.Digest, tiling.TraceId(""), nil, tjr.Params)
 					}
 				}
 			}
 		}
 	}
 	return issue, nil
+}
+
+// queryChangeList returns the digests associated with the ChangeList referenced by q.ChangeListID
+// in intermediate representation. It returns the filtered digests as specified by q. The param
+// exp should contain the expectations for the given ChangeList.
+func (s *SearchAPI) queryChangeList(ctx context.Context, q *Query, idx indexer.IndexSearcher, exp ExpSlice) (srInterMap, error) {
+	ctx, span := trace.StartSpan(ctx, "search/queryChangeList")
+	defer span.End()
+
+	// Build the intermediate map to compare against the tile
+	ret := srInterMap{}
+
+	// Adjust the add function to exclude digests already in the master branch
+	addFn := ret.AddTestParams
+	if !q.IncludeMaster {
+		talliesByTest := idx.DigestCountsByTest(q.IgnoreState())
+		addFn = func(test types.TestName, digest types.Digest, params paramtools.Params) {
+			// Include the digest if either the test or the digest is not in the master tile.
+			if _, ok := talliesByTest[test][digest]; !ok {
+				ret.AddTestParams(test, digest, params)
+			}
+		}
+	}
+
+	err := s.extractChangeListDigests(ctx, q, idx, exp, addFn)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return ret, nil
+}
+
+// filterAddFn is a filter and add function that is passed to the getIssueDigest interface. It will
+// be called for each testName/digest combination and should accumulate the digests of interest.
+type filterAddFn func(test types.TestName, digest types.Digest, params paramtools.Params)
+
+// extractChangeListDigests loads the ChangeList referenced by q.ChangeListID and the TryJobResults
+// associated with it. Then, it filters those results with the given query. For each
+// testName/digest pair that matches the query, it calls addFn (which the supplier will likely use
+// to build up a list of those results.
+func (s *SearchAPI) extractChangeListDigests(ctx context.Context, q *Query, idx indexer.IndexSearcher, exp ExpSlice, addFn filterAddFn) error {
+	_, span := trace.StartSpan(ctx, "search/extractChangeListDigests")
+	defer span.End()
+
+	clID := q.ChangeListID
+	// We know xps is sorted by order, if it is non-nil.
+	xps, err := s.ChangeListStore.GetPatchSets(ctx, clID)
+	if err != nil {
+		return skerr.Wrapf(err, "getting PatchSets for CL %s", clID)
+	}
+
+	if len(xps) == 0 {
+		return skerr.Fmt("No data for CL %s", clID)
+	}
+
+	// Default to the latest PatchSet
+	ps := xps[len(xps)-1]
+	if len(q.Patchsets) > 0 {
+		// legacy code used to request multiple patchsets at once - we don't do that
+		// so we just look at the first one mentioned by the query.
+		psOrder := int(q.Patchsets[0])
+		found := false
+		for _, p := range xps {
+			if p.Order == psOrder {
+				ps = p
+				found = true
+				break
+			}
+		}
+		if !found {
+			return skerr.Fmt("Could not find PS with order %d in CL %s", psOrder, clID)
+		}
+	}
+
+	id := tjstore.CombinedPSID{
+		CL:  ps.ChangeListID,
+		CRS: s.ChangeListStore.System(),
+		PS:  ps.SystemID,
+	}
+
+	xtr, err := s.TryJobStore.GetResults(ctx, id)
+	if err != nil {
+		return skerr.Wrapf(err, "getting tryjob results for %v", id)
+	}
+
+	queryParams := paramtools.ParamSet(q.Query)
+
+	for _, tr := range xtr {
+		p := paramtools.Params(tr.ResultParams)
+		p.Add(tr.GroupParams)
+		p.Add(tr.Options)
+
+		// Filter the ignored results
+		if !q.IncludeIgnores {
+			ignoreMatcher := idx.GetIgnoreMatcher()
+			// As a performance consideration, we may want to change these types to be
+			// a struct with the map and a hash, and use the hash to memoize
+			// which of the GroupParams we've already processed for ignoring.
+			if ignoreMatcher.MatchAnyParams(p) {
+				continue
+			}
+		}
+
+		// If we've been given a set of PubliclyViewableParams, only show those.
+		if len(s.PubliclyViewableParams) > 0 {
+			if !s.PubliclyViewableParams.MatchesParams(p) {
+				continue
+			}
+		}
+
+		// Filter by query.
+		if queryParams.MatchesParams(p) {
+			tn := types.TestName(p[types.PRIMARY_KEY_FIELD])
+			// Filter by classification.
+			cl := exp.Classification(tn, tr.Digest)
+			if !q.excludeClassification(cl) {
+				addFn(tn, tr.Digest, p)
+			}
+		}
+
+	}
+	return nil
 }
 
 // TODO(kjlubick): The filterTile function should be merged with the
@@ -386,7 +524,7 @@ func (s *SearchAPI) filterTile(ctx context.Context, q *Query, exp ExpSlice, idx 
 	// Add digest/trace to the result.
 	ret := srInterMap{}
 	addFn := func(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace *types.GoldenTrace, acceptRet interface{}) {
-		ret.add(test, digest, traceID, trace, nil)
+		ret.Add(test, digest, traceID, trace, nil)
 	}
 
 	if err := iterTile(q, addFn, acceptFn, exp, idx); err != nil {

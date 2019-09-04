@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/golden/go/tjstore"
 	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 // TestByQuerySunnyDay is a unit test of the /byquery endpoint.
@@ -215,8 +216,8 @@ func makeCodeReviewCLs() []code_review.ChangeList {
 	}
 }
 
-func makeWebCLs() []changeList {
-	return []changeList{
+func makeWebCLs() []frontend.ChangeList {
+	return []frontend.ChangeList{
 		{
 			System:   "gerrit",
 			SystemID: "1002",
@@ -301,14 +302,14 @@ func TestGetCLSummarySunnyDay(t *testing.T) {
 
 	cl, err := wh.getCLSummary(context.Background(), expectedCLID)
 	assert.NoError(t, err)
-	assert.Equal(t, changeListSummary{
+	assert.Equal(t, frontend.ChangeListSummary{
 		CL:                makeWebCLs()[0], // matches expectedCLID
 		NumTotalPatchSets: 4,
-		PatchSets: []patchSet{
+		PatchSets: []frontend.PatchSet{
 			{
 				SystemID: "ps-1",
 				Order:    1,
-				TryJobs: []tryJob{
+				TryJobs: []frontend.TryJob{
 					{
 						System:      "buildbucket",
 						SystemID:    "bb1",
@@ -320,7 +321,7 @@ func TestGetCLSummarySunnyDay(t *testing.T) {
 			{
 				SystemID: "ps-4",
 				Order:    4,
-				TryJobs: []tryJob{
+				TryJobs: []frontend.TryJob{
 					{
 						System:      "buildbucket",
 						SystemID:    "bb2",

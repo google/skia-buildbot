@@ -56,7 +56,8 @@ digests in the cells, but this isn't ideal for these reasons:
 To address these performance issues, we need to store our traces and some auxiliary data:
   - an OrderedParamSet (OPS for short) that can convert tiling.TraceId (long string)
     to/from EncodedTraceId (short string).
-  - The Options key/values that are a part of the trace, but don't affect the traceID.
+  - The Options key/values that are a part of the trace, but don't affect the traceID
+    or filtering/searching.
 
 These data, along with the traces, will be stored using 3 Column Families and can
 logically thought of being stored as independent "tables" or "spreadsheets" even

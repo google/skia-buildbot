@@ -12,13 +12,13 @@ Note: For Skia we do not hash the ingested PNG file, but the internal Skia bitma
 the image. The desired property of content addressability remains because
 identical digests refer to identical images.
 
-Each ingested JSON file describes a single buildbot run for a specific commit.
+Each ingested JSON file describes a single bot run for a specific commit.
 It generally does not refer to images directly - it only refers to their digests.
 The names of images are then derived from the digests.
 
 Both images and JSON files are stored in GCS (Google Cloud Storage) and then ingested
 by the Gold process (running in GCE).
-Generally a process will want to write the images of a buildbot run first.
+Generally a process will want to write the images of a bot run first.
 Only if the images have been uploaded to GCS successfully, the JSON file should be
 added to GCS. The content in GCS is considered the 'source for truth' for Gold.
 
@@ -34,9 +34,9 @@ JSON files are stored at
 
 Where JSON_BUCKET and JSON_DIR are the GCS bucket and directory respectively.
 YYYY, MM, DD and HH are the year, month, day and hour (0-23) respectively of
-when the buildbot run finished. All times are based on UTC.
+when the bot run finished. All times are based on UTC.
 GIT_HASH is the value of the git commit hash, BUILDER_NAME and BUILDER_NUMBER
-refer to the buildbot instance and run that produced the output.
+refer to the bot instance and run that produced the output.
 
 Here is an example of a valid uploaded JSON file (requires permissions to the bucket):
 
@@ -58,7 +58,7 @@ continuously. So it's important that the date in the path is the actual date of
 when the data were generated and it has to be based on the UTC timezone.
 
 The bucket and directory values for JSON files and images are shared between the
-buildbot and the Gold ingestion process.
+bot and the Gold ingestion process.
 
 JSON Input file
 ---------------
@@ -142,7 +142,7 @@ In the root of the object these fields are required:
   issue that was used for this test run.
 
 * key: The set of key-value pairs shared by all results. This is usually the
-  hardware/OS configuration of the buildbot that ran the test. These are
+  hardware/OS configuration of the bot that ran the test. These are
   application dependent key-value pairs and are used later by Gold's UI to
   filter results.
 
@@ -163,6 +163,9 @@ In the root of the object these fields are required:
 
     - options.ext: The file type. This needs to be "png" for the test to be
       ingested.
+
+ * options: these keys are meant as an FYI - they can be filtered by, but they
+   do not impact the trace uniqueness.
 
 Validating Gold input with goldctl
 ----------------------------------

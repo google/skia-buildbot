@@ -12,6 +12,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs/gcs_testutils"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
@@ -75,11 +76,51 @@ func TestParseCTQuery(t *testing.T) {
 
 func TestParseQuery(t *testing.T) {
 	unittest.SmallTest(t)
-	checkParsedQuery(t, true, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&issue=2370153003&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true")
-	checkParsedQuery(t, true, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true")
-	checkParsedQuery(t, false, "fdiffmax=abc&fref=false&frgbamax=-1&head=true&include=false&limit=50&")
+	assertQueryValidity(t, true, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&issue=2370153003&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true")
+	assertQueryValidity(t, true, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true")
+	assertQueryValidity(t, false, "fdiffmax=abc&fref=false&frgbamax=-1&head=true&include=false&limit=50&")
+
+	q := &Query{}
+	err := clearParseQuery(q, "fdiffmax=-1&fref=false&frgbamax=-1&head=true&include=false&issue=2370153003&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&pos=false&query=source_type%3Dgm&sort=desc&unt=true")
+	assert.NoError(t, err)
+
+	assert.Equal(t, &Query{
+		Metric:         "combined",
+		Sort:           "desc",
+		Match:          []string{"gamma_correct", "name"},
+		BlameGroupID:   "",
+		Pos:            false,
+		Neg:            false,
+		Head:           true,
+		Unt:            true,
+		IncludeIgnores: false,
+		QueryStr:       "",
+		Query: url.Values{
+			"source_type": []string{"gm"},
+		},
+		RQueryStr:       "",
+		RQuery:          paramtools.ParamSet{},
+		ChangeListID:    "2370153003",
+		DeprecatedIssue: 2370153003,
+		PatchsetsStr:    "",
+		Patchsets:       []int64(nil),
+		IncludeMaster:   false,
+		FCommitBegin:    "",
+		FCommitEnd:      "",
+		FRGBAMin:        0,
+		FRGBAMax:        -1,
+		FDiffMax:        -1,
+		FGroupTest:      "",
+		FRef:            false,
+		Offset:          0,
+		Limit:           50,
+		NoDiff:          false,
+		NewCLStore:      false,
+	}, q)
 }
 
+// TODO(kjlubick): replace this test with one that 1) reads from testdata/ and
+// 2) explicitly has a list of valid and invalid queries.
 func TestParseQueryLarge(t *testing.T) {
 	unittest.LargeTest(t)
 
@@ -106,11 +147,10 @@ func TestParseQueryLarge(t *testing.T) {
 
 	// Accept as long as 10% of all queries are wrong.
 	errFraction := float64(wrongQueries) / float64(len(queries))
-	fmt.Printf("\n\nWrong Queries: %d / %d\n", wrongQueries, len(queries))
 	assert.True(t, errFraction < 0.1, fmt.Sprintf("Fraction of wrong queries is too high: %f > %f", errFraction, 0.1))
 }
 
-func checkParsedQuery(t *testing.T, isCorrect bool, qStr string) {
+func assertQueryValidity(t *testing.T, isCorrect bool, qStr string) {
 	assertFn := assert.NoError
 	if !isCorrect {
 		assertFn = assert.Error

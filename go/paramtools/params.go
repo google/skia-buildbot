@@ -106,7 +106,7 @@ func (p ParamSet) AddParams(ps Params) {
 //
 //   paramset.AddParams(NewParams(key))
 //
-// but without creating the intermedite Params.
+// but without creating the intermediate Params.
 //
 // It presumes a valid key, i.e. something that passed query.ValidateKey.
 func (p ParamSet) AddParamsFromKey(key string) {
@@ -189,6 +189,30 @@ func (p ParamSet) Matches(right ParamSet) bool {
 	return true
 }
 
+// MatchesParams returns true if the params in 'p' match the values given in 'right'.
+// For every key in 'p' there has to be a matching key in 'right' and
+// the intersection of their values must be not empty.
+func (p ParamSet) MatchesParams(right Params) bool {
+	for key, vals := range p {
+		rightVal, ok := right[key]
+		if !ok {
+			return false
+		}
+
+		found := false
+		for _, targetVal := range vals {
+			if targetVal == rightVal {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
+
 // ParamMatcher is a list of Paramsets that can be matched against. The primary
 // purpose is to match against a set of rules, e.g. ignore rules.
 type ParamMatcher []ParamSet
@@ -197,6 +221,16 @@ type ParamMatcher []ParamSet
 func (p ParamMatcher) MatchAny(params ParamSet) bool {
 	for _, oneRule := range p {
 		if oneRule.Matches(params) {
+			return true
+		}
+	}
+	return false
+}
+
+// MatchAnyParams returns true if the given Params matches any of the rules in the matcher.
+func (p ParamMatcher) MatchAnyParams(params Params) bool {
+	for _, oneRule := range p {
+		if oneRule.MatchesParams(params) {
 			return true
 		}
 	}
