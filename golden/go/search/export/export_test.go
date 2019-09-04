@@ -7,7 +7,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/golden/go/search"
+	"go.skia.org/infra/golden/go/search/frontend"
 )
 
 func TestWriteReadExport(t *testing.T) {
@@ -17,7 +17,7 @@ func TestWriteReadExport(t *testing.T) {
 			TestName: "test-1",
 			Digests: []*DigestInfo{
 				{
-					SRDigest: &search.SRDigest{
+					SRDigest: &frontend.SRDigest{
 						Digest: "abc-efg",
 					},
 					URL: fmt.Sprintf(urlTemplate, "https://example.com", "abc-efg"),
