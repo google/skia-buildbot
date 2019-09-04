@@ -8,5 +8,5 @@ source ../kube/config.sh
 
 TOPIC=perf-ingestion-android-production
 
-gcloud pubsub topics create ${TOPIC} || true
+perf-tool config create-pubsub-topics --big_table_config=android-prod
 gsutil notification create -f json -e OBJECT_FINALIZE -t projects/${PROJECT_ID}/topics/${TOPIC} -p android-master-ingest gs://skia-perf
