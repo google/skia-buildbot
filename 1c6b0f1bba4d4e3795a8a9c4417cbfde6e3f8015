@@ -22,6 +22,30 @@
       "revId": "1c6b0f1bba4d4e3795a8a9c4417cbfde6e3f8015",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a3bf4810_8f83cb61",
+        "filename": "golden/go/search/ref_differ/ref_differ_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-05T15:03:37Z",
+      "side": 1,
+      "message": "Technically yes, although the second item would be an empty map.\n\nI\u0027m not sure it\u0027s useful to add in the tryjob expectations as a separate test here, as we already have tests for ExpSlice elsewhere and the implementation just calls expslice.Classification.",
+      "parentUuid": "52acc9a8_70e7af9f",
+      "range": {
+        "startLine": 109,
+        "startChar": 0,
+        "endLine": 115,
+        "endChar": 3
+      },
+      "revId": "1c6b0f1bba4d4e3795a8a9c4417cbfde6e3f8015",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
