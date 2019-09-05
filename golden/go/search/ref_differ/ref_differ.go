@@ -3,6 +3,7 @@ package ref_differ
 
 import (
 	"math"
+	"sort"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
@@ -21,13 +22,11 @@ import (
 // positive digest. But other reference diffs might make sense and
 // should be added here.
 type RefDiffer interface {
-	// GetRefDiffs returns the closest negative and positive images (digests) for a given
-	// Digest and TestName. It uses "metric" to determine "closeness". If match is non-nil,
-	// it only returns those digest that match the given Digest's params in that slice. If
-	// rhsQuery is not empty, it only compares against digests that match rhsQuery.
-	// TODO(kjlubick) bundle t, d, pSet together (maybe *frontend.SRDigest?)
-	GetRefDiffs(metric string, match []string, t types.TestName, d types.Digest, pSet paramtools.ParamSet,
-		rhsQuery paramtools.ParamSet, is types.IgnoreState) (common.RefClosest, map[common.RefClosest]*frontend.SRDiffDigest)
+	// FillRefDiffs fills in d with the closest negative and positive images (digests) to it.
+	// It uses "metric" to determine "closeness". If match is non-nil, it only returns those
+	// digests that match d's params for the keys in match. If rhsQuery is not empty, it only
+	// compares against digests that match rhsQuery.
+	FillRefDiffs(d *frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState)
 }
 
 // DiffImpl aggregates the helper objects needed to calculate reference diffs.
@@ -46,36 +45,30 @@ func New(exp common.ExpSlice, diffStore diff.DiffStore, idx indexer.IndexSearche
 	}
 }
 
-// GetRefDiffs calculates the reference diffs between the given
-// digest and the other digests in the same test based on the given
-// metric. 'match' is the list of parameters that need to match between
-// the digests that are compared, i.e. this allows to restrict comparison
-// of gamma correct images to other digests that are also gamma correct.
-func (r *DiffImpl) GetRefDiffs(metric string, match []string, test types.TestName, digest types.Digest, params paramtools.ParamSet, rhsQuery paramtools.ParamSet, is types.IgnoreState) (common.RefClosest, map[common.RefClosest]*frontend.SRDiffDigest) {
+// FillRefDiffs implements the RefDiffer interface.
+func (r *DiffImpl) FillRefDiffs(d *frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState) {
 	unavailableDigests := r.diffStore.UnavailableDigests()
-	if _, ok := unavailableDigests[digest]; ok {
-		return "", nil
+	if _, ok := unavailableDigests[d.Digest]; ok {
+		return
 	}
 
-	paramsByDigest := r.idx.GetParamsetSummaryByTest(types.ExcludeIgnoredTraces)[test]
+	paramsByDigest := r.idx.GetParamsetSummaryByTest(types.ExcludeIgnoredTraces)[d.Test]
 
-	posDigests := r.getDigestsWithLabel(test, match, params, paramsByDigest, unavailableDigests, rhsQuery, types.POSITIVE)
-	negDigests := r.getDigestsWithLabel(test, match, params, paramsByDigest, unavailableDigests, rhsQuery, types.NEGATIVE)
+	posDigests := r.getDigestsWithLabel(d, match, paramsByDigest, unavailableDigests, rhsQuery, types.POSITIVE)
+	negDigests := r.getDigestsWithLabel(d, match, paramsByDigest, unavailableDigests, rhsQuery, types.NEGATIVE)
 
 	ret := make(map[common.RefClosest]*frontend.SRDiffDigest, 3)
-	ret[common.PositiveRef] = r.getClosestDiff(metric, digest, posDigests)
-	ret[common.NegativeRef] = r.getClosestDiff(metric, digest, negDigests)
-
-	// TODO(stephana): Add a diff to the previous digest in the trace.
+	ret[common.PositiveRef] = r.getClosestDiff(metric, d.Digest, posDigests)
+	ret[common.NegativeRef] = r.getClosestDiff(metric, d.Digest, negDigests)
 
 	// Find the minimum according to the diff metric.
-	closest := common.RefClosest("")
+	closest := common.NoRef
 	minDiff := float32(math.Inf(1))
-	dCount := r.idx.DigestCountsByTest(is)[test]
+	dCount := r.idx.DigestCountsByTest(is)[d.Test]
 	for ref, srdd := range ret {
 		if srdd != nil {
 			// Fill in the missing fields.
-			srdd.Status = r.exp.Classification(test, srdd.Digest).String()
+			srdd.Status = r.exp.Classification(d.Test, srdd.Digest).String()
 			srdd.ParamSet = paramsByDigest[srdd.Digest]
 			srdd.ParamSet.Normalize()
 			srdd.OccurrencesInTile = dCount[srdd.Digest]
@@ -87,14 +80,14 @@ func (r *DiffImpl) GetRefDiffs(metric string, match []string, test types.TestNam
 			}
 		}
 	}
-
-	return closest, ret
+	d.ClosestRef = closest
+	d.RefDiffs = ret
 }
 
 // getDigestsWithLabel return all digests within the given test that
 // have the given label assigned to them and where the parameters
 // listed in 'match' match.
-func (r *DiffImpl) getDigestsWithLabel(test types.TestName, match []string, params paramtools.ParamSet, paramsByDigest map[types.Digest]paramtools.ParamSet, unavailable map[types.Digest]*diff.DigestFailure, rhsQuery paramtools.ParamSet, targetLabel types.Label) types.DigestSlice {
+func (r *DiffImpl) getDigestsWithLabel(s *frontend.SRDigest, match []string, paramsByDigest map[types.Digest]paramtools.ParamSet, unavailable map[types.Digest]*diff.DigestFailure, rhsQuery paramtools.ParamSet, targetLabel types.Label) types.DigestSlice {
 	ret := types.DigestSlice{}
 	for d, digestParams := range paramsByDigest {
 		// Accept all digests that are: available, in the set of allowed digests
@@ -103,11 +96,13 @@ func (r *DiffImpl) getDigestsWithLabel(test types.TestName, match []string, para
 		_, ok := unavailable[d]
 		if !ok &&
 			(len(rhsQuery) == 0 || rhsQuery.Matches(digestParams)) &&
-			(r.exp.Classification(test, d) == targetLabel) &&
-			paramSetsMatch(match, params, digestParams) {
+			(r.exp.Classification(s.Test, d) == targetLabel) &&
+			paramSetsMatch(match, s.ParamSet, digestParams) {
 			ret = append(ret, d)
 		}
 	}
+	// Sort for determinism
+	sort.Sort(ret)
 	return ret
 }
 

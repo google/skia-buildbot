@@ -13,6 +13,9 @@ const (
 
 	// NegativeRef identifies the diff to the closest negative digest.
 	NegativeRef = RefClosest("neg")
+
+	// NoRef indicates no other digests match.
+	NoRef = RefClosest("")
 )
 
 // ExpSlice lets us search for expectations in one or more places - this
