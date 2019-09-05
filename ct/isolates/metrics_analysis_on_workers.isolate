@@ -19,9 +19,6 @@
       'command': [
         '../../../bin/metrics_analysis_on_workers',
         '-logtostderr',
-        '--emails=<(EMAILS)',
-        '--description=<(DESCRIPTION)',
-        '--task_id=<(TASK_ID)',
         '--metric_name=<(METRIC_NAME)',
         '--analysis_output_link=<(ANALYSIS_OUTPUT_LINK)',
         '--benchmark_extra_args=<(BENCHMARK_ARGS)',
