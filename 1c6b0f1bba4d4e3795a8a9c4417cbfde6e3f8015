@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "52acc9a8_70e7af9f",
+        "filename": "golden/go/search/ref_differ/ref_differ_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-05T14:59:18Z",
+      "side": 1,
+      "message": "Would there be two elements in this slice for a TryJob?\n\nIWBN to test where some things have been triaged for the issue also.",
+      "range": {
+        "startLine": 109,
+        "startChar": 0,
+        "endLine": 115,
+        "endChar": 3
+      },
+      "revId": "1c6b0f1bba4d4e3795a8a9c4417cbfde6e3f8015",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
