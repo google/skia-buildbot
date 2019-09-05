@@ -103,6 +103,12 @@ INSERTFILE(/tmp/.gitconfig)
 "@
 Set-Content C:\.gitconfig $gitconfig_contents
 
+banner "Create .boto"
+$boto_contents = @"
+INSERTFILE(/tmp/.boto)
+"@
+Set-Content C:\.boto $boto_contents
+
 banner "Create user $username"
 # Win2k8 has an older Powershell that doesn't support New-LocalUser.
 If (($PSVersionTable.PSVersion.Major -eq 5 -and $PSVersionTable.PSVersion.Minor -ge 1) -or
