@@ -150,3 +150,13 @@ func (t *TraceSetBuilder) Build(ctx context.Context) (types.TraceSet, paramtools
 	}
 	return traceSet, paramSet
 }
+
+// Finish closes down all the workers.
+//
+// Call this instead of Build() in the case of error conditions where the
+// results are to be ignored.
+func (t *TraceSetBuilder) Finish() {
+	for _, mw := range t.mergeWorkers {
+		mw.Close()
+	}
+}
