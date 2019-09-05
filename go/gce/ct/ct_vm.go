@@ -171,5 +171,15 @@ func setWindowsScripts(ctx context.Context, workDir string) error {
 	if err = ioutil.WriteFile(winSetupScript, output, 0666); err != nil {
 		return err
 	}
+
+	// Set .boto contents in the setup script. See skbug.com/9392 for context.
+	botoContents, err := exec.RunCwd(ctx, ".", "gsutil", "cat", instance_types.GS_URL_BOTO)
+	if err != nil {
+		return err
+	}
+	output = bytes.Replace(input, []byte("INSERTFILE(/tmp/.boto)"), []byte(botoContents), -1)
+	if err = ioutil.WriteFile(winSetupScript, output, 0666); err != nil {
+		return err
+	}
 	return nil
 }
