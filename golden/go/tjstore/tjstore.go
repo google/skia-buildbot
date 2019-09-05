@@ -39,7 +39,7 @@ type Store interface {
 	// those TryJobResult if they already existed. The TryJobResults will "belong"
 	// to the associated ChangeList and PatchSet. sharedParams is a map of
 	// keys that belong to all the associated TryJob.
-	PutResults(ctx context.Context, psID CombinedPSID, r []TryJobResult) error
+	PutResults(ctx context.Context, psID CombinedPSID, tjID string, r []TryJobResult) error
 
 	// Returns the underlying system (e.g. "buildbucket")
 	System() string
@@ -65,7 +65,6 @@ type TryJobResult struct {
 
 	// Options give extra details about this result. This includes things
 	// like the file format. Skia uses this for things like gamma_correctness.
-	// These cannot be filtered on, via ignores or PubliclyViewableParams.
 	// Clients should treat this as read-only and not modify it, as it could
 	// be shared by multiple different TryJobResults.
 	Options map[string]string

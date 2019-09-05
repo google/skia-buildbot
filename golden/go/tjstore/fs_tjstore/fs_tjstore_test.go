@@ -2,7 +2,10 @@ package fs_tjstore
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -11,6 +14,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/tjstore"
+	"go.skia.org/infra/golden/go/types"
 )
 
 func TestPutGetTryJob(t *testing.T) {
@@ -103,4 +107,137 @@ func TestGetTryJobs(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, xtj, 1)
 	assert.Equal(t, tj, xtj[0])
+}
+
+// TestConsistentParamsHashing makes sure we consistently hash a Params map to the same
+// value - this is vital for making sure we can re-assemble the TestResults
+func TestConsistentParamsHashing(t *testing.T) {
+	unittest.SmallTest(t)
+	m := map[string]string{
+		"a": "b",
+		"e": "f",
+		"0": "98",
+		"c": "d",
+	}
+	expectedHash := "62ee4de905f9ebda22ac5ffc81cddfb14939844dd33cc9c70de498054740d8f8"
+	h, err := hashParams(m)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedHash, h)
+
+	// Check in a loop to make sure it isn't flaky
+	for i := 0; i < 1000; i++ {
+		h, err := hashParams(m)
+		assert.NoError(t, err)
+		assert.Equal(t, expectedHash, h)
+	}
+
+	m["a"] = "c"
+	h, err = hashParams(m)
+	assert.NoError(t, err)
+	assert.NotEqual(t, expectedHash, h)
+}
+
+func TestPutGetResults(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+
+	f := New(c, "buildbucket")
+	ctx := context.Background()
+
+	firstTJID := "987654"
+	secondTJID := "zyxwvut"
+	psID := tjstore.CombinedPSID{
+		CL:  "1234",
+		CRS: "github",
+		PS:  "abcd",
+	}
+
+	gp := map[string]string{
+		"os":    "Android",
+		"model": "crustacean",
+	}
+	op := map[string]string{
+		"ext": "png",
+	}
+
+	var xtr []tjstore.TryJobResult
+	for i := 0; i < 5; i++ {
+		xtr = append(xtr, tjstore.TryJobResult{
+			GroupParams: gp,
+			Options:     op,
+			ResultParams: map[string]string{
+				types.PRIMARY_KEY_FIELD: "test-" + strconv.Itoa(i),
+			},
+			Digest: fakeDigest("crust", i),
+		})
+	}
+
+	err := f.PutResults(ctx, psID, firstTJID, xtr)
+	assert.NoError(t, err)
+
+	gp = map[string]string{
+		"os":    "Android",
+		"model": "whale",
+	}
+
+	xtr = nil
+	for i := 0; i < 4; i++ {
+		xtr = append(xtr, tjstore.TryJobResult{
+			GroupParams: gp,
+			Options:     op,
+			ResultParams: map[string]string{
+				types.PRIMARY_KEY_FIELD: "test-" + strconv.Itoa(i),
+			},
+			Digest: fakeDigest("whale", i),
+		})
+	}
+	// pretend the two tryjobs had the same output for test-4
+	xtr = append(xtr, tjstore.TryJobResult{
+		GroupParams: gp,
+		Options:     op,
+		ResultParams: map[string]string{
+			types.PRIMARY_KEY_FIELD: "test-4",
+		},
+		Digest: fakeDigest("crust", 4),
+	})
+
+	err = f.PutResults(ctx, psID, secondTJID, xtr)
+	assert.NoError(t, err)
+
+	otherPSID := tjstore.CombinedPSID{
+		CL:  "1234",
+		CRS: "github",
+		PS:  "other",
+	}
+
+	err = f.PutResults(ctx, otherPSID, "should-be-ignored", []tjstore.TryJobResult{{
+		GroupParams: map[string]string{
+			"model": "invalid",
+		},
+		Options: op,
+		ResultParams: map[string]string{
+			types.PRIMARY_KEY_FIELD: "test-4",
+		},
+		Digest: "abcdef",
+	}})
+	assert.NoError(t, err)
+
+	xtr, err = f.GetResults(ctx, psID)
+	assert.NoError(t, err)
+	assert.Len(t, xtr, 10)
+
+	// Spot-check the data and make sure it's sorted by digest.
+	prevDigest := types.Digest("")
+	for _, tr := range xtr {
+		assert.LessOrEqual(t, prevDigest, tr.Digest)
+		assert.Contains(t, []string{"whale", "crustacean"}, tr.GroupParams["model"])
+		prevDigest = tr.Digest
+	}
+}
+
+func fakeDigest(s string, i int) types.Digest {
+	b := strings.Repeat(s, i+1)
+	h := md5.Sum([]byte(b))
+	return types.Digest(hex.EncodeToString(h[:]))
 }

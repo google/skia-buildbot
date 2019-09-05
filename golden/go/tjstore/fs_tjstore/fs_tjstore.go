@@ -4,6 +4,8 @@ package fs_tjstore
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"sort"
 	"time"
@@ -11,6 +13,7 @@ import (
 	"cloud.google.com/go/firestore"
 	ifirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/clstore"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
@@ -151,13 +154,25 @@ func (s *StoreImpl) PutTryJob(ctx context.Context, psID tjstore.CombinedPSID, tj
 }
 
 // PutResults implements the tjstore.Store interface.
-func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, r []tjstore.TryJobResult) error {
+func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, tjID string, r []tjstore.TryJobResult) error {
 	return errors.New("not impl")
 }
 
 // System implements the tjstore.Store interface.
 func (s *StoreImpl) System() string {
 	return s.cisName
+}
+
+// hashParams returns a hex-encoded sha256 hash of the contents of the map in a
+// deterministic fashion. It uses the fact that the query package can deterministically
+// turn a map into a trace key, and hashes that output.
+func hashParams(m map[string]string) (string, error) {
+	s, err := query.MakeKeyFast(m)
+	if err != nil {
+		return "", skerr.Wrapf(err, "flattening map")
+	}
+	h := sha256.Sum256([]byte(s))
+	return hex.EncodeToString(h[:]), nil
 }
 
 // Make sure StoreImpl fulfills the tjstore.Store interface.

@@ -77,7 +77,7 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 
 	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(ci.TryJob{}, tjstore.ErrNotFound)
 	mtjs.On("PutTryJob", anyctx, sampleCombinedID, makeTryJob()).Return(nil)
-	mtjs.On("PutResults", anyctx, sampleCombinedID, makeTryJobResults()).Return(nil)
+	mtjs.On("PutResults", anyctx, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		reviewClient:      mcrs,
@@ -121,7 +121,7 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 
 	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(ci.TryJob{}, tjstore.ErrNotFound)
 	mtjs.On("PutTryJob", anyctx, sampleCombinedID, makeTryJob()).Return(nil)
-	mtjs.On("PutResults", anyctx, sampleCombinedID, makeTryJobResults()).Return(nil)
+	mtjs.On("PutResults", anyctx, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		reviewClient:      mcrs,
@@ -161,7 +161,7 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 
 	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(ci.TryJob{}, tjstore.ErrNotFound)
 	mtjs.On("PutTryJob", anyctx, sampleCombinedID, makeTryJob()).Return(nil)
-	mtjs.On("PutResults", anyctx, sampleCombinedID, makeTryJobResults()).Return(nil)
+	mtjs.On("PutResults", anyctx, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		reviewClient:      mcrs,
@@ -198,7 +198,7 @@ func TestTryJobProcessTJExistsSunnyDay(t *testing.T) {
 	mcls.On("GetPatchSet", anyctx, sampleCLID, samplePSID).Return(xps[1], nil)
 
 	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
-	mtjs.On("PutResults", anyctx, sampleCombinedID, makeTryJobResults()).Return(nil)
+	mtjs.On("PutResults", anyctx, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		reviewClient:      mcrs,
