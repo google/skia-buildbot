@@ -46,6 +46,7 @@ func InitWithMetrics2(appName string, promPort *string) {
 	initRest()
 }
 
+// remove lots of things from here.
 func initRest() {
 	AdminTasksWebapp = *ctfeURL + ctfeutil.ADMIN_TASK_URI
 	LuaTasksWebapp = *ctfeURL + ctfeutil.LUA_SCRIPT_URI
@@ -61,10 +62,5 @@ func initRest() {
 	}
 	if *Local {
 		util.SetVarsForLocal()
-	} else {
-		// Initialize mailing library.
-		if err := util.MailInit(); err != nil {
-			sklog.Fatal(err)
-		}
 	}
 }
