@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "49e18b2e_e16f03c7",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-05T16:58:56Z",
+      "side": 1,
+      "message": "TryJobResult",
+      "range": {
+        "startLine": 12,
+        "startChar": 74,
+        "endLine": 12,
+        "endChar": 82
+      },
+      "revId": "bd5282af5f5b8687f8adf699d8ef2a87a628f356",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5659ebf8_0f3bd5db",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-05T16:58:56Z",
+      "side": 1,
+      "message": "... reuse, recycle?",
+      "range": {
+        "startLine": 13,
+        "startChar": 53,
+        "endLine": 13,
+        "endChar": 59
+      },
+      "revId": "bd5282af5f5b8687f8adf699d8ef2a87a628f356",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63924254_f27ed18a",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-05T16:58:56Z",
+      "side": 1,
+      "message": "This isn\u0027t actually a field, right? Maybe make that a bit clearer. x3",
+      "range": {
+        "startLine": 16,
+        "startChar": 2,
+        "endLine": 16,
+        "endChar": 4
+      },
+      "revId": "bd5282af5f5b8687f8adf699d8ef2a87a628f356",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cbeea330_d4c573dd",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-05T16:58:56Z",
+      "side": 1,
+      "message": "nit: You might consider using three separate fields. That would give you flexibility if you want to query by CL (for all PSs) in the future. You would need a composite index. x2",
+      "range": {
+        "startLine": 18,
+        "startChar": 2,
+        "endLine": 18,
+        "endChar": 12
+      },
+      "revId": "bd5282af5f5b8687f8adf699d8ef2a87a628f356",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "82faab0a_1f048a54",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-05T16:58:56Z",
+      "side": 1,
+      "message": "nit: IIUC, \"The SystemID + System of the TryJob that generated this result\"",
+      "range": {
+        "startLine": 25,
+        "startChar": 28,
+        "endLine": 25,
+        "endChar": 76
+      },
+      "revId": "bd5282af5f5b8687f8adf699d8ef2a87a628f356",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69a9d223_1f40ea45",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-05T16:58:56Z",
+      "side": 1,
+      "message": "nit: \"We will fetch the TryJobResults in parallel sharded by Digest\"",
+      "range": {
+        "startLine": 52,
+        "startChar": 61,
+        "endLine": 53,
+        "endChar": 27
+      },
+      "revId": "bd5282af5f5b8687f8adf699d8ef2a87a628f356",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bac8391c_bac4961c",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-05T16:58:56Z",
+      "side": 1,
+      "message": "nit: Not sure if this is really true. I would expect many TryJobResults to have the same Digest, e.g. if I\u0027m adding a new test that draws the same on many different configs. It probably doesn\u0027t matter too much, since if there are enough digests for sharding to make a difference, there will be enough different digests that they should end up in different shards.",
+      "range": {
+        "startLine": 53,
+        "startChar": 48,
+        "endLine": 53,
+        "endChar": 89
+      },
+      "revId": "bd5282af5f5b8687f8adf699d8ef2a87a628f356",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "592fbd61_3c9e15c0",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-05T16:58:56Z",
+      "side": 1,
+      "message": "Any caching planned?",
+      "range": {
+        "startLine": 54,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 64
+      },
+      "revId": "bd5282af5f5b8687f8adf699d8ef2a87a628f356",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
