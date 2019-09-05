@@ -561,13 +561,10 @@ func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*fro
 	var wg sync.WaitGroup
 	wg.Add(len(resultDigests))
 	for _, retDigest := range resultDigests {
-		go func(retDigest *frontend.SRDigest) {
-			closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, retDigest.Test, retDigest.Digest, retDigest.ParamSet, rhsQuery, is)
-			retDigest.ClosestRef = closestRef
-			retDigest.RefDiffs = refDiffs
-
+		go func(d *frontend.SRDigest) {
+			refDiffer.FillRefDiffs(d, metric, match, rhsQuery, is)
 			// Remove the paramset since it will not be necessary for all results.
-			retDigest.ParamSet = nil
+			d.ParamSet = nil
 			wg.Done()
 		}(retDigest)
 	}
