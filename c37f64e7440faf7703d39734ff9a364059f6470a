@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c69269e5_5c7e2326",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-05T17:08:53Z",
+      "side": 1,
+      "message": "nit: consider making a helper function in ci package (e.g. SortTryJobsByName)",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 124,
+        "endChar": 3
+      },
+      "revId": "c37f64e7440faf7703d39734ff9a364059f6470a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b0c62b2e_09af2aaf",
+        "filename": "golden/go/tjstore/tjstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-05T17:08:53Z",
+      "side": 1,
+      "message": "nit: what\u0027s the reason for this? If it\u0027s for deterministic tests, seems like you need to sort by additional fields. (Presumably you will have a test for multiple results with the same digest.)",
+      "range": {
+        "startLine": 30,
+        "startChar": 4,
+        "endLine": 30,
+        "endChar": 39
+      },
+      "revId": "c37f64e7440faf7703d39734ff9a364059f6470a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
