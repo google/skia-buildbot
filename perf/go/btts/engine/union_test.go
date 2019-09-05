@@ -16,8 +16,8 @@ func TestUnion2Cancel(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
 		s := fromChan(newUnion2(ctx, a, b))
 		assert.Equal(t, []string{}, s)
 		wg.Done()
