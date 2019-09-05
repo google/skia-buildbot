@@ -93,6 +93,8 @@ func (s *StoreImpl) GetChangeList(ctx context.Context, id string) (code_review.C
 	return cl, nil
 }
 
+// changeListFirestoreID returns the id for a given CL in a given CRS - this allows us to
+// look up a document by id w/o having to perform a query.
 func (s *StoreImpl) changeListFirestoreID(clID string) string {
 	return clID + "_" + s.crsName
 }
