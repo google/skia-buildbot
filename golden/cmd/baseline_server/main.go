@@ -44,6 +44,8 @@ func main() {
 		sklog.Fatalf("--fs_namespace must be set")
 	}
 
+	firestore.EnsureNotEmulator()
+
 	// Set up the logging options.
 	logOpts := []common.Opt{
 		common.PrometheusOpt(promPort),

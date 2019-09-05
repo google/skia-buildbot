@@ -9,6 +9,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/eventbus/mocks"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -74,6 +75,67 @@ func TestGetExpectations(t *testing.T) {
 	e, err = fr.Get()
 	assert.NoError(t, err)
 	assert.Equal(t, expected, e)
+}
+
+// TestGetExpectationsSnapShot has both a read-write and a read version and makes sure
+// that the changes to the read-write version eventually propagate to the read version
+// via the QuerySnapshot.
+func TestGetExpectationsSnapShot(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+
+	f, err := New(c, nil, ReadWrite)
+	assert.NoError(t, err)
+
+	ctx := context.Background()
+	err = f.AddChange(ctx, types.Expectations{
+		data.AlphaTest: {
+			data.AlphaUntriaged1Digest: types.POSITIVE,
+			data.AlphaGood1Digest:      types.POSITIVE,
+		},
+	}, userOne)
+	assert.NoError(t, err)
+
+	ro, err := New(c, nil, ReadOnly)
+	assert.NoError(t, err)
+	assert.NotNil(t, ro)
+
+	exp, err := ro.Get()
+	assert.NoError(t, err)
+	assert.Equal(t, types.Expectations{
+		data.AlphaTest: {
+			data.AlphaUntriaged1Digest: types.POSITIVE,
+			data.AlphaGood1Digest:      types.POSITIVE,
+		},
+	}, exp)
+
+	err = f.AddChange(ctx, types.Expectations{
+		data.AlphaTest: {
+			data.AlphaBad1Digest:       types.NEGATIVE,
+			data.AlphaUntriaged1Digest: types.UNTRIAGED, // overwrites previous
+		},
+		data.BetaTest: {
+			data.BetaGood1Digest: types.POSITIVE,
+		},
+	}, userTwo)
+	assert.NoError(t, err)
+
+	expected := types.Expectations{
+		data.AlphaTest: {
+			data.AlphaGood1Digest:      types.POSITIVE,
+			data.AlphaBad1Digest:       types.NEGATIVE,
+			data.AlphaUntriaged1Digest: types.UNTRIAGED,
+		},
+		data.BetaTest: {
+			data.BetaGood1Digest: types.POSITIVE,
+		},
+	}
+
+	assert.Eventually(t, func() bool {
+		e, err := ro.Get()
+		return err == nil && deepequal.DeepEqual(expected, e)
+	}, 10*time.Second, 100*time.Millisecond)
 }
 
 // TestGetExpectationsRace writes a bunch of data from many go routines
