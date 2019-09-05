@@ -8,20 +8,24 @@ import (
 	"os"
 
 	"cloud.google.com/go/bigtable"
+	"cloud.google.com/go/pubsub"
 	"github.com/spf13/cobra"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/btts"
 	"go.skia.org/infra/perf/go/config"
+	"golang.org/x/oauth2"
 )
 
 var (
+	ts    oauth2.TokenSource
 	store *btts.BigTableTraceStore
 )
 
 // flags
 var (
+	all            bool
 	logToStdErr    bool
 	bigTableConfig string
 	tile           int32
@@ -40,7 +44,8 @@ func main() {
 			}
 			sklog.SetLogger(sklog.NewStdErrCloudLogger(logMode))
 
-			ts, err := auth.NewDefaultTokenSource(true, bigtable.Scope)
+			var err error
+			ts, err = auth.NewDefaultTokenSource(true, bigtable.Scope)
 			if err != nil {
 				return fmt.Errorf("Failed to auth: %s", err)
 			}
@@ -66,6 +71,14 @@ func main() {
 		Run:   configListAction,
 	}
 	configCmd.AddCommand(configListCmd)
+
+	configPubSubCmd := &cobra.Command{
+		Use:   "create-pubsub-topics",
+		Short: "Create PubSub topics for the given big_table_config.",
+		RunE:  configCreatePubSubTopicsAction,
+	}
+	configPubSubCmd.Flags().BoolVar(&all, "all", false, "If true then create topics for all configs.")
+	configCmd.AddCommand(configPubSubCmd)
 
 	indicesCmd := &cobra.Command{
 		Use: "indices [sub]",
@@ -311,4 +324,56 @@ func configListAction(c *cobra.Command, args []string) {
 	for k := range config.PERF_BIGTABLE_CONFIGS {
 		fmt.Println(k)
 	}
+}
+
+func createPubSubTopic(ctx context.Context, client *pubsub.Client, topicName, configName string) error {
+	topic := client.Topic(topicName)
+	ok, err := topic.Exists(ctx)
+	if err != nil {
+		return err
+	}
+	if ok {
+		fmt.Printf("Topic %q for config %q already exists\n", topicName, configName)
+		return nil
+	}
+
+	_, err = client.CreateTopic(ctx, topicName)
+	return fmt.Errorf("Failed to create topic %q for config %q: %s", topicName, configName, err)
+}
+
+func createPubSubTopicsForConfig(name string, cfg *config.PerfBigTableConfig) error {
+	ctx := context.Background()
+	client, err := pubsub.NewClient(ctx, cfg.Project)
+	if err != nil {
+		return err
+	}
+	if err := createPubSubTopic(ctx, client, cfg.Topic, name); err != nil {
+		return err
+	}
+	if err := createPubSubTopic(ctx, client, cfg.FileIngestionTopicName, name); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func configCreatePubSubTopicsAction(c *cobra.Command, args []string) error {
+	if all {
+		for name, cfg := range config.PERF_BIGTABLE_CONFIGS {
+			if err := createPubSubTopicsForConfig(name, cfg); err != nil {
+				return err
+			}
+			fmt.Printf("Config %q finished.\n", name)
+		}
+	} else {
+		if cfg, ok := config.PERF_BIGTABLE_CONFIGS[bigTableConfig]; ok {
+			if err := createPubSubTopicsForConfig(bigTableConfig, cfg); err != nil {
+				return err
+			}
+			fmt.Printf("Config %q finished.", bigTableConfig)
+		} else {
+			return fmt.Errorf("%q is not a valid config name. Run 'perf-tool config list' to see all config names.", bigTableConfig)
+		}
+	}
+	return nil
 }
