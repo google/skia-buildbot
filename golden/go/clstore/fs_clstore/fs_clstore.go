@@ -4,6 +4,7 @@ package fs_clstore
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -22,7 +23,8 @@ const (
 	patchsetCollection   = "clstore_patchset"
 
 	// These are the fields we query by
-	orderField = "order"
+	orderField   = "order"
+	updatedField = "updated"
 
 	maxAttempts = 10
 
@@ -100,7 +102,46 @@ func (s *StoreImpl) changeListFirestoreID(clID string) string {
 // GetChangeLists implements the clstore.Store interface.
 func (s *StoreImpl) GetChangeLists(ctx context.Context, startIdx, limit int) ([]code_review.ChangeList, int, error) {
 	defer metrics2.FuncTimer().Stop()
-	return nil, 0, skerr.Fmt("not impl")
+	q := s.client.Collection(changelistCollection).OrderBy(updatedField, firestore.Desc).
+		Limit(limit).Offset(startIdx)
+
+	var xcl []code_review.ChangeList
+
+	maxRetries := 3
+	r := fmt.Sprintf("[%d:%d]", startIdx, startIdx+limit)
+	err := s.client.IterDocs("GetChangeLists", r, q, maxRetries, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+		if doc == nil {
+			return nil
+		}
+		entry := changeListEntry{}
+		if err := doc.DataTo(&entry); err != nil {
+			id := doc.Ref.ID
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal entry with id %s", id)
+		}
+		xcl = append(xcl, code_review.ChangeList{
+			SystemID: entry.SystemID,
+			Updated:  entry.Updated,
+			Subject:  entry.Subject,
+			Status:   entry.Status,
+			Owner:    entry.Owner,
+		})
+		return nil
+	})
+	if err != nil {
+		return nil, -1, skerr.Wrapf(err, "fetching cls in range %s", r)
+	}
+	n := len(xcl)
+	if n == limit && n != 0 {
+		// We don't know how many there are and it might be too slow to count, so just give
+		// the "many" response.
+		n = clstore.CountMany
+	} else {
+		// We know exactly either 1) how many there are (if n > 0) or 2) an upper bound on how many
+		// there are (if n == 0)
+		n += startIdx
+	}
+
+	return xcl, n, nil
 }
 
 // GetPatchSet implements the clstore.Store interface.
