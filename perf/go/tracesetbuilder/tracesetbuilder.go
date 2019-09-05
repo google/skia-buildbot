@@ -146,7 +146,15 @@ func (t *TraceSetBuilder) Build(ctx context.Context) (types.TraceSet, paramtools
 		}
 		paramSet.AddParamSet(mw.paramSet)
 		// Shut down the worker.
-		mw.Close()
 	}
 	return traceSet, paramSet
+}
+
+// Close down all the workers.
+//
+// Always call this to clean up the workers.
+func (t *TraceSetBuilder) Close() {
+	for _, mw := range t.mergeWorkers {
+		mw.Close()
+	}
 }
