@@ -60,7 +60,7 @@ const (
 	// 4096 shards -> 9s
 	masterShards = 512
 
-	// There will not be very many shards on issues, relative to the MasterBranch, so
+	// There will not be very many entries on issues, relative to the MasterBranch, so
 	// we can get away with many fewer shards to avoid the overhead of so many
 	// simultaneous queries.
 	issueShards = 4
@@ -212,7 +212,7 @@ func (f *Store) loadExpectationsSharded(issue int64, shards int) (types.Expectat
 		entry := expectationEntry{}
 		if err := doc.DataTo(&entry); err != nil {
 			id := doc.Ref.ID
-			return skerr.Fmt("corrupt data in firestore, could not unmarshal entry with id %s: %s", id, err)
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal entry with id %s", id)
 		}
 		if es[i] == nil {
 			es[i] = types.Expectations{}
