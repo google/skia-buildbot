@@ -9,6 +9,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/eventbus/mocks"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -23,8 +24,9 @@ func TestGetExpectations(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
+	ctx := context.Background()
 
-	f, err := New(c, nil, ReadWrite)
+	f, err := New(ctx, c, nil, ReadWrite)
 	assert.NoError(t, err)
 
 	// Brand new instance should have no expectations
@@ -32,7 +34,6 @@ func TestGetExpectations(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, types.Expectations{}, e)
 
-	ctx := context.Background()
 	err = f.AddChange(ctx, types.Expectations{
 		data.AlphaTest: {
 			data.AlphaUntriaged1Digest: types.POSITIVE,
@@ -69,11 +70,72 @@ func TestGetExpectations(t *testing.T) {
 
 	// Make sure that if we create a new view, we can read the results
 	// from the table to make the expectations
-	fr, err := New(c, nil, ReadOnly)
+	fr, err := New(ctx, c, nil, ReadOnly)
 	assert.NoError(t, err)
 	e, err = fr.Get()
 	assert.NoError(t, err)
 	assert.Equal(t, expected, e)
+}
+
+// TestGetExpectationsSnapShot has both a read-write and a read version and makes sure
+// that the changes to the read-write version eventually propagate to the read version
+// via the QuerySnapshot.
+func TestGetExpectationsSnapShot(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+	ctx := context.Background()
+
+	f, err := New(ctx, c, nil, ReadWrite)
+	assert.NoError(t, err)
+
+	err = f.AddChange(ctx, types.Expectations{
+		data.AlphaTest: {
+			data.AlphaUntriaged1Digest: types.POSITIVE,
+			data.AlphaGood1Digest:      types.POSITIVE,
+		},
+	}, userOne)
+	assert.NoError(t, err)
+
+	ro, err := New(ctx, c, nil, ReadOnly)
+	assert.NoError(t, err)
+	assert.NotNil(t, ro)
+
+	exp, err := ro.Get()
+	assert.NoError(t, err)
+	assert.Equal(t, types.Expectations{
+		data.AlphaTest: {
+			data.AlphaUntriaged1Digest: types.POSITIVE,
+			data.AlphaGood1Digest:      types.POSITIVE,
+		},
+	}, exp)
+
+	err = f.AddChange(ctx, types.Expectations{
+		data.AlphaTest: {
+			data.AlphaBad1Digest:       types.NEGATIVE,
+			data.AlphaUntriaged1Digest: types.UNTRIAGED, // overwrites previous
+		},
+		data.BetaTest: {
+			data.BetaGood1Digest: types.POSITIVE,
+		},
+	}, userTwo)
+	assert.NoError(t, err)
+
+	expected := types.Expectations{
+		data.AlphaTest: {
+			data.AlphaGood1Digest:      types.POSITIVE,
+			data.AlphaBad1Digest:       types.NEGATIVE,
+			data.AlphaUntriaged1Digest: types.UNTRIAGED,
+		},
+		data.BetaTest: {
+			data.BetaGood1Digest: types.POSITIVE,
+		},
+	}
+
+	assert.Eventually(t, func() bool {
+		e, err := ro.Get()
+		return err == nil && deepequal.DeepEqual(expected, e)
+	}, 10*time.Second, 100*time.Millisecond)
 }
 
 // TestGetExpectationsRace writes a bunch of data from many go routines
@@ -82,8 +144,9 @@ func TestGetExpectationsRace(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
+	ctx := context.Background()
 
-	f, err := New(c, nil, ReadWrite)
+	f, err := New(ctx, c, nil, ReadWrite)
 	assert.NoError(t, err)
 
 	type entry struct {
@@ -120,7 +183,6 @@ func TestGetExpectationsRace(t *testing.T) {
 		},
 	}
 
-	ctx := context.Background()
 	wg := sync.WaitGroup{}
 
 	for i := 0; i < 50; i++ {
@@ -166,8 +228,9 @@ func TestGetExpectationsBig(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
+	ctx := context.Background()
 
-	f, err := New(c, nil, ReadWrite)
+	f, err := New(ctx, c, nil, ReadWrite)
 	assert.NoError(t, err)
 
 	// Write the expectations in two, non-overlapping blocks.
@@ -177,7 +240,6 @@ func TestGetExpectationsBig(t *testing.T) {
 	expected := exp1.DeepCopy()
 	expected.MergeExpectations(exp2)
 
-	ctx := context.Background()
 	wg := sync.WaitGroup{}
 
 	// Write them concurrently to test for races.
@@ -200,7 +262,7 @@ func TestGetExpectationsBig(t *testing.T) {
 
 	// Make sure that if we create a new view, we can read the results
 	// from the table to make the expectations
-	fr, err := New(c, nil, ReadOnly)
+	fr, err := New(ctx, c, nil, ReadOnly)
 	assert.NoError(t, err)
 	e, err = fr.Get()
 	assert.NoError(t, err)
@@ -212,8 +274,9 @@ func TestReadOnly(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
+	ctx := context.Background()
 
-	f, err := New(c, nil, ReadOnly)
+	f, err := New(ctx, c, nil, ReadOnly)
 	assert.NoError(t, err)
 
 	err = f.AddChange(context.Background(), types.Expectations{
@@ -230,12 +293,12 @@ func TestQueryLog(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	f, err := New(c, nil, ReadWrite)
+	ctx := context.Background()
+	f, err := New(ctx, c, nil, ReadWrite)
 	assert.NoError(t, err)
 
 	fillWith4Entries(t, f)
 
-	ctx := context.Background()
 	entries, n, err := f.QueryLog(ctx, 0, 100, false)
 	assert.NoError(t, err)
 	assert.Equal(t, 4, n) // 4 operations
@@ -307,12 +370,13 @@ func TestQueryLogDetails(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	f, err := New(c, nil, ReadWrite)
+	ctx := context.Background()
+
+	f, err := New(ctx, c, nil, ReadWrite)
 	assert.NoError(t, err)
 
 	fillWith4Entries(t, f)
 
-	ctx := context.Background()
 	entries, n, err := f.QueryLog(ctx, 0, 100, true)
 	assert.NoError(t, err)
 	assert.Equal(t, 4, n) // 4 operations
@@ -357,12 +421,13 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	f, err := New(c, nil, ReadWrite)
+	ctx := context.Background()
+
+	f, err := New(ctx, c, nil, ReadWrite)
 	assert.NoError(t, err)
 
 	fillWith4Entries(t, f)
 
-	ctx := context.Background()
 	entries, n, err := f.QueryLog(ctx, 0, 4, false)
 	assert.NoError(t, err)
 	assert.Equal(t, 4, n)
@@ -404,7 +469,7 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 
 	// Make sure that if we create a new view, we can read the results
 	// from the table to make the expectations
-	fr, err := New(c, nil, ReadOnly)
+	fr, err := New(ctx, c, nil, ReadOnly)
 	assert.NoError(t, err)
 	exp, err = fr.Get()
 	assert.NoError(t, err)
@@ -416,10 +481,12 @@ func TestUndoChangeNoExist(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	f, err := New(c, nil, ReadWrite)
+	ctx := context.Background()
+
+	f, err := New(ctx, c, nil, ReadWrite)
 	assert.NoError(t, err)
 
-	_, err = f.UndoChange(context.Background(), "doesnotexist", "userTwo")
+	_, err = f.UndoChange(ctx, "doesnotexist", "userTwo")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not find change")
 }
@@ -434,7 +501,9 @@ func TestEventBusAddMaster(t *testing.T) {
 
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	f, err := New(c, meb, ReadWrite)
+	ctx := context.Background()
+
+	f, err := New(ctx, c, meb, ReadWrite)
 	assert.NoError(t, err)
 
 	change1 := types.Expectations{
@@ -460,7 +529,6 @@ func TestEventBusAddMaster(t *testing.T) {
 		IssueID:     types.MasterBranch,
 	}, /*global=*/ true).Once()
 
-	ctx := context.Background()
 	assert.NoError(t, f.AddChange(ctx, change1, userOne))
 	assert.NoError(t, f.AddChange(ctx, change2, userTwo))
 }
@@ -475,7 +543,9 @@ func TestEventBusAddIssue(t *testing.T) {
 
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	e, err := New(c, meb, ReadWrite)
+	ctx := context.Background()
+
+	e, err := New(ctx, c, meb, ReadWrite)
 	assert.NoError(t, err)
 	issue := int64(117)
 	f := e.ForIssue(issue) // arbitrary issue
@@ -504,7 +574,6 @@ func TestEventBusAddIssue(t *testing.T) {
 		IssueID:     issue,
 	}, /*global=*/ false).Once()
 
-	ctx := context.Background()
 	assert.NoError(t, f.AddChange(ctx, change1, userOne))
 	assert.NoError(t, f.AddChange(ctx, change2, userTwo))
 }
@@ -518,7 +587,9 @@ func TestEventBusUndo(t *testing.T) {
 
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	f, err := New(c, meb, ReadWrite)
+	ctx := context.Background()
+
+	f, err := New(ctx, c, meb, ReadWrite)
 	assert.NoError(t, err)
 
 	change := types.Expectations{
@@ -541,7 +612,6 @@ func TestEventBusUndo(t *testing.T) {
 		IssueID:     types.MasterBranch,
 	}, /*global=*/ true).Once()
 
-	ctx := context.Background()
 	assert.NoError(t, f.AddChange(ctx, change, userOne))
 
 	entries, n, err := f.QueryLog(ctx, 0, 1, false)
@@ -562,10 +632,11 @@ func TestIssueExpectationsAddGet(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	mb, err := New(c, nil, ReadWrite)
+	ctx := context.Background()
+
+	mb, err := New(ctx, c, nil, ReadWrite)
 	assert.NoError(t, err)
 
-	ctx := context.Background()
 	assert.NoError(t, mb.AddChange(ctx, types.Expectations{
 		data.AlphaTest: {
 			data.AlphaGood1Digest: types.NEGATIVE,
@@ -627,10 +698,11 @@ func TestIssueExpectationsQueryLog(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
-	mb, err := New(c, nil, ReadWrite)
+	ctx := context.Background()
+
+	mb, err := New(ctx, c, nil, ReadWrite)
 	assert.NoError(t, err)
 
-	ctx := context.Background()
 	assert.NoError(t, mb.AddChange(ctx, types.Expectations{
 		data.AlphaTest: {
 			data.AlphaGood1Digest: types.POSITIVE,
