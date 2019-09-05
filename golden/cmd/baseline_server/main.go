@@ -44,6 +44,8 @@ func main() {
 		sklog.Fatalf("--fs_namespace must be set")
 	}
 
+	firestore.EnsureNotEmulator()
+
 	// Set up the logging options.
 	logOpts := []common.Opt{
 		common.PrometheusOpt(promPort),
@@ -60,7 +62,7 @@ func main() {
 		sklog.Fatalf("Unable to configure Firestore: %s", err)
 	}
 
-	expStore, err := fs_expstore.New(fsClient, nil, fs_expstore.ReadOnly)
+	expStore, err := fs_expstore.New(context.Background(), fsClient, nil, fs_expstore.ReadOnly)
 	if err != nil {
 		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
 	}

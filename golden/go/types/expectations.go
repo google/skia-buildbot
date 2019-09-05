@@ -61,15 +61,15 @@ func (e Expectations) Classification(test TestName, digest Digest) Label {
 
 // String returns an alphabetically sorted string representation
 // of this object.
-func (t Expectations) String() string {
-	names := make([]string, 0, len(t))
-	for testName := range t {
+func (e Expectations) String() string {
+	names := make([]string, 0, len(e))
+	for testName := range e {
 		names = append(names, string(testName))
 	}
 	sort.Strings(names)
 	s := strings.Builder{}
 	for _, testName := range names {
-		digestMap := t[TestName(testName)]
+		digestMap := e[TestName(testName)]
 		digests := make([]string, 0, len(digestMap))
 		for d := range digestMap {
 			digests = append(digests, string(d))
@@ -84,14 +84,14 @@ func (t Expectations) String() string {
 }
 
 // AsBaseline returns a copy that has all negative and untriaged digests removed.
-func (t Expectations) AsBaseline() Expectations {
-	e := Expectations{}
-	for testName, digests := range t {
+func (e Expectations) AsBaseline() Expectations {
+	n := Expectations{}
+	for testName, digests := range e {
 		for d, c := range digests {
 			if c == POSITIVE {
-				e.AddDigest(testName, d, POSITIVE)
+				n.AddDigest(testName, d, POSITIVE)
 			}
 		}
 	}
-	return e
+	return n
 }
