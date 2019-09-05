@@ -21,9 +21,6 @@
       'command': [
         '../../../bin/capture_skps_on_workers',
         '-logtostderr',
-        '--emails=<(EMAILS)',
-        '--description=<(DESCRIPTION)',
-        '--task_id=<(TASK_ID)',
         '--pageset_type=<(PAGESET_TYPE)',
         '--chromium_build=<(CHROMIUM_BUILD)',
         '--target_platform=<(TARGET_PLATFORM)',
