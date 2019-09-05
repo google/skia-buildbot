@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c5cdfc3e_703b875f",
+        "filename": "golden/go/search/ref_differ/ref_differ.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-05T12:50:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ffbb5127_68d2a0a1",
+      "range": {
+        "startLine": 28,
+        "startChar": 4,
+        "endLine": 28,
+        "endChar": 6
+      },
+      "revId": "8439638449baa26ed698ab2dee176cd115685710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c242931a_923d27f2",
         "filename": "golden/go/search/ref_differ/ref_differ_test.go",
         "patchSetId": 10
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "85a07cde_1187e911",
+        "filename": "golden/go/search/ref_differ/ref_differ_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-05T12:50:58Z",
+      "side": 1,
+      "message": "For a trybot run, the results would not be in the ParamsetSummary - but you are right for the case of something on master, especially where everything is untriaged.",
+      "parentUuid": "c242931a_923d27f2",
+      "range": {
+        "startLine": 41,
+        "startChar": 9,
+        "endLine": 41,
+        "endChar": 33
+      },
+      "revId": "8439638449baa26ed698ab2dee176cd115685710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "364cdaca_0f2c36fa",
         "filename": "golden/go/search/ref_differ/ref_differ_test.go",
         "patchSetId": 10
@@ -59,6 +107,30 @@
       "writtenOn": "2019-09-04T23:49:20Z",
       "side": 1,
       "message": "Is this used for anything?",
+      "range": {
+        "startLine": 94,
+        "startChar": 3,
+        "endLine": 94,
+        "endChar": 20
+      },
+      "revId": "8439638449baa26ed698ab2dee176cd115685710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc731392_2ae8c87d",
+        "filename": "golden/go/search/ref_differ/ref_differ_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-05T12:50:58Z",
+      "side": 1,
+      "message": "Maybe in the frontend. I\u0027m not sure.",
+      "parentUuid": "364cdaca_0f2c36fa",
       "range": {
         "startLine": 94,
         "startChar": 3,
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "33c4682b_f8142f85",
+        "filename": "golden/go/search/ref_differ/ref_differ_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-05T12:50:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bcdc99a3_bcd4d256",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 124,
+        "endChar": 113
+      },
+      "revId": "8439638449baa26ed698ab2dee176cd115685710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "81e6eb0c_41d6b704",
         "filename": "golden/go/search/ref_differ/ref_differ_test.go",
         "patchSetId": 10
@@ -105,6 +201,24 @@
       "writtenOn": "2019-09-04T23:49:20Z",
       "side": 1,
       "message": "IWBN to test other match queries.",
+      "revId": "8439638449baa26ed698ab2dee176cd115685710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aea9730_beb2e212",
+        "filename": "golden/go/search/ref_differ/ref_differ_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-05T12:50:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "81e6eb0c_41d6b704",
       "revId": "8439638449baa26ed698ab2dee176cd115685710",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "935c1808_17c028b4",
+        "filename": "golden/go/search/ref_differ/ref_differ_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-05T12:50:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "60b2cf7d_5dee5dad",
+      "range": {
+        "startLine": 241,
+        "startChar": 20,
+        "endLine": 241,
+        "endChar": 41
+      },
+      "revId": "8439638449baa26ed698ab2dee176cd115685710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "64ee3804_4b6ee0d3",
         "filename": "golden/go/search/ref_differ/ref_differ_test.go",
         "patchSetId": 10
@@ -154,6 +292,30 @@
       "revId": "8439638449baa26ed698ab2dee176cd115685710",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9424a90_92eaf04b",
+        "filename": "golden/go/search/ref_differ/ref_differ_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-05T12:50:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "64ee3804_4b6ee0d3",
+      "range": {
+        "startLine": 261,
+        "startChar": 49,
+        "endLine": 261,
+        "endChar": 54
+      },
+      "revId": "8439638449baa26ed698ab2dee176cd115685710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
