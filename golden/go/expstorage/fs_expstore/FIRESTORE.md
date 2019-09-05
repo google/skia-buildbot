@@ -89,6 +89,9 @@ To create the MasterExpectations map (at startup), we simply query all `expectat
 Documents with Issue==0 and assemble them together. The implementation will have an Expectations
 map in RAM that acts as a write-through cache.
 
+For performance, we shard fetching the expectations based on digest, since that data
+is essentially random and evenly distributed.
+
 IssueExpectations will have their changed Expectations (essentially their delta from the
 MasterExpectations) stored in the `expectations` Collection with nonzero
 Issue fields. When the tryjob monitor notes that a CL has landed, it can make a transaction
@@ -111,6 +114,8 @@ The design should be open to future changes, for example:
   1. Specifying a maximum age of an expectation. e.g. Forget about positive digests not seen for
     a year, forget about negative digests not seen for 6 months.
   2. Add in the ability to say *why* something was marked negative.
+  3. Use of QuerySnapshots to reduce needing to fetch the whole set of expectations each
+     time Get() is called (effectively have a model that streams the changes)
 
 For item #1, the schema could be augmented with a "last seen on" timestamp that is written to
 once per day or so in a batch write. Note: to not overly tax the indexes, the last seen
