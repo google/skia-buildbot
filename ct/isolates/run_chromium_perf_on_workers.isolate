@@ -21,9 +21,8 @@
       'command': [
         '../../../bin/run_chromium_perf_on_workers',
         '-logtostderr',
-        '--emails=<(EMAILS)',
+        '--run_requester=<(RUN_REQUESTER)',
         '--description=<(DESCRIPTION)',
-        '--task_id=<(TASK_ID)',
         '--pageset_type=<(PAGESET_TYPE)',
         '--benchmark_name=<(BENCHMARK)',
         '--benchmark_extra_args=<(BENCHMARK_ARGS)',
