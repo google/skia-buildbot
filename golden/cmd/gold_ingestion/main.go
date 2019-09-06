@@ -111,7 +111,8 @@ func main() {
 	// Set up the eventbus.
 	var eventBus eventbus.EventBus
 	if config.EventTopic != "" {
-		sID := subscriptionID
+		// FIXME(kjlubick): do not land like this
+		sID := subscriptionID + "-2"
 		if *local {
 			// This allows us to have an independent ingester
 			// when running locally.
