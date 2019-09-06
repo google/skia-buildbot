@@ -1246,3 +1246,16 @@ func PowerSet(n int) [][]int {
 	}
 	return append(subs, addl...)
 }
+
+// SSliceDedup deduplicates a slice of strings, preserving their order.
+func SSliceDedup(slice []string) []string {
+	deduped := []string{}
+	seen := map[string]bool{}
+	for _, s := range slice {
+		if _, ok := seen[s]; !ok {
+			seen[s] = true
+			deduped = append(deduped, s)
+		}
+	}
+	return deduped
+}
