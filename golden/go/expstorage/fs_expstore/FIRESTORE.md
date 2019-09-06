@@ -103,6 +103,11 @@ To undo, we can query the original change by id (from the `triage_records` Colle
 and simply apply the opposite of it, if the current state matches the labelBefore
 (otherwise, do nothing, because either it has been changed again or already undone).
 
+As an optimization in the ReadOnly case, we set up several firestore.QuerySnapshotIterators
+on shards of the expectations. That way, we can update the cached Expectations when
+the main database sees the changes, without having to poll it for the entire expectations
+every time.
+
 Growth Opportunities
 -------------------
 

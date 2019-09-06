@@ -378,7 +378,7 @@ func main() {
 	}
 
 	// Set up the cloud expectations store
-	expStore, err := fs_expstore.New(fsClient, evt, fs_expstore.ReadWrite)
+	expStore, err := fs_expstore.New(context.Background(), fsClient, evt, fs_expstore.ReadWrite)
 	if err != nil {
 		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
 	}
