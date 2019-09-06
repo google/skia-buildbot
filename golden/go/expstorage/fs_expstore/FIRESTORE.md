@@ -89,6 +89,9 @@ To create the MasterExpectations map (at startup), we simply query all `expectat
 Documents with Issue==0 and assemble them together. The implementation will have an Expectations
 map in RAM that acts as a write-through cache.
 
+For performance, we shard fetching the expectations based on digest, since that data
+is essentially random and evenly distributed.
+
 IssueExpectations will have their changed Expectations (essentially their delta from the
 MasterExpectations) stored in the `expectations` Collection with nonzero
 Issue fields. When the tryjob monitor notes that a CL has landed, it can make a transaction

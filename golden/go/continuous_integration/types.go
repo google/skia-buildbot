@@ -5,6 +5,7 @@ package continuous_integration
 import (
 	"context"
 	"errors"
+	"sort"
 	"time"
 )
 
@@ -22,4 +23,11 @@ type TryJob struct {
 	SystemID    string
 	DisplayName string
 	Updated     time.Time
+}
+
+// SortTryJobsByName sorts the given slice of TryJobs by DisplayName.
+func SortTryJobsByName(xtj []TryJob) {
+	sort.Slice(xtj, func(i, j int) bool {
+		return xtj[i].DisplayName < xtj[j].DisplayName
+	})
 }

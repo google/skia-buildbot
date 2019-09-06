@@ -5,7 +5,7 @@ We need to keep track of the ChangeLists and PatchSets that have been associated
 with TryJob data that we have ingested.
 
 See https://docs.google.com/document/d/1d0tOhgx51QOGiSXqTxiwNSlgm1pYHTUSBK3agysX6Iw/edit
-for more context if desired.
+for more context.
 
 Schema
 ------
@@ -30,8 +30,7 @@ and a subcollection for PatchSet.
 
 Indexing
 --------
-Due to the hirearchical structure, we should avoid all composite indices.
-
+Due to the hierarchical structure, we should avoid all composite indices.
 
 We should mark ChangeList.Subject as no-index, to save some index space.
 <https://cloud.google.com/firestore/docs/query-data/indexing#exemptions>

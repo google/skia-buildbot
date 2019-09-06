@@ -26,8 +26,7 @@ const (
 	orderField   = "order"
 	updatedField = "updated"
 
-	maxAttempts = 10
-
+	maxAttempts      = 10
 	maxOperationTime = time.Minute
 )
 
@@ -95,6 +94,8 @@ func (s *StoreImpl) GetChangeList(ctx context.Context, id string) (code_review.C
 	return cl, nil
 }
 
+// changeListFirestoreID returns the id for a given CL in a given CRS - this allows us to
+// look up a document by id w/o having to perform a query.
 func (s *StoreImpl) changeListFirestoreID(clID string) string {
 	return clID + "_" + s.crsName
 }
@@ -184,8 +185,7 @@ func (s *StoreImpl) GetPatchSets(ctx context.Context, clID string) ([]code_revie
 
 	var xps []code_review.PatchSet
 
-	maxRetries := 3
-	err := s.client.IterDocs("GetPatchSets", clID, q, maxRetries, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+	err := s.client.IterDocs("GetPatchSets", clID, q, maxAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}

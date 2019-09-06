@@ -24,6 +24,19 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
+// TODO(kjlubick) refactor a bit to reduce redundancy
+// TODO(kjlubick) Add tests for:
+//   - When a CL doesn't exist or the CL has not patchsets, patchset doesn't exist,
+//     or otherwise no results.
+//   - Use ignore matcher
+//   - When a CL specifies a PS
+//   - IncludeMaster=true
+//   - Different metric other than combined
+//   - Min/Max/DiffMax different
+//   - Sort order different
+//   - UnavailableDigests is not empty
+//   - DiffSever error
+
 // TestSearchThreeDevicesSunnyDay searches over the three_devices
 // test data for untriaged images at head, essentially the default search.
 // We expect to get two untriaged digests, with their closest positive and
