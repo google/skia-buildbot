@@ -71,6 +71,78 @@
     },
     {
       "key": {
+        "uuid": "8d75c447_a01be67f",
+        "filename": "golden/go/fs_utils/fs_utils.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5805a0f9_c8aaab56",
+      "range": {
+        "startLine": 22,
+        "startChar": 15,
+        "endLine": 22,
+        "endChar": 48
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ace51d8e_0acc3261",
+        "filename": "golden/go/fs_utils/fs_utils.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "I just copied and pasted this from fs_expstore and don\u0027t really want to re-work it right now.",
+      "parentUuid": "0a37a635_d82c68f2",
+      "range": {
+        "startLine": 22,
+        "startChar": 2,
+        "endLine": 22,
+        "endChar": 11
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b6e80a20_0aab5461",
+        "filename": "golden/go/fs_utils/fs_utils.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "Me too.",
+      "parentUuid": "0143ad6b_3be3c398",
+      "range": {
+        "startLine": 22,
+        "startChar": 33,
+        "endLine": 22,
+        "endChar": 35
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e6ed9935_e523b395",
         "filename": "golden/go/fs_utils/fs_utils.go",
         "patchSetId": 6
@@ -91,6 +163,30 @@
       "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58431490_e866abee",
+        "filename": "golden/go/fs_utils/fs_utils.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "I just copied and pasted this from fs_expstore and don\u0027t really want to re-work it right now.",
+      "parentUuid": "e6ed9935_e523b395",
+      "range": {
+        "startLine": 27,
+        "startChar": 5,
+        "endLine": 27,
+        "endChar": 70
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "5577d2e6_ea0f2a9e",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fcbf40f9_c5b7c5e2",
+      "range": {
+        "startLine": 47,
+        "startChar": 25,
+        "endLine": 47,
+        "endChar": 28
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "28f8cbeb_971b74f9",
         "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
         "patchSetId": 6
@@ -137,6 +257,30 @@
       "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03e01c8a_5b06dc59",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "28f8cbeb_971b74f9",
+      "range": {
+        "startLine": 180,
+        "startChar": 34,
+        "endLine": 180,
+        "endChar": 51
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "196dd424_431cd736",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "03d25923_49387af2",
+      "range": {
+        "startLine": 189,
+        "startChar": 10,
+        "endLine": 189,
+        "endChar": 21
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fbeb9685_1ed8cef3",
         "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
         "patchSetId": 6
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "8fe42a8d_211c7cc8",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "The docs say \"Do not modify application state inside of your transaction functions. Doing so will introduce concurrency issues\" so if I did something like that, it would require careful planning. I\u0027m not sure it\u0027s worth the implementation complexity at the moment - as I said, I believe the number of param maps to be relatively small.",
+      "parentUuid": "fbeb9685_1ed8cef3",
+      "range": {
+        "startLine": 213,
+        "startChar": 0,
+        "endLine": 213,
+        "endChar": 39
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9de94934_9a185ed2",
         "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
         "patchSetId": 6
@@ -200,6 +392,24 @@
       "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66e8df93_8f228892",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9de94934_9a185ed2",
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -226,6 +436,30 @@
     },
     {
       "key": {
+        "uuid": "d4c80e27_b531676c",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "Filed https://bugs.chromium.org/p/skia/issues/detail?id\u003d9400 as that\u0027s a bigger effort than I want to do here.",
+      "parentUuid": "02438ddc_0f85d85c",
+      "range": {
+        "startLine": 322,
+        "startChar": 0,
+        "endLine": 353,
+        "endChar": 0
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "260da1d5_56496fcd",
         "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
         "patchSetId": 6
@@ -246,6 +480,30 @@
       "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "043321a4_10fa97d3",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "260da1d5_56496fcd",
+      "range": {
+        "startLine": 354,
+        "startChar": 60,
+        "endLine": 354,
+        "endChar": 61
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -272,6 +530,30 @@
     },
     {
       "key": {
+        "uuid": "3f606876_70db3d26",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f45b208d_0bd03ce7",
+      "range": {
+        "startLine": 354,
+        "startChar": 0,
+        "endLine": 355,
+        "endChar": 84
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "995f04d9_7c7ba8db",
         "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
         "patchSetId": 6
@@ -292,6 +574,30 @@
       "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dffbfbc2_6933b3d5",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "https://bugs.chromium.org/p/skia/issues/detail?id\u003d9400",
+      "parentUuid": "995f04d9_7c7ba8db",
+      "range": {
+        "startLine": 366,
+        "startChar": 4,
+        "endLine": 366,
+        "endChar": 77
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -318,6 +624,30 @@
     },
     {
       "key": {
+        "uuid": "8bdf53b2_89af66c1",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 410,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "Do we trust goldctl to have validated the params before uploading to the bucket?  If we can\u0027t trust data in the bucket, then this is not the layer to validate that (tryjob_ingestion would be).",
+      "parentUuid": "e41a5207_6da48886",
+      "range": {
+        "startLine": 410,
+        "startChar": 17,
+        "endLine": 410,
+        "endChar": 28
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "47c8d5f3_7a1cbcad",
         "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
         "patchSetId": 6
@@ -329,6 +659,30 @@
       "writtenOn": "2019-09-06T17:15:56Z",
       "side": 1,
       "message": "Checking my understanding: the difference in performance between using the raw bytes vs. the hex-encoded bytes is not worth the extra difficulty in debugging, because any performance difference in map lookups would be swamped by the DB activity, and the extra space/network needed is swamped by the size of the other data, e.g. ResultParams.",
+      "range": {
+        "startLine": 415,
+        "startChar": 8,
+        "endLine": 415,
+        "endChar": 26
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5daa4e02_d74abdf5",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "Yes - I want something readable/copy-pasteable",
+      "parentUuid": "47c8d5f3_7a1cbcad",
       "range": {
         "startLine": 415,
         "startChar": 8,
@@ -364,6 +718,30 @@
     },
     {
       "key": {
+        "uuid": "6cafc3f5_d703d049",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "PutResults doesn\u0027t (shouldn\u0027t?) check for the existence of the TryJob.  For the purpose of the test, it doesn\u0027t matter. Production data shouldn\u0027t have one without the other.",
+      "parentUuid": "9512cabf_25abdd21",
+      "range": {
+        "startLine": 191,
+        "startChar": 10,
+        "endLine": 191,
+        "endChar": 20
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "691d7c8a_6b144226",
         "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
         "patchSetId": 6
@@ -384,6 +762,30 @@
       "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b6376c3_71c4426c",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "In a typical case, I expect gp to be the same for all tests and op one of a few different maps. Tweaking the test to make sure it doesn\u0027t blindly go with the first set.",
+      "parentUuid": "691d7c8a_6b144226",
+      "range": {
+        "startLine": 202,
+        "startChar": 0,
+        "endLine": 203,
+        "endChar": 19
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -410,6 +812,30 @@
     },
     {
       "key": {
+        "uuid": "15ad95cb_6bd5e0ba",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "goldctl requires both, but you could get away with an empty GroupParams. ResultParams can also be empty, but that doesn\u0027t make as much sense.",
+      "parentUuid": "249a4527_cbf56c77",
+      "range": {
+        "startLine": 253,
+        "startChar": 46,
+        "endLine": 253,
+        "endChar": 74
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "58b75533_94ce5bbd",
         "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
         "patchSetId": 6
@@ -424,6 +850,24 @@
       "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71ed252d_b3f31858",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "58b75533_94ce5bbd",
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -450,6 +894,30 @@
     },
     {
       "key": {
+        "uuid": "c63c9814_1c96a626",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "Sure.",
+      "parentUuid": "bccaffd4_08d2e689",
+      "range": {
+        "startLine": 353,
+        "startChar": 6,
+        "endLine": 353,
+        "endChar": 28
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4c526e97_6b81c030",
         "filename": "golden/go/tjstore/tjstore.go",
         "patchSetId": 6
@@ -470,6 +938,30 @@
       "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "808378f1_4a0c3b31",
+        "filename": "golden/go/tjstore/tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4c526e97_6b81c030",
+      "range": {
+        "startLine": 38,
+        "startChar": 44,
+        "endLine": 39,
+        "endChar": 46
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -496,6 +988,30 @@
     },
     {
       "key": {
+        "uuid": "7e5ad18d_93eff726",
+        "filename": "golden/go/tjstore/tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "023a9b3e_487bdcae",
+      "range": {
+        "startLine": 40,
+        "startChar": 47,
+        "endLine": 41,
+        "endChar": 50
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "500bf7d6_de8420fb",
         "filename": "golden/go/tjstore/tjstore.go",
         "patchSetId": 6
@@ -516,6 +1032,30 @@
       "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b0ec64c8_3beeded3",
+        "filename": "golden/go/tjstore/tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T18:45:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "500bf7d6_de8420fb",
+      "range": {
+        "startLine": 43,
+        "startChar": 52,
+        "endLine": 43,
+        "endChar": 63
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
