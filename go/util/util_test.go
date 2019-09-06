@@ -960,3 +960,18 @@ func TestPowerSet(t *testing.T) {
 	test(2, [][]int{{}, {0}, {1}, {0, 1}})
 	test(3, [][]int{{}, {0}, {1}, {0, 1}, {2}, {0, 2}, {1, 2}, {0, 1, 2}})
 }
+
+func TestSSliceDedup(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.Equal(t, []string{}, SSliceDedup([]string{}))
+	assert.Equal(t, []string{"foo"}, SSliceDedup([]string{"foo"}))
+	assert.Equal(t, []string{"foo"}, SSliceDedup([]string{"foo", "foo"}))
+	assert.Equal(t, []string{"foo", "bar"}, SSliceDedup([]string{"foo", "bar"}))
+	assert.Equal(t, []string{"foo", "bar"}, SSliceDedup([]string{"foo", "foo", "bar"}))
+	assert.Equal(t, []string{"foo", "bar"}, SSliceDedup([]string{"foo", "bar", "bar"}))
+	assert.Equal(t, []string{"foo", "bar"}, SSliceDedup([]string{"foo", "foo", "bar", "bar"}))
+	assert.Equal(t, []string{"foo", "baz", "bar"}, SSliceDedup([]string{"foo", "foo", "baz", "bar", "bar"}))
+	assert.Equal(t, []string{"foo", "baz", "bar"}, SSliceDedup([]string{"foo", "foo", "baz", "bar", "bar", "baz"}))
+	assert.Equal(t, []string{"foo", "bar", "baz"}, SSliceDedup([]string{"foo", "foo", "bar", "baz", "bar", "baz"}))
+}
