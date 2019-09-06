@@ -86,6 +86,9 @@ type TraceSetBuilder struct {
 // New creates a new TraceSetBuilder and starts the worker pools.
 //
 // size is the length of the traces in the final TraceSet.
+//
+// The caller should call Close() on the returned builder once they are done
+// with it to close down all the workers.
 func New(size int) *TraceSetBuilder {
 	t := &TraceSetBuilder{
 		wg:           &sync.WaitGroup{},
@@ -126,8 +129,6 @@ func (t *TraceSetBuilder) Add(traceMap map[int32]int32, traces types.TraceSet) {
 
 // Build returns the built TraceSet and ParamSet for that TraceSet.
 //
-// Build will also shut down the worker pools.
-//
 // Don't call Build until Add() has been called for every tile to be added.
 func (t *TraceSetBuilder) Build(ctx context.Context) (types.TraceSet, paramtools.ParamSet) {
 	ctx, span := trace.StartSpan(ctx, "TraceSetBuilder.Build")
@@ -145,8 +146,15 @@ func (t *TraceSetBuilder) Build(ctx context.Context) (types.TraceSet, paramtools
 			traceSet[k] = v
 		}
 		paramSet.AddParamSet(mw.paramSet)
-		// Shut down the worker.
-		mw.Close()
 	}
 	return traceSet, paramSet
+}
+
+// Close down all the workers.
+//
+// Always call this to clean up the workers.
+func (t *TraceSetBuilder) Close() {
+	for _, mw := range t.mergeWorkers {
+		mw.Close()
+	}
 }

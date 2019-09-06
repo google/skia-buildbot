@@ -40,6 +40,7 @@ func TestBuilder(t *testing.T) {
 	builder.Add(traceMap1, traces1)
 	builder.Add(traceMap2, traces2)
 	traceSet, ops := builder.Build(context.Background())
+	builder.Close()
 	assert.Len(t, traceSet, 3)
 	assert.Equal(t, traceSet[",arch=x86,name=foo,"], types.Trace{1.0, 2.0, e, 3.3, 4.4})
 	assert.Equal(t, traceSet[",arch=x86,name=bar,"], types.Trace{3.0, 4.0, e, 5.5, 6.6})
@@ -58,6 +59,7 @@ func TestBuilderEmpty(t *testing.T) {
 	unittest.SmallTest(t)
 
 	builder := New(5)
+	defer builder.Close()
 	traceSet, ops := builder.Build(context.Background())
 	assert.Len(t, traceSet, 0)
 	assert.Len(t, ops, 0)
