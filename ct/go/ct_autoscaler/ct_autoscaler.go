@@ -25,7 +25,7 @@ const (
 
 // Interface useful for mocking.
 type ICTAutoscaler interface {
-	RegisterGCETask(taskId string) error
+	RegisterGCETask(taskId string)
 }
 
 // The CTAutoscaler is a CT friendly wrapper around autoscaler.Autoscaller
@@ -125,29 +125,28 @@ func (c *CTAutoscaler) maybeScaleDown() error {
 	return nil
 }
 
-func (c *CTAutoscaler) RegisterGCETask(taskId string) error {
+func (c *CTAutoscaler) RegisterGCETask(taskId string) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
 	sklog.Debugf("Registering task %s in CTAutoscaler.", taskId)
 	if err := c.logRunningGCEInstances(); err != nil {
-		return err
+		sklog.Errorf("Could not log running instances: %s", err)
 	}
 
 	if !c.botsUp {
 		sklog.Debugf("Starting all CT GCE instances...")
 		if err := c.a.StartAllInstances(); err != nil {
-			return err
+			sklog.Errorf("Could not start all instances: %s", err)
 		}
 		if c.upGauge != nil {
 			c.upGauge.Update(1)
 		}
 		if err := c.logRunningGCEInstances(); err != nil {
-			return err
+			sklog.Errorf("Could not log running instances: %s", err)
 		}
 	}
 	c.botsUp = true
-	return nil
 }
 
 func (c *CTAutoscaler) logRunningGCEInstances() error {

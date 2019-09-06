@@ -215,9 +215,7 @@ func AddTaskToDatastore(ctx context.Context, task AddTaskVars) (Task, error) {
 func TriggerTaskOnSwarming(ctx context.Context, task AddTaskVars, datastoreTask Task) error {
 	if datastoreTask.RunsOnGCEWorkers() {
 		taskId := fmt.Sprintf("%s.%d", datastoreTask.GetTaskName(), datastoreTask.GetCommonCols().DatastoreKey.ID)
-		if err := autoscaler.RegisterGCETask(taskId); err != nil {
-			sklog.Errorf("Error when registering GCE task in CT autoscaler: %s", err)
-		}
+		autoscaler.RegisterGCETask(taskId)
 	}
 	return datastoreTask.TriggerSwarmingTask(ctx)
 }
