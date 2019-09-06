@@ -475,6 +475,7 @@ func main() {
 
 	handlers := web.WebHandlers{
 		Baseliner:               baseliner,
+		ChangeListStore:         cls,
 		DeprecatedTryjobMonitor: tryjobMonitor,
 		DeprecatedTryjobStore:   deprecatedTJS,
 		DiffStore:               diffStore,
@@ -485,6 +486,7 @@ func main() {
 		SearchAPI:               searchAPI,
 		StatusWatcher:           statusWatcher,
 		TileSource:              tileSource,
+		TryJobStore:             tjs,
 		VCS:                     vcs,
 	}
 
@@ -539,8 +541,6 @@ func main() {
 	jsonRouter.HandleFunc(trim("/json/triagelog"), handlers.TriageLogHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/triagelog/undo"), handlers.TriageUndoHandler).Methods("POST")
 	jsonRouter.HandleFunc(trim("/json/tryjob"), handlers.DeprecatedTryjobListHandler).Methods("GET")
-	// FIXME(kjlubick): The following will not work until the new ChangeListStore/TryJobStore etc
-	// is piped into web.go
 	jsonRouter.HandleFunc(trim("/json/changelists"), handlers.ChangeListsHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/changelist/{system}/{id}"), handlers.ChangeListSummaryHandler).Methods("GET")
 
