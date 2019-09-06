@@ -51,6 +51,7 @@ func CT20170602(name string, useSSDDataDisk bool) *gce.Instance {
 			auth.SCOPE_FULL_CONTROL,
 			auth.SCOPE_USERINFO_EMAIL,
 			auth.SCOPE_PUBSUB,
+			auth.SCOPE_GERRIT,
 		},
 		SetupScript: path.Join(dir, "setup-script.sh"),
 		Tags:        []string{"use-swarming-auth"},
