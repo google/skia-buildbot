@@ -1,0 +1,521 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0143ad6b_3be3c398",
+        "filename": "golden/go/fs_utils/fs_utils.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "I\u0027m confused why we\u0027re adding a newline.",
+      "range": {
+        "startLine": 22,
+        "startChar": 33,
+        "endLine": 22,
+        "endChar": 35
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0a37a635_d82c68f2",
+        "filename": "golden/go/fs_utils/fs_utils.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "nit: could move endHash outside the loop and just copy the last value for startHash",
+      "range": {
+        "startLine": 22,
+        "startChar": 2,
+        "endLine": 22,
+        "endChar": 11
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5805a0f9_c8aaab56",
+        "filename": "golden/go/fs_utils/fs_utils.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "nit: fmt.Sprintf(\"%016x%s\\n\", s, zeros)\n\n(Or just inline the zeros for max efficiency.)",
+      "range": {
+        "startLine": 22,
+        "startChar": 15,
+        "endLine": 22,
+        "endChar": 48
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e6ed9935_e523b395",
+        "filename": "golden/go/fs_utils/fs_utils.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "nit: could also omit the startHash for the first query",
+      "range": {
+        "startLine": 27,
+        "startChar": 5,
+        "endLine": 27,
+        "endChar": 70
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fcbf40f9_c5b7c5e2",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "nit: ifirestore.MAX_TRANSACTION_DOCS",
+      "range": {
+        "startLine": 47,
+        "startChar": 25,
+        "endLine": 47,
+        "endChar": 28
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28f8cbeb_971b74f9",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "nit: You only ever store nil in this map. Might as well use util.StringSet.",
+      "range": {
+        "startLine": 180,
+        "startChar": 34,
+        "endLine": 180,
+        "endChar": 51
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03d25923_49387af2",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "nit: It might be a good idea to use skerr.Unwrap in the go.skia.org/infra/go/firestore package where we attempt to determine the error type.",
+      "range": {
+        "startLine": 189,
+        "startChar": 10,
+        "endLine": 189,
+        "endChar": 21
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fbeb9685_1ed8cef3",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "nit: Seems like we might want to use GetAll to retrieve all the params at once: https://godoc.org/cloud.google.com/go/firestore#Client.GetAll\n\n(Not sure if it would be faster/better to use sharded queries or fetch individually in goroutines.)",
+      "range": {
+        "startLine": 213,
+        "startChar": 0,
+        "endLine": 213,
+        "endChar": 39
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9de94934_9a185ed2",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "nit: I wonder if it\u0027s worthwhile to log an error, inc a metric, and ignore the affected TryJobResults in this case.",
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "02438ddc_0f85d85c",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "nit: IWBN to encapsulate this logic in the ifirestore package, like a hybrid of IterDocs and Set/Update/Delete. Copy/paste existing code to get metrics and timers.",
+      "range": {
+        "startLine": 322,
+        "startChar": 0,
+        "endLine": 353,
+        "endChar": 0
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "260da1d5_56496fcd",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "nit: missing comma",
+      "range": {
+        "startLine": 354,
+        "startChar": 60,
+        "endLine": 354,
+        "endChar": 61
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f45b208d_0bd03ce7",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "nit: maybe doc in the interface that an error may indicate partial success",
+      "range": {
+        "startLine": 354,
+        "startChar": 0,
+        "endLine": 355,
+        "endChar": 84
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "995f04d9_7c7ba8db",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "nit: as discussed in person, it might be worthwhile to have a metric for number of partial failures\n\nIf you move some of this logic to ifirestore package, we could have a single global alert for all users.",
+      "range": {
+        "startLine": 366,
+        "startChar": 4,
+        "endLine": 366,
+        "endChar": 77
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e41a5207_6da48886",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 410,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "Do we know that all params passed to this function are valid?",
+      "range": {
+        "startLine": 410,
+        "startChar": 17,
+        "endLine": 410,
+        "endChar": 28
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47c8d5f3_7a1cbcad",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "Checking my understanding: the difference in performance between using the raw bytes vs. the hex-encoded bytes is not worth the extra difficulty in debugging, because any performance difference in map lookups would be swamped by the DB activity, and the extra space/network needed is swamped by the size of the other data, e.g. ResultParams.",
+      "range": {
+        "startLine": 415,
+        "startChar": 8,
+        "endLine": 415,
+        "endChar": 26
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9512cabf_25abdd21",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "Is it OK to PutResults for a TJID that doesn\u0027t exist?",
+      "range": {
+        "startLine": 191,
+        "startChar": 10,
+        "endLine": 191,
+        "endChar": 20
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "691d7c8a_6b144226",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "FWIW, this test would pass if the impl just remembers the GroupParams and Options of the first TryJobResult it sees and uses those for every TryJobResult it returns.",
+      "range": {
+        "startLine": 202,
+        "startChar": 0,
+        "endLine": 203,
+        "endChar": 19
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "249a4527_cbf56c77",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "IIUC, only one of GroupParams and ResultParams are really required, right?",
+      "range": {
+        "startLine": 253,
+        "startChar": 46,
+        "endLine": 253,
+        "endChar": 74
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58b75533_94ce5bbd",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "With no assertions on the result, we don\u0027t really know if it worked.",
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bccaffd4_08d2e689",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "Did you mean fmt.Sprintf(\"%s%d\", s, i)?",
+      "range": {
+        "startLine": 353,
+        "startChar": 6,
+        "endLine": 353,
+        "endChar": 28
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c526e97_6b81c030",
+        "filename": "golden/go/tjstore/tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "Is this correct?",
+      "range": {
+        "startLine": 38,
+        "startChar": 44,
+        "endLine": 39,
+        "endChar": 46
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "023a9b3e_487bdcae",
+        "filename": "golden/go/tjstore/tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "nit: No longer exists?",
+      "range": {
+        "startLine": 40,
+        "startChar": 47,
+        "endLine": 41,
+        "endChar": 50
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "500bf7d6_de8420fb",
+        "filename": "golden/go/tjstore/tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T17:15:56Z",
+      "side": 1,
+      "message": "nit: \"tjID is the SystemID of the TryJob for the TryJobResults.\"",
+      "range": {
+        "startLine": 43,
+        "startChar": 52,
+        "endLine": 43,
+        "endChar": 63
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
