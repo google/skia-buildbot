@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "45b7d9de_44df089c",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T12:02:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "49e18b2e_e16f03c7",
+      "range": {
+        "startLine": 12,
+        "startChar": 74,
+        "endLine": 12,
+        "endChar": 82
+      },
+      "revId": "bd5282af5f5b8687f8adf699d8ef2a87a628f356",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5659ebf8_0f3bd5db",
         "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "bd5282af5f5b8687f8adf699d8ef2a87a628f356",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8006e8d3_34a84103",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T12:02:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5659ebf8_0f3bd5db",
+      "range": {
+        "startLine": 13,
+        "startChar": 53,
+        "endLine": 13,
+        "endChar": 59
+      },
+      "revId": "bd5282af5f5b8687f8adf699d8ef2a87a628f356",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "cde07e5c_c992ca22",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T12:02:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "63924254_f27ed18a",
+      "range": {
+        "startLine": 16,
+        "startChar": 2,
+        "endLine": 16,
+        "endChar": 4
+      },
+      "revId": "bd5282af5f5b8687f8adf699d8ef2a87a628f356",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cbeea330_d4c573dd",
         "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
         "patchSetId": 1
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "20e50a93_162aeaf7",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T12:02:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cbeea330_d4c573dd",
+      "range": {
+        "startLine": 18,
+        "startChar": 2,
+        "endLine": 18,
+        "endChar": 12
+      },
+      "revId": "bd5282af5f5b8687f8adf699d8ef2a87a628f356",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "82faab0a_1f048a54",
         "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
         "patchSetId": 1
@@ -114,6 +210,30 @@
       "revId": "bd5282af5f5b8687f8adf699d8ef2a87a628f356",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "215d4166_52f4ba83",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T12:02:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "82faab0a_1f048a54",
+      "range": {
+        "startLine": 25,
+        "startChar": 28,
+        "endLine": 25,
+        "endChar": 76
+      },
+      "revId": "bd5282af5f5b8687f8adf699d8ef2a87a628f356",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +283,54 @@
     },
     {
       "key": {
+        "uuid": "31b98708_55f0408e",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T12:02:59Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "bac8391c_bac4961c",
+      "range": {
+        "startLine": 53,
+        "startChar": 48,
+        "endLine": 53,
+        "endChar": 89
+      },
+      "revId": "bd5282af5f5b8687f8adf699d8ef2a87a628f356",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c9084c9f_4be13431",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T12:02:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "69a9d223_1f40ea45",
+      "range": {
+        "startLine": 52,
+        "startChar": 61,
+        "endLine": 53,
+        "endChar": 27
+      },
+      "revId": "bd5282af5f5b8687f8adf699d8ef2a87a628f356",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "592fbd61_3c9e15c0",
         "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
         "patchSetId": 1
@@ -174,6 +342,30 @@
       "writtenOn": "2019-09-05T16:58:56Z",
       "side": 1,
       "message": "Any caching planned?",
+      "range": {
+        "startLine": 54,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 64
+      },
+      "revId": "bd5282af5f5b8687f8adf699d8ef2a87a628f356",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9311e31c_02399ffd",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-06T12:02:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "592fbd61_3c9e15c0",
       "range": {
         "startLine": 54,
         "startChar": 0,
