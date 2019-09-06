@@ -20,7 +20,9 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -163,6 +165,7 @@ func runChromiumPerfOnWorkers() error {
 	if err != nil {
 		return fmt.Errorf("Could not instantiate gsutil object: %s", err)
 	}
+
 	remoteOutputDir := path.Join(util.ChromiumPerfRunsStorageDir, *runID)
 
 	// TODO(rmistry): Fix the below.
@@ -402,6 +405,15 @@ func runChromiumPerfOnWorkers() error {
 	}
 
 	if *groupName != "" {
+		// Start the gitauth package because we will need to commit to CT Perf's synthetic repo.
+		ts, err := auth.NewDefaultTokenSource(*master_common.Local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+		if err != nil {
+			return err
+		}
+		if _, err := gitauth.New(ts, "/tmp/gitcookies", true, util.MASTER_SERVICE_ACCOUNT); err != nil {
+			return fmt.Errorf("Failed to create git cookie updater: %s", err)
+		}
+
 		if err := util.AddCTRunDataToPerf(ctx, *groupName, *runID, withPatchCSVLocalPath, gs); err != nil {
 			return fmt.Errorf("Could not add CT run data to ct-perf.skia.org: %s", err)
 		}
