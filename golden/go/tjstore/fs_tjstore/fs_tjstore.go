@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/clstore"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/fs_utils"
 	"go.skia.org/infra/golden/go/tjstore"
@@ -107,12 +106,12 @@ func (s *StoreImpl) GetTryJob(ctx context.Context, id string) (ci.TryJob, error)
 	doc, err := s.client.Collection(tryJobCollection).Doc(fID).Get(ctx)
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
-			return ci.TryJob{}, clstore.ErrNotFound
+			return ci.TryJob{}, tjstore.ErrNotFound
 		}
 		return ci.TryJob{}, skerr.Wrapf(err, "retrieving TryJob %s from firestore", fID)
 	}
 	if doc == nil {
-		return ci.TryJob{}, clstore.ErrNotFound
+		return ci.TryJob{}, tjstore.ErrNotFound
 	}
 
 	tje := tryJobEntry{}
@@ -261,7 +260,7 @@ func (s *StoreImpl) fetchParamMap(ctx context.Context, hash string) (paramtools.
 		return nil, skerr.Wrapf(err, "retrieving paramResult %s from firestore", hash)
 	}
 	if doc == nil {
-		return nil, clstore.ErrNotFound
+		return nil, tjstore.ErrNotFound
 	}
 	tje := paramEntry{}
 	if err := doc.DataTo(&tje); err != nil {

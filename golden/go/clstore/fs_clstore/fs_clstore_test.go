@@ -75,6 +75,37 @@ func TestPutGetPatchSet(t *testing.T) {
 	assert.Equal(t, ps, actual)
 }
 
+func TestPutGetPatchSetByOrder(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+
+	f := New(c, "gerrit")
+	ctx := context.Background()
+
+	expectedCLID := "987654"
+	expectedPSOrder := 3
+
+	// Should not exist initially
+	_, err := f.GetPatchSetByOrder(ctx, expectedCLID, expectedPSOrder)
+	assert.Error(t, err)
+	assert.Equal(t, clstore.ErrNotFound, err)
+
+	ps := code_review.PatchSet{
+		SystemID:     "abcdef012345",
+		ChangeListID: expectedCLID,
+		Order:        expectedPSOrder,
+		GitHash:      "fedcba98765443321",
+	}
+
+	err = f.PutPatchSet(ctx, ps)
+	assert.NoError(t, err)
+
+	actual, err := f.GetPatchSetByOrder(ctx, expectedCLID, expectedPSOrder)
+	assert.NoError(t, err)
+	assert.Equal(t, ps, actual)
+}
+
 // TestDifferentSystems makes sure that two systems in the same
 // firestore namespace don't overlap.
 func TestDifferentSystems(t *testing.T) {
