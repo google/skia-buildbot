@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a1d8560_5e8c9bb8",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 8
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T14:22:44Z",
+      "side": 1,
+      "message": "nit: vertical alignment",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 52
+      },
+      "revId": "0fb166d11255e99e7c0c6c182b85925942be2ce2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a69f7efa_37e12254",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 8
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T14:22:44Z",
+      "side": 1,
+      "message": "nit: If CISystem is a separate field, it might make sense for this to be just SystemID.",
+      "range": {
+        "startLine": 27,
+        "startChar": 33,
+        "endLine": 27,
+        "endChar": 50
+      },
+      "revId": "0fb166d11255e99e7c0c6c182b85925942be2ce2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6ebbb8ce_9795065b",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 8
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T14:22:44Z",
+      "side": 1,
+      "message": "You may want to be careful that PatchSetID is the last field in the index so that the same index can be used for both CL queries and CL+PS queries.",
+      "revId": "0fb166d11255e99e7c0c6c182b85925942be2ce2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "68390b7c_4fc211b3",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-06T14:22:44Z",
+      "side": 1,
+      "message": "Intentionally lowercase?",
+      "range": {
+        "startLine": 57,
+        "startChar": 6,
+        "endLine": 57,
+        "endChar": 7
+      },
+      "revId": "0fb166d11255e99e7c0c6c182b85925942be2ce2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
