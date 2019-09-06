@@ -4,7 +4,6 @@ type MockCTAutoscaler struct {
 	RegisterGCETaskTimesCalled int
 }
 
-func (m *MockCTAutoscaler) RegisterGCETask(taskId string) error {
+func (m *MockCTAutoscaler) RegisterGCETask(taskId string) {
 	m.RegisterGCETaskTimesCalled += 1
-	return nil
 }

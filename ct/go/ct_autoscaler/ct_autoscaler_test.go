@@ -20,13 +20,13 @@ func TestRegisterGCETask(t *testing.T) {
 	c := CTAutoscaler{a: mock, getGCETasksCount: mockGCETasksCount}
 
 	// Registering the first task should start all instances.
-	assert.Nil(t, c.RegisterGCETask("test-task1"))
+	c.RegisterGCETask("test-task1")
 	assert.Equal(t, true, c.botsUp)
 	assert.Equal(t, 1, mock.StartAllInstancesTimesCalled)
 	assert.Equal(t, 0, mock.StopAllInstancesTimesCalled)
 
 	// Registering the next task should not start all instances.
-	assert.Nil(t, c.RegisterGCETask("test-task2"))
+	c.RegisterGCETask("test-task2")
 	assert.Equal(t, true, c.botsUp)
 	assert.Equal(t, 1, mock.StartAllInstancesTimesCalled)
 	assert.Equal(t, 0, mock.StopAllInstancesTimesCalled)
@@ -46,8 +46,8 @@ func TestUnRegisterGCETask(t *testing.T) {
 	c := CTAutoscaler{a: mock, s: s, getGCETasksCount: mockGCETasksCount}
 
 	// Register 2 tasks.
-	assert.Nil(t, c.RegisterGCETask("test-task1"))
-	assert.Nil(t, c.RegisterGCETask("test-task2"))
+	c.RegisterGCETask("test-task1")
+	c.RegisterGCETask("test-task2")
 	mockTasksCount += 2
 	assert.Equal(t, true, c.botsUp)
 	assert.Equal(t, 1, mock.StartAllInstancesTimesCalled)
@@ -73,7 +73,7 @@ func TestUnRegisterGCETask(t *testing.T) {
 	// Registering and then unregistering a 3rd task should start and stop all
 	// instances.
 	mockTasksCount += 1
-	assert.Nil(t, c.RegisterGCETask("test-task3"))
+	c.RegisterGCETask("test-task3")
 	s.AssertNumberOfCalls(t, "DeleteBots", 1)
 	assert.Equal(t, true, c.botsUp)
 	assert.Equal(t, 2, mock.StartAllInstancesTimesCalled)
