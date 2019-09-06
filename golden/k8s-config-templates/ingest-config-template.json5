@@ -22,12 +22,11 @@
       }
     {{if .ING_TRY_ENABLED}}
     },
-
     // Gold Tryjob Ingester for gold-{{.INSTANCE_ID}}.
-    "gold-tryjob": {
+    "gold-tryjob-fs": {
       RunEvery: "{{.ING_TRY_RUN_EVERY}}",
       MinHours: {{.ING_TRY_MIN_HOURS}},
-      MetricName: "{{.INSTANCE_ID}}-gold-ingest-tryjob",
+      MetricName: "{{.INSTANCE_ID}}-gold-ingest-tryjob-fs",
       Sources: [
         {
           Bucket: "{{.BUCKET}}",
@@ -35,17 +34,15 @@
         },
       ],
       ExtraParams: {
-        BuildBucketName: "{{.ING_TRY_BUILDBUCKET}}",
-        BuildBucketPollInterval: "{{.ING_TRY_BB_INTERVAL}}",
-        BuildBucketTimeWindow: "{{.ING_TRY_BB_WINDOW}}",
-        BuildBucketURL: "{{.ING_TRY_BUILDBUCKET_URL}}",
-        BuilderRegEx: "{{.ING_TRY_BUILDER_REGEX}}",
-        DSNamespace: "{{.DATASTORE_NAMESPACE}}",
-        DSProjectID: "{{.DATASTORE_PROJECT}}",
-        GerritCodeReviewURL: "{{.GERRIT_URL}}",
-        JobConfigFile: "{{.ING_JOB_CONFIG_FILE}}",
+        FirestoreProjectID: "{{.FIRESTORE_PROJECT}}",
+        FirestoreNamespace: "{{.FIRESTORE_NAMESPACE}}",
+
+        CodeReviewSystem : "gerrit",
+        GerritURL:         "{{.GERRIT_URL}}",
+
+        ContinuousIntegrationSystem: "buildbucket",
       }
     {{end}}
     }
- }
+  }
 }
