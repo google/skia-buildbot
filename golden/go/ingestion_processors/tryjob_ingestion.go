@@ -227,7 +227,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 
 	// Store the results from the file.
 	tjr := toTryJobResults(gr)
-	err = g.tryjobStore.PutResults(ctx, combinedID, tjr)
+	err = g.tryjobStore.PutResults(ctx, combinedID, tjID, tjr)
 	if err != nil {
 		return skerr.Wrapf(err, "putting %d results for CL %s, PS %s, TJ %s, file %s", len(tjr), clID, psID, tjID, rf.Name())
 	}

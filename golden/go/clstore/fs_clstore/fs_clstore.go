@@ -72,7 +72,7 @@ func (s *StoreImpl) GetChangeList(ctx context.Context, id string) (code_review.C
 		if status.Code(err) == codes.NotFound {
 			return code_review.ChangeList{}, clstore.ErrNotFound
 		}
-		return code_review.ChangeList{}, skerr.Wrapf(err, "retrieving CL %s from firestore", doc.Ref.ID)
+		return code_review.ChangeList{}, skerr.Wrapf(err, "retrieving CL %s from firestore", fID)
 	}
 	if doc == nil {
 		return code_review.ChangeList{}, clstore.ErrNotFound
@@ -155,7 +155,7 @@ func (s *StoreImpl) GetPatchSet(ctx context.Context, clID, psID string) (code_re
 		if status.Code(err) == codes.NotFound {
 			return code_review.PatchSet{}, clstore.ErrNotFound
 		}
-		return code_review.PatchSet{}, skerr.Wrapf(err, "retrieving PS %s from firestore", doc.Ref.ID)
+		return code_review.PatchSet{}, skerr.Wrapf(err, "retrieving PS %s from firestore", fID)
 	}
 	if doc == nil {
 		return code_review.PatchSet{}, clstore.ErrNotFound
