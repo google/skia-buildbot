@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/golden/go/clstore/fs_clstore"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
+	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/continuous_integration/buildbucket_cis"
 	"go.skia.org/infra/golden/go/jsonio"
@@ -29,6 +30,7 @@ import (
 )
 
 const (
+	firestoreTryJobIngester = "gold-tryjob-fs"
 	firestoreProjectIDParam = "FirestoreProjectID"
 	firestoreNamespaceParam = "FirestoreNamespace"
 
@@ -41,6 +43,13 @@ const (
 	buildbucketCIS = "buildbucket"
 )
 
+// Register the ingestion Processor with the ingestion framework.
+func init() {
+	ingestion.Register(config.CONSTRUCTOR_GOLD_TRYJOB, deprecated_newGoldTryjobProcessor)
+	ingestion.Register(firestoreTryJobIngester, newModularTryjobProcessor)
+}
+
+// goldTryjobProcessor implements the ingestion.Processor interface to ingest tryjob results.
 type goldTryjobProcessor struct {
 	reviewClient      code_review.Client
 	integrationClient continuous_integration.Client
@@ -52,7 +61,10 @@ type goldTryjobProcessor struct {
 	cisName string
 }
 
-func newGoldTryjobProcessor(_ vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, eventBus eventbus.EventBus) (ingestion.Processor, error) {
+// newModularTryjobProcessor returns an ingestion.Processor which is modular and can support
+// different CodeReviewSystems (e.g. "Gerrit", "GitHub") and different ContinuousIntegrationSystems
+// (e.g. "BuildBucket", "CirrusCI"). This particular implementation stores the data in Firestore.
+func newModularTryjobProcessor(_ vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, _ eventbus.EventBus) (ingestion.Processor, error) {
 	crsName := config.ExtraParams[codeReviewSystemParam]
 	if strings.TrimSpace(crsName) == "" {
 		return nil, skerr.Fmt("missing code review system (e.g. 'gerrit')")
@@ -130,13 +142,13 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	}
 
 	clID := ""
-	psID := ""
+	psOrder := 0
 	crs := gr.CodeReviewSystem
 	if crs == "" || crs == g.crsName {
 		// Default to Gerrit
 		crs = gerritCRS
 		clID = strconv.FormatInt(gr.GerritChangeListID, 10)
-		psID = strconv.FormatInt(gr.GerritPatchSet, 10)
+		psOrder = int(gr.GerritPatchSet)
 	} else {
 		sklog.Warningf("Result %s said it was for crs %q, but this ingester is configured for %s", rf.Name(), crs, g.crsName)
 		// We only support one CRS and one CIS at the moment, but if needed, we can have
@@ -177,7 +189,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	}
 
 	// Fetch PS from clstore if we have seen it before, from CRS if we have not.
-	_, err = g.changelistStore.GetPatchSet(ctx, clID, psID)
+	ps, err := g.changelistStore.GetPatchSetByOrder(ctx, clID, psOrder)
 	if err == clstore.ErrNotFound {
 		xps, err := g.reviewClient.GetPatchSets(ctx, clID)
 		if err != nil {
@@ -186,26 +198,25 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 		// It should be ok to put any PatchSets we've seen before - they should be immutable.
 		found := false
 		for _, p := range xps {
-			err := g.changelistStore.PutPatchSet(ctx, p)
-			if err != nil {
-				return skerr.Wrapf(err, "could not store PS %q of CL %q to clstore", psID, clID)
-			}
-			// Only store PatchSets up to the latest one we know has data
-			if p.SystemID == psID {
+			if p.Order == psOrder {
+				if err := g.changelistStore.PutPatchSet(ctx, p); err != nil {
+					return skerr.Wrapf(err, "could not store PS %d of CL %q to clstore", psOrder, clID)
+				}
+				ps = p
 				found = true
 				break
 			}
 		}
 		if !found {
-			sklog.Warningf("Unknown %s PS with id %q for CL %q", crs, psID, clID)
+			sklog.Warningf("Unknown %s PS with order %d for CL %q", crs, psOrder, clID)
 			// Try again later - maybe the input was created before the CL uploaded its PS?
 			return ingestion.IgnoreResultsFileErr
 		}
 	} else if err != nil {
-		return skerr.Wrapf(err, "fetching PS from clstore with id %q for CL %q", psID, clID)
+		return skerr.Wrapf(err, "fetching PS from clstore with order %d for CL %q", psOrder, clID)
 	}
 
-	combinedID := tjstore.CombinedPSID{CL: clID, PS: psID, CRS: crs}
+	combinedID := tjstore.CombinedPSID{CL: clID, PS: ps.SystemID, CRS: crs}
 
 	_, err = g.tryjobStore.GetTryJob(ctx, tjID)
 	if err == tjstore.ErrNotFound {
@@ -229,7 +240,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	tjr := toTryJobResults(gr)
 	err = g.tryjobStore.PutResults(ctx, combinedID, tjID, tjr)
 	if err != nil {
-		return skerr.Wrapf(err, "putting %d results for CL %s, PS %s, TJ %s, file %s", len(tjr), clID, psID, tjID, rf.Name())
+		return skerr.Wrapf(err, "putting %d results for CL %s, PS %d, TJ %s, file %s", len(tjr), clID, psOrder, tjID, rf.Name())
 	}
 
 	return nil
