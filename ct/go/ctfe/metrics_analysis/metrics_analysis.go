@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -20,7 +21,9 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
+	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
 
@@ -136,10 +139,9 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	return t, nil
 }
 
-func (task DatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
+func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error {
 	runID := task_common.GetRunID(&task)
-	emails := []string{task.Username}
-	emails = append(emails, task.CCList...)
+	emails := task_common.GetEmailRecipients(task.Username, task.CCList)
 	isolateArgs := map[string]string{
 		"EMAILS":                    strings.Join(emails, ","),
 		"DESCRIPTION":               task.Description,
@@ -156,8 +158,59 @@ func (task DatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
 		"DS_PROJECT_NAME":           task_common.DsProjectName,
 	}
 
-	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "metrics_analysis_on_workers", ctutil.METRICS_ANALYSIS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
+	taskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "metrics_analysis_on_workers", ctutil.METRICS_ANALYSIS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs)
+	if err != nil {
 		return fmt.Errorf("Could not trigger master script for metrics_analysis_on_workers with isolate args %v: %s", isolateArgs, err)
+	}
+	// Mark task as started in datastore.
+	if err := task_common.UpdateTaskSetStarted(ctx, &UpdateVars{}, task.DatastoreKey.ID, runID, taskID); err != nil {
+		return fmt.Errorf("Could not mark task as started in datastore: %s", err)
+	}
+	// Send start email.
+	skutil.LogErr(ctutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Metrics analysis", runID, task.Description, ""))
+	return nil
+}
+
+func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSuccessfully bool) error {
+	runID := task_common.GetRunID(&task)
+	emails := task_common.GetEmailRecipients(task.Username, task.CCList)
+	emailSubject := fmt.Sprintf("Metrics analysis cluster telemetry task has completed (#%d)", task.DatastoreKey.ID)
+	failureHtml := ""
+	viewActionMarkup := ""
+	var err error
+
+	if completedSuccessfully {
+		if viewActionMarkup, err = email.GetViewActionMarkup(task.RawOutput, "View Results", "Direct link to the CSV results"); err != nil {
+			return fmt.Errorf("Failed to get view action markup: %s", err)
+		}
+	} else {
+		emailSubject += " with failures"
+		failureHtml = ctutil.GetFailureEmailHtml(runID)
+		if viewActionMarkup, err = email.GetViewActionMarkup(fmt.Sprintf(ctutil.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID), "View Failure", "Direct link to the swarming logs"); err != nil {
+			return fmt.Errorf("Failed to get view action markup: %s", err)
+		}
+	}
+
+	bodyTemplate := `
+	The metrics analysis task has completed. %s.<br/>
+	Run description: %s<br/>
+	%s
+	The CSV output is <a href='%s'>here</a>.<br/>
+	The patch(es) you specified are here:
+	<a href='%s'>chromium</a>/<a href='%s'>catapult</a>
+	<br/>
+	Traces used for this run are <a href='%s'>here</a>.
+	<br/><br/>
+	You can schedule more runs <a href='%s'>here</a>.
+	<br/><br/>
+	Thanks!
+	`
+	chromiumPatchLink := ctutil.GCS_HTTP_LINK + path.Join(ctutil.GCSBucketName, task.ChromiumPatchGSPath)
+	catapultPatchLink := ctutil.GCS_HTTP_LINK + path.Join(ctutil.GCSBucketName, task.CatapultPatchGSPath)
+	tracesLink := ctutil.GCS_HTTP_LINK + path.Join(ctutil.GCSBucketName, task.CustomTracesGSPath)
+	emailBody := fmt.Sprintf(bodyTemplate, ctutil.GetSwarmingLogsLink(runID), task.Description, failureHtml, task.RawOutput, chromiumPatchLink, catapultPatchLink, tracesLink, task_common.WebappURL+ctfeutil.METRICS_ANALYSIS_URI)
+	if err := ctutil.SendEmailWithMarkup(emails, emailSubject, emailBody, viewActionMarkup); err != nil {
+		return fmt.Errorf("Error while sending email: %s", err)
 	}
 	return nil
 }

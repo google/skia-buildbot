@@ -19,9 +19,6 @@
       'command': [
         '../../../bin/run_lua_on_workers',
         '-logtostderr',
-        '--emails=<(EMAILS)',
-        '--description=<(DESCRIPTION)',
-        '--task_id=<(TASK_ID)',
         '--pageset_type=<(PAGESET_TYPE)',
         '--chromium_build=<(CHROMIUM_BUILD)',
         '--run_on_gce=<(RUN_ON_GCE)',
