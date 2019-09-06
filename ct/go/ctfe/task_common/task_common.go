@@ -46,12 +46,10 @@ var (
 	// CT autoscaler.
 	autoscaler ct_autoscaler.ICTAutoscaler
 
-	// The Cloud Datastore namespace.
-	DsNamespace string
-	// The Cloud Datastore project name.
-	DsProjectName string
 	// The location of the service account JSON file.
 	ServiceAccountFile string
+
+	WebappURL string
 )
 
 type CommonCols struct {
@@ -64,12 +62,14 @@ type CommonCols struct {
 	RepeatAfterDays int64
 	SwarmingLogs    string
 	TaskDone        bool
+	SwarmingTaskID  string
 }
 
 type Task interface {
 	GetCommonCols() *CommonCols
 	RunsOnGCEWorkers() bool
-	TriggerSwarmingTask(ctx context.Context) error
+	TriggerSwarmingTaskAndMail(ctx context.Context) error
+	SendCompletionEmail(ctx context.Context, completedSuccessfully bool) error
 	GetTaskName() string
 	GetDatastoreKind() ds.Kind
 	// Returns a slice of the struct type.
@@ -105,12 +105,9 @@ func AsTaskSlice(selectResult interface{}) []Task {
 	return result
 }
 
-// Generates a hopefully-unique ID for this task.
-// There is a very small probability that we could end up with 2 tasks with the same
-// runID. This should only happen if a user has 2 (or more) open tabs and hits trigger
-// task quickly in all tabs.
+// Generates a unique ID for this task.
 func GetRunID(task Task) string {
-	return strings.SplitN(task.GetCommonCols().Username, "@", 2)[0] + "-" + ctutil.GetCurrentTs()
+	return fmt.Sprintf("%s-%s-%d", strings.SplitN(task.GetCommonCols().Username, "@", 2)[0], task.GetTaskName(), task.GetCommonCols().DatastoreKey.ID)
 }
 
 // Data included in all tasks; set by AddTaskHandler.
@@ -219,7 +216,7 @@ func TriggerTaskOnSwarming(ctx context.Context, task AddTaskVars, datastoreTask 
 			sklog.Errorf("Error when registering GCE task in CT autoscaler: %s", err)
 		}
 	}
-	return datastoreTask.TriggerSwarmingTask(ctx)
+	return datastoreTask.TriggerSwarmingTaskAndMail(ctx)
 }
 
 // Returns true if the string is non-empty, unless strconv.ParseBool parses the string as false.
@@ -413,18 +410,13 @@ type UpdateTaskCommonVars struct {
 	RepeatAfterDays      int64
 	ClearRepeatAfterDays bool
 	SwarmingLogs         string
+	SwarmingTaskID       string
 }
 
 func (vars *UpdateTaskCommonVars) SetStarted(runID string) {
 	vars.TsStarted = ctutil.GetCurrentTs()
 	swarmingLogsLink := fmt.Sprintf(ctutil.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID)
 	vars.SwarmingLogs = swarmingLogsLink
-}
-
-func (vars *UpdateTaskCommonVars) SetCompleted(success bool) {
-	vars.TsCompleted = ctutil.GetCurrentTs()
-	vars.Failure = !success
-	vars.TaskDone = true
 }
 
 func (vars *UpdateTaskCommonVars) GetUpdateTaskCommonVars() *UpdateTaskCommonVars {
@@ -436,6 +428,7 @@ type UpdateTaskVars interface {
 	GetUpdateTaskCommonVars() *UpdateTaskCommonVars
 	// Adds CT task specific updates for fields not in UpdateTaskCommonVars.
 	UpdateExtraFields(Task) error
+	SetCompleted(success bool, runID string)
 }
 
 func updateDatastoreTask(vars UpdateTaskVars, task Task) error {
@@ -472,6 +465,9 @@ func updateDatastoreTask(vars UpdateTaskVars, task Task) error {
 	if common.SwarmingLogs != "" {
 		task.GetCommonCols().SwarmingLogs = common.SwarmingLogs
 	}
+	if common.SwarmingTaskID != "" {
+		task.GetCommonCols().SwarmingTaskID = common.SwarmingTaskID
+	}
 	if err := vars.UpdateExtraFields(task); err != nil {
 		return err
 	}
@@ -499,8 +495,9 @@ func UpdateTaskHandler(vars UpdateTaskVars, prototype Task, w http.ResponseWrite
 	}
 }
 
-func UpdateTaskSetStarted(ctx context.Context, vars UpdateTaskVars, id int64, runID string) error {
+func UpdateTaskSetStarted(ctx context.Context, vars UpdateTaskVars, id int64, runID, swarmingTaskID string) error {
 	vars.GetUpdateTaskCommonVars().Id = id
+	vars.GetUpdateTaskCommonVars().SwarmingTaskID = swarmingTaskID
 	vars.GetUpdateTaskCommonVars().SetStarted(runID)
 	return FindAndUpdateTask(ctx, vars)
 }
@@ -509,7 +506,7 @@ func UpdateTaskSetFailed(ctx context.Context, task Task) error {
 	updateVars := task.GetUpdateTaskVars()
 	updateVars.GetUpdateTaskCommonVars().Id = task.GetCommonCols().DatastoreKey.ID
 	updateVars.GetUpdateTaskCommonVars().TsStarted = ctutil.GetCurrentTs()
-	updateVars.GetUpdateTaskCommonVars().SetCompleted(false)
+	updateVars.SetCompleted(false, GetRunID(task))
 	return UpdateTask(ctx, updateVars, task)
 }
 
@@ -804,6 +801,15 @@ func taskPrioritiesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func GetEmailRecipients(runOwner string, ccList []string) []string {
+	emails := []string{runOwner}
+	if ccList != nil {
+		emails = append(emails, ccList...)
+	}
+	emails = append(emails, ctutil.CtAdmins...)
+	return emails
+}
+
 func isAdminHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	data := map[string]interface{}{
@@ -823,9 +829,8 @@ func AddHandlers(externalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.IS_ADMIN_GET_URI, isAdminHandler).Methods("GET")
 }
 
-func Init(ctx context.Context, local bool, dsNamespaceFlagVal, dsProjectNameFlagVal, serviceAccountFileFlagVal string, getGCETasksCount func(ctx context.Context) (int, error)) error {
-	DsNamespace = dsNamespaceFlagVal
-	DsProjectName = dsProjectNameFlagVal
+func Init(ctx context.Context, local bool, ctfeURL, serviceAccountFileFlagVal string, getGCETasksCount func(ctx context.Context) (int, error)) error {
+	WebappURL = ctfeURL
 	ServiceAccountFile = serviceAccountFileFlagVal
 	var err error
 	autoscaler, err = ct_autoscaler.NewCTAutoscaler(ctx, local, getGCETasksCount)

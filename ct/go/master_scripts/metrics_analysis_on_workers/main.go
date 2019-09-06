@@ -19,11 +19,8 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/ct/go/ctfe/metrics_analysis"
-	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
-	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
@@ -34,9 +31,6 @@ const (
 )
 
 var (
-	emails             = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
-	description        = flag.String("description", "", "The description of the run as entered by the requester.")
-	taskID             = flag.Int64("task_id", -1, "The key of the CT task in CTFE. The task will be updated when it is started and also when it completes.")
 	benchmarkExtraArgs = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the analysis_metrics_ct benchmark.")
 	runID              = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 
@@ -48,87 +42,19 @@ var (
 	chromiumPatchGSPath   = flag.String("chromium_patch_gs_path", "", "The location of the Chromium patch in Google storage.")
 	catapultPatchGSPath   = flag.String("catapult_patch_gs_path", "", "The location of the Catapult patch in Google storage.")
 	customTracesCsvGSPath = flag.String("custom_traces_csv_gs_path", "", "The location of the custom traces CSV in Google storage.")
-
-	taskCompletedSuccessfully = false
-
-	chromiumPatchLink = ""
-	catapultPatchLink = ""
-	tracesLink        = ""
-	outputLink        = ""
 )
-
-func sendEmail(recipients []string, gs *util.GcsUtil) {
-	// Send completion email.
-	emailSubject := fmt.Sprintf("Metrics analysis cluster telemetry task has completed (#%d)", *taskID)
-	failureHtml := ""
-	viewActionMarkup := ""
-	var err error
-
-	if taskCompletedSuccessfully {
-		if viewActionMarkup, err = email.GetViewActionMarkup(outputLink, "View Results", "Direct link to the CSV results"); err != nil {
-			sklog.Errorf("Failed to get view action markup: %s", err)
-			return
-		}
-	} else {
-		emailSubject += " with failures"
-		failureHtml = util.GetFailureEmailHtml(*runID)
-		if viewActionMarkup, err = email.GetViewActionMarkup(fmt.Sprintf(util.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, *runID), "View Failure", "Direct link to the swarming logs"); err != nil {
-			sklog.Errorf("Failed to get view action markup: %s", err)
-			return
-		}
-	}
-
-	bodyTemplate := `
-	The metrics analysis task has completed. %s.<br/>
-	Run description: %s<br/>
-	%s
-	The CSV output is <a href='%s'>here</a>.<br/>
-	The patch(es) you specified are here:
-	<a href='%s'>chromium</a>/<a href='%s'>catapult</a>
-	<br/>
-	Traces used for this run are <a href='%s'>here</a>.
-	<br/><br/>
-	You can schedule more runs <a href='%s'>here</a>.
-	<br/><br/>
-	Thanks!
-	`
-	emailBody := fmt.Sprintf(bodyTemplate, util.GetSwarmingLogsLink(*runID), *description, failureHtml, outputLink, chromiumPatchLink, catapultPatchLink, tracesLink, master_common.MetricsAnalysisTasksWebapp)
-	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
-		sklog.Errorf("Error while sending email: %s", err)
-		return
-	}
-}
-
-func updateTaskInDatastore(ctx context.Context) {
-	vars := metrics_analysis.UpdateVars{}
-	vars.Id = *taskID
-	vars.SetCompleted(taskCompletedSuccessfully)
-	vars.RawOutput = outputLink
-	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars))
-}
 
 func metricsAnalysisOnWorkers() error {
 	master_common.Init("run_metrics_analysis")
 
 	ctx := context.Background()
 
-	// Send start email.
-	emailsArr := util.ParseEmails(*emails)
-	emailsArr = append(emailsArr, util.CtAdmins...)
-	if len(emailsArr) == 0 {
-		return errors.New("At least one email address must be specified")
-	}
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
 		return fmt.Errorf("Could not instantiate gsutil object: %s", err)
 	}
 
-	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &metrics_analysis.UpdateVars{}, *taskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Metrics analysis", *runID, *description, ""))
-	// Ensure task is updated and email is sent even if task fails.
-	defer updateTaskInDatastore(ctx)
-	defer sendEmail(emailsArr, gs)
 	// Cleanup dirs after run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
 	// Finish with glog flush and how long the task took.
@@ -188,9 +114,6 @@ func metricsAnalysisOnWorkers() error {
 			return fmt.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
 		}
 	}
-	chromiumPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, chromiumPatchName)
-	catapultPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, catapultPatchName)
-	tracesLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, tracesFileName)
 
 	// Find which chromium hash the workers should use.
 	chromiumHash, err := util.GetChromiumHash(ctx)
@@ -236,16 +159,12 @@ func metricsAnalysisOnWorkers() error {
 		return fmt.Errorf("All %d slaves produced no output", numSlaves)
 	}
 
-	// Construct the output link.
-	outputLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, util.BenchmarkRunsDir, *runID, "consolidated_outputs", *runID+".output")
-
 	// Display the no output slaves.
 	for _, noOutputSlave := range noOutputSlaves {
 		directLink := fmt.Sprintf(util.SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE, *runID, "metrics_analysis_"+noOutputSlave)
 		fmt.Printf("Missing output from %s\n", directLink)
 	}
 
-	taskCompletedSuccessfully = true
 	return nil
 }
 
