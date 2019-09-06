@@ -22,10 +22,11 @@ type Store interface {
 
 	// GetTryJobs returns all TryJobs associated with a given ChangeList and PatchSet.
 	// The returned slice could be empty if the CL or PS don't exist.
+	// TryJobs should be sorted by DisplayName.
 	GetTryJobs(ctx context.Context, psID CombinedPSID) ([]ci.TryJob, error)
 
 	// GetResults returns any TryJobResults for a given ChangeList and PatchSet.
-	// The returned slice could be empty.
+	// The returned slice could be empty and is not sorted.
 	GetResults(ctx context.Context, psID CombinedPSID) ([]TryJobResult, error)
 
 	// PutTryJob stores the given TryJob, overwriting any values for
@@ -36,7 +37,7 @@ type Store interface {
 	// PutResults stores the given TryJobResult, overwriting any values for
 	// those TryJobResult if they already existed. The TryJobResults will "belong"
 	// to the associated ChangeList and PatchSet. sharedParams is a map of
-	// keys that belong to all the associated tryjob
+	// keys that belong to all the associated TryJob.
 	PutResults(ctx context.Context, psID CombinedPSID, r []TryJobResult) error
 
 	// Returns the underlying system (e.g. "buildbucket")
