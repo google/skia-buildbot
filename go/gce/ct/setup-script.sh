@@ -39,6 +39,9 @@ if [ ! -d ~/depot_tools ]; then
 fi
 PATH=$PATH:~/depot_tools
 
+# CT uses this directory for storage of artifacts.
+mkdir -p /b/storage
+
 # If the bot is a builder then checkout Chromium and Skia repositories.
 if [[ $(hostname -s) = ct-*-builder* ]]; then
   echo "Checking out Chromium repository..."
