@@ -13,7 +13,7 @@ import (
 	"go.skia.org/infra/golden/go/code_review"
 )
 
-func TestSetGetChangeList(t *testing.T) {
+func TestPutGetChangeList(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
@@ -44,7 +44,7 @@ func TestSetGetChangeList(t *testing.T) {
 	assert.Equal(t, cl, actual)
 }
 
-func TestSetGetPatchSet(t *testing.T) {
+func TestPutGetPatchSet(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
