@@ -19,13 +19,9 @@
       'command': [
         '../../../bin/capture_archives_on_workers',
         '-logtostderr',
-        '--emails=<(EMAILS)',
-        '--task_id=<(TASK_ID)',
         '--run_on_gce=<(RUN_ON_GCE)',
         '--run_id=<(RUN_ID)',
         '--pageset_type=<(PAGESET_TYPE)',
-        '--ds_namespace=<(DS_NAMESPACE)',
-        '--ds_project_name=<(DS_PROJECT_NAME)',
       ]},
     }],
   ]
