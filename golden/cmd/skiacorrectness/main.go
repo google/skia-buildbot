@@ -104,6 +104,7 @@ func main() {
 		hashesGSPath        = flag.String("hashes_gs_path", "", "GS path, where the known hashes file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
 		indexInterval       = flag.Duration("idx_interval", 5*time.Minute, "Interval at which the indexer calculates the search index.")
 		internalPort        = flag.String("internal_port", "", "HTTP service address for internal clients, e.g. probers. No authentication on this port.")
+		litHTMLDir          = flag.String("lit_html_dir", "", "File path to build lit-html files")
 		local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 		memProfile          = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 		nCommits            = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
@@ -500,8 +501,10 @@ func main() {
 		sklog.Fatalf("Unable to get image handler: %s", err)
 	}
 
-	// New Polymer based UI endpoints.
+	// Legacy Polymer based UI endpoint
 	loggedRouter.PathPrefix("/res/").HandlerFunc(web.MakeResourceHandler(*resourcesDir))
+	// lit-html based UI endpoint.
+	loggedRouter.PathPrefix("/dist/").HandlerFunc(web.MakeResourceHandler(*litHTMLDir))
 	loggedRouter.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 
 	// TODO(stephana): remove "/_/hashes" in favor of "/json/hashes" once all clients have switched.
