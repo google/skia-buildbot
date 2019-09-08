@@ -37,8 +37,8 @@ require (
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
 	github.com/fortytw2/leaktest v1.3.0 // indirect
 	github.com/go-kit/kit v0.9.0 // indirect
-	github.com/go-openapi/spec v0.19.2 // indirect
-	github.com/go-openapi/swag v0.19.5 // indirect
+	github.com/go-openapi/jsonreference v0.19.3 // indirect
+	github.com/go-openapi/spec v0.19.3 // indirect
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
 	github.com/gogo/protobuf v1.3.0
@@ -46,6 +46,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6
 	github.com/golang/mock v1.3.1
 	github.com/golang/protobuf v1.3.2
+	github.com/google/addlicense v0.0.0-20190907113143-be125746c2c4 // indirect
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/pprof v0.0.0-20190723021845-34ac40c74b70 // indirect
@@ -73,7 +74,6 @@ require (
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/lib/pq v1.2.0 // indirect
 	github.com/magiconair/properties v1.8.1 // indirect
-	github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e // indirect
 	github.com/maruel/subcommands v0.0.0-20181220013616-967e945be48b // indirect
 	github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a
 	github.com/mattn/go-sqlite3 v1.11.0 // indirect
@@ -94,7 +94,7 @@ require (
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d // indirect
 	github.com/robfig/go-cache v0.0.0-20130306151617-9fc39e0dbf62
 	github.com/rogpeppe/fastuuid v1.2.0 // indirect
-	github.com/rogpeppe/go-internal v1.3.1 // indirect
+	github.com/rogpeppe/go-internal v1.3.2 // indirect
 	github.com/russross/blackfriday v2.0.0+incompatible // indirect
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
@@ -119,14 +119,14 @@ require (
 	go.chromium.org/luci v0.0.0-20190906003230-2b8b37b10d7f
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.opencensus.io v0.22.1
-	golang.org/x/crypto v0.0.0-20190829043050-9756ffdc2472
+	golang.org/x/crypto v0.0.0-20190907121410-71b5226ff739
 	golang.org/x/exp v0.0.0-20190829153037-c13cbed26979 // indirect
 	golang.org/x/image v0.0.0-20190902063713-cb417be4ba39 // indirect
 	golang.org/x/mobile v0.0.0-20190830201351-c6da95954960 // indirect
 	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	golang.org/x/sys v0.0.0-20190904154756-749cb33beabd // indirect
+	golang.org/x/sys v0.0.0-20190907184412-d223b2b6db03 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 	golang.org/x/tools v0.0.0-20190907020128-2ca718005c18 // indirect
 	golang.org/x/tools/gopls v0.1.3 // indirect
@@ -144,7 +144,7 @@ require (
 	k8s.io/api v0.0.0-20190905160310-fb749d2f1064 // indirect
 	k8s.io/apimachinery v0.0.0-20190831074630-461753078381
 	k8s.io/client-go v0.0.0-20190425172711-65184652c889
-	k8s.io/gengo v0.0.0-20190826232639-a874a240740c // indirect
-	k8s.io/utils v0.0.0-20190829053155-3a4a5477acf8 // indirect
+	k8s.io/gengo v0.0.0-20190907103519-ebc107f98eab // indirect
+	k8s.io/utils v0.0.0-20190907131718-3d4f5b7dea0b // indirect
 	sigs.k8s.io/structured-merge-diff v0.0.0-20190820212518-960c3cc04183 // indirect
 )
