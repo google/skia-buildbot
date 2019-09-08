@@ -1,0 +1,223 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "71d6d167_0f767491",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 650,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-08T22:09:07Z",
+      "side": 1,
+      "message": "nit: somewhere in doc, should make it clear this function doesn\u0027t return",
+      "range": {
+        "startLine": 650,
+        "startChar": 3,
+        "endLine": 650,
+        "endChar": 13
+      },
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0a91d972_a2bf5fb8",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 655,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-08T22:09:07Z",
+      "side": 1,
+      "message": "\u003e \"Iterater\" is a possible misspelling of \"Iterator\".",
+      "parentUuid": "02666d4d_a90e476e",
+      "range": {
+        "startLine": 655,
+        "startChar": 54,
+        "endLine": 655,
+        "endChar": 62
+      },
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93edb14c_d66a48ba",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 655,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-08T22:09:07Z",
+      "side": 1,
+      "message": "nit: might be clearer to add a type for the callback and doc there",
+      "range": {
+        "startLine": 652,
+        "startChar": 46,
+        "endLine": 655,
+        "endChar": 41
+      },
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d3b1014_bedd28f5",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 660,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-08T22:09:07Z",
+      "side": 1,
+      "message": "nit: This seems complicated. My guess is that if someone is using ignoreFirst\u003dtrue, they would probably be better off changing their query or rearranging their code to conform to the way QuerySnapshotIterator works. Can we get rid of this option and instead provide suggestions for how to deal with it?",
+      "range": {
+        "startLine": 657,
+        "startChar": 41,
+        "endLine": 660,
+        "endChar": 79
+      },
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8bc65c82_74d86526",
+        "filename": "task_scheduler/go/db/firestore/modified.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-08T22:09:07Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 22,
+        "startChar": 51,
+        "endLine": 22,
+        "endChar": 66
+      },
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "795feff7_16a111af",
+        "filename": "task_scheduler/go/db/firestore/modified.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-08T22:09:07Z",
+      "side": 1,
+      "message": "This should be false, right?",
+      "range": {
+        "startLine": 31,
+        "startChar": 37,
+        "endLine": 31,
+        "endChar": 41
+      },
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38d12a5d_5ab683f3",
+        "filename": "task_scheduler/go/db/firestore/modified.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-08T22:09:07Z",
+      "side": 1,
+      "message": "Seems to be ignored?",
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a719030d_b7dc7c90",
+        "filename": "task_scheduler/go/db/firestore/modified.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-08T22:09:07Z",
+      "side": 1,
+      "message": "I think this is supposed to return a deduplicated, sorted slice, but I don\u0027t see code to handle that here.",
+      "range": {
+        "startLine": 213,
+        "startChar": 24,
+        "endLine": 213,
+        "endChar": 41
+      },
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93339581_ba31998e",
+        "filename": "task_scheduler/go/db/firestore/modified_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-08T22:09:07Z",
+      "side": 1,
+      "message": "Still TODO?",
+      "range": {
+        "startLine": 16,
+        "startChar": 27,
+        "endLine": 17,
+        "endChar": 38
+      },
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0c7cfd4_dd96027a",
+        "filename": "task_scheduler/go/db/memory/comments.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-08T22:09:07Z",
+      "side": 1,
+      "message": "I don\u0027t understand any of the added Copys for arguments to TrackModified*. The callee should be making a copy if it is needed.",
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
