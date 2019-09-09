@@ -1,0 +1,28 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e967fb77_6168aed8",
+        "filename": "infra-sk/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-09T14:27:20Z",
+      "side": 1,
+      "message": "\u003e \"diretory\" is a possible misspelling of \"directory\".\n\nPlease Fix",
+      "parentUuid": "0cbc578e_2f5fbd6d",
+      "range": {
+        "startLine": 24,
+        "startChar": 60,
+        "endLine": 24,
+        "endChar": 68
+      },
+      "revId": "1209dca1352f058f2b85e6b5b5aff100d8d9878c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
