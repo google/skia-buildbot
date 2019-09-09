@@ -20,7 +20,7 @@ module.exports = (env, argv) => {
 }
 ```
 
-This changes forces module resolution to happen only in the directory where the
+This change forces module resolution to happen only in the directory where the
 project's `webpack.config.js` sits, i.e. the `node_modules` diretory under
 `infra_sk` will be ignored, which means that all dependencies for infra-sk have
 to exist in the projects `package.json` file.
