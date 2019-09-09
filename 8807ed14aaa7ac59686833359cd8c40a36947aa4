@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fcd54a4c_0797f277",
+        "filename": "skfe/k8s/default.conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-09T19:21:54Z",
+      "side": 1,
+      "message": "does this redirect https:// and http:// ?",
+      "range": {
+        "startLine": 103,
+        "startChar": 16,
+        "endLine": 103,
+        "endChar": 19
+      },
+      "revId": "8807ed14aaa7ac59686833359cd8c40a36947aa4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
