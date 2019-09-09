@@ -43,3 +43,12 @@ are stored in GCE Project Level Metadata and are updated via
 certpoller. The configurations for the nginx servers are handled
 as a push package that contains the nginx proxy rules for each
 backend.
+
+-----------------------------
+
+All of the above is being moved over to GKE Ingress. When that is done all that
+will remain in this directory is `/k8s/` and `build_nginx_redirect_release`,
+which runs an instance of nginx in skia-public that just handles
+rewrite/redirect rules.
+
+Image name: nginx-redirect
