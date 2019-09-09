@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "113c0faf_e9bf1a59",
+        "filename": "perf/go/regression/continuous.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-09T17:38:40Z",
+      "side": 1,
+      "message": "Document why shuffling is needed. Maybe add it to the function/struct docs.",
+      "range": {
+        "startLine": 192,
+        "startChar": 6,
+        "endLine": 192,
+        "endChar": 39
+      },
+      "revId": "4848c6d6da37dc9a9ba115bd087041e02dcb6928",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07e1ac8f_adf31dfa",
+        "filename": "perf/go/regression/continuous_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-09T17:38:40Z",
+      "side": 1,
+      "message": "add comment indicating that you can omit the rest of the fields because...",
+      "range": {
+        "startLine": 20,
+        "startChar": 5,
+        "endLine": 20,
+        "endChar": 11
+      },
+      "revId": "4848c6d6da37dc9a9ba115bd087041e02dcb6928",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
