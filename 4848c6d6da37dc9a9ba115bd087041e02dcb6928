@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9b2ec1c1_c51f561b",
+        "filename": "perf/go/regression/continuous.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-09T18:38:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "113c0faf_e9bf1a59",
+      "range": {
+        "startLine": 192,
+        "startChar": 6,
+        "endLine": 192,
+        "endChar": 39
+      },
+      "revId": "4848c6d6da37dc9a9ba115bd087041e02dcb6928",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "07e1ac8f_adf31dfa",
         "filename": "perf/go/regression/continuous_test.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "4848c6d6da37dc9a9ba115bd087041e02dcb6928",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e28ca46e_a7d2b338",
+        "filename": "perf/go/regression/continuous_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-09T18:38:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "07e1ac8f_adf31dfa",
+      "range": {
+        "startLine": 20,
+        "startChar": 5,
+        "endLine": 20,
+        "endChar": 11
+      },
+      "revId": "4848c6d6da37dc9a9ba115bd087041e02dcb6928",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
