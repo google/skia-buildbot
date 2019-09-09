@@ -16,6 +16,24 @@
       "revId": "59b30d36ef34ff17dad762813b55aa4f3584eccd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da56deca_ccc20cb2",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-09T19:00:55Z",
+      "side": 1,
+      "message": "Added in followup CL - good catch.",
+      "parentUuid": "9736b4de_6cbda792",
+      "revId": "59b30d36ef34ff17dad762813b55aa4f3584eccd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
