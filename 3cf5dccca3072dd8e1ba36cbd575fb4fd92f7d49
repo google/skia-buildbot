@@ -378,6 +378,30 @@
     },
     {
       "key": {
+        "uuid": "40dac3f4_d5b84045",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-09T16:29:21Z",
+      "side": 1,
+      "message": "I don\u0027t understand your reply. I don\u0027t see any transaction here. I also don\u0027t see anything particularly complicated about using GetAll vs getting individually in a loop.\n\nFor Skia, currently the number of GroupParams will be at least 13, and will be more if additional tryjobs run. I would be pleasantly surprised if the queries are so fast that it doesn\u0027t make much difference if we run them one at a time or in a batch.",
+      "parentUuid": "8fe42a8d_211c7cc8",
+      "range": {
+        "startLine": 213,
+        "startChar": 0,
+        "endLine": 213,
+        "endChar": 39
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9de94934_9a185ed2",
         "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
         "patchSetId": 6

@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f7987ed4_4c3e9413",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-09T16:29:21Z",
+      "side": 1,
+      "message": "Did you mean to just log the error rather than returning here?",
+      "revId": "ded2397b8e6d4e47cc57a8898bbc55fed4a99bdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d6bbbed9_a3f39f2b",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-09T16:29:21Z",
+      "side": 1,
+      "message": "nit: somewhere in this file, we should assert that we get back the expected Digest",
+      "range": {
+        "startLine": 188,
+        "startChar": 3,
+        "endLine": 188,
+        "endChar": 9
+      },
+      "revId": "ded2397b8e6d4e47cc57a8898bbc55fed4a99bdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da23148e_a99378d9",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-09T16:29:21Z",
+      "side": 1,
+      "message": "This would make more sense to me:\nassert.Equal(t, 5, crustCounts)\nassert.Equal(t, 5, whaleCounts)",
+      "revId": "ded2397b8e6d4e47cc57a8898bbc55fed4a99bdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da5ed7f0_4265f02a",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 362,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-09T16:29:21Z",
+      "side": 1,
+      "message": "nit: maybe assert.Equal(t, \"test-\" + strconv.Atoi(tr.Options[\"randomizer\"]), tr.ResultParams[types.PRIMARY_KEY_FIELD])",
+      "revId": "ded2397b8e6d4e47cc57a8898bbc55fed4a99bdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
