@@ -23,6 +23,30 @@
       "revId": "1209dca1352f058f2b85e6b5b5aff100d8d9878c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7bc1bc85_66224047",
+        "filename": "infra-sk/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-09T14:34:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e967fb77_6168aed8",
+      "range": {
+        "startLine": 24,
+        "startChar": 60,
+        "endLine": 24,
+        "endChar": 68
+      },
+      "revId": "1209dca1352f058f2b85e6b5b5aff100d8d9878c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
