@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "21a2f8dc_01e1d72a",
+        "filename": "golden/go/clstore/clstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-09T17:47:21Z",
+      "side": 1,
+      "message": "GetPatchSetByOrder",
+      "range": {
+        "startLine": 26,
+        "startChar": 4,
+        "endLine": 26,
+        "endChar": 15
+      },
+      "revId": "875bf7ac51f23d227b1a016d91efe1bf6a59c79b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ad935ae_cc223c95",
+        "filename": "golden/go/clstore/fs_clstore/fs_clstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-09T17:47:21Z",
+      "side": 1,
+      "message": "nit: IBWN to test with multiple patchsets.",
+      "revId": "875bf7ac51f23d227b1a016d91efe1bf6a59c79b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d28cf47d_6c4f89e2",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-09T17:47:21Z",
+      "side": 1,
+      "message": "You should talk with borenet about this. Probably there is some anonymous quota, but it will suddenly stop working if we\u0027re not authenticated.",
+      "range": {
+        "startLine": 131,
+        "startChar": 0,
+        "endLine": 132,
+        "endChar": 66
+      },
+      "revId": "875bf7ac51f23d227b1a016d91efe1bf6a59c79b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
