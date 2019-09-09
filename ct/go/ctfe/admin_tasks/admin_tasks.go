@@ -69,10 +69,6 @@ func (task RecreatePageSetsDatastoreTask) GetPopulatedAddTaskVars() (task_common
 	return taskVars, nil
 }
 
-func (task RecreatePageSetsDatastoreTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
-	return &RecreatePageSetsUpdateVars{}
-}
-
 func (task RecreatePageSetsDatastoreTask) RunsOnGCEWorkers() bool {
 	return true
 }
@@ -123,7 +119,7 @@ func (task RecreatePageSetsDatastoreTask) TriggerSwarmingTaskAndMail(ctx context
 		return fmt.Errorf("Could not trigger master script for create_pagesets_on_workers with isolate args %v: %s", isolateArgs, err)
 	}
 	// Mark task as started in datastore.
-	if err := task_common.UpdateTaskSetStarted(ctx, &RecreatePageSetsUpdateVars{}, task.DatastoreKey.ID, runID, sTaskID); err != nil {
+	if err := task_common.UpdateTaskSetStarted(ctx, runID, sTaskID, &task); err != nil {
 		return fmt.Errorf("Could not mark task as started in datastore: %s", err)
 	}
 	// Send start email.
@@ -150,6 +146,17 @@ func (task RecreatePageSetsDatastoreTask) SendCompletionEmail(ctx context.Contex
 	if err := ctutil.SendEmail(emails, emailSubject, emailBody); err != nil {
 		return fmt.Errorf("Error while sending email: %s", err)
 	}
+	return nil
+}
+
+func (task RecreatePageSetsDatastoreTask) SetCompleted(success bool) error {
+	var err error
+	task.TsCompleted, err = ctutil.GetCurrentTsInt64()
+	if err != nil {
+		return err
+	}
+	task.Failure = !success
+	task.TaskDone = true
 	return nil
 }
 
@@ -184,10 +191,6 @@ func (task RecreateWebpageArchivesDatastoreTask) GetPopulatedAddTaskVars() (task
 	taskVars.ChromiumBuild.ChromiumRev = task.ChromiumRev
 	taskVars.ChromiumBuild.SkiaRev = task.SkiaRev
 	return taskVars, nil
-}
-
-func (task RecreateWebpageArchivesDatastoreTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
-	return &RecreateWebpageArchivesUpdateVars{}
 }
 
 func (task RecreateWebpageArchivesDatastoreTask) RunsOnGCEWorkers() bool {
@@ -236,7 +239,7 @@ func (task RecreateWebpageArchivesDatastoreTask) TriggerSwarmingTaskAndMail(ctx 
 		return fmt.Errorf("Could not trigger master script for capture_archives_on_workers with isolate args %v: %s", isolateArgs, err)
 	}
 	// Mark task as started in datastore.
-	if err := task_common.UpdateTaskSetStarted(ctx, &RecreateWebpageArchivesUpdateVars{}, task.DatastoreKey.ID, runID, sTaskID); err != nil {
+	if err := task_common.UpdateTaskSetStarted(ctx, runID, sTaskID, &task); err != nil {
 		return fmt.Errorf("Could not mark task as started in datastore: %s", err)
 	}
 	// Send start email.
@@ -263,6 +266,17 @@ func (task RecreateWebpageArchivesDatastoreTask) SendCompletionEmail(ctx context
 	if err := ctutil.SendEmail(emails, emailSubject, emailBody); err != nil {
 		return fmt.Errorf("Error while sending email: %s", err)
 	}
+	return nil
+}
+
+func (task RecreateWebpageArchivesDatastoreTask) SetCompleted(success bool) error {
+	var err error
+	task.TsCompleted, err = ctutil.GetCurrentTsInt64()
+	if err != nil {
+		return err
+	}
+	task.Failure = !success
+	task.TaskDone = true
 	return nil
 }
 
@@ -332,42 +346,6 @@ func (task *AddRecreateWebpageArchivesTaskVars) GetPopulatedDatastoreTask(ctx co
 		SkiaRev:       task.ChromiumBuild.SkiaRev,
 	}
 	return t, nil
-}
-
-type RecreatePageSetsUpdateVars struct {
-	task_common.UpdateTaskCommonVars
-}
-
-func (task *RecreatePageSetsUpdateVars) GetTaskPrototype() task_common.Task {
-	return &RecreatePageSetsDatastoreTask{}
-}
-
-func (task *RecreatePageSetsUpdateVars) UpdateExtraFields(t task_common.Task) error {
-	return nil
-}
-
-func (vars *RecreatePageSetsUpdateVars) SetCompleted(success bool, t task_common.Task) {
-	vars.TsCompleted = ctutil.GetCurrentTs()
-	vars.Failure = !success
-	vars.TaskDone = true
-}
-
-type RecreateWebpageArchivesUpdateVars struct {
-	task_common.UpdateTaskCommonVars
-}
-
-func (task *RecreateWebpageArchivesUpdateVars) GetTaskPrototype() task_common.Task {
-	return &RecreateWebpageArchivesDatastoreTask{}
-}
-
-func (task *RecreateWebpageArchivesUpdateVars) UpdateExtraFields(t task_common.Task) error {
-	return nil
-}
-
-func (vars *RecreateWebpageArchivesUpdateVars) SetCompleted(success bool, t task_common.Task) {
-	vars.TsCompleted = ctutil.GetCurrentTs()
-	vars.Failure = !success
-	vars.TaskDone = true
 }
 
 func deleteRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
