@@ -10,4 +10,20 @@
      // expected contains the minimum number of days the cert needs to be valid.
      "expected": [10],
    },
+   "nginx-redirect": {
+     "urls": [
+       "https://autoroll-internal.skia.org",
+       "https://status-internal.skia.org",
+       "https://task-scheduler-internal.skia.org",
+       "http://skbug.com",
+       "https://bug.skia.org",
+       "https://bugs.skia.org",
+       "https://code.skia.org",
+       "https://review.skia.org",
+       "https://reviews.skia.org",
+       "https://cs.skia.org",
+     ],
+     "method": "GET",
+     "expected": [302],
+   }
 }
