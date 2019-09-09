@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "87d9c3ae_b924c818",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-09T13:53:38Z",
+      "side": 1,
+      "message": "Where is --lit_html_dir set as a command line flag?",
+      "range": {
+        "startLine": 111,
+        "startChar": 37,
+        "endLine": 111,
+        "endChar": 49
+      },
+      "revId": "efc5d000d5d57fd35beb4165307f8335e5e3dfcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f3ab6ad_d480029c",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 574,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-09T13:53:38Z",
+      "side": 1,
+      "message": "Why not ParseGlob? One less thing to update as you add more files.",
+      "range": {
+        "startLine": 574,
+        "startChar": 45,
+        "endLine": 574,
+        "endChar": 55
+      },
+      "revId": "efc5d000d5d57fd35beb4165307f8335e5e3dfcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
