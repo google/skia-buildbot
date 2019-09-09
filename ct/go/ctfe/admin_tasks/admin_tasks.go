@@ -120,8 +120,8 @@ func (task RecreatePageSetsDatastoreTask) TriggerSwarmingTask(ctx context.Contex
 		"DS_PROJECT_NAME": task_common.DsProjectName,
 	}
 
-	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_archives_on_workers", ctutil.CAPTURE_ARCHIVES_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
-		return fmt.Errorf("Could not trigger master script for capture_archives_on_workers with isolate args %v: %s", isolateArgs, err)
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "create_pagesets_on_workers", ctutil.CREATE_PAGESETS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
+		return fmt.Errorf("Could not trigger master script for create_pagesets_on_workers with isolate args %v: %s", isolateArgs, err)
 	}
 	return nil
 }
@@ -207,8 +207,8 @@ func (task RecreateWebpageArchivesDatastoreTask) TriggerSwarmingTask(ctx context
 		"DS_PROJECT_NAME": task_common.DsProjectName,
 	}
 
-	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "create_pagesets_on_workers", ctutil.CREATE_PAGESETS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
-		return fmt.Errorf("Could not trigger master script for create_pagesets_on_workers with isolate args %v: %s", isolateArgs, err)
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_archives_on_workers", ctutil.CAPTURE_ARCHIVES_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
+		return fmt.Errorf("Could not trigger master script for capture_archives_on_workers with isolate args %v: %s", isolateArgs, err)
 	}
 	return nil
 }
