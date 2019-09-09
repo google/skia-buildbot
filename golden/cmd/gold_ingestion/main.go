@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/go/ingestion/fs_ingestionstore"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
 
@@ -84,7 +85,7 @@ func main() {
 	ctx := context.Background()
 
 	// Initialize oauth client and start the ingesters.
-	tokenSrc, err := auth.NewDefaultTokenSource(*local, storage.ScopeFullControl, pubsub.ScopePubSub, pubsub.ScopeCloudPlatform)
+	tokenSrc, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, storage.ScopeFullControl, pubsub.ScopePubSub, pubsub.ScopeCloudPlatform, swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatalf("Failed to auth: %s", err)
 	}

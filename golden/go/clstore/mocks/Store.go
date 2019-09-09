@@ -87,6 +87,27 @@ func (_m *Store) GetPatchSet(ctx context.Context, clID string, psID string) (cod
 	return r0, r1
 }
 
+// GetPatchSetByOrder provides a mock function with given fields: ctx, clID, psOrder
+func (_m *Store) GetPatchSetByOrder(ctx context.Context, clID string, psOrder int) (code_review.PatchSet, error) {
+	ret := _m.Called(ctx, clID, psOrder)
+
+	var r0 code_review.PatchSet
+	if rf, ok := ret.Get(0).(func(context.Context, string, int) code_review.PatchSet); ok {
+		r0 = rf(ctx, clID, psOrder)
+	} else {
+		r0 = ret.Get(0).(code_review.PatchSet)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, int) error); ok {
+		r1 = rf(ctx, clID, psOrder)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPatchSets provides a mock function with given fields: ctx, clID
 func (_m *Store) GetPatchSets(ctx context.Context, clID string) ([]code_review.PatchSet, error) {
 	ret := _m.Called(ctx, clID)

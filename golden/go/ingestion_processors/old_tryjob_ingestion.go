@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/bbstate"
-	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/tryjobstore/ds_tryjobstore"
@@ -43,11 +42,6 @@ const (
 	gerritCodeReviewURLParam     = "GerritCodeReviewURL"
 	jobConfigFileParam           = "JobConfigFile"
 )
-
-// Register the ingestion Processor with the ingestion framework.
-func init() {
-	ingestion.Register(config.CONSTRUCTOR_GOLD_TRYJOB, deprecated_newGoldTryjobProcessor)
-}
 
 // deprecatedGoldTryjobProcessor implements the ingestion.Processor interface to ingest
 // tryjob results.

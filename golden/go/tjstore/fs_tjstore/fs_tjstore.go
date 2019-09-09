@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/clstore"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/fs_utils"
 	"go.skia.org/infra/golden/go/tjstore"
@@ -108,12 +107,12 @@ func (s *StoreImpl) GetTryJob(ctx context.Context, id string) (ci.TryJob, error)
 	doc, err := s.client.Collection(tryJobCollection).Doc(fID).Get(ctx)
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
-			return ci.TryJob{}, clstore.ErrNotFound
+			return ci.TryJob{}, tjstore.ErrNotFound
 		}
 		return ci.TryJob{}, skerr.Wrapf(err, "retrieving TryJob %s from firestore", fID)
 	}
 	if doc == nil {
-		return ci.TryJob{}, clstore.ErrNotFound
+		return ci.TryJob{}, tjstore.ErrNotFound
 	}
 
 	tje := tryJobEntry{}
@@ -231,6 +230,7 @@ func (s *StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID) (
 
 	for _, doc := range paramDocs {
 		if !doc.Exists() {
+			s.badParamMaps.Inc(1)
 			sklog.Warningf("Could not find param map with id %s", doc.Ref.ID)
 			continue
 		}

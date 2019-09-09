@@ -176,6 +176,44 @@ func (s *StoreImpl) GetPatchSet(ctx context.Context, clID, psID string) (code_re
 	return ps, nil
 }
 
+// GetPatchSet implements the clstore.Store interface.
+func (s *StoreImpl) GetPatchSetByOrder(ctx context.Context, clID string, psOrder int) (code_review.PatchSet, error) {
+	defer metrics2.FuncTimer().Stop()
+	fID := s.changeListFirestoreID(clID)
+	q := s.client.Collection(changelistCollection).Doc(fID).
+		Collection(patchsetCollection).Where(orderField, "==", psOrder)
+
+	ps := code_review.PatchSet{}
+	found := false
+	msg := fmt.Sprintf("%s:%d", clID, psOrder)
+	err := s.client.IterDocs("GetPatchSetByOrder", msg, q, maxReadAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+		if doc == nil || found {
+			return nil
+		}
+		entry := patchSetEntry{}
+		if err := doc.DataTo(&entry); err != nil {
+			id := doc.Ref.ID
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal patchsetEntry with id %s", id)
+		}
+		ps = code_review.PatchSet{
+			SystemID:     entry.SystemID,
+			ChangeListID: entry.ChangeListID,
+			Order:        entry.Order,
+			GitHash:      entry.GitHash,
+		}
+		found = true
+		return nil
+	})
+	if err != nil {
+		return code_review.PatchSet{}, skerr.Wrapf(err, "fetching patchsets for cl %s", clID)
+	}
+	if !found {
+		return code_review.PatchSet{}, clstore.ErrNotFound
+	}
+
+	return ps, nil
+}
+
 // GetPatchSets implements the clstore.Store interface.
 func (s *StoreImpl) GetPatchSets(ctx context.Context, clID string) ([]code_review.PatchSet, error) {
 	defer metrics2.FuncTimer().Stop()
