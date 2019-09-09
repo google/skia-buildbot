@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cca72dcf_7ac1519b",
+        "filename": "autoroll/go/autoroll-google3/google3.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-09T18:28:09Z",
+      "side": 1,
+      "message": "nit: remove; many other instances in this CL",
+      "range": {
+        "startLine": 53,
+        "startChar": 40,
+        "endLine": 53,
+        "endChar": 61
+      },
+      "revId": "76149243f5d0f1c6c19e8ea8623ca8e9f797c5a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a09b1500_a8a7e40c",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-09T18:28:09Z",
+      "side": 1,
+      "message": "nit: since you\u0027re already changing this, maybe better to pass in a TokenSource rather than a client.",
+      "range": {
+        "startLine": 55,
+        "startChar": 25,
+        "endLine": 55,
+        "endChar": 39
+      },
+      "revId": "76149243f5d0f1c6c19e8ea8623ca8e9f797c5a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
