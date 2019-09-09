@@ -17,14 +17,9 @@
       'command': [
         '../../../bin/build_chromium',
         '-logtostderr',
-        '--emails=<(EMAILS)',
-        '--task_id=<(TASK_ID)',
-        '--run_id=<(RUN_ID)',
         '--target_platform=<(TARGET_PLATFORM)',
         '--chromium_hash=<(CHROMIUM_HASH)',
         '--skia_hash=<(SKIA_HASH)',
-        '--ds_namespace=<(DS_NAMESPACE)',
-        '--ds_project_name=<(DS_PROJECT_NAME)',
       ]},
     }],
   ]
