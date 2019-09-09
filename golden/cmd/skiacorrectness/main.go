@@ -76,6 +76,10 @@ const (
 	EVERYTHING_PUBLIC = "all"
 )
 
+var (
+	templates *template.Template
+)
+
 func main() {
 	// Command line flags.
 	var (
@@ -104,6 +108,7 @@ func main() {
 		hashesGSPath        = flag.String("hashes_gs_path", "", "GS path, where the known hashes file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
 		indexInterval       = flag.Duration("idx_interval", 5*time.Minute, "Interval at which the indexer calculates the search index.")
 		internalPort        = flag.String("internal_port", "", "HTTP service address for internal clients, e.g. probers. No authentication on this port.")
+		litHTMLDir          = flag.String("lit_html_dir", "", "File path to build lit-html files")
 		local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 		memProfile          = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 		nCommits            = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
@@ -500,8 +505,10 @@ func main() {
 		sklog.Fatalf("Unable to get image handler: %s", err)
 	}
 
-	// New Polymer based UI endpoints.
+	// Legacy Polymer based UI endpoint
 	loggedRouter.PathPrefix("/res/").HandlerFunc(web.MakeResourceHandler(*resourcesDir))
+	// lit-html based UI endpoint.
+	loggedRouter.PathPrefix("/dist/").HandlerFunc(web.MakeResourceHandler(*litHTMLDir))
 	loggedRouter.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 
 	// TODO(stephana): remove "/_/hashes" in favor of "/json/hashes" once all clients have switched.
@@ -563,9 +570,15 @@ func main() {
 	jsonRouter.HandleFunc("/{ignore:.*}", http.NotFound)
 	loggedRouter.HandleFunc("/json", http.NotFound)
 
-	// For everything else serve the same markup.
-	indexFile := *resourcesDir + "/index.html"
-	indexTemplate := template.Must(template.New("").ParseFiles(indexFile)).Lookup("index.html")
+	loadTemplates := func() {
+		templates = template.Must(template.New("").ParseFiles(
+			filepath.Join(*litHTMLDir, "dist", "changelists.html"),
+
+			filepath.Join(*resourcesDir, "index.html"),
+		))
+	}
+
+	loadTemplates()
 
 	// appConfig is injected into the header of the index file.
 	appConfig := &struct {
@@ -584,18 +597,26 @@ func main() {
 		IsPublic:           !openSite,
 	}
 
-	loggedRouter.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html")
+	templateHandler := func(name string) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/html")
 
-		// Reload the template if we are running locally.
-		if *local {
-			indexTemplate = template.Must(template.New("").ParseFiles(indexFile)).Lookup("index.html")
+			// Reload the template if we are running locally.
+			if *local {
+				loadTemplates()
+			}
+			if err := templates.ExecuteTemplate(w, name, appConfig); err != nil {
+				sklog.Errorf("Failed to expand template %s : %s", name, err)
+				return
+			}
 		}
-		if err := indexTemplate.Execute(w, appConfig); err != nil {
-			sklog.Errorf("Failed to expand template: %s", err)
-			return
-		}
-	})
+	}
+
+	// These are the new lit-html pages.
+	loggedRouter.HandleFunc("/changelists", templateHandler("changelists.html"))
+
+	// This route handles the legacy polymer "single page" app model
+	loggedRouter.PathPrefix("/").Handler(templateHandler("index.html"))
 
 	// set up the app router that might be authenticated and logs almost everything.
 	appRouter := mux.NewRouter()

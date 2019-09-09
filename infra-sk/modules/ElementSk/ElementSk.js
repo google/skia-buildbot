@@ -65,7 +65,7 @@ export class ElementSk extends HTMLElement {
    * only if connectedCallback has been called.
    */
   _render() {
-    if (this._connected && this._template) {
+    if (this._connected && !!this._template) {
       render(this._template(this), this, {eventContext: this});
     }
   }

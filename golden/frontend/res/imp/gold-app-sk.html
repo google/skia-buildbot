@@ -15,7 +15,6 @@
 <link rel="import" href="bower_components/polymer/polymer.html">
 
 <link rel="import" href="../common/imp/app-sk.html" />
-<link rel="import" href="../common/imp/login.html" />
 
 <link rel="import" href="byblame-page-sk.html" />
 <link rel="import" href="cluster-page-sk.html" />
@@ -76,6 +75,9 @@
           <section data-route="trybot">
             <trybot-page-sk></trybot-page-sk>
           </section>
+          <section data-route="changelists">
+            <changelists-page></changelists-page>
+          </section>
           <section data-route="failures">
             <failures-page-sk></failures-page-sk>
           </section>
@@ -128,31 +130,19 @@
       },
 
       ready: function() {
-        // For all pages make sure we always have the right login URL.
-        var loginEle = this.$.mainApp.loginEle;
-        var readyCall = true;
-        page("*", function(ctx, next) {
-          // Avoid calling it during setup and when logging out.
-          if (!ctx.path.startsWith("/logout") && !readyCall) {
-            this.async(loginEle.checkLogin.bind(loginEle));
-          }
-          readyCall = false;
-          next();
-        }.bind(this));
-
         // Set up in-app routing using the history api.
         this._setRoute('/', 'byblame');
-        this._setRoute('/list', 'list');
-        this._setRoute('/trybot', 'trybot');
+        this._setRoute('/cluster', 'cluster');
+        this._setRoute('/cmp', 'compare');
+        this._setRoute('/detail', 'detail');
+        this._setRoute('/diff', 'diff');
         this._setRoute('/failures', 'failures');
+        this._setRoute('/help', 'help');
+        this._setRoute('/list', 'list');
         this._setRoute('/search', 'search');
         this._setRoute('/search2', 'search2');
         this._setRoute('/triagelog', 'triagelog');
-        this._setRoute('/help', 'help');
-        this._setRoute('/detail', 'detail');
-        this._setRoute('/diff', 'diff');
-        this._setRoute('/cluster', 'cluster');
-        this._setRoute('/cmp', 'compare');
+        this._setRoute('/trybot', 'trybot');
 
         // Don't wire up the private routes. This is just cosmetics, the real
         // enforcement happens on the backend where the endpoint is disabled.
