@@ -20,7 +20,7 @@ vary depending on considerations like how sparse the data is, for example they
 may vary from 50 to 8000 commits per Tile.
 
 
-~~~~
+```
               Tile 1                  Tile 2          
                                                       
       +---------------------+ +---------------------+ 
@@ -36,7 +36,7 @@ may vary from 50 to 8000 commits per Tile.
       |                     | |                     | 
       |                     | |                     | 
       +---------------------+ +---------------------+ 
-~~~~
+```
 
 Caveats our design has to take into account:
 
