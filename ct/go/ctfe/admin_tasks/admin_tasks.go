@@ -20,6 +20,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
+	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
 
@@ -108,20 +109,46 @@ func (task RecreatePageSetsDatastoreTask) Get(c context.Context, key *datastore.
 	return t, nil
 }
 
-func (task RecreatePageSetsDatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
+func (task RecreatePageSetsDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error {
 	runID := task_common.GetRunID(&task)
+	emails := task_common.GetEmailRecipients(task.Username, nil)
 	isolateArgs := map[string]string{
-		"EMAILS":          task.Username,
-		"TASK_ID":         strconv.FormatInt(task.DatastoreKey.ID, 10),
-		"RUN_ON_GCE":      strconv.FormatBool(task.RunsOnGCEWorkers()),
-		"RUN_ID":          runID,
-		"PAGESET_TYPE":    task.PageSets,
-		"DS_NAMESPACE":    task_common.DsNamespace,
-		"DS_PROJECT_NAME": task_common.DsProjectName,
+		"RUN_ON_GCE":   strconv.FormatBool(task.RunsOnGCEWorkers()),
+		"RUN_ID":       runID,
+		"PAGESET_TYPE": task.PageSets,
 	}
 
-	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "create_pagesets_on_workers", ctutil.CREATE_PAGESETS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
+	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "create_pagesets_on_workers", ctutil.CREATE_PAGESETS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs)
+	if err != nil {
 		return fmt.Errorf("Could not trigger master script for create_pagesets_on_workers with isolate args %v: %s", isolateArgs, err)
+	}
+	// Mark task as started in datastore.
+	if err := task_common.UpdateTaskSetStarted(ctx, &RecreatePageSetsUpdateVars{}, task.DatastoreKey.ID, runID, sTaskID); err != nil {
+		return fmt.Errorf("Could not mark task as started in datastore: %s", err)
+	}
+	// Send start email.
+	skutil.LogErr(ctutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Creating pagesets", runID, "", ""))
+	return nil
+}
+
+func (task RecreatePageSetsDatastoreTask) SendCompletionEmail(ctx context.Context, completedSuccessfully bool) error {
+	runID := task_common.GetRunID(&task)
+	emails := task_common.GetEmailRecipients(task.Username, nil)
+	emailSubject := fmt.Sprintf("Create pagesets Cluster telemetry task has completed (#%d)", task.DatastoreKey.ID)
+	failureHtml := ""
+	if !completedSuccessfully {
+		emailSubject += " with failures"
+		failureHtml = ctutil.GetFailureEmailHtml(runID)
+	}
+	bodyTemplate := `
+	The Cluster telemetry queued task to create %s pagesets has completed. %s.<br/>
+	%s
+	You can schedule more runs <a href="%s">here</a>.<br/><br/>
+	Thanks!
+	`
+	emailBody := fmt.Sprintf(bodyTemplate, task.PageSets, ctutil.GetSwarmingLogsLink(runID), failureHtml, task_common.WebappURL+ctfeutil.ADMIN_TASK_URI)
+	if err := ctutil.SendEmail(emails, emailSubject, emailBody); err != nil {
+		return fmt.Errorf("Error while sending email: %s", err)
 	}
 	return nil
 }
@@ -195,20 +222,46 @@ func (task RecreateWebpageArchivesDatastoreTask) Get(c context.Context, key *dat
 	return t, nil
 }
 
-func (task RecreateWebpageArchivesDatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
+func (task RecreateWebpageArchivesDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error {
 	runID := task_common.GetRunID(&task)
+	emails := task_common.GetEmailRecipients(task.Username, nil)
 	isolateArgs := map[string]string{
-		"EMAILS":          task.Username,
-		"TASK_ID":         strconv.FormatInt(task.DatastoreKey.ID, 10),
-		"RUN_ON_GCE":      strconv.FormatBool(task.RunsOnGCEWorkers()),
-		"RUN_ID":          runID,
-		"PAGESET_TYPE":    task.PageSets,
-		"DS_NAMESPACE":    task_common.DsNamespace,
-		"DS_PROJECT_NAME": task_common.DsProjectName,
+		"RUN_ON_GCE":   strconv.FormatBool(task.RunsOnGCEWorkers()),
+		"RUN_ID":       runID,
+		"PAGESET_TYPE": task.PageSets,
 	}
 
-	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_archives_on_workers", ctutil.CAPTURE_ARCHIVES_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
+	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_archives_on_workers", ctutil.CAPTURE_ARCHIVES_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs)
+	if err != nil {
 		return fmt.Errorf("Could not trigger master script for capture_archives_on_workers with isolate args %v: %s", isolateArgs, err)
+	}
+	// Mark task as started in datastore.
+	if err := task_common.UpdateTaskSetStarted(ctx, &RecreateWebpageArchivesUpdateVars{}, task.DatastoreKey.ID, runID, sTaskID); err != nil {
+		return fmt.Errorf("Could not mark task as started in datastore: %s", err)
+	}
+	// Send start email.
+	skutil.LogErr(ctutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Capture archives", runID, "", ""))
+	return nil
+}
+
+func (task RecreateWebpageArchivesDatastoreTask) SendCompletionEmail(ctx context.Context, completedSuccessfully bool) error {
+	runID := task_common.GetRunID(&task)
+	emails := task_common.GetEmailRecipients(task.Username, nil)
+	emailSubject := fmt.Sprintf("Capture archives Cluster telemetry task has completed (#%d)", task.DatastoreKey.ID)
+	failureHtml := ""
+	if !completedSuccessfully {
+		emailSubject += " with failures"
+		failureHtml = ctutil.GetFailureEmailHtml(runID)
+	}
+	bodyTemplate := `
+	The Cluster telemetry queued task to capture archives of %s pagesets has completed. %s.<br/>
+	%s
+	You can schedule more runs <a href="%s">here</a>.<br/><br/>
+	Thanks!
+	`
+	emailBody := fmt.Sprintf(bodyTemplate, task.PageSets, ctutil.GetSwarmingLogsLink(runID), failureHtml, task_common.WebappURL+ctfeutil.ADMIN_TASK_URI)
+	if err := ctutil.SendEmail(emails, emailSubject, emailBody); err != nil {
+		return fmt.Errorf("Error while sending email: %s", err)
 	}
 	return nil
 }
@@ -293,6 +346,12 @@ func (task *RecreatePageSetsUpdateVars) UpdateExtraFields(t task_common.Task) er
 	return nil
 }
 
+func (vars *RecreatePageSetsUpdateVars) SetCompleted(success bool, t task_common.Task) {
+	vars.TsCompleted = ctutil.GetCurrentTs()
+	vars.Failure = !success
+	vars.TaskDone = true
+}
+
 type RecreateWebpageArchivesUpdateVars struct {
 	task_common.UpdateTaskCommonVars
 }
@@ -303,6 +362,12 @@ func (task *RecreateWebpageArchivesUpdateVars) GetTaskPrototype() task_common.Ta
 
 func (task *RecreateWebpageArchivesUpdateVars) UpdateExtraFields(t task_common.Task) error {
 	return nil
+}
+
+func (vars *RecreateWebpageArchivesUpdateVars) SetCompleted(success bool, t task_common.Task) {
+	vars.TsCompleted = ctutil.GetCurrentTs()
+	vars.Failure = !success
+	vars.TaskDone = true
 }
 
 func deleteRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
