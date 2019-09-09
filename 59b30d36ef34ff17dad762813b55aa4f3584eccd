@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9736b4de_6cbda792",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-09T18:44:57Z",
+      "side": 1,
+      "message": "You seem to have dropped the code to increment this in your last patchset.",
+      "revId": "59b30d36ef34ff17dad762813b55aa4f3584eccd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
