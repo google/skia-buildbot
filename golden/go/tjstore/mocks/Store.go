@@ -83,13 +83,13 @@ func (_m *Store) GetTryJobs(ctx context.Context, psID tjstore.CombinedPSID) ([]c
 	return r0, r1
 }
 
-// PutResults provides a mock function with given fields: ctx, psID, r
-func (_m *Store) PutResults(ctx context.Context, psID tjstore.CombinedPSID, r []tjstore.TryJobResult) error {
-	ret := _m.Called(ctx, psID, r)
+// PutResults provides a mock function with given fields: ctx, psID, tjID, r
+func (_m *Store) PutResults(ctx context.Context, psID tjstore.CombinedPSID, tjID string, r []tjstore.TryJobResult) error {
+	ret := _m.Called(ctx, psID, tjID, r)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, tjstore.CombinedPSID, []tjstore.TryJobResult) error); ok {
-		r0 = rf(ctx, psID, r)
+	if rf, ok := ret.Get(0).(func(context.Context, tjstore.CombinedPSID, string, []tjstore.TryJobResult) error); ok {
+		r0 = rf(ctx, psID, tjID, r)
 	} else {
 		r0 = ret.Error(0)
 	}

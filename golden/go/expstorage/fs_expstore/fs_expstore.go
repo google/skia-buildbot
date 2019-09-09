@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 	"sync"
@@ -20,6 +19,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/fs_utils"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/sync/errgroup"
@@ -231,7 +231,7 @@ func (f *Store) getMasterExpectations() (types.Expectations, error) {
 // to that.
 func (f *Store) initQuerySnapshot(ctx context.Context) error {
 	q := f.client.Collection(expectationsCollection).Where(issueField, "==", types.MasterBranch)
-	queries := shardQueryOnDigest(q, snapshotShards)
+	queries := fs_utils.ShardQueryOnDigest(q, digestField, snapshotShards)
 	f.masterQuerySnapshots = make([]*firestore.QuerySnapshotIterator, snapshotShards)
 	var eg errgroup.Group
 	for shard, q := range queries {
@@ -308,7 +308,7 @@ func (f *Store) loadExpectationsSharded(issue int64, shards int) (types.Expectat
 	q := f.client.Collection(expectationsCollection).Where(issueField, "==", issue)
 
 	es := make([]types.Expectations, shards)
-	queries := shardQueryOnDigest(q, shards)
+	queries := fs_utils.ShardQueryOnDigest(q, digestField, shards)
 
 	maxRetries := 3
 	err := f.client.IterDocsInParallel("loadExpectations", strconv.FormatInt(issue, 10), queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
@@ -327,36 +327,15 @@ func (f *Store) loadExpectationsSharded(issue int64, shards int) (types.Expectat
 		return nil
 	})
 
+	if err != nil {
+		return nil, skerr.Wrapf(err, "fetching expectations for ChangeList %d", issue)
+	}
+
 	e := types.Expectations{}
 	for _, ne := range es {
 		e.MergeExpectations(ne)
 	}
-	return e, err
-}
-
-// shardQueryOnDigest splits a query up to work on a subset of the data based on
-// the digests. We split the MD5 space up into N shards by making N-1 shard points
-// and adding Where clauses to make N queries that are between those points.
-func shardQueryOnDigest(baseQuery firestore.Query, shards int) []firestore.Query {
-	queries := make([]firestore.Query, 0, shards)
-	zeros := strings.Repeat("0", 16)
-	s := uint64(0)
-	for i := 0; i < shards-1; i++ {
-		// An MD5 hash is 128 bits, which we encode to hexadecimal (32 chars).
-		// We can produce an MD5 hash by taking a 64 bit unsigned int, turning
-		// that to hexadecimal (16 chars), then appending 16 zeros.
-		startHash := fmt.Sprintf("%016x\n", s) + zeros
-
-		s += (math.MaxUint64/uint64(shards) + 1)
-		endHash := fmt.Sprintf("%016x\n", s) + zeros
-
-		// The first n queries are formulated to be between two shard points
-		queries = append(queries, baseQuery.Where(digestField, ">=", startHash).Where(digestField, "<", endHash))
-	}
-	lastHash := fmt.Sprintf("%016x\n", s) + zeros
-	// The last query is just a greater than the last shard point
-	queries = append(queries, baseQuery.Where(digestField, ">=", lastHash))
-	return queries
+	return e, nil
 }
 
 // AddChange implements the ExpectationsStore interface.
@@ -444,7 +423,7 @@ func (f *Store) AddChange(ctx context.Context, newExp types.Expectations, userID
 		if err := backoff.Retry(o, exp); err != nil {
 			// We really hope this doesn't happen, as it may leave the data in a partially
 			// broken state.
-			return skerr.Fmt("problem writing entries with retry [%d, %d]: %s", i, stop, err)
+			return skerr.Wrapf(err, "writing entries with retry [%d, %d]", i, stop)
 		}
 		// Go on to the next batch, if needed.
 		if stop < len(entries) {

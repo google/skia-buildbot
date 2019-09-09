@@ -17,6 +17,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/google/uuid"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/util"
@@ -339,9 +340,10 @@ func (c *Client) withTimeoutAndRetries(attempts int, timeout time.Duration, fn f
 	var err error
 	for i := 0; i < attempts; i++ {
 		err = withTimeout(timeout, fn)
+		unwrapped := skerr.Unwrap(err)
 		if err == nil {
 			return nil
-		} else if st, ok := status.FromError(err); ok {
+		} else if st, ok := status.FromError(unwrapped); ok {
 			// Retry if we encountered a whitelisted error code.
 			code := st.Code()
 			retry := false
@@ -355,7 +357,7 @@ func (c *Client) withTimeoutAndRetries(attempts int, timeout time.Duration, fn f
 			if !retry {
 				return err
 			}
-		} else if err != nil && err != context.DeadlineExceeded {
+		} else if unwrapped != context.DeadlineExceeded {
 			return err
 		}
 		wait := BACKOFF_WAIT * time.Duration(2^i)

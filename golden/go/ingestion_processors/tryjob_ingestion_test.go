@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	ingestion_mocks "go.skia.org/infra/go/ingestion/mocks"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/clstore"
@@ -77,7 +78,7 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 
 	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(ci.TryJob{}, tjstore.ErrNotFound)
 	mtjs.On("PutTryJob", anyctx, sampleCombinedID, makeTryJob()).Return(nil)
-	mtjs.On("PutResults", anyctx, sampleCombinedID, makeTryJobResults()).Return(nil)
+	mtjs.On("PutResults", anyctx, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		reviewClient:      mcrs,
@@ -121,7 +122,7 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 
 	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(ci.TryJob{}, tjstore.ErrNotFound)
 	mtjs.On("PutTryJob", anyctx, sampleCombinedID, makeTryJob()).Return(nil)
-	mtjs.On("PutResults", anyctx, sampleCombinedID, makeTryJobResults()).Return(nil)
+	mtjs.On("PutResults", anyctx, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		reviewClient:      mcrs,
@@ -161,7 +162,7 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 
 	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(ci.TryJob{}, tjstore.ErrNotFound)
 	mtjs.On("PutTryJob", anyctx, sampleCombinedID, makeTryJob()).Return(nil)
-	mtjs.On("PutResults", anyctx, sampleCombinedID, makeTryJobResults()).Return(nil)
+	mtjs.On("PutResults", anyctx, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		reviewClient:      mcrs,
@@ -198,7 +199,7 @@ func TestTryJobProcessTJExistsSunnyDay(t *testing.T) {
 	mcls.On("GetPatchSet", anyctx, sampleCLID, samplePSID).Return(xps[1], nil)
 
 	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
-	mtjs.On("PutResults", anyctx, sampleCombinedID, makeTryJobResults()).Return(nil)
+	mtjs.On("PutResults", anyctx, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		reviewClient:      mcrs,
@@ -238,7 +239,7 @@ func makeTryJobResults() []tjstore.TryJobResult {
 	return []tjstore.TryJobResult{
 		{
 			Digest: "690f72c0b56ae014c8ac66e7f25c0779",
-			GroupParams: map[string]string{
+			GroupParams: paramtools.Params{
 				"device_id":     "0x1cb3",
 				"device_string": "None",
 				"model_name":    "",
@@ -246,11 +247,11 @@ func makeTryJobResults() []tjstore.TryJobResult {
 				"vendor_id":     "0x10de",
 				"vendor_string": "None",
 			},
-			ResultParams: map[string]string{
+			ResultParams: paramtools.Params{
 				"name":        "Pixel_CanvasDisplayLinearRGBUnaccelerated2DGPUCompositing",
 				"source_type": "chrome-gpu",
 			},
-			Options: map[string]string{
+			Options: paramtools.Params{
 				"ext": "png",
 			},
 		},

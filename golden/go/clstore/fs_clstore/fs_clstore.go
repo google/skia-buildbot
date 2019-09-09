@@ -26,7 +26,8 @@ const (
 	orderField   = "order"
 	updatedField = "updated"
 
-	maxAttempts      = 10
+	maxReadAttempts  = 5
+	maxWriteAttempts = 5
 	maxOperationTime = time.Minute
 )
 
@@ -72,7 +73,7 @@ func (s *StoreImpl) GetChangeList(ctx context.Context, id string) (code_review.C
 		if status.Code(err) == codes.NotFound {
 			return code_review.ChangeList{}, clstore.ErrNotFound
 		}
-		return code_review.ChangeList{}, skerr.Wrapf(err, "retrieving CL %s from firestore", doc.Ref.ID)
+		return code_review.ChangeList{}, skerr.Wrapf(err, "retrieving CL %s from firestore", fID)
 	}
 	if doc == nil {
 		return code_review.ChangeList{}, clstore.ErrNotFound
@@ -108,9 +109,8 @@ func (s *StoreImpl) GetChangeLists(ctx context.Context, startIdx, limit int) ([]
 
 	var xcl []code_review.ChangeList
 
-	maxRetries := 3
 	r := fmt.Sprintf("[%d:%d]", startIdx, startIdx+limit)
-	err := s.client.IterDocs("GetChangeLists", r, q, maxRetries, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+	err := s.client.IterDocs("GetChangeLists", r, q, maxReadAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
@@ -155,7 +155,7 @@ func (s *StoreImpl) GetPatchSet(ctx context.Context, clID, psID string) (code_re
 		if status.Code(err) == codes.NotFound {
 			return code_review.PatchSet{}, clstore.ErrNotFound
 		}
-		return code_review.PatchSet{}, skerr.Wrapf(err, "retrieving PS %s from firestore", doc.Ref.ID)
+		return code_review.PatchSet{}, skerr.Wrapf(err, "retrieving PS %s from firestore", fID)
 	}
 	if doc == nil {
 		return code_review.PatchSet{}, clstore.ErrNotFound
@@ -185,7 +185,7 @@ func (s *StoreImpl) GetPatchSets(ctx context.Context, clID string) ([]code_revie
 
 	var xps []code_review.PatchSet
 
-	err := s.client.IterDocs("GetPatchSets", clID, q, maxAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+	err := s.client.IterDocs("GetPatchSets", clID, q, maxReadAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
@@ -222,7 +222,7 @@ func (s *StoreImpl) PutChangeList(ctx context.Context, cl code_review.ChangeList
 		Subject:  cl.Subject,
 		Updated:  cl.Updated,
 	}
-	_, err := s.client.Set(cd, record, maxAttempts, maxOperationTime)
+	_, err := s.client.Set(cd, record, maxWriteAttempts, maxOperationTime)
 	if err != nil {
 		return skerr.Wrapf(err, "could not write CL %v to clstore", cl)
 	}
@@ -242,7 +242,7 @@ func (s *StoreImpl) PutPatchSet(ctx context.Context, ps code_review.PatchSet) er
 		Order:        ps.Order,
 		GitHash:      ps.GitHash,
 	}
-	_, err := s.client.Set(pd, record, maxAttempts, maxOperationTime)
+	_, err := s.client.Set(pd, record, maxWriteAttempts, maxOperationTime)
 	if err != nil {
 		return skerr.Wrapf(err, "could not write PS %v to clstore", ps)
 	}

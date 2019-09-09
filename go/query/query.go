@@ -31,6 +31,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
 
@@ -116,7 +117,7 @@ func MakeKey(m map[string]string) (string, error) {
 // very well. See https://github.com/golang/go/issues/8232.
 func MakeKeyFast(m map[string]string) (string, error) {
 	if len(m) == 0 {
-		return "", fmt.Errorf("Map must have at least one entry.")
+		return "", skerr.Fmt("Map must have at least one entry.")
 	}
 	ret := strings.Builder{}
 	// Give a heuristic for the size based on the number of entries
