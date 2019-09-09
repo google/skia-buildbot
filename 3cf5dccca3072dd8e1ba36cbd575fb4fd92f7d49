@@ -402,6 +402,30 @@
     },
     {
       "key": {
+        "uuid": "1777d97e_f63b2240",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-09T18:09:10Z",
+      "side": 1,
+      "message": "Ah, apparently I misread the docs and thought GetAll was only available to transactions. GetAll is implemented.",
+      "parentUuid": "40dac3f4_d5b84045",
+      "range": {
+        "startLine": 213,
+        "startChar": 0,
+        "endLine": 213,
+        "endChar": 39
+      },
+      "revId": "3cf5dccca3072dd8e1ba36cbd575fb4fd92f7d49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9de94934_9a185ed2",
         "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
         "patchSetId": 6
