@@ -6,3 +6,9 @@ loadtest:
 
 release: default
 	./build_release "`git log -n1 --format=%s`"
+
+k8s_release:
+	./build_nginx_redirect_release "`git log -n1 --format=%s`"
+
+k8s_push:
+	pushk nginx-redirect
