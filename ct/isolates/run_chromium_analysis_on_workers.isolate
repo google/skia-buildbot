@@ -21,9 +21,6 @@
       'command': [
         '../../../bin/run_chromium_analysis_on_workers',
         '-logtostderr',
-        '--emails=<(EMAILS)',
-        '--description=<(DESCRIPTION)',
-        '--task_id=<(TASK_ID)',
         '--pageset_type=<(PAGESET_TYPE)',
         '--benchmark_name=<(BENCHMARK)',
         '--benchmark_extra_args=<(BENCHMARK_ARGS)',
@@ -41,8 +38,6 @@
         '--v8_patch_gs_path=<(V8_PATCH_GS_PATH)',
         '--catapult_patch_gs_path=<(CATAPULT_PATCH_GS_PATH)',
         '--custom_webpages_csv_gs_path=<(CUSTOM_WEBPAGES_CSV_GS_PATH)',
-        '--ds_namespace=<(DS_NAMESPACE)',
-        '--ds_project_name=<(DS_PROJECT_NAME)',
       ]},
     }],
   ]

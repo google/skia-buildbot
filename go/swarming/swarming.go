@@ -53,6 +53,7 @@ type SwarmingTask struct {
 	Expiration     time.Duration
 	Idempotent     bool
 	ServiceAccount string
+	TaskID         string // Populated after the task is triggered.
 }
 
 type ShardOutputFormat struct {
@@ -116,6 +117,24 @@ func (t *SwarmingTask) Trigger(ctx context.Context, s *SwarmingClient, hardTimeo
 	if err != nil {
 		return fmt.Errorf("Swarming trigger for %s failed with: %s", t.Title, err)
 	}
+
+	// Read the taskID from the dumpJSON and set it to the task object.
+	type Task struct {
+		TaskID string `json:"task_id"`
+	}
+	type Tasks struct {
+		Tasks map[string]Task `json:"tasks"`
+	}
+	var tasks Tasks
+	f, err := os.Open(dumpJSON)
+	if err != nil {
+		return err
+	}
+	if err := json.NewDecoder(f).Decode(&tasks); err != nil {
+		return fmt.Errorf("Could not decode %s: %s", dumpJSON, err)
+	}
+	t.TaskID = tasks.Tasks[t.Title].TaskID
+
 	return nil
 }
 
