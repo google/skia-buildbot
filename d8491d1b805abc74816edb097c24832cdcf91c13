@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d901b696_a9da9288",
+        "filename": "skfe/k8s/default.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-09T18:58:32Z",
+      "side": 1,
+      "message": "What about fuzzer.skia.org?  It redirects to oss-fuzz",
+      "revId": "d8491d1b805abc74816edb097c24832cdcf91c13",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
