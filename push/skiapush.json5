@@ -13,11 +13,5 @@
         "pulld",
       ],
     },
-    "skia-push": {
-      "AppNames": [
-        "pulld",
-      "pushd",
-      ],
-    },
   },
 }
