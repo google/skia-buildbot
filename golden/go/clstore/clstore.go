@@ -23,6 +23,9 @@ type Store interface {
 	// GetPatchSet returns the PatchSet matching the given ChangeList ID and PatchSet ID.
 	// Returns NotFound if it doesn't exist.
 	GetPatchSet(ctx context.Context, clID, psID string) (code_review.PatchSet, error)
+	// GetPatchSetByOrder returns the PatchSet matching the given ChangeList ID and order.
+	// Returns NotFound if it doesn't exist.
+	GetPatchSetByOrder(ctx context.Context, clID string, psOrder int) (code_review.PatchSet, error)
 
 	// GetChangeLists returns a slice of ChangeList objects sorted such that the
 	// most recently updated ones come first. The slice starts at the given
