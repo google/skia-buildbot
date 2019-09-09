@@ -40,7 +40,7 @@ func TestGerritBuildBucketFactory(t *testing.T) {
 		},
 	}
 
-	p, err := newGoldTryjobProcessor(nil, config, nil, nil)
+	p, err := newModularTryjobProcessor(nil, config, nil, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, p)
 
@@ -68,10 +68,9 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 	mcrs.On("GetPatchSets", anyctx, sampleCLID).Return(makePatchSets(), nil)
 
 	mcls.On("GetChangeList", anyctx, sampleCLID).Return(code_review.ChangeList{}, clstore.ErrNotFound)
-	mcls.On("GetPatchSet", anyctx, sampleCLID, samplePSID).Return(code_review.PatchSet{}, clstore.ErrNotFound)
+	mcls.On("GetPatchSetByOrder", anyctx, sampleCLID, samplePSOrder).Return(code_review.PatchSet{}, clstore.ErrNotFound)
 	mcls.On("PutChangeList", anyctx, makeChangeList()).Return(nil)
 	xps := makePatchSets()
-	mcls.On("PutPatchSet", anyctx, xps[0]).Return(nil)
 	mcls.On("PutPatchSet", anyctx, xps[1]).Return(nil)
 
 	mcis.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
@@ -83,8 +82,8 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 	gtp := goldTryjobProcessor{
 		reviewClient:      mcrs,
 		integrationClient: mcis,
-		changelistStore:   mcls,
-		tryjobStore:       mtjs,
+		changeListStore:   mcls,
+		tryJobStore:       mtjs,
 		crsName:           "gerrit",
 		cisName:           "buildbucket",
 	}
@@ -113,9 +112,8 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 	mcrs.On("GetPatchSets", anyctx, sampleCLID).Return(makePatchSets(), nil)
 
 	mcls.On("GetChangeList", anyctx, sampleCLID).Return(makeChangeList(), nil)
-	mcls.On("GetPatchSet", anyctx, sampleCLID, samplePSID).Return(code_review.PatchSet{}, clstore.ErrNotFound)
+	mcls.On("GetPatchSetByOrder", anyctx, sampleCLID, samplePSOrder).Return(code_review.PatchSet{}, clstore.ErrNotFound)
 	xps := makePatchSets()
-	mcls.On("PutPatchSet", anyctx, xps[0]).Return(nil)
 	mcls.On("PutPatchSet", anyctx, xps[1]).Return(nil)
 
 	mcis.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
@@ -127,8 +125,8 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 	gtp := goldTryjobProcessor{
 		reviewClient:      mcrs,
 		integrationClient: mcis,
-		changelistStore:   mcls,
-		tryjobStore:       mtjs,
+		changeListStore:   mcls,
+		tryJobStore:       mtjs,
 		crsName:           "gerrit",
 		cisName:           "buildbucket",
 	}
@@ -156,7 +154,7 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 
 	mcls.On("GetChangeList", anyctx, sampleCLID).Return(makeChangeList(), nil)
 	xps := makePatchSets()
-	mcls.On("GetPatchSet", anyctx, sampleCLID, samplePSID).Return(xps[1], nil)
+	mcls.On("GetPatchSetByOrder", anyctx, sampleCLID, samplePSOrder).Return(xps[1], nil)
 
 	mcis.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
 
@@ -167,8 +165,8 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 	gtp := goldTryjobProcessor{
 		reviewClient:      mcrs,
 		integrationClient: mcis,
-		changelistStore:   mcls,
-		tryjobStore:       mtjs,
+		changeListStore:   mcls,
+		tryJobStore:       mtjs,
 		crsName:           "gerrit",
 		cisName:           "buildbucket",
 	}
@@ -196,7 +194,7 @@ func TestTryJobProcessTJExistsSunnyDay(t *testing.T) {
 
 	mcls.On("GetChangeList", anyctx, sampleCLID).Return(makeChangeList(), nil)
 	xps := makePatchSets()
-	mcls.On("GetPatchSet", anyctx, sampleCLID, samplePSID).Return(xps[1], nil)
+	mcls.On("GetPatchSetByOrder", anyctx, sampleCLID, samplePSOrder).Return(xps[1], nil)
 
 	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
 	mtjs.On("PutResults", anyctx, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
@@ -204,8 +202,8 @@ func TestTryJobProcessTJExistsSunnyDay(t *testing.T) {
 	gtp := goldTryjobProcessor{
 		reviewClient:      mcrs,
 		integrationClient: mcis,
-		changelistStore:   mcls,
-		tryjobStore:       mtjs,
+		changeListStore:   mcls,
+		tryJobStore:       mtjs,
 		crsName:           "gerrit",
 		cisName:           "buildbucket",
 	}
@@ -225,9 +223,10 @@ var (
 // It doesn't need to be a super complex example because we have tests that
 // test parseDMResults directly.
 const (
-	sampleCLID = "1762193"
-	samplePSID = "2"
-	sampleTJID = "8904604368086838672"
+	sampleCLID    = "1762193"
+	samplePSID    = "e1681c90cf6a4c3b6be2bc4b4cea59849c16a438"
+	samplePSOrder = 2
+	sampleTJID    = "8904604368086838672"
 )
 
 var (
@@ -271,19 +270,19 @@ func makeChangeList() code_review.ChangeList {
 func makePatchSets() []code_review.PatchSet {
 	return []code_review.PatchSet{
 		{
-			SystemID:     "1",
+			SystemID:     "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
 			ChangeListID: "1762193",
 			Order:        1,
 			GitHash:      "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
 		},
 		{
-			SystemID:     "2",
+			SystemID:     samplePSID,
 			ChangeListID: "1762193",
-			Order:        2,
-			GitHash:      "e1681c90cf6a4c3b6be2bc4b4cea59849c16a438",
+			Order:        samplePSOrder,
+			GitHash:      samplePSID,
 		},
 		{
-			SystemID:     "3",
+			SystemID:     "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
 			ChangeListID: "1762193",
 			Order:        3,
 			GitHash:      "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",

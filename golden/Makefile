@@ -35,6 +35,9 @@ frontend-debug:
 	cd frontend && $(MAKE) web
 	npx webpack-cli --mode=development
 
+serve:
+	npx webpack-dev-server --watch --mode=development
+
 .PHONY: allgo
 allgo: skiaversion
 	go install -v ./cmd/...

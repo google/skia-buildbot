@@ -228,16 +228,17 @@ func main() {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
-	// Get the token source for the service account with access to GCS, the Monorail issue tracker,
-	// cloud pubsub, and datastore.
-	tokenSource, err := auth.NewDefaultTokenSource(*local, datastore.ScopeDatastore, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	// Get the token source for the service account with access to the services
+	// we need to operate
+	tokenSource, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, datastore.ScopeDatastore, gstorage.CloudPlatformScope)
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
 	// TODO(dogben): Ok to add request/dial timeouts?
 	client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithoutRetries().Client()
 
-	// serviceName uniquely identifies this host and app and is used as ID for other services.
+	// serviceName uniquely identifies this host and app and is used as ID for
+	// other services.
 	nodeName, err := gevent.GetNodeName(appName, *local)
 	if err != nil {
 		sklog.Fatalf("Error getting unique service name: %s", err)
@@ -480,6 +481,7 @@ func main() {
 
 	handlers := web.WebHandlers{
 		Baseliner:               baseliner,
+		ChangeListStore:         cls,
 		DeprecatedTryjobMonitor: tryjobMonitor,
 		DeprecatedTryjobStore:   deprecatedTJS,
 		DiffStore:               diffStore,
@@ -490,6 +492,7 @@ func main() {
 		SearchAPI:               searchAPI,
 		StatusWatcher:           statusWatcher,
 		TileSource:              tileSource,
+		TryJobStore:             tjs,
 		VCS:                     vcs,
 	}
 
@@ -546,8 +549,6 @@ func main() {
 	jsonRouter.HandleFunc(trim("/json/triagelog"), handlers.TriageLogHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/triagelog/undo"), handlers.TriageUndoHandler).Methods("POST")
 	jsonRouter.HandleFunc(trim("/json/tryjob"), handlers.DeprecatedTryjobListHandler).Methods("GET")
-	// FIXME(kjlubick): The following will not work until the new ChangeListStore/TryJobStore etc
-	// is piped into web.go
 	jsonRouter.HandleFunc(trim("/json/changelists"), handlers.ChangeListsHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/changelist/{system}/{id}"), handlers.ChangeListSummaryHandler).Methods("GET")
 
@@ -571,11 +572,8 @@ func main() {
 	loggedRouter.HandleFunc("/json", http.NotFound)
 
 	loadTemplates := func() {
-		templates = template.Must(template.New("").ParseFiles(
-			filepath.Join(*litHTMLDir, "dist", "changelists.html"),
-
-			filepath.Join(*resourcesDir, "index.html"),
-		))
+		templates = template.Must(template.New("").ParseFiles(filepath.Join(*resourcesDir, "index.html")))
+		templates = template.Must(templates.ParseGlob(filepath.Join(*litHTMLDir, "dist", "*.html")))
 	}
 
 	loadTemplates()
