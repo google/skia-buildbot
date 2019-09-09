@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "734e142e_65103f51",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-09T20:06:24Z",
+      "side": 1,
+      "message": "This really should never happen, right? Maybe we should just panic?",
+      "range": {
+        "startLine": 236,
+        "startChar": 0,
+        "endLine": 238,
+        "endChar": 2
+      },
+      "revId": "a0b4e5af764420dd87149e0a9f9c9f823c701563",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
