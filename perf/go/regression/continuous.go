@@ -75,12 +75,14 @@ func NewContinuous(vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, provider ConfigPro
 	}
 }
 
+// CurrentStatus returns the current status of regression detection.
 func (c *Continuous) CurrentStatus() Current {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	return *c.current
 }
 
+// Untriaged returns the number of untriaged regressions.
 func (c *Continuous) Untriaged() (int, error) {
 	return c.store.Untriaged()
 }
@@ -164,6 +166,49 @@ func (c *Continuous) setCurrentStep(step, total int) {
 	c.current.Total = total
 }
 
+// configsAndParamset is the type of channel that feeds Continuous.Run().
+type configsAndParamSet struct {
+	configs  []*alerts.Config
+	paramset paramtools.ParamSet
+}
+
+// buildConfigAndParamsetChannel returns a channel that will feed the configs
+// and paramset that continuous regression detection should run over. In the
+// future when Continuous.eventDriven is true this will be driven by PubSub
+// events.
+func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
+	if c.eventDriven {
+		panic("Event driven clustering is currently unimplemented.")
+	}
+	ret := make(chan configsAndParamSet)
+	go func() {
+		for {
+			configs, err := c.provider()
+			if err != nil {
+				sklog.Errorf("Failed to get list of configs: %s", err)
+				time.Sleep(time.Minute)
+				continue
+			}
+			// Shuffle the order of the configs.
+			//
+			// If we are running parallel continuous regression detectors then
+			// shuffling means that we move through the configs in a different
+			// order in each parallel Go routine and so find errors quicker,
+			// otherwise we are just wasting cycles running the same exact
+			// configs at the same exact time.
+			rand.Shuffle(len(configs), func(i, j int) {
+				configs[i], configs[j] = configs[j], configs[i]
+			})
+
+			ret <- configsAndParamSet{
+				configs:  configs,
+				paramset: c.paramsProvider(),
+			}
+		}
+	}()
+	return ret
+}
+
 // Run starts the continuous running of clustering over the last numCommits
 // commits.
 //
@@ -193,22 +238,10 @@ func (c *Continuous) Run(ctx context.Context) {
 	// and the list of configs is built by matching the full list of configs
 	// against the list of incoming trace ids.
 	//
-	for range time.Tick(time.Second) {
+	for cnp := range c.buildConfigAndParamsetChannel() {
 		clusteringLatency.Start()
-		configs, err := c.provider()
-
-		// Shuffle the order of the configs.
-		rand.Shuffle(len(configs), func(i, j int) {
-			configs[i], configs[j] = configs[j], configs[i]
-		})
-
-		if err != nil {
-			// TODO(jcgregorio) Float these errors up to the UI.
-			sklog.Errorf("Failed to load configs: %s", err)
-			continue
-		}
-		sklog.Infof("Clustering over %d configs.", len(configs))
-		for _, cfg := range configs {
+		sklog.Infof("Clustering over %d configs.", len(cnp.configs))
+		for _, cfg := range cnp.configs {
 			c.setCurrentConfig(cfg)
 
 			// Smoketest the query, but only if we are not in event driven mode.
@@ -243,7 +276,7 @@ func (c *Continuous) Run(ctx context.Context) {
 			if cfg.Radius == 0 {
 				cfg.Radius = c.radius
 			}
-			RegressionsForAlert(ctx, cfg, c.paramsProvider(), clusterResponseProcessor, c.numCommits, time.Time{}, c.vcs, c.cidl, c.dfBuilder, c.setCurrentStep)
+			RegressionsForAlert(ctx, cfg, cnp.paramset, clusterResponseProcessor, c.numCommits, time.Time{}, c.vcs, c.cidl, c.dfBuilder, c.setCurrentStep)
 			configsCounter.Inc(1)
 		}
 		clusteringLatency.Stop()
