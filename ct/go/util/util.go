@@ -231,6 +231,14 @@ func GetCurrentTs() string {
 	return time.Now().UTC().Format(TS_FORMAT)
 }
 
+func GetCurrentTsInt64() (int64, error) {
+	ts, err := strconv.ParseInt(GetCurrentTs(), 10, 64)
+	if err != nil {
+		return -1, fmt.Errorf("Could not parse timestamp: %s", err)
+	}
+	return ts, nil
+}
+
 // Returns channel that contains all pageset file names without the timestamp
 // file and pyc files.
 func GetClosedChannelOfPagesets(fileInfos []os.FileInfo) chan string {
