@@ -16,6 +16,24 @@
       "revId": "d8491d1b805abc74816edb097c24832cdcf91c13",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5361769_0a63519e",
+        "filename": "skfe/k8s/default.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-09T19:19:11Z",
+      "side": 1,
+      "message": "Good catch! I also missed android-perf.skia.org.\n\nI also removed all the access_log and error_log values from default.conf since they are set to /dev/stdout in nginx.conf.",
+      "parentUuid": "d901b696_a9da9288",
+      "revId": "d8491d1b805abc74816edb097c24832cdcf91c13",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
