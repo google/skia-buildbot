@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a21d4b26_f5b394d9",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-09T15:01:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "87d9c3ae_b924c818",
+      "range": {
+        "startLine": 111,
+        "startChar": 37,
+        "endLine": 111,
+        "endChar": 49
+      },
+      "revId": "efc5d000d5d57fd35beb4165307f8335e5e3dfcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4f3ab6ad_d480029c",
         "filename": "golden/cmd/skiacorrectness/main.go",
         "patchSetId": 10
@@ -45,6 +69,30 @@
       "revId": "efc5d000d5d57fd35beb4165307f8335e5e3dfcb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2fcad9f_ebd70d92",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 574,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-09T15:01:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4f3ab6ad_d480029c",
+      "range": {
+        "startLine": 574,
+        "startChar": 45,
+        "endLine": 574,
+        "endChar": 55
+      },
+      "revId": "efc5d000d5d57fd35beb4165307f8335e5e3dfcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
