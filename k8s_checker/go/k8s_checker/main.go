@@ -203,7 +203,8 @@ func checkForDirtyConfigs(ctx context.Context, oldMetrics map[metrics2.Int64Metr
 		for _, yamlDoc := range yamlDocs {
 			var config K8sConfig
 			if err := yaml.Unmarshal([]byte(yamlDoc), &config); err != nil {
-				sklog.Fatal(err)
+				sklog.Errorf("Error when parsing %s: %s", yamlDoc, err)
+				continue
 			}
 			app := config.Spec.Template.Metadata.Labels.App
 			if app == "" {
