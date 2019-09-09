@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1709df82_725344f7",
+        "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 306,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-09T15:22:30Z",
+      "side": 1,
+      "message": "nit: should use os.TempDir or ioutil.TempDir, x2",
+      "range": {
+        "startLine": 306,
+        "startChar": 31,
+        "endLine": 306,
+        "endChar": 48
+      },
+      "revId": "0439c4c94bc7ca8bab8dd033ce0fb76e14dda154",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
