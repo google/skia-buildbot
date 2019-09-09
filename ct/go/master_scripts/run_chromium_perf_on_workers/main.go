@@ -10,17 +10,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
-	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
-	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
-	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -30,9 +26,8 @@ const (
 )
 
 var (
-	emails                    = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
+	runRequester              = flag.String("run_requester", "", "The email address of the user that triggered the run.")
 	description               = flag.String("description", "", "The description of the run as entered by the requester.")
-	taskID                    = flag.Int64("task_id", -1, "The key of the CT task in CTFE. The task will be updated when it is started and also when it completes.")
 	pagesetType               = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
 	benchmarkName             = flag.String("benchmark_name", "", "The telemetry benchmark to run on the workers.")
 	benchmarkExtraArgs        = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
@@ -55,90 +50,13 @@ var (
 	catapultPatchGSPath          = flag.String("catapult_patch_gs_path", "", "The location of the Catapult patch in Google storage.")
 	chromiumBaseBuildPatchGSPath = flag.String("chromium_base_build_patch_gs_path", "", "The location of the Chromium base build patch in Google storage.")
 	customWebpagesCsvGSPath      = flag.String("custom_webpages_csv_gs_path", "", "The location of the custom webpages CSV in Google storage.")
-
-	taskCompletedSuccessfully = false
-
-	htmlOutputLink             = util.MASTER_LOGSERVER_LINK
-	skiaPatchLink              = util.MASTER_LOGSERVER_LINK
-	chromiumPatchLink          = util.MASTER_LOGSERVER_LINK
-	v8PatchLink                = util.MASTER_LOGSERVER_LINK
-	catapultPatchLink          = util.MASTER_LOGSERVER_LINK
-	chromiumPatchBaseBuildLink = util.MASTER_LOGSERVER_LINK
-	customWebpagesLink         = util.MASTER_LOGSERVER_LINK
-	noPatchOutputLink          = util.MASTER_LOGSERVER_LINK
-	withPatchOutputLink        = util.MASTER_LOGSERVER_LINK
 )
-
-func sendEmail(recipients []string) {
-	// Send completion email.
-	emailSubject := fmt.Sprintf("Cluster telemetry chromium perf task has completed (#%d)", *taskID)
-	failureHtml := ""
-	viewActionMarkup := ""
-	ctPerfHtml := ""
-	var err error
-
-	if taskCompletedSuccessfully {
-		if viewActionMarkup, err = email.GetViewActionMarkup(htmlOutputLink, "View Results", "Direct link to the HTML results"); err != nil {
-			sklog.Errorf("Failed to get view action markup: %s", err)
-			return
-		}
-		ctPerfHtml = util.GetCTPerfEmailHtml(*groupName)
-	} else {
-		emailSubject += " with failures"
-		failureHtml = util.GetFailureEmailHtml(*runID)
-		if viewActionMarkup, err = email.GetViewActionMarkup(fmt.Sprintf(util.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, *runID), "View Failure", "Direct link to the swarming logs"); err != nil {
-			sklog.Errorf("Failed to get view action markup: %s", err)
-			return
-		}
-	}
-	bodyTemplate := `
-	The chromium perf %s benchmark task on %s pageset has completed. %s.<br/>
-	Run description: %s<br/>
-	%s
-	%s
-	The HTML output with differences between the base run and the patch run is <a href='%s'>here</a>.<br/>
-	The patch(es) you specified are here:
-	<a href='%s'>chromium</a>/<a href='%s'>skia</a>/<a href='%s'>v8</a>/<a href='%s'>catapult</a>/<a href='%s'>chromium (base build)</a>
-	<br/>
-	Custom webpages (if specified) are <a href='%s'>here</a>.
-	<br/><br/>
-	You can schedule more runs <a href='%s'>here</a>.
-	<br/><br/>
-	Thanks!
-	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, ctPerfHtml, htmlOutputLink, chromiumPatchLink, skiaPatchLink, v8PatchLink, catapultPatchLink, chromiumPatchBaseBuildLink, customWebpagesLink, master_common.ChromiumPerfTasksWebapp)
-	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
-		sklog.Errorf("Error while sending email: %s", err)
-		return
-	}
-}
-
-func updateTaskInDatastore(ctx context.Context) {
-	vars := chromium_perf.UpdateVars{}
-	vars.Id = *taskID
-	vars.SetCompleted(taskCompletedSuccessfully)
-	vars.Results = htmlOutputLink
-	vars.NoPatchRawOutput = noPatchOutputLink
-	vars.WithPatchRawOutput = withPatchOutputLink
-	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars))
-}
 
 func runChromiumPerfOnWorkers() error {
 	master_common.Init("run_chromium_perf")
 
 	ctx := context.Background()
 
-	// Send start email.
-	emailsArr := util.ParseEmails(*emails)
-	emailsArr = append(emailsArr, util.CtAdmins...)
-	if len(emailsArr) == 0 {
-		return errors.New("At least one email address must be specified")
-	}
-	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &chromium_perf.UpdateVars{}, *taskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Chromium perf", *runID, *description, fmt.Sprintf("Triggered %s benchmark on %s %s pageset.", *benchmarkName, *targetPlatform, *pagesetType)))
-	// Ensure task is updated and email is sent even if task fails.
-	defer updateTaskInDatastore(ctx)
-	defer sendEmail(emailsArr)
 	// Cleanup dirs after run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir, *runID))
 	// Finish with glog flush and how long the task took.
@@ -163,7 +81,7 @@ func runChromiumPerfOnWorkers() error {
 	if err != nil {
 		return fmt.Errorf("Could not instantiate gsutil object: %s", err)
 	}
-	remoteOutputDir := path.Join(util.ChromiumPerfRunsStorageDir, *runID)
+	remoteOutputDir := util.GetPerfRemoteHTMLDir(*runID)
 
 	// TODO(rmistry): Fix the below.
 	//
@@ -214,12 +132,8 @@ func runChromiumPerfOnWorkers() error {
 			return fmt.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
 		}
 	}
-	skiaPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, skiaPatchName)
-	chromiumPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, chromiumPatchName)
-	v8PatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, v8PatchName)
-	catapultPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, catapultPatchName)
-	chromiumPatchBaseBuildLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, chromiumPatchNameBaseBuild)
-	customWebpagesLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, customWebpagesName)
+	skiaPatchLink := util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, skiaPatchName)
+	chromiumPatchLink := util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, chromiumPatchName)
 
 	// Check if the patches have any content to decide if we need one or two chromium builds.
 	localPatches := []string{filepath.Join(os.TempDir(), chromiumPatchName), filepath.Join(os.TempDir(), skiaPatchName), filepath.Join(os.TempDir(), v8PatchName), filepath.Join(os.TempDir(), chromiumPatchNameBaseBuild)}
@@ -360,10 +274,9 @@ func runChromiumPerfOnWorkers() error {
 	htmlOutputDir := filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir, *runID, "html")
 	skutil.MkdirAll(htmlOutputDir, 0700)
 	htmlRemoteDir := filepath.Join(remoteOutputDir, "html")
-	htmlOutputLinkBase := util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, htmlRemoteDir) + "/"
-	htmlOutputLink = htmlOutputLinkBase + "index.html"
-	noPatchOutputLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, util.BenchmarkRunsDir, runIDNoPatch, "consolidated_outputs", runIDNoPatch+".output")
-	withPatchOutputLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, util.BenchmarkRunsDir, runIDWithPatch, "consolidated_outputs", runIDWithPatch+".output")
+	htmlOutputLinkBase := util.GetPerfOutputLinkBase(*runID)
+	noPatchOutputLink := util.GetPerfNoPatchOutputLink(*runID)
+	withPatchOutputLink := util.GetPerfWithPatchOutputLink(*runID)
 	// Construct path to the csv_comparer python script.
 	pathToCsvComparer := filepath.Join(pathToPyFiles, "csv_comparer.py")
 	args := []string{
@@ -374,7 +287,7 @@ func runChromiumPerfOnWorkers() error {
 		"--variance_threshold=" + strconv.FormatFloat(*varianceThreshold, 'f', 2, 64),
 		"--discard_outliers=" + strconv.FormatFloat(*discardOutliers, 'f', 2, 64),
 		"--absolute_url=" + htmlOutputLinkBase,
-		"--requester_email=" + *emails,
+		"--requester_email=" + *runRequester,
 		"--skia_patch_link=" + skiaPatchLink,
 		"--chromium_patch_link=" + chromiumPatchLink,
 		"--description=" + *description,
@@ -407,7 +320,6 @@ func runChromiumPerfOnWorkers() error {
 		}
 	}
 
-	taskCompletedSuccessfully = true
 	return nil
 }
 

@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -19,6 +20,8 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/email"
+	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
 
@@ -174,14 +177,12 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	return t, nil
 }
 
-func (task DatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
+func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error {
 	runID := task_common.GetRunID(&task)
-	emails := []string{task.Username}
-	emails = append(emails, task.CCList...)
+	emails := task_common.GetEmailRecipients(task.Username, task.CCList)
 	isolateArgs := map[string]string{
-		"EMAILS":                            strings.Join(emails, ","),
+		"RUN_REQUESTER":                     task.Username,
 		"DESCRIPTION":                       task.Description,
-		"TASK_ID":                           strconv.FormatInt(task.DatastoreKey.ID, 10),
 		"PAGESET_TYPE":                      task.PageSets,
 		"BENCHMARK":                         task.Benchmark,
 		"BENCHMARK_ARGS":                    task.BenchmarkArgs,
@@ -201,12 +202,66 @@ func (task DatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
 		"CATAPULT_PATCH_GS_PATH":            task.CatapultPatchGSPath,
 		"CHROMIUM_BASE_BUILD_PATCH_GS_PATH": task.ChromiumPatchBaseBuildGSPath,
 		"CUSTOM_WEBPAGES_CSV_GS_PATH":       task.CustomWebpagesGSPath,
-		"DS_NAMESPACE":                      task_common.DsNamespace,
-		"DS_PROJECT_NAME":                   task_common.DsProjectName,
 	}
-
-	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_chromium_perf_on_workers", ctutil.CHROMIUM_PERF_MASTER_ISOLATE, task_common.ServiceAccountFile, task.Platform, false, isolateArgs); err != nil {
+	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_chromium_perf_on_workers", ctutil.CHROMIUM_PERF_MASTER_ISOLATE, task_common.ServiceAccountFile, task.Platform, false, isolateArgs)
+	if err != nil {
 		return fmt.Errorf("Could not trigger master script for run_chromium_perf_on_workers with isolate args %v: %s", isolateArgs, err)
+	}
+	// Mark task as started in datastore.
+	if err := task_common.UpdateTaskSetStarted(ctx, &UpdateVars{}, task.DatastoreKey.ID, runID, sTaskID); err != nil {
+		return fmt.Errorf("Could not mark task as started in datastore: %s", err)
+	}
+	// Send start email.
+	skutil.LogErr(ctutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Chromium perf", runID, task.Description, fmt.Sprintf("Triggered %s benchmark on %s %s pageset.", task.Benchmark, task.Platform, task.PageSets)))
+
+	return nil
+}
+
+func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSuccessfully bool) error {
+	runID := task_common.GetRunID(&task)
+	emails := task_common.GetEmailRecipients(task.Username, task.CCList)
+	emailSubject := fmt.Sprintf("Cluster telemetry chromium perf task has completed (#%d)", task.DatastoreKey.ID)
+	failureHtml := ""
+	viewActionMarkup := ""
+	ctPerfHtml := ""
+	var err error
+
+	if completedSuccessfully {
+		if viewActionMarkup, err = email.GetViewActionMarkup(task.Results, "View Results", "Direct link to the HTML results"); err != nil {
+			return fmt.Errorf("Failed to get view action markup: %s", err)
+		}
+		ctPerfHtml = ctutil.GetCTPerfEmailHtml(task.GroupName)
+	} else {
+		emailSubject += " with failures"
+		failureHtml = ctutil.GetFailureEmailHtml(runID)
+		if viewActionMarkup, err = email.GetViewActionMarkup(fmt.Sprintf(ctutil.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID), "View Failure", "Direct link to the swarming logs"); err != nil {
+			return fmt.Errorf("Failed to get view action markup: %s", err)
+		}
+	}
+	bodyTemplate := `
+	The chromium perf %s benchmark task on %s pageset has completed. %s.<br/>
+	Run description: %s<br/>
+	%s
+	%s
+	The HTML output with differences between the base run and the patch run is <a href='%s'>here</a>.<br/>
+	The patch(es) you specified are here:
+	<a href='%s'>chromium</a>/<a href='%s'>skia</a>/<a href='%s'>v8</a>/<a href='%s'>catapult</a>/<a href='%s'>chromium (base build)</a>
+	<br/>
+	Custom webpages (if specified) are <a href='%s'>here</a>.
+	<br/><br/>
+	You can schedule more runs <a href='%s'>here</a>.
+	<br/><br/>
+	Thanks!
+	`
+	chromiumPatchLink := ctutil.GCS_HTTP_LINK + path.Join(ctutil.GCSBucketName, task.ChromiumPatchGSPath)
+	skiaPatchLink := ctutil.GCS_HTTP_LINK + path.Join(ctutil.GCSBucketName, task.SkiaPatchGSPath)
+	v8PatchLink := ctutil.GCS_HTTP_LINK + path.Join(ctutil.GCSBucketName, task.V8PatchGSPath)
+	catapultPatchLink := ctutil.GCS_HTTP_LINK + path.Join(ctutil.GCSBucketName, task.CatapultPatchGSPath)
+	chromiumPatchBaseBuildLink := ctutil.GCS_HTTP_LINK + path.Join(ctutil.GCSBucketName, task.ChromiumPatchBaseBuildGSPath)
+	customWebpagesLink := ctutil.GCS_HTTP_LINK + path.Join(ctutil.GCSBucketName, task.CustomWebpagesGSPath)
+	emailBody := fmt.Sprintf(bodyTemplate, task.Benchmark, task.PageSets, ctutil.GetSwarmingLogsLink(runID), task.Description, failureHtml, ctPerfHtml, task.Results, chromiumPatchLink, skiaPatchLink, v8PatchLink, catapultPatchLink, chromiumPatchBaseBuildLink, customWebpagesLink, task_common.WebappURL+ctfeutil.CHROMIUM_PERF_URI)
+	if err := ctutil.SendEmailWithMarkup(emails, emailSubject, emailBody, viewActionMarkup); err != nil {
+		return fmt.Errorf("Error while sending email: %s", err)
 	}
 	return nil
 }
@@ -384,6 +439,18 @@ func (vars *UpdateVars) UpdateExtraFields(t task_common.Task) error {
 		task.Results = vars.Results
 	}
 	return nil
+}
+
+func (vars *UpdateVars) SetCompleted(success bool, t task_common.Task) {
+	if success {
+		runID := task_common.GetRunID(t)
+		vars.Results = ctutil.GetPerfOutputLink(runID)
+		vars.NoPatchRawOutput = ctutil.GetPerfNoPatchOutputLink(runID)
+		vars.WithPatchRawOutput = ctutil.GetPerfWithPatchOutputLink(runID)
+	}
+	vars.TsCompleted = ctutil.GetCurrentTs()
+	vars.Failure = !success
+	vars.TaskDone = true
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {

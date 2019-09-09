@@ -2,13 +2,15 @@
 package util
 
 import (
+	"encoding/json"
 	"fmt"
 	"html"
+	"io"
 	"io/ioutil"
 	"strings"
 
 	"go.skia.org/infra/go/email"
-	"go.skia.org/infra/go/metadata"
+	skutil "go.skia.org/infra/go/util"
 )
 
 var (
@@ -17,22 +19,43 @@ var (
 	emailTokenPath    string
 )
 
-func MailInit() error {
-	emailClientId = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
-	emailClientSecret = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_SECRET))
+type ClientConfig struct {
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+}
+type Installed struct {
+	Installed ClientConfig `json:"installed"`
+}
 
-	cachedGMailToken := metadata.Must(metadata.ProjectGet(GMAIL_CACHED_TOKEN))
+func MailInit(emailClientSecretFile, emailTokenCacheFile string) error {
+	var cfg Installed
+	err := skutil.WithReadFile(emailClientSecretFile, func(f io.Reader) error {
+		return json.NewDecoder(f).Decode(&cfg)
+	})
+	if err != nil {
+		return fmt.Errorf("Failed to read client secrets from %q: %s", emailClientSecretFile, err)
+	}
+	// Create a copy of the token cache file since mounted secrets are read-only
+	// and the access token will need to be updated for the oauth2 flow.
 	fout, err := ioutil.TempFile("", "")
 	if err != nil {
 		return fmt.Errorf("Unable to create temp file: %s", err)
 	}
-	if _, err := fout.Write([]byte(cachedGMailToken)); err != nil {
-		return fmt.Errorf("Could not write to temp file: %s", err)
+	err = skutil.WithReadFile(emailTokenCacheFile, func(fin io.Reader) error {
+		_, err := io.Copy(fout, fin)
+		if err != nil {
+			err = fout.Close()
+		}
+		return err
+	})
+	if err != nil {
+		return fmt.Errorf("Failed to write token cache file from %q to %q: %s", emailTokenCacheFile, fout.Name(), err)
 	}
-	if err := fout.Close(); err != nil {
-		return fmt.Errorf("Could not close temp file: %s", err)
-	}
-	emailTokenPath = fout.Name()
+	emailTokenCacheFile = fout.Name()
+	emailClientId = cfg.Installed.ClientID
+	emailClientSecret = cfg.Installed.ClientSecret
+	emailTokenPath = emailTokenCacheFile
+
 	return nil
 }
 

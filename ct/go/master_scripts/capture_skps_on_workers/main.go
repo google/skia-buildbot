@@ -14,8 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/ct/go/ctfe/capture_skps"
-	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/sklog"
@@ -27,63 +25,17 @@ const (
 )
 
 var (
-	emails         = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
-	description    = flag.String("description", "", "The description of the run as entered by the requester.")
-	taskID         = flag.Int64("task_id", -1, "The key of the CT task in CTFE. The task will be updated when it is started and also when it completes.")
 	pagesetType    = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
 	chromiumBuild  = flag.String("chromium_build", "", "The chromium build to use for this capture SKPs run.")
 	targetPlatform = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")
 	runOnGCE       = flag.Bool("run_on_gce", true, "Run on Linux GCE instances.")
 	runID          = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
-
-	taskCompletedSuccessfully = false
 )
-
-func sendEmail(recipients []string) {
-	// Send completion email.
-	emailSubject := fmt.Sprintf("Capture SKPs cluster telemetry task has completed (#%d)", *taskID)
-	failureHtml := ""
-	if !taskCompletedSuccessfully {
-		emailSubject += " with failures"
-		failureHtml = util.GetFailureEmailHtml(*runID)
-	}
-	bodyTemplate := `
-	The Capture SKPs task on %s pageset has completed. %s.<br/>
-	Run description: %s<br/>
-	%s
-	You can schedule more runs <a href="%s">here</a>.<br/><br/>
-	Thanks!
-	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, master_common.CaptureSKPsTasksWebapp)
-	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
-		sklog.Errorf("Error while sending email: %s", err)
-		return
-	}
-}
-
-func updateTaskInDatastore(ctx context.Context) {
-	vars := capture_skps.UpdateVars{}
-	vars.Id = *taskID
-	vars.SetCompleted(taskCompletedSuccessfully)
-	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars))
-}
 
 func captureSKPsOnWorkers() error {
 	master_common.Init("capture_skps")
 
 	ctx := context.Background()
-
-	// Send start email.
-	emailsArr := util.ParseEmails(*emails)
-	emailsArr = append(emailsArr, util.CtAdmins...)
-	if len(emailsArr) == 0 {
-		return errors.New("At least one email address must be specified")
-	}
-	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &capture_skps.UpdateVars{}, *taskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Capture SKPs", *runID, *description, ""))
-	// Ensure task is updated and completion email is sent even if task fails.
-	defer updateTaskInDatastore(ctx)
-	defer sendEmail(emailsArr)
 
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running capture skps task on workers")
@@ -156,7 +108,6 @@ func captureSKPsOnWorkers() error {
 		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}
 
-	taskCompletedSuccessfully = true
 	return nil
 }
 

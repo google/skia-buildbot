@@ -17,11 +17,8 @@ import (
 	"strconv"
 	"time"
 
-	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
-	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
-	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -31,94 +28,19 @@ const (
 )
 
 var (
-	emails                    = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
-	description               = flag.String("description", "", "The description of the run as entered by the requester.")
-	taskID                    = flag.Int64("task_id", -1, "The key of the CT task in CTFE. The task will be updated when it is started and also when it completes.")
 	pagesetType               = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
 	chromiumBuild             = flag.String("chromium_build", "", "The chromium build to use for this capture_archives run.")
 	runOnGCE                  = flag.Bool("run_on_gce", true, "Run on Linux GCE instances.")
 	runID                     = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 	luaScriptGSPath           = flag.String("lua_script_gs_path", "", "The location of the lua script to run on workers in Google storage.")
 	luaAggregatorScriptGSPath = flag.String("lua_aggregator_script_gs_path", "", "The location of the lua aggregator script in Google storage.")
-
-	taskCompletedSuccessfully     = false
-	luaOutputRemoteLink           = ""
-	luaAggregatorOutputRemoteLink = ""
 )
-
-func sendEmail(recipients []string) {
-	// Send completion email.
-	emailSubject := fmt.Sprintf("Run lua script Cluster telemetry task has completed (#%d)", *taskID)
-	failureHtml := ""
-	viewActionMarkup := ""
-	var err error
-
-	if !taskCompletedSuccessfully {
-		emailSubject += " with failures"
-		failureHtml = util.GetFailureEmailHtml(*runID)
-		if viewActionMarkup, err = email.GetViewActionMarkup(util.GetSwarmingLogsLink(*runID), "View Failure", "Direct link to the swarming logs"); err != nil {
-			sklog.Errorf("Failed to get view action markup: %s", err)
-			return
-		}
-	} else {
-		if viewActionMarkup, err = email.GetViewActionMarkup(luaOutputRemoteLink, "View Results", "Direct link to the lua output"); err != nil {
-			sklog.Errorf("Failed to get view action markup: %s", err)
-			return
-		}
-	}
-	scriptOutputHtml := ""
-	if luaOutputRemoteLink != "" {
-		scriptOutputHtml = fmt.Sprintf("The output of your script is available <a href='%s'>here</a>.<br/>\n", luaOutputRemoteLink)
-	}
-	aggregatorOutputHtml := ""
-	if luaAggregatorOutputRemoteLink != "" {
-		aggregatorOutputHtml = fmt.Sprintf("The aggregated output of your script is available <a href='%s'>here</a>.<br/>\n", luaAggregatorOutputRemoteLink)
-	}
-	bodyTemplate := `
-	The Cluster telemetry queued task to run lua script on %s pageset has completed. %s.<br/>
-	Run description: %s<br/>
-	%s
-	%s
-	%s
-	You can schedule more runs <a href="%s">here</a>.<br/><br/>
-	Thanks!
-	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, scriptOutputHtml, aggregatorOutputHtml, master_common.LuaTasksWebapp)
-	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
-		sklog.Errorf("Error while sending email: %s", err)
-		return
-	}
-}
-
-func updateTaskInDatastore(ctx context.Context) {
-	vars := lua_scripts.UpdateVars{}
-	vars.Id = *taskID
-	vars.SetCompleted(taskCompletedSuccessfully)
-	if luaOutputRemoteLink != "" {
-		vars.ScriptOutput = luaOutputRemoteLink
-	}
-	if luaAggregatorOutputRemoteLink != "" {
-		vars.AggregatedOutput = luaAggregatorOutputRemoteLink
-	}
-	skutil.LogErr(task_common.FindAndUpdateTask(ctx, &vars))
-}
 
 func runLuaOnWorkers() error {
 	master_common.Init("run_lua")
 
 	ctx := context.Background()
 
-	// Send start email.
-	emailsArr := util.ParseEmails(*emails)
-	emailsArr = append(emailsArr, util.CtAdmins...)
-	if len(emailsArr) == 0 {
-		return errors.New("At least one email address must be specified")
-	}
-	skutil.LogErr(task_common.UpdateTaskSetStarted(ctx, &lua_scripts.UpdateVars{}, *taskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Lua script", *runID, *description, ""))
-	// Ensure webapp is updated and email is sent even if task fails.
-	defer updateTaskInDatastore(ctx)
-	defer sendEmail(emailsArr)
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running Lua script on workers")
 	defer sklog.Flush()
@@ -168,7 +90,7 @@ func runLuaOnWorkers() error {
 	}
 
 	// Copy outputs from all slaves locally and combine it into one file.
-	consolidatedFileName := "lua-output"
+	consolidatedFileName := util.GetLuaConsolidatedFileName()
 	// Aggregated scripts use dofile("/tmp/lua-output")
 	consolidatedLuaOutput := filepath.Join("/", "tmp", consolidatedFileName)
 	// If the file already exists it could be that there is another lua task running on this machine.
@@ -200,8 +122,7 @@ func runLuaOnWorkers() error {
 		}
 	}
 	// Copy the consolidated file into Google Storage.
-	consolidatedOutputRemoteDir := filepath.Join(util.LuaRunsDir, *runID, "consolidated_outputs")
-	luaOutputRemoteLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, consolidatedOutputRemoteDir, consolidatedFileName)
+	consolidatedOutputRemoteDir := util.GetLuaConsolidatedOutputRemoteDir(*runID)
 	if err := gs.UploadFile(consolidatedFileName, "/tmp", consolidatedOutputRemoteDir); err != nil {
 		return fmt.Errorf("Unable to upload %s to %s: %s", consolidatedLuaOutput, consolidatedOutputRemoteDir, err)
 	}
@@ -219,7 +140,7 @@ func runLuaOnWorkers() error {
 		defer skutil.Remove(luaAggregatorPath)
 
 		// Run the aggregator and save stdout.
-		luaAggregatorOutputFileName := *runID + ".agg.output"
+		luaAggregatorOutputFileName := util.GetLuaAggregatorOutputFileName(*runID)
 		luaAggregatorOutputFilePath := filepath.Join(os.TempDir(), luaAggregatorOutputFileName)
 		luaAggregatorOutputFile, err := os.Create(luaAggregatorOutputFilePath)
 		defer skutil.Close(luaAggregatorOutputFile)
@@ -233,7 +154,6 @@ func runLuaOnWorkers() error {
 			return fmt.Errorf("Could not execute the lua aggregator %s: %s", luaAggregatorPath, err)
 		}
 		// Copy the aggregator output into Google Storage.
-		luaAggregatorOutputRemoteLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, consolidatedOutputRemoteDir, luaAggregatorOutputFileName)
 		if err := gs.UploadFile(luaAggregatorOutputFileName, os.TempDir(), consolidatedOutputRemoteDir); err != nil {
 			return fmt.Errorf("Unable to upload %s to %s: %s", luaAggregatorOutputFileName, consolidatedOutputRemoteDir, err)
 		}
@@ -241,7 +161,6 @@ func runLuaOnWorkers() error {
 		sklog.Info("A lua aggregator has not been specified.")
 	}
 
-	taskCompletedSuccessfully = true
 	return nil
 }
 

@@ -38,6 +38,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/swarming"
 	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
 )
@@ -54,12 +55,18 @@ var (
 	resourcesDir           = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	tasksSchedulerWaitTime = flag.Duration("tasks_scheduler_wait_time", 5*time.Minute, "How often the repeated tasks scheduler should run.")
 
+	// Email params
+	emailClientSecretFile = flag.String("email_client_secret_file", "/etc/ct-email-secrets/client_secret.json", "OAuth client secret JSON file for sending email.")
+	emailTokenCacheFile   = flag.String("email_token_cache_file", "/etc/ct-email-secrets/client_token.json", "OAuth token cache file for sending email.")
+
 	// Datastore params
 	namespace   = flag.String("namespace", "cluster-telemetry", "The Cloud Datastore namespace, such as 'cluster-telemetry'.")
 	projectName = flag.String("project_name", "skia-public", "The Google Cloud project name.")
 
-	// authenticated http client
+	// Authenticated http client
 	client *http.Client
+	// Swarming API client.
+	swarm swarming.ApiClient
 )
 
 func reloadTemplates() {
@@ -163,6 +170,75 @@ func startCtfeMetrics(ctx context.Context) {
 			}
 		}
 	}()
+}
+
+func pollMasterScriptSwarmingTasks(ctx context.Context) {
+
+	for range time.Tick(2 * time.Minute) {
+		params := task_common.QueryParams{
+			PendingOnly: true,
+			Offset:      0,
+			Size:        task_common.MAX_PAGE_SIZE,
+		}
+		for _, prototype := range task_types.Prototypes() {
+			it := task_common.DatastoreTaskQuery(ctx, prototype, params)
+			data, err := prototype.Query(it)
+			if err != nil {
+				sklog.Errorf("Failed to query %s tasks: %v", prototype.GetTaskName(), err)
+				continue
+			}
+
+			tasks := task_common.AsTaskSlice(data)
+			for _, task := range tasks {
+				swarmingTaskID := task.GetCommonCols().SwarmingTaskID
+				if swarmingTaskID == "" {
+					sklog.Infof("The task %v has not been triggered yet", task)
+					continue
+				}
+				swarmingTask, err := swarm.GetTask(swarmingTaskID, false)
+				if err != nil {
+					sklog.Errorf("Failed to get task %s for %s: %s", swarmingTaskID, prototype.GetTaskName(), err)
+					continue
+				}
+				failure := false
+				taskCompleted := false
+				switch swarmingTask.State {
+				case swarming.TASK_STATE_BOT_DIED, swarming.TASK_STATE_CANCELED, swarming.TASK_STATE_EXPIRED, swarming.TASK_STATE_NO_RESOURCE, swarming.TASK_STATE_TIMED_OUT, swarming.TASK_STATE_KILLED:
+					sklog.Errorf("The task %s exited early with state %v", swarmingTaskID, swarmingTask.State)
+					taskCompleted = true
+					failure = true
+				case swarming.TASK_STATE_PENDING:
+					sklog.Infof("The task %s is in pending state", swarmingTaskID)
+				case swarming.TASK_STATE_RUNNING:
+					sklog.Infof("The task %s is in running state", swarmingTaskID)
+				case swarming.TASK_STATE_COMPLETED:
+					taskCompleted = true
+					if swarmingTask.Failure {
+						sklog.Infof("The task %s failed", swarmingTaskID)
+						failure = true
+					} else {
+						sklog.Infof("The task %s successfully completed", swarmingTaskID)
+					}
+				default:
+					sklog.Errorf("Unknown Swarming State %v in %v", swarmingTask.State, swarmingTask)
+				}
+
+				if taskCompleted {
+					// Update the task in datastore.
+					vars := task.GetUpdateTaskVars()
+					vars.GetUpdateTaskCommonVars().Id = task.GetCommonCols().DatastoreKey.ID
+					vars.SetCompleted(!failure, task)
+					updatedTask, err := task_common.FindAndUpdateTask(ctx, vars)
+					if err != nil {
+						sklog.Errorf("Could not find and update task %v: %s", vars, err)
+					} else {
+						// Send completion email.
+						skutil.LogErr(updatedTask.SendCompletionEmail(ctx, !failure))
+					}
+				}
+			}
+		}
+	}
 }
 
 // repeatedTasksScheduler looks for all tasks that contain repeat_after_days
@@ -278,6 +354,13 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
+	if !*local {
+		// Initialize mailing library.
+		if err := ctutil.MailInit(*emailClientSecretFile, *emailTokenCacheFile); err != nil {
+			sklog.Fatalf("Could not initialize mailing library: %s", err)
+		}
+	}
+
 	if *local {
 		login.SimpleInitWithAllow(*port, *local, nil, nil, nil)
 	} else {
@@ -296,21 +379,29 @@ func main() {
 	}
 
 	// Initialize the autoscaler and globals in task_common.
-	if err := task_common.Init(ctx, *local, *namespace, *projectName, *serviceAccountFile, pending_tasks.GetGCEPendingTaskCount); err != nil {
+	if err := task_common.Init(ctx, *local, *host, *serviceAccountFile, pending_tasks.GetGCEPendingTaskCount); err != nil {
 		sklog.Fatalf("Could not init task_common: %s", err)
 	}
 
 	// Create authenticated HTTP client.
-	storageTokenSource, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_READ_ONLY)
+	httpClientTokenSource, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_READ_ONLY, swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatalf("Problem setting up default token source: %s", err)
 	}
-	client = httputils.DefaultClientConfig().WithTokenSource(storageTokenSource).With2xxOnly().Client()
+	client = httputils.DefaultClientConfig().WithTokenSource(httpClientTokenSource).With2xxOnly().Client()
+
+	swarm, err = swarming.NewApiClient(client, swarming.SWARMING_SERVER_PRIVATE)
+	if err != nil {
+		sklog.Fatalf("Could not instantiate swarming client")
+	}
 
 	startCtfeMetrics(ctx)
 
 	// Start the repeated tasks scheduler.
 	go repeatedTasksScheduler(ctx)
+
+	// Start a poller that watches for completed master script swarming tasks.
+	go pollMasterScriptSwarmingTasks(ctx)
 
 	runServer(serverURL)
 }
