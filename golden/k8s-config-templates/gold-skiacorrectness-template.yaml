@@ -59,6 +59,7 @@ spec:
             - "--git_bt_table={{.GIT_BT_TABLE}}"
             - "--git_repo_url={{.GITREPO_URL}}"
             - "--hashes_gs_path=skia-gold-{{.INSTANCE_ID}}/hash_files/gold-{{.INSTANCE_ID}}-hashes.txt"
+            - "--lit_html_dir=/usr/local/share/skiacorrectness"
             - "--logtostderr=true"
             - "--n_commits={{.N_COMMITS}}"
             - "--no_cloud_log=true"

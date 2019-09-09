@@ -26,8 +26,8 @@ ${INSTALL_DIR} --mode=755                                          ${ROOT}/usr/l
 ${INSTALL}     --mode=644 ./frontend/res/vul/elements.html         ${ROOT}/usr/local/share/skiacorrectness/frontend/res/vul/elements.html
 ${INSTALL}     --mode=644 ./frontend/index.html                    ${ROOT}/usr/local/share/skiacorrectness/frontend/index.html
 
-${INSTALL_DIR} --mode=755                                          ${ROOT}/usr/local/share/skiacorrectness/frontend/dist
-${INSTALL} --mode=644 ./dist/*                                     ${ROOT}/usr/local/share/skiacorrectness/frontend/dist
+${INSTALL_DIR} --mode=755                                          ${ROOT}/usr/local/share/skiacorrectness/dist
+${INSTALL} --mode=644 ./dist/*                                     ${ROOT}/usr/local/share/skiacorrectness/dist
 }
 
 source ../bash/docker_build.sh
