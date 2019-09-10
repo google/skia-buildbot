@@ -150,7 +150,7 @@ func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error 
 		return fmt.Errorf("Could not mark task as started in datastore: %s", err)
 	}
 	// Send start email.
-	skutil.LogErr(ctutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Lua script", runID, task.Description, ""))
+	skutil.LogErr(ctfeutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Lua script", runID, task.Description, ""))
 	return nil
 }
 
@@ -164,8 +164,8 @@ func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSucc
 
 	if !completedSuccessfully {
 		emailSubject += " with failures"
-		failureHtml = ctutil.GetFailureEmailHtml(runID)
-		if viewActionMarkup, err = email.GetViewActionMarkup(ctutil.GetSwarmingLogsLink(runID), "View Failure", "Direct link to the swarming logs"); err != nil {
+		failureHtml = ctfeutil.GetFailureEmailHtml(runID)
+		if viewActionMarkup, err = email.GetViewActionMarkup(ctfeutil.GetSwarmingLogsLink(runID), "View Failure", "Direct link to the swarming logs"); err != nil {
 			return fmt.Errorf("Failed to get view action markup: %s", err)
 		}
 	} else {
@@ -190,8 +190,8 @@ func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSucc
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, task.PageSets, ctutil.GetSwarmingLogsLink(runID), task.Description, failureHtml, scriptOutputHtml, aggregatorOutputHtml, task_common.WebappURL+ctfeutil.LUA_SCRIPT_URI)
-	if err := ctutil.SendEmailWithMarkup(emails, emailSubject, emailBody, viewActionMarkup); err != nil {
+	emailBody := fmt.Sprintf(bodyTemplate, task.PageSets, ctfeutil.GetSwarmingLogsLink(runID), task.Description, failureHtml, scriptOutputHtml, aggregatorOutputHtml, task_common.WebappURL+ctfeutil.LUA_SCRIPT_URI)
+	if err := ctfeutil.SendEmailWithMarkup(emails, emailSubject, emailBody, viewActionMarkup); err != nil {
 		return fmt.Errorf("Error while sending email: %s", err)
 	}
 

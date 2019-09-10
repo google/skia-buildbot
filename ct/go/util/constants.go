@@ -10,10 +10,7 @@ import (
 
 const (
 	// Use the CTFE proxy to Google Storage. See skbug.com/6762
-	GCS_HTTP_LINK         = "https://ct.skia.org/results/"
-	CT_EMAIL_DISPLAY_NAME = "Cluster Telemetry"
-
-	GMAIL_CACHED_TOKEN = "ct_gmail_cached_token"
+	GCS_HTTP_LINK = "https://ct.skia.org/results/"
 
 	// File names and dir names.
 	CHROMIUM_BUILDS_DIR_NAME         = "chromium_builds"
@@ -184,6 +181,7 @@ const (
 	// this.
 	SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE   = "https://chrome-swarming.appspot.com/tasklist?l=500&c=name&c=created_ts&c=bot&c=duration&c=state&f=runid:%s&st=1262304000000"
 	SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE = SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE + "&f=name:%s"
+
 	// Priorities
 	TASKS_PRIORITY_HIGH   = swarming.RECOMMENDED_PRIORITY
 	TASKS_PRIORITY_MEDIUM = swarming.RECOMMENDED_PRIORITY + 10
