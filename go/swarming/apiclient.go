@@ -111,7 +111,7 @@ type ApiClient interface {
 	ListTaskResults(start, end time.Time, tags []string, state string, includePerformanceStats bool) ([]*swarming.SwarmingRpcsTaskResult, error)
 
 	// CancelTask cancels the task with the given ID.
-	CancelTask(id string) error
+	CancelTask(id string, killRunning bool) error
 
 	// TriggerTask triggers a task with the given request.
 	TriggerTask(t *swarming.SwarmingRpcsNewTaskRequest) (*swarming.SwarmingRpcsTaskRequestMetadata, error)
@@ -374,9 +374,9 @@ func (c *apiClient) ListTasks(start, end time.Time, tags []string, state string)
 	return rv, nil
 }
 
-func (c *apiClient) CancelTask(id string) error {
+func (c *apiClient) CancelTask(id string, killRunning bool) error {
 	req, reqErr := c.s.Task.Cancel(id, &swarming.SwarmingRpcsTaskCancelRequest{
-		KillRunning: false,
+		KillRunning: killRunning,
 	}).Do()
 	if reqErr != nil {
 		return reqErr

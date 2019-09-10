@@ -22,7 +22,7 @@ func NewMockApiClient() *MockApiClient {
 }
 
 // CancelTask provides a mock function with given fields: id
-func (_m *MockApiClient) CancelTask(id string) error {
+func (_m *MockApiClient) CancelTask(id string, killRunning bool) error {
 	ret := _m.Called(id)
 
 	var r0 error

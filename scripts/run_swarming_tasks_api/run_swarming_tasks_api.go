@@ -126,7 +126,7 @@ func main() {
 					defer wg.Done()
 
 					for t := range tasksChannel {
-						if err := swarmApi.CancelTask(t.TaskId); err != nil {
+						if err := swarmApi.CancelTask(t.TaskId, false /* killRunning */); err != nil {
 							sklog.Errorf("Could not delete %s: %s", getTaskStr(t), err)
 							continue
 						}

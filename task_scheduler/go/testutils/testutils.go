@@ -171,7 +171,7 @@ func (c *TestClient) ListTaskResults(start, end time.Time, tags []string, state 
 	return rv, nil
 }
 
-func (c *TestClient) CancelTask(id string) error {
+func (c *TestClient) CancelTask(id string, killRunning bool) error {
 	return nil
 }
 
