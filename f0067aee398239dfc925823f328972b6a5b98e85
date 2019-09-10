@@ -34,6 +34,24 @@
       "revId": "f0067aee398239dfc925823f328972b6a5b98e85",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "940e2c38_4708c8ac",
+        "filename": "autoroll/go/autoroll-google3/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-10T19:36:13Z",
+      "side": 0,
+      "message": "Also just minimizing attack surfaces.",
+      "parentUuid": "ddb06032_49fd297e",
+      "revId": "f0067aee398239dfc925823f328972b6a5b98e85",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
