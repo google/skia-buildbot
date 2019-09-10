@@ -1,0 +1,11 @@
+{
+   "ctfe": {
+     "urls": [
+       "https://ct.skia.org/healthz",
+     ],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+}
