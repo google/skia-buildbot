@@ -14,11 +14,7 @@ func TestFetchFromGCS(t *testing.T) {
 
 	o := MyObjStruct{client:m}
 
-	// AnythingOfType is handy when you don't really care what gets passed in, as long
-	// as it matches the type specified.
-	ctx := mock.AnythingOfType("*context.emptyCtx")
-
-	m.On("GetFileContents", ctx, "my-file").Return(testBytes, nil)
+	m.On("GetFileContents", testutils.AnyContext, "my-file").Return(testBytes, nil)
 
 	o.DoAThing()
 

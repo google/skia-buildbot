@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
@@ -285,7 +285,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	ps := paramsets.NewParamSummary(data.MakeTestTile(), dc)
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(ps.GetByTest())
 
-	mcls.On("GetPatchSets", anyctx, clID).Return([]code_review.PatchSet{
+	mcls.On("GetPatchSets", testutils.AnyContext, clID).Return([]code_review.PatchSet{
 		{
 			SystemID:     "first_one",
 			ChangeListID: clID,
@@ -316,7 +316,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 		"ext": "png",
 	}
 
-	mtjs.On("GetResults", anyctx, expectedID).Return([]tjstore.TryJobResult{
+	mtjs.On("GetResults", testutils.AnyContext, expectedID).Return([]tjstore.TryJobResult{
 		{
 			GroupParams: anglerGroup,
 			Options:     options,
@@ -436,7 +436,6 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 }
 
 var everythingPublic = paramtools.ParamSet{}
-var anyctx = mock.Anything
 
 // This is arbitrary data.
 func makeSmallDiffMetric() *diff.DiffMetrics {
