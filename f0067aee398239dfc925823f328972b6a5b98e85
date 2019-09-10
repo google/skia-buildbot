@@ -16,6 +16,24 @@
       "revId": "f0067aee398239dfc925823f328972b6a5b98e85",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ddb06032_49fd297e",
+        "filename": "autoroll/go/autoroll-google3/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-10T19:29:24Z",
+      "side": 0,
+      "message": "That\u0027s my understanding, yes. You\u0027re asking because you want to make sure it doesn\u0027t hang around to be used by accident?",
+      "parentUuid": "e6e7d4ca_667b57e1",
+      "revId": "f0067aee398239dfc925823f328972b6a5b98e85",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
