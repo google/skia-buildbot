@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
@@ -158,8 +158,6 @@ func makeBugRevertFoxtrotBlame() blame.BlameDistribution {
 	}
 }
 
-var anyctx = mock.AnythingOfType("*context.emptyCtx")
-
 // TestGetChangeListsSunnyDay tests the core functionality of
 // listing all ChangeLists that have Gold results.
 func TestGetChangeListsSunnyDay(t *testing.T) {
@@ -168,7 +166,7 @@ func TestGetChangeListsSunnyDay(t *testing.T) {
 	mcls := &mock_clstore.Store{}
 	defer mcls.AssertExpectations(t)
 
-	mcls.On("GetChangeLists", anyctx, 0, 50).Return(makeCodeReviewCLs(), 3, nil)
+	mcls.On("GetChangeLists", testutils.AnyContext, 0, 50).Return(makeCodeReviewCLs(), 3, nil)
 	mcls.On("System").Return("gerrit")
 
 	wh := WebHandlers{
@@ -257,8 +255,8 @@ func TestGetCLSummarySunnyDay(t *testing.T) {
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 
-	mcls.On("GetChangeList", anyctx, expectedCLID).Return(makeCodeReviewCLs()[0], nil)
-	mcls.On("GetPatchSets", anyctx, expectedCLID).Return(makeCodeReviewPSs(), nil)
+	mcls.On("GetChangeList", testutils.AnyContext, expectedCLID).Return(makeCodeReviewCLs()[0], nil)
+	mcls.On("GetPatchSets", testutils.AnyContext, expectedCLID).Return(makeCodeReviewPSs(), nil)
 	mcls.On("System").Return("gerrit")
 
 	psID := tjstore.CombinedPSID{
@@ -273,7 +271,7 @@ func TestGetCLSummarySunnyDay(t *testing.T) {
 			Updated:     time.Date(2019, time.August, 27, 1, 0, 0, 0, time.UTC),
 		},
 	}
-	mtjs.On("GetTryJobs", anyctx, psID).Return(tj1, nil)
+	mtjs.On("GetTryJobs", testutils.AnyContext, psID).Return(tj1, nil)
 
 	psID = tjstore.CombinedPSID{
 		CL:  expectedCLID,
@@ -292,7 +290,7 @@ func TestGetCLSummarySunnyDay(t *testing.T) {
 			Updated:     time.Date(2019, time.August, 27, 0, 20, 0, 0, time.UTC),
 		},
 	}
-	mtjs.On("GetTryJobs", anyctx, psID).Return(tj2, nil)
+	mtjs.On("GetTryJobs", testutils.AnyContext, psID).Return(tj2, nil)
 	mtjs.On("System").Return("buildbucket")
 
 	wh := WebHandlers{

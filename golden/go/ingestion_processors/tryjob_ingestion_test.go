@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	ingestion_mocks "go.skia.org/infra/go/ingestion/mocks"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sharedconfig"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/clstore"
 	mockclstore "go.skia.org/infra/golden/go/clstore/mocks"
@@ -64,20 +64,20 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 	defer mcrs.AssertExpectations(t)
 	defer mcis.AssertExpectations(t)
 
-	mcrs.On("GetChangeList", anyctx, sampleCLID).Return(makeChangeList(), nil)
-	mcrs.On("GetPatchSets", anyctx, sampleCLID).Return(makePatchSets(), nil)
+	mcrs.On("GetChangeList", testutils.AnyContext, sampleCLID).Return(makeChangeList(), nil)
+	mcrs.On("GetPatchSets", testutils.AnyContext, sampleCLID).Return(makePatchSets(), nil)
 
-	mcls.On("GetChangeList", anyctx, sampleCLID).Return(code_review.ChangeList{}, clstore.ErrNotFound)
-	mcls.On("GetPatchSetByOrder", anyctx, sampleCLID, samplePSOrder).Return(code_review.PatchSet{}, clstore.ErrNotFound)
-	mcls.On("PutChangeList", anyctx, makeChangeList()).Return(nil)
+	mcls.On("GetChangeList", testutils.AnyContext, sampleCLID).Return(code_review.ChangeList{}, clstore.ErrNotFound)
+	mcls.On("GetPatchSetByOrder", testutils.AnyContext, sampleCLID, samplePSOrder).Return(code_review.PatchSet{}, clstore.ErrNotFound)
+	mcls.On("PutChangeList", testutils.AnyContext, makeChangeList()).Return(nil)
 	xps := makePatchSets()
-	mcls.On("PutPatchSet", anyctx, xps[1]).Return(nil)
+	mcls.On("PutPatchSet", testutils.AnyContext, xps[1]).Return(nil)
 
-	mcis.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
+	mcis.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(makeTryJob(), nil)
 
-	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(ci.TryJob{}, tjstore.ErrNotFound)
-	mtjs.On("PutTryJob", anyctx, sampleCombinedID, makeTryJob()).Return(nil)
-	mtjs.On("PutResults", anyctx, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
+	mtjs.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(ci.TryJob{}, tjstore.ErrNotFound)
+	mtjs.On("PutTryJob", testutils.AnyContext, sampleCombinedID, makeTryJob()).Return(nil)
+	mtjs.On("PutResults", testutils.AnyContext, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		reviewClient:      mcrs,
@@ -109,18 +109,18 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 	defer mcrs.AssertExpectations(t)
 	defer mcis.AssertExpectations(t)
 
-	mcrs.On("GetPatchSets", anyctx, sampleCLID).Return(makePatchSets(), nil)
+	mcrs.On("GetPatchSets", testutils.AnyContext, sampleCLID).Return(makePatchSets(), nil)
 
-	mcls.On("GetChangeList", anyctx, sampleCLID).Return(makeChangeList(), nil)
-	mcls.On("GetPatchSetByOrder", anyctx, sampleCLID, samplePSOrder).Return(code_review.PatchSet{}, clstore.ErrNotFound)
+	mcls.On("GetChangeList", testutils.AnyContext, sampleCLID).Return(makeChangeList(), nil)
+	mcls.On("GetPatchSetByOrder", testutils.AnyContext, sampleCLID, samplePSOrder).Return(code_review.PatchSet{}, clstore.ErrNotFound)
 	xps := makePatchSets()
-	mcls.On("PutPatchSet", anyctx, xps[1]).Return(nil)
+	mcls.On("PutPatchSet", testutils.AnyContext, xps[1]).Return(nil)
 
-	mcis.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
+	mcis.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(makeTryJob(), nil)
 
-	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(ci.TryJob{}, tjstore.ErrNotFound)
-	mtjs.On("PutTryJob", anyctx, sampleCombinedID, makeTryJob()).Return(nil)
-	mtjs.On("PutResults", anyctx, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
+	mtjs.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(ci.TryJob{}, tjstore.ErrNotFound)
+	mtjs.On("PutTryJob", testutils.AnyContext, sampleCombinedID, makeTryJob()).Return(nil)
+	mtjs.On("PutResults", testutils.AnyContext, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		reviewClient:      mcrs,
@@ -152,15 +152,15 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 	defer mcrs.AssertExpectations(t)
 	defer mcis.AssertExpectations(t)
 
-	mcls.On("GetChangeList", anyctx, sampleCLID).Return(makeChangeList(), nil)
+	mcls.On("GetChangeList", testutils.AnyContext, sampleCLID).Return(makeChangeList(), nil)
 	xps := makePatchSets()
-	mcls.On("GetPatchSetByOrder", anyctx, sampleCLID, samplePSOrder).Return(xps[1], nil)
+	mcls.On("GetPatchSetByOrder", testutils.AnyContext, sampleCLID, samplePSOrder).Return(xps[1], nil)
 
-	mcis.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
+	mcis.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(makeTryJob(), nil)
 
-	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(ci.TryJob{}, tjstore.ErrNotFound)
-	mtjs.On("PutTryJob", anyctx, sampleCombinedID, makeTryJob()).Return(nil)
-	mtjs.On("PutResults", anyctx, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
+	mtjs.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(ci.TryJob{}, tjstore.ErrNotFound)
+	mtjs.On("PutTryJob", testutils.AnyContext, sampleCombinedID, makeTryJob()).Return(nil)
+	mtjs.On("PutResults", testutils.AnyContext, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		reviewClient:      mcrs,
@@ -192,12 +192,12 @@ func TestTryJobProcessTJExistsSunnyDay(t *testing.T) {
 	defer mcrs.AssertExpectations(t)
 	defer mcis.AssertExpectations(t)
 
-	mcls.On("GetChangeList", anyctx, sampleCLID).Return(makeChangeList(), nil)
+	mcls.On("GetChangeList", testutils.AnyContext, sampleCLID).Return(makeChangeList(), nil)
 	xps := makePatchSets()
-	mcls.On("GetPatchSetByOrder", anyctx, sampleCLID, samplePSOrder).Return(xps[1], nil)
+	mcls.On("GetPatchSetByOrder", testutils.AnyContext, sampleCLID, samplePSOrder).Return(xps[1], nil)
 
-	mtjs.On("GetTryJob", anyctx, sampleTJID).Return(makeTryJob(), nil)
-	mtjs.On("PutResults", anyctx, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
+	mtjs.On("GetTryJob", testutils.AnyContext, sampleTJID).Return(makeTryJob(), nil)
+	mtjs.On("PutResults", testutils.AnyContext, sampleCombinedID, sampleTJID, makeTryJobResults()).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		reviewClient:      mcrs,
@@ -214,10 +214,6 @@ func TestTryJobProcessTJExistsSunnyDay(t *testing.T) {
 	err = gtp.Process(context.Background(), fsResult)
 	assert.NoError(t, err)
 }
-
-var (
-	anyctx = mock.AnythingOfType("*context.emptyCtx")
-)
 
 // Below is the sample data that belongs to legacyGoldCtlFile
 // It doesn't need to be a super complex example because we have tests that

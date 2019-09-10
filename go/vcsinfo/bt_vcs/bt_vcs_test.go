@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/mocks"
 	gs_testutils "go.skia.org/infra/go/gitstore/testutils"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -78,10 +79,10 @@ func TestDetailsCaching(t *testing.T) {
 
 	commits := makeTestLongCommits()
 
-	mg.On("GetBranches", anyContext).Return(makeTestBranchPointerMap(), nil)
-	mg.On("RangeN", anyContext, 0, 4, "master").Return(makeTestIndexCommits(), nil)
+	mg.On("GetBranches", testutils.AnyContext).Return(makeTestBranchPointerMap(), nil)
+	mg.On("RangeN", testutils.AnyContext, 0, 4, "master").Return(makeTestIndexCommits(), nil)
 	startWithEmptyCache(mg)
-	mg.On("Get", anyContext, []string{firstHash}).Return([]*vcsinfo.LongCommit{commits[0]}, nil).Once()
+	mg.On("Get", testutils.AnyContext, []string{firstHash}).Return([]*vcsinfo.LongCommit{commits[0]}, nil).Once()
 
 	vcs, err := New(context.Background(), mg, "master", nil)
 	assert.NoError(t, err)
@@ -112,12 +113,12 @@ func TestDetailsBranchInfo(t *testing.T) {
 	commits := makeTestLongCommits()
 	indices := makeTestIndexCommits()
 
-	mg.On("GetBranches", anyContext).Return(makeTestBranchPointerMap(), nil)
-	mg.On("RangeN", anyContext, 0, 4, "master").Return(indices, nil)
+	mg.On("GetBranches", testutils.AnyContext).Return(makeTestBranchPointerMap(), nil)
+	mg.On("RangeN", testutils.AnyContext, 0, 4, "master").Return(indices, nil)
 	startWithFullCache(mg) // full cache, but it won't have branch info
-	mg.On("Get", anyContext, []string{firstHash}).Return([]*vcsinfo.LongCommit{commits[0]}, nil)
+	mg.On("Get", testutils.AnyContext, []string{firstHash}).Return([]*vcsinfo.LongCommit{commits[0]}, nil)
 
-	mg.On("RangeByTime", anyContext, firstTime, mock.AnythingOfType("time.Time"), "master").Return(
+	mg.On("RangeByTime", testutils.AnyContext, firstTime, mock.AnythingOfType("time.Time"), "master").Return(
 		[]*vcsinfo.IndexCommit{indices[0]}, nil)
 
 	vcs, err := New(context.Background(), mg, "master", nil)
@@ -141,12 +142,12 @@ func TestDetailsBranchInfoCaching(t *testing.T) {
 	commits := makeTestLongCommits()
 	indices := makeTestIndexCommits()
 
-	mg.On("GetBranches", anyContext).Return(makeTestBranchPointerMap(), nil)
-	mg.On("RangeN", anyContext, 0, 4, "master").Return(indices, nil)
+	mg.On("GetBranches", testutils.AnyContext).Return(makeTestBranchPointerMap(), nil)
+	mg.On("RangeN", testutils.AnyContext, 0, 4, "master").Return(indices, nil)
 	startWithEmptyCache(mg)
-	mg.On("Get", anyContext, []string{firstHash}).Return([]*vcsinfo.LongCommit{commits[0]}, nil).Twice()
+	mg.On("Get", testutils.AnyContext, []string{firstHash}).Return([]*vcsinfo.LongCommit{commits[0]}, nil).Twice()
 
-	mg.On("RangeByTime", anyContext, firstTime, mock.AnythingOfType("time.Time"), "master").Return(
+	mg.On("RangeByTime", testutils.AnyContext, firstTime, mock.AnythingOfType("time.Time"), "master").Return(
 		[]*vcsinfo.IndexCommit{indices[0]}, nil).Once()
 
 	vcs, err := New(context.Background(), mg, "master", nil)
@@ -180,10 +181,10 @@ func TestDetailsMultiCaching(t *testing.T) {
 
 	commits := makeTestLongCommits()
 
-	mg.On("GetBranches", anyContext).Return(makeTestBranchPointerMap(), nil)
-	mg.On("RangeN", anyContext, 0, 4, "master").Return(makeTestIndexCommits(), nil)
+	mg.On("GetBranches", testutils.AnyContext).Return(makeTestBranchPointerMap(), nil)
+	mg.On("RangeN", testutils.AnyContext, 0, 4, "master").Return(makeTestIndexCommits(), nil)
 	startWithEmptyCache(mg)
-	mg.On("Get", anyContext, []string{firstHash, secondHash}).Return([]*vcsinfo.LongCommit{commits[0], commits[1]}, nil).Once()
+	mg.On("Get", testutils.AnyContext, []string{firstHash, secondHash}).Return([]*vcsinfo.LongCommit{commits[0], commits[1]}, nil).Once()
 
 	vcs, err := New(context.Background(), mg, "master", nil)
 	assert.NoError(t, err)
@@ -223,11 +224,11 @@ func TestDetailsMultiPartialCaching(t *testing.T) {
 
 	commits := makeTestLongCommits()
 
-	mg.On("GetBranches", anyContext).Return(makeTestBranchPointerMap(), nil)
-	mg.On("RangeN", anyContext, 0, 4, "master").Return(makeTestIndexCommits(), nil)
+	mg.On("GetBranches", testutils.AnyContext).Return(makeTestBranchPointerMap(), nil)
+	mg.On("RangeN", testutils.AnyContext, 0, 4, "master").Return(makeTestIndexCommits(), nil)
 	startWithEmptyCache(mg)
-	mg.On("Get", anyContext, []string{firstHash, thirdHash}).Return([]*vcsinfo.LongCommit{commits[0], commits[2]}, nil).Once()
-	mg.On("Get", anyContext, []string{secondHash}).Return([]*vcsinfo.LongCommit{commits[1]}, nil).Once()
+	mg.On("Get", testutils.AnyContext, []string{firstHash, thirdHash}).Return([]*vcsinfo.LongCommit{commits[0], commits[2]}, nil).Once()
+	mg.On("Get", testutils.AnyContext, []string{secondHash}).Return([]*vcsinfo.LongCommit{commits[1]}, nil).Once()
 
 	vcs, err := New(context.Background(), mg, "master", nil)
 	assert.NoError(t, err)
@@ -279,13 +280,13 @@ func startWithEmptyCache(mg *mocks.GitStore) {
 	// commits - we return nil for all of these to keep the cache empty (when testing)
 	// the cache logic.
 	rv := []*vcsinfo.LongCommit{nil, nil, nil}
-	mg.On("Get", anyContext, []string{firstHash, secondHash, thirdHash}).Return(rv, nil).Once()
+	mg.On("Get", testutils.AnyContext, []string{firstHash, secondHash, thirdHash}).Return(rv, nil).Once()
 }
 
 func startWithFullCache(mg *mocks.GitStore) {
 	// In the call to New(), Update fetches all the LongCommits for things in the index
 	// commits - we return the real data here to make sure the detailsCache is full.
-	mg.On("Get", anyContext, []string{firstHash, secondHash, thirdHash}).Return(makeTestLongCommits(), nil).Once()
+	mg.On("Get", testutils.AnyContext, []string{firstHash, secondHash, thirdHash}).Return(makeTestLongCommits(), nil).Once()
 }
 
 const (
@@ -300,8 +301,6 @@ var (
 	firstTime  = time.Date(2019, time.May, 2, 12, 0, 3, 0, time.UTC)
 	secondTime = time.Date(2019, time.May, 2, 14, 1, 3, 0, time.UTC)
 	thirdTime  = time.Date(2019, time.May, 2, 17, 5, 3, 0, time.UTC)
-
-	anyContext = mock.AnythingOfType("*context.emptyCtx")
 )
 
 // This test data (for a repo of 3 commits) is returned via functions

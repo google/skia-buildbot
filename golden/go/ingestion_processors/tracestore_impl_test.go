@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	ingestion_mocks "go.skia.org/infra/go/ingestion/mocks"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	mock_vcs "go.skia.org/infra/go/vcsinfo/mocks"
@@ -34,9 +35,9 @@ func TestTraceStoreProcessorSunnyDay(t *testing.T) {
 		// arbitrary time
 		Timestamp: time.Date(2019, time.June, 16, 3, 23, 17, 0, time.UTC),
 	}
-	mvs.On("Details", ctx, testCommitHash, false).Return(commit, nil)
+	mvs.On("Details", testutils.AnyContext, testCommitHash, false).Return(commit, nil)
 	// arbitrary result
-	mvs.On("IndexOf", ctx, testCommitHash).Return(12, nil)
+	mvs.On("IndexOf", testutils.AnyContext, testCommitHash).Return(12, nil)
 
 	// There are 3 entries in the file, but one of them is pdf, which should
 	// be ignored by this ingester.
@@ -79,7 +80,7 @@ func TestTraceStoreProcessorSunnyDay(t *testing.T) {
 		},
 	}
 
-	mts.On("Put", ctx, testCommitHash, expectedEntries, mock.AnythingOfType("time.Time")).Return(nil)
+	mts.On("Put", testutils.AnyContext, testCommitHash, expectedEntries, mock.AnythingOfType("time.Time")).Return(nil)
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(TEST_INGESTION_FILE)
 	assert.NoError(t, err)
@@ -95,5 +96,3 @@ func TestTraceStoreProcessorSunnyDay(t *testing.T) {
 const (
 	testCommitHash = "02cb37309c01506e2552e931efa9c04a569ed266"
 )
-
-var ctx = mock.AnythingOfType("*context.emptyCtx")

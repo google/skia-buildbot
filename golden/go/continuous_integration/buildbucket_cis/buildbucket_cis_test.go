@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/buildbucket/mocks"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/continuous_integration"
 )
@@ -26,7 +26,7 @@ func TestGetTryJobSunnyDay(t *testing.T) {
 	ts := time.Date(2019, time.August, 22, 13, 21, 39, 0, time.UTC)
 
 	cb := getCompletedBuild()
-	mbi.On("GetBuild", anyctx, id).Return(&cb, nil)
+	mbi.On("GetBuild", testutils.AnyContext, id).Return(&cb, nil)
 
 	tj, err := c.GetTryJob(context.Background(), id)
 	assert.NoError(t, err)
@@ -49,7 +49,7 @@ func TestGetTryJobRunning(t *testing.T) {
 	ts := time.Date(2019, time.August, 22, 14, 31, 21, 0, time.UTC)
 
 	rb := getRunningBuild()
-	mbi.On("GetBuild", anyctx, id).Return(&rb, nil)
+	mbi.On("GetBuild", testutils.AnyContext, id).Return(&rb, nil)
 
 	tj, err := c.GetTryJob(context.Background(), id)
 	assert.NoError(t, err)
@@ -70,7 +70,7 @@ func TestGetTryJobDoesNotExist(t *testing.T) {
 
 	id := "8904420728436446512"
 
-	mbi.On("GetBuild", anyctx, id).Return(nil, errors.New("rpc error: code = NotFound desc = not found"))
+	mbi.On("GetBuild", testutils.AnyContext, id).Return(nil, errors.New("rpc error: code = NotFound desc = not found"))
 
 	_, err := c.GetTryJob(context.Background(), id)
 	assert.Error(t, err)
@@ -87,17 +87,13 @@ func TestGetTryJobOtherError(t *testing.T) {
 
 	id := "8904420728436446512"
 
-	mbi.On("GetBuild", anyctx, id).Return(nil, errors.New("oops, sentient AI"))
+	mbi.On("GetBuild", testutils.AnyContext, id).Return(nil, errors.New("oops, sentient AI"))
 
 	_, err := c.GetTryJob(context.Background(), id)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "fetching Tryjob")
 	assert.Contains(t, err.Error(), "oops")
 }
-
-var (
-	anyctx = mock.AnythingOfType("*context.emptyCtx")
-)
 
 // This code can be used to fetch real data from buildbucket
 // func TestReal(t *testing.T) {

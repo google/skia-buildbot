@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gerrit/mocks"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/code_review"
@@ -25,7 +25,7 @@ func TestGetChangeListSunnyDay(t *testing.T) {
 	id := "235460"
 	ts := time.Date(2019, time.August, 21, 16, 44, 26, 0, time.UTC)
 	gci := getOpenChangeInfo()
-	mgi.On("GetIssueProperties", anyctx, int64(235460)).Return(&gci, nil)
+	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(&gci, nil)
 
 	c := New(mgi)
 
@@ -50,7 +50,7 @@ func TestGetChangeListLanded(t *testing.T) {
 	ts := time.Date(2019, time.August, 21, 16, 44, 26, 0, time.UTC)
 	gci := getOpenChangeInfo()
 	gci.Status = gerrit.CHANGE_STATUS_MERGED
-	mgi.On("GetIssueProperties", anyctx, int64(235460)).Return(&gci, nil)
+	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(&gci, nil)
 
 	c := New(mgi)
 
@@ -72,7 +72,7 @@ func TestGetChangeListDoesNotExist(t *testing.T) {
 	defer mgi.AssertExpectations(t)
 
 	id := "235460"
-	mgi.On("GetIssueProperties", anyctx, int64(235460)).Return(nil, gerrit.ErrNotFound)
+	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(nil, gerrit.ErrNotFound)
 
 	c := New(mgi)
 
@@ -102,7 +102,7 @@ func TestGetChangeListOtherErr(t *testing.T) {
 	defer mgi.AssertExpectations(t)
 
 	id := "235460"
-	mgi.On("GetIssueProperties", anyctx, int64(235460)).Return(nil, errors.New("oops, sentient AI"))
+	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(nil, errors.New("oops, sentient AI"))
 
 	c := New(mgi)
 
@@ -120,7 +120,7 @@ func TestGetPatchSetsSunnyDay(t *testing.T) {
 
 	id := "235460"
 	gci := getOpenChangeInfo()
-	mgi.On("GetIssueProperties", anyctx, int64(235460)).Return(&gci, nil)
+	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(&gci, nil)
 
 	c := New(mgi)
 
@@ -161,7 +161,7 @@ func TestGetPatchSetsDoesNotExist(t *testing.T) {
 	defer mgi.AssertExpectations(t)
 
 	id := "235460"
-	mgi.On("GetIssueProperties", anyctx, int64(235460)).Return(nil, gerrit.ErrNotFound)
+	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(nil, gerrit.ErrNotFound)
 
 	c := New(mgi)
 
@@ -191,7 +191,7 @@ func TestGetPatchSetsOtherErr(t *testing.T) {
 	defer mgi.AssertExpectations(t)
 
 	id := "235460"
-	mgi.On("GetIssueProperties", anyctx, int64(235460)).Return(nil, errors.New("oops, sentient AI"))
+	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(nil, errors.New("oops, sentient AI"))
 
 	c := New(mgi)
 
@@ -216,7 +216,7 @@ blah blah blah
 `
 
 	gci := getOpenChangeInfo()
-	mgi.On("GetIssueProperties", anyctx, int64(235460)).Return(&gci, nil)
+	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(&gci, nil)
 	mgi.On("ExtractIssueFromCommit", clBody).Return(int64(235460), nil)
 
 	c := New(mgi)
@@ -255,10 +255,6 @@ func TestGetChangeListForCommitBadBody(t *testing.T) {
 	assert.Contains(t, err.Error(), "nope")
 	assert.Contains(t, err.Error(), "malformed body")
 }
-
-var (
-	anyctx = mock.AnythingOfType("*context.emptyCtx")
-)
 
 // Based on a real-world query for a CL that is open and out for review
 // with 4 PatchSets
