@@ -1,1 +1,2 @@
-import '../modules/changelists-page'
+import '../modules/changelists-page-sk'
+import '../modules/gold-scaffold-sk'
