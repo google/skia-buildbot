@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "40809495_1a1e046a",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 496,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-10T18:46:50Z",
+      "side": 1,
+      "message": "typo its",
+      "range": {
+        "startLine": 496,
+        "startChar": 69,
+        "endLine": 496,
+        "endChar": 73
+      },
+      "revId": "6922c47024de8c509d308c691ce69b2c96d29f67",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aca5910f_c94f0c92",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-10T18:46:50Z",
+      "side": 1,
+      "message": "IWBN to make this an enum of SUCCESS, FAIL, DELETE.",
+      "range": {
+        "startLine": 530,
+        "startChar": 54,
+        "endLine": 530,
+        "endChar": 59
+      },
+      "revId": "6922c47024de8c509d308c691ce69b2c96d29f67",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
