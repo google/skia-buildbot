@@ -39,6 +39,30 @@
       "revId": "d87ae080cd9bd0d0e84614a6f86283d2582df672",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21810e59_bf75345e",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-10T15:31:33Z",
+      "side": 1,
+      "message": "Yes, but related in the sense that I found it while removing mock.AnythingOfType references \u003c.\u003c",
+      "parentUuid": "eec62214_aa1cfc4c",
+      "range": {
+        "startLine": 248,
+        "startChar": 0,
+        "endLine": 249,
+        "endChar": 75
+      },
+      "revId": "d87ae080cd9bd0d0e84614a6f86283d2582df672",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
