@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bd4a8f69_722936b2",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-10T16:52:46Z",
+      "side": 1,
+      "message": "Seems like the wrong place to fix.",
+      "revId": "6ac495c5156fa030d9fd5d11886d744853bcf7cb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "904cd5d2_09c5b228",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-10T16:52:46Z",
+      "side": 1,
+      "message": "I think you want ctx :\u003d context.Background() here.",
+      "revId": "6ac495c5156fa030d9fd5d11886d744853bcf7cb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce50d528_d8011a85",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 509,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-10T16:52:46Z",
+      "side": 1,
+      "message": "Same -- seems like the wrong place to fix.",
+      "revId": "6ac495c5156fa030d9fd5d11886d744853bcf7cb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
