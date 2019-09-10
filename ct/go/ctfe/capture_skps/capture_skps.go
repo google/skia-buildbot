@@ -125,7 +125,7 @@ func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error 
 		return fmt.Errorf("Could not mark task as started in datastore: %s", err)
 	}
 	// Send start email.
-	skutil.LogErr(ctutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Capture SKPs", runID, task.Description, ""))
+	skutil.LogErr(ctfeutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Capture SKPs", runID, task.Description, ""))
 	return nil
 }
 
@@ -136,7 +136,7 @@ func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSucc
 	failureHtml := ""
 	if !completedSuccessfully {
 		emailSubject += " with failures"
-		failureHtml = ctutil.GetFailureEmailHtml(runID)
+		failureHtml = ctfeutil.GetFailureEmailHtml(runID)
 	}
 	bodyTemplate := `
 	The Capture SKPs task on %s pageset has completed. %s.<br/>
@@ -145,8 +145,8 @@ func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSucc
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, task.PageSets, ctutil.GetSwarmingLogsLink(runID), task.Description, failureHtml, task_common.WebappURL+ctfeutil.CAPTURE_SKPS_URI)
-	if err := ctutil.SendEmail(emails, emailSubject, emailBody); err != nil {
+	emailBody := fmt.Sprintf(bodyTemplate, task.PageSets, ctfeutil.GetSwarmingLogsLink(runID), task.Description, failureHtml, task_common.WebappURL+ctfeutil.CAPTURE_SKPS_URI)
+	if err := ctfeutil.SendEmail(emails, emailSubject, emailBody); err != nil {
 		return fmt.Errorf("Error while sending email: %s", err)
 	}
 	return nil

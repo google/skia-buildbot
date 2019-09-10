@@ -158,7 +158,7 @@ func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error 
 		return fmt.Errorf("Could not mark task as started in datastore: %s", err)
 	}
 	// Send start email.
-	skutil.LogErr(ctutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Metrics analysis", runID, task.Description, ""))
+	skutil.LogErr(ctfeutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Metrics analysis", runID, task.Description, ""))
 	return nil
 }
 
@@ -176,7 +176,7 @@ func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSucc
 		}
 	} else {
 		emailSubject += " with failures"
-		failureHtml = ctutil.GetFailureEmailHtml(runID)
+		failureHtml = ctfeutil.GetFailureEmailHtml(runID)
 		if viewActionMarkup, err = email.GetViewActionMarkup(fmt.Sprintf(ctutil.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID), "View Failure", "Direct link to the swarming logs"); err != nil {
 			return fmt.Errorf("Failed to get view action markup: %s", err)
 		}
@@ -199,8 +199,8 @@ func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSucc
 	chromiumPatchLink := ctutil.GCS_HTTP_LINK + path.Join(ctutil.GCSBucketName, task.ChromiumPatchGSPath)
 	catapultPatchLink := ctutil.GCS_HTTP_LINK + path.Join(ctutil.GCSBucketName, task.CatapultPatchGSPath)
 	tracesLink := ctutil.GCS_HTTP_LINK + path.Join(ctutil.GCSBucketName, task.CustomTracesGSPath)
-	emailBody := fmt.Sprintf(bodyTemplate, ctutil.GetSwarmingLogsLink(runID), task.Description, failureHtml, task.RawOutput, chromiumPatchLink, catapultPatchLink, tracesLink, task_common.WebappURL+ctfeutil.METRICS_ANALYSIS_URI)
-	if err := ctutil.SendEmailWithMarkup(emails, emailSubject, emailBody, viewActionMarkup); err != nil {
+	emailBody := fmt.Sprintf(bodyTemplate, ctfeutil.GetSwarmingLogsLink(runID), task.Description, failureHtml, task.RawOutput, chromiumPatchLink, catapultPatchLink, tracesLink, task_common.WebappURL+ctfeutil.METRICS_ANALYSIS_URI)
+	if err := ctfeutil.SendEmailWithMarkup(emails, emailSubject, emailBody, viewActionMarkup); err != nil {
 		return fmt.Errorf("Error while sending email: %s", err)
 	}
 	return nil

@@ -9,8 +9,14 @@ import (
 	"io/ioutil"
 	"strings"
 
+	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/email"
 	skutil "go.skia.org/infra/go/util"
+)
+
+const (
+	CT_EMAIL_DISPLAY_NAME = "Cluster Telemetry"
+	GMAIL_CACHED_TOKEN    = "ct_gmail_cached_token"
 )
 
 var (
@@ -103,7 +109,7 @@ func GetFailureEmailHtml(runID string) string {
 		"<br/>There were <b>failures</b> in the run. "+
 			"Please check the logs of triggered swarming tasks <a href='%s'>here</a>."+
 			"<br/>Contact the admins %s for assistance.<br/><br/>",
-		fmt.Sprintf(SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID), CtAdmins)
+		fmt.Sprintf(ctutil.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID), ctutil.CtAdmins)
 }
 
 func GetCTPerfEmailHtml(groupName string) string {
@@ -125,7 +131,7 @@ func GetCTPerfEmailHtml(groupName string) string {
 
 func SendTaskStartEmail(taskId int64, recipients []string, taskName, runID, runDescription, additionalDescription string) error {
 	emailSubject := fmt.Sprintf("%s cluster telemetry task has started (#%d)", taskName, taskId)
-	swarmingLogsLink := fmt.Sprintf(SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID)
+	swarmingLogsLink := fmt.Sprintf(ctutil.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID)
 
 	viewActionMarkup, err := email.GetViewActionMarkup(swarmingLogsLink, "View Logs", "Direct link to the swarming logs")
 	if err != nil {
@@ -154,7 +160,7 @@ func SendTaskStartEmail(taskId int64, recipients []string, taskName, runID, runD
 // SendTasksTerminatedEmail informs the recipients that their CT tasks were terminated and that
 // they should reschedule.
 func SendTasksTerminatedEmail(recipients []string) error {
-	emailSubject := fmt.Sprintf("Cluster telemetry tasks were terminated (%s)", GetCurrentTs())
+	emailSubject := fmt.Sprintf("Cluster telemetry tasks were terminated (%s)", ctutil.GetCurrentTs())
 	body := `
 	The Cluster telemetry server had to be restarted due to a maintenance issue.<br/>
 	This caused all running tasks to be terminated.<br/><br/>
@@ -170,5 +176,5 @@ func SendTasksTerminatedEmail(recipients []string) error {
 
 // GetSwarmingLogsLink returns HTML snippet that contains a href to the swarming logs.
 func GetSwarmingLogsLink(runID string) string {
-	return fmt.Sprintf("Swarming logs <a href='%s'>link</a>", fmt.Sprintf(SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID))
+	return fmt.Sprintf("Swarming logs <a href='%s'>link</a>", fmt.Sprintf(ctutil.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID))
 }

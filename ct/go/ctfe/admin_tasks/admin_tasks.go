@@ -123,7 +123,7 @@ func (task RecreatePageSetsDatastoreTask) TriggerSwarmingTaskAndMail(ctx context
 		return fmt.Errorf("Could not mark task as started in datastore: %s", err)
 	}
 	// Send start email.
-	skutil.LogErr(ctutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Creating pagesets", runID, "", ""))
+	skutil.LogErr(ctfeutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Creating pagesets", runID, "", ""))
 	return nil
 }
 
@@ -134,7 +134,7 @@ func (task RecreatePageSetsDatastoreTask) SendCompletionEmail(ctx context.Contex
 	failureHtml := ""
 	if !completedSuccessfully {
 		emailSubject += " with failures"
-		failureHtml = ctutil.GetFailureEmailHtml(runID)
+		failureHtml = ctfeutil.GetFailureEmailHtml(runID)
 	}
 	bodyTemplate := `
 	The Cluster telemetry queued task to create %s pagesets has completed. %s.<br/>
@@ -142,8 +142,8 @@ func (task RecreatePageSetsDatastoreTask) SendCompletionEmail(ctx context.Contex
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, task.PageSets, ctutil.GetSwarmingLogsLink(runID), failureHtml, task_common.WebappURL+ctfeutil.ADMIN_TASK_URI)
-	if err := ctutil.SendEmail(emails, emailSubject, emailBody); err != nil {
+	emailBody := fmt.Sprintf(bodyTemplate, task.PageSets, ctfeutil.GetSwarmingLogsLink(runID), failureHtml, task_common.WebappURL+ctfeutil.ADMIN_TASK_URI)
+	if err := ctfeutil.SendEmail(emails, emailSubject, emailBody); err != nil {
 		return fmt.Errorf("Error while sending email: %s", err)
 	}
 	return nil
@@ -238,7 +238,7 @@ func (task RecreateWebpageArchivesDatastoreTask) TriggerSwarmingTaskAndMail(ctx 
 		return fmt.Errorf("Could not mark task as started in datastore: %s", err)
 	}
 	// Send start email.
-	skutil.LogErr(ctutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Capture archives", runID, "", ""))
+	skutil.LogErr(ctfeutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Capture archives", runID, "", ""))
 	return nil
 }
 
@@ -249,7 +249,7 @@ func (task RecreateWebpageArchivesDatastoreTask) SendCompletionEmail(ctx context
 	failureHtml := ""
 	if !completedSuccessfully {
 		emailSubject += " with failures"
-		failureHtml = ctutil.GetFailureEmailHtml(runID)
+		failureHtml = ctfeutil.GetFailureEmailHtml(runID)
 	}
 	bodyTemplate := `
 	The Cluster telemetry queued task to capture archives of %s pagesets has completed. %s.<br/>
@@ -257,8 +257,8 @@ func (task RecreateWebpageArchivesDatastoreTask) SendCompletionEmail(ctx context
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, task.PageSets, ctutil.GetSwarmingLogsLink(runID), failureHtml, task_common.WebappURL+ctfeutil.ADMIN_TASK_URI)
-	if err := ctutil.SendEmail(emails, emailSubject, emailBody); err != nil {
+	emailBody := fmt.Sprintf(bodyTemplate, task.PageSets, ctfeutil.GetSwarmingLogsLink(runID), failureHtml, task_common.WebappURL+ctfeutil.ADMIN_TASK_URI)
+	if err := ctfeutil.SendEmail(emails, emailSubject, emailBody); err != nil {
 		return fmt.Errorf("Error while sending email: %s", err)
 	}
 	return nil
