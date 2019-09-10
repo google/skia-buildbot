@@ -373,11 +373,6 @@ func main() {
 		sklog.Fatalf("Could not init datastore: %s", err)
 	}
 
-	// Initialize the autoscaler and globals in task_common.
-	if err := task_common.Init(ctx, *local, *host, *serviceAccountFile, pending_tasks.GetGCEPendingTaskCount); err != nil {
-		sklog.Fatalf("Could not init task_common: %s", err)
-	}
-
 	// Create authenticated HTTP client.
 	httpClientTokenSource, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_READ_ONLY, swarming.AUTH_SCOPE)
 	if err != nil {
@@ -388,6 +383,11 @@ func main() {
 	swarm, err = swarming.NewApiClient(client, swarming.SWARMING_SERVER_PRIVATE)
 	if err != nil {
 		sklog.Fatalf("Could not instantiate swarming client")
+	}
+
+	// Initialize the autoscaler and globals in task_common.
+	if err := task_common.Init(ctx, *local, *host, *serviceAccountFile, swarm, pending_tasks.GetGCEPendingTaskCount); err != nil {
+		sklog.Fatalf("Could not init task_common: %s", err)
 	}
 
 	startCtfeMetrics(ctx)
