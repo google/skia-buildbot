@@ -135,11 +135,14 @@ func (g *ClientImpl) writeToPath(targetPath, contentType string, wrtFn func(w *g
 	writer := target.NewWriter(ctx)
 	writer.ObjectAttrs.ContentType = contentType
 	writer.ObjectAttrs.ACL = []gstorage.ACLRule{{Entity: gstorage.AllUsers, Role: gstorage.RoleReader}}
-	defer util.Close(writer)
 
 	// Write the actual data.
 	if err := wrtFn(writer); err != nil {
-		return err
+		return skerr.Wrapf(err, "writing data to %s", targetPath)
+	}
+
+	if err := writer.Close(); err != nil {
+		return skerr.Wrapf(err, "closing writer for %s", targetPath)
 	}
 
 	return nil

@@ -21,6 +21,7 @@
     // Settings for skiacorrectness instance
     "AUTHORIZED_PARAMS":       "skia-public-authorized-params",
     "AUTH_USERS":              "google.com chromium.org skia.org kkinnunen@nvidia.com mjk@nvidia.com vbuzinov@nvidia.com martina.kollarova@intel.com this.is.harry.stern@gmail.com dvonbeck@gmail.com zakerinasab@chromium.org afar.lin@imgtec.com",
+    "HASHES_FILE":             "gold-prod-hashes.txt",
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
     "MAIN_CPU":                "20",
     "MAIN_MEMORY":             "150Gi",
