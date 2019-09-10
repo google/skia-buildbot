@@ -318,7 +318,7 @@ func setupGitsync(t *testing.T) (context.Context, *git_testutils.GitBuilder, *re
 	_, _, gs := gitstore_testutils.SetupAndLoadBTGitStore(t, ctx, wd, g.RepoUrl(), true)
 	urlMock := mockhttpclient.NewURLMock()
 	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.GitDir(g.Dir()), urlMock)
-	repo := gitiles.NewRepo(g.RepoUrl(), "", urlMock.Client())
+	repo := gitiles.NewRepo(g.RepoUrl(), urlMock.Client())
 	gcsClient := test_gcsclient.NewMemoryClient("fake-bucket")
 	ri, err := newRepoImpl(ctx, gs, repo, gcsClient, "repo-ingestion", nil)
 	assert.NoError(t, err)

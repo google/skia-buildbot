@@ -81,7 +81,7 @@ func TestLog(t *testing.T) {
 	}
 
 	urlMock := mockhttpclient.NewURLMock()
-	r := NewRepo(gb.RepoUrl(), "", urlMock.Client())
+	r := NewRepo(gb.RepoUrl(), urlMock.Client())
 	r.rl.SetLimit(rate.Inf)
 
 	// Helper function for mocking gitiles API calls.
@@ -192,7 +192,7 @@ func TestLogPagination(t *testing.T) {
 	ctx := context.Background()
 	repoUrl := "https://fake/repo"
 	urlMock := mockhttpclient.NewURLMock()
-	repo := NewRepo(repoUrl, "", urlMock.Client())
+	repo := NewRepo(repoUrl, urlMock.Client())
 	repo.rl.SetLimit(rate.Inf)
 	next := 0
 	hash := func() string {

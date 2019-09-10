@@ -108,7 +108,7 @@ func getSemanticGCSVersion(regex *regexp.Regexp, rev *revision.Revision) (gcsVer
 
 // NewSemVerGCSRepoManager returns a gcsRepoManager which uses semantic
 // versioning to compare object versions.
-func NewSemVerGCSRepoManager(ctx context.Context, c *SemVerGCSRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, gitcookiesPath string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
+func NewSemVerGCSRepoManager(ctx context.Context, c *SemVerGCSRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -140,5 +140,5 @@ func NewSemVerGCSRepoManager(ctx context.Context, c *SemVerGCSRepoManagerConfig,
 		}
 		return id
 	}
-	return newGCSRepoManager(ctx, &c.GCSRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, client, cr, local, getGCSVersion, shortRev)
+	return newGCSRepoManager(ctx, &c.GCSRepoManagerConfig, workdir, g, serverURL, client, cr, local, getGCSVersion, shortRev)
 }

@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -47,22 +46,22 @@ var (
 
 // Repo is an object used for interacting with a single Git repo using Gitiles.
 type Repo struct {
-	client         *http.Client
-	gitCookiesPath string
-	rl             *rate.Limiter
-	URL            string
+	client *http.Client
+	rl     *rate.Limiter
+	URL    string
 }
 
 // NewRepo creates and returns a new Repo object.
-func NewRepo(url string, gitCookiesPath string, c *http.Client) *Repo {
+func NewRepo(url string, c *http.Client) *Repo {
+	// TODO(borenet):Stop supporting a nil client; we should enforce that we
+	// always use an authenticated client to talk to Gitiles.
 	if c == nil {
 		c = httputils.NewTimeoutClient()
 	}
 	return &Repo{
-		client:         c,
-		gitCookiesPath: gitCookiesPath,
-		rl:             rate.NewLimiter(MAX_QPS, MAX_BURST),
-		URL:            url,
+		client: c,
+		rl:     rate.NewLimiter(MAX_QPS, MAX_BURST),
+		URL:    url,
 	}
 }
 
@@ -77,11 +76,6 @@ func (r *Repo) get(ctx context.Context, url string) (*http.Response, error) {
 		return nil, err
 	}
 	req = req.WithContext(ctx)
-	if r.gitCookiesPath != "" {
-		if err := gitauth.AddAuthenticationCookie(r.gitCookiesPath, req); err != nil {
-			return nil, err
-		}
-	}
 	resp, err := r.client.Do(req)
 	if err != nil {
 		return nil, err

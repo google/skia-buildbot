@@ -5,8 +5,6 @@ import (
 	"flag"
 	"io"
 	"net/http"
-	"os/user"
-	"path/filepath"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -16,7 +14,6 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
-	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
@@ -64,22 +61,12 @@ func main() {
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
-	// The rollers use the gitcookie created by gitauth package.
-	user, err := user.Current()
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")
-	if _, err := gitauth.New(ts, gitcookiesPath, true, cfg.ServiceAccount); err != nil {
-		sklog.Fatalf("Failed to create git cookie updater: %s", err)
-	}
-
 	r := mux.NewRouter()
 	if err := webhook.InitRequestSaltFromFile(*webhookSalt); err != nil {
 		sklog.Fatal(err)
 	}
 	ctx := context.Background()
-	arb, err := NewAutoRoller(ctx, gitcookiesPath, &cfg, client)
+	arb, err := NewAutoRoller(ctx, &cfg, client)
 	if err != nil {
 		sklog.Fatal(err)
 	}
