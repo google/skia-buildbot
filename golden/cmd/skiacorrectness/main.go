@@ -463,10 +463,6 @@ func main() {
 	loggedRouter.PathPrefix("/dist/").HandlerFunc(web.MakeResourceHandler(*litHTMLDir))
 	loggedRouter.HandleFunc(callbackPath, login.OAuth2CallbackHandler)
 
-	// TODO(stephana): remove "/_/hashes" in favor of "/json/hashes" once all clients have switched.
-
-	// /_/hashes is used by the bots to find hashes it does not need to upload.
-	loggedRouter.HandleFunc(shared.LEGACY_KNOWN_HASHES_ROUTE, handlers.TextKnownHashesProxy).Methods("GET")
 	loggedRouter.HandleFunc("/json/version", skiaversion.JsonHandler)
 	loggedRouter.HandleFunc("/loginstatus/", login.StatusHandler)
 	loggedRouter.HandleFunc("/logout/", login.LogoutHandler)
@@ -474,12 +470,12 @@ func main() {
 	// Set up a subrouter for the '/json' routes which make up the Gold API.
 	// This makes routing faster, but also returns a failure when an /json route is
 	// requested that doesn't exist. If we did this differently a call to a non-existing endpoint
-	// would be handled by the route that handles the returning the index template and make debugging
-	// confusing.
+	// would be handled by the route that handles the returning the index template and make
+	// debugging confusing.
 	jsonRouter := loggedRouter.PathPrefix("/json").Subrouter()
 	trim := func(r string) string { return strings.TrimPrefix(r, "/json") }
 
-	jsonRouter.HandleFunc(trim(shared.KNOWN_HASHES_ROUTE), handlers.TextKnownHashesProxy).Methods("GET")
+	jsonRouter.HandleFunc(trim(shared.KnownHashesRoute), handlers.TextKnownHashesProxy).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/byblame"), handlers.ByBlameHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/cleardigests"), handlers.ClearDigests).Methods("POST")
 	jsonRouter.HandleFunc(trim("/json/clusterdiff"), handlers.ClusterDiffHandler).Methods("GET")
@@ -503,8 +499,8 @@ func main() {
 
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
 	// These routes can be served with baseline_server for higher availability.
-	jsonRouter.HandleFunc(trim(shared.EXPECTATIONS_ROUTE), handlers.BaselineHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim(shared.EXPECTATIONS_ISSUE_ROUTE), handlers.BaselineHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim(shared.ExpectationsRoute), handlers.BaselineHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim(shared.ExpectationsIssueRoute), handlers.BaselineHandler).Methods("GET")
 
 	jsonRouter.HandleFunc(trim("/json/refresh/{id}"), handlers.RefreshIssue).Methods("GET")
 

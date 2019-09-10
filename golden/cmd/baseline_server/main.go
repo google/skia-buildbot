@@ -97,12 +97,11 @@ func main() {
 	appRouter := mux.NewRouter()
 
 	// Serve the known hashes from GCS.
-	appRouter.HandleFunc(shared.KNOWN_HASHES_ROUTE, handlers.TextKnownHashesProxy).Methods("GET")
-	appRouter.HandleFunc(shared.LEGACY_KNOWN_HASHES_ROUTE, handlers.TextKnownHashesProxy).Methods("GET")
+	appRouter.HandleFunc(shared.KnownHashesRoute, handlers.TextKnownHashesProxy).Methods("GET")
 
 	// Serve the expectations for the master branch and for CLs in progress.
-	appRouter.HandleFunc(shared.EXPECTATIONS_ROUTE, handlers.BaselineHandler).Methods("GET")
-	appRouter.HandleFunc(shared.EXPECTATIONS_ISSUE_ROUTE, handlers.BaselineHandler).Methods("GET")
+	appRouter.HandleFunc(shared.ExpectationsRoute, handlers.BaselineHandler).Methods("GET")
+	appRouter.HandleFunc(shared.ExpectationsIssueRoute, handlers.BaselineHandler).Methods("GET")
 
 	// Only log and compress the app routes, but not the health check.
 	router := mux.NewRouter()
