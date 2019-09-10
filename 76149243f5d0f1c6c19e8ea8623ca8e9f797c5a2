@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "53e30237_26ca425a",
+        "filename": "autoroll/go/autoroll-google3/google3.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-10T18:57:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cca72dcf_7ac1519b",
+      "range": {
+        "startLine": 53,
+        "startChar": 40,
+        "endLine": 53,
+        "endChar": 61
+      },
+      "revId": "76149243f5d0f1c6c19e8ea8623ca8e9f797c5a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a09b1500_a8a7e40c",
         "filename": "go/gitiles/gitiles.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2019-09-09T18:28:09Z",
       "side": 1,
       "message": "nit: since you\u0027re already changing this, maybe better to pass in a TokenSource rather than a client.",
+      "range": {
+        "startLine": 55,
+        "startChar": 25,
+        "endLine": 55,
+        "endChar": 39
+      },
+      "revId": "76149243f5d0f1c6c19e8ea8623ca8e9f797c5a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2e654fa2_93f6d3fa",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-10T18:57:10Z",
+      "side": 1,
+      "message": "Passing around a client makes it much easier to mock things out for testing.  I can change it if you feel strongly, but I don\u0027t personally seen an advantage to passing a TokenSource.",
+      "parentUuid": "a09b1500_a8a7e40c",
       "range": {
         "startLine": 55,
         "startChar": 25,
