@@ -148,3 +148,5 @@ require (
 	k8s.io/utils v0.0.0-20190907131718-3d4f5b7dea0b // indirect
 	sigs.k8s.io/structured-merge-diff v0.0.0-20190820212518-960c3cc04183 // indirect
 )
+
+go 1.13

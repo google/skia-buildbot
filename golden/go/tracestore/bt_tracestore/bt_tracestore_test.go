@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs/gcs_testutils"
 	"go.skia.org/infra/go/sktest"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/vcsinfo"
@@ -752,10 +753,10 @@ func TestPutUpdate(t *testing.T) {
 	assert.NoError(t, InitBT(context.Background(), btConf))
 
 	notFound := errors.New("commit not found")
-	mvcs.On("IndexOf", ctx, data.FirstCommitHash).Return(-1, notFound).Once()
-	mvcs.On("Update", ctx, true, false).Return(nil)
-	mvcs.On("IndexOf", ctx, data.FirstCommitHash).Return(4001, nil).Once()
-	mvcs.On("Details", ctx, data.FirstCommitHash, false).Return(&vcsinfo.LongCommit{
+	mvcs.On("IndexOf", testutils.AnyContext, data.FirstCommitHash).Return(-1, notFound).Once()
+	mvcs.On("Update", testutils.AnyContext, true, false).Return(nil)
+	mvcs.On("IndexOf", testutils.AnyContext, data.FirstCommitHash).Return(4001, nil).Once()
+	mvcs.On("Details", testutils.AnyContext, data.FirstCommitHash, false).Return(&vcsinfo.LongCommit{
 		ShortCommit: &vcsinfo.ShortCommit{
 			Hash:    data.FirstCommitHash,
 			Author:  "example@example.com",
@@ -956,7 +957,7 @@ func MockVCSWithCommits(commits []*tiling.Commit, offset int) *mock_vcs.VCS {
 	hashes := make([]string, 0, len(commits))
 	longCommits := make([]*vcsinfo.LongCommit, 0, len(commits))
 	for i, c := range commits {
-		mvcs.On("IndexOf", ctx, c.Hash).Return(i+offset, nil).Maybe()
+		mvcs.On("IndexOf", testutils.AnyContext, c.Hash).Return(i+offset, nil).Maybe()
 
 		indexCommits = append(indexCommits, &vcsinfo.IndexCommit{
 			Hash:      c.Hash,
@@ -973,11 +974,11 @@ func MockVCSWithCommits(commits []*tiling.Commit, offset int) *mock_vcs.VCS {
 			Timestamp: time.Unix(c.CommitTime, 0),
 		})
 
-		mvcs.On("Details", ctx, c.Hash, false).Return(longCommits[i], nil).Maybe()
+		mvcs.On("Details", testutils.AnyContext, c.Hash, false).Return(longCommits[i], nil).Maybe()
 	}
 
 	mvcs.On("LastNIndex", len(commits)).Return(indexCommits)
-	mvcs.On("DetailsMulti", ctx, hashes, false).Return(longCommits, nil)
+	mvcs.On("DetailsMulti", testutils.AnyContext, hashes, false).Return(longCommits, nil)
 
 	return mvcs
 }
@@ -1015,7 +1016,7 @@ func MockSparseVCSWithCommits(commits []*tiling.Commit, realCommitIndices []int,
 
 	for i, c := range commits {
 		index := realCommitIndices[i]
-		mvcs.On("IndexOf", ctx, c.Hash).Return(index, nil).Maybe()
+		mvcs.On("IndexOf", testutils.AnyContext, c.Hash).Return(index, nil).Maybe()
 		indexCommits[index] = &vcsinfo.IndexCommit{
 			Hash:      c.Hash,
 			Index:     index,
@@ -1031,14 +1032,14 @@ func MockSparseVCSWithCommits(commits []*tiling.Commit, realCommitIndices []int,
 			Timestamp: time.Unix(int64(index*1700), 0),
 		}
 
-		mvcs.On("Details", ctx, c.Hash, false).Return(longCommits[index], nil).Maybe()
+		mvcs.On("Details", testutils.AnyContext, c.Hash, false).Return(longCommits[index], nil).Maybe()
 	}
 
 	firstRealCommitIdx := realCommitIndices[0]
-	mvcs.On("ByIndex", ctx, firstRealCommitIdx).Return(longCommits[firstRealCommitIdx], nil).Maybe()
+	mvcs.On("ByIndex", testutils.AnyContext, firstRealCommitIdx).Return(longCommits[firstRealCommitIdx], nil).Maybe()
 	mvcs.On("From", mock.Anything).Return(hashes[firstRealCommitIdx:], nil).Maybe()
 	mvcs.On("LastNIndex", 1).Return(indexCommits[totalCommits-1:]).Maybe()
-	mvcs.On("DetailsMulti", ctx, hashes[firstRealCommitIdx:], false).Return(longCommits[firstRealCommitIdx:], nil).Maybe()
+	mvcs.On("DetailsMulti", testutils.AnyContext, hashes[firstRealCommitIdx:], false).Return(longCommits[firstRealCommitIdx:], nil).Maybe()
 
 	return mvcs, longCommits
 }
@@ -1080,7 +1081,3 @@ func makeOptionsTwo() map[string]string {
 		"resolution": "4k",
 	}
 }
-
-var (
-	ctx = mock.AnythingOfType("*context.emptyCtx")
-)

@@ -2,6 +2,7 @@
 package testutils
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/sktest"
@@ -253,3 +255,16 @@ func AssertFails(parent sktest.TestingT, regexp string, testfn func(sktest.Testi
 	assert.True(parent, len(mock.LogMsgs) > 0, "In AssertFails, the test function did not produce any failure messages.")
 	assert.Regexp(parent, regexp, mock.LogMsgs[0])
 }
+
+// AnyContext can be used to match any Context objects e.g.
+// m.On("Foo", testutils.AnyContext).Return(...)
+// This is better than trying to used mock.AnythingOfTypeArgument
+// because that only works for concrete types, which could be brittle
+// (e.g. a "normal" context is *context.emptyCtx, but one modified by
+// trace.StartSpan() could be a *context.valueCtx)
+var AnyContext = mock.MatchedBy(func(c context.Context) bool {
+	// if the passed in parameter does not implement the context.Context interface, the
+	// wrapping MatchedBy will panic - so we can simply return true, since we
+	// know it's a context.Context if execution flow makes it here.
+	return true
+})

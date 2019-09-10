@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
@@ -55,9 +56,6 @@ const (
 var image1 = skTextToImage(skTextImage1)
 var image2 = skTextToImage(skTextImage2)
 
-// Convenience AnythingOfTypeArgument to keep mock.On(...) method calls short.
-var anyCtx = mock.AnythingOfType("*context.emptyCtx")
-
 func TestImageLoaderExpectedDigestsAreCorrect(t *testing.T) {
 	unittest.SmallTest(t)
 	assert.Equal(t, imageToDigest(image1), digest1)
@@ -94,11 +92,11 @@ func TestImageLoaderGetSingleDigestFoundInBucket(t *testing.T) {
 
 	// digest1 is present in the GCS bucket.
 	oa := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
-	mockClient.On("GetFileObjectAttrs", anyCtx, image1GsPath).Return(oa, nil)
+	mockClient.On("GetFileObjectAttrs", testutils.AnyContext, image1GsPath).Return(oa, nil)
 
 	// digest1 is read.
 	reader := ioutil.NopCloser(imageToPng(image1))
-	mockClient.On("FileReader", anyCtx, image1GsPath).Return(reader, nil)
+	mockClient.On("FileReader", testutils.AnyContext, image1GsPath).Return(reader, nil)
 
 	// Get image.
 	images, err := imageLoader.Get(1, types.DigestSlice{digest1})
@@ -118,7 +116,7 @@ func TestImageLoaderGetSingleDigestNotFound(t *testing.T) {
 
 	// digest1 is NOT present in the GCS bucket.
 	var oa *storage.ObjectAttrs = nil
-	mockClient.On("GetFileObjectAttrs", anyCtx, image1GsPath).Return(oa, errors.New("not found"))
+	mockClient.On("GetFileObjectAttrs", testutils.AnyContext, image1GsPath).Return(oa, errors.New("not found"))
 
 	// Failure is stored.
 	mockFailureStore.On("AddDigestFailure", diffFailureMatcher(digest1, "http_error")).Return(nil)
@@ -141,19 +139,19 @@ func TestImageLoaderGetMultipleDigestsAllFoundInBucket(t *testing.T) {
 
 	// digest1 is present in the GCS bucket.
 	oa1 := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
-	mockClient.On("GetFileObjectAttrs", anyCtx, image1GsPath).Return(oa1, nil)
+	mockClient.On("GetFileObjectAttrs", testutils.AnyContext, image1GsPath).Return(oa1, nil)
 
 	// digest1 is read.
 	reader1 := ioutil.NopCloser(imageToPng(image1))
-	mockClient.On("FileReader", anyCtx, image1GsPath).Return(reader1, nil)
+	mockClient.On("FileReader", testutils.AnyContext, image1GsPath).Return(reader1, nil)
 
 	// digest2 is present in the GCS bucket.
 	oa2 := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest2)}
-	mockClient.On("GetFileObjectAttrs", anyCtx, image2GsPath).Return(oa2, nil)
+	mockClient.On("GetFileObjectAttrs", testutils.AnyContext, image2GsPath).Return(oa2, nil)
 
 	// digest2 is read.
 	reader2 := ioutil.NopCloser(imageToPng(image2))
-	mockClient.On("FileReader", anyCtx, image2GsPath).Return(reader2, nil)
+	mockClient.On("FileReader", testutils.AnyContext, image2GsPath).Return(reader2, nil)
 
 	// Get images.
 	images, err := imageLoader.Get(1, types.DigestSlice{digest1, digest2})
@@ -174,15 +172,15 @@ func TestImageLoaderGetMultipleDigestsDigest1FoundInBucketDigest2NotFound(t *tes
 
 	// digest1 is present in the GCS bucket.
 	oa1 := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
-	mockClient.On("GetFileObjectAttrs", anyCtx, image1GsPath).Return(oa1, nil)
+	mockClient.On("GetFileObjectAttrs", testutils.AnyContext, image1GsPath).Return(oa1, nil)
 
 	// digest1 is read.
 	reader := ioutil.NopCloser(imageToPng(image1))
-	mockClient.On("FileReader", anyCtx, image1GsPath).Return(reader, nil)
+	mockClient.On("FileReader", testutils.AnyContext, image1GsPath).Return(reader, nil)
 
 	// digest2 is NOT present in the GCS bucket.
 	var oa2 *storage.ObjectAttrs = nil
-	mockClient.On("GetFileObjectAttrs", anyCtx, image2GsPath).Return(oa2, errors.New("not found"))
+	mockClient.On("GetFileObjectAttrs", testutils.AnyContext, image2GsPath).Return(oa2, errors.New("not found"))
 
 	// Failure is stored.
 	mockFailureStore.On("AddDigestFailure", diffFailureMatcher(digest2, "http_error")).Return(nil)
@@ -204,22 +202,22 @@ func TestImageLoaderWarm(t *testing.T) {
 
 	// digest1 is present in the GCS bucket.
 	oa1 := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
-	mockClient.On("GetFileObjectAttrs", anyCtx, image1GsPath).Return(oa1, nil).
+	mockClient.On("GetFileObjectAttrs", testutils.AnyContext, image1GsPath).Return(oa1, nil).
 		Once() // This ensures that Get doesn't hit GCS after a call to Warm for the same digest.
 
 	// digest1 is read.
 	reader1 := ioutil.NopCloser(imageToPng(image1))
-	mockClient.On("FileReader", anyCtx, image1GsPath).Return(reader1, nil).
+	mockClient.On("FileReader", testutils.AnyContext, image1GsPath).Return(reader1, nil).
 		Once() // This ensures that Get doesn't hit GCS after a call to Warm for the same digest.
 
 	// digest2 is present in the GCS bucket.
 	oa2 := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest2)}
-	mockClient.On("GetFileObjectAttrs", anyCtx, image2GsPath).Return(oa2, nil).
+	mockClient.On("GetFileObjectAttrs", testutils.AnyContext, image2GsPath).Return(oa2, nil).
 		Once() // This ensures that Get doesn't hit GCS after a call to Warm for the same digest.
 
 	// digest2 is read.
 	reader2 := ioutil.NopCloser(imageToPng(image2))
-	mockClient.On("FileReader", anyCtx, image2GsPath).Return(reader2, nil).
+	mockClient.On("FileReader", testutils.AnyContext, image2GsPath).Return(reader2, nil).
 		Once() // This ensures that Get doesn't hit GCS after a call to Warm for the same digest.
 
 	// Fetch both images from GCS and cache them in memory.
@@ -253,11 +251,11 @@ func TestImageLoaderPurgeImages(t *testing.T) {
 
 	// digest1 is present in the GCS bucket.
 	oa := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
-	mockClient.On("GetFileObjectAttrs", anyCtx, image1GsPath).Return(oa, nil)
+	mockClient.On("GetFileObjectAttrs", testutils.AnyContext, image1GsPath).Return(oa, nil)
 
 	// digest1 is read.
 	reader1 := ioutil.NopCloser(imageToPng(image1))
-	mockClient.On("FileReader", anyCtx, image1GsPath).Return(reader1, nil)
+	mockClient.On("FileReader", testutils.AnyContext, image1GsPath).Return(reader1, nil)
 
 	// Fetch digest from GCS and and cache it in memory.
 	imageLoader.Warm(1, types.DigestSlice{digest1}, true)
@@ -266,7 +264,7 @@ func TestImageLoaderPurgeImages(t *testing.T) {
 	assert.True(t, imageLoader.Contains(digest1))
 
 	// digest1 is deleted.
-	mockClient.On("DeleteFile", anyCtx, image1GsPath).Return(nil)
+	mockClient.On("DeleteFile", testutils.AnyContext, image1GsPath).Return(nil)
 
 	// Purge image.
 	err := imageLoader.PurgeImages(types.DigestSlice{digest1}, true)
