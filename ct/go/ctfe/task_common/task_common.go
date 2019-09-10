@@ -183,19 +183,26 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	}
 }
 
+// AddAndTriggerTask adds the task to datastore and then triggers swarming tasks.
+// The swarming tasks are triggered in a separate goroutine because if it is a GCE
+// task then it can take a min or 2 to autoscale the GCE instances.
 func AddAndTriggerTask(ctx context.Context, task AddTaskVars) error {
 	datastoreTask, err := AddTaskToDatastore(ctx, task)
 	if err != nil {
 		return fmt.Errorf("Failed to insert %T task: %s", task, err)
 	}
-	if err := TriggerTaskOnSwarming(ctx, task, datastoreTask); err != nil {
-		// Populate the started timestamp before we mark it as completed and failed.
-		datastoreTask.GetCommonCols().TsStarted = ctutil.GetCurrentTsInt64()
-		if err := UpdateTaskSetCompleted(ctx, datastoreTask, false); err != nil {
-			sklog.Error(err)
+	go func() {
+		if err := TriggerTaskOnSwarming(ctx, task, datastoreTask); err != nil {
+			sklog.Errorf("Failed to trigger on swarming %T task: %s", task, err)
+			// Populate the started timestamp before we mark it as completed and failed.
+			datastoreTask.GetCommonCols().TsStarted = ctutil.GetCurrentTsInt64()
+			if err := UpdateTaskSetCompleted(ctx, datastoreTask, false); err != nil {
+				sklog.Error(err)
+			} else {
+				skutil.LogErr(datastoreTask.SendCompletionEmail(ctx, false))
+			}
 		}
-		return fmt.Errorf("Failed to trigger on swarming %T task: %s", task, err)
-	}
+	}()
 	return nil
 }
 
