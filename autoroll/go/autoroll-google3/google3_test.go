@@ -29,7 +29,7 @@ func setup(t *testing.T) (context.Context, *AutoRoller, *git_testutils.GitBuilde
 	gb := git_testutils.GitInit(t, ctx)
 	urlmock := mockhttpclient.NewURLMock()
 	mockChild := gitiles_testutils.NewMockRepo(t, gb.RepoUrl(), git.GitDir(gb.Dir()), urlmock)
-	a, err := NewAutoRoller(ctx, "", &roller.AutoRollerConfig{
+	a, err := NewAutoRoller(ctx, &roller.AutoRollerConfig{
 		ChildName: "test-child",
 		Google3RepoManager: &roller.Google3FakeRepoManagerConfig{
 			ChildBranch: "master",

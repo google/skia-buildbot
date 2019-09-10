@@ -65,7 +65,7 @@ type noCheckoutUpdateHelperFunc func(context.Context, strategy.NextRollStrategy,
 type noCheckoutCreateRollHelperFunc func(context.Context, *revision.Revision, *revision.Revision, string, string, []string) (string, map[string]string, error)
 
 // Return a noCheckoutRepoManager instance.
-func newNoCheckoutRepoManager(ctx context.Context, c NoCheckoutRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, gitcookiesPath string, client *http.Client, cr codereview.CodeReview, createRoll noCheckoutCreateRollHelperFunc, updateHelper noCheckoutUpdateHelperFunc, local bool) (*noCheckoutRepoManager, error) {
+func newNoCheckoutRepoManager(ctx context.Context, c NoCheckoutRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL string, client *http.Client, cr codereview.CodeReview, createRoll noCheckoutCreateRollHelperFunc, updateHelper noCheckoutUpdateHelperFunc, local bool) (*noCheckoutRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func newNoCheckoutRepoManager(ctx context.Context, c NoCheckoutRepoManagerConfig
 		commonRepoManager: crm,
 		createRoll:        createRoll,
 		gerritConfig:      cr.Config().(*codereview.GerritConfig),
-		parentRepo:        gitiles.NewRepo(c.ParentRepo, gitcookiesPath, client),
+		parentRepo:        gitiles.NewRepo(c.ParentRepo, client),
 		updateHelper:      updateHelper,
 	}
 	return rv, nil

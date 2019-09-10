@@ -46,7 +46,7 @@ func main() {
 		}
 		*repoUrl = strings.TrimSpace(*repoUrl)
 	}
-	repo := gitiles.NewRepo(*repoUrl, "", nil)
+	repo := gitiles.NewRepo(*repoUrl, nil)
 	branches, err := repo.Branches(ctx)
 	if err != nil {
 		sklog.Fatal(err)

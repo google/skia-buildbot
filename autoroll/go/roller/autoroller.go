@@ -82,7 +82,7 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller returns an AutoRoller instance.
-func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL, gitcookiesPath string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool, manualRollDB manual.DB) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool, manualRollDB manual.DB) (*AutoRoller, error) {
 	// Validation and setup.
 	if err := c.Validate(); err != nil {
 		return nil, fmt.Errorf("Failed to validate config: %s", err)
@@ -102,11 +102,11 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	} else if c.DEPSRepoManager != nil {
 		rm, err = repo_manager.NewDEPSRepoManager(ctx, c.DEPSRepoManager, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.FuchsiaSDKAndroidRepoManager != nil {
-		rm, err = repo_manager.NewFuchsiaSDKAndroidRepoManager(ctx, c.FuchsiaSDKAndroidRepoManager, workdir, g, serverURL, gitcookiesPath, nil, cr, local)
+		rm, err = repo_manager.NewFuchsiaSDKAndroidRepoManager(ctx, c.FuchsiaSDKAndroidRepoManager, workdir, g, serverURL, client, cr, local)
 	} else if c.FreeTypeRepoManager != nil {
-		rm, err = repo_manager.NewFreeTypeRepoManager(ctx, c.FreeTypeRepoManager, workdir, g, recipesCfgFile, serverURL, gitcookiesPath, client, cr, local)
+		rm, err = repo_manager.NewFreeTypeRepoManager(ctx, c.FreeTypeRepoManager, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.FuchsiaSDKRepoManager != nil {
-		rm, err = repo_manager.NewFuchsiaSDKRepoManager(ctx, c.FuchsiaSDKRepoManager, workdir, g, serverURL, gitcookiesPath, nil, cr, local)
+		rm, err = repo_manager.NewFuchsiaSDKRepoManager(ctx, c.FuchsiaSDKRepoManager, workdir, g, serverURL, client, cr, local)
 	} else if c.GithubRepoManager != nil {
 		rm, err = repo_manager.NewGithubRepoManager(ctx, c.GithubRepoManager, workdir, githubClient, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.GithubCipdDEPSRepoManager != nil {
@@ -114,9 +114,9 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	} else if c.GithubDEPSRepoManager != nil {
 		rm, err = repo_manager.NewGithubDEPSRepoManager(ctx, c.GithubDEPSRepoManager, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.NoCheckoutDEPSRepoManager != nil {
-		rm, err = repo_manager.NewNoCheckoutDEPSRepoManager(ctx, c.NoCheckoutDEPSRepoManager, workdir, g, recipesCfgFile, serverURL, gitcookiesPath, client, cr, local)
+		rm, err = repo_manager.NewNoCheckoutDEPSRepoManager(ctx, c.NoCheckoutDEPSRepoManager, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.SemVerGCSRepoManager != nil {
-		rm, err = repo_manager.NewSemVerGCSRepoManager(ctx, c.SemVerGCSRepoManager, workdir, g, serverURL, gitcookiesPath, client, cr, local)
+		rm, err = repo_manager.NewSemVerGCSRepoManager(ctx, c.SemVerGCSRepoManager, workdir, g, serverURL, client, cr, local)
 	} else {
 		return nil, errors.New("Invalid roller config; no repo manager defined!")
 	}

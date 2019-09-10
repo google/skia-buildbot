@@ -82,7 +82,7 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, strateg
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], "master"))
 	mockChild.MockGetCommit(ctx, childCommits[0])
 
-	rm, err := NewNoCheckoutDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", "", urlmock.Client(), gerritCR(t, g), false)
+	rm, err := NewNoCheckoutDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy))
 	assert.NoError(t, rm.Update(ctx))

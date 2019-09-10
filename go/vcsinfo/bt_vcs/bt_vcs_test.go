@@ -59,7 +59,7 @@ func TestBranchInfo(t *testing.T) {
 // arbitrary file (DEPS) from the Skia repo at a chosen commit.
 func TestGetFile(t *testing.T) {
 	unittest.LargeTest(t)
-	gtRepo := gitiles.NewRepo(skiaRepoURL, "", nil)
+	gtRepo := gitiles.NewRepo(skiaRepoURL, nil)
 	hash := "9be246ed747fd1b900013dd0596aed0b1a63a1fa"
 	vcs := &BigTableVCS{
 		repo: gtRepo,

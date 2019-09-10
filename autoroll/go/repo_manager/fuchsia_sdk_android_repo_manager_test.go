@@ -122,7 +122,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, RepoManager,
 	mockGetLatestSDK(urlmock, FUCHSIA_SDK_GS_LATEST_PATH_LINUX, FUCHSIA_SDK_GS_LATEST_PATH_MAC, fuchsiaSDKRevBase, "mac-base")
 	mockDownloadSDK(t, urlmock, fuchsiaSDKRevBase, wd)
 
-	rm, err := NewFuchsiaSDKAndroidRepoManager(ctx, cfg, wd, g, "fake.server.com", "", urlmock.Client(), androidGerrit(t, g), false)
+	rm, err := NewFuchsiaSDKAndroidRepoManager(ctx, cfg, wd, g, "fake.server.com", urlmock.Client(), androidGerrit(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))

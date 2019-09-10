@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/gitsync/go/watcher"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/gitstore/pubsub"
 	"go.skia.org/infra/go/httputils"
@@ -131,22 +130,10 @@ func main() {
 		sklog.Fatalf("Problem setting up default token source: %s", err)
 	}
 
-	// Set up Git authentication if a service account email was set.
-	gitcookiesPath := ""
-	if !config.Local {
-		// Use the gitcookie created by the gitauth package.
-		gitcookiesPath = "/tmp/gitcookies"
-		sklog.Infof("Writing gitcookies to %s", gitcookiesPath)
-		if _, err := gitauth.New(ts, gitcookiesPath, true, ""); err != nil {
-			sklog.Fatalf("Failed to create git cookie updater: %s", err)
-		}
-		sklog.Infof("Git authentication set up successfully.")
-	}
-
 	// Start all repo watchers.
 	ctx := context.Background()
 	for _, repoURL := range config.RepoURLs {
-		if err := watcher.Start(ctx, btConfig, repoURL, gitilesURLs[repoURL], gitcookiesPath, *gcsBucket, *gcsPath, time.Duration(config.RefreshInterval), ts); err != nil {
+		if err := watcher.Start(ctx, btConfig, repoURL, gitilesURLs[repoURL], *gcsBucket, *gcsPath, time.Duration(config.RefreshInterval), ts); err != nil {
 			sklog.Fatalf("Error initializing repo watcher: %s", err)
 		}
 	}

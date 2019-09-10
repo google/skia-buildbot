@@ -64,7 +64,7 @@ type fuchsiaSDKAndroidRepoManager struct {
 }
 
 // Return a fuchsiaSDKAndroidRepoManager instance.
-func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, gitcookiesPath string, authClient *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
+func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL string, authClient *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	// We're not using the constructor for fuchsiaSDKRepoManager because we
 	// need the NoCheckoutRepoManager to use the methods of this
 	// implementation.
@@ -112,7 +112,7 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 		parentRepo:            parentRepo,
 		genSdkBpRepo:          genSdkBpRepo,
 	}
-	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, authClient, cr, rv.createRoll, rv.updateHelper, local)
+	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, authClient, cr, rv.createRoll, rv.updateHelper, local)
 	if err != nil {
 		return nil, err
 	}

@@ -21,7 +21,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
@@ -184,11 +183,7 @@ func main() {
 	}
 
 	// Collect metrics for supported branches.
-	gitcookiesPath := "/tmp/.gitcookies"
-	if _, err := gitauth.New(ts, gitcookiesPath, true, ""); err != nil {
-		sklog.Fatal(err)
-	}
-	supported_branches.Start(ctx, *repoUrls, gitcookiesPath, httpClient, swarmClient, *swarmingPools)
+	supported_branches.Start(ctx, *repoUrls, httpClient, swarmClient, *swarmingPools)
 
 	// Wait while the above goroutines generate data.
 	httputils.RunHealthCheckServer(*port)

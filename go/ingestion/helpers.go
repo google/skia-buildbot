@@ -88,7 +88,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		}
 
 		// Set up VCS instance to track master.
-		gitilesRepo := gitiles.NewRepo(config.GitRepoURL, "", client)
+		gitilesRepo := gitiles.NewRepo(config.GitRepoURL, client)
 		if vcs, err = bt_vcs.New(ctx, gitStore, "master", gitilesRepo); err != nil {
 			return nil, skerr.Wrapf(err, "could not create new bt_vcs")
 		}

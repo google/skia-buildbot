@@ -41,7 +41,7 @@ func (r *LKGR) Get() string {
 // Update LKGR.
 func (r *LKGR) Update(ctx context.Context) error {
 	var buf bytes.Buffer
-	if err := gitiles.NewRepo(common.REPO_CHROMIUM, "", nil).ReadFile(ctx, "DEPS", &buf); err != nil {
+	if err := gitiles.NewRepo(common.REPO_CHROMIUM, nil).ReadFile(ctx, "DEPS", &buf); err != nil {
 		return err
 	}
 	m := SKIA_REV_REGEX.FindStringSubmatch(buf.String())
