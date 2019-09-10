@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "12844674_1fbb0a66",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-10T16:56:45Z",
+      "side": 1,
+      "message": "I did it this way because it is also called from the repeatTasksScheduler: https://skia.googlesource.com/buildbot/+/master/ct/go/ctfe/main.go#279\nand figured it would make sense for that one to continue to pass in it\u0027s context instead of creasing a new one here. I dont have a strong preference either way.",
+      "parentUuid": "904cd5d2_09c5b228",
+      "revId": "6ac495c5156fa030d9fd5d11886d744853bcf7cb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ce50d528_d8011a85",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 1
