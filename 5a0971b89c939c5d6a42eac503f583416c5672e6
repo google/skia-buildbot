@@ -45,6 +45,23 @@
       "revId": "5a0971b89c939c5d6a42eac503f583416c5672e6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e1a97c48_8e321cae",
+        "filename": "go/vcsinfo/testutils/vcsinfo_testutils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-10T20:31:18Z",
+      "side": 1,
+      "message": "cleanup?",
+      "revId": "5a0971b89c939c5d6a42eac503f583416c5672e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
