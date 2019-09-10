@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7cd4bbd0_fa0681de",
+        "filename": "skfe/README.md",
+        "patchSetId": 12
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-10T14:43:33Z",
+      "side": 1,
+      "message": "nit: Skia",
+      "range": {
+        "startLine": 27,
+        "startChar": 55,
+        "endLine": 27,
+        "endChar": 59
+      },
+      "revId": "eeac59b0ab8a72c0c3a9fcca23ab7ba56af2d2bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d39c8b4e_abb3b74b",
+        "filename": "skfe/README.md",
+        "patchSetId": 12
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-10T14:43:33Z",
+      "side": 1,
+      "message": "nit: spelling",
+      "range": {
+        "startLine": 27,
+        "startChar": 18,
+        "endLine": 27,
+        "endChar": 27
+      },
+      "revId": "eeac59b0ab8a72c0c3a9fcca23ab7ba56af2d2bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0fff041_177d47d4",
+        "filename": "skfe/k8s/default.conf",
+        "patchSetId": 12
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-10T14:43:33Z",
+      "side": 1,
+      "message": "nit: spelling",
+      "range": {
+        "startLine": 122,
+        "startChar": 6,
+        "endLine": 122,
+        "endChar": 16
+      },
+      "revId": "eeac59b0ab8a72c0c3a9fcca23ab7ba56af2d2bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
