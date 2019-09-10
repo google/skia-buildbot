@@ -8,6 +8,7 @@ import (
 
 	gstorage "cloud.google.com/go/storage"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
@@ -95,6 +96,7 @@ func (g *ClientImpl) LoadKnownDigests(w io.Writer) error {
 	if err != nil {
 		// We simply assume an empty hashes file if the object was not found.
 		if err == gstorage.ErrObjectNotExist {
+			sklog.Warningf("No known digests found - maybe %s is a wrong path?", g.options.HashesGSPath)
 			return nil
 		}
 		return err
@@ -103,12 +105,12 @@ func (g *ClientImpl) LoadKnownDigests(w io.Writer) error {
 	// Copy the content to the output writer.
 	reader, err := target.NewReader(ctx)
 	if err != nil {
-		return err
+		return skerr.Wrapf(err, "opening %s for reading", g.options.HashesGSPath)
 	}
 	defer util.Close(reader)
 
-	_, err = io.Copy(w, reader)
-	return err
+	n, err := io.Copy(w, reader)
+	return skerr.Wrapf(err, "copying %d bytes to writer", n)
 }
 
 // RemoveForTestingOnly fulfills the GCSClient interface.
