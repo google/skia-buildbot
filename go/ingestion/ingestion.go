@@ -245,8 +245,8 @@ func (i *Ingester) getStartTimeOfInterest(ctx context.Context, now time.Time) (i
 	// frame then keep adding more (up until we are scanning the last year of data, at which point
 	// something must be wrong or the repository is just very new).
 	if len(hashes) < i.nCommits {
-		for len(hashes) < i.nCommits && delta < 365*24*time.Hour {
-			delta *= 2
+		delta *= 2
+		for ; len(hashes) < i.nCommits && delta > -365*24*time.Hour; delta *= 2 {
 			hashes = i.vcs.From(now.Add(delta))
 		}
 

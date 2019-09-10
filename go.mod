@@ -18,7 +18,7 @@ require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/VividCortex/godaemon v0.0.0-20150910212227-3d9f6e0b234f
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.23.17 // indirect
+	github.com/aws/aws-sdk-go v1.23.18 // indirect
 	github.com/boltdb/bolt v1.3.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/coreos/bbolt v1.3.3 // indirect
@@ -116,19 +116,20 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
-	go.chromium.org/luci v0.0.0-20190908081726-56d87b080d76
+	go.chromium.org/luci v0.0.0-20190909234225-895c16d58238
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.opencensus.io v0.22.1
-	golang.org/x/crypto v0.0.0-20190907121410-71b5226ff739
+	golang.org/x/crypto v0.0.0-20190909091759-094676da4a83
 	golang.org/x/exp v0.0.0-20190829153037-c13cbed26979 // indirect
 	golang.org/x/image v0.0.0-20190902063713-cb417be4ba39 // indirect
+	golang.org/x/lint v0.0.0-20190909230951-414d861bb4ac // indirect
 	golang.org/x/mobile v0.0.0-20190830201351-c6da95954960 // indirect
 	golang.org/x/net v0.0.0-20190909003024-a7b16738d86b
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	golang.org/x/sys v0.0.0-20190907184412-d223b2b6db03 // indirect
+	golang.org/x/sys v0.0.0-20190909082730-f460065e899a // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
-	golang.org/x/tools v0.0.0-20190909030654-5b82db07426d // indirect
+	golang.org/x/tools v0.0.0-20190910044552-dd2b5c81c578 // indirect
 	golang.org/x/tools/gopls v0.1.3 // indirect
 	google.golang.org/api v0.10.0
 	google.golang.org/appengine v1.6.2 // indirect
