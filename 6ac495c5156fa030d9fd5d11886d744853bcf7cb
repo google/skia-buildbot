@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "274d019e_a2c2d012",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-10T17:25:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bd4a8f69_722936b2",
+      "revId": "6ac495c5156fa030d9fd5d11886d744853bcf7cb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "904cd5d2_09c5b228",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 1
@@ -72,6 +90,24 @@
     },
     {
       "key": {
+        "uuid": "108614ca_0f82374a",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-10T17:25:06Z",
+      "side": 1,
+      "message": "Oh, I had misunderstood. Done.",
+      "parentUuid": "17d1cc59_f29ad672",
+      "revId": "6ac495c5156fa030d9fd5d11886d744853bcf7cb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ce50d528_d8011a85",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 1
@@ -86,6 +122,24 @@
       "revId": "6ac495c5156fa030d9fd5d11886d744853bcf7cb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "82d83f55_ab5a9b66",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 509,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-10T17:25:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ce50d528_d8011a85",
+      "revId": "6ac495c5156fa030d9fd5d11886d744853bcf7cb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
