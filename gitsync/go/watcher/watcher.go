@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/gitstore/pubsub"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -49,13 +50,14 @@ var (
 
 // Start creates a GitStore with the provided information and starts periodic
 // ingestion.
-func Start(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL, gitilesURL, gitcookiesPath, gcsBucket, gcsPath string, interval time.Duration, ts oauth2.TokenSource) error {
+func Start(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL, gitilesURL, gcsBucket, gcsPath string, interval time.Duration, ts oauth2.TokenSource) error {
 	sklog.Infof("Initializing watcher for %s", repoURL)
 	gitStore, err := bt_gitstore.New(ctx, conf, repoURL)
 	if err != nil {
 		return skerr.Wrapf(err, "Error instantiating git store for %s.", repoURL)
 	}
-	gr := gitiles.NewRepo(gitilesURL, gitcookiesPath, nil)
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	gr := gitiles.NewRepo(gitilesURL, client)
 	s, err := storage.NewClient(ctx)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create storage client for %s.", gcsBucket)

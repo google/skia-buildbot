@@ -67,7 +67,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	repo := gitiles.NewRepo(*repoUrl, gitcookiesPath, client)
+	repo := gitiles.NewRepo(*repoUrl, client)
 	ctx := context.Background()
 	baseCommitInfo, err := repo.Details(ctx, cq.CQ_CFG_REF)
 	if err != nil {

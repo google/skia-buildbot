@@ -267,7 +267,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	arb, err := roller.NewAutoRoller(ctx, cfg, emailer, chatBotConfigReader, g, githubClient, *workdir, *recipesCfgFile, serverURL, gitcookiesPath, gcsClient, client, rollerName, *local, manualRolls)
+	arb, err := roller.NewAutoRoller(ctx, cfg, emailer, chatBotConfigReader, g, githubClient, *workdir, *recipesCfgFile, serverURL, gcsClient, client, rollerName, *local, manualRolls)
 	if err != nil {
 		sklog.Fatal(err)
 	}

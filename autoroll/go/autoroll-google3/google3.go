@@ -50,7 +50,7 @@ type AutoRoller struct {
 	liveness    metrics2.Liveness
 }
 
-func NewAutoRoller(ctx context.Context, gitcookiesPath string, cfg *roller.AutoRollerConfig, client *http.Client) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, cfg *roller.AutoRollerConfig, client *http.Client) (*AutoRoller, error) {
 	recent, err := recent_rolls.NewRecentRolls(ctx, cfg.RollerName)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func NewAutoRoller(ctx context.Context, gitcookiesPath string, cfg *roller.AutoR
 		recent:      recent,
 		status:      cache,
 		childBranch: cfg.Google3RepoManager.ChildBranch,
-		childRepo:   gitiles.NewRepo(cfg.Google3RepoManager.ChildRepo, gitcookiesPath, client),
+		childRepo:   gitiles.NewRepo(cfg.Google3RepoManager.ChildRepo, client),
 		liveness:    metrics2.NewLiveness("last_autoroll_landed"),
 	}
 

@@ -256,7 +256,7 @@ func main() {
 			sklog.Fatalf("Error instantiating gitstore: %s", err)
 		}
 
-		gitilesRepo := gitiles.NewRepo("", "", nil)
+		gitilesRepo := gitiles.NewRepo("", nil)
 		bvcs, err := bt_vcs.New(ctx, gitStore, "master", gitilesRepo)
 		if err != nil {
 			sklog.Fatalf("Error creating BT-backed VCS instance: %s", err)

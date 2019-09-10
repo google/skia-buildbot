@@ -45,7 +45,7 @@ func main() {
 	dst := path.Join(cqDir, path.Base(PROTO_FILE_PATH))
 
 	// Download the most recent version of the proto file.
-	if err := gitiles.NewRepo(PROTO_REPO, "", nil).DownloadFile(context.Background(), PROTO_FILE_PATH, dst); err != nil {
+	if err := gitiles.NewRepo(PROTO_REPO, nil).DownloadFile(context.Background(), PROTO_FILE_PATH, dst); err != nil {
 		sklog.Fatal(err)
 	}
 	defer util.Remove(dst)
