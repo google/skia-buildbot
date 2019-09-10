@@ -54,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "17d1cc59_f29ad672",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-10T17:17:17Z",
+      "side": 1,
+      "message": "It probably doesn\u0027t make much difference for repeatTaskScheduler. For HTTP requests, it makes sense that we would cancel the task insertion if the request is canceled.",
+      "parentUuid": "12844674_1fbb0a66",
+      "revId": "6ac495c5156fa030d9fd5d11886d744853bcf7cb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ce50d528_d8011a85",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 1
