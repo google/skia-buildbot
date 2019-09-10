@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e6e7d4ca_667b57e1",
+        "filename": "autoroll/go/autoroll-google3/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-10T19:20:37Z",
+      "side": 0,
+      "message": "Just checking -- this is running in docker so this file will be deleted when the container restarts, correct?",
+      "revId": "f0067aee398239dfc925823f328972b6a5b98e85",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
