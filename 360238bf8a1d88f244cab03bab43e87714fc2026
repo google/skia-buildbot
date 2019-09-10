@@ -34,6 +34,24 @@
       "revId": "360238bf8a1d88f244cab03bab43e87714fc2026",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b1d8ed5c_20ee74dc",
+        "filename": "ct/go/ctfe/util/mail.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-10T15:01:15Z",
+      "side": 1,
+      "message": "Yes. Not that important though.",
+      "parentUuid": "875ec530_44cc58ef",
+      "revId": "360238bf8a1d88f244cab03bab43e87714fc2026",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
