@@ -7,15 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/test_gcsclient"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/ingestcommon"
 )
-
-var ctx = mock.AnythingOfType("*context.emptyCtx")
 
 func TestHappyCase(t *testing.T) {
 	unittest.SmallTest(t)
@@ -48,7 +46,7 @@ func TestHappyCase(t *testing.T) {
 	assert.NoError(t, cw.Close())
 	assert.NoError(t, err)
 
-	ms.On("SetFileContents", ctx, "/foobar/2017/09/01/13/MyTest-Debug/testprefix_b7e46f46f13e9ddfa40cdb44f921efd1_1504273020000.json", gcs.FileWriteOptions{
+	ms.On("SetFileContents", testutils.AnyContext, "/foobar/2017/09/01/13/MyTest-Debug/testprefix_b7e46f46f13e9ddfa40cdb44f921efd1_1504273020000.json", gcs.FileWriteOptions{
 		ContentEncoding: "gzip",
 		ContentType:     "application/json",
 	}, compressed.Bytes()).Return(nil)
