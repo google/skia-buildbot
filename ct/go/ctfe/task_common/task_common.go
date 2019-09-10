@@ -177,7 +177,7 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 		return
 	}
 
-	if err := AddAndTriggerTask(r.Context(), task); err != nil {
+	if err := AddAndTriggerTask(context.Background(), task); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to insert or trigger %T task", task))
 		return
 	}
@@ -506,7 +506,7 @@ func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	// Do not preserve repeat_after_days for retried tasks. Carrying over
 	// repeat_after_days causes the same task to be unknowingly repeated.
 	addTaskVars.GetAddTaskCommonVars().RepeatAfterDays = "0"
-	if err := AddAndTriggerTask(r.Context(), addTaskVars); err != nil {
+	if err := AddAndTriggerTask(context.Background(), addTaskVars); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to insert or trigger %T task", task))
 		return
 	}
