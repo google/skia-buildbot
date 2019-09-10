@@ -299,8 +299,6 @@ func main() {
 		if err != nil {
 			sklog.Fatalf("Error creating BT-backed VCS instance: %s", err)
 		}
-
-		bvcs.StartTracking(ctx, evt)
 		vcs = bvcs
 	} else {
 		vcs, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
