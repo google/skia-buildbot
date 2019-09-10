@@ -17,6 +17,8 @@ import (
 
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -199,6 +201,15 @@ func runChromiumAnalysisOnWorkers() error {
 	}
 
 	if *groupName != "" {
+		// Start the gitauth package because we will need to commit to CT Perf's synthetic repo.
+		ts, err := auth.NewDefaultTokenSource(*master_common.Local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+		if err != nil {
+			return err
+		}
+		if _, err := gitauth.New(ts, filepath.Join(os.TempDir(), "gitcookies"), true, util.MASTER_SERVICE_ACCOUNT); err != nil {
+			return fmt.Errorf("Failed to create git cookie updater: %s", err)
+		}
+
 		if err := util.AddCTRunDataToPerf(ctx, *groupName, *runID, outputCSVLocalPath, gs); err != nil {
 			return fmt.Errorf("Could not add CT run data to ct-perf.skia.org: %s", err)
 		}

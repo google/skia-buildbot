@@ -192,6 +192,8 @@ const (
 	// ct-perf.skia.org constants.
 	CT_PERF_BUCKET = "cluster-telemetry-perf"
 	CT_PERF_REPO   = "https://skia.googlesource.com/perf-ct"
+
+	MASTER_SERVICE_ACCOUNT = "ct-swarming-bots@ct-swarming-bots.iam.gserviceaccount.com"
 )
 
 type PagesetTypeInfo struct {
