@@ -19,6 +19,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
+	swarmingapi "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/ct/go/ct_autoscaler"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
@@ -27,6 +28,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/swarming"
 	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
@@ -37,6 +39,8 @@ const (
 
 	// Maximum page size used for pagination.
 	MAX_PAGE_SIZE = 100
+
+	CANCEL_SWARMING_TASKS_WORKER_POOL_SIZE = 100
 )
 
 var (
@@ -50,6 +54,8 @@ var (
 	ServiceAccountFile string
 
 	WebappURL string
+
+	swarm swarming.ApiClient
 )
 
 type CommonCols struct {
@@ -439,9 +445,6 @@ func canDeleteTask(task Task, r *http.Request) (bool, error) {
 			return false, fmt.Errorf("Task is owned by %s but you are logged in as %s", taskUser, username)
 		}
 	}
-	if task.GetCommonCols().TsStarted != 0 && task.GetCommonCols().TsCompleted == 0 {
-		return false, fmt.Errorf("Cannot delete currently running tasks.")
-	}
 	return true, nil
 }
 
@@ -452,6 +455,18 @@ func canRedoTask(task Task, r *http.Request) (bool, error) {
 		return false, fmt.Errorf("Cannot redo pending tasks.")
 	}
 	return true, nil
+}
+
+func getClosedTasksChannel(tasks []*swarmingapi.SwarmingRpcsTaskRequestMetadata) chan *swarmingapi.SwarmingRpcsTaskRequestMetadata {
+	// Create channel that contains specified tasks. This channel will be consumed by the worker
+	// pool in DeleteTaskHandler.
+	tasksChannel := make(chan *swarmingapi.SwarmingRpcsTaskRequestMetadata, len(tasks))
+
+	for _, t := range tasks {
+		tasksChannel <- t
+	}
+	close(tasksChannel)
+	return tasksChannel
 }
 
 func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
@@ -469,6 +484,46 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 
 	key := ds.NewKey(prototype.GetDatastoreKind())
 	key.ID = vars.Id
+	task, err := prototype.Get(r.Context(), key)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to find requested task")
+		return
+	}
+
+	// If the task is currently running then will have to cancel all of it's swarming tasks as well.
+	if task.GetCommonCols().TsStarted != 0 && task.GetCommonCols().TsCompleted == 0 {
+		runID := GetRunID(task)
+		tasks, err := swarm.ListTasks(time.Time{}, time.Time{}, []string{fmt.Sprintf("runid:%s", runID)}, "")
+		if err != nil {
+			httputils.ReportError(w, r, err, fmt.Sprintf("Could not list tasks for %s", runID))
+		}
+		sklog.Infof("Starting cancelation of %d tasks...", len(tasks))
+		tasksChannel := getClosedTasksChannel(tasks)
+		var wg sync.WaitGroup
+		// Loop through workers in the worker pool.
+		for i := 0; i < CANCEL_SWARMING_TASKS_WORKER_POOL_SIZE; i++ {
+			// Increment the WaitGroup counter.
+			wg.Add(1)
+			// Create and run a goroutine closure that cancels tasks.
+			go func() {
+				// Decrement the WaitGroup counter when the goroutine completes.
+				defer wg.Done()
+
+				for t := range tasksChannel {
+					if err := swarm.CancelTask(t.TaskId); err != nil {
+						sklog.Errorf("Could not cancel %s: %s", t.TaskId, err)
+						continue
+					}
+					sklog.Infof("Deleted  %s", t.TaskId)
+				}
+			}()
+		}
+		// Wait for all spawned goroutines to complete
+		wg.Wait()
+
+		sklog.Infof("Cancelled %d tasks.", len(tasks))
+	}
+
 	if err := ds.DS.Delete(r.Context(), key); err != nil {
 		httputils.ReportError(w, r, err, "Failed to delete")
 		return
@@ -718,9 +773,10 @@ func AddHandlers(externalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.IS_ADMIN_GET_URI, isAdminHandler).Methods("GET")
 }
 
-func Init(ctx context.Context, local bool, ctfeURL, serviceAccountFileFlagVal string, getGCETasksCount func(ctx context.Context) (int, error)) error {
+func Init(ctx context.Context, local bool, ctfeURL, serviceAccountFileFlagVal string, swarmingClient swarming.ApiClient, getGCETasksCount func(ctx context.Context) (int, error)) error {
 	WebappURL = ctfeURL
 	ServiceAccountFile = serviceAccountFileFlagVal
+	swarm = swarmingClient
 	var err error
 	autoscaler, err = ct_autoscaler.NewCTAutoscaler(ctx, local, getGCETasksCount)
 	if err != nil {
