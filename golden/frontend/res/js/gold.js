@@ -98,6 +98,8 @@ var gold = gold || {};
     // master indicates whether to include digests that are also in master
     // when querying tryjob results.
     master: false,
+
+    new_clstore: false,
   };
 
   // Default values for the search query of the by-blame-page.

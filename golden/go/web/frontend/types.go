@@ -22,10 +22,11 @@ type ChangeList struct {
 	Status   string    `json:"status"`
 	Subject  string    `json:"subject"`
 	Updated  time.Time `json:"updated"`
+	URL      string    `json:"url"`
 }
 
 // ConvertChangeList turns a code_review.ChangeList into a ChangeList for the frontend.
-func ConvertChangeList(cl code_review.ChangeList, system string) ChangeList {
+func ConvertChangeList(cl code_review.ChangeList, system, urlPrefix string) ChangeList {
 	return ChangeList{
 		System:   system,
 		SystemID: cl.SystemID,
@@ -33,6 +34,7 @@ func ConvertChangeList(cl code_review.ChangeList, system string) ChangeList {
 		Status:   cl.Status.String(),
 		Subject:  cl.Subject,
 		Updated:  cl.Updated,
+		URL:      urlPrefix + "/" + cl.SystemID,
 	}
 }
 

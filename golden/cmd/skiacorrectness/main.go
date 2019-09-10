@@ -431,6 +431,7 @@ func main() {
 	handlers := web.WebHandlers{
 		Baseliner:               baseliner,
 		ChangeListStore:         cls,
+		CodeReviewURLPrefix:     *gerritURL,
 		DeprecatedTryjobMonitor: tryjobMonitor,
 		DeprecatedTryjobStore:   deprecatedTJS,
 		DiffStore:               diffStore,
@@ -521,11 +522,8 @@ func main() {
 	loggedRouter.HandleFunc("/json", http.NotFound)
 
 	loadTemplates := func() {
-		templates = template.Must(template.New("").ParseFiles(
-			filepath.Join(*litHTMLDir, "dist", "changelists.html"),
-
-			filepath.Join(*resourcesDir, "index.html"),
-		))
+		templates = template.Must(template.New("").ParseFiles(filepath.Join(*resourcesDir, "index.html")))
+		templates = template.Must(templates.ParseGlob(filepath.Join(*litHTMLDir, "dist", "*.html")))
 	}
 
 	loadTemplates()
