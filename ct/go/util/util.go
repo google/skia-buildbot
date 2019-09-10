@@ -231,6 +231,14 @@ func GetCurrentTs() string {
 	return time.Now().UTC().Format(TS_FORMAT)
 }
 
+func GetCurrentTsInt64() int64 {
+	ts, err := strconv.ParseInt(GetCurrentTs(), 10, 64)
+	if err != nil {
+		sklog.Fatalf("Could not parse timestamp: %s", err)
+	}
+	return ts
+}
+
 // Returns channel that contains all pageset file names without the timestamp
 // file and pyc files.
 func GetClosedChannelOfPagesets(fileInfos []os.FileInfo) chan string {
@@ -1266,8 +1274,12 @@ func GetAnalysisOutputLink(runID string) string {
 	return GCS_HTTP_LINK + path.Join(GCSBucketName, BenchmarkRunsDir, runID, "consolidated_outputs", runID+".output")
 }
 
-func GetPerfRemoteHTMLDir(runID string) string {
+func GetPerfRemoteDir(runID string) string {
 	return path.Join(ChromiumPerfRunsStorageDir, runID)
+}
+
+func GetPerfRemoteHTMLDir(runID string) string {
+	return path.Join(GetPerfRemoteDir(runID), "html")
 }
 
 func GetPerfOutputLinkBase(runID string) string {
