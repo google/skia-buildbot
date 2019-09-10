@@ -525,6 +525,9 @@ type CleanupFunc func()
 
 // Close wraps an io.Closer and logs an error if one is returned.
 func Close(c io.Closer) {
+	if _, ok := c.(io.Writer); ok {
+		sklog.WarningfWithDepth(1, "You should not use util.Close on an io.Writer, it potentially hides the error")
+	}
 	if err := c.Close(); err != nil {
 		// Don't start the stacktrace here, but at the caller's location
 		sklog.ErrorfWithDepth(1, "Failed to Close(): %v", err)

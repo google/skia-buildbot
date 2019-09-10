@@ -58,7 +58,7 @@ spec:
             - "--gerrit_url={{.GERRIT_URL}}"
             - "--git_bt_table={{.GIT_BT_TABLE}}"
             - "--git_repo_url={{.GITREPO_URL}}"
-            - "--hashes_gs_path=skia-gold-{{.INSTANCE_ID}}/hash_files/gold-{{.INSTANCE_ID}}-hashes.txt"
+            - "--hashes_gs_path={{.BUCKET}}/hash_files/{{.HASHES_FILE}}"
             - "--lit_html_dir=/usr/local/share/skiacorrectness"
             - "--logtostderr=true"
             - "--n_commits={{.N_COMMITS}}"

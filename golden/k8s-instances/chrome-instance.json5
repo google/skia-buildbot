@@ -21,6 +21,7 @@
   // Settings for skiacorrectness instance
   "AUTHORIZED_PARAMS":       "", // defaults to "all"
   "AUTH_USERS":              "google.com",
+  "HASHES_FILE":             "gold-chrome-hashes.txt",
   "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
   "MAIN_CPU":                "4",
   "MAIN_MEMORY":             "4Gi",
