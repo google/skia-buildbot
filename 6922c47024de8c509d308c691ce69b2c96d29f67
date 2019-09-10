@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "76701be5_e76f1c41",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 496,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-10T18:55:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "40809495_1a1e046a",
+      "range": {
+        "startLine": 496,
+        "startChar": 69,
+        "endLine": 496,
+        "endChar": 73
+      },
+      "revId": "6922c47024de8c509d308c691ce69b2c96d29f67",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aca5910f_c94f0c92",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 8
@@ -36,6 +60,30 @@
       "writtenOn": "2019-09-10T18:46:50Z",
       "side": 1,
       "message": "IWBN to make this an enum of SUCCESS, FAIL, DELETE.",
+      "range": {
+        "startLine": 530,
+        "startChar": 54,
+        "endLine": 530,
+        "endChar": 59
+      },
+      "revId": "6922c47024de8c509d308c691ce69b2c96d29f67",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "629579c3_b5ef024a",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-10T18:55:12Z",
+      "side": 1,
+      "message": "Maybe one day when we can send out more descriptive emails for FAIL vs DELETE.",
+      "parentUuid": "aca5910f_c94f0c92",
       "range": {
         "startLine": 530,
         "startChar": 54,
