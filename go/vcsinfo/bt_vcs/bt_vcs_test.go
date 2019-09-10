@@ -3,10 +3,10 @@ package bt_vcs
 import (
 	"context"
 	"io/ioutil"
+	"math"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore"
@@ -62,7 +62,7 @@ func TestGetFile(t *testing.T) {
 	gtRepo := gitiles.NewRepo(skiaRepoURL, "", nil)
 	hash := "9be246ed747fd1b900013dd0596aed0b1a63a1fa"
 	vcs := &BigTableVCS{
-		repo: gtRepo,
+		gitiles: gtRepo,
 	}
 	_, err := vcs.GetFile(context.Background(), "DEPS", hash)
 	assert.NoError(t, err)
@@ -79,9 +79,7 @@ func TestDetailsCaching(t *testing.T) {
 
 	commits := makeTestLongCommits()
 
-	mg.On("GetBranches", testutils.AnyContext).Return(makeTestBranchPointerMap(), nil)
-	mg.On("RangeN", testutils.AnyContext, 0, 4, "master").Return(makeTestIndexCommits(), nil)
-	startWithEmptyCache(mg)
+	mg.On("RangeN", testutils.AnyContext, 0, math.MaxInt32, "master").Return(makeTestIndexCommits(), nil)
 	mg.On("Get", testutils.AnyContext, []string{firstHash}).Return([]*vcsinfo.LongCommit{commits[0]}, nil).Once()
 
 	vcs, err := New(context.Background(), mg, "master", nil)
@@ -103,73 +101,6 @@ func TestDetailsCaching(t *testing.T) {
 	assert.Equal(t, commits[0], c)
 }
 
-// TestDetailsBranchInfo tests that the Branches field is filled out when requested.
-func TestDetailsBranchInfo(t *testing.T) {
-	unittest.SmallTest(t)
-
-	mg := &mocks.GitStore{}
-	defer mg.AssertExpectations(t)
-
-	commits := makeTestLongCommits()
-	indices := makeTestIndexCommits()
-
-	mg.On("GetBranches", testutils.AnyContext).Return(makeTestBranchPointerMap(), nil)
-	mg.On("RangeN", testutils.AnyContext, 0, 4, "master").Return(indices, nil)
-	startWithFullCache(mg) // full cache, but it won't have branch info
-	mg.On("Get", testutils.AnyContext, []string{firstHash}).Return([]*vcsinfo.LongCommit{commits[0]}, nil)
-
-	mg.On("RangeByTime", testutils.AnyContext, firstTime, mock.AnythingOfType("time.Time"), "master").Return(
-		[]*vcsinfo.IndexCommit{indices[0]}, nil)
-
-	vcs, err := New(context.Background(), mg, "master", nil)
-	assert.NoError(t, err)
-
-	c, err := vcs.Details(context.Background(), firstHash, true)
-	assert.NoError(t, err)
-	assert.NotNil(t, c)
-	assert.Equal(t, map[string]bool{
-		"master": true,
-	}, c.Branches)
-}
-
-// TestDetailsBranchInfoCaching validates the cache is cognizant of branch info
-func TestDetailsBranchInfoCaching(t *testing.T) {
-	unittest.SmallTest(t)
-
-	mg := &mocks.GitStore{}
-	defer mg.AssertExpectations(t)
-
-	commits := makeTestLongCommits()
-	indices := makeTestIndexCommits()
-
-	mg.On("GetBranches", testutils.AnyContext).Return(makeTestBranchPointerMap(), nil)
-	mg.On("RangeN", testutils.AnyContext, 0, 4, "master").Return(indices, nil)
-	startWithEmptyCache(mg)
-	mg.On("Get", testutils.AnyContext, []string{firstHash}).Return([]*vcsinfo.LongCommit{commits[0]}, nil).Twice()
-
-	mg.On("RangeByTime", testutils.AnyContext, firstTime, mock.AnythingOfType("time.Time"), "master").Return(
-		[]*vcsinfo.IndexCommit{indices[0]}, nil).Once()
-
-	vcs, err := New(context.Background(), mg, "master", nil)
-	assert.NoError(t, err)
-
-	// query details 3 times, and make sure it uses the cache after the
-	// first two times (cache miss on the second time because we requested)
-	// branch info.
-	ctx := context.Background()
-	c, err := vcs.Details(ctx, firstHash, false)
-	assert.NoError(t, err)
-	assert.Nil(t, c.Branches)
-	c, err = vcs.Details(ctx, firstHash, true)
-	assert.NoError(t, err)
-	assert.NotNil(t, c.Branches)
-	c, err = vcs.Details(ctx, firstHash, false)
-	assert.NoError(t, err)
-	// Branches is still here because it was in the cache. This should be fine,
-	// to give clients extra information when they didn't necessarily ask for it.
-	assert.NotNil(t, c.Branches)
-}
-
 // TestDetailsMultiCaching makes sure that multiple calls to DetailsMulti do
 // not result in multiple calls to the underlying gitstore, that is,
 // the details per commit hash are cached.
@@ -181,9 +112,7 @@ func TestDetailsMultiCaching(t *testing.T) {
 
 	commits := makeTestLongCommits()
 
-	mg.On("GetBranches", testutils.AnyContext).Return(makeTestBranchPointerMap(), nil)
-	mg.On("RangeN", testutils.AnyContext, 0, 4, "master").Return(makeTestIndexCommits(), nil)
-	startWithEmptyCache(mg)
+	mg.On("RangeN", testutils.AnyContext, 0, math.MaxInt32, "master").Return(makeTestIndexCommits(), nil)
 	mg.On("Get", testutils.AnyContext, []string{firstHash, secondHash}).Return([]*vcsinfo.LongCommit{commits[0], commits[1]}, nil).Once()
 
 	vcs, err := New(context.Background(), mg, "master", nil)
@@ -224,9 +153,7 @@ func TestDetailsMultiPartialCaching(t *testing.T) {
 
 	commits := makeTestLongCommits()
 
-	mg.On("GetBranches", testutils.AnyContext).Return(makeTestBranchPointerMap(), nil)
-	mg.On("RangeN", testutils.AnyContext, 0, 4, "master").Return(makeTestIndexCommits(), nil)
-	startWithEmptyCache(mg)
+	mg.On("RangeN", testutils.AnyContext, 0, math.MaxInt32, "master").Return(makeTestIndexCommits(), nil)
 	mg.On("Get", testutils.AnyContext, []string{firstHash, thirdHash}).Return([]*vcsinfo.LongCommit{commits[0], commits[2]}, nil).Once()
 	mg.On("Get", testutils.AnyContext, []string{secondHash}).Return([]*vcsinfo.LongCommit{commits[1]}, nil).Once()
 
@@ -273,20 +200,6 @@ func setupVCSLocalRepo(t *testing.T, branch string) (vcsinfo.VCS, gitstore.GitSt
 		util.RemoveAll(wd)
 		cleanup()
 	}
-}
-
-func startWithEmptyCache(mg *mocks.GitStore) {
-	// In the call to New(), Update fetches all the LongCommits for things in the index
-	// commits - we return nil for all of these to keep the cache empty (when testing)
-	// the cache logic.
-	rv := []*vcsinfo.LongCommit{nil, nil, nil}
-	mg.On("Get", testutils.AnyContext, []string{firstHash, secondHash, thirdHash}).Return(rv, nil).Once()
-}
-
-func startWithFullCache(mg *mocks.GitStore) {
-	// In the call to New(), Update fetches all the LongCommits for things in the index
-	// commits - we return the real data here to make sure the detailsCache is full.
-	mg.On("Get", testutils.AnyContext, []string{firstHash, secondHash, thirdHash}).Return(makeTestLongCommits(), nil).Once()
 }
 
 const (
