@@ -351,7 +351,7 @@ func main() {
 
 	if !*local {
 		// Initialize mailing library.
-		if err := ctutil.MailInit(*emailClientSecretFile, *emailTokenCacheFile); err != nil {
+		if err := ctfeutil.MailInit(*emailClientSecretFile, *emailTokenCacheFile); err != nil {
 			sklog.Fatalf("Could not initialize mailing library: %s", err)
 		}
 	}
