@@ -7,7 +7,7 @@ const template = (ele) => html`
 <div>hello world</div>
 `;
 
-define('changelists-page', class extends ElementSk {
+define('changelists-page-sk', class extends ElementSk {
   constructor() {
     super(template);
   }

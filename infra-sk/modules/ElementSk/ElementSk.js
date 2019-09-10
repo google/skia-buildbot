@@ -3,7 +3,7 @@
  * @description <h2><code>ElementSk</code></h2>
  *
  */
-import { html, render } from 'lit-html'
+import { render } from 'lit-html'
 import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
 /**
