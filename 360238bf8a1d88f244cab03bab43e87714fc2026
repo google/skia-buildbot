@@ -52,6 +52,24 @@
       "revId": "360238bf8a1d88f244cab03bab43e87714fc2026",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0eeaea6d_9aa4849b",
+        "filename": "ct/go/ctfe/util/mail.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-10T15:04:54Z",
+      "side": 1,
+      "message": "I failed to convince myself to do it :)",
+      "parentUuid": "b1d8ed5c_20ee74dc",
+      "revId": "360238bf8a1d88f244cab03bab43e87714fc2026",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
