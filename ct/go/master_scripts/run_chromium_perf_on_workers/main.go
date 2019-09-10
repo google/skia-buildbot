@@ -81,7 +81,7 @@ func runChromiumPerfOnWorkers() error {
 	if err != nil {
 		return fmt.Errorf("Could not instantiate gsutil object: %s", err)
 	}
-	remoteOutputDir := util.GetPerfRemoteHTMLDir(*runID)
+	remoteOutputDir := util.GetPerfRemoteDir(*runID)
 
 	// TODO(rmistry): Fix the below.
 	//
@@ -273,7 +273,7 @@ func runChromiumPerfOnWorkers() error {
 	_, skiaHash := util.GetHashesFromBuild(chromiumBuildNoPatch)
 	htmlOutputDir := filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir, *runID, "html")
 	skutil.MkdirAll(htmlOutputDir, 0700)
-	htmlRemoteDir := filepath.Join(remoteOutputDir, "html")
+	htmlRemoteDir := util.GetPerfRemoteHTMLDir(*runID)
 	htmlOutputLinkBase := util.GetPerfOutputLinkBase(*runID)
 	noPatchOutputLink := util.GetPerfNoPatchOutputLink(*runID)
 	withPatchOutputLink := util.GetPerfWithPatchOutputLink(*runID)

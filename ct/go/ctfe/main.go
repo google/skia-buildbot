@@ -225,15 +225,11 @@ func pollMasterScriptSwarmingTasks(ctx context.Context) {
 
 				if taskCompleted {
 					// Update the task in datastore.
-					vars := task.GetUpdateTaskVars()
-					vars.GetUpdateTaskCommonVars().Id = task.GetCommonCols().DatastoreKey.ID
-					vars.SetCompleted(!failure, task)
-					updatedTask, err := task_common.FindAndUpdateTask(ctx, vars)
-					if err != nil {
-						sklog.Errorf("Could not find and update task %v: %s", vars, err)
+					if err := task_common.UpdateTaskSetCompleted(ctx, task, !failure); err != nil {
+						sklog.Errorf("Failed to update task %d in the datastore: %s", task.GetCommonCols().DatastoreKey.ID, err)
 					} else {
 						// Send completion email.
-						skutil.LogErr(updatedTask.SendCompletionEmail(ctx, !failure))
+						skutil.LogErr(task.SendCompletionEmail(ctx, !failure))
 					}
 				}
 			}
@@ -285,11 +281,10 @@ func repeatedTasksScheduler(ctx context.Context) {
 						continue
 					}
 
-					taskVars := task.GetUpdateTaskVars()
-					taskVars.GetUpdateTaskCommonVars().Id = task.GetCommonCols().DatastoreKey.ID
-					taskVars.GetUpdateTaskCommonVars().ClearRepeatAfterDays = true
-					if err := task_common.UpdateTask(ctx, taskVars, task); err != nil {
-						sklog.Errorf("Failed to update task %v: %s", task, err)
+					// Clear the repeat after days field for the original task.
+					task.GetCommonCols().RepeatAfterDays = 0
+					if _, err := ds.DS.Put(ctx, task.GetCommonCols().DatastoreKey, task); err != nil {
+						sklog.Errorf("Failed to update task %d in the datastore: %s", task.GetCommonCols().DatastoreKey.ID, err)
 						continue
 					}
 				}
