@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1d7dbd30_e85c8687",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-10T17:31:46Z",
+      "side": 1,
+      "message": "nit: maybe comment that we want the following to finish even after the HTTP request is completed.",
+      "revId": "9b6538ece843b8d851f293bae88b9eb2f397f140",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
