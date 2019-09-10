@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a8343ec0_e0ac55b4",
+        "filename": "ct/go/ctfe/util/mail.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-10T14:45:58Z",
+      "side": 1,
+      "message": "nit: If it were me, I would move this to a new package rather than adding it to ctfeutil.",
+      "revId": "360238bf8a1d88f244cab03bab43e87714fc2026",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
