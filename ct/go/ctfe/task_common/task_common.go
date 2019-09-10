@@ -71,20 +71,42 @@ type Task interface {
 	TriggerSwarmingTaskAndMail(ctx context.Context) error
 	SendCompletionEmail(ctx context.Context, completedSuccessfully bool) error
 	GetTaskName() string
+	SetCompleted(success bool)
 	GetDatastoreKind() ds.Kind
 	// Returns a slice of the struct type.
 	Query(it *datastore.Iterator) (interface{}, error)
 	// Returns the struct type.
 	Get(c context.Context, key *datastore.Key) (Task, error)
-	// Returns the corresponding UpdateTaskVars instance of this Task. The
-	// returned instance is not populated.
-	GetUpdateTaskVars() UpdateTaskVars
 	// Returns the corresponding AddTaskVars instance of this Task. The returned
 	// instance is populated.
 	GetPopulatedAddTaskVars() (AddTaskVars, error)
 	// Returns the results link for this task if it completed successfully and if
 	// the task supports results links.
 	GetResultsLink() string
+}
+
+// UpdateTaskSetStarted sets the following on the task and updates it in Datastore:
+// * TsStarted
+// * SwarmingTaskID
+// * SwarmingLogsLink
+func UpdateTaskSetStarted(ctx context.Context, runID, swarmingTaskID string, task Task) error {
+	task.GetCommonCols().TsStarted = ctutil.GetCurrentTsInt64()
+	task.GetCommonCols().SwarmingTaskID = swarmingTaskID
+	task.GetCommonCols().SwarmingLogs = fmt.Sprintf(ctutil.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID)
+
+	if _, err := ds.DS.Put(ctx, task.GetCommonCols().DatastoreKey, task); err != nil {
+		return fmt.Errorf("Failed to update task %d in the datastore: %s", task.GetCommonCols().DatastoreKey.ID, err)
+	}
+	return nil
+}
+
+// UpdateTaskSetCompleted calls the task's SetCompleted method and updates it in Datastore.
+func UpdateTaskSetCompleted(ctx context.Context, task Task, success bool) error {
+	task.SetCompleted(success)
+	if _, err := ds.DS.Put(ctx, task.GetCommonCols().DatastoreKey, task); err != nil {
+		return fmt.Errorf("Failed to update task %d in the datastore: %s", task.GetCommonCols().DatastoreKey.ID, err)
+	}
+	return nil
 }
 
 func (dbrow *CommonCols) GetCommonCols() *CommonCols {
@@ -167,7 +189,9 @@ func AddAndTriggerTask(ctx context.Context, task AddTaskVars) error {
 		return fmt.Errorf("Failed to insert %T task: %s", task, err)
 	}
 	if err := TriggerTaskOnSwarming(ctx, task, datastoreTask); err != nil {
-		if err := UpdateTaskSetFailed(ctx, datastoreTask); err != nil {
+		// Populate the started timestamp before we mark it as completed and failed.
+		datastoreTask.GetCommonCols().TsStarted = ctutil.GetCurrentTsInt64()
+		if err := UpdateTaskSetCompleted(ctx, datastoreTask, false); err != nil {
 			sklog.Error(err)
 		}
 		return fmt.Errorf("Failed to trigger on swarming %T task: %s", task, err)
@@ -396,150 +420,6 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to encode JSON")
 		return
 	}
-}
-
-// TODO(rmistry): Should be able to remove large chunks of the below. See:
-// https://skia-review.googlesource.com/c/buildbot/+/238902/14/ct/go/ctfe/task_common/task_common.go#514
-
-// Data included in all update requests.
-type UpdateTaskCommonVars struct {
-	Id                   int64
-	TsStarted            string
-	TsCompleted          string
-	Failure              bool
-	TaskDone             bool
-	RepeatAfterDays      int64
-	ClearRepeatAfterDays bool
-	SwarmingLogs         string
-	SwarmingTaskID       string
-}
-
-func (vars *UpdateTaskCommonVars) SetStarted(runID string) {
-	vars.TsStarted = ctutil.GetCurrentTs()
-	swarmingLogsLink := fmt.Sprintf(ctutil.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID)
-	vars.SwarmingLogs = swarmingLogsLink
-}
-
-func (vars *UpdateTaskCommonVars) GetUpdateTaskCommonVars() *UpdateTaskCommonVars {
-	return vars
-}
-
-type UpdateTaskVars interface {
-	GetTaskPrototype() Task
-	GetUpdateTaskCommonVars() *UpdateTaskCommonVars
-	// Adds CT task specific updates for fields not in UpdateTaskCommonVars.
-	UpdateExtraFields(Task) error
-	SetCompleted(success bool, t Task)
-}
-
-func updateDatastoreTask(vars UpdateTaskVars, task Task) error {
-	common := vars.GetUpdateTaskCommonVars()
-
-	if common.TsStarted != "" {
-		tsStarted, err := strconv.ParseInt(common.TsStarted, 10, 64)
-		if err != nil {
-			return fmt.Errorf("Invalid TsStarted %s: %s", common.TsStarted, err)
-		}
-		task.GetCommonCols().TsStarted = tsStarted
-	}
-	if common.TsCompleted != "" {
-		tsCompleted, err := strconv.ParseInt(common.TsCompleted, 10, 64)
-		if err != nil {
-			return fmt.Errorf("Invalid TsCompleted %s: %s", common.TsCompleted, err)
-		}
-		task.GetCommonCols().TsCompleted = tsCompleted
-	}
-	if common.Failure {
-		task.GetCommonCols().Failure = common.Failure
-	}
-	if common.TaskDone {
-		if task.GetCommonCols().TsCompleted == 0 {
-			return fmt.Errorf("TsCompleted must be set before TaskDone can be set to true")
-		}
-		task.GetCommonCols().TaskDone = common.TaskDone
-	}
-	if common.ClearRepeatAfterDays {
-		task.GetCommonCols().RepeatAfterDays = 0
-	} else if common.RepeatAfterDays != 0 {
-		task.GetCommonCols().RepeatAfterDays = common.RepeatAfterDays
-	}
-	if common.SwarmingLogs != "" {
-		task.GetCommonCols().SwarmingLogs = common.SwarmingLogs
-	}
-	if common.SwarmingTaskID != "" {
-		task.GetCommonCols().SwarmingTaskID = common.SwarmingTaskID
-	}
-	if err := vars.UpdateExtraFields(task); err != nil {
-		return err
-	}
-	return nil
-}
-
-func UpdateTaskHandler(vars UpdateTaskVars, prototype Task, w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewDecoder(r.Body).Decode(&vars); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to parse %T update", vars))
-		return
-	}
-
-	key := ds.NewKey(prototype.GetDatastoreKind())
-	key.ID = vars.GetUpdateTaskCommonVars().Id
-	task, err := prototype.Get(r.Context(), key)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to find %T task", vars))
-		return
-	}
-
-	if err := UpdateTask(r.Context(), vars, task); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to update %T task", vars))
-		return
-	}
-}
-
-func UpdateTaskSetStarted(ctx context.Context, vars UpdateTaskVars, id int64, runID, swarmingTaskID string) error {
-	vars.GetUpdateTaskCommonVars().Id = id
-	vars.GetUpdateTaskCommonVars().SwarmingTaskID = swarmingTaskID
-	vars.GetUpdateTaskCommonVars().SetStarted(runID)
-	_, err := FindAndUpdateTask(ctx, vars)
-	return err
-}
-
-func UpdateTaskSetFailed(ctx context.Context, task Task) error {
-	updateVars := task.GetUpdateTaskVars()
-	updateVars.GetUpdateTaskCommonVars().Id = task.GetCommonCols().DatastoreKey.ID
-	updateVars.GetUpdateTaskCommonVars().TsStarted = ctutil.GetCurrentTs()
-	updateVars.SetCompleted(false, task)
-	return UpdateTask(ctx, updateVars, task)
-}
-
-func FindAndUpdateTask(ctx context.Context, vars UpdateTaskVars) (Task, error) {
-	prototype := vars.GetTaskPrototype()
-	key := ds.NewKey(prototype.GetDatastoreKind())
-	key.ID = vars.GetUpdateTaskCommonVars().Id
-	task, err := prototype.Get(ctx, key)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to find task with Id %d: %s", key.ID, err)
-	}
-
-	if err := updateDatastoreTask(vars, task); err != nil {
-		return nil, fmt.Errorf("Failed to marshal %T update: %v", vars, err)
-	}
-
-	if _, err := ds.DS.Put(ctx, task.GetCommonCols().DatastoreKey, task); err != nil {
-		return nil, fmt.Errorf("Failed to update task %d in the datastore: %s", task.GetCommonCols().DatastoreKey.ID, err)
-	}
-	return task, nil
-}
-
-func UpdateTask(ctx context.Context, vars UpdateTaskVars, task Task) error {
-	if err := updateDatastoreTask(vars, task); err != nil {
-		return fmt.Errorf("Failed to marshal %T update: %v", vars, err)
-	}
-
-	if _, err := ds.DS.Put(ctx, task.GetCommonCols().DatastoreKey, task); err != nil {
-		return fmt.Errorf("Failed to update task %d in the datastore: %s", task.GetCommonCols().DatastoreKey.ID, err)
-	}
-	return nil
 }
 
 // Returns true if the given task can be deleted by the logged-in user; otherwise false and an error

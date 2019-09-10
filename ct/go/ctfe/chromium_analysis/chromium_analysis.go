@@ -129,10 +129,6 @@ func (task DatastoreTask) GetResultsLink() string {
 	return task.RawOutput
 }
 
-func (task DatastoreTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
-	return &UpdateVars{}
-}
-
 func (task DatastoreTask) RunsOnGCEWorkers() bool {
 	return task.RunOnGCE && task.Platform != ctutil.PLATFORM_ANDROID
 }
@@ -193,7 +189,7 @@ func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error 
 		return fmt.Errorf("Could not trigger master script for run_chromium_analysis_on_workers with isolate args %v: %s", isolateArgs, err)
 	}
 	// Mark task as started in datastore.
-	if err := task_common.UpdateTaskSetStarted(ctx, &UpdateVars{}, task.DatastoreKey.ID, runID, sTaskID); err != nil {
+	if err := task_common.UpdateTaskSetStarted(ctx, runID, sTaskID, &task); err != nil {
 		return fmt.Errorf("Could not mark task as started in datastore: %s", err)
 	}
 	// Send start email.
@@ -263,6 +259,16 @@ func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSucc
 		return fmt.Errorf("Error while sending email: %s", err)
 	}
 	return nil
+}
+
+func (task *DatastoreTask) SetCompleted(success bool) {
+	if success {
+		runID := task_common.GetRunID(task)
+		task.RawOutput = ctutil.GetAnalysisOutputLink(runID)
+	}
+	task.TsCompleted = ctutil.GetCurrentTsInt64()
+	task.Failure = !success
+	task.TaskDone = true
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
@@ -383,34 +389,6 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 func getTasksHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.GetTasksHandler(&DatastoreTask{}, w, r)
-}
-
-type UpdateVars struct {
-	task_common.UpdateTaskCommonVars
-
-	RawOutput string
-}
-
-func (task *UpdateVars) GetTaskPrototype() task_common.Task {
-	return &DatastoreTask{}
-}
-
-func (vars *UpdateVars) UpdateExtraFields(t task_common.Task) error {
-	task := t.(*DatastoreTask)
-	if vars.RawOutput != "" {
-		task.RawOutput = vars.RawOutput
-	}
-	return nil
-}
-
-func (vars *UpdateVars) SetCompleted(success bool, t task_common.Task) {
-	if success {
-		runID := task_common.GetRunID(t)
-		vars.RawOutput = ctutil.GetAnalysisOutputLink(runID)
-	}
-	vars.TsCompleted = ctutil.GetCurrentTs()
-	vars.Failure = !success
-	vars.TaskDone = true
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {

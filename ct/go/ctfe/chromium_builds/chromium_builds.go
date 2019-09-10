@@ -92,10 +92,6 @@ func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, er
 	return taskVars, nil
 }
 
-func (task DatastoreTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
-	return &UpdateVars{}
-}
-
 func (task DatastoreTask) RunsOnGCEWorkers() bool {
 	// Unused for chromium_builds because it always runs on the GCE builders not
 	// the workers or bare-metal machines.
@@ -144,7 +140,7 @@ func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error 
 		return fmt.Errorf("Could not trigger master script for build_chromium with isolate args %v: %s", isolateArgs, err)
 	}
 	// Mark task as started in datastore.
-	if err := task_common.UpdateTaskSetStarted(ctx, &UpdateVars{}, task.DatastoreKey.ID, runID, sTaskID); err != nil {
+	if err := task_common.UpdateTaskSetStarted(ctx, runID, sTaskID, &task); err != nil {
 		return fmt.Errorf("Could not mark task as started in datastore: %s", err)
 	}
 	// Send start email.
@@ -172,6 +168,12 @@ func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSucc
 		return fmt.Errorf("Error while sending email: %s", err)
 	}
 	return nil
+}
+
+func (task *DatastoreTask) SetCompleted(success bool) {
+	task.TsCompleted = ctutil.GetCurrentTsInt64()
+	task.Failure = !success
+	task.TaskDone = true
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
@@ -300,28 +302,6 @@ func getSkiaLkgr() (string, error) {
 
 func getSkiaRevDataHandler(w http.ResponseWriter, r *http.Request) {
 	getRevDataHandler(getSkiaLkgr, SKIA_GIT_REPO_URL, w, r)
-}
-
-type UpdateVars struct {
-	task_common.UpdateTaskCommonVars
-}
-
-func (task *UpdateVars) GetTaskPrototype() task_common.Task {
-	return &DatastoreTask{}
-}
-
-func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
-	return nil, nil, nil
-}
-
-func (task *UpdateVars) UpdateExtraFields(t task_common.Task) error {
-	return nil
-}
-
-func (vars *UpdateVars) SetCompleted(success bool, t task_common.Task) {
-	vars.TsCompleted = ctutil.GetCurrentTs()
-	vars.Failure = !success
-	vars.TaskDone = true
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
