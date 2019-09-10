@@ -609,7 +609,7 @@ func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
 
 // loadExpectations fetches the expectations from Gold to compare to tests.
 func (r *resultState) loadExpectations(httpClient HTTPClient) error {
-	urlPath := strings.Replace(shared.EXPECTATIONS_ROUTE, "{commit_hash}", r.SharedConfig.GitHash, 1)
+	urlPath := strings.Replace(shared.ExpectationsRoute, "{commit_hash}", r.SharedConfig.GitHash, 1)
 	if !types.IsMasterBranch(r.SharedConfig.GerritChangeListID) {
 		urlPath = fmt.Sprintf("%s?issue=%d", urlPath, r.SharedConfig.GerritChangeListID)
 	}
