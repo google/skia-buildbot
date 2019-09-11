@@ -6,6 +6,7 @@ metadata:
   name: {{.appName}}
   annotations:
     beta.cloud.google.com/backend-config: '{"ports": {"8000":"skia-default-backendconfig"}}'
+    skia.org.domain: {{.hostName}}
 spec:
   ports:
     - name: metrics
