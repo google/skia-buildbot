@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "125cc3fc_bbd3edf1",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T15:24:19Z",
+      "side": 1,
+      "message": "nit: could not locate LongCommit... \n\n(to differentiate from line 133)",
+      "range": {
+        "startLine": 138,
+        "startChar": 21,
+        "endLine": 138,
+        "endChar": 50
+      },
+      "revId": "bf9937266468b198a56c3a096fd27ffaaad91e4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
