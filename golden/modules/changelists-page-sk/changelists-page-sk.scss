@@ -1,0 +1,22 @@
+changelists-page-sk {
+	thead th {
+		font-weight: bold;
+		text-align: left;
+	}
+
+	tr:hover {
+		background:#DDDDDD
+	}
+
+	td {
+		padding: 0.25em;
+		min-width: 6em;
+		word-break: break-word;
+	}
+
+	a {
+		color: #FF7F00;
+		font-weight: bold;
+		cursor: pointer;
+	}
+}
