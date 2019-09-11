@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2998637d_21c70737",
+        "filename": "go/swarming/swarming_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-11T18:34:37Z",
+      "side": 1,
+      "message": "These tests are not really useful so did not add anything here.",
+      "revId": "b967b14d4ccbb777bc46190a5bb1661908dd20f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

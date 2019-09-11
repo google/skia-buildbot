@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7b92ff42_7316e636",
+        "filename": "go/swarming/swarming.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-11T18:34:37Z",
+      "side": 0,
+      "message": "Looks like the exitCode exactly matched the error that was returned so this was redundant.",
+      "revId": "6dbab76f63f26fed4fe633aa3b6f6e7d27da0ac0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
