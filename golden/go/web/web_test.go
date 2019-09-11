@@ -170,7 +170,8 @@ func TestGetChangeListsSunnyDay(t *testing.T) {
 	mcls.On("System").Return("gerrit")
 
 	wh := WebHandlers{
-		ChangeListStore: mcls,
+		CodeReviewURLPrefix: "example.com/cl",
+		ChangeListStore:     mcls,
 	}
 
 	cls, pagination, err := wh.getIngestedChangeLists(context.Background(), 0, 50)
@@ -223,6 +224,7 @@ func makeWebCLs() []frontend.ChangeList {
 			Status:   "Open",
 			Subject:  "new feature",
 			Updated:  time.Date(2019, time.August, 27, 0, 0, 0, 0, time.UTC),
+			URL:      "example.com/cl/1002",
 		},
 		{
 			System:   "gerrit",
@@ -231,6 +233,7 @@ func makeWebCLs() []frontend.ChangeList {
 			Status:   "Landed",
 			Subject:  "land gold",
 			Updated:  time.Date(2019, time.August, 26, 0, 0, 0, 0, time.UTC),
+			URL:      "example.com/cl/1001",
 		},
 		{
 			System:   "gerrit",
@@ -239,6 +242,7 @@ func makeWebCLs() []frontend.ChangeList {
 			Status:   "Abandoned",
 			Subject:  "gold experiment",
 			Updated:  time.Date(2019, time.August, 25, 0, 0, 0, 0, time.UTC),
+			URL:      "example.com/cl/1000",
 		},
 	}
 }
@@ -294,8 +298,9 @@ func TestGetCLSummarySunnyDay(t *testing.T) {
 	mtjs.On("System").Return("buildbucket")
 
 	wh := WebHandlers{
-		ChangeListStore: mcls,
-		TryJobStore:     mtjs,
+		CodeReviewURLPrefix: "example.com/cl",
+		ChangeListStore:     mcls,
+		TryJobStore:         mtjs,
 	}
 
 	cl, err := wh.getCLSummary(context.Background(), expectedCLID)

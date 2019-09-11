@@ -94,7 +94,7 @@
 
       .actionButton {
         color: green;
-      };
+      }
 
       #closestButton[raised] > iron-icon {
         color: #bbb;
@@ -354,6 +354,8 @@
         this.$.activityBar.startSpinner("Loading ...");
 
         var q = window.location.search;
+        // Maybe if we detect that issue is set, do the query to
+        // /json/changelist/gerrit/1786867 for the issue data.
         sk.get("/json/search" + q).then(JSON.parse).then(function (json) {
           // Split out the digests that are being displayed and keep a copy
           // of all digests that matched the query.
