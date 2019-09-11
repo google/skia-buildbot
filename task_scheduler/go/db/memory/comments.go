@@ -191,7 +191,8 @@ func (b *CommentBox) DeleteTaskComment(c *types.TaskComment) error {
 		}
 		deleted := true
 		c.Deleted = &deleted
-		b.TrackModifiedTaskComment(c)
+		existing.Deleted = &deleted
+		b.TrackModifiedTaskComment(existing)
 	}
 	return nil
 }
@@ -292,7 +293,8 @@ func (b *CommentBox) DeleteTaskSpecComment(c *types.TaskSpecComment) error {
 		}
 		deleted := true
 		c.Deleted = &deleted
-		b.TrackModifiedTaskSpecComment(c)
+		existing.Deleted = &deleted
+		b.TrackModifiedTaskSpecComment(existing)
 	}
 	return nil
 }
@@ -393,7 +395,8 @@ func (b *CommentBox) DeleteCommitComment(c *types.CommitComment) error {
 		}
 		deleted := true
 		c.Deleted = &deleted
-		b.TrackModifiedCommitComment(c)
+		existing.Deleted = &deleted
+		b.TrackModifiedCommitComment(existing)
 	}
 	return nil
 }
