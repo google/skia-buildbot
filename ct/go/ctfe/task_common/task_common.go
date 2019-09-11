@@ -500,6 +500,10 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			httputils.ReportError(w, r, err, fmt.Sprintf("Could not list tasks for %s", runID))
 		}
+		// Sort by start time to cancel the earliest tasks first.
+		sort.SliceStable(tasks, func(i, j int) bool {
+			return tasks[i].TaskResult.StartedTs < tasks[j].TaskResult.StartedTs
+		})
 		sklog.Infof("Starting cancelation of %d tasks...", len(tasks))
 		tasksChannel := getClosedTasksChannel(tasks)
 		var wg sync.WaitGroup
