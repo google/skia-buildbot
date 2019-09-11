@@ -39,6 +39,30 @@
       "revId": "6dbab76f63f26fed4fe633aa3b6f6e7d27da0ac0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6307ba62_d4b39ec5",
+        "filename": "go/swarming/swarming.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-11T20:11:40Z",
+      "side": 0,
+      "message": "See the comment(s) here: https://skia-review.googlesource.com/c/buildbot/+/240678/13#message-d7b150c68f37ac64c8d5c2dcf2e44e0b7713e5bb",
+      "parentUuid": "4190aec2_2ef8c38c",
+      "range": {
+        "startLine": 60,
+        "startChar": 1,
+        "endLine": 60,
+        "endChar": 35
+      },
+      "revId": "6dbab76f63f26fed4fe633aa3b6f6e7d27da0ac0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
