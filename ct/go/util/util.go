@@ -531,8 +531,12 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 			task := task // https://golang.org/doc/faq#closures_and_goroutines
 			go func() {
 				defer wg.Done()
-				if _, _, err := task.Collect(ctx, s, false, false); err != nil {
+				if _, _, state, err := task.Collect(ctx, s, false, false); err != nil {
 					sklog.Errorf("task %s failed: %s", task.Title, err)
+					if state == swarming.TASK_STATE_KILLED {
+						sklog.Infof("task %s was killed (either manually or via CT's delete button). Not going to retry it.", task.Title)
+						return
+					}
 					sklog.Infof("Retrying task %s with high priority %d", task.Title, TASKS_PRIORITY_HIGH)
 					retryTask, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, []string{}, TASKS_PRIORITY_HIGH, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 					if err != nil {
@@ -540,7 +544,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 						return
 					}
 					// Collect the retried task.
-					if _, _, err := retryTask[0].Collect(ctx, s, false, false); err != nil {
+					if _, _, _, err := retryTask[0].Collect(ctx, s, false, false); err != nil {
 						sklog.Errorf("task %s failed inspite of a retry: %s", retryTask[0].Title, err)
 						return
 					}
@@ -1017,7 +1021,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	}
 	// Collect all tasks and log the ones that fail.
 	task := tasks[0]
-	_, outputDir, err := task.Collect(ctx, s, false, false)
+	_, outputDir, _, err := task.Collect(ctx, s, false, false)
 	if err != nil {
 		return "", fmt.Errorf("task %s failed: %s", task.Title, err)
 	}
@@ -1132,7 +1136,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	}
 	// Collect all tasks and log the ones that fail.
 	task := tasks[0]
-	_, outputDir, err := task.Collect(ctx, s, false, false)
+	_, outputDir, _, err := task.Collect(ctx, s, false, false)
 	if err != nil {
 		return nil, fmt.Errorf("task %s failed: %s", task.Title, err)
 	}

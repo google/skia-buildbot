@@ -57,8 +57,8 @@ type SwarmingTask struct {
 }
 
 type ShardOutputFormat struct {
-	ExitCode string `json:"exit_code"`
-	Output   string `json:"output"`
+	Output string `json:"output"`
+	State  string `json:"state"`
 }
 
 type TaskOutputFormat struct {
@@ -138,9 +138,17 @@ func (t *SwarmingTask) Trigger(ctx context.Context, s *SwarmingClient, hardTimeo
 	return nil
 }
 
-func (t *SwarmingTask) Collect(ctx context.Context, s *SwarmingClient, logStdout, logStderr bool) (string, string, error) {
-	if err := _VerifyBinaryExists(ctx, s.SwarmingPy); err != nil {
-		return "", "", fmt.Errorf("Could not find swarming binary: %s", err)
+// Collect collects the swarming task. It is a blocking call that returns only after the task
+// completes. It returns the following:
+// * Output of the task.
+// * Location of the ${ISOLATED_OUTDIR}.
+// * State of the task. Eg: COMPLETED/KILLED.
+// * Error is non-nil if something goes wrong. If the command to collect returns a non-zero exit
+//   code then error is non-nil but all of the above (output, outdir, state) are also returned if
+//   known. This is useful for checking if a task failed because it was cancelled.
+func (t *SwarmingTask) Collect(ctx context.Context, s *SwarmingClient, logStdout, logStderr bool) (string, string, string, error) {
+	if verifyErr := _VerifyBinaryExists(ctx, s.SwarmingPy); verifyErr != nil {
+		return "", "", "", fmt.Errorf("Could not find swarming binary: %s", verifyErr)
 	}
 	dumpJSON := path.Join(t.OutputDir, fmt.Sprintf("%s-trigger-output.json", t.Title))
 
@@ -155,35 +163,38 @@ func (t *SwarmingTask) Collect(ctx context.Context, s *SwarmingClient, logStdout
 	if s.ServiceAccountJSON != "" {
 		collectArgs = append(collectArgs, "--auth-service-account-json", s.ServiceAccountJSON)
 	}
-	err := exec.Run(ctx, &exec.Command{
+	collectCmdErr := exec.Run(ctx, &exec.Command{
 		Name:      s.SwarmingPy,
 		Args:      collectArgs,
 		Timeout:   t.Expiration,
 		LogStdout: logStdout,
 		LogStderr: logStderr,
 	})
-	if err != nil {
-		return "", "", fmt.Errorf("Swarming trigger for %s failed with: %s", t.Title, err)
-	}
 
+	// Read and parse the summary file if it exists before checking for the error.
 	outputSummaryFile := path.Join(t.OutputDir, "summary.json")
-	outputSummary, err := ioutil.ReadFile(outputSummaryFile)
-	if err != nil {
-		return "", "", fmt.Errorf("Could not read output summary %s: %s", outputSummaryFile, err)
-	}
-	var summaryOutput TaskOutputFormat
-	if err := json.NewDecoder(bytes.NewReader(outputSummary)).Decode(&summaryOutput); err != nil {
-		return "", "", fmt.Errorf("Could not decode %s: %s", outputSummaryFile, err)
+	output := ""
+	state := ""
+	if _, statErr := os.Stat(outputSummaryFile); statErr == nil {
+
+		outputSummary, readErr := ioutil.ReadFile(outputSummaryFile)
+		if readErr != nil {
+			return "", "", "", fmt.Errorf("Could not read output summary %s: %s", outputSummaryFile, readErr)
+		}
+		var summaryOutput TaskOutputFormat
+		if decodeErr := json.NewDecoder(bytes.NewReader(outputSummary)).Decode(&summaryOutput); decodeErr != nil {
+			return "", "", "", fmt.Errorf("Could not decode %s: %s", outputSummaryFile, decodeErr)
+		}
+		output = summaryOutput.Shards[0].Output
+		state = summaryOutput.Shards[0].State
 	}
 
-	exitCode := summaryOutput.Shards[0].ExitCode
-	output := summaryOutput.Shards[0].Output
 	// Directory that will contain output written to ${ISOLATED_OUTDIR}.
 	outputDir := path.Join(t.OutputDir, "0")
-	if exitCode != "0" {
-		return output, outputDir, fmt.Errorf("Non-zero exit code: %s", summaryOutput.Shards[0].ExitCode)
+	if collectCmdErr != nil {
+		return output, outputDir, state, fmt.Errorf("Swarming collect for %s failed with: %s", t.Title, collectCmdErr)
 	}
-	return output, outputDir, nil
+	return output, outputDir, state, nil
 }
 
 // NewSwarmingClient returns an instance of Swarming populated with default
