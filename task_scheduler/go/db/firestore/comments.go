@@ -1,6 +1,7 @@
 package firestore
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"time"
@@ -134,23 +135,27 @@ func (d *firestoreDB) PutTaskComment(c *types.TaskComment) error {
 func (d *firestoreDB) DeleteTaskComment(c *types.TaskComment) error {
 	id := taskCommentId(c)
 	ref := d.taskComments().Doc(id)
-	exists := true
-	if _, err := d.client.Get(ref, DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT); err != nil {
-		if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
-			exists = false
-		} else {
+	return d.client.RunTransaction("DeleteTaskComment", id, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
+		var existing *types.TaskComment
+		if snap, err := tx.Get(ref); err == nil {
+			existing = new(types.TaskComment)
+			if err := snap.DataTo(existing); err != nil {
+				return err
+			}
+		} else if st, ok := status.FromError(err); ok && st.Code() != codes.NotFound {
 			return err
 		}
-	}
-	if exists {
-		if _, err := d.client.Delete(ref, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT); err != nil {
-			return err
+		if existing != nil {
+			if err := tx.Delete(ref); err != nil {
+				return err
+			}
+			deleted := true
+			c.Deleted = &deleted
+			existing.Deleted = &deleted
+			d.TrackModifiedTaskComment(existing)
 		}
-		deleted := true
-		c.Deleted = &deleted
-		d.TrackModifiedTaskComment(c)
-	}
-	return nil
+		return nil
+	})
 }
 
 // taskSpecCommentId returns an ID for the TaskSpecComment.
@@ -177,23 +182,27 @@ func (d *firestoreDB) PutTaskSpecComment(c *types.TaskSpecComment) error {
 func (d *firestoreDB) DeleteTaskSpecComment(c *types.TaskSpecComment) error {
 	id := taskSpecCommentId(c)
 	ref := d.taskSpecComments().Doc(id)
-	exists := true
-	if _, err := d.client.Get(ref, DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT); err != nil {
-		if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
-			exists = false
-		} else {
+	return d.client.RunTransaction("DeleteTaskSpecComment", id, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
+		var existing *types.TaskSpecComment
+		if snap, err := tx.Get(ref); err == nil {
+			existing = new(types.TaskSpecComment)
+			if err := snap.DataTo(existing); err != nil {
+				return err
+			}
+		} else if st, ok := status.FromError(err); ok && st.Code() != codes.NotFound {
 			return err
 		}
-	}
-	if exists {
-		if _, err := d.client.Delete(ref, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT); err != nil {
-			return err
+		if existing != nil {
+			if err := tx.Delete(ref); err != nil {
+				return err
+			}
+			deleted := true
+			c.Deleted = &deleted
+			existing.Deleted = &deleted
+			d.TrackModifiedTaskSpecComment(existing)
 		}
-		deleted := true
-		c.Deleted = &deleted
-		d.TrackModifiedTaskSpecComment(c)
-	}
-	return nil
+		return nil
+	})
 }
 
 // commitCommentId returns an ID for the CommitComment.
@@ -220,21 +229,25 @@ func (d *firestoreDB) PutCommitComment(c *types.CommitComment) error {
 func (d *firestoreDB) DeleteCommitComment(c *types.CommitComment) error {
 	id := commitCommentId(c)
 	ref := d.commitComments().Doc(id)
-	exists := true
-	if _, err := d.client.Get(ref, DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT); err != nil {
-		if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
-			exists = false
-		} else {
+	return d.client.RunTransaction("DeleteCommitComment", id, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
+		var existing *types.CommitComment
+		if snap, err := tx.Get(ref); err == nil {
+			existing = new(types.CommitComment)
+			if err := snap.DataTo(existing); err != nil {
+				return err
+			}
+		} else if st, ok := status.FromError(err); ok && st.Code() != codes.NotFound {
 			return err
 		}
-	}
-	if exists {
-		if _, err := d.client.Delete(d.commitComments().Doc(id), DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT); err != nil {
-			return err
+		if existing != nil {
+			if err := tx.Delete(ref); err != nil {
+				return err
+			}
+			deleted := true
+			c.Deleted = &deleted
+			existing.Deleted = &deleted
+			d.TrackModifiedCommitComment(existing)
 		}
-		deleted := true
-		c.Deleted = &deleted
-		d.TrackModifiedCommitComment(c)
-	}
-	return nil
+		return nil
+	})
 }

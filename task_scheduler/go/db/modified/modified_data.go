@@ -1,8 +1,6 @@
 package modified
 
 import (
-	"bytes"
-	"encoding/gob"
 	"sort"
 	"strings"
 	"sync"
@@ -24,15 +22,15 @@ func NewModifiedData() db.ModifiedData {
 // modified. It is designed to be used with wrappers in order to store a desired
 // type of data.
 type modifiedData struct {
-	// map[subscriber_id][entry_id]gob
-	data map[string]map[string][]byte
+	// map[subscriber_id][entry_id]entry
+	data map[string]map[string]interface{}
 	// After the expiration time, subscribers are automatically removed.
 	expiration map[string]time.Time
 	// Protects data and expiration.
 	mtx sync.RWMutex
 }
 
-func (m *modifiedData) GetModifiedEntries(id string) (map[string][]byte, error) {
+func (m *modifiedData) GetModifiedEntries(id string) (map[string]interface{}, error) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 	if _, ok := m.expiration[id]; !ok {
@@ -73,23 +71,24 @@ func (m *modifiedData) clearExpiredSubscribers() {
 
 // TrackModifiedEntry indicates the given data should be returned from the next
 // call to GetModifiedEntries from each subscriber.
-func (m *modifiedData) TrackModifiedEntry(id string, d []byte) {
-	m.TrackModifiedEntries(map[string][]byte{id: d})
+func (m *modifiedData) TrackModifiedEntry(id string, d interface{}) {
+	m.TrackModifiedEntries(map[string]interface{}{id: d})
 }
 
-// TrackModifiedEntries is a batch version of TrackModifiedEntry. Values of
-// gobs must not be modified after this call.
-func (m *modifiedData) TrackModifiedEntries(gobs map[string][]byte) {
+// TrackModifiedEntries indicates that the given data should be returned from
+// the next call to GetModifiedEntries from each subscriber. Values must not be
+// modified after this call.
+func (m *modifiedData) TrackModifiedEntries(entries map[string]interface{}) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 	for subId := range m.expiration {
 		sub, ok := m.data[subId]
 		if !ok {
-			sub = make(map[string][]byte, len(gobs))
+			sub = make(map[string]interface{}, len(entries))
 			m.data[subId] = sub
 		}
-		for entryId, gob := range gobs {
-			sub[entryId] = gob
+		for entryId, entry := range entries {
+			sub[entryId] = entry
 		}
 	}
 }
@@ -101,7 +100,7 @@ func (m *modifiedData) StartTrackingModifiedEntries() (string, error) {
 	defer m.mtx.Unlock()
 	if m.expiration == nil {
 		// Initialize the data structure and start expiration goroutine.
-		m.data = map[string]map[string][]byte{}
+		m.data = map[string]map[string]interface{}{}
 		m.expiration = map[string]time.Time{}
 		go m.clearExpiredSubscribers()
 	} else if len(m.expiration) >= db.MAX_MODIFIED_DATA_USERS {
@@ -132,37 +131,26 @@ func (m *ModifiedTasksImpl) GetModifiedTasks(id string) ([]*types.Task, error) {
 	if err != nil {
 		return nil, err
 	}
-	d := types.NewTaskDecoder()
-	for _, g := range tasks {
-		if !d.Process(g) {
-			break
-		}
-	}
-	rv, err := d.Result()
-	if err != nil {
-		return nil, err
+	rv := make([]*types.Task, 0, len(tasks))
+	for _, t := range tasks {
+		rv = append(rv, t.(*types.Task).Copy())
 	}
 	sort.Sort(types.TaskSlice(rv))
 	return rv, nil
 }
 
 // See docs for ModifiedTasks interface.
-func (m *ModifiedTasksImpl) GetModifiedTasksGOB(id string) (map[string][]byte, error) {
-	return m.m.GetModifiedEntries(id)
-}
-
-// See docs for ModifiedTasks interface.
 func (m *ModifiedTasksImpl) TrackModifiedTask(t *types.Task) {
-	var buf bytes.Buffer
-	if err := gob.NewEncoder(&buf).Encode(t); err != nil {
-		sklog.Fatal(err)
-	}
-	m.m.TrackModifiedEntries(map[string][]byte{t.Id: buf.Bytes()})
+	m.TrackModifiedTasks([]*types.Task{t})
 }
 
 // See docs for ModifiedTasks interface.
-func (m *ModifiedTasksImpl) TrackModifiedTasksGOB(_ time.Time, gobs map[string][]byte) {
-	m.m.TrackModifiedEntries(gobs)
+func (m *ModifiedTasksImpl) TrackModifiedTasks(tasks []*types.Task) {
+	entries := make(map[string]interface{}, len(tasks))
+	for _, t := range tasks {
+		entries[t.Id] = t.Copy()
+	}
+	m.m.TrackModifiedEntries(entries)
 }
 
 // See docs for ModifiedTasks interface.
@@ -185,37 +173,26 @@ func (m *ModifiedJobsImpl) GetModifiedJobs(id string) ([]*types.Job, error) {
 	if err != nil {
 		return nil, err
 	}
-	d := types.NewJobDecoder()
-	for _, g := range jobs {
-		if !d.Process(g) {
-			break
-		}
-	}
-	rv, err := d.Result()
-	if err != nil {
-		return nil, err
+	rv := make([]*types.Job, 0, len(jobs))
+	for _, j := range jobs {
+		rv = append(rv, j.(*types.Job).Copy())
 	}
 	sort.Sort(types.JobSlice(rv))
 	return rv, nil
 }
 
 // See docs for ModifiedJobs interface.
-func (m *ModifiedJobsImpl) GetModifiedJobsGOB(id string) (map[string][]byte, error) {
-	return m.m.GetModifiedEntries(id)
-}
-
-// See docs for ModifiedJobs interface.
 func (m *ModifiedJobsImpl) TrackModifiedJob(j *types.Job) {
-	var buf bytes.Buffer
-	if err := gob.NewEncoder(&buf).Encode(j); err != nil {
-		sklog.Fatal(err)
-	}
-	m.m.TrackModifiedEntries(map[string][]byte{j.Id: buf.Bytes()})
+	m.TrackModifiedJobs([]*types.Job{j})
 }
 
 // See docs for ModifiedJobs interface.
-func (m *ModifiedJobsImpl) TrackModifiedJobsGOB(_ time.Time, gobs map[string][]byte) {
-	m.m.TrackModifiedEntries(gobs)
+func (m *ModifiedJobsImpl) TrackModifiedJobs(jobs []*types.Job) {
+	entries := make(map[string]interface{}, len(jobs))
+	for _, j := range jobs {
+		entries[j.Id] = j.Copy()
+	}
+	m.m.TrackModifiedEntries(entries)
 }
 
 // See docs for ModifiedJobs interface.
@@ -244,15 +221,9 @@ func (m *ModifiedCommentsImpl) GetModifiedComments(id string) ([]*types.TaskComm
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	d1 := types.NewTaskCommentDecoder()
-	for _, g := range tasks {
-		if !d1.Process(g) {
-			break
-		}
-	}
-	rv1, err := d1.Result()
-	if err != nil {
-		return nil, nil, nil, err
+	rv1 := make([]*types.TaskComment, 0, len(tasks))
+	for _, c := range tasks {
+		rv1 = append(rv1, c.(*types.TaskComment).Copy())
 	}
 	sort.Sort(types.TaskCommentSlice(rv1))
 
@@ -260,15 +231,9 @@ func (m *ModifiedCommentsImpl) GetModifiedComments(id string) ([]*types.TaskComm
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	d2 := types.NewTaskSpecCommentDecoder()
-	for _, g := range taskSpecs {
-		if !d2.Process(g) {
-			break
-		}
-	}
-	rv2, err := d2.Result()
-	if err != nil {
-		return nil, nil, nil, err
+	rv2 := make([]*types.TaskSpecComment, 0, len(taskSpecs))
+	for _, c := range taskSpecs {
+		rv2 = append(rv2, c.(*types.TaskSpecComment).Copy())
 	}
 	sort.Sort(types.TaskSpecCommentSlice(rv2))
 
@@ -276,15 +241,9 @@ func (m *ModifiedCommentsImpl) GetModifiedComments(id string) ([]*types.TaskComm
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	d3 := types.NewCommitCommentDecoder()
-	for _, g := range commits {
-		if !d3.Process(g) {
-			break
-		}
-	}
-	rv3, err := d3.Result()
-	if err != nil {
-		return nil, nil, nil, err
+	rv3 := make([]*types.CommitComment, 0, len(commits))
+	for _, c := range commits {
+		rv3 = append(rv3, c.(*types.CommitComment).Copy())
 	}
 	sort.Sort(types.CommitCommentSlice(rv3))
 
@@ -293,29 +252,17 @@ func (m *ModifiedCommentsImpl) GetModifiedComments(id string) ([]*types.TaskComm
 
 // See docs for ModifiedComments interface.
 func (m *ModifiedCommentsImpl) TrackModifiedTaskComment(c *types.TaskComment) {
-	var buf bytes.Buffer
-	if err := gob.NewEncoder(&buf).Encode(c); err != nil {
-		sklog.Fatal(err)
-	}
-	m.tasks.TrackModifiedEntries(map[string][]byte{c.Id(): buf.Bytes()})
+	m.tasks.TrackModifiedEntries(map[string]interface{}{c.Id(): c.Copy()})
 }
 
 // See docs for ModifiedComments interface.
 func (m *ModifiedCommentsImpl) TrackModifiedTaskSpecComment(c *types.TaskSpecComment) {
-	var buf bytes.Buffer
-	if err := gob.NewEncoder(&buf).Encode(c); err != nil {
-		sklog.Fatal(err)
-	}
-	m.taskSpecs.TrackModifiedEntries(map[string][]byte{c.Id(): buf.Bytes()})
+	m.taskSpecs.TrackModifiedEntries(map[string]interface{}{c.Id(): c.Copy()})
 }
 
 // See docs for ModifiedComments interface.
 func (m *ModifiedCommentsImpl) TrackModifiedCommitComment(c *types.CommitComment) {
-	var buf bytes.Buffer
-	if err := gob.NewEncoder(&buf).Encode(c); err != nil {
-		sklog.Fatal(err)
-	}
-	m.commits.TrackModifiedEntries(map[string][]byte{c.Id(): buf.Bytes()})
+	m.commits.TrackModifiedEntries(map[string]interface{}{c.Id(): c.Copy()})
 }
 
 // See docs for ModifiedComments interface.

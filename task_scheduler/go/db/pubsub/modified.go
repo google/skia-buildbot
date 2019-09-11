@@ -25,19 +25,23 @@ func NewModifiedData(projectId, topicSet, label string, ts oauth2.TokenSource) (
 	if !ok {
 		return nil, fmt.Errorf("Topic must be one of %v, not %q", VALID_TOPIC_SETS, topicSet)
 	}
-	t, err := NewModifiedTasks(projectId, topicSetObj.tasks, label, ts)
+	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, err
 	}
-	j, err := NewModifiedJobs(projectId, topicSetObj.jobs, label, ts)
+	t, err := NewModifiedTasks(c, topicSetObj.tasks, label)
 	if err != nil {
 		return nil, err
 	}
-	c, err := NewModifiedComments(projectId, topicSetObj.taskComments, topicSetObj.taskSpecComments, topicSetObj.commitComments, label, ts)
+	j, err := NewModifiedJobs(c, topicSetObj.jobs, label)
 	if err != nil {
 		return nil, err
 	}
-	return db.NewModifiedData(t, j, c), nil
+	cs, err := NewModifiedComments(c, topicSetObj.taskComments, topicSetObj.taskSpecComments, topicSetObj.commitComments, label)
+	if err != nil {
+		return nil, err
+	}
+	return db.NewModifiedData(t, j, cs), nil
 }
 
 type entry struct {
@@ -242,11 +246,7 @@ type taskClient struct {
 // this should help to debug zombie subscriptions. It should be descriptive and
 // unique to this process, or if the process uses multiple instances of
 // ModifiedTasks, unique to each instance.
-func NewModifiedTasks(projectId, topic, label string, ts oauth2.TokenSource) (db.ModifiedTasks, error) {
-	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
-	if err != nil {
-		return nil, err
-	}
+func NewModifiedTasks(c *pubsub.Client, topic, label string) (db.ModifiedTasks, error) {
 	mc, err := newModifiedClient(c, topic, label)
 	if err != nil {
 		return nil, err
@@ -256,7 +256,7 @@ func NewModifiedTasks(projectId, topic, label string, ts oauth2.TokenSource) (db
 
 // See documentation for db.ModifiedTasks interface.
 func (c *taskClient) GetModifiedTasks(id string) ([]*types.Task, error) {
-	gobs, err := c.GetModifiedTasksGOB(id)
+	gobs, err := c.getModifiedData(id)
 	if err != nil {
 		return nil, err
 	}
@@ -276,11 +276,6 @@ func (c *taskClient) GetModifiedTasks(id string) ([]*types.Task, error) {
 }
 
 // See documentation for db.ModifiedTasks interface.
-func (c *taskClient) GetModifiedTasksGOB(id string) (map[string][]byte, error) {
-	return c.getModifiedData(id)
-}
-
-// See documentation for db.ModifiedTasks interface.
 func (c *taskClient) StartTrackingModifiedTasks() (string, error) {
 	return c.startTrackingModifiedData()
 }
@@ -292,11 +287,24 @@ func (c *taskClient) StopTrackingModifiedTasks(id string) {
 
 // See documentation for db.ModifiedTasks interface.
 func (c *taskClient) TrackModifiedTask(t *types.Task) {
-	c.publisher.publish(t.Id, t.DbModified, t)
+	c.TrackModifiedTasks([]*types.Task{t})
 }
 
 // See documentation for db.ModifiedTasks interface.
-func (c *taskClient) TrackModifiedTasksGOB(ts time.Time, tasksById map[string][]byte) {
+func (c *taskClient) TrackModifiedTasks(tasks []*types.Task) {
+	tasksById := make(map[string][]byte, len(tasks))
+	var ts time.Time
+	for _, t := range tasks {
+		buf := bytes.Buffer{}
+		if err := gob.NewEncoder(&buf).Encode(t); err != nil {
+			sklog.Fatal(err)
+		}
+		tasksById[t.Id] = buf.Bytes()
+		// TODO(borenet): This assumes that all of the tasks have the
+		// same DbModified timestamp. This is true for all DB impls
+		// at the time of writing, but we probably shouldn't rely on it.
+		ts = t.DbModified
+	}
 	c.publisher.publishGOB(ts, tasksById)
 }
 
@@ -311,11 +319,7 @@ type jobClient struct {
 // this should help to debug zombie subscriptions. It should be descriptive and
 // unique to this process, or if the process uses multiple instances of
 // ModifiedJobs, unique to each instance.
-func NewModifiedJobs(projectId, topic, label string, ts oauth2.TokenSource) (db.ModifiedJobs, error) {
-	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
-	if err != nil {
-		return nil, err
-	}
+func NewModifiedJobs(c *pubsub.Client, topic, label string) (db.ModifiedJobs, error) {
 	mc, err := newModifiedClient(c, topic, label)
 	if err != nil {
 		return nil, err
@@ -325,7 +329,7 @@ func NewModifiedJobs(projectId, topic, label string, ts oauth2.TokenSource) (db.
 
 // See documentation for db.ModifiedJobs interface.
 func (c *jobClient) GetModifiedJobs(id string) ([]*types.Job, error) {
-	gobs, err := c.GetModifiedJobsGOB(id)
+	gobs, err := c.getModifiedData(id)
 	if err != nil {
 		return nil, err
 	}
@@ -345,11 +349,6 @@ func (c *jobClient) GetModifiedJobs(id string) ([]*types.Job, error) {
 }
 
 // See documentation for db.ModifiedJobs interface.
-func (c *jobClient) GetModifiedJobsGOB(id string) (map[string][]byte, error) {
-	return c.getModifiedData(id)
-}
-
-// See documentation for db.ModifiedJobs interface.
 func (c *jobClient) StartTrackingModifiedJobs() (string, error) {
 	return c.startTrackingModifiedData()
 }
@@ -361,11 +360,24 @@ func (c *jobClient) StopTrackingModifiedJobs(id string) {
 
 // See documentation for db.ModifiedJobs interface.
 func (c *jobClient) TrackModifiedJob(j *types.Job) {
-	c.publisher.publish(j.Id, j.DbModified, j)
+	c.TrackModifiedJobs([]*types.Job{j})
 }
 
 // See documentation for db.ModifiedJobs interface.
-func (c *jobClient) TrackModifiedJobsGOB(ts time.Time, jobsById map[string][]byte) {
+func (c *jobClient) TrackModifiedJobs(jobs []*types.Job) {
+	jobsById := make(map[string][]byte, len(jobs))
+	var ts time.Time
+	for _, j := range jobs {
+		buf := bytes.Buffer{}
+		if err := gob.NewEncoder(&buf).Encode(j); err != nil {
+			sklog.Fatal(err)
+		}
+		jobsById[j.Id] = buf.Bytes()
+		// TODO(borenet): This assumes that all of the jobs have the
+		// same DbModified timestamp. This is true for all DB impls
+		// at the time of writing, but we probably shouldn't rely on it.
+		ts = j.DbModified
+	}
 	c.publisher.publishGOB(ts, jobsById)
 }
 
@@ -382,11 +394,7 @@ type commentClient struct {
 // timestamp; this should help to debug zombie subscriptions. It should be
 // descriptive and unique to this process, or if the process uses multiple
 // instances of ModifiedJobs, unique to each instance.
-func NewModifiedComments(projectId, taskCommentsTopic, taskSpecCommentsTopic, commitCommentsTopic string, label string, ts oauth2.TokenSource) (db.ModifiedComments, error) {
-	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
-	if err != nil {
-		return nil, err
-	}
+func NewModifiedComments(c *pubsub.Client, taskCommentsTopic, taskSpecCommentsTopic, commitCommentsTopic string, label string) (db.ModifiedComments, error) {
 	tasks, err := newModifiedClient(c, taskCommentsTopic, label)
 	if err != nil {
 		return nil, err
@@ -503,7 +511,13 @@ func (c *commentClient) TrackModifiedTaskComment(tc *types.TaskComment) {
 	if tc.Deleted != nil && *tc.Deleted {
 		ts = time.Now()
 	}
-	c.tasks.publisher.publish(tc.Id(), ts, tc)
+	buf := bytes.Buffer{}
+	if err := gob.NewEncoder(&buf).Encode(tc); err != nil {
+		sklog.Fatal(err)
+	}
+	c.tasks.publisher.publishGOB(ts, map[string][]byte{
+		tc.Id(): buf.Bytes(),
+	})
 }
 
 // See documentation for db.ModifiedComments interface.
@@ -515,7 +529,13 @@ func (c *commentClient) TrackModifiedTaskSpecComment(tc *types.TaskSpecComment) 
 	if tc.Deleted != nil && *tc.Deleted {
 		ts = time.Now()
 	}
-	c.taskSpecs.publisher.publish(tc.Id(), ts, tc)
+	buf := bytes.Buffer{}
+	if err := gob.NewEncoder(&buf).Encode(tc); err != nil {
+		sklog.Fatal(err)
+	}
+	c.taskSpecs.publisher.publishGOB(ts, map[string][]byte{
+		tc.Id(): buf.Bytes(),
+	})
 }
 
 // See documentation for db.ModifiedComments interface.
@@ -527,5 +547,11 @@ func (c *commentClient) TrackModifiedCommitComment(cc *types.CommitComment) {
 	if cc.Deleted != nil && *cc.Deleted {
 		ts = time.Now()
 	}
-	c.commits.publisher.publish(cc.Id(), ts, cc)
+	buf := bytes.Buffer{}
+	if err := gob.NewEncoder(&buf).Encode(cc); err != nil {
+		sklog.Fatal(err)
+	}
+	c.commits.publisher.publishGOB(ts, map[string][]byte{
+		cc.Id(): buf.Bytes(),
+	})
 }
