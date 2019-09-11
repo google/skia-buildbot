@@ -1,0 +1,10 @@
+#!/bin/bash
+
+kubectl get services -o json | jq '[
+    .items[]
+    | select(.spec.ports[].name == "http")
+    | del(.spec.ports[]
+    | select(.name != "http"))
+    | { service: .metadata.name , port: .spec.ports[0].port, domain: .metadata.annotations.skia.org.domain}
+    ]' \
+    | gomplate -c - --file=services.conf.tmpl

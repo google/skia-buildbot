@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	mock_vcs "go.skia.org/infra/go/vcsinfo/mocks"
@@ -90,7 +91,7 @@ func TestGetCanonicalCommitHashPrimary(t *testing.T) {
 
 	// As long as it returns non-nil and non error, that is sufficient to check
 	// if the commit exists.
-	mvs.On("Details", ctx, alphaCommitHash, false).Return(&vcsinfo.LongCommit{}, nil)
+	mvs.On("Details", testutils.AnyContext, alphaCommitHash, false).Return(&vcsinfo.LongCommit{}, nil)
 
 	c, err := getCanonicalCommitHash(context.Background(), mvs, alphaCommitHash)
 	assert.NoError(t, err)
@@ -105,9 +106,9 @@ func TestGetCanonicalCommitHashSecondary(t *testing.T) {
 	mvs := &mock_vcs.VCS{}
 	defer mvs.AssertExpectations(t)
 
-	mvs.On("Details", ctx, alphaCommitHash, false).Return(nil, commitNotFound)
-	mvs.On("ResolveCommit", ctx, alphaCommitHash).Return(betaCommitHash, nil)
-	mvs.On("Details", ctx, betaCommitHash, false).Return(&vcsinfo.LongCommit{}, nil)
+	mvs.On("Details", testutils.AnyContext, alphaCommitHash, false).Return(nil, commitNotFound)
+	mvs.On("ResolveCommit", testutils.AnyContext, alphaCommitHash).Return(betaCommitHash, nil)
+	mvs.On("Details", testutils.AnyContext, betaCommitHash, false).Return(&vcsinfo.LongCommit{}, nil)
 
 	c, err := getCanonicalCommitHash(context.Background(), mvs, alphaCommitHash)
 	assert.NoError(t, err)
@@ -122,9 +123,9 @@ func TestGetCanonicalCommitHashInvalid(t *testing.T) {
 	mvs := &mock_vcs.VCS{}
 	defer mvs.AssertExpectations(t)
 
-	mvs.On("Details", ctx, alphaCommitHash, false).Return(nil, commitNotFound)
-	mvs.On("ResolveCommit", ctx, alphaCommitHash).Return(betaCommitHash, nil)
-	mvs.On("Details", ctx, betaCommitHash, false).Return(nil, commitNotFound)
+	mvs.On("Details", testutils.AnyContext, alphaCommitHash, false).Return(nil, commitNotFound)
+	mvs.On("ResolveCommit", testutils.AnyContext, alphaCommitHash).Return(betaCommitHash, nil)
+	mvs.On("Details", testutils.AnyContext, betaCommitHash, false).Return(nil, commitNotFound)
 
 	_, err := getCanonicalCommitHash(context.Background(), mvs, alphaCommitHash)
 	assert.Error(t, err)

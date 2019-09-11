@@ -128,9 +128,9 @@ func TestGetStartTimeOfInterestDays(t *testing.T) {
 
 	hashes := []string{"alpha", "beta", "gamma", "delta", "epsilon"}
 
-	mvs.On("Update", anyCtx, true, false).Return(nil)
+	mvs.On("Update", testutils.AnyContext, true, false).Return(nil)
 	mvs.On("From", threeDaysAgo).Return(hashes)
-	mvs.On("Details", anyCtx, "alpha", false).Return(&vcsinfo.LongCommit{
+	mvs.On("Details", testutils.AnyContext, "alpha", false).Return(&vcsinfo.LongCommit{
 		// The function only cares about the timestamp
 		Timestamp: alphaTime,
 	}, nil)
@@ -171,12 +171,12 @@ func TestGetStartTimeOfInterestCommits(t *testing.T) {
 
 	hashes := []string{"alpha", "beta", "gamma", "delta", "epsilon"}
 
-	mvs.On("Update", anyCtx, true, false).Return(nil)
+	mvs.On("Update", testutils.AnyContext, true, false).Return(nil)
 	mvs.On("From", threeDaysAgo).Return(hashes[3:])
 	mvs.On("From", sixDaysAgo).Return(hashes)
 	// Since we retrieve 5 commits, the algorithm trims it to NCommits
 	// when it has to query more.
-	mvs.On("Details", anyCtx, "beta", false).Return(&vcsinfo.LongCommit{
+	mvs.On("Details", testutils.AnyContext, "beta", false).Return(&vcsinfo.LongCommit{
 		// The function only cares about the timestamp
 		Timestamp: betaTime,
 	}, nil)
@@ -214,9 +214,11 @@ func TestGetStartTimeOfInterestNotEnough(t *testing.T) {
 
 	hashes := []string{"alpha", "beta", "gamma", "delta", "epsilon"}
 
-	mvs.On("Update", anyCtx, true, false).Return(nil)
-	mvs.On("From", mock.AnythingOfType("time.Time")).Return(hashes)
-	mvs.On("Details", anyCtx, "alpha", false).Return(&vcsinfo.LongCommit{
+	mvs.On("Update", testutils.AnyContext, true, false).Return(nil)
+	mvs.On("From", mock.MatchedBy(func(then time.Time) bool {
+		return then.Before(now) && then.After(now.Add(-365*24*time.Hour))
+	})).Return(hashes)
+	mvs.On("Details", testutils.AnyContext, "alpha", false).Return(&vcsinfo.LongCommit{
 		// The function only cares about the timestamp
 		Timestamp: alphaTime,
 	}, nil)
@@ -354,5 +356,3 @@ func getVCS(start, end int64, nCommits int) vcsinfo.VCS {
 	}
 	return mockvcs.DeprecatedMockVCS(commits, nil, nil)
 }
-
-var anyCtx = mock.AnythingOfType("*context.emptyCtx")
