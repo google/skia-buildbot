@@ -1,0 +1,13 @@
+
+
+
+#####   particles.skia.org   ###########################
+server {
+    listen      80;
+    server_name particles.skia.org;
+
+    location / {
+        proxy_pass http://paricles:8000;
+        proxy_set_header Host $host;
+    }
+}
