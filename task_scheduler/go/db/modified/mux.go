@@ -1,8 +1,6 @@
 package modified
 
 import (
-	"time"
-
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -42,17 +40,14 @@ func NewMuxModifiedTasks(readWrite db.ModifiedTasks, writeOnly ...db.ModifiedTas
 
 // See documentation for db.ModifiedTasks interface.
 func (m *MuxModifiedTasks) TrackModifiedTask(task *types.Task) {
-	m.ModifiedTasks.TrackModifiedTask(task)
-	for _, wo := range m.writeOnly {
-		wo.TrackModifiedTask(task)
-	}
+	m.TrackModifiedTasks([]*types.Task{task})
 }
 
 // See documentation for db.ModifiedTasks interface.
-func (m *MuxModifiedTasks) TrackModifiedTasksGOB(dbModified time.Time, gobs map[string][]byte) {
-	m.ModifiedTasks.TrackModifiedTasksGOB(dbModified, gobs)
+func (m *MuxModifiedTasks) TrackModifiedTasks(tasks []*types.Task) {
+	m.ModifiedTasks.TrackModifiedTasks(tasks)
 	for _, wo := range m.writeOnly {
-		wo.TrackModifiedTasksGOB(dbModified, gobs)
+		wo.TrackModifiedTasks(tasks)
 	}
 }
 
@@ -73,18 +68,15 @@ func NewMuxModifiedJobs(readWrite db.ModifiedJobs, writeOnly ...db.ModifiedJobs)
 }
 
 // See documentation for db.ModifiedJobs interface.
-func (m *MuxModifiedJobs) TrackModifiedJob(task *types.Job) {
-	m.ModifiedJobs.TrackModifiedJob(task)
-	for _, wo := range m.writeOnly {
-		wo.TrackModifiedJob(task)
-	}
+func (m *MuxModifiedJobs) TrackModifiedJob(job *types.Job) {
+	m.TrackModifiedJobs([]*types.Job{job})
 }
 
 // See documentation for db.ModifiedJobs interface.
-func (m *MuxModifiedJobs) TrackModifiedJobsGOB(dbModified time.Time, gobs map[string][]byte) {
-	m.ModifiedJobs.TrackModifiedJobsGOB(dbModified, gobs)
+func (m *MuxModifiedJobs) TrackModifiedJobs(jobs []*types.Job) {
+	m.ModifiedJobs.TrackModifiedJobs(jobs)
 	for _, wo := range m.writeOnly {
-		wo.TrackModifiedJobsGOB(dbModified, gobs)
+		wo.TrackModifiedJobs(jobs)
 	}
 }
 

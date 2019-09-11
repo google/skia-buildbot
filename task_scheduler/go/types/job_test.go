@@ -1,9 +1,6 @@
 package types
 
 import (
-	"bytes"
-	"encoding/gob"
-	"fmt"
 	"sort"
 	"testing"
 	"time"
@@ -42,103 +39,6 @@ func TestJobSort(t *testing.T) {
 	sort.Sort(JobSlice(jobs))
 
 	deepequal.AssertDeepEqual(t, expected, jobs)
-}
-
-func TestJobEncoder(t *testing.T) {
-	unittest.SmallTest(t)
-	// TODO(benjaminwagner): Is there any way to cause an error?
-	e := JobEncoder{}
-	expectedJobs := map[*Job][]byte{}
-	for i := 0; i < 25; i++ {
-		job := &Job{}
-		job.Id = fmt.Sprintf("Id-%d", i)
-		job.Name = "Bingo-was-his-name-o"
-		job.Dependencies = map[string][]string{}
-		job.Tasks = map[string][]*TaskSummary{}
-		var buf bytes.Buffer
-		err := gob.NewEncoder(&buf).Encode(job)
-		assert.NoError(t, err)
-		expectedJobs[job] = buf.Bytes()
-		assert.True(t, e.Process(job))
-	}
-
-	actualJobs := map[*Job][]byte{}
-	for job, serialized, err := e.Next(); job != nil; job, serialized, err = e.Next() {
-		assert.NoError(t, err)
-		actualJobs[job] = serialized
-	}
-
-	deepequal.AssertDeepEqual(t, expectedJobs, actualJobs)
-}
-
-func TestJobEncoderNoJobs(t *testing.T) {
-	unittest.SmallTest(t)
-	e := JobEncoder{}
-	job, serialized, err := e.Next()
-	assert.NoError(t, err)
-	assert.Nil(t, job)
-	assert.Nil(t, serialized)
-}
-
-func TestJobDecoder(t *testing.T) {
-	unittest.SmallTest(t)
-	d := NewJobDecoder()
-	expectedJobs := map[string]*Job{}
-	for i := 0; i < 250; i++ {
-		job := &Job{}
-		job.Id = fmt.Sprintf("Id-%d", i)
-		job.Name = "Bingo-was-his-name-o"
-		job.Dependencies = map[string][]string{}
-		job.Tasks = map[string][]*TaskSummary{}
-		var buf bytes.Buffer
-		err := gob.NewEncoder(&buf).Encode(job)
-		assert.NoError(t, err)
-		expectedJobs[job.Id] = job
-		assert.True(t, d.Process(buf.Bytes()))
-	}
-
-	actualJobs := map[string]*Job{}
-	result, err := d.Result()
-	assert.NoError(t, err)
-	assert.Equal(t, len(expectedJobs), len(result))
-	for _, job := range result {
-		actualJobs[job.Id] = job
-	}
-	deepequal.AssertDeepEqual(t, expectedJobs, actualJobs)
-}
-
-func TestJobDecoderNoJobs(t *testing.T) {
-	unittest.SmallTest(t)
-	d := NewJobDecoder()
-	result, err := d.Result()
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(result))
-}
-
-func TestJobDecoderError(t *testing.T) {
-	unittest.SmallTest(t)
-	job := &Job{}
-	job.Id = "Id"
-	var buf bytes.Buffer
-	err := gob.NewEncoder(&buf).Encode(job)
-	assert.NoError(t, err)
-	serialized := buf.Bytes()
-	invalid := append([]byte("Hi Mom!"), serialized...)
-
-	d := NewJobDecoder()
-	// Process should return true before it encounters an invalid result.
-	assert.True(t, d.Process(serialized))
-	assert.True(t, d.Process(serialized))
-	// Process may return true or false after encountering an invalid value.
-	_ = d.Process(invalid)
-	for i := 0; i < 250; i++ {
-		_ = d.Process(serialized)
-	}
-
-	// Result should return error.
-	result, err := d.Result()
-	assert.Error(t, err)
-	assert.Equal(t, 0, len(result))
 }
 
 func TestJobDeriveStatus(t *testing.T) {

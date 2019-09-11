@@ -1,9 +1,7 @@
 package pubsub
 
 import (
-	"bytes"
 	"context"
-	"encoding/gob"
 	"fmt"
 	"sync"
 	"time"
@@ -13,9 +11,6 @@ import (
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/types"
-	"golang.org/x/oauth2"
-	"google.golang.org/api/option"
 )
 
 const (
@@ -102,7 +97,7 @@ type publisher struct {
 	queued   sync.WaitGroup
 }
 
-// newPublisher is a helper function for NewTaskPublisher.
+// newPublisher is a helper function for newTaskPublisher.
 func newPublisher(c *pubsub.Client, topic string) (*publisher, error) {
 	t := c.Topic(topic)
 	exists, err := t.Exists(context.Background())
@@ -124,17 +119,6 @@ func newPublisher(c *pubsub.Client, topic string) (*publisher, error) {
 		sklog.Info("All pubsub messages have been sent.")
 	})
 	return p, nil
-}
-
-// publish publishes a pubsub message for the given data.
-func (p *publisher) publish(id string, ts time.Time, data interface{}) {
-	buf := bytes.Buffer{}
-	if err := gob.NewEncoder(&buf).Encode(data); err != nil {
-		sklog.Fatal(err)
-	}
-	p.publishGOB(ts, map[string][]byte{
-		id: buf.Bytes(),
-	})
 }
 
 // publishGOB publishes a pubsub message for the given each of gob-encoded data.
@@ -160,126 +144,6 @@ func (p *publisher) publishGOB(ts time.Time, byId map[string][]byte) {
 			}
 		}(result)
 	}
-}
-
-// TaskPublisher sends pubsub messages for modified tasks.
-type TaskPublisher struct {
-	*publisher
-}
-
-// NewTaskPublisher creates a TaskPublisher instance. It creates the given topic
-// if it does not already exist.
-func NewTaskPublisher(projectId, topic string, ts oauth2.TokenSource) (*TaskPublisher, error) {
-	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
-	if err != nil {
-		return nil, err
-	}
-	pub, err := newPublisher(c, topic)
-	if err != nil {
-		return nil, err
-	}
-	return &TaskPublisher{pub}, nil
-}
-
-// Publish publishes a pubsub message for the given task.
-func (p *TaskPublisher) Publish(t *types.Task) {
-	p.publish(t.Id, t.DbModified, t)
-}
-
-// JobPublisher sends pubsub messages for modified jobs.
-type JobPublisher struct {
-	*publisher
-}
-
-// NewJobPublisher creates a JobPublisher instance. It creates the given topic
-// if it does not already exist.
-func NewJobPublisher(projectId, topic string, ts oauth2.TokenSource) (*JobPublisher, error) {
-	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
-	if err != nil {
-		return nil, err
-	}
-	pub, err := newPublisher(c, topic)
-	if err != nil {
-		return nil, err
-	}
-	return &JobPublisher{pub}, nil
-}
-
-// Publish publishes a pubsub message for the given job.
-func (p *JobPublisher) Publish(j *types.Job) {
-	p.publish(j.Id, j.DbModified, j)
-}
-
-// TaskSpecCommentPublisher sends pubsub messages for comments.
-type TaskSpecCommentPublisher struct {
-	*publisher
-}
-
-// NewTaskSpecCommentPublisher creates a TaskSpecCommentPublisher instance. It
-// creates the given topic if it does not already exist.
-func NewTaskSpecCommentPublisher(projectId, topic string, ts oauth2.TokenSource) (*TaskSpecCommentPublisher, error) {
-	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
-	if err != nil {
-		return nil, err
-	}
-	pub, err := newPublisher(c, topic)
-	if err != nil {
-		return nil, err
-	}
-	return &TaskSpecCommentPublisher{pub}, nil
-}
-
-// Publish publishes a pubsub message for the given comment.
-func (p *TaskSpecCommentPublisher) Publish(t *types.TaskSpecComment) {
-	p.publish(t.Id(), t.Timestamp, t)
-}
-
-// TaskCommentPublisher sends pubsub messages for comments.
-type TaskCommentPublisher struct {
-	*publisher
-}
-
-// NewTaskCommentPublisher creates a TaskCommentPublisher instance. It creates the given
-// topic if it does not already exist.
-func NewTaskCommentPublisher(projectId, topic string, ts oauth2.TokenSource) (*TaskCommentPublisher, error) {
-	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
-	if err != nil {
-		return nil, err
-	}
-	pub, err := newPublisher(c, topic)
-	if err != nil {
-		return nil, err
-	}
-	return &TaskCommentPublisher{pub}, nil
-}
-
-// Publish publishes a pubsub message for the given comment.
-func (p *TaskCommentPublisher) Publish(t *types.TaskComment) {
-	p.publish(t.Id(), t.Timestamp, t)
-}
-
-// CommitCommentPublisher sends pubsub messages for comments.
-type CommitCommentPublisher struct {
-	*publisher
-}
-
-// NewCommitCommentPublisher creates a CommitCommentPublisher instance. It creates the given
-// topic if it does not already exist.
-func NewCommitCommentPublisher(projectId, topic string, ts oauth2.TokenSource) (*CommitCommentPublisher, error) {
-	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
-	if err != nil {
-		return nil, err
-	}
-	pub, err := newPublisher(c, topic)
-	if err != nil {
-		return nil, err
-	}
-	return &CommitCommentPublisher{pub}, nil
-}
-
-// Publish publishes a pubsub message for the given comment.
-func (p *CommitCommentPublisher) Publish(t *types.CommitComment) {
-	p.publish(t.Id(), t.Timestamp, t)
 }
 
 // subscriber uses pubsub to watch for modified data.
@@ -362,149 +226,4 @@ func (s *subscriber) start() (context.CancelFunc, error) {
 			sklog.Errorf("Failed to delete pubsub subscription: %s", err)
 		}
 	}, nil
-}
-
-// NewTaskSubscriber creates a subscriber which calls the given callback
-// function for every pubsub message. The topic should be one of the TOPIC_*
-// constants defined in this package. The subscriberLabel is included in the
-// subscription ID, along with a timestamp; this should help to debug zombie
-// subscriptions. Acknowledgement of the message is done automatically based on
-// the return value of the callback: if the callback returns an error, the
-// message is Nack'd and will be re-sent at a later time, otherwise the message
-// is Ack'd and will not be re-sent. Therefore, if the task is not valid or
-// otherwise cannot ever be processed, the callback should return nil to prevent
-// the message from being re-sent.
-func NewTaskSubscriber(projectId, topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.Task) error) (context.CancelFunc, error) {
-	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
-	if err != nil {
-		return nil, err
-	}
-	s, err := newSubscriber(c, topic, subscriberLabel, func(m *pubsub.Message) error {
-		var t types.Task
-		if err := gob.NewDecoder(bytes.NewReader(m.Data)).Decode(&t); err != nil {
-			sklog.Errorf("Failed to decode task from pubsub message: %s", err)
-			return nil // We will never be able to process this message.
-		}
-		return callback(&t)
-	})
-	if err != nil {
-		return nil, err
-	}
-	return s.start()
-}
-
-// NewJobSubscriber creates a subscriber which calls the given callback
-// function for every pubsub message. The topic should be one of the TOPIC_*
-// constants defined in this package. The subscriberLabel is included in the
-// subscription ID, along with a timestamp; this should help to debug zombie
-// subscriptions. Acknowledgement of the message is done automatically based on
-// the return value of the callback: if the callback returns an error, the
-// message is Nack'd and will be re-sent at a later time, otherwise the message
-// is Ack'd and will not be re-sent. Therefore, if the job is not valid or
-// otherwise cannot ever be processed, the callback should return nil to prevent
-// the message from being re-sent.
-func NewJobSubscriber(projectId, topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.Job) error) (context.CancelFunc, error) {
-	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
-	if err != nil {
-		return nil, err
-	}
-	s, err := newSubscriber(c, topic, subscriberLabel, func(m *pubsub.Message) error {
-		var j types.Job
-		if err := gob.NewDecoder(bytes.NewReader(m.Data)).Decode(&j); err != nil {
-			sklog.Errorf("Failed to decode job from pubsub message: %s", err)
-			return nil // We will never be able to process this message.
-		}
-		return callback(&j)
-	})
-	if err != nil {
-		return nil, err
-	}
-	return s.start()
-}
-
-// NewTaskCommentSubscriber creates a subscriber which calls the given callback
-// function for every pubsub message. The topic should be one of the TOPIC_*
-// constants defined in this package. The subscriberLabel is included in the
-// subscription ID, along with a timestamp; this should help to debug zombie
-// subscriptions. Acknowledgement of the message is done automatically based on
-// the return value of the callback: if the callback returns an error, the
-// message is Nack'd and will be re-sent at a later time, otherwise the message
-// is Ack'd and will not be re-sent. Therefore, if the comment is not valid or
-// otherwise cannot ever be processed, the callback should return nil to prevent
-// the message from being re-sent.
-func NewTaskCommentSubscriber(projectId, topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.TaskComment) error) (context.CancelFunc, error) {
-	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
-	if err != nil {
-		return nil, err
-	}
-	s, err := newSubscriber(c, topic, subscriberLabel, func(m *pubsub.Message) error {
-		var c types.TaskComment
-		if err := gob.NewDecoder(bytes.NewReader(m.Data)).Decode(&c); err != nil {
-			sklog.Errorf("Failed to decode TaskComment from pubsub message: %s", err)
-			return nil // We will never be able to process this message.
-		}
-		return callback(&c)
-	})
-	if err != nil {
-		return nil, err
-	}
-	return s.start()
-}
-
-// NewTaskSpecCommentSubscriber creates a subscriber which calls the given
-// callback function for every pubsub message. The topic should be one of the
-// TOPIC_* constants defined in this package. The subscriberLabel is included in
-// the subscription ID, along with a timestamp; this should help to debug zombie
-// subscriptions. Acknowledgement of the message is done automatically based on
-// the return value of the callback: if the callback returns an error, the
-// message is Nack'd and will be re-sent at a later time, otherwise the message
-// is Ack'd and will not be re-sent. Therefore, if the comment is not valid or
-// otherwise cannot ever be processed, the callback should return nil to prevent
-// the message from being re-sent.
-func NewTaskSpecCommentSubscriber(projectId, topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.TaskSpecComment) error) (context.CancelFunc, error) {
-	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
-	if err != nil {
-		return nil, err
-	}
-	s, err := newSubscriber(c, topic, subscriberLabel, func(m *pubsub.Message) error {
-		var c types.TaskSpecComment
-		if err := gob.NewDecoder(bytes.NewReader(m.Data)).Decode(&c); err != nil {
-			sklog.Errorf("Failed to decode TaskSpecComment from pubsub message: %s", err)
-			return nil // We will never be able to process this message.
-		}
-		return callback(&c)
-	})
-	if err != nil {
-		return nil, err
-	}
-	return s.start()
-}
-
-// NewCommitCommentSubscriber creates a subscriber which calls the given
-// callback function for every pubsub message. The topic should be one of the
-// TOPIC_* constants defined in this package. The subscriberLabel is included in
-// the subscription ID, along with a timestamp; this should help to debug zombie
-// subscriptions. Acknowledgement of the message is done automatically based on
-// the return value of the callback: if the callback returns an error, the
-// message is Nack'd and will be re-sent at a later time, otherwise the message
-// is Ack'd and will not be re-sent. Therefore, if the comment is not valid or
-// otherwise cannot ever be processed, the callback should return nil to prevent
-// the message from being re-sent.
-func NewCommitCommentSubscriber(projectId, topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.CommitComment) error) (context.CancelFunc, error) {
-	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
-	if err != nil {
-		return nil, err
-	}
-	s, err := newSubscriber(c, topic, subscriberLabel, func(m *pubsub.Message) error {
-		var c types.CommitComment
-		if err := gob.NewDecoder(bytes.NewReader(m.Data)).Decode(&c); err != nil {
-			sklog.Errorf("Failed to decode CommitComment from pubsub message: %s", err)
-			return nil // We will never be able to process this message.
-		}
-		return callback(&c)
-	})
-	if err != nil {
-		return nil, err
-	}
-	return s.start()
 }

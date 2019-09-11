@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -306,56 +305,4 @@ func (s JobSlice) Less(i, j int) bool {
 
 func (s JobSlice) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
-}
-
-// JobEncoder encodes Jobs into bytes via GOB encoding. Not safe for
-// concurrent use.
-// TODO(benjaminwagner): Encode in parallel.
-type JobEncoder struct {
-	util.GobEncoder
-}
-
-// Next returns one of the Jobs provided to Process (in arbitrary order) and
-// its serialized bytes. If any jobs remain, returns the job, the serialized
-// bytes, nil. If all jobs have been returned, returns nil, nil, nil. If an
-// error is encountered, returns nil, nil, error.
-func (e *JobEncoder) Next() (*Job, []byte, error) {
-	item, serialized, err := e.GobEncoder.Next()
-	if err != nil {
-		return nil, nil, err
-	} else if item == nil {
-		return nil, nil, nil
-	}
-	return item.(*Job), serialized, nil
-}
-
-// JobDecoder decodes bytes into Jobs via GOB decoding. Not safe for
-// concurrent use.
-type JobDecoder struct {
-	*util.GobDecoder
-}
-
-// NewJobDecoder returns a JobDecoder instance.
-func NewJobDecoder() *JobDecoder {
-	return &JobDecoder{
-		GobDecoder: util.NewGobDecoder(func() interface{} {
-			return &Job{}
-		}, func(ch <-chan interface{}) interface{} {
-			items := []*Job{}
-			for item := range ch {
-				items = append(items, item.(*Job))
-			}
-			return items
-		}),
-	}
-}
-
-// Result returns all decoded Jobs provided to Process (in arbitrary order), or
-// any error encountered.
-func (d *JobDecoder) Result() ([]*Job, error) {
-	res, err := d.GobDecoder.Result()
-	if err != nil {
-		return nil, err
-	}
-	return res.([]*Job), nil
 }

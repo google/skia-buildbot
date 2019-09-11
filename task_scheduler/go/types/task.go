@@ -453,57 +453,6 @@ func (s TaskSlice) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
-// TaskEncoder encodes Tasks into bytes via GOB encoding. Not safe for
-// concurrent use.
-type TaskEncoder struct {
-	util.GobEncoder
-}
-
-// Next returns one of the Tasks provided to Process (in arbitrary order) and
-// its serialized bytes. If any tasks remain, returns the task, the serialized
-// bytes, nil. If all tasks have been returned, returns nil, nil, nil. If an
-// error is encountered, returns nil, nil, error.
-func (e *TaskEncoder) Next() (*Task, []byte, error) {
-	item, serialized, err := e.GobEncoder.Next()
-	if err != nil {
-		return nil, nil, err
-	} else if item == nil {
-		return nil, nil, nil
-	}
-	return item.(*Task), serialized, nil
-}
-
-// TaskDecoder decodes bytes into Tasks via GOB decoding. Not safe for
-// concurrent use.
-type TaskDecoder struct {
-	*util.GobDecoder
-}
-
-// NewTaskDecoder returns a TaskDecoder instance.
-func NewTaskDecoder() *TaskDecoder {
-	return &TaskDecoder{
-		GobDecoder: util.NewGobDecoder(func() interface{} {
-			return &Task{}
-		}, func(ch <-chan interface{}) interface{} {
-			items := []*Task{}
-			for item := range ch {
-				items = append(items, item.(*Task))
-			}
-			return items
-		}),
-	}
-}
-
-// Result returns all decoded Tasks provided to Process (in arbitrary order), or
-// any error encountered.
-func (d *TaskDecoder) Result() ([]*Task, error) {
-	res, err := d.GobDecoder.Result()
-	if err != nil {
-		return nil, err
-	}
-	return res.([]*Task), nil
-}
-
 // TagsForTask returns the tags which should be set for a Task.
 func TagsForTask(name, id string, attempt int, rs RepoState, retryOf string, dimensions map[string]string, forcedJobId string, parentTaskIds []string, extraTags map[string]string) []string {
 	tags := util.CopyStringMap(extraTags)

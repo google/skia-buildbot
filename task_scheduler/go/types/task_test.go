@@ -1,8 +1,6 @@
 package types
 
 import (
-	"bytes"
-	"encoding/gob"
 	"fmt"
 	"sort"
 	"testing"
@@ -583,101 +581,6 @@ func TestTaskSort(t *testing.T) {
 	sort.Sort(TaskSlice(tasks))
 
 	deepequal.AssertDeepEqual(t, expected, tasks)
-}
-
-func TestTaskEncoder(t *testing.T) {
-	unittest.SmallTest(t)
-	// TODO(benjaminwagner): Is there any way to cause an error?
-	e := TaskEncoder{}
-	expectedTasks := map[*Task][]byte{}
-	for i := 0; i < 25; i++ {
-		task := &Task{}
-		task.Id = fmt.Sprintf("Id-%d", i)
-		task.Name = "Bingo-was-his-name-o"
-		task.Commits = []string{fmt.Sprintf("a%d", i), fmt.Sprintf("b%d", i+1)}
-		var buf bytes.Buffer
-		err := gob.NewEncoder(&buf).Encode(task)
-		assert.NoError(t, err)
-		expectedTasks[task] = buf.Bytes()
-		assert.True(t, e.Process(task))
-	}
-
-	actualTasks := map[*Task][]byte{}
-	for task, serialized, err := e.Next(); task != nil; task, serialized, err = e.Next() {
-		assert.NoError(t, err)
-		actualTasks[task] = serialized
-	}
-	deepequal.AssertDeepEqual(t, expectedTasks, actualTasks)
-}
-
-func TestTaskEncoderNoTasks(t *testing.T) {
-	unittest.SmallTest(t)
-	e := TaskEncoder{}
-	task, serialized, err := e.Next()
-	assert.NoError(t, err)
-	assert.Nil(t, task)
-	assert.Nil(t, serialized)
-}
-
-func TestTaskDecoder(t *testing.T) {
-	unittest.SmallTest(t)
-	d := NewTaskDecoder()
-	expectedTasks := map[string]*Task{}
-	for i := 0; i < 250; i++ {
-		task := &Task{}
-		task.Id = fmt.Sprintf("Id-%d", i)
-		task.Name = "Bingo-was-his-name-o"
-		task.Commits = []string{fmt.Sprintf("a%d", i), fmt.Sprintf("b%d", i+1)}
-		task.ParentTaskIds = []string{fmt.Sprintf("Id-%d", i-1)}
-		var buf bytes.Buffer
-		err := gob.NewEncoder(&buf).Encode(task)
-		assert.NoError(t, err)
-		expectedTasks[task.Id] = task
-		assert.True(t, d.Process(buf.Bytes()))
-	}
-
-	actualTasks := map[string]*Task{}
-	result, err := d.Result()
-	assert.NoError(t, err)
-	assert.Equal(t, len(expectedTasks), len(result))
-	for _, task := range result {
-		actualTasks[task.Id] = task
-	}
-	deepequal.AssertDeepEqual(t, expectedTasks, actualTasks)
-}
-
-func TestTaskDecoderNoTasks(t *testing.T) {
-	unittest.SmallTest(t)
-	d := NewTaskDecoder()
-	result, err := d.Result()
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(result))
-}
-
-func TestTaskDecoderError(t *testing.T) {
-	unittest.SmallTest(t)
-	task := &Task{}
-	task.Id = "Id"
-	var buf bytes.Buffer
-	err := gob.NewEncoder(&buf).Encode(task)
-	assert.NoError(t, err)
-	serialized := buf.Bytes()
-	invalid := append([]byte("Hi Mom!"), serialized...)
-
-	d := NewTaskDecoder()
-	// Process should return true before it encounters an invalid result.
-	assert.True(t, d.Process(serialized))
-	assert.True(t, d.Process(serialized))
-	// Process may return true or false after encountering an invalid value.
-	_ = d.Process(invalid)
-	for i := 0; i < 250; i++ {
-		_ = d.Process(serialized)
-	}
-
-	// Result should return error.
-	result, err := d.Result()
-	assert.Error(t, err)
-	assert.Equal(t, 0, len(result))
 }
 
 func TestCopyTaskSummary(t *testing.T) {
