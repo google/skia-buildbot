@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a2dc8b13_12ccea1c",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-11T19:06:33Z",
+      "side": 1,
+      "message": "Edited to state that tasks which are included in the same call to TrackModifiedTasks are guaranteed to be returned from the same call to GetModifiedTasks.",
+      "parentUuid": "413fdc5a_a965dac4",
+      "range": {
+        "startLine": 91,
+        "startChar": 64,
+        "endLine": 92,
+        "endChar": 58
+      },
+      "revId": "fe22cb1318436ddf8d5c0dda7e9cbd7454744dac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "967ec250_e7005445",
         "filename": "task_scheduler/go/db/firestore/comments.go",
         "patchSetId": 2
@@ -39,6 +63,24 @@
       "revId": "fe22cb1318436ddf8d5c0dda7e9cbd7454744dac",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b78dd14_a2e14d7d",
+        "filename": "task_scheduler/go/db/firestore/comments.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-11T19:06:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "967ec250_e7005445",
+      "revId": "fe22cb1318436ddf8d5c0dda7e9cbd7454744dac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
