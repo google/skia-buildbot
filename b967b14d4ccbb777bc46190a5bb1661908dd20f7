@@ -2,6 +2,69 @@
   "comments": [
     {
       "key": {
+        "uuid": "309b2095_ac1e542e",
+        "filename": "go/swarming/swarming.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-11T20:07:06Z",
+      "side": 1,
+      "message": "IWBN to have docs.",
+      "revId": "b967b14d4ccbb777bc46190a5bb1661908dd20f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "feb09ae3_1345cb7f",
+        "filename": "go/swarming/swarming.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-11T20:07:06Z",
+      "side": 1,
+      "message": "nit: maybe rename some err vars to make things clearer",
+      "range": {
+        "startLine": 158,
+        "startChar": 1,
+        "endLine": 158,
+        "endChar": 4
+      },
+      "revId": "b967b14d4ccbb777bc46190a5bb1661908dd20f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3701783f_69fb5327",
+        "filename": "go/swarming/swarming.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-11T20:07:06Z",
+      "side": 1,
+      "message": "nit: nil",
+      "range": {
+        "startLine": 189,
+        "startChar": 34,
+        "endLine": 189,
+        "endChar": 37
+      },
+      "revId": "b967b14d4ccbb777bc46190a5bb1661908dd20f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2998637d_21c70737",
         "filename": "go/swarming/swarming_test.go",
         "patchSetId": 14

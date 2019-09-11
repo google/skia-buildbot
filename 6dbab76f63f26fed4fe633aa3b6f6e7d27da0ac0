@@ -16,6 +16,29 @@
       "revId": "6dbab76f63f26fed4fe633aa3b6f6e7d27da0ac0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4190aec2_2ef8c38c",
+        "filename": "go/swarming/swarming.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-11T20:07:06Z",
+      "side": 0,
+      "message": "Does this no longer exist? Or just not useful?",
+      "range": {
+        "startLine": 60,
+        "startChar": 1,
+        "endLine": 60,
+        "endChar": 35
+      },
+      "revId": "6dbab76f63f26fed4fe633aa3b6f6e7d27da0ac0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
