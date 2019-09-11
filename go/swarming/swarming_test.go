@@ -120,7 +120,7 @@ func E2E_Success(t *testing.T) {
 
 	// Collect both output and file output of all tasks.
 	for _, task := range tasks {
-		output, outputDir, err := task.Collect(ctx, s, true, true)
+		output, outputDir, _, err := task.Collect(ctx, s, true, true)
 		assert.NoError(t, err)
 		output = sanitizeOutput(output)
 		assert.Equal(t, fmt.Sprintf("arg_1_%s\narg_2_%s\n", task.Title, task.Title), output)
@@ -183,7 +183,7 @@ func E2E_OneFailure(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Collect testTask1. It should have failed.
-	output1, outputDir1, err1 := tasks[0].Collect(ctx, s, true, true)
+	output1, outputDir1, _, err1 := tasks[0].Collect(ctx, s, true, true)
 	assert.Equal(t, tags, tasks[0].Tags)
 	output1 = sanitizeOutput(output1)
 	assert.Equal(t, "", output1)
@@ -192,7 +192,7 @@ func E2E_OneFailure(t *testing.T) {
 	assert.True(t, strings.HasPrefix(err1.Error(), "Swarming trigger for testTask1 failed with: Command exited with exit status 1: "))
 
 	// Collect testTask2. It should have succeeded.
-	output2, outputDir2, err2 := tasks[1].Collect(ctx, s, true, true)
+	output2, outputDir2, _, err2 := tasks[1].Collect(ctx, s, true, true)
 	assert.NoError(t, err2)
 	assert.Equal(t, tags, tasks[1].Tags)
 	output2 = sanitizeOutput(output2)

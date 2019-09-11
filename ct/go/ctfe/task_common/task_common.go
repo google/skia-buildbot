@@ -517,7 +517,7 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 						sklog.Errorf("Could not cancel %s: %s", t.TaskId, err)
 						continue
 					}
-					sklog.Infof("Deleted  %s", t.TaskId)
+					sklog.Infof("Canceled  %s", t.TaskId)
 				}
 			}()
 		}
