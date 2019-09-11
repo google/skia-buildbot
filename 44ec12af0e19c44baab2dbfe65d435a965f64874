@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9aac1d9f_733378b7",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 650,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-11T19:46:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "71d6d167_0f767491",
+      "range": {
+        "startLine": 650,
+        "startChar": 3,
+        "endLine": 650,
+        "endChar": 13
+      },
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0a91d972_a2bf5fb8",
         "filename": "go/firestore/firestore.go",
         "patchSetId": 5
@@ -72,6 +96,54 @@
     },
     {
       "key": {
+        "uuid": "8ceb3c64_c91dde5c",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 655,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-11T19:46:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0a91d972_a2bf5fb8",
+      "range": {
+        "startLine": 655,
+        "startChar": 54,
+        "endLine": 655,
+        "endChar": 62
+      },
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d82639b3_2d109653",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 655,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-11T19:46:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "93edb14c_d66a48ba",
+      "range": {
+        "startLine": 652,
+        "startChar": 46,
+        "endLine": 655,
+        "endChar": 41
+      },
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1d3b1014_bedd28f5",
         "filename": "go/firestore/firestore.go",
         "patchSetId": 5
@@ -92,6 +164,30 @@
       "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d8734a0e_c69f7c73",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 660,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-11T19:46:23Z",
+      "side": 1,
+      "message": "I changed this to just call the callback function for the whole QuerySnapshot, which allows us to TrackModified* in batches to ensure that we get consistent results.  That also makes it possible for the caller to ignore the first snapshot, if desired, so I removed the ignoreFirst parameter.",
+      "parentUuid": "1d3b1014_bedd28f5",
+      "range": {
+        "startLine": 657,
+        "startChar": 41,
+        "endLine": 660,
+        "endChar": 79
+      },
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -118,6 +214,30 @@
     },
     {
       "key": {
+        "uuid": "6c7e95bd_f0971843",
+        "filename": "task_scheduler/go/db/firestore/modified.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-11T19:46:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bc65c82_74d86526",
+      "range": {
+        "startLine": 22,
+        "startChar": 51,
+        "endLine": 22,
+        "endChar": 66
+      },
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "795feff7_16a111af",
         "filename": "task_scheduler/go/db/firestore/modified.go",
         "patchSetId": 5
@@ -141,6 +261,30 @@
     },
     {
       "key": {
+        "uuid": "87b16abc_7e1fc35c",
+        "filename": "task_scheduler/go/db/firestore/modified.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-11T19:46:23Z",
+      "side": 1,
+      "message": "True means that the first query snapshot is ignored, which is what we want.  That logic has been moved to this function.",
+      "parentUuid": "795feff7_16a111af",
+      "range": {
+        "startLine": 31,
+        "startChar": 37,
+        "endLine": 31,
+        "endChar": 41
+      },
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "38d12a5d_5ab683f3",
         "filename": "task_scheduler/go/db/firestore/modified.go",
         "patchSetId": 5
@@ -155,6 +299,24 @@
       "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e5e1556_11a8db69",
+        "filename": "task_scheduler/go/db/firestore/modified.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-11T19:46:23Z",
+      "side": 1,
+      "message": "I did as you suggested and made this a wrapper around db.Modified*.  These fields are now gone.",
+      "parentUuid": "38d12a5d_5ab683f3",
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -181,6 +343,30 @@
     },
     {
       "key": {
+        "uuid": "c269151a_1eb6bc2f",
+        "filename": "task_scheduler/go/db/firestore/modified.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-11T19:46:23Z",
+      "side": 1,
+      "message": "Should be handled by ModifiedTasksImpl.",
+      "parentUuid": "a719030d_b7dc7c90",
+      "range": {
+        "startLine": 213,
+        "startChar": 24,
+        "endLine": 213,
+        "endChar": 41
+      },
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "93339581_ba31998e",
         "filename": "task_scheduler/go/db/firestore/modified_test.go",
         "patchSetId": 5
@@ -204,6 +390,30 @@
     },
     {
       "key": {
+        "uuid": "1441553c_ff644aab",
+        "filename": "task_scheduler/go/db/firestore/modified_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-11T19:46:23Z",
+      "side": 1,
+      "message": "Removed this file, since Modified* now use WatchModified* directly.  This wasn\u0027t a TODO; ModifiedData is tested as part of the DB test suite.",
+      "parentUuid": "93339581_ba31998e",
+      "range": {
+        "startLine": 16,
+        "startChar": 27,
+        "endLine": 17,
+        "endChar": 38
+      },
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c0c7cfd4_dd96027a",
         "filename": "task_scheduler/go/db/memory/comments.go",
         "patchSetId": 5
@@ -218,6 +428,24 @@
       "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a107d40b_1f4a0074",
+        "filename": "task_scheduler/go/db/memory/comments.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-11T19:46:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c0c7cfd4_dd96027a",
+      "revId": "44ec12af0e19c44baab2dbfe65d435a965f64874",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
