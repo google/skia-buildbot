@@ -33,6 +33,8 @@
 
     - name: Ensure resolvconf program is not installed
       apt: name=resolvconf state=absent
+    - name: Ensure NetworkManager program is not installed
+      apt: name=network-manager state=absent
     - name: Configure DNS with /etc/resolv.conf.
       copy: src=resolv.conf dest=/etc/resolv.conf owner=root group=root mode=0644
 
