@@ -1,0 +1,130 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "080262ad_75ce1071",
+        "filename": "task_scheduler/go/db/firestore/modified.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-11T20:57:32Z",
+      "side": 1,
+      "message": "IIUC, the initial set of results could include documents that have been modified more recently than our initial query, so we shouldn\u0027t be ignoring them.",
+      "range": {
+        "startLine": 24,
+        "startChar": 55,
+        "endLine": 25,
+        "endChar": 18
+      },
+      "revId": "5e64ec5a30def7a8540361507285b2df3efb68f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2153a25_72655b59",
+        "filename": "task_scheduler/go/db/firestore/modified.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-11T20:57:32Z",
+      "side": 1,
+      "message": "Hmm, I think we need to reset all subscribers here. We either need to add a method to do that to modified.ModifiedTasksImpl or copy/paste the code.",
+      "revId": "5e64ec5a30def7a8540361507285b2df3efb68f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0ad05f1_886ef3f5",
+        "filename": "task_scheduler/go/db/firestore/modified.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-11T20:57:32Z",
+      "side": 1,
+      "message": "nit: Doc is out of date? x5",
+      "range": {
+        "startLine": 50,
+        "startChar": 25,
+        "endLine": 52,
+        "endChar": 15
+      },
+      "revId": "5e64ec5a30def7a8540361507285b2df3efb68f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1a2d274_ba7dafbb",
+        "filename": "task_scheduler/go/db/firestore/modified.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-11T20:57:32Z",
+      "side": 1,
+      "message": "nit: maybe log error and ignore if ch.Kind \u003d\u003d fs.DocumentRemoved",
+      "revId": "5e64ec5a30def7a8540361507285b2df3efb68f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef00a99c_5e2f3552",
+        "filename": "task_scheduler/go/db/firestore/modified.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-11T20:57:32Z",
+      "side": 1,
+      "message": "nit: Consider using sync.Once. Or, just start in NewModifiedTasks.",
+      "range": {
+        "startLine": 157,
+        "startChar": 0,
+        "endLine": 158,
+        "endChar": 22
+      },
+      "revId": "5e64ec5a30def7a8540361507285b2df3efb68f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4646e8f6_bfa4c3e2",
+        "filename": "task_scheduler/go/db/firestore/modified.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-11T20:57:32Z",
+      "side": 1,
+      "message": "This is never set to true. x3",
+      "range": {
+        "startLine": 172,
+        "startChar": 5,
+        "endLine": 172,
+        "endChar": 14
+      },
+      "revId": "5e64ec5a30def7a8540361507285b2df3efb68f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
