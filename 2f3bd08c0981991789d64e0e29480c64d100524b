@@ -1,0 +1,893 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c222ba82_6a8410de",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 7
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "nit: for L and XL changes of new code, it can be handy to include in the commit message (or gerrit \"send off\" message) a \"guide to review\".\n\nThis guide can be as simple as:\n\"\"\"\n1. look at the types in File A\n2. Read the tests in File B_test\n3. Read the implementation in File B\n4. Look at everything else\n\"\"\"\nThe guide doesn\u0027t need to be 20+ steps, just a \"start here and here\", otherwise I (and maybe others) default to first file first, or have to go on a scavenger hunt ourselves. \n\nor \n\"\"\"\nPS 1 and 2 adds ... \nPS 3+ adds ...\n\"\"\"\n\n(the latter only works out nicely depending on how the code was written)\n\n\nYou don\u0027t need to retroactively add one for this change, just keep it in mind for the future.",
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e5bad421_24654a6a",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "Please add a package level comment.\n\nhttps://golang.org/doc/effective_go.html#commentary\n\nhttps://github.com/golang/go/wiki/CodeReviewComments#package-comments",
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b224dc1d_9454afbc",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "I think all methods on Goldpushk except for Run likely should be unexported, unless you intend a client to call them individually.",
+      "range": {
+        "startLine": 42,
+        "startChar": 20,
+        "endLine": 42,
+        "endChar": 52
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d5c89fe_5f0f7345",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "Run returns an error, so we should return an error also.\n\nFor large services, having a panic/os.Exit deep in the code can make it hard to determine why the service \"crashed\" or stopped.  Not to mention os.Exit and tests don\u0027t play nicely.\n\nAs a rule of thumb, keep any Fatalf/Exit calls in a main.go, so it is clear where the executable will stop (you only have to check one file then).",
+      "range": {
+        "startLine": 65,
+        "startChar": 2,
+        "endLine": 65,
+        "endChar": 61
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "09e45dc5_ce101e7a",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "For when you get around to writing these: https://github.com/google/skia-buildbot/blob/master/go/exec/exec_testutil.go#L15",
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5e41407e_e5572ee1",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "nit: package-level comments go above the package declaration. Move these to under package goldpushk",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 21
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e2b29f5_c53ea0b1",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "Let\u0027s split this into normal and internal instances.\n\nnit: rename to KnownInstances or ValidInstances (see note in types.go)",
+      "range": {
+        "startLine": 32,
+        "startChar": 1,
+        "endLine": 32,
+        "endChar": 19
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ccc6bb46_9b57f4a4",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "This might also be on its own list of \"PublicViewInstances\"\n\nSkiaPublic looks at the exact same data as Skia, just with a list of public params (hiding things like internal code names). There may one day be more instances like this (a Public viewport, as it were), so I think it can be distinct.",
+      "range": {
+        "startLine": 40,
+        "startChar": 2,
+        "endLine": 40,
+        "endChar": 13
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3229c8a3_90879105",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "Obsolete",
+      "range": {
+        "startLine": 47,
+        "startChar": 2,
+        "endLine": 47,
+        "endChar": 11
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd47afbf_9965cf94",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "Obsolete.",
+      "range": {
+        "startLine": 50,
+        "startChar": 2,
+        "endLine": 50,
+        "endChar": 13
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da00fb2a_b53c72f4",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "We have the slices of Instances - might be more clear to iterate over all Instances and add the three everybody knows about (SkiaCorrectness, DiffServer, IngestionBT) and then iterate through a slice of instances that has BaselineServers and add those.",
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "209b8817_55526863",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "This is a leftover and I\u0027m going to remove it.",
+      "range": {
+        "startLine": 80,
+        "startChar": 91,
+        "endLine": 80,
+        "endChar": 120
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aae8089d_28afaada",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "assert.Equal should work?",
+      "range": {
+        "startLine": 41,
+        "startChar": 2,
+        "endLine": 41,
+        "endChar": 13
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12156e11_4f9ea369",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "nit:\nTestBuildServicesMapAllExactlyFuchsiaServicesAreInternal",
+      "range": {
+        "startLine": 46,
+        "startChar": 28,
+        "endLine": 46,
+        "endChar": 50
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f6bb480_716a6d97",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "PublicSkia has one too, no?",
+      "range": {
+        "startLine": 58,
+        "startChar": 5,
+        "endLine": 58,
+        "endChar": 39
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3bce24e4_a3f6b2c1",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "empty strings !\u003d nil\n\nYou\u0027d want assert.NotEmpty",
+      "range": {
+        "startLine": 59,
+        "startChar": 10,
+        "endLine": 59,
+        "endChar": 16
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "34023ac4_ca94c532",
+        "filename": "golden/cmd/goldpushk/goldpushk/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "Naming conventions in Go are some of the strangest to get used to (IMO), but once you understand them, things are very elegant. \n\nhttps://golang.org/doc/effective_go.html#package-names\n\n\"The importer of a package will use the name to refer to its contents, so exported names in the package can use that fact to avoid stutter. [...] For instance, the buffered reader type in the bufio package is called Reader, not BufReader, because users see it as bufio.Reader, which is a clear, concise name.\"\n\nsince our package name is goldpushk (a fine package name), all clients will be referring to these types as\ngoldpushk.GoldInstance when they could just say goldpushk.Instance\n\nSo, drop Gold from all exported names in this package.",
+      "range": {
+        "startLine": 8,
+        "startChar": 5,
+        "endLine": 8,
+        "endChar": 17
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c230d5d_b0051fe5",
+        "filename": "golden/cmd/goldpushk/goldpushk/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "Please add a comment for each of these, along with an example or two which aids in clarity (I grok things better when I have concrete examples alongside the abstract description)",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 4
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "070838ab_887f1e21",
+        "filename": "golden/cmd/goldpushk/goldpushk/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "https://golang.org/doc/effective_go.html#commentary\n\n\"The first sentence should be a one-sentence summary that starts with the name being declared.\"\n\ni.e. Goldpushk contains...\n\nCheck all your doc level (and package level) comments as many of them are not in style.",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 14
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0bc0145_995b7808",
+        "filename": "golden/cmd/goldpushk/goldpushk/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "An example would be nice",
+      "range": {
+        "startLine": 11,
+        "startChar": 35,
+        "endLine": 11,
+        "endChar": 41
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47d3ece6_6ad7f550",
+        "filename": "golden/cmd/goldpushk/goldpushk/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "To me, it appears this is the only thing main.go cares about, so let\u0027s make it the only exported struct (from this file) and call it Deployment (In kubernetes, instance+service is essentially the breakdown of all gold deployments)\n\nLet\u0027s add a new struct deploymentOptions with Internal/ConfigMap then a struct deploymentWithOptions that embeds both.",
+      "range": {
+        "startLine": 12,
+        "startChar": 5,
+        "endLine": 12,
+        "endChar": 28
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "941d8f2c_42ec5903",
+        "filename": "golden/cmd/goldpushk/goldpushk/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "For such a simple struct that only has exported fields and the initial zero values are all fine, we probably don\u0027t need a constructor.\n\nAdditionally, if I see New*, I generally expect it to return a pointer (because it\u0027s going to implement an interface or something).",
+      "range": {
+        "startLine": 26,
+        "startChar": 5,
+        "endLine": 26,
+        "endChar": 29
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f0b2d55_50b6dda8",
+        "filename": "golden/cmd/goldpushk/goldpushk/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "This double map structure is a bit awkward. Our number of deployments is small, so lets store them as []deploymentWithOptions.\n\nThen, let\u0027s put that slice into a struct as an unexported field so no client messes with them and so we can change our mind how we hold onto the data if we want.\n\ntype Deployments struct {\n   deployments []deploymentWithOptions\n}\n\nThis means we could probably get rid of the ForAll helper (or at least make it unexported).\n\nAs mentioned on main.go, a Contains() method would be useful here.",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 75
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bdcd1c24_844cb632",
+        "filename": "golden/cmd/goldpushk/goldpushk/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "https://github.com/golang/go/wiki/CodeReviewComments#receiver-type\n\n\"If the receiver is a map, func or chan, don\u0027t use a pointer to them.\"\n\nmaps and slices are effectively \"pointers to real data structure\" already.",
+      "range": {
+        "startLine": 46,
+        "startChar": 9,
+        "endLine": 46,
+        "endChar": 24
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d51dbbc5_0abc38f2",
+        "filename": "golden/cmd/goldpushk/goldpushk/types.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "addDeployment(i Instance, s Service, opts ...deploymentOptions) is probably a good signature for this, as it lets us optionally add the options for those instances that need it\n\n(unexported because main.go doesn\u0027t need to know about the options)",
+      "range": {
+        "startLine": 46,
+        "startChar": 40,
+        "endLine": 46,
+        "endChar": 116
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f8e1610_09448b3f",
+        "filename": "golden/cmd/goldpushk/goldpushk/types_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "nit: in most other places, we (Skia Infra) do this import as\n\nassert \"github.com/stretchr/testify/require\"\n\nWhich makes the test fail/panic/stop at the first failed assertion. I\u0027m not 100% clear why, but I believe it makes things more clear (i.e. easier to see the first thing wrong, after which, it\u0027s really not useful)",
+      "range": {
+        "startLine": 6,
+        "startChar": 1,
+        "endLine": 6,
+        "endChar": 37
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe6b3d44_7df71eae",
+        "filename": "golden/cmd/goldpushk/goldpushk/types_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "When doing a composite literal, such as this, pretend that Go requires you specify the field name. This makes initialization robust to future refactoring (e.g. adding/removing fields) and makes it more clear at the code reading site.\n\ne.g. Service: Chrome,\nInstance: DiffServer",
+      "range": {
+        "startLine": 15,
+        "startChar": 3,
+        "endLine": 15,
+        "endChar": 10
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ced2a9a9_ce1ac440",
+        "filename": "golden/cmd/goldpushk/goldpushk/types_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "Skia Infra generally does not use make() unless we are specifying initial capacity/sizes, usually in performance critical situations.\n\nHere, we\u0027d write m :\u003d ServicesMap{}",
+      "range": {
+        "startLine": 33,
+        "startChar": 6,
+        "endLine": 33,
+        "endChar": 27
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4da7da1_754bf310",
+        "filename": "golden/cmd/goldpushk/goldpushk/types_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "`var items []item` would suffice. A \"nil\" slice is the idiomatic way to represent a slice of length 0. \n\nhttps://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices",
+      "range": {
+        "startLine": 80,
+        "startChar": 1,
+        "endLine": 80,
+        "endChar": 25
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c738b11f_114d65b0",
+        "filename": "golden/cmd/goldpushk/goldpushk/types_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "nit: since this function is one line long and the types are right there in the function definition, one could probably name these variables i, s, d\n\nhttps://github.com/golang/go/wiki/CodeReviewComments#variable-names",
+      "range": {
+        "startLine": 81,
+        "startChar": 25,
+        "endLine": 81,
+        "endChar": 33
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4168b19_aa1618b3",
+        "filename": "golden/cmd/goldpushk/goldpushk/types_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "As an exception to what I said above, since the item struct is contained entirely in this function, and thus is unlikely to be changed after landing, what you have here and lines 86-90 is fine and readable. The field names would only add clutter.",
+      "range": {
+        "startLine": 82,
+        "startChar": 24,
+        "endLine": 82,
+        "endChar": 59
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eaebe9f0_cc109aa4",
+        "filename": "golden/cmd/goldpushk/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "Let\u0027s make it not possible to have --services all --instances all as that seems risky (maybe as we get more comfortable with the tool, we can unlock it, or put it behind a --force flag",
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9112b078_8947e092",
+        "filename": "golden/cmd/goldpushk/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "var servicesToDeploy []goldpushk.InstanceServicePair\n\nhttps://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices\n\nhere and below",
+      "range": {
+        "startLine": 125,
+        "startChar": 21,
+        "endLine": 125,
+        "endChar": 65
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "221bb3cd_0d85ed47",
+        "filename": "golden/cmd/goldpushk/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "You don\u0027t appear to use instance - can probably just do the same (simpler) thing as instanceIterationSet",
+      "range": {
+        "startLine": 144,
+        "startChar": 29,
+        "endLine": 144,
+        "endChar": 37
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c08c7dcc_1b17d060",
+        "filename": "golden/cmd/goldpushk/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "Let\u0027s validate Instances/Services earlier, perhaps after we deduplicate them",
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a7dee7a_51fe1867",
+        "filename": "golden/cmd/goldpushk/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "Let\u0027s expose a servicesMap.Contains(isp InstanceServicePair) bool method",
+      "range": {
+        "startLine": 168,
+        "startChar": 15,
+        "endLine": 168,
+        "endChar": 36
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "83f76bba_4e7cab71",
+        "filename": "golden/cmd/goldpushk/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "fmt.Errorf or skerr.Fmt would be nicer (here and other places)",
+      "range": {
+        "startLine": 207,
+        "startChar": 20,
+        "endLine": 207,
+        "endChar": 42
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9055a0f1_314eec68",
+        "filename": "golden/cmd/goldpushk/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "Because this function is so long, I have forgotten that you named your return values - name them explicitly here (especially with a nil error)",
+      "range": {
+        "startLine": 244,
+        "startChar": 0,
+        "endLine": 244,
+        "endChar": 7
+      },
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d29065d8_dfb01f30",
+        "filename": "golden/cmd/goldpushk/main_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "I\u0027d probably want to run tests against goldpushk.BuildServicesMap() so we know we are working with \"real\" data. This is especially important if we make much of the ServicesMap unexported (another option is to then introduce a mock ServiceMap, but I think that wouldn\u0027t be as good a fit here)",
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ee80f38_61fd4efb",
+        "filename": "golden/cmd/goldpushk/main_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "go/tott/572\n\n\"As a rule of thumb, don’t use them if it would require adding conditional statements in your test: it should be trivial to check that a test is correct by simple inspection.\"\n\nSo, split them into two groups of test cases (probably two different Test* functions)",
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76f76010_998a7cc4",
+        "filename": "golden/cmd/goldpushk/main_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 405,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-11T14:02:16Z",
+      "side": 1,
+      "message": "I usually don\u0027t bother reasoning about the rest of the return values on a returned error.",
+      "revId": "2f3bd08c0981991789d64e0e29480c64d100524b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
