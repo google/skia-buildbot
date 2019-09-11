@@ -11,7 +11,6 @@ import (
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
-	"go.skia.org/infra/task_scheduler/go/db/modified"
 	"golang.org/x/oauth2"
 )
 
@@ -36,6 +35,9 @@ const (
 
 	// Firestore key for a Task or Job's Created field.
 	KEY_CREATED = "Created"
+
+	// Firestore key for a Task or Job's DbModified field.
+	KEY_DB_MODIFIED = "DbModified"
 
 	// Firestore key for a Task or Job's Repo field.
 	KEY_REPO = "Repo"
@@ -67,13 +69,14 @@ func NewDBWithParams(ctx context.Context, project, instance string, ts oauth2.To
 
 // NewDB returns a db.DB which uses the given firestore.Client for storage.
 func NewDB(ctx context.Context, client *firestore.Client, mod db.ModifiedData) (db.BackupDBCloser, error) {
-	if mod == nil {
-		mod = modified.NewModifiedData()
+	rv := &firestoreDB{
+		client: client,
 	}
-	return &firestoreDB{
-		client:       client,
-		ModifiedData: mod,
-	}, nil
+	if mod == nil {
+		mod = NewModifiedData(ctx, rv)
+	}
+	rv.ModifiedData = mod
+	return rv, nil
 }
 
 // See documentation for db.DBCloser interface.

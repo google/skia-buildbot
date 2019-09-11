@@ -648,3 +648,32 @@ FIRESTORE_EMULATOR_HOST
 `)
 	}
 }
+
+// QuerySnapshotCallback is a function passed to IterateQuerySnapshots. It is
+// called once for every QuerySnapshot returned by a QuerySnapshotIterator.
+// If the function returns an error, iteration stops.
+type QuerySnapshotCallback func(*firestore.QuerySnapshot) error
+
+// IterateQuerySnapshots is a helper for firestore.QuerySnapshotIterator which
+// calls the given QuerySnapshotCallback for every snapshot. Note that
+// QuerySnapshotIterator first returns a QuerySnapshot representing the current
+// results of the query, and subsequent QuerySnapshots only contain changes.
+// Only returns if the callback or the iterator returns an error, including
+// context cancellation.
+func IterateQuerySnapshots(ctx context.Context, q firestore.Query, cb QuerySnapshotCallback) error {
+	iter := q.Snapshots(ctx)
+	for {
+		qsnap, err := iter.Next()
+		if err != nil {
+			// Note: iter.Next() may return iterator.Done, but I
+			// don't think it makes a difference in this case; we're
+			// expecting to iterate forever, so if we stop we need
+			// to return an error so that the client is able to
+			// restart us if desired.
+			return err
+		}
+		if err := cb(qsnap); err != nil {
+			return err
+		}
+	}
+}
