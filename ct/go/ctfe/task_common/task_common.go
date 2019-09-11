@@ -500,7 +500,27 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			httputils.ReportError(w, r, err, fmt.Sprintf("Could not list tasks for %s", runID))
 		}
+
+		if task.GetCommonCols().SwarmingTaskID != "" {
+			// Try to cancel the master script swarming task first so that retries are not triggered.
+			if err := swarm.CancelTask(task.GetCommonCols().SwarmingTaskID, true /* killRunning */); err != nil {
+				sklog.Errorf("Could not cancel master script task %s: %s", t.TaskId, err)
+			}
+		}
+
+		fmt.Println("BEFORE BEFORE")
+		fmt.Println(tasks)
+		// Sort by start time to cancel the earliest tasks first.
+		sort.SliceStable(tasks, func(i, j int) bool {
+			return tasks[i].TaskResult.StartedTs < tasks[j].TaskResult.StartedTs
+		})
+		fmt.Println("AFTER AFTER")
+		fmt.Println(tasks)
 		sklog.Infof("Starting cancelation of %d tasks...", len(tasks))
+
+		// Cancel the oldest task first, it should majority of the time correspond to the master script.
+		// This is to try to disable
+
 		tasksChannel := getClosedTasksChannel(tasks)
 		var wg sync.WaitGroup
 		// Loop through workers in the worker pool.
