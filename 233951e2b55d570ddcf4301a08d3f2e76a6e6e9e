@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9045468f_05cc932d",
+        "filename": "go/swarming/swarming.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-11T21:01:40Z",
+      "side": 1,
+      "message": "nit: \"if known\"",
+      "range": {
+        "startLine": 147,
+        "startChar": 86,
+        "endLine": 147,
+        "endChar": 94
+      },
+      "revId": "233951e2b55d570ddcf4301a08d3f2e76a6e6e9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
