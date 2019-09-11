@@ -59,6 +59,7 @@ type SwarmingTask struct {
 type ShardOutputFormat struct {
 	ExitCode string `json:"exit_code"`
 	Output   string `json:"output"`
+	State    string `json:"state"`
 }
 
 type TaskOutputFormat struct {
@@ -138,9 +139,9 @@ func (t *SwarmingTask) Trigger(ctx context.Context, s *SwarmingClient, hardTimeo
 	return nil
 }
 
-func (t *SwarmingTask) Collect(ctx context.Context, s *SwarmingClient, logStdout, logStderr bool) (string, string, error) {
+func (t *SwarmingTask) Collect(ctx context.Context, s *SwarmingClient, logStdout, logStderr bool) (string, string, string, error) {
 	if err := _VerifyBinaryExists(ctx, s.SwarmingPy); err != nil {
-		return "", "", fmt.Errorf("Could not find swarming binary: %s", err)
+		return "", "", "", fmt.Errorf("Could not find swarming binary: %s", err)
 	}
 	dumpJSON := path.Join(t.OutputDir, fmt.Sprintf("%s-trigger-output.json", t.Title))
 
@@ -163,27 +164,34 @@ func (t *SwarmingTask) Collect(ctx context.Context, s *SwarmingClient, logStdout
 		LogStderr: logStderr,
 	})
 	if err != nil {
-		return "", "", fmt.Errorf("Swarming trigger for %s failed with: %s", t.Title, err)
+		return "", "", "", fmt.Errorf("Swarming trigger for %s failed with: %s", t.Title, err)
 	}
 
 	outputSummaryFile := path.Join(t.OutputDir, "summary.json")
 	outputSummary, err := ioutil.ReadFile(outputSummaryFile)
 	if err != nil {
-		return "", "", fmt.Errorf("Could not read output summary %s: %s", outputSummaryFile, err)
+		return "", "", "", fmt.Errorf("Could not read output summary %s: %s", outputSummaryFile, err)
 	}
 	var summaryOutput TaskOutputFormat
 	if err := json.NewDecoder(bytes.NewReader(outputSummary)).Decode(&summaryOutput); err != nil {
-		return "", "", fmt.Errorf("Could not decode %s: %s", outputSummaryFile, err)
+		return "", "", "", fmt.Errorf("Could not decode %s: %s", outputSummaryFile, err)
 	}
 
 	exitCode := summaryOutput.Shards[0].ExitCode
 	output := summaryOutput.Shards[0].Output
+	state := summaryOutput.Shards[0].State
+	fmt.Println("READING HERE")
+	fmt.Println("STATE is:")
+	fmt.Println(state)
+	fmt.Println("EVERYTHING FOR THE SHARD IS")
+	fmt.Println(output)
+
 	// Directory that will contain output written to ${ISOLATED_OUTDIR}.
 	outputDir := path.Join(t.OutputDir, "0")
 	if exitCode != "0" {
-		return output, outputDir, fmt.Errorf("Non-zero exit code: %s", summaryOutput.Shards[0].ExitCode)
+		return output, outputDir, state, fmt.Errorf("Non-zero exit code: %s", summaryOutput.Shards[0].ExitCode)
 	}
-	return output, outputDir, nil
+	return output, outputDir, state, nil
 }
 
 // NewSwarmingClient returns an instance of Swarming populated with default
