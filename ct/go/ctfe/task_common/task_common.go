@@ -501,6 +501,33 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, r, err, fmt.Sprintf("Could not list tasks for %s", runID))
 		}
 		sklog.Infof("Starting cancelation of %d tasks...", len(tasks))
+
+		fmt.Println("BEFORE BEFORE")
+		fmt.Println(tasks)
+		if task.GetCommonCols().SwarmingTaskID != "" {
+			// Try to cancel the master script swarming task first so that retries are not triggered.
+			if err := swarm.CancelTask(task.GetCommonCols().SwarmingTaskID, true /* killRunning */); err != nil {
+				sklog.Errorf("Could not cancel master script task %s: %s", task.GetCommonCols().SwarmingTaskID, err)
+			} else {
+				// Remove the master script swarming task from the slice of tasks.
+				masterScriptIndex := -1
+				for i := range tasks {
+					if tasks[i].TaskId == task.GetCommonCols().SwarmingTaskID {
+						masterScriptIndex = i
+						break
+					}
+				}
+				fmt.Println("REMOVING FROM INDEX")
+				fmt.Println(masterScriptIndex)
+				if masterScriptIndex != -1 {
+					tasks[masterScriptIndex] = tasks[len(tasks)-1]
+					tasks = tasks[:len(tasks)-1]
+				}
+			}
+		}
+		fmt.Println("AFTER AFTER")
+		fmt.Println(tasks)
+
 		tasksChannel := getClosedTasksChannel(tasks)
 		var wg sync.WaitGroup
 		// Loop through workers in the worker pool.
