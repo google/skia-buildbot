@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c86e2f65_80106992",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-11T13:22:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "992c5941_0c01a537",
+      "range": {
+        "startLine": 201,
+        "startChar": 22,
+        "endLine": 201,
+        "endChar": 30
+      },
+      "revId": "5a0971b89c939c5d6a42eac503f583416c5672e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a554dca8_6c068097",
         "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "8b8a1724_4aa3c02c",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-11T13:22:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a554dca8_6c068097",
+      "range": {
+        "startLine": 233,
+        "startChar": 9,
+        "endLine": 233,
+        "endChar": 13
+      },
+      "revId": "5a0971b89c939c5d6a42eac503f583416c5672e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e1a97c48_8e321cae",
         "filename": "go/vcsinfo/testutils/vcsinfo_testutils.go",
         "patchSetId": 2
@@ -62,6 +110,24 @@
       "revId": "5a0971b89c939c5d6a42eac503f583416c5672e6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "399dc043_10db1f64",
+        "filename": "go/vcsinfo/testutils/vcsinfo_testutils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-11T13:22:36Z",
+      "side": 1,
+      "message": "Removed. Note that the branch info is now not guaranteed to be correct in BigTableVCS; it\u0027s correct when we insert the commits into the GitStore, but whenever we add a branch off of master, ALL of the commits on master need to be updated with that commit; BigTableVCS has no way of ensuring that it updates its view of those commits without either reloading all commits on every Update() or adding some complex logic which studies how the branch heads have changed.  I didn\u0027t bother fixing this because the users of VCS don\u0027t actually care about what branches the commit is reachable from; they just want to know whether it\u0027s on the branch they care about.",
+      "parentUuid": "e1a97c48_8e321cae",
+      "revId": "5a0971b89c939c5d6a42eac503f583416c5672e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
