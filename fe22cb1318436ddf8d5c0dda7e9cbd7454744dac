@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "413fdc5a_a965dac4",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-11T18:33:04Z",
+      "side": 1,
+      "message": "This disagrees with what I said in https://skia-review.googlesource.com/c/buildbot/+/239097/5#message-f425f6546d52b1573eb69aeb7d6e585792c4b9f1. (At least, as stated, there\u0027s the implication that this is not atomic.)\n\nOTOH, maybe we\u0027ll be getting rid of TrackModified* soon?",
+      "range": {
+        "startLine": 91,
+        "startChar": 64,
+        "endLine": 92,
+        "endChar": 58
+      },
+      "revId": "fe22cb1318436ddf8d5c0dda7e9cbd7454744dac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "967ec250_e7005445",
+        "filename": "task_scheduler/go/db/firestore/comments.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-11T18:33:04Z",
+      "side": 1,
+      "message": "This should be called outside of the transaction in case of retries. x3",
+      "revId": "fe22cb1318436ddf8d5c0dda7e9cbd7454744dac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0ab2f03_abacd016",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1078,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-11T18:33:04Z",
+      "side": 1,
+      "message": "Good catch!",
+      "range": {
+        "startLine": 1076,
+        "startChar": 0,
+        "endLine": 1078,
+        "endChar": 24
+      },
+      "revId": "fe22cb1318436ddf8d5c0dda7e9cbd7454744dac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

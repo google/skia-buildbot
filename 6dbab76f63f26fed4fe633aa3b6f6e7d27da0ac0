@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "19b6a263_39d5d712",
+        "filename": "task_scheduler/go/db/modified/modified_data.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-11T18:33:04Z",
+      "side": 0,
+      "message": "Is this unused? (Same for other decoders and encoders.)",
+      "range": {
+        "startLine": 135,
+        "startChar": 6,
+        "endLine": 135,
+        "endChar": 26
+      },
+      "revId": "6dbab76f63f26fed4fe633aa3b6f6e7d27da0ac0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
