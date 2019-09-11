@@ -198,9 +198,12 @@ func AddAndTriggerTask(ctx context.Context, task AddTaskVars) error {
 		return fmt.Errorf("Failed to insert %T task: %s", task, err)
 	}
 	go func() {
+<<<<<<< HEAD
 		// Use a new context because we want the following to finish even after the HTTP
 		// request is completed.
 		ctx := context.Background()
+=======
+>>>>>>> git squash commit for build-nginx.
 		if err := TriggerTaskOnSwarming(ctx, task, datastoreTask); err != nil {
 			sklog.Errorf("Failed to trigger on swarming %T task: %s", task, err)
 			// Populate the started timestamp before we mark it as completed and failed.
