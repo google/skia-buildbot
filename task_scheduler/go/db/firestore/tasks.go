@@ -216,9 +216,7 @@ func (d *firestoreDB) PutTasks(tasks []*types.Task) (rvErr error) {
 	}); err != nil {
 		return err
 	}
-	for _, task := range tasks {
-		d.TrackModifiedTask(task)
-	}
+	d.TrackModifiedTasks(tasks)
 	return nil
 }
 

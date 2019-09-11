@@ -67,10 +67,6 @@ type ModifiedTasksReader interface {
 	// missed.
 	GetModifiedTasks(string) ([]*types.Task, error)
 
-	// GetModifiedTasksGOB returns the GOB-encoded results of GetModifiedTasks,
-	// keyed by Task.Id. Callers should not modify the returned byte slices.
-	GetModifiedTasksGOB(string) (map[string][]byte, error)
-
 	// StartTrackingModifiedTasks initiates tracking of modified tasks for
 	// the current caller. Returns a unique ID which can be used by the caller
 	// to retrieve tasks which have been modified since the last query. The ID
@@ -92,12 +88,11 @@ type ModifiedTasks interface {
 	// call to GetModifiedTasks from each subscriber.
 	TrackModifiedTask(*types.Task)
 
-	// TrackModifiedTasksGOB is a batch, GOB version of TrackModifiedTask. Given a
-	// map from Task.Id to GOB-encoded task, it is equivalent to GOB-decoding each
-	// value of gobs as a Task and calling TrackModifiedTask on each one. Values of
-	// gobs must not be modified after this call. The time parameter is the
-	// DbModified timestamp of the tasks.
-	TrackModifiedTasksGOB(time.Time, map[string][]byte)
+	// TrackModifiedTasks is a batch version of TrackModifiedTask. It is
+	// similar to calling TrackModifiedTask for each Task, but it guarantees
+	// that tasks included in the same call TrackModifiedTasks will be
+	// returned in the same call to GetModifiedTasks.
+	TrackModifiedTasks([]*types.Task)
 }
 
 // TaskReader is a read-only view of a TaskDB.
@@ -215,10 +210,6 @@ type ModifiedJobsReader interface {
 	// missed.
 	GetModifiedJobs(string) ([]*types.Job, error)
 
-	// GetModifiedJobsGOB returns the GOB-encoded results of GetModifiedJobs,
-	// keyed by Job.Id. Callers should not modify the returned byte slices.
-	GetModifiedJobsGOB(string) (map[string][]byte, error)
-
 	// StartTrackingModifiedJobs initiates tracking of modified jobs for
 	// the current caller. Returns a unique ID which can be used by the caller
 	// to retrieve jobs which have been modified since the last query. The ID
@@ -240,12 +231,11 @@ type ModifiedJobs interface {
 	// call to GetModifiedJobs from each subscriber.
 	TrackModifiedJob(*types.Job)
 
-	// TrackModifiedJobsGOB is a batch, GOB version of TrackModifiedJob. Given a
-	// map from Job.Id to GOB-encoded task, it is equivalent to GOB-decoding each
-	// value of gobs as a Job and calling TrackModifiedJob on each one. Values of
-	// gobs must not be modified after this call. The time parameter is the
-	// DbModified timestamp of the jobs.
-	TrackModifiedJobsGOB(time.Time, map[string][]byte)
+	// TrackModifiedJobs is a batch version of TrackModifiedJob. It is
+	// similar to calling TrackModifiedJob for each Job, but it guarantees
+	// that jobs included in the same call TrackModifiedJobs will be
+	// returned in the same call to GetModifiedJobs.
+	TrackModifiedJobs([]*types.Job)
 }
 
 // JobReader is a read-only view of a JobDB.
