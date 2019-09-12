@@ -1,0 +1,14 @@
+# This file is generated. Please see services.conf.tmpl
+
+{{range .services}}
+#####   {{.domain}}   ###########################
+server {
+    listen      80;
+    server_name {{.domain}};
+
+    location / {
+        proxy_pass http://{{.service}}:{{.port}};
+        proxy_set_header Host $host;
+    }
+}
+{{end}}
