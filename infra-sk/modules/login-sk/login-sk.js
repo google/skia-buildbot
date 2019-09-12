@@ -15,16 +15,29 @@ import { Login } from '../login';
 define('login-sk', class extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `<span class=email>Loading...</span><a class=logInOut></a>`;
-    Login.then(status => {
-      this.querySelector('.email').textContent = status.Email;
-      let logInOut = this.querySelector('.logInOut');
-      if (!status.Email) {
-          logInOut.href = status.LoginURL;
-          logInOut.textContent = 'Login';
-      } else {
-          logInOut.href = 'https://skia.org/logout/?redirect=' + encodeURIComponent(document.location);
-          logInOut.textContent = 'Logout';
-      }
-    }).catch(errorMessage);
+    if (this.testingOffline) {
+      this.querySelector('.email').textContent = "test@example.com";
+      const logInOut = this.querySelector('.logInOut');
+      logInOut.href = 'https://skia.org/logout/?redirect=' + encodeURIComponent(document.location);
+      logInOut.textContent = 'Logout';
+    } else {
+      Login.then((status) => {
+        this.querySelector('.email').textContent = status.Email;
+        let logInOut = this.querySelector('.logInOut');
+        if (!status.Email) {
+            logInOut.href = status.LoginURL;
+            logInOut.textContent = 'Login';
+        } else {
+            logInOut.href = 'https://skia.org/logout/?redirect=' + encodeURIComponent(document.location);
+            logInOut.textContent = 'Logout';
+        }
+      }).catch(errorMessage);
+    }
   }
+
+  /** @prop testingOffline {boolean} If we should really poll for Login status
+   *  or use mock data.
+   */
+  get testingOffline() { return this.hasAttribute('testing_offline'); }
+  set testingOffline(val) { this.setAttribute('testing_offline', !!val); }
 });
