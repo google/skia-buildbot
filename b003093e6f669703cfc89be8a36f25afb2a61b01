@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "2e180280_f961aec9",
+        "filename": "golden/Makefile",
+        "patchSetId": 10
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-12T20:57:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0dd67a84_51a49fc6",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ebbcfb8_e2566714",
         "filename": "golden/frontend/res/js/gold.js",
         "patchSetId": 10
@@ -33,6 +51,24 @@
       "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8bd3f459_77897a7c",
+        "filename": "golden/frontend/res/js/gold.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-12T20:57:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ebbcfb8_e2566714",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "45f0cd0b_5fef7eaf",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-12T20:57:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "95a69988_16ebcaaa",
+      "range": {
+        "startLine": 91,
+        "startChar": 29,
+        "endLine": 91,
+        "endChar": 35
+      },
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ab44b3d_f12f8853",
         "filename": "golden/modules/changelists-page-sk/changelists-page-sk.js",
         "patchSetId": 10
@@ -73,6 +133,24 @@
       "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9928a46c_7ef84b89",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-12T20:57:39Z",
+      "side": 1,
+      "message": "I like the event idea a lot better.  Done.",
+      "parentUuid": "5ab44b3d_f12f8853",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -99,6 +177,30 @@
     },
     {
       "key": {
+        "uuid": "b2e4d2d2_2fbac8d0",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk.scss",
+        "patchSetId": 10
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-12T20:57:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c081fab1_9c672721",
+      "range": {
+        "startLine": 8,
+        "startChar": 14,
+        "endLine": 8,
+        "endChar": 20
+      },
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fda8aba3_c713075a",
         "filename": "golden/modules/changelists-page-sk/changelists-page-sk_test.js",
         "patchSetId": 10
@@ -113,6 +215,24 @@
       "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7288aa07_d36efc67",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk_test.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-12T20:57:39Z",
+      "side": 1,
+      "message": "Perhaps that was the first clue I should have seen that ele.closest(...) was a bad idea...",
+      "parentUuid": "fda8aba3_c713075a",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -139,6 +259,30 @@
     },
     {
       "key": {
+        "uuid": "78355650_6a379700",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk_test.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-12T20:57:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c36bae61_953c4d3f",
+      "range": {
+        "startLine": 48,
+        "startChar": 11,
+        "endLine": 48,
+        "endChar": 29
+      },
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0347b664_27a43328",
         "filename": "golden/modules/demo_util.js",
         "patchSetId": 10
@@ -153,6 +297,24 @@
       "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "775f7dce_b32a745e",
+        "filename": "golden/modules/demo_util.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-12T20:57:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0347b664_27a43328",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -173,6 +335,24 @@
     },
     {
       "key": {
+        "uuid": "79b224a8_b0eed04c",
+        "filename": "golden/modules/gold-scaffold-sk/gold-scaffold-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-12T20:57:39Z",
+      "side": 1,
+      "message": "Done. I didn\u0027t have any other pages made yet, so I can complete remove this way. It was loosely based off the way I do it in swarming, with the exception of those pages have everything inherit the app stuff, rather then here where the main page is embedded in the scaffold-sk.",
+      "parentUuid": "369969cc_59d4824b",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "27ea4fed_190531bf",
         "filename": "golden/modules/gold-scaffold-sk/gold-scaffold-sk.js",
         "patchSetId": 10
@@ -187,6 +367,24 @@
       "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96d4dba0_d33a96ca",
+        "filename": "golden/modules/gold-scaffold-sk/gold-scaffold-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-12T20:57:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "27ea4fed_190531bf",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -207,6 +405,24 @@
     },
     {
       "key": {
+        "uuid": "2ccfba1d_2971fd1f",
+        "filename": "golden/modules/gold-scaffold-sk/gold-scaffold-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-12T20:57:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "33998dee_ad7c2d85",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "49183db1_25305a24",
         "filename": "golden/modules/gold-scaffold-sk/gold-scaffold-sk.js",
         "patchSetId": 10
@@ -221,6 +437,24 @@
       "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "82a02b1a_210bec0f",
+        "filename": "golden/modules/gold-scaffold-sk/gold-scaffold-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-12T20:57:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "49183db1_25305a24",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -241,6 +475,24 @@
     },
     {
       "key": {
+        "uuid": "65f18e4c_d84eb344",
+        "filename": "golden/modules/gold-scaffold-sk/gold-scaffold-sk.scss",
+        "patchSetId": 10
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-12T20:57:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b5c8c5df_6542c730",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "381ac78b_75081e6f",
         "filename": "golden/modules/gold-scaffold-sk/gold-scaffold-sk.scss",
         "patchSetId": 10
@@ -258,6 +510,24 @@
     },
     {
       "key": {
+        "uuid": "3b3d1377_1b129674",
+        "filename": "golden/modules/gold-scaffold-sk/gold-scaffold-sk.scss",
+        "patchSetId": 10
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-12T20:57:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "381ac78b_75081e6f",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9f397cd0_a2f77db3",
         "filename": "infra-sk/modules/login-sk/login-sk.js",
         "patchSetId": 10
@@ -272,6 +542,24 @@
       "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "562f0672_b98b6605",
+        "filename": "infra-sk/modules/login-sk/login-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-12T20:57:39Z",
+      "side": 1,
+      "message": "modified as discussed offline.",
+      "parentUuid": "9f397cd0_a2f77db3",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
