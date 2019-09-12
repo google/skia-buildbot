@@ -173,7 +173,7 @@ func GetCipdPackageFromAsset(assetName string) (string, error) {
 	// Find the latest version of the asset from gitiles.
 	assetVersionFilePath := path.Join("infra", "bots", "assets", assetName, "VERSION")
 	var buf bytes.Buffer
-	if err := gitiles.NewRepo(common.REPO_SKIA, nil).ReadFile(context.Background(), assetVersionFilePath, &buf); err != nil {
+	if err := gitiles.NewRepo(common.REPO_SKIA, "", nil).ReadFile(context.Background(), assetVersionFilePath, &buf); err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("%s:skia/bots/%s:version:%s", assetName, assetName, strings.TrimSpace(buf.String())), nil
@@ -229,14 +229,6 @@ func GetTimeFromTs(formattedTime string) time.Time {
 
 func GetCurrentTs() string {
 	return time.Now().UTC().Format(TS_FORMAT)
-}
-
-func GetCurrentTsInt64() int64 {
-	ts, err := strconv.ParseInt(GetCurrentTs(), 10, 64)
-	if err != nil {
-		sklog.Fatalf("Could not parse timestamp: %s", err)
-	}
-	return ts
 }
 
 // Returns channel that contains all pageset file names without the timestamp
@@ -531,12 +523,8 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 			task := task // https://golang.org/doc/faq#closures_and_goroutines
 			go func() {
 				defer wg.Done()
-				if _, _, state, err := task.Collect(ctx, s, false, false); err != nil {
+				if _, _, err := task.Collect(ctx, s, false, false); err != nil {
 					sklog.Errorf("task %s failed: %s", task.Title, err)
-					if state == swarming.TASK_STATE_KILLED {
-						sklog.Infof("task %s was killed (either manually or via CT's delete button). Not going to retry it.", task.Title)
-						return
-					}
 					sklog.Infof("Retrying task %s with high priority %d", task.Title, TASKS_PRIORITY_HIGH)
 					retryTask, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, []string{}, TASKS_PRIORITY_HIGH, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 					if err != nil {
@@ -544,7 +532,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 						return
 					}
 					// Collect the retried task.
-					if _, _, _, err := retryTask[0].Collect(ctx, s, false, false); err != nil {
+					if _, _, err := retryTask[0].Collect(ctx, s, false, false); err != nil {
 						sklog.Errorf("task %s failed inspite of a retry: %s", retryTask[0].Title, err)
 						return
 					}
@@ -1021,7 +1009,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	}
 	// Collect all tasks and log the ones that fail.
 	task := tasks[0]
-	_, outputDir, _, err := task.Collect(ctx, s, false, false)
+	_, outputDir, err := task.Collect(ctx, s, false, false)
 	if err != nil {
 		return "", fmt.Errorf("task %s failed: %s", task.Title, err)
 	}
@@ -1033,11 +1021,11 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	return strings.Trim(string(contents), "\n"), nil
 }
 
-func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isolateFileName, serviceAccountJSON, targetPlatform string, local bool, isolateArgs map[string]string) (string, error) {
+func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isolateFileName, serviceAccountJSON, targetPlatform string, local bool, isolateArgs map[string]string) error {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
-		return "", fmt.Errorf("Could not get temp dir: %s", err)
+		return fmt.Errorf("Could not get temp dir: %s", err)
 	}
 	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountJSON)
 	if err != nil {
@@ -1045,7 +1033,7 @@ func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isola
 		if err := os.RemoveAll(workDir); err != nil {
 			sklog.Errorf("Could not cleanup swarming work dir: %s", err)
 		}
-		return "", fmt.Errorf("Could not instantiate swarming client: %s", err)
+		return fmt.Errorf("Could not instantiate swarming client: %s", err)
 	}
 	defer s.Cleanup()
 	osType := "linux"
@@ -1057,23 +1045,23 @@ func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isola
 	pathToIsolates := GetPathToIsolates(local, true)
 	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, isolateFileName), s.WorkDir, osType, taskName, isolateArgs, []string{})
 	if err != nil {
-		return "", fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
+		return fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
 	}
 	// Batcharchive the task.
 	tasksToHashes, err := s.BatchArchiveTargets(ctx, []string{genJSON}, BATCHARCHIVE_TIMEOUT)
 	if err != nil {
-		return "", fmt.Errorf("Could not batch archive target: %s", err)
+		return fmt.Errorf("Could not batch archive target: %s", err)
 	}
 	// Trigger swarming using the isolate hash.
 	dimensions := GCE_LINUX_MASTER_DIMENSIONS
 	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, nil, swarming.RECOMMENDED_PRIORITY, 7*24*time.Hour, 3*24*time.Hour, 3*24*time.Hour, false, true, getServiceAccount(dimensions))
 	if err != nil {
-		return "", fmt.Errorf("Could not trigger swarming task: %s", err)
+		return fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
 	if len(tasks) != 1 {
-		return "", fmt.Errorf("Expected a single task instead got: %v", tasks)
+		return fmt.Errorf("Expected a single task instead got: %v", tasks)
 	}
-	return tasks[0].TaskID, nil
+	return nil
 }
 
 // TriggerBuildRepoSwarmingTask creates a isolated.gen.json file using BUILD_REPO_ISOLATE,
@@ -1136,7 +1124,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	}
 	// Collect all tasks and log the ones that fail.
 	task := tasks[0]
-	_, outputDir, _, err := task.Collect(ctx, s, false, false)
+	_, outputDir, err := task.Collect(ctx, s, false, false)
 	if err != nil {
 		return nil, fmt.Errorf("task %s failed: %s", task.Title, err)
 	}
@@ -1272,60 +1260,6 @@ func CreateCustomPagesets(webpages []string, pagesetsDir, targetPlatform string)
 		}
 	}
 	return nil
-}
-
-func GetAnalysisOutputLink(runID string) string {
-	return GCS_HTTP_LINK + path.Join(GCSBucketName, BenchmarkRunsDir, runID, "consolidated_outputs", runID+".output")
-}
-
-func GetPerfRemoteDir(runID string) string {
-	return path.Join(ChromiumPerfRunsStorageDir, runID)
-}
-
-func GetPerfRemoteHTMLDir(runID string) string {
-	return path.Join(GetPerfRemoteDir(runID), "html")
-}
-
-func GetPerfOutputLinkBase(runID string) string {
-	return GCS_HTTP_LINK + path.Join(GCSBucketName, GetPerfRemoteHTMLDir(runID)) + "/"
-}
-
-func GetPerfOutputLink(runID string) string {
-	return GetPerfOutputLinkBase(runID) + "index.html"
-}
-
-func GetPerfNoPatchOutputLink(runID string) string {
-	runIDNoPatch := fmt.Sprintf("%s-nopatch", runID)
-	return GCS_HTTP_LINK + path.Join(GCSBucketName, BenchmarkRunsDir, runIDNoPatch, "consolidated_outputs", runIDNoPatch+".output")
-}
-
-func GetPerfWithPatchOutputLink(runID string) string {
-	runIDWithPatch := fmt.Sprintf("%s-withpatch", runID)
-	return GCS_HTTP_LINK + path.Join(GCSBucketName, BenchmarkRunsDir, runIDWithPatch, "consolidated_outputs", runIDWithPatch+".output")
-}
-
-func GetLuaConsolidatedFileName() string {
-	return "lua-output"
-}
-
-func GetLuaAggregatorOutputFileName(runID string) string {
-	return runID + ".agg.output"
-}
-
-func GetLuaConsolidatedOutputRemoteDir(runID string) string {
-	return path.Join(LuaRunsDir, runID, "consolidated_outputs")
-}
-
-func GetLuaOutputRemoteLink(runID string) string {
-	return GCS_HTTP_LINK + path.Join(GCSBucketName, GetLuaConsolidatedOutputRemoteDir(runID), GetLuaConsolidatedFileName())
-}
-
-func GetLuaAggregatorOutputRemoteLink(runID string) string {
-	return GCS_HTTP_LINK + path.Join(GCSBucketName, GetLuaConsolidatedOutputRemoteDir(runID), GetLuaAggregatorOutputFileName(runID))
-}
-
-func GetMetricsAnalysisOutputLink(runID string) string {
-	return GCS_HTTP_LINK + path.Join(GCSBucketName, BenchmarkRunsDir, runID, "consolidated_outputs", runID+".output")
 }
 
 func SavePatchToStorage(patch string) (string, error) {

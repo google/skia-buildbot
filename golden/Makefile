@@ -56,7 +56,7 @@ k8s-release-ingestion: build-static-ingestion
 	./k8s_release_ingestion
 
 .PHONY: build-static-skiacorrectness
-build-static-skiacorrectness: skiaversion frontend
+build-static-skiacorrectness: skiaversion
 	mkdir -p ./build
 	rm -f ./build/skiacorrectness_k8s
 	$(KGO) -o build/skiacorrectness_k8s -a ./cmd/skiacorrectness/main.go

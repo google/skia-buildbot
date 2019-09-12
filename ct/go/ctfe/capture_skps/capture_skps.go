@@ -19,7 +19,6 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
-	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
 
@@ -71,6 +70,10 @@ func (task *DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, e
 	return taskVars, nil
 }
 
+func (task DatastoreTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
+	return &UpdateVars{}
+}
+
 func (task DatastoreTask) RunsOnGCEWorkers() bool {
 	// TODO(rmistry): Figure out which font packages to install on the GCE
 	// instances if any missing packages become an issue.
@@ -105,57 +108,25 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	return t, nil
 }
 
-func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error {
+func (task DatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
 	runID := task_common.GetRunID(&task)
-	emails := task_common.GetEmailRecipients(task.Username, nil)
 	isolateArgs := map[string]string{
+		"EMAILS":          task.Username,
+		"DESCRIPTION":     task.Description,
+		"TASK_ID":         strconv.FormatInt(task.DatastoreKey.ID, 10),
 		"PAGESET_TYPE":    task.PageSets,
 		"CHROMIUM_BUILD":  ctutil.ChromiumBuildDir(task.ChromiumRev, task.SkiaRev, ""),
 		"TARGET_PLATFORM": ctutil.PLATFORM_LINUX,
 		"RUN_ON_GCE":      strconv.FormatBool(task.RunsOnGCEWorkers()),
 		"RUN_ID":          runID,
+		"DS_NAMESPACE":    task_common.DsNamespace,
+		"DS_PROJECT_NAME": task_common.DsProjectName,
 	}
 
-	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_skps_on_workers", ctutil.CAPTURE_SKPS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs)
-	if err != nil {
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_skps_on_workers", ctutil.CAPTURE_SKPS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
 		return fmt.Errorf("Could not trigger master script for capture_skps_on_workers with isolate args %v: %s", isolateArgs, err)
 	}
-	// Mark task as started in datastore.
-	if err := task_common.UpdateTaskSetStarted(ctx, runID, sTaskID, &task); err != nil {
-		return fmt.Errorf("Could not mark task as started in datastore: %s", err)
-	}
-	// Send start email.
-	skutil.LogErr(ctfeutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Capture SKPs", runID, task.Description, ""))
 	return nil
-}
-
-func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSuccessfully bool) error {
-	runID := task_common.GetRunID(&task)
-	emails := task_common.GetEmailRecipients(task.Username, nil)
-	emailSubject := fmt.Sprintf("Capture SKPs cluster telemetry task has completed (#%d)", task.DatastoreKey.ID)
-	failureHtml := ""
-	if !completedSuccessfully {
-		emailSubject += " with failures"
-		failureHtml = ctfeutil.GetFailureEmailHtml(runID)
-	}
-	bodyTemplate := `
-	The Capture SKPs task on %s pageset has completed. %s.<br/>
-	Run description: %s<br/>
-	%s
-	You can schedule more runs <a href="%s">here</a>.<br/><br/>
-	Thanks!
-	`
-	emailBody := fmt.Sprintf(bodyTemplate, task.PageSets, ctfeutil.GetSwarmingLogsLink(runID), task.Description, failureHtml, task_common.WebappURL+ctfeutil.CAPTURE_SKPS_URI)
-	if err := ctfeutil.SendEmail(emails, emailSubject, emailBody); err != nil {
-		return fmt.Errorf("Error while sending email: %s", err)
-	}
-	return nil
-}
-
-func (task *DatastoreTask) SetCompleted(success bool) {
-	task.TsCompleted = ctutil.GetCurrentTsInt64()
-	task.Failure = !success
-	task.TaskDone = true
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
@@ -221,6 +192,18 @@ func Validate(ctx context.Context, skpRepository DatastoreTask) error {
 		return fmt.Errorf("Unable to validate skp repository parameter %v", skpRepository)
 	}
 
+	return nil
+}
+
+type UpdateVars struct {
+	task_common.UpdateTaskCommonVars
+}
+
+func (task *UpdateVars) GetTaskPrototype() task_common.Task {
+	return &DatastoreTask{}
+}
+
+func (task *UpdateVars) UpdateExtraFields(t task_common.Task) error {
 	return nil
 }
 

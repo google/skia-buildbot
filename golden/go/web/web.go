@@ -1263,11 +1263,11 @@ func (wh *WebHandlers) BaselineHandler(w http.ResponseWriter, r *http.Request) {
 	commitHash := ""
 	issueID := types.MasterBranch
 	issueOnly := false
+	var err error
 
 	// TODO(stephana): The codepath for using issue_id as segment of the request path is
 	// deprecated and should be removed with the route that defines it (see shared.go).
 	if issueIDStr, ok := mux.Vars(r)["issue_id"]; ok {
-		var err error
 		issueID, err = strconv.ParseInt(issueIDStr, 10, 64)
 		if err != nil {
 			httputils.ReportError(w, r, err, "Issue ID must be valid integer.")
@@ -1284,7 +1284,6 @@ func (wh *WebHandlers) BaselineHandler(w http.ResponseWriter, r *http.Request) {
 
 		q := r.URL.Query()
 		if issueIDStr := q.Get("issue"); issueIDStr != "" {
-			var err error
 			issueID, err = strconv.ParseInt(issueIDStr, 10, 64)
 			if err != nil {
 				httputils.ReportError(w, r, err, "Issue ID must be valid integer.")
@@ -1294,13 +1293,13 @@ func (wh *WebHandlers) BaselineHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	bl, err := wh.Baseliner.FetchBaseline(commitHash, issueID, issueOnly)
+	baseline, err := wh.Baseliner.FetchBaseline(commitHash, issueID, issueOnly)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fetching baselines failed.")
 		return
 	}
 
-	sendJSONResponse(w, bl)
+	sendJSONResponse(w, baseline)
 }
 
 // RefreshIssue forces a refresh of a Gerrit issue, i.e. reload data that

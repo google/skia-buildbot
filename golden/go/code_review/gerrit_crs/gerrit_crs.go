@@ -10,24 +10,15 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/code_review"
-	"golang.org/x/time/rate"
-)
-
-const (
-	// These values are arbitrary guesses, roughly based on the values for gitiles.
-	maxQPS   = rate.Limit(5.0)
-	maxBurst = 20
 )
 
 type CRSImpl struct {
 	gClient gerrit.GerritInterface
-	rl      *rate.Limiter
 }
 
 func New(client gerrit.GerritInterface) *CRSImpl {
 	return &CRSImpl{
 		gClient: client,
-		rl:      rate.NewLimiter(maxQPS, maxBurst),
 	}
 }
 
@@ -44,10 +35,6 @@ func (c *CRSImpl) GetChangeList(ctx context.Context, id string) (code_review.Cha
 
 // getCL fetches a CL from gerrit and converts it into a code_review.ChangeList
 func (c *CRSImpl) getCL(ctx context.Context, id int64) (code_review.ChangeList, error) {
-	// Respect the rate limit.
-	if err := c.rl.Wait(ctx); err != nil {
-		return code_review.ChangeList{}, skerr.Wrap(err)
-	}
 	cl, err := c.gClient.GetIssueProperties(ctx, id)
 	if err == gerrit.ErrNotFound {
 		return code_review.ChangeList{}, code_review.ErrNotFound
@@ -82,10 +69,6 @@ func (c *CRSImpl) GetPatchSets(ctx context.Context, clID string) ([]code_review.
 	i, err := strconv.ParseInt(clID, 10, 64)
 	if err != nil {
 		return nil, invalidID
-	}
-	// Respect the rate limit.
-	if err := c.rl.Wait(ctx); err != nil {
-		return nil, skerr.Wrap(err)
 	}
 	cl, err := c.gClient.GetIssueProperties(ctx, i)
 	if err == gerrit.ErrNotFound {

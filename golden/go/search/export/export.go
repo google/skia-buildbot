@@ -9,8 +9,8 @@ import (
 	"os"
 	"strings"
 
-	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -73,13 +73,8 @@ func WriteTestRecordsFile(testRecs []*TestRecord, outputPath string) error {
 	if err != nil {
 		return err
 	}
-	if err := WriteTestRecords(testRecs, f); err != nil {
-		return skerr.Wrapf(err, "writing test records to %s", outputPath)
-	}
-	if err := f.Close(); err != nil {
-		return skerr.Wrapf(err, "closing %s", outputPath)
-	}
-	return nil
+	defer util.Close(f)
+	return WriteTestRecords(testRecs, f)
 }
 
 // WriteTestRecords writes the retrieved information about tests to the given writer JSON.

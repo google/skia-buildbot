@@ -14,14 +14,19 @@ import (
 
 // Define common routes used by multiple servers and goldctl
 const (
-	// ExpectationsRoute serves the expectations of the master branch
-	ExpectationsRoute = "/json/expectations/commit/{commit_hash}"
+	// BASELINE_ROUTE serves the expectations of the master branch
+	EXPECTATIONS_ROUTE = "/json/expectations/commit/{commit_hash}"
 
-	// ExpectationsIssueRoute serves the baseline for a ChangeList identified by 'id'
-	ExpectationsIssueRoute = "/json/expectations/issue/{issue_id}"
+	// BASELINE_ISSUE_ROUTE serves the baseline for the Gerrit CL identified by 'id'
+	EXPECTATIONS_ISSUE_ROUTE = "/json/expectations/issue/{issue_id}"
 
-	// KnownHashesRoute serves the list of known hashes.
-	KnownHashesRoute = "/json/hashes"
+	// KNOWN_HASHES_ROUTE serves the list of known hashes.
+	KNOWN_HASHES_ROUTE = "/json/hashes"
+
+	// TODO(stephana): Remove LEGACY_KNOWN_HASHES_ROUTE everywhere once we are sure they are not
+	// used by any client.
+	// LEGACY_KNOWN_HASHES_ROUTE is the old rout to serve the list of known hashes.
+	LEGACY_KNOWN_HASHES_ROUTE = "/_/hashes"
 )
 
 // Validation is a container to collect error messages during validation of a

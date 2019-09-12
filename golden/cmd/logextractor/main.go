@@ -35,7 +35,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	var result []string
+	result := []string{}
 	err := filepath.Walk(*logInputDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err

@@ -19,8 +19,6 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
-	"go.skia.org/infra/go/email"
-	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
 
@@ -85,6 +83,10 @@ func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, er
 	return taskVars, nil
 }
 
+func (task DatastoreTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
+	return &UpdateVars{}
+}
+
 func (task DatastoreTask) RunsOnGCEWorkers() bool {
 	return true
 }
@@ -117,7 +119,7 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	return t, nil
 }
 
-func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error {
+func (task DatastoreTask) TriggerSwarmingTask(ctx context.Context) error {
 	runID := task_common.GetRunID(&task)
 	luaScriptGSPath, err := ctutil.SavePatchToStorage(task.LuaScript)
 	if err != nil {
@@ -131,84 +133,24 @@ func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error 
 		}
 	}
 
-	emails := task_common.GetEmailRecipients(task.Username, nil)
 	isolateArgs := map[string]string{
+		"EMAILS":                        task.Username,
+		"DESCRIPTION":                   task.Description,
+		"TASK_ID":                       strconv.FormatInt(task.DatastoreKey.ID, 10),
 		"PAGESET_TYPE":                  task.PageSets,
 		"CHROMIUM_BUILD":                ctutil.ChromiumBuildDir(task.ChromiumRev, task.SkiaRev, ""),
 		"RUN_ON_GCE":                    strconv.FormatBool(task.RunsOnGCEWorkers()),
 		"RUN_ID":                        runID,
 		"LUA_SCRIPT_GS_PATH":            luaScriptGSPath,
 		"LUA_AGGREGATOR_SCRIPT_GS_PATH": luaAggregatorScriptGSPath,
+		"DS_NAMESPACE":                  task_common.DsNamespace,
+		"DS_PROJECT_NAME":               task_common.DsProjectName,
 	}
 
-	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_lua_on_workers", ctutil.RUN_LUA_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs)
-	if err != nil {
+	if err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_lua_on_workers", ctutil.RUN_LUA_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs); err != nil {
 		return fmt.Errorf("Could not trigger master script for run_lua_on_workers with isolate args %v: %s", isolateArgs, err)
 	}
-	// Mark task as started in datastore.
-	if err := task_common.UpdateTaskSetStarted(ctx, runID, sTaskID, &task); err != nil {
-		return fmt.Errorf("Could not mark task as started in datastore: %s", err)
-	}
-	// Send start email.
-	skutil.LogErr(ctfeutil.SendTaskStartEmail(task.DatastoreKey.ID, emails, "Lua script", runID, task.Description, ""))
 	return nil
-}
-
-func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSuccessfully bool) error {
-	runID := task_common.GetRunID(&task)
-	emails := task_common.GetEmailRecipients(task.Username, nil)
-	emailSubject := fmt.Sprintf("Run lua script Cluster telemetry task has completed (#%d)", task.DatastoreKey.ID)
-	failureHtml := ""
-	viewActionMarkup := ""
-	var err error
-
-	if !completedSuccessfully {
-		emailSubject += " with failures"
-		failureHtml = ctfeutil.GetFailureEmailHtml(runID)
-		if viewActionMarkup, err = email.GetViewActionMarkup(fmt.Sprintf(ctutil.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID), "View Failure", "Direct link to the swarming logs"); err != nil {
-			return fmt.Errorf("Failed to get view action markup: %s", err)
-		}
-	} else {
-		if viewActionMarkup, err = email.GetViewActionMarkup(task.ScriptOutput, "View Results", "Direct link to the lua output"); err != nil {
-			return fmt.Errorf("Failed to get view action markup: %s", err)
-		}
-	}
-	scriptOutputHtml := ""
-	if task.ScriptOutput != "" {
-		scriptOutputHtml = fmt.Sprintf("The output of your script is available <a href='%s'>here</a>.<br/>\n", task.ScriptOutput)
-	}
-	aggregatorOutputHtml := ""
-	if task.AggregatedOutput != "" {
-		aggregatorOutputHtml = fmt.Sprintf("The aggregated output of your script is available <a href='%s'>here</a>.<br/>\n", task.AggregatedOutput)
-	}
-	bodyTemplate := `
-	The Cluster telemetry queued task to run lua script on %s pageset has completed. %s.<br/>
-	Run description: %s<br/>
-	%s
-	%s
-	%s
-	You can schedule more runs <a href="%s">here</a>.<br/><br/>
-	Thanks!
-	`
-	emailBody := fmt.Sprintf(bodyTemplate, task.PageSets, ctfeutil.GetSwarmingLogsLink(runID), task.Description, failureHtml, scriptOutputHtml, aggregatorOutputHtml, task_common.WebappURL+ctfeutil.LUA_SCRIPT_URI)
-	if err := ctfeutil.SendEmailWithMarkup(emails, emailSubject, emailBody, viewActionMarkup); err != nil {
-		return fmt.Errorf("Error while sending email: %s", err)
-	}
-
-	return nil
-}
-
-func (task *DatastoreTask) SetCompleted(success bool) {
-	if success {
-		runID := task_common.GetRunID(task)
-		task.ScriptOutput = ctutil.GetLuaOutputRemoteLink(runID)
-		if task.LuaAggregatorScript != "" {
-			task.AggregatedOutput = ctutil.GetLuaAggregatorOutputRemoteLink(runID)
-		}
-	}
-	task.TsCompleted = ctutil.GetCurrentTsInt64()
-	task.Failure = !success
-	task.TaskDone = true
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
@@ -258,6 +200,27 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 func getTasksHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.GetTasksHandler(&DatastoreTask{}, w, r)
+}
+
+type UpdateVars struct {
+	task_common.UpdateTaskCommonVars
+	ScriptOutput     string
+	AggregatedOutput string
+}
+
+func (task *UpdateVars) GetTaskPrototype() task_common.Task {
+	return &DatastoreTask{}
+}
+
+func (vars *UpdateVars) UpdateExtraFields(t task_common.Task) error {
+	task := t.(*DatastoreTask)
+	if vars.ScriptOutput != "" {
+		task.ScriptOutput = vars.ScriptOutput
+	}
+	if vars.AggregatedOutput != "" {
+		task.AggregatedOutput = vars.AggregatedOutput
+	}
+	return nil
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {

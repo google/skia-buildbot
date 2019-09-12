@@ -8,7 +8,6 @@ import (
 
 	gstorage "cloud.google.com/go/storage"
 	"go.skia.org/infra/go/gcs"
-	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
@@ -96,7 +95,6 @@ func (g *ClientImpl) LoadKnownDigests(w io.Writer) error {
 	if err != nil {
 		// We simply assume an empty hashes file if the object was not found.
 		if err == gstorage.ErrObjectNotExist {
-			sklog.Warningf("No known digests found - maybe %s is a wrong path?", g.options.HashesGSPath)
 			return nil
 		}
 		return err
@@ -105,12 +103,12 @@ func (g *ClientImpl) LoadKnownDigests(w io.Writer) error {
 	// Copy the content to the output writer.
 	reader, err := target.NewReader(ctx)
 	if err != nil {
-		return skerr.Wrapf(err, "opening %s for reading", g.options.HashesGSPath)
+		return err
 	}
 	defer util.Close(reader)
 
-	n, err := io.Copy(w, reader)
-	return skerr.Wrapf(err, "copying %d bytes to writer", n)
+	_, err = io.Copy(w, reader)
+	return err
 }
 
 // RemoveForTestingOnly fulfills the GCSClient interface.
@@ -135,14 +133,11 @@ func (g *ClientImpl) writeToPath(targetPath, contentType string, wrtFn func(w *g
 	writer := target.NewWriter(ctx)
 	writer.ObjectAttrs.ContentType = contentType
 	writer.ObjectAttrs.ACL = []gstorage.ACLRule{{Entity: gstorage.AllUsers, Role: gstorage.RoleReader}}
+	defer util.Close(writer)
 
 	// Write the actual data.
 	if err := wrtFn(writer); err != nil {
-		return skerr.Wrapf(err, "writing data to %s", targetPath)
-	}
-
-	if err := writer.Close(); err != nil {
-		return skerr.Wrapf(err, "closing writer for %s", targetPath)
+		return err
 	}
 
 	return nil

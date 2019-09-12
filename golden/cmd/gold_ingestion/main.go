@@ -6,18 +6,18 @@ package main
 import (
 	"context"
 	"flag"
+	"io/ioutil"
 	"log"
 	"net/http"
-
-	// See https://golang.org/pkg/net/http/pprof/
-	_ "net/http/pprof"
 	"os"
 	"path/filepath"
+	"runtime/pprof"
 	"time"
 
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/firestore"
@@ -28,8 +28,11 @@ import (
 	"go.skia.org/infra/go/ingestion/fs_ingestionstore"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
+
+	// See https://golang.org/pkg/net/http/pprof/
+	_ "net/http/pprof"
 
 	// The init() of this package register several ingestion.Processors to
 	// handle the files we locate in GCS (e.g. master branch, tryjobs, etc).
@@ -56,6 +59,7 @@ func main() {
 		hang            = flag.Bool("hang", false, "If true, just hang and do nothing.")
 		httpPort        = flag.String("http_port", ":9091", "The http port where ready-ness endpoints are served.")
 		local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+		memProfile      = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 		promPort        = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 		pubsubProjectID = flag.String("pubsub_project_id", "", "Project ID that houses the pubsub topics (e.g. for ingestion).")
 	)
@@ -80,7 +84,7 @@ func main() {
 	ctx := context.Background()
 
 	// Initialize oauth client and start the ingesters.
-	tokenSrc, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, storage.ScopeFullControl, pubsub.ScopePubSub, pubsub.ScopeCloudPlatform, swarming.AUTH_SCOPE)
+	tokenSrc, err := auth.NewDefaultTokenSource(*local, storage.ScopeFullControl, pubsub.ScopePubSub, pubsub.ScopeCloudPlatform)
 	if err != nil {
 		sklog.Fatalf("Failed to auth: %s", err)
 	}
@@ -146,6 +150,28 @@ func main() {
 			}
 		}
 	}()
+
+	// Enable the memory profiler if memProfile was set.
+	if *memProfile > 0 {
+		writeProfileFn := func() {
+			sklog.Infof("\nWriting Memory Profile")
+			f, err := ioutil.TempFile("./", "memory-profile")
+			if err != nil {
+				sklog.Fatalf("Unable to create memory profile file: %s", err)
+			}
+			if err := pprof.WriteHeapProfile(f); err != nil {
+				sklog.Fatalf("Unable to write memory profile file: %v", err)
+			}
+			util.Close(f)
+			sklog.Infof("Memory profile written to %s", f.Name())
+
+			os.Exit(0)
+		}
+
+		// Write the profile after the given time or whenever we get a SIGINT signal.
+		time.AfterFunc(*memProfile, writeProfileFn)
+		cleanup.AtExit(writeProfileFn)
+	}
 
 	// Set up the http handler to indicate readiness and start serving.
 	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
