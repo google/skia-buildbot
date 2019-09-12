@@ -18,6 +18,7 @@ import (
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -27,6 +28,11 @@ import (
 
 const (
 	DEPRECATED_TABLE_ID = "git-repos"
+
+	METRIC_BT_REQS_READ  = "bt-gitstore-reqs-read"
+	METRIC_BT_REQS_WRITE = "bt-gitstore-reqs-write"
+	METRIC_BT_ROWS_READ  = "bt-gitstore-rows-read"
+	METRIC_BT_ROWS_WRITE = "bt-gitstore-rows-write"
 )
 
 // BigTableGitStore implements the GitStore interface based on BigTable.
@@ -36,6 +42,10 @@ type BigTableGitStore struct {
 	shards          uint32
 	writeGoroutines int
 	table           *bigtable.Table
+	metricReqsRead  metrics2.Counter
+	metricReqsWrite metrics2.Counter
+	metricRowsRead  metrics2.Counter
+	metricRowsWrite metrics2.Counter
 }
 
 // New returns an instance of GitStore that uses BigTable as its backend storage.
@@ -65,11 +75,21 @@ func New(ctx context.Context, config *BTConfig, repoURL string) (*BigTableGitSto
 	if writeGoroutines <= 0 {
 		writeGoroutines = DefaultWriteGoroutines
 	}
+	tags := map[string]string{
+		"project":  config.ProjectID,
+		"instance": config.InstanceID,
+		"table":    config.TableID,
+		"repo":     repoURL,
+	}
 	ret := &BigTableGitStore{
 		table:           client.Open(config.TableID),
 		shards:          uint32(shards),
 		RepoURL:         repoURL,
 		writeGoroutines: writeGoroutines,
+		metricReqsRead:  metrics2.GetCounter(METRIC_BT_REQS_READ, tags),
+		metricReqsWrite: metrics2.GetCounter(METRIC_BT_REQS_WRITE, tags),
+		metricRowsRead:  metrics2.GetCounter(METRIC_BT_ROWS_READ, tags),
+		metricRowsWrite: metrics2.GetCounter(METRIC_BT_ROWS_WRITE, tags),
 	}
 
 	repoInfo, err := ret.loadRepoInfo(ctx, true)
@@ -284,8 +304,17 @@ func (b *BigTableGitStore) mutationForTimestampCommit(branch string, commit *vcs
 	}
 }
 
+// apply is a helper function for b.table.Apply.
+func (b *BigTableGitStore) apply(ctx context.Context, row string, mut *bigtable.Mutation) error {
+	b.metricReqsWrite.Inc(1)
+	b.metricRowsWrite.Inc(1)
+	return b.table.Apply(ctx, row, mut)
+}
+
 // applyBulk is a helper function for b.table.ApplyBulk.
 func (b *BigTableGitStore) applyBulk(ctx context.Context, rows []string, muts []*bigtable.Mutation) error {
+	b.metricReqsWrite.Inc(1)
+	b.metricRowsWrite.Inc(int64(len(rows)))
 	errs, err := b.table.ApplyBulk(ctx, rows, muts)
 	if err != nil {
 		return skerr.Fmt("Error writing batch: %s", err)
@@ -294,6 +323,31 @@ func (b *BigTableGitStore) applyBulk(ctx context.Context, rows []string, muts []
 		return skerr.Fmt("Error writing some portions of batch: %s", errs)
 	}
 	return nil
+}
+
+// applyReadModifyWrite is a helper function for b.table.ApplyReadModifyWrite.
+func (b *BigTableGitStore) applyReadModifyWrite(ctx context.Context, row string, m *bigtable.ReadModifyWrite) (bigtable.Row, error) {
+	b.metricReqsWrite.Inc(1)
+	b.metricRowsWrite.Inc(1)
+	b.metricReqsRead.Inc(1)
+	b.metricRowsRead.Inc(1)
+	return b.table.ApplyReadModifyWrite(ctx, row, m)
+}
+
+// readRow is a helper function for b.table.ReadRow.
+func (b *BigTableGitStore) readRow(ctx context.Context, row string, opts ...bigtable.ReadOption) (bigtable.Row, error) {
+	b.metricReqsRead.Inc(1)
+	b.metricRowsRead.Inc(1)
+	return b.table.ReadRow(ctx, row, opts...)
+}
+
+// readRows is a helper function for b.table.ReadRows.
+func (b *BigTableGitStore) readRows(ctx context.Context, arg bigtable.RowSet, f func(bigtable.Row) bool, opts ...bigtable.ReadOption) error {
+	b.metricReqsRead.Inc(1)
+	return b.table.ReadRows(ctx, arg, func(row bigtable.Row) bool {
+		b.metricRowsRead.Inc(1)
+		return f(row)
+	}, opts...)
 }
 
 // Get implements the GitStore interface.
@@ -318,7 +372,7 @@ func (b *BigTableGitStore) Get(ctx context.Context, hashes []string) ([]*vcsinfo
 		egroup.Go(func() error {
 			bRowNames := rowNames[bStart:bEnd]
 			batchIdx := int64(bStart - 1)
-			err := b.table.ReadRows(ctx, bRowNames, func(row bigtable.Row) bool {
+			err := b.readRows(ctx, bRowNames, func(row bigtable.Row) bool {
 				longCommit := vcsinfo.NewLongCommit()
 				longCommit.Hash = keyFromRowName(row.Key())
 
@@ -526,7 +580,7 @@ func (b *BigTableGitStore) RangeN(ctx context.Context, startIndex, endIndex int,
 func (b *BigTableGitStore) loadRepoInfo(ctx context.Context, create bool) (*gitstore.RepoInfo, error) {
 	// load repo info
 	rowName := getRepoInfoRowName(b.RepoURL)
-	row, err := b.table.ReadRow(ctx, rowName, bigtable.RowFilter(bigtable.LatestNFilter(1)))
+	row, err := b.readRow(ctx, rowName, bigtable.RowFilter(bigtable.LatestNFilter(1)))
 	if err != nil {
 		return nil, err
 	}
@@ -543,7 +597,7 @@ func (b *BigTableGitStore) loadRepoInfo(ctx context.Context, create bool) (*gits
 	// Get a new ID from the DB
 	rmw := bigtable.NewReadModifyWrite()
 	rmw.Increment(cfMeta, colMetaIDCounter, 1)
-	row, err = b.table.ApplyReadModifyWrite(ctx, unshardedRowName(typMeta, metaVarIDCounter), rmw)
+	row, err = b.applyReadModifyWrite(ctx, unshardedRowName(typMeta, metaVarIDCounter), rmw)
 	if err != nil {
 		return nil, err
 	}
@@ -553,7 +607,7 @@ func (b *BigTableGitStore) loadRepoInfo(ctx context.Context, create bool) (*gits
 	id := int64(binary.BigEndian.Uint64(encID))
 	mut := bigtable.NewMutation()
 	mut.Set(cfMeta, colMetaID, bigtable.ServerTime, encID)
-	if err := b.table.Apply(ctx, rowName, mut); err != nil {
+	if err := b.apply(ctx, rowName, mut); err != nil {
 		return nil, err
 	}
 
@@ -572,14 +626,14 @@ func (b *BigTableGitStore) putBranchPointer(ctx context.Context, repoInfoRowName
 	now := bigtable.Now()
 	mut.Set(cfBranches, branchName, now, encBranchPointer(idxCommit.Hash, idxCommit.Index))
 	mut.DeleteTimestampRange(cfBranches, branchName, 0, now)
-	return b.table.Apply(ctx, repoInfoRowName, mut)
+	return b.apply(ctx, repoInfoRowName, mut)
 }
 
 // deleteBranchPointer deletes the row containing the branch pointer.
 func (b *BigTableGitStore) deleteBranchPointer(ctx context.Context, branchName string) error {
 	mut := bigtable.NewMutation()
 	mut.DeleteCellsInColumn(cfBranches, branchName)
-	return b.table.Apply(ctx, getRepoInfoRowName(b.RepoURL), mut)
+	return b.apply(ctx, getRepoInfoRowName(b.RepoURL), mut)
 }
 
 // iterShardedRange iterates the keys in the half open interval [startKey, endKey) across all
@@ -609,7 +663,7 @@ func (b *BigTableGitStore) iterShardedRange(ctx context.Context, branch, rowType
 			}
 
 			var addErr error
-			err := b.table.ReadRows(ctx, rr, func(row bigtable.Row) bool {
+			err := b.readRows(ctx, rr, func(row bigtable.Row) bool {
 				addErr = result.Add(shard, row)
 				return addErr == nil
 			}, filtersToReadOptions(filters)...)
