@@ -460,6 +460,11 @@ func main() {
 	// lit-html based UI endpoint.
 	loggedRouter.PathPrefix("/dist/").HandlerFunc(web.MakeResourceHandler(*litHTMLDir))
 	loggedRouter.HandleFunc(callbackPath, login.OAuth2CallbackHandler)
+<<<<<<< HEAD
+=======
+
+	// TODO(stephana): remove "/_/hashes" in favor of "/json/hashes" once all clients have switched.
+>>>>>>> git squash commit for build-nginx.
 
 	loggedRouter.HandleFunc("/json/version", skiaversion.JsonHandler)
 	loggedRouter.HandleFunc("/loginstatus/", login.StatusHandler)
