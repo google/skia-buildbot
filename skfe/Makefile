@@ -9,9 +9,10 @@ release: default
 
 # Build and push targets for nginx-skia-org running in skia-public.
 k8s_release:
+	./build_services_conf
 	./build_nginx_skia_org_release "`git log -n1 --format=%s`"
 
-k8s_push:
+k8s_push: k8s_release
 	pushk nginx-skia-org
 
 k8s_run:
