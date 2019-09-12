@@ -191,6 +191,30 @@
     },
     {
       "key": {
+        "uuid": "164958a7_a1b5d576",
+        "filename": "skfe/k8s/redirects.conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-12T19:43:27Z",
+      "side": 1,
+      "message": "Ok, hopefully last question, where does the Strict-Transport-Security header get added?",
+      "parentUuid": "812dba66_cae17d93",
+      "range": {
+        "startLine": 198,
+        "startChar": 0,
+        "endLine": 209,
+        "endChar": 0
+      },
+      "revId": "ccb6d707d4e84838920db42f79a891ecf2aea640",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4cd900ce_d2c74291",
         "filename": "skfe/k8s/services.conf",
         "patchSetId": 7
