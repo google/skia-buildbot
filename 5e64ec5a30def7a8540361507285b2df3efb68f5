@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "00eaff08_c8612378",
+        "filename": "task_scheduler/go/db/firestore/modified.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-12T14:52:51Z",
+      "side": 1,
+      "message": "I believe usage pattern is currently:\n\nid :\u003d db.StartTrackingModifiedTasks()\ntasks \u003d db.GetTasksFromDateRange(start, now)\ndoStuffWithTasks(tasks)\nfor ... {\n    tasks \u003d db.GetModifiedTasks(id)\n    doStuffWithTasks(tasks)\n}\n\nI *think* that it\u0027s safe to ignore the initial result set as long as we start the QuerySnapshotIterator before we retrieve the initial set of tasks, although I\u0027m realizing now that we need to wait for the initial snapshot to arrive before exiting from StartTrackingModifiedTasks.\n\nI still think the ideal usage pattern is more like:\n\ndb.WatchTasksCreatedAfter(start, doStuffWithTasks)\n\nBut the single query is so much slower than the parallel version for the initial snapshot that I don\u0027t think it\u0027s feasible.  And sharding the query by creation time would break the assumption that we receive tasks which are updated together in the same snapshot.\n\nJust brainstorming: we only really need consistent results for tasks with the same name, so we could shard the query by task name.  That\u0027d require some knowledge of task names or generating a huge number of idle queries.  One idea is to add a \"shard\" field to Task (and others) which could be something like the first two characters of the md5 hash of the name.  Then WatchTasksCreatedAfter would spin up 256 parallel queries[1] and the query should be fast and we\u0027d be guaranteed that blamelists would be consistent.\n\n[1] Or store the full hash and just create queries which search for ranges.  That\u0027d allow us to tune the number of parallel queries on a more granular level than [16, 256, 4096...].",
+      "parentUuid": "080262ad_75ce1071",
+      "range": {
+        "startLine": 24,
+        "startChar": 55,
+        "endLine": 25,
+        "endChar": 18
+      },
+      "revId": "5e64ec5a30def7a8540361507285b2df3efb68f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e2153a25_72655b59",
         "filename": "task_scheduler/go/db/firestore/modified.go",
         "patchSetId": 6
@@ -36,6 +60,24 @@
       "writtenOn": "2019-09-11T20:57:32Z",
       "side": 1,
       "message": "Hmm, I think we need to reset all subscribers here. We either need to add a method to do that to modified.ModifiedTasksImpl or copy/paste the code.",
+      "revId": "5e64ec5a30def7a8540361507285b2df3efb68f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae7c67ee_8be35880",
+        "filename": "task_scheduler/go/db/firestore/modified.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-12T14:52:51Z",
+      "side": 1,
+      "message": "IIUC, if we didn\u0027t ignore the initial query snapshot there would be no need to reset the subscribers, since we\u0027d just resend the data.  Maybe what we really want (for clients like Status) is an auto-updating TaskCache with optional callback when tasks are modified.  That\u0027d allow us to de-duplicate modified tasks we\u0027ve already seen.  We still need a way to make it efficient though.",
+      "parentUuid": "e2153a25_72655b59",
       "revId": "5e64ec5a30def7a8540361507285b2df3efb68f5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
