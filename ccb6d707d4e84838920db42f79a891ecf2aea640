@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "023d96fa_22850359",
+        "filename": "skfe/build_services_conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-12T18:57:27Z",
+      "side": 1,
+      "message": "Yeah, the disadvantage of this method is that if anyone has deployed a wip/dirty yaml file then this script will pick that up, which I think is a minor issue.\n\nThe disadvantage of parsing the git repo is that it requires me to parse YAML and figure out which blob is a Service.",
+      "parentUuid": "5717359c_2ec2b5f2",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 20
+      },
+      "revId": "ccb6d707d4e84838920db42f79a891ecf2aea640",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ec9a8d0_a7ecc845",
         "filename": "skfe/build_services_conf",
         "patchSetId": 7
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "6f3dc77b_70782b55",
+        "filename": "skfe/build_services_conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-12T18:57:27Z",
+      "side": 1,
+      "message": "A path_expression eval to a list of elements and those can always be filtered.\n\nhttps://stackoverflow.com/questions/35876490/how-to-remove-an-array-element-with-jq",
+      "parentUuid": "5ec9a8d0_a7ecc845",
+      "range": {
+        "startLine": 34,
+        "startChar": 6,
+        "endLine": 34,
+        "endChar": 50
+      },
+      "revId": "ccb6d707d4e84838920db42f79a891ecf2aea640",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "748e91d2_ee8786eb",
         "filename": "skfe/k8s/redirects.conf",
         "patchSetId": 7
@@ -59,6 +107,30 @@
       "writtenOn": "2019-09-12T17:27:06Z",
       "side": 1,
       "message": "GFE will auto-redirect to HTTPS, correct? I don\u0027t see how this one will work in that case.",
+      "range": {
+        "startLine": 198,
+        "startChar": 0,
+        "endLine": 209,
+        "endChar": 0
+      },
+      "revId": "ccb6d707d4e84838920db42f79a891ecf2aea640",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0a8c16e1_b8c4f076",
+        "filename": "skfe/k8s/redirects.conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-12T18:57:27Z",
+      "side": 1,
+      "message": "We don\u0027t have a cert for skbug.com:\n\n$ curl --include -H \"Host: skbug.com\" http://35.201.76.220\nHTTP/1.1 302 Moved Temporarily\nServer: nginx/1.17.3\nDate: Thu, 12 Sep 2019 17:37:28 GMT\nContent-Type: text/html\nContent-Length: 145\nLocation: https://bugs.chromium.org/p/skia/issues/list\nVia: 1.1 google\n\n\u003chtml\u003e\n\u003chead\u003e\u003ctitle\u003e302 Found\u003c/title\u003e\u003c/head\u003e\n\u003cbody\u003e\n\u003ccenter\u003e\u003ch1\u003e302 Found\u003c/h1\u003e\u003c/center\u003e\n\u003chr\u003e\u003ccenter\u003enginx/1.17.3\u003c/center\u003e\n\u003c/body\u003e\n\u003c/html\u003e",
+      "parentUuid": "748e91d2_ee8786eb",
       "range": {
         "startLine": 198,
         "startChar": 0,
