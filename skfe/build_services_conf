@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Uses jq and gomplate for write the services.conf nginx config file.
+#
+# jq is available via apt get.
+#
+# gomplate can be installed with:
+#
+#    go get github.com/hairyhenderson/gomplate/cmd/gomplate
+
+
+kubectl get services -o json | jq '[
+    .items[]
+    | select(.spec.ports[].name == "http")
+    | del(.spec.ports[]
+    | select(.name != "http"))
+    | { service: .metadata.name , port: .spec.ports[0].port, domain: .metadata.annotations["skia.org.domain"]}
+    ]' \
+    | gomplate -d data=stdin: -i services.conf.tmpl
