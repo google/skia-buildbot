@@ -1,0 +1,277 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0dd67a84_51a49fc6",
+        "filename": "golden/Makefile",
+        "patchSetId": 10
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-12T14:18:32Z",
+      "side": 1,
+      "message": ".PHONY: serve",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ebbcfb8_e2566714",
+        "filename": "golden/frontend/res/js/gold.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-12T14:18:32Z",
+      "side": 1,
+      "message": "Comment?",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95a69988_16ebcaaa",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-12T14:18:32Z",
+      "side": 1,
+      "message": "nit s/return/report/",
+      "range": {
+        "startLine": 91,
+        "startChar": 29,
+        "endLine": 91,
+        "endChar": 35
+      },
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ab44b3d_f12f8853",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-12T14:18:32Z",
+      "side": 1,
+      "message": "Eeek, a child should not be looking for a parent element, please send an event when tasks are finished or to signal errors.",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c081fab1_9c672721",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk.scss",
+        "patchSetId": 10
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-12T14:18:32Z",
+      "side": 1,
+      "message": "Use elements-sk colors and\n\n  var(--light-gray)\n\nSame for the color below, always use var.",
+      "range": {
+        "startLine": 8,
+        "startChar": 14,
+        "endLine": 8,
+        "endChar": 20
+      },
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fda8aba3_c713075a",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk_test.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-12T14:18:32Z",
+      "side": 1,
+      "message": "changelists-page-sk should be able to be tested on its own, w/o gold-scaffold-sk.",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c36bae61_953c4d3f",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk_test.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-12T14:18:32Z",
+      "side": 1,
+      "message": "swarming?",
+      "range": {
+        "startLine": 48,
+        "startChar": 11,
+        "endLine": 48,
+        "endChar": 29
+      },
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0347b664_27a43328",
+        "filename": "golden/modules/demo_util.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-12T14:18:32Z",
+      "side": 1,
+      "message": "Should probably be moved to infra-sk, I think I have the same exact code in perf. Can be done as a separate CL.",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "369969cc_59d4824b",
+        "filename": "golden/modules/gold-scaffold-sk/gold-scaffold-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-12T14:18:32Z",
+      "side": 1,
+      "message": "Don\u0027t do this as a method, have children emit begin-task and end-task events.\n\nIf you have a lot of existing pages that count on this behavior then add handling to do this with events, have changelists-page-sk use events, and add TODOs to switch the remaining pages over to an event based system.",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "27ea4fed_190531bf",
+        "filename": "golden/modules/gold-scaffold-sk/gold-scaffold-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-12T14:18:32Z",
+      "side": 1,
+      "message": "This is only called once in connectedCallback so it won\u0027t see changes to the properties or attributes. \n\nUse get/set to define the property and in their implementation just use the attribute as the source of truth. This also gives you a place to document the property with an @prop comment:\n\n  https://github.com/google/skia-buildbot/blob/master/perf/modules/triage2-sk/triage2-sk.js#L56\n\nThen have an attributeChangedCallback that calls this._render():\n  https://github.com/google/skia-buildbot/blob/master/perf/modules/triage2-sk/triage2-sk.js#L60",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "33998dee_ad7c2d85",
+        "filename": "golden/modules/gold-scaffold-sk/gold-scaffold-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-12T14:18:32Z",
+      "side": 1,
+      "message": "Same as above, do this using an event.",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49183db1_25305a24",
+        "filename": "golden/modules/gold-scaffold-sk/gold-scaffold-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-12T14:18:32Z",
+      "side": 1,
+      "message": "nit: extra blank line.",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5c8c5df_6542c730",
+        "filename": "golden/modules/gold-scaffold-sk/gold-scaffold-sk.scss",
+        "patchSetId": 10
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-12T14:18:32Z",
+      "side": 1,
+      "message": "Break the definition of --gold out into it\u0027s own file since you will probably need it in other pages.",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "381ac78b_75081e6f",
+        "filename": "golden/modules/gold-scaffold-sk/gold-scaffold-sk.scss",
+        "patchSetId": 10
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-12T14:18:32Z",
+      "side": 1,
+      "message": "Unused by login-sk.",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f397cd0_a2f77db3",
+        "filename": "infra-sk/modules/login-sk/login-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-12T14:18:32Z",
+      "side": 1,
+      "message": "There\u0027s no need to do this, the easier way to do this is to just replace the Login promise in the demo page:\n\nhttps://github.com/google/skia-buildbot/blob/master/perf/modules/cluster-summary2-sk/cluster-summary2-sk-demo.js#L4",
+      "revId": "b003093e6f669703cfc89be8a36f25afb2a61b01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
