@@ -1,0 +1,26 @@
+@import '~elements-sk/colors';
+@import '../colors';
+
+changelists-page-sk {
+
+	thead th {
+		font-weight: bold;
+		text-align: left;
+	}
+
+	tr:hover {
+		background: var(--dark-white);
+	}
+
+	td {
+		padding: 0.25em;
+		min-width: 6em;
+		word-break: break-word;
+	}
+
+	a {
+		color: var(--bright-orange);
+		font-weight: bold;
+		cursor: pointer;
+	}
+}

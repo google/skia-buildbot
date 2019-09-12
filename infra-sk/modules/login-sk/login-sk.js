@@ -15,7 +15,9 @@ import { Login } from '../login';
 define('login-sk', class extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `<span class=email>Loading...</span><a class=logInOut></a>`;
-    Login.then(status => {
+    console.log("using login", Login)
+    Login.then((status) => {
+      console.log('status', status);
       this.querySelector('.email').textContent = status.Email;
       let logInOut = this.querySelector('.logInOut');
       if (!status.Email) {
