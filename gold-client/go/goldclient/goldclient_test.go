@@ -18,8 +18,8 @@ import (
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/types"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	assert "github.com/stretchr/testify/require"
 )
 
 // test data processing of the known hashes input.
@@ -42,7 +42,7 @@ func TestLoadKnownHashes(t *testing.T) {
 
 	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(testSharedConfig)
+	err = goldClient.SetSharedConfig(makeTestSharedConfig())
 	assert.NoError(t, err)
 	// Check that the baseline was loaded correctly
 	baseline := goldClient.resultState.Expectations
@@ -76,7 +76,7 @@ func TestLoadBaseline(t *testing.T) {
 
 	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(testSharedConfig)
+	err = goldClient.SetSharedConfig(makeTestSharedConfig())
 	assert.NoError(t, err)
 
 	// Check that the baseline was loaded correctly
@@ -161,7 +161,7 @@ func TestInit(t *testing.T) {
 
 	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(testSharedConfig)
+	err = goldClient.SetSharedConfig(makeTestSharedConfig())
 	assert.NoError(t, err)
 
 	outFile := filepath.Join(wd, stateFile)
@@ -177,7 +177,7 @@ func TestInit(t *testing.T) {
 	assert.Len(t, state.KnownHashes, 4) // these should be saved to disk
 	assert.Len(t, state.Expectations, 1)
 	assert.Len(t, state.Expectations["ThisIsTheOnlyTest"], 2)
-	assert.Equal(t, testSharedConfig, *state.SharedConfig)
+	assert.Equal(t, makeTestSharedConfig(), *state.SharedConfig)
 
 	state, err = loadStateFromJson("/tmp/some-file-guaranteed-not-to-exist")
 	assert.Error(t, err)
@@ -208,7 +208,7 @@ func TestInitUploadOnly(t *testing.T) {
 
 	goldClient, err := NewCloudClient(auth, config)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(testSharedConfig)
+	err = goldClient.SetSharedConfig(makeTestSharedConfig())
 	assert.NoError(t, err)
 
 	outFile := filepath.Join(wd, stateFile)
@@ -252,7 +252,7 @@ func TestNewReportNormal(t *testing.T) {
 	// would need to call finalize first.
 	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(testSharedConfig)
+	err = goldClient.SetSharedConfig(makeTestSharedConfig())
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -375,7 +375,7 @@ func TestInitAddFinalize(t *testing.T) {
 	// would need to call finalize first.
 	goldClient, err := makeGoldClient(auth, false /*=passFail*/, true /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(testSharedConfig)
+	err = goldClient.SetSharedConfig(makeTestSharedConfig())
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -473,29 +473,38 @@ func TestNewReportPassFail(t *testing.T) {
 	uploader.On("UploadBytes", imgData, testImgPath, expectedUploadPath).Return(nil)
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
-	c := uploader.On("UploadJSON", mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath)
-	c.Run(func(args mock.Arguments) {
-		json := args.Get(0).(*jsonio.GoldResults)
+	checkResults := func(g *jsonio.GoldResults) bool {
 		// spot check some of the properties
-		assert.Equal(t, "abcd1234", json.GitHash)
-		assert.Equal(t, testBuildBucketID, json.BuildBucketID)
-		assert.Equal(t, "WinTest", json.Key["os"])
+		assert.Equal(t, "abcd1234", g.GitHash)
+		assert.Equal(t, testBuildBucketID, g.BuildBucketID)
+		assert.Equal(t, map[string]string{
+			"os":  "WinTest",
+			"gpu": "GPUTest",
+		}, g.Key)
 
-		results := json.Results
+		results := g.Results
 		assert.Len(t, results, 1)
 		r := results[0]
-		assert.Equal(t, imgHash, r.Digest)
-		assert.Equal(t, string(testName), r.Key["name"])
-		// Since we did not specify a source_type it defaults to the instance name, which is
-		// "testing"
-		assert.Equal(t, "testing", r.Key["source_type"])
+		assert.Equal(t, &jsonio.Result{
+			Digest: imgHash,
+			Options: map[string]string{
+				"ext": "png",
+			},
+			Key: map[string]string{
+				"name": string(testName),
+				// Since we did not specify a source_type it defaults to the instance name, which is
+				// "testing"
+				"source_type": "testing",
+			},
+		}, r)
+		return true
+	}
 
-		assert.Equal(t, "png", r.Options["ext"])
-	}).Return(nil)
+	uploader.On("UploadJSON", mock.MatchedBy(checkResults), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
 	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(testSharedConfig)
+	err = goldClient.SetSharedConfig(makeTestSharedConfig())
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -509,9 +518,162 @@ func TestNewReportPassFail(t *testing.T) {
 	// (and the digest is brand new)
 	assert.False(t, pass)
 
-	bytes, err := ioutil.ReadFile(filepath.Join(wd, failureLog))
+	b, err := ioutil.ReadFile(filepath.Join(wd, failureLog))
 	assert.NoError(t, err)
-	assert.Equal(t, "https://testing-gold.skia.org/detail?test=TestNotSeenBefore&digest=9d0568469d206c1aedf1b71f12f474bc\n", string(bytes))
+	assert.Equal(t, "https://testing-gold.skia.org/detail?test=TestNotSeenBefore&digest=9d0568469d206c1aedf1b71f12f474bc\n", string(b))
+}
+
+// TestReportPassFailPassWithCorpus test that when we set the corpus via the initial config
+// // it properly gets overridden.
+func TestReportPassFailPassWithCorpusInInit(t *testing.T) {
+	unittest.MediumTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	imgData := []byte("some bytes")
+	// These are defined in mockBaselineJSON
+	imgHash := types.Digest("beef00d3a1527db19619ec12a4e0df68")
+	testName := types.TestName("ThisIsTheOnlyTest")
+
+	overRiddenCorpus := "gtest-pixeltests"
+
+	auth, httpClient, uploader := makeMocks()
+	defer auth.AssertExpectations(t)
+	defer httpClient.AssertExpectations(t)
+	defer uploader.AssertExpectations(t)
+
+	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+
+	expectations := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations/commit/abcd1234?issue=867").Return(expectations, nil)
+
+	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
+	checkResults := func(g *jsonio.GoldResults) bool {
+		// spot check some of the properties
+		assert.Equal(t, "abcd1234", g.GitHash)
+		assert.Equal(t, testBuildBucketID, g.BuildBucketID)
+		assert.Equal(t, map[string]string{
+			"os":          "WinTest",
+			"gpu":         "GPUTest",
+			"source_type": overRiddenCorpus,
+		}, g.Key)
+
+		results := g.Results
+		assert.Len(t, results, 1)
+		r := results[0]
+		assert.Equal(t, &jsonio.Result{
+			Digest: imgHash,
+			Options: map[string]string{
+				"ext": "png",
+			},
+			Key: map[string]string{
+				"name":          string(testName),
+				"another_notch": "emeril",
+			},
+		}, r)
+		return true
+	}
+
+	uploader.On("UploadJSON", mock.MatchedBy(checkResults), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
+
+	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
+	assert.NoError(t, err)
+	config := makeTestSharedConfig()
+	config.Key[types.CORPUS_FIELD] = overRiddenCorpus
+	err = goldClient.SetSharedConfig(config)
+	assert.NoError(t, err)
+
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
+		assert.Equal(t, testImgPath, path)
+		return imgData, imgHash, nil
+	})
+
+	extraKeys := map[string]string{
+		"another_notch": "emeril",
+	}
+
+	pass, err := goldClient.Test(testName, testImgPath, extraKeys)
+	assert.NoError(t, err)
+	// Returns true because the test has been seen before and marked positive.
+	assert.True(t, pass)
+}
+
+// TestReportPassFailPassWithCorpusInKeys test that when we set the corpus via additional keys,
+// it properly gets overridden.
+func TestReportPassFailPassWithCorpusInKeys(t *testing.T) {
+	unittest.MediumTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	imgData := []byte("some bytes")
+	// These are defined in mockBaselineJSON
+	imgHash := types.Digest("beef00d3a1527db19619ec12a4e0df68")
+	testName := types.TestName("ThisIsTheOnlyTest")
+
+	overRiddenCorpus := "gtest-pixeltests"
+
+	auth, httpClient, uploader := makeMocks()
+	defer auth.AssertExpectations(t)
+	defer httpClient.AssertExpectations(t)
+	defer uploader.AssertExpectations(t)
+
+	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+
+	expectations := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations/commit/abcd1234?issue=867").Return(expectations, nil)
+
+	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
+	checkResults := func(g *jsonio.GoldResults) bool {
+		// spot check some of the properties
+		assert.Equal(t, "abcd1234", g.GitHash)
+		assert.Equal(t, testBuildBucketID, g.BuildBucketID)
+		assert.Equal(t, map[string]string{
+			"os":  "WinTest",
+			"gpu": "GPUTest",
+		}, g.Key)
+
+		results := g.Results
+		assert.Len(t, results, 1)
+		r := results[0]
+		assert.Equal(t, &jsonio.Result{
+			Digest: imgHash,
+			Options: map[string]string{
+				"ext": "png",
+			},
+			Key: map[string]string{
+				"name":          string(testName),
+				"source_type":   overRiddenCorpus,
+				"another_notch": "emeril",
+			},
+		}, r)
+		return true
+	}
+
+	uploader.On("UploadJSON", mock.MatchedBy(checkResults), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
+
+	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
+	assert.NoError(t, err)
+	err = goldClient.SetSharedConfig(makeTestSharedConfig())
+	assert.NoError(t, err)
+
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
+		assert.Equal(t, testImgPath, path)
+		return imgData, imgHash, nil
+	})
+
+	extraKeys := map[string]string{
+		"source_type":   overRiddenCorpus,
+		"another_notch": "emeril",
+	}
+
+	pass, err := goldClient.Test(testName, testImgPath, extraKeys)
+	assert.NoError(t, err)
+	// Returns true because the test has been seen before and marked positive.
+	assert.True(t, pass)
 }
 
 // TestNegativePassFail ensures that a digest marked negative returns false in pass-fail mode.
@@ -544,7 +706,7 @@ func TestNegativePassFail(t *testing.T) {
 
 	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(testSharedConfig)
+	err = goldClient.SetSharedConfig(makeTestSharedConfig())
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -563,11 +725,11 @@ func TestNegativePassFail(t *testing.T) {
 	// Returns false because the test is negative
 	assert.False(t, pass)
 
-	bytes, err := ioutil.ReadFile(filepath.Join(wd, failureLog))
+	b, err := ioutil.ReadFile(filepath.Join(wd, failureLog))
 	assert.NoError(t, err)
 	assert.Equal(t, `https://testing-gold.skia.org/detail?test=ThisIsTheOnlyTest&digest=badbadbad1325855590527db196112e0
 https://testing-gold.skia.org/detail?test=ThisIsTheOnlyTest&digest=badbadbad1325855590527db196112e0
-`, string(bytes))
+`, string(b))
 }
 
 // TestPositivePassFail ensures that a positively marked digest returns true in pass-fail mode.
@@ -600,7 +762,7 @@ func TestPositivePassFail(t *testing.T) {
 
 	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(testSharedConfig)
+	err = goldClient.SetSharedConfig(makeTestSharedConfig())
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -615,9 +777,9 @@ func TestPositivePassFail(t *testing.T) {
 	assert.True(t, pass)
 
 	// Failure file exists, but is empty if no failures
-	bytes, err := ioutil.ReadFile(filepath.Join(wd, failureLog))
+	b, err := ioutil.ReadFile(filepath.Join(wd, failureLog))
 	assert.NoError(t, err)
-	assert.Equal(t, "", string(bytes))
+	assert.Equal(t, "", string(b))
 }
 
 // Tests service account authentication is properly setup in the working directory.
@@ -704,9 +866,9 @@ func TestGetWithRetriesSunnyDay(t *testing.T) {
 
 	mh.On("Get", url).Return(httpResponse([]byte("this is example"), "200 OK", http.StatusOK), nil).Once()
 
-	bytes, err := getWithRetries(mh, url)
+	b, err := getWithRetries(mh, url)
 	assert.NoError(t, err)
-	assert.Equal(t, []byte("this is example"), bytes)
+	assert.Equal(t, []byte("this is example"), b)
 }
 
 func TestGetWithRetriesRecover(t *testing.T) {
@@ -721,9 +883,9 @@ func TestGetWithRetriesRecover(t *testing.T) {
 	mh.On("Get", url).Return(httpResponse([]byte("should not see"), "500 oops", http.StatusInternalServerError), nil).Once()
 	mh.On("Get", url).Return(httpResponse([]byte("this is example"), "200 OK", http.StatusOK), nil).Once()
 
-	bytes, err := getWithRetries(mh, url)
+	b, err := getWithRetries(mh, url)
 	assert.NoError(t, err)
-	assert.Equal(t, []byte("this is example"), bytes)
+	assert.Equal(t, []byte("this is example"), b)
 }
 
 func TestGetWithRetriesTooMany(t *testing.T) {
@@ -823,19 +985,6 @@ const (
 // image and a bad image.
 const mockBaselineJSON = `
 {
-  "startCommit": {
-    "commit_time": 1554696093,
-    "hash": "abcd1234",
-    "author": "Example User (user@example.com)"
-  },
-  "endCommit": {
-    "commit_time": 1554696093,
-    "hash": "abcd1234",
-    "author": "Example User (user@example.com)"
-  },
-  "commitDelta": 0,
-  "total": 3,
-  "filled": 1,
   "md5": "7e4081337b3258555906970002a04a59",
   "master": {
     "ThisIsTheOnlyTest": {
@@ -843,7 +992,7 @@ const mockBaselineJSON = `
       "badbadbad1325855590527db196112e0": 2
     }
   },
-  "Issue": 0
+  "Issue": -1
 }`
 
 const mockHashesTxt = `a9e1481ebc45c1c4f6720d1119644c20
@@ -851,13 +1000,15 @@ c156c5e4b634a3b8cc96e16055197f8b
 4a434407218e198faf2054645fe0ff73
 303a5fd488361214f246004530e24273`
 
-var testSharedConfig = jsonio.GoldResults{
-	GitHash: "abcd1234",
-	Key: map[string]string{
-		"os":  "WinTest",
-		"gpu": "GPUTest",
-	},
-	GerritChangeListID: testIssueID,
-	GerritPatchSet:     testPatchsetID,
-	BuildBucketID:      testBuildBucketID,
+func makeTestSharedConfig() jsonio.GoldResults {
+	return jsonio.GoldResults{
+		GitHash: "abcd1234",
+		Key: map[string]string{
+			"os":  "WinTest",
+			"gpu": "GPUTest",
+		},
+		GerritChangeListID: testIssueID,
+		GerritPatchSet:     testPatchsetID,
+		BuildBucketID:      testBuildBucketID,
+	}
 }
