@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "d93d8db1_b61eec39",
+        "filename": "task_scheduler/go/db/firestore/modified.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-12T15:03:47Z",
+      "side": 1,
+      "message": "\u003e although I\u0027m realizing now that we need to wait for the initial snapshot to arrive before exiting from StartTrackingModifiedTasks.\n\nThat would work too, but it seems simpler/faster to not ignore the initial snapshot.",
+      "parentUuid": "00eaff08_c8612378",
+      "range": {
+        "startLine": 24,
+        "startChar": 55,
+        "endLine": 25,
+        "endChar": 18
+      },
+      "revId": "5e64ec5a30def7a8540361507285b2df3efb68f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e2153a25_72655b59",
         "filename": "task_scheduler/go/db/firestore/modified.go",
         "patchSetId": 6
@@ -81,6 +105,24 @@
       "revId": "5e64ec5a30def7a8540361507285b2df3efb68f5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7a48365_40a789e3",
+        "filename": "task_scheduler/go/db/firestore/modified.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-12T15:03:47Z",
+      "side": 1,
+      "message": "Oh, you\u0027re right. We\u0027ll end up reloading based on the time WatchModified was called, not based on when the error occurs.",
+      "parentUuid": "ae7c67ee_8be35880",
+      "revId": "5e64ec5a30def7a8540361507285b2df3efb68f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
