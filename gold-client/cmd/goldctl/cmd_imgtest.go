@@ -18,16 +18,17 @@ import (
 type imgTestEnv struct {
 	// Flags used by imgtest:init and imgtest:add.
 	flagCommit       string // flag containing the commit hash
-	flagKeysFile     string
-	flagIssueID      string
-	flagPatchsetID   string
-	flagJobID        string
-	flagInstanceID   string
-	flagWorkDir      string
-	flagPassFailStep bool
+	flagCorpus       string
 	flagFailureFile  string
-	flagURL          string
+	flagInstanceID   string
+	flagIssueID      string
+	flagJobID        string
+	flagKeysFile     string
+	flagPassFailStep bool
+	flagPatchsetID   string
 	flagUploadOnly   bool
+	flagURL          string
+	flagWorkDir      string
 
 	// Flags used by imgtest:add
 	flagTestName string
@@ -123,11 +124,12 @@ func (i *imgTestEnv) addCommonFlags(cmd *cobra.Command, optional bool) {
 	cmd.Flags().BoolVar(&i.flagUploadOnly, "upload-only", false, "Skip reading expectations from the server. Incompatible with passfail=true.")
 
 	cmd.Flags().StringVar(&i.flagCommit, "commit", "", "Git commit hash")
-	cmd.Flags().StringVar(&i.flagKeysFile, "keys-file", "", "JSON file containing key/value pairs commmon to all tests")
-	cmd.Flags().StringVar(&i.flagIssueID, "issue", "", "Gerrit issue if this is trybot run. ")
-	cmd.Flags().StringVar(&i.flagPatchsetID, "patchset", "", "Gerrit patchset number if this is a trybot run. ")
-	cmd.Flags().StringVar(&i.flagJobID, "jobid", "", "Job ID if this is a tryjob run. Current the BuildBucket id.")
+	cmd.Flags().StringVar(&i.flagCorpus, "corpus", "", "Gold Corpus Name. Overrides any other values (e.g. from keys-file or add-test-key)")
 	cmd.Flags().StringVar(&i.flagFailureFile, "failure-file", "", "Path to the file where to write failure information")
+	cmd.Flags().StringVar(&i.flagIssueID, "issue", "", "Gerrit issue if this is trybot run. ")
+	cmd.Flags().StringVar(&i.flagJobID, "jobid", "", "Job ID if this is a tryjob run. Current the BuildBucket id.")
+	cmd.Flags().StringVar(&i.flagKeysFile, "keys-file", "", "JSON file containing key/value pairs commmon to all tests")
+	cmd.Flags().StringVar(&i.flagPatchsetID, "patchset", "", "Gerrit patchset number if this is a trybot run. ")
 	cmd.Flags().StringVar(&i.flagURL, "url", "", "URL of the Gold instance. Used for testing, if empty the URL will be derived from the value of 'instance'")
 
 	Must(cmd.MarkFlagRequired(fstrWorkDir))
@@ -164,6 +166,10 @@ func (i *imgTestEnv) runImgTestInitCmd(cmd *cobra.Command, args []string) {
 
 	keyMap, err := readKeysFile(i.flagKeysFile)
 	ifErrLogExit(cmd, err)
+
+	if i.flagCorpus != "" {
+		keyMap[types.CORPUS_FIELD] = i.flagCorpus
+	}
 
 	validation := shared.Validation{}
 	issueID := validation.Int64Value("issue", i.flagIssueID, types.MasterBranch)
@@ -276,6 +282,10 @@ func (i *imgTestEnv) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 				extraKeys[split[0]] = split[1]
 			}
 		}
+	}
+
+	if i.flagCorpus != "" {
+		extraKeys[types.CORPUS_FIELD] = i.flagCorpus
 	}
 
 	pass, err := goldClient.Test(types.TestName(i.flagTestName), i.flagPNGFile, extraKeys)

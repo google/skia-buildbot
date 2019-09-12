@@ -439,8 +439,8 @@ func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, addit
 	}
 
 	// Set the CORPUS_FIELD (e.g. source_type) to the default value of the instanceID
-	// if it is not set. Many clients will not need to set this.
-	if _, ok := c.resultState.SharedConfig.Key[types.CORPUS_FIELD]; !ok {
+	// if it is not set either on Key (via init) or additionalKeys (via add)
+	if c.resultState.SharedConfig.Key[types.CORPUS_FIELD] == "" && newResult.Key[types.CORPUS_FIELD] == "" {
 		newResult.Key[types.CORPUS_FIELD] = c.resultState.InstanceID
 	}
 	c.resultState.SharedConfig.Results = append(c.resultState.SharedConfig.Results, newResult)
