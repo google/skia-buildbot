@@ -3,10 +3,10 @@ package bt_vcs
 import (
 	"context"
 	"io/ioutil"
-	"math"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore"
@@ -62,7 +62,7 @@ func TestGetFile(t *testing.T) {
 	gtRepo := gitiles.NewRepo(skiaRepoURL, nil)
 	hash := "9be246ed747fd1b900013dd0596aed0b1a63a1fa"
 	vcs := &BigTableVCS{
-		gitiles: gtRepo,
+		repo: gtRepo,
 	}
 	_, err := vcs.GetFile(context.Background(), "DEPS", hash)
 	assert.NoError(t, err)
@@ -79,8 +79,10 @@ func TestDetailsCaching(t *testing.T) {
 
 	commits := makeTestLongCommits()
 
-	mg.On("RangeN", testutils.AnyContext, 0, math.MaxInt32, "master").Return(makeTestIndexCommits(), nil)
-	mg.On("Get", testutils.AnyContext, []string{firstHash, secondHash, thirdHash}).Return(commits, nil).Once()
+	mg.On("GetBranches", testutils.AnyContext).Return(makeTestBranchPointerMap(), nil)
+	mg.On("RangeN", testutils.AnyContext, 0, 4, "master").Return(makeTestIndexCommits(), nil)
+	startWithEmptyCache(mg)
+	mg.On("Get", testutils.AnyContext, []string{firstHash}).Return([]*vcsinfo.LongCommit{commits[0]}, nil).Once()
 
 	vcs, err := New(context.Background(), mg, "master", nil)
 	assert.NoError(t, err)
@@ -101,6 +103,73 @@ func TestDetailsCaching(t *testing.T) {
 	assert.Equal(t, commits[0], c)
 }
 
+// TestDetailsBranchInfo tests that the Branches field is filled out when requested.
+func TestDetailsBranchInfo(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mg := &mocks.GitStore{}
+	defer mg.AssertExpectations(t)
+
+	commits := makeTestLongCommits()
+	indices := makeTestIndexCommits()
+
+	mg.On("GetBranches", testutils.AnyContext).Return(makeTestBranchPointerMap(), nil)
+	mg.On("RangeN", testutils.AnyContext, 0, 4, "master").Return(indices, nil)
+	startWithFullCache(mg) // full cache, but it won't have branch info
+	mg.On("Get", testutils.AnyContext, []string{firstHash}).Return([]*vcsinfo.LongCommit{commits[0]}, nil)
+
+	mg.On("RangeByTime", testutils.AnyContext, firstTime, mock.AnythingOfType("time.Time"), "master").Return(
+		[]*vcsinfo.IndexCommit{indices[0]}, nil)
+
+	vcs, err := New(context.Background(), mg, "master", nil)
+	assert.NoError(t, err)
+
+	c, err := vcs.Details(context.Background(), firstHash, true)
+	assert.NoError(t, err)
+	assert.NotNil(t, c)
+	assert.Equal(t, map[string]bool{
+		"master": true,
+	}, c.Branches)
+}
+
+// TestDetailsBranchInfoCaching validates the cache is cognizant of branch info
+func TestDetailsBranchInfoCaching(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mg := &mocks.GitStore{}
+	defer mg.AssertExpectations(t)
+
+	commits := makeTestLongCommits()
+	indices := makeTestIndexCommits()
+
+	mg.On("GetBranches", testutils.AnyContext).Return(makeTestBranchPointerMap(), nil)
+	mg.On("RangeN", testutils.AnyContext, 0, 4, "master").Return(indices, nil)
+	startWithEmptyCache(mg)
+	mg.On("Get", testutils.AnyContext, []string{firstHash}).Return([]*vcsinfo.LongCommit{commits[0]}, nil).Twice()
+
+	mg.On("RangeByTime", testutils.AnyContext, firstTime, mock.AnythingOfType("time.Time"), "master").Return(
+		[]*vcsinfo.IndexCommit{indices[0]}, nil).Once()
+
+	vcs, err := New(context.Background(), mg, "master", nil)
+	assert.NoError(t, err)
+
+	// query details 3 times, and make sure it uses the cache after the
+	// first two times (cache miss on the second time because we requested)
+	// branch info.
+	ctx := context.Background()
+	c, err := vcs.Details(ctx, firstHash, false)
+	assert.NoError(t, err)
+	assert.Nil(t, c.Branches)
+	c, err = vcs.Details(ctx, firstHash, true)
+	assert.NoError(t, err)
+	assert.NotNil(t, c.Branches)
+	c, err = vcs.Details(ctx, firstHash, false)
+	assert.NoError(t, err)
+	// Branches is still here because it was in the cache. This should be fine,
+	// to give clients extra information when they didn't necessarily ask for it.
+	assert.NotNil(t, c.Branches)
+}
+
 // TestDetailsMultiCaching makes sure that multiple calls to DetailsMulti do
 // not result in multiple calls to the underlying gitstore, that is,
 // the details per commit hash are cached.
@@ -112,8 +181,10 @@ func TestDetailsMultiCaching(t *testing.T) {
 
 	commits := makeTestLongCommits()
 
-	mg.On("RangeN", testutils.AnyContext, 0, math.MaxInt32, "master").Return(makeTestIndexCommits(), nil)
-	mg.On("Get", testutils.AnyContext, []string{firstHash, secondHash, thirdHash}).Return(commits, nil).Once()
+	mg.On("GetBranches", testutils.AnyContext).Return(makeTestBranchPointerMap(), nil)
+	mg.On("RangeN", testutils.AnyContext, 0, 4, "master").Return(makeTestIndexCommits(), nil)
+	startWithEmptyCache(mg)
+	mg.On("Get", testutils.AnyContext, []string{firstHash, secondHash}).Return([]*vcsinfo.LongCommit{commits[0], commits[1]}, nil).Once()
 
 	vcs, err := New(context.Background(), mg, "master", nil)
 	assert.NoError(t, err)
@@ -142,6 +213,53 @@ func TestDetailsMultiCaching(t *testing.T) {
 	assert.Equal(t, commits[1], c[1])
 }
 
+// TestDetailsMultiPartialCaching is like TestDetailsMultiCaching, except that
+// it makes sure a partial hit (e.g. some of the hashes are cached) results
+// in only the non-cached subset being queried to GitStore.
+func TestDetailsMultiPartialCaching(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mg := &mocks.GitStore{}
+	defer mg.AssertExpectations(t)
+
+	commits := makeTestLongCommits()
+
+	mg.On("GetBranches", testutils.AnyContext).Return(makeTestBranchPointerMap(), nil)
+	mg.On("RangeN", testutils.AnyContext, 0, 4, "master").Return(makeTestIndexCommits(), nil)
+	startWithEmptyCache(mg)
+	mg.On("Get", testutils.AnyContext, []string{firstHash, thirdHash}).Return([]*vcsinfo.LongCommit{commits[0], commits[2]}, nil).Once()
+	mg.On("Get", testutils.AnyContext, []string{secondHash}).Return([]*vcsinfo.LongCommit{commits[1]}, nil).Once()
+
+	vcs, err := New(context.Background(), mg, "master", nil)
+	assert.NoError(t, err)
+
+	// query details 3 times, and make sure it uses the cache after the
+	// first two times. Since we said Once() on the mocked Get functions, we are
+	// assured that gitstore.Get() is only called twice, - once for the first 2 hashes
+	// and then for the follow up hash.
+	ctx := context.Background()
+	c, err := vcs.DetailsMulti(ctx, []string{firstHash, thirdHash}, false)
+	assert.NoError(t, err)
+	assert.NotNil(t, c)
+	assert.Len(t, c, 2)
+	assert.Equal(t, commits[0], c[0])
+	assert.Equal(t, commits[2], c[1])
+	c, err = vcs.DetailsMulti(ctx, []string{firstHash, secondHash, thirdHash}, false)
+	assert.NoError(t, err)
+	assert.NotNil(t, c)
+	assert.Len(t, c, 3)
+	assert.Equal(t, commits[0], c[0])
+	assert.Equal(t, commits[1], c[1])
+	assert.Equal(t, commits[2], c[2])
+	c, err = vcs.DetailsMulti(ctx, []string{firstHash, secondHash, thirdHash}, false)
+	assert.NoError(t, err)
+	assert.NotNil(t, c)
+	assert.Len(t, c, 3)
+	assert.Equal(t, commits[0], c[0])
+	assert.Equal(t, commits[1], c[1])
+	assert.Equal(t, commits[2], c[2])
+}
+
 // setupVCSLocalRepo loads the test repo into a new GitStore and returns an instance of vcsinfo.VCS.
 func setupVCSLocalRepo(t *testing.T, branch string) (vcsinfo.VCS, gitstore.GitStore, func()) {
 	repoDir, cleanup := vcs_testutils.InitTempRepo()
@@ -155,6 +273,20 @@ func setupVCSLocalRepo(t *testing.T, branch string) (vcsinfo.VCS, gitstore.GitSt
 		util.RemoveAll(wd)
 		cleanup()
 	}
+}
+
+func startWithEmptyCache(mg *mocks.GitStore) {
+	// In the call to New(), Update fetches all the LongCommits for things in the index
+	// commits - we return nil for all of these to keep the cache empty (when testing)
+	// the cache logic.
+	rv := []*vcsinfo.LongCommit{nil, nil, nil}
+	mg.On("Get", testutils.AnyContext, []string{firstHash, secondHash, thirdHash}).Return(rv, nil).Once()
+}
+
+func startWithFullCache(mg *mocks.GitStore) {
+	// In the call to New(), Update fetches all the LongCommits for things in the index
+	// commits - we return the real data here to make sure the detailsCache is full.
+	mg.On("Get", testutils.AnyContext, []string{firstHash, secondHash, thirdHash}).Return(makeTestLongCommits(), nil).Once()
 }
 
 const (

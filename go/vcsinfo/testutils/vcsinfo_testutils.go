@@ -100,8 +100,6 @@ func TestByIndex(t sktest.TestingT, vcs vcsinfo.VCS) {
 	assert.Equal(t, "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18", commit.Hash)
 	_, err = vcs.ByIndex(ctx, -1)
 	assert.Error(t, err)
-	_, err = vcs.ByIndex(ctx, 2)
-	assert.Error(t, err)
 }
 
 func TestLastNIndex(t sktest.TestingT, vcs vcsinfo.VCS) {
@@ -226,6 +224,15 @@ func TestBranchInfo(t assert.TestingT, vcs vcsinfo.VCS, branches []string) {
 	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
 	ctx := context.Background()
 	assert.Equal(t, 2, len(branches))
+
+	// Make sure commits across all branches show up.
+	commits := []string{
+		"7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
+		"8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
+		"3f5a807d432ac232a952bbf223bc6952e4b49b2c",
+	}
+	found := vcs.From(time.Unix(1406721641, 0))
+	assert.Equal(t, commits, found)
 
 	// The timestamps of the three commits commits in the entire repository start
 	// at timestamp 1406721642.

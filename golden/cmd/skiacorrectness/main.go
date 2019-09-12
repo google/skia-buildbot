@@ -261,6 +261,8 @@ func main() {
 		if err != nil {
 			sklog.Fatalf("Error creating BT-backed VCS instance: %s", err)
 		}
+
+		bvcs.StartTracking(ctx, evt)
 		vcs = bvcs
 	} else {
 		sklog.Fatal("You must specify --bt_instance and --git_bt_table")
