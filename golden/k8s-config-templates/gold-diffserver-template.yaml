@@ -54,7 +54,6 @@ spec:
             - "--logtostderr"
             - "--no_cloud_log"
             - "--prom_port=:20000"
-            - "--service_account_file=/var/secrets/google/service-account.json"
           ports:
             - containerPort: 8000
               name: grpc
