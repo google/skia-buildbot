@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "28c81173_41fa5d88",
+        "filename": "gold-client/cmd/goldctl/cmd_imgtest.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-12T13:19:40Z",
+      "side": 1,
+      "message": "these were just re-sorted, with one additional one (flagCorpus)",
+      "revId": "ba4c99b765c2a18d9df06016a332e63ac61f6908",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5779ef4e_2bb76b18",
+        "filename": "gold-client/cmd/goldctl/cmd_imgtest.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-12T13:19:40Z",
+      "side": 1,
+      "message": "same resorting, with flagCorpus added",
+      "revId": "ba4c99b765c2a18d9df06016a332e63ac61f6908",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
