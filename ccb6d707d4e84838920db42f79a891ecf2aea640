@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "5717359c_2ec2b5f2",
+        "filename": "skfe/build_services_conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-12T17:27:06Z",
+      "side": 1,
+      "message": "Would there be any advantage to reading the yaml from the git repo instead of reading the live services?",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 20
+      },
+      "revId": "ccb6d707d4e84838920db42f79a891ecf2aea640",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ec9a8d0_a7ecc845",
+        "filename": "skfe/build_services_conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-12T17:27:06Z",
+      "side": 1,
+      "message": "FWIW, I don\u0027t really understand why this works. The jq docs says the argument to del is a path expression, but here it\u0027s a filter.",
+      "range": {
+        "startLine": 34,
+        "startChar": 6,
+        "endLine": 34,
+        "endChar": 50
+      },
+      "revId": "ccb6d707d4e84838920db42f79a891ecf2aea640",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "748e91d2_ee8786eb",
+        "filename": "skfe/k8s/redirects.conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-12T17:27:06Z",
+      "side": 1,
+      "message": "GFE will auto-redirect to HTTPS, correct? I don\u0027t see how this one will work in that case.",
+      "range": {
+        "startLine": 198,
+        "startChar": 0,
+        "endLine": 209,
+        "endChar": 0
+      },
+      "revId": "ccb6d707d4e84838920db42f79a891ecf2aea640",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4cd900ce_d2c74291",
         "filename": "skfe/k8s/services.conf",
         "patchSetId": 7
