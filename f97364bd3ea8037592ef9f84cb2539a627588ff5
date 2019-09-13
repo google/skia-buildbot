@@ -1,0 +1,28 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4929bc91_a2de5322",
+        "filename": "launch.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-13T13:36:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "95698e55_f0fca303",
+      "range": {
+        "startLine": 199,
+        "startChar": 29,
+        "endLine": 199,
+        "endChar": 35
+      },
+      "revId": "f97364bd3ea8037592ef9f84cb2539a627588ff5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
