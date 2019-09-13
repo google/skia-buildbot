@@ -1,0 +1,20 @@
+@import '~elements-sk/colors';
+
+pagination-sk {
+  button, div {
+    display:inline-block;
+    font-size: 1.0em;
+  }
+
+  button {
+    color: var(--black);
+    font-weight: bold;
+  }
+
+  button[disabled] {
+    color: var(--white);
+    background: var(--light-gray);
+    box-shadow: none;
+    font-weight: normal;
+  }
+}
