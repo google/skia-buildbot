@@ -196,19 +196,27 @@ spec:
     `kubectl port-forward my-app-7bf542629-jujzm 8083:8000`
   - Navigate a browser to <http://localhost:8083> to see your service.
 
-- Update [skia-ingress.yaml](https://skia.googlesource.com/skia-public-config/+/master/skia-ingress.yaml)
-with an entry for your app. Note that this is in the `skia-public-config` repo.
-Commit this, then run `kubectl apply -f skia-ingress.yaml` to apply the new config.
-- Add configuration for your service's domain name to
-  `skfe/sys/skia_org_nginx`.
-  - You basically want to do a proxy_pass to the skia-public's IP address. This will connect to
-    the skia-ingress config.
-  - Legacy apps link to their respective VM.
-  - Commit the change, build a new `skfe` release, and
-  push `skfe-config` to `skfe-1` and `-2`. Your service is now live on the
-  Internet.
+- If you have simple routing needs, to make your service visible to the public
+  add a [`skia.org.domain` annotation to your Service
+  YAML](https://skia.googlesource.com/buildbot/+/refs/heads/master/skfe/README.md)
+  with the domain name and deploy your updated yaml with `kubectl apply`.
 
-- Run `./kube/set-backend-timeouts.sh` to fix the default HTTP timeout length.
+  If your routing is more complicated you can skip the YAML annotation and write
+  the routing rules directly into `infra/skfe/k8s/default.conf`.
+
+  Either way you then push a new version of nginx-skia-org:
+
+  ~~~
+  cd infra/skfe
+  make k8s_push
+  ~~~
+
+  And watch that the new instances start running:
+
+  ~~~
+  watch kubectl get pods -lapp=nginx-skia-org
+  ~~~
+
 - Add prober rules to `probers.json` in your application directory.
 
     - Ideally, probe all public HTML pages and all nullipotent JSON endpoints.
