@@ -18,7 +18,7 @@ require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/VividCortex/godaemon v0.0.0-20150910212227-3d9f6e0b234f
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.23.20 // indirect
+	github.com/aws/aws-sdk-go v1.23.21 // indirect
 	github.com/boltdb/bolt v1.3.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/coreos/bbolt v1.3.3 // indirect
@@ -61,6 +61,7 @@ require (
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.11.1 // indirect
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/golang-lru v0.5.3
@@ -87,7 +88,6 @@ require (
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.4.0 // indirect
-	github.com/pkg/errors v0.8.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.1.0
 	github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4 // indirect
@@ -101,7 +101,6 @@ require (
 	github.com/russross/blackfriday v2.0.0+incompatible // indirect
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
-	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/skia-dev/go-systemd v0.0.0-20181025131956-1cc903e82ae4
 	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
@@ -123,16 +122,16 @@ require (
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.opencensus.io v0.22.1
 	golang.org/x/crypto v0.0.0-20190911031432-227b76d455e7
-	golang.org/x/exp v0.0.0-20190829153037-c13cbed26979 // indirect
+	golang.org/x/exp v0.0.0-20190912063710-ac5d2bfcbfe0 // indirect
 	golang.org/x/image v0.0.0-20190910094157-69e4b8554b2a // indirect
 	golang.org/x/lint v0.0.0-20190909230951-414d861bb4ac // indirect
 	golang.org/x/mobile v0.0.0-20190910184405-b558ed863381 // indirect
-	golang.org/x/net v0.0.0-20190909003024-a7b16738d86b
+	golang.org/x/net v0.0.0-20190912160710-24e19bdeb0f2
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20190911201528-7ad0cfa0b7b5 // indirect
+	golang.org/x/sys v0.0.0-20190912141932-bc967efca4b8 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
-	golang.org/x/tools v0.0.0-20190911230505-6bfd74cf029c // indirect
+	golang.org/x/tools v0.0.0-20190912215617-3720d1ec3678 // indirect
 	golang.org/x/tools/gopls v0.1.5 // indirect
 	google.golang.org/api v0.10.0
 	google.golang.org/appengine v1.6.2 // indirect
