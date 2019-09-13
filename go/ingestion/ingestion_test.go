@@ -195,6 +195,35 @@ func TestGetStartTimeOfInterestCommits(t *testing.T) {
 	assert.Equal(t, betaTime.Unix(), ts)
 }
 
+// TestGetStartTimeOfInterestTryJobs checks that we compute the time to start
+// polling for commits properly in the case of TryJobs, where NCommits is 0 and
+// the time is short enough that we haven't seen new commits in that time.
+func TestGetStartTimeOfInterestTryJobs(t *testing.T) {
+	unittest.SmallTest(t)
+	// We have to provide NewIngester non-nil eventbus and ingestionstore.
+	meb := &mockeventbus.EventBus{}
+	mis := &mocks.IngestionStore{}
+
+	defer meb.AssertExpectations(t)
+	defer mis.AssertExpectations(t)
+
+	// arbitrary date
+	now := time.Date(2019, 8, 5, 11, 20, 0, 0, time.UTC)
+	oneHourAgo := now.Add(-1 * time.Hour)
+
+	conf := &sharedconfig.IngesterConfig{
+		MinHours: 1,
+	}
+
+	i, err := NewIngester("test-ingester-1", conf, nil, nil, nil, mis, meb)
+	assert.NoError(t, err)
+	defer testutils.AssertCloses(t, i)
+
+	ts, err := i.getStartTimeOfInterest(context.Background(), now)
+	assert.NoError(t, err)
+	assert.Equal(t, oneHourAgo.Unix(), ts)
+}
+
 // TestGetStartTimeOfInterestNotEnough makes sure we don't loop infinitely
 // if there are not enough commits in the repo to fulfill the NCommits.
 func TestGetStartTimeOfInterestNotEnough(t *testing.T) {

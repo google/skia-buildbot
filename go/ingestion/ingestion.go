@@ -227,14 +227,15 @@ func (i *Ingester) processResult(ctx context.Context, rfl ResultFileLocation) {
 // configured NCommits and MinDays for the Ingester.
 func (i *Ingester) getStartTimeOfInterest(ctx context.Context, now time.Time) (int64, error) {
 	// If there is no vcs, use the minDuration field of the ingester to calculate
-	// the start time.
-	if i.vcs == nil {
+	// the start time. If nCommits is 0 (e.g. TryJobs), then don't bother with the VCS - just
+	// return the time delta.
+	if i.vcs == nil || i.nCommits == 0 {
 		return now.Add(-i.minDuration).Unix(), nil
 	}
 
 	// Make sure the VCS is up to date.
 	if err := i.vcs.Update(ctx, true, false); err != nil {
-		return 0, err
+		return 0, skerr.Wrap(err)
 	}
 
 	// Get the desired number of commits in the desired time frame.
@@ -257,13 +258,13 @@ func (i *Ingester) getStartTimeOfInterest(ctx context.Context, now time.Time) (i
 	}
 
 	if len(hashes) == 0 {
-		return 0, skerr.Fmt("No commits found in last year.")
+		return 0, skerr.Fmt("no commits found in last year")
 	}
 
 	// Get the commit time of the first commit of interest.
 	detail, err := i.vcs.Details(ctx, hashes[0], false)
 	if err != nil {
-		return 0, err
+		return 0, skerr.Wrap(err)
 	}
 
 	return detail.Timestamp.Unix(), nil
