@@ -48,6 +48,10 @@ We should mark the following fields as no-index, to save some index space.
   - Params.Map
 
 We will need the following composite indices:
+Collection ID           | Fields
+------------------------------------------------------------------
+tjstore_result          | clid: ASC crs: ASC psid: ASC digest: ASC
+
 // TODO(kjlubick) fill this out with the exact indices as they appear in Pantheon.
 // If we are careful with the order of our queries, (e.g. have PSID be last), we can
 // probably get away with one composite index, even for queries in the future that are just by CL.

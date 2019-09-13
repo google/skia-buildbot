@@ -98,6 +98,10 @@ var gold = gold || {};
     // master indicates whether to include digests that are also in master
     // when querying tryjob results.
     master: false,
+
+    // use the new way of storing data belonging to changelists
+    // https://bugs.chromium.org/p/skia/issues/detail?id=9340
+    new_clstore: false,
   };
 
   // Default values for the search query of the by-blame-page.

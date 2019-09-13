@@ -58,6 +58,7 @@ const (
 type WebHandlers struct {
 	Baseliner               baseline.BaselineFetcher
 	ChangeListStore         clstore.Store
+	CodeReviewURLPrefix     string
 	DeprecatedTryjobMonitor tryjobs.TryjobMonitor
 	DeprecatedTryjobStore   tryjobstore.TryjobStore
 	DiffStore               diff.DiffStore
@@ -81,18 +82,16 @@ func (wh *WebHandlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Extract the corpus from the query parameters.
 	var qp url.Values = nil
-	var err error = nil
 	if v := r.FormValue("query"); v != "" {
-		// TODO(kjlubick): this error handling does not make sense.
-		if qp, err = url.ParseQuery(v); qp.Get(types.CORPUS_FIELD) == "" {
-			err = fmt.Errorf("Got query field, but did not contain %s field.", types.CORPUS_FIELD)
+		var err error
+		if qp, err = url.ParseQuery(v); err != nil {
+			httputils.ReportError(w, r, err, "invalid input")
+			return
+		} else if qp.Get(types.CORPUS_FIELD) == "" {
+			// If no corpus specified report an error.
+			httputils.ReportError(w, r, skerr.Fmt("did not receive value for corpus"), "invalid input")
+			return
 		}
-	}
-
-	// If no corpus specified return an error.
-	if err != nil {
-		httputils.ReportError(w, r, skerr.Fmt("did not receive value for corpus/%s", types.CORPUS_FIELD), "invalid input")
-		return
 	}
 
 	blameEntries, err := wh.computeByBlame(qp)
@@ -318,7 +317,7 @@ func (wh *WebHandlers) getIngestedChangeLists(ctx context.Context, offset, size 
 	crs := wh.ChangeListStore.System()
 	var retCls []frontend.ChangeList
 	for _, cl := range cls {
-		retCls = append(retCls, frontend.ConvertChangeList(cl, crs))
+		retCls = append(retCls, frontend.ConvertChangeList(cl, crs, wh.CodeReviewURLPrefix))
 	}
 
 	pagination := &httputils.ResponsePagination{
@@ -397,7 +396,7 @@ func (wh *WebHandlers) getCLSummary(ctx context.Context, clID string) (frontend.
 	}
 
 	return frontend.ChangeListSummary{
-		CL:                frontend.ConvertChangeList(cl, crs),
+		CL:                frontend.ConvertChangeList(cl, crs, wh.CodeReviewURLPrefix),
 		PatchSets:         patchsets,
 		NumTotalPatchSets: maxOrder,
 	}, nil
