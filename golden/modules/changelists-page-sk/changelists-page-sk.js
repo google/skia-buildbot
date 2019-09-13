@@ -13,6 +13,8 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk'
 import { html } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 
+import '../pagination-sk'
+
 const _changelist = (cl) => html`
 <tr>
   <td>
@@ -26,7 +28,11 @@ const _changelist = (cl) => html`
 </tr>`;
 
 const template = (ele) => html`
-<div>TODO(kjlubick) pagination here</div>
+<div>
+  <pagination-sk page_size=${ele._page_size} offset=${ele._offset}
+                 total=${ele._total} @page-changed=${ele._pageChanged}>
+  </pagination-sk>
+</div>
 
 <table>
   <thead>
@@ -46,6 +52,9 @@ define('changelists-page-sk', class extends ElementSk {
     super(template);
 
     this._cls = [];
+    this._offset = 0;
+    this._page_size = 50;
+    this._total = 2147483647;
 
     // Allows us to abort fetches if a user pages.
     this._fetchController = null;
@@ -77,10 +86,22 @@ define('changelists-page-sk', class extends ElementSk {
       .then(jsonOrThrow)
       .then((json) => {
         this._cls = json.data;
+        this._offset = json.pagination.offset;
+        this._total = json.pagination.total;
         this._render();
         this._sendDone();
       })
       .catch((e) => this._sendFetchError(e, 'changelists'));
+  }
+
+  _pageChanged(e) {
+    const d = e.detail;
+    this._offset += d.delta * this._page_size;
+    if (this._offset < 0) {
+      this._offset = 0;
+    }
+    this._render();
+    this._fetch();
   }
 
   _sendBusy() {
