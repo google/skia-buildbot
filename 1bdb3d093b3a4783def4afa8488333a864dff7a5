@@ -22,6 +22,30 @@
       "revId": "1bdb3d093b3a4783def4afa8488333a864dff7a5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eaf429aa_0e1581df",
+        "filename": "skfe/k8s/default.conf",
+        "patchSetId": 6
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-13T13:33:47Z",
+      "side": 1,
+      "message": "OK, follow-up CL: https://skia-review.googlesource.com/c/buildbot/+/241257",
+      "parentUuid": "bc9daac0_8164720f",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 63
+      },
+      "revId": "1bdb3d093b3a4783def4afa8488333a864dff7a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
