@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e91ff536_aff31a8f",
+        "filename": "golden/cmd/goldpushk/goldpushk/types.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-13T17:02:10Z",
+      "side": 1,
+      "message": "nit: add comment expressing that it is intended to be immutable/read-only outside of this package.",
+      "revId": "9d972522ffa7f6b4a47dbf295283714f5f316f14",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "19359c2c_2661a7ee",
+        "filename": "golden/cmd/goldpushk/main_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-13T17:02:10Z",
+      "side": 1,
+      "message": "nit: declare this static function after the test function",
+      "range": {
+        "startLine": 389,
+        "startChar": 1,
+        "endLine": 389,
+        "endChar": 14
+      },
+      "revId": "9d972522ffa7f6b4a47dbf295283714f5f316f14",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
