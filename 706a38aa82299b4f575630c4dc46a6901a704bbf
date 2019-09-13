@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "45a1b85d_e1e3440c",
+        "filename": "infra-sk/modules/login-sk/login-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-13T14:05:06Z",
+      "side": 1,
+      "message": "Use @attr to document the testing_offline attribute.\n\nThe docs for @prob can just say they reflect the attribute value for ease of use.",
+      "revId": "706a38aa82299b4f575630c4dc46a6901a704bbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd664c44_ad708581",
+        "filename": "infra-sk/modules/login-sk/login-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-13T14:05:06Z",
+      "side": 1,
+      "message": "setAttribute doesn\u0027t work that way, see:\n\n  https://github.com/google/elements-sk/blob/master/elements-sk/collapse-sk/collapse-sk.js#L38",
+      "revId": "706a38aa82299b4f575630c4dc46a6901a704bbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
