@@ -9,7 +9,7 @@
 #
 #    go get github.com/hairyhenderson/gomplate/cmd/gomplate
 #
-
+#
 # The jq part of the script strips out all Services that don't have a
 # skia.org.domain annotation.
 #
