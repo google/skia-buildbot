@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "edf65a86_93c1ca94",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-13T14:36:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "705ead15_975b8422",
+      "range": {
+        "startLine": 97,
+        "startChar": 1,
+        "endLine": 98,
+        "endChar": 23
+      },
+      "revId": "4f1d664493001b1da8ba06683b821855f2e1e8d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8b580ddf_e5477cee",
         "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "4f1d664493001b1da8ba06683b821855f2e1e8d2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e611a43_2c5ecc35",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-13T14:36:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8b580ddf_e5477cee",
+      "range": {
+        "startLine": 116,
+        "startChar": 9,
+        "endLine": 116,
+        "endChar": 12
+      },
+      "revId": "4f1d664493001b1da8ba06683b821855f2e1e8d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "334997b7_99e5a4e2",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-13T14:36:43Z",
+      "side": 1,
+      "message": "Added the number of commits we attempted to retrieve and the hash of the first.  This could be hundreds of thousands of commits, so I don\u0027t want to add all of them to the log.",
+      "parentUuid": "26f01c20_af574fc8",
+      "range": {
+        "startLine": 135,
+        "startChar": 67,
+        "endLine": 135,
+        "endChar": 75
+      },
+      "revId": "4f1d664493001b1da8ba06683b821855f2e1e8d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8615d260_9394a0b0",
         "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
         "patchSetId": 1
@@ -91,6 +163,30 @@
       "revId": "4f1d664493001b1da8ba06683b821855f2e1e8d2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d2cf288_a33aeee2",
+        "filename": "go/vcsinfo/bt_vcs/bt_vcs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-13T14:36:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8615d260_9394a0b0",
+      "range": {
+        "startLine": 149,
+        "startChar": 8,
+        "endLine": 149,
+        "endChar": 11
+      },
+      "revId": "4f1d664493001b1da8ba06683b821855f2e1e8d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
