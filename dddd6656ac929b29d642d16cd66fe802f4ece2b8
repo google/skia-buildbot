@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "54f0af0a_4a91bb8f",
+        "filename": "perf/go/ingestevents/ingestevents.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-13T18:57:31Z",
+      "side": 1,
+      "message": "nit: We gzip the content to stay well below the 10MB max for a PubSub payload.",
+      "range": {
+        "startLine": 26,
+        "startChar": 39,
+        "endLine": 26,
+        "endChar": 46
+      },
+      "revId": "dddd6656ac929b29d642d16cd66fe802f4ece2b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "039cfeff_cd4ad0e3",
+        "filename": "perf/go/ingestevents/ingestevents.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-13T18:57:31Z",
+      "side": 1,
+      "message": "Why not just gob-encode it here since it\u0027s going to be gzipped anyway?  (i.e. Humans aren\u0027t going to read it in flight)",
+      "range": {
+        "startLine": 30,
+        "startChar": 9,
+        "endLine": 30,
+        "endChar": 27
+      },
+      "revId": "dddd6656ac929b29d642d16cd66fe802f4ece2b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7aaa80cf_52b58371",
+        "filename": "perf/go/ingestevents/ingestevents.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-13T18:57:31Z",
+      "side": 1,
+      "message": "nit: skerr.Wrap(err) (which properly ignores err \u003d\u003d nil)",
+      "range": {
+        "startLine": 32,
+        "startChar": 21,
+        "endLine": 32,
+        "endChar": 24
+      },
+      "revId": "dddd6656ac929b29d642d16cd66fe802f4ece2b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68e3da15_1a0bc91e",
+        "filename": "perf/go/ingestevents/ingestevents_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-13T18:57:31Z",
+      "side": 1,
+      "message": "nit: also try nil slice and nil maps",
+      "range": {
+        "startLine": 20,
+        "startChar": 14,
+        "endLine": 20,
+        "endChar": 35
+      },
+      "revId": "dddd6656ac929b29d642d16cd66fe802f4ece2b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
