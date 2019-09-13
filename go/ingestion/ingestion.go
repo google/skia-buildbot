@@ -164,10 +164,10 @@ func (i *Ingester) watchSource(source Source) {
 			return
 		}
 
-		rfCh := source.Poll(startTime, time.Now().Unix())
+		rfCh := source.Poll(startTime.Unix(), time.Now().Unix())
 		processed := int64(0)
 		ignored := int64(0)
-		sklog.Infof("Polling starting at %s [UTC]", time.Unix(startTime, 0))
+		sklog.Infof("Polling starting at %s [UTC]", startTime)
 		for rf := range rfCh {
 			// It is a rare case that the pubsub event got lost, so we check to see
 			// if we already processed the file before re-queuing it.
@@ -225,16 +225,17 @@ func (i *Ingester) processResult(ctx context.Context, rfl ResultFileLocation) {
 // getStartTimeOfInterest returns the start time of input files we are interested in.
 // We will then poll for input files from startTime to now. This is computed using the
 // configured NCommits and MinDays for the Ingester.
-func (i *Ingester) getStartTimeOfInterest(ctx context.Context, now time.Time) (int64, error) {
+func (i *Ingester) getStartTimeOfInterest(ctx context.Context, now time.Time) (time.Time, error) {
 	// If there is no vcs, use the minDuration field of the ingester to calculate
-	// the start time.
-	if i.vcs == nil {
-		return now.Add(-i.minDuration).Unix(), nil
+	// the start time. If nCommits is 0 (e.g. TryJobs), then don't bother with the VCS - just
+	// return the time delta.
+	if i.vcs == nil || i.nCommits == 0 {
+		return now.Add(-i.minDuration), nil
 	}
 
 	// Make sure the VCS is up to date.
 	if err := i.vcs.Update(ctx, true, false); err != nil {
-		return 0, err
+		return time.Time{}, skerr.Wrap(err)
 	}
 
 	// Get the desired number of commits in the desired time frame.
@@ -257,16 +258,16 @@ func (i *Ingester) getStartTimeOfInterest(ctx context.Context, now time.Time) (i
 	}
 
 	if len(hashes) == 0 {
-		return 0, skerr.Fmt("No commits found in last year.")
+		return time.Time{}, skerr.Fmt("no commits found in last year")
 	}
 
 	// Get the commit time of the first commit of interest.
 	detail, err := i.vcs.Details(ctx, hashes[0], false)
 	if err != nil {
-		return 0, err
+		return time.Time{}, skerr.Wrap(err)
 	}
 
-	return detail.Timestamp.Unix(), nil
+	return detail.Timestamp, nil
 }
 
 // Shorthand type to define helpers.
