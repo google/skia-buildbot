@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "97314248_67fd866c",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-13T18:55:16Z",
+      "side": 1,
+      "message": "Should this log an error?  Or rather, now that we have code to exit early if we shouldn\u0027t get to this point, should we continue to return an error?",
+      "range": {
+        "startLine": 261,
+        "startChar": 8,
+        "endLine": 261,
+        "endChar": 16
+      },
+      "revId": "8f80cb2c67123329565502cdf86c0a6bdca3e167",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
