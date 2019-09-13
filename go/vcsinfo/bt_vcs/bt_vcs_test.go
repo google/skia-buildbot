@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	vcs_testutils "go.skia.org/infra/go/vcsinfo/testutils"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -53,6 +54,36 @@ func TestBranchInfo(t *testing.T) {
 	}
 
 	vcs_testutils.TestBranchInfo(t, vcs, branches)
+}
+
+// TestConcurrentUpdate verifies that BigTableVCS.Update() behaves correctly
+// when called concurrently.
+func TestConcurrentUpdate(t *testing.T) {
+	unittest.LargeTest(t)
+
+	numGoroutines := 10
+	mg := &mocks.GitStore{}
+	defer mg.AssertExpectations(t)
+
+	mg.On("GetBranches", testutils.AnyContext).Return(makeTestBranchPointerMap(), nil)
+	mg.On("RangeN", testutils.AnyContext, 0, 4, "master").Return(makeTestIndexCommits(), nil)
+	startWithFullCache(mg)
+
+	ctx := context.Background()
+	vcs, err := New(ctx, mg, "master", nil)
+	assert.NoError(t, err)
+
+	// TODO(borenet): This just runs Update() concurrently without anything
+	// interesting happening. Is it possible to add commits and then verify
+	// that only one call to update actually found the new commits and the
+	// others realized that we were already up to date?
+	var egroup errgroup.Group
+	for i := 0; i < numGoroutines; i++ {
+		egroup.Go(func() error {
+			return vcs.Update(ctx, true, false)
+		})
+	}
+	assert.NoError(t, egroup.Wait())
 }
 
 // TestGetFile makes sure that we can use gittiles to fetch an

@@ -44,10 +44,9 @@ type BigTableVCS struct {
 	secondaryVCS       vcsinfo.VCS
 	secondaryExtractor depot_tools.DEPSExtractor
 
+	// This mutex protects branchInfo, detailsCache, and indexCommits
+	mutex      sync.RWMutex
 	branchInfo *gitstore.BranchPointer
-
-	// This mutex protects detailsCache and indexCommits
-	mutex sync.RWMutex
 	// detailsCache is for LongCommits so we don't have to query gitStore every time
 	detailsCache map[string]*vcsinfo.LongCommit
 	indexCommits []*vcsinfo.IndexCommit
@@ -88,6 +87,9 @@ func (b *BigTableVCS) SetSecondaryRepo(secVCS vcsinfo.VCS, extractor depot_tools
 
 // Update implements the vcsinfo.VCS interface
 func (b *BigTableVCS) Update(ctx context.Context, pull, allBranches bool) error {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+
 	// Check if we need to pull across all branches.
 	targetBranch := b.defaultBranch
 	if allBranches {
@@ -110,22 +112,44 @@ func (b *BigTableVCS) Update(ctx context.Context, pull, allBranches bool) error 
 	}
 
 	// Get all index commits for the current branch.
-	if err := b.fetchIndexRange(ctx, 0, b.branchInfo.Index+1); err != nil {
-		return skerr.Wrapf(err, "could not fetch index commits [0,%d]", b.branchInfo.Index+1)
+	newIC, err := b.gitStore.RangeN(ctx, 0, b.branchInfo.Index+1, b.defaultBranch)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to retrieve IndexCommits in [%d:%d)", 0, b.branchInfo.Index+1)
 	}
-	// warm the cache of long commits
-	hashes := func() []string {
-		b.mutex.RLock()
-		defer b.mutex.RUnlock()
-		hashes := make([]string, 0, len(b.indexCommits))
-		for _, ic := range b.indexCommits {
+	b.indexCommits = newIC
+
+	// Warm the cache of long commits.
+	// TODO(borenet): If something fails, this could make commit details
+	// available before the associated IndexCommits are available. I don't
+	// think that's a problem though, and this implementation is going to
+	// change soon. This duplicates parts of DetailsMulti, but it was tricky
+	// to change the locking behavior of DetailsMulti, and this is a
+	// temporary fix anyway.
+	hashes := make([]string, 0, len(newIC))
+	for _, ic := range b.indexCommits {
+		if _, ok := b.detailsCache[ic.Hash]; !ok {
 			hashes = append(hashes, ic.Hash)
 		}
-		return hashes
-	}()
-
-	_, err := b.DetailsMulti(ctx, hashes, false)
-	return err
+	}
+	if len(hashes) > 0 {
+		lcs, err := b.gitStore.Get(ctx, hashes)
+		if err != nil {
+			return skerr.Wrapf(err, "failed to retrieve %d new LongCommits from GitStore; first hash: %s", len(hashes), hashes[0])
+		}
+		for idx, lc := range lcs {
+			if lc == nil {
+				// TODO(borenet): I tried returning an error here, since
+				// I can't imagine this not being a problem, but that
+				// caused tests to fail. Rather than look into that in
+				// detail, I just deferred the error to when the user
+				// calls Details for the missing commit(s).
+				sklog.Errorf("Could not find LongCommit %s for branch %s", hashes[idx], b.defaultBranch)
+			} else {
+				b.detailsCache[lc.Hash] = lc
+			}
+		}
+	}
+	return nil
 }
 
 // From implements the vcsinfo.VCS interface
@@ -404,23 +428,6 @@ func (b *BigTableVCS) ResolveCommit(ctx context.Context, commitHash string) (str
 // GetGitStore implements the gitstore.GitStoreBased interface
 func (b *BigTableVCS) GetGitStore() gitstore.GitStore {
 	return b.gitStore
-}
-
-// fetchIndexRange gets in the range [startIndex, endIndex).
-func (b *BigTableVCS) fetchIndexRange(ctx context.Context, startIndex, endIndex int) error {
-	newIC, err := b.gitStore.RangeN(ctx, startIndex, endIndex, b.defaultBranch)
-	if err != nil {
-		return err
-	}
-
-	if len(newIC) == 0 {
-		return nil
-	}
-
-	b.mutex.Lock()
-	defer b.mutex.Unlock()
-	b.indexCommits = newIC
-	return nil
 }
 
 func (b *BigTableVCS) timeRange(start time.Time, end time.Time) []*vcsinfo.IndexCommit {
