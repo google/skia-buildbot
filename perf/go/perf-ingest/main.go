@@ -27,12 +27,14 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/btts"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/ingestcommon"
+	"go.skia.org/infra/perf/go/ingestevents"
 	"google.golang.org/api/option"
 )
 
@@ -52,8 +54,17 @@ const (
 var (
 	// mutex protects hashCache.
 	mutex = sync.Mutex{}
+
 	// hashCache is a cache of results from calling vcs.IndexOf().
 	hashCache = map[string]int{}
+
+	// pubSubClient is a client used for both receiving PubSub messages from GCS
+	// and for sending ingestion notifications if the config specifies such a
+	// Topic.
+	pubSubClient *pubsub.Client
+
+	// The configuration data for the selected Perf instance.
+	cfg *config.PerfBigTableConfig
 )
 
 var (
@@ -173,7 +184,43 @@ func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs 
 		}
 		indexToCache(benchData.Hash, index)
 	}
-	return store.WriteTraces(int32(index), params, values, paramset, filename, timestamp)
+	err = store.WriteTraces(int32(index), params, values, paramset, filename, timestamp)
+	if err != nil {
+		return err
+	}
+	return sendPubSubEvent(params, paramset)
+}
+
+// sendPubSubEvent sends the unencoded params and paramset found in a single
+// ingested file to the PubSub topic specified in the selected Perf instances
+// configuration data.
+func sendPubSubEvent(params []paramtools.Params, paramset paramtools.ParamSet) error {
+	if cfg.FileIngestionTopicName == "" {
+		return nil
+	}
+	traceIDs := make([]string, 0, len(params))
+	for _, p := range params {
+		key, err := query.MakeKeyFast(p)
+		if err != nil {
+			continue
+		}
+		traceIDs = append(traceIDs, key)
+	}
+	ie := &ingestevents.IngestEvent{
+		TraceIDs: traceIDs,
+		ParamSet: paramset,
+	}
+	body, err := ingestevents.CreatePubSubBody(ie)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to encode PubSub body for topic: %q", cfg.FileIngestionTopicName)
+	}
+	msg := &pubsub.Message{
+		Data: body,
+	}
+	ctx := context.Background()
+	_, err = pubSubClient.Topic(cfg.FileIngestionTopicName).Publish(ctx, msg).Get(ctx)
+
+	return err
 }
 
 // Event is used to deserialize the PubSub data.
@@ -198,7 +245,8 @@ func main() {
 	ackCounter := metrics2.GetCounter("ack", nil)
 
 	ctx := context.Background()
-	cfg, ok := config.PERF_BIGTABLE_CONFIGS[*configName]
+	var ok bool
+	cfg, ok = config.PERF_BIGTABLE_CONFIGS[*configName]
 	if !ok {
 		sklog.Fatalf("Invalid --config value: %q", *configName)
 	}
@@ -216,7 +264,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create GCS client: %s", err)
 	}
-	pubSubClient, err := pubsub.NewClient(ctx, cfg.Project, option.WithTokenSource(ts))
+	pubSubClient, err = pubsub.NewClient(ctx, cfg.Project, option.WithTokenSource(ts))
 	if err != nil {
 		sklog.Fatal(err)
 	}
