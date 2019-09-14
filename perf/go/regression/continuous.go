@@ -2,11 +2,16 @@ package regression
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"net/url"
+	"os"
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/skerr"
+
+	"cloud.google.com/go/pubsub"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
@@ -15,8 +20,15 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/ingestevents"
 	"go.skia.org/infra/perf/go/notify"
 	"go.skia.org/infra/perf/go/stepfit"
+)
+
+const (
+	// MAX_PARALLEL_RECEIVES is the maximum number of Go routines used when
+	// receiving PubSub messages.
+	MAX_PARALLEL_RECEIVES = 1
 )
 
 // ConfigProvider is a function that's called to return a slice of alerts.Config. It is passed to NewContinuous.
@@ -46,6 +58,8 @@ type Continuous struct {
 	radius                 int
 	eventDriven            bool
 	pubSubSubscriptionName string
+	projectID              string
+	local                  bool
 	provider               ConfigProvider
 	notifier               *notify.Notifier
 	paramsProvider         ParamsetProvider
@@ -60,18 +74,35 @@ type Continuous struct {
 //   provider - Produces the slice of alerts.Config's that determine the clustering to perform.
 //   numCommits - The number of commits to run the clustering over.
 //   radius - The number of commits on each side of a commit to include when clustering.
-func NewContinuous(vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, provider ConfigProvider, store *Store, numCommits int, radius int, notifier *notify.Notifier, paramsProvider ParamsetProvider, dfBuilder dataframe.DataFrameBuilder) *Continuous {
+func NewContinuous(
+	vcs vcsinfo.VCS,
+	cidl *cid.CommitIDLookup,
+	provider ConfigProvider,
+	store *Store,
+	numCommits int,
+	radius int,
+	notifier *notify.Notifier,
+	paramsProvider ParamsetProvider,
+	dfBuilder dataframe.DataFrameBuilder,
+	local bool,
+	projectID string,
+	fileIngestionTopicName string,
+	eventDriven bool) *Continuous {
 	return &Continuous{
-		vcs:            vcs,
-		cidl:           cidl,
-		store:          store,
-		numCommits:     numCommits,
-		radius:         radius,
-		provider:       provider,
-		notifier:       notifier,
-		current:        &Current{},
-		paramsProvider: paramsProvider,
-		dfBuilder:      dfBuilder,
+		vcs:                    vcs,
+		cidl:                   cidl,
+		store:                  store,
+		numCommits:             numCommits,
+		radius:                 radius,
+		provider:               provider,
+		eventDriven:            eventDriven,
+		pubSubSubscriptionName: fileIngestionTopicName,
+		local:                  local,
+		projectID:              projectID,
+		notifier:               notifier,
+		current:                &Current{},
+		paramsProvider:         paramsProvider,
+		dfBuilder:              dfBuilder,
 	}
 }
 
@@ -172,15 +203,136 @@ type configsAndParamSet struct {
 	paramset paramtools.ParamSet
 }
 
+// getPubSubSubscription returns a pubsub.Subscription or an error if the
+// subscription can't be established.
+func (c *Continuous) getPubSubSubscription() (*pubsub.Subscription, error) {
+	if c.pubSubSubscriptionName == "" {
+		return nil, skerr.Fmt("Subscription name isn't set.")
+	}
+	hostname, err := os.Hostname()
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	ctx := context.Background()
+	client, err := pubsub.NewClient(ctx, c.projectID)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	// When running in production we have every instance use the same topic name
+	// so that they load-balance pulling items from the topic.
+	subName := fmt.Sprintf("%s-%s", c.pubSubSubscriptionName, "prod")
+	if c.local {
+		// When running locally create a new topic for every host.
+		subName = fmt.Sprintf("%s-%s", c.pubSubSubscriptionName, hostname)
+	}
+	sub := client.Subscription(subName)
+	ok, err := sub.Exists(ctx)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed checking subscription existence")
+	}
+	if !ok {
+		sub, err = client.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
+			Topic: client.Topic(c.pubSubSubscriptionName),
+		})
+		if err != nil {
+			sklog.Fatalf("Failed creating subscription: %s", err)
+		}
+	}
+
+	// How many Go routines should be processing messages?
+	sub.ReceiveSettings.MaxOutstandingMessages = MAX_PARALLEL_RECEIVES
+	sub.ReceiveSettings.NumGoroutines = MAX_PARALLEL_RECEIVES
+
+	return sub, nil
+}
+
 // buildConfigAndParamsetChannel returns a channel that will feed the configs
 // and paramset that continuous regression detection should run over. In the
 // future when Continuous.eventDriven is true this will be driven by PubSub
 // events.
 func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
-	if c.eventDriven {
-		panic("Event driven clustering is currently unimplemented.")
-	}
 	ret := make(chan configsAndParamSet)
+
+	if c.eventDriven {
+		sub, err := c.getPubSubSubscription()
+		if err != nil {
+			sklog.Errorf("Failed to create pubsub subscription, not doing event driven regression detection: %s", err)
+			// Just fall through and look for regressions over all the Alerts continuously.
+		} else {
+
+			// nackCounter is the number files we weren't able to ingest.
+			nackCounter := metrics2.GetCounter("nack", nil)
+			// ackCounter is the number files we were able to ingest.
+			ackCounter := metrics2.GetCounter("ack", nil)
+			go func() {
+				for {
+					// Wait for PubSub events.
+					err := sub.Receive(context.Background(), func(ctx context.Context, msg *pubsub.Message) {
+						// Set success to true if we should Ack the PubSub
+						// message, otherwise the message will be Nack'd, and
+						// PubSub will try to send the message again.
+						success := false
+						defer func() {
+							if success {
+								ackCounter.Inc(1)
+								msg.Ack()
+							} else {
+								nackCounter.Inc(1)
+								msg.Nack()
+							}
+						}()
+
+						// Decode the event body.
+						ie, err := ingestevents.DecodePubSubBody(msg.Data)
+						if err != nil {
+							sklog.Errorf("Failed to decode ingestion PubSub event: %s", err)
+							// Data is malformed, ack it so we don't see it again.
+							success = true
+							return
+						}
+
+						// Filter all the configs down to just those that match
+						// the incoming traces.
+						configs, err := c.provider()
+						if err != nil {
+							sklog.Errorf("Failed to get list of configs: %s", err)
+							// An error not related to the event, nack so we try again later.
+							success = false
+							return
+						}
+						matchingConfigs := []*alerts.Config{}
+						for _, config := range configs {
+							q, err := query.NewFromString(config.Query)
+							if err != nil {
+								sklog.Errorf("An alert %q has an invalid query %q: %s", config.ID, config.Query, err)
+								continue
+							}
+							// If any traceID matches the query in the alert then it's an alert we should run.
+							for _, key := range ie.TraceIDs {
+								if q.Matches(key) {
+									matchingConfigs = append(matchingConfigs, config)
+									break
+								}
+							}
+						}
+
+						// If any configs match then emit the configsAndParamSet.
+						if len(matchingConfigs) > 0 {
+							ret <- configsAndParamSet{
+								configs:  matchingConfigs,
+								paramset: ie.ParamSet,
+							}
+						}
+						success = true
+					})
+					if err != nil {
+						sklog.Errorf("Failed receiving pubsub message: %s", err)
+					}
+				}
+			}()
+		}
+	}
 	go func() {
 		for {
 			configs, err := c.provider()
