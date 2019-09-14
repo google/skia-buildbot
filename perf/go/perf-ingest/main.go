@@ -198,6 +198,7 @@ func sendPubSubEvent(params []paramtools.Params, paramset paramtools.ParamSet) e
 	if cfg.FileIngestionTopicName == "" {
 		return nil
 	}
+<<<<<<< HEAD
 	traceIDs := make([]string, 0, len(params))
 	for _, p := range params {
 		key, err := query.MakeKeyFast(p)
@@ -208,6 +209,10 @@ func sendPubSubEvent(params []paramtools.Params, paramset paramtools.ParamSet) e
 	}
 	ie := &ingestevents.IngestEvent{
 		TraceIDs: traceIDs,
+=======
+	ie := &ingestevents.IngestEvent{
+		Params:   params,
+>>>>>>> Add PubSub Event generation to perf-ingest.
 		ParamSet: paramset,
 	}
 	body, err := ingestevents.CreatePubSubBody(ie)
