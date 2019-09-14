@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b57d2600_7a83a5ed",
+        "filename": "perf/go/ingestevents/ingestevents.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-14T00:23:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "54f0af0a_4a91bb8f",
+      "range": {
+        "startLine": 26,
+        "startChar": 39,
+        "endLine": 26,
+        "endChar": 46
+      },
+      "revId": "dddd6656ac929b29d642d16cd66fe802f4ece2b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "039cfeff_cd4ad0e3",
         "filename": "perf/go/ingestevents/ingestevents.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "dddd6656ac929b29d642d16cd66fe802f4ece2b8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb440510_e2825f3f",
+        "filename": "perf/go/ingestevents/ingestevents.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-14T00:23:36Z",
+      "side": 1,
+      "message": "I did some testing in the old versions of Perf and found that gzip\u0027d JSON is smaller than gzip\u0027d gob.",
+      "parentUuid": "039cfeff_cd4ad0e3",
+      "range": {
+        "startLine": 30,
+        "startChar": 9,
+        "endLine": 30,
+        "endChar": 27
+      },
+      "revId": "dddd6656ac929b29d642d16cd66fe802f4ece2b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "41ecfe7a_727084c7",
+        "filename": "perf/go/ingestevents/ingestevents.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-14T00:23:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7aaa80cf_52b58371",
+      "range": {
+        "startLine": 32,
+        "startChar": 21,
+        "endLine": 32,
+        "endChar": 24
+      },
+      "revId": "dddd6656ac929b29d642d16cd66fe802f4ece2b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "68e3da15_1a0bc91e",
         "filename": "perf/go/ingestevents/ingestevents_test.go",
         "patchSetId": 6
@@ -91,6 +163,30 @@
       "revId": "dddd6656ac929b29d642d16cd66fe802f4ece2b8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d88a0eaf_c2051873",
+        "filename": "perf/go/ingestevents/ingestevents_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-14T00:23:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "68e3da15_1a0bc91e",
+      "range": {
+        "startLine": 20,
+        "startChar": 14,
+        "endLine": 20,
+        "endChar": 35
+      },
+      "revId": "dddd6656ac929b29d642d16cd66fe802f4ece2b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
