@@ -35,6 +35,9 @@ type PerfBigTableConfig struct {
 	// event driven regression detection. The ingesters use this to know where
 	// to emit events to, and the clusterers use this to know where to make a
 	// subscription.
+	//
+	// Should only be turned on for instances that have a huge amount of data,
+	// i.e. >500k traces, and that have sparse data.
 	FileIngestionTopicName string
 }
 
@@ -57,7 +60,7 @@ var (
 			Shards:                 8,
 			Sources:                []string{"gs://skia-perf/nano-json-v1", "gs://skia-perf/task-duration", "gs://skia-perf/buildstats-json-v1"},
 			Branches:               []string{},
-			FileIngestionTopicName: "perf-ingestion-complete-skia-production",
+			FileIngestionTopicName: "",
 		},
 		ANDROID_PROD: {
 			TileSize:               8192,
@@ -81,7 +84,7 @@ var (
 			Shards:                 8,
 			Sources:                []string{"gs://cluster-telemetry-perf/ingest"},
 			Branches:               []string{},
-			FileIngestionTopicName: "perf-ingestion-complete-ct-production",
+			FileIngestionTopicName: "",
 		},
 		ANDROID_X: { // https://bug.skia.org/9315
 			TileSize:               512,
@@ -93,7 +96,7 @@ var (
 			Shards:                 8,
 			Sources:                []string{"gs://skia-perf/android-master-ingest"},
 			Branches:               []string{"aosp-androidx-master-dev"},
-			FileIngestionTopicName: "perf-ingestion-complete-android-x-production",
+			FileIngestionTopicName: "",
 		},
 	}
 )

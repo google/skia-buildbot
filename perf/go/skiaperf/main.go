@@ -377,7 +377,8 @@ func Init() {
 			for i := 0; i < *numContinuousParallel; i++ {
 				// Start running continuous clustering looking for regressions.
 				time.Sleep(START_CLUSTER_DELAY)
-				c := regression.NewContinuous(vcs, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder)
+				c := regression.NewContinuous(vcs, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder,
+					*local, btConfig.Project, btConfig.FileIngestionTopicName, *eventDrivenRegressionDetection)
 				continuous = append(continuous, c)
 				go c.Run(context.Background())
 			}
