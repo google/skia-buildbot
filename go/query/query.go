@@ -253,6 +253,15 @@ func (q *Query) String() string {
 	return strings.Join(ret, "")
 }
 
+// NewFromString creates a Query from the given string, which is formatted as a URL query.
+func NewFromString(s string) (*Query, error) {
+	values, err := url.ParseQuery(s)
+	if err != nil {
+		return nil, err
+	}
+	return New(values)
+}
+
 // New creates a Query from the given url.Values. It represents a query to be
 // used against keys.
 func New(q url.Values) (*Query, error) {
