@@ -133,6 +133,14 @@ func TestNew(t *testing.T) {
 	assert.Equal(t, 1, len(q.params))
 	assert.Equal(t, false, q.params[0].isWildCard)
 
+	q, err = NewFromString("config=565&config=8888")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(q.params))
+	assert.Equal(t, false, q.params[0].isWildCard)
+
+	q, err = NewFromString("config=%ZZ")
+	assert.Error(t, err, "Invalid query strings are caught.")
+
 	q, err = New(url.Values{"debug": []string{"false"}, "config": []string{"565", "8888"}})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(q.params))
