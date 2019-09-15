@@ -9,12 +9,11 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/skerr"
-
 	"cloud.google.com/go/pubsub"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/alerts"
@@ -51,19 +50,19 @@ type Current struct {
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
 type Continuous struct {
-	vcs                    vcsinfo.VCS
-	cidl                   *cid.CommitIDLookup
-	store                  *Store
-	numCommits             int // Number of recent commits to do clustering over.
-	radius                 int
-	eventDriven            bool
-	pubSubSubscriptionName string
-	projectID              string
-	local                  bool
-	provider               ConfigProvider
-	notifier               *notify.Notifier
-	paramsProvider         ParamsetProvider
-	dfBuilder              dataframe.DataFrameBuilder
+	vcs             vcsinfo.VCS
+	cidl            *cid.CommitIDLookup
+	store           *Store
+	numCommits      int // Number of recent commits to do clustering over.
+	radius          int
+	eventDriven     bool   // True if doing event driven regression detection.
+	pubSubTopicName string // PubSub Topic name for incoming ingestion events.
+	projectID       string // GCP Project name.
+	local           bool   // Are we running locally or in prod.
+	provider        ConfigProvider
+	notifier        *notify.Notifier
+	paramsProvider  ParamsetProvider
+	dfBuilder       dataframe.DataFrameBuilder
 
 	mutex   sync.Mutex // Protects current.
 	current *Current
@@ -89,20 +88,20 @@ func NewContinuous(
 	fileIngestionTopicName string,
 	eventDriven bool) *Continuous {
 	return &Continuous{
-		vcs:                    vcs,
-		cidl:                   cidl,
-		store:                  store,
-		numCommits:             numCommits,
-		radius:                 radius,
-		provider:               provider,
-		eventDriven:            eventDriven,
-		pubSubSubscriptionName: fileIngestionTopicName,
-		local:                  local,
-		projectID:              projectID,
-		notifier:               notifier,
-		current:                &Current{},
-		paramsProvider:         paramsProvider,
-		dfBuilder:              dfBuilder,
+		vcs:             vcs,
+		cidl:            cidl,
+		store:           store,
+		numCommits:      numCommits,
+		radius:          radius,
+		provider:        provider,
+		eventDriven:     eventDriven,
+		pubSubTopicName: fileIngestionTopicName,
+		local:           local,
+		projectID:       projectID,
+		notifier:        notifier,
+		current:         &Current{},
+		paramsProvider:  paramsProvider,
+		dfBuilder:       dfBuilder,
 	}
 }
 
@@ -206,7 +205,7 @@ type configsAndParamSet struct {
 // getPubSubSubscription returns a pubsub.Subscription or an error if the
 // subscription can't be established.
 func (c *Continuous) getPubSubSubscription() (*pubsub.Subscription, error) {
-	if c.pubSubSubscriptionName == "" {
+	if c.pubSubTopicName == "" {
 		return nil, skerr.Fmt("Subscription name isn't set.")
 	}
 	hostname, err := os.Hostname()
@@ -221,10 +220,10 @@ func (c *Continuous) getPubSubSubscription() (*pubsub.Subscription, error) {
 
 	// When running in production we have every instance use the same topic name
 	// so that they load-balance pulling items from the topic.
-	subName := fmt.Sprintf("%s-%s", c.pubSubSubscriptionName, "prod")
+	subName := fmt.Sprintf("%s-%s", c.pubSubTopicName, "prod")
 	if c.local {
 		// When running locally create a new topic for every host.
-		subName = fmt.Sprintf("%s-%s", c.pubSubSubscriptionName, hostname)
+		subName = fmt.Sprintf("%s-%s", c.pubSubTopicName, hostname)
 	}
 	sub := client.Subscription(subName)
 	ok, err := sub.Exists(ctx)
@@ -233,7 +232,7 @@ func (c *Continuous) getPubSubSubscription() (*pubsub.Subscription, error) {
 	}
 	if !ok {
 		sub, err = client.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
-			Topic: client.Topic(c.pubSubSubscriptionName),
+			Topic: client.Topic(c.pubSubTopicName),
 		})
 		if err != nil {
 			sklog.Fatalf("Failed creating subscription: %s", err)
