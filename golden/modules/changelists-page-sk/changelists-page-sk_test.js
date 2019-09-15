@@ -12,8 +12,12 @@ describe('changelists-page-sk', () => {
   document.body.appendChild(container);
 
   beforeEach(function() {
-    fetchMock.get('/json/changelists', JSON.stringify(changelistSummaries_5));
-    // Everything else
+    // Clear out any query params we might have to not mess with our current state.
+    history.pushState(null, '', window.location.origin + window.location.pathname + '?');
+  });
+
+  beforeEach(function() {
+    // don't provide anything - let individual tests
     fetchMock.catch(404);
   });
 
@@ -65,6 +69,11 @@ describe('changelists-page-sk', () => {
   //===============TESTS START====================================
 
   describe('html layout', () => {
+    beforeEach(() => {
+      // These are the default offset/page_size params
+      fetchMock.get('/json/changelists?offset=0&size=50', JSON.stringify(changelistSummaries_5));
+    });
+
     it('should make a table with 5 rows in the body', (done) => {
       whenPageLoads((ele) => {
         const tbl = $$('table', ele);
@@ -75,5 +84,7 @@ describe('changelists-page-sk', () => {
       });
     });
   }); // end describe('html layout')
+
+  // TODO(kjlubick): add api checks for pagination
 
 });
