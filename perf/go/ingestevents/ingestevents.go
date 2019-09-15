@@ -23,6 +23,9 @@ type IngestEvent struct {
 
 	// ParamSet is the unencoded ParamSet summary of TraceIDs.
 	ParamSet paramtools.ParamSet
+
+	// Filename of the file ingested.
+	Filename string
 }
 
 // CreatePubSubBody takes an IngestEvent and returns a byte slice that is a

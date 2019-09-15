@@ -188,13 +188,13 @@ func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs 
 	if err != nil {
 		return err
 	}
-	return sendPubSubEvent(params, paramset)
+	return sendPubSubEvent(params, paramset, filename)
 }
 
 // sendPubSubEvent sends the unencoded params and paramset found in a single
 // ingested file to the PubSub topic specified in the selected Perf instances
 // configuration data.
-func sendPubSubEvent(params []paramtools.Params, paramset paramtools.ParamSet) error {
+func sendPubSubEvent(params []paramtools.Params, paramset paramtools.ParamSet, filename string) error {
 	if cfg.FileIngestionTopicName == "" {
 		return nil
 	}
@@ -209,6 +209,7 @@ func sendPubSubEvent(params []paramtools.Params, paramset paramtools.ParamSet) e
 	ie := &ingestevents.IngestEvent{
 		TraceIDs: traceIDs,
 		ParamSet: paramset,
+		Filename: filename,
 	}
 	body, err := ingestevents.CreatePubSubBody(ie)
 	if err != nil {
