@@ -268,6 +268,7 @@ func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
 				for {
 					// Wait for PubSub events.
 					err := sub.Receive(context.Background(), func(ctx context.Context, msg *pubsub.Message) {
+						sklog.Info("Received incoming Ingestion event.")
 						// Set success to true if we should Ack the PubSub
 						// message, otherwise the message will be Nack'd, and
 						// PubSub will try to send the message again.
@@ -291,6 +292,7 @@ func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
 							return
 						}
 
+						sklog.Infof("IngestEvent received for : %q", ie.Filename)
 						// Filter all the configs down to just those that match
 						// the incoming traces.
 						configs, err := c.provider()
@@ -330,7 +332,11 @@ func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
 					}
 				}
 			}()
+			sklog.Info("Started event driven clustering.")
+			return ret
 		}
+	} else {
+		sklog.Info("Not event driven clustering.")
 	}
 	go func() {
 		for {
