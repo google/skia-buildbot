@@ -87,9 +87,6 @@ define('changelists-page-sk', class extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this._render();
-    // Fetch the data on the next microtasks - this makes
-    // sure our mocks are set up when running locally.
-    setTimeout(() => this._fetch());
   }
 
   // Returns a promise that resolves when all outstanding requests resolve
