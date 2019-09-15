@@ -114,13 +114,13 @@ require (
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/texttheater/golang-levenshtein v0.0.0-20190717060638-b7aaf30637d6
 	github.com/ugorji/go v1.1.7 // indirect
-	github.com/unrolled/secure v1.0.1
+	github.com/unrolled/secure v1.0.3
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
 	github.com/willf/bitset v1.1.10
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
-	go.chromium.org/luci v0.0.0-20190913155846-d3de308203dc
+	go.chromium.org/luci v0.0.0-20190914205813-55da0cd4ce87
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.opencensus.io v0.22.1
 	golang.org/x/crypto v0.0.0-20190911031432-227b76d455e7
@@ -132,7 +132,7 @@ require (
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20190913121621-c3b328c6e5a7 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
-	golang.org/x/tools v0.0.0-20190913181337-0240832f5c3d // indirect
+	golang.org/x/tools v0.0.0-20190914235951-31e00f45c22e // indirect
 	golang.org/x/tools/gopls v0.1.5 // indirect
 	google.golang.org/api v0.10.0
 	google.golang.org/appengine v1.6.2 // indirect
