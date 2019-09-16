@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitstore"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -38,7 +39,16 @@ func AllRepos(ctx context.Context, conf *BTConfig) (map[string]*gitstore.RepoInf
 	rowNamesPrefix := getRepoInfoRowNamePrefix()
 	ret := map[string]*gitstore.RepoInfo{}
 	var readRowErr error = nil
+	tags := map[string]string{
+		"project":  conf.ProjectID,
+		"instance": conf.InstanceID,
+		"table":    conf.TableID,
+		"repo":     "all",
+	}
+	metrics2.GetCounter(METRIC_BT_REQS_READ, tags).Inc(1)
+	rowCounter := metrics2.GetCounter(METRIC_BT_ROWS_READ, tags)
 	err = table.ReadRows(ctx, bigtable.PrefixRange(rowNamesPrefix), func(row bigtable.Row) bool {
+		rowCounter.Inc(1)
 		if readRowErr != nil {
 			return false
 		}
