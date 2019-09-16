@@ -97,7 +97,7 @@ func (d *firestoreDB) GetTasksFromDateRange(start, end time.Time, repo string) (
 
 // See documentation for types.TaskDB interface.
 func (d *firestoreDB) AssignId(task *types.Task) error {
-	task.Id = d.tasks().NewDoc().ID
+	task.Id = firestore.AlphaNumID()
 	return nil
 }
 
