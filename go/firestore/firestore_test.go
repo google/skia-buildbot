@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -15,6 +17,22 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+func TestAlphaNumID(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.Equal(t, 62, len(alphaNum))
+	assert.True(t, len(alphaNum) <= math.MaxInt8)
+
+	// If there's a bug in the implementation, this test will be flaky...
+	for i := 0; i < 100; i++ {
+		id := AlphaNumID()
+		assert.Equal(t, ID_LEN, len(id))
+		for _, char := range id {
+			assert.True(t, strings.ContainsRune(alphaNum, char))
+		}
+	}
+}
 
 func TestWithTimeout(t *testing.T) {
 	unittest.MediumTest(t)
@@ -107,7 +125,7 @@ func TestIterDocs(t *testing.T) {
 
 	total := 100
 	for i := 0; i < total; i++ {
-		doc := coll.NewDoc()
+		doc := coll.Doc(AlphaNumID())
 		e := &testEntry{
 			Id:    doc.ID,
 			Index: i,

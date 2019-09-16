@@ -261,7 +261,7 @@ func (d *firestoreDB) Put(req *ManualRollRequest) (rvErr error) {
 	}
 	isNew := req.Id == ""
 	if isNew {
-		req.Id = d.coll.NewDoc().ID
+		req.Id = firestore.AlphaNumID()
 	}
 	oldDbModified := req.DbModified
 	req.DbModified = firestore.FixTimestamp(time.Now())
