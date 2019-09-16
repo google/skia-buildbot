@@ -23,6 +23,10 @@ const _changelist = (cl) => html`
       ${cl.id}
     </a>
   </td>
+  <td>
+    <a href="/search?issue=${cl.id}&new_clstore=true"
+       target="_blank" rel="noopener">Triage</a>
+  </td>
   <td>${cl.owner}</td>
   <td title=${cl.updated}>${human.diffDate(cl.updated)} ago</td>
   <td>${cl.subject}</td>
@@ -38,7 +42,8 @@ const template = (ele) => html`
 <table>
   <thead>
     <tr>
-      <th>Issue</th>
+      <th>ChangeList</th>
+      <th></th>
       <th>Owner</th>
       <th>Updated</th>
       <th>Subject</th>
@@ -87,9 +92,6 @@ define('changelists-page-sk', class extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this._render();
-    // Fetch the data on the next microtasks - this makes
-    // sure our mocks are set up when running locally.
-    setTimeout(() => this._fetch());
   }
 
   // Returns a promise that resolves when all outstanding requests resolve
