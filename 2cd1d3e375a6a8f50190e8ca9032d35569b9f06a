@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4a7e667b_044952ce",
+        "filename": "perf/go/regression/continuous.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-16T15:13:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c34ddae_6ffa17ef",
+      "range": {
+        "startLine": 223,
+        "startChar": 1,
+        "endLine": 223,
+        "endChar": 8
+      },
+      "revId": "2cd1d3e375a6a8f50190e8ca9032d35569b9f06a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c25eb9ca_8fe94ba8",
         "filename": "perf/go/regression/continuous.go",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2019-09-16T15:07:00Z",
       "side": 1,
       "message": "driveby: why does this fatal instead of returning error?",
+      "range": {
+        "startLine": 237,
+        "startChar": 2,
+        "endLine": 239,
+        "endChar": 3
+      },
+      "revId": "2cd1d3e375a6a8f50190e8ca9032d35569b9f06a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12ec7918_bf71a9ab",
+        "filename": "perf/go/regression/continuous.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-16T15:13:12Z",
+      "side": 1,
+      "message": "Thanks, I missed this when I copy/pasted the code from perf-ingest. Fixed.",
+      "parentUuid": "c25eb9ca_8fe94ba8",
       "range": {
         "startLine": 237,
         "startChar": 2,
