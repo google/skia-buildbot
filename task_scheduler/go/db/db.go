@@ -76,6 +76,10 @@ type ModifiedTasksReader interface {
 	// StopTrackingModifiedTasks cancels tracking of modified tasks for the
 	// provided ID.
 	StopTrackingModifiedTasks(string)
+
+	// ModifiedTasksCh returns a channel onto which all modified tasks will
+	// be passed.
+	ModifiedTasksCh() <-chan []*types.Task
 }
 
 // ModifiedTasks tracks which tasks have been modified and returns results to
@@ -219,6 +223,10 @@ type ModifiedJobsReader interface {
 	// StopTrackingModifiedJobs cancels tracking of modified jobs for the
 	// provided ID.
 	StopTrackingModifiedJobs(string)
+
+	// ModifiedJobsCh returns a channel onto which all modified jobs will
+	// be passed.
+	ModifiedJobsCh() <-chan []*types.Job
 }
 
 // ModifiedJobs tracks which tasks have been modified and returns results to

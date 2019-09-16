@@ -44,7 +44,7 @@ func TestTaskCache(t *testing.T) {
 	// Create the cache. Ensure that the existing task is present.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewTaskCache(d, w)
+	c, err := NewTaskCache(ctx, d, w)
 	assert.NoError(t, err)
 	testGetTasksForCommits(t, c, t1)
 
@@ -78,7 +78,7 @@ func TestTaskCacheKnownTaskName(t *testing.T) {
 	d := memory.NewInMemoryTaskDB(nil)
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewTaskCache(d, w)
+	c, err := NewTaskCache(ctx, d, w)
 	assert.NoError(t, err)
 
 	// Try jobs don't count toward KnownTaskName.
@@ -117,7 +117,7 @@ func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 	// Create the cache.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewTaskCache(d, w)
+	c, err := NewTaskCache(ctx, d, w)
 	assert.NoError(t, err)
 
 	// Insert two more tasks. Ensure at least 1 nanosecond between task Created
@@ -208,7 +208,7 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 	// Create the cache.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewTaskCache(d, w)
+	c, err := NewTaskCache(ctx, d, w)
 	assert.NoError(t, err)
 
 	// Check that there's no conflict among the tasks in different repos.
@@ -275,7 +275,7 @@ func TestTaskCacheReset(t *testing.T) {
 	// Create the cache. Ensure that the existing task is present.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewTaskCache(d, w)
+	c, err := NewTaskCache(ctx, d, w)
 	assert.NoError(t, err)
 	testGetTasksForCommits(t, c, t1)
 	testGetTasksForCommits(t, c, fakeTask)
@@ -319,7 +319,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	// Create the cache. Ensure that the existing task is present.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewTaskCache(d, w)
+	c, err := NewTaskCache(ctx, d, w)
 	assert.NoError(t, err)
 	tasks, err := c.UnfinishedTasks()
 	assert.NoError(t, err)
@@ -436,7 +436,7 @@ func TestTaskCacheExpiration(t *testing.T) {
 	assert.NoError(t, d.PutTasks(tasks))
 
 	// Create the cache.
-	c, err := NewTaskCache(d, w)
+	c, err := NewTaskCache(ctx, d, w)
 	assert.NoError(t, err)
 
 	{

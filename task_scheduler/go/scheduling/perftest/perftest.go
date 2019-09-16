@@ -280,7 +280,7 @@ func main() {
 	assertNoError(err)
 	w, err := window.New(time.Hour, 0, nil)
 	assertNoError(err)
-	tCache, err := cache.NewTaskCache(d, w)
+	tCache, err := cache.NewTaskCache(ctx, d, w)
 	assertNoError(err)
 	// Use dummy GetRevisionTimestamp function so that nothing ever expires from
 	// the cache.

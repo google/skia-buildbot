@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"sync"
@@ -8,9 +9,9 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
@@ -93,6 +94,9 @@ type taskCache struct {
 	tasksByTime []*types.Task
 	timeWindow  *window.Window
 	unfinished  map[string]*types.Task
+	// Cache of modified tasks which are added to the above wen Update() is
+	// called.
+	modifiedTasks map[string]*types.Task
 }
 
 // See documentation for TaskCache interface.
@@ -383,57 +387,52 @@ func (c *taskCache) expireAndUpdate(tasks []*types.Task) {
 	}
 }
 
-// reset re-initializes c. Assumes the caller holds a lock.
-func (c *taskCache) reset() error {
-	if c.queryId != "" {
-		c.db.StopTrackingModifiedTasks(c.queryId)
-	}
-	queryId, err := c.db.StartTrackingModifiedTasks()
-	if err != nil {
-		return err
-	}
-	tasks, err := db.GetTasksFromWindow(c.db, c.timeWindow, time.Now())
-	if err != nil {
-		c.db.StopTrackingModifiedTasks(queryId)
-		return err
-	}
-	c.knownTaskNames = map[string]map[string]time.Time{}
-	c.queryId = queryId
-	c.tasks = map[string]*types.Task{}
-	c.tasksByCommit = map[string]map[string]map[string]*types.Task{}
-	c.tasksByKey = map[types.TaskKey]map[string]*types.Task{}
-	c.unfinished = map[string]*types.Task{}
-	c.expireAndUpdate(tasks)
-	return nil
-}
-
 // See documentation for TaskCache interface.
 func (c *taskCache) Update() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	newTasks, err := c.db.GetModifiedTasks(c.queryId)
-	if err != nil {
-		sklog.Warningf("Connection to db lost; re-initializing cache from scratch.")
-		if err := c.reset(); err != nil {
-			return err
-		}
-		return nil
+	mod := make([]*types.Task, 0, len(c.modifiedTasks))
+	for _, t := range c.modifiedTasks {
+		mod = append(mod, t)
 	}
-	c.expireAndUpdate(newTasks)
+	c.expireAndUpdate(mod)
+	c.modifiedTasks = map[string]*types.Task{}
 	return nil
 }
 
 // NewTaskCache returns a local cache which provides more convenient views of
 // task data than the database can provide.
-func NewTaskCache(d db.TaskReader, timeWindow *window.Window) (TaskCache, error) {
-	tc := &taskCache{
-		db:         d,
-		timeWindow: timeWindow,
-	}
-	if err := tc.reset(); err != nil {
+func NewTaskCache(ctx context.Context, d db.DB, timeWindow *window.Window) (TaskCache, error) {
+	tasks, err := db.GetTasksFromWindow(d, timeWindow, time.Now())
+	if err != nil {
 		return nil, err
 	}
-	return tc, nil
+	c := &taskCache{
+		db:             d,
+		timeWindow:     timeWindow,
+		knownTaskNames: map[string]map[string]time.Time{},
+		tasks:          map[string]*types.Task{},
+		tasksByCommit:  map[string]map[string]map[string]*types.Task{},
+		tasksByKey:     map[types.TaskKey]map[string]*types.Task{},
+		unfinished:     map[string]*types.Task{},
+		modifiedTasks:  map[string]*types.Task{},
+	}
+	c.expireAndUpdate(tasks)
+	go func() {
+		for mod := range firestore.ModifiedTasks(ctx, d) {
+			c.mtx.RLock()
+			defer c.mtx.RUnlock()
+			for _, t := range mod {
+				if prev := c.modifiedTasks[t.Id]; prev != nil && !t.DbModified.After(prev.DbModified) {
+					continue
+				} else if prev := c.tasks[t.Id]; prev != nil && !t.DbModified.After(prev.DbModified) {
+					continue
+				}
+				c.modifiedTasks[t.Id] = t
+			}
+		}
+	}()
+	return c, nil
 }
 
 type JobCache interface {
@@ -478,6 +477,7 @@ type jobCache struct {
 	timeWindow           *window.Window
 	triggeredForCommit   map[string]map[string]bool
 	unfinished           map[string]*types.Job
+	modifiedJobs         map[string]*types.Job
 }
 
 // getJobTimestamp returns the timestamp of a Job for purposes of cache
@@ -667,59 +667,38 @@ func (c *jobCache) expireAndUpdate(jobs []*types.Job) {
 	}
 }
 
-// reset re-initializes c. Assumes the caller holds a lock.
-func (c *jobCache) reset() error {
-	defer metrics2.FuncTimer().Stop()
-
-	if c.queryId != "" {
-		c.db.StopTrackingModifiedJobs(c.queryId)
-	}
-	queryId, err := c.db.StartTrackingModifiedJobs()
-	if err != nil {
-		return err
-	}
-	jobs, err := db.GetJobsFromWindow(c.db, c.timeWindow, time.Now())
-	if err != nil {
-		c.db.StopTrackingModifiedJobs(queryId)
-		return err
-	}
-	c.queryId = queryId
-	c.jobs = map[string]*types.Job{}
-	c.jobsByNameAndState = map[types.RepoState]map[string]map[string]*types.Job{}
-	c.triggeredForCommit = map[string]map[string]bool{}
-	c.unfinished = map[string]*types.Job{}
-	c.expireAndUpdate(jobs)
-	return nil
-}
-
 // See documentation for JobCache interface.
 func (c *jobCache) Update() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	newJobs, err := c.db.GetModifiedJobs(c.queryId)
-	if err != nil {
-		sklog.Warningf("Connection to db lost; re-initializing cache from scratch.")
-		if err := c.reset(); err != nil {
-			return err
-		}
-		return nil
+	mod := make([]*types.Job, 0, len(c.modifiedJobs))
+	for _, j := range c.modifiedJobs {
+		mod = append(mod, j)
 	}
-	c.expireAndUpdate(newJobs)
+	c.expireAndUpdate(mod)
+	c.modifiedJobs = map[string]*types.Job{}
 	return nil
 }
 
 // NewJobCache returns a local cache which provides more convenient views of
 // job data than the database can provide.
 func NewJobCache(d db.JobReader, timeWindow *window.Window, getRevisionTimestamp db.GetRevisionTimestamp) (JobCache, error) {
-	tc := &jobCache{
+	jobs, err := db.GetJobsFromWindow(d, timeWindow, time.Now())
+	if err != nil {
+		return nil, err
+	}
+	c := &jobCache{
 		db:                   d,
 		getRevisionTimestamp: getRevisionTimestamp,
 		timeWindow:           timeWindow,
+		jobs:                 map[string]*types.Job{},
+		jobsByNameAndState:   map[types.RepoState]map[string]map[string]*types.Job{},
+		triggeredForCommit:   map[string]map[string]bool{},
+		unfinished:           map[string]*types.Job{},
+		modifiedJobs:         map[string]*types.Job{},
 	}
-	if err := tc.reset(); err != nil {
-		return nil, err
-	}
-	return tc, nil
+	c.expireAndUpdate(jobs)
+	return c, nil
 }
 
 // GitRepoGetRevisionTimestamp returns a GetRevisionTimestamp function that gets

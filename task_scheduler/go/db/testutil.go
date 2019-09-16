@@ -81,11 +81,11 @@ func findModifiedComments(t sktest.TestingT, m ModifiedComments, id string, e1 [
 	a2 := []*types.TaskSpecComment{}
 	a3 := []*types.CommitComment{}
 	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
-		c1, c2, c3, err := m.GetModifiedComments(id)
+		c, err := m.GetModifiedComments(id)
 		assert.NoError(t, err)
-		a1 = append(a1, c1...)
-		a2 = append(a2, c2...)
-		a3 = append(a3, c3...)
+		a1 = append(a1, c.Task...)
+		a2 = append(a2, c.TaskSpec...)
+		a3 = append(a3, c.Commit...)
 		if len(a1) != len(e1) || len(a2) != len(e2) || len(a3) != len(e3) {
 			time.Sleep(100 * time.Millisecond)
 			return testutils.TryAgainErr
@@ -881,17 +881,17 @@ func TestJobDBConcurrentUpdate(t sktest.TestingT, db JobDB) {
 
 // TestCommentDB validates that db correctly implements the CommentDB interface.
 func TestCommentDB(t sktest.TestingT, db CommentDB) {
-	_, _, _, err := db.GetModifiedComments("dummy-id")
+	_, err := db.GetModifiedComments("dummy-id")
 	assert.True(t, IsUnknownId(err))
 
 	id, err := db.StartTrackingModifiedComments()
 	assert.NoError(t, err)
 
-	c1, c2, c3, err := db.GetModifiedComments(id)
+	c, err := db.GetModifiedComments(id)
 	assert.NoError(t, err)
-	assert.Equal(t, 0, len(c1))
-	assert.Equal(t, 0, len(c2))
-	assert.Equal(t, 0, len(c3))
+	assert.Equal(t, 0, len(c.Task))
+	assert.Equal(t, 0, len(c.TaskSpec))
+	assert.Equal(t, 0, len(c.Commit))
 
 	now := time.Now().Truncate(TS_RESOLUTION)
 
@@ -1042,7 +1042,7 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 		}
 	}
 	// Clear out modified comments.
-	_, _, _, err = db.GetModifiedComments(id)
+	_, err = db.GetModifiedComments(id)
 	assert.NoError(t, err)
 
 	// Delete some comments.
@@ -1398,18 +1398,18 @@ func TestMultipleJobModifications(t sktest.TestingT, m ModifiedJobs) {
 }
 
 func TestModifiedComments(t sktest.TestingT, m ModifiedComments) {
-	_, _, _, err := m.GetModifiedComments("dummy-id")
+	_, err := m.GetModifiedComments("dummy-id")
 	assert.True(t, IsUnknownId(err))
 
 	id, err := m.StartTrackingModifiedComments()
 	assert.NoError(t, err)
 
 	time.Sleep(time.Second)
-	a1, a2, a3, err := m.GetModifiedComments(id)
+	a, err := m.GetModifiedComments(id)
 	assert.NoError(t, err)
-	assert.Equal(t, 0, len(a1))
-	assert.Equal(t, 0, len(a2))
-	assert.Equal(t, 0, len(a3))
+	assert.Equal(t, 0, len(a.Task))
+	assert.Equal(t, 0, len(a.TaskSpec))
+	assert.Equal(t, 0, len(a.Commit))
 
 	c1 := types.MakeTaskComment(1, 1, 1, 1, time.Now())
 
@@ -1440,7 +1440,7 @@ func TestModifiedComments(t sktest.TestingT, m ModifiedComments) {
 	// Check StopTrackingModifiedComments.
 	m.StopTrackingModifiedComments(id)
 	err = testutils.EventuallyConsistent(10*time.Second, func() error {
-		_, _, _, err := m.GetModifiedComments(id)
+		_, err := m.GetModifiedComments(id)
 		if err == nil {
 			return testutils.TryAgainErr
 		}
@@ -1467,13 +1467,13 @@ func TestMultipleCommentModifications(t sktest.TestingT, m ModifiedComments) {
 	// is the most recent value.
 	var actual *types.TaskComment
 	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
-		a1, _, _, err := m.GetModifiedComments(id)
+		a, err := m.GetModifiedComments(id)
 		if err != nil {
 			return err
 		}
-		if len(a1) == 1 {
+		if len(a.Task) == 1 {
 			if actual == nil || actual.Deleted == nil {
-				actual = a1[0]
+				actual = a.Task[0]
 			}
 		}
 		if deepequal.DeepEqual(c1, actual) {

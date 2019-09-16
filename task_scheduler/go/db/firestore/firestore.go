@@ -37,6 +37,9 @@ const (
 	// Firestore key for a Task or Job's Created field.
 	KEY_CREATED = "Created"
 
+	// Firestore key for a Task or Job's DbModified field.
+	KEY_DB_MODIFIED = "DbModified"
+
 	// Firestore key for a Task or Job's Repo field.
 	KEY_REPO = "Repo"
 

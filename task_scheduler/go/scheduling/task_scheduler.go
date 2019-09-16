@@ -167,7 +167,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 	}
 
 	// Create caches.
-	tCache, err := cache.NewTaskCache(d, w)
+	tCache, err := cache.NewTaskCache(ctx, d, w)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create TaskCache: %s", err)
 	}

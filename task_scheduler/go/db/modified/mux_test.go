@@ -136,17 +136,17 @@ func TestMuxModifiedCommentsWriteOnly(t *testing.T) {
 	}
 
 	check := func(e1 []*types.TaskComment, e2 []*types.TaskSpecComment, e3 []*types.CommitComment) {
-		a1, a2, a3, err := m.GetModifiedComments(rwId)
+		a, err := m.GetModifiedComments(rwId)
 		assert.NoError(t, err)
-		deepequal.AssertDeepEqual(t, e1, a1)
-		deepequal.AssertDeepEqual(t, e2, a2)
-		deepequal.AssertDeepEqual(t, e3, a3)
+		deepequal.AssertDeepEqual(t, e1, a.Task)
+		deepequal.AssertDeepEqual(t, e2, a.TaskSpec)
+		deepequal.AssertDeepEqual(t, e3, a.Commit)
 		for idx, w := range []db.ModifiedComments{w1, w2, w3} {
-			a1, a2, a3, err := w.GetModifiedComments(ids[idx])
+			a, err := w.GetModifiedComments(ids[idx])
 			assert.NoError(t, err)
-			deepequal.AssertDeepEqual(t, e1, a1)
-			deepequal.AssertDeepEqual(t, e2, a2)
-			deepequal.AssertDeepEqual(t, e3, a3)
+			deepequal.AssertDeepEqual(t, e1, a.Task)
+			deepequal.AssertDeepEqual(t, e2, a.TaskSpec)
+			deepequal.AssertDeepEqual(t, e3, a.Commit)
 		}
 	}
 	check([]*types.TaskComment{}, []*types.TaskSpecComment{}, []*types.CommitComment{})

@@ -648,3 +648,27 @@ FIRESTORE_EMULATOR_HOST
 `)
 	}
 }
+
+// QuerySnapshotChannel is a helper for firestore.QuerySnapshotIterator which
+// passes each QuerySnapshot along the returned channel. QuerySnapshotChannel
+// returns the channel immediately but spins up a goroutine which runs
+// indefinitely or until an error occurs, in which case the channel is closed
+// and an error is logged. Note that QuerySnapshotIterator first returns a
+// QuerySnapshot representing the current results of the query, and subsequent
+// QuerySnapshots only contain changes.
+func QuerySnapshotChannel(ctx context.Context, q firestore.Query) <-chan *firestore.QuerySnapshot {
+	ch := make(chan *firestore.QuerySnapshot)
+	go func() {
+		iter := q.Snapshots(ctx)
+		for {
+			qsnap, err := iter.Next()
+			if err != nil {
+				sklog.Errorf("QuerySnapshotIterator returned error; closing QuerySnapshotChannel: %s", err)
+				close(ch)
+				return
+			}
+			ch <- qsnap
+		}
+	}()
+	return ch
+}

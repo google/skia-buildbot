@@ -308,6 +308,12 @@ func (c *taskClient) TrackModifiedTasks(tasks []*types.Task) {
 	c.publisher.publishGOB(ts, tasksById)
 }
 
+// See documentation for db.ModifiedTasks interface.
+func (c *taskClient) ModifiedTasksCh() <-chan []*types.Task {
+	// Not supported.
+	return nil
+}
+
 // jobClient implements db.ModifiedTasks using pubsub.
 type jobClient struct {
 	*modifiedClient
@@ -381,6 +387,12 @@ func (c *jobClient) TrackModifiedJobs(jobs []*types.Job) {
 	c.publisher.publishGOB(ts, jobsById)
 }
 
+// See documentation for db.ModifiedJobs interface.
+func (c *jobClient) ModifiedJobsCh() <-chan []*types.Job {
+	// Not supported.
+	return nil
+}
+
 // commentClient implements db.ModifiedComments using pubsub.
 type commentClient struct {
 	tasks     *modifiedClient
@@ -415,16 +427,17 @@ func NewModifiedComments(c *pubsub.Client, taskCommentsTopic, taskSpecCommentsTo
 }
 
 // See documentation for db.ModifiedComments interface.
-func (c *commentClient) GetModifiedComments(id string) ([]*types.TaskComment, []*types.TaskSpecComment, []*types.CommitComment, error) {
+func (c *commentClient) GetModifiedComments(id string) (db.Comments, error) {
+	rv := db.Comments{}
 	ids := strings.Split(id, "#")
 	if len(ids) != 3 {
-		return nil, nil, nil, db.ErrUnknownId
+		return rv, db.ErrUnknownId
 	}
 	gobs, err := c.tasks.getModifiedData(ids[0])
 	if err != nil {
-		return nil, nil, nil, err
+		return rv, err
 	}
-	rv1 := make([]*types.TaskComment, 0, len(gobs))
+	rv.Task = make([]*types.TaskComment, 0, len(gobs))
 	for _, g := range gobs {
 		var c types.TaskComment
 		if err := gob.NewDecoder(bytes.NewReader(g)).Decode(&c); err != nil {
@@ -432,16 +445,16 @@ func (c *commentClient) GetModifiedComments(id string) ([]*types.TaskComment, []
 			// message when we received it. Ignore this job.
 			sklog.Errorf("Failed to decode job from pubsub message: %s", err)
 		} else {
-			rv1 = append(rv1, &c)
+			rv.Task = append(rv.Task, &c)
 		}
 	}
-	sort.Sort(types.TaskCommentSlice(rv1))
+	sort.Sort(types.TaskCommentSlice(rv.Task))
 
 	gobs, err = c.taskSpecs.getModifiedData(ids[1])
 	if err != nil {
-		return nil, nil, nil, err
+		return rv, err
 	}
-	rv2 := make([]*types.TaskSpecComment, 0, len(gobs))
+	rv.TaskSpec = make([]*types.TaskSpecComment, 0, len(gobs))
 	for _, g := range gobs {
 		var c types.TaskSpecComment
 		if err := gob.NewDecoder(bytes.NewReader(g)).Decode(&c); err != nil {
@@ -449,16 +462,16 @@ func (c *commentClient) GetModifiedComments(id string) ([]*types.TaskComment, []
 			// message when we received it. Ignore this job.
 			sklog.Errorf("Failed to decode job from pubsub message: %s", err)
 		} else {
-			rv2 = append(rv2, &c)
+			rv.TaskSpec = append(rv.TaskSpec, &c)
 		}
 	}
-	sort.Sort(types.TaskSpecCommentSlice(rv2))
+	sort.Sort(types.TaskSpecCommentSlice(rv.TaskSpec))
 
 	gobs, err = c.commits.getModifiedData(ids[2])
 	if err != nil {
-		return nil, nil, nil, err
+		return rv, err
 	}
-	rv3 := make([]*types.CommitComment, 0, len(gobs))
+	rv.Commit = make([]*types.CommitComment, 0, len(gobs))
 	for _, g := range gobs {
 		var c types.CommitComment
 		if err := gob.NewDecoder(bytes.NewReader(g)).Decode(&c); err != nil {
@@ -466,11 +479,11 @@ func (c *commentClient) GetModifiedComments(id string) ([]*types.TaskComment, []
 			// message when we received it. Ignore this job.
 			sklog.Errorf("Failed to decode job from pubsub message: %s", err)
 		} else {
-			rv3 = append(rv3, &c)
+			rv.Commit = append(rv.Commit, &c)
 		}
 	}
-	sort.Sort(types.CommitCommentSlice(rv3))
-	return rv1, rv2, rv3, nil
+	sort.Sort(types.CommitCommentSlice(rv.Commit))
+	return rv, nil
 }
 
 // See documentation for db.ModifiedComments interface.
@@ -554,4 +567,10 @@ func (c *commentClient) TrackModifiedCommitComment(cc *types.CommitComment) {
 	c.commits.publisher.publishGOB(ts, map[string][]byte{
 		cc.Id(): buf.Bytes(),
 	})
+}
+
+// See documentation for db.ModifiedComments interface.
+func (c *commentClient) ModifiedCommentsCh() <-chan db.Comments {
+	// Not supported.
+	return nil
 }

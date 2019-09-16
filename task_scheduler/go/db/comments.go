@@ -6,6 +6,14 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
+// Comments is a struct which contains TaskComments, TaskSpecComments, and
+// CommitComments.
+type Comments struct {
+	Task     []*types.TaskComment
+	TaskSpec []*types.TaskSpecComment
+	Commit   []*types.CommitComment
+}
+
 // ModifiedCommentsReader tracks which comments have been added or deleted and
 // returns results to subscribers based on what has changed since the last call
 // to GetModifiedComments.
@@ -16,7 +24,7 @@ type ModifiedComments interface {
 	// error, the caller should call StopTrackingModifiedComments and
 	// StartTrackingModifiedComments again, and load all data from scratch
 	// to be sure that no comments were missed.
-	GetModifiedComments(string) ([]*types.TaskComment, []*types.TaskSpecComment, []*types.CommitComment, error)
+	GetModifiedComments(string) (Comments, error)
 
 	// StartTrackingModifiedComments initiates tracking of modified comments
 	// for the current caller. Returns a unique ID which can be used by the
@@ -27,6 +35,10 @@ type ModifiedComments interface {
 	// StopTrackingModifiedComments cancels tracking of modified comments
 	// for the provided ID.
 	StopTrackingModifiedComments(string)
+
+	// ModifiedCommentsCh returns a channel onto which all modified comments will
+	// be passed.
+	ModifiedCommentsCh() <-chan Comments
 
 	// TrackModifiedTaskComment indicates the given comment should be
 	// returned from the next call to GetModifiedComments from each

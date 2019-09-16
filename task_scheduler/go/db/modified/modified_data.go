@@ -26,7 +26,9 @@ type modifiedData struct {
 	data map[string]map[string]interface{}
 	// After the expiration time, subscribers are automatically removed.
 	expiration map[string]time.Time
-	// Protects data and expiration.
+	// Subscribers may also use a channel to receive updates.
+	chans []chan<- map[string]interface{}
+	// Protects data, expiration, and chans.
 	mtx sync.RWMutex
 }
 
@@ -91,6 +93,12 @@ func (m *modifiedData) TrackModifiedEntries(entries map[string]interface{}) {
 			sub[entryId] = entry
 		}
 	}
+	for _, ch := range m.chans {
+		// Don't block, in case a receiver has forgotten about us.
+		go func() {
+			ch <- entries
+		}()
+	}
 }
 
 // See docs for TaskReader.StartTrackingModifiedTasks or
@@ -118,6 +126,15 @@ func (m *modifiedData) StopTrackingModifiedEntries(id string) {
 	defer m.mtx.Unlock()
 	delete(m.data, id)
 	delete(m.expiration, id)
+}
+
+// See docs for TaskReader.ModifiedTasksCh or JobReader.ModifiedJobsCh.
+func (m *modifiedData) ModifiedEntriesCh() <-chan map[string]interface{} {
+	m.mtx.Lock()
+	defer m.mtx.Unlock()
+	ch := make(chan map[string]interface{})
+	m.chans = append(m.chans, ch)
+	return ch
 }
 
 // ModifiedTasksImpl is an implementation of the ModifiedTasks interface.
@@ -163,6 +180,23 @@ func (m *ModifiedTasksImpl) StopTrackingModifiedTasks(id string) {
 	m.m.StopTrackingModifiedEntries(id)
 }
 
+// See docs for ModifiedTasks interface.
+func (m *ModifiedTasksImpl) ModifiedTasksCh() <-chan []*types.Task {
+	ch := make(chan []*types.Task)
+	go func() {
+		for entries := range m.m.ModifiedEntriesCh() {
+			tasks := make([]*types.Task, 0, len(entries))
+			for _, e := range entries {
+				tasks = append(tasks, e.(*types.Task).Copy())
+			}
+			sort.Sort(types.TaskSlice(tasks))
+			ch <- tasks
+		}
+		close(ch)
+	}()
+	return ch
+}
+
 type ModifiedJobsImpl struct {
 	m modifiedData
 }
@@ -205,6 +239,23 @@ func (m *ModifiedJobsImpl) StopTrackingModifiedJobs(id string) {
 	m.m.StopTrackingModifiedEntries(id)
 }
 
+// See docs for ModifiedJobs interface.
+func (m *ModifiedJobsImpl) ModifiedJobsCh() <-chan []*types.Job {
+	ch := make(chan []*types.Job)
+	go func() {
+		for entries := range m.m.ModifiedEntriesCh() {
+			jobs := make([]*types.Job, 0, len(entries))
+			for _, e := range entries {
+				jobs = append(jobs, e.(*types.Job).Copy())
+			}
+			sort.Sort(types.JobSlice(jobs))
+			ch <- jobs
+		}
+		close(ch)
+	}()
+	return ch
+}
+
 type ModifiedCommentsImpl struct {
 	tasks     modifiedData
 	taskSpecs modifiedData
@@ -212,42 +263,43 @@ type ModifiedCommentsImpl struct {
 }
 
 // See docs for ModifiedComments interface.
-func (m *ModifiedCommentsImpl) GetModifiedComments(id string) ([]*types.TaskComment, []*types.TaskSpecComment, []*types.CommitComment, error) {
+func (m *ModifiedCommentsImpl) GetModifiedComments(id string) (db.Comments, error) {
+	rv := db.Comments{}
 	ids := strings.Split(id, "#")
 	if len(ids) != 3 {
-		return nil, nil, nil, db.ErrUnknownId
+		return rv, db.ErrUnknownId
 	}
 	tasks, err := m.tasks.GetModifiedEntries(ids[0])
 	if err != nil {
-		return nil, nil, nil, err
+		return rv, err
 	}
-	rv1 := make([]*types.TaskComment, 0, len(tasks))
+	rv.Task = make([]*types.TaskComment, 0, len(tasks))
 	for _, c := range tasks {
-		rv1 = append(rv1, c.(*types.TaskComment).Copy())
+		rv.Task = append(rv.Task, c.(*types.TaskComment).Copy())
 	}
-	sort.Sort(types.TaskCommentSlice(rv1))
+	sort.Sort(types.TaskCommentSlice(rv.Task))
 
 	taskSpecs, err := m.taskSpecs.GetModifiedEntries(ids[1])
 	if err != nil {
-		return nil, nil, nil, err
+		return rv, err
 	}
-	rv2 := make([]*types.TaskSpecComment, 0, len(taskSpecs))
+	rv.TaskSpec = make([]*types.TaskSpecComment, 0, len(taskSpecs))
 	for _, c := range taskSpecs {
-		rv2 = append(rv2, c.(*types.TaskSpecComment).Copy())
+		rv.TaskSpec = append(rv.TaskSpec, c.(*types.TaskSpecComment).Copy())
 	}
-	sort.Sort(types.TaskSpecCommentSlice(rv2))
+	sort.Sort(types.TaskSpecCommentSlice(rv.TaskSpec))
 
 	commits, err := m.commits.GetModifiedEntries(ids[2])
 	if err != nil {
-		return nil, nil, nil, err
+		return rv, err
 	}
-	rv3 := make([]*types.CommitComment, 0, len(commits))
+	rv.Commit = make([]*types.CommitComment, 0, len(commits))
 	for _, c := range commits {
-		rv3 = append(rv3, c.(*types.CommitComment).Copy())
+		rv.Commit = append(rv.Commit, c.(*types.CommitComment).Copy())
 	}
-	sort.Sort(types.CommitCommentSlice(rv3))
+	sort.Sort(types.CommitCommentSlice(rv.Commit))
 
-	return rv1, rv2, rv3, nil
+	return rv, nil
 }
 
 // See docs for ModifiedComments interface.
@@ -295,6 +347,59 @@ func (m *ModifiedCommentsImpl) StopTrackingModifiedComments(id string) {
 	m.tasks.StopTrackingModifiedEntries(ids[0])
 	m.taskSpecs.StopTrackingModifiedEntries(ids[1])
 	m.commits.StopTrackingModifiedEntries(ids[2])
+}
+
+// See docs for ModifiedComments interface.
+func (m *ModifiedCommentsImpl) ModifiedCommentsCh() <-chan db.Comments {
+	ch := make(chan db.Comments)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for entries := range m.tasks.ModifiedEntriesCh() {
+			cs := make([]*types.TaskComment, 0, len(entries))
+			for _, e := range entries {
+				cs = append(cs, e.(*types.TaskComment).Copy())
+			}
+			sort.Sort(types.TaskCommentSlice(cs))
+			ch <- db.Comments{
+				Task: cs,
+			}
+		}
+	}()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for entries := range m.taskSpecs.ModifiedEntriesCh() {
+			cs := make([]*types.TaskSpecComment, 0, len(entries))
+			for _, e := range entries {
+				cs = append(cs, e.(*types.TaskSpecComment).Copy())
+			}
+			sort.Sort(types.TaskSpecCommentSlice(cs))
+			ch <- db.Comments{
+				TaskSpec: cs,
+			}
+		}
+	}()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for entries := range m.commits.ModifiedEntriesCh() {
+			cs := make([]*types.CommitComment, 0, len(entries))
+			for _, e := range entries {
+				cs = append(cs, e.(*types.CommitComment).Copy())
+			}
+			sort.Sort(types.CommitCommentSlice(cs))
+			ch <- db.Comments{
+				Commit: cs,
+			}
+		}
+	}()
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+	return ch
 }
 
 var _ db.ModifiedTasks = &ModifiedTasksImpl{}
