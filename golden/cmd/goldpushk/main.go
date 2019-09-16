@@ -29,12 +29,14 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"os"
 	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/cmd/goldpushk/goldpushk"
@@ -57,7 +59,7 @@ func main() {
 		Use:  "goldpushk",
 		Long: "goldpushk pushes Gold services to production.",
 		Run: func(cmd *cobra.Command, args []string) {
-			run()
+			run(cmd)
 		},
 	}
 	rootCmd.Flags().SortFlags = false
@@ -65,6 +67,13 @@ func main() {
 	rootCmd.Flags().StringSliceVarP(&flagServices, "services", "s", []string{}, "[REQUIRED] Comma-delimited list of services to target (e.g. \"skiacorrectness,diffserver\"), or \""+all+"\" to target all services.")
 	rootCmd.Flags().StringSliceVarP(&flagCanaries, "canaries", "c", []string{}, "Comma-delimited subset of Gold services to use as canaries, written as instance:service pairs (e.g. \"skia:diffserver,flutter:skiacorrectness\")")
 	rootCmd.Flags().BoolVarP(&flagDryRun, "dryrun", "d", false, "Do everything except applying the new configuration to Kubernetes and committing changes to Git.")
+
+	// Redefine glog flags (which are defined using the "flag" package) here using
+	// Cobra to prevent "unknown flag" errors. See the documentation for function
+	// cobraGlogCompatibilityHack below.
+	var ignored bool
+	rootCmd.Flags().BoolVar(&ignored, "alsologtostderr", false, "log to standard error as well as files")
+
 	if err := rootCmd.MarkFlagRequired("services"); err != nil {
 		sklog.Fatalf("Error while setting up command line flags: %s", err)
 	}
@@ -76,7 +85,48 @@ func main() {
 	}
 }
 
-func run() {
+// cobraGlogCompatibilityHack is a workaround to support utilizing some of the
+// command line flags defined by glog, such as --alsologtostderr.
+//
+// This function does two things:
+//
+//   1. It redefines goldpushk's flags using the "flag" package, which is what
+//      glog uses to define its own flags. If we didn't do this, we would get
+//      "flag provided but not defined" errors caused by goldpushk's own flags
+//      when calling flag.Parse().
+//
+//   2. It calls flag.Parse(), which is required in order for glog to read its
+//      own flags. Another reason for doing this is that it prevents glog from
+//      prefixing all log messages with "ERROR: logging before flag.Parse".
+//
+// Note that for this hack to work, it's also necessary to define the glog flags
+// of interest with the Cobra package, otherwise Cobra will produce "unknown
+// flag" errors.
+//
+// See discussion on this topic here:
+// https://groups.google.com/d/topic/golang-nuts/PAuf8vgWXhM/discussion.
+func cobraGlogCompatibilityHack(rootCmd *cobra.Command) {
+	// Step 1: Redefine goldpushk flags using the "flag" package.
+	rootCmd.Flags().VisitAll(func(f *pflag.Flag) {
+		// Do not redefine alsologtostderr, which is already defined by glog.
+		if f.Name == "alsologtostderr" {
+			return
+		}
+		// The flag type does not matter; we just need it to be defined.
+		flag.String(f.Name, "", "")
+		// We also need to define the shorthand version as its own flag.
+		if f.Shorthand != "" {
+			flag.String(f.Shorthand, "", "")
+		}
+	})
+
+	// Step 2: Call flag.Parse().
+	flag.Parse()
+}
+
+func run(rootCmd *cobra.Command) {
+	cobraGlogCompatibilityHack(rootCmd)
+
 	// Get set of deployable units. Used as the source of truth across goldpushk.
 	deployableUnitSet := goldpushk.BuildDeployableUnitSet()
 
