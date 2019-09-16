@@ -29,10 +29,10 @@ import (
 const (
 	DEPRECATED_TABLE_ID = "git-repos"
 
-	METRIC_BT_REQS_READ  = "bt-gitstore-reqs-read"
-	METRIC_BT_REQS_WRITE = "bt-gitstore-reqs-write"
-	METRIC_BT_ROWS_READ  = "bt-gitstore-rows-read"
-	METRIC_BT_ROWS_WRITE = "bt-gitstore-rows-write"
+	METRIC_BT_REQS_READ  = "bt_gitstore_reqs_read"
+	METRIC_BT_REQS_WRITE = "bt_gitstore_reqs_write"
+	METRIC_BT_ROWS_READ  = "bt_gitstore_rows_read"
+	METRIC_BT_ROWS_WRITE = "bt_gitstore_rows_write"
 )
 
 // BigTableGitStore implements the GitStore interface based on BigTable.
