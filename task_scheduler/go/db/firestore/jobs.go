@@ -189,7 +189,7 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 	// Assign new IDs (where needed) and DbModified timestamps.
 	for _, job := range jobs {
 		if job.Id == "" {
-			job.Id = d.jobs().NewDoc().ID
+			job.Id = firestore.AlphaNumID()
 		}
 		if !now.After(job.DbModified) {
 			// We can't use the same DbModified timestamp for two updates,

@@ -6,6 +6,7 @@ package firestore
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"os"
@@ -54,11 +55,16 @@ const (
 	// iteration.
 	MAX_ITER_TIME = 50 * time.Second
 
+	// Length of IDs returned by AlphaNumID.
+	ID_LEN = 20
+
 	opTypeRead  = "read"
 	opTypeWrite = "write"
 
 	opCountRows    = "rows"
 	opCountQueries = "queries"
+
+	alphaNum = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 )
 
 var (
@@ -85,6 +91,24 @@ var (
 // only supports microsecond precision, and we always want to store UTC.
 func FixTimestamp(t time.Time) time.Time {
 	return t.UTC().Truncate(TS_RESOLUTION)
+}
+
+// AlphaNumID generates a fixed-length alphanumeric document ID using
+// crypto/rand. Panics if crypto/rand fails to generate random bytes, eg. it
+// cannot read from /dev/urandom.
+//
+// Motivation: the Go client library for Firestore generates URL-safe base64-
+// encoded IDs, whic may not be desirable for all use cases (eg. passing an ID
+// which may contain a '-' on the command line would require some escaping).
+func AlphaNumID() string {
+	bytes := make([]byte, ID_LEN)
+	if _, err := rand.Read(bytes); err != nil {
+		panic(fmt.Sprintf("crypto/rand.Read error: %v", err))
+	}
+	for idx := range bytes {
+		bytes[idx] = alphaNum[bytes[idx]%byte(len(alphaNum))]
+	}
+	return string(bytes)
 }
 
 // DocumentRefSlice is a slice of DocumentRefs, used for sorting.
