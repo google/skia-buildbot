@@ -220,22 +220,22 @@ func (c *Continuous) getPubSubSubscription() (*pubsub.Subscription, error) {
 
 	// When running in production we have every instance use the same topic name
 	// so that they load-balance pulling items from the topic.
-	subName := fmt.Sprintf("%s-%s", c.pubSubTopicName, "prod")
+	topicName := fmt.Sprintf("%s-%s", c.pubSubTopicName, "prod")
 	if c.local {
 		// When running locally create a new topic for every host.
-		subName = fmt.Sprintf("%s-%s", c.pubSubTopicName, hostname)
+		topicName = fmt.Sprintf("%s-%s", c.pubSubTopicName, hostname)
 	}
-	sub := client.Subscription(subName)
+	sub := client.Subscription(topicName)
 	ok, err := sub.Exists(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed checking subscription existence")
 	}
 	if !ok {
-		sub, err = client.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
+		sub, err = client.CreateSubscription(ctx, topicName, pubsub.SubscriptionConfig{
 			Topic: client.Topic(c.pubSubTopicName),
 		})
 		if err != nil {
-			sklog.Fatalf("Failed creating subscription: %s", err)
+			return nil, skerr.Wrapf(err, "Failed creating subscription")
 		}
 	}
 
