@@ -53,3 +53,12 @@ export const changelistSummaries_5 = {
     "total": 2147483647
   }
 };
+
+export const empty = {
+  "status": 200,
+  "pagination": {
+    "offset": 100,
+    "size": 10,
+    "total": 100,
+  }
+};

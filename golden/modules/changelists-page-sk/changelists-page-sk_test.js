@@ -1,7 +1,8 @@
 import './index.js'
 
-import { changelistSummaries_5 } from './test_data'
 import { $, $$ } from 'common-sk/modules/dom'
+import { changelistSummaries_5, empty } from './test_data'
+import { expectNoUnmatchedCalls } from '../test_util'
 
 describe('changelists-page-sk', () => {
 
@@ -12,8 +13,14 @@ describe('changelists-page-sk', () => {
   document.body.appendChild(container);
 
   beforeEach(function() {
-    fetchMock.get('/json/changelists', JSON.stringify(changelistSummaries_5));
-    // Everything else
+    // Clear out any query params we might have to not mess with our current state.
+    history.pushState(null, '', window.location.origin + window.location.pathname + '?');
+  });
+
+  beforeEach(function() {
+    // These are the default offset/page_size params
+    fetchMock.get('/json/changelists?offset=0&size=50', JSON.stringify(changelistSummaries_5));
+
     fetchMock.catch(404);
   });
 
@@ -71,9 +78,27 @@ describe('changelists-page-sk', () => {
         expect(tbl).to.not.be.null;
         const rows = $('tbody tr');
         expect(rows.length).to.equal(5); // one row per item in changelistSummaries_5
-        done()
+        done();
       });
     });
   }); // end describe('html layout')
+
+  describe('api calls', () => {
+    it('includes pagination params in request to changelists', (done) => {
+      whenPageLoads((ele) => {
+        fetchMock.resetHistory();
+
+        fetchMock.get('/json/changelists?offset=100&size=10', JSON.stringify(empty));
+        // pretend these were loaded in via stateReflector
+        ele._offset = 100;
+        ele._page_size = 10;
+
+        ele._fetch().then(() => {
+          expectNoUnmatchedCalls(fetchMock);
+          done();
+        });
+      });
+    });
+  }); // end describe('api calls')
 
 });
