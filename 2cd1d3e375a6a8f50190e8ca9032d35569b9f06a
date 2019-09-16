@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c34ddae_6ffa17ef",
+        "filename": "perf/go/regression/continuous.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-16T15:07:00Z",
+      "side": 1,
+      "message": "nit: topicName",
+      "range": {
+        "startLine": 223,
+        "startChar": 1,
+        "endLine": 223,
+        "endChar": 8
+      },
+      "revId": "2cd1d3e375a6a8f50190e8ca9032d35569b9f06a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c25eb9ca_8fe94ba8",
+        "filename": "perf/go/regression/continuous.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-16T15:07:00Z",
+      "side": 1,
+      "message": "driveby: why does this fatal instead of returning error?",
+      "range": {
+        "startLine": 237,
+        "startChar": 2,
+        "endLine": 239,
+        "endChar": 3
+      },
+      "revId": "2cd1d3e375a6a8f50190e8ca9032d35569b9f06a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
