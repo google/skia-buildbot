@@ -1,0 +1,28 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "06577d05_c9b06038",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-16T19:29:27Z",
+      "side": 1,
+      "message": "\u003e \"whic\" is a possible misspelling of \"which\".\n\nPlease Fix",
+      "parentUuid": "31bb3662_160fffb9",
+      "range": {
+        "startLine": 101,
+        "startChar": 16,
+        "endLine": 101,
+        "endChar": 20
+      },
+      "revId": "47cfff3a7a70bc835e26a24423cf192aa6d73a3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
