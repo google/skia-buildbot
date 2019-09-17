@@ -5,7 +5,7 @@
        "http://skia-skfe-2",
      ],
      "method": "GET",
-     "expected": [301],
+     "expected": [200],
      "body": "",
      "mimetype": ""
    },
