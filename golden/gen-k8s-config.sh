@@ -55,7 +55,7 @@ then
   kube-conf-gen -c "${TMPL_DIR}/gold-common.json5" \
                 -c "${INSTANCE_DIR}/${INSTANCE_ID}-instance.json5" \
                 -extra "INSTANCE_ID:${INSTANCE_ID}" \
-                -t "${TMPL_DIR}/gold-ingestion-template-bt.yaml" \
+                -t "${TMPL_DIR}/gold-ingestion-bt-template.yaml" \
                 -parse_conf=false -quote -strict \
                 -o "${INGESTION_SERVER_CONF}"
 
