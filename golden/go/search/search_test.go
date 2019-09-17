@@ -53,7 +53,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
 
-	s := New(mds, mes, mi, nil, nil, nil, everythingPublic)
+	s := New(mds, mes, mi, nil, nil, nil, everythingPublic, "don't care")
 
 	mes.On("Get").Return(data.MakeTestExpectations(), nil)
 
@@ -266,7 +266,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 
-	mes.On("ForIssue", clInt).Return(issueStore, nil)
+	mes.On("ForChangeList", clID, "github").Return(issueStore, nil)
 	issueStore.On("Get").Return(types.Expectations{
 		data.AlphaTest: {
 			AlphaNowGoodDigest: types.POSITIVE,
@@ -362,7 +362,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 			data.BetaGood1Digest: makeSmallDiffMetric(),
 		}, nil)
 
-	s := New(mds, mes, mi, nil, mcls, mtjs, everythingPublic)
+	s := New(mds, mes, mi, nil, mcls, mtjs, everythingPublic, "github")
 
 	q := &query.Search{
 		ChangeListID:    clID,
