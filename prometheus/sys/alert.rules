@@ -82,16 +82,6 @@ ALERT DiskSpaceLow
     description = "Low Root Disk Space on {{ $labels.host }}. https://chromium-swarm.appspot.com/bot?id={{ $labels.host }}",
   }
 
-# External RPis.
-ALERT DiskSpaceLow
-  IF df_complex_free{resource=~"df-var|df-tmp",host=~"skia-(e-)?rpi-.+"} < 1e8
-  FOR 5m
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    abbr = "{{ $labels.host }}",
-    description = "Free space has fallen below 100MB on {{ $labels.host }} drive {{ $labels.resource}}. https://chromium-swarm.appspot.com/bot?id={{ $labels.host }}",
-  }
-
 # Internal bots except RPis.
 ALERT DiskSpaceLow
   IF df_complex_free{resource="df-root",host=~"skia-i-[^r].+"} < 1e9
@@ -120,16 +110,6 @@ ALERT DiskSpaceLow
   ANNOTATIONS {
     abbr = "{{ $labels.host }}",
     description = "Low Root Disk Space on {{ $labels.host }}. https://chromium-swarm-dev.appspot.com/bot?id={{ $labels.host }}",
-  }
-
-# Dev RPis.
-ALERT DiskSpaceLow
-  IF df_complex_free{resource=~"df-var|df-tmp",host=~"skia-d-rpi-.+"} < 1e8
-  FOR 5m
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    abbr = "{{ $labels.host }}",
-    description = "Free space has fallen below 100MB on {{ $labels.host }} drive {{ $labels.resource}}. https://chromium-swarm-dev.appspot.com/bot?id={{ $labels.host }}",
   }
 
 ALERT DirtyPackages
