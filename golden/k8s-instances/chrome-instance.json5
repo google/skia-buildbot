@@ -4,6 +4,7 @@
   "BIGTABLE_PROJECT":        "skia-public",
   "BIGTABLE_TABLE":          "gold-chrome",
   "BUCKET":                  "skia-gold-chrome",
+  "CODE_REVIEW_SYSTEM":      "gerrit",
   "DATASTORE_NAMESPACE":     "gold-chrome",
   "DATASTORE_PROJECT":       "skia-public",
   "FIRESTORE_NAMESPACE":     "chrome",
