@@ -323,11 +323,6 @@ func main() {
 		sklog.Fatalf("project_id, topic and subscriber flags must all be set.")
 	}
 
-	if *hang {
-		sklog.Infof("--hang provided; doing nothing.")
-		httputils.RunHealthCheckServer(*port)
-	}
-
 	// Create token source.
 	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_READ_WRITE, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, datastore.ScopeDatastore, pubsub.ScopePubSub)
 	if err != nil {
@@ -360,6 +355,11 @@ func main() {
 		if _, err := gitauth.New(ts, gitcookiesPath, true, *serviceAccount); err != nil {
 			sklog.Fatalf("Failed to create git cookie updater: %s", err)
 		}
+	}
+
+	if *hang {
+		sklog.Infof("--hang provided; doing nothing.")
+		httputils.RunHealthCheckServer(*port)
 	}
 
 	// Initialize checkouts.
