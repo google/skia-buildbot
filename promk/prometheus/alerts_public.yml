@@ -307,3 +307,27 @@ groups:
       severity: warning
     annotations:
       description: 'Windows Skolo bots OS version has diverged. https://goto.google.com/skolo-maintenance'
+
+# External RPis.
+
+  - alert: DiskSpaceLow
+    expr: collectd_df_df_complex{df=~"var|tmp",exported_instance=~"skia-(e-)?rpi-.+",type="free"} < 1e8
+    for: 5m
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.exported_instance }}'
+      description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df}}. https://chromium-swarm.appspot.com/bot?id={{ $labels.exported_instance }}'
+
+# Dev RPis.
+
+  - alert: DiskSpaceLow
+    expr: collectd_df_df_complex{df=~"var|tmp",exported_instance=~"skia-d-rpi-.+",type="free"} < 1e8
+    for: 5m
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.exported_instance }}'
+      description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df}}. https://chromium-swarm-dev.appspot.com/bot?id={{ $labels.exported_instance }}'
