@@ -28,6 +28,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -41,7 +42,11 @@ import (
 )
 
 const (
-	all = "all" // Wildcard value for command line arguments.
+	// Wildcard value for command line arguments.
+	all = "all"
+
+	// Environment variable with path to buildbot repository checkout directory.
+	skiaInfraRootEnvVar = "SKIA_INFRA_ROOT"
 )
 
 var (
@@ -98,9 +103,16 @@ func run() {
 		os.Exit(1)
 	}
 
+	// Read environment variables.
+	skiaInfraRoot, ok := os.LookupEnv(skiaInfraRootEnvVar)
+	if !ok {
+		fmt.Printf("Error: environment variable %s not set.", skiaInfraRootEnvVar)
+		os.Exit(1)
+	}
+
 	// Run goldpushk.
-	gpk := goldpushk.New(deployableUnits, canariedDeployableUnits, flagDryRun)
-	if err = gpk.Run(); err != nil {
+	gpk := goldpushk.New(deployableUnits, canariedDeployableUnits, skiaInfraRoot, flagDryRun)
+	if err = gpk.Run(context.Background()); err != nil {
 		fmt.Printf("Error: %s.\n", err)
 		os.Exit(1)
 	}
