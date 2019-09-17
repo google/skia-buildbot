@@ -63,6 +63,7 @@ spec:
             - "--logtostderr=true"
             - "--n_commits={{.N_COMMITS}}"
             - "--no_cloud_log=true"
+            - "--primary_crs={{.CODE_REVIEW_SYSTEM}}"
             - "--port=:8000"
             - "--prom_port=:20000"
             {{if .AUTHORIZED_PARAMS}}

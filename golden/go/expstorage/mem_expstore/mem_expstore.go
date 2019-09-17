@@ -31,8 +31,8 @@ func New(eventBus eventbus.EventBus) *MemExpectationsStore {
 }
 
 // See ExpectationsStore interface.
-func (m *MemExpectationsStore) ForIssue(id int64) expstorage.ExpectationsStore {
-	sklog.Fatal("MemExpectation store does not support ForIssue.")
+func (m *MemExpectationsStore) ForChangeList(id, crs string) expstorage.ExpectationsStore {
+	sklog.Fatal("MemExpectation store does not support ForChangeList.")
 	return nil
 }
 
@@ -52,8 +52,8 @@ func (m *MemExpectationsStore) AddChange(c context.Context, changedTests types.E
 	m.expectations.MergeExpectations(changedTests)
 	if m.eventBus != nil {
 		m.eventBus.Publish(expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
-			TestChanges: changedTests,
-			IssueID:     types.MasterBranch,
+			ExpectationDelta: changedTests,
+			CRSAndCLID:       "",
 		}, true)
 	}
 
@@ -80,8 +80,8 @@ func (m *MemExpectationsStore) TESTING_ONLY_RemoveChange(changedDigests types.Ex
 
 	if m.eventBus != nil {
 		m.eventBus.Publish(expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
-			TestChanges: changedDigests,
-			IssueID:     types.MasterBranch,
+			ExpectationDelta: changedDigests,
+			CRSAndCLID:       "",
 		}, true)
 	}
 

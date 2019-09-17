@@ -364,3 +364,18 @@ func makeCodeReviewPSs() []code_review.PatchSet {
 		},
 	}
 }
+
+func TestTriageMaster(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Fail(t, "not impl")
+}
+
+func TestTriageMasterLegacy(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Fail(t, "not impl")
+}
+
+func TestTriageChangeList(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Fail(t, "not impl")
+}

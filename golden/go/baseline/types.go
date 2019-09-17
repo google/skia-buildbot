@@ -15,8 +15,13 @@ type Baseline struct {
 	// with only the positive digests of the current commit.
 	Expectations types.Expectations `json:"master"`
 
-	// Issue indicates the Gerrit issue of this baseline. -1 indicates the master branch.
-	Issue int64
+	// ChangeListID indicates the Gerrit or GitHub issue id of this baseline.
+	// "" indicates the master branch.
+	ChangeListID string `json:"cl_id"`
+
+	// CodeReviewSystem indicates which CRS system (if any) this baseline is tied to.
+	// (e.g. "gerrit", "github") "" indicates the master branch.
+	CodeReviewSystem string `json:"crs"`
 }
 
 // Copy returns a deep copy of the given instance of Baseline.
@@ -47,5 +52,5 @@ type BaselineFetcher interface {
 	// issueOnly is primarily used for debugging.
 	// TODO(kjlubick): remove commitHash as it has no meaning anymore, now that per-commit
 	// baselines have been removed.
-	FetchBaseline(commitHash string, issueID int64, issueOnly bool) (*Baseline, error)
+	FetchBaseline(clID string, issueOnly bool) (*Baseline, error)
 }

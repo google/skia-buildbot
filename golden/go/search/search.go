@@ -46,6 +46,9 @@ type SearchImpl struct {
 	changeListStore       clstore.Store
 	tryJobStore           tjstore.Store
 	deprecatedTryJobStore tryjobstore.TryjobStore
+	// If needed, we can update this to handle multiple CRSes. It houses values like "gerrit".
+	primaryCodeReviewSystem string
+
 	// optional. If specified, will only show the params that match this query. This is
 	// opt-in, to avoid leaking.
 	publiclyViewableParams paramtools.ParamSet
@@ -53,15 +56,16 @@ type SearchImpl struct {
 
 // New returns a new SearchImpl instance.
 func New(ds diff.DiffStore, es expstorage.ExpectationsStore, i indexer.IndexSource, deprecatedTJ tryjobstore.TryjobStore,
-	cls clstore.Store, tjs tjstore.Store, publiclyViewableParams paramtools.ParamSet) *SearchImpl {
+	cls clstore.Store, tjs tjstore.Store, publiclyViewableParams paramtools.ParamSet, crs string) *SearchImpl {
 	return &SearchImpl{
-		diffStore:              ds,
-		expectationsStore:      es,
-		indexSource:            i,
-		deprecatedTryJobStore:  deprecatedTJ,
-		changeListStore:        cls,
-		tryJobStore:            tjs,
-		publiclyViewableParams: publiclyViewableParams,
+		diffStore:               ds,
+		expectationsStore:       es,
+		indexSource:             i,
+		deprecatedTryJobStore:   deprecatedTJ,
+		changeListStore:         cls,
+		tryJobStore:             tjs,
+		primaryCodeReviewSystem: crs,
+		publiclyViewableParams:  publiclyViewableParams,
 	}
 }
 
@@ -79,7 +83,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	isChangeListSearch := !types.IsMasterBranch(q.DeprecatedIssue)
 	// Get the expectations and the current index, which we assume constant
 	// for the duration of this query.
-	exp, err := s.getExpectationsFromQuery(q.DeprecatedIssue)
+	exp, err := s.getExpectationsFromQuery(q.ChangeListID, s.primaryCodeReviewSystem)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -151,21 +155,21 @@ func (s *SearchImpl) GetDigestDetails(test types.TestName, digest types.Digest) 
 	idx := s.indexSource.GetIndex()
 	tile := idx.Tile().GetTile(types.IncludeIgnoredTraces)
 
-	exp, err := s.getExpectationsFromQuery(types.MasterBranch)
+	exp, err := s.getExpectationsFromQuery("", s.primaryCodeReviewSystem)
 	if err != nil {
 		return nil, err
 	}
 
 	oneInter := newSrIntermediate(test, digest, "", nil, nil)
-	for traceId, trace := range tile.Traces {
-		gTrace := trace.(*types.GoldenTrace)
+	for traceId, t := range tile.Traces {
+		gTrace := t.(*types.GoldenTrace)
 		if gTrace.TestName() != test {
 			continue
 		}
 
 		for _, val := range gTrace.Digests {
 			if val == digest {
-				oneInter.add(traceId, trace, nil)
+				oneInter.add(traceId, t, nil)
 				break
 			}
 		}
@@ -184,9 +188,6 @@ func (s *SearchImpl) GetDigestDetails(test types.TestName, digest types.Digest) 
 	inter := srInterMap{test: {digest: oneInter}}
 	ret := s.getDigestRecs(inter, exp)
 	s.getReferenceDiffs(ctx, ret, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, nil, types.ExcludeIgnoredTraces, exp, idx)
-	if err != nil {
-		return nil, err
-	}
 
 	if hasTraces {
 		// Get the params and traces.
@@ -203,14 +204,15 @@ func (s *SearchImpl) GetDigestDetails(test types.TestName, digest types.Digest) 
 // used in the given query. It will add the issue expectations if this is
 // querying ChangeList results. If query is nil the expectations of the master
 // tile are returned.
-func (s *SearchImpl) getExpectationsFromQuery(clID int64) (common.ExpSlice, error) {
+func (s *SearchImpl) getExpectationsFromQuery(clID, crs string) (common.ExpSlice, error) {
 	ret := make(common.ExpSlice, 0, 2)
 
-	if !types.IsMasterBranch(clID) {
-		issueExpStore := s.expectationsStore.ForIssue(clID)
+	// TODO(kjlubick) remove the legacy values "0" and "-1" once frontend changes have baked in.
+	if clID != "" && clID != "0" && clID != "-1" {
+		issueExpStore := s.expectationsStore.ForChangeList(clID, crs)
 		tjExp, err := issueExpStore.Get()
 		if err != nil {
-			return nil, skerr.Wrapf(err, "loading expectations for issue %d", clID)
+			return nil, skerr.Wrapf(err, "loading expectations for cl %s (%s)", clID, crs)
 		}
 		ret = append(ret, tjExp)
 	}
@@ -341,7 +343,7 @@ func (s *SearchImpl) deprecatedExtractIssueDigests(ctx context.Context, q *query
 	return issue, nil
 }
 
-// queryChangeList returns the digests associated with the ChangeList referenced by q.ChangeListID
+// queryChangeList returns the digests associated with the ChangeList referenced by q.CRSAndCLID
 // in intermediate representation. It returns the filtered digests as specified by q. The param
 // exp should contain the expectations for the given ChangeList.
 func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp common.ExpSlice) (srInterMap, error) {
@@ -374,7 +376,7 @@ func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx i
 // be called for each testName/digest combination and should accumulate the digests of interest.
 type filterAddFn func(test types.TestName, digest types.Digest, params paramtools.Params)
 
-// extractChangeListDigests loads the ChangeList referenced by q.ChangeListID and the TryJobResults
+// extractChangeListDigests loads the ChangeList referenced by q.CRSAndCLID and the TryJobResults
 // associated with it. Then, it filters those results with the given query. For each
 // testName/digest pair that matches the query, it calls addFn (which the supplier will likely use
 // to build up a list of those results.
@@ -578,7 +580,7 @@ func (s *SearchImpl) afterDiffResultFilter(ctx context.Context, digestInfo []*fr
 
 	newDigestInfo := make([]*frontend.SRDigest, 0, len(digestInfo))
 	filterRGBADiff := (q.FRGBAMin > 0) || (q.FRGBAMax < 255)
-	filterDiffMax := (q.FDiffMax >= 0)
+	filterDiffMax := q.FDiffMax >= 0
 	for _, digest := range digestInfo {
 		ref, ok := digest.RefDiffs[digest.ClosestRef]
 
