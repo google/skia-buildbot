@@ -18,6 +18,64 @@ func TestDeployableUnitIDCanonicalName(t *testing.T) {
 	assert.Equal(t, "gold-chrome-diffserver", unit.CanonicalName())
 }
 
+func TestDeployableUnitGetDeploymentFileTemplatePath(t *testing.T) {
+	unittest.SmallTest(t)
+
+	unit := DeployableUnit{
+		DeployableUnitID: DeployableUnitID{
+			Instance: Skia,
+			Service:  DiffServer,
+		},
+	}
+
+	assert.Equal(t, "/foo/bar/golden/k8s-config-templates/gold-diffserver-template.yaml", unit.getDeploymentFileTemplatePath("/foo/bar"))
+}
+
+func TestDeployableUnitGetDeploymentFilePath(t *testing.T) {
+	unittest.SmallTest(t)
+
+	unit := DeployableUnit{
+		DeployableUnitID: DeployableUnitID{
+			Instance: Skia,
+			Service:  DiffServer,
+		},
+	}
+
+	assert.Equal(t, "/foo/bar/golden/build/gold-skia-diffserver.yaml", unit.getDeploymentFilePath("/foo/bar"))
+}
+
+func TestDeployableUnitGetConfigMapFileTemplatePath(t *testing.T) {
+	unittest.SmallTest(t)
+
+	unit := DeployableUnit{
+		DeployableUnitID: DeployableUnitID{
+			Instance: Skia,
+			Service:  DiffServer,
+		},
+		DeploymentOptions: DeploymentOptions{
+			configMapTemplate: "path/to/config-map-template.json5",
+		},
+	}
+
+	assert.Equal(t, "/foo/bar/path/to/config-map-template.json5", unit.getConfigMapTemplatePath("/foo/bar"))
+}
+
+func TestDeployableUnitGetConfigMapFilePath(t *testing.T) {
+	unittest.SmallTest(t)
+
+	unit := DeployableUnit{
+		DeployableUnitID: DeployableUnitID{
+			Instance: Skia,
+			Service:  DiffServer,
+		},
+		DeploymentOptions: DeploymentOptions{
+			configMapFile: "path/to/config-map-file.json5",
+		},
+	}
+
+	assert.Equal(t, "/foo/bar/path/to/config-map-file.json5", unit.getConfigMapFilePath("/foo/bar"))
+}
+
 func TestDeployableUnitSetAdd(t *testing.T) {
 	unittest.SmallTest(t)
 
