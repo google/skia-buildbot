@@ -28,6 +28,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -41,7 +42,11 @@ import (
 )
 
 const (
-	all = "all" // Wildcard value for command line arguments.
+	// Wildcard value for command line arguments.
+	all = "all"
+
+	// Environment variable with path to buildbot repository checkout directory.
+	skiaInfraRootEnvVar = "SKIA_INFRA_ROOT"
 )
 
 var (
@@ -65,6 +70,7 @@ func main() {
 	rootCmd.Flags().StringSliceVarP(&flagServices, "services", "s", []string{}, "[REQUIRED] Comma-delimited list of services to target (e.g. \"skiacorrectness,diffserver\"), or \""+all+"\" to target all services.")
 	rootCmd.Flags().StringSliceVarP(&flagCanaries, "canaries", "c", []string{}, "Comma-delimited subset of Gold services to use as canaries, written as instance:service pairs (e.g. \"skia:diffserver,flutter:skiacorrectness\")")
 	rootCmd.Flags().BoolVarP(&flagDryRun, "dryrun", "d", false, "Do everything except applying the new configuration to Kubernetes and committing changes to Git.")
+
 	if err := rootCmd.MarkFlagRequired("services"); err != nil {
 		sklog.Fatalf("Error while setting up command line flags: %s", err)
 	}
@@ -87,9 +93,16 @@ func run() {
 		os.Exit(1)
 	}
 
+	// Read environment variables.
+	skiaInfraRoot, ok := os.LookupEnv(skiaInfraRootEnvVar)
+	if !ok {
+		fmt.Printf("Error: environment variable %s not set.", skiaInfraRootEnvVar)
+		os.Exit(1)
+	}
+
 	// Run goldpushk.
-	gpk := goldpushk.New(deployableUnits, canariedDeployableUnits, flagDryRun)
-	if err = gpk.Run(); err != nil {
+	gpk := goldpushk.New(deployableUnits, canariedDeployableUnits, skiaInfraRoot, flagDryRun)
+	if err = gpk.Run(context.Background()); err != nil {
 		fmt.Printf("Error: %s.\n", err)
 		os.Exit(1)
 	}
