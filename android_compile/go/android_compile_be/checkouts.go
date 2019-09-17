@@ -314,9 +314,16 @@ func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) err
 			}
 		}()
 
-		// Sync the current branch, only fetch projects fixed to sha1 if revision
+		// Sync the current branch only for non-mirror checkouts. Mirror checkouts
+		// seem to not sync in the branches in platform/manifest.git/refs/heads
+		// we do not yet know if this is a bug or intentional. See skbug.com/9428
+		// For all checkouts only fetch projects fixed to sha1 if revision
 		// does not exist locally, and delete refs that no longer exist on server.
-		if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "sync", "-c", "-j25", "--optimized-fetch", "--prune"); err != nil {
+		repoSyncArgs := []string{repoToolPath, "sync", "-j25", "--optimized-fetch", "--prune"}
+		if !isMirror {
+			repoSyncArgs = append(repoSyncArgs, "-c")
+		}
+		if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoSyncArgs...); err != nil {
 			errMsg := fmt.Sprintf("Failed to sync the repo at %s: %s", checkoutBase, err)
 			sklog.Errorln(errMsg)
 			return errors.New(errMsg)
