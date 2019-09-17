@@ -102,6 +102,25 @@ func TestBuildDeployableUnitSetConfigMapNamesAreCorrect(t *testing.T) {
 	assert.Equal(t, skiaIngestionBT.configMapName, "gold-skia-ingestion-config-bt")
 }
 
+func TestBuildDeployableUnitSetConfigMapInvariantsHold(t *testing.T) {
+	unittest.SmallTest(t)
+	deployableUnitSet := BuildDeployableUnitSet()
+
+	for _, unit := range deployableUnitSet.deployableUnits {
+		// All DeployableUnits with any ConfigMap settings must have at least a name
+		// and a ConfigMap file.
+		if unit.configMapName != "" || unit.configMapFile != "" || unit.configMapTemplate != "" {
+			assert.NotEmpty(t, unit.configMapName, unit.CanonicalName())
+			assert.NotEmpty(t, unit.configMapFile, unit.CanonicalName())
+		}
+
+		// All IngestionBT instances have templated ConfigMaps.
+		if unit.Service == IngestionBT {
+			assert.NotEmpty(t, unit.configMapTemplate, unit.CanonicalName())
+		}
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Test utility functions.                                                    //
 ////////////////////////////////////////////////////////////////////////////////
