@@ -32,7 +32,6 @@ import (
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/search/export"
 	"go.skia.org/infra/golden/go/search/query"
-	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
@@ -58,8 +57,8 @@ const (
 type WebHandlers struct {
 	Baseliner                      baseline.BaselineFetcher
 	ChangeListStore                clstore.Store
-	ContinuousIntegrationURLPrefix string
 	CodeReviewURLPrefix            string
+	ContinuousIntegrationURLPrefix string
 	DeprecatedTryjobMonitor        tryjobs.TryjobMonitor
 	DeprecatedTryjobStore          tryjobstore.TryjobStore
 	DiffStore                      diff.DiffStore
@@ -67,6 +66,7 @@ type WebHandlers struct {
 	GCSClient                      storage.GCSClient
 	IgnoreStore                    ignore.IgnoreStore
 	Indexer                        indexer.IndexSource
+	PrimaryCodeReviewSystem        string
 	SearchAPI                      search.SearchAPI
 	StatusWatcher                  *status.StatusWatcher
 	TileSource                     tilesource.TileSource
@@ -580,10 +580,6 @@ func (wh *WebHandlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	ignoreRule := ignore.NewIgnoreRule(user, time.Now().Add(d), req.Filter, req.Note)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to create ignore rule.")
-		return
-	}
 	ignoreRule.ID = id
 
 	err = wh.IgnoreStore.Update(id, ignoreRule)
@@ -664,8 +660,8 @@ type TriageRequest struct {
 	// TestDigestStatus maps status to test name and digests as: map[testName][digest]status
 	TestDigestStatus map[types.TestName]map[types.Digest]string `json:"testDigestStatus"`
 
-	// Issue is the id of the code review issue for which we want to change the expectations.
-	Issue int64 `json:"issue"`
+	// DeprecatedIssue is the id of the code review issue for which we want to change the expectations.
+	DeprecatedIssue int64 `json:"issue"`
 }
 
 // TriageHandler handles a request to change the triage status of one or more
@@ -705,8 +701,8 @@ func (wh *WebHandlers) TriageHandler(w http.ResponseWriter, r *http.Request) {
 	// Use the expectations store for the master branch, unless an issue was given
 	// in the request, then get the expectations store for the issue.
 	expStore := wh.ExpectationsStore
-	if !types.IsMasterBranch(req.Issue) {
-		expStore = wh.ExpectationsStore.ForIssue(req.Issue)
+	if !types.IsMasterBranch(req.DeprecatedIssue) {
+		expStore = wh.ExpectationsStore.ForChangeList(strconv.FormatInt(req.DeprecatedIssue, 10), wh.PrimaryCodeReviewSystem)
 	}
 
 	// Add the change.
@@ -1001,17 +997,13 @@ func (wh *WebHandlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) 
 	q := r.URL.Query()
 	offset, size, err := httputils.PaginationParams(q, 0, pageSize, maxPageSize)
 	if err == nil {
-		validate := shared.Validation{}
-		issue := validate.Int64Value("issue", q.Get("issue"), 0)
-		if err := validate.Errors(); err != nil {
-			httputils.ReportError(w, r, err, "Unable to retrieve triage log.")
-			return
-		}
+		deprecatedIssueStr := q.Get("issue")
 
 		details := q.Get("details") == "true"
 		expStore := wh.ExpectationsStore
-		if !types.IsMasterBranch(issue) {
-			expStore = wh.ExpectationsStore.ForIssue(issue)
+		// TODO(kjlubick) remove this legacy handler
+		if deprecatedIssueStr != "" && deprecatedIssueStr != "0" {
+			expStore = wh.ExpectationsStore.ForChangeList(deprecatedIssueStr, wh.PrimaryCodeReviewSystem)
 		}
 
 		logEntries, total, err = expStore.QueryLog(r.Context(), offset, size, details)
@@ -1260,41 +1252,19 @@ func (wh *WebHandlers) DigestTableHandler(w http.ResponseWriter, r *http.Request
 // results).
 func (wh *WebHandlers) BaselineHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	commitHash := ""
-	issueID := types.MasterBranch
+	issueIDStr := ""
 	issueOnly := false
+	var ok bool
 
 	// TODO(stephana): The codepath for using issue_id as segment of the request path is
 	// deprecated and should be removed with the route that defines it (see shared.go).
-	if issueIDStr, ok := mux.Vars(r)["issue_id"]; ok {
-		var err error
-		issueID, err = strconv.ParseInt(issueIDStr, 10, 64)
-		if err != nil {
-			httputils.ReportError(w, r, err, "Issue ID must be valid integer.")
-			return
-		}
-	} else {
-		// Get the commit hash and extract an issue id if it was provided as a query parameter.
-		var ok bool
-		if commitHash, ok = mux.Vars(r)["commit_hash"]; !ok {
-			msg := "No commit hash provided to fetch expectations"
-			httputils.ReportError(w, r, skerr.Fmt(msg), msg)
-			return
-		}
-
+	if issueIDStr, ok = mux.Vars(r)["issue_id"]; !ok {
 		q := r.URL.Query()
-		if issueIDStr := q.Get("issue"); issueIDStr != "" {
-			var err error
-			issueID, err = strconv.ParseInt(issueIDStr, 10, 64)
-			if err != nil {
-				httputils.ReportError(w, r, err, "Issue ID must be valid integer.")
-				return
-			}
-			issueOnly = q.Get("issueOnly") == "true"
-		}
+		issueIDStr = q.Get("issue")
+		issueOnly = q.Get("issueOnly") == "true"
 	}
 
-	bl, err := wh.Baseliner.FetchBaseline(commitHash, issueID, issueOnly)
+	bl, err := wh.Baseliner.FetchBaseline(issueIDStr, wh.PrimaryCodeReviewSystem, issueOnly)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fetching baselines failed.")
 		return

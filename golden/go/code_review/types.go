@@ -63,7 +63,7 @@ type PatchSet struct {
 	// Definitely unique for a given ChangeList.
 	SystemID string
 
-	// ChangeListID is the id that the PatchSet belongs to.
+	// CRSAndCLID is the id that the PatchSet belongs to.
 	ChangeListID string
 	// It is convenient to think about PatchSets starting at 1 and increasing
 	// monotonically. This gives some measure of time/progress. Order is the
