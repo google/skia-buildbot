@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
@@ -24,9 +23,9 @@ func init() {
 	}
 }
 
-// GetBaselineForIssue returns the baseline for the given issue. This baseline
+// GetBaselineForCL returns the baseline for the given issue. This baseline
 // contains all triaged digests that are not in the master tile.
-func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobResults [][]*tryjobstore.TryjobResult, exp types.Expectations, commits []*tiling.Commit) (*Baseline, error) {
+func GetBaselineForCL(id, crs string, tryjobs []*tryjobstore.Tryjob, tryjobResults [][]*tryjobstore.TryjobResult, exp types.Expectations) (*Baseline, error) {
 	b := types.Expectations{}
 	for idx := range tryjobs {
 		for _, result := range tryjobResults[idx] {
@@ -38,13 +37,14 @@ func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobRes
 
 	md5Sum, err := util.MD5Sum(b)
 	if err != nil {
-		return nil, skerr.Fmt("Error calculating MD5 sum: %s", err)
+		return nil, skerr.Wrapf(err, "calculating MD5 sum of %v", b)
 	}
 
 	ret := &Baseline{
-		Expectations: b,
-		Issue:        issueID,
-		MD5:          md5Sum,
+		Expectations:     b,
+		ChangeListID:     id,
+		CodeReviewSystem: crs,
+		MD5:              md5Sum,
 	}
 	return ret, nil
 }

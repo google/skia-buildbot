@@ -1,8 +1,11 @@
+// package gerrit_tryjob_monitor is deprecated and will be replaced by clstore/tjstore
+// https://bugs.chromium.org/p/skia/issues/detail?id=9340
 package gerrit_tryjob_monitor
 
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"go.skia.org/infra/go/eventbus"
@@ -120,7 +123,7 @@ func (t *GerritTryjobMonitor) WriteGoldLinkAsComment(issueID int64) error {
 // CommitIssueBaseline commits the expectations for the given issue to the master baseline.
 func (t *GerritTryjobMonitor) CommitIssueBaseline(issueID int64, user string) error {
 	// Get the issue expectations.
-	issueExpStore := t.expStore.ForIssue(issueID)
+	issueExpStore := t.expStore.ForChangeList(strconv.FormatInt(issueID, 10), "gerrit")
 	issueChanges, err := issueExpStore.Get()
 	if err != nil {
 		return skerr.Fmt("Unable to retrieve expectations for issue %d: %s", issueID, err)
