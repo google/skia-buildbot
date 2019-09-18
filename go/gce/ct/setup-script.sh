@@ -77,6 +77,14 @@ EOF
   git checkout master
 fi
 
+# If the bot is a master then increase the "too many open files" limit. See
+# skbug.com/9425 for more context.
+if [[ $(hostname -s) = ct-master-* ]]; then
+  echo "Modifying limits.conf..."
+  sudo sh -c 'echo "chrome-bot soft nofile 500000" >> /etc/security/limits.conf'
+  sudo sh -c 'echo "chrome-bot hard nofile 500000" >> /etc/security/limits.conf'
+fi
+
 # Get access token from metadata.
 TOKEN=`curl "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" -H "Metadata-Flavor: Google" | python -c "import sys, json; print json.load(sys.stdin)['access_token']"`
 # Bootstrap Swarming.
