@@ -143,6 +143,54 @@
     },
     {
       "key": {
+        "uuid": "bb2a69b9_644dab93",
+        "filename": "task_scheduler/go/db/firestore/modified_chan.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-18T18:59:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ee2e4961_e9a3a1ac",
+      "range": {
+        "startLine": 21,
+        "startChar": 57,
+        "endLine": 21,
+        "endChar": 67
+      },
+      "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0a2e5bb6_855bd0f4",
+        "filename": "task_scheduler/go/db/firestore/modified_chan.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-18T18:59:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "82032024_89d2795f",
+      "range": {
+        "startLine": 21,
+        "startChar": 3,
+        "endLine": 21,
+        "endChar": 23
+      },
+      "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c209e6be_16acc3b5",
         "filename": "task_scheduler/go/db/firestore/modified_chan.go",
         "patchSetId": 1
@@ -166,6 +214,30 @@
     },
     {
       "key": {
+        "uuid": "a9cdad42_35c61c16",
+        "filename": "task_scheduler/go/db/firestore/modified_chan.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-18T18:59:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c209e6be_16acc3b5",
+      "range": {
+        "startLine": 22,
+        "startChar": 23,
+        "endLine": 22,
+        "endChar": 24
+      },
+      "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2dd864a6_d82a754a",
         "filename": "task_scheduler/go/db/firestore/modified_chan.go",
         "patchSetId": 1
@@ -186,6 +258,30 @@
       "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ae7f112_0f8d7bcc",
+        "filename": "task_scheduler/go/db/firestore/modified_chan.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-18T18:59:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2dd864a6_d82a754a",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 4
+      },
+      "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -355,6 +451,30 @@
     },
     {
       "key": {
+        "uuid": "60fe9017_e1f62268",
+        "filename": "task_scheduler/go/db/firestore/modified_chan.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-18T18:59:44Z",
+      "side": 1,
+      "message": "I\u0027d like to remove Modified* from the DB interface, and replace it with ModifiedTasksCh, ModifiedTasks, and friends (and remove the concepts of TrackModified*, [Start\\Stop]TrackingModified*, etc).  That seemed very disruptive, so I was going to update the DB clients (currently just status and datahopper) to use this new functionality first, then update task scheduler, then clean up the interfaces.  I can do that all in one CL if you\u0027d prefer.",
+      "parentUuid": "3e2815f5_5270d332",
+      "range": {
+        "startLine": 59,
+        "startChar": 36,
+        "endLine": 59,
+        "endChar": 52
+      },
+      "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d8577c7b_6fc25159",
         "filename": "task_scheduler/go/db/firestore/modified_chan_test.go",
         "patchSetId": 1
@@ -366,6 +486,24 @@
       "writtenOn": "2019-09-18T17:43:24Z",
       "side": 1,
       "message": "nit: Might be interesting to add a threaded test, if it\u0027s not hard.",
+      "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f9965223_1db84559",
+        "filename": "task_scheduler/go/db/firestore/modified_chan_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-18T18:59:44Z",
+      "side": 1,
+      "message": "I didn\u0027t do this yet.",
+      "parentUuid": "d8577c7b_6fc25159",
       "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -386,6 +524,24 @@
       "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "052c60ae_bf1a3690",
+        "filename": "task_scheduler/go/db/firestore/modified_chan_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-18T18:59:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cfc39f94_363fc9fa",
+      "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
