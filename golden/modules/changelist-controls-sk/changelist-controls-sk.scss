@@ -1,0 +1,58 @@
+@import '~elements-sk/colors';
+
+changelist-controls-sk {
+
+  font-family: sans-serif;
+
+  .info {
+    display: flex;
+    justify-content: space-between;
+    max-width: 60em;
+
+    .title {
+      font-size: 1em;
+      font-weight: bold;
+      text-transform: capitalize;
+    }
+  }
+
+  .inputs {
+    display: flex;
+    margin-top: 4px;
+    margin-bottom: 8px;
+
+    & > * {
+      /* centers the elements vertically*/
+      margin: auto 0;
+    }
+
+    .spacer {
+      flex-grow: 1;
+      max-width: 4em;
+    }
+
+    .radiogroup {
+      display: flex;
+      border: 1px solid var(--light-gray);
+      border-radius: 5px;
+      margin-left: 4px;
+    }
+  }
+
+  .tryjob-container {
+    display: flex;
+
+    .tryjob {
+      border: 1px solid var(--gray);
+      padding: 0.5em;
+      border-radius: 5px;
+      margin: 0.5em;
+
+      a {
+        color: var(--black);
+      }
+    }
+  }
+
+
+}
