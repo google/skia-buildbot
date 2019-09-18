@@ -19,7 +19,7 @@ import '../pagination-sk'
 const _changelist = (cl) => html`
 <tr>
   <td>
-    <a title="See codereview in a new window" target="_blank" rel="noopener" href="${cl.url}">
+    <a title="See codereview in a new window" target=_blank rel=noopener href=${cl.url}>
       ${cl.id}
     </a>
   </td>
@@ -71,12 +71,9 @@ define('changelists-page-sk', class extends ElementSk {
     }, /*setState*/(newState) => {
       // default values if not specified.
       this._offset = newState.offset || 0;
-      this._page_size = newState.page_size || +this.getAttribute("page_size") || 50;
-      if (!this._urlParamsLoaded) {
-        // initial page load/fetch
-        this._urlParamsLoaded = true;
-        this._fetch();
-      }
+      this._page_size = newState.page_size || +this.getAttribute('page_size') || 50;
+      this._urlParamsLoaded = true;
+      this._fetch();
       this._render();
     });
 
@@ -92,11 +89,9 @@ define('changelists-page-sk', class extends ElementSk {
     setTimeout(() => this._fetch());
   }
 
-  // Returns a promise that resolves when all outstanding requests resolve
-  // or null if none were made. This promise makes unit tests a little more concise.
   _fetch() {
     if (!this._urlParamsLoaded) {
-      return null;
+      return;
     }
 
     if (this._fetchController) {
@@ -112,7 +107,7 @@ define('changelists-page-sk', class extends ElementSk {
     };
 
     this._sendBusy();
-    return fetch(`/json/changelists?offset=${this._offset}&size=${this._page_size}`, extra)
+    fetch(`/json/changelists?offset=${this._offset}&size=${this._page_size}`, extra)
       .then(jsonOrThrow)
       .then((json) => {
         this._cls = json.data || [];
