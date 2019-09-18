@@ -28,12 +28,12 @@ type TileSource interface {
 }
 
 type CachedTileSourceConfig struct {
-	EventBus      eventbus.EventBus
-	GerritAPI     gerrit.GerritInterface
-	IgnoreStore   ignore.IgnoreStore
-	TraceStore    tracestore.TraceStore
-	TryjobMonitor tryjobs.TryjobMonitor
-	VCS           vcsinfo.VCS
+	EventBus                eventbus.EventBus
+	GerritAPI               gerrit.GerritInterface
+	IgnoreStore             ignore.IgnoreStore
+	TraceStore              tracestore.TraceStore
+	DeprecatedTryjobMonitor tryjobs.TryjobMonitor
+	VCS                     vcsinfo.VCS
 
 	// optional. If specified, will only show the params that match this query. This is
 	// opt-in, to avoid leaking.
@@ -177,7 +177,7 @@ func (s *CachedTileSourceImpl) checkCommitableIssues(cpxTile types.ComplexTile) 
 						return skerr.Wrapf(err, "extracting gerrit issue from commit %s: %s", commit.Hash, longCommit.Body)
 					}
 
-					if err := s.TryjobMonitor.CommitIssueBaseline(issueID, longCommit.Author); err != nil {
+					if err := s.DeprecatedTryjobMonitor.CommitIssueBaseline(issueID, longCommit.Author); err != nil {
 						return skerr.Wrapf(err, "committing tryjob results for commit %s", commit.Hash)
 					}
 					return nil
