@@ -141,6 +141,30 @@
       "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ddab68a5_9675e2b6",
+        "filename": "task_scheduler/go/db/firestore/modified_chan.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T16:56:43Z",
+      "side": 1,
+      "message": "It might work to track the max DbModified we\u0027ve seen.",
+      "parentUuid": "6d48ec8c_66c5ef73",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 43
+      },
+      "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
