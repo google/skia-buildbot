@@ -10,11 +10,12 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
+const masterBranch = ""
+const noCRS = ""
+
 // Test that the baseline fetcher produces a master baseline.
 func TestFetchBaselineSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
-
-	testCommitHash := "abcd12345"
 
 	mes := &mocks.ExpectationsStore{}
 	defer mes.AssertExpectations(t)
@@ -23,23 +24,24 @@ func TestFetchBaselineSunnyDay(t *testing.T) {
 
 	baseliner := New(mes)
 
-	b, err := baseliner.FetchBaseline(testCommitHash, types.MasterBranch, false)
+	b, err := baseliner.FetchBaseline(masterBranch, "github", false)
 	assert.NoError(t, err)
 
 	expectedBaseline := three_devices.MakeTestExpectations().AsBaseline()
 
 	assert.Equal(t, expectedBaseline, b.Expectations)
-	assert.Equal(t, types.MasterBranch, b.Issue)
+	assert.Equal(t, masterBranch, b.ChangeListID)
+	assert.Equal(t, noCRS, b.CodeReviewSystem)
 	assert.NotEqual(t, "", b.MD5)
 }
 
-// Test that the baseline fetcher behaves differently when requesting a baseline
-// for a given tryjob.
-func TestFetchBaselineIssueSunnyDay(t *testing.T) {
+// TestFetchBaselineChangeListSunnyDay tests that the baseline fetcher behaves differently
+// when requesting a baseline for a given tryjob.
+func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
-	testCommitHash := "abcd12345"
-	testIssueID := int64(1234)
+	clID := "1234"
+	crs := "gerrit"
 
 	// These are valid, but arbitrary md5 hashes
 	IotaNewDigest := types.Digest("1115fba4ce5b4cb9ffd595beb63e7389")
@@ -60,22 +62,23 @@ func TestFetchBaselineIssueSunnyDay(t *testing.T) {
 	}
 
 	mes := &mocks.ExpectationsStore{}
-	mesIssue := &mocks.ExpectationsStore{}
+	mesCL := &mocks.ExpectationsStore{}
 	defer mes.AssertExpectations(t)
-	defer mesIssue.AssertExpectations(t)
+	defer mesCL.AssertExpectations(t)
 
 	mes.On("Get").Return(three_devices.MakeTestExpectations(), nil).Once()
-	mes.On("ForIssue", testIssueID).Return(mesIssue).Once()
+	mes.On("ForChangeList", clID, crs).Return(mesCL).Once()
 	// mock the expectations that a user would have applied to their CL (that
 	// are not live on master yet).
-	mesIssue.On("Get").Return(additionalTriages, nil).Once()
+	mesCL.On("Get").Return(additionalTriages, nil).Once()
 
 	baseliner := New(mes)
 
-	b, err := baseliner.FetchBaseline(testCommitHash, testIssueID, false)
+	b, err := baseliner.FetchBaseline(clID, crs, false)
 	assert.NoError(t, err)
 
-	assert.Equal(t, testIssueID, b.Issue)
+	assert.Equal(t, clID, b.ChangeListID)
+	assert.Equal(t, crs, b.CodeReviewSystem)
 	// The expectation should be the master baseline merged in with the additionalTriages
 	// with additionalTriages overwriting existing expectations, if applicable.
 	assert.Equal(t, types.Expectations{
@@ -95,7 +98,7 @@ func TestFetchBaselineIssueSunnyDay(t *testing.T) {
 	mes.On("Get").Return(three_devices.MakeTestExpectations(), nil).Once()
 
 	// Ensure that reading the issue branch does not impact the master branch
-	b, err = baseliner.FetchBaseline(testCommitHash, types.MasterBranch, false)
+	b, err = baseliner.FetchBaseline(masterBranch, noCRS, false)
 	assert.NoError(t, err)
 	assert.Equal(t, three_devices.MakeTestBaseline(), b)
 }
