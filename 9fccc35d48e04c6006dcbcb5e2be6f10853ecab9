@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "245bfed2_23f586f8",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 694,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T16:47:33Z",
+      "side": 1,
+      "message": "Sorry, I meant for this to be commentary, and maybe something to mention in the docs. It shouldn\u0027t be a problem for the current use.",
+      "parentUuid": "a4a1e3aa_a64df7ce",
+      "range": {
+        "startLine": 694,
+        "startChar": 3,
+        "endLine": 694,
+        "endChar": 14
+      },
+      "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eaf53521_5406eb6e",
         "filename": "task_scheduler/go/db/firestore/modified_chan.go",
         "patchSetId": 1
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "Can you explain?  Unlike the linked implementation, we are not ignoring the first snapshot, and we regenerate the query so it should overlap by (dbModifiedLag - 100ms).",
       "parentUuid": "eaf53521_5406eb6e",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 43
+      },
+      "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d48ec8c_66c5ef73",
+        "filename": "task_scheduler/go/db/firestore/modified_chan.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T16:47:33Z",
+      "side": 1,
+      "message": "1. There\u0027s nothing that guarantees that we\u0027ll see an error immediately when the QSI fails -- e.g. maybe it retries a few times and then returns an error after 60 seconds.\n2. If there are repeated failures, there\u0027s nothing that guarantees that we\u0027ll start the new query after only 100ms. If starting the QSI gives us an error for 10m straight, we\u0027ll miss anything modified in that time.\n3. The point of dbModifiedLag is to account for adding new documents with slightly old DbModified values. If there is any additional lag, we\u0027d need to account for that somehow.",
+      "parentUuid": "25cc929e_b9acc52e",
       "range": {
         "startLine": 44,
         "startChar": 0,
