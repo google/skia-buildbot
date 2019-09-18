@@ -4,6 +4,7 @@
     "BIGTABLE_PROJECT":        "skia-public",
     "BIGTABLE_TABLE":          "gold-flutter",
     "BUCKET":                  "skia-gold-flutter",
+    "CODE_REVIEW_SYSTEM":      "github",
     "DATASTORE_NAMESPACE":     "gold-flutter",
     "DATASTORE_PROJECT":       "skia-public",
     "FIRESTORE_NAMESPACE":     "flutter",
