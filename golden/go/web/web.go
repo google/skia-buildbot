@@ -56,21 +56,22 @@ const (
 // WebHandlers holds the environment needed by the various http hander functions
 // that have WebHandlers as its receiver.
 type WebHandlers struct {
-	Baseliner               baseline.BaselineFetcher
-	ChangeListStore         clstore.Store
-	CodeReviewURLPrefix     string
-	DeprecatedTryjobMonitor tryjobs.TryjobMonitor
-	DeprecatedTryjobStore   tryjobstore.TryjobStore
-	DiffStore               diff.DiffStore
-	ExpectationsStore       expstorage.ExpectationsStore
-	GCSClient               storage.GCSClient
-	IgnoreStore             ignore.IgnoreStore
-	Indexer                 indexer.IndexSource
-	SearchAPI               search.SearchAPI
-	StatusWatcher           *status.StatusWatcher
-	TileSource              tilesource.TileSource
-	TryJobStore             tjstore.Store
-	VCS                     vcsinfo.VCS
+	Baseliner                      baseline.BaselineFetcher
+	ChangeListStore                clstore.Store
+	ContinuousIntegrationURLPrefix string
+	CodeReviewURLPrefix            string
+	DeprecatedTryjobMonitor        tryjobs.TryjobMonitor
+	DeprecatedTryjobStore          tryjobstore.TryjobStore
+	DiffStore                      diff.DiffStore
+	ExpectationsStore              expstorage.ExpectationsStore
+	GCSClient                      storage.GCSClient
+	IgnoreStore                    ignore.IgnoreStore
+	Indexer                        indexer.IndexSource
+	SearchAPI                      search.SearchAPI
+	StatusWatcher                  *status.StatusWatcher
+	TileSource                     tilesource.TileSource
+	TryJobStore                    tjstore.Store
+	VCS                            vcsinfo.VCS
 }
 
 // TODO(stephana): once the byBlameHandler is removed, refactor this to
@@ -385,7 +386,7 @@ func (wh *WebHandlers) getCLSummary(ctx context.Context, clID string) (frontend.
 		cis := wh.TryJobStore.System()
 		var tryjobs []frontend.TryJob
 		for _, tj := range xtj {
-			tryjobs = append(tryjobs, frontend.ConvertTryJob(tj, cis))
+			tryjobs = append(tryjobs, frontend.ConvertTryJob(tj, cis, wh.ContinuousIntegrationURLPrefix))
 		}
 
 		patchsets = append(patchsets, frontend.PatchSet{

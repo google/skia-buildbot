@@ -298,9 +298,10 @@ func TestGetCLSummarySunnyDay(t *testing.T) {
 	mtjs.On("System").Return("buildbucket")
 
 	wh := WebHandlers{
-		CodeReviewURLPrefix: "example.com/cl",
-		ChangeListStore:     mcls,
-		TryJobStore:         mtjs,
+		ContinuousIntegrationURLPrefix: "example.com/tj",
+		CodeReviewURLPrefix:            "example.com/cl",
+		ChangeListStore:                mcls,
+		TryJobStore:                    mtjs,
 	}
 
 	cl, err := wh.getCLSummary(context.Background(), expectedCLID)
@@ -318,6 +319,7 @@ func TestGetCLSummarySunnyDay(t *testing.T) {
 						SystemID:    "bb1",
 						DisplayName: "Test-Build",
 						Updated:     time.Date(2019, time.August, 27, 1, 0, 0, 0, time.UTC),
+						URL:         "example.com/tj/bb1",
 					},
 				},
 			},
@@ -330,12 +332,14 @@ func TestGetCLSummarySunnyDay(t *testing.T) {
 						SystemID:    "bb2",
 						DisplayName: "Test-Build",
 						Updated:     time.Date(2019, time.August, 27, 0, 15, 0, 0, time.UTC),
+						URL:         "example.com/tj/bb2",
 					},
 					{
 						System:      "buildbucket",
 						SystemID:    "bb3",
 						DisplayName: "Test-Code",
 						Updated:     time.Date(2019, time.August, 27, 0, 20, 0, 0, time.UTC),
+						URL:         "example.com/tj/bb3",
 					},
 				},
 			},

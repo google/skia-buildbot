@@ -22,7 +22,7 @@
     commits - Array, a list of commits that 'details' refers to.
     embedded - Boolean, a flag that indicates that this is embedded as an
                auxiliary view and some field like title should be omitted.
-    issue - Number, the id of the code review issue that generated this digest
+    issue - String, the id of the code review ChangeList that generated this digest
             via a tryjob run.
 
   Events:
@@ -333,8 +333,8 @@
         },
 
         issue: {
-          type: Number,
-          value: 0,
+          type: String,
+          value: "",
         },
 
         _negIsClosest: {

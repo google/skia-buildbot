@@ -61,14 +61,16 @@ type TryJob struct {
 	DisplayName string    `json:"name"`
 	Updated     time.Time `json:"updated"`
 	System      string    `json:"system"`
+	URL         string    `json:"url"`
 }
 
 // ConvertTryJob turns a ci.TryJob into a TryJob for the frontend.
-func ConvertTryJob(tj ci.TryJob, system string) TryJob {
+func ConvertTryJob(tj ci.TryJob, system, urlPrefix string) TryJob {
 	return TryJob{
 		System:      system,
 		SystemID:    tj.SystemID,
 		DisplayName: tj.DisplayName,
 		Updated:     tj.Updated,
+		URL:         urlPrefix + "/" + tj.SystemID,
 	}
 }

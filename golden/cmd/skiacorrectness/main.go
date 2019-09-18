@@ -427,21 +427,23 @@ func main() {
 	sklog.Infof("statusWatcher created")
 
 	handlers := web.WebHandlers{
-		Baseliner:               baseliner,
-		ChangeListStore:         cls,
-		CodeReviewURLPrefix:     *gerritURL,
-		DeprecatedTryjobMonitor: tryjobMonitor,
-		DeprecatedTryjobStore:   deprecatedTJS,
-		DiffStore:               diffStore,
-		ExpectationsStore:       expStore,
-		GCSClient:               gsClient,
-		IgnoreStore:             ignoreStore,
-		Indexer:                 ixr,
-		SearchAPI:               searchAPI,
-		StatusWatcher:           statusWatcher,
-		TileSource:              tileSource,
-		TryJobStore:             tjs,
-		VCS:                     vcs,
+		Baseliner:       baseliner,
+		ChangeListStore: cls,
+		// TODO(kjlubick): have a more generic way to input these two URLs
+		ContinuousIntegrationURLPrefix: "https://cr-buildbucket.appspot.com/build",
+		CodeReviewURLPrefix:            *gerritURL,
+		DeprecatedTryjobMonitor:        tryjobMonitor,
+		DeprecatedTryjobStore:          deprecatedTJS,
+		DiffStore:                      diffStore,
+		ExpectationsStore:              expStore,
+		GCSClient:                      gsClient,
+		IgnoreStore:                    ignoreStore,
+		Indexer:                        ixr,
+		SearchAPI:                      searchAPI,
+		StatusWatcher:                  statusWatcher,
+		TileSource:                     tileSource,
+		TryJobStore:                    tjs,
+		VCS:                            vcs,
 	}
 
 	mainTimer.Stop()

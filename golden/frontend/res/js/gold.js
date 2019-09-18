@@ -263,11 +263,10 @@ var gold = gold || {};
     this.setIssue(issue);
   };
 
-  // setIssue sets the correct value for this TriageQuery instance. If
-  // issue is not a positive number the issue will be set to 0 indicating that
-  // we want to set the expectations for the master branch.
+  // setIssue is a setter for the issue of a TriageQuery
+  // if "" or "0", will be assigned to the master branch.
   gold.TriageQuery.prototype.setIssue = function(issue) {
-    this.issue = ((typeof(issue) === 'number') && (issue > 0)) ? issue : 0;
+    this.issue = issue;
   };
 
   // flattenTriageQuery is the inverse operation of makeTriageQuery.

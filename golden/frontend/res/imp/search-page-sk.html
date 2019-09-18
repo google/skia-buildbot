@@ -147,6 +147,8 @@
           UniqueTests Total: [[_uniqueTestsAll.length]]<br>
         </div>
         <trybot-controls-sk id="trybotControls"></trybot-controls-sk>
+        <changelist-controls-sk id="changeListControls"
+          ps_order=[[_state.patchsets]] include_master=[[_state.master]]></changelist-controls-sk>
       </div>
       <div hidden$="[[_hideAll]]">
         <div id="missing" hidden$="[[_nonEmptyResult(data)]]">
@@ -162,7 +164,7 @@
                       details="[[item]]"
                       commits="[[data.commits]]"
                       metric="[[_state.metric]]"
-                      issue="[[data.issue.id]]">
+                      issue="[[_changeListID]]">
               </digest-details-sk>
             </template>
           </detail-list-sk>
@@ -204,6 +206,10 @@
           value: "",
           observer: "_handleBulkStatusChanged"
         },
+        _changeListID: {
+          type: String,
+          value: "",
+        },
         _triageAll: {
           type: Boolean,
           value: false
@@ -213,6 +219,11 @@
       ready: function() {
         this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
         this.listen(this.$.trybotControls, 'state-change', '_handleStateChange');
+        this.$.changeListControls.addEventListener('cl-control-change', (e) => {
+          this._state.master = e.detail.include_master;
+          this._state.patchsets = e.detail.ps_order;
+          this._redirectToState(this._state);
+        });
         this.listen(this.$.trybotControls, 'state-update', '_handleStateUpdate');
         this.listen(this.$.triggerSearchButton, 'tap', '_handleSearchButton');
         this.listen(this.$.actionTestView, 'tap', '_handleSwitchToByTest');
@@ -232,6 +243,8 @@
         this._initState(ctx, this._getDefaultStateWithCorpus());
         this.$.searchControls.setState(this._state);
         this.$.trybotControls.setState(this._state);
+        this.$.changeListControls.ps_order = +this._state.patchsets;
+        this.$.changeListControls.include_master = this._state.master;
 
         // load the commits, parameters and data.
         this._loadCommits();
@@ -340,7 +353,7 @@
           }
         }
         var query = new gold.TriageQuery(triageList);
-        query.setIssue(sk.robust_get(this._issue, ["id"]));
+        query.setIssue(this._changeListID);
         this.$.activityBar.startSpinner("Triaging ...");
         sk.post('/json/triage', JSON.stringify(query)).then(function() {
           this.$.activityBar.stopSpinner();
@@ -367,16 +380,22 @@
           this.set('_uniqueTests', this._getUniqueTests(displayData.digests));
 
           this.set('data', displayData);
-          this.set('_issue', json.issue);
-          // TODO(kjlubick): update this to handle the .changelist
-          // returned by the new clstore/tjstore.
-          // Maybe fork the current trybot controls or make a new one in lit-html
-          this.$.trybotControls.setIssue(json.issue);
+          if (!this._state.new_clstore) {
+            this.set('_changeListID', sk.robust_get(json.issue, ["id"]));
+            this.$.trybotControls.setIssue(json.issue);
+          }
           this.$.activityBar.stopSpinner();
         }.bind(this)).catch(function(e) {
           this.$.activityBar.stopSpinner();
           sk.errorMessage(e);
         }.bind(this));
+
+        if (this._state.new_clstore) {
+          sk.get("/json/changelist/gerrit/"+this._state.issue).then(JSON.parse).then((json) => {
+            this.$.changeListControls.setSummary(json);
+            this.set('_changeListID', json.cl.id);
+          });
+        }
       },
 
       _getUniqueTests: function(digests) {

@@ -34,7 +34,7 @@ describe('changelists-page-sk', () => {
     container.innerHTML = '';
   });
 
-  // calls the test callback with one element 'ele', a created <swarming-app>.
+  // calls the test callback with an element under test 'ele'.
   // We can't put the describes inside the whenDefined callback because
   // that doesn't work on Firefox (and possibly other places).
   function createElement(test) {
