@@ -1,0 +1,297 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "155e1694_e3e57a82",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 414,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T16:34:56Z",
+      "side": 1,
+      "message": "nit: no newlines in go",
+      "range": {
+        "startLine": 413,
+        "startChar": 75,
+        "endLine": 414,
+        "endChar": 2
+      },
+      "revId": "f5110869486e1aa235f3a23062e22340f162ba25",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51936ede_914f1b4d",
+        "filename": "golden/go/baseline/simple_baseliner/simple_baseliner_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T16:34:56Z",
+      "side": 1,
+      "message": "nit: \"\"",
+      "range": {
+        "startLine": 33,
+        "startChar": 17,
+        "endLine": 33,
+        "endChar": 29
+      },
+      "revId": "f5110869486e1aa235f3a23062e22340f162ba25",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51337e1e_483ccc2b",
+        "filename": "golden/go/baseline/types.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T16:34:56Z",
+      "side": 1,
+      "message": "nit: omitempty? x2",
+      "range": {
+        "startLine": 20,
+        "startChar": 22,
+        "endLine": 20,
+        "endChar": 34
+      },
+      "revId": "f5110869486e1aa235f3a23062e22340f162ba25",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "519ff22e_3f056cf4",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T16:34:56Z",
+      "side": 1,
+      "message": "nit: in this file sometimes \"CL ID\" means just the ID and sometimes means CRS + _ + CL ID. Would be nice to differentiate those.",
+      "revId": "f5110869486e1aa235f3a23062e22340f162ba25",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88985a4a_a3d7865e",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T16:34:56Z",
+      "side": 1,
+      "message": "nit: seems like you would want this field to be named the same in expectationEntry and triageRecord.",
+      "range": {
+        "startLine": 116,
+        "startChar": 1,
+        "endLine": 116,
+        "endChar": 13
+      },
+      "revId": "f5110869486e1aa235f3a23062e22340f162ba25",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a13b7bb3_bcb141b7",
+        "filename": "golden/go/expstorage/types.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T16:34:56Z",
+      "side": 1,
+      "message": "typo two",
+      "range": {
+        "startLine": 58,
+        "startChar": 72,
+        "endLine": 58,
+        "endChar": 74
+      },
+      "revId": "f5110869486e1aa235f3a23062e22340f162ba25",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0e06eda_1ec479cc",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T16:34:56Z",
+      "side": 1,
+      "message": "nit: Why not just use changeListStore.System()?\n\nWe\u0027ll have to change a bunch of stuff if there are multiple clstores, so I don\u0027t see the point of passing this as a flag right now.",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 31
+      },
+      "revId": "f5110869486e1aa235f3a23062e22340f162ba25",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e50ef2e6_0a8a0c94",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T16:34:56Z",
+      "side": 1,
+      "message": "Should this be -1? https://skia.googlesource.com/buildbot/+/180f73536bc0d05801200fb5ed4a527e348d2a3c/golden/go/types/types.go#26",
+      "range": {
+        "startLine": 211,
+        "startChar": 26,
+        "endLine": 211,
+        "endChar": 29
+      },
+      "revId": "f5110869486e1aa235f3a23062e22340f162ba25",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e741b77e_db41305b",
+        "filename": "golden/go/web/frontend/types.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T16:34:56Z",
+      "side": 1,
+      "message": "typo?",
+      "range": {
+        "startLine": 80,
+        "startChar": 41,
+        "endLine": 80,
+        "endChar": 49
+      },
+      "revId": "f5110869486e1aa235f3a23062e22340f162ba25",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4173f034_2e7cedc3",
+        "filename": "golden/go/web/frontend/types.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T16:34:56Z",
+      "side": 1,
+      "message": "nit: IMO it\u0027s easier to keep the existing field and also add the new field, then decide on how to handle the request based on which field is set rather than looking for special values like \"0\" or \"-1\".",
+      "range": {
+        "startLine": 86,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 35
+      },
+      "revId": "f5110869486e1aa235f3a23062e22340f162ba25",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e0e4b65_7d972540",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T16:34:56Z",
+      "side": 1,
+      "message": "nit: similar comment to SearchImpl -- why not use ChangeListStore.System()?",
+      "range": {
+        "startLine": 69,
+        "startChar": 1,
+        "endLine": 69,
+        "endChar": 24
+      },
+      "revId": "f5110869486e1aa235f3a23062e22340f162ba25",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "287819df_63171f6c",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 701,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T16:34:56Z",
+      "side": 1,
+      "message": "Should this be -1?",
+      "range": {
+        "startLine": 701,
+        "startChar": 30,
+        "endLine": 701,
+        "endChar": 53
+      },
+      "revId": "f5110869486e1aa235f3a23062e22340f162ba25",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a563195_cc8749f3",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 394,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T16:34:56Z",
+      "side": 1,
+      "message": "nit: types.NEGATIVE.String(), xSeveral",
+      "range": {
+        "startLine": 394,
+        "startChar": 37,
+        "endLine": 394,
+        "endChar": 47
+      },
+      "revId": "f5110869486e1aa235f3a23062e22340f162ba25",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
