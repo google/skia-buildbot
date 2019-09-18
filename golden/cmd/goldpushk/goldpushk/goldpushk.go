@@ -10,37 +10,43 @@
 package goldpushk
 
 import (
+	"context"
 	"fmt"
+	"path/filepath"
 
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 )
 
 // Goldpushk contains information about the deployment steps to be carried out.
 type Goldpushk struct {
 	deployableUnits         []DeployableUnit
 	canariedDeployableUnits []DeployableUnit
+	rootPath                string // Path to the buildbot checkout.
 	dryRun                  bool
 
 	unitTest bool // Disables confirmation prompt from unit tests.
 }
 
 // New is the Goldpushk constructor.
-func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableUnit, dryRun bool) *Goldpushk {
+func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableUnit, skiaInfraRootPath string, dryRun bool) *Goldpushk {
 	return &Goldpushk{
 		deployableUnits:         deployableUnits,
 		canariedDeployableUnits: canariedDeployableUnits,
+		rootPath:                skiaInfraRootPath,
 		dryRun:                  dryRun,
 	}
 }
 
 // Run carries out the deployment steps.
-func (g *Goldpushk) Run() error {
+func (g *Goldpushk) Run(ctx context.Context) error {
 	if ok, err := g.printOutInputsAndAskConfirmation(); err != nil {
 		return err
 	} else if !ok {
 		return nil
 	}
-	if err := g.regenerateConfigFiles(); err != nil {
+	if err := g.regenerateConfigFiles(ctx); err != nil {
 		return err
 	}
 	if err := g.commitConfigFiles(); err != nil {
@@ -96,9 +102,61 @@ func (g *Goldpushk) printOutInputsAndAskConfirmation() (bool, error) {
 	return true, nil
 }
 
-func (g *Goldpushk) regenerateConfigFiles() error {
-	// TODO(lovisolo)
-	return skerr.Fmt("not implemented")
+// regenerateConfigFiles regenerates the .yaml and .json5 files for each
+// instance/service pair that will be deployed. The generated files will be
+// located in $SKIA_INFRA_ROOT/golden/build, unless overridden in the
+// DeploymentOptions of any of the targeted DeployableUnits.
+func (g *Goldpushk) regenerateConfigFiles(ctx context.Context) error {
+	// Iterate over all units to deploy (including canaries).
+	return g.forAllDeployableUnits(func(unit DeployableUnit) error {
+		// Generate deployment file.
+		tPath := unit.getDeploymentFileTemplatePath(g.rootPath)
+		oPath := unit.getDeploymentFilePath(g.rootPath)
+		if err := g.expandTemplate(ctx, unit.Instance, tPath, oPath); err != nil {
+			return skerr.Wrapf(err, "error while regenerating %s", oPath)
+		}
+
+		// Generate ConfigMap file if necessary.
+		if unit.configMapTemplate != "" {
+			tPath = unit.getConfigMapFileTemplatePath(g.rootPath)
+			oPath = unit.getConfigMapFilePath(g.rootPath)
+			if err := g.expandTemplate(ctx, unit.Instance, tPath, oPath); err != nil {
+				return skerr.Wrapf(err, "error while regenerating %s", oPath)
+			}
+		}
+
+		return nil
+	})
+}
+
+// expandTemplate executes the kube-conf-gen command with the given arguments in
+// a fashion similar to gen-k8s-config.sh.
+func (g *Goldpushk) expandTemplate(ctx context.Context, instance Instance, templatePath, outputPath string) error {
+	goldCommonJson5 := filepath.Join(g.rootPath, k8sConfigTemplatesDir, "gold-common.json5")
+	instanceStr := string(instance)
+	instanceJson5 := filepath.Join(g.rootPath, k8sInstancesDir, instanceStr+"-instance.json5")
+
+	cmd := &exec.Command{
+		Name: "kube-conf-gen",
+		// Notes on the kube-conf-gen arguments used:
+		//   - Flag "-extra INSTANCE_ID:<instanceStr>" binds template variable
+		//     INSTANCE_ID to instanceStr.
+		//   - Flag "-strict" will make kube-conf-gen fail in the presence of
+		//     unsupported types, missing data, etc.
+		//   - Flag "-parse_conf=false" prevents the values read from the JSON5
+		//     config files provided with -c <json5-file> from being converted to
+		//     strings.
+		Args:        []string{"-c", goldCommonJson5, "-c", instanceJson5, "-extra", "INSTANCE_ID:" + instanceStr, "-t", templatePath, "-parse_conf=false", "-strict", "-o", outputPath},
+		InheritPath: true,
+		LogStderr:   true,
+		LogStdout:   true,
+	}
+
+	if err := exec.Run(ctx, cmd); err != nil {
+		return skerr.Wrapf(err, "failed to run kube-conf-gen")
+	}
+	sklog.Infof("Generated %s", outputPath)
+	return nil
 }
 
 func (g *Goldpushk) commitConfigFiles() error {
@@ -124,4 +182,20 @@ func (g *Goldpushk) pushServices() error {
 func (g *Goldpushk) monitorServices() error {
 	// TODO(lovisolo)
 	return skerr.Fmt("not implemented")
+}
+
+// forAllDeployableUnits applies all deployable units (including canaried units)
+// to the given function.
+func (g *Goldpushk) forAllDeployableUnits(f func(unit DeployableUnit) error) error {
+	for _, unit := range g.deployableUnits {
+		if err := f(unit); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	for _, unit := range g.canariedDeployableUnits {
+		if err := f(unit); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	return nil
 }
