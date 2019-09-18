@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "574fbdac_6539a73e",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-18T12:11:40Z",
+      "side": 1,
+      "message": "nit: consider just \"rootPath\" in this package as there are no other .+RootPath variables that we have to disambiguate from.",
+      "range": {
+        "startLine": 26,
+        "startChar": 1,
+        "endLine": 26,
+        "endChar": 18
+      },
+      "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5142257_0b6cbd83",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-18T12:11:40Z",
+      "side": 1,
+      "message": "The generated files will be located...",
+      "range": {
+        "startLine": 106,
+        "startChar": 46,
+        "endLine": 106,
+        "endChar": 47
+      },
+      "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4121e5c3_ff649ce3",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-18T12:11:40Z",
+      "side": 1,
+      "message": "nit: break these last two params into locals tPath, oPath\n\nSame on line 117",
+      "range": {
+        "startLine": 111,
+        "startChar": 49,
+        "endLine": 111,
+        "endChar": 74
+      },
+      "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "400cefff_261f0fa5",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-18T12:11:40Z",
+      "side": 1,
+      "message": "How about expandTemplate or executeTemplate?  The fact that it\u0027s kube-conf-gen is a bit of an implementation detail.",
+      "range": {
+        "startLine": 128,
+        "startChar": 20,
+        "endLine": 128,
+        "endChar": 34
+      },
+      "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0cec833f_0e7b26e0",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-18T12:11:40Z",
+      "side": 1,
+      "message": "nit: add comments for what -extra, -strict and -parse_conf do",
+      "range": {
+        "startLine": 135,
+        "startChar": 68,
+        "endLine": 135,
+        "endChar": 76
+      },
+      "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "acbfadd9_31441ca6",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-18T12:11:40Z",
+      "side": 1,
+      "message": "skerr.Wrap x2",
+      "range": {
+        "startLine": 178,
+        "startChar": 10,
+        "endLine": 178,
+        "endChar": 13
+      },
+      "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "26ecd1b5_8e5356e3",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-18T12:11:40Z",
+      "side": 1,
+      "message": "mock is the name of the testify/mock package - perhaps mockExec or mExec",
+      "range": {
+        "startLine": 32,
+        "startChar": 1,
+        "endLine": 32,
+        "endChar": 5
+      },
+      "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6cfedb32_2231afd6",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-18T12:11:40Z",
+      "side": 1,
+      "message": "nit: DeploymentOptions{\n  configMapName: ...,\n  configMapFile: ...,\n}",
+      "range": {
+        "startLine": 66,
+        "startChar": 47,
+        "endLine": 66,
+        "endChar": 65
+      },
+      "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41394ffb_43f65d75",
+        "filename": "golden/cmd/goldpushk/goldpushk/types_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-18T12:11:40Z",
+      "side": 1,
+      "message": "This won\u0027t pass on Windows, right? Because the slashes are in the wrong direction?\n\nShould probably use path/filepath or an if/else based on path.Separator",
+      "range": {
+        "startLine": 31,
+        "startChar": 1,
+        "endLine": 31,
+        "endChar": 133
+      },
+      "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
