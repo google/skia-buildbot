@@ -372,14 +372,14 @@ func main() {
 	}
 
 	ctc := tilesource.CachedTileSourceConfig{
-		EventBus:               evt,
-		GerritAPI:              gerritAPI,
-		IgnoreStore:            ignoreStore,
-		NCommits:               *nCommits,
-		PubliclyViewableParams: publiclyViewableParams,
-		TraceStore:             traceStore,
-		TryjobMonitor:          tryjobMonitor,
-		VCS:                    vcs,
+		EventBus:                evt,
+		GerritAPI:               gerritAPI,
+		IgnoreStore:             ignoreStore,
+		NCommits:                *nCommits,
+		PubliclyViewableParams:  publiclyViewableParams,
+		TraceStore:              traceStore,
+		DeprecatedTryjobMonitor: tryjobMonitor,
+		VCS:                     vcs,
 	}
 
 	tileSource := tilesource.New(ctc)
@@ -505,8 +505,6 @@ func main() {
 	// These routes can be served with baseline_server for higher availability.
 	jsonRouter.HandleFunc(trim(shared.ExpectationsRoute), handlers.BaselineHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim(shared.ExpectationsIssueRoute), handlers.BaselineHandler).Methods("GET")
-
-	jsonRouter.HandleFunc(trim("/json/refresh/{id}"), handlers.RefreshIssue).Methods("GET")
 
 	// Only expose these endpoints if login is enforced across the app or this an open site.
 	if openSite {
