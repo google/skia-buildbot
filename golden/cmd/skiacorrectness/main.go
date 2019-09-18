@@ -106,6 +106,7 @@ func main() {
 		local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 		nCommits            = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
 		noCloudLog          = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally and in K8s.")
+		primaryCRS          = flag.String("primary_crs", "gerrit", "Primary CodeReviewSystem (e.g. 'gerrit', 'github'")
 		port                = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
 		promPort            = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 		pubWhiteList        = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", everythingPublic))
@@ -406,7 +407,7 @@ func main() {
 	}
 	sklog.Infof("Indexer created.")
 
-	cls := fs_clstore.New(fsClient, "gerrit")
+	cls := fs_clstore.New(fsClient, *primaryCRS)
 	tjs := fs_tjstore.New(fsClient, "buildbucket")
 
 	searchAPI := search.New(diffStore, expStore, ixr, deprecatedTJS, cls, tjs, publiclyViewableParams)

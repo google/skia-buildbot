@@ -4,6 +4,7 @@
     "BIGTABLE_PROJECT":        "skia-public",
     "BIGTABLE_TABLE":          "gold-skia",
     "BUCKET":                  "skia-infra-gm",
+    "CODE_REVIEW_SYSTEM":      "gerrit",
     "DATASTORE_NAMESPACE":     "gold-skia-prod",
     "DATASTORE_PROJECT":       "google.com:skia-buildbots",
     "FIRESTORE_NAMESPACE":     "skia",

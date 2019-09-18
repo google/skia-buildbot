@@ -6,6 +6,8 @@ package frontend
 import (
 	"time"
 
+	"go.skia.org/infra/golden/go/types"
+
 	"go.skia.org/infra/golden/go/code_review"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 )
@@ -73,4 +75,16 @@ func ConvertTryJob(tj ci.TryJob, system, urlPrefix string) TryJob {
 		Updated:     tj.Updated,
 		URL:         urlPrefix + "/" + tj.SystemID,
 	}
+}
+
+// TriageRequest is the form of the JSON posted by the frontend when triaging
+// (both single and bulk).
+type TriageRequest struct {
+	// TestDigestStatus maps status to test name and digests. The strings are
+	// types.Label.String() values
+	TestDigestStatus map[types.TestName]map[types.Digest]string `json:"testDigestStatus"`
+
+	// ChangeListID is the id of the ChangeList for which we want to change the expectations.
+	// "issue" is the JSON field for backwards compatibility.
+	ChangeListID string `json:"issue"`
 }

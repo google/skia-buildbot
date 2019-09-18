@@ -11,6 +11,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"go.skia.org/infra/golden/go/clstore/fs_clstore"
+
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -33,6 +35,7 @@ func main() {
 		fsProjectID  = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
 		hashesGSPath = flag.String("hashes_gs_path", "", "GS path, where the known hashes file should be stored. This should match the same flag in skiacorrectness which writes the hashes. Format: <bucket>/<path>.")
 		local        = flag.Bool("local", false, "if running local (not in production)")
+		primaryCRS   = flag.String("primary_crs", "gerrit", "Primary CodeReviewSystem (e.g. 'gerrit', 'github'")
 		port         = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
 		promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	)
@@ -86,11 +89,15 @@ func main() {
 		sklog.Fatalf("Unable to create GCSClient: %s", err)
 	}
 
+	// Baseline doesn't need to access this, just needs a way to indicate which CRS we are on.
+	emptyCLStore := fs_clstore.New(nil, *primaryCRS)
+
 	// We only need to fill in the WebHandlers struct with the following subset, since the baseline
 	// server only supplies a subset of the functionality.
 	handlers := web.WebHandlers{
-		GCSClient: gsClient,
-		Baseliner: baseliner,
+		GCSClient:       gsClient,
+		Baseliner:       baseliner,
+		ChangeListStore: emptyCLStore,
 	}
 
 	// Set up a router for all the application endpoints which are part of the Gold API.

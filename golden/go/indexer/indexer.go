@@ -253,7 +253,7 @@ func (ix *Indexer) start(interval time.Duration) error {
 	expCh := make(chan types.Expectations, 100)
 	ix.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
 		// Schedule the list of test names to be recalculated.
-		expCh <- e.(*expstorage.EventExpectationChange).TestChanges
+		expCh <- e.(*expstorage.EventExpectationChange).ExpectationDelta
 	})
 
 	// Keep building indices for different types of events. This is the central

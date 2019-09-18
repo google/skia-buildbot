@@ -156,7 +156,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 	sklog.Infof("Starting status watcher")
 	expChanges := make(chan types.Expectations)
 	s.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
-		expChanges <- e.(*expstorage.EventExpectationChange).TestChanges
+		expChanges <- e.(*expstorage.EventExpectationChange).ExpectationDelta
 	})
 
 	tileStream := tilesource.GetTileStreamNow(s.TileSource, 2*time.Minute, "status-watcher")

@@ -521,21 +521,21 @@ func TestEventBusAddMaster(t *testing.T) {
 	}
 
 	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
-		TestChanges: change1,
-		IssueID:     types.MasterBranch,
+		ExpectationDelta: change1,
+		CRSAndCLID:       "",
 	}, /*global=*/ true).Once()
 	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
-		TestChanges: change2,
-		IssueID:     types.MasterBranch,
+		ExpectationDelta: change2,
+		CRSAndCLID:       "",
 	}, /*global=*/ true).Once()
 
 	assert.NoError(t, f.AddChange(ctx, change1, userOne))
 	assert.NoError(t, f.AddChange(ctx, change2, userTwo))
 }
 
-// TestEventBusAddIssue makes sure proper eventbus signals are sent
-// when changes are made to an IssueExpectations.
-func TestEventBusAddIssue(t *testing.T) {
+// TestEventBusAddCL makes sure proper eventbus signals are sent
+// when changes are made to an CLExpectations.
+func TestEventBusAddCL(t *testing.T) {
 	unittest.LargeTest(t)
 
 	meb := &mocks.EventBus{}
@@ -547,8 +547,8 @@ func TestEventBusAddIssue(t *testing.T) {
 
 	e, err := New(ctx, c, meb, ReadWrite)
 	assert.NoError(t, err)
-	issue := int64(117)
-	f := e.ForIssue(issue) // arbitrary issue
+	clID := "117" // arbitrary CL ID.
+	f := e.ForChangeList(clID, "gerrit")
 	assert.NotNil(t, f)
 
 	change1 := types.Expectations{
@@ -566,12 +566,12 @@ func TestEventBusAddIssue(t *testing.T) {
 	}
 
 	meb.On("Publish", expstorage.EV_TRYJOB_EXP_CHANGED, &expstorage.EventExpectationChange{
-		TestChanges: change1,
-		IssueID:     issue,
+		ExpectationDelta: change1,
+		CRSAndCLID:       "gerrit_117",
 	}, /*global=*/ false).Once()
 	meb.On("Publish", expstorage.EV_TRYJOB_EXP_CHANGED, &expstorage.EventExpectationChange{
-		TestChanges: change2,
-		IssueID:     issue,
+		ExpectationDelta: change2,
+		CRSAndCLID:       "gerrit_117",
 	}, /*global=*/ false).Once()
 
 	assert.NoError(t, f.AddChange(ctx, change1, userOne))
@@ -604,12 +604,12 @@ func TestEventBusUndo(t *testing.T) {
 	}
 
 	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
-		TestChanges: change,
-		IssueID:     types.MasterBranch,
+		ExpectationDelta: change,
+		CRSAndCLID:       "",
 	}, /*global=*/ true).Once()
 	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
-		TestChanges: expectedUndo,
-		IssueID:     types.MasterBranch,
+		ExpectationDelta: expectedUndo,
+		CRSAndCLID:       "",
 	}, /*global=*/ true).Once()
 
 	assert.NoError(t, f.AddChange(ctx, change, userOne))
@@ -623,12 +623,12 @@ func TestEventBusUndo(t *testing.T) {
 	assert.Equal(t, expectedUndo, exp)
 }
 
-// TestIssueExpectationsAddGet tests the separation of the MasterExpectations
-// and the IssueExpectations. It starts with a shared history, then
+// TestCLExpectationsAddGet tests the separation of the MasterExpectations
+// and the CLExpectations. It starts with a shared history, then
 // adds some expectations to both, before asserting that they are properly dealt
-// with. Specifically, the IssueExpectations should be treated as a delta to
+// with. Specifically, the CLExpectations should be treated as a delta to
 // the MasterExpectations (but doesn't actually contain MasterExpectations).
-func TestIssueExpectationsAddGet(t *testing.T) {
+func TestCLExpectationsAddGet(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
@@ -643,14 +643,14 @@ func TestIssueExpectationsAddGet(t *testing.T) {
 		},
 	}, userTwo))
 
-	ib := mb.ForIssue(117) // arbitrary issue id
+	ib := mb.ForChangeList("117", "gerrit") // arbitrary cl id
 
 	// Check that it starts out blank.
-	issueE, err := ib.Get()
+	clExp, err := ib.Get()
 	assert.NoError(t, err)
-	assert.Equal(t, types.Expectations{}, issueE)
+	assert.Equal(t, types.Expectations{}, clExp)
 
-	// Add to the IssueExpectations
+	// Add to the CLExpectations
 	assert.NoError(t, ib.AddChange(ctx, types.Expectations{
 		data.AlphaTest: {
 			data.AlphaGood1Digest: types.POSITIVE,
@@ -669,10 +669,10 @@ func TestIssueExpectationsAddGet(t *testing.T) {
 
 	masterE, err := mb.Get()
 	assert.NoError(t, err)
-	issueE, err = ib.Get()
+	clExp, err = ib.Get()
 	assert.NoError(t, err)
 
-	// Make sure the IssueExpectations did not leak to the MasterExpectations
+	// Make sure the CLExpectations did not leak to the MasterExpectations
 	assert.Equal(t, types.Expectations{
 		data.AlphaTest: {
 			data.AlphaGood1Digest: types.NEGATIVE,
@@ -680,7 +680,7 @@ func TestIssueExpectationsAddGet(t *testing.T) {
 		},
 	}, masterE)
 
-	// Make sure the IssueExpectations are separate from the MasterExpectations.
+	// Make sure the CLExpectations are separate from the MasterExpectations.
 	assert.Equal(t, types.Expectations{
 		data.AlphaTest: {
 			data.AlphaGood1Digest: types.POSITIVE,
@@ -688,13 +688,13 @@ func TestIssueExpectationsAddGet(t *testing.T) {
 		data.BetaTest: {
 			data.BetaGood1Digest: types.POSITIVE,
 		},
-	}, issueE)
+	}, clExp)
 }
 
-// TestIssueExpectationsQueryLog makes sure the QueryLogs interacts
-// with the IssueExpectations as expected. Which is to say, the two
+// TestCLExpectationsQueryLog makes sure the QueryLogs interacts
+// with the CLExpectations as expected. Which is to say, the two
 // logs are separate.
-func TestIssueExpectationsQueryLog(t *testing.T) {
+func TestCLExpectationsQueryLog(t *testing.T) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(t)
 	defer cleanup()
@@ -709,7 +709,7 @@ func TestIssueExpectationsQueryLog(t *testing.T) {
 		},
 	}, userTwo))
 
-	ib := mb.ForIssue(117) // arbitrary issue id
+	ib := mb.ForChangeList("117", "gerrit") // arbitrary cl id
 
 	assert.NoError(t, ib.AddChange(ctx, types.Expectations{
 		data.BetaTest: {
@@ -717,8 +717,8 @@ func TestIssueExpectationsQueryLog(t *testing.T) {
 		},
 	}, userOne))
 
-	// Make sure the master logs are separate from the issue logs.
-	// request up to 10 to make sure we would get the issue
+	// Make sure the master logs are separate from the cl logs.
+	// request up to 10 to make sure we would get the cl
 	// change (if the filtering was wrong).
 	entries, n, err := mb.QueryLog(ctx, 0, 10, true)
 	assert.NoError(t, err)
@@ -741,10 +741,10 @@ func TestIssueExpectationsQueryLog(t *testing.T) {
 		},
 	}, entries[0])
 
-	// Make sure the issue logs are separate from the master logs.
-	// Unlike when getting the expectations, the issue logs are
-	// *only* those logs that affected this issue. Not, for example,
-	// all the master logs with the issue logs tacked on.
+	// Make sure the cl logs are separate from the master logs.
+	// Unlike when getting the expectations, the cl logs are
+	// *only* those logs that affected this cl. Not, for example,
+	// all the master logs with the cl logs tacked on.
 	entries, n, err = ib.QueryLog(ctx, 0, 10, true)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, n) // only one change on this branch

@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -40,15 +39,15 @@ var (
 
 const (
 	// These are the collections in Firestore.
-	expectationsCollection  = "expstore_expectations"
-	triageRecordsCollection = "expstore_triage_records"
-	triageChangesCollection = "expstore_triage_changes"
+	expectationsCollection  = "expstore_expectations_v2"
+	triageRecordsCollection = "expstore_triage_records_v2"
+	triageChangesCollection = "expstore_triage_changes_v2"
 
 	// Fields in the Collections we query by.
 	committedField = "committed"
 	digestField    = "digest"
 	groupingField  = "grouping"
-	issueField     = "issue"
+	crsCLIDField   = "crs_cl_id"
 	recordIDField  = "record_id"
 	tsField        = "ts"
 
@@ -62,10 +61,10 @@ const (
 	// 4096 shards -> 9s
 	masterShards = 512
 
-	// There will not be very many entries on issues, relative to the MasterBranch, so
+	// There will not be very many entries on ChangeLists, relative to the masterBranch, so
 	// we can get away with many fewer shards to avoid the overhead of so many
 	// simultaneous queries.
-	issueShards = 4
+	clShards = 4
 
 	// snapshotShards was determined empirically on a data set of about 550k expectationEntry
 	// The more shards here, the more overhead and contention with the masterShards,
@@ -80,14 +79,16 @@ const (
 	// 128 shards -> ???
 	// 512 shards -> ???
 	snapshotShards = 32
+
+	masterBranch = ""
 )
 
 // Store implements expstorage.ExpectationsStore backed by
 // Firestore. It has a write-through caching mechanism.
 type Store struct {
-	client *ifirestore.Client
-	mode   AccessMode
-	issue  int64 // Gerrit or GitHub issue, or MasterBranch
+	client     *ifirestore.Client
+	mode       AccessMode
+	crsAndCLID string // crs+"_"+id. Empty string means master branch.
 
 	// eventBus allows this Store to communicate with the outside world when
 	// expectations change.
@@ -108,11 +109,11 @@ type Store struct {
 
 // expectationEntry is the document type stored in the expectationsCollection.
 type expectationEntry struct {
-	Grouping types.TestName `firestore:"grouping"`
-	Digest   types.Digest   `firestore:"digest"`
-	Label    types.Label    `firestore:"label"`
-	Updated  time.Time      `firestore:"updated"`
-	Issue    int64          `firestore:"issue"`
+	Grouping   types.TestName `firestore:"grouping"`
+	Digest     types.Digest   `firestore:"digest"`
+	Label      types.Label    `firestore:"label"`
+	Updated    time.Time      `firestore:"updated"`
+	CRSAndCLID string         `firestore:"crs_cl_id"`
 }
 
 // ID returns the deterministic ID that lets us update existing entries.
@@ -124,11 +125,11 @@ func (e *expectationEntry) ID() string {
 
 // triageRecord is the document type stored in the triageRecordsCollection.
 type triageRecord struct {
-	UserName  string    `firestore:"user"`
-	TS        time.Time `firestore:"ts"`
-	Issue     int64     `firestore:"issue"`
-	Changes   int       `firestore:"changes"`
-	Committed bool      `firestore:"committed"`
+	UserName   string    `firestore:"user"`
+	TS         time.Time `firestore:"ts"`
+	CRSAndCLID string    `firestore:"crs_cl_id"`
+	Changes    int       `firestore:"changes"`
+	Committed  bool      `firestore:"committed"`
 }
 
 // triageChanges is the document type stored in the triageChangesCollection.
@@ -141,7 +142,7 @@ type triageChanges struct {
 }
 
 // New returns a new Store using the given firestore client. The Store will track
-// MasterBranch- see ForIssue() for getting Stores that track ChangeLists.
+// masterBranch- see ForChangeList() for getting Stores that track ChangeLists.
 // The passed in context is used for the QuerySnapshots (in ReadOnly mode).
 func New(ctx context.Context, client *ifirestore.Client, eventBus eventbus.EventBus, mode AccessMode) (*Store, error) {
 	defer metrics2.FuncTimer().Stop()
@@ -151,7 +152,7 @@ func New(ctx context.Context, client *ifirestore.Client, eventBus eventbus.Event
 		eventBus:       eventBus,
 		eventExpChange: expstorage.EV_EXPSTORAGE_CHANGED,
 		globalEvent:    true,
-		issue:          types.MasterBranch,
+		crsAndCLID:     masterBranch,
 		mode:           mode,
 	}
 
@@ -166,8 +167,9 @@ func New(ctx context.Context, client *ifirestore.Client, eventBus eventbus.Event
 	// pre-load the cache. This simplifies the mutex handling in Get().
 	_, err := f.getMasterExpectations()
 	if err != nil {
-		return nil, skerr.Fmt("could not perform initial get")
+		return nil, skerr.Wrapf(err, "could not perform initial get")
 	}
+	sklog.Infof("Loaded master expectations for %d tests", len(f.cache))
 
 	if mode == ReadOnly {
 		// Starts several go routines to listen to the snapshots created earlier.
@@ -179,9 +181,9 @@ func New(ctx context.Context, client *ifirestore.Client, eventBus eventbus.Event
 	return f, nil
 }
 
-// ForIssue implements the ExpectationsStore interface.
-func (f *Store) ForIssue(id int64) expstorage.ExpectationsStore {
-	if types.IsMasterBranch(id) {
+// ForChangeList implements the ExpectationsStore interface.
+func (f *Store) ForChangeList(id, crs string) expstorage.ExpectationsStore {
+	if id == masterBranch {
 		// It is invalid to re-request the master branch
 		return nil
 	}
@@ -190,28 +192,28 @@ func (f *Store) ForIssue(id int64) expstorage.ExpectationsStore {
 		eventBus:       f.eventBus,
 		eventExpChange: expstorage.EV_TRYJOB_EXP_CHANGED,
 		globalEvent:    false,
-		issue:          id,
+		crsAndCLID:     crs + "_" + id,
 		mode:           f.mode,
 	}
 }
 
 // Get implements the ExpectationsStore interface.
 func (f *Store) Get() (types.Expectations, error) {
-	if f.issue == types.MasterBranch {
+	if f.crsAndCLID == masterBranch {
 		defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "true"}).Stop()
 		f.cacheMutex.RLock()
 		defer f.cacheMutex.RUnlock()
 		return f.getMasterExpectations()
 	}
 	defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "false"}).Stop()
-	return f.getIssueExpectations()
+	return f.getExpectationsForCL()
 }
 
 // getMasterExpectations returns an Expectations object which is safe to mutate
 // based on the current state. It is expected the caller has taken care of any mutex grabbing.
 func (f *Store) getMasterExpectations() (types.Expectations, error) {
 	if f.cache == nil {
-		c, err := f.loadExpectationsSharded(types.MasterBranch, masterShards)
+		c, err := f.loadExpectationsSharded(masterBranch, masterShards)
 		if err != nil {
 			return nil, skerr.Fmt("could not load master expectations from firestore: %s", err)
 		}
@@ -230,7 +232,7 @@ func (f *Store) getMasterExpectations() (types.Expectations, error) {
 // for the read-write case? I don't think we'd ever have two writers, but it would open us up
 // to that.
 func (f *Store) initQuerySnapshot(ctx context.Context) error {
-	q := f.client.Collection(expectationsCollection).Where(issueField, "==", types.MasterBranch)
+	q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", masterBranch)
 	queries := fs_utils.ShardQueryOnDigest(q, digestField, snapshotShards)
 	f.masterQuerySnapshots = make([]*firestore.QuerySnapshotIterator, snapshotShards)
 	var eg errgroup.Group
@@ -289,29 +291,29 @@ func (f *Store) listenToQuerySnapshots() {
 	}
 }
 
-// getIssueExpectations returns an Expectations object which is safe to mutate
-// that has all issue-specific Expectations.
+// getExpectationsForCL returns an Expectations object which is safe to mutate
+// that has all cl-specific Expectations.
 // It fetches everything from firestore every time, as there could be multiple
 // readers and writers and thus caching isn't safe.
-func (f *Store) getIssueExpectations() (types.Expectations, error) {
-	issueExp, err := f.loadExpectationsSharded(f.issue, issueShards)
+func (f *Store) getExpectationsForCL() (types.Expectations, error) {
+	expDelta, err := f.loadExpectationsSharded(f.crsAndCLID, clShards)
 	if err != nil {
-		return nil, skerr.Fmt("could not load expectations delta for issue %d from firestore: %s", f.issue, err)
+		return nil, skerr.Wrapf(err, "loading expectations delta for CL %s from firestore", f.crsAndCLID)
 	}
-	return issueExp, nil
+	return expDelta, nil
 }
 
 // loadExpectationsSharded returns an Expectations object from the expectationsCollection,
-// with all Expectations belonging to the passed in issue (can be MasterBranch).
-func (f *Store) loadExpectationsSharded(issue int64, shards int) (types.Expectations, error) {
+// with all Expectations belonging to the passed in crsAndCLID (can be masterBranch).
+func (f *Store) loadExpectationsSharded(clID string, shards int) (types.Expectations, error) {
 	defer metrics2.FuncTimer().Stop()
-	q := f.client.Collection(expectationsCollection).Where(issueField, "==", issue)
+	q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", clID)
 
 	es := make([]types.Expectations, shards)
 	queries := fs_utils.ShardQueryOnDigest(q, digestField, shards)
 
 	maxRetries := 3
-	err := f.client.IterDocsInParallel("loadExpectations", strconv.FormatInt(issue, 10), queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
+	err := f.client.IterDocsInParallel("loadExpectations", clID, queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
@@ -328,7 +330,7 @@ func (f *Store) loadExpectationsSharded(issue int64, shards int) (types.Expectat
 	})
 
 	if err != nil {
-		return nil, skerr.Wrapf(err, "fetching expectations for ChangeList %d", issue)
+		return nil, skerr.Wrapf(err, "fetching expectations for ChangeList %s", clID)
 	}
 
 	e := types.Expectations{}
@@ -363,8 +365,8 @@ func (f *Store) AddChange(ctx context.Context, newExp types.Expectations, userID
 
 	if f.eventBus != nil {
 		f.eventBus.Publish(f.eventExpChange, &expstorage.EventExpectationChange{
-			TestChanges: newExp,
-			IssueID:     f.issue,
+			ExpectationDelta: newExp,
+			CRSAndCLID:       f.crsAndCLID,
 		}, f.globalEvent)
 	}
 
@@ -381,11 +383,11 @@ func (f *Store) AddChange(ctx context.Context, newExp types.Expectations, userID
 	// First write the triage record, with Committed being false (i.e. in progress)
 	tr := f.client.Collection(triageRecordsCollection).NewDoc()
 	record := triageRecord{
-		UserName:  userID,
-		TS:        now,
-		Issue:     f.issue,
-		Changes:   len(entries),
-		Committed: false,
+		UserName:   userID,
+		TS:         now,
+		CRSAndCLID: f.crsAndCLID,
+		Changes:    len(entries),
+		Committed:  false,
 	}
 	b.Set(tr, record)
 
@@ -449,11 +451,11 @@ func (f *Store) flatten(now time.Time, newExp types.Expectations) ([]expectation
 	for testName, digestMap := range newExp {
 		for digest, label := range digestMap {
 			entries = append(entries, expectationEntry{
-				Grouping: testName,
-				Digest:   digest,
-				Label:    label,
-				Updated:  now,
-				Issue:    f.issue,
+				Grouping:   testName,
+				Digest:     digest,
+				Label:      label,
+				Updated:    now,
+				CRSAndCLID: f.crsAndCLID,
 			})
 
 			changes = append(changes, triageChanges{
@@ -483,7 +485,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 
 	// Fetch the records, which have everything except the details.
 	q := f.client.Collection(triageRecordsCollection).OrderBy(tsField, firestore.Desc).Offset(offset).Limit(size)
-	q = q.Where(issueField, "==", f.issue).Where(committedField, "==", true)
+	q = q.Where(crsCLIDField, "==", f.crsAndCLID).Where(committedField, "==", true)
 	var rv []expstorage.TriageLogEntry
 	d := fmt.Sprintf("offset: %d, size %d", offset, size)
 	err := f.client.IterDocs("query_log", d, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {

@@ -7,7 +7,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/types"
 )
 
 // The SimpleBaselineFetcher is an implementation of BaselineFetcher that directly
@@ -27,15 +26,16 @@ func New(e expstorage.ExpectationsStore) *SimpleBaselineFetcher {
 }
 
 // FetchBaseline implements the BaselineFetcher interface.
-func (f *SimpleBaselineFetcher) FetchBaseline(_ string, issueID int64, issueOnly bool) (*baseline.Baseline, error) {
-	if types.IsMasterBranch(issueID) {
+func (f *SimpleBaselineFetcher) FetchBaseline(clID string, crs string, issueOnly bool) (*baseline.Baseline, error) {
+	if clID == "" {
 		exp, err := f.exp.Get()
 		if err != nil {
-			return nil, skerr.Wrapf(err, "could not get master branch expectations")
+			return nil, skerr.Wrapf(err, "geting master branch expectations")
 		}
 		b := baseline.Baseline{
-			Issue:        types.MasterBranch,
-			Expectations: exp.AsBaseline(),
+			ChangeListID:     "",
+			CodeReviewSystem: "",
+			Expectations:     exp.AsBaseline(),
 		}
 		md5Sum, err := util.MD5Sum(b.Expectations)
 		if err != nil {
@@ -45,11 +45,11 @@ func (f *SimpleBaselineFetcher) FetchBaseline(_ string, issueID int64, issueOnly
 		return &b, nil
 	}
 
-	issueStore := f.exp.ForIssue(issueID)
+	issueStore := f.exp.ForChangeList(clID, crs)
 
 	iexp, err := issueStore.Get()
 	if err != nil {
-		return nil, skerr.Wrapf(err, "could not get expectations for %d", issueID)
+		return nil, skerr.Wrapf(err, "getting expectations for %s (%s)", clID, crs)
 	}
 	// issueOnly is used for debugging, so it may include explicit
 	// negative/untriaged entries.
@@ -59,22 +59,24 @@ func (f *SimpleBaselineFetcher) FetchBaseline(_ string, issueID int64, issueOnly
 			return nil, skerr.Wrapf(err, "calculating md5 hash of issue expectations")
 		}
 		return &baseline.Baseline{
-			Issue:        issueID,
-			Expectations: iexp,
-			MD5:          md5Sum,
+			ChangeListID:     clID,
+			CodeReviewSystem: crs,
+			Expectations:     iexp,
+			MD5:              md5Sum,
 		}, nil
 	}
 
 	exp, err := f.exp.Get()
 	if err != nil {
-		return nil, skerr.Wrapf(err, "could not get master branch expectations")
+		return nil, skerr.Wrapf(err, "getting master branch expectations")
 	}
 
 	exp.MergeExpectations(iexp)
 
 	b := baseline.Baseline{
-		Issue:        issueID,
-		Expectations: exp.AsBaseline(),
+		ChangeListID:     clID,
+		CodeReviewSystem: crs,
+		Expectations:     exp.AsBaseline(),
 	}
 	md5Sum, err := util.MD5Sum(b.Expectations)
 	if err != nil {

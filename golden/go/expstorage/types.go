@@ -50,13 +50,14 @@ type ExpectationsStore interface {
 	// with the newly reverted values.
 	UndoChange(ctx context.Context, changeID, userID string) (types.Expectations, error)
 
-	// Returns a new ExpectationStore that will deal with the Expectations for an issue
-	// with the given id (aka an IssueExpectations). Any Expectations added to the returned
+	// ForChangeList returns a new ExpectationStore that will deal with the Expectations for a
+	// ChangeList with the given id (aka a CLExpectations). Any Expectations added to the returned
 	// ExpectationStore will be kept separate from the master branch. Any Expectations
 	// returned should be treated as the delta between the MasterBranch and the given issue.
-	// This issue id is the Gerrit id or GitHub id.
-	// TODO(kjlubick): This should be changed to take a string.
-	ForIssue(id int64) ExpectationsStore
+	// The parameter crs is the CodeReviewSystem (e.g. "gerrit", "github") and id is the id
+	// of the CL in that CRS. (This allows us to avoid a collision between two CLs with the same
+	// id in the event that we transition from one CRS to another).
+	ForChangeList(id, crs string) ExpectationsStore
 }
 
 // TriageDetails represents one changed digest and the label that was
@@ -77,9 +78,9 @@ type TriageLogEntry struct {
 }
 
 // EventExpectationChange is the structure that is sent in expectation change events.
-// When the change happened on the master branch 'IssueID' will contain a value <0
-// and should be ignored.
+// When the change happened on the master branch, CRSAndCLID will be "", otherwise it will
+// be a string unique to the CodeReviewSystem and ChangeList for which the ExpectationDelta belongs.
 type EventExpectationChange struct {
-	IssueID     int64
-	TestChanges types.Expectations
+	CRSAndCLID       string
+	ExpectationDelta types.Expectations
 }

@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/golden/go/mocks"
+
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
@@ -15,7 +17,7 @@ import (
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
-	"go.skia.org/infra/golden/go/indexer/mocks"
+	mock_indexer "go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/summary"
 	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
 	"go.skia.org/infra/golden/go/tjstore"
@@ -34,8 +36,8 @@ func TestByQuerySunnyDay(t *testing.T) {
 		types.CORPUS_FIELD: []string{"dm"},
 	}
 
-	mim := &mocks.IndexSource{}
-	mis := &mocks.IndexSearcher{}
+	mim := &mock_indexer.IndexSource{}
+	mis := &mock_indexer.IndexSearcher{}
 	defer mim.AssertExpectations(t)
 	defer mis.AssertExpectations(t)
 
@@ -363,4 +365,155 @@ func makeCodeReviewPSs() []code_review.PatchSet {
 			GitHash:      "45247158d641ece6318f2598fefecfce86a61ae0",
 		},
 	}
+}
+
+// TestTriageMaster tests a common case of a developer triaging a single test on the
+// master branch.
+func TestTriageMaster(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mes := &mocks.ExpectationsStore{}
+	defer mes.AssertExpectations(t)
+
+	user := "user@example.com"
+
+	mes.On("AddChange", testutils.AnyContext, types.Expectations{
+		bug_revert.TestOne: {
+			bug_revert.UntriagedDigestBravo: types.NEGATIVE,
+		},
+	}, user).Return(nil)
+
+	wh := WebHandlers{
+		ExpectationsStore: mes,
+	}
+
+	tr := frontend.TriageRequest{
+		ChangeListID: "",
+		TestDigestStatus: map[types.TestName]map[types.Digest]string{
+			bug_revert.TestOne: {
+				bug_revert.UntriagedDigestBravo: types.NEGATIVE.String(),
+			},
+		},
+	}
+
+	err := wh.triage(context.Background(), user, tr)
+	assert.NoError(t, err)
+}
+
+// TestTriageChangeList tests a common case of a developer triaging a single test on a ChangeList.
+func TestTriageChangeList(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mes := &mocks.ExpectationsStore{}
+	clExp := &mocks.ExpectationsStore{}
+	mcs := &mock_clstore.Store{}
+	defer mes.AssertExpectations(t)
+	defer clExp.AssertExpectations(t)
+
+	clID := "12345"
+	crs := "github"
+	user := "user@example.com"
+
+	mes.On("ForChangeList", clID, crs).Return(clExp)
+
+	clExp.On("AddChange", testutils.AnyContext, types.Expectations{
+		bug_revert.TestOne: {
+			bug_revert.UntriagedDigestBravo: types.NEGATIVE,
+		},
+	}, user).Return(nil)
+
+	mcs.On("System").Return(crs)
+
+	wh := WebHandlers{
+		ExpectationsStore: mes,
+		ChangeListStore:   mcs,
+	}
+
+	tr := frontend.TriageRequest{
+		ChangeListID: clID,
+		TestDigestStatus: map[types.TestName]map[types.Digest]string{
+			bug_revert.TestOne: {
+				bug_revert.UntriagedDigestBravo: types.NEGATIVE.String(),
+			},
+		},
+	}
+
+	err := wh.triage(context.Background(), user, tr)
+	assert.NoError(t, err)
+}
+
+// TestBulkTriageMaster tests the case of a developer triaging multiple tests at once
+// (via bulk triage).
+func TestBulkTriageMaster(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mes := &mocks.ExpectationsStore{}
+	defer mes.AssertExpectations(t)
+
+	user := "user@example.com"
+
+	mes.On("AddChange", testutils.AnyContext, types.Expectations{
+		bug_revert.TestOne: {
+			bug_revert.GoodDigestAlfa:       types.UNTRIAGED,
+			bug_revert.UntriagedDigestBravo: types.NEGATIVE,
+		},
+		bug_revert.TestTwo: {
+			bug_revert.GoodDigestCharlie:    types.POSITIVE,
+			bug_revert.UntriagedDigestDelta: types.NEGATIVE,
+		},
+	}, user).Return(nil)
+
+	wh := WebHandlers{
+		ExpectationsStore: mes,
+	}
+
+	tr := frontend.TriageRequest{
+		ChangeListID: "",
+		TestDigestStatus: map[types.TestName]map[types.Digest]string{
+			bug_revert.TestOne: {
+				bug_revert.GoodDigestAlfa:       types.UNTRIAGED.String(),
+				bug_revert.UntriagedDigestBravo: types.NEGATIVE.String(),
+			},
+			bug_revert.TestTwo: {
+				bug_revert.GoodDigestCharlie:    types.POSITIVE.String(),
+				bug_revert.UntriagedDigestDelta: types.NEGATIVE.String(),
+			},
+		},
+	}
+
+	err := wh.triage(context.Background(), user, tr)
+	assert.NoError(t, err)
+}
+
+// TestTriageMasterLegacy tests a common case of a developer triaging a single test using the
+// legacy code (which has "0" as key issue instead of empty string.
+func TestTriageMasterLegacy(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mes := &mocks.ExpectationsStore{}
+	defer mes.AssertExpectations(t)
+
+	user := "user@example.com"
+
+	mes.On("AddChange", testutils.AnyContext, types.Expectations{
+		bug_revert.TestOne: {
+			bug_revert.UntriagedDigestBravo: types.NEGATIVE,
+		},
+	}, user).Return(nil)
+
+	wh := WebHandlers{
+		ExpectationsStore: mes,
+	}
+
+	tr := frontend.TriageRequest{
+		ChangeListID: "0",
+		TestDigestStatus: map[types.TestName]map[types.Digest]string{
+			bug_revert.TestOne: {
+				bug_revert.UntriagedDigestBravo: types.NEGATIVE.String(),
+			},
+		},
+	}
+
+	err := wh.triage(context.Background(), user, tr)
+	assert.NoError(t, err)
 }

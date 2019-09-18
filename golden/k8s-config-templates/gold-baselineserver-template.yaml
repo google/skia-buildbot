@@ -46,6 +46,7 @@ spec:
             - "--fs_project_id={{.FIRESTORE_PROJECT}}"
             - "--hashes_gs_path=skia-gold-{{.INSTANCE_ID}}/hash_files/gold-{{.INSTANCE_ID}}-hashes.txt"
             - "--logtostderr"
+            - "--primary_crs={{.CODE_REVIEW_SYSTEM}}"
             - "--port=:8000"
             - "--prom_port=:20000"
           ports:
