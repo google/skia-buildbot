@@ -28,9 +28,9 @@ import (
 type Sample struct {
 	// The JSON key names are set to keep the serializable code able to
 	// read old files. If you change these JSON tags, do so for dummy below.
-	Tile         *tiling.Tile         `json:"Tile"`
-	Expectations types.Expectations   `json:"Expectations"`
-	IgnoreRules  []*ignore.IgnoreRule `json:"IgnoreRules"`
+	Tile         *tiling.Tile       `json:"Tile"`
+	Expectations types.Expectations `json:"Expectations"`
+	IgnoreRules  []*ignore.Rule     `json:"IgnoreRules"`
 }
 
 // Serialize writes this Sample instance to the given writer.
@@ -115,9 +115,9 @@ func DeserializeSample(r io.Reader) (*Sample, error) {
 		if err = json.Unmarshal(ignoreBytes, &legacyRules); err != nil {
 			return nil, skerr.Fmt("Could not unmarshal ignore rules, even falling back to legacy: %s ", err)
 		}
-		ret.IgnoreRules = make([]*ignore.IgnoreRule, 0, len(legacyRules))
+		ret.IgnoreRules = make([]*ignore.Rule, 0, len(legacyRules))
 		for _, ir := range legacyRules {
-			ret.IgnoreRules = append(ret.IgnoreRules, &ignore.IgnoreRule{
+			ret.IgnoreRules = append(ret.IgnoreRules, &ignore.Rule{
 				ID:        ir.ID,
 				Name:      ir.Name,
 				UpdatedBy: ir.UpdatedBy,
@@ -140,9 +140,9 @@ func DeserializeSample(r io.Reader) (*Sample, error) {
 // serialized using the json package.
 func (s *Sample) UnmarshalJSON(data []byte) error {
 	var dummy struct {
-		Tile         json.RawMessage      `json:"Tile"`
-		Expectations types.Expectations   `json:"Expectations"`
-		IgnoreRules  []*ignore.IgnoreRule `json:"IgnoreRules"`
+		Tile         json.RawMessage    `json:"Tile"`
+		Expectations types.Expectations `json:"Expectations"`
+		IgnoreRules  []*ignore.Rule     `json:"IgnoreRules"`
 	}
 	var err error
 
