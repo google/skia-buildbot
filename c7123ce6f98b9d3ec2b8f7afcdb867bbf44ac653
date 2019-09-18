@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bd476d61_cc495954",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-18T13:36:25Z",
+      "side": 0,
+      "message": "This should be been skia-d-. Looks like it was always wrong.",
+      "range": {
+        "startLine": 107,
+        "startChar": 47,
+        "endLine": 107,
+        "endChar": 53
+      },
+      "revId": "c7123ce6f98b9d3ec2b8f7afcdb867bbf44ac653",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
