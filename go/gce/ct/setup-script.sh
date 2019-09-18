@@ -43,7 +43,12 @@ PATH=$PATH:~/depot_tools
 mkdir -p /b/storage
 
 # If the bot is a builder then checkout Chromium and Skia repositories.
+# Also increase the "too many open files" limit (see skbug.com/9425).
 if [[ $(hostname -s) = ct-*-builder* ]]; then
+  echo "Modifying limits.conf..."
+  sudo sh -c 'echo "chrome-bot soft nofile 500000" >> /etc/security/limits.conf'
+  sudo sh -c 'echo "chrome-bot hard nofile 500000" >> /etc/security/limits.conf'
+
   echo "Checking out Chromium repository..."
   mkdir -p /b/storage/chromium
   cd /b/storage/chromium
