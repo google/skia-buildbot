@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "6973ab83_e55d8fac",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 694,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-18T17:14:42Z",
+      "side": 1,
+      "message": "Added a comment to that effect.",
+      "parentUuid": "245bfed2_23f586f8",
+      "range": {
+        "startLine": 694,
+        "startChar": 3,
+        "endLine": 694,
+        "endChar": 14
+      },
+      "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eaf53521_5406eb6e",
         "filename": "task_scheduler/go/db/firestore/modified_chan.go",
         "patchSetId": 1
@@ -156,6 +180,30 @@
       "side": 1,
       "message": "It might work to track the max DbModified we\u0027ve seen.",
       "parentUuid": "6d48ec8c_66c5ef73",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 43
+      },
+      "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff35f90d_2cc4ce9c",
+        "filename": "task_scheduler/go/db/firestore/modified_chan.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-18T17:14:42Z",
+      "side": 1,
+      "message": "Changed to make the query start at lastSnapshot.ReadTime - dbModifiedLag, which I think should account for all of the time that the snapshot iterator was failing, in addition to insertion lag.",
+      "parentUuid": "ddab68a5_9675e2b6",
       "range": {
         "startLine": 44,
         "startChar": 0,
