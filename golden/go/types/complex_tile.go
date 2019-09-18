@@ -29,6 +29,8 @@ type ComplexTile interface {
 	FilledCommits() int
 
 	// GetTile returns a simple tile either with or without ignored traces depending on the argument.
+	// TODO(kjlubick) Maybe diverge from the map of traces and instead of a slice, so we can
+	//  query things in parallel more easily.
 	GetTile(is IgnoreState) *tiling.Tile
 
 	// SetIgnoreRules adds ignore rules to the tile and a sub-tile with the ignores removed.
