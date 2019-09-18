@@ -22,7 +22,15 @@ func setup(t *testing.T) (db.DBCloser, func()) {
 	c, cleanup := firestore.NewClientForTesting(t)
 	d, err := NewDB(context.Background(), c, nil)
 	assert.NoError(t, err)
-	return d, cleanup
+	ctx, cancel := context.WithCancel(context.Background())
+	modTasks := NewModifiedTasks(ctx, d)
+	modJobs := NewModifiedJobs(ctx, d)
+	modComments := NewModifiedComments(ctx, d)
+	d.(*firestoreDB).ModifiedData = db.NewModifiedData(modTasks, modJobs, modComments)
+	return d, func() {
+		cancel()
+		cleanup()
+	}
 }
 
 func TestFirestoreDBTaskDB(t *testing.T) {
