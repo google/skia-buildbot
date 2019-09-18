@@ -248,6 +248,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 
 	clInt := int64(1234)
 	clID := "1234"
+	crs := "gerrit"
 	AlphaNowGoodDigest := data.AlphaUntriaged1Digest
 	BetaBrandNewDigest := types.Digest("be7a03256511bec3a7453c3186bb2e07")
 
@@ -266,7 +267,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 
-	mes.On("ForIssue", clInt).Return(issueStore, nil)
+	mes.On("ForChangeList", clID, crs).Return(issueStore, nil)
 	issueStore.On("Get").Return(types.Expectations{
 		data.AlphaTest: {
 			AlphaNowGoodDigest: types.POSITIVE,
@@ -299,11 +300,11 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 			// All the rest are ignored
 		},
 	}, nil)
-	mcls.On("System").Return("gerrit")
+	mcls.On("System").Return(crs)
 
 	expectedID := tjstore.CombinedPSID{
 		CL:  clID,
-		CRS: "gerrit",
+		CRS: crs,
 		PS:  "fourth_one", // we didn't specify a PS, so it goes with the most recent
 	}
 	anglerGroup := map[string]string{
