@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8e8e5619_c346b662",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-18T15:16:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "574fbdac_6539a73e",
+      "range": {
+        "startLine": 26,
+        "startChar": 1,
+        "endLine": 26,
+        "endChar": 18
+      },
+      "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b5142257_0b6cbd83",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd49f212_e0464562",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-18T15:16:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b5142257_0b6cbd83",
+      "range": {
+        "startLine": 106,
+        "startChar": 46,
+        "endLine": 106,
+        "endChar": 47
+      },
+      "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "84ef2eb4_e2159d55",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-18T15:16:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4121e5c3_ff649ce3",
+      "range": {
+        "startLine": 111,
+        "startChar": 49,
+        "endLine": 111,
+        "endChar": 74
+      },
+      "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "400cefff_261f0fa5",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
         "patchSetId": 5
@@ -91,6 +163,30 @@
       "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e1cd42a_3a8bdb81",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-18T15:16:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "400cefff_261f0fa5",
+      "range": {
+        "startLine": 128,
+        "startChar": 20,
+        "endLine": 128,
+        "endChar": 34
+      },
+      "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "0132ecf5_e224d598",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-18T15:16:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0cec833f_0e7b26e0",
+      "range": {
+        "startLine": 135,
+        "startChar": 68,
+        "endLine": 135,
+        "endChar": 76
+      },
+      "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "acbfadd9_31441ca6",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
         "patchSetId": 5
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "e08108f3_71bb11c6",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-18T15:16:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "acbfadd9_31441ca6",
+      "range": {
+        "startLine": 178,
+        "startChar": 10,
+        "endLine": 178,
+        "endChar": 13
+      },
+      "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "26ecd1b5_8e5356e3",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
         "patchSetId": 5
@@ -151,6 +295,30 @@
       "writtenOn": "2019-09-18T12:11:40Z",
       "side": 1,
       "message": "mock is the name of the testify/mock package - perhaps mockExec or mExec",
+      "range": {
+        "startLine": 32,
+        "startChar": 1,
+        "endLine": 32,
+        "endChar": 5
+      },
+      "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6c53424_26d55393",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-18T15:16:39Z",
+      "side": 1,
+      "message": "How about just commandCollector?",
+      "parentUuid": "26ecd1b5_8e5356e3",
       "range": {
         "startLine": 32,
         "startChar": 1,
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "08665043_d2265203",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-18T15:16:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6cfedb32_2231afd6",
+      "range": {
+        "startLine": 66,
+        "startChar": 47,
+        "endLine": 66,
+        "endChar": 65
+      },
+      "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "41394ffb_43f65d75",
         "filename": "golden/cmd/goldpushk/goldpushk/types_test.go",
         "patchSetId": 5
@@ -197,6 +389,30 @@
       "writtenOn": "2019-09-18T12:11:40Z",
       "side": 1,
       "message": "This won\u0027t pass on Windows, right? Because the slashes are in the wrong direction?\n\nShould probably use path/filepath or an if/else based on path.Separator",
+      "range": {
+        "startLine": 31,
+        "startChar": 1,
+        "endLine": 31,
+        "endChar": 133
+      },
+      "revId": "09bd3fd8109a6866ecfa648f5ca4202fcea7b19c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9d5c66b_79ca3261",
+        "filename": "golden/cmd/goldpushk/goldpushk/types_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-18T15:16:39Z",
+      "side": 1,
+      "message": "How about using a helper function to convert Unix-style paths to OS-specific paths?",
+      "parentUuid": "41394ffb_43f65d75",
       "range": {
         "startLine": 31,
         "startChar": 1,
