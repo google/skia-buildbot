@@ -2,9 +2,7 @@ package firestore
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"io"
 	"time"
 
 	fs "cloud.google.com/go/firestore"
@@ -131,22 +129,4 @@ func (d *firestoreDB) dateRangeHelper(name string, baseQuery fs.Query, start, en
 
 	// Run the queries.
 	return d.client.IterDocsInParallel(name, fmt.Sprintf("%s - %s", start, end), queries, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, elem)
-}
-
-// firestoreDB doesn't support backups, but we implement the interface for
-// compatibility.
-func (d *firestoreDB) WriteBackup(io.Writer) error {
-	return errors.New("WriteBackup not implemented for firestoreDB.")
-}
-
-// firestoreDB doesn't support backups, but we implement the interface for
-// compatibility.
-func (d *firestoreDB) SetIncrementalBackupTime(time.Time) error {
-	return errors.New("SetIncrementalBackupTime not implemented for firestoreDB.")
-}
-
-// firestoreDB doesn't support backups, but we implement the interface for
-// compatibility.
-func (d *firestoreDB) GetIncrementalBackupTime() (time.Time, error) {
-	return time.Time{}, errors.New("GetIncrementalBackupTime not implemented for firestoreDB.")
 }
