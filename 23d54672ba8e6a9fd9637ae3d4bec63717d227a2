@@ -22,6 +22,30 @@
       "revId": "23d54672ba8e6a9fd9637ae3d4bec63717d227a2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37dfe7b7_b63a78d7",
+        "filename": "golden/k8s-instances/README.fuchsia.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-18T17:56:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b9e1d7d5_70f34007",
+      "range": {
+        "startLine": 1,
+        "startChar": 64,
+        "endLine": 2,
+        "endChar": 33
+      },
+      "revId": "23d54672ba8e6a9fd9637ae3d4bec63717d227a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
