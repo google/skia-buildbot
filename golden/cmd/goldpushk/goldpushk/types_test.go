@@ -1,6 +1,8 @@
 package goldpushk
 
 import (
+	"path/filepath"
+	"strings"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
@@ -16,6 +18,64 @@ func TestDeployableUnitIDCanonicalName(t *testing.T) {
 		},
 	}
 	assert.Equal(t, "gold-chrome-diffserver", unit.CanonicalName())
+}
+
+func TestDeployableUnitGetDeploymentFileTemplatePath(t *testing.T) {
+	unittest.SmallTest(t)
+
+	unit := DeployableUnit{
+		DeployableUnitID: DeployableUnitID{
+			Instance: Skia,
+			Service:  DiffServer,
+		},
+	}
+
+	assert.Equal(t, p("/foo/bar/golden/k8s-config-templates/gold-diffserver-template.yaml"), unit.getDeploymentFileTemplatePath(p("/foo/bar")))
+}
+
+func TestDeployableUnitGetDeploymentFilePath(t *testing.T) {
+	unittest.SmallTest(t)
+
+	unit := DeployableUnit{
+		DeployableUnitID: DeployableUnitID{
+			Instance: Skia,
+			Service:  DiffServer,
+		},
+	}
+
+	assert.Equal(t, p("/foo/bar/golden/build/gold-skia-diffserver.yaml"), unit.getDeploymentFilePath(p("/foo/bar")))
+}
+
+func TestDeployableUnitGetConfigMapFileTemplatePath(t *testing.T) {
+	unittest.SmallTest(t)
+
+	unit := DeployableUnit{
+		DeployableUnitID: DeployableUnitID{
+			Instance: Skia,
+			Service:  DiffServer,
+		},
+		DeploymentOptions: DeploymentOptions{
+			configMapTemplate: p("path/to/config-map-template.json5"),
+		},
+	}
+
+	assert.Equal(t, p("/foo/bar/path/to/config-map-template.json5"), unit.getConfigMapFileTemplatePath(p("/foo/bar")))
+}
+
+func TestDeployableUnitGetConfigMapFilePath(t *testing.T) {
+	unittest.SmallTest(t)
+
+	unit := DeployableUnit{
+		DeployableUnitID: DeployableUnitID{
+			Instance: Skia,
+			Service:  DiffServer,
+		},
+		DeploymentOptions: DeploymentOptions{
+			configMapFile: p("path/to/config-map-file.json5"),
+		},
+	}
+
+	assert.Equal(t, p("/foo/bar/path/to/config-map-file.json5"), unit.getConfigMapFilePath(p("/foo/bar")))
 }
 
 func TestDeployableUnitSetAdd(t *testing.T) {
@@ -141,4 +201,10 @@ func TestDeployableUnitSetGet(t *testing.T) {
 	}
 	assert.True(t, ok)
 	assert.Equal(t, expectedUnit, unit)
+}
+
+// p takes a Unix path and replaces forward slashes with the correct separators
+// for the OS under which this test is running.
+func p(path string) string {
+	return filepath.Join(strings.Split(path, "/")...)
 }

@@ -63,11 +63,14 @@ func BuildDeployableUnitSet() DeployableUnitSet {
 	for _, instance := range KnownInstances {
 		if isPublicInstance(instance) {
 			// Add common services for public instances.
-			s.addWithOptions(instance, SkiaCorrectness, DeploymentOptions{configMapName: fmt.Sprintf("%s-authorized-params", instance)})
+			s.addWithOptions(instance, SkiaCorrectness, DeploymentOptions{
+				configMapName: fmt.Sprintf("%s-authorized-params", instance),
+				configMapFile: "golden/k8s-instances/skia-public/authorized-params.json5",
+			})
 		} else {
 			// Add common services for internal instances.
 			s.add(instance, DiffServer)
-			s.addWithOptions(instance, IngestionBT, DeploymentOptions{configMapName: fmt.Sprintf("gold-%s-ingestion-config-bt", instance)})
+			s.addWithOptions(instance, IngestionBT, makeDeploymentOptionsForIngestionBT(instance, false))
 			s.add(instance, SkiaCorrectness)
 		}
 	}
@@ -80,10 +83,21 @@ func BuildDeployableUnitSet() DeployableUnitSet {
 
 	// Overwrite common services for "fuchsia" instance, which need to run on skia-corp.
 	s.addWithOptions(Fuchsia, DiffServer, DeploymentOptions{internal: true})
-	s.addWithOptions(Fuchsia, IngestionBT, DeploymentOptions{internal: true, configMapName: "gold-fuchsia-ingestion-config-bt"})
+	s.addWithOptions(Fuchsia, IngestionBT, makeDeploymentOptionsForIngestionBT(Fuchsia, true))
 	s.addWithOptions(Fuchsia, SkiaCorrectness, DeploymentOptions{internal: true})
 
 	return s
+}
+
+// makeDeploymentOptionsForIngestionBT builds and returns the deployment options
+// necessary for the IngestionBT service corresponding to the given instance.
+func makeDeploymentOptionsForIngestionBT(instance Instance, internal bool) DeploymentOptions {
+	return DeploymentOptions{
+		internal:          internal,
+		configMapName:     fmt.Sprintf("gold-%s-ingestion-config-bt", instance),
+		configMapFile:     fmt.Sprintf("golden/build/gold-%s-ingestion-config-bt.json5", instance),
+		configMapTemplate: "golden/k8s-config-templates/ingest-config-template.json5",
+	}
 }
 
 // IsKnownInstance returns true if the given instance is in KnownInstances.
