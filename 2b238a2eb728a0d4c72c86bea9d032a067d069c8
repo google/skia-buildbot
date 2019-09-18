@@ -1,0 +1,28 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f45531d7_1a26e3f4",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-18T15:26:49Z",
+      "side": 1,
+      "message": "\u003e \"overriden\" is a possible misspelling of \"overridden\".\n\nPlease Fix",
+      "parentUuid": "e03d6eb9_d1d92605",
+      "range": {
+        "startLine": 107,
+        "startChar": 52,
+        "endLine": 107,
+        "endChar": 61
+      },
+      "revId": "2b238a2eb728a0d4c72c86bea9d032a067d069c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
