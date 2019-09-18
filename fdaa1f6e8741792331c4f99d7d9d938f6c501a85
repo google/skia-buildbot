@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "924deddd_0a12f1ed",
+        "filename": "golden/modules/changelist-controls-sk/changelist-controls-sk.js",
+        "patchSetId": 14
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-18T13:18:18Z",
+      "side": 1,
+      "message": "There\u0027s no such element as radiogroup (my bad), just give all the radio-sk elements the same \u0027name\u0027.",
+      "revId": "fdaa1f6e8741792331c4f99d7d9d938f6c501a85",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c02fb49f_d8f48955",
+        "filename": "golden/modules/changelist-controls-sk/changelist-controls-sk.js",
+        "patchSetId": 14
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-18T13:18:18Z",
+      "side": 1,
+      "message": "Make into a property, reserve functions for things that are non-idempotent, like things that send events as a side-effect.",
+      "revId": "fdaa1f6e8741792331c4f99d7d9d938f6c501a85",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
