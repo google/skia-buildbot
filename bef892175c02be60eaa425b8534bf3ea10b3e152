@@ -22,6 +22,30 @@
       "revId": "bef892175c02be60eaa425b8534bf3ea10b3e152",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "65cdc6ba_2f354550",
+        "filename": "golden/cmd/goldpushk/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-18T14:28:45Z",
+      "side": 1,
+      "message": "As discussed via chat, this is mostly debug information. I\u0027ve updated the usage string to make this clearer.",
+      "parentUuid": "be403289_9e40338c",
+      "range": {
+        "startLine": 77,
+        "startChar": 58,
+        "endLine": 77,
+        "endChar": 63
+      },
+      "revId": "bef892175c02be60eaa425b8534bf3ea10b3e152",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
