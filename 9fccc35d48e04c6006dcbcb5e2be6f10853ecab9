@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a4a1e3aa_a64df7ce",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 694,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-18T14:34:48Z",
+      "side": 1,
+      "message": "Do you think this will be a problem in practice?  In the short term we\u0027ll be using the Modified* implementations which should be much faster than QuerySnapshotIterator.  I suspect the slower the receiver, the less it matters if we\u0027re one cycle out of date.  If this *needs* to be fixed, I guess we could implement some kind of snapshot-merging logic, but that seems error-prone.\n\niter :\u003d q.Snapshots(ctx)\nvar snap *firestore.QuerySnapshot\nfor {\n  if snap \u003d\u003d nil {\n    s, err :\u003d \u003c-iter.Next()\n    if err !\u003d nil { ... }\n    snap \u003d s\n  } else {\n    select {\n      case s :\u003d \u003c-iter.Next():\n        snap \u003d mergeSnaps(snap, s)\n      case ch \u003c- snap:\n        snap \u003d nil\n    }\n  }\n}",
+      "parentUuid": "37364371_d349b49a",
+      "range": {
+        "startLine": 694,
+        "startChar": 3,
+        "endLine": 694,
+        "endChar": 14
+      },
+      "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "eaf53521_5406eb6e",
         "filename": "task_scheduler/go/db/firestore/modified_chan.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2019-09-18T14:11:27Z",
       "side": 1,
       "message": "I think this has the same problem as mentioned here: https://skia-review.googlesource.com/c/buildbot/+/239097/6/task_scheduler/go/db/firestore/modified.go#44",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 43
+      },
+      "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25cc929e_b9acc52e",
+        "filename": "task_scheduler/go/db/firestore/modified_chan.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-18T14:34:48Z",
+      "side": 1,
+      "message": "Can you explain?  Unlike the linked implementation, we are not ignoring the first snapshot, and we regenerate the query so it should overlap by (dbModifiedLag - 100ms).",
+      "parentUuid": "eaf53521_5406eb6e",
       "range": {
         "startLine": 44,
         "startChar": 0,
