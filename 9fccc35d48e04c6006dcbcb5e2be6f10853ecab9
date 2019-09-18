@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "37364371_d349b49a",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 694,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T14:11:27Z",
+      "side": 1,
+      "message": "This sort of assumes that the receiver is much faster than iter.Next(). If not, the receiver will always see snapshots as of the last time they received from the channel.\n\nE.g.:\n0s: call iter.Next()\n1s: iter.Next() returns, qsnap is passed to receiver, call iter.Next()\n2s: iter.Next() returns, but receiver not ready\n11s: receiver finishes processing qsnap from 1s, qsnap from 2s is passed to receiver, call iter.Next()\n12s: see 2s\n21s: ... qsnap from 12s is passed to receiver\n...",
+      "range": {
+        "startLine": 694,
+        "startChar": 3,
+        "endLine": 694,
+        "endChar": 14
+      },
+      "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eaf53521_5406eb6e",
+        "filename": "task_scheduler/go/db/firestore/modified_chan.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T14:11:27Z",
+      "side": 1,
+      "message": "I think this has the same problem as mentioned here: https://skia-review.googlesource.com/c/buildbot/+/239097/6/task_scheduler/go/db/firestore/modified.go#44",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 43
+      },
+      "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
