@@ -475,6 +475,30 @@
     },
     {
       "key": {
+        "uuid": "282ef2b5_8ad6dbf5",
+        "filename": "task_scheduler/go/db/firestore/modified_chan.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T19:16:26Z",
+      "side": 1,
+      "message": "Multiple CLs is better, I think. If you are planning to add Modified*Ch to db.DB, maybe do that in this CL and just add dummy methods to other impls.",
+      "parentUuid": "60fe9017_e1f62268",
+      "range": {
+        "startLine": 59,
+        "startChar": 36,
+        "endLine": 59,
+        "endChar": 52
+      },
+      "revId": "9fccc35d48e04c6006dcbcb5e2be6f10853ecab9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d8577c7b_6fc25159",
         "filename": "task_scheduler/go/db/firestore/modified_chan_test.go",
         "patchSetId": 1
