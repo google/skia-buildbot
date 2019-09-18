@@ -460,6 +460,30 @@
     },
     {
       "key": {
+        "uuid": "7785b9bd_6215255b",
+        "filename": "golden/go/web/frontend/types.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T17:51:38Z",
+      "side": 1,
+      "message": "Not sure what you mean here -- the point of keeping the old field is to not modify the frontend.",
+      "parentUuid": "5a248b6b_24e3d15c",
+      "range": {
+        "startLine": 86,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 35
+      },
+      "revId": "f5110869486e1aa235f3a23062e22340f162ba25",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3e0e4b65_7d972540",
         "filename": "golden/go/web/web.go",
         "patchSetId": 11

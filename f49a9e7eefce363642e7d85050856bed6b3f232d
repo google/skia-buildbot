@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c78e9992_cb1cee1b",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T17:51:38Z",
+      "side": 1,
+      "message": "crsAndCLID",
+      "range": {
+        "startLine": 308,
+        "startChar": 40,
+        "endLine": 308,
+        "endChar": 44
+      },
+      "revId": "f49a9e7eefce363642e7d85050856bed6b3f232d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "571bed4a_7c023ec7",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-18T17:51:38Z",
+      "side": 1,
+      "message": "nit: AsertExpectations",
+      "revId": "f49a9e7eefce363642e7d85050856bed6b3f232d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
