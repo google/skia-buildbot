@@ -320,6 +320,18 @@ groups:
       abbr: '{{ $labels.exported_instance }}'
       description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df}}. https://chromium-swarm.appspot.com/bot?id={{ $labels.exported_instance }}'
 
+# External bots except RPis.
+
+  - alert: DiskSpaceLow
+    expr: collectd_df_df_complex{df="root",exported_instance=~"skia-e-[^r].+",type="free"} < 1e9
+    for: 5m
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.exported_instance }}'
+      description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chromium-swarm.appspot.com/bot?id={{ $labels.exported_instance }}'
+
 # Dev RPis.
 
   - alert: DiskSpaceLow
@@ -331,3 +343,15 @@ groups:
     annotations:
       abbr: '{{ $labels.exported_instance }}'
       description: 'Free space has fallen below 100MB on {{ $labels.exported_instance }} drive {{ $labels.df}}. https://chromium-swarm-dev.appspot.com/bot?id={{ $labels.exported_instance }}'
+
+# Dev bots except RPis.
+
+  - alert: DiskSpaceLow
+    expr: collectd_df_df_complex{df="root",exported_instance=~"skia-d-[^r].+",type="free"} < 1e9
+    for: 5m
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.exported_instance }}'
+      description: 'Low Root Disk Space on {{ $labels.exported_instance }}. https://chromium-swarm-dev.appspot.com/bot?id={{ $labels.exported_instance }}'
