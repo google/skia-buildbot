@@ -116,5 +116,3 @@ status/res/res
 status/res/imp/task_driver_sk-bundle.css
 status/res/imp/task_driver_sk-bundle.js
 gold-client/build
-golden/build
-golden/k8s-instances/fuchsia-instance.json5
