@@ -49,7 +49,7 @@ frontend-debug:
 
 .PHONY: serve
 serve:
-	npx webpack-dev-server --watch --mode=development
+	npx webpack-dev-server --watch-poll --mode=development
 
 .PHONY: allgo
 allgo: skiaversion
