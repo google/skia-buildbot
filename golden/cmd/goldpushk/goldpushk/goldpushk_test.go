@@ -2,10 +2,14 @@ package goldpushk
 
 import (
 	"context"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -14,6 +18,46 @@ func TestGoldpushkRun(t *testing.T) {
 	unittest.SmallTest(t)
 
 	t.Skip("Not implemented")
+}
+
+func TestGoldpushkCheckOutGitRepositories(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := context.Background()
+
+	// Create fake repositories to clone.
+	skiaPublicConfig := testutils.GitInit(t, ctx)
+	skiaCorpConfig := testutils.GitInit(t, ctx)
+	defer skiaPublicConfig.Cleanup()
+	defer skiaCorpConfig.Cleanup()
+
+	// Populate fake repositories.
+	skiaPublicConfig.Add(ctx, "which-repo.txt", "skia-public-config")
+	skiaPublicConfig.Commit(ctx)
+	skiaCorpConfig.Add(ctx, "which-repo.txt", "skia-corp-config")
+	skiaCorpConfig.Commit(ctx)
+
+	// Create goldpushk instance under test.
+	g := New([]DeployableUnit{}, []DeployableUnit{}, "", false, skiaPublicConfig.RepoUrl(), skiaCorpConfig.RepoUrl())
+
+	// Check out repositories.
+	g.checkOutGitRepositories(ctx)
+	defer g.skiaPublicConfigCheckout.Delete()
+	defer g.skiaCorpConfigCheckout.Delete()
+
+	// Assert that the checked out repositories are not the same as the fake repositories.
+	assert.NotEqual(t, g.skiaPublicConfigCheckout.GitDir, skiaPublicConfig.Dir())
+	assert.NotEqual(t, g.skiaCorpConfigCheckout.GitDir, skiaCorpConfig.Dir())
+
+	// Read files in the checked out repositories.
+	publicWhichRepoTxt, err := readFile(filepath.Join(string(g.skiaPublicConfigCheckout.GitDir), "which-repo.txt"))
+	assert.NoError(t, err)
+	corpWhichRepoTxt, err := readFile(filepath.Join(string(g.skiaCorpConfigCheckout.GitDir), "which-repo.txt"))
+	assert.NoError(t, err)
+
+	// Assert that the files in the checked out repositories have the expected content.
+	assert.Equal(t, "skia-public-config", publicWhichRepoTxt)
+	assert.Equal(t, "skia-corp-config", corpWhichRepoTxt)
 }
 
 func TestRegenerateConfigFiles(t *testing.T) {
@@ -33,7 +77,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 	ctx := exec.NewContext(context.Background(), commandCollector.Run)
 
 	// Call code under test.
-	g := New(deployableUnits, canariedDeployableUnits, "/foo/bar/buildbot", false)
+	g := New(deployableUnits, canariedDeployableUnits, "/foo/bar/buildbot", false, "", "")
 	err := g.regenerateConfigFiles(ctx)
 
 	// Expected commands.
@@ -109,4 +153,17 @@ func appendUnit(t *testing.T, units []DeployableUnit, s DeployableUnitSet, insta
 	unit, ok := s.Get(DeployableUnitID{Instance: instance, Service: service})
 	assert.True(t, ok)
 	return append(units, unit)
+}
+
+func readFile(path string) (string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+	contents, err := ioutil.ReadAll(f)
+	if err != nil {
+		return "", err
+	}
+	return string(contents), nil
 }
