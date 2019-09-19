@@ -1,7 +1,7 @@
 // See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "ChromeOS Orderfiles",
+  "childName": "ChromeOS Broadwell AFDO profile",
   "contacts": [
     "tcwang@google.com"
   ],
