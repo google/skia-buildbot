@@ -22,6 +22,30 @@
       "revId": "6272ef6a6ad1f49983ce04f64e882860b27f6c5d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f8bcde3_3a7fed60",
+        "filename": "common-sk/package.json",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-19T20:42:48Z",
+      "side": 1,
+      "message": "Yeah, we need to do that for all the deps in package.json.\nAlso, or alternatively, we can start checking in the package-lock.json file\nand using that, similar to go.mod and go.sum.",
+      "parentUuid": "db669a7b_7409f0a0",
+      "range": {
+        "startLine": 21,
+        "startChar": 15,
+        "endLine": 21,
+        "endChar": 21
+      },
+      "revId": "6272ef6a6ad1f49983ce04f64e882860b27f6c5d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
