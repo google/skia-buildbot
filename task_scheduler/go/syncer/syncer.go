@@ -241,6 +241,7 @@ func tempGitRepoBotUpdate(ctx context.Context, rs types.RepoState, depotToolsDir
 		Args: cmd[1:],
 		Dir:  tmp,
 		Env: []string{
+			fmt.Sprintf("HOME=%s", tmp),
 			fmt.Sprintf("PATH=%s:%s", depotToolsDir, os.Getenv("PATH")),
 		},
 		InheritEnv: true,
