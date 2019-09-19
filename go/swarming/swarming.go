@@ -24,6 +24,7 @@ import (
 const (
 	SWARMING_SERVER          = "chromium-swarm.appspot.com"
 	SWARMING_SERVER_PRIVATE  = "chrome-swarming.appspot.com"
+	SWARMING_SERVER_DEV      = "chromium-swarm-dev.appspot.com"
 	LUCI_CLIENT_REPO         = "https://chromium.googlesource.com/infra/luci/client-py"
 	RECOMMENDED_IO_TIMEOUT   = 20 * time.Minute
 	RECOMMENDED_HARD_TIMEOUT = 1 * time.Hour
