@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -130,6 +131,7 @@ func (t *SwarmingTask) Trigger(ctx context.Context, s *SwarmingClient, hardTimeo
 	if err != nil {
 		return err
 	}
+	defer util.Close(f)
 	if err := json.NewDecoder(f).Decode(&tasks); err != nil {
 		return fmt.Errorf("Could not decode %s: %s", dumpJSON, err)
 	}
