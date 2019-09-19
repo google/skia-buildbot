@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "78b6e852_c10523ed",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-19T19:43:31Z",
+      "side": 1,
+      "message": "This is already wrapped in checkOutSingleGitRepository(). Is it necessary to wrap it a second time?",
+      "parentUuid": "67d02bdb_215acdff",
+      "range": {
+        "startLine": 135,
+        "startChar": 9,
+        "endLine": 135,
+        "endChar": 12
+      },
+      "revId": "28804ee50104e59be1344c245f246d00b409e45d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e6ac5cfb_de0d81c1",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
         "patchSetId": 2
@@ -36,6 +60,24 @@
       "writtenOn": "2019-09-19T18:19:56Z",
       "side": 1,
       "message": "After thinking about it, I\u0027m not exactly sure what this test is doing. Can you explain what exactly it\u0027s testing and how it works?  I\u0027m having trouble following.",
+      "revId": "28804ee50104e59be1344c245f246d00b409e45d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d584cc0_8ce181b7",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-19T19:43:31Z",
+      "side": 1,
+      "message": "I\u0027m testing that checkOutGitRepositories() correctly clones the fake skia-{public,corp}-config repositories creating during the test setup. I\u0027ve added better comments; hopefully it should be clearer now.\n\nThe test setup is as follows:\n\n1. First, two actual Git repositories are created on disk with \"git init\" (see fakeSkiaPublicConfig, fakeSkiaCorpConfig). These repos will be used throughout the test in lieu of the actual skia-public-config and skia-corp-config repos.\n\n2. A file \"which-repo.txt\" is added to each of these repositories, which will later make it easier to tell which of skia-{public,corp}-config each repo is pretending to be.\n\n3. I get the URLs for these two repos (file://...) and pass them to the Goldpushk instance at construction.\n\nAt this point Goldpushk.checkOutGitRepositories() is called, which will \"git clone\" the two repos above using the URLs provided at construction (file://...).\n\nAssertions:\n\n1. As a basic sanity check, I assert that the path to the root directories of the checkouts created by checkOutGitRepositories (with \"git clone\") are not the same as the paths to the root directories of the fake skia-{public,corp}-config repositories created during the test setup (with \"git init\").\n\n2. I look at the contents of which-repo.txt on each of the checkouts, and assert that it matches the contents of which-repo.txt on the corresponding fake skia-{public,corp}-config repository.\n\nLet me know if anything is unclear.",
+      "parentUuid": "e6ac5cfb_de0d81c1",
       "revId": "28804ee50104e59be1344c245f246d00b409e45d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "721d35f7_6b3f2c75",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-19T19:43:31Z",
+      "side": 1,
+      "message": "Marking it as a medium test. FYI, it takes 0.3s to run locally.",
+      "parentUuid": "f137ec30_bd55e28e",
+      "range": {
+        "startLine": 24,
+        "startChar": 10,
+        "endLine": 24,
+        "endChar": 19
+      },
+      "revId": "28804ee50104e59be1344c245f246d00b409e45d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "16d1c808_41dbafbd",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
         "patchSetId": 2
@@ -85,6 +151,30 @@
       "revId": "28804ee50104e59be1344c245f246d00b409e45d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5e6d274_96f81e3a",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-19T19:43:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "16d1c808_41dbafbd",
+      "range": {
+        "startLine": 159,
+        "startChar": 5,
+        "endLine": 159,
+        "endChar": 13
+      },
+      "revId": "28804ee50104e59be1344c245f246d00b409e45d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
