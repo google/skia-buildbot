@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "40271753_df47eab5",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-19T18:36:27Z",
+      "side": 0,
+      "message": "Leaving this around for skfe-1, skfe-2, push, proxy, prom.",
+      "revId": "5077cf9ebe9210696b7e82573931eb3e0ebcf097",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c768ee02_602e9392",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-19T18:36:27Z",
+      "side": 0,
+      "message": "Leaving this around for skia-prom.",
+      "revId": "5077cf9ebe9210696b7e82573931eb3e0ebcf097",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
