@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/skerr"
+
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -166,7 +168,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 	sklog.Infof("Received first tile for status watcher")
 
 	if err := s.calcStatus(lastCpxTile); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	sklog.Infof("Calculated first status")
 
@@ -174,13 +176,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 	go func() {
 		for {
 			select {
-			case <-tileStream:
-				cpxTile, err := s.TileSource.GetTile()
-				if err != nil {
-					sklog.Errorf("Error retrieving tile: %s", err)
-					continue
-				}
-
+			case cpxTile := <-tileStream:
 				if err := s.calcStatus(cpxTile); err != nil {
 					sklog.Errorf("Error calculating status: %s", err)
 				} else {
@@ -208,7 +204,7 @@ func (s *StatusWatcher) calcStatus(cpxTile types.ComplexTile) error {
 	okByCorpus := map[string]bool{}
 	expectations, err := s.ExpectationsStore.Get()
 	if err != nil {
-		return err
+		return skerr.Wrapf(err, "fetching expectations")
 	}
 
 	// Gathers unique labels by corpus and label.

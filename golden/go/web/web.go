@@ -1055,9 +1055,9 @@ func (wh *WebHandlers) ParamsHandler(w http.ResponseWriter, r *http.Request) {
 // like the message. For a fuller commit, see GitLogHandler.
 func (wh *WebHandlers) CommitsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	cpxTile, err := wh.TileSource.GetTile()
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to load tile")
+	cpxTile := wh.TileSource.GetTile()
+	if cpxTile == nil {
+		httputils.ReportError(w, r, nil, "Not loaded yet - try back later")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")

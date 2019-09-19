@@ -63,8 +63,7 @@ func TestUpdateTileSunnyDay(t *testing.T) {
 	err := ts.updateTile(context.Background())
 	assert.NoError(t, err)
 
-	cpxTile, err := ts.GetTile()
-	assert.NoError(t, err)
+	cpxTile := ts.GetTile()
 	assert.NotNil(t, cpxTile)
 
 	assert.Equal(t, makeSparseTilingCommits(), cpxTile.AllCommits())
@@ -120,8 +119,7 @@ func TestUpdateTileHasPreviousPartial(t *testing.T) {
 	err := ts.updateTile(context.Background())
 	assert.NoError(t, err)
 
-	cpxTile, err := ts.GetTile()
-	assert.NoError(t, err)
+	cpxTile := ts.GetTile()
 	assert.NotNil(t, cpxTile)
 
 	assert.Equal(t, makeSparseTilingCommits(), cpxTile.AllCommits())
@@ -167,8 +165,7 @@ func TestUpdateTileHasPreviousAll(t *testing.T) {
 	err := ts.updateTile(context.Background())
 	assert.NoError(t, err)
 
-	cpxTile, err := ts.GetTile()
-	assert.NoError(t, err)
+	cpxTile := ts.GetTile()
 	assert.NotNil(t, cpxTile)
 
 	assert.Equal(t, makeSparseTilingCommits(), cpxTile.AllCommits())
@@ -215,8 +212,7 @@ func TestUpdateTileWithPublicParams(t *testing.T) {
 	err := ts.updateTile(context.Background())
 	assert.NoError(t, err)
 
-	cpxTile, err := ts.GetTile()
-	assert.NoError(t, err)
+	cpxTile := ts.GetTile()
 	assert.NotNil(t, cpxTile)
 
 	assert.Equal(t, makeSparseTilingCommits(), cpxTile.AllCommits())
@@ -274,8 +270,7 @@ func TestUpdateTileWithIgnoreRules(t *testing.T) {
 	err := ts.updateTile(context.Background())
 	assert.NoError(t, err)
 
-	cpxTile, err := ts.GetTile()
-	assert.NoError(t, err)
+	cpxTile := ts.GetTile()
 	assert.NotNil(t, cpxTile)
 
 	assert.Equal(t, makeSparseTilingCommits(), cpxTile.AllCommits())
