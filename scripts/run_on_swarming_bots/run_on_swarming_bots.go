@@ -48,6 +48,7 @@ var (
 	workdir     = flag.String("workdir", os.TempDir(), "Working directory. Optional, but recommended not to use CWD.")
 	includeBots = common.NewMultiStringFlag("include_bot", nil, "If specified, treated as a white list of bots which will be affected, calculated AFTER the dimensions is computed. Can be simple strings or regexes")
 	internal    = flag.Bool("internal", false, "Run against internal swarming and isolate instances.")
+	dev         = flag.Bool("dev", false, "Run against dev swarming and isolate instances.")
 	dryRun      = flag.Bool("dry_run", false, "List the bots, don't actually run any tasks")
 )
 
@@ -58,6 +59,9 @@ func main() {
 	ctx := context.Background()
 	if *script == "" {
 		sklog.Fatal("--script is required.")
+	}
+	if *internal && *dev {
+		sklog.Fatal("Both --internal and --dev cannot be specified.")
 	}
 	scriptName := path.Base(*script)
 	if *taskName == "" {
@@ -85,6 +89,9 @@ func main() {
 	if *internal {
 		isolateServer = isolate.ISOLATE_SERVER_URL_PRIVATE
 		swarmingServer = swarming.SWARMING_SERVER_PRIVATE
+	} else if *dev {
+		isolateServer = isolate.ISOLATE_SERVER_URL_DEV
+		swarmingServer = swarming.SWARMING_SERVER_DEV
 	}
 
 	// Authenticated HTTP client.

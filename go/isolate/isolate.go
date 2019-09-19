@@ -36,6 +36,7 @@ const (
 	ISOLATE_SERVER_URL         = "https://isolateserver.appspot.com"
 	ISOLATE_SERVER_URL_FAKE    = "fake"
 	ISOLATE_SERVER_URL_PRIVATE = "https://chrome-isolated.appspot.com"
+	ISOLATE_SERVER_URL_DEV     = "https://isolateserver-dev.appspot.com/"
 	ISOLATE_VERSION            = 1
 	GCS_BUCKET                 = "chromium-luci"
 	GCS_SUBDIR                 = ""
