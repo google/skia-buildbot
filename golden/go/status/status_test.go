@@ -58,8 +58,8 @@ func testStatusWatcher(t sktest.TestingT, ts tilesource.TileSource) {
 
 	for idx, corpStatus := range status.CorpStatus {
 		assert.False(t, corpStatus.OK)
-		cpxTile, err := ts.GetTile()
-		assert.NoError(t, err)
+		cpxTile := ts.GetTile()
+		assert.NotNil(t, cpxTile)
 
 		changes := types.Expectations{}
 		posOrNeg := []types.Label{types.POSITIVE, types.NEGATIVE}

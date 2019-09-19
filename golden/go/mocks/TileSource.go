@@ -14,7 +14,7 @@ type TileSource struct {
 }
 
 // GetTile provides a mock function with given fields:
-func (_m *TileSource) GetTile() (types.ComplexTile, error) {
+func (_m *TileSource) GetTile() types.ComplexTile {
 	ret := _m.Called()
 
 	var r0 types.ComplexTile
@@ -26,12 +26,5 @@ func (_m *TileSource) GetTile() (types.ComplexTile, error) {
 		}
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
