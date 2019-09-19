@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -16,6 +18,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -236,6 +239,14 @@ func tempGitRepoBotUpdate(ctx context.Context, rs types.RepoState, depotToolsDir
 	t := metrics2.NewTimer("bot_update", map[string]string{
 		"patchRepo": patchRepo,
 	})
+	if err := util.WithReadFile(filepath.Join(os.Getenv("HOME"), ".gitconfig"), func(r io.Reader) error {
+		return util.WithWriteFile(filepath.Join(tmp, ".gitconfig"), func(w io.Writer) error {
+			_, err := io.Copy(w, r)
+			return err
+		})
+	}); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to copy git config")
+	}
 	out, err := exec.RunCommand(ctx, &exec.Command{
 		Name: cmd[0],
 		Args: cmd[1:],
