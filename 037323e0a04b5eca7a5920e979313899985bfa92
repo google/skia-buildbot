@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d9f6e765_9e11fa3f",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-19T16:17:35Z",
+      "side": 1,
+      "message": "unused?",
+      "revId": "037323e0a04b5eca7a5920e979313899985bfa92",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "caa8e9c7_c283e23f",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-19T16:17:35Z",
+      "side": 1,
+      "message": "Where do tests fail if we don\u0027t have this?",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 4
+      },
+      "revId": "037323e0a04b5eca7a5920e979313899985bfa92",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0806a6b1_084898af",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-19T16:17:35Z",
+      "side": 1,
+      "message": "nit: delete",
+      "range": {
+        "startLine": 113,
+        "startChar": 0,
+        "endLine": 115,
+        "endChar": 50
+      },
+      "revId": "037323e0a04b5eca7a5920e979313899985bfa92",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
