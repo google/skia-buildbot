@@ -2,10 +2,13 @@ package goldpushk
 
 import (
 	"context"
+	"io/ioutil"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -14,6 +17,64 @@ func TestGoldpushkRun(t *testing.T) {
 	unittest.SmallTest(t)
 
 	t.Skip("Not implemented")
+}
+
+func TestGoldpushkCheckOutGitRepositories(t *testing.T) {
+	unittest.MediumTest(t)
+
+	ctx := context.Background()
+
+	// Create two fake "skia-public-config" and "skia-corp-config" Git repos on
+	// the local file system (i.e. "git init" two temporary directories).
+	fakeSkiaPublicConfig := testutils.GitInit(t, ctx)
+	fakeSkiaCorpConfig := testutils.GitInit(t, ctx)
+	defer fakeSkiaPublicConfig.Cleanup()
+	defer fakeSkiaCorpConfig.Cleanup()
+
+	// Populate fake repositories with a file that will make it easier to tell
+	// them apart later on.
+	fakeSkiaPublicConfig.Add(ctx, "which-repo.txt", "This is repo skia-public-config!")
+	fakeSkiaPublicConfig.Commit(ctx)
+	fakeSkiaCorpConfig.Add(ctx, "which-repo.txt", "This is repo skia-corp-config!")
+	fakeSkiaCorpConfig.Commit(ctx)
+
+	// Create the goldpushk instance under test. We pass it the file://... URLs to
+	// the two Git repositories created earlier.
+	g := New([]DeployableUnit{}, []DeployableUnit{}, "", false, fakeSkiaPublicConfig.RepoUrl(), fakeSkiaCorpConfig.RepoUrl())
+
+	// Check out the fake "skia-public-config" and "skia-corp-config"
+	// repositories. This will clone the repositories created earlier by running
+	// "git clone file://...".
+	err := g.checkOutGitRepositories(ctx)
+
+	// Assert that no errors occurred and that we have a git.TempCheckout instance
+	// for each cloned repo.
+	assert.NoError(t, err)
+	assert.NotNil(t, g.skiaPublicConfigCheckout)
+	assert.NotNil(t, g.skiaCorpConfigCheckout)
+
+	// Clean up the checkouts after the test finishes.
+	defer g.skiaPublicConfigCheckout.Delete()
+	defer g.skiaCorpConfigCheckout.Delete()
+
+	// Assert that the local path to the checkouts is not the same as the local
+	// path to the fake "skia-public-config" and "skia-corp-config" repos created
+	// earlier. This is just a basic sanity check that ensures that we're actually
+	// dealing with clones of the original repos, as opposed to the original repos
+	// themselves.
+	assert.NotEqual(t, g.skiaPublicConfigCheckout.GitDir, fakeSkiaPublicConfig.Dir())
+	assert.NotEqual(t, g.skiaCorpConfigCheckout.GitDir, fakeSkiaCorpConfig.Dir())
+
+	// Read files from the checkouts.
+	publicWhichRepoTxtBytes, err := ioutil.ReadFile(filepath.Join(string(g.skiaPublicConfigCheckout.GitDir), "which-repo.txt"))
+	assert.NoError(t, err)
+	corpWhichRepoTxtBytes, err := ioutil.ReadFile(filepath.Join(string(g.skiaCorpConfigCheckout.GitDir), "which-repo.txt"))
+	assert.NoError(t, err)
+
+	// Assert that the contents of file "which-repo.txt" on each checkout matches
+	// the contents of the same file on the corresponding origin repository.
+	assert.Equal(t, "This is repo skia-public-config!", string(publicWhichRepoTxtBytes))
+	assert.Equal(t, "This is repo skia-corp-config!", string(corpWhichRepoTxtBytes))
 }
 
 func TestRegenerateConfigFiles(t *testing.T) {
@@ -33,7 +94,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 	ctx := exec.NewContext(context.Background(), commandCollector.Run)
 
 	// Call code under test.
-	g := New(deployableUnits, canariedDeployableUnits, "/foo/bar/buildbot", false)
+	g := New(deployableUnits, canariedDeployableUnits, "/foo/bar/buildbot", false, "", "")
 	err := g.regenerateConfigFiles(ctx)
 
 	// Expected commands.
