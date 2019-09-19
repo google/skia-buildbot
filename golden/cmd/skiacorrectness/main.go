@@ -42,6 +42,9 @@ import (
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
 	"go.skia.org/infra/golden/go/clstore/fs_clstore"
+	"go.skia.org/infra/golden/go/code_review"
+	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
+	"go.skia.org/infra/golden/go/code_review/updater"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/expstorage/fs_expstore"
@@ -55,7 +58,6 @@ import (
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/tjstore/fs_tjstore"
 	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
-	"go.skia.org/infra/golden/go/tryjobs/gerrit_tryjob_monitor"
 	"go.skia.org/infra/golden/go/tryjobstore/ds_tryjobstore"
 	"go.skia.org/infra/golden/go/warmer"
 	"go.skia.org/infra/golden/go/web"
@@ -80,7 +82,7 @@ func main() {
 	// Command line flags.
 	var (
 		appTitle            = flag.String("app_title", "Skia Gold", "Title of the deployed up on the front end.")
-		authoritative       = flag.Bool("authoritative", false, "Indicates that this instance should write changes that could be triggered on multiple instances running in parallel.")
+		authoritative       = flag.Bool("authoritative", false, "Indicates that this instance can write to known_hashes, update changelist statuses, etc")
 		authorizedUsers     = flag.String("auth_users", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 		btInstanceID        = flag.String("bt_instance", "production", "ID of the BigTable instance that contains Git metadata")
 		btProjectID         = flag.String("bt_project_id", "skia-public", "project id with BigTable instance")
@@ -176,6 +178,10 @@ func main() {
 		sklog.Fatal("You must specify both --resource_dir and --lit_html_dir")
 	}
 
+	// TODO(kjlubick): When I turn back on writing to Gerrit, this flag will likely be needed.
+	// https://bugs.chromium.org/p/skia/issues/detail?id=9006
+	sklog.Debugf("not writing to CodeReviewSystem, but here is the flag %s", *siteURL)
+
 	// Set up login
 	useRedirectURL := *redirectURL
 	if *local {
@@ -267,23 +273,6 @@ func main() {
 		sklog.Fatal("You must specify --bt_instance and --git_bt_table")
 	}
 
-	// If this is an authoritative instance we need an authenticated Gerrit client
-	// because it needs to write.
-	gitcookiesPath := ""
-	if *authoritative {
-		// Set up an authenticated Gerrit client.
-		gitcookiesPath = gerrit.DefaultGitCookiesPath()
-		if !*local {
-			if gitcookiesPath, err = gerrit.GitCookieAuthDaemonPath(); err != nil {
-				sklog.Fatalf("Error retrieving git_cookie_authdaemon path: %s", err)
-			}
-		}
-	}
-	gerritAPI, err := gerrit.NewGerrit(*gerritURL, gitcookiesPath, nil)
-	if err != nil {
-		sklog.Fatalf("Failed to create Gerrit client: %s", err)
-	}
-
 	if *traceBTTableID == "" {
 		sklog.Fatal("You must specify --trace_bt_table")
 	}
@@ -307,7 +296,7 @@ func main() {
 
 	gsClientOpt := storage.GCSClientOptions{
 		HashesGSPath: *hashesGSPath,
-		Dryrun:       *local,
+		Dryrun:       !*authoritative,
 	}
 
 	gsClient, err := storage.NewGCSClient(client, gsClientOpt)
@@ -341,7 +330,6 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
 	}
-	tryjobMonitor := gerrit_tryjob_monitor.New(deprecatedTJS, expStore, gerritAPI, *siteURL, evt, *authoritative)
 
 	baseliner := simple_baseliner.New(expStore)
 
@@ -355,7 +343,7 @@ func main() {
 
 	// Check if this is public instance. If so, make sure a list of public params
 	// has been specified - can be everythingPublic.
-	if !*forceLogin && (*pubWhiteList == "") {
+	if !*forceLogin && *pubWhiteList == "" {
 		sklog.Fatalf("Empty whitelist file. A non-empty white list must be provided if force_login=false.")
 	}
 
@@ -371,14 +359,31 @@ func main() {
 		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
 	}
 
+	cls := fs_clstore.New(fsClient, *primaryCRS)
+	tjs := fs_tjstore.New(fsClient, "buildbucket")
+
+	var crs code_review.Client
+	if *primaryCRS == "gerrit" {
+		gerritClient, err := gerrit.NewGerrit(*gerritURL, "", client)
+		if err != nil {
+			sklog.Fatalf("Could not create gerrit client for %s", *gerritURL)
+		}
+		crs = gerrit_crs.New(gerritClient)
+	} else {
+		sklog.Warningf("CRS %s not supported, tracking ChangeLists is disabled", *primaryCRS)
+	}
+
+	var clUpdater code_review.Updater
+	if *authoritative && crs != nil {
+		clUpdater = updater.New(crs, expStore, cls)
+	}
+
 	ctc := tilesource.CachedTileSourceConfig{
-		EventBus:               evt,
-		GerritAPI:              gerritAPI,
+		CLUpdater:              clUpdater,
 		IgnoreStore:            ignoreStore,
 		NCommits:               *nCommits,
 		PubliclyViewableParams: publiclyViewableParams,
 		TraceStore:             traceStore,
-		TryjobMonitor:          tryjobMonitor,
 		VCS:                    vcs,
 	}
 
@@ -407,9 +412,6 @@ func main() {
 	}
 	sklog.Infof("Indexer created.")
 
-	cls := fs_clstore.New(fsClient, *primaryCRS)
-	tjs := fs_tjstore.New(fsClient, "buildbucket")
-
 	searchAPI := search.New(diffStore, expStore, ixr, deprecatedTJS, cls, tjs, publiclyViewableParams)
 
 	sklog.Infof("Search API created")
@@ -433,7 +435,6 @@ func main() {
 		// TODO(kjlubick): have a more generic way to input these two URLs
 		ContinuousIntegrationURLPrefix: "https://cr-buildbucket.appspot.com/build",
 		CodeReviewURLPrefix:            *gerritURL,
-		DeprecatedTryjobMonitor:        tryjobMonitor,
 		DeprecatedTryjobStore:          deprecatedTJS,
 		DiffStore:                      diffStore,
 		ExpectationsStore:              expStore,
@@ -503,8 +504,6 @@ func main() {
 	// These routes can be served with baseline_server for higher availability.
 	jsonRouter.HandleFunc(trim(shared.ExpectationsRoute), handlers.BaselineHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim(shared.ExpectationsIssueRoute), handlers.BaselineHandler).Methods("GET")
-
-	jsonRouter.HandleFunc(trim("/json/refresh/{id}"), handlers.RefreshIssue).Methods("GET")
 
 	// Only expose these endpoints if login is enforced across the app or this an open site.
 	if openSite {
