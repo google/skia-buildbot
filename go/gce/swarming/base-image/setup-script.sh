@@ -65,18 +65,13 @@ LoadPlugin memory
 LoadPlugin processes
 LoadPlugin swap
 LoadPlugin users
-LoadPlugin write_graphite
+LoadPlugin write_http
 
-<Plugin write_graphite>
-        <Carbon>
-                Host "skia-monitoring"
-                Port "2003"
-                Prefix "collectd."
-                StoreRates false
-                AlwaysAppendDS false
-                EscapeCharacter "_"
-                Protocol "tcp"
-        </Carbon>
+<Plugin write_http>
+    <Node "desktop">
+        URL "https://collectd.skia.org/collectd-post"
+        Format "JSON"
+   </Node>
 </Plugin>
 EOF
 sudo install -D --verbose --backup=none --group=root --owner=root --mode=600 collectd.conf /etc/collectd/collectd.conf
