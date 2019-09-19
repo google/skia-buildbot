@@ -470,6 +470,22 @@ func NewDB(tdb TaskDB, jdb JobDB, cdb CommentDB) DB {
 	}
 }
 
+// BackupDBCloser is a DBCloser that provides backups.
+type BackupDBCloser interface {
+	DBCloser
+
+	// WriteBackup writes a backup of the DB to the given io.Writer.
+	WriteBackup(io.Writer) error
+
+	// SetIncrementalBackupTime marks the given time as a checkpoint for
+	// incremental backups.
+	SetIncrementalBackupTime(time.Time) error
+	// GetIncrementalBackupTime returns the most recent time provided to
+	// SetIncrementalBackupTime. Any incremental backups taken after the returned
+	// time should be reapplied to the DB.
+	GetIncrementalBackupTime() (time.Time, error)
+}
+
 // GetTasksFromWindow returns all tasks matching the given Window from the
 // TaskReader.
 func GetTasksFromWindow(db TaskReader, w *window.Window, now time.Time) ([]*types.Task, error) {

@@ -69,7 +69,7 @@ var (
 	ts *scheduling.TaskScheduler
 
 	// Task Scheduler database.
-	tsDb db.DBCloser
+	tsDb db.BackupDBCloser
 
 	// Task Scheduler blacklist.
 	bl *blacklist.Blacklist
@@ -587,7 +587,7 @@ func googleVerificationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func runServer(serverURL string) {
+func runServer(serverURL string, taskDb db.RemoteDB) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/blacklist", blacklistHandler)
@@ -790,7 +790,7 @@ func main() {
 	// Start up the web server.
 	login.SimpleInitMust(*port, *local)
 
-	go runServer(serverURL)
+	go runServer(serverURL, tsDb)
 
 	// Run indefinitely, responding to HTTP requests.
 	select {}

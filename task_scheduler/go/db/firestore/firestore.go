@@ -2,7 +2,9 @@ package firestore
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"time"
 
 	fs "cloud.google.com/go/firestore"
@@ -55,7 +57,7 @@ type firestoreDB struct {
 }
 
 // NewDB returns a db.DB which uses Cloud Firestore for storage, using the given params.
-func NewDBWithParams(ctx context.Context, project, instance string, ts oauth2.TokenSource, mod db.ModifiedData) (db.DBCloser, error) {
+func NewDBWithParams(ctx context.Context, project, instance string, ts oauth2.TokenSource, mod db.ModifiedData) (db.BackupDBCloser, error) {
 	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, instance, ts)
 	if err != nil {
 		return nil, err
@@ -64,7 +66,7 @@ func NewDBWithParams(ctx context.Context, project, instance string, ts oauth2.To
 }
 
 // NewDB returns a db.DB which uses the given firestore.Client for storage.
-func NewDB(ctx context.Context, client *firestore.Client, mod db.ModifiedData) (db.DBCloser, error) {
+func NewDB(ctx context.Context, client *firestore.Client, mod db.ModifiedData) (db.BackupDBCloser, error) {
 	if mod == nil {
 		mod = modified.NewModifiedData()
 	}
@@ -129,4 +131,22 @@ func (d *firestoreDB) dateRangeHelper(name string, baseQuery fs.Query, start, en
 
 	// Run the queries.
 	return d.client.IterDocsInParallel(name, fmt.Sprintf("%s - %s", start, end), queries, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, elem)
+}
+
+// firestoreDB doesn't support backups, but we implement the interface for
+// compatibility.
+func (d *firestoreDB) WriteBackup(io.Writer) error {
+	return errors.New("WriteBackup not implemented for firestoreDB.")
+}
+
+// firestoreDB doesn't support backups, but we implement the interface for
+// compatibility.
+func (d *firestoreDB) SetIncrementalBackupTime(time.Time) error {
+	return errors.New("SetIncrementalBackupTime not implemented for firestoreDB.")
+}
+
+// firestoreDB doesn't support backups, but we implement the interface for
+// compatibility.
+func (d *firestoreDB) GetIncrementalBackupTime() (time.Time, error) {
+	return time.Time{}, errors.New("GetIncrementalBackupTime not implemented for firestoreDB.")
 }
