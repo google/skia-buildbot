@@ -128,8 +128,6 @@ var (
 var (
 	templates *template.Template
 
-	freshDataFrame *dataframe.Refresher
-
 	frameRequests *dataframe.RunningFrameRequests
 
 	clusterRequests *regression.RunningClusterRequests
@@ -341,14 +339,6 @@ func Init() {
 	sklog.Info("About to build cidl.")
 	cidl = cid.New(ctx, vcs, btConfig.GitUrl)
 
-	if *clusterOnly {
-		sklog.Info("About to build dataframe refresher.")
-		freshDataFrame, err = dataframe.NewRefresher(vcs, dfBuilder, 15*time.Minute)
-		if err != nil {
-			sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
-		}
-	}
-
 	alerts.DefaultSparse = *defaultSparse
 
 	sklog.Info("About to build alertStore.")
@@ -471,11 +461,9 @@ func alertsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func initpageHandler(w http.ResponseWriter, r *http.Request) {
-	_, ps := freshDataFrame.Get()
-
 	resp := &dataframe.FrameResponse{
 		DataFrame: &dataframe.DataFrame{
-			ParamSet: ps,
+			ParamSet: paramsetRefresher.Get(),
 		},
 		Ticks: []interface{}{},
 		Skps:  []int{},
@@ -680,8 +668,8 @@ func countHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	resp := countHandlerResponse{}
 	if cr.Q == "" {
-		count, ps := freshDataFrame.Get()
-		resp.Count = int(count)
+		ps := paramsetRefresher.Get()
+		resp.Count = 0
 		resp.Paramset = ps
 	} else {
 		count, ps, err := dfBuilder.PreflightQuery(r.Context(), time.Now(), q)
