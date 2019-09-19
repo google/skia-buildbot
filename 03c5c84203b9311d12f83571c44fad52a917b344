@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fde50f87_4a05953f",
+        "filename": "golden/go/code_review/updater/updater.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-19T15:28:11Z",
+      "side": 1,
+      "message": "nit: also include associated git revision",
+      "revId": "03c5c84203b9311d12f83571c44fad52a917b344",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f647f660_84203626",
+        "filename": "golden/go/code_review/updater/updater.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-19T15:28:11Z",
+      "side": 1,
+      "message": "nit: use different var names to avoid confusion",
+      "range": {
+        "startLine": 49,
+        "startChar": 2,
+        "endLine": 49,
+        "endChar": 4
+      },
+      "revId": "03c5c84203b9311d12f83571c44fad52a917b344",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7addc8f9_e3386c7f",
+        "filename": "golden/go/code_review/updater/updater.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-19T15:28:11Z",
+      "side": 1,
+      "message": "typo wasn\u0027t",
+      "range": {
+        "startLine": 51,
+        "startChar": 34,
+        "endLine": 51,
+        "endChar": 37
+      },
+      "revId": "03c5c84203b9311d12f83571c44fad52a917b344",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8cc58506_251b3a90",
+        "filename": "golden/go/code_review/updater/updater.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-19T15:28:11Z",
+      "side": 1,
+      "message": "nit: Maybe should just store the CL as returned by u.client.GetChangeListForCommit?",
+      "revId": "03c5c84203b9311d12f83571c44fad52a917b344",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a0d9c830_90393acc",
+        "filename": "golden/go/code_review/updater/updater_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-19T15:28:11Z",
+      "side": 1,
+      "message": "Owner has changed from alphaAuthor to \"user1@example.com\"?",
+      "range": {
+        "startLine": 81,
+        "startChar": 12,
+        "endLine": 81,
+        "endChar": 23
+      },
+      "revId": "03c5c84203b9311d12f83571c44fad52a917b344",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

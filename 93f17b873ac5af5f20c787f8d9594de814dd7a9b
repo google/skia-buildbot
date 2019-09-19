@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "23728bc1_21b2486b",
+        "filename": "golden/go/tilesource/tilesource.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-19T15:28:11Z",
+      "side": 1,
+      "message": "I think CLUpdater can be nil? (See FIXME in golden/cmd/skiacorrectness/main.go.)",
+      "range": {
+        "startLine": 192,
+        "startChar": 19,
+        "endLine": 192,
+        "endChar": 30
+      },
+      "revId": "93f17b873ac5af5f20c787f8d9594de814dd7a9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
