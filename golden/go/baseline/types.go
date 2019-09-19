@@ -15,8 +15,13 @@ type Baseline struct {
 	// with only the positive digests of the current commit.
 	Expectations types.Expectations `json:"master"`
 
-	// Issue indicates the Gerrit issue of this baseline. -1 indicates the master branch.
-	Issue int64
+	// ChangeListID indicates the Gerrit or GitHub issue id of this baseline.
+	// "" indicates the master branch.
+	ChangeListID string `json:"cl_id,omitempty"`
+
+	// CodeReviewSystem indicates which CRS system (if any) this baseline is tied to.
+	// (e.g. "gerrit", "github") "" indicates the master branch.
+	CodeReviewSystem string `json:"crs,omitempty"`
 }
 
 // Copy returns a deep copy of the given instance of Baseline.
@@ -29,23 +34,12 @@ func (c *Baseline) Copy() *Baseline {
 	return ret
 }
 
-// EmptyBaseline returns an instance of Baseline with the provided commits and nil
-// values in all other fields. The Baseline field contains an empty instance of types.Expectations.
-func EmptyBaseline() *Baseline {
-	return &Baseline{
-		Expectations: types.Expectations{},
-		MD5:          md5SumEmptyExp,
-	}
-}
-
 type BaselineFetcher interface {
-	// FetchBaseline fetches the complete baseline for the given Gerrit issue by
-	// loading the master baseline and the issue baseline from GCS and combining
-	// them. If either of them doesn't exist an empty baseline is assumed.
-	// If issueOnly is true and issueID > 0 then only the expectations attached to the issue are
+	// FetchBaseline fetches a Baseline. If clID and crs are non-empty, the given ChangeList will
+	// be created by loading the master baseline and the CL baseline and combining
+	// them.
+	// If issueOnly is true and clID/crs != "" then only the expectations attached to the CL are
 	// returned (omitting the baselines of the master branch).
 	// issueOnly is primarily used for debugging.
-	// TODO(kjlubick): remove commitHash as it has no meaning anymore, now that per-commit
-	// baselines have been removed.
-	FetchBaseline(commitHash string, issueID int64, issueOnly bool) (*Baseline, error)
+	FetchBaseline(clID, crs string, issueOnly bool) (*Baseline, error)
 }

@@ -4,6 +4,7 @@
     "BIGTABLE_PROJECT":        "skia-public",
     "BIGTABLE_TABLE":          "gold-lottie",
     "BUCKET":                  "skia-gold-lottie",
+    "CODE_REVIEW_SYSTEM":      "gerrit",
     "DATASTORE_NAMESPACE":     "gold-lottie",
     "DATASTORE_PROJECT":       "skia-public",
     "FIRESTORE_NAMESPACE":     "lottie",
