@@ -24,6 +24,17 @@ type Client interface {
 	// GetChangeListForCommit returns the ChangeList corresponding to the given git commit.
 	// Returns ErrNotFound if it doesn't exist.
 	GetChangeListForCommit(ctx context.Context, commit *vcsinfo.LongCommit) (ChangeList, error)
+
+	// Returns the underlying system (e.g. "gerrit")
+	System() string
+}
+
+// The Updater interface is an abstraction around the code that tracks ChangeLists which land.
+type Updater interface {
+	// UpdateChangeListsAsLanded goes through the given commits and marks any ChangeList
+	// objects as Landed. For those that are marked as landed, it should update the master
+	// branch's Expectations as well.
+	UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo.LongCommit) error
 }
 
 var ErrNotFound = errors.New("not found")

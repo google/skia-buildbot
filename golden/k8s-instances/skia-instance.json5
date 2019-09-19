@@ -21,6 +21,7 @@
 
     // Settings for skiacorrectness instance
     "AUTHORIZED_PARAMS":       "", // defaults to "all"
+    "AUTHORITATIVE":           true,
     "AUTH_USERS":              "google.com mtklein@chromium.org skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com",
     "HASHES_FILE":             "gold-prod-hashes.txt",
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",

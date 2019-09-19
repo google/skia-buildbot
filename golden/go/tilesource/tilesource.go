@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/golden/go/code_review"
+
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
@@ -17,9 +17,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/tracestore"
-	"go.skia.org/infra/golden/go/tryjobs"
 	"go.skia.org/infra/golden/go/types"
-	"golang.org/x/sync/errgroup"
 )
 
 type TileSource interface {
@@ -28,12 +26,10 @@ type TileSource interface {
 }
 
 type CachedTileSourceConfig struct {
-	EventBus      eventbus.EventBus
-	GerritAPI     gerrit.GerritInterface
-	IgnoreStore   ignore.IgnoreStore
-	TraceStore    tracestore.TraceStore
-	TryjobMonitor tryjobs.TryjobMonitor
-	VCS           vcsinfo.VCS
+	CLUpdater   code_review.Updater
+	IgnoreStore ignore.IgnoreStore
+	TraceStore  tracestore.TraceStore
+	VCS         vcsinfo.VCS
 
 	// optional. If specified, will only show the params that match this query. This is
 	// opt-in, to avoid leaking.
@@ -47,9 +43,8 @@ type CachedTileSourceConfig struct {
 type CachedTileSourceImpl struct {
 	CachedTileSourceConfig
 
-	lastCpxTile   types.ComplexTile
-	lastTimeStamp time.Time
-	mutex         sync.RWMutex
+	lastCpxTile types.ComplexTile
+	mutex       sync.RWMutex
 }
 
 func New(c CachedTileSourceConfig) *CachedTileSourceImpl {
@@ -74,10 +69,6 @@ func (s *CachedTileSourceImpl) StartUpdater(ctx context.Context, interval time.D
 	return nil
 }
 
-// TODO(stephana): Expand the Tile type to make querying faster.
-// i.e. add traces as an array so that iteration can be done in parallel and
-// add map[hash]Commit to do faster commit lookup (-> Remove tiling.FindCommit).
-
 // GetTile implements the TileSource interface.
 func (s *CachedTileSourceImpl) GetTile() (types.ComplexTile, error) {
 	s.mutex.RLock()
@@ -86,17 +77,25 @@ func (s *CachedTileSourceImpl) GetTile() (types.ComplexTile, error) {
 	return s.lastCpxTile, nil
 }
 
-// updateTile fetches the latest tile and caches it.
+// updateTile fetches the latest tile and caches it. updateTile expects to be called from a
+// single goroutine (see StartUpdater).
 func (s *CachedTileSourceImpl) updateTile(ctx context.Context) error {
 	defer metrics2.FuncTimer().Stop()
 
 	if err := s.VCS.Update(ctx, true, false); err != nil {
-		return skerr.Wrapf(err, "could not update VCS")
+		return skerr.Wrapf(err, "updating VCS")
+	}
+	var prevCommit *tiling.Commit
+	if s.lastCpxTile != nil {
+		commits := s.lastCpxTile.AllCommits()
+		if len(commits) > 0 {
+			prevCommit = commits[len(commits)-1]
+		}
 	}
 
 	denseTile, allCommits, err := s.TraceStore.GetDenseTile(ctx, s.NCommits)
 	if err != nil {
-		return skerr.Wrapf(err, "could not fetch dense tile")
+		return skerr.Wrapf(err, "fetching dense tile")
 	}
 
 	// Filter down to the publicly viewable ones
@@ -108,22 +107,24 @@ func (s *CachedTileSourceImpl) updateTile(ctx context.Context) error {
 	// Get the tile without the ignored traces and update the complex tile.
 	ignores, err := s.IgnoreStore.List()
 	if err != nil {
-		return skerr.Wrapf(err, "could not fetch ignore rules")
+		return skerr.Wrapf(err, "fetching ignore rules")
 	}
 	retIgnoredTile, ignoreRules, err := ignore.FilterIgnored(denseTile, ignores)
 	if err != nil {
-		return skerr.Wrapf(err, "could not apply ignore rules to tile")
+		return skerr.Wrapf(err, "applying ignore rules to tile")
 	}
 	cpxTile.SetIgnoreRules(retIgnoredTile, ignoreRules)
 
 	// check if all the expectations of all commits have been added to the tile.
-	s.checkCommitableIssues(cpxTile)
+	err = s.checkForLandedChangeLists(ctx, prevCommit, allCommits)
+	if err != nil {
+		return skerr.Wrapf(err, "identifying CLs/CLExpectations that have landed")
+	}
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	// Update the cached tile and return the result.
 	s.lastCpxTile = cpxTile
-	s.lastTimeStamp = time.Now()
 	return nil
 }
 
@@ -149,44 +150,49 @@ func (s *CachedTileSourceImpl) filterTile(tile *tiling.Tile) *tiling.Tile {
 			paramSet.AddParams(trace.Params())
 		}
 	}
+	paramSet.Normalize()
 	ret.ParamSet = paramSet
 	sklog.Infof("After filtering %d original traces, %d are publicly viewable.", len(tile.Traces), len(ret.Traces))
 	return ret
 }
 
-// checkCommitableIssues checks all commits of the current tile whether
+// checkForLandedChangeLists checks all commits of the current tile whether
 // the associated expectations have been added to the baseline of the master.
-// TODO(kjlubick): This should not be here, but likely in tryjobMonitor, named
-// something like "CatchUpIssues" or something.
-func (s *CachedTileSourceImpl) checkCommitableIssues(cpxTile types.ComplexTile) {
-	go func() {
-		var egroup errgroup.Group
-
-		for _, commit := range cpxTile.AllCommits() {
-			func(commit *tiling.Commit) {
-				egroup.Go(func() error {
-					// TODO(kjlubick): We probably don't need to run this individually, we could
-					// use DetailsMulti instead.
-					longCommit, err := s.VCS.Details(context.Background(), commit.Hash, false)
-					if err != nil {
-						return skerr.Wrapf(err, "retrieving details for commit %s", commit.Hash)
-					}
-
-					issueID, err := s.GerritAPI.ExtractIssueFromCommit(longCommit.Body)
-					if err != nil {
-						return skerr.Wrapf(err, "extracting gerrit issue from commit %s: %s", commit.Hash, longCommit.Body)
-					}
-
-					if err := s.TryjobMonitor.CommitIssueBaseline(issueID, longCommit.Author); err != nil {
-						return skerr.Wrapf(err, "committing tryjob results for commit %s", commit.Hash)
-					}
-					return nil
-				})
-			}(commit)
+func (s *CachedTileSourceImpl) checkForLandedChangeLists(ctx context.Context, prev *tiling.Commit, commits []*tiling.Commit) error {
+	if s.CLUpdater == nil {
+		sklog.Infof("Not Updating clstore with landed CLs because no updater configured.")
+		return nil
+	}
+	if len(commits) == 0 {
+		sklog.Warningf("No commits in tile?")
+		return nil
+	}
+	if prev != nil {
+		// re-slice commits after prev so as to avoid doing redundant work.
+		lastIdx := 0
+		for i, c := range commits {
+			if prev.Hash == c.Hash {
+				lastIdx = i + 1
+				break
+			}
 		}
-
-		if err := egroup.Wait(); err != nil {
-			sklog.Errorf("Error trying issue commits: %s", err)
+		commits = commits[lastIdx:]
+		if len(commits) == 0 {
+			sklog.Infof("No new commits since last cycle")
+			return nil
 		}
-	}()
+	}
+
+	hashes := make([]string, 0, len(commits))
+	for _, c := range commits {
+		hashes = append(hashes, c.Hash)
+	}
+
+	xc, err := s.VCS.DetailsMulti(ctx, hashes, false)
+	if err != nil {
+		return skerr.Wrapf(err, "fetching details of %d hashes starting at %s", len(hashes), hashes[0])
+	}
+
+	return skerr.Wrap(s.CLUpdater.UpdateChangeListsAsLanded(ctx, xc))
+
 }

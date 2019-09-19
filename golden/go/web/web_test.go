@@ -409,6 +409,7 @@ func TestTriageChangeList(t *testing.T) {
 	mcs := &mock_clstore.Store{}
 	defer mes.AssertExpectations(t)
 	defer clExp.AssertExpectations(t)
+	defer mcs.AssertExpectations(t)
 
 	clID := "12345"
 	crs := "github"

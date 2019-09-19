@@ -37,7 +37,6 @@ import (
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/tjstore"
-	"go.skia.org/infra/golden/go/tryjobs"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/validation"
@@ -59,7 +58,6 @@ type WebHandlers struct {
 	ChangeListStore                clstore.Store
 	CodeReviewURLPrefix            string
 	ContinuousIntegrationURLPrefix string
-	DeprecatedTryjobMonitor        tryjobs.TryjobMonitor
 	DeprecatedTryjobStore          tryjobstore.TryjobStore
 	DiffStore                      diff.DiffStore
 	ExpectationsStore              expstorage.ExpectationsStore
@@ -1261,34 +1259,6 @@ func (wh *WebHandlers) BaselineHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sendJSONResponse(w, bl)
-}
-
-// RefreshIssue forces a refresh of a Gerrit issue, i.e. reload data that
-// might not have been polled yet etc.
-func (wh *WebHandlers) RefreshIssue(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	user := login.LoggedInAs(r)
-	if user == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to refresh tryjob data")
-		return
-	}
-
-	issueID := types.MasterBranch
-	var err error
-	issueIDStr, ok := mux.Vars(r)["id"]
-	if ok {
-		issueID, err = strconv.ParseInt(issueIDStr, 10, 64)
-		if err != nil {
-			httputils.ReportError(w, r, err, "Issue ID must be valid integer.")
-			return
-		}
-	}
-
-	if err := wh.DeprecatedTryjobMonitor.ForceRefresh(issueID); err != nil {
-		httputils.ReportError(w, r, err, "Refreshing issue failed.")
-		return
-	}
-	sendJSONResponse(w, map[string]string{})
 }
 
 // MakeResourceHandler creates a static file handler that sets a caching policy.

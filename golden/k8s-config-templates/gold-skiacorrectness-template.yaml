@@ -43,6 +43,7 @@ spec:
           image: {{.SKIACORRECTNESS_IMAGE}}
           args:
             - "--app_title={{.SKCORR_TITLE}}"
+            - "--authoritative={{.AUTHORITATIVE}}"
             - "--auth_users={{.AUTH_USERS}}"
             - "--bt_instance={{.BIGTABLE_INSTANCE}}"
             - "--bt_project_id={{.BIGTABLE_PROJECT}}"

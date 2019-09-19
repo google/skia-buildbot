@@ -21,6 +21,7 @@
 
     // Settings for skiacorrectness instance
     "AUTHORIZED_PARAMS":       "", // defaults to "all"
+    "AUTHORITATIVE":           true,
     "AUTH_USERS":              "google.com chromium.org skia.org",
     "HASHES_FILE":             "gold-lottie-hashes.txt",
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",

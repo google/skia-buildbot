@@ -1,3 +1,5 @@
+// TODO(kjlubick): It does not appear there are any "real" uses of this package
+//  Remove it, as nothing actually "stores" the ignores (looks like it just uses a matcher).
 package mem_ignorestore
 
 import (

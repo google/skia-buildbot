@@ -305,15 +305,15 @@ func (f *Store) getExpectationsForCL() (types.Expectations, error) {
 
 // loadExpectationsSharded returns an Expectations object from the expectationsCollection,
 // with all Expectations belonging to the passed in crsAndCLID (can be masterBranch).
-func (f *Store) loadExpectationsSharded(clID string, shards int) (types.Expectations, error) {
+func (f *Store) loadExpectationsSharded(crsAndCLID string, shards int) (types.Expectations, error) {
 	defer metrics2.FuncTimer().Stop()
-	q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", clID)
+	q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", crsAndCLID)
 
 	es := make([]types.Expectations, shards)
 	queries := fs_utils.ShardQueryOnDigest(q, digestField, shards)
 
 	maxRetries := 3
-	err := f.client.IterDocsInParallel("loadExpectations", clID, queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
+	err := f.client.IterDocsInParallel("loadExpectations", crsAndCLID, queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
@@ -330,7 +330,7 @@ func (f *Store) loadExpectationsSharded(clID string, shards int) (types.Expectat
 	})
 
 	if err != nil {
-		return nil, skerr.Wrapf(err, "fetching expectations for ChangeList %s", clID)
+		return nil, skerr.Wrapf(err, "fetching expectations for ChangeList %s", crsAndCLID)
 	}
 
 	e := types.Expectations{}

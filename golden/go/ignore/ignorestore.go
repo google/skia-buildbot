@@ -1,9 +1,10 @@
 package ignore
 
 import (
-	"fmt"
 	"net/url"
 	"time"
+
+	"go.skia.org/infra/go/skerr"
 )
 
 // RuleMatcher returns a list of rules in the IgnoreStore that match the given
@@ -48,13 +49,13 @@ type IgnoreRule struct {
 	Note      string    `json:"note"`
 }
 
-// ToQuery makes a slice of url.Values from the given slice of IngoreRules.
+// ToQuery makes a slice of url.Values from the given slice of IgnoreRules.
 func ToQuery(ignores []*IgnoreRule) ([]url.Values, error) {
 	ret := []url.Values{}
 	for _, ignore := range ignores {
 		v, err := url.ParseQuery(ignore.Query)
 		if err != nil {
-			return nil, fmt.Errorf("Found an invalid ignore rule %d %s: %s", ignore.ID, ignore.Query, err)
+			return nil, skerr.Wrapf(err, "invalid ignore rule %d %s", ignore.ID, ignore.Query)
 		}
 		ret = append(ret, v)
 	}
