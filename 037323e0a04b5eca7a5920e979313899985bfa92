@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "8b885a5a_ee67260b",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-19T17:47:24Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "deaf7a67_e76bf471",
+      "revId": "037323e0a04b5eca7a5920e979313899985bfa92",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "caa8e9c7_c283e23f",
         "filename": "task_scheduler/go/db/testutil.go",
         "patchSetId": 5
@@ -72,6 +90,30 @@
       "side": 1,
       "message": "I\u0027m actually not seeing any failures, but my thought process was:\nt0: Test calls PutTask(task1)\nt1: PutTask calls TrackModifiedTask(task1)\nt2: Test calls GetModifiedTasks and receives task1\nt3: Test calls PutTask(task2).\nt3: PutTask calls TrackModifiedTask(task2)\nt4: Firestore notifies us about task1 being inserted, calls TrackModifiedTask(task1)\nt5: Test calls GetModifiedTasks and receives task2 AND task1\n\nIn a video[1] about Cloud Firestore, it is stated that the client library sends new snapshots for changes you have made locally in QuerySnapshotIterator, rather than waiting for a round trip to the DB.  It is not clear to me whether that applies to the server client libraries (ie. Go) or just to mobile and web, and the documentation doesn\u0027t say anything about it (that I\u0027ve seen).  At any rate, our DB code still calls TrackModified directly, so I was writing this code with the expectation that we may see the same update twice.\n\n[1] https://www.youtube.com/watch?v\u003d3aoxOtMM2rc\n\n\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\nUpdate: I said all that, then ran the tests and they failed because the old task showed up.",
       "parentUuid": "caa8e9c7_c283e23f",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 4
+      },
+      "revId": "037323e0a04b5eca7a5920e979313899985bfa92",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "61c6f638_0daf2695",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-19T17:47:24Z",
+      "side": 1,
+      "message": "Just wondering if we\u0027re masking problems in the test or in the code. I don\u0027t quite follow your timeline -- PutTask should be calling a TrackModifiedTask that does nothing, correct?",
+      "parentUuid": "8158244c_f00a0288",
       "range": {
         "startLine": 53,
         "startChar": 0,
