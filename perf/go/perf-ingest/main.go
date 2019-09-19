@@ -151,7 +151,8 @@ func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs 
 		return NonRecoverableError
 	}
 
-	if branch, ok := benchData.Key["branch"]; ok {
+	branch, ok := benchData.Key["branch"]
+	if ok {
 		if len(branches) > 0 {
 			if !util.In(branch, branches) {
 				return nil
@@ -164,6 +165,7 @@ func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs 
 	params, values, paramset := getParamsAndValues(benchData)
 	// Don't do any more work if there's no data to ingest.
 	if len(params) == 0 {
+		metrics2.GetCounter("perf_ingest_no_data_in_file", map[string]string{"branch": branch}).Inc(1)
 		sklog.Infof("No data in: %q", filename)
 		return nil
 	}
