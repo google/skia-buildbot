@@ -22,6 +22,30 @@
       "revId": "93f17b873ac5af5f20c787f8d9594de814dd7a9b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00368ad3_aab5c269",
+        "filename": "golden/go/tilesource/tilesource.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-19T18:58:07Z",
+      "side": 1,
+      "message": "Done - added test to cover.",
+      "parentUuid": "23728bc1_21b2486b",
+      "range": {
+        "startLine": 192,
+        "startChar": 19,
+        "endLine": 192,
+        "endChar": 30
+      },
+      "revId": "93f17b873ac5af5f20c787f8d9594de814dd7a9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
