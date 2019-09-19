@@ -21,6 +21,7 @@
 
     // Settings for skiacorrectness instance
     "AUTHORIZED_PARAMS":       "", // defaults to "all"
+    "AUTHORITATIVE":           true,
     "AUTH_USERS":              "google.com",
     "HASHES_FILE":             "gold-flutter-hashes.txt",
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
