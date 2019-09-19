@@ -184,9 +184,9 @@ func TestDeSerializeSample(t *testing.T) {
 	}
 
 	inOneHour := time.Now().Add(time.Hour).UTC()
-	ignoreRules := []*ignore.IgnoreRule{
-		ignore.NewIgnoreRule("test-rule", inOneHour, "dev=true", "Some comment !"),
-		ignore.NewIgnoreRule("test-rule-2", inOneHour, "dev=false", "Another comment !"),
+	ignoreRules := []*ignore.Rule{
+		ignore.NewRule("test-rule", inOneHour, "dev=true", "Some comment !"),
+		ignore.NewRule("test-rule-2", inOneHour, "dev=false", "Another comment !"),
 	}
 
 	sample := &Sample{

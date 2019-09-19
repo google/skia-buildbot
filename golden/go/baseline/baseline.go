@@ -1,27 +1,12 @@
-// package baseline contains functions to gather the current baseline and
-// write them to GCS.
+// package baseline contains functions to gather the current baseline and return them.
 package baseline
 
 import (
-	"fmt"
-
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 )
-
-// md5SumEmptyExp is the MD5 sum of an empty expectation.
-// it is initialized in this file's init().
-var md5SumEmptyExp = ""
-
-func init() {
-	var err error
-	md5SumEmptyExp, err = util.MD5Sum(types.Expectations{})
-	if err != nil {
-		panic(fmt.Sprintf("Could not get the MD5 sum of an empty expectation: %s", err))
-	}
-}
 
 // GetBaselineForCL returns the baseline for the given issue. This baseline
 // contains all triaged digests that are not in the master tile.

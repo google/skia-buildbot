@@ -30,7 +30,7 @@ type TileSource interface {
 type CachedTileSourceConfig struct {
 	EventBus      eventbus.EventBus
 	GerritAPI     gerrit.GerritInterface
-	IgnoreStore   ignore.IgnoreStore
+	IgnoreStore   ignore.Store
 	TraceStore    tracestore.TraceStore
 	TryjobMonitor tryjobs.TryjobMonitor
 	VCS           vcsinfo.VCS
