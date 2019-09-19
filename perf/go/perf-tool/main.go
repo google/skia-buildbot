@@ -255,8 +255,8 @@ func tracesListByIndexAction(c *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	for id := range ts {
-		fmt.Println(id)
+	for id, trace := range ts {
+		fmt.Println(id, trace)
 	}
 	return nil
 }
