@@ -124,5 +124,10 @@ func (c *CRSImpl) GetChangeListForCommit(ctx context.Context, commit *vcsinfo.Lo
 	return c.getCL(ctx, i)
 }
 
+// System implements the code_review.Client interface.
+func (c *CRSImpl) System() string {
+	return "gerrit"
+}
+
 // Make sure CRSImpl fulfills the code_review.Client interface.
 var _ code_review.Client = (*CRSImpl)(nil)
