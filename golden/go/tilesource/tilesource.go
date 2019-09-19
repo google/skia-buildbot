@@ -22,7 +22,7 @@ import (
 
 type TileSource interface {
 	// GetTile returns the most recently loaded Tile.
-	GetTile() (types.ComplexTile, error)
+	GetTile() types.ComplexTile
 }
 
 type CachedTileSourceConfig struct {
@@ -70,11 +70,11 @@ func (s *CachedTileSourceImpl) StartUpdater(ctx context.Context, interval time.D
 }
 
 // GetTile implements the TileSource interface.
-func (s *CachedTileSourceImpl) GetTile() (types.ComplexTile, error) {
+func (s *CachedTileSourceImpl) GetTile() types.ComplexTile {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
-	return s.lastCpxTile, nil
+	return s.lastCpxTile
 }
 
 // updateTile fetches the latest tile and caches it. updateTile expects to be called from a

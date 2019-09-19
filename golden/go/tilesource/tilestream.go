@@ -25,21 +25,13 @@ func GetTileStreamNow(ts TileSource, interval time.Duration, metricsTag string) 
 		var lastTile types.ComplexTile = nil
 
 		readOneTile := func() {
-			if tile, err := ts.GetTile(); err != nil {
-				// Log the error and send the best tile we have right now.
-				sklog.Errorf("Error reading tile: %s", err)
-				if lastTile != nil {
-					retCh <- lastTile
-				}
+			tile := ts.GetTile()
+			if lastTile != tile {
+				lastTile = tile
+				lastTileStreamed.Reset()
+				retCh <- tile
 			} else {
-				if lastTile != tile {
-					lastTile = tile
-					lastTileStreamed.Reset()
-					retCh <- tile
-				} else {
-					sklog.Debugf("Tile hasn't changed for tile stream")
-				}
-
+				sklog.Debugf("Tile hasn't changed for tile stream")
 			}
 		}
 

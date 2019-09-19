@@ -154,7 +154,7 @@ func getAPIAndIndexerFromTile(t sktest.TestingT, path string, randomize bool) (S
 	mds.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(mockDiffStoreGet, nil)
 
 	cpxTile := types.NewComplexTile(sample.Tile)
-	mts.On("GetTile").Return(cpxTile, nil)
+	mts.On("GetTile").Return(cpxTile)
 
 	eventBus := eventbus.New()
 
