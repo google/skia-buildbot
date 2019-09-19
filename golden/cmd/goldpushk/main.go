@@ -47,6 +47,10 @@ const (
 
 	// Environment variable with path to buildbot repository checkout directory.
 	skiaInfraRootEnvVar = "SKIA_INFRA_ROOT"
+
+	// Git repositories.
+	skiaPublicConfigRepoUrl = "https://skia.googlesource.com/skia-public-config"
+	skiaCorpConfigRepoUrl   = "https://skia.googlesource.com/skia-corp-config"
 )
 
 var (
@@ -110,8 +114,10 @@ func run() {
 		os.Exit(1)
 	}
 
+	// Build goldpushk instance.
+	gpk := goldpushk.New(deployableUnits, canariedDeployableUnits, skiaInfraRoot, flagDryRun, skiaPublicConfigRepoUrl, skiaCorpConfigRepoUrl)
+
 	// Run goldpushk.
-	gpk := goldpushk.New(deployableUnits, canariedDeployableUnits, skiaInfraRoot, flagDryRun)
 	if err = gpk.Run(context.Background()); err != nil {
 		fmt.Printf("Error: %s.\n", err)
 		os.Exit(1)

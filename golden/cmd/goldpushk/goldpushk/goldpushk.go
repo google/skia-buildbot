@@ -15,40 +15,65 @@ import (
 	"path/filepath"
 
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
 // Goldpushk contains information about the deployment steps to be carried out.
 type Goldpushk struct {
+	// Input parameters (provided via flags or environment variables).
 	deployableUnits         []DeployableUnit
 	canariedDeployableUnits []DeployableUnit
 	rootPath                string // Path to the buildbot checkout.
 	dryRun                  bool
 
+	// Other constructor parameters.
+	skiaPublicConfigRepoUrl string
+	skiaCorpConfigRepoUrl   string
+
+	// Checked out Git repositories.
+	skiaPublicConfigCheckout *git.TempCheckout
+	skiaCorpConfigCheckout   *git.TempCheckout
+
+	// Miscellaneous.
 	unitTest bool // Disables confirmation prompt from unit tests.
 }
 
 // New is the Goldpushk constructor.
-func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableUnit, skiaInfraRootPath string, dryRun bool) *Goldpushk {
+func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableUnit, skiaInfraRootPath string, dryRun bool, skiaPublicConfigRepoUrl, skiaCorpConfigRepoUrl string) *Goldpushk {
 	return &Goldpushk{
 		deployableUnits:         deployableUnits,
 		canariedDeployableUnits: canariedDeployableUnits,
 		rootPath:                skiaInfraRootPath,
 		dryRun:                  dryRun,
+		skiaPublicConfigRepoUrl: skiaPublicConfigRepoUrl,
+		skiaCorpConfigRepoUrl:   skiaCorpConfigRepoUrl,
 	}
 }
 
 // Run carries out the deployment steps.
 func (g *Goldpushk) Run(ctx context.Context) error {
+	// Ask for confirmation.
 	if ok, err := g.printOutInputsAndAskConfirmation(); err != nil {
 		return err
 	} else if !ok {
 		return nil
 	}
+
+	// Check out Git repositories.
+	if err := g.checkOutGitRepositories(ctx); err != nil {
+		return err
+	}
+	defer g.skiaPublicConfigCheckout.Delete()
+	defer g.skiaCorpConfigCheckout.Delete()
+
+	// Regenerate config files.
 	if err := g.regenerateConfigFiles(ctx); err != nil {
 		return err
 	}
+
+	// TODO(lovisolo): Implement methods below.
 	if err := g.commitConfigFiles(); err != nil {
 		return err
 	}
@@ -100,6 +125,29 @@ func (g *Goldpushk) printOutInputsAndAskConfirmation() (bool, error) {
 	}
 
 	return true, nil
+}
+
+// checkOutGitRepositories checks out the skia-public-config and
+// skia-corp-config Git repositories.
+func (g *Goldpushk) checkOutGitRepositories(ctx context.Context) error {
+	var err error
+	if g.skiaPublicConfigCheckout, err = checkOutSingleGitRepository(ctx, g.skiaPublicConfigRepoUrl); err != nil {
+		return skerr.Wrap(err)
+	}
+	if g.skiaCorpConfigCheckout, err = checkOutSingleGitRepository(ctx, g.skiaCorpConfigRepoUrl); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
+}
+
+// checkOutSingleGitRepository checks out the Git repository at the given URL.
+func checkOutSingleGitRepository(ctx context.Context, url string) (*git.TempCheckout, error) {
+	checkout, err := git.NewTempCheckout(ctx, url)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to check out %s", url)
+	}
+	sklog.Infof("Cloned Git repository %s at %s.", url, string(checkout.GitDir))
+	return checkout, nil
 }
 
 // regenerateConfigFiles regenerates the .yaml and .json5 files for each
