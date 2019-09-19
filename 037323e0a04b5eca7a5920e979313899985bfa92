@@ -126,6 +126,30 @@
     },
     {
       "key": {
+        "uuid": "1c0e137a_09ef8f12",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-19T17:51:33Z",
+      "side": 1,
+      "message": "Now I\u0027m confused.  If PutTask calls TrackModifiedTasks with task(s) which are newer than the ones ModifiedTask knows about, then it\u0027s going to store them for retrieval in GetModifiedTasks.",
+      "parentUuid": "61c6f638_0daf2695",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 4
+      },
+      "revId": "037323e0a04b5eca7a5920e979313899985bfa92",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0806a6b1_084898af",
         "filename": "task_scheduler/go/db/testutil.go",
         "patchSetId": 5

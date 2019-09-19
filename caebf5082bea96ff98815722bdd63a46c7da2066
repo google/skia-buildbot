@@ -16,6 +16,24 @@
       "revId": "caebf5082bea96ff98815722bdd63a46c7da2066",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b30d00c_c0f04079",
+        "filename": "task_scheduler/go/db/firestore/modified_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-19T17:51:33Z",
+      "side": 1,
+      "message": "Putting this outside the loop would potentially hide some problems, eg. we expected task1 and task1 to both show up in the same call to GetModifiedTasks but they showed up in separate calls.",
+      "parentUuid": "3cca5e41_b5c28013",
+      "revId": "caebf5082bea96ff98815722bdd63a46c7da2066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
