@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "1988df96_10769fa2",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-19T20:08:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b4dfc9ef_1357ef41",
+      "range": {
+        "startLine": 135,
+        "startChar": 9,
+        "endLine": 135,
+        "endChar": 12
+      },
+      "revId": "28804ee50104e59be1344c245f246d00b409e45d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e6ac5cfb_de0d81c1",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
         "patchSetId": 2
