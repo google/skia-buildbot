@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2e775bc8_0636f494",
+        "filename": "power/package.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-19T19:35:50Z",
+      "side": 1,
+      "message": "maybe we should use ~4.4.0 here and everywhere to avoid picking up non-patch changes like this in the future",
+      "revId": "218bfca7d6db0e2834dc673322d01deb4a3efd59",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
