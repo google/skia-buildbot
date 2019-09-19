@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "91b0fc72_f1426735",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-19T13:07:02Z",
+      "side": 1,
+      "message": "No - we need the siteURL to be able to make a Gerrit/GitHub link in the appropriate way.",
+      "parentUuid": "7347891c_654621b2",
+      "range": {
+        "startLine": 180,
+        "startChar": 81,
+        "endLine": 180,
+        "endChar": 89
+      },
+      "revId": "1498fa5fcea49527f3e836c139616508ded30e07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c21fc17c_b1f1c06c",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-19T13:07:02Z",
+      "side": 1,
+      "message": "1) We currently assume there is only one skiacorrectness instance\n2) That\u0027s not what authoritative did in practice - in practice, it meant \"can write comment to Gerrit\"\n\nI updated the help of that flag - I can rename it later when it actually is used.",
+      "parentUuid": "a841e41a_111376bf",
+      "range": {
+        "startLine": 180,
+        "startChar": 91,
+        "endLine": 180,
+        "endChar": 105
+      },
+      "revId": "1498fa5fcea49527f3e836c139616508ded30e07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "db1bacb8_16707105",
         "filename": "golden/go/code_review/updater/updater.go",
         "patchSetId": 8
@@ -68,6 +116,30 @@
       "revId": "1498fa5fcea49527f3e836c139616508ded30e07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84c1e05b_9717a6f0",
+        "filename": "golden/go/code_review/updater/updater.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-19T13:07:02Z",
+      "side": 1,
+      "message": "You are right, I wanted to look them up in clstore also.",
+      "parentUuid": "db1bacb8_16707105",
+      "range": {
+        "startLine": 43,
+        "startChar": 18,
+        "endLine": 43,
+        "endChar": 34
+      },
+      "revId": "1498fa5fcea49527f3e836c139616508ded30e07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "50ed7e68_2b7bc23f",
+        "filename": "golden/go/tilesource/tilesource.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-19T13:07:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7bd54d58_e6bf3e69",
+      "range": {
+        "startLine": 88,
+        "startChar": 4,
+        "endLine": 88,
+        "endChar": 17
+      },
+      "revId": "1498fa5fcea49527f3e836c139616508ded30e07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e8a61b74_d74bd33f",
         "filename": "golden/go/tilesource/tilesource.go",
         "patchSetId": 8
@@ -114,6 +210,30 @@
       "revId": "1498fa5fcea49527f3e836c139616508ded30e07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9fac3ced_7109a8bb",
+        "filename": "golden/go/tilesource/tilesource.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-19T13:07:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e8a61b74_d74bd33f",
+      "range": {
+        "startLine": 120,
+        "startChar": 14,
+        "endLine": 120,
+        "endChar": 33
+      },
+      "revId": "1498fa5fcea49527f3e836c139616508ded30e07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "a165b248_d5e6649e",
+        "filename": "golden/go/tilesource/tilesource_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-19T13:07:02Z",
+      "side": 1,
+      "message": "I think it\u0027s more clear this way (also in next test when it\u0027s just a subset)",
+      "parentUuid": "ec8e6660_6b1c9aa3",
+      "range": {
+        "startLine": 45,
+        "startChar": 47,
+        "endLine": 47,
+        "endChar": 2
+      },
+      "revId": "1498fa5fcea49527f3e836c139616508ded30e07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5b1b5f50_876a6e4e",
         "filename": "golden/go/tilesource/tilesource_test.go",
         "patchSetId": 8
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "360a0570_4f14dbec",
+        "filename": "golden/go/tilesource/tilesource_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-19T13:07:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b1b5f50_876a6e4e",
+      "range": {
+        "startLine": 57,
+        "startChar": 15,
+        "endLine": 57,
+        "endChar": 16
+      },
+      "revId": "1498fa5fcea49527f3e836c139616508ded30e07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1530768f_73ba83ab",
         "filename": "golden/go/tilesource/tilesource_test.go",
         "patchSetId": 8
@@ -177,6 +345,24 @@
       "revId": "1498fa5fcea49527f3e836c139616508ded30e07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8aa1200d_ea040782",
+        "filename": "golden/go/tilesource/tilesource_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-19T13:07:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1530768f_73ba83ab",
+      "revId": "1498fa5fcea49527f3e836c139616508ded30e07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
