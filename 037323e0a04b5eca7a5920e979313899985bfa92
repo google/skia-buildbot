@@ -150,6 +150,30 @@
     },
     {
       "key": {
+        "uuid": "d1c7452d_31dac222",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-19T20:39:31Z",
+      "side": 1,
+      "message": "Thanks for explaining in person.\n\nI agree that using only firestore.NewModified* with the scheduling process won\u0027t work.\n\nIIUC, all non-test callers of firestore.NewDB* are specifying a ModifiedData, so it\u0027s fine with me if you submit as-is.\n\nI think there is still a problem with calling TrackModifiedTasks from both PutTasks and from the NewModifiedTasks goroutine, since we could get outdated data. The addition of modifiedData.ts in task_scheduler/go/db/modified/modified_data.go does not really solve the problem, since there\u0027s no guarantee that we\u0027ll refresh the outdated data before GetModifiedTasks is called. I can think of two ways to handle this:\n a. In taskCache.insertOrUpdateTask in task_scheduler/go/db/cache/cache.go, ignore the new task if old.DbModified is newer. (And same for jobs.) (If there are other uses of GetModifiedTasks, we\u0027d need the same logic there.)\n b. Don\u0027t clear modifiedData.ts in GetModified*. Periodically clear out any timestamps that are \u003e N minutes old. This is a bit more complicated, but it\u0027s a fix in only one spot.\n\nFor tests, IMO:\n A. Scheduling-related tests should create a firestore.NewDB with modified.NewModifiedData() to mirror what we do in production. (Scheduling currently relies on Put* arguments immediately appearing in GetModified* results.) \n B. We should probably test the firestore DB with modified.NewModifiedData() using the test helpers in task_scheduler/go/db/testutil.go, since this is the setup in production.\n C. Additionally, IWBN to test the firestore DB with firestore.NewModified* using the test helpers in task_scheduler/go/db/testutil.go.",
+      "parentUuid": "1c0e137a_09ef8f12",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 4
+      },
+      "revId": "037323e0a04b5eca7a5920e979313899985bfa92",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0806a6b1_084898af",
         "filename": "task_scheduler/go/db/testutil.go",
         "patchSetId": 5
