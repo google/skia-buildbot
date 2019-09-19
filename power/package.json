@@ -4,15 +4,15 @@
   "main": "pages/index.js",
   "license": "",
   "dependencies": {
-    "common-sk": "^3.1.0",
+    "common-sk": "^3.2.4",
     "elements-sk": "3.0.1",
-    "lit-html": "~0.14.0"
+    "lit-html": "~1.1.2"
   },
   "devDependencies": {
-    "autoprefixer": "^9.4.2",
-    "fetch-mock": "^7.2.5",
-    "pulito": "^4.1.1",
-    "webpack": "^4.27.1",
-    "webpack-cli": "^3.1.2"
+    "autoprefixer": "^9.6.1",
+    "fetch-mock": "^7.3.9",
+    "pulito": "^4.4.0",
+    "webpack": "^4.40.2",
+    "webpack-cli": "^3.3.9"
   }
 }
