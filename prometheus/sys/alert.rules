@@ -72,16 +72,6 @@ ALERT DiskSpaceLow
     description = "Low Disk Space on {{ $labels.host }} on disk {{ $labels.resource }}.",
   }
 
-# Internal bots except RPis.
-ALERT DiskSpaceLow
-  IF df_complex_free{resource="df-root",host=~"skia-i-[^r].+"} < 1e9
-  FOR 5m
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    abbr = "{{ $labels.host }}",
-    description = "Low Root Disk Space on {{ $labels.host }}. https://chrome-swarming.appspot.com/bot?id={{ $labels.host }}",
-  }
-
 ALERT DirtyPackages
   IF min_over_time(dirty_packages[25h]) >= 1
   LABELS { category = "infra", severity = "warning" }
