@@ -22,6 +22,30 @@
       "revId": "34ae720fd2b84e58c851d1208cfbb3a93b019c96",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6795fda4_9907c909",
+        "filename": "golden/go/ignore/ignorestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-19T13:28:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "13098d35_6a596c49",
+      "range": {
+        "startLine": 32,
+        "startChar": 22,
+        "endLine": 32,
+        "endChar": 33
+      },
+      "revId": "34ae720fd2b84e58c851d1208cfbb3a93b019c96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
