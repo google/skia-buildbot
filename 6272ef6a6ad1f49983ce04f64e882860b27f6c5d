@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "db669a7b_7409f0a0",
+        "filename": "common-sk/package.json",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-19T20:31:09Z",
+      "side": 1,
+      "message": "maybe we should use ~4.4.0 here and everywhere to avoid picking up non-patch changes like this in the future",
+      "range": {
+        "startLine": 21,
+        "startChar": 15,
+        "endLine": 21,
+        "endChar": 21
+      },
+      "revId": "6272ef6a6ad1f49983ce04f64e882860b27f6c5d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
