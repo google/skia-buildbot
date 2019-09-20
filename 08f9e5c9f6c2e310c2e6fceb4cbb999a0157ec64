@@ -140,6 +140,30 @@
       "revId": "08f9e5c9f6c2e310c2e6fceb4cbb999a0157ec64",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "442b5e36_588c81e1",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-20T19:31:13Z",
+      "side": 1,
+      "message": "Looks good!",
+      "parentUuid": "fe4c5208_9d22f3c1",
+      "range": {
+        "startLine": 81,
+        "startChar": 1,
+        "endLine": 100,
+        "endChar": 23
+      },
+      "revId": "08f9e5c9f6c2e310c2e6fceb4cbb999a0157ec64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
