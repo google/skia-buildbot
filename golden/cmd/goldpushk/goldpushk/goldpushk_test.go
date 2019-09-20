@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -77,6 +78,61 @@ func TestGoldpushkCheckOutGitRepositories(t *testing.T) {
 	assert.Equal(t, "This is repo skia-corp-config!", string(corpWhichRepoTxtBytes))
 }
 
+func TestGoldpushkGetDeploymentFilePath(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Create the goldpushk instance under test.
+	g := New([]DeployableUnit{}, []DeployableUnit{}, "", false, "", "")
+	addFakeConfigRepoCheckouts(g)
+
+	// Gather the DeployableUnits we will call Goldpushk.getDeploymentFilePath() with.
+	s := BuildDeployableUnitSet()
+	publicUnit, _ := s.Get(makeID(Skia, DiffServer))
+	internalUnit, _ := s.Get(makeID(Fuchsia, DiffServer))
+
+	assert.Equal(t, filepath.Join(g.skiaPublicConfigCheckout.Dir(), "gold-skia-diffserver.yaml"), g.getDeploymentFilePath(publicUnit))
+	assert.Equal(t, filepath.Join(g.skiaCorpConfigCheckout.Dir(), "gold-fuchsia-diffserver.yaml"), g.getDeploymentFilePath(internalUnit))
+}
+
+func TestGoldpushkGetConfigMapFilePath(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Create the goldpushk instance under test.
+	skiaInfraRoot := "/path/to/buildbot"
+	g := New([]DeployableUnit{}, []DeployableUnit{}, skiaInfraRoot, false, "", "")
+	addFakeConfigRepoCheckouts(g)
+
+	// Gather the DeployableUnits we will call Goldpushk.getConfigMapFilePath() with.
+	s := BuildDeployableUnitSet()
+	publicUnitWithoutConfigMap, _ := s.Get(makeID(Skia, DiffServer))
+	publicUnitWithConfigMapTemplate, _ := s.Get(makeID(Skia, IngestionBT))
+	publicUnitWithConfigMapFile, _ := s.Get(makeID(SkiaPublic, SkiaCorrectness))
+	internalUnitWithoutConfigMap, _ := s.Get(makeID(Fuchsia, DiffServer))
+	internalUnitWithConfigMapTemplate, _ := s.Get(makeID(Fuchsia, IngestionBT))
+
+	// Helper functions to write more concise assertions.
+	assertNoConfigMap := func(unit DeployableUnit) {
+		_, ok := g.getConfigMapFilePath(unit)
+		assert.False(t, ok, unit.CanonicalName())
+	}
+	assertConfigMapFileEquals := func(unit DeployableUnit, expectedPath ...string) {
+		path, ok := g.getConfigMapFilePath(unit)
+		assert.True(t, ok, unit.CanonicalName())
+		assert.Equal(t, filepath.Join(expectedPath...), path, unit.CanonicalName())
+	}
+
+	// Get the paths to the checked out repositories.
+	skiaPublicConfigPath := g.skiaPublicConfigCheckout.Dir()
+	skiaCorpConfigPath := g.skiaCorpConfigCheckout.Dir()
+
+	// Assert that we get the correct ConfigMap file path for each DeployableUnit.
+	assertNoConfigMap(publicUnitWithoutConfigMap)
+	assertConfigMapFileEquals(publicUnitWithConfigMapTemplate, skiaPublicConfigPath, "gold-skia-ingestion-config-bt.json5")
+	assertConfigMapFileEquals(publicUnitWithConfigMapFile, skiaInfraRoot, "golden/k8s-instances/skia-public/authorized-params.json5")
+	assertNoConfigMap(internalUnitWithoutConfigMap)
+	assertConfigMapFileEquals(internalUnitWithConfigMapTemplate, skiaCorpConfigPath, "gold-fuchsia-ingestion-config-bt.json5")
+}
+
 func TestRegenerateConfigFiles(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -87,80 +143,98 @@ func TestRegenerateConfigFiles(t *testing.T) {
 	deployableUnits = appendUnit(t, deployableUnits, s, SkiaPublic, SkiaCorrectness) // Public deployment with non-templated ConfigMap.
 	canariedDeployableUnits := []DeployableUnit{}
 	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Skia, IngestionBT)    // Regular deployment with templated ConfigMap.
+	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Fuchsia, DiffServer)  // Internal deployment.
 	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Fuchsia, IngestionBT) // Internal deployment with templated ConfigMap.
+
+	// Create the goldpushk instance under test.
+	g := New(deployableUnits, canariedDeployableUnits, "/path/to/buildbot", false, "", "")
+	addFakeConfigRepoCheckouts(g)
+
+	// Get the paths to the checked out repositories, ending with a separator.
+	skiaPublicConfigPath := g.skiaPublicConfigCheckout.Dir() + string(filepath.Separator)
+	skiaCorpConfigPath := g.skiaCorpConfigCheckout.Dir() + string(filepath.Separator)
 
 	// Set up mocks.
 	commandCollector := exec.CommandCollector{}
-	ctx := exec.NewContext(context.Background(), commandCollector.Run)
+	commandCollectorCtx := exec.NewContext(context.Background(), commandCollector.Run)
 
 	// Call code under test.
-	g := New(deployableUnits, canariedDeployableUnits, "/foo/bar/buildbot", false, "", "")
-	err := g.regenerateConfigFiles(ctx)
+	err := g.regenerateConfigFiles(commandCollectorCtx)
+	assert.NoError(t, err)
 
 	// Expected commands.
 	expected := []string{
 		// Skia DiffServer
 		"kube-conf-gen " +
-			"-c /foo/bar/buildbot/golden/k8s-config-templates/gold-common.json5 " +
-			"-c /foo/bar/buildbot/golden/k8s-instances/skia-instance.json5 " +
+			"-c /path/to/buildbot/golden/k8s-config-templates/gold-common.json5 " +
+			"-c /path/to/buildbot/golden/k8s-instances/skia-instance.json5 " +
 			"-extra INSTANCE_ID:skia " +
-			"-t /foo/bar/buildbot/golden/k8s-config-templates/gold-diffserver-template.yaml " +
+			"-t /path/to/buildbot/golden/k8s-config-templates/gold-diffserver-template.yaml " +
 			"-parse_conf=false " +
 			"-strict " +
-			"-o /foo/bar/buildbot/golden/build/gold-skia-diffserver.yaml",
+			"-o " + skiaPublicConfigPath + "gold-skia-diffserver.yaml",
 
 		// SkiaPublic SkiaCorrectness
 		"kube-conf-gen " +
-			"-c /foo/bar/buildbot/golden/k8s-config-templates/gold-common.json5 " +
-			"-c /foo/bar/buildbot/golden/k8s-instances/skia-public-instance.json5 " +
+			"-c /path/to/buildbot/golden/k8s-config-templates/gold-common.json5 " +
+			"-c /path/to/buildbot/golden/k8s-instances/skia-public-instance.json5 " +
 			"-extra INSTANCE_ID:skia-public " +
-			"-t /foo/bar/buildbot/golden/k8s-config-templates/gold-skiacorrectness-template.yaml " +
+			"-t /path/to/buildbot/golden/k8s-config-templates/gold-skiacorrectness-template.yaml " +
 			"-parse_conf=false " +
 			"-strict " +
-			"-o /foo/bar/buildbot/golden/build/gold-skia-public-skiacorrectness.yaml",
+			"-o " + skiaPublicConfigPath + "gold-skia-public-skiacorrectness.yaml",
 
 		// Skia IngestionBT
 		"kube-conf-gen " +
-			"-c /foo/bar/buildbot/golden/k8s-config-templates/gold-common.json5 " +
-			"-c /foo/bar/buildbot/golden/k8s-instances/skia-instance.json5 " +
+			"-c /path/to/buildbot/golden/k8s-config-templates/gold-common.json5 " +
+			"-c /path/to/buildbot/golden/k8s-instances/skia-instance.json5 " +
 			"-extra INSTANCE_ID:skia " +
-			"-t /foo/bar/buildbot/golden/k8s-config-templates/gold-ingestion-bt-template.yaml " +
+			"-t /path/to/buildbot/golden/k8s-config-templates/gold-ingestion-bt-template.yaml " +
 			"-parse_conf=false " +
 			"-strict " +
-			"-o /foo/bar/buildbot/golden/build/gold-skia-ingestion-bt.yaml",
+			"-o " + skiaPublicConfigPath + "gold-skia-ingestion-bt.yaml",
 
 		// Skia IngestionBT ConfigMap
 		"kube-conf-gen " +
-			"-c /foo/bar/buildbot/golden/k8s-config-templates/gold-common.json5 " +
-			"-c /foo/bar/buildbot/golden/k8s-instances/skia-instance.json5 " +
+			"-c /path/to/buildbot/golden/k8s-config-templates/gold-common.json5 " +
+			"-c /path/to/buildbot/golden/k8s-instances/skia-instance.json5 " +
 			"-extra INSTANCE_ID:skia " +
-			"-t /foo/bar/buildbot/golden/k8s-config-templates/ingest-config-template.json5 " +
+			"-t /path/to/buildbot/golden/k8s-config-templates/ingest-config-template.json5 " +
 			"-parse_conf=false " +
 			"-strict " +
-			"-o /foo/bar/buildbot/golden/build/gold-skia-ingestion-config-bt.json5",
+			"-o " + skiaPublicConfigPath + "gold-skia-ingestion-config-bt.json5",
+
+		// Fuchsia DiffServer
+		"kube-conf-gen " +
+			"-c /path/to/buildbot/golden/k8s-config-templates/gold-common.json5 " +
+			"-c /path/to/buildbot/golden/k8s-instances/fuchsia-instance.json5 " +
+			"-extra INSTANCE_ID:fuchsia " +
+			"-t /path/to/buildbot/golden/k8s-config-templates/gold-diffserver-template.yaml " +
+			"-parse_conf=false " +
+			"-strict " +
+			"-o " + skiaCorpConfigPath + "gold-fuchsia-diffserver.yaml",
 
 		// Fuchsia IngestionBT
 		"kube-conf-gen " +
-			"-c /foo/bar/buildbot/golden/k8s-config-templates/gold-common.json5 " +
-			"-c /foo/bar/buildbot/golden/k8s-instances/fuchsia-instance.json5 " +
+			"-c /path/to/buildbot/golden/k8s-config-templates/gold-common.json5 " +
+			"-c /path/to/buildbot/golden/k8s-instances/fuchsia-instance.json5 " +
 			"-extra INSTANCE_ID:fuchsia " +
-			"-t /foo/bar/buildbot/golden/k8s-config-templates/gold-ingestion-bt-template.yaml " +
+			"-t /path/to/buildbot/golden/k8s-config-templates/gold-ingestion-bt-template.yaml " +
 			"-parse_conf=false " +
 			"-strict " +
-			"-o /foo/bar/buildbot/golden/build/gold-fuchsia-ingestion-bt.yaml",
+			"-o " + skiaCorpConfigPath + "gold-fuchsia-ingestion-bt.yaml",
 
 		// Fuchsia IngestionBT ConfigMap
 		"kube-conf-gen " +
-			"-c /foo/bar/buildbot/golden/k8s-config-templates/gold-common.json5 " +
-			"-c /foo/bar/buildbot/golden/k8s-instances/fuchsia-instance.json5 " +
+			"-c /path/to/buildbot/golden/k8s-config-templates/gold-common.json5 " +
+			"-c /path/to/buildbot/golden/k8s-instances/fuchsia-instance.json5 " +
 			"-extra INSTANCE_ID:fuchsia " +
-			"-t /foo/bar/buildbot/golden/k8s-config-templates/ingest-config-template.json5 " +
+			"-t /path/to/buildbot/golden/k8s-config-templates/ingest-config-template.json5 " +
 			"-parse_conf=false " +
 			"-strict " +
-			"-o /foo/bar/buildbot/golden/build/gold-fuchsia-ingestion-config-bt.json5",
+			"-o " + skiaCorpConfigPath + "gold-fuchsia-ingestion-config-bt.json5",
 	}
 
-	assert.NoError(t, err)
 	for i, e := range expected {
 		assert.Equal(t, e, exec.DebugString(commandCollector.Commands()[i]))
 	}
@@ -170,4 +244,24 @@ func appendUnit(t *testing.T, units []DeployableUnit, s DeployableUnitSet, insta
 	unit, ok := s.Get(DeployableUnitID{Instance: instance, Service: service})
 	assert.True(t, ok)
 	return append(units, unit)
+}
+
+func makeID(instance Instance, service Service) DeployableUnitID {
+	return DeployableUnitID{
+		Instance: instance,
+		Service:  service,
+	}
+}
+
+// This is intended to be used in tests that do not need to write to disk, but need a
+// git.TempCheckout instance to e.g. compute a path into a checkout.
+func addFakeConfigRepoCheckouts(g *Goldpushk) {
+	fakeSkiaPublicConfigCheckout := &git.TempCheckout{
+		GitDir: "/path/to/skia-public-config",
+	}
+	fakeSkiaCorpConfigCheckout := &git.TempCheckout{
+		GitDir: "/path/to/skia-corp-config",
+	}
+	g.skiaPublicConfigCheckout = fakeSkiaPublicConfigCheckout
+	g.skiaCorpConfigCheckout = fakeSkiaCorpConfigCheckout
 }
