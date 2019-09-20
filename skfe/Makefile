@@ -19,3 +19,10 @@ k8s_run:
 	# You can test the config locally by running this target and observing that
 	# nginx doesn't fail.
 	docker run nginx-skia-org:latest
+
+envoy-validate:
+	docker run -ti --entrypoint=/usr/local/bin/envoy -v `pwd`/envoy/:/tmp/envoy/ envoyproxy/envoy-dev:latest --mode validate --config-path /tmp/envoy/redirects.json
+
+envoy-run-local:
+	docker run -ti -p 8000:8000 --entrypoint=/usr/local/bin/envoy -v `pwd`/envoy/:/tmp/envoy/ envoyproxy/envoy-dev:latest --config-path /tmp/envoy/redirects.json
+
