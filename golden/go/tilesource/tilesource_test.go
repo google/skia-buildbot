@@ -30,7 +30,7 @@ import (
 func TestUpdateTileSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mis := &mock_ignorestore.IgnoreStore{}
+	mis := &mock_ignorestore.Store{}
 	mts := &mocks.TraceStore{}
 	mu := &mock_updater.Updater{}
 	mvcs := &mock_vcs.VCS{}
@@ -78,7 +78,7 @@ func TestUpdateTileSunnyDay(t *testing.T) {
 func TestUpdateTileNilCLUpdater(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mis := &mock_ignorestore.IgnoreStore{}
+	mis := &mock_ignorestore.Store{}
 	mts := &mocks.TraceStore{}
 	mvcs := &mock_vcs.VCS{}
 	defer mis.AssertExpectations(t)
@@ -119,7 +119,7 @@ func TestUpdateTileNilCLUpdater(t *testing.T) {
 func TestUpdateTileHasPreviousPartial(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mis := &mock_ignorestore.IgnoreStore{}
+	mis := &mock_ignorestore.Store{}
 	mts := &mocks.TraceStore{}
 	mu := &mock_updater.Updater{}
 	mvcs := &mock_vcs.VCS{}
@@ -175,7 +175,7 @@ func TestUpdateTileHasPreviousPartial(t *testing.T) {
 func TestUpdateTileHasPreviousAll(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mis := &mock_ignorestore.IgnoreStore{}
+	mis := &mock_ignorestore.Store{}
 	mts := &mocks.TraceStore{}
 	mvcs := &mock_vcs.VCS{}
 	mct := &mocks.ComplexTile{}
@@ -220,7 +220,7 @@ func TestUpdateTileHasPreviousAll(t *testing.T) {
 func TestUpdateTileWithPublicParams(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mis := &mock_ignorestore.IgnoreStore{}
+	mis := &mock_ignorestore.Store{}
 	mts := &mocks.TraceStore{}
 	mvcs := &mock_vcs.VCS{}
 	mct := &mocks.ComplexTile{}
@@ -270,11 +270,11 @@ func TestUpdateTileWithPublicParams(t *testing.T) {
 	assert.Equal(t, trimmedTile, cpxTile.GetTile(types.IncludeIgnoredTraces))
 }
 
-// TestUpdateTileWithIgnoreRules tests the case where some traces are ignored.
-func TestUpdateTileWithIgnoreRules(t *testing.T) {
+// TestUpdateTileWithRules tests the case where some traces are ignored.
+func TestUpdateTileWithRules(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mis := &mock_ignorestore.IgnoreStore{}
+	mis := &mock_ignorestore.Store{}
 	mts := &mocks.TraceStore{}
 	mvcs := &mock_vcs.VCS{}
 	mct := &mocks.ComplexTile{}
@@ -288,7 +288,7 @@ func TestUpdateTileWithIgnoreRules(t *testing.T) {
 	mts.On("GetDenseTile", testutils.AnyContext, nCommits).Return(data.MakeTestTile(), makeSparseTilingCommits(), nil)
 
 	// No ignores in this test
-	mis.On("List").Return([]*ignore.IgnoreRule{
+	mis.On("List").Return([]*ignore.Rule{
 		{
 			Query: "device=crosshatch&name=test_beta", // hides one trace
 		},

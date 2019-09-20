@@ -9,7 +9,7 @@ import (
 	"go.skia.org/infra/go/tiling"
 )
 
-func BuildRuleMatcher(rulesList []*IgnoreRule) (RuleMatcher, error) {
+func BuildRuleMatcher(rulesList []*Rule) (RuleMatcher, error) {
 	if len(rulesList) == 0 {
 		return noopRuleMatcher, nil
 	}
@@ -23,8 +23,8 @@ func BuildRuleMatcher(rulesList []*IgnoreRule) (RuleMatcher, error) {
 		ignoreRules[idx] = NewQueryRule(parsedQuery)
 	}
 
-	return func(params map[string]string) ([]*IgnoreRule, bool) {
-		var result []*IgnoreRule
+	return func(params map[string]string) ([]*Rule, bool) {
+		var result []*Rule
 
 		for ruleIdx, rule := range ignoreRules {
 			if rule.IsMatch(params) {
@@ -39,7 +39,7 @@ func BuildRuleMatcher(rulesList []*IgnoreRule) (RuleMatcher, error) {
 // FilterIgnored returns a copy of the given tile with all traces removed
 // that match the ignore rules in the given ignore store. It also returns the
 // ignore rules for later matching.
-func FilterIgnored(inputTile *tiling.Tile, ignores []*IgnoreRule) (*tiling.Tile, paramtools.ParamMatcher, error) {
+func FilterIgnored(inputTile *tiling.Tile, ignores []*Rule) (*tiling.Tile, paramtools.ParamMatcher, error) {
 	// Make a shallow copy with a new Traces map
 	ret := &tiling.Tile{
 		Traces:   map[tiling.TraceId]tiling.Trace{},

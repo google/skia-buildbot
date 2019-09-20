@@ -13,18 +13,18 @@ import (
 
 func TestToQuery(t *testing.T) {
 	unittest.SmallTest(t)
-	queries, err := ToQuery([]*IgnoreRule{})
+	queries, err := ToQuery([]*Rule{})
 	assert.NoError(t, err)
 	assert.Len(t, queries, 0)
 
-	r1 := NewIgnoreRule("jon@example.com", time.Now().Add(time.Hour), "config=gpu", "reason")
-	queries, err = ToQuery([]*IgnoreRule{r1})
+	r1 := NewRule("jon@example.com", time.Now().Add(time.Hour), "config=gpu", "reason")
+	queries, err = ToQuery([]*Rule{r1})
 	assert.NoError(t, err)
 	assert.Equal(t, queries[0], url.Values{"config": []string{"gpu"}})
 
 	// A bad rule won't get converted
-	r1 = NewIgnoreRule("jon@example.com", time.Now().Add(time.Hour), "bad=%", "reason")
-	queries, err = ToQuery([]*IgnoreRule{r1})
+	r1 = NewRule("jon@example.com", time.Now().Add(time.Hour), "bad=%", "reason")
+	queries, err = ToQuery([]*Rule{r1})
 	assert.NotNil(t, err)
 	assert.Empty(t, queries)
 }
@@ -39,8 +39,8 @@ func TestFilterIgnored(t *testing.T) {
 	assert.Equal(t, data.MakeTestTile(), ft)
 
 	future := time.Now().Add(time.Hour)
-	ignores := []*IgnoreRule{
-		NewIgnoreRule("user@example.com", future, "device=crosshatch", "note"),
+	ignores := []*Rule{
+		NewRule("user@example.com", future, "device=crosshatch", "note"),
 	}
 
 	// Now filter the tile and make sure those traces are filtered out.
