@@ -87,6 +87,7 @@ func main() {
 		btInstanceID        = flag.String("bt_instance", "production", "ID of the BigTable instance that contains Git metadata")
 		btProjectID         = flag.String("bt_project_id", "skia-public", "project id with BigTable instance")
 		clientSecretFile    = flag.String("client_secret", "", "Client secret file for OAuth2 authentication.")
+		changeListTracking  = flag.Bool("changelist_tracking", true, "Should gold track ChangeLists looking for ChangeListExpectations")
 		defaultCorpus       = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
 		defaultMatchFields  = flag.String("match_fields", "name", "A comma separated list of fields that need to match when finding closest images.")
 		diffServerGRPCAddr  = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
@@ -374,7 +375,7 @@ func main() {
 	}
 
 	var clUpdater code_review.Updater
-	if *authoritative && crs != nil {
+	if *authoritative && crs != nil && *changeListTracking {
 		clUpdater = updater.New(crs, expStore, cls)
 	}
 

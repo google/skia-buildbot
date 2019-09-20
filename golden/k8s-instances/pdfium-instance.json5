@@ -23,6 +23,7 @@
     "AUTHORIZED_PARAMS":       "", // defaults to "all"
     "AUTHORITATIVE":           true,
     "AUTH_USERS":              "google.com",
+    "CHANGELIST_TRACKING":     true,
     "HASHES_FILE":             "gold-pdfium-hashes.txt",
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
     "MAIN_CPU":                "4",
