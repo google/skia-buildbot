@@ -38,7 +38,7 @@ func New(client *datastore.Client) (*DSIgnoreStore, error) {
 }
 
 // Create implements the IgnoreStore interface.
-func (c *DSIgnoreStore) Create(ignoreRule *ignore.IgnoreRule) error {
+func (c *DSIgnoreStore) Create(ignoreRule *ignore.Rule) error {
 	createFn := func(tx *datastore.Transaction) error {
 		key := dsutil.TimeSortableKey(ds.IGNORE_RULE, 0)
 		ignoreRule.ID = key.ID
@@ -64,7 +64,7 @@ func (c *DSIgnoreStore) Create(ignoreRule *ignore.IgnoreRule) error {
 }
 
 // List implements the IgnoreStore interface.
-func (c *DSIgnoreStore) List() ([]*ignore.IgnoreRule, error) {
+func (c *DSIgnoreStore) List() ([]*ignore.Rule, error) {
 	ctx := context.TODO()
 	var egroup errgroup.Group
 	var queriedKeys []*datastore.Key
@@ -90,10 +90,10 @@ func (c *DSIgnoreStore) List() ([]*ignore.IgnoreRule, error) {
 	// Merge the keys to get all of the current keys.
 	allKeys := recently.Combine(queriedKeys)
 	if len(allKeys) == 0 {
-		return []*ignore.IgnoreRule{}, nil
+		return []*ignore.Rule{}, nil
 	}
 
-	ret := make([]*ignore.IgnoreRule, len(allKeys))
+	ret := make([]*ignore.Rule, len(allKeys))
 	if err := c.client.GetMulti(ctx, allKeys, ret); err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (c *DSIgnoreStore) List() ([]*ignore.IgnoreRule, error) {
 }
 
 // Update implements the IgnoreStore interface.
-func (c *DSIgnoreStore) Update(id int64, rule *ignore.IgnoreRule) error {
+func (c *DSIgnoreStore) Update(id int64, rule *ignore.Rule) error {
 	ctx := context.TODO()
 	key := ds.NewKey(ds.IGNORE_RULE)
 	key.ID = id
@@ -124,7 +124,7 @@ func (c *DSIgnoreStore) Delete(id int64) (int, error) {
 		key := ds.NewKey(ds.IGNORE_RULE)
 		key.ID = id
 
-		ignoreRule := &ignore.IgnoreRule{}
+		ignoreRule := &ignore.Rule{}
 		if err := tx.Get(key, ignoreRule); err != nil {
 			return err
 		}
