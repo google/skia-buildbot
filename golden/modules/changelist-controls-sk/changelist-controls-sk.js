@@ -11,7 +11,7 @@ const patchSet = (ps, ele) => html`
 `;
 
 const tryJob = (tj) => html`
-<div class=tryjob>
+<div class=tryjob title=${tj.name}>
   <a href=${tj.url} target=_blank rel=noopener>
     ${limitString(tj.name, 60)}
   </a>

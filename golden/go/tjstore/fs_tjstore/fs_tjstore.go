@@ -41,8 +41,11 @@ const (
 	maxWriteAttempts = 5
 	maxOperationTime = time.Minute
 
-	// For now, this is a wild guess based on some prior work by the fs_expstore package.
-	resultShards = 16
+	// Based on data with 400k results for a single ChangeList
+	// 16 shards = 5s
+	// 64 shards = 2.3s
+	// 256 shards = 2.3s
+	resultShards = 64
 
 	emptyParamsHash = ""
 )
@@ -267,7 +270,6 @@ func (s *StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID) (
 			ret = append(ret, tr)
 		}
 	}
-
 	return ret, nil
 }
 
