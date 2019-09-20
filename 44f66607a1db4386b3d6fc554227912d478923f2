@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "39393637_838b140a",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 381,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-20T12:09:13Z",
+      "side": 1,
+      "message": "nit: wrap this wall of text to 100 cols wide.",
+      "range": {
+        "startLine": 381,
+        "startChar": 20,
+        "endLine": 381,
+        "endChar": 474
+      },
+      "revId": "44f66607a1db4386b3d6fc554227912d478923f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4913d6e1_3b54fe34",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 774,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-20T12:09:13Z",
+      "side": 1,
+      "message": "remove?",
+      "range": {
+        "startLine": 774,
+        "startChar": 8,
+        "endLine": 774,
+        "endChar": 43
+      },
+      "revId": "44f66607a1db4386b3d6fc554227912d478923f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "073e95d8_623b714c",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 783,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-20T12:09:13Z",
+      "side": 1,
+      "message": "I doubt this works - try includes:\nhttps://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes",
+      "range": {
+        "startLine": 783,
+        "startChar": 28,
+        "endLine": 783,
+        "endChar": 30
+      },
+      "revId": "44f66607a1db4386b3d6fc554227912d478923f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4345e140_c6c07932",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 786,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-20T12:09:13Z",
+      "side": 1,
+      "message": "nit: const",
+      "range": {
+        "startLine": 786,
+        "startChar": 8,
+        "endLine": 786,
+        "endChar": 11
+      },
+      "revId": "44f66607a1db4386b3d6fc554227912d478923f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da3dbce3_6747b320",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 1224,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-20T12:09:13Z",
+      "side": 1,
+      "message": "nit: const (and below a few more times)",
+      "range": {
+        "startLine": 1224,
+        "startChar": 8,
+        "endLine": 1224,
+        "endChar": 11
+      },
+      "revId": "44f66607a1db4386b3d6fc554227912d478923f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef5e3817_56899176",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 1230,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-20T12:09:13Z",
+      "side": 1,
+      "message": "nit: let",
+      "range": {
+        "startLine": 1230,
+        "startChar": 13,
+        "endLine": 1230,
+        "endChar": 16
+      },
+      "revId": "44f66607a1db4386b3d6fc554227912d478923f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
