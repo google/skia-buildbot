@@ -116,6 +116,7 @@ func (s *CachedTileSourceImpl) updateTile(ctx context.Context) error {
 	}
 	cpxTile.SetIgnoreRules(retIgnoredTile, ignoreRules)
 
+	sklog.Infof("There are %d ignoreRules: %v", len(ignoreRules), ignoreRules)
 	// check if all the expectations of all commits have been added to the tile.
 	s.checkCommitableIssues(cpxTile)
 
