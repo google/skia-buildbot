@@ -41,12 +41,13 @@ changelist-controls-sk {
 
   .tryjob-container {
     display: flex;
+    flex-wrap: wrap;
 
     .tryjob {
       border: 1px solid var(--gray);
       padding: 0.5em;
       border-radius: 5px;
-      margin: 0.5em;
+      margin: 0.25em;
 
       a {
         color: var(--black);
