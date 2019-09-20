@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "245d0fbf_5315378c",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-20T19:23:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "01949979_72df6b04",
+      "range": {
+        "startLine": 213,
+        "startChar": 3,
+        "endLine": 213,
+        "endChar": 7
+      },
+      "revId": "08f9e5c9f6c2e310c2e6fceb4cbb999a0157ec64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d231a96a_69dd4fc6",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "e166b965_fb075f0f",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-20T19:23:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d231a96a_69dd4fc6",
+      "range": {
+        "startLine": 221,
+        "startChar": 1,
+        "endLine": 221,
+        "endChar": 9
+      },
+      "revId": "08f9e5c9f6c2e310c2e6fceb4cbb999a0157ec64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "59230fae_815ee288",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2019-09-20T18:56:26Z",
       "side": 1,
       "message": "This feels clunky to have to do every time.  You already have at least one test thand makes sure we properly clone git, so is there a way to skip this setup?\n\nI could imagine doing New()\ng.skiaPublicConfigCheckout \u003d \u0026git.TempCheckout{\n  GitDir: \"/foo/bar\",\n}\ng.skiaCorpConfigCheckout \u003d \u0026git.TempCheckout{\n  GitDir: \"/foo/corp\",\n}\n// test starts here.\n\nMaybe put that in a test helper newWithCheckout() ?\n\nThat may have the upside of making some tests Small (those that don\u0027t hit disk) and for those that might need the disk, you could do GitDir: ioutil.TempDir(...) or something.",
+      "range": {
+        "startLine": 81,
+        "startChar": 1,
+        "endLine": 100,
+        "endChar": 23
+      },
+      "revId": "08f9e5c9f6c2e310c2e6fceb4cbb999a0157ec64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe4c5208_9d22f3c1",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-20T19:23:21Z",
+      "side": 1,
+      "message": "Good idea. I added func addFakeConfigRepoCheckouts(g *Goldpushk) {...}.\n\nI think I prefer this over creating a newWithCheckout(...) method, as that would require passing lots of arguments around. But let me know if you disagree.",
+      "parentUuid": "59230fae_815ee288",
       "range": {
         "startLine": 81,
         "startChar": 1,
