@@ -107,11 +107,19 @@ func TestBuildDeployableUnitSetConfigMapInvariantsHold(t *testing.T) {
 	deployableUnitSet := BuildDeployableUnitSet()
 
 	for _, unit := range deployableUnitSet.deployableUnits {
-		// All DeployableUnits with any ConfigMap settings must have at least a name
-		// and a ConfigMap file.
+		// All DeployableUnits with any ConfigMap settings must have a configMapName
+		// and exactly one of fields configMapFile or configMapTemplate set.
 		if unit.configMapName != "" || unit.configMapFile != "" || unit.configMapTemplate != "" {
 			assert.NotEmpty(t, unit.configMapName, unit.CanonicalName())
-			assert.NotEmpty(t, unit.configMapFile, unit.CanonicalName())
+
+			numFieldsSet := 0
+			if unit.configMapFile != "" {
+				numFieldsSet++
+			}
+			if unit.configMapTemplate != "" {
+				numFieldsSet++
+			}
+			assert.Equal(t, 1, numFieldsSet, unit.CanonicalName())
 		}
 
 		// All IngestionBT instances have templated ConfigMaps.

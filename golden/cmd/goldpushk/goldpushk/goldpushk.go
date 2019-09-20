@@ -20,6 +20,12 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
+const (
+	// Paths below are relative to $SKIA_INFRA_ROOT.
+	k8sConfigTemplatesDir = "golden/k8s-config-templates"
+	k8sInstancesDir       = "golden/k8s-instances"
+)
+
 // Goldpushk contains information about the deployment steps to be carried out.
 type Goldpushk struct {
 	// Input parameters (provided via flags or environment variables).
@@ -151,23 +157,39 @@ func checkOutSingleGitRepository(ctx context.Context, url string) (*git.TempChec
 }
 
 // regenerateConfigFiles regenerates the .yaml and .json5 files for each
-// instance/service pair that will be deployed. The generated files will be
-// located in $SKIA_INFRA_ROOT/golden/build, unless overridden in the
-// DeploymentOptions of any of the targeted DeployableUnits.
+// instance/service pair that will be deployed. Any generated files will be
+// checked into the corresponding Git repository with configuration files.
 func (g *Goldpushk) regenerateConfigFiles(ctx context.Context) error {
 	// Iterate over all units to deploy (including canaries).
 	return g.forAllDeployableUnits(func(unit DeployableUnit) error {
-		// Generate deployment file.
+		// Path to the template file inside $SKIA_INFRA_ROOT.
 		tPath := unit.getDeploymentFileTemplatePath(g.rootPath)
-		oPath := unit.getDeploymentFilePath(g.rootPath)
+
+		// Path to the deployment file (.yaml) we will regenerate inside the
+		// corresponding skia-{public,corp}-config Git repository.
+		oPath := g.getDeploymentFilePath(unit)
+
+		// Regenerate .yaml file.
 		if err := g.expandTemplate(ctx, unit.Instance, tPath, oPath); err != nil {
 			return skerr.Wrapf(err, "error while regenerating %s", oPath)
 		}
 
-		// Generate ConfigMap file if necessary.
+		// If the DeployableUnit has a ConfigMap template (as opposed to a ConfigMap
+		// file that already exists in $SKIA_INFRA_ROOT)), the template must be
+		// expanded and saved to the corresponding skia-{public,corp}-config Git
+		// repository.
 		if unit.configMapTemplate != "" {
+			// Path to the template file inside $SKIA_INFRA_ROOT.
 			tPath = unit.getConfigMapFileTemplatePath(g.rootPath)
-			oPath = unit.getConfigMapFilePath(g.rootPath)
+
+			// Path to the ConfigMap file (.json5) to be regenerated inside the
+			// corresponding skia-{public,corp}-config repository.
+			oPath, ok := g.getConfigMapFilePath(unit)
+			if !ok {
+				return fmt.Errorf("goldpushk.getConfigMapFilePath() failed for %s; this is probably a bug", unit.CanonicalName())
+			}
+
+			// Regenerate .json5 file.
 			if err := g.expandTemplate(ctx, unit.Instance, tPath, oPath); err != nil {
 				return skerr.Wrapf(err, "error while regenerating %s", oPath)
 			}
@@ -175,6 +197,44 @@ func (g *Goldpushk) regenerateConfigFiles(ctx context.Context) error {
 
 		return nil
 	})
+}
+
+// getDeploymentFilePath returns the path to the deployment file (.yaml) for the
+// given DeployableUnit inside the corresponding skia-{public,corp}-config Git
+// repository.
+func (g *Goldpushk) getDeploymentFilePath(unit DeployableUnit) string {
+	return filepath.Join(g.getGitRepoRootPath(unit), unit.CanonicalName()+".yaml")
+}
+
+// getConfigMapFilePath returns the path to the ConfigFile (.json5) for the
+// given DeployableUnit.
+//
+// If the DeployableUnit has a ConfigMap file (e.g. gold-skiapublic-skiacorrectness)
+// this will be a path inside $SKIA_INFRA_ROOT.
+//
+// If the DeployableUnit has a ConfigMap template (e.g. gold-skia-ingestion-bt)
+// this will be a path inside the corresponding skia-{public,corp}-config Git
+// repository pointing to the expanded ConfigMap template.
+//
+// If neither is true, it will return ("", false).
+func (g *Goldpushk) getConfigMapFilePath(unit DeployableUnit) (string, bool) {
+	if unit.configMapFile != "" {
+		return filepath.Join(g.rootPath, unit.configMapFile), true
+	} else if unit.configMapName != "" && unit.configMapTemplate != "" {
+		return filepath.Join(g.getGitRepoRootPath(unit), unit.configMapName+".json5"), true
+	} else {
+		return "", false
+	}
+}
+
+// getGitRepoRoothPath returns the path to the checked out Git repository in
+// which the config files for the given DeployableUnit should be checked in
+// (i.e. one of skia-{public,corp}-config.
+func (g *Goldpushk) getGitRepoRootPath(unit DeployableUnit) string {
+	if unit.internal {
+		return string(g.skiaCorpConfigCheckout.GitDir)
+	}
+	return string(g.skiaPublicConfigCheckout.GitDir)
 }
 
 // expandTemplate executes the kube-conf-gen command with the given arguments in
