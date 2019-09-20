@@ -5,13 +5,6 @@ import (
 	"path/filepath"
 )
 
-const (
-	// Paths below are relative to $SKIA_INFRA_ROOT.
-	k8sConfigTemplatesDir = "golden/k8s-config-templates"
-	k8sInstancesDir       = "golden/k8s-instances"
-	configOutDir          = "golden/build"
-)
-
 // Instance represents the name of a Gold instance, e.g. "skia".
 type Instance string
 
@@ -37,10 +30,14 @@ func (d DeployableUnitID) CanonicalName() string {
 // DeployableUnit to Kubernetes.
 type DeploymentOptions struct {
 	// TODO(lovisolo): Add any missing fields.
-	internal          bool   // If true, deploy to the "skia-corp" cluster, otherwise deploy to "skia-public".
-	configMapName     string // If set, a ConfigMap will be created using the contents of field as its name.
-	configMapFile     string // File (relative to $SKIA_INFRA_ROOT) from which to create the ConfigMap. Must be set if configMapName is set.
-	configMapTemplate string // If set, a ConfigMap file will be generated from this template (relative to $SKIA_INFRA_ROOT), and save it to configMapFile.
+	internal      bool   // If true, deploy to the "skia-corp" cluster, otherwise deploy to "skia-public".
+	configMapName string // If set, a ConfigMap will be created using the contents of field as its name.
+
+	// If configMapName is empty, then configMapName and configMapTemplate should
+	// be empty as well. Otherwise only one of them should be set. Both fields are
+	// relative to $SKIA_INFRA_ROOT.
+	configMapFile     string // Create a ConfigMap from this file.
+	configMapTemplate string // Create a ConfigMap from this template. The resulting .json5 file will be checked into the corresponding config Git repo.
 }
 
 // DeployableUnit represents a Gold instance/service pair that can be deployed
@@ -56,22 +53,10 @@ func (u *DeployableUnit) getDeploymentFileTemplatePath(skiaInfraRootPath string)
 	return filepath.Join(skiaInfraRootPath, k8sConfigTemplatesDir, fmt.Sprintf("gold-%s-template.yaml", u.Service))
 }
 
-// getDeploymentFilePath returns the path to the deployment file for this
-// DeployableUnit.
-func (u *DeployableUnit) getDeploymentFilePath(skiaInfraRootPath string) string {
-	return filepath.Join(skiaInfraRootPath, configOutDir, fmt.Sprintf("gold-%s-%s.yaml", u.Instance, u.Service))
-}
-
 // getConfigMapFileTemplatePath returns the path to the .yaml template file used to
 // generate the ConfigMap file for this DeployableUnit.
 func (u *DeployableUnit) getConfigMapFileTemplatePath(skiaInfraRootPath string) string {
 	return filepath.Join(skiaInfraRootPath, u.configMapTemplate)
-}
-
-// getConfigMapFilePath returns the path to the ConfigMap file for this
-// DeployableUnit.
-func (u *DeployableUnit) getConfigMapFilePath(skiaInfraRootPath string) string {
-	return filepath.Join(skiaInfraRootPath, u.configMapFile)
 }
 
 // DeployableUnitSet implements a set data structure for DeployableUnits. This
