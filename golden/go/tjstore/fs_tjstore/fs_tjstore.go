@@ -6,7 +6,10 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"time"
+
+	"go.skia.org/infra/golden/go/shared"
 
 	"cloud.google.com/go/firestore"
 	"github.com/cenkalti/backoff"
@@ -41,8 +44,11 @@ const (
 	maxWriteAttempts = 5
 	maxOperationTime = time.Minute
 
-	// For now, this is a wild guess based on some prior work by the fs_expstore package.
-	resultShards = 16
+	// Based on data with 400k results for a single ChangeList
+	// 16 shards = 5s
+	// 64 shards = 2.3s
+	// 256 shards = 2.3s
+	resultShards = 64
 
 	emptyParamsHash = ""
 )
@@ -173,6 +179,7 @@ func (s *StoreImpl) GetTryJobs(ctx context.Context, psID tjstore.CombinedPSID) (
 // GetResults implements the tjstore.Store interface.
 func (s *StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID) ([]tjstore.TryJobResult, error) {
 	defer metrics2.FuncTimer().Stop()
+	defer shared.NewMetricsTimer("GetResults").Stop()
 	q := s.client.Collection(tjResultCollection).Where(crsField, "==", psID.CRS).
 		Where(changeListIDField, "==", psID.CL).Where(patchSetIDField, "==", psID.PS)
 
@@ -182,7 +189,7 @@ func (s *StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID) (
 	// maps hash -> params we need to fetch
 	// We will first add keys to this map, then go fetch the actual params
 	shardParams := make([]util.StringSet, resultShards)
-
+	t := shared.NewMetricsTimer(fmt.Sprintf("getting results with %d shards", resultShards))
 	err := s.client.IterDocsInParallel("GetResults", psID.Key(), queries, maxReadAttempts, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
@@ -204,6 +211,7 @@ func (s *StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID) (
 	if err != nil {
 		return nil, skerr.Wrapf(err, "fetching tryjob results for %v", psID)
 	}
+	t.Stop()
 
 	// Fetch all the param maps that were requested
 	paramsByHash := map[string]paramtools.Params{
@@ -223,6 +231,7 @@ func (s *StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID) (
 		}
 	}
 
+	t = shared.NewMetricsTimer(fmt.Sprintf("Get %d Params", len(xdr)))
 	paramDocs, err := s.client.GetAll(ctx, xdr)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "fetching %d params", len(xdr))
@@ -242,6 +251,7 @@ func (s *StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID) (
 		// doc.Ref.ID is the hash of the param map
 		paramsByHash[doc.Ref.ID] = tje.Map
 	}
+	t.Stop()
 
 	// inflate results with those param maps
 	var ret []tjstore.TryJobResult
@@ -268,6 +278,7 @@ func (s *StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID) (
 		}
 	}
 
+	sklog.Debugf("%d results fetched", len(ret))
 	return ret, nil
 }
 

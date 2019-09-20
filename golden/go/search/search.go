@@ -8,7 +8,9 @@ import (
 	"sort"
 	"sync"
 
-	"go.opencensus.io/trace"
+	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/golden/go/shared"
+
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -71,8 +73,6 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	if q == nil {
 		return nil, skerr.Fmt("nil query")
 	}
-	ctx, span := trace.StartSpan(ctx, "search/Search")
-	defer span.End()
 
 	// Keep track if we are including reference diffs. This is going to be true
 	// for the majority of queries.
@@ -229,9 +229,6 @@ func (s *SearchImpl) getExpectationsFromQuery(clID, crs string) (common.ExpSlice
 // TODO(kjlubick): remove this deprecated stuff after the new tjstore/clstore lands
 // deprecatedQueryIssue returns the digest related to this issues in intermediate representation.
 func (s *SearchImpl) deprecatedQueryIssue(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp common.ExpSlice) (srInterMap, *tryjobstore.Issue, error) {
-	ctx, span := trace.StartSpan(ctx, "search/deprecatedQueryIssue")
-	defer span.End()
-
 	// Build the intermediate map to compare against the tile
 	ret := srInterMap{}
 
@@ -259,9 +256,6 @@ type deprecatedFilterAddFn func(types.TestName, types.Digest, tiling.TraceId, *t
 // deprecatedExtractIssueDigests loads the issue and its tryjob results and then filters the
 // results via the given query. For each testName/digest pair addFn is called.
 func (s *SearchImpl) deprecatedExtractIssueDigests(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp common.ExpSlice, addFn deprecatedFilterAddFn) (*tryjobstore.Issue, error) {
-	_, span := trace.StartSpan(ctx, "search/deprecatedExtractIssueDigests")
-	defer span.End()
-
 	// Get the issue.
 	issue, err := s.deprecatedTryJobStore.GetIssue(q.DeprecatedIssue, true)
 	if err != nil {
@@ -348,9 +342,6 @@ func (s *SearchImpl) deprecatedExtractIssueDigests(ctx context.Context, q *query
 // in intermediate representation. It returns the filtered digests as specified by q. The param
 // exp should contain the expectations for the given ChangeList.
 func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp common.ExpSlice) (srInterMap, error) {
-	ctx, span := trace.StartSpan(ctx, "search/queryChangeList")
-	defer span.End()
-
 	// Build the intermediate map to compare against the tile
 	ret := srInterMap{}
 
@@ -382,9 +373,8 @@ type filterAddFn func(test types.TestName, digest types.Digest, params paramtool
 // testName/digest pair that matches the query, it calls addFn (which the supplier will likely use
 // to build up a list of those results.
 func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp common.ExpSlice, addFn filterAddFn) error {
-	_, span := trace.StartSpan(ctx, "search/extractChangeListDigests")
-	defer span.End()
-
+	defer metrics2.FuncTimer().Stop()
+	defer shared.NewMetricsTimer("extractChangeListDigests").Stop()
 	clID := q.ChangeListID
 	// We know xps is sorted by order, if it is non-nil.
 	xps, err := s.changeListStore.GetPatchSets(ctx, clID)
@@ -425,14 +415,16 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 	if err != nil {
 		return skerr.Wrapf(err, "getting tryjob results for %v", id)
 	}
+	t := shared.NewMetricsTimer(fmt.Sprintf("filtering"))
+	defer t.Stop()
 	queryParams := paramtools.ParamSet(q.TraceValues)
+	ignoreMatcher := idx.GetIgnoreMatcher()
 	for _, tr := range xtr {
 		p := paramtools.Params(tr.ResultParams)
 		p.Add(tr.GroupParams)
 		p.Add(tr.Options)
 		// Filter the ignored results
 		if !q.IncludeIgnores {
-			ignoreMatcher := idx.GetIgnoreMatcher()
 			// As a performance consideration, we may want to change these types to be
 			// a struct with the map and a hash, and use the hash to memoize
 			// which of the GroupParams we've already processed for ignoring.
@@ -501,9 +493,6 @@ func (s *SearchImpl) DiffDigests(test types.TestName, left, right types.Digest) 
 // filterTile iterates over the tile and accumulates the traces
 // that match the given query creating the initial search result.
 func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, exp common.ExpSlice, idx indexer.IndexSearcher) (srInterMap, error) {
-	_, span := trace.StartSpan(ctx, "search/filterTile")
-	defer span.End()
-
 	var acceptFn AcceptFn = nil
 	if q.FGroupTest == GROUP_TEST_MAX_COUNT {
 		maxDigestsByTest := idx.MaxDigestsByTest(q.IgnoreState())
@@ -557,9 +546,6 @@ func (s *SearchImpl) getDigestRecs(inter srInterMap, exps common.ExpSlice) []*fr
 // getReferenceDiffs compares all digests collected in the intermediate representation
 // and compares them to the other known results for the test at hand.
 func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState, exp common.ExpSlice, idx indexer.IndexSearcher) {
-	_, span := trace.StartSpan(ctx, "search/getReferenceDiffs")
-	defer span.End()
-
 	refDiffer := ref_differ.New(exp, s.diffStore, idx)
 	var wg sync.WaitGroup
 	wg.Add(len(resultDigests))
@@ -576,9 +562,6 @@ func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*fro
 
 // afterDiffResultFilter filters the results based on the diff results in 'digestInfo'.
 func (s *SearchImpl) afterDiffResultFilter(ctx context.Context, digestInfo []*frontend.SRDigest, q *query.Search) []*frontend.SRDigest {
-	_, span := trace.StartSpan(ctx, "search/afterDiffResultFilter")
-	defer span.End()
-
 	newDigestInfo := make([]*frontend.SRDigest, 0, len(digestInfo))
 	filterRGBADiff := (q.FRGBAMin > 0) || (q.FRGBAMax < 255)
 	filterDiffMax := q.FDiffMax >= 0
@@ -618,9 +601,6 @@ func (s *SearchImpl) afterDiffResultFilter(ctx context.Context, digestInfo []*fr
 // the slice that should be shown on the page with its offset in the entire
 // result set.
 func (s *SearchImpl) sortAndLimitDigests(ctx context.Context, q *query.Search, digestInfo []*frontend.SRDigest, offset, limit int) ([]*frontend.SRDigest, int) {
-	_, span := trace.StartSpan(ctx, "search/sortAndLimitDigests")
-	defer span.End()
-
 	fullLength := len(digestInfo)
 	if offset >= fullLength {
 		return []*frontend.SRDigest{}, 0
@@ -645,9 +625,6 @@ func (s *SearchImpl) sortAndLimitDigests(ctx context.Context, q *query.Search, d
 // what were the union of parameters that generate the digest. This should be
 // only done for digests that are intended to be displayed.
 func (s *SearchImpl) addParamsAndTraces(ctx context.Context, digestInfo []*frontend.SRDigest, inter srInterMap, exp common.ExpSlice, idx indexer.IndexSearcher) {
-	_, span := trace.StartSpan(ctx, "search/addParamsAndTraces")
-	defer span.End()
-
 	tile := idx.Tile().GetTile(types.ExcludeIgnoredTraces)
 	last := tile.LastCommitIndex()
 	for _, di := range digestInfo {
