@@ -675,7 +675,7 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 					bigtable.ChainFilters(
 						bigtable.FamilyFilter(traceFamily),
 						// can be used for local testing to keep RAM usage lower
-						// bigtable.RowSampleFilter(0.1),
+						bigtable.RowSampleFilter(0.05),
 						bigtable.LatestNFilter(1),
 						bigtable.CellsPerRowLimitFilter(DefaultTileSize),
 					),
