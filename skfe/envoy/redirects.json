@@ -1,0 +1,49 @@
+{
+    "static_resources": {
+        "listeners": [
+            {
+                "address": {
+                    "socket_address": {
+                        "address": "0.0.0.0",
+                        "port_value": 8000
+                    }
+                },
+                "filter_chains": {
+                    "filters": [
+                        {
+                            "name": "envoy.http_connection_manager",
+                            "config": {
+                                "stat_prefix": "ingress_http",
+                                "http_filters": [
+                                    {
+                                        "name": "envoy.router",
+                                        "config": {}
+                                    }
+                                ],
+                                "route_config": {
+                                    "virtual_hosts": [
+                                        {
+                                            "name": "afdo-chromium-roll.skia.org",
+                                            "domains": "afdo-chromium-roll.skia.org",
+                                            "routes": [
+                                                {
+                                                    "match": {
+                                                        "prefix": "/"
+                                                    },
+                                                    "redirect": {
+                                                        "host_redirect": "autoroll.skia.org",
+                                                        "path_redirect": "/r/afdo-chromium-autoroll"
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
