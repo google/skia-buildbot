@@ -29,5 +29,16 @@
      ],
      "method": "POST",
      "expected": [403],
-   }
+   },
+   "autoroll_redirects": {
+     "urls": [
+       "https://afdo-chromium-roll.skia.org",
+       "https://autoroll-internal.skia.org",
+     ],
+     "method": "GET",
+     "expected": [301],
+     "body": "",
+     "mimetype": ""
+   },
+
 }
