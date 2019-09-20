@@ -62,7 +62,7 @@ type WebHandlers struct {
 	DiffStore                      diff.DiffStore
 	ExpectationsStore              expstorage.ExpectationsStore
 	GCSClient                      storage.GCSClient
-	IgnoreStore                    ignore.IgnoreStore
+	IgnoreStore                    ignore.Store
 	Indexer                        indexer.IndexSource
 	SearchAPI                      search.SearchAPI
 	StatusWatcher                  *status.StatusWatcher
@@ -576,7 +576,7 @@ func (wh *WebHandlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Reque
 		httputils.ReportError(w, r, err, "Failed to parse duration")
 		return
 	}
-	ignoreRule := ignore.NewIgnoreRule(user, time.Now().Add(d), req.Filter, req.Note)
+	ignoreRule := ignore.NewRule(user, time.Now().Add(d), req.Filter, req.Note)
 	ignoreRule.ID = id
 
 	err = wh.IgnoreStore.Update(id, ignoreRule)
@@ -638,7 +638,7 @@ func (wh *WebHandlers) IgnoresAddHandler(w http.ResponseWriter, r *http.Request)
 		httputils.ReportError(w, r, err, "Failed to parse duration")
 		return
 	}
-	ignoreRule := ignore.NewIgnoreRule(user, time.Now().Add(d), req.Filter, req.Note)
+	ignoreRule := ignore.NewRule(user, time.Now().Add(d), req.Filter, req.Note)
 
 	if err = wh.IgnoreStore.Create(ignoreRule); err != nil {
 		httputils.ReportError(w, r, err, "Failed to create ignore rule.")
