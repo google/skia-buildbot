@@ -6,6 +6,8 @@ import (
 	"sync"
 	"testing"
 
+	"go.skia.org/infra/golden/go/ignore"
+
 	"cloud.google.com/go/storage"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs/gcsclient"
@@ -13,7 +15,6 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
 	d_utils "go.skia.org/infra/golden/go/diffstore/testutils"
-	"go.skia.org/infra/golden/go/ignore/mem_ignorestore"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/serialize"
 	"go.skia.org/infra/golden/go/types"
@@ -35,11 +36,7 @@ func BenchmarkMemDiffStore(b *testing.B) {
 	gcsClient := gcsclient.New(storageClient, d_utils.TEST_GCS_BUCKET_NAME)
 	defer testutils.RemoveAll(b, baseDir)
 
-	memIgnoreStore := mem_ignorestore.New()
-	for _, ir := range sample.IgnoreRules {
-		assert.NoError(b, memIgnoreStore.Create(ir))
-	}
-	ignoreMatcher, err := memIgnoreStore.BuildRuleMatcher()
+	ignoreMatcher, err := ignore.BuildRuleMatcher(sample.IgnoreRules)
 	assert.NoError(b, err)
 
 	// Build storages and get the digests that are not ignored.
