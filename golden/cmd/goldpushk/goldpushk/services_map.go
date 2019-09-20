@@ -95,7 +95,6 @@ func makeDeploymentOptionsForIngestionBT(instance Instance, internal bool) Deplo
 	return DeploymentOptions{
 		internal:          internal,
 		configMapName:     fmt.Sprintf("gold-%s-ingestion-config-bt", instance),
-		configMapFile:     fmt.Sprintf("golden/build/gold-%s-ingestion-config-bt.json5", instance),
 		configMapTemplate: "golden/k8s-config-templates/ingest-config-template.json5",
 	}
 }
