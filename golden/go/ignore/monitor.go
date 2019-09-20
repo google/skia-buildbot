@@ -8,7 +8,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
-func oneStep(store IgnoreStore, metric metrics2.Int64Metric) error {
+func oneStep(store Store, metric metrics2.Int64Metric) error {
 	list, err := store.List()
 	if err != nil {
 		return err
@@ -26,7 +26,9 @@ func oneStep(store IgnoreStore, metric metrics2.Int64Metric) error {
 // StartMonitoring starts a new monitoring routine for the given
 // ignore store that counts expired ignore rules and pushes
 // that info into a metric.
-func StartMonitoring(store IgnoreStore, interval time.Duration) error {
+// TODO(kjlubick) : If we re-write the ignorestore to be backed by firestore, we can use a
+//  QuerySnapShot and not have to poll the ignorestore, but get results pushed to us.
+func StartMonitoring(store Store, interval time.Duration) error {
 	numExpired := metrics2.GetInt64Metric("gold_num_expired_ignore_rules", nil)
 	liveness := metrics2.NewLiveness("gold_expired_ignore_rules_monitoring")
 

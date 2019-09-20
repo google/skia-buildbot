@@ -7,31 +7,30 @@ import (
 	"go.skia.org/infra/go/skerr"
 )
 
-// RuleMatcher returns a list of rules in the IgnoreStore that match the given
-// set of parameters.
-type RuleMatcher func(map[string]string) ([]*IgnoreRule, bool)
+// RuleMatcher returns a list of rules that match the given set of parameters.
+type RuleMatcher func(map[string]string) ([]*Rule, bool)
 
-// IgnoreStore stores and matches ignore rules.
+// Store is an interface for a database that saves ignore rules.
 // TODO(kjlubick): Add context to these methods such that we can
 // pass in a context from the web request to the backend.
-type IgnoreStore interface {
+type Store interface {
 	// Create adds a new rule to the ignore store.
-	Create(*IgnoreRule) error
+	Create(*Rule) error
 
 	// List returns all ignore rules in the ignore store.
-	List() ([]*IgnoreRule, error)
+	List() ([]*Rule, error)
 
-	// Updates an IgnoreRule.
-	Update(id int64, rule *IgnoreRule) error
+	// Updates an Rule.
+	Update(id int64, rule *Rule) error
 
-	// Removes an IgnoreRule from the store. The return value is the number of
+	// Removes an Rule from the store. The return value is the number of
 	// records that were deleted (either 0 or 1).
 	Delete(id int64) (int, error)
 
 	// Revision returns a monotonically increasing int64 that goes up each time
 	// the ignores have been changed. It will not persist nor will it be the same
-	// between different instances of IgnoreStore. I.e. it will probably start at
-	// zero each time an IngoreStore is instantiated.
+	// between different instances of Store. I.e. it will probably start at
+	// zero each time a Store is instantiated.
 	Revision() int64
 
 	// BuildRuleMatcher returns a RuleMatcher based on the current content
@@ -39,8 +38,8 @@ type IgnoreStore interface {
 	BuildRuleMatcher() (RuleMatcher, error)
 }
 
-// IgnoreRule is the GUI struct for dealing with Ignore rules.
-type IgnoreRule struct {
+// Rule is the GUI struct for dealing with Ignore rules.
+type Rule struct {
 	ID        int64     `json:"id,string"`
 	Name      string    `json:"name"`
 	UpdatedBy string    `json:"updatedBy"`
@@ -49,9 +48,9 @@ type IgnoreRule struct {
 	Note      string    `json:"note"`
 }
 
-// ToQuery makes a slice of url.Values from the given slice of IgnoreRules.
-func ToQuery(ignores []*IgnoreRule) ([]url.Values, error) {
-	ret := []url.Values{}
+// ToQuery makes a slice of url.Values from the given slice of Rules.
+func ToQuery(ignores []*Rule) ([]url.Values, error) {
+	var ret []url.Values
 	for _, ignore := range ignores {
 		v, err := url.ParseQuery(ignore.Query)
 		if err != nil {
@@ -62,8 +61,8 @@ func ToQuery(ignores []*IgnoreRule) ([]url.Values, error) {
 	return ret, nil
 }
 
-func NewIgnoreRule(createdByUser string, expires time.Time, queryStr string, note string) *IgnoreRule {
-	return &IgnoreRule{
+func NewRule(createdByUser string, expires time.Time, queryStr string, note string) *Rule {
+	return &Rule{
 		Name:      createdByUser,
 		UpdatedBy: createdByUser,
 		Expires:   expires,
@@ -105,6 +104,6 @@ func (q QueryRule) IsMatch(params map[string]string) bool {
 	return true
 }
 
-func noopRuleMatcher(p map[string]string) ([]*IgnoreRule, bool) {
+func noopRuleMatcher(_ map[string]string) ([]*Rule, bool) {
 	return nil, false
 }

@@ -27,7 +27,7 @@ type TileSource interface {
 
 type CachedTileSourceConfig struct {
 	CLUpdater   code_review.Updater
-	IgnoreStore ignore.IgnoreStore
+	IgnoreStore ignore.Store
 	TraceStore  tracestore.TraceStore
 	VCS         vcsinfo.VCS
 
