@@ -3,27 +3,28 @@ package ignore
 import (
 	"net/url"
 
+	"go.skia.org/infra/go/skerr"
+
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
 )
 
-func BuildRuleMatcher(store IgnoreStore) (RuleMatcher, error) {
-	rulesList, err := store.List()
-	if err != nil {
-		return noopRuleMatcher, err
+func BuildRuleMatcher(rulesList []*IgnoreRule) (RuleMatcher, error) {
+	if len(rulesList) == 0 {
+		return noopRuleMatcher, nil
 	}
 
 	ignoreRules := make([]QueryRule, len(rulesList))
 	for idx, rawRule := range rulesList {
 		parsedQuery, err := url.ParseQuery(rawRule.Query)
 		if err != nil {
-			return noopRuleMatcher, err
+			return nil, skerr.Wrap(err)
 		}
 		ignoreRules[idx] = NewQueryRule(parsedQuery)
 	}
 
 	return func(params map[string]string) ([]*IgnoreRule, bool) {
-		result := []*IgnoreRule{}
+		var result []*IgnoreRule
 
 		for ruleIdx, rule := range ignoreRules {
 			if rule.IsMatch(params) {

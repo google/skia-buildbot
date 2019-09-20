@@ -104,8 +104,7 @@ func TestUpdateTileNilCLUpdater(t *testing.T) {
 	err := ts.updateTile(context.Background())
 	assert.NoError(t, err)
 
-	cpxTile, err := ts.GetTile()
-	assert.NoError(t, err)
+	cpxTile := ts.GetTile()
 	assert.NotNil(t, cpxTile)
 
 	assert.Equal(t, makeSparseTilingCommits(), cpxTile.AllCommits())

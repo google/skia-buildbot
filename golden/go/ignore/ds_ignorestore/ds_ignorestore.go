@@ -158,5 +158,9 @@ func (c *DSIgnoreStore) Revision() int64 {
 
 // BuildRuleMatcher implements the IgnoreStore interface.
 func (c *DSIgnoreStore) BuildRuleMatcher() (ignore.RuleMatcher, error) {
-	return ignore.BuildRuleMatcher(c)
+	ir, err := c.List()
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return ignore.BuildRuleMatcher(ir)
 }

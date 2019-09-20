@@ -31,7 +31,7 @@ func IgnoreStoreAll(t sktest.TestingT, store ignore.IgnoreStore) {
 	assert.NoError(t, err)
 	found, ok := matcher(map[string]string{"config": "565"})
 	assert.False(t, ok)
-	assert.Equal(t, []*ignore.IgnoreRule{}, found)
+	assert.Empty(t, found)
 	found, ok = matcher(map[string]string{"config": "8888"})
 	assert.True(t, ok)
 	assert.Equal(t, 1, len(found))
