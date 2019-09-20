@@ -17,8 +17,11 @@ The main application element for the Skia Debugger.
 <link rel=import href="/res/imp/bower_components/iron-icons/iron-icons.html">
 <link rel=import href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
 <link rel=import href="/res/imp/bower_components/paper-drawer-panel/paper-drawer-panel.html">
+<link rel=import href="/res/imp/bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel=import href="/res/imp/bower_components/paper-header-panel/paper-header-panel.html">
 <link rel=import href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
+<link rel=import href="/res/imp/bower_components/paper-item/paper-item.html">
+<link rel=import href="/res/imp/bower_components/paper-listbox/paper-listbox.html">
 <link rel=import href="/res/imp/bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel=import href="/res/imp/bower_components/paper-radio-group/paper-radio-group.html">
 <link rel=import href="/res/imp/bower_components/paper-radio-button/paper-radio-button.html">
@@ -198,12 +201,20 @@ The main application element for the Skia Debugger.
       font-family: monospace;
     }
 
-    canvas-layers-sk  {
+    .light-checkerboard  {
       border: solid lightgray 1px;
       background-position: 0px 0px, 10px 10px;
       background-size: 20px 20px;
       background-image: linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee 100%),
                         linear-gradient(45deg, #eee 25%, white 25%, white 75%, #eee 75%, #eee 100%);
+    }
+
+    .dark-checkerboard  {
+      border: solid lightgray 1px;
+      background-position: 0px 0px, 10px 10px;
+      background-size: 20px 20px;
+      background-image: linear-gradient(45deg, #555 25%, transparent 25%, transparent 75%, #555 75%, #555 100%),
+                        linear-gradient(45deg, #555 25%, #222 25%, #222 75%, #555 75%, #555 100%);
     }
 
     paper-icon-button.resizer
@@ -238,10 +249,6 @@ The main application element for the Skia Debugger.
       display: inline-block;
       margin-top: 1em;
       box-shadow: 5px 5px 18px grey;
-      background-position: 0px 0px, 10px 10px;
-      background-size: 20px 20px;
-      background-image: linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee 100%),
-                        linear-gradient(45deg, #eee 25%, white 25%, white 75%, #eee 75%, #eee 100%);
     }
 
     #keyboardshortcuts {
@@ -353,8 +360,8 @@ The main application element for the Skia Debugger.
           </div>
           <div id=rendered>
             <paper-tabs selected="{{tab_selected}}">
-              <paper-tab>Picture</paper-tab>
-              <paper-tab disabled=[[_isEmpty(bitmap)]]>Image</paper-tab>
+              <paper-tab>SKP view</paper-tab>
+              <paper-tab>Resources</paper-tab>
             </paper-tabs>
             <iron-pages selected="{{tab_selected}}">
               <div>
@@ -365,13 +372,24 @@ The main application element for the Skia Debugger.
                   <paper-icon-button src="https://debugger-assets.skia.org/res/img/bottom.png" data-style="bottom"  title="Fit to height."     on-tap="_resizeImage"></paper-icon-button>
                   <paper-icon-button icon="file-download" title="Save current image" on-tap="_saveImage"></paper-icon-button>
                 </div>
-                <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick" useObservers=false>
+                <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick" useObservers=false class="light-checkerboard">
                   <canvas id=img width=400 height=400></canvas>
                 </canvas-layers-sk>
                 <crosshair-sk id=crosshair target=layers name=crosshair update_on=move hidden></crosshair-sk>
               </div>
               <div>
-                <img id=standAloneImg src$="[[bitmap]]">
+                <p>{{imageCount}} images were stored in this file. Note that image indices here are file indices, which corresponded 1:1 to the gen ids that the images had during recording. If an image appears more than once, that indicates it was not reffed (re-used) at record time. The urls like \data\1 that you see in DrawImage commands refer to a cache unique to this process that contains each image only once. At the moment, the mapping between these is unavailable.</p>
+                <paper-dropdown-menu label="Image Resources">
+                  <paper-listbox class="dropdown-content" selected="{{selectedResourceImage}}">
+                    <template id="dropdownTemplate" is="dom-repeat" items="[[resouceNameList]]" as="item">
+                      <paper-item value="[[item.value]]">[[item.displayName]]</paper-item>
+                    </template>
+                  </paper-listbox>
+                </paper-dropdown-menu>
+                <br>
+                <div id="resource" class="light-checkerboard" style="display:inline-block;">
+                  <img id="resource-tab-image"/>
+                </div>
               </div>
             </iron-pages>
           </div>
@@ -382,6 +400,7 @@ The main application element for the Skia Debugger.
             <paper-checkbox disabled="{{!render_mode_gpu}}" checked="{{draw_gpu_op_bounds}}" id=gpuOpBounds on-change="_gpuOpBounds">Display GPU Op Bounds</paper-checkbox>
           </div>
           <div class="layout horizontal">
+            <paper-toggle-button  title="Show backround as light or dark checkerboard" checked="{{checkerboardMode}}">Light/Dark</paper-toggle-button>
             <paper-checkbox checked="{{show_overdraw}}" id=showOverdrawCheckbox on-change="_overdrawHandler">Display Overdraw Vis</paper-checkbox>
           </div>
           <details-sk>
@@ -427,7 +446,7 @@ The main application element for the Skia Debugger.
               <div class=color-preview id=currColor></div> <span id=colorTextColor2></span>.
             </div>
           </div>
-          <zoom-sk source=img pixels=21 id=zoom></zoom-sk>
+          <zoom-sk source=img pixels=21 id=zoom class="light-checkerboard"></zoom-sk>
           <details-sk id=keyboardshortcuts class=hidden>
             <summary-sk>
               Keyboard shortcuts
@@ -463,11 +482,6 @@ The main application element for the Skia Debugger.
         tab_selected: {
           type: Number,
           value: 0,
-          reflectToAttribute: false,
-        },
-        bitmap: {
-          type: String,
-          value: '',
           reflectToAttribute: false,
         },
         _leftRatio: {
@@ -506,7 +520,26 @@ The main application element for the Skia Debugger.
           type: Number,
           value: 0,
           observer: "_moveFrameTo",
+        },
+        imageCount: {
+          type: Number,
+          value: 0,
+        },
+        selectedResourceImage: {
+          type: Number,
+          value: 0,
+          observer: "_setTabImage",
+        },
+        resouceNameList: {
+          type: Array,
+          value: [],
+        },
+        checkerboardMode: {
+          type: Boolean,
+          value: false, // false is light, true is dark
+          observer: "_checkerboardToggle",
         }
+
       },
 
       ready: function() {
@@ -526,7 +559,7 @@ The main application element for the Skia Debugger.
         // be loaded yet.
         this._targetItem = 0;
 
-        // The original JSON response from the server.
+        // The parse, unfiltered JSON command list to be displayed.
         this._cmd = {
           version: 1,
           commands: [],
@@ -547,6 +580,11 @@ The main application element for the Skia Debugger.
           version: 1,
           commands: [],
         };
+
+        // Cached json command lists from each frame in a file.
+        // keys are frame indices.
+        // The 2nd playthrough of an MSKP is about twice as fast because of this.
+        this.jsonCommandListCache = {};
 
         // When a multi frame SKP is loaded, this id refers to the timeout id of the _nextFrame()
         // call when playback is active. it serves both to indicate the state of frame playback
@@ -725,13 +763,29 @@ The main application element for the Skia Debugger.
         } else {
           this.$.multi_frame_controls.hidden = true;
         }
-        // Request and parse command list for this file.
-        json = this._player.jsonCommandList(this._surface);
-        this._setCommands(JSON.parse(json));
+        // Request and parse command list for this frame
+        this._setCommands();
         this._moveToLastFilteredCommand();
         this.$.zoom.allow_draw = true;
 
+        // initialize shared resource viewer
+        this.imageCount = this._player.getImageCount();
+        this.set("resouceNameList", this._makeResouceNameList());
+
         window.dispatchEvent(new CustomEvent('partial-resize'));
+      },
+
+      _memoizedJsonCommandList: function() {
+        // get the json command list of the player's current frame.
+        // it costs considerable time to do this, because it's replaying all commands and
+        // flattening all resources they reference to put them in UrlDataManager.
+        if (this.jsonCommandListCache.includes(this.frameIndex)) {
+          return this.jsonCommandListCache[this.frameIndex];
+        }
+        const json = this._player.jsonCommandList(this._surface);
+        this.jsonCommandListCache[this.frameIndex] = json;
+        console.log("json cache miss for frame "+this.frameIndex);
+        return json;
       },
 
       // Called when any of the fit buttons are pressed.
@@ -904,8 +958,9 @@ The main application element for the Skia Debugger.
         this._setFiltered(filtered);
       },
 
-      _setCommands: function(json) {
-        this._cmd = this._processCommands(json);
+      _setCommands: function() {
+        // fetch the json specifying commands for this frame from the player (possibly cached)
+        this._cmd = this._processCommands(JSON.parse(this._memoizedJsonCommandList()));
         if (this.$.fast.value) {
           this._fastFilter();
         } else {
@@ -926,10 +981,6 @@ The main application element for the Skia Debugger.
       _moveToLastFilteredCommand: function() {
         this._targetItem = this._filtered.commands.length - 1;
         this._moveToTargetItem();
-      },
-
-      _hasBitmap: function(s) {
-        return !!s;
       },
 
       _clipHandler: function(update=true) {
@@ -1040,8 +1091,7 @@ The main application element for the Skia Debugger.
         this.$.frame_play_button.icon = "av:play-circle-outline";
         clearTimeout(this.nextFrameTimeout);
         this.nextFrameTimeout = 0;
-        json = this._player.jsonCommandList(this._surface);
-        this._setCommands(JSON.parse(json));
+        this._setCommands();
         this._moveToTargetItem();
       },
 
@@ -1077,8 +1127,7 @@ The main application element for the Skia Debugger.
         this._player.changeFrame(this.frameIndex);
         // If the frame moved and the state is paused, also update the command list
         if (!this.nextFrameTimeout) {
-          json = this._player.jsonCommandList(this._surface);
-          this._setCommands(JSON.parse(json));
+          this._setCommands();
           this._moveToTargetItem();
         } else {
           this._updateDebuggerView();
@@ -1168,7 +1217,46 @@ The main application element for the Skia Debugger.
         this.histogram = histogram;
         this.$.histogram.classList.remove('hidden');
         return cmd;
+      },
+
+      _setTabImage(index) {
+        if (!this._player) { return; }
+        let pngUri = this._player.getImageResource(index);
+        document.getElementById("resource-tab-image").src = pngUri
+      },
+
+      _makeResouceNameList() {
+        let list = [];
+        for (var i = 0; i < this.imageCount; i++) {
+          let info = this._player.getImageInfo(i);
+          list.push({
+            "value": i,
+            "displayName": `${i} (${info.width}, ${info.height})`
+          });
+        }
+        return list;
+      },
+
+      _checkerboardToggle() {
+        let light = "light-checkerboard";
+        let dark = "dark-checkerboard";
+        if(this.checkerboardMode) { // dark
+          this.$.zoom.classList.remove(light);
+          this.$.layers.classList.remove(light);
+          this.$.resource.classList.remove(light);
+          this.$.zoom.classList.add(dark);
+          this.$.layers.classList.add(dark);
+          this.$.resource.classList.add(dark);
+        } else {
+          this.$.zoom.classList.remove(dark);
+          this.$.layers.classList.remove(dark);
+          this.$.resource.classList.remove(dark);
+          this.$.zoom.classList.add(light);
+          this.$.layers.classList.add(light);
+          this.$.resource.classList.add(light);
+        }
       }
+
     });
   })();
 </script>
