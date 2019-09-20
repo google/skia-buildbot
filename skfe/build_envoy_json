@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# This script uses jq and gomplate to create the services.conf nginx config file
+# from kubernetes services data.
+#
+# jq is available via apt get.
+#
+# gomplate can be installed with:
+#
+#    go get github.com/hairyhenderson/gomplate/cmd/gomplate
+#
+
+# The jq part of the script strips out all Services that don't have a
+# skia.org.domain annotation.
+#
+# Selects all Services that have a port named "http"
+#
+# And then removes all Service ports that aren't named "http".
+#
+# Then finally constructs a JSON stream that looks like:
+#
+#     {
+#       services: [
+#          { service: "skiaperf", port: "8000", domain: "perf.skia.org"},
+#          ...
+#       ]
+#     }
+#
+# Which is then piped into gomplate.
+kubectl get services -o json | jq '{ static_resources: {
+    clusters: [
+    .items[]
+    | select(.metadata.annotations["skia.org.domain"] != null)
+    | select(.spec.ports[].name == "http")
+    | del(.spec.ports[] | select(.name != "http"))
+    | {
+        name: .metadata.name,
+        type: "STRICT_DNS",
+        connect_timeout: {
+           seconds: 1
+        },
+        hosts: [
+                    {
+                        socket_address: {
+                            address: .metadata.name,
+                            port_value: .spec.ports[0].port
+                        }
+                    }
+                ]
+        }
+    ]}}'
