@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "01949979_72df6b04",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-20T18:56:26Z",
+      "side": 1,
+      "message": "ubernit: the line break before this word looks a bit strange - I think you\u0027d be fine on line length to break it after the )\n\nFor go, we break comments at 100 col width.",
+      "range": {
+        "startLine": 213,
+        "startChar": 3,
+        "endLine": 213,
+        "endChar": 7
+      },
+      "revId": "08f9e5c9f6c2e310c2e6fceb4cbb999a0157ec64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d231a96a_69dd4fc6",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-20T18:56:26Z",
+      "side": 1,
+      "message": "this looks a bit strange, to have a switch with no variable. I think I would prefer if... else if... else",
+      "range": {
+        "startLine": 221,
+        "startChar": 1,
+        "endLine": 221,
+        "endChar": 9
+      },
+      "revId": "08f9e5c9f6c2e310c2e6fceb4cbb999a0157ec64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59230fae_815ee288",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-20T18:56:26Z",
+      "side": 1,
+      "message": "This feels clunky to have to do every time.  You already have at least one test thand makes sure we properly clone git, so is there a way to skip this setup?\n\nI could imagine doing New()\ng.skiaPublicConfigCheckout \u003d \u0026git.TempCheckout{\n  GitDir: \"/foo/bar\",\n}\ng.skiaCorpConfigCheckout \u003d \u0026git.TempCheckout{\n  GitDir: \"/foo/corp\",\n}\n// test starts here.\n\nMaybe put that in a test helper newWithCheckout() ?\n\nThat may have the upside of making some tests Small (those that don\u0027t hit disk) and for those that might need the disk, you could do GitDir: ioutil.TempDir(...) or something.",
+      "range": {
+        "startLine": 81,
+        "startChar": 1,
+        "endLine": 100,
+        "endChar": 23
+      },
+      "revId": "08f9e5c9f6c2e310c2e6fceb4cbb999a0157ec64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
