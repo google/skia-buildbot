@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "760d4919_521c56e9",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 774,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-09-20T14:41:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4913d6e1_3b54fe34",
+      "range": {
+        "startLine": 774,
+        "startChar": 8,
+        "endLine": 774,
+        "endChar": 43
+      },
+      "revId": "44f66607a1db4386b3d6fc554227912d478923f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "073e95d8_623b714c",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 2
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "dcbf878b_e0a2c815",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 783,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-09-20T14:41:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "073e95d8_623b714c",
+      "range": {
+        "startLine": 783,
+        "startChar": 28,
+        "endLine": 783,
+        "endChar": 30
+      },
+      "revId": "44f66607a1db4386b3d6fc554227912d478923f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4345e140_c6c07932",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 2
@@ -91,6 +139,30 @@
       "revId": "44f66607a1db4386b3d6fc554227912d478923f2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01ab0db6_8a1b4fc5",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 786,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-09-20T14:41:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4345e140_c6c07932",
+      "range": {
+        "startLine": 786,
+        "startChar": 8,
+        "endLine": 786,
+        "endChar": 11
+      },
+      "revId": "44f66607a1db4386b3d6fc554227912d478923f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
