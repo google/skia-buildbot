@@ -1,3 +1,3 @@
-FROM nginx:mainline-alpine
+FROM envoyproxy/envoy-alpine:latest
 
 COPY . /
