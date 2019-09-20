@@ -1,0 +1,422 @@
+{
+  "static_resources": {
+    "clusters": [
+      {
+        "name": "alert-manager",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "alert-manager",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "api",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "api",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "autoroll-fe",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "autoroll-fe",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "collectd-exporter",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "collectd-exporter",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "contest",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "contest",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "ctfe",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "ctfe",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "ctfe-staging",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "ctfe-staging",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "debugger",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "debugger",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "debugger-assets",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "debugger-assets",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "docserver",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "docserver",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "fiddle",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "fiddle",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "grafana",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "grafana",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "jsdoc",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "jsdoc",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "jsfiddle",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "jsfiddle",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "leasing",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "leasing",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "legacy-debugger",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "legacy-debugger",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "named-fiddles",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "named-fiddles",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "particles",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "particles",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "power-controller",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "power-controller",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "prometheus",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "prometheus",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "push",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "push",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "skiaperf",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "skiaperf",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "skiaperf-android",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "skiaperf-android",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "skiaperf-android-x",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "skiaperf-android-x",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "skiaperf-ct",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "skiaperf-ct",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "skottie",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "skottie",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "skottie-internal",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "skottie-internal",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "status",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "status",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "status-staging",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "status-staging",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "task-driver-server",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "task-driver-server",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "task-scheduler",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "task-scheduler",
+              "port_value": 8000
+            }
+          }
+        ]
+      },
+      {
+        "name": "task-scheduler-staging",
+        "type": "STRICT_DNS",
+        "connect_timeout": "1s",
+        "hosts": [
+          {
+            "socket_address": {
+              "address": "task-scheduler-staging",
+              "port_value": 8000
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
