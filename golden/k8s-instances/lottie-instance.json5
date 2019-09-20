@@ -23,6 +23,7 @@
     "AUTHORIZED_PARAMS":       "", // defaults to "all"
     "AUTHORITATIVE":           true,
     "AUTH_USERS":              "google.com chromium.org skia.org",
+    "CHANGELIST_TRACKING":     true,
     "HASHES_FILE":             "gold-lottie-hashes.txt",
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
     "MAIN_CPU":                "4",

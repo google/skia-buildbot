@@ -30,6 +30,13 @@ func New(c code_review.Client, e expstorage.ExpectationsStore, s clstore.Store) 
 // UpdateChangeListsAsLanded implements the code_review.Updater interface.
 // This implementation is *not* thread safe.
 func (u *Impl) UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo.LongCommit) error {
+	if len(commits) > 100 {
+		// For new instances, or very sparse instances, we'll have many many many commits to check,
+		// which can make startup take tens of minutes (due to having to poll the CRS about many
+		// many commits [and there's a very conservative QPS limit set]).
+		sklog.Warningf("Got more than 100 commits to update. This usually means we are starting up; We'll only check the last 100.")
+		commits = commits[len(commits)-100:]
+	}
 	crs := u.client.System()
 	for _, c := range commits {
 		cl, err := u.client.GetChangeListForCommit(ctx, c)

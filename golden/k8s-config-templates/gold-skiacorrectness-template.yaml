@@ -47,6 +47,7 @@ spec:
             - "--auth_users={{.AUTH_USERS}}"
             - "--bt_instance={{.BIGTABLE_INSTANCE}}"
             - "--bt_project_id={{.BIGTABLE_PROJECT}}"
+            - "--changelist_tracking={{.CHANGELIST_TRACKING}}"
             - "--default_corpus={{.SKCORR_DEFAULT_CORPUS}}"
             - "--diff_server_grpc={{.SKCORR_DIFF_SERVER}}:8000"
             - "--diff_server_http={{.SKCORR_DIFF_SERVER}}:8001"
