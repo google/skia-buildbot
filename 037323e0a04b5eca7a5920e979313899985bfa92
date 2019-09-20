@@ -198,6 +198,30 @@
     },
     {
       "key": {
+        "uuid": "59d2045a_a1f3a0d9",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-20T13:31:41Z",
+      "side": 1,
+      "message": "Understood that different impls of ModifiedData provide different guarantees. For scheduling, we use the Mux impl to only write to PubSub; GetModifiedTasks always goes to the in-memory impl.\n\nForgot that scheduling tests use the in-memory impl. We should leave that as-is.\n\nSkipping B SGTM.\n\nOne other thought: since it\u0027s really only scheduling that requires having updated tasks immediately, we could just change scheduling to manually insert tasks into its cache after PutTasks, and stop using the in-memory impl altogether (except maybe for tests).",
+      "parentUuid": "bdd4aad6_1b02ec28",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 4
+      },
+      "revId": "037323e0a04b5eca7a5920e979313899985bfa92",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0806a6b1_084898af",
         "filename": "task_scheduler/go/db/testutil.go",
         "patchSetId": 5
