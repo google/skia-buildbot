@@ -1,0 +1,268 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f8f69c42_5a88b764",
+        "filename": "golden/go/search/benchmarks_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-21T02:55:03Z",
+      "side": 1,
+      "message": "nit: This doesn\u0027t sound right. There should be one group per tryjob, so ~15.",
+      "range": {
+        "startLine": 42,
+        "startChar": 29,
+        "endLine": 42,
+        "endChar": 38
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14bc4ecd_7a3ac6d4",
+        "filename": "golden/go/search/benchmarks_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-21T02:55:03Z",
+      "side": 1,
+      "message": "I suspect that looking up the classification also takes quite a bit of time. Do you have stats on that?",
+      "range": {
+        "startLine": 78,
+        "startChar": 26,
+        "endLine": 78,
+        "endChar": 46
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "845ece40_488695fe",
+        "filename": "golden/go/search/benchmarks_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-21T02:55:03Z",
+      "side": 1,
+      "message": "nit: I think you want:\nfieldPerm :\u003d rand.Perm(len(ignorableFields))\nfor _, r :\u003d range fieldPerm[:numFields] {\n\nOTOH, it probably doesn\u0027t matter much if you occasionally overwrite the first field value with the second field value.",
+      "range": {
+        "startLine": 103,
+        "startChar": 0,
+        "endLine": 104,
+        "endChar": 39
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d633e3d_f55ec543",
+        "filename": "golden/go/search/benchmarks_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-21T02:55:03Z",
+      "side": 1,
+      "message": "nit: same as previous; I don\u0027t think it\u0027s valid to have duplicate values",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 111,
+        "endChar": 40
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59e99198_44531e1a",
+        "filename": "golden/go/search/benchmarks_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-21T02:55:03Z",
+      "side": 1,
+      "message": "uniqueGroups",
+      "range": {
+        "startLine": 131,
+        "startChar": 17,
+        "endLine": 131,
+        "endChar": 30
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "657b531f_05d07c5f",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-21T02:55:03Z",
+      "side": 1,
+      "message": "Seems like a channel might work better for a case like this.",
+      "range": {
+        "startLine": 374,
+        "startChar": 30,
+        "endLine": 374,
+        "endChar": 46
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c72a898a_a079657b",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-21T02:55:03Z",
+      "side": 1,
+      "message": "nit: this is util.ChunkIter",
+      "range": {
+        "startLine": 429,
+        "startChar": 0,
+        "endLine": 433,
+        "endChar": 3
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "558c4efc_71f003d7",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 438,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-21T02:55:03Z",
+      "side": 1,
+      "message": "nit: seems like this can be shared for all goroutines?",
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1294444_e3cba6d8",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 450,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-21T02:55:03Z",
+      "side": 1,
+      "message": "nit: Would be nice to document on TryJobResult and GoldResults that GroupParams override ResultParams and that Options override GroupParams and ResultParams, if they conflict.",
+      "range": {
+        "startLine": 448,
+        "startChar": 0,
+        "endLine": 450,
+        "endChar": 21
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7c9307b6_86e7a559",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 455,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-21T02:55:03Z",
+      "side": 1,
+      "message": "If you\u0027re looking for something to optimize, I think there are some easy wins here, e.g. using maps rather than util.In, as well as more complicated wins, e.g. compile the rules into a FSM. Same for queryParams.MatchesParams, to a lesser extent.",
+      "range": {
+        "startLine": 455,
+        "startChar": 8,
+        "endLine": 455,
+        "endChar": 39
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "80b92d09_22f23043",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 678,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-21T02:55:03Z",
+      "side": 1,
+      "message": "!!!",
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3a1bc40_21e0f120",
+        "filename": "golden/modules/changelist-controls-sk/changelist-controls-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-21T02:55:03Z",
+      "side": 1,
+      "message": "FWIW, gerrit shows the full name",
+      "range": {
+        "startLine": 16,
+        "startChar": 6,
+        "endLine": 16,
+        "endChar": 30
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
