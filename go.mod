@@ -13,6 +13,7 @@ require (
 	contrib.go.opencensus.io/resource v0.1.2 // indirect
 	github.com/99designs/goodies v0.0.0-20140916053233-ec7f410f2ff2
 	github.com/Azure/go-autorest v13.0.1+incompatible // indirect
+	github.com/Jeffail/gabs/v2 v2.1.0 // indirect
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.21.0+incompatible
@@ -36,6 +37,7 @@ require (
 	github.com/elazarl/goproxy v0.0.0-20190911111923-ecfe977594f1 // indirect
 	github.com/elazarl/goproxy/ext v0.0.0-20190911111923-ecfe977594f1 // indirect
 	github.com/emicklei/go-restful v2.10.0+incompatible // indirect
+	github.com/envoyproxy/go-control-plane v0.9.0
 	github.com/evanphx/json-patch v4.5.0+incompatible // indirect
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
@@ -92,7 +94,6 @@ require (
 	github.com/pelletier/go-toml v1.4.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.1.0
-	github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4 // indirect
 	github.com/prometheus/common v0.7.0 // indirect
 	github.com/prometheus/procfs v0.0.5 // indirect
 	github.com/prometheus/tsdb v0.10.0 // indirect
