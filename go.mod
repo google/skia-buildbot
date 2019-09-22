@@ -122,7 +122,7 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
-	go.chromium.org/luci v0.0.0-20190921001349-e82cd8f0c25b
+	go.chromium.org/luci v0.0.0-20190922093713-a6f3ce470c5f
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.opencensus.io v0.22.1
 	golang.org/x/crypto v0.0.0-20190911031432-227b76d455e7
@@ -132,7 +132,7 @@ require (
 	golang.org/x/net v0.0.0-20190921015927-1a5e07d1ff72
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380 // indirect
+	golang.org/x/sys v0.0.0-20190922100055-0a153f010e69 // indirect
 	golang.org/x/time v0.0.0-20190921001708-c4c64cad1fd0
 	golang.org/x/tools v0.0.0-20190920225731-5eefd052ad72 // indirect
 	golang.org/x/tools/gopls v0.1.7 // indirect
