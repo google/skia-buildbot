@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "996741c3_7e39f0ab",
+        "filename": "skfe/build_envoy_json",
+        "patchSetId": 49
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-23T17:53:31Z",
+      "side": 1,
+      "message": "Oh, sorry, that\u0027s not as simple as I thought. It can be done like this, if you want:\n\n.items[]\n| select(.metadata.annotations[\"skia.org.domain\"] !\u003d null)\n| select(.spec.ports[].name \u003d\u003d \"http\")\n| del(.spec.ports[] | select(.name !\u003d \"http\")) as $services\n| {\n  static_resources: {\n...\n                                virtual_hosts: [\n                                    $services\n                                    | {\n                                        name: .metadata.annotations[\"skia.org.domain\"],\n...\n    clusters: [\n      $services\n      | {\n          name: .metadata.name,\n...",
+      "parentUuid": "37ad1514_e65dea63",
+      "range": {
+        "startLine": 37,
+        "startChar": 36,
+        "endLine": 40,
+        "endChar": 82
+      },
+      "revId": "083cc3d321c8bf4e2b6c068c54a76ea29cbe50ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5d7ceac9_c7f855f7",
         "filename": "skfe/build_envoy_json",
         "patchSetId": 49
