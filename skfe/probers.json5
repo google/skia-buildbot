@@ -2,7 +2,7 @@
    "skfe": {
      "urls": [
        "http://skia-skfe-1",
-       "http://skia-skfe-2",
+       "http://skia-skfe-2"
      ],
      "method": "GET",
      "expected": [200],
