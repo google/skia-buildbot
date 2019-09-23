@@ -222,6 +222,30 @@
     },
     {
       "key": {
+        "uuid": "80db1134_e3e75b52",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-23T14:11:31Z",
+      "side": 1,
+      "message": "Ok, updated the caches to handle old data.  I like the idea of manually adding tasks to the cache.  I think that\u0027d allow us to remove ModifiedData entirely and just use the channels directly in TaskCache, JobCache, and elsewhere.  That will be simpler to do once everyone is using the new implementation.",
+      "parentUuid": "59d2045a_a1f3a0d9",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 4
+      },
+      "revId": "037323e0a04b5eca7a5920e979313899985bfa92",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0806a6b1_084898af",
         "filename": "task_scheduler/go/db/testutil.go",
         "patchSetId": 5
