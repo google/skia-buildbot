@@ -290,6 +290,9 @@ func (c *taskCache) expireTasks() {
 // a helper for expireAndUpdate.
 func (c *taskCache) insertOrUpdateTask(task *types.Task) {
 	old, isUpdate := c.tasks[task.Id]
+	if isUpdate && !task.DbModified.After(old.DbModified) {
+		return
+	}
 
 	// Insert the new task into the main map.
 	c.tasks[task.Id] = task
@@ -621,6 +624,11 @@ func (c *jobCache) expireJobs() {
 // insertOrUpdateJob inserts the new/updated job into the cache. Assumes the
 // caller holds a lock. This is a helper for expireAndUpdate.
 func (c *jobCache) insertOrUpdateJob(job *types.Job) {
+	old, isUpdate := c.jobs[job.Id]
+	if isUpdate && !job.DbModified.After(old.DbModified) {
+		return
+	}
+
 	// Insert the new job into the main map.
 	c.jobs[job.Id] = job
 
