@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 	"strings"
 	"sync"
 	"time"
@@ -81,6 +82,10 @@ const (
 	snapshotShards = 32
 
 	masterBranch = ""
+
+	// recoverTime is the minimum amount of time to wait before recreating any QuerySnapshotIterator
+	// if it fails. A random amount of time should be added to this, proportional to recoverTime.
+	recoverTime = 30 * time.Second
 )
 
 // Store implements expstorage.ExpectationsStore backed by
@@ -175,7 +180,7 @@ func New(ctx context.Context, client *ifirestore.Client, eventBus eventbus.Event
 		// Starts several go routines to listen to the snapshots created earlier.
 		// If there were any new entries added after the snapshots were created, but before
 		// we did a full fetch, we'll see them on the first pass through.
-		f.listenToQuerySnapshots()
+		f.listenToQuerySnapshots(ctx)
 	}
 
 	return f, nil
@@ -256,15 +261,31 @@ func (f *Store) initQuerySnapshot(ctx context.Context) error {
 // listenToQuerySnapshots takes the f.masterQuerySnapshots from earlier and spins up N
 // go routines that listen to those snapshots. If they see new triages (i.e. expectationEntry),
 // they update the f.cache (which is protected by cacheMutex).
-func (f *Store) listenToQuerySnapshots() {
+func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 	for i := 0; i < snapshotShards; i++ {
 		go func(shard int) {
 			for {
+				if err := ctx.Err(); err != nil {
+					f.masterQuerySnapshots[shard].Stop()
+					sklog.Debugf("Stopping query of snapshots on shard %d due to context err: %s", shard, err)
+					return
+				}
 				qs, err := f.masterQuerySnapshots[shard].Next()
 				if err != nil {
 					sklog.Errorf("reading query snapshot %d: %s", shard, err)
-					// sleep and try again
-					time.Sleep(5 * time.Second)
+					f.masterQuerySnapshots[shard].Stop()
+					// sleep and rebuild the snapshot query. Once a SnapshotQueryIterator returns
+					// an error, it seems to always return that error. We sleep for a
+					// semi-randomized amount of time to spread out the re-building of shards
+					// (as it is likely all the shards will fail at about the same time).
+					t := recoverTime + time.Duration(float32(recoverTime)*rand.Float32())
+					time.Sleep(t)
+					sklog.Infof("Trying to recreate query snapshot %d after having slept %s", shard, t)
+					q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", masterBranch)
+					queries := fs_utils.ShardQueryOnDigest(q, digestField, snapshotShards)
+					// This will trigger a complete re-request of this shard's data, to catch any
+					// updates that happened while we were not listening.
+					f.masterQuerySnapshots[shard] = queries[shard].Snapshots(ctx)
 					continue
 				}
 				e := types.Expectations{}
