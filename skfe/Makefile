@@ -7,15 +7,16 @@ loadtest:
 release: default
 	./build_release "`git log -n1 --format=%s`"
 
-# Build and push targets for nginx-skia-org running in skia-public.
-k8s_release:
-	./build_services_conf
-	./build_nginx_skia_org_release "`git log -n1 --format=%s`"
+envoy-release:
+	./build_envoy_json
+	./build_envoy_skia_org_release
 
-k8s_push: k8s_release
-	pushk nginx-skia-org
+envoy-validate:
+	docker run -ti --entrypoint=/usr/local/bin/envoy -v `pwd`/computed.json:/tmp/envoy/computed.json envoyproxy/envoy-dev:latest --mode validate --config-path /tmp/envoy/computed.json
 
-k8s_run:
-	# You can test the config locally by running this target and observing that
-	# nginx doesn't fail.
-	docker run nginx-skia-org:latest
+envoy-push: envoy-release envoy-validate
+	pushk envoy-skia-org
+
+envoy-run-local:
+	docker run -ti -p 8000:8000 envoy-skia-org:latest --config-path /etc/envoy/computed.json
+
