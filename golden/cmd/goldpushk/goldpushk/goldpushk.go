@@ -60,7 +60,7 @@ func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableU
 
 // Run carries out the deployment steps.
 func (g *Goldpushk) Run(ctx context.Context) error {
-	// Ask for confirmation.
+	// Print out list of targeted deployable units, and ask for confirmation.
 	if ok, err := g.printOutInputsAndAskConfirmation(); err != nil {
 		return err
 	} else if !ok {
@@ -79,10 +79,14 @@ func (g *Goldpushk) Run(ctx context.Context) error {
 		return err
 	}
 
-	// TODO(lovisolo): Implement methods below.
-	if err := g.commitConfigFiles(); err != nil {
+	// Commit config files.
+	if ok, err := g.commitConfigFiles(ctx); err != nil {
 		return err
+	} else if !ok {
+		return nil
 	}
+
+	// TODO(lovisolo): Implement methods below.
 	if err := g.pushCanaries(); err != nil {
 		return err
 	}
@@ -120,12 +124,11 @@ func (g *Goldpushk) printOutInputsAndAskConfirmation() (bool, error) {
 	}
 
 	// Ask for confirmation, ending execution by default.
-	fmt.Printf("\nProceed? (y/N): ")
-	var input string
-	if _, err := fmt.Scanln(&input); err != nil {
-		return false, skerr.Wrapf(err, "unable to read from standard input")
+	ok, err := prompt("\nProceed?")
+	if err != nil {
+		return false, skerr.Wrap(err)
 	}
-	if input != "y" {
+	if !ok {
 		fmt.Println("Aborting.")
 		return false, nil
 	}
@@ -133,9 +136,23 @@ func (g *Goldpushk) printOutInputsAndAskConfirmation() (bool, error) {
 	return true, nil
 }
 
+// prompt prints out a question to stdout and scans a y/n answer from stdin.
+func prompt(question string) (bool, error) {
+	fmt.Printf("%s (y/N): ", question)
+	var input string
+	if _, err := fmt.Scanln(&input); err != nil {
+		return false, skerr.Wrapf(err, "unable to read from standard input")
+	}
+	if input != "y" {
+		return false, nil
+	}
+	return true, nil
+}
+
 // checkOutGitRepositories checks out the skia-public-config and
 // skia-corp-config Git repositories.
 func (g *Goldpushk) checkOutGitRepositories(ctx context.Context) error {
+	fmt.Println()
 	var err error
 	if g.skiaPublicConfigCheckout, err = checkOutSingleGitRepository(ctx, g.skiaPublicConfigRepoUrl); err != nil {
 		return skerr.Wrap(err)
@@ -152,7 +169,7 @@ func checkOutSingleGitRepository(ctx context.Context, url string) (*git.TempChec
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to check out %s", url)
 	}
-	sklog.Infof("Cloned Git repository %s at %s.", url, string(checkout.GitDir))
+	fmt.Printf("Cloned Git repository %s at %s.\n", url, string(checkout.GitDir))
 	return checkout, nil
 }
 
@@ -267,9 +284,61 @@ func (g *Goldpushk) expandTemplate(ctx context.Context, instance Instance, templ
 	return nil
 }
 
-func (g *Goldpushk) commitConfigFiles() error {
-	// TODO(lovisolo)
-	return skerr.Fmt("not implemented")
+// commitConfigFiles prints out a summary of the changes to be committed to
+// skia-{public,corp}-config, asks for confirmation and pushes those changes.
+func (g *Goldpushk) commitConfigFiles(ctx context.Context) (bool, error) {
+	// Print out summary of changes (git status -s).
+	err := g.forAllGitRepos(func(repo *git.TempCheckout, name string) error {
+		return printOutGitStatus(ctx, repo, name)
+	})
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
+
+	// Ask for confirmation.
+	ok, err := prompt("\nCommit and push the above changes?")
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
+	if !ok {
+		return false, nil
+	}
+
+	// Add, commit and push changes.
+	fmt.Println()
+	err = g.forAllGitRepos(func(repo *git.TempCheckout, name string) error {
+		fmt.Printf("Pushing changes to %s.\n", name)
+		if _, err := repo.Git(ctx, "add", "."); err != nil {
+			return skerr.Wrap(err)
+		}
+		if _, err := repo.Git(ctx, "commit", "-m", "Push"); err != nil {
+			return skerr.Wrap(err)
+		}
+		if _, err := repo.Git(ctx, "push", "origin", "master"); err != nil {
+			return skerr.Wrap(err)
+		}
+		return nil
+	})
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
+
+	return true, nil
+}
+
+// printOutGitStatus runs "git status -s" on the given checkout and prints its output to stdout.
+func printOutGitStatus(ctx context.Context, checkout *git.TempCheckout, repoName string) error {
+	msg, err := checkout.Git(ctx, "status", "-s")
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	if len(msg) == 0 {
+		fmt.Printf("\nNo changes to be pushed to %s.\n", repoName)
+	} else {
+		fmt.Printf("\nChanges to be pushed to %s:\n", repoName)
+		fmt.Print(msg)
+	}
+	return nil
 }
 
 func (g *Goldpushk) pushCanaries() error {
@@ -304,6 +373,18 @@ func (g *Goldpushk) forAllDeployableUnits(f func(unit DeployableUnit) error) err
 		if err := f(unit); err != nil {
 			return skerr.Wrap(err)
 		}
+	}
+	return nil
+}
+
+// forAllGitRepos applies the *git.TempCheckouts for skia-{public,corp}-config to the given
+// function.
+func (g *Goldpushk) forAllGitRepos(f func(repo *git.TempCheckout, name string) error) error {
+	if err := f(g.skiaPublicConfigCheckout, "skia-public-config"); err != nil {
+		return err
+	}
+	if err := f(g.skiaCorpConfigCheckout, "skia-corp-config"); err != nil {
+		return err
 	}
 	return nil
 }
