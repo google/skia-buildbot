@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ddeb4275_1b159dac",
+        "filename": "debugger-assets/go/debugger-assets/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-23T20:36:48Z",
+      "side": 1,
+      "message": "This needs the addition of the following line:\n\nhttps://github.com/google/skia-buildbot/blob/master/debugger/debugger/Dockerfile#L19\n\nto the debugger-assets Dockerfile.",
+      "revId": "3fafa69a4a663720a4155058ca867a6d2a8978bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
