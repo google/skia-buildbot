@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e4a6373e_1b740e71",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 691,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-23T14:37:08Z",
+      "side": 1,
+      "message": "specifically, it would be behind, yes?",
+      "range": {
+        "startLine": 691,
+        "startChar": 50,
+        "endLine": 691,
+        "endChar": 61
+      },
+      "revId": "3b386611835ec07175fea0b0ce704d0748019d59",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4eba4df2_7ef489ce",
+        "filename": "task_scheduler/go/db/firestore/modified_chan.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-23T14:37:08Z",
+      "side": 1,
+      "message": "You might want to randomize this to avoid multiple of these channels for restarting at the exact same instant.",
+      "range": {
+        "startLine": 50,
+        "startChar": 14,
+        "endLine": 50,
+        "endChar": 36
+      },
+      "revId": "3b386611835ec07175fea0b0ce704d0748019d59",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
