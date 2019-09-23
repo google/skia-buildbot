@@ -603,6 +603,37 @@ groups:
       abbr: '{{ $labels.app }}'
       description: 'It has been at least 10 minutes since the Gold status was re-computed for {{ $labels.app }}. Some process might have hung. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldstatusstalled'
 
+  - alert: GoldExpectationsStale
+    expr: stopped_expstore_shards > 0
+    labels:
+      category: infra
+      severity: critical
+      owner: kjlubick@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: 'Shards of QuerySnapshotIterators have stopped. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldexpectationsstale'
+
+  - alert: GoldCorruptTryJobParamMaps
+    expr: bad_param_maps > 0
+    labels:
+      category: infra
+      severity: critical
+      owner: kjlubick@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: 'TryJobResults may be missing Params. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldcorrupttryjobdata'
+
+  - alert: GoldTryJobResultsIncompleteData
+    expr: bad_results > 0
+    labels:
+      category: infra
+      severity: critical
+      owner: kjlubick@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: 'There are a nonzero amount of TryJobResults that were missing Params. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldcorrupttryjobdata'
+
+
 # Velero Backup
   - alert: VeleroBackupFailed
     expr: rate(velero_backup_failure_total[24h])*(24*60*60) > 1

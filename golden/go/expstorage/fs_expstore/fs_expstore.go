@@ -268,6 +268,7 @@ func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 				if err := ctx.Err(); err != nil {
 					f.masterQuerySnapshots[shard].Stop()
 					sklog.Debugf("Stopping query of snapshots on shard %d due to context err: %s", shard, err)
+					metrics2.GetCounter("stopped_expstore_shards").Inc(1)
 					return
 				}
 				qs, err := f.masterQuerySnapshots[shard].Next()
