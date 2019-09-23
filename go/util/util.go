@@ -94,6 +94,7 @@ var (
 // provided byte size. Eg: Input of 1024 would return "1.00KB".
 func GetFormattedByteSize(b float64) string {
 	switch {
+	// DO NOT SUBMIT: Use the frobnitz from the foobar.
 	case b >= PB:
 		return fmt.Sprintf("%.2fPB", b/PB)
 	case b >= TB:
