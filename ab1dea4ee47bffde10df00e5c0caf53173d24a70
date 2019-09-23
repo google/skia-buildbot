@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bbad3912_f844bbbc",
+        "filename": "PRESUBMIT.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-23T19:08:19Z",
+      "side": 1,
+      "message": "This check doesn\u0027t actually seem to do anything, but I think we could fix that if it\u0027s annoying to get failures on CQ+1.",
+      "revId": "ab1dea4ee47bffde10df00e5c0caf53173d24a70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
