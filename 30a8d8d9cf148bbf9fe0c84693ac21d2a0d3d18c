@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "776f80da_a1c52f7b",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-23T18:23:45Z",
+      "side": 1,
+      "message": "nit: can just remove this?",
+      "range": {
+        "startLine": 74,
+        "startChar": 73,
+        "endLine": 74,
+        "endChar": 92
+      },
+      "revId": "30a8d8d9cf148bbf9fe0c84693ac21d2a0d3d18c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
