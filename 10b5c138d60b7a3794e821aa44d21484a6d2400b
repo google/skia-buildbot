@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "89e504b7_def042ac",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-23T21:18:49Z",
+      "side": 1,
+      "message": "1. It doesn\u0027t make sense to list the same server_name twice.\n2. Isn\u0027t this a redirect rule?",
+      "revId": "10b5c138d60b7a3794e821aa44d21484a6d2400b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee7f78c8_1e5f7c5b",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-23T21:18:49Z",
+      "side": 1,
+      "message": "nit: envoy, x2",
+      "range": {
+        "startLine": 57,
+        "startChar": 10,
+        "endLine": 57,
+        "endChar": 24
+      },
+      "revId": "10b5c138d60b7a3794e821aa44d21484a6d2400b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
