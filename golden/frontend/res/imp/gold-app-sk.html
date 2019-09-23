@@ -167,6 +167,11 @@
           });
         }.bind(this));
 
+        page("/changelists", (ctx) => {
+          // This is a new lit-html page, not handled by iron-pages
+          window.location.href = "/changelists";
+        });
+
         // All other route go to 'notfound' and byblame is the default view.
         this._setRoute('*', 'notfound');
         this.route = "byblame";
