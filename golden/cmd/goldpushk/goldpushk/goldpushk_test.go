@@ -3,6 +3,7 @@ package goldpushk
 import (
 	"context"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -25,23 +26,18 @@ func TestGoldpushkCheckOutGitRepositories(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Create two fake "skia-public-config" and "skia-corp-config" Git repos on
-	// the local file system (i.e. "git init" two temporary directories).
-	fakeSkiaPublicConfig := testutils.GitInit(t, ctx)
-	fakeSkiaCorpConfig := testutils.GitInit(t, ctx)
+	// Create two fake skia-{public,corp}-config repositories (i.e. "git init" two temp directories).
+	fakeSkiaPublicConfig, fakeSkiaCorpConfig := createFakeConfigRepos(t, ctx)
 	defer fakeSkiaPublicConfig.Cleanup()
 	defer fakeSkiaCorpConfig.Cleanup()
-
-	// Populate fake repositories with a file that will make it easier to tell
-	// them apart later on.
-	fakeSkiaPublicConfig.Add(ctx, "which-repo.txt", "This is repo skia-public-config!")
-	fakeSkiaPublicConfig.Commit(ctx)
-	fakeSkiaCorpConfig.Add(ctx, "which-repo.txt", "This is repo skia-corp-config!")
-	fakeSkiaCorpConfig.Commit(ctx)
 
 	// Create the goldpushk instance under test. We pass it the file://... URLs to
 	// the two Git repositories created earlier.
 	g := New([]DeployableUnit{}, []DeployableUnit{}, "", false, fakeSkiaPublicConfig.RepoUrl(), fakeSkiaCorpConfig.RepoUrl())
+
+	// Hide goldpushk output to stdout.
+	restoreStdout := hideStdout(t)
+	defer restoreStdout()
 
 	// Check out the fake "skia-public-config" and "skia-corp-config"
 	// repositories. This will clone the repositories created earlier by running
@@ -240,17 +236,133 @@ func TestRegenerateConfigFiles(t *testing.T) {
 	}
 }
 
+func TestCommitConfigFiles(t *testing.T) {
+	unittest.MediumTest(t)
+
+	ctx := context.Background()
+
+	// Create two fake skia-{public,corp}-config repositories (i.e. "git init" two temp directories).
+	fakeSkiaPublicConfig, fakeSkiaCorpConfig := createFakeConfigRepos(t, ctx)
+	defer fakeSkiaPublicConfig.Cleanup()
+	defer fakeSkiaCorpConfig.Cleanup()
+
+	// Create the goldpushk instance under test. We pass it the file://... URLs to the two Git
+	// repositories created earlier.
+	g := New([]DeployableUnit{}, []DeployableUnit{}, "", false, fakeSkiaPublicConfig.RepoUrl(), fakeSkiaCorpConfig.RepoUrl())
+
+	// Hide goldpushk output to stdout.
+	restoreStdout := hideStdout(t)
+	defer restoreStdout()
+
+	// Check out the fake "skia-public-config" and "skia-corp-config" repositories created earlier.
+	// This will run "git clone file://..." for each repository.
+	err := g.checkOutGitRepositories(ctx)
+	assert.NoError(t, err)
+	defer g.skiaPublicConfigCheckout.Delete()
+	defer g.skiaCorpConfigCheckout.Delete()
+
+	// Add changes to skia-public-config.
+	writeFileIntoRepo(t, g.skiaPublicConfigCheckout, "foo.yaml", "I'm a change in skia-public-config.")
+	writeFileIntoRepo(t, g.skiaCorpConfigCheckout, "bar.yaml", "I'm a change in skia-corp-config.")
+
+	// Pretend that the user confirms the commit step.
+	cleanup := fakeStdin(t, "y\n")
+	defer cleanup()
+
+	// Call the function under test, which will try to commit and push the changes.
+	ok, err := g.commitConfigFiles(ctx)
+	assert.NoError(t, err)
+
+	// Assert that the user confirmed the commit step.
+	assert.True(t, ok)
+
+	// Assert that the changes were pushed to the fake skia-{public,corp}-config repositories.
+	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 2)
+	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 2)
+	assertRepositoryContainsFileWithContents(t, ctx, fakeSkiaPublicConfig, "foo.yaml", "I'm a change in skia-public-config.")
+	assertRepositoryContainsFileWithContents(t, ctx, fakeSkiaCorpConfig, "bar.yaml", "I'm a change in skia-corp-config.")
+}
+
+func TestCommitConfigFilesAbortedByUser(t *testing.T) {
+	unittest.MediumTest(t)
+
+	ctx := context.Background()
+
+	// Create two fake skia-{public,corp}-config repositories (i.e. "git init" two temp directories).
+	fakeSkiaPublicConfig, fakeSkiaCorpConfig := createFakeConfigRepos(t, ctx)
+	defer fakeSkiaPublicConfig.Cleanup()
+	defer fakeSkiaCorpConfig.Cleanup()
+
+	// Create the goldpushk instance under test. We pass it the file://... URLs to the two Git
+	// repositories created earlier.
+	g := New([]DeployableUnit{}, []DeployableUnit{}, "", false, fakeSkiaPublicConfig.RepoUrl(), fakeSkiaCorpConfig.RepoUrl())
+
+	// Hide goldpushk output to stdout.
+	restoreStdout := hideStdout(t)
+	defer restoreStdout()
+
+	// Check out the fake "skia-public-config" and "skia-corp-config" repositories created earlier.
+	// This will run "git clone file://..." for each repository.
+	err := g.checkOutGitRepositories(ctx)
+	assert.NoError(t, err)
+	defer g.skiaPublicConfigCheckout.Delete()
+	defer g.skiaCorpConfigCheckout.Delete()
+
+	// Add changes to skia-public-config and skia-corp-config.
+	writeFileIntoRepo(t, g.skiaPublicConfigCheckout, "foo.yaml", "I'm a change in skia-public-config.")
+	writeFileIntoRepo(t, g.skiaCorpConfigCheckout, "bar.yaml", "I'm a change in skia-corp-config.")
+
+	// Pretend that the user aborts the commit step.
+	restoreStdin := fakeStdin(t, "n\n")
+	defer restoreStdin()
+
+	// Call the function under test, which will try to commit and push the changes.
+	ok, err := g.commitConfigFiles(ctx)
+	assert.NoError(t, err)
+
+	// Assert that the user aborted the commit step.
+	assert.False(t, ok)
+
+	// Assert that no changes were pushed to skia-public-config or skia-corp-config.
+	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
+	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 1)
+}
+
+// appendUnit will retrieve a DeployableUnit from the given DeployableUnitSet using the given
+// Instance and Service and append it to the given DeployableUnit slice.
 func appendUnit(t *testing.T, units []DeployableUnit, s DeployableUnitSet, instance Instance, service Service) []DeployableUnit {
 	unit, ok := s.Get(DeployableUnitID{Instance: instance, Service: service})
 	assert.True(t, ok)
 	return append(units, unit)
 }
 
+// makeID is a convenience method to create a DeployableUnitID.
 func makeID(instance Instance, service Service) DeployableUnitID {
 	return DeployableUnitID{
 		Instance: instance,
 		Service:  service,
 	}
+}
+
+// createFakeConfigRepos initializes two Git repositories in local temporary directories, which can
+// be used as fake skia-{public,corp}-config repositories in tests.
+func createFakeConfigRepos(t *testing.T, ctx context.Context) (fakeSkiaPublicConfig, fakeSkiaCorpConfig *testutils.GitBuilder) {
+	// Create two fake "skia-public-config" and "skia-corp-config" Git repos on the local file system
+	// (i.e. "git init" two temporary directories).
+	fakeSkiaPublicConfig = testutils.GitInit(t, ctx)
+	fakeSkiaCorpConfig = testutils.GitInit(t, ctx)
+
+	// Populate fake repositories with a file that will make it easier to tell them apart later on.
+	fakeSkiaPublicConfig.Add(ctx, "which-repo.txt", "This is repo skia-public-config!")
+	fakeSkiaPublicConfig.Commit(ctx)
+	fakeSkiaCorpConfig.Add(ctx, "which-repo.txt", "This is repo skia-corp-config!")
+	fakeSkiaCorpConfig.Commit(ctx)
+
+	// Allow repositories to receive pushes.
+	fakeSkiaPublicConfig.AcceptPushes(ctx)
+	fakeSkiaCorpConfig.AcceptPushes(ctx)
+
+	return
 }
 
 // This is intended to be used in tests that do not need to write to disk, but need a
@@ -264,4 +376,78 @@ func addFakeConfigRepoCheckouts(g *Goldpushk) {
 	}
 	g.skiaPublicConfigCheckout = fakeSkiaPublicConfigCheckout
 	g.skiaCorpConfigCheckout = fakeSkiaCorpConfigCheckout
+}
+
+// writeFileIntoRepo creates a file with the given name and contents into a *git.TempCheckout.
+func writeFileIntoRepo(t *testing.T, repo *git.TempCheckout, name, contents string) {
+	bytes := []byte(contents)
+	path := filepath.Join(string(repo.GitDir), name)
+	err := ioutil.WriteFile(path, bytes, os.ModePerm)
+	assert.NoError(t, err)
+}
+
+// hideStdout replaces os.Stdout with a temp file. This hides any output generated by the code under
+// test and leads to a less noisy "go test" output.
+func hideStdout(t *testing.T) (cleanup func()) {
+	// Back up the real stdout.
+	stdout := os.Stdout
+	cleanup = func() {
+		os.Stdout = stdout
+	}
+
+	// Replace os.Stdout with a temporary file.
+	fakeStdout, err := ioutil.TempFile("", "fake-stdout")
+	assert.NoError(t, err)
+	os.Stdout = fakeStdout
+
+	return cleanup
+}
+
+// fakeStdin fakes user input via stdin. It replaces stdin with a temporary file with the given fake
+// input. The returned function should be called at the end of a test to restore the original stdin.
+func fakeStdin(t *testing.T, userInput string) (cleanup func()) {
+	// Back up stdin and provide a function to restore it later.
+	realStdin := os.Stdin
+	cleanup = func() {
+		os.Stdin = realStdin
+	}
+
+	// Create new file to be used as a fake stdin.
+	fakeStdin, err := ioutil.TempFile("", "fake-stdin")
+	assert.NoError(t, err)
+
+	// Write fake user input.
+	_, err = fakeStdin.WriteString(userInput)
+	assert.NoError(t, err)
+
+	// Rewind stdin file so that fmt.Scanf() will pick up what we just wrote.
+	_, err = fakeStdin.Seek(0, 0)
+	assert.NoError(t, err)
+
+	// Replace real stdout with the fake one.
+	os.Stdin = fakeStdin
+
+	return cleanup
+}
+
+// assertNumCommits asserts that the given Git repository has the given number of commits.
+func assertNumCommits(t *testing.T, ctx context.Context, repo *testutils.GitBuilder, n int64) {
+	clone, err := git.NewTempCheckout(ctx, repo.RepoUrl())
+	defer clone.Delete()
+	assert.NoError(t, err)
+	actualN, err := clone.NumCommits(ctx)
+	assert.Equal(t, n, actualN)
+}
+
+// assertRepositoryContainsFileWithContents asserts the presence of a file with the given contents
+// in a git repo.
+func assertRepositoryContainsFileWithContents(t *testing.T, ctx context.Context, repo *testutils.GitBuilder, filename, expectedContents string) {
+	clone, err := git.NewTempCheckout(ctx, repo.RepoUrl())
+	assert.NoError(t, err)
+	commits, err := clone.RevList(ctx, "master")
+	assert.NoError(t, err)
+	lastCommit := commits[0]
+	actualContents, err := clone.GetFile(ctx, filename, lastCommit)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedContents, actualContents)
 }
