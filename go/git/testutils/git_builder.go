@@ -249,6 +249,15 @@ func (g *GitBuilder) CreateFakeGerritCLGen(ctx context.Context, issue, patchset 
 	g.run(ctx, "git", "branch", "-D", "fake-patch")
 }
 
+// AcceptPushes allows pushing changes to the repo.
+func (g *GitBuilder) AcceptPushes(ctx context.Context) {
+	// TODO(lovisolo): Consider making GitBuilder point to a bare repository (git init --bare).
+	// Under this scenario, GitBuilder would push to that bare repository, and GitBuilder.RepoUrl()
+	// would return the URL for the bare repository. This would remove the need for this method.
+
+	g.run(ctx, "git", "config", "receive.denyCurrentBranch", "ignore")
+}
+
 // GitSetup adds commits to the Git repo managed by g.
 //
 // The repo layout looks like this:
