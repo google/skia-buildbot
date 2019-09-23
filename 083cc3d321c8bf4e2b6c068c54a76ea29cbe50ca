@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "97845bdd_0b4f74c2",
+        "filename": "skfe/README.md",
+        "patchSetId": 49
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-23T17:14:29Z",
+      "side": 1,
+      "message": "nit: \"The configuration for the envoy server comes from envoy-starter.json and metadata annotations on services running in the skia-public k8s cluster.\"",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 21
+      },
+      "revId": "083cc3d321c8bf4e2b6c068c54a76ea29cbe50ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "984a05c0_949c4345",
+        "filename": "skfe/build_envoy_json",
+        "patchSetId": 49
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-23T17:14:29Z",
+      "side": 1,
+      "message": "Seems to be out of date?",
+      "range": {
+        "startLine": 19,
+        "startChar": 1,
+        "endLine": 24,
+        "endChar": 7
+      },
+      "revId": "083cc3d321c8bf4e2b6c068c54a76ea29cbe50ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66890c60_c78f62fd",
+        "filename": "skfe/build_envoy_json",
+        "patchSetId": 49
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-23T17:14:29Z",
+      "side": 1,
+      "message": "nit: could deduplicate this",
+      "range": {
+        "startLine": 37,
+        "startChar": 36,
+        "endLine": 40,
+        "endChar": 82
+      },
+      "revId": "083cc3d321c8bf4e2b6c068c54a76ea29cbe50ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d7ceac9_c7f855f7",
+        "filename": "skfe/build_envoy_json",
+        "patchSetId": 49
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-23T17:14:29Z",
+      "side": 1,
+      "message": "nit: maybe should be in Makefile",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 97,
+        "endChar": 14
+      },
+      "revId": "083cc3d321c8bf4e2b6c068c54a76ea29cbe50ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0547c633_0d09885d",
+        "filename": "skfe/go/merge_envoy/main.go",
+        "patchSetId": 49
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-23T17:14:29Z",
+      "side": 1,
+      "message": "nit: spell out for easier reading, x2; also in skfe/go/update_probers/main.go",
+      "range": {
+        "startLine": 30,
+        "startChar": 31,
+        "endLine": 30,
+        "endChar": 32
+      },
+      "revId": "083cc3d321c8bf4e2b6c068c54a76ea29cbe50ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39e718f1_ae0a48ff",
+        "filename": "skfe/go/update_probers/main.go",
+        "patchSetId": 49
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-23T17:14:29Z",
+      "side": 1,
+      "message": "nit: probers.Array(proberRedirectURLsPath...)",
+      "range": {
+        "startLine": 34,
+        "startChar": 42,
+        "endLine": 35,
+        "endChar": 1
+      },
+      "revId": "083cc3d321c8bf4e2b6c068c54a76ea29cbe50ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
