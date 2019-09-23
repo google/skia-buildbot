@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "813b929e_b67570a8",
+        "filename": "skfe/envoy-starter.json",
+        "patchSetId": 52
+      },
+      "lineNbr": 656,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-23T18:19:35Z",
+      "side": 1,
+      "message": "Was this supposed to be \"reviews\"?",
+      "revId": "4bb2e43dd63566e6f8f0df19c32a3c0b94763c36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88ece52b_400eccbd",
+        "filename": "skfe/envoy-starter.json",
+        "patchSetId": 52
+      },
+      "lineNbr": 765,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-23T18:19:35Z",
+      "side": 1,
+      "message": "Does this work or does it need to be in a path_redirect field?",
+      "range": {
+        "startLine": 765,
+        "startChar": 70,
+        "endLine": 765,
+        "endChar": 88
+      },
+      "revId": "4bb2e43dd63566e6f8f0df19c32a3c0b94763c36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
