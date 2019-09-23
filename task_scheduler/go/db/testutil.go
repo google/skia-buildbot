@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
@@ -35,64 +36,106 @@ const (
 // This is necessary to break the hard linking of this file to the "testing" module.
 var AssertDeepEqual func(t sktest.TestingT, expected, actual interface{})
 
+// findModifiedTasks asserts that GetModifiedTasks returns at least the given
+// expected set of tasks.
 func findModifiedTasks(t sktest.TestingT, m ModifiedTasksReader, id string, expect ...*types.Task) {
-	// Note that the slice only works because we don't call
-	// TrackModifiedTask more than once for any given task,
-	// otherwise we'd have to use a map and compare DbModified.
-	actual := []*types.Task{}
+	expectMap := make(map[string]*types.Task, len(expect))
+	for _, e := range expect {
+		expectMap[e.Id] = e
+	}
+	actualMap := make(map[string]*types.Task, len(expectMap))
 	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
 		tasks, err := m.GetModifiedTasks(id)
 		assert.NoError(t, err)
-		actual = append(actual, tasks...)
-		if len(actual) != len(expect) {
+		for _, a := range tasks {
+			// Ignore tasks not in the expected list.
+			if _, ok := expectMap[a.Id]; !ok {
+				continue
+			}
+			exist, ok := actualMap[a.Id]
+			if !ok || a.DbModified.After(exist.DbModified) {
+				actualMap[a.Id] = a
+			}
+		}
+		if len(actualMap) != len(expectMap) {
+			sklog.Errorf("  want %d but have %d", len(expectMap), len(actualMap))
 			time.Sleep(100 * time.Millisecond)
 			return testutils.TryAgainErr
 		}
-		sort.Sort(types.TaskSlice(actual))
-		deepequal.AssertDeepEqual(t, expect, actual)
+		deepequal.AssertDeepEqual(t, expectMap, actualMap)
 		return nil
 	}))
 }
 
 func findModifiedJobs(t sktest.TestingT, m ModifiedJobsReader, id string, expect ...*types.Job) {
-	// Note that the slice only works because we don't call
-	// TrackModifiedJob more than once for any given job, otherwise
-	// we'd have to use a map and compare DbModified.
-	actual := []*types.Job{}
+	expectMap := make(map[string]*types.Job, len(expect))
+	for _, e := range expect {
+		expectMap[e.Id] = e
+	}
+	actualMap := make(map[string]*types.Job, len(expectMap))
 	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
 		jobs, err := m.GetModifiedJobs(id)
 		assert.NoError(t, err)
-		actual = append(actual, jobs...)
-		if len(actual) != len(expect) {
+		for _, a := range jobs {
+			// Ignore tasks not in the expected list.
+			if _, ok := expectMap[a.Id]; !ok {
+				continue
+			}
+			exist, ok := actualMap[a.Id]
+			if !ok || a.DbModified.After(exist.DbModified) {
+				actualMap[a.Id] = a
+			}
+		}
+		if len(actualMap) != len(expectMap) {
 			time.Sleep(100 * time.Millisecond)
 			return testutils.TryAgainErr
 		}
-		sort.Sort(types.JobSlice(actual))
-		deepequal.AssertDeepEqual(t, expect, actual)
+		deepequal.AssertDeepEqual(t, expectMap, actualMap)
 		return nil
 	}))
 }
 
-func findModifiedComments(t sktest.TestingT, m ModifiedComments, id string, e1 []*types.TaskComment, e2 []*types.TaskSpecComment, e3 []*types.CommitComment) {
-	// Note that the slice only works because we don't call
-	// TrackModifiedJob more than once for any given job, otherwise
-	// we'd have to use a map and compare DbModified.
-	a1 := []*types.TaskComment{}
-	a2 := []*types.TaskSpecComment{}
-	a3 := []*types.CommitComment{}
+func findModifiedComments(t sktest.TestingT, m ModifiedComments, id string, e1Slice []*types.TaskComment, e2Slice []*types.TaskSpecComment, e3Slice []*types.CommitComment) {
+	e1 := make(map[string]*types.TaskComment, len(e1Slice))
+	for _, c := range e1Slice {
+		e1[c.Id()] = c
+	}
+	e2 := make(map[string]*types.TaskSpecComment, len(e2Slice))
+	for _, c := range e2Slice {
+		e2[c.Id()] = c
+	}
+	e3 := make(map[string]*types.CommitComment, len(e3Slice))
+	for _, c := range e3Slice {
+		e3[c.Id()] = c
+	}
+	a1 := make(map[string]*types.TaskComment, len(e1))
+	a2 := make(map[string]*types.TaskSpecComment, len(e2))
+	a3 := make(map[string]*types.CommitComment, len(e3))
 	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
 		c1, c2, c3, err := m.GetModifiedComments(id)
 		assert.NoError(t, err)
-		a1 = append(a1, c1...)
-		a2 = append(a2, c2...)
-		a3 = append(a3, c3...)
+		for _, c := range c1 {
+			if _, ok := e1[c.Id()]; !ok {
+				continue
+			}
+			a1[c.Id()] = c
+		}
+		for _, c := range c2 {
+			if _, ok := e2[c.Id()]; !ok {
+				continue
+			}
+			a2[c.Id()] = c
+		}
+		for _, c := range c3 {
+			if _, ok := e3[c.Id()]; !ok {
+				continue
+			}
+			a3[c.Id()] = c
+		}
 		if len(a1) != len(e1) || len(a2) != len(e2) || len(a3) != len(e3) {
 			time.Sleep(100 * time.Millisecond)
 			return testutils.TryAgainErr
 		}
-		sort.Sort(types.TaskCommentSlice(a1))
-		sort.Sort(types.TaskSpecCommentSlice(a2))
-		sort.Sort(types.CommitCommentSlice(a3))
 		deepequal.AssertDeepEqual(t, e1, a1)
 		deepequal.AssertDeepEqual(t, e2, a2)
 		deepequal.AssertDeepEqual(t, e3, a3)
@@ -1260,6 +1303,17 @@ func TestModifiedTasks(t sktest.TestingT, m ModifiedTasks) {
 
 	// Ensure that both tasks show up in the modified list.
 	findModifiedTasks(t, m, id, t2, t3)
+
+	// Ensure that we ignore a second update if the timestamp is before the
+	// first. Note that the recipient could still receive a modified task
+	// which is outdated, but this prevents missed modifications due to the
+	// ModifiedTasks itself receiving an outdated task which overwrites a
+	// newer one.
+	t3Newer := t3.Copy()
+	t3Newer.DbModified = t3.DbModified.Add(time.Minute)
+	m.TrackModifiedTask(t3Newer)
+	m.TrackModifiedTask(t3)
+	findModifiedTasks(t, m, id, t3Newer)
 
 	// Check StopTrackingModifiedTasks.
 	m.StopTrackingModifiedTasks(id)

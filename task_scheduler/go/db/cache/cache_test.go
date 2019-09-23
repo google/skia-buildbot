@@ -14,6 +14,7 @@ import (
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -71,6 +72,16 @@ func TestTaskCache(t *testing.T) {
 			t3.Name: t3,
 		},
 	}, tasks)
+
+	// Ensure that we don't insert outdated entries.
+	old := t1.Copy()
+	assert.False(t, util.TimeIsZero(old.DbModified))
+	old.Name = "outdated"
+	old.DbModified = old.DbModified.Add(-time.Hour)
+	c.(*taskCache).expireAndUpdate([]*types.Task{old})
+	got, err := c.GetTask(old.Id)
+	assert.NoError(t, err)
+	deepequal.AssertDeepEqual(t, got, t1)
 }
 
 func TestTaskCacheKnownTaskName(t *testing.T) {
@@ -579,6 +590,16 @@ func TestJobCache(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(jobs))
 	deepequal.AssertDeepEqual(t, jobs[1], test)
+
+	// Ensure that we don't insert outdated entries.
+	old := j1.Copy()
+	assert.False(t, util.TimeIsZero(old.DbModified))
+	old.Name = "outdated"
+	old.DbModified = old.DbModified.Add(-time.Hour)
+	c.(*jobCache).expireAndUpdate([]*types.Job{old})
+	got, err := c.GetJob(old.Id)
+	assert.NoError(t, err)
+	deepequal.AssertDeepEqual(t, got, j1)
 }
 
 func TestJobCacheTriggeredForCommit(t *testing.T) {
