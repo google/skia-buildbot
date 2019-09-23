@@ -436,6 +436,30 @@
     },
     {
       "key": {
+        "uuid": "bbf0de25_12ed637b",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 455,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-23T15:22:00Z",
+      "side": 1,
+      "message": "Ack.\n\nIf you find yourself wanting to optimize this in the future, my intuition says replacing the mutex with a channel will be a bigger win than optimizing ignoreMatcher.",
+      "parentUuid": "578c2a9b_2628ad96",
+      "range": {
+        "startLine": 455,
+        "startChar": 8,
+        "endLine": 455,
+        "endChar": 39
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "80b92d09_22f23043",
         "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
         "patchSetId": 15
