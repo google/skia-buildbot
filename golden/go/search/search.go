@@ -426,17 +426,15 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 	if chunkSize < 50 {
 		chunkSize = 50
 	}
-	for i := 0; i < len(xtr); i += chunkSize {
-		stop := i + chunkSize
-		if stop > len(xtr) {
-			stop = len(xtr)
-		}
+	queryParams := paramtools.ParamSet(q.TraceValues)
+	ignoreMatcher := idx.GetIgnoreMatcher()
+
+	// passed in func does not return error, so neither will ChunkIter
+	_ = util.ChunkIter(len(xtr), chunkSize, func(start, stop int) error {
 		wg.Add(1)
 		// stop is exclusive
 		go func(start, stop int) {
 			defer wg.Done()
-			queryParams := paramtools.ParamSet(q.TraceValues)
-			ignoreMatcher := idx.GetIgnoreMatcher()
 			sliced := xtr[start:stop]
 			for _, tr := range sliced {
 				tn := types.TestName(tr.ResultParams[types.PRIMARY_KEY_FIELD])
@@ -445,9 +443,10 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 				if q.ExcludesClassification(c) {
 					continue
 				}
-				p := paramtools.Params(tr.ResultParams)
+				p := make(paramtools.Params, len(tr.ResultParams)+len(tr.GroupParams)+len(tr.Options))
 				p.Add(tr.GroupParams)
 				p.Add(tr.Options)
+				p.Add(tr.ResultParams)
 				// Filter the ignored results
 				if !q.IncludeIgnores {
 					// Because ignores can happen on a mix of params from Result, Group, and Options,
@@ -471,8 +470,9 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 					}()
 				}
 			}
-		}(i, stop)
-	}
+		}(start, stop)
+		return nil
+	})
 
 	wg.Wait()
 	return nil

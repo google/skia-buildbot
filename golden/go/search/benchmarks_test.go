@@ -22,11 +22,13 @@ import (
 
 const (
 	// These consts were arbitrarily picked to approximate a representative Skia ChangeList
-	numResultParams    = 6
-	numOptionsParams   = 8
-	numGroupParams     = 12
-	numIgnoreRules     = 100
-	numIgnorableValues = 1000
+	numResultParams  = 6
+	numOptionsParams = 8
+	numGroupParams   = 12
+	numIgnoreRules   = 100
+	// numIgnorableValues can be tuned higher to ignore fewer values and lower to ignore more.
+	// Right now, this value ignores 10% on average in BenchmarkExtractChangeListDigests
+	numIgnorableValues = 500
 )
 
 // BenchmarkExtractChangeListDigests benchmarks extractChangeListDigests, specifically
@@ -38,9 +40,9 @@ func BenchmarkExtractChangeListDigests(b *testing.B) {
 
 	clID := "123"
 	psOrder := 1
-	// 500k was observed as a typical number of results for Skia, as were 30 unique options and
-	// all results belonging to one group.
-	xtr := genTryJobResults(500000, 30, 1)
+	// 500k was observed as a typical number of results for Skia, as were 15 unique options and
+	// 15 unique groups.
+	xtr := genTryJobResults(500000, 15, 15)
 
 	mcls.On("GetPatchSets", testutils.AnyContext, clID).Return([]code_review.PatchSet{
 		{
@@ -100,15 +102,15 @@ func makeIgnoreRules() paramtools.ParamMatcher {
 		// 1-2 fields
 		numFields := rand.Intn(2) + 1
 		p := paramtools.ParamSet{}
-		for j := 0; j < numFields; j++ {
-			r := rand.Intn(len(ignorableFields))
+		fieldPerm := rand.Perm(len(ignorableFields))
+		for _, r := range fieldPerm[:numFields] {
 			f := ignorableFields[r]
 
 			// 1-4 values
 			numValues := rand.Intn(4) + 1
 			var v []string
-			for k := 0; k < numValues; k++ {
-				r := rand.Intn(len(ignorableValues))
+			fieldPerm := rand.Perm(len(ignorableFields))
+			for _, r := range fieldPerm[:numValues] {
 				v = append(v, ignorableValues[r])
 			}
 			p[f] = v
@@ -119,7 +121,7 @@ func makeIgnoreRules() paramtools.ParamMatcher {
 }
 
 // genTryJobResults makes TryJobResults with synthetic data that approximately represents
-// the data created by Skia. The data is structured such that some (~5%) of the results will
+// the data created by Skia. The data is structured such that some (~10%) of the results will
 // be ignored by makeIgnoreRules(), but the vast majority will not. Additionally, the number of
 // fields in the various Params is generally representative.
 func genTryJobResults(results, uniqueOptions, uniqueGroups int) []tjstore.TryJobResult {
@@ -128,7 +130,7 @@ func genTryJobResults(results, uniqueOptions, uniqueGroups int) []tjstore.TryJob
 		opts = append(opts, makeParams(numOptionsParams))
 	}
 	groups := make([]paramtools.Params, 0, uniqueGroups)
-	for i := 0; i < uniqueOptions; i++ {
+	for i := 0; i < uniqueGroups; i++ {
 		groups = append(groups, makeParams(numGroupParams))
 	}
 	xtr := make([]tjstore.TryJobResult, 0, results)
