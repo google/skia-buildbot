@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b32c7261_50d018ec",
+        "filename": "golden/go/search/benchmarks_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-23T14:02:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f8f69c42_5a88b764",
+      "range": {
+        "startLine": 42,
+        "startChar": 29,
+        "endLine": 42,
+        "endChar": 38
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "14bc4ecd_7a3ac6d4",
         "filename": "golden/go/search/benchmarks_test.go",
         "patchSetId": 15
@@ -36,6 +60,30 @@
       "writtenOn": "2019-09-21T02:55:03Z",
       "side": 1,
       "message": "I suspect that looking up the classification also takes quite a bit of time. Do you have stats on that?",
+      "range": {
+        "startLine": 78,
+        "startChar": 26,
+        "endLine": 78,
+        "endChar": 46
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b4944619_fb6d440b",
+        "filename": "golden/go/search/benchmarks_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-23T14:02:54Z",
+      "side": 1,
+      "message": "It was a small percentage of real-world time - \u003c 50ms out of the original 1s of filtering.",
+      "parentUuid": "14bc4ecd_7a3ac6d4",
       "range": {
         "startLine": 78,
         "startChar": 26,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "d23a33d2_f422b658",
+        "filename": "golden/go/search/benchmarks_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-23T14:02:54Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "845ece40_488695fe",
+      "range": {
+        "startLine": 103,
+        "startChar": 0,
+        "endLine": 104,
+        "endChar": 39
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5d633e3d_f55ec543",
         "filename": "golden/go/search/benchmarks_test.go",
         "patchSetId": 15
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "a2cfc12e_2cd5c9de",
+        "filename": "golden/go/search/benchmarks_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-23T14:02:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5d633e3d_f55ec543",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 111,
+        "endChar": 40
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "59e99198_44531e1a",
         "filename": "golden/go/search/benchmarks_test.go",
         "patchSetId": 15
@@ -114,6 +210,30 @@
       "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5dc00312_2a8a50e2",
+        "filename": "golden/go/search/benchmarks_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-23T14:02:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "59e99198_44531e1a",
+      "range": {
+        "startLine": 131,
+        "startChar": 17,
+        "endLine": 131,
+        "endChar": 30
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "a1f23b60_5d3ab271",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-23T14:02:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c72a898a_a079657b",
+      "range": {
+        "startLine": 429,
+        "startChar": 0,
+        "endLine": 433,
+        "endChar": 3
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "558c4efc_71f003d7",
         "filename": "golden/go/search/search.go",
         "patchSetId": 15
@@ -180,6 +324,24 @@
     },
     {
       "key": {
+        "uuid": "983858c5_c7d26199",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 438,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-23T14:02:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "558c4efc_71f003d7",
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f1294444_e3cba6d8",
         "filename": "golden/go/search/search.go",
         "patchSetId": 15
@@ -191,6 +353,30 @@
       "writtenOn": "2019-09-21T02:55:03Z",
       "side": 1,
       "message": "nit: Would be nice to document on TryJobResult and GoldResults that GroupParams override ResultParams and that Options override GroupParams and ResultParams, if they conflict.",
+      "range": {
+        "startLine": 448,
+        "startChar": 0,
+        "endLine": 450,
+        "endChar": 21
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a60ef1a9_3d0b1cca",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 450,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-23T14:02:54Z",
+      "side": 1,
+      "message": "That\u0027s not the order I feel is most natural - rewrote it to have result override options which overrides groupparams",
+      "parentUuid": "f1294444_e3cba6d8",
       "range": {
         "startLine": 448,
         "startChar": 0,
@@ -226,6 +412,30 @@
     },
     {
       "key": {
+        "uuid": "578c2a9b_2628ad96",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 455,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-23T14:02:54Z",
+      "side": 1,
+      "message": "Right now, the filtering takes about 500ms and the firestore query takes about 3s in a good case, so optimizing the filtering more is probably not worth my time atm.\n\nI\u0027ll keep that in mind for if I optimize search.go in general though.",
+      "parentUuid": "7c9307b6_86e7a559",
+      "range": {
+        "startLine": 455,
+        "startChar": 8,
+        "endLine": 455,
+        "endChar": 39
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "80b92d09_22f23043",
         "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
         "patchSetId": 15
@@ -243,6 +453,24 @@
     },
     {
       "key": {
+        "uuid": "2d68ff4f_9dd35823",
+        "filename": "golden/go/tracestore/bt_tracestore/bt_tracestore.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 678,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-23T14:02:54Z",
+      "side": 1,
+      "message": "I realized after submitting but before pushing.",
+      "parentUuid": "80b92d09_22f23043",
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b3a1bc40_21e0f120",
         "filename": "golden/modules/changelist-controls-sk/changelist-controls-sk.js",
         "patchSetId": 15
@@ -254,6 +482,30 @@
       "writtenOn": "2019-09-21T02:55:03Z",
       "side": 1,
       "message": "FWIW, gerrit shows the full name",
+      "range": {
+        "startLine": 16,
+        "startChar": 6,
+        "endLine": 16,
+        "endChar": 30
+      },
+      "revId": "7ac750fd0bc492accfbd45b593aae79edabfec75",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ecc11990_42062978",
+        "filename": "golden/modules/changelist-controls-sk/changelist-controls-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-23T14:02:54Z",
+      "side": 1,
+      "message": "Ack. I find it easier to write CSS when I know there\u0027s a maximum length.",
+      "parentUuid": "b3a1bc40_21e0f120",
       "range": {
         "startLine": 16,
         "startChar": 6,
