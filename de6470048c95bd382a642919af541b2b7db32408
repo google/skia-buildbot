@@ -16,6 +16,24 @@
       "revId": "de6470048c95bd382a642919af541b2b7db32408",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d65720d7_36b9e6ed",
+        "filename": "debugger-assets/go/debugger-assets/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-09-23T20:19:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c76ecfe7_3c372db0",
+      "revId": "de6470048c95bd382a642919af541b2b7db32408",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
