@@ -175,6 +175,12 @@ def CheckChange(input_api, output_api):
 
   results += _CheckBannedGoAPIs(input_api, output_api)
 
+  if input_api.is_committing:
+    results.extend(input_api.canned_checks.CheckDoNotSubmitInDescription(
+        input_api, output_api))
+    results.extend(input_api.canned_checks.CheckDoNotSubmitInFiles(
+        input_api, output_api))
+
   return results
 
 
