@@ -1,0 +1,985 @@
+{
+  "static_resources": {
+    "clusters": [
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "autoroll-google3",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "autoroll-google3",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "autoroll-google3",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-skia-diffserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-skia-diffserver",
+                        "port_value": 8001
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-skia-diffserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-skia-skiacorrectness",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-skia-skiacorrectness",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-skia-skiacorrectness",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-skia-public-skiacorrectness",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-skia-public-skiacorrectness",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-skia-public-skiacorrectness",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-lottie-diffserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-lottie-diffserver",
+                        "port_value": 8001
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-lottie-diffserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-lottie-skiacorrectness",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-lottie-skiacorrectness",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-lottie-skiacorrectness",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-pdfium-diffserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-pdfium-diffserver",
+                        "port_value": 8001
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-pdfium-diffserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-pdfium-skiacorrectness",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-pdfium-skiacorrectness",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-pdfium-skiacorrectness",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-flutter-baselineserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-flutter-baselineserver",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-flutter-baselineserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-flutter-diffserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-flutter-diffserver",
+                        "port_value": 8001
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-flutter-diffserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-flutter-skiacorrectness",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-flutter-skiacorrectness",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-flutter-skiacorrectness",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-chrome-gpu-baselineserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-chrome-gpu-baselineserver",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-chrome-gpu-baselineserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-chrome-gpu-diffserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-chrome-gpu-diffserver",
+                        "port_value": 8001
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-chrome-gpu-diffserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-chrome-gpu-skiacorrectness",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-chrome-gpu-skiacorrectness",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-chrome-gpu-skiacorrectness",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-chrome-baselineserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-chrome-baselineserver",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-chrome-baselineserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-chrome-diffserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-chrome-diffserver",
+                        "port_value": 8001
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-chrome-diffserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-chrome-skiacorrectness",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-chrome-skiacorrectness",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-chrome-skiacorrectness",
+        "type": "STRICT_DNS"
+      }
+    ],
+    "listeners": [
+      {
+        "address": {
+          "socket_address": {
+            "address": "0.0.0.0",
+            "port_value": 8000
+          }
+        },
+        "filter_chains": {
+          "filters": [
+            {
+              "config": {
+                "access_log": {
+                  "config": {
+                    "json_format": {
+                      "authority": "%REQ(:AUTHORITY)%",
+                      "bytes_rcvd": "%BYTES_RECEIVED%",
+                      "bytes_sent": "%BYTES_SENT%",
+                      "code": "%RESPONSE_CODE%",
+                      "duration": "%DURATION%",
+                      "flags": "%RESPONSE_FLAGS%",
+                      "forwarded-for": "%REQ(X-FORWARDED-FOR)%",
+                      "path": "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%",
+                      "protocol": "%PROTOCOL%",
+                      "request": "%REQ(:METHOD)%",
+                      "request-id": "%REQ(X-REQUEST-ID)%",
+                      "start_time": "%START_TIME%",
+                      "upstream-host": "%UPSTREAM_HOST%",
+                      "upstream-time": "%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%",
+                      "user-agent": "%REQ(USER-AGENT)%"
+                    },
+                    "path": "/dev/stdout"
+                  },
+                  "name": "envoy.file_access_log"
+                },
+                "http_filters": [
+                  {
+                    "config": {},
+                    "name": "envoy.router"
+                  }
+                ],
+                "route_config": {
+                  "request_headers_to_add": [
+                    {
+                      "header": {
+                        "key": "Strict-Transport-Security",
+                        "value": "max-age=31536000; preload;"
+                      }
+                    },
+                    {
+                      "header": {
+                        "key": "X-XSS-Protection",
+                        "value": "1; mode=block"
+                      }
+                    },
+                    {
+                      "header": {
+                        "key": "X-Content-Type-Options",
+                        "value": "nosniff"
+                      }
+                    }
+                  ],
+                  "virtual_hosts": [
+                    {
+                      "domains": "*",
+                      "name": "liveness",
+                      "routes": [
+                        {
+                          "direct_response": {
+                            "body": {
+                              "inline_string": "ok"
+                            },
+                            "status": 200
+                          },
+                          "match": {
+                            "prefix": "/"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "autoroll-internal.skia.org",
+                      "name": "autoroll-internal.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "skia-autoroll.corp.goog",
+                            "https_redirect": true
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "status-internal.skia.org ",
+                      "name": "status-internal.skia.org ",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "skia-status.corp.goog",
+                            "https_redirect": true
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "skbug.com",
+                      "name": "skbug.com",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "bugs.chromium.org",
+                            "https_redirect": true,
+                            "prefix_rewrite": "/detail?id="
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "bug.skia.org",
+                      "name": "bug.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/p/"
+                          },
+                          "redirect": {
+                            "host_redirect": "bugs.chromium.org",
+                            "https_redirect": true
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "bugs.chromium.org",
+                            "https_redirect": true,
+                            "prefix_rewrite": "/p/skia/issues/detail?id="
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "bugs.skia.org",
+                      "name": "bugs.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/p/"
+                          },
+                          "redirect": {
+                            "host_redirect": "bugs.chromium.org",
+                            "https_redirect": true
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "bugs.chromium.org",
+                            "https_redirect": true,
+                            "prefix_rewrite": "/p/skia/issues/detail?id="
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "code.skia.org",
+                      "name": "code.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "skia.googlesource.com",
+                            "https_redirect": true,
+                            "path_redirect": "/skia"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "review.skia.org",
+                      "name": "review.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "skia-review.googlesource.com",
+                            "https_redirect": true,
+                            "prefix_rewrite": "/c/"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "reviews.skia.org",
+                      "name": "reviews.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "skia-review.googlesource.com",
+                            "https_redirect": true,
+                            "prefix_rewrite": "/c/"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "cs.skia.org",
+                      "name": "cs.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "cs.chromium.org",
+                            "https_redirect": true,
+                            "prefix_rewrite": "/search/?sq=package:chromium\u0026type=cs\u0026q=file:%5Esrc/third_party/skia/+"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "task-scheduler-internal.skia.org",
+                      "name": "task-scheduler-internal.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "skia-task-scheduler.corp.goog",
+                            "https_redirect": true
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "fuzzer.skia.org",
+                      "name": "fuzzer.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "bugs.chromium.org",
+                            "https_redirect": true,
+                            "path_redirect": "/p/oss-fuzz/issues/list?q=label:Proj-skia"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "android-perf.skia.org",
+                      "name": "android-perf.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "android-master-perf.skia.org",
+                            "https_redirect": true
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "www.skia.org",
+                      "name": "www.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "skia.org",
+                            "https_redirect": true
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "google3-roll.skia.org",
+                      "name": "google3-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/json/roll"
+                          },
+                          "route": {
+                            "cluster": "autoroll-google3"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "skia-autoroll.corp.goog",
+                            "path_redirect": "/r/google3-autoroll",
+                            "https_redirect": true
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "gold.skia.org",
+                      "name": "gold.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/img/"
+                          },
+                          "route": {
+                            "cluster": "gold-skia-diffserver"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "gold-skia-skiacorrectness"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "public-gold.skia.org",
+                      "name": "public-gold.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/img/"
+                          },
+                          "route": {
+                            "cluster": "gold-skia-diffserver"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "gold-skia-public-skiacorrectness"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "lottie-gold.skia.org ",
+                      "name": "lottie-gold.skia.org ",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/img/"
+                          },
+                          "route": {
+                            "cluster": "gold-lottie-diffserver"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "gold-lottie-skiacorrectness"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "pdfium-gold.skia.org",
+                      "name": "pdfium-gold.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/img/"
+                          },
+                          "route": {
+                            "cluster": "gold-pdfium-diffserver"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "gold-pdfium-skiacorrectness"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "flutter-gold.skia.org",
+                      "name": "flutter-gold.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/json/hashes"
+                          },
+                          "route": {
+                            "cluster": "gold-flutter-baselineserver"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/json/expectations/"
+                          },
+                          "route": {
+                            "cluster": "gold-flutter-baselineserver"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/img/"
+                          },
+                          "route": {
+                            "cluster": "gold-flutter-diffserver"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "gold-flutter-skiacorrectness"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "chrome-gpu-gold.skia.org",
+                      "name": "chrome-gpu-gold.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/json/hashes"
+                          },
+                          "route": {
+                            "cluster": "gold-chrome-gpu-baselineserver"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/json/expectations/"
+                          },
+                          "route": {
+                            "cluster": "gold-chrome-gpu-baselineserver"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/img/"
+                          },
+                          "route": {
+                            "cluster": "gold-chrome-gpu-diffserver"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "gold-chrome-gpu-skiacorrectness"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "chrome-gold.skia.org",
+                      "name": "chrome-gold.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/json/hashes"
+                          },
+                          "route": {
+                            "cluster": "gold-chrome-baselineserver"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/json/expectations/"
+                          },
+                          "route": {
+                            "cluster": "gold-chrome-baselineserver"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/img/"
+                          },
+                          "route": {
+                            "cluster": "gold-chrome-diffserver"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "gold-chrome-skiacorrectness"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "stat_prefix": "ingress_http"
+              },
+              "name": "envoy.http_connection_manager"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

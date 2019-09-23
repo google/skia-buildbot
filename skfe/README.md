@@ -11,7 +11,7 @@ A single unified web frontend for all the Skia properties.
               |                  |
               v                  v
     +-------------+          +-------------+
-    |   (nginx)   |    ...   |   (nginx)   |
+    |   (envoy)   |    ...   |   (envoy)   |
     +------+------+          +------+------+
            |                        |
        +---+-------------+----------+-----+
@@ -23,26 +23,27 @@ A single unified web frontend for all the Skia properties.
 ```
 
 A single static IP is handled by GKE Ingress which handles SSL and then
-distributes requests to multiple nginx pods: They, in turn, distribute the calls
+distributes requests to multiple envoy pods: They, in turn, distribute the calls
 to the backend as kubernetes sevices. The certs for all Skia properties are
 handled at the GKE Ingress level, see http://go/skia-ssl-cert for more details.
 
-The configuration for the nginx server is broken into four files:
+The configuration for the envoy server comes from `envoy-starter.json` and
+metadata annotations on services running in the skia-public k8s cluster.
 
-~~~
-     k8s/
-          nginx.conf        # Base nginx config.
-          default.conf      # Root of all the server configs.
-          redirects.conf    # All redirect rules go into this file.
-          services.conf     # This file is generated.
-~~~
+The generation of the configuration involves three files, two of which are
+auto-generated:
 
-The file `default.conf` includes `redirects.conf` and `services.conf` and
-itself contains all routes that aren't simple, for example, the Gold routes.
+    envoy-starter.json
+    simple.json
+    computed.json
 
-All redirects should be placed in `redirects.conf`.
+The `simple.json` and `computed.json` are generated files and are not checked
+into version control.
 
-The contents of `services.conf` are generated directly from metadata in
+The `enjoy-starter.json` file contains our liveness handling, all redirects, and
+complicated routes for services like Gold. It is a hand-written file.
+
+The contents of `simple.json` are generated directly from metadata in
 kubernetes Services.
 
 We need three pieces of information, the domain name, the target service name,
@@ -75,20 +76,13 @@ annotation which specifies the public domain name where this service should be
 available. It must be a sub-domain of `.skia.org`. There also must be a
 `.spec.ports` with a name of "http" that specifies the port at which the service
 is available. Along with the name of the service those values are combined to
-produce a nginx server config that looks like:
+produce the `simple.json` config file. We then run `merge_envoy` to merge
+`simple.json` and `envoy-starter.json` into `computed.json` which is then used
+in the envoy image. Making this a two step process makes it easier to debug the
+output of each step, as Envoy configs are very wordy.
 
-~~~
-#####   perf.skia.org   ###########################
-server {
-    listen      80;
-    server_name perf.skia.org;
-
-    location / {
-        proxy_pass http://skiaperf:8000;
-        proxy_set_header Host $host;
-    }
-}
-~~~
+Finally `update_probers` can be run to add all the redirects from
+`envoy-starter.json` to `probersk.json5`.
 
 ## FAQ
 

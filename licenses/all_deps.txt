@@ -86,6 +86,7 @@ github.com/huin/goserial
 github.com/imdario/mergo
 github.com/jcgregorio/logger
 github.com/jcgregorio/slog
+github.com/Jeffail/gabs/v2
 github.com/jmespath/go-jmespath
 github.com/json-iterator/go
 github.com/julienschmidt/httprouter

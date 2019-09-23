@@ -1,29 +1,35 @@
 {
-   "wildcard-cert": {
-     "urls": [
-       "https://skia.org",
-       "https://gold.skia.org",
-       "https://35.201.76.220",
-     ],
-     "method": "SSL",
-
-     // expected contains the minimum number of days the cert needs to be valid.
-     "expected": [10],
-   },
-   "nginx-redirect": {
-     "urls": [
-       "https://autoroll-internal.skia.org",
-       "https://status-internal.skia.org",
-       "https://task-scheduler-internal.skia.org",
-       "http://skbug.com",
-       "https://bug.skia.org",
-       "https://bugs.skia.org",
-       "https://code.skia.org",
-       "https://review.skia.org",
-       "https://reviews.skia.org",
-       "https://cs.skia.org",
-     ],
-     "method": "GET",
-     "expected": [302],
-   }
+  "envoy-redirects": {
+    "expected": [
+      301
+    ],
+    "method": "GET",
+    "urls": [
+      "https://android-perf.skia.org",
+      "https://autoroll-internal.skia.org",
+      "https://bug.skia.org",
+      "https://bugs.skia.org",
+      "https://code.skia.org",
+      "https://cs.skia.org",
+      "https://fuzzer.skia.org",
+      "https://google3-roll.skia.org",
+      "https://review.skia.org",
+      "https://reviews.skia.org",
+      "https://skbug.com",
+      "https://status-internal.skia.org ",
+      "https://task-scheduler-internal.skia.org",
+      "https://www.skia.org"
+    ]
+  },
+  "wildcard-cert": {
+    "expected": [
+      10
+    ],
+    "method": "SSL",
+    "urls": [
+      "https://skia.org",
+      "https://gold.skia.org",
+      "https://35.201.76.220"
+    ]
+  }
 }
