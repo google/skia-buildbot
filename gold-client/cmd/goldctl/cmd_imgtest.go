@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -97,22 +98,29 @@ test results.`,
 		Run: env.runImgTestFinalizeCmd,
 	}
 	imgTestFinalizeCmd.Flags().StringVar(&env.flagWorkDir, fstrWorkDir, "", "Work directory for intermediate results")
-	Must(imgTestAddCmd.MarkFlagRequired("work-dir"))
+	Must(imgTestFinalizeCmd.MarkFlagRequired(fstrWorkDir))
 
-	imgTestPassFailCmd := &cobra.Command{
-		Use:   "passfail",
+	imgTestCheckCmd := &cobra.Command{
+		Use:   "check",
 		Short: "Checks whether the results match expectations",
-		Long: `
-Check against Gold or local baseline whether the results match the expectations`,
-		Run: env.runImgTestPassFailCmd,
+		Long:  `Check against Gold's baseline whether the results match the expectations`,
+		Run:   env.runImgTestCheckCmd,
 	}
+	imgTestCheckCmd.Flags().StringVar(&env.flagWorkDir, fstrWorkDir, "", "Work directory for intermediate results")
+	imgTestCheckCmd.Flags().StringVar(&env.flagTestName, "test-name", "", "Unique name of the test, must not contain spaces.")
+	imgTestCheckCmd.Flags().StringVar(&env.flagPNGFile, "png-file", "", "Path to the PNG file that contains the test results.")
+	imgTestCheckCmd.Flags().StringVar(&env.flagInstanceID, "instance", "", "ID of the Gold instance.")
+	Must(imgTestCheckCmd.MarkFlagRequired(fstrWorkDir))
+	Must(imgTestCheckCmd.MarkFlagRequired("test-name"))
+	Must(imgTestCheckCmd.MarkFlagRequired("png-file"))
+	Must(imgTestCheckCmd.MarkFlagRequired("instance"))
 
 	// assemble the imgtest command.
 	imgTestCmd.AddCommand(
 		imgTestInitCmd,
 		imgTestAddCmd,
 		imgTestFinalizeCmd,
-		imgTestPassFailCmd,
+		imgTestCheckCmd,
 	)
 	return imgTestCmd
 }
@@ -150,8 +158,36 @@ func (i *imgTestEnv) validateFlags(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-// TODO(kjlubick): Implement this stubbed out command
-func (i *imgTestEnv) runImgTestPassFailCmd(cmd *cobra.Command, args []string) { notImplemented(cmd) }
+func (i *imgTestEnv) runImgTestCheckCmd(cmd *cobra.Command, args []string) {
+	auth, err := goldclient.LoadAuthOpt(i.flagWorkDir)
+	ifErrLogExit(cmd, err)
+
+	if auth == nil {
+		logErrf(cmd, "Auth is empty - did you call goldctl auth first?")
+		exitProcess(cmd, 1)
+	}
+
+	goldClient, err := goldclient.LoadCloudClient(auth, i.flagWorkDir)
+	if err != nil {
+		fmt.Printf("Could not load existing run, trying to initialize %s\n", i.flagWorkDir)
+		config := goldclient.GoldClientConfig{
+			WorkDir:    i.flagWorkDir,
+			InstanceID: i.flagInstanceID,
+		}
+		goldClient, err = goldclient.NewCloudClient(auth, config)
+		ifErrLogExit(cmd, err)
+	}
+
+	pass, err := goldClient.Check(types.TestName(i.flagTestName), i.flagPNGFile)
+	ifErrLogExit(cmd, err)
+
+	if !pass {
+		logErrf(cmd, "Test: %s FAIL\n", i.flagTestName)
+		exitProcess(cmd, 1)
+	}
+	logInfof(cmd, "Test: %s PASS\n", i.flagTestName)
+	exitProcess(cmd, 0)
+}
 
 func (i *imgTestEnv) runImgTestInitCmd(cmd *cobra.Command, args []string) {
 	auth, err := goldclient.LoadAuthOpt(i.flagWorkDir)
