@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "daad54d9_d36dddf6",
+        "filename": "skfe/k8s/nginx.conf",
+        "patchSetId": 50
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-23T17:22:09Z",
+      "side": 0,
+      "message": "Seems like you should add these to https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/rds.proto.html?highlight\u003drequest_headers_to_add",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 48
+      },
+      "revId": "4ee753c967e0bf7faaa6aa0adc858d1f1a1197c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
