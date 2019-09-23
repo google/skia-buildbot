@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3c85bf6b_bb6727c1",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 731,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-23T18:22:30Z",
+      "side": 1,
+      "message": "nit: can just removed this?",
+      "range": {
+        "startLine": 731,
+        "startChar": 111,
+        "endLine": 731,
+        "endChar": 129
+      },
+      "revId": "55f67e6b5bfbba0b10a2f5d961a88a7fc9cefe8e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
