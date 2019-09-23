@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c76ecfe7_3c372db0",
+        "filename": "debugger-assets/go/debugger-assets/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-23T16:36:16Z",
+      "side": 1,
+      "message": "Why not set b \u003d []byte(\"unknown\") ?",
+      "revId": "de6470048c95bd382a642919af541b2b7db32408",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
