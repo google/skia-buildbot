@@ -23,6 +23,7 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
+	"cloud.google.com/go/pubsub"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	autoroll_status "go.skia.org/infra/autoroll/go/status"
@@ -49,7 +50,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
-	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 	"google.golang.org/api/option"
@@ -101,8 +101,7 @@ var (
 // flags
 var (
 	chromeInfraAuthJWT = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
-	// TODO(borenet): Combine btInstance, firestoreInstance, and
-	// pubsubTopicSet.
+	// TODO(borenet): Combine btInstance and firestoreInstance.
 	btInstance                  = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject                   = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
 	capacityRecalculateInterval = flag.Duration("capacity_recalculate_interval", 10*time.Minute, "How often to re-calculate capacity statistics.")
@@ -111,8 +110,6 @@ var (
 	host                        = flag.String("host", "localhost", "HTTP service host")
 	port                        = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	promPort                    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	pubsubProject               = flag.String("pubsub_project", "", "GCE project to use for PubSub.")
-	pubsubTopicSet              = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
 	repoUrls                    = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
 	resourcesDir                = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	swarmingUrl                 = flag.String("swarming_url", "https://chromium-swarm.appspot.com", "URL of the Swarming server.")
@@ -731,7 +728,7 @@ func main() {
 		podId = uuid.New().String()
 	}
 
-	ts, err := auth.NewDefaultTokenSource(*testing, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, bigtable.Scope, pubsub.AUTH_SCOPE, datastore.ScopeDatastore)
+	ts, err := auth.NewDefaultTokenSource(*testing, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, bigtable.Scope, pubsub.ScopePubSub, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -751,12 +748,7 @@ func main() {
 		}
 	}
 
-	label := *host
-	mod, err := pubsub.NewModifiedData(*pubsubProject, *pubsubTopicSet, label, ts)
-	if err != nil {
-		sklog.Fatalf("Failed to initialize pubsub: %s", err)
-	}
-	taskDb, err = firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts, mod)
+	taskDb, err = firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts, nil)
 	if err != nil {
 		sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 	}

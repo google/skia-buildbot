@@ -79,6 +79,9 @@ func (c *taskCache) Update(w *window.Window) (map[string][]*Task, bool, error) {
 		// lost connection.
 		return c.Reset(w)
 	}
+	// Note that GetModifiedTasks could technically return tasks we've
+	// already seen. In this case, that will cause us to resend some tasks
+	// to the client, which is wasteful but won't cause incorrect results.
 	newTasks, err := c.db.GetModifiedTasks(c.queryId)
 	if err != nil {
 		sklog.Errorf("Connection to db lost; re-initializing cache from scratch. Error: %s", err)
