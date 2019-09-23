@@ -167,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "a0830f06_ed4c9524",
+        "filename": "skfe/build_envoy_json",
+        "patchSetId": 49
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-23T18:14:51Z",
+      "side": 1,
+      "message": "I\u0027m considering replacing this with a Go program now that I\u0027ve discovered gabs. Also considering pulling the info from .yaml files instead of the running config. But I\u0027ll leave it as-is for now.",
+      "parentUuid": "996741c3_7e39f0ab",
+      "range": {
+        "startLine": 37,
+        "startChar": 36,
+        "endLine": 40,
+        "endChar": 82
+      },
+      "revId": "083cc3d321c8bf4e2b6c068c54a76ea29cbe50ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5d7ceac9_c7f855f7",
         "filename": "skfe/build_envoy_json",
         "patchSetId": 49
