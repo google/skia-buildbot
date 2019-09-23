@@ -113,3 +113,23 @@ The recent rate of errors for the main gold instance is high, it is
 typically well below 0.1.
 See the error logs for the given instance for more.
 
+GoldExpectationsStale
+----------------------
+Currently, our baseline servers use QuerySnapshotIterators when fetching expectations out of
+Firestore. Those run on goroutines. This alert will be active if any of those sharded
+iterators are down, thus yielding stale results.
+
+To fix, delete one baseliner pod of the affected instance at a time until all of them
+have restarted and are healthy.
+
+If this alert fires, it probably means the related logic in fs_expstore needs to be rethought.
+
+GoldCorruptTryJobData
+---------------------
+This section covers both GoldCorruptTryJobParamMaps and GoldTryJobResultsIncompleteData which are
+probably both active or both inactive. TryJobResults are stored in firestore in a separate
+document from the Param maps that store the keys so as to lower request data. However, if somehow
+data was only partially uploaded or corrupted, there might be TryJobResults that reference
+Params that don't exist.
+
+If this happens, we might need to re-ingest the TryJob data to re-construct the missing data.

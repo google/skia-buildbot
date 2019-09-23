@@ -262,12 +262,14 @@ func (f *Store) initQuerySnapshot(ctx context.Context) error {
 // go routines that listen to those snapshots. If they see new triages (i.e. expectationEntry),
 // they update the f.cache (which is protected by cacheMutex).
 func (f *Store) listenToQuerySnapshots(ctx context.Context) {
+	metrics2.GetCounter("stopped_expstore_shards").Reset()
 	for i := 0; i < snapshotShards; i++ {
 		go func(shard int) {
 			for {
 				if err := ctx.Err(); err != nil {
 					f.masterQuerySnapshots[shard].Stop()
 					sklog.Debugf("Stopping query of snapshots on shard %d due to context err: %s", shard, err)
+					metrics2.GetCounter("stopped_expstore_shards").Inc(1)
 					return
 				}
 				qs, err := f.masterQuerySnapshots[shard].Next()
