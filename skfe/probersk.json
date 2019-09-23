@@ -1,0 +1,17 @@
+{
+   "wildcard-cert": {
+     "urls": [
+       "https://skia.org",
+       "https://gold.skia.org",
+       "https://35.201.76.220",
+     ],
+     "method": "SSL",
+     "expected": [10],
+   },
+   "envoy-redirects": {
+     "urls": [
+     ],
+     "method": "GET",
+     "expected": [302],
+   }
+}
