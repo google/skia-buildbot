@@ -73,7 +73,10 @@ func (g *gitStoreRepoImpl) Update(ctx context.Context) error {
 		return skerr.Wrapf(err, "Failed to read LongCommits from GitStore")
 	}
 	commitsMap := make(map[string]*vcsinfo.LongCommit, len(commits))
-	for _, c := range commits {
+	for idx, c := range commits {
+		if c == nil {
+			return skerr.Fmt("Found IndexCommit but no LongCommit for %s; this may be due to an eventually-consistent DB implementation being slightly out of date, or it could be because GitSync is failing.", hashes[idx])
+		}
 		commitsMap[c.Hash] = c
 	}
 
