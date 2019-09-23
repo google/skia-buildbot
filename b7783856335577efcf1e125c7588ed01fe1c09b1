@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e8803615_71ee4897",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 652,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-23T18:28:22Z",
+      "side": 1,
+      "message": "I assume this is still needed for Swarming.",
+      "range": {
+        "startLine": 652,
+        "startChar": 124,
+        "endLine": 652,
+        "endChar": 142
+      },
+      "revId": "b7783856335577efcf1e125c7588ed01fe1c09b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
