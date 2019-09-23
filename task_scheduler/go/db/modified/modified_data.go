@@ -24,9 +24,11 @@ func NewModifiedData() db.ModifiedData {
 type modifiedData struct {
 	// map[subscriber_id][entry_id]entry
 	data map[string]map[string]interface{}
+	// map[subscriber_id][entry_id]entry_modification_time
+	ts map[string]map[string]time.Time
 	// After the expiration time, subscribers are automatically removed.
 	expiration map[string]time.Time
-	// Protects data and expiration.
+	// Protects data, ts, and expiration.
 	mtx sync.RWMutex
 }
 
@@ -39,6 +41,7 @@ func (m *modifiedData) GetModifiedEntries(id string) (map[string]interface{}, er
 	rv := m.data[id]
 	m.expiration[id] = time.Now().Add(db.MODIFIED_DATA_TIMEOUT)
 	delete(m.data, id)
+	delete(m.ts, id)
 	return rv, nil
 }
 
@@ -53,12 +56,14 @@ func (m *modifiedData) clearExpiredSubscribers() {
 			if time.Now().After(t) {
 				sklog.Warningf("Deleting expired subscriber with id %s; expiration time %s.", id, t)
 				delete(m.data, id)
+				delete(m.ts, id)
 				delete(m.expiration, id)
 			}
 		}
 		anyLeft := len(m.expiration) > 0
 		if !anyLeft {
 			m.data = nil
+			m.ts = nil
 			m.expiration = nil
 		}
 		m.mtx.Unlock()
@@ -71,24 +76,37 @@ func (m *modifiedData) clearExpiredSubscribers() {
 
 // TrackModifiedEntry indicates the given data should be returned from the next
 // call to GetModifiedEntries from each subscriber.
-func (m *modifiedData) TrackModifiedEntry(id string, d interface{}) {
-	m.TrackModifiedEntries(map[string]interface{}{id: d})
+func (m *modifiedData) TrackModifiedEntry(id string, d interface{}, ts time.Time) {
+	m.TrackModifiedEntries(map[string]interface{}{id: d}, map[string]time.Time{id: ts})
 }
 
 // TrackModifiedEntries indicates that the given data should be returned from
 // the next call to GetModifiedEntries from each subscriber. Values must not be
 // modified after this call.
-func (m *modifiedData) TrackModifiedEntries(entries map[string]interface{}) {
+func (m *modifiedData) TrackModifiedEntries(entries map[string]interface{}, ts map[string]time.Time) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 	for subId := range m.expiration {
-		sub, ok := m.data[subId]
+		subData, ok := m.data[subId]
 		if !ok {
-			sub = make(map[string]interface{}, len(entries))
-			m.data[subId] = sub
+			subData = make(map[string]interface{}, len(entries))
+			m.data[subId] = subData
+		}
+		subTs, ok := m.ts[subId]
+		if !ok {
+			subTs = make(map[string]time.Time, len(entries))
+			m.ts[subId] = subTs
 		}
 		for entryId, entry := range entries {
-			sub[entryId] = entry
+			newTs := ts[entryId]
+			oldTs, ok := subTs[entryId]
+			// Ideally, we'd use newTs.After(oldTs), but that would
+			// result us not seeing deleted comments (which always
+			// use the same timestamp).
+			if !ok || !newTs.Before(oldTs) {
+				subData[entryId] = entry
+				subTs[entryId] = newTs
+			}
 		}
 	}
 }
@@ -101,6 +119,7 @@ func (m *modifiedData) StartTrackingModifiedEntries() (string, error) {
 	if m.expiration == nil {
 		// Initialize the data structure and start expiration goroutine.
 		m.data = map[string]map[string]interface{}{}
+		m.ts = map[string]map[string]time.Time{}
 		m.expiration = map[string]time.Time{}
 		go m.clearExpiredSubscribers()
 	} else if len(m.expiration) >= db.MAX_MODIFIED_DATA_USERS {
@@ -117,6 +136,7 @@ func (m *modifiedData) StopTrackingModifiedEntries(id string) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 	delete(m.data, id)
+	delete(m.ts, id)
 	delete(m.expiration, id)
 }
 
@@ -147,10 +167,12 @@ func (m *ModifiedTasksImpl) TrackModifiedTask(t *types.Task) {
 // See docs for ModifiedTasks interface.
 func (m *ModifiedTasksImpl) TrackModifiedTasks(tasks []*types.Task) {
 	entries := make(map[string]interface{}, len(tasks))
+	ts := make(map[string]time.Time, len(tasks))
 	for _, t := range tasks {
 		entries[t.Id] = t.Copy()
+		ts[t.Id] = t.DbModified
 	}
-	m.m.TrackModifiedEntries(entries)
+	m.m.TrackModifiedEntries(entries, ts)
 }
 
 // See docs for ModifiedTasks interface.
@@ -189,10 +211,12 @@ func (m *ModifiedJobsImpl) TrackModifiedJob(j *types.Job) {
 // See docs for ModifiedJobs interface.
 func (m *ModifiedJobsImpl) TrackModifiedJobs(jobs []*types.Job) {
 	entries := make(map[string]interface{}, len(jobs))
+	ts := make(map[string]time.Time, len(jobs))
 	for _, j := range jobs {
 		entries[j.Id] = j.Copy()
+		ts[j.Id] = j.DbModified
 	}
-	m.m.TrackModifiedEntries(entries)
+	m.m.TrackModifiedEntries(entries, ts)
 }
 
 // See docs for ModifiedJobs interface.
@@ -252,17 +276,17 @@ func (m *ModifiedCommentsImpl) GetModifiedComments(id string) ([]*types.TaskComm
 
 // See docs for ModifiedComments interface.
 func (m *ModifiedCommentsImpl) TrackModifiedTaskComment(c *types.TaskComment) {
-	m.tasks.TrackModifiedEntries(map[string]interface{}{c.Id(): c.Copy()})
+	m.tasks.TrackModifiedEntries(map[string]interface{}{c.Id(): c.Copy()}, map[string]time.Time{c.Id(): c.Timestamp})
 }
 
 // See docs for ModifiedComments interface.
 func (m *ModifiedCommentsImpl) TrackModifiedTaskSpecComment(c *types.TaskSpecComment) {
-	m.taskSpecs.TrackModifiedEntries(map[string]interface{}{c.Id(): c.Copy()})
+	m.taskSpecs.TrackModifiedEntries(map[string]interface{}{c.Id(): c.Copy()}, map[string]time.Time{c.Id(): c.Timestamp})
 }
 
 // See docs for ModifiedComments interface.
 func (m *ModifiedCommentsImpl) TrackModifiedCommitComment(c *types.CommitComment) {
-	m.commits.TrackModifiedEntries(map[string]interface{}{c.Id(): c.Copy()})
+	m.commits.TrackModifiedEntries(map[string]interface{}{c.Id(): c.Copy()}, map[string]time.Time{c.Id(): c.Timestamp})
 }
 
 // See docs for ModifiedComments interface.
