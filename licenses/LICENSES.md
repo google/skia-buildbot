@@ -37,6 +37,7 @@ The following licenses are used in dependent packages.
 | github.com/imdario/mergo            | BSD-3-Clause     |
 | github.com/jcgregorio/logger        | Apache 2.0       |
 | github.com/jcgregorio/slog          | Apache 2.0       |
+| github.com/Jeffail/gabs/v2          | MIT              |
 | github.com/jmoiron/sqlx             | MIT              |
 | github.com/julienschmidt/httprouter | BSD-3-Clause     |
 | github.com/Masterminds/goutils      | Apache 2.0       |
