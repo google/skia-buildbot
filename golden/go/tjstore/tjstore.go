@@ -62,6 +62,8 @@ type TryJobResult struct {
 	// produced the digest/image. This includes the test name and corpus,
 	// things that change for each result. This map is safe to be written
 	// to by the client.
+	// In the event of conflict, ResultParams should override Options which
+	// override GroupParams.
 	ResultParams paramtools.Params
 
 	// Options give extra details about this result. This includes things

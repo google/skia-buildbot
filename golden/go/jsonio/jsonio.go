@@ -127,6 +127,8 @@ type GoldResults struct {
 
 // Result holds the individual result of one test.
 type Result struct {
+	// In the event of a conflict, the key/values in Result.Key will override Options, which
+	// override the GoldResults.Key.
 	Key     map[string]string `json:"key"      validate:"required"`
 	Options map[string]string `json:"options"  validate:"required"`
 	Digest  types.Digest      `json:"md5"      validate:"required"`
