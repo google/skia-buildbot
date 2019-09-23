@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"sort"
+	"strings"
 
 	"github.com/Jeffail/gabs/v2"
 	"go.skia.org/infra/go/sklog"
@@ -61,7 +62,7 @@ func main() {
 		}
 
 		if redirect && domain != "*" {
-			domains = append(domains, fmt.Sprintf("https://%s", domain))
+			domains = append(domains, fmt.Sprintf("https://%s", strings.TrimSpace(domain)))
 		}
 
 	}
