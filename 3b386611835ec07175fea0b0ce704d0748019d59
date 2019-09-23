@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "35f2956d_15fc2997",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 691,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-23T15:14:28Z",
+      "side": 1,
+      "message": "I was checking my understanding that we would be behind in exactly the way you specified.",
+      "parentUuid": "44487795_32a8b6a7",
+      "range": {
+        "startLine": 691,
+        "startChar": 50,
+        "endLine": 691,
+        "endChar": 61
+      },
+      "revId": "3b386611835ec07175fea0b0ce704d0748019d59",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4eba4df2_7ef489ce",
         "filename": "task_scheduler/go/db/firestore/modified_chan.go",
         "patchSetId": 8
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "Is that known to be a problem?  We only expect to run a maximum of 3 of these per app, and currently there are only 3 apps which would use them.",
       "parentUuid": "4eba4df2_7ef489ce",
+      "range": {
+        "startLine": 50,
+        "startChar": 14,
+        "endLine": 50,
+        "endChar": 36
+      },
+      "revId": "3b386611835ec07175fea0b0ce704d0748019d59",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a46b01f_0396e212",
+        "filename": "task_scheduler/go/db/firestore/modified_chan.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-23T15:14:28Z",
+      "side": 1,
+      "message": "It\u0027s a best practice:\nhttps://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/",
+      "parentUuid": "efdd0db9_320050da",
       "range": {
         "startLine": 50,
         "startChar": 14,
