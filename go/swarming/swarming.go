@@ -68,9 +68,6 @@ type TaskOutputFormat struct {
 }
 
 func (t *SwarmingTask) Trigger(ctx context.Context, s *SwarmingClient, hardTimeout, ioTimeout time.Duration) error {
-	if err := _VerifyBinaryExists(ctx, s.SwarmingPy); err != nil {
-		return fmt.Errorf("Could not find swarming binary: %s", err)
-	}
 
 	// Run swarming trigger.
 	dumpJSON := path.Join(t.OutputDir, fmt.Sprintf("%s-trigger-output.json", t.Title))
@@ -150,9 +147,6 @@ func (t *SwarmingTask) Trigger(ctx context.Context, s *SwarmingClient, hardTimeo
 //   code then error is non-nil but all of the above (output, outdir, state) are also returned if
 //   known. This is useful for checking if a task failed because it was cancelled.
 func (t *SwarmingTask) Collect(ctx context.Context, s *SwarmingClient, logStdout, logStderr bool) (string, string, string, error) {
-	if verifyErr := _VerifyBinaryExists(ctx, s.SwarmingPy); verifyErr != nil {
-		return "", "", "", fmt.Errorf("Could not find swarming binary: %s", verifyErr)
-	}
 	dumpJSON := path.Join(t.OutputDir, fmt.Sprintf("%s-trigger-output.json", t.Title))
 
 	// Run swarming collect.
@@ -325,18 +319,4 @@ func (s *SwarmingClient) Cleanup() {
 	if err := os.RemoveAll(s.WorkDir); err != nil {
 		sklog.Errorf("Could not cleanup swarming work dir: %s", err)
 	}
-}
-
-func _VerifyBinaryExists(ctx context.Context, binary string) error {
-	err := exec.Run(ctx, &exec.Command{
-		Name:      binary,
-		Args:      []string{"help"},
-		Timeout:   60 * time.Second,
-		LogStdout: false,
-		LogStderr: true,
-	})
-	if err != nil {
-		return fmt.Errorf("Error finding the binary %s: %s", binary, err)
-	}
-	return nil
 }
