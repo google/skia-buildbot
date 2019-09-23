@@ -141,6 +141,30 @@
       "revId": "3b386611835ec07175fea0b0ce704d0748019d59",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4bd7756_23230cdb",
+        "filename": "task_scheduler/go/db/firestore/modified_chan.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-23T16:27:43Z",
+      "side": 1,
+      "message": "Done, although that article is focused on concurrent updates to the same object, and it\u0027s not clear to me whether contention would be a problem for starting up snapshot iterators (I would hope not).   FTR this is definitely a problem for transactions in Firestore: the client lib waits for a fixed amount of time before retrying, so two poorly timed transactions which modify the same document can get stuck in a fail+retry loop, until they time out.  If they use the same timeout, this can continue ~forever.  We should probably add slightly randomized timeout support to the go/firestore package.",
+      "parentUuid": "5a46b01f_0396e212",
+      "range": {
+        "startLine": 50,
+        "startChar": 14,
+        "endLine": 50,
+        "endChar": 36
+      },
+      "revId": "3b386611835ec07175fea0b0ce704d0748019d59",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
