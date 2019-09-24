@@ -84,6 +84,24 @@
     },
     {
       "key": {
+        "uuid": "d3d8dfb1_55599192",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 644,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-24T16:25:18Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "af509cfd_417f0e7b",
+      "revId": "3720fdd8b76aebfe7c737de6ed93f23279025e6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b6be867e_dda6a834",
         "filename": "golden/go/jsonio/jsonio.go",
         "patchSetId": 6
