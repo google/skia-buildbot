@@ -5,6 +5,7 @@
     ],
     "method": "GET",
     "urls": [
+      "http://skbug.com",
       "https://android-perf.skia.org",
       "https://autoroll-internal.skia.org",
       "https://bug.skia.org",
@@ -15,7 +16,6 @@
       "https://google3-roll.skia.org",
       "https://review.skia.org",
       "https://reviews.skia.org",
-      "https://skbug.com",
       "https://status-internal.skia.org",
       "https://task-scheduler-internal.skia.org",
       "https://www.skia.org"
