@@ -46,6 +46,30 @@
       "revId": "848b7661fe6f789dcf20e6939eb711275d2d4be2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6baaacaf_4bab302b",
+        "filename": "golden/go/ingestion_processors/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-24T14:00:13Z",
+      "side": 1,
+      "message": "resilient*",
+      "parentUuid": "d05ed94f_35b81b62",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 54
+      },
+      "revId": "848b7661fe6f789dcf20e6939eb711275d2d4be2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
