@@ -7,8 +7,29 @@
   <script src='/res/js/core.js' type='text/javascript' charset='utf-8'></script>
   <script src="/res/js/debugger.js"></script>
   <link href='/res/vul/elements.html' rel='import' />
+  <style>
+/* Make the version string appear inside the app's header bar.
+ * but the html is in this file and v2.html so it's template parameter can be evaluated.
+ */
+#version {
+  height: 0px;
+  width: 100%;
+  text-align: right;
+  position: relative;
+  top: 10px;
+  right: 10px;
+}
+#version-link {
+  color: white;
+  font-weight: bold;
+  font-family: sans-serif;
+}
+  </style>
 </head>
 <body class='fullbleed layout vertical'>
+  <div id="version">
+    <a id="version-link" href='https://skia.googlesource.com/skia/+/{{.Version}}'>{{.VersionShort}}</a>
+  </div>
   <wasm-debugger-app-sk> </wasm-debugger-app-sk>
 </body>
 </html>
