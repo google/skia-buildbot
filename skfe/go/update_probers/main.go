@@ -62,7 +62,11 @@ func main() {
 		}
 
 		if redirect && domain != "*" {
-			domains = append(domains, fmt.Sprintf("https://%s", strings.TrimSpace(domain)))
+			if domain == "skbug.com" {
+				domains = append(domains, fmt.Sprintf("http://%s", strings.TrimSpace(domain)))
+			} else {
+				domains = append(domains, fmt.Sprintf("https://%s", strings.TrimSpace(domain)))
+			}
 		}
 
 	}
