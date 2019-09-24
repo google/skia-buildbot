@@ -75,7 +75,7 @@ var (
 	commitsTemplate  *template.Template            = nil
 	iCache           *incremental.IncrementalCache = nil
 	lkgrObj          *lkgr.LKGR                    = nil
-	taskDb           db.RemoteDB                   = nil
+	taskDb           db.DB                         = nil
 	taskDriverDb     task_driver_db.DB             = nil
 	taskDriverLogs   *logs.LogsManager             = nil
 	tasksPerCommit   *tasksPerCommitCache          = nil

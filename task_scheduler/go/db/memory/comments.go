@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -8,7 +9,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
-	"go.skia.org/infra/task_scheduler/go/db/modified"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
@@ -17,14 +17,25 @@ import (
 // When created via NewCommentBoxWithPersistence, CommentBox will persist the
 // in-memory representation on every change using the provided writer function.
 type CommentBox struct {
-	db.ModifiedComments
-
 	// mtx protects comments.
 	mtx sync.RWMutex
 	// comments is map[repo_name]*types.RepoComments.
 	comments map[string]*types.RepoComments
 	// writer is called to persist comments after every change.
 	writer func(map[string]*types.RepoComments) error
+	modTC  []chan<- []*types.TaskComment
+	modTSC []chan<- []*types.TaskSpecComment
+	modCC  []chan<- []*types.CommitComment
+}
+
+// NewCommentBox returns a CommentBox instance with no writer.
+func NewCommentBox() *CommentBox {
+	return &CommentBox{
+		comments: map[string]*types.RepoComments{},
+		modTC:    []chan<- []*types.TaskComment{},
+		modTSC:   []chan<- []*types.TaskSpecComment{},
+		modCC:    []chan<- []*types.CommitComment{},
+	}
 }
 
 // NewCommentBoxWithPersistence creates a CommentBox that is initialized with
@@ -33,14 +44,13 @@ type CommentBox struct {
 // map[repo_name]*types.RepoComments. init must not be modified by the caller. writer
 // must not call any methods of CommentBox. writer may return an error to
 // prevent a change from taking effect.
-func NewCommentBoxWithPersistence(modComments db.ModifiedComments, init map[string]*types.RepoComments, writer func(map[string]*types.RepoComments) error) *CommentBox {
-	if modComments == nil {
-		modComments = &modified.ModifiedCommentsImpl{}
-	}
+func NewCommentBoxWithPersistence(init map[string]*types.RepoComments, writer func(map[string]*types.RepoComments) error) *CommentBox {
 	return &CommentBox{
-		ModifiedComments: modComments,
-		comments:         init,
-		writer:           writer,
+		comments: init,
+		writer:   writer,
+		modTC:    []chan<- []*types.TaskComment{},
+		modTSC:   []chan<- []*types.TaskSpecComment{},
+		modCC:    []chan<- []*types.CommitComment{},
 	}
 }
 
@@ -169,7 +179,12 @@ func (b *CommentBox) PutTaskComment(c *types.TaskComment) error {
 		}
 		return err
 	}
-	b.TrackModifiedTaskComment(c)
+	for _, ch := range b.modTC {
+		// Don't block in case a listener forgot about us.
+		go func(ch chan<- []*types.TaskComment, c *types.TaskComment) {
+			ch <- []*types.TaskComment{c}
+		}(ch, c.Copy())
+	}
 	return nil
 }
 
@@ -192,9 +207,37 @@ func (b *CommentBox) DeleteTaskComment(c *types.TaskComment) error {
 		deleted := true
 		c.Deleted = &deleted
 		existing.Deleted = &deleted
-		b.TrackModifiedTaskComment(existing)
+		for _, ch := range b.modTC {
+			// Don't block in case a listener forgot about us.
+			go func(ch chan<- []*types.TaskComment, c *types.TaskComment) {
+				ch <- []*types.TaskComment{c}
+			}(ch, existing.Copy())
+		}
 	}
 	return nil
+}
+
+// See docs for CommentDB interface.
+func (b *CommentBox) ModifiedTaskCommentsCh(ctx context.Context) <-chan []*types.TaskComment {
+	b.mtx.Lock()
+	defer b.mtx.Unlock()
+	rv := make(chan []*types.TaskComment)
+	b.modTC = append(b.modTC, rv)
+	// The first read returns all of the current data.
+	data := []*types.TaskComment{}
+	for _, repoComments := range b.comments {
+		for _, sub := range repoComments.TaskComments {
+			for _, cs := range sub {
+				for _, c := range cs {
+					data = append(data, c.Copy())
+				}
+			}
+		}
+	}
+	go func() {
+		rv <- data
+	}()
+	return rv
 }
 
 // putTaskSpecComment validates c and adds c to b.comments, or returns
@@ -271,7 +314,12 @@ func (b *CommentBox) PutTaskSpecComment(c *types.TaskSpecComment) error {
 		}
 		return err
 	}
-	b.TrackModifiedTaskSpecComment(c)
+	for _, ch := range b.modTSC {
+		// Don't block in case a listener forgot about us.
+		go func(ch chan<- []*types.TaskSpecComment, c *types.TaskSpecComment) {
+			ch <- []*types.TaskSpecComment{c}
+		}(ch, c.Copy())
+	}
 	return nil
 }
 
@@ -294,9 +342,35 @@ func (b *CommentBox) DeleteTaskSpecComment(c *types.TaskSpecComment) error {
 		deleted := true
 		c.Deleted = &deleted
 		existing.Deleted = &deleted
-		b.TrackModifiedTaskSpecComment(existing)
+		for _, ch := range b.modTSC {
+			// Don't block in case a listener forgot about us.
+			go func(ch chan<- []*types.TaskSpecComment, c *types.TaskSpecComment) {
+				ch <- []*types.TaskSpecComment{c}
+			}(ch, existing.Copy())
+		}
 	}
 	return nil
+}
+
+// See docs for CommentDB interface.
+func (b *CommentBox) ModifiedTaskSpecCommentsCh(ctx context.Context) <-chan []*types.TaskSpecComment {
+	b.mtx.Lock()
+	defer b.mtx.Unlock()
+	rv := make(chan []*types.TaskSpecComment)
+	b.modTSC = append(b.modTSC, rv)
+	// The first read returns all of the current data.
+	data := []*types.TaskSpecComment{}
+	for _, repoComments := range b.comments {
+		for _, cs := range repoComments.TaskSpecComments {
+			for _, c := range cs {
+				data = append(data, c.Copy())
+			}
+		}
+	}
+	go func() {
+		rv <- data
+	}()
+	return rv
 }
 
 // putCommitComment validates c and adds c to b.comments, or returns
@@ -373,7 +447,12 @@ func (b *CommentBox) PutCommitComment(c *types.CommitComment) error {
 		}
 		return err
 	}
-	b.TrackModifiedCommitComment(c)
+	for _, ch := range b.modCC {
+		// Don't block in case a listener forgot about us.
+		go func(ch chan<- []*types.CommitComment, c *types.CommitComment) {
+			ch <- []*types.CommitComment{c}
+		}(ch, c.Copy())
+	}
 	return nil
 }
 
@@ -396,7 +475,33 @@ func (b *CommentBox) DeleteCommitComment(c *types.CommitComment) error {
 		deleted := true
 		c.Deleted = &deleted
 		existing.Deleted = &deleted
-		b.TrackModifiedCommitComment(existing)
+		for _, ch := range b.modCC {
+			// Don't block in case a listener forgot about us.
+			go func(ch chan<- []*types.CommitComment, c *types.CommitComment) {
+				ch <- []*types.CommitComment{c}
+			}(ch, existing.Copy())
+		}
 	}
 	return nil
+}
+
+// See docs for CommentDB interface.
+func (b *CommentBox) ModifiedCommitCommentsCh(ctx context.Context) <-chan []*types.CommitComment {
+	b.mtx.Lock()
+	defer b.mtx.Unlock()
+	rv := make(chan []*types.CommitComment)
+	b.modCC = append(b.modCC, rv)
+	// The first read returns all of the current data.
+	data := []*types.CommitComment{}
+	for _, repoComments := range b.comments {
+		for _, cs := range repoComments.CommitComments {
+			for _, c := range cs {
+				data = append(data, c.Copy())
+			}
+		}
+	}
+	go func() {
+		rv <- data
+	}()
+	return rv
 }

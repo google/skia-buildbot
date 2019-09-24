@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"sync"
@@ -8,7 +9,6 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -76,6 +76,9 @@ type TaskCache interface {
 
 	// Update loads new tasks from the database.
 	Update() error
+
+	// AddTasks adds tasks directly to the TaskCache.
+	AddTasks([]*types.Task)
 }
 
 type taskCache struct {
@@ -83,7 +86,6 @@ type taskCache struct {
 	// map[repo_name][task_spec_name]Task.Created for most recent Task.
 	knownTaskNames map[string]map[string]time.Time
 	mtx            sync.RWMutex
-	queryId        string
 	tasks          map[string]*types.Task
 	// map[repo_name][commit_hash][task_spec_name]*Task
 	tasksByCommit map[string]map[string]map[string]*types.Task
@@ -93,6 +95,10 @@ type taskCache struct {
 	tasksByTime []*types.Task
 	timeWindow  *window.Window
 	unfinished  map[string]*types.Task
+
+	// Stash modified tasks until Update() is called.
+	modified map[string]*types.Task
+	modMtx   sync.Mutex
 }
 
 // See documentation for TaskCache interface.
@@ -377,7 +383,7 @@ func (c *taskCache) insertOrUpdateTask(task *types.Task) {
 // expireAndUpdate removes Tasks outside the window from the cache and inserts
 // new/updated tasks into the cache. Assumes the caller holds a lock. Assumes
 // tasks are sorted by Created timestamp.
-func (c *taskCache) expireAndUpdate(tasks []*types.Task) {
+func (c *taskCache) expireAndUpdate(tasks map[string]*types.Task) {
 	c.expireTasks()
 	for _, t := range tasks {
 		if c.timeWindow.TestTime(t.Repo, t.Created) {
@@ -386,57 +392,63 @@ func (c *taskCache) expireAndUpdate(tasks []*types.Task) {
 	}
 }
 
-// reset re-initializes c. Assumes the caller holds a lock.
-func (c *taskCache) reset() error {
-	if c.queryId != "" {
-		c.db.StopTrackingModifiedTasks(c.queryId)
-	}
-	queryId, err := c.db.StartTrackingModifiedTasks()
-	if err != nil {
-		return err
-	}
-	tasks, err := db.GetTasksFromWindow(c.db, c.timeWindow, time.Now())
-	if err != nil {
-		c.db.StopTrackingModifiedTasks(queryId)
-		return err
-	}
-	c.knownTaskNames = map[string]map[string]time.Time{}
-	c.queryId = queryId
-	c.tasks = map[string]*types.Task{}
-	c.tasksByCommit = map[string]map[string]map[string]*types.Task{}
-	c.tasksByKey = map[types.TaskKey]map[string]*types.Task{}
-	c.unfinished = map[string]*types.Task{}
-	c.expireAndUpdate(tasks)
-	return nil
-}
-
 // See documentation for TaskCache interface.
 func (c *taskCache) Update() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	newTasks, err := c.db.GetModifiedTasks(c.queryId)
-	if err != nil {
-		sklog.Warningf("Connection to db lost; re-initializing cache from scratch.")
-		if err := c.reset(); err != nil {
-			return err
-		}
-		return nil
-	}
-	c.expireAndUpdate(newTasks)
+	c.modMtx.Lock()
+	defer c.modMtx.Unlock()
+	c.expireAndUpdate(c.modified)
+	c.modified = map[string]*types.Task{}
 	return nil
+}
+
+// See documentation for TaskCache interface.
+func (c *taskCache) AddTasks(tasks []*types.Task) {
+	taskMap := make(map[string]*types.Task, len(tasks))
+	for _, task := range tasks {
+		taskMap[task.Id] = task
+	}
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	c.expireAndUpdate(taskMap)
 }
 
 // NewTaskCache returns a local cache which provides more convenient views of
 // task data than the database can provide.
-func NewTaskCache(d db.TaskReader, timeWindow *window.Window) (TaskCache, error) {
-	tc := &taskCache{
-		db:         d,
-		timeWindow: timeWindow,
-	}
-	if err := tc.reset(); err != nil {
+func NewTaskCache(ctx context.Context, d db.TaskReader, timeWindow *window.Window) (TaskCache, error) {
+	tasks, err := db.GetTasksFromWindow(d, timeWindow, time.Now())
+	if err != nil {
 		return nil, err
 	}
-	return tc, nil
+	tasksMap := make(map[string]*types.Task, len(tasks))
+	for _, task := range tasks {
+		tasksMap[task.Id] = task
+	}
+	c := &taskCache{
+		db:             d,
+		knownTaskNames: map[string]map[string]time.Time{},
+		tasks:          map[string]*types.Task{},
+		tasksByCommit:  map[string]map[string]map[string]*types.Task{},
+		tasksByKey:     map[types.TaskKey]map[string]*types.Task{},
+		unfinished:     map[string]*types.Task{},
+		modified:       map[string]*types.Task{},
+		timeWindow:     timeWindow,
+	}
+	c.expireAndUpdate(tasksMap)
+	mod := d.ModifiedTasksCh(ctx)
+	go func() {
+		for tasks := range mod {
+			c.modMtx.Lock()
+			for _, task := range tasks {
+				if old, ok := c.modified[task.Id]; !ok || task.DbModified.After(old.DbModified) {
+					c.modified[task.Id] = task
+				}
+			}
+			c.modMtx.Unlock()
+		}
+	}()
+	return c, nil
 }
 
 type JobCache interface {
@@ -469,18 +481,23 @@ type JobCache interface {
 
 	// Update loads new jobs from the database.
 	Update() error
+
+	// AddJobs adds jobs directly to the JobCache.
+	AddJobs([]*types.Job)
 }
 
 type jobCache struct {
 	db                   db.JobReader
 	getRevisionTimestamp db.GetRevisionTimestamp
 	mtx                  sync.RWMutex
-	queryId              string
 	jobs                 map[string]*types.Job
 	jobsByNameAndState   map[types.RepoState]map[string]map[string]*types.Job
 	timeWindow           *window.Window
 	triggeredForCommit   map[string]map[string]bool
 	unfinished           map[string]*types.Job
+
+	modified map[string]*types.Job
+	modMtx   sync.Mutex
 }
 
 // getJobTimestamp returns the timestamp of a Job for purposes of cache
@@ -663,7 +680,7 @@ func (c *jobCache) insertOrUpdateJob(job *types.Job) {
 
 // expireAndUpdate removes Jobs before the window and inserts the
 // new/updated jobs into the cache. Assumes the caller holds a lock.
-func (c *jobCache) expireAndUpdate(jobs []*types.Job) {
+func (c *jobCache) expireAndUpdate(jobs map[string]*types.Job) {
 	c.expireJobs()
 	for _, job := range jobs {
 		ts := c.getJobTimestamp(job)
@@ -675,59 +692,61 @@ func (c *jobCache) expireAndUpdate(jobs []*types.Job) {
 	}
 }
 
-// reset re-initializes c. Assumes the caller holds a lock.
-func (c *jobCache) reset() error {
-	defer metrics2.FuncTimer().Stop()
-
-	if c.queryId != "" {
-		c.db.StopTrackingModifiedJobs(c.queryId)
-	}
-	queryId, err := c.db.StartTrackingModifiedJobs()
-	if err != nil {
-		return err
-	}
-	jobs, err := db.GetJobsFromWindow(c.db, c.timeWindow, time.Now())
-	if err != nil {
-		c.db.StopTrackingModifiedJobs(queryId)
-		return err
-	}
-	c.queryId = queryId
-	c.jobs = map[string]*types.Job{}
-	c.jobsByNameAndState = map[types.RepoState]map[string]map[string]*types.Job{}
-	c.triggeredForCommit = map[string]map[string]bool{}
-	c.unfinished = map[string]*types.Job{}
-	c.expireAndUpdate(jobs)
-	return nil
-}
-
 // See documentation for JobCache interface.
 func (c *jobCache) Update() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	newJobs, err := c.db.GetModifiedJobs(c.queryId)
-	if err != nil {
-		sklog.Warningf("Connection to db lost; re-initializing cache from scratch.")
-		if err := c.reset(); err != nil {
-			return err
-		}
-		return nil
-	}
-	c.expireAndUpdate(newJobs)
+	c.expireAndUpdate(c.modified)
+	c.modified = map[string]*types.Job{}
 	return nil
+}
+
+// See documentation for JobCache interface.
+func (c *jobCache) AddJobs(jobs []*types.Job) {
+	jobMap := make(map[string]*types.Job, len(jobs))
+	for _, job := range jobs {
+		jobMap[job.Id] = job
+	}
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	c.expireAndUpdate(jobMap)
 }
 
 // NewJobCache returns a local cache which provides more convenient views of
 // job data than the database can provide.
-func NewJobCache(d db.JobReader, timeWindow *window.Window, getRevisionTimestamp db.GetRevisionTimestamp) (JobCache, error) {
-	tc := &jobCache{
+func NewJobCache(ctx context.Context, d db.JobReader, timeWindow *window.Window, getRevisionTimestamp db.GetRevisionTimestamp) (JobCache, error) {
+	jobs, err := db.GetJobsFromWindow(d, timeWindow, time.Now())
+	if err != nil {
+		return nil, err
+	}
+	jobsMap := make(map[string]*types.Job, len(jobs))
+	for _, job := range jobs {
+		jobsMap[job.Id] = job
+	}
+	c := &jobCache{
 		db:                   d,
+		jobs:                 map[string]*types.Job{},
+		jobsByNameAndState:   map[types.RepoState]map[string]map[string]*types.Job{},
+		triggeredForCommit:   map[string]map[string]bool{},
+		unfinished:           map[string]*types.Job{},
+		modified:             map[string]*types.Job{},
 		getRevisionTimestamp: getRevisionTimestamp,
 		timeWindow:           timeWindow,
 	}
-	if err := tc.reset(); err != nil {
-		return nil, err
-	}
-	return tc, nil
+	c.expireAndUpdate(jobsMap)
+	mod := d.ModifiedJobsCh(ctx)
+	go func() {
+		for jobs := range mod {
+			c.modMtx.Lock()
+			for _, job := range jobs {
+				if old, ok := c.modified[job.Id]; !ok || job.DbModified.After(old.DbModified) {
+					c.modified[job.Id] = job
+				}
+			}
+			c.modMtx.Unlock()
+		}
+	}()
+	return c, nil
 }
 
 // GitRepoGetRevisionTimestamp returns a GetRevisionTimestamp function that gets
