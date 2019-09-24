@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6ae8c8c4_f1c19021",
+        "filename": "gold-client/cmd/goldctl/cmd_imgtest.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-24T12:38:43Z",
+      "side": 1,
+      "message": "issue - yes (I\u0027ll call this changelist to use the modern nomenclature)\nurl - yes, if only to make this more future proof\n\ncommit - is ignored and has been since I removed per-commit baselines\ncorpus/patchset - not needed because we are not uploading anything and don\u0027t differentiate baselines on this",
+      "parentUuid": "3f661df8_5e035946",
+      "range": {
+        "startLine": 109,
+        "startChar": 0,
+        "endLine": 116,
+        "endChar": 51
+      },
+      "revId": "f670f007479ab8a64827f3af4037ceac45d8a962",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "493a2350_90c4120c",
         "filename": "gold-client/cmd/goldctl/cmd_imgtest.go",
         "patchSetId": 3
@@ -39,6 +63,24 @@
       "revId": "f670f007479ab8a64827f3af4037ceac45d8a962",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b9d684a_9c582c68",
+        "filename": "gold-client/cmd/goldctl/cmd_imgtest.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-24T12:38:43Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "493a2350_90c4120c",
+      "revId": "f670f007479ab8a64827f3af4037ceac45d8a962",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "a07ebfbd_849c72a7",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 376,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-24T12:38:43Z",
+      "side": 1,
+      "message": "This verbosity has helped debug production problems or lack there of in Chrome\u0027s usage.",
+      "parentUuid": "dd561edf_cc21708e",
+      "range": {
+        "startLine": 374,
+        "startChar": 0,
+        "endLine": 376,
+        "endChar": 2
+      },
+      "revId": "f670f007479ab8a64827f3af4037ceac45d8a962",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1c22e320_23c537a4",
         "filename": "gold-client/go/goldclient/goldclient_test.go",
         "patchSetId": 3
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "18b3ec6a_34a4a0ad",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 953,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-24T12:38:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1c22e320_23c537a4",
+      "range": {
+        "startLine": 952,
+        "startChar": 0,
+        "endLine": 953,
+        "endChar": 52
+      },
+      "revId": "f670f007479ab8a64827f3af4037ceac45d8a962",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dc44b3e5_58505a61",
         "filename": "gold-client/go/goldclient/goldclient_test.go",
         "patchSetId": 3
@@ -99,6 +189,30 @@
       "writtenOn": "2019-09-23T21:12:21Z",
       "side": 1,
       "message": "Just checking my understanding -- Once is the default, right?",
+      "range": {
+        "startLine": 1011,
+        "startChar": 90,
+        "endLine": 1011,
+        "endChar": 97
+      },
+      "revId": "f670f007479ab8a64827f3af4037ceac45d8a962",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ed74d68_c2774808",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1011,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-24T12:38:43Z",
+      "side": 1,
+      "message": "No - by default, the mock will perform this ad nauseum unless you specify a max number",
+      "parentUuid": "dc44b3e5_58505a61",
       "range": {
         "startLine": 1011,
         "startChar": 90,
@@ -131,6 +245,30 @@
       "revId": "f670f007479ab8a64827f3af4037ceac45d8a962",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0c16d0c_4ac65d14",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1044,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-24T12:38:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5f70dbb4_2391e2f2",
+      "range": {
+        "startLine": 1044,
+        "startChar": 53,
+        "endLine": 1044,
+        "endChar": 55
+      },
+      "revId": "f670f007479ab8a64827f3af4037ceac45d8a962",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
