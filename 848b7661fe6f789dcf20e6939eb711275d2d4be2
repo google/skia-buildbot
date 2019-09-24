@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5388b9ae_688d2029",
+        "filename": "golden/go/ingestion_processors/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-24T13:52:38Z",
+      "side": 1,
+      "message": "This will be slow. Will that be a problem here?  I\u0027m not sure when we otherwise perform an Update(), but maybe we could listen for pubsub messages elsewhere and update whenever we receive one?  That should keep us well ahead of the bots.",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 54
+      },
+      "revId": "848b7661fe6f789dcf20e6939eb711275d2d4be2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
