@@ -41,11 +41,4 @@
     // Settings for the Tryjob ingester. If ING_TRY_ENABLED is false no ingester for
     // tryjobs will be configured.
     "ING_TRY_ENABLED":         false,
-    "ING_TRY_RUN_EVERY":       "1h",
-    "ING_TRY_MIN_HOURS":       2,
-    "ING_TRY_BUILDBUCKET_URL": "",
-    "ING_TRY_BUILDBUCKET":     "chromium/try",
-    "ING_TRY_BB_INTERVAL":     "10s",
-    "ING_TRY_BB_WINDOW":       "5h",
-    "ING_TRY_BUILDER_REGEX":   "",
 }

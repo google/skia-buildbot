@@ -43,10 +43,4 @@
     "ING_TRY_ENABLED":         true,
     "ING_TRY_RUN_EVERY":       "1h",
     "ING_TRY_MIN_HOURS":        2,
-    "ING_TRY_BUILDBUCKET_URL": "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
-    "ING_TRY_BUILDBUCKET":     "chromium/try",
-    "ING_TRY_BB_INTERVAL":     "10s",
-    "ING_TRY_BB_WINDOW":       "5h",
-    "ING_TRY_BUILDER_REGEX":   "linux_optional_gpu_tests_rel",
-    "ING_JOB_CONFIG_FILE":     "",
 }
