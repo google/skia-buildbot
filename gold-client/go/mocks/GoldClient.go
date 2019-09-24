@@ -14,6 +14,27 @@ type GoldClient struct {
 	mock.Mock
 }
 
+// Check provides a mock function with given fields: name, imgFileName
+func (_m *GoldClient) Check(name types.TestName, imgFileName string) (bool, error) {
+	ret := _m.Called(name, imgFileName)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(types.TestName, string) bool); ok {
+		r0 = rf(name, imgFileName)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(types.TestName, string) error); ok {
+		r1 = rf(name, imgFileName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Finalize provides a mock function with given fields:
 func (_m *GoldClient) Finalize() error {
 	ret := _m.Called()

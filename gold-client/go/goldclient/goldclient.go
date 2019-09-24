@@ -65,7 +65,8 @@ type GoldClient interface {
 	// new settings will overwrite the old ones. This will cause the
 	// baseline and known hashes to be (re-)downloaded from Gold.
 	SetSharedConfig(sharedConfig jsonio.GoldResults) error
-	// Test adds a test result to the current testrun. If the GoldClient is configured to
+
+	// Test adds a test result to the current test run. If the GoldClient is configured to
 	// return PASS/FAIL for each test, the returned boolean indicates whether the test passed
 	// comparison with the expectations (this involves uploading JSON to the server).
 	// This will upload the image if the hash of the pixels has not been seen before -
@@ -76,6 +77,12 @@ type GoldClient interface {
 	//
 	// An error is only returned if there was a technical problem in processing the test.
 	Test(name types.TestName, imgFileName string, additionalKeys map[string]string) (bool, error)
+
+	// Check operates similarly to Test, except it does not persist anything about the call.
+	// That is, the image will not be uploaded to Gold, only compared against the baseline.
+	// Check returns true/false if the image is on the baseline or not.
+	// An error is only returned if there was a technical problem in processing the test.
+	Check(name types.TestName, imgFileName string) (bool, error)
 
 	// Upload the JSON file for all Test() calls previously seen.
 	// A no-op if configured for PASS/FAIL mode, since the JSON would have been uploaded
@@ -171,7 +178,7 @@ func NewCloudClient(authOpt AuthOpt, config GoldClientConfig) (*CloudClient, err
 
 	workDir, err := fileutil.EnsureDirExists(config.WorkDir)
 	if err != nil {
-		return nil, skerr.Fmt("error setting up workdir: %s", err)
+		return nil, skerr.Wrapf(err, "setting up workdir %q", config.WorkDir)
 	}
 
 	if config.InstanceID == "" {
@@ -187,22 +194,22 @@ func NewCloudClient(authOpt AuthOpt, config GoldClientConfig) (*CloudClient, err
 		resultState: newResultState(nil, &config),
 	}
 	if err := ret.setHttpClient(); err != nil {
-		return nil, skerr.Fmt("error setting http client: %s", err)
+		return nil, skerr.Wrapf(err, "setting http client")
 	}
 
 	if config.FailureFile != "" {
 		if f, err := os.Create(config.FailureFile); err != nil {
-			return nil, skerr.Fmt("could not make failure file %s: %s", config.FailureFile, err)
+			return nil, skerr.Wrapf(err, "making failure file %s", config.FailureFile)
 		} else {
 			if err := f.Close(); err != nil {
-				return nil, skerr.Fmt("could not close failure file %s: %s", config.FailureFile, err)
+				return nil, skerr.Wrapf(err, "closing failure file %s", config.FailureFile)
 			}
 		}
 	}
 
 	// write it to disk
 	if err := saveJSONFile(ret.getResultStatePath(), ret.resultState); err != nil {
-		return nil, skerr.Fmt("Could not write the state to disk: %s", err)
+		return nil, skerr.Wrapf(err, "writing the state to disk")
 	}
 
 	return &ret, nil
@@ -224,10 +231,10 @@ func LoadCloudClient(authOpt AuthOpt, workDir string) (*CloudClient, error) {
 	var err error
 	ret.resultState, err = loadStateFromJson(ret.getResultStatePath())
 	if err != nil {
-		return nil, skerr.Fmt("Could not load state from disk: %s", err)
+		return nil, skerr.Wrapf(err, "loading state from disk")
 	}
 	if err = ret.setHttpClient(); err != nil {
-		return nil, skerr.Fmt("Error setting http client: %s", err)
+		return nil, skerr.Wrapf(err, "setting http client")
 	}
 
 	return &ret, nil
@@ -253,7 +260,7 @@ func (c *CloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults) error {
 		// at this time, although we could have done it at any time before since
 		// that does not depend on the GitHash we have.
 		if err := c.downloadHashesAndBaselineFromGold(); err != nil {
-			return skerr.Fmt("Error downloading from Gold: %s", err)
+			return skerr.Wrapf(err, "downloading from Gold")
 		}
 	}
 
@@ -273,19 +280,19 @@ func (c *CloudClient) Test(name types.TestName, imgFileName string, additionalKe
 // Returns true if the test was added (and maybe uploaded) successfully.
 func (c *CloudClient) addTest(name types.TestName, imgFileName string, additionalKeys map[string]string) (bool, error) {
 	if err := c.isReady(); err != nil {
-		return false, skerr.Fmt("Unable to process test result. Cloud Gold Client not ready: %s", err)
+		return false, skerr.Wrapf(err, "gold client not ready")
 	}
 
 	// Get an uploader. This is either based on an authenticated client or on gsutils.
 	uploader, err := c.auth.GetGoldUploader()
 	if err != nil {
-		return false, skerr.Fmt("Error retrieving uploader: %s", err)
+		return false, skerr.Wrapf(err, "retrieving uploader")
 	}
 
 	// Load the PNG from disk and hash it.
 	imgBytes, imgHash, err := c.loadAndHashImage(imgFileName)
 	if err != nil {
-		return false, err
+		return false, skerr.Wrap(err)
 	}
 	fmt.Printf("Given image with hash %s for test %s\n", imgHash, name)
 	for expectHash, expectLabel := range c.resultState.Expectations[name] {
@@ -309,7 +316,7 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 
 	// At this point the result should be correct for uploading.
 	if _, err := c.resultState.SharedConfig.Validate(false); err != nil {
-		return false, err
+		return false, skerr.Wrap(err)
 	}
 
 	// If we do per test pass/fail then upload the result and compare it to the baseline.
@@ -345,6 +352,29 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 	if err := egroup.Wait(); err != nil {
 		return false, err
 	}
+	return ret, nil
+}
+
+// Check implements the GoldClient interface.
+func (c *CloudClient) Check(name types.TestName, imgFileName string) (bool, error) {
+	if len(c.resultState.Expectations) == 0 {
+		if err := c.downloadHashesAndBaselineFromGold(); err != nil {
+			return false, skerr.Wrapf(err, "fetching baseline")
+		}
+		if err := saveJSONFile(c.getResultStatePath(), c.resultState); err != nil {
+			return false, skerr.Wrapf(err, "writing the expectations to disk")
+		}
+	}
+	// Load the PNG from disk and hash it.
+	_, imgHash, err := c.loadAndHashImage(imgFileName)
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
+	fmt.Printf("Given image with hash %s for test %s\n", imgHash, name)
+	for expectHash, expectLabel := range c.resultState.Expectations[name] {
+		fmt.Printf("Expectation for test: %s (%s)\n", expectHash, expectLabel.String())
+	}
+	ret := c.resultState.Expectations[name][imgHash] == types.POSITIVE
 	return ret, nil
 }
 
@@ -590,7 +620,7 @@ func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
 	hashesURL := fmt.Sprintf("%s/%s", r.GoldURL, knownHashesPath)
 	body, err := getWithRetries(httpClient, hashesURL)
 	if err != nil {
-		return skerr.Fmt("even with retries, got error getting known hashes %s: %s", hashesURL, err)
+		return skerr.Wrapf(err, "getting known hashes from %s (with retries)", hashesURL)
 	}
 
 	scanner := bufio.NewScanner(bytes.NewBuffer(body))
@@ -602,22 +632,27 @@ func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		return skerr.Fmt("error scanning response of HTTP request: %s", err)
+		return skerr.Wrapf(err, "scanning response of HTTP request")
 	}
 	return nil
 }
 
 // loadExpectations fetches the expectations from Gold to compare to tests.
 func (r *resultState) loadExpectations(httpClient HTTPClient) error {
-	urlPath := strings.Replace(shared.ExpectationsRoute, "{commit_hash}", r.SharedConfig.GitHash, 1)
-	if !types.IsMasterBranch(r.SharedConfig.GerritChangeListID) {
-		urlPath = fmt.Sprintf("%s?issue=%d", urlPath, r.SharedConfig.GerritChangeListID)
+	urlPath := strings.Replace(shared.ExpectationsRoute, "{commit_hash}", "HEAD", 1)
+	if r.SharedConfig != nil {
+		urlPath = strings.Replace(shared.ExpectationsRoute, "{commit_hash}", r.SharedConfig.GitHash, 1)
+		if !types.IsMasterBranch(r.SharedConfig.GerritChangeListID) {
+			urlPath = fmt.Sprintf("%s?issue=%d", urlPath, r.SharedConfig.GerritChangeListID)
+		} else if r.SharedConfig.ChangeListID != "" {
+			urlPath = fmt.Sprintf("%s?issue=%s", urlPath, r.SharedConfig.ChangeListID)
+		}
 	}
 	url := fmt.Sprintf("%s/%s", r.GoldURL, strings.TrimLeft(urlPath, "/"))
 
 	jsonBytes, err := getWithRetries(httpClient, url)
 	if err != nil {
-		return skerr.Fmt("even with retries, got error getting expectations %s: %s", url, err)
+		return skerr.Wrapf(err, "getting expectations from %s (with retries)", url)
 	}
 
 	exp := &baseline.Baseline{}
@@ -629,7 +664,7 @@ func (r *resultState) loadExpectations(httpClient HTTPClient) error {
 		} else {
 			fmt.Printf(`Invalid JSON: "%s"`, string(jsonBytes))
 		}
-		return skerr.Fmt("Error parsing JSON; this sometimes means auth issues: %s", err)
+		return skerr.Wrapf(err, "parsing JSON; this sometimes means auth issues")
 	}
 
 	r.Expectations = exp.Expectations
