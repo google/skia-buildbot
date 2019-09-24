@@ -299,7 +299,7 @@ func (task *AddRecreatePageSetsTaskVars) GetPopulatedDatastoreTask(ctx context.C
 
 	t := &RecreatePageSetsDatastoreTask{
 		PageSets:      task.PageSets,
-		IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k,
+		IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k || task.PageSets == ctutil.PAGESET_TYPE_MOBILE_DUMMY_1k,
 	}
 	return t, nil
 }
@@ -331,7 +331,7 @@ func (task *AddRecreateWebpageArchivesTaskVars) GetPopulatedDatastoreTask(ctx co
 
 	t := &RecreateWebpageArchivesDatastoreTask{
 		PageSets:      task.PageSets,
-		IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k,
+		IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k || task.PageSets == ctutil.PAGESET_TYPE_MOBILE_DUMMY_1k,
 		ChromiumRev:   task.ChromiumBuild.ChromiumRev,
 		SkiaRev:       task.ChromiumBuild.SkiaRev,
 	}
