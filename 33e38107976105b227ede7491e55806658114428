@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "74dfb2b4_875ff924",
+        "filename": "golden/frontend/res/imp/gold-app-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-24T17:38:09Z",
+      "side": 0,
+      "message": "Oh yeah, I never merged search2 into the main search page. I will take another crack at this once Gold is fully ported over to lit-html.",
+      "range": {
+        "startLine": 84,
+        "startChar": 24,
+        "endLine": 84,
+        "endChar": 29
+      },
+      "revId": "33e38107976105b227ede7491e55806658114428",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
