@@ -720,12 +720,25 @@
                       "routes": [
                         {
                           "match": {
-                            "prefix": "/"
+                            "safe_regex": {
+                              "google_re2": {},
+                              "regex": "/\\d+"
+                            }
                           },
                           "redirect": {
                             "host_redirect": "skia-review.googlesource.com",
                             "https_redirect": true,
                             "prefix_rewrite": "/c/"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "skia-review.googlesource.com",
+                            "https_redirect": true,
+                            "prefix_rewrite": ""
                           }
                         }
                       ]
@@ -734,6 +747,19 @@
                       "domains": "reviews.skia.org",
                       "name": "reviews.skia.org",
                       "routes": [
+                        {
+                          "match": {
+                            "safe_regex": {
+                              "google_re2": {},
+                              "regex": "/\\d+"
+                            }
+                          },
+                          "redirect": {
+                            "host_redirect": "skia-review.googlesource.com",
+                            "https_redirect": true,
+                            "prefix_rewrite": "/c/"
+                          }
+                        },
                         {
                           "match": {
                             "prefix": "/"
