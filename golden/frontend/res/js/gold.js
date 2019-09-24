@@ -101,7 +101,7 @@ var gold = gold || {};
 
     // use the new way of storing data belonging to changelists
     // https://bugs.chromium.org/p/skia/issues/detail?id=9340
-    new_clstore: false,
+    new_clstore: true,
   };
 
   // Default values for the search query of the by-blame-page.
