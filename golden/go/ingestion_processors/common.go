@@ -84,5 +84,13 @@ func getCanonicalCommitHash(ctx context.Context, vcs vcsinfo.VCS, targetHash str
 // isCommit returns true if the given commit is in vcs.
 func isCommit(ctx context.Context, vcs vcsinfo.VCS, commitHash string) bool {
 	ret, err := vcs.Details(ctx, commitHash, false)
-	return (err == nil) && (ret != nil)
+	if err != nil {
+		// Let's try updating the VCS - perhaps this is a new commit?
+		if err := vcs.Update(ctx, true, false); err != nil {
+			sklog.Errorf("Could not update VCS: %s", err)
+			return false
+		}
+		ret, err = vcs.Details(ctx, commitHash, false)
+	}
+	return err == nil && ret != nil
 }
