@@ -442,6 +442,84 @@
         },
         "name": "gold-chrome-skiacorrectness",
         "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-flutter-engine-baselineserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-flutter-engine-baselineserver",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-flutter-engine-baselineserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-flutter-engine-diffserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-flutter-engine-diffserver",
+                        "port_value": 8001
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-flutter-engine-diffserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-flutter-engine-skiacorrectness",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-flutter-engine-skiacorrectness",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-flutter-engine-skiacorrectness",
+        "type": "STRICT_DNS"
       }
     ],
     "listeners": [
@@ -967,6 +1045,44 @@
                           },
                           "route": {
                             "cluster": "gold-chrome-skiacorrectness"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "flutter-engine-gold.skia.org",
+                      "name": "flutter-engine-gold.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/json/hashes"
+                          },
+                          "route": {
+                            "cluster": "gold-flutter-engine-baselineserver"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/json/expectations/"
+                          },
+                          "route": {
+                            "cluster": "gold-flutter-engine-baselineserver"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/img/"
+                          },
+                          "route": {
+                            "cluster": "gold-flutter-engine-diffserver"
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "gold-flutter-engine-skiacorrectness"
                           }
                         }
                       ]
