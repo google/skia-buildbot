@@ -720,6 +720,16 @@
                       "routes": [
                         {
                           "match": {
+                            "path": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "skia-review.googlesource.com",
+                            "https_redirect": true,
+                            "path_redirect": "/"
+                          }
+                        },
+                        {
+                          "match": {
                             "prefix": "/"
                           },
                           "redirect": {
@@ -736,6 +746,16 @@
                       "routes": [
                         {
                           "match": {
+                            "path": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "skia-review.googlesource.com",
+                            "https_redirect": true,
+                            "path_redirect": "/"
+                          }
+                        },
+                        {
+                          "match": {
                             "prefix": "/"
                           },
                           "redirect": {
@@ -750,6 +770,16 @@
                       "domains": "cs.skia.org",
                       "name": "cs.skia.org",
                       "routes": [
+                        {
+                          "match": {
+                            "path": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "cs.chromium.org",
+                            "https_redirect": true,
+                            "path_redirect": "/chromium/src/third_party/skia/"
+                          }
+                        },
                         {
                           "match": {
                             "prefix": "/"
