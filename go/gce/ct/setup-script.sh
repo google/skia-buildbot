@@ -77,14 +77,6 @@ EOF
   git checkout master
 fi
 
-# If the bot is a master then increase the "too many open files" limit. See
-# skbug.com/9425 for more context.
-if [[ $(hostname -s) = ct-master-* ]]; then
-  echo "Modifying limits.conf..."
-  sudo sh -c 'echo "chrome-bot soft nofile 500000" >> /etc/security/limits.conf'
-  sudo sh -c 'echo "chrome-bot hard nofile 500000" >> /etc/security/limits.conf'
-fi
-
 # Get access token from metadata.
 TOKEN=`curl "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" -H "Metadata-Flavor: Google" | python -c "import sys, json; print json.load(sys.stdin)['access_token']"`
 # Bootstrap Swarming.
@@ -93,6 +85,7 @@ SWARMING=https://chrome-swarming.appspot.com
 HOSTNAME=`hostname`
 curl ${SWARMING}/bot_code?bot_id=$HOSTNAME -H "Authorization":"Bearer $TOKEN" -o /b/s/swarming_bot.zip
 
+# See skbug.com/9425 for why LimitNOFILE is set.
 cat <<EOF | sudo tee /etc/systemd/system/swarming_bot.service
 [Unit]
 Description=Swarming bot
@@ -100,6 +93,7 @@ After=network.target
 
 [Service]
 Type=simple
+LimitNOFILE=50000
 User=chrome-bot
 Restart=on-failure
 RestartSec=10
