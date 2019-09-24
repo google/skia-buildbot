@@ -366,7 +366,7 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		Benchmark:            task.Benchmark,
 		Platform:             task.Platform,
 		PageSets:             task.PageSets,
-		IsTestPageSet:        task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k,
+		IsTestPageSet:        task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k || task.PageSets == ctutil.PAGESET_TYPE_MOBILE_DUMMY_1k,
 		BenchmarkArgs:        task.BenchmarkArgs,
 		BrowserArgsNoPatch:   task.BrowserArgsNoPatch,
 		BrowserArgsWithPatch: task.BrowserArgsWithPatch,

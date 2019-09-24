@@ -242,7 +242,7 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 
 	t := &DatastoreTask{
 		PageSets:            task.SkpRepository.PageSets,
-		IsTestPageSet:       task.SkpRepository.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k,
+		IsTestPageSet:       task.SkpRepository.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k || task.SkpRepository.PageSets == ctutil.PAGESET_TYPE_MOBILE_DUMMY_1k,
 		ChromiumRev:         task.SkpRepository.ChromiumRev,
 		SkiaRev:             task.SkpRepository.SkiaRev,
 		LuaScript:           task.LuaScript,
