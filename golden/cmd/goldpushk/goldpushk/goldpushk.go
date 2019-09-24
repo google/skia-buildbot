@@ -1,11 +1,13 @@
-// Package goldpushk contains the Goldpushk struct, which coordinates all the
-// operations performed by goldpushk.
+// Package goldpushk contains the Goldpushk struct, which coordinates all the operations performed
+// by goldpushk.
 //
-// Also included in this package is function BuildDeployableUnitSet(), which
-// returns a set with all the services goldpushk is able to manage.
+// Also included in this package is function BuildProductionDeployableUnitSet(), which returns a set
+// with all the services goldpushk is able to manage.
 //
-// Function BuildDeployableUnitSet is the source of truth of goldpushk, and
-// should be updated to reflect any relevant changes in configuration.
+// Function BuildProductionDeployableUnitSet is the source of truth of goldpushk, and should be
+// updated to reflect any relevant changes in configuration.
+//
+// For testing, function BuildTestingDeployableUnitSet will be used when flag --testing is provided.
 
 package goldpushk
 
