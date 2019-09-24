@@ -104,20 +104,21 @@ type GoldResults struct {
 	Key     map[string]string `json:"key"      validate:"required,min=1"`
 	Results []*Result         `json:"results"  validate:"min=1"`
 
-	// Required fields for tryjobs.
-	// TODO(kjlubick): Replace these with more general ids for
-	// a CodeReviewSystem and ContinuousIntegrationSystem.
-	// These new ones should be strings, as outlined in
-	// design doc for https://bugs.chromium.org/p/skia/issues/detail?id=9340
-	// Of note - the only reader of GerritChangeListID is old_tryjob_ingestion
-	// nobody reads GerritPatchSet and BuildBucketID is used in several
-	// places involving bbstate and the old tryjobstore implementation.
+	// TODO(kjlubick): Remove these and have the legacy values be piped into the new ones below
 	BuildBucketID      int64 `json:"buildbucket_build_id,string"`
 	GerritChangeListID int64 `json:"issue,string"`
 	GerritPatchSet     int64 `json:"patchset,string"`
 
-	// Newly added fields for tryjobs - will be required one day
-	CodeReviewSystem            string `json:"crs"`
+	// These are the preferred way to indicate these results were ingested from a TryJob.
+	// See https://bugs.chromium.org/p/skia/issues/detail?id=9340
+	// ChangeListID and PatchSetID correspond to code_review.ChangeList.SystemID and
+	// code_review.ChangeList.PatchSetID, respectively
+	ChangeListID     string `json:"change_list_id"`
+	PatchSetID       string `json:"patch_set_id"`
+	CodeReviewSystem string `json:"crs"`
+
+	// TryJobID corresponds to continuous_integration.TryJob.SystemID
+	TryJobID                    string `json:"try_job_id"`
 	ContinuousIntegrationSystem string `json:"cis"`
 
 	// Optional fields for tryjobs - can make debugging easier
