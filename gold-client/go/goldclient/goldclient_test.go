@@ -872,7 +872,7 @@ func TestGetWithRetriesSunnyDay(t *testing.T) {
 }
 
 func TestGetWithRetriesRecover(t *testing.T) {
-	unittest.MediumTest(t)
+	unittest.MediumTest(t) // this takes a few seconds waiting before retry
 
 	mh := &mocks.HTTPClient{}
 	defer mh.AssertExpectations(t)
@@ -889,7 +889,7 @@ func TestGetWithRetriesRecover(t *testing.T) {
 }
 
 func TestGetWithRetriesTooMany(t *testing.T) {
-	unittest.LargeTest(t)
+	unittest.LargeTest(t) // this takes several seconds waiting before retry
 
 	mh := &mocks.HTTPClient{}
 	defer mh.AssertExpectations(t)
@@ -901,6 +901,214 @@ func TestGetWithRetriesTooMany(t *testing.T) {
 	_, err := getWithRetries(mh, url)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "404")
+}
+
+// TestCheckSunnyDay emulates running goldctl auth; goldctl imgtest check ... where the
+// passed in image matches something on the baseline
+func TestCheckSunnyDay(t *testing.T) {
+	unittest.MediumTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	imgData := []byte("some bytes")
+	// These are defined in mockBaselineJSON
+	imgHash := types.Digest("beef00d3a1527db19619ec12a4e0df68")
+	testName := types.TestName("ThisIsTheOnlyTest")
+
+	auth, httpClient, _ := makeMocks()
+	defer auth.AssertExpectations(t)
+	defer httpClient.AssertExpectations(t)
+
+	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+
+	expectations := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations/commit/HEAD").Return(expectations, nil)
+
+	config := GoldClientConfig{
+		WorkDir:    wd,
+		InstanceID: "testing",
+	}
+	goldClient, err := NewCloudClient(auth, config)
+	assert.NoError(t, err)
+
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
+		assert.Equal(t, testImgPath, path)
+		return imgData, imgHash, nil
+	})
+
+	pass, err := goldClient.Check(testName, testImgPath)
+	assert.NoError(t, err)
+	assert.True(t, pass)
+
+	baselineBytes, err := ioutil.ReadFile(goldClient.getResultStatePath())
+	assert.NoError(t, err)
+	// spot check that the expectations were written to disk
+	assert.Contains(t, string(baselineBytes), imgHash)
+	assert.Contains(t, string(baselineBytes), "badbadbad1325855590527db196112e0")
+}
+
+// TestCheckIssue emulates running goldctl auth; goldctl imgtest check ... where the
+// passed in image matches something on the baseline for a changelist.
+func TestCheckIssue(t *testing.T) {
+	unittest.MediumTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	imgData := []byte("some bytes")
+	// These are defined in mockBaselineJSON
+	imgHash := types.Digest("beef00d3a1527db19619ec12a4e0df68")
+	testName := types.TestName("ThisIsTheOnlyTest")
+	changeListID := "abc"
+
+	auth, httpClient, _ := makeMocks()
+	defer auth.AssertExpectations(t)
+	defer httpClient.AssertExpectations(t)
+
+	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+
+	expectations := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations/commit/HEAD?issue=abc").Return(expectations, nil)
+
+	config := GoldClientConfig{
+		WorkDir:    wd,
+		InstanceID: "testing",
+	}
+	goldClient, err := NewCloudClient(auth, config)
+	assert.NoError(t, err)
+
+	gr := jsonio.GoldResults{
+		ChangeListID: changeListID,
+		GitHash:      "HEAD",
+	}
+	err = goldClient.SetSharedConfig(gr)
+	assert.NoError(t, err)
+
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
+		assert.Equal(t, testImgPath, path)
+		return imgData, imgHash, nil
+	})
+
+	pass, err := goldClient.Check(testName, testImgPath)
+	assert.NoError(t, err)
+	assert.True(t, pass)
+
+	baselineBytes, err := ioutil.ReadFile(goldClient.getResultStatePath())
+	assert.NoError(t, err)
+	// spot check that the expectations were written to disk
+	assert.Contains(t, string(baselineBytes), imgHash)
+	assert.Contains(t, string(baselineBytes), "badbadbad1325855590527db196112e0")
+}
+
+// TestCheckSunnyDayNegative emulates running goldctl auth; goldctl imgtest check ... where the
+// passed in image does not match something on the baseline.
+func TestCheckSunnyDayNegative(t *testing.T) {
+	unittest.SmallTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	imgData := []byte("some bytes")
+	// imgHash is not seen in expectations
+	imgHash := types.Digest("4043142d1ec36177e8c6c4d31af0c6de")
+	testName := types.TestName("ThisIsTheOnlyTest")
+
+	auth, httpClient, _ := makeMocks()
+	defer auth.AssertExpectations(t)
+	defer httpClient.AssertExpectations(t)
+
+	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+
+	expectations := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations/commit/HEAD").Return(expectations, nil)
+
+	config := GoldClientConfig{
+		WorkDir:    wd,
+		InstanceID: "testing",
+	}
+	goldClient, err := NewCloudClient(auth, config)
+	assert.NoError(t, err)
+
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
+		assert.Equal(t, testImgPath, path)
+		return imgData, imgHash, nil
+	})
+
+	pass, err := goldClient.Check(testName, testImgPath)
+	assert.NoError(t, err)
+	assert.False(t, pass)
+}
+
+// TestCheckLoad emulates running goldctl auth; goldctl imgtest check ...; goldctl imgtest check...
+// specifically focusing on loading from disk after the first check and not querying the
+// backend every time.
+func TestCheckLoad(t *testing.T) {
+	unittest.MediumTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	imgData := []byte("some bytes")
+	// These are defined in mockBaselineJSON
+	imgHash := types.Digest("beef00d3a1527db19619ec12a4e0df68")
+	testName := types.TestName("ThisIsTheOnlyTest")
+
+	auth, httpClient, _ := makeMocks()
+	defer auth.AssertExpectations(t)
+	defer httpClient.AssertExpectations(t)
+
+	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil).Once()
+
+	expectations := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations/commit/HEAD").Return(expectations, nil).Once()
+
+	config := GoldClientConfig{
+		WorkDir:    wd,
+		InstanceID: "testing",
+	}
+	goldClient, err := NewCloudClient(auth, config)
+	assert.NoError(t, err)
+
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
+		assert.Equal(t, testImgPath, path)
+		return imgData, imgHash, nil
+	})
+
+	pass, err := goldClient.Check(testName, testImgPath)
+	assert.NoError(t, err)
+	assert.True(t, pass)
+
+	// Reload saved state from disk
+	goldClient, err = LoadCloudClient(auth, wd)
+	assert.NoError(t, err)
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
+		assert.Equal(t, testImgPath, path)
+		return imgData, imgHash, nil
+	})
+	pass, err = goldClient.Check(testName, testImgPath)
+	assert.NoError(t, err)
+	assert.True(t, pass)
+}
+
+// TestCheckLoadFails make sure that if we load from an empty directory, we fail to initialize
+// a GoldClient.
+func TestCheckLoadFails(t *testing.T) {
+	unittest.MediumTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	auth, _, _ := makeMocks()
+
+	// This should not work
+	_, err := LoadCloudClient(auth, wd)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "from disk")
 }
 
 func makeMocks() (*MockAuthOpt, *mocks.HTTPClient, *mocks.GoldUploader) {
