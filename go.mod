@@ -21,8 +21,8 @@ require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/VividCortex/godaemon v0.0.0-20150910212227-3d9f6e0b234f
 	github.com/a8m/envsubst v1.1.0
-	github.com/alecthomas/units v0.0.0-20190910110746-680d30ca3117 // indirect
-	github.com/aws/aws-sdk-go v1.24.3 // indirect
+	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
+	github.com/aws/aws-sdk-go v1.24.4 // indirect
 	github.com/boltdb/bolt v1.3.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/coreos/bbolt v1.3.3 // indirect
@@ -123,19 +123,18 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
-	go.chromium.org/luci v0.0.0-20190921001349-e82cd8f0c25b
+	go.chromium.org/luci v0.0.0-20190924004930-3810c947ccc1
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.opencensus.io v0.22.1
-	golang.org/x/crypto v0.0.0-20190911031432-227b76d455e7
+	golang.org/x/crypto v0.0.0-20190923035154-9ee001bba392
 	golang.org/x/exp v0.0.0-20190919035709-81c71964d733 // indirect
 	golang.org/x/image v0.0.0-20190910094157-69e4b8554b2a // indirect
-	golang.org/x/mobile v0.0.0-20190910184405-b558ed863381 // indirect
-	golang.org/x/net v0.0.0-20190921015927-1a5e07d1ff72
+	golang.org/x/mobile v0.0.0-20190923204409-d3ece3b6da5f // indirect
+	golang.org/x/net v0.0.0-20190923162816-aa69164e4478
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380 // indirect
 	golang.org/x/time v0.0.0-20190921001708-c4c64cad1fd0
-	golang.org/x/tools v0.0.0-20190920225731-5eefd052ad72 // indirect
+	golang.org/x/tools v0.0.0-20190924021748-035fdb12d3f0 // indirect
 	golang.org/x/tools/gopls v0.1.7 // indirect
 	google.golang.org/api v0.10.0
 	google.golang.org/appengine v1.6.3 // indirect
@@ -147,13 +146,12 @@ require (
 	gopkg.in/olivere/elastic.v5 v5.0.82
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.2.2
-	k8s.io/api v0.0.0-20190920115539-4f7a4f90b2c0 // indirect
-	k8s.io/apimachinery v0.0.0-20190919161714-83fef8059749
+	k8s.io/api v0.0.0-20190923155552-eac758366a00 // indirect
+	k8s.io/apimachinery v0.0.0-20190923155427-ec87dd743e08
 	k8s.io/client-go v0.0.0-20190425172711-65184652c889
 	k8s.io/gengo v0.0.0-20190907103519-ebc107f98eab // indirect
-	k8s.io/klog v1.0.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20190918143330-0270cf2f1c1d // indirect
-	k8s.io/utils v0.0.0-20190920012459-5008bf6f8cd6 // indirect
+	k8s.io/utils v0.0.0-20190923111123-69764acb6e8e // indirect
 	sigs.k8s.io/structured-merge-diff v0.0.0-20190920212726-9db5fb9387fd // indirect
 )
 
