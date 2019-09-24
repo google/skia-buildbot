@@ -37,7 +37,6 @@ import (
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/tjstore"
-	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/validation"
 	"go.skia.org/infra/golden/go/web/frontend"
@@ -58,7 +57,6 @@ type WebHandlers struct {
 	ChangeListStore                clstore.Store
 	CodeReviewURLPrefix            string
 	ContinuousIntegrationURLPrefix string
-	DeprecatedTryjobStore          tryjobstore.TryjobStore
 	DiffStore                      diff.DiffStore
 	ExpectationsStore              expstorage.ExpectationsStore
 	GCSClient                      storage.GCSClient
@@ -258,31 +256,6 @@ type TestRollup struct {
 	Test         types.TestName `json:"test"`
 	Num          int            `json:"num"`
 	SampleDigest types.Digest   `json:"sample_digest"`
-}
-
-// DeprecatedTryjobListHandler returns the list of Gerrit issues that have triggered
-// or produced tryjob results recently.
-func (wh *WebHandlers) DeprecatedTryjobListHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	var tryjobRuns []*tryjobstore.Issue
-	var total int
-
-	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, pageSize, maxPageSize)
-	if err == nil {
-		tryjobRuns, total, err = wh.DeprecatedTryjobStore.ListIssues(offset, size)
-	}
-
-	if err != nil {
-		httputils.ReportError(w, r, err, "Retrieving trybot results failed.")
-		return
-	}
-
-	pagination := &httputils.ResponsePagination{
-		Offset: offset,
-		Size:   size,
-		Total:  total,
-	}
-	sendResponseWithPagination(w, tryjobRuns, pagination)
 }
 
 // ChangeListsHandler returns the list of code_review.ChangeLists that have
