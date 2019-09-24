@@ -1,0 +1,44 @@
+{
+  // Gold settings
+  "BIGTABLE_INSTANCE":       "production",
+  "BIGTABLE_PROJECT":        "skia-public",
+  "BIGTABLE_TABLE":          "gold-flutter-engine",
+  "BUCKET":                  "skia-gold-flutter-engine",
+  "CODE_REVIEW_SYSTEM":      "github",
+  "DATASTORE_NAMESPACE":     "gold-flutter-engine",
+  "DATASTORE_PROJECT":       "skia-public",
+  "FIRESTORE_NAMESPACE":     "flutter-engine",
+  "FIRESTORE_PROJECT":       "skia-firestore",
+  "FORCE_LOGIN":             false,
+  "GERRIT_URL":              "",
+  "GITREPO_URL":             "https://github.com/flutter/engine",
+  "N_COMMITS":               200,
+  "PUBSUB_PROJECT":          "skia-public",
+  "SITE_URL":                "https://flutter-engine-gold.skia.org",
+
+  // Git BigTable settings
+  "GIT_BT_TABLE":            "git-repos2",
+
+  // Settings for skiacorrectness instance
+  "AUTHORIZED_PARAMS":       "", // defaults to "all"
+  "AUTHORITATIVE":           true,
+  "AUTH_USERS":              "google.com",
+  "CHANGELIST_TRACKING":     true,
+  "HASHES_FILE":             "gold-flutter-engine-hashes.txt",
+  "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
+  "MAIN_CPU":                "4",
+  "MAIN_MEMORY":             "4Gi",
+  "SKCORR_DEFAULT_CORPUS":   "flutter-engine",
+  "SKCORR_DIFF_SERVER":      "gold-flutter-engine-diffserver",
+  "SKCORR_TITLE":            "Flutter Engine Gold",
+  "TILE_FRESHNESS":          "1m",
+
+  // Settings for the main ingester.
+  "ING_RUN_EVERY":           "1h",
+  "ING_N_COMMITS":           5,
+  "ING_MIN_HOURS":           2,
+
+  // Settings for the Tryjob ingester. If ING_TRY_ENABLED is false no ingester for
+  // tryjobs will be configured.
+  "ING_TRY_ENABLED":         false,
+}
