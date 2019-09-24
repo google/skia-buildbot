@@ -38,7 +38,6 @@
 <link rel=import href="detail-list-sk.html">
 <link rel=import href="digest-details-sk.html">
 <link rel=import href="search-controls-sk.html">
-<link rel=import href="trybot-controls-sk.html">
 <link rel="import" href="../common/imp/triage-sk.html">
 
 <dom-module id="search-page-sk">
@@ -146,7 +145,6 @@
           UniqueTests Visible: [[_uniqueTests.length]] <br>
           UniqueTests Total: [[_uniqueTestsAll.length]]<br>
         </div>
-        <trybot-controls-sk id="trybotControls"></trybot-controls-sk>
         <changelist-controls-sk id="changeListControls"
           ps_order=[[_state.patchsets]] include_master=[[_state.master]]></changelist-controls-sk>
       </div>
@@ -218,13 +216,11 @@
 
       ready: function() {
         this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
-        this.listen(this.$.trybotControls, 'state-change', '_handleStateChange');
         this.$.changeListControls.addEventListener('cl-control-change', (e) => {
           this._state.master = e.detail.include_master;
           this._state.patchsets = e.detail.ps_order;
           this._redirectToState(this._state);
         });
-        this.listen(this.$.trybotControls, 'state-update', '_handleStateUpdate');
         this.listen(this.$.triggerSearchButton, 'tap', '_handleSearchButton');
         this.listen(this.$.actionTestView, 'tap', '_handleSwitchToByTest');
         this.listen(this.$.actionBulkTriage, 'tap', '_handleBulkButton');
@@ -242,7 +238,6 @@
         // Initialize the state and set values of the controls.
         this._initState(ctx, this._getDefaultStateWithCorpus());
         this.$.searchControls.setState(this._state);
-        this.$.trybotControls.setState(this._state);
         this.$.changeListControls.ps_order = +this._state.patchsets;
         this.$.changeListControls.include_master = this._state.master;
 
@@ -271,7 +266,6 @@
         // the control elements.
         this._replaceState(ev.detail);
         this.$.searchControls.setState(this._state);
-        this.$.trybotControls.setState(this._state);
       },
 
       _handleSwitchToByTest: function() {
@@ -380,22 +374,16 @@
           this.set('_uniqueTests', this._getUniqueTests(displayData.digests));
 
           this.set('data', displayData);
-          if (!this._state.new_clstore) {
-            this.set('_changeListID', sk.robust_get(json.issue, ["id"]));
-            this.$.trybotControls.setIssue(json.issue);
-          }
           this.$.activityBar.stopSpinner();
         }.bind(this)).catch(function(e) {
           this.$.activityBar.stopSpinner();
           sk.errorMessage(e);
         }.bind(this));
 
-        if (this._state.new_clstore) {
-          sk.get("/json/changelist/gerrit/"+this._state.issue).then(JSON.parse).then((json) => {
-            this.$.changeListControls.setSummary(json);
-            this.set('_changeListID', json.cl.id);
-          });
-        }
+        sk.get("/json/changelist/gerrit/"+this._state.issue).then(JSON.parse).then((json) => {
+          this.$.changeListControls.setSummary(json);
+          this.set('_changeListID', json.cl.id);
+        });
       },
 
       _getUniqueTests: function(digests) {
