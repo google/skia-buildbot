@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "668252d7_2413def5",
+        "filename": "gold-client/cmd/goldctl/cmd_imgtest.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-24T14:46:09Z",
+      "side": 1,
+      "message": "Check out https://docs.google.com/document/d/110Prumw5dLJMUwXe3zBOVCrKiVehJvtw47M5XRcDO6U/edit# for intended flow. If it\u0027s already set, it\u0027s likely incorrect use.\n\nIt is not intended to have a mix of imgtest add and imgtest check calls",
+      "parentUuid": "7a8c8054_be29c15c",
+      "range": {
+        "startLine": 188,
+        "startChar": 0,
+        "endLine": 191,
+        "endChar": 3
+      },
+      "revId": "3720fdd8b76aebfe7c737de6ed93f23279025e6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0c12bca7_159d87b0",
         "filename": "gold-client/go/goldclient/goldclient.go",
         "patchSetId": 6
@@ -36,6 +60,24 @@
       "writtenOn": "2019-09-24T14:36:14Z",
       "side": 1,
       "message": "Given your previous comment, should this be removed?",
+      "revId": "3720fdd8b76aebfe7c737de6ed93f23279025e6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af509cfd_417f0e7b",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 644,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-24T14:46:09Z",
+      "side": 1,
+      "message": "Probably eventually, but I\u0027m leaving it in case I somehow discover why per-commit baselines were originally needed and I need to add it back in.",
+      "parentUuid": "0c12bca7_159d87b0",
       "revId": "3720fdd8b76aebfe7c737de6ed93f23279025e6b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "279b9ec3_d3e6355b",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-24T14:46:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b6be867e_dda6a834",
+      "range": {
+        "startLine": 114,
+        "startChar": 28,
+        "endLine": 114,
+        "endChar": 41
+      },
+      "revId": "3720fdd8b76aebfe7c737de6ed93f23279025e6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "841bc726_dd187b6f",
         "filename": "golden/go/jsonio/jsonio.go",
         "patchSetId": 6
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "53222664_338ab836",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-24T14:46:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "841bc726_dd187b6f",
+      "range": {
+        "startLine": 112,
+        "startChar": 0,
+        "endLine": 117,
+        "endChar": 0
+      },
+      "revId": "3720fdd8b76aebfe7c737de6ed93f23279025e6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1df48496_7424db02",
         "filename": "golden/go/jsonio/jsonio.go",
         "patchSetId": 6
@@ -108,6 +198,30 @@
       "revId": "3720fdd8b76aebfe7c737de6ed93f23279025e6b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ab212e4_be79671a",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-24T14:46:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1df48496_7424db02",
+      "range": {
+        "startLine": 118,
+        "startChar": 0,
+        "endLine": 120,
+        "endChar": 48
+      },
+      "revId": "3720fdd8b76aebfe7c737de6ed93f23279025e6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
