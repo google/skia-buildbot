@@ -95,6 +95,18 @@ build-static-ingestion: skiaversion
 	rm -f ./build/gold_ingestion_k8s
 	$(KGO) -o build/gold_ingestion_k8s -a ./cmd/gold_ingestion/main.go
 
+.PHONY: build-static-goldpushk-healthy-server
+build-static-goldpushk-healthy-server: skiaversion
+	mkdir -p ./build
+	rm -f ./build/goldpushk_healthy_server_k8s
+	$(KGO) -o build/goldpushk_healthy_server_k8s -a ./cmd/goldpushk/testing/healthy_server/main.go
+
+.PHONY: build-static-goldpushk-crashing-server
+build-static-goldpushk-crashing-server: skiaversion
+	mkdir -p ./build
+	rm -f ./build/goldpushk_crashing_server_k8s
+	$(KGO) -o build/goldpushk_crashing_server_k8s -a ./cmd/goldpushk/testing/crashing_server/main.go
+
 .PHONY: mocks
 mocks:
 	go get github.com/vektra/mockery/...
