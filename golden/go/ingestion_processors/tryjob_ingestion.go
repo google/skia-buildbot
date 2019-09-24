@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/golden/go/clstore/fs_clstore"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
-	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/continuous_integration/buildbucket_cis"
 	"go.skia.org/infra/golden/go/jsonio"
@@ -45,7 +44,6 @@ const (
 
 // Register the ingestion Processor with the ingestion framework.
 func init() {
-	ingestion.Register(config.CONSTRUCTOR_GOLD_TRYJOB, deprecated_newGoldTryjobProcessor)
 	ingestion.Register(firestoreTryJobIngester, newModularTryjobProcessor)
 }
 
@@ -125,7 +123,7 @@ func codeReviewSystemFactory(crsName string, config *sharedconfig.IngesterConfig
 	return nil, skerr.Fmt("CodeReviewSystem %q not recognized", crsName)
 }
 
-func continuousIntegrationSystemFactory(cisName string, config *sharedconfig.IngesterConfig, client *http.Client) (continuous_integration.Client, error) {
+func continuousIntegrationSystemFactory(cisName string, _ *sharedconfig.IngesterConfig, client *http.Client) (continuous_integration.Client, error) {
 	if cisName == buildbucketCIS {
 		bbClient := buildbucket.NewClient(client)
 		return buildbucket_cis.New(bbClient), nil

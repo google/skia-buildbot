@@ -7,7 +7,6 @@ import (
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/search/common"
-	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -19,10 +18,6 @@ type SearchResponse struct {
 	Offset  int              `json:"offset"`
 	Size    int              `json:"size"`
 	Commits []*tiling.Commit `json:"commits"`
-	// Rather than bundling in the ChangeListSummary with the search response,
-	// the web client should poll web.ChangeListSummaryHandler for
-	// that information.
-	DeprecatedIssue *tryjobstore.Issue `json:"issue"`
 }
 
 // SRDigest is a single search result digest returned

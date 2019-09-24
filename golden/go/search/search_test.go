@@ -53,7 +53,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
 
-	s := New(mds, mes, mi, nil, nil, nil, everythingPublic)
+	s := New(mds, mes, mi, nil, nil, everythingPublic)
 
 	mes.On("Get").Return(data.MakeTestExpectations(), nil)
 
@@ -363,7 +363,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 			data.BetaGood1Digest: makeSmallDiffMetric(),
 		}, nil)
 
-	s := New(mds, mes, mi, nil, mcls, mtjs, everythingPublic)
+	s := New(mds, mes, mi, mcls, mtjs, everythingPublic)
 
 	q := &query.Search{
 		ChangeListID:    clID,
