@@ -22,29 +22,6 @@
       }
     {{if .ING_TRY_ENABLED}}
     },
-    // Deprecated Gold Tryjob Ingester for gold-{{.INSTANCE_ID}}.
-    "gold-tryjob": {
-      RunEvery: "{{.ING_TRY_RUN_EVERY}}",
-      MinHours: {{.ING_TRY_MIN_HOURS}},
-      MetricName: "{{.INSTANCE_ID}}-gold-ingest-tryjob",
-      Sources: [
-        {
-          Bucket: "{{.BUCKET}}",
-          Dir: "trybot/dm-json-v1"
-        },
-      ],
-      ExtraParams: {
-        BuildBucketName: "{{.ING_TRY_BUILDBUCKET}}",
-        BuildBucketPollInterval: "{{.ING_TRY_BB_INTERVAL}}",
-        BuildBucketTimeWindow: "{{.ING_TRY_BB_WINDOW}}",
-        BuildBucketURL: "{{.ING_TRY_BUILDBUCKET_URL}}",
-        BuilderRegEx: "{{.ING_TRY_BUILDER_REGEX}}",
-        DSNamespace: "{{.DATASTORE_NAMESPACE}}",
-        DSProjectID: "{{.DATASTORE_PROJECT}}",
-        GerritCodeReviewURL: "{{.GERRIT_URL}}",
-        JobConfigFile: "{{.ING_JOB_CONFIG_FILE}}",
-      }
-    },
     // Gold Tryjob Ingester for gold-{{.INSTANCE_ID}}.
     "gold-tryjob-fs": {
       RunEvery: "{{.ING_TRY_RUN_EVERY}}",

@@ -11,7 +11,6 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/clstore"
@@ -23,7 +22,6 @@ import (
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/search/ref_differ"
 	"go.skia.org/infra/golden/go/tjstore"
-	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -40,12 +38,11 @@ const (
 // SearchImpl holds onto various objects needed to search the latest
 // tile for digests. It implements the SearchAPI interface.
 type SearchImpl struct {
-	diffStore             diff.DiffStore
-	expectationsStore     expstorage.ExpectationsStore
-	indexSource           indexer.IndexSource
-	changeListStore       clstore.Store
-	tryJobStore           tjstore.Store
-	deprecatedTryJobStore tryjobstore.TryjobStore
+	diffStore         diff.DiffStore
+	expectationsStore expstorage.ExpectationsStore
+	indexSource       indexer.IndexSource
+	changeListStore   clstore.Store
+	tryJobStore       tjstore.Store
 
 	// optional. If specified, will only show the params that match this query. This is
 	// opt-in, to avoid leaking.
@@ -53,13 +50,11 @@ type SearchImpl struct {
 }
 
 // New returns a new SearchImpl instance.
-func New(ds diff.DiffStore, es expstorage.ExpectationsStore, i indexer.IndexSource, deprecatedTJ tryjobstore.TryjobStore,
-	cls clstore.Store, tjs tjstore.Store, publiclyViewableParams paramtools.ParamSet) *SearchImpl {
+func New(ds diff.DiffStore, es expstorage.ExpectationsStore, is indexer.IndexSource, cls clstore.Store, tjs tjstore.Store, publiclyViewableParams paramtools.ParamSet) *SearchImpl {
 	return &SearchImpl{
 		diffStore:              ds,
 		expectationsStore:      es,
-		indexSource:            i,
-		deprecatedTryJobStore:  deprecatedTJ,
+		indexSource:            is,
 		changeListStore:        cls,
 		tryJobStore:            tjs,
 		publiclyViewableParams: publiclyViewableParams,
@@ -90,7 +85,6 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	idx := s.indexSource.GetIndex()
 
 	var inter srInterMap = nil
-	var issue *tryjobstore.Issue = nil
 
 	// Find the digests (left hand side) we are interested in.
 	if isChangeListSearch {
@@ -98,12 +92,6 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 			inter, err = s.queryChangeList(ctx, q, idx, exp)
 			if err != nil {
 				return nil, skerr.Wrapf(err, "getting digests from new clstore/tjstore")
-			}
-		} else {
-			// Search the tryjob results for the issue at hand.
-			inter, issue, err = s.deprecatedQueryIssue(ctx, q, idx, exp)
-			if err != nil {
-				return nil, skerr.Wrapf(err, "getting digests from old tryjobstore")
 			}
 		}
 	} else {
@@ -143,8 +131,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 		Offset:  offset,
 		Size:    len(displayRet),
 		// TODO(kjlubick) maybe omit Commits for ChangeList Queries.
-		Commits:         idx.Tile().GetTile(types.ExcludeIgnoredTraces).Commits,
-		DeprecatedIssue: issue,
+		Commits: idx.Tile().GetTile(types.ExcludeIgnoredTraces).Commits,
 	}
 	return searchRet, nil
 }
@@ -224,118 +211,6 @@ func (s *SearchImpl) getExpectationsFromQuery(clID, crs string) (common.ExpSlice
 	}
 	ret = append(ret, exp)
 	return ret, nil
-}
-
-// TODO(kjlubick): remove this deprecated stuff after the new tjstore/clstore lands
-// deprecatedQueryIssue returns the digest related to this issues in intermediate representation.
-func (s *SearchImpl) deprecatedQueryIssue(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp common.ExpSlice) (srInterMap, *tryjobstore.Issue, error) {
-	// Build the intermediate map to compare against the tile
-	ret := srInterMap{}
-
-	// Adjust the add function to exclude digests already in the master branch
-	addFn := ret.Add
-	if !q.IncludeMaster {
-		talliesByTest := idx.DigestCountsByTest(q.IgnoreState())
-		addFn = func(test types.TestName, digest types.Digest, traceID tiling.TraceId, trace *types.GoldenTrace, pSet paramtools.ParamSet) {
-			// Include the digest if either the test or the digest is not in the master tile.
-			if _, ok := talliesByTest[test][digest]; !ok {
-				ret.Add(test, digest, traceID, trace, pSet)
-			}
-		}
-	}
-
-	issue, err := s.deprecatedExtractIssueDigests(ctx, q, idx, exp, addFn)
-	if err != nil {
-		return nil, nil, err
-	}
-	return ret, issue, nil
-}
-
-type deprecatedFilterAddFn func(types.TestName, types.Digest, tiling.TraceId, *types.GoldenTrace, paramtools.ParamSet)
-
-// deprecatedExtractIssueDigests loads the issue and its tryjob results and then filters the
-// results via the given query. For each testName/digest pair addFn is called.
-func (s *SearchImpl) deprecatedExtractIssueDigests(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp common.ExpSlice, addFn deprecatedFilterAddFn) (*tryjobstore.Issue, error) {
-	// Get the issue.
-	issue, err := s.deprecatedTryJobStore.GetIssue(q.DeprecatedIssue, true)
-	if err != nil {
-		return nil, err
-	}
-
-	if issue == nil {
-		return nil, sklog.FmtErrorf("Unable to find issue %d", q.DeprecatedIssue)
-	}
-
-	// If no patchsets were given we pick the last one that has tryjobs.
-	issue.QueryPatchsets = q.PatchSets
-	if len(issue.QueryPatchsets) == 0 {
-		issue.QueryPatchsets = make([]int64, 0, len(issue.PatchsetDetails))
-		for i := len(issue.PatchsetDetails) - 1; i >= 0; i-- {
-			ps := issue.PatchsetDetails[i]
-			if len(ps.Tryjobs) > 0 {
-				issue.QueryPatchsets = append(issue.QueryPatchsets, ps.ID)
-				break
-			}
-		}
-	}
-
-	// Extract the list of tryjobs to consider.
-	var tryjobs []*tryjobstore.Tryjob
-	for _, psID := range issue.QueryPatchsets {
-		tryjobs = append(tryjobs, issue.FindPatchset(psID).Tryjobs...)
-	}
-
-	// If there are no tryjobs we are done.
-	if len(tryjobs) == 0 {
-		return issue, nil
-	}
-
-	// Get the results
-	tjResults, err := s.deprecatedTryJobStore.GetTryjobResults(tryjobs)
-	if err != nil {
-		return nil, err
-	}
-
-	// Filter the ignored results by setting the results to nil.
-	if !q.IncludeIgnores {
-		ignoreMatcher := idx.GetIgnoreMatcher()
-		for _, oneTryjob := range tjResults {
-			for idx, trj := range oneTryjob {
-				if ignoreMatcher.MatchAny(trj.Params) {
-					oneTryjob[idx] = nil
-				}
-			}
-		}
-	}
-
-	// If we have a white list filter out anything that is not on the white list.
-	if len(s.publiclyViewableParams) > 0 {
-		for _, oneTryjob := range tjResults {
-			for idx, trj := range oneTryjob {
-				if (trj != nil) && !s.publiclyViewableParams.Matches(trj.Params) {
-					oneTryjob[idx] = nil
-				}
-			}
-		}
-	}
-
-	// Iterate over the remaining results.
-	pq := paramtools.ParamSet(q.TraceValues)
-	for _, tryjobResults := range tjResults {
-		for _, tjr := range tryjobResults {
-			if tjr != nil {
-				// Filter by query.
-				if pq.Matches(tjr.Params) {
-					// Filter by classification.
-					cl := exp.Classification(tjr.TestName, tjr.Digest)
-					if !q.ExcludesClassification(cl) {
-						addFn(tjr.TestName, tjr.Digest, tiling.TraceId(""), nil, tjr.Params)
-					}
-				}
-			}
-		}
-	}
-	return issue, nil
 }
 
 // queryChangeList returns the digests associated with the ChangeList referenced by q.CRSAndCLID
