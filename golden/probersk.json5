@@ -5,6 +5,7 @@
        "https://chrome-gold.skia.org/healthz",
        "https://chrome-gpu-gold.skia.org/healthz",
        "https://flutter-gold.skia.org/healthz",
+       "https://flutter-engine-gold.skia.org/healthz",
        "https://gold.skia.org/healthz",
        "https://lottie-gold.skia.org/healthz",
        "https://pdfium-gold.skia.org/healthz",
@@ -29,6 +30,7 @@
        "https://chrome-gold.skia.org/json/expectations/commit/any",
        "https://chrome-gpu-gold.skia.org/json/expectations/commit/any",
        "https://flutter-gold.skia.org/json/expectations/commit/any",
+       "https://flutter-engine-gold.skia.org/json/expectations/commit/any"
      ],
      "method": "GET",
      "expected": [200],
