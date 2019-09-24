@@ -58,7 +58,6 @@ import (
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/tjstore/fs_tjstore"
 	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
-	"go.skia.org/infra/golden/go/tryjobstore/ds_tryjobstore"
 	"go.skia.org/infra/golden/go/warmer"
 	"go.skia.org/infra/golden/go/web"
 )
@@ -327,11 +326,6 @@ func main() {
 		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
 	}
 
-	deprecatedTJS, err := ds_tryjobstore.New(ds.DS, evt)
-	if err != nil {
-		sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
-	}
-
 	baseliner := simple_baseliner.New(expStore)
 
 	publiclyViewableParams := paramtools.ParamSet{}
@@ -413,7 +407,7 @@ func main() {
 	}
 	sklog.Infof("Indexer created.")
 
-	searchAPI := search.New(diffStore, expStore, ixr, deprecatedTJS, cls, tjs, publiclyViewableParams)
+	searchAPI := search.New(diffStore, expStore, ixr, cls, tjs, publiclyViewableParams)
 
 	sklog.Infof("Search API created")
 
@@ -436,7 +430,6 @@ func main() {
 		// TODO(kjlubick): have a more generic way to input these two URLs
 		ContinuousIntegrationURLPrefix: "https://cr-buildbucket.appspot.com/build",
 		CodeReviewURLPrefix:            *gerritURL,
-		DeprecatedTryjobStore:          deprecatedTJS,
 		DiffStore:                      diffStore,
 		ExpectationsStore:              expStore,
 		GCSClient:                      gsClient,
@@ -497,7 +490,6 @@ func main() {
 	jsonRouter.HandleFunc(trim("/json/triage"), handlers.TriageHandler).Methods("POST")
 	jsonRouter.HandleFunc(trim("/json/triagelog"), handlers.TriageLogHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/triagelog/undo"), handlers.TriageUndoHandler).Methods("POST")
-	jsonRouter.HandleFunc(trim("/json/tryjob"), handlers.DeprecatedTryjobListHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/changelists"), handlers.ChangeListsHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/changelist/{system}/{id}"), handlers.ChangeListSummaryHandler).Methods("GET")
 
