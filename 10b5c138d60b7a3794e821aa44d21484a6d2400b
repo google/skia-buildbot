@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "97082fe6_d469f052",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-24T12:26:41Z",
+      "side": 1,
+      "message": "1. Fixed.\n2. This isn\u0027t a redirect rule, this is a proxy_pass rule.\n\nThe envoy server will take www.skia.org and rewrite it to skia.org.",
+      "parentUuid": "89e504b7_def042ac",
+      "revId": "10b5c138d60b7a3794e821aa44d21484a6d2400b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ee7f78c8_1e5f7c5b",
         "filename": "skfe/sys/skia_org_nginx",
         "patchSetId": 1
@@ -39,6 +57,30 @@
       "revId": "10b5c138d60b7a3794e821aa44d21484a6d2400b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54d9da4d_613bd415",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-24T12:26:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ee7f78c8_1e5f7c5b",
+      "range": {
+        "startLine": 57,
+        "startChar": 10,
+        "endLine": 57,
+        "endChar": 24
+      },
+      "revId": "10b5c138d60b7a3794e821aa44d21484a6d2400b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
