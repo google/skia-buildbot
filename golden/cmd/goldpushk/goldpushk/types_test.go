@@ -9,6 +9,10 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// DeployableUnitID                                                                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 func TestDeployableUnitIDCanonicalName(t *testing.T) {
 	unittest.SmallTest(t)
 	unit := DeployableUnit{
@@ -19,6 +23,10 @@ func TestDeployableUnitIDCanonicalName(t *testing.T) {
 	}
 	assert.Equal(t, "gold-chrome-diffserver", unit.CanonicalName())
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// DeployableUnit                                                                                 //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func TestDeployableUnitGetDeploymentFileTemplatePath(t *testing.T) {
 	unittest.SmallTest(t)
@@ -48,6 +56,10 @@ func TestDeployableUnitGetConfigMapFileTemplatePath(t *testing.T) {
 
 	assert.Equal(t, p("/foo/bar/path/to/config-map-template.json5"), unit.getConfigMapFileTemplatePath(p("/foo/bar")))
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// DeployableUnitSet                                                                              //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func TestDeployableUnitSetAdd(t *testing.T) {
 	unittest.SmallTest(t)
@@ -172,6 +184,44 @@ func TestDeployableUnitSetGet(t *testing.T) {
 	}
 	assert.True(t, ok)
 	assert.Equal(t, expectedUnit, unit)
+}
+
+func TestDeployableUnitSetKnownInstances(t *testing.T) {
+	unittest.SmallTest(t)
+	s := DeployableUnitSet{
+		knownInstances: []Instance{Skia, Flutter, Fuchsia},
+	}
+	assert.Equal(t, []Instance{Skia, Flutter, Fuchsia}, s.KnownInstances())
+}
+
+func TestDeployableUnitSetKnownServices(t *testing.T) {
+	unittest.SmallTest(t)
+	s := DeployableUnitSet{
+		knownServices: []Service{BaselineServer, DiffServer, SkiaCorrectness},
+	}
+	assert.Equal(t, []Service{BaselineServer, DiffServer, SkiaCorrectness}, s.KnownServices())
+}
+
+func TestDeployableUnitSetIsKnownInstance(t *testing.T) {
+	unittest.SmallTest(t)
+	s := DeployableUnitSet{
+		knownInstances: []Instance{Skia, Flutter, Fuchsia},
+	}
+	assert.True(t, s.IsKnownInstance(Skia))
+	assert.True(t, s.IsKnownInstance(Flutter))
+	assert.True(t, s.IsKnownInstance(Fuchsia))
+	assert.False(t, s.IsKnownInstance(Instance("foo")))
+}
+
+func TestDeployableUnitSetIsKnownService(t *testing.T) {
+	unittest.SmallTest(t)
+	s := DeployableUnitSet{
+		knownServices: []Service{BaselineServer, DiffServer, SkiaCorrectness},
+	}
+	assert.True(t, s.IsKnownService(BaselineServer))
+	assert.True(t, s.IsKnownService(DiffServer))
+	assert.True(t, s.IsKnownService(SkiaCorrectness))
+	assert.False(t, s.IsKnownService(Service("foo")))
 }
 
 // p takes a Unix path and replaces forward slashes with the correct separators
