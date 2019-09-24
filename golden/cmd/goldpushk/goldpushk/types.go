@@ -11,6 +11,10 @@ type Instance string
 // Service represents the name of a Gold service, e.g. "diffserver".
 type Service string
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// DeployableUnitID                                                                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // DeployableUnitID identifies a Gold instance/service pair.
 type DeployableUnitID struct {
 	Instance Instance
@@ -26,6 +30,10 @@ func (d DeployableUnitID) CanonicalName() string {
 	return fmt.Sprintf("gold-%s-%s", d.Instance, d.Service)
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// DeploymentOptions                                                                              //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // DeploymentOptions contains any additional information required to deploy a
 // DeployableUnit to Kubernetes.
 type DeploymentOptions struct {
@@ -39,6 +47,10 @@ type DeploymentOptions struct {
 	configMapFile     string // Create a ConfigMap from this file.
 	configMapTemplate string // Create a ConfigMap from this template. The resulting .json5 file will be checked into the corresponding config Git repo.
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// DeployableUnit                                                                                 //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // DeployableUnit represents a Gold instance/service pair that can be deployed
 // to a Kubernetes cluster.
@@ -59,9 +71,16 @@ func (u *DeployableUnit) getConfigMapFileTemplatePath(skiaInfraRootPath string) 
 	return filepath.Join(skiaInfraRootPath, u.configMapTemplate)
 }
 
-// DeployableUnitSet implements a set data structure for DeployableUnits. This
-// structure is intended to be read-only outside of this package.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// DeployableUnitSet                                                                              //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// DeployableUnitSet implements a set data structure for DeployableUnits, and contains information
+// about all the known Gold instances and services. This structure is intended to be read-only
+// outside of this package.
 type DeployableUnitSet struct {
+	knownInstances []Instance
+	knownServices []Service
 	deployableUnits []DeployableUnit
 }
 
@@ -109,3 +128,34 @@ func (s *DeployableUnitSet) Get(d DeployableUnitID) (DeployableUnit, bool) {
 	}
 	return DeployableUnit{}, false
 }
+
+// KnownInstances returns the list of Gold instances known by the ServicesDB.
+func (s *DeployableUnitSet) KnownInstances() []Instance {
+	return s.knownInstances
+}
+
+// KnownServices returns the list of Gold services known by the ServicesDB.
+func (s *DeployableUnitSet) KnownServices() []Service {
+	return s.knownServices
+}
+
+// IsKnownInstance returns true if the given Gold instance is known by the ServicesDB.
+func (s *DeployableUnitSet) IsKnownInstance(instance Instance) bool {
+	for _, validInstance := range s.knownInstances {
+		if instance == validInstance {
+			return true
+		}
+	}
+	return false
+}
+
+// IsKnownService returns true if the given Gold service is known by the ServicesDB.
+func (s *DeployableUnitSet) IsKnownService(service Service) bool {
+	for _, validService := range s.knownServices {
+		if service == validService {
+			return true
+		}
+	}
+	return false
+}
+
