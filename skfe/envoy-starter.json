@@ -540,8 +540,8 @@
                       ]
                     },
                     {
-                      "domains": "status-internal.skia.org ",
-                      "name": "status-internal.skia.org ",
+                      "domains": "status-internal.skia.org",
+                      "name": "status-internal.skia.org",
                       "routes": [
                         {
                           "match": {
@@ -814,8 +814,8 @@
                       ]
                     },
                     {
-                      "domains": "lottie-gold.skia.org ",
-                      "name": "lottie-gold.skia.org ",
+                      "domains": "lottie-gold.skia.org",
+                      "name": "lottie-gold.skia.org",
                       "routes": [
                         {
                           "match": {
