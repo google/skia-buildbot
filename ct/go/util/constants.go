@@ -33,12 +33,13 @@ const (
 	MAX_URI_GET_TRIES = 4
 
 	// Pageset types supported by CT.
-	PAGESET_TYPE_ALL         = "All"
-	PAGESET_TYPE_100k        = "100k"
-	PAGESET_TYPE_MOBILE_100k = "Mobile100k"
-	PAGESET_TYPE_10k         = "10k"
-	PAGESET_TYPE_MOBILE_10k  = "Mobile10k"
-	PAGESET_TYPE_DUMMY_1k    = "Dummy1k" // Used for testing.
+	PAGESET_TYPE_ALL             = "All"
+	PAGESET_TYPE_100k            = "100k"
+	PAGESET_TYPE_MOBILE_100k     = "Mobile100k"
+	PAGESET_TYPE_10k             = "10k"
+	PAGESET_TYPE_MOBILE_10k      = "Mobile10k"
+	PAGESET_TYPE_DUMMY_1k        = "Dummy1k"       // Used for testing.
+	PAGESET_TYPE_MOBILE_DUMMY_1k = "DummyMobile1k" // Used for testing.
 
 	// Names of binaries executed by CT.
 	BINARY_CHROME          = "chrome"
@@ -301,13 +302,23 @@ var (
 		},
 		PAGESET_TYPE_DUMMY_1k: {
 			NumPages:                   1000,
+			CSVSource:                  "csv/top-1m.csv",
+			UserAgent:                  "desktop",
+			CreatePagesetsTimeoutSecs:  1800,
+			CaptureArchivesTimeoutSecs: 300,
+			CaptureSKPsTimeoutSecs:     300,
+			RunChromiumPerfTimeoutSecs: 300,
+			Description:                "Top 1K (with desktop user-agent, for testing, hidden from Runs History by default)",
+		},
+		PAGESET_TYPE_MOBILE_DUMMY_1k: {
+			NumPages:                   1000,
 			CSVSource:                  "csv/android-top-1m.csv",
 			UserAgent:                  "mobile",
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 300,
-			Description:                "Top 1K (used for testing, hidden from Runs History by default)",
+			Description:                "Top 1K (with mobile user-agent, for testing, hidden from Runs History by default)",
 		},
 	}
 
