@@ -643,7 +643,7 @@
                           "redirect": {
                             "host_redirect": "bugs.chromium.org",
                             "https_redirect": true,
-                            "prefix_rewrite": "/detail?id="
+                            "prefix_rewrite": "/p/skia/issues/detail?id="
                           }
                         }
                       ]
