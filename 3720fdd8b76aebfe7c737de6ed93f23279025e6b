@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a8c8054_be29c15c",
+        "filename": "gold-client/cmd/goldctl/cmd_imgtest.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-24T14:36:14Z",
+      "side": 1,
+      "message": "This doesn\u0027t seem to take into account that the SharedConfig might already be set.",
+      "range": {
+        "startLine": 188,
+        "startChar": 0,
+        "endLine": 191,
+        "endChar": 3
+      },
+      "revId": "3720fdd8b76aebfe7c737de6ed93f23279025e6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0c12bca7_159d87b0",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 644,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-24T14:36:14Z",
+      "side": 1,
+      "message": "Given your previous comment, should this be removed?",
+      "revId": "3720fdd8b76aebfe7c737de6ed93f23279025e6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6be867e_dda6a834",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-24T14:36:14Z",
+      "side": 1,
+      "message": "nit: ChangeListID corresponds to change_list_id; similar nits for try_job_id and patch_set_id.",
+      "range": {
+        "startLine": 114,
+        "startChar": 28,
+        "endLine": 114,
+        "endChar": 41
+      },
+      "revId": "3720fdd8b76aebfe7c737de6ed93f23279025e6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "841bc726_dd187b6f",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-24T14:36:14Z",
+      "side": 1,
+      "message": "nit: doc that ChangeListID is same as code_review.ChangeList.SystemID, PatchSetID is same as code_review.PatchSet.SystemID, and TryJobID is same as continuous_integration.TryJob.SystemID.",
+      "range": {
+        "startLine": 112,
+        "startChar": 0,
+        "endLine": 117,
+        "endChar": 0
+      },
+      "revId": "3720fdd8b76aebfe7c737de6ed93f23279025e6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1df48496_7424db02",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-24T14:36:14Z",
+      "side": 1,
+      "message": "nit: maybe group crs with clid and psid; also cis with tjid",
+      "range": {
+        "startLine": 118,
+        "startChar": 0,
+        "endLine": 120,
+        "endChar": 48
+      },
+      "revId": "3720fdd8b76aebfe7c737de6ed93f23279025e6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
