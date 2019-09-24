@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "55359bdb_12f7a1a8",
+        "filename": "gold-client/cmd/goldctl/cmd_imgtest.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-24T14:48:52Z",
+      "side": 1,
+      "message": "Did you check that this works as intended? (My worry is that flag parsing will write the default for issue after parsing changelist or vice-versa.)",
+      "revId": "074e1a6a340a5226a7b54619d1be4fb137ab75c2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
