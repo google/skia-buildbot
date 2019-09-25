@@ -191,7 +191,7 @@ func MultiStringFlagVar(target *[]string, name string, defaults []string, usage 
 
 // String() returns the current values of multiString, as a comma separated list
 func (m *multiString) String() string {
-	if *m.values == nil {
+	if m == nil || m.values == nil || *m.values == nil {
 		return ""
 	}
 	return strings.Join(*m.values, ",")

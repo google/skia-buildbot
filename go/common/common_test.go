@@ -1,6 +1,8 @@
 package common
 
 import (
+	"flag"
+	"reflect"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
@@ -17,17 +19,18 @@ func TestMultiString(t *testing.T) {
 	m := &multiString{
 		values: &values,
 	}
-	addAndCheck := func(newVal string, expect []string) {
+	addAndCheck := func(newVal string, expect []string, expectStr string) {
 		assert.NoError(t, m.Set(newVal))
 		deepequal.AssertDeepEqual(t, expect, *m.values)
 		deepequal.AssertDeepEqual(t, expect, values)
 		// Sanity check.
 		deepequal.AssertDeepEqual(t, []string{"mydefault", "mydefault2"}, defaults)
+		assert.Equal(t, expectStr, m.String())
 	}
 
-	addAndCheck("alpha", []string{"alpha"})
-	addAndCheck("beta,gamma", []string{"alpha", "beta", "gamma"})
-	addAndCheck("delta", []string{"alpha", "beta", "gamma", "delta"})
+	addAndCheck("alpha", []string{"alpha"}, "alpha")
+	addAndCheck("beta,gamma", []string{"alpha", "beta", "gamma"}, "alpha,beta,gamma")
+	addAndCheck("delta", []string{"alpha", "beta", "gamma", "delta"}, "alpha,beta,gamma,delta")
 
 	// Test MultiStringFlagVar behavior.
 	values = nil
@@ -35,9 +38,9 @@ func TestMultiString(t *testing.T) {
 	deepequal.AssertDeepEqual(t, defaults, *m.values)
 	deepequal.AssertDeepEqual(t, defaults, values)
 
-	addAndCheck("alpha", []string{"alpha"})
-	addAndCheck("beta,gamma", []string{"alpha", "beta", "gamma"})
-	addAndCheck("delta", []string{"alpha", "beta", "gamma", "delta"})
+	addAndCheck("alpha", []string{"alpha"}, "alpha")
+	addAndCheck("beta,gamma", []string{"alpha", "beta", "gamma"}, "alpha,beta,gamma")
+	addAndCheck("delta", []string{"alpha", "beta", "gamma", "delta"}, "alpha,beta,gamma,delta")
 
 	// Sanity check.
 	deepequal.AssertDeepEqual(t, []string{"mydefault", "mydefault2"}, defaults)
@@ -51,6 +54,22 @@ func TestMultiString(t *testing.T) {
 
 	// Verify that it's okay to pass nil for the defaults.
 	values = nil
-	newMultiString(&values, nil)
+	m = newMultiString(&values, nil)
 	assert.Nil(t, values)
+	assert.Equal(t, "", m.String())
+
+	// This is the code from the flag package which caused a crash without a
+	// nil check in String().
+	NewMultiStringFlag("myflag", nil, "Use --myflag")
+	myflag := flag.Lookup("myflag")
+	assert.NotNil(t, myflag)
+
+	typ := reflect.TypeOf(myflag.Value)
+	var z reflect.Value
+	if typ.Kind() == reflect.Ptr {
+		z = reflect.New(typ.Elem())
+	} else {
+		z = reflect.Zero(typ)
+	}
+	assert.Equal(t, "", z.Interface().(flag.Value).String())
 }
