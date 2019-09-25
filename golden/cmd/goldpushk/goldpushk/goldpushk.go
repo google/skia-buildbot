@@ -29,6 +29,18 @@ const (
 	k8sInstancesDir       = "golden/k8s-instances"
 )
 
+// cluster represents a Kubernetes cluster on which to deploy DeployableUnits, and contains all the
+// information necessary to switch between clusters with the "gcloud" command.
+type cluster struct {
+	name      string // e.g. "skia-corp".
+	projectID string // e.g. "google.com:skia-corp".
+}
+
+var (
+	clusterSkiaPublic = cluster{name: "skia-public", projectID: "skia-public"}
+	clusterSkiaCorp   = cluster{name: "skia-corp", projectID: "google.com:skia-corp"}
+)
+
 // Goldpushk contains information about the deployment steps to be carried out.
 type Goldpushk struct {
 	// Input parameters (provided via flags or environment variables).
@@ -44,6 +56,9 @@ type Goldpushk struct {
 	// Checked out Git repositories.
 	skiaPublicConfigCheckout *git.TempCheckout
 	skiaCorpConfigCheckout   *git.TempCheckout
+
+	// The Kubernetes cluster that the kubectl command is currently configured to use.
+	currentCluster cluster
 
 	// Miscellaneous.
 	unitTest bool // Disables confirmation prompt from unit tests.
@@ -88,6 +103,10 @@ func (g *Goldpushk) Run(ctx context.Context) error {
 	} else if !ok {
 		return nil
 	}
+
+	// Get cluster credentials before running any kubectl commands.
+	g.getClusterCredentials(ctx, clusterSkiaPublic)
+	g.getClusterCredentials(ctx, clusterSkiaCorp)
 
 	// TODO(lovisolo): Implement methods below.
 	if err := g.pushCanaries(); err != nil {
@@ -362,6 +381,40 @@ func (g *Goldpushk) pushServices() error {
 func (g *Goldpushk) monitorServices() error {
 	// TODO(lovisolo)
 	return skerr.Fmt("not implemented")
+}
+
+// getClusterCredentials runs the "gcloud" command necessary to get the credentials for the given
+// cluster.
+func (g *Goldpushk) getClusterCredentials(ctx context.Context, cluster cluster) error {
+	cmd := &exec.Command{
+		Name:        "gcloud",
+		Args:        []string{"container", "clusters", "get-credentials", cluster.name, "--zone", "us-central1-a", "--project", cluster.projectID},
+		InheritPath: true,
+		LogStderr:   true,
+		LogStdout:   true,
+	}
+	if err := exec.Run(ctx, cmd); err != nil {
+		return skerr.Wrapf(err, "failed to run gcloud")
+	}
+	return nil
+}
+
+// switchClusters runs the "gcloud" command necessary to switch kubectl to the given cluster.
+func (g *Goldpushk) switchClusters(ctx context.Context, cluster cluster) error {
+	if g.currentCluster != cluster {
+		cmd := &exec.Command{
+			Name:        "gcloud",
+			Args:        []string{"config", "set", "project", cluster.projectID},
+			InheritPath: true,
+			LogStderr:   true,
+			LogStdout:   true,
+		}
+		if err := exec.Run(ctx, cmd); err != nil {
+			return skerr.Wrapf(err, "failed to run gcloud")
+		}
+		g.currentCluster = cluster
+	}
+	return nil
 }
 
 // forAllDeployableUnits applies all deployable units (including canaried units)
