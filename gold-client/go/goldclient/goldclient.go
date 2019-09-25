@@ -84,20 +84,20 @@ type GoldClient interface {
 	// An error is only returned if there was a technical problem in processing the test.
 	Check(name types.TestName, imgFileName string) (bool, error)
 
-	// Upload the JSON file for all Test() calls previously seen.
+	// Finalize uploads the JSON file for all Test() calls previously seen.
 	// A no-op if configured for PASS/FAIL mode, since the JSON would have been uploaded
 	// on the calls to Test().
 	Finalize() error
 }
 
-// This interface contains some "optional" methods that can assist
+// GoldClientDebug contains some "optional" methods that can assist
 // in debugging.
 type GoldClientDebug interface {
-	// Returns a human-readable representation of the baseline as a string.
+	// DumpBaseline returns a human-readable representation of the baseline as a string.
 	// This is a set of test names that each have  a set of image
 	// digests that each have exactly one types.Label.
 	DumpBaseline() (string, error)
-	// Returns a human-readable representation of the known image digests
+	// DumpKnownHashes returns a human-readable representation of the known image digests
 	// which is a list of hashes.
 	DumpKnownHashes() (string, error)
 }
@@ -108,7 +108,7 @@ type HTTPClient interface {
 	Get(url string) (resp *http.Response, err error)
 }
 
-// cloudClient implements the GoldClient interface for the remote Gold service.
+// CloudClient implements the GoldClient interface for the remote Gold service.
 type CloudClient struct {
 	// workDir is a temporary directory that has to exist between related calls
 	workDir string
@@ -315,7 +315,7 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 	c.addResult(name, imgHash, additionalKeys)
 
 	// At this point the result should be correct for uploading.
-	if _, err := c.resultState.SharedConfig.Validate(false); err != nil {
+	if err := c.resultState.SharedConfig.Validate(false); err != nil {
 		return false, skerr.Wrap(err)
 	}
 
@@ -441,7 +441,7 @@ func (c *CloudClient) isReady() error {
 	}
 
 	// Check if the GoldResults instance is complete once results are added.
-	if _, err := c.resultState.SharedConfig.Validate(true); err != nil {
+	if err := c.resultState.SharedConfig.Validate(true); err != nil {
 		return skerr.Fmt("Gold results fields invalid: %s", err)
 	}
 
@@ -688,6 +688,10 @@ func (r *resultState) getResultFilePath(now time.Time) string {
 	// hour and increase readability of the paths for troubleshooting.
 	// It is vital that the times segments of the path are based on UTC location.
 	fileName := fmt.Sprintf("dm-%d.json", now.UnixNano())
+	builder := r.SharedConfig.TryJobID
+	if builder == "" {
+		builder = "waterfall"
+	}
 	segments := []interface{}{
 		jsonPrefix,
 		year,
@@ -695,12 +699,12 @@ func (r *resultState) getResultFilePath(now time.Time) string {
 		day,
 		hour,
 		r.SharedConfig.GitHash,
-		r.SharedConfig.BuildBucketID,
+		builder,
 		now.Unix(),
 		fileName}
-	path := fmt.Sprintf("%s/%04d/%02d/%02d/%02d/%s/%d/%d/%s", segments...)
+	path := fmt.Sprintf("%s/%04d/%02d/%02d/%02d/%s/%s/%d/%s", segments...)
 
-	if !types.IsMasterBranch(r.SharedConfig.GerritChangeListID) {
+	if r.SharedConfig.ChangeListID != "" {
 		path = "trybot/" + path
 	}
 	return fmt.Sprintf("%s/%s", r.Bucket, path)
