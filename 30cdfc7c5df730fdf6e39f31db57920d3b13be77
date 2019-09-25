@@ -225,6 +225,30 @@
     },
     {
       "key": {
+        "uuid": "ca69f9e6_d77f6eef",
+        "filename": "golden/k8s-config-templates/gold-healthy-server-template.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T18:47:45Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f4b164a2_df1a1b3b",
+      "range": {
+        "startLine": 53,
+        "startChar": 12,
+        "endLine": 55,
+        "endChar": 31
+      },
+      "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9b62c3ee_2bb55685",
         "filename": "golden/k8s-instances/goldpushk-corp-test1-instance.json5",
         "patchSetId": 1
