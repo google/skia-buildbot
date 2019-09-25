@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "84575e0a_0815b450",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T19:01:38Z",
+      "side": 1,
+      "message": "Summary of our in-person chat:\n\n1. We\u0027ve agreed that this is probably not worth the trouble seeing that we have just one single public instance right now.\n2. I\u0027ve added a comment to reconsider this if we have more public instances in the future.\n3. Since this slice is private, has one single reader (function isPublicInstance) and no writers, it is effectively constant.\n4. As an alternative, this list could be hardcoded into function isPublicInstance, which would be a bit less elegant but would remove the global state.",
+      "parentUuid": "85dfb55b_364e1125",
+      "range": {
+        "startLine": 10,
+        "startChar": 12,
+        "endLine": 10,
+        "endChar": 20
+      },
+      "revId": "f6c7fdd80c10150559c2102a70f779fa5bf5885f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2bb50dcc_c3235f7c",
         "filename": "golden/cmd/goldpushk/goldpushk/services_map.go",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2019-09-25T12:54:57Z",
       "side": 1,
       "message": "driveby comment: Seeing this makes me prefer what you have done to the style I had been doing of\nconst thing \u003d types.Digest(\"123\")  I think I\u0027ll try to use what you have here in the future.",
+      "range": {
+        "startLine": 17,
+        "startChar": 12,
+        "endLine": 17,
+        "endChar": 22
+      },
+      "revId": "f6c7fdd80c10150559c2102a70f779fa5bf5885f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cb4a828e_d86a0029",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T19:01:38Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2bb50dcc_c3235f7c",
       "range": {
         "startLine": 17,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1466649e_b5b5baa9",
+        "filename": "golden/cmd/goldpushk/goldpushk/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T19:01:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "89a35703_2a98cd9a",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 7
+      },
+      "revId": "f6c7fdd80c10150559c2102a70f779fa5bf5885f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f7e3e968_3ff7e639",
         "filename": "golden/cmd/goldpushk/goldpushk/types.go",
         "patchSetId": 4
@@ -91,6 +163,30 @@
       "revId": "f6c7fdd80c10150559c2102a70f779fa5bf5885f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41af92af_eb0923dd",
+        "filename": "golden/cmd/goldpushk/goldpushk/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T19:01:38Z",
+      "side": 1,
+      "message": "Oops, this was left over from a previous iteration of this CL before sending out my changes for review.",
+      "parentUuid": "f7e3e968_3ff7e639",
+      "range": {
+        "startLine": 132,
+        "startChar": 66,
+        "endLine": 132,
+        "endChar": 76
+      },
+      "revId": "f6c7fdd80c10150559c2102a70f779fa5bf5885f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "f3880dcf_8554cfa6",
+        "filename": "golden/cmd/goldpushk/goldpushk/types_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T19:01:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ea55d190_8b482ad2",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 6
+      },
+      "revId": "f6c7fdd80c10150559c2102a70f779fa5bf5885f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "14ca344d_e5995efe",
         "filename": "golden/cmd/goldpushk/main.go",
         "patchSetId": 4
@@ -137,6 +257,30 @@
       "revId": "f6c7fdd80c10150559c2102a70f779fa5bf5885f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8ab3f2d_87ce924a",
+        "filename": "golden/cmd/goldpushk/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T19:01:38Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "14ca344d_e5995efe",
+      "range": {
+        "startLine": 167,
+        "startChar": 25,
+        "endLine": 167,
+        "endChar": 73
+      },
+      "revId": "f6c7fdd80c10150559c2102a70f779fa5bf5885f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
