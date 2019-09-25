@@ -36,6 +36,7 @@ type Goldpushk struct {
 	canariedDeployableUnits []DeployableUnit
 	rootPath                string // Path to the buildbot checkout.
 	dryRun                  bool
+	noCommit                bool
 
 	// Other constructor parameters.
 	skiaPublicConfigRepoUrl string
@@ -50,12 +51,13 @@ type Goldpushk struct {
 }
 
 // New is the Goldpushk constructor.
-func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableUnit, skiaInfraRootPath string, dryRun bool, skiaPublicConfigRepoUrl, skiaCorpConfigRepoUrl string) *Goldpushk {
+func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableUnit, skiaInfraRootPath string, dryRun, noCommit bool, skiaPublicConfigRepoUrl, skiaCorpConfigRepoUrl string) *Goldpushk {
 	return &Goldpushk{
 		deployableUnits:         deployableUnits,
 		canariedDeployableUnits: canariedDeployableUnits,
 		rootPath:                skiaInfraRootPath,
 		dryRun:                  dryRun,
+		noCommit:                noCommit,
 		skiaPublicConfigRepoUrl: skiaPublicConfigRepoUrl,
 		skiaCorpConfigRepoUrl:   skiaCorpConfigRepoUrl,
 	}
@@ -82,7 +84,7 @@ func (g *Goldpushk) Run(ctx context.Context) error {
 		return err
 	}
 
-	// Commit config files.
+	// Commit config files, giving the user the option to abort.
 	if ok, err := g.commitConfigFiles(ctx); err != nil {
 		return err
 	} else if !ok {
@@ -298,8 +300,14 @@ func (g *Goldpushk) commitConfigFiles(ctx context.Context) (bool, error) {
 		return false, skerr.Wrap(err)
 	}
 
+	// Skip if noCommit is true.
+	if g.noCommit {
+		fmt.Println("\nSkipping commit step.")
+		return true, nil
+	}
+
 	// Ask for confirmation.
-	ok, err := prompt("\nCommit and push the above changes?")
+	ok, err := prompt("\nCommit and push the above changes? Answering no will abort execution.")
 	if err != nil {
 		return false, skerr.Wrap(err)
 	}
