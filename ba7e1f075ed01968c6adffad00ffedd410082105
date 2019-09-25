@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "2adf81a6_94b46cb6",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 1
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T19:12:46Z",
+      "side": 0,
+      "message": "This should be fine, as our bots link directly to the link on GCS.",
+      "parentUuid": "9c104293_23872933",
+      "revId": "ba7e1f075ed01968c6adffad00ffedd410082105",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5925c60f_a4461fae",
         "filename": "skfe/sys/skia_org_nginx",
         "patchSetId": 1
