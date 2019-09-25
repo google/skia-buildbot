@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1765a0a2_f0c97f68",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:54:57Z",
+      "side": 0,
+      "message": "This should probably remain here (unless radical idea is implemented)",
+      "range": {
+        "startLine": 150,
+        "startChar": 0,
+        "endLine": 155,
+        "endChar": 1
+      },
+      "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

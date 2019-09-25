@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "85dfb55b_364e1125",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:54:57Z",
+      "side": 1,
+      "message": "Potentially radical idea (as with all my feedback, you can say \"no\"). Inspired by https://dave.cheney.net/2017/06/11/go-without-package-scoped-variables and https://dave.cheney.net/2016/04/07/constant-errors whose blog I\u0027ve been reading a lot of lately\n\ntype Instance interface {\n  Instance() string // something uniqueish to avoid accidental implementation\n}\n\ntype PublicInstance interface {\n  IsPublic()\n}\n\ntype instance struct {\n name string\n}\n\nfunc (in *instance) Instance() string {\n return in.name\n}\n\nfunc (in *instance) String() string { // by implementing String(), we can simply use %v in format strings instead of having to do fmt.Sprintf(\"foo-%s-bar\", in.Instance())\n return in.name\n}\n\ntype publicInstance struct {\n name string\n}\n\nfunc (in *publicInstance) Instance() string {\n return in.name\n}\n\nfunc (in *publicInstance) String() string {\n return in.name\n}\n\nfunc (in *publicInstance) IsPublic() {}\n\nconst ChromeGPU  \u003d instance{\"chrome-gpu\"}\n//...\nconst SkiaPublic \u003d publicInstance{\"skia-public\"}\n\n\nOnce we have that, instead of \nif isPublicInstance(foo) {\n //...\n}\n\nWe can do\nif _, ok :\u003d foo.(PublicInstance); ok {\n  //...\n}\n\nPros:\nNo package level variable of instances (that could be mutated or forgotten about)\nWhen we create the variable, it is clear that it\u0027s a \"publicInstance\".\n\nCons: \nNot a simple string anymore, which could complicate other logic\n\n\nAs always, happy to discuss this in person.",
+      "range": {
+        "startLine": 10,
+        "startChar": 12,
+        "endLine": 10,
+        "endChar": 20
+      },
+      "revId": "f6c7fdd80c10150559c2102a70f779fa5bf5885f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2bb50dcc_c3235f7c",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:54:57Z",
+      "side": 1,
+      "message": "driveby comment: Seeing this makes me prefer what you have done to the style I had been doing of\nconst thing \u003d types.Digest(\"123\")  I think I\u0027ll try to use what you have here in the future.",
+      "range": {
+        "startLine": 17,
+        "startChar": 12,
+        "endLine": 17,
+        "endChar": 22
+      },
+      "revId": "f6c7fdd80c10150559c2102a70f779fa5bf5885f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "89a35703_2a98cd9a",
+        "filename": "golden/cmd/goldpushk/goldpushk/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:54:57Z",
+      "side": 1,
+      "message": "I\u0027m not sure this aids readability of the code.",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 7
+      },
+      "revId": "f6c7fdd80c10150559c2102a70f779fa5bf5885f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f7e3e968_3ff7e639",
+        "filename": "golden/cmd/goldpushk/goldpushk/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:54:57Z",
+      "side": 1,
+      "message": "I\u0027m not sure what ServicesDB means.  Could this just say \"returns the list of known/valid Gold instances\"?",
+      "range": {
+        "startLine": 132,
+        "startChar": 66,
+        "endLine": 132,
+        "endChar": 76
+      },
+      "revId": "f6c7fdd80c10150559c2102a70f779fa5bf5885f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea55d190_8b482ad2",
+        "filename": "golden/cmd/goldpushk/goldpushk/types_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:54:57Z",
+      "side": 1,
+      "message": "I\u0027m not sure this helps readability of the tests",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 6
+      },
+      "revId": "f6c7fdd80c10150559c2102a70f779fa5bf5885f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14ca344d_e5995efe",
+        "filename": "golden/cmd/goldpushk/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:54:57Z",
+      "side": 1,
+      "message": "Under radical idea from earlier, I think we\u0027d change this to\nfunc (d *DeployableUnitSet) ToInstance(s string) (Instance, bool) {\n  // if s is not recognized, return false for bool\n  // otherwise, return an Instance (or PublicInstance) as appropriate\n}",
+      "range": {
+        "startLine": 167,
+        "startChar": 25,
+        "endLine": 167,
+        "endChar": 73
+      },
+      "revId": "f6c7fdd80c10150559c2102a70f779fa5bf5885f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
