@@ -148,7 +148,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	d, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *fsInstance, ts, nil)
+	d, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *fsInstance, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}

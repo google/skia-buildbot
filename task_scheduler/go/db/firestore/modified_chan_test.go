@@ -17,7 +17,7 @@ func TestModifiedTasksCh(t *testing.T) {
 	defer cleanup()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	taskCh := ModifiedTasksCh(ctx, db)
+	taskCh := db.ModifiedTasksCh(ctx)
 
 	// Initial snapshot contains all results, ie. empty right now.
 	<-taskCh
@@ -73,7 +73,7 @@ func TestModifiedJobsCh(t *testing.T) {
 	defer cleanup()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	jobCh := ModifiedJobsCh(ctx, db)
+	jobCh := db.ModifiedJobsCh(ctx)
 
 	// Initial snapshot contains all results, ie. empty right now.
 	<-jobCh
@@ -129,7 +129,7 @@ func TestModifiedTaskCommentsCh(t *testing.T) {
 	defer cleanup()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	taskCommentCh := ModifiedTaskCommentsCh(ctx, db)
+	taskCommentCh := db.ModifiedTaskCommentsCh(ctx)
 
 	// Initial snapshot contains all results, ie. empty right now.
 	<-taskCommentCh
@@ -188,7 +188,7 @@ func TestModifiedTaskSpecCommentsCh(t *testing.T) {
 	defer cleanup()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	taskSpecCommentCh := ModifiedTaskSpecCommentsCh(ctx, db)
+	taskSpecCommentCh := db.ModifiedTaskSpecCommentsCh(ctx)
 
 	// Initial snapshot contains all results, ie. empty right now.
 	<-taskSpecCommentCh
@@ -244,7 +244,7 @@ func TestModifiedCommitCommentsCh(t *testing.T) {
 	defer cleanup()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	commitCommentCh := ModifiedCommitCommentsCh(ctx, db)
+	commitCommentCh := db.ModifiedCommitCommentsCh(ctx)
 
 	// Initial snapshot contains all results, ie. empty right now.
 	<-commitCommentCh

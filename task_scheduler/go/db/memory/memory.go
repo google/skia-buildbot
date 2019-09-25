@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"sync"
@@ -11,14 +12,13 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
-	"go.skia.org/infra/task_scheduler/go/db/modified"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 type inMemoryTaskDB struct {
-	tasks    map[string]*types.Task
-	tasksMtx sync.RWMutex
-	db.ModifiedTasks
+	tasks      map[string]*types.Task
+	tasksMtx   sync.RWMutex
+	modTasksCh []chan<- []*types.Task
 }
 
 // See docs for TaskDB interface. Does not take any locks.
@@ -107,7 +107,13 @@ func (d *inMemoryTaskDB) PutTasks(tasks []*types.Task) error {
 		// TODO(borenet): Keep tasks in a sorted slice.
 		d.tasks[task.Id] = task.Copy()
 	}
-	d.TrackModifiedTasks(tasks)
+	// Send the modified tasks to any listeners.
+	for _, ch := range d.modTasksCh {
+		// Don't block, in case a listener has forgotten about us.
+		go func(ch chan<- []*types.Task) {
+			ch <- tasks
+		}(ch)
+	}
 	return nil
 }
 
@@ -118,23 +124,36 @@ func (d *inMemoryTaskDB) PutTasksInChunks(tasks []*types.Task) error {
 	})
 }
 
+// See docs for TaskDB interface.
+func (d *inMemoryTaskDB) ModifiedTasksCh(ctx context.Context) <-chan []*types.Task {
+	d.tasksMtx.Lock()
+	defer d.tasksMtx.Unlock()
+	rv := make(chan []*types.Task)
+	d.modTasksCh = append(d.modTasksCh, rv)
+	// The first read returns all of the current data.
+	data := []*types.Task{}
+	for _, task := range d.tasks {
+		data = append(data, task.Copy())
+	}
+	go func() {
+		rv <- data
+	}()
+	return rv
+}
+
 // NewInMemoryTaskDB returns an extremely simple, inefficient, in-memory TaskDB
 // implementation.
-func NewInMemoryTaskDB(modTasks db.ModifiedTasks) db.TaskDB {
-	if modTasks == nil {
-		modTasks = &modified.ModifiedTasksImpl{}
+func NewInMemoryTaskDB() db.TaskDB {
+	return &inMemoryTaskDB{
+		tasks:      map[string]*types.Task{},
+		modTasksCh: []chan<- []*types.Task{},
 	}
-	db := &inMemoryTaskDB{
-		tasks:         map[string]*types.Task{},
-		ModifiedTasks: modTasks,
-	}
-	return db
 }
 
 type inMemoryJobDB struct {
-	jobs    map[string]*types.Job
-	jobsMtx sync.RWMutex
-	db.ModifiedJobs
+	jobs      map[string]*types.Job
+	jobsMtx   sync.RWMutex
+	modJobsCh []chan<- []*types.Job
 }
 
 func (d *inMemoryJobDB) assignId(j *types.Job) error {
@@ -223,7 +242,12 @@ func (d *inMemoryJobDB) PutJobs(jobs []*types.Job) error {
 		// TODO(borenet): Keep jobs in a sorted slice.
 		d.jobs[job.Id] = job.Copy()
 	}
-	d.TrackModifiedJobs(jobs)
+	for _, ch := range d.modJobsCh {
+		// Don't block, in case a listener has forgotten about us.
+		go func(ch chan<- []*types.Job) {
+			ch <- jobs
+		}(ch)
+	}
 	return nil
 }
 
@@ -234,24 +258,35 @@ func (d *inMemoryJobDB) PutJobsInChunks(jobs []*types.Job) error {
 	})
 }
 
+// See docs for JobDB interface.
+func (d *inMemoryJobDB) ModifiedJobsCh(ctx context.Context) <-chan []*types.Job {
+	d.jobsMtx.Lock()
+	defer d.jobsMtx.Unlock()
+	rv := make(chan []*types.Job)
+	d.modJobsCh = append(d.modJobsCh, rv)
+	// The first read returns all of the current data.
+	data := []*types.Job{}
+	for _, job := range d.jobs {
+		data = append(data, job.Copy())
+	}
+	go func() {
+		rv <- data
+	}()
+	return rv
+}
+
 // NewInMemoryJobDB returns an extremely simple, inefficient, in-memory JobDB
 // implementation.
-func NewInMemoryJobDB(modJobs db.ModifiedJobs) db.JobDB {
-	if modJobs == nil {
-		modJobs = &modified.ModifiedJobsImpl{}
-	}
+func NewInMemoryJobDB() db.JobDB {
 	db := &inMemoryJobDB{
-		jobs:         map[string]*types.Job{},
-		ModifiedJobs: modJobs,
+		jobs:      map[string]*types.Job{},
+		modJobsCh: []chan<- []*types.Job{},
 	}
 	return db
 }
 
 // NewInMemoryDB returns an extremely simple, inefficient, in-memory DB
 // implementation.
-func NewInMemoryDB(mod db.ModifiedData) db.DB {
-	if mod == nil {
-		mod = modified.NewModifiedData()
-	}
-	return db.NewDB(NewInMemoryTaskDB(mod), NewInMemoryJobDB(mod), &CommentBox{ModifiedComments: mod})
+func NewInMemoryDB() db.DB {
+	return db.NewDB(NewInMemoryTaskDB(), NewInMemoryJobDB(), NewCommentBox())
 }
