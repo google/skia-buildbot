@@ -71,6 +71,14 @@ k8s-release-baseline-server: build-static-baseline-server
 k8s-release-ingestion: build-static-ingestion
 	./k8s_release_ingestion
 
+.PHONY: k8s-release-goldpushk-healthy-server
+k8s-release-goldpushk-healthy-server: build-static-goldpushk-healthy-server
+	./k8s_release_goldpushk_healthy_server
+
+.PHONY: k8s-release-goldpushk-crashing-server
+k8s-release-goldpushk-crashing-server: build-static-goldpushk-crashing-server
+	./k8s_release_goldpushk_crashing_server
+
 .PHONY: build-static-skiacorrectness
 build-static-skiacorrectness: skiaversion frontend
 	mkdir -p ./build
@@ -94,6 +102,18 @@ build-static-ingestion: skiaversion
 	mkdir -p ./build
 	rm -f ./build/gold_ingestion_k8s
 	$(KGO) -o build/gold_ingestion_k8s -a ./cmd/gold_ingestion/main.go
+
+.PHONY: build-static-goldpushk-healthy-server
+build-static-goldpushk-healthy-server:
+	mkdir -p ./build
+	rm -f ./build/goldpushk_healthy_server_k8s
+	$(KGO) -o build/goldpushk_healthy_server_k8s -a ./cmd/goldpushk/testing/healthy_server/main.go
+
+.PHONY: build-static-goldpushk-crashing-server
+build-static-goldpushk-crashing-server:
+	mkdir -p ./build
+	rm -f ./build/goldpushk_crashing_server_k8s
+	$(KGO) -o build/goldpushk_crashing_server_k8s -a ./cmd/goldpushk/testing/crashing_server/main.go
 
 .PHONY: mocks
 mocks:
