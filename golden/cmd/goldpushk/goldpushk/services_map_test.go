@@ -8,10 +8,9 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-////////////////////////////////////////////////////////////////////////////////
-// Test invariants of the DeployableUnitSet returned by                       //
-// BuildDeployableUnitSet().                                                  //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Test invariants of the DeployableUnitSet returned by BuildDeployableUnitSet().                 //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Utility function to generate an assertion message for a given instance/service pair.
 func msg(id DeployableUnitID) string {
@@ -22,8 +21,8 @@ func TestBuildDeployableUnitSetOnlyContainsKnownInstancesAndServices(t *testing.
 	unittest.SmallTest(t)
 	deployableUnitSet := BuildDeployableUnitSet()
 	for _, unit := range deployableUnitSet.deployableUnits {
-		assert.True(t, IsKnownInstance(unit.Instance), msg(unit.DeployableUnitID))
-		assert.True(t, IsKnownService(unit.Service), msg(unit.DeployableUnitID))
+		assert.True(t, deployableUnitSet.IsKnownInstance(unit.Instance), msg(unit.DeployableUnitID))
+		assert.True(t, deployableUnitSet.IsKnownService(unit.Service), msg(unit.DeployableUnitID))
 	}
 }
 
@@ -36,7 +35,7 @@ func TestBuildDeployableUnitSetContainsAllKnownInstances(t *testing.T) {
 		seen[unit.Instance] = true
 	}
 
-	for _, i := range KnownInstances {
+	for _, i := range deployableUnitSet.knownInstances {
 		assert.Contains(t, seen, i)
 	}
 }
@@ -50,7 +49,7 @@ func TestBuildDeployableUnitSetAllInstancesHaveCommonServices(t *testing.T) {
 		assert.True(t, ok, fmt.Sprintf("%s is missing service %s", i, s))
 	}
 
-	for _, instance := range KnownInstances {
+	for _, instance := range deployableUnitSet.knownInstances {
 		assertHasService(instance, SkiaCorrectness)
 		if !isPublicInstance(instance) {
 			assertHasService(instance, DiffServer)
@@ -129,27 +128,8 @@ func TestBuildDeployableUnitSetConfigMapInvariantsHold(t *testing.T) {
 	}
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Test utility functions.                                                    //
-////////////////////////////////////////////////////////////////////////////////
-
-func TestIsKnownInstance(t *testing.T) {
-	unittest.SmallTest(t)
-
-	assert.True(t, IsKnownInstance(Chrome))
-	assert.False(t, IsKnownInstance(Instance("foo")))
-}
-
-func TestIsKnownService(t *testing.T) {
-	unittest.SmallTest(t)
-
-	assert.True(t, IsKnownService(DiffServer))
-	assert.False(t, IsKnownService("bar"))
-}
-
 func TestIsPublicInstance(t *testing.T) {
 	unittest.SmallTest(t)
-
 	assert.True(t, isPublicInstance(SkiaPublic))
 	assert.False(t, isPublicInstance(Skia))
 }

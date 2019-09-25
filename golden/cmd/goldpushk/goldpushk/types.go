@@ -59,9 +59,12 @@ func (u *DeployableUnit) getConfigMapFileTemplatePath(skiaInfraRootPath string) 
 	return filepath.Join(skiaInfraRootPath, u.configMapTemplate)
 }
 
-// DeployableUnitSet implements a set data structure for DeployableUnits. This
-// structure is intended to be read-only outside of this package.
+// DeployableUnitSet implements a set data structure for DeployableUnits, and contains information
+// about all the known Gold instances and services. This structure is intended to be read-only
+// outside of this package.
 type DeployableUnitSet struct {
+	knownInstances  []Instance
+	knownServices   []Service
 	deployableUnits []DeployableUnit
 }
 
@@ -108,4 +111,34 @@ func (s *DeployableUnitSet) Get(d DeployableUnitID) (DeployableUnit, bool) {
 		}
 	}
 	return DeployableUnit{}, false
+}
+
+// KnownInstances returns the list of Gold instances known by the DeployableUnitSet.
+func (s *DeployableUnitSet) KnownInstances() []Instance {
+	return s.knownInstances
+}
+
+// KnownServices returns the list of Gold services known by the DeployableUnitSet.
+func (s *DeployableUnitSet) KnownServices() []Service {
+	return s.knownServices
+}
+
+// IsKnownInstance returns true if the given Gold instance is known by the DeployableUnitSet.
+func (s *DeployableUnitSet) IsKnownInstance(instance Instance) bool {
+	for _, validInstance := range s.knownInstances {
+		if instance == validInstance {
+			return true
+		}
+	}
+	return false
+}
+
+// IsKnownService returns true if the given Gold service is known by the DeployableUnitSet.
+func (s *DeployableUnitSet) IsKnownService(service Service) bool {
+	for _, validService := range s.knownServices {
+		if service == validService {
+			return true
+		}
+	}
+	return false
 }
