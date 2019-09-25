@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3f367bbf_7be19890",
+        "filename": "golden/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T15:31:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eea46077_aabb8c1d",
+      "revId": "8e839e01ba6ddfe8ca2d607d5fa63d0e012cf24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "acfe2185_1a6fe742",
         "filename": "golden/Makefile",
         "patchSetId": 2
@@ -39,6 +57,30 @@
       "revId": "8e839e01ba6ddfe8ca2d607d5fa63d0e012cf24f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "810f9bf5_c7f8aa68",
+        "filename": "golden/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T15:31:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "acfe2185_1a6fe742",
+      "range": {
+        "startLine": 99,
+        "startChar": 39,
+        "endLine": 99,
+        "endChar": 50
+      },
+      "revId": "8e839e01ba6ddfe8ca2d607d5fa63d0e012cf24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "bd2bb27c_49577bc9",
+        "filename": "golden/cmd/goldpushk/testing/crashing_server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T15:31:19Z",
+      "side": 1,
+      "message": "This is just to test that the templating works. I\u0027ve added a comment to this effect.",
+      "parentUuid": "8f2fe8e5_53643da2",
+      "range": {
+        "startLine": 16,
+        "startChar": 1,
+        "endLine": 16,
+        "endChar": 13
+      },
+      "revId": "8e839e01ba6ddfe8ca2d607d5fa63d0e012cf24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "62a85bf1_dcc8e613",
         "filename": "golden/cmd/goldpushk/testing/crashing_server/main.go",
         "patchSetId": 2
@@ -76,6 +142,30 @@
       "writtenOn": "2019-09-25T12:55:06Z",
       "side": 1,
       "message": "I\u0027d give this a sensible default, like 8000",
+      "range": {
+        "startLine": 17,
+        "startChar": 30,
+        "endLine": 17,
+        "endChar": 31
+      },
+      "revId": "8e839e01ba6ddfe8ca2d607d5fa63d0e012cf24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a1b8696_0ef567ac",
+        "filename": "golden/cmd/goldpushk/testing/crashing_server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T15:31:19Z",
+      "side": 1,
+      "message": "I\u0027m making this fail on purpose if a port is not provided just to test that the configuration templating works. But please let me know if you still disagree.",
+      "parentUuid": "62a85bf1_dcc8e613",
       "range": {
         "startLine": 17,
         "startChar": 30,
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "d879102c_f23ce553",
+        "filename": "golden/cmd/goldpushk/testing/crashing_server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T15:31:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e6731945_72548dd4",
+      "range": {
+        "startLine": 21,
+        "startChar": 2,
+        "endLine": 21,
+        "endChar": 13
+      },
+      "revId": "8e839e01ba6ddfe8ca2d607d5fa63d0e012cf24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "51b76384_b825529f",
         "filename": "golden/cmd/goldpushk/testing/crashing_server/main.go",
         "patchSetId": 2
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "2e01b43b_3d0b5a43",
+        "filename": "golden/cmd/goldpushk/testing/crashing_server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T15:31:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "51b76384_b825529f",
+      "range": {
+        "startLine": 41,
+        "startChar": 1,
+        "endLine": 41,
+        "endChar": 12
+      },
+      "revId": "8e839e01ba6ddfe8ca2d607d5fa63d0e012cf24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "489a91dc_909b3ba5",
         "filename": "golden/cmd/goldpushk/testing/healthy_server/main.go",
         "patchSetId": 2
@@ -148,6 +286,24 @@
       "revId": "8e839e01ba6ddfe8ca2d607d5fa63d0e012cf24f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cad71ad0_27eae326",
+        "filename": "golden/cmd/goldpushk/testing/healthy_server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T15:31:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "489a91dc_909b3ba5",
+      "revId": "8e839e01ba6ddfe8ca2d607d5fa63d0e012cf24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
