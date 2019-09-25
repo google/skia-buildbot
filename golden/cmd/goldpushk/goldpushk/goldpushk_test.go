@@ -82,7 +82,7 @@ func TestGoldpushkGetDeploymentFilePath(t *testing.T) {
 	addFakeConfigRepoCheckouts(g)
 
 	// Gather the DeployableUnits we will call Goldpushk.getDeploymentFilePath() with.
-	s := BuildDeployableUnitSet()
+	s := ProductionDeployableUnits()
 	publicUnit, _ := s.Get(makeID(Skia, DiffServer))
 	internalUnit, _ := s.Get(makeID(Fuchsia, DiffServer))
 
@@ -99,7 +99,7 @@ func TestGoldpushkGetConfigMapFilePath(t *testing.T) {
 	addFakeConfigRepoCheckouts(g)
 
 	// Gather the DeployableUnits we will call Goldpushk.getConfigMapFilePath() with.
-	s := BuildDeployableUnitSet()
+	s := ProductionDeployableUnits()
 	publicUnitWithoutConfigMap, _ := s.Get(makeID(Skia, DiffServer))
 	publicUnitWithConfigMapTemplate, _ := s.Get(makeID(Skia, IngestionBT))
 	publicUnitWithConfigMapFile, _ := s.Get(makeID(SkiaPublic, SkiaCorrectness))
@@ -133,7 +133,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// Test on a good combination of different types of deployments.
-	s := BuildDeployableUnitSet()
+	s := ProductionDeployableUnits()
 	deployableUnits := []DeployableUnit{}
 	deployableUnits = appendUnit(t, deployableUnits, s, Skia, DiffServer)            // Regular deployment.
 	deployableUnits = appendUnit(t, deployableUnits, s, SkiaPublic, SkiaCorrectness) // Public deployment with non-templated ConfigMap.
