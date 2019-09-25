@@ -28,7 +28,7 @@ func TestNew(t *testing.T) {
 	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Fuchsia, IngestionBT) // Internal deployment with templated ConfigMap.
 
 	// Call code under test.
-	g := New(deployableUnits, canariedDeployableUnits, "path/to/buildbot", false, "http://skia-public.com", "http://skia-corp.com")
+	g := New(deployableUnits, canariedDeployableUnits, "path/to/buildbot", false, false, "http://skia-public.com", "http://skia-corp.com")
 
 	expected := &Goldpushk{
 		deployableUnits:         deployableUnits,
@@ -282,6 +282,10 @@ func TestCommitConfigFiles(t *testing.T) {
 	defer fakeSkiaPublicConfig.Cleanup()
 	defer fakeSkiaCorpConfig.Cleanup()
 
+	// Assert that there is just one commit on both repositories.
+	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
+	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 1)
+
 	// Create the goldpushk instance under test. We pass it the file://... URLs to the two Git
 	// repositories created earlier.
 	g := Goldpushk{
@@ -332,6 +336,10 @@ func TestCommitConfigFilesAbortedByUser(t *testing.T) {
 	defer fakeSkiaPublicConfig.Cleanup()
 	defer fakeSkiaCorpConfig.Cleanup()
 
+	// Assert that there is just one commit on both repositories.
+	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
+	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 1)
+
 	// Create the goldpushk instance under test. We pass it the file://... URLs to the two Git
 	// repositories created earlier.
 	g := Goldpushk{
@@ -364,6 +372,53 @@ func TestCommitConfigFilesAbortedByUser(t *testing.T) {
 
 	// Assert that the user aborted the commit step.
 	assert.False(t, ok)
+
+	// Assert that no changes were pushed to skia-public-config or skia-corp-config.
+	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
+	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 1)
+}
+
+func TestCommitConfigFilesSkipped(t *testing.T) {
+	unittest.MediumTest(t)
+
+	ctx := context.Background()
+
+	// Create two fake skia-{public,corp}-config repositories (i.e. "git init" two temp directories).
+	fakeSkiaPublicConfig, fakeSkiaCorpConfig := createFakeConfigRepos(t, ctx)
+	defer fakeSkiaPublicConfig.Cleanup()
+	defer fakeSkiaCorpConfig.Cleanup()
+
+	// Assert that there is just one commit on both repositories.
+	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
+	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 1)
+
+	// Create the goldpushk instance under test. We pass it the file://... URLs to the two Git
+	// repositories created earlier.
+	g := Goldpushk{
+		skiaPublicConfigRepoUrl: fakeSkiaPublicConfig.RepoUrl(),
+		skiaCorpConfigRepoUrl:   fakeSkiaCorpConfig.RepoUrl(),
+		noCommit:                true,
+	}
+
+	// Hide goldpushk output to stdout.
+	restoreStdout := hideStdout(t)
+	defer restoreStdout()
+
+	// Check out the fake "skia-public-config" and "skia-corp-config" repositories created earlier.
+	// This will run "git clone file://..." for each repository.
+	err := g.checkOutGitRepositories(ctx)
+	assert.NoError(t, err)
+	defer g.skiaPublicConfigCheckout.Delete()
+	defer g.skiaCorpConfigCheckout.Delete()
+
+	// Add changes to skia-public-config and skia-corp-config.
+	writeFileIntoRepo(t, g.skiaPublicConfigCheckout, "foo.yaml", "I'm a change in skia-public-config.")
+	writeFileIntoRepo(t, g.skiaCorpConfigCheckout, "bar.yaml", "I'm a change in skia-corp-config.")
+
+	// Call the function under test, which should not commit nor push any changes.
+	ok, err := g.commitConfigFiles(ctx)
+	assert.NoError(t, err)
+	assert.True(t, ok)
 
 	// Assert that no changes were pushed to skia-public-config or skia-corp-config.
 	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
