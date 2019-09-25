@@ -129,6 +129,7 @@ func main() {
 			ProjectID:  *btProjectID,
 			InstanceID: *btInstanceID,
 			TableID:    *gitBTTableID,
+			AppProfile: appName,
 		}
 	}
 

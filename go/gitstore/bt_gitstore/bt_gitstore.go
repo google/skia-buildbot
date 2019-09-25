@@ -56,7 +56,9 @@ func New(ctx context.Context, config *BTConfig, repoURL string) (*BigTableGitSto
 		return nil, skerr.Fmt("This implementation of BigTableGitStore cannot be used with deprecated table %q", DEPRECATED_TABLE_ID)
 	}
 	// Create the client.
-	client, err := bigtable.NewClient(ctx, config.ProjectID, config.InstanceID)
+	client, err := bigtable.NewClientWithConfig(ctx, config.ProjectID, config.InstanceID, bigtable.ClientConfig{
+		AppProfile: config.AppProfile,
+	})
 	if err != nil {
 		return nil, skerr.Wrapf(err, "creating bigtable client (project: %s; instance: %s)", config.ProjectID, config.InstanceID)
 	}
