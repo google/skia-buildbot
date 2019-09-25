@@ -75,7 +75,7 @@ var (
 	commitsTemplate  *template.Template            = nil
 	iCache           *incremental.IncrementalCache = nil
 	lkgrObj          *lkgr.LKGR                    = nil
-	taskDb           db.RemoteDB                   = nil
+	taskDb           db.DB                         = nil
 	taskDriverDb     task_driver_db.DB             = nil
 	taskDriverLogs   *logs.LogsManager             = nil
 	tasksPerCommit   *tasksPerCommitCache          = nil
@@ -748,7 +748,7 @@ func main() {
 		}
 	}
 
-	taskDb, err = firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts, nil)
+	taskDb, err = firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts)
 	if err != nil {
 		sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 	}
@@ -801,7 +801,7 @@ func main() {
 	iCache.UpdateLoop(60*time.Second, ctx)
 
 	// Create a regular task cache.
-	tCache, err = cache.NewTaskCache(taskDb, w)
+	tCache, err = cache.NewTaskCache(ctx, taskDb, w)
 	if err != nil {
 		sklog.Fatalf("Failed to create TaskCache: %s", err)
 	}

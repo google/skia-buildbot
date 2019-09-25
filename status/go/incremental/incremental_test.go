@@ -22,7 +22,7 @@ import (
 
 func setup(t *testing.T) (context.Context, string, *IncrementalCache, repograph.Map, db.DB, *git_testutils.GitBuilder, func()) {
 	unittest.LargeTest(t)
-	d := memory.NewInMemoryDB(nil)
+	d := memory.NewInMemoryDB()
 
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)

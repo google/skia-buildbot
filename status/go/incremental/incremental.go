@@ -68,14 +68,14 @@ type IncrementalCache struct {
 }
 
 // NewIncrementalCache returns an IncrementalCache instance.
-func NewIncrementalCache(ctx context.Context, d db.RemoteDB, w *window.Window, repos repograph.Map, numCommits int, swarmingUrl, taskSchedulerUrl string) (*IncrementalCache, error) {
+func NewIncrementalCache(ctx context.Context, d db.DB, w *window.Window, repos repograph.Map, numCommits int, swarmingUrl, taskSchedulerUrl string) (*IncrementalCache, error) {
 	c := &IncrementalCache{
 		comments:         newCommentsCache(d, repos),
 		commits:          newCommitsCache(repos),
 		numCommits:       numCommits,
 		swarmingUrl:      swarmingUrl,
 		taskSchedulerUrl: taskSchedulerUrl,
-		tasks:            newTaskCache(d),
+		tasks:            newTaskCache(ctx, d),
 		w:                w,
 	}
 	return c, c.Update(ctx, true)
