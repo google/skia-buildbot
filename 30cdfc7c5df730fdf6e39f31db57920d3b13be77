@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f4bda31e_b2e514c8",
+        "filename": "golden/k8s-config-templates/gold-common.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T18:26:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cc1590dd_73630e76",
+      "range": {
+        "startLine": 7,
+        "startChar": 7,
+        "endLine": 7,
+        "endChar": 21
+      },
+      "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6c0a9c1f_3d6b60bf",
         "filename": "golden/k8s-config-templates/gold-crashing-server-template.yaml",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b3130dc_1945f5b2",
+        "filename": "golden/k8s-config-templates/gold-crashing-server-template.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T18:26:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6c0a9c1f_3d6b60bf",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 16
+      },
+      "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fd188e24_a2f8ccfe",
+        "filename": "golden/k8s-config-templates/gold-crashing-server-template.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T18:26:30Z",
+      "side": 1,
+      "message": "Yes, the point of this is to test that the templating stuff works.",
+      "parentUuid": "fdf8fd10_fc46dedd",
+      "range": {
+        "startLine": 46,
+        "startChar": 22,
+        "endLine": 46,
+        "endChar": 40
+      },
+      "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da6e101b_3f55e847",
         "filename": "golden/k8s-config-templates/gold-healthy-server-template.yaml",
         "patchSetId": 1
@@ -85,6 +157,24 @@
       "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68a3177b_ab6a9b8b",
+        "filename": "golden/k8s-config-templates/gold-healthy-server-template.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T18:26:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da6e101b_3f55e847",
+      "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "f4b164a2_df1a1b3b",
+        "filename": "golden/k8s-config-templates/gold-healthy-server-template.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T18:26:30Z",
+      "side": 1,
+      "message": "Since crashing-server crashes after 5 seconds, I configured the readiness probe with a lower period and delay so we don\u0027t have to wait too long until Kubernetes detects that the server is dead.",
+      "parentUuid": "f790ad30_b7725866",
+      "range": {
+        "startLine": 53,
+        "startChar": 12,
+        "endLine": 55,
+        "endChar": 31
+      },
+      "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9b62c3ee_2bb55685",
         "filename": "golden/k8s-instances/goldpushk-corp-test1-instance.json5",
         "patchSetId": 1
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "54c1b02b_27c56c27",
+        "filename": "golden/k8s-instances/goldpushk-corp-test1-instance.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T18:26:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9b62c3ee_2bb55685",
+      "range": {
+        "startLine": 2,
+        "startChar": 30,
+        "endLine": 2,
+        "endChar": 31
+      },
+      "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4dce2be6_35d4ce97",
         "filename": "golden/k8s-instances/goldpushk-corp-test1-instance.json5",
         "patchSetId": 1
@@ -154,6 +292,30 @@
       "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7421961_e0ad5396",
+        "filename": "golden/k8s-instances/goldpushk-corp-test1-instance.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-25T18:26:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4dce2be6_35d4ce97",
+      "range": {
+        "startLine": 3,
+        "startChar": 30,
+        "endLine": 3,
+        "endChar": 33
+      },
+      "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
