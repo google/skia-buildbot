@@ -15,6 +15,7 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
+	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
@@ -43,8 +44,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
-	"go.skia.org/infra/task_scheduler/go/db/modified"
-	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
@@ -100,13 +99,6 @@ var (
 	gitstoreTable     = flag.String("gitstore_bt_table", "git-repos2", "BigTable table used for GitStore.")
 	isolateServer     = flag.String("isolate_server", isolate.ISOLATE_SERVER_URL, "Which Isolate server to use.")
 	local             = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
-	pubsubProject     = flag.String("pubsub_project", "", "GCE project to use for PubSub.")
-	// TODO(borenet): pubsubTopicSet is also used for as the blacklist and
-	// diagnostics instance name. Once all schedulers are using Firestore for
-	// their task DB, firestoreInstance will have the same value. We should
-	// combine into a single instanceName flag. Additionally, the BigTable
-	// instance flag has the same set of values.
-	pubsubTopicSet    = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
 	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
 	recipesCfgFile    = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
@@ -657,7 +649,7 @@ func main() {
 	var isolateClient *isolate.Client
 	var tokenSource oauth2.TokenSource
 	gitcookiesPath := "/tmp/.gitcookies"
-	tokenSource, err = auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, auth.SCOPE_READ_WRITE, pubsub.AUTH_SCOPE, datastore.ScopeDatastore, bigtable.Scope, swarming.AUTH_SCOPE)
+	tokenSource, err = auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, auth.SCOPE_READ_WRITE, pubsub.ScopePubSub, datastore.ScopeDatastore, bigtable.Scope, swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatalf("Failed to create token source: %s", err)
 	}
@@ -679,13 +671,7 @@ func main() {
 	}
 
 	// Initialize the database.
-	label := *host
-	mod, err := pubsub.NewModifiedData(*pubsubProject, *pubsubTopicSet, label, tokenSource)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	mod = modified.NewMuxModifiedData(modified.NewModifiedData(), mod)
-	tsDb, err = firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource, mod)
+	tsDb, err = firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource, nil)
 	if err != nil {
 		sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 	}
@@ -694,7 +680,7 @@ func main() {
 	})
 
 	// Blacklist DB.
-	bl, err = blacklist.NewWithParams(ctx, firestore.FIRESTORE_PROJECT, *pubsubTopicSet, tokenSource)
+	bl, err = blacklist.NewWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -741,7 +727,7 @@ func main() {
 
 	storageClient, err := storage.NewClient(ctx, option.WithTokenSource(tokenSource))
 	diagClient := gcsclient.New(storageClient, *diagnosticsBucket)
-	diagInstance := *pubsubTopicSet
+	diagInstance := *firestoreInstance
 
 	// Find depot_tools.
 	if *recipesCfgFile == "" {
@@ -778,7 +764,7 @@ func main() {
 	}
 
 	// Set up periodic triggers.
-	if err := periodic.Listen(ctx, fmt.Sprintf("task-scheduler-%s", *pubsubTopicSet), tokenSource, func(ctx context.Context, name, id string) bool {
+	if err := periodic.Listen(ctx, fmt.Sprintf("task-scheduler-%s", *firestoreInstance), tokenSource, func(ctx context.Context, name, id string) bool {
 		if err := ts.MaybeTriggerPeriodicJobs(ctx, name); err != nil {
 			sklog.Errorf("Failed to trigger periodic jobs; will retry later: %s", err)
 			return false // We will retry later.
