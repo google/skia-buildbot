@@ -2,8 +2,8 @@ package goldpushk
 
 import "fmt"
 
-// The contents of this file are goldpushk's source of truth, specifically the
-// DeployableUnitSet returned by BuildDeployableUnitSet().
+// The contents of this file are goldpushk's source of truth, specifically the DeployableUnitSet
+// returned by BuildDeployableUnitSet().
 
 const (
 	// Gold instances.
@@ -24,43 +24,42 @@ const (
 )
 
 var (
-	// KnownInstances lists all known Gold instances. Should be kept in sync with
-	// the constants defined above.
-	KnownInstances = []Instance{
-		Chrome,
-		ChromeGPU,
-		Flutter,
-		Fuchsia,
-		Lottie,
-		Pdfium,
-		Skia,
-		SkiaPublic,
-	}
-
-	// knownPublicInstances is the subset of the KnownInstances that are public.
+	// knownPublicInstances is the set of Gold instances that are public.
+	//
+	// Note: consider rearchitecting this file in a manner that does not require any global state,
+	// especially if we add more public instances in the future. For some potential ideas, see Kevin's
+	// comments here: https://skia-review.googlesource.com/c/buildbot/+/243778.
 	knownPublicInstances = []Instance{
 		SkiaPublic,
 	}
-
-	// KnownServices lists all known Gold services. Should be kept in sync with
-	// the constants defined above.
-	KnownServices = []Service{
-		BaselineServer,
-		DiffServer,
-		IngestionBT,
-		SkiaCorrectness,
-	}
 )
 
-// BuildDeployableUnitSet returns the DeployableUnitSet that will be used as the
-// source of truth across all of goldpushk.
+// BuildDeployableUnitSet returns the DeployableUnitSet that will be used as the source of truth
+// across all of goldpushk.
 func BuildDeployableUnitSet() DeployableUnitSet {
 	// TODO(lovisolo): Add any missing information.
 
-	s := DeployableUnitSet{}
+	s := DeployableUnitSet{
+		knownInstances: []Instance{
+			Chrome,
+			ChromeGPU,
+			Flutter,
+			Fuchsia,
+			Lottie,
+			Pdfium,
+			Skia,
+			SkiaPublic,
+		},
+		knownServices: []Service{
+			BaselineServer,
+			DiffServer,
+			IngestionBT,
+			SkiaCorrectness,
+		},
+	}
 
 	// Add common services to all known instances.
-	for _, instance := range KnownInstances {
+	for _, instance := range s.knownInstances {
 		if isPublicInstance(instance) {
 			// Add common services for public instances.
 			s.addWithOptions(instance, SkiaCorrectness, DeploymentOptions{
@@ -89,8 +88,8 @@ func BuildDeployableUnitSet() DeployableUnitSet {
 	return s
 }
 
-// makeDeploymentOptionsForIngestionBT builds and returns the deployment options
-// necessary for the IngestionBT service corresponding to the given instance.
+// makeDeploymentOptionsForIngestionBT builds and returns the deployment options necessary for the
+// IngestionBT service corresponding to the given instance.
 func makeDeploymentOptionsForIngestionBT(instance Instance, internal bool) DeploymentOptions {
 	return DeploymentOptions{
 		internal:          internal,
@@ -99,28 +98,7 @@ func makeDeploymentOptionsForIngestionBT(instance Instance, internal bool) Deplo
 	}
 }
 
-// IsKnownInstance returns true if the given instance is in KnownInstances.
-func IsKnownInstance(instance Instance) bool {
-	for _, validInstance := range KnownInstances {
-		if instance == validInstance {
-			return true
-		}
-	}
-	return false
-}
-
-// IsKnownService returns true if the given service is in KnownServices.
-func IsKnownService(service Service) bool {
-	for _, validService := range KnownServices {
-		if service == validService {
-			return true
-		}
-	}
-	return false
-}
-
-// isPublicInstance returns true if the given instance is in
-// knownPublicInstances.
+// isPublicInstance returns true if the given instance is in knownPublicInstances.
 func isPublicInstance(instance Instance) bool {
 	for _, i := range knownPublicInstances {
 		if i == instance {
