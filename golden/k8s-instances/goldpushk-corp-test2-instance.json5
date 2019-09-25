@@ -1,0 +1,4 @@
+{
+  "MAIN_CPU":                "200m",
+  "MAIN_MEMORY":             "50Mi"
+}
