@@ -164,7 +164,7 @@ func parseAndValidateFlags(deployableUnitSet goldpushk.DeployableUnitSet, instan
 	// Validate instances.
 	if !allInstances {
 		for _, instanceStr := range instances {
-			if !goldpushk.IsKnownInstance(goldpushk.Instance(instanceStr)) {
+			if !deployableUnitSet.IsKnownInstance(goldpushk.Instance(instanceStr)) {
 				return nil, nil, fmt.Errorf("unknown Gold instance: \"%s\"", instanceStr)
 			}
 		}
@@ -173,7 +173,7 @@ func parseAndValidateFlags(deployableUnitSet goldpushk.DeployableUnitSet, instan
 	// Validate services.
 	if !allServices {
 		for _, serviceStr := range services {
-			if !goldpushk.IsKnownService(goldpushk.Service(serviceStr)) {
+			if !deployableUnitSet.IsKnownService(goldpushk.Service(serviceStr)) {
 				return nil, nil, fmt.Errorf("unknown Gold service: \"%s\"", serviceStr)
 			}
 		}
@@ -191,7 +191,7 @@ func parseAndValidateFlags(deployableUnitSet goldpushk.DeployableUnitSet, instan
 	var instanceIterationSet []goldpushk.Instance
 	if containsWildcardValue(instances) {
 		// Handle the "all" value.
-		instanceIterationSet = goldpushk.KnownInstances
+		instanceIterationSet = deployableUnitSet.KnownInstances()
 	} else {
 		for _, instanceStr := range instances {
 			instanceIterationSet = append(instanceIterationSet, goldpushk.Instance(instanceStr))
@@ -203,7 +203,7 @@ func parseAndValidateFlags(deployableUnitSet goldpushk.DeployableUnitSet, instan
 	var serviceIterationSet []goldpushk.Service
 	if containsWildcardValue(services) {
 		// Handle the "all" value.
-		serviceIterationSet = goldpushk.KnownServices
+		serviceIterationSet = deployableUnitSet.KnownServices()
 	} else {
 		for _, serviceStr := range services {
 			serviceIterationSet = append(serviceIterationSet, goldpushk.Service(serviceStr))
@@ -250,10 +250,10 @@ func parseAndValidateFlags(deployableUnitSet goldpushk.DeployableUnitSet, instan
 		}
 
 		// Validate canary subcomponents.
-		if !goldpushk.IsKnownInstance(instance) {
+		if !deployableUnitSet.IsKnownInstance(instance) {
 			return nil, nil, fmt.Errorf("invalid canary - unknown Gold instance: \"%s\"", canaryStr)
 		}
-		if !goldpushk.IsKnownService(service) {
+		if !deployableUnitSet.IsKnownService(service) {
 			return nil, nil, fmt.Errorf("invalid canary - unknown Gold service: \"%s\"", canaryStr)
 		}
 

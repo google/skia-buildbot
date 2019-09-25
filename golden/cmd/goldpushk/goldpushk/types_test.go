@@ -174,6 +174,44 @@ func TestDeployableUnitSetGet(t *testing.T) {
 	assert.Equal(t, expectedUnit, unit)
 }
 
+func TestDeployableUnitSetKnownInstances(t *testing.T) {
+	unittest.SmallTest(t)
+	s := DeployableUnitSet{
+		knownInstances: []Instance{Skia, Flutter, Fuchsia},
+	}
+	assert.Equal(t, []Instance{Skia, Flutter, Fuchsia}, s.KnownInstances())
+}
+
+func TestDeployableUnitSetKnownServices(t *testing.T) {
+	unittest.SmallTest(t)
+	s := DeployableUnitSet{
+		knownServices: []Service{BaselineServer, DiffServer, SkiaCorrectness},
+	}
+	assert.Equal(t, []Service{BaselineServer, DiffServer, SkiaCorrectness}, s.KnownServices())
+}
+
+func TestDeployableUnitSetIsKnownInstance(t *testing.T) {
+	unittest.SmallTest(t)
+	s := DeployableUnitSet{
+		knownInstances: []Instance{Skia, Flutter, Fuchsia},
+	}
+	assert.True(t, s.IsKnownInstance(Skia))
+	assert.True(t, s.IsKnownInstance(Flutter))
+	assert.True(t, s.IsKnownInstance(Fuchsia))
+	assert.False(t, s.IsKnownInstance(Instance("foo")))
+}
+
+func TestDeployableUnitSetIsKnownService(t *testing.T) {
+	unittest.SmallTest(t)
+	s := DeployableUnitSet{
+		knownServices: []Service{BaselineServer, DiffServer, SkiaCorrectness},
+	}
+	assert.True(t, s.IsKnownService(BaselineServer))
+	assert.True(t, s.IsKnownService(DiffServer))
+	assert.True(t, s.IsKnownService(SkiaCorrectness))
+	assert.False(t, s.IsKnownService(Service("foo")))
+}
+
 // p takes a Unix path and replaces forward slashes with the correct separators
 // for the OS under which this test is running.
 func p(path string) string {
