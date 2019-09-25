@@ -124,6 +124,7 @@ func setupGitStore(t *testing.T) (context.Context, *git_testutils.GitBuilder, *r
 		ProjectID:  "fake-project",
 		InstanceID: fmt.Sprintf("fake-instance-%s", uuid.New()),
 		TableID:    "repograph-gitstore",
+		AppProfile: "testing",
 	}
 	assert.NoError(t, InitBT(btConf))
 	gs, err := New(context.Background(), btConf, g.RepoUrl())

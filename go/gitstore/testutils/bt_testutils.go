@@ -25,6 +25,7 @@ var (
 		ProjectID:  "skia-public",
 		InstanceID: "staging",
 		TableID:    "test-git-repos",
+		AppProfile: "testing",
 	}
 )
 

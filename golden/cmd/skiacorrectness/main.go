@@ -250,6 +250,7 @@ func main() {
 			ProjectID:  *btProjectID,
 			InstanceID: *btInstanceID,
 			TableID:    *gitBTTableID,
+			AppProfile: appName,
 		}
 
 		// If the repoURL is numeric then it is treated like the numeric ID of a repository and

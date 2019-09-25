@@ -35,6 +35,8 @@ import (
 	"google.golang.org/api/option"
 )
 
+const APPNAME = "datahopper"
+
 // flags
 var (
 	// TODO(borenet): Combine btInstance, firestoreInstance, and
@@ -68,7 +70,7 @@ var (
 
 func main() {
 	common.InitWithMust(
-		"datahopper",
+		APPNAME,
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
 	)
@@ -101,6 +103,7 @@ func main() {
 		ProjectID:  *btProject,
 		InstanceID: *btInstance,
 		TableID:    *gitstoreTable,
+		AppProfile: APPNAME,
 	}
 	repos, err := bt_gitstore.NewBTGitStoreMap(ctx, *repoUrls, btConf)
 	if err != nil {

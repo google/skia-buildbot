@@ -5,6 +5,7 @@ type BTConfig struct {
 	ProjectID       string
 	InstanceID      string
 	TableID         string
+	AppProfile      string
 	Shards          int
 	WriteGoroutines int
 }

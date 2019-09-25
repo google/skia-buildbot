@@ -36,6 +36,7 @@ func main() {
 		ProjectID:  *projectID,
 		InstanceID: *btInstanceID,
 		TableID:    *btTableID,
+		AppProfile: "btgit",
 	}
 
 	// Normalize the URL as GitStore does.

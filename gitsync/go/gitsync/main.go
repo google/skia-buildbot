@@ -23,6 +23,8 @@ import (
 // This server watches a list of git repos for changes and syncs the meta data of all commits
 // to a BigTable backed datastore.
 
+const APPNAME = "gitsync2"
+
 // Default config/flag values
 var defaultConf = gitSyncConfig{
 	BTInstanceID:      "production",
@@ -86,6 +88,7 @@ func main() {
 		ProjectID:       config.ProjectID,
 		InstanceID:      config.BTInstanceID,
 		TableID:         config.BTTableID,
+		AppProfile:      APPNAME,
 		WriteGoroutines: config.BTWriteGoroutines,
 	}
 
