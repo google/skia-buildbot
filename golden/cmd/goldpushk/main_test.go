@@ -112,7 +112,7 @@ func TestParseAndValidateFlagsErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		_, _, err := parseAndValidateFlags(goldpushk.BuildDeployableUnitSet(), tc.flagInstances, tc.flagServices, tc.flagCanaries)
+		_, _, err := parseAndValidateFlags(goldpushk.ProductionDeployableUnits(), tc.flagInstances, tc.flagServices, tc.flagCanaries)
 		assert.Error(t, err, tc.message)
 		assert.Contains(t, err.Error(), tc.errorMsg, tc.message)
 	}
@@ -120,13 +120,6 @@ func TestParseAndValidateFlagsErrors(t *testing.T) {
 
 func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	unittest.SmallTest(t)
-
-	makeID := func(instance goldpushk.Instance, service goldpushk.Service) goldpushk.DeployableUnitID {
-		return goldpushk.DeployableUnitID{
-			Instance: instance,
-			Service:  service,
-		}
-	}
 
 	// Deployments shared among test cases.
 	chromeBaselineServer := makeID(goldpushk.Chrome, goldpushk.BaselineServer)
@@ -161,9 +154,9 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 		expectedCanariedDeployableUnitIDs []goldpushk.DeployableUnitID
 	}{
 
-		////////////////////////////////////////////////////////////////////////////
-		// No wildcards                                                           //
-		////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		// No wildcards                                                                               //
+		////////////////////////////////////////////////////////////////////////////////////////////////
 
 		{
 			message:                   "Single instance, single service, no canary",
@@ -251,9 +244,9 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaSkiaCorrectness, skiaPublicSkiaCorrectness},
 		},
 
-		////////////////////////////////////////////////////////////////////////////
-		// Wildcard: --service all                                                //
-		////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		// Wildcard: --service all                                                                    //
+		////////////////////////////////////////////////////////////////////////////////////////////////
 
 		{
 			message:                   "Single instance, all services, no canary",
@@ -307,9 +300,9 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaIngestionBT, skiaSkiaCorrectness},
 		},
 
-		////////////////////////////////////////////////////////////////////////////
-		// Wildcard: --instance all                                               //
-		////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		// Wildcard: --instance all                                                                   //
+		////////////////////////////////////////////////////////////////////////////////////////////////
 
 		{
 			message:                   "All instances, single service, no canary",
@@ -363,9 +356,9 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaSkiaCorrectness, skiaPublicSkiaCorrectness},
 		},
 
-		////////////////////////////////////////////////////////////////////////////
-		// Miscellaneous                                                          //
-		////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		// Miscellaneous                                                                              //
+		////////////////////////////////////////////////////////////////////////////////////////////////
 
 		{
 			message:                           "Repeated inputs are ignored",
@@ -387,13 +380,77 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		deployableUnits, canariedDeployableUnits, err := parseAndValidateFlags(goldpushk.BuildDeployableUnitSet(), tc.flagInstances, tc.flagServices, tc.flagCanaries)
+		deployableUnits, canariedDeployableUnits, err := parseAndValidateFlags(goldpushk.ProductionDeployableUnits(), tc.flagInstances, tc.flagServices, tc.flagCanaries)
 		deployableUnitIDs := mapUnitsToIDs(deployableUnits)
 		canariedDeployableUnitIDs := mapUnitsToIDs(canariedDeployableUnits)
 
 		assert.NoError(t, err, tc.message)
 		assert.Equal(t, tc.expectedDeployableUnitIDs, deployableUnitIDs, tc.message)
 		assert.Equal(t, tc.expectedCanariedDeployableUnitIDs, canariedDeployableUnitIDs, tc.message)
+	}
+}
+
+func TestParseAndValidateFlagsTestingSuccess(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Testing deployments on skia-public.
+	testInstance1HealthyServer := makeID(goldpushk.TestInstance1, goldpushk.HealthyTestServer)
+	testInstance1CrashingServer := makeID(goldpushk.TestInstance1, goldpushk.CrashingTestServer)
+	testInstance2HealthyServer := makeID(goldpushk.TestInstance2, goldpushk.HealthyTestServer)
+	testInstance2CrashingServer := makeID(goldpushk.TestInstance2, goldpushk.CrashingTestServer)
+
+	// Testing deployments on skia-corp
+	testCorpInstance1HealthyServer := makeID(goldpushk.TestCorpInstance1, goldpushk.HealthyTestServer)
+	testCorpInstance1CrashingServer := makeID(goldpushk.TestCorpInstance1, goldpushk.CrashingTestServer)
+	testCorpInstance2HealthyServer := makeID(goldpushk.TestCorpInstance2, goldpushk.HealthyTestServer)
+	testCorpInstance2CrashingServer := makeID(goldpushk.TestCorpInstance2, goldpushk.CrashingTestServer)
+
+	testCases := []struct {
+		message string // Test case name.
+
+		// Inputs.
+		flagInstances []string
+		flagServices  []string
+		flagCanaries  []string
+
+		// Expected outputs.
+		expectedDeployableUnitIDs         []goldpushk.DeployableUnitID
+		expectedCanariedDeployableUnitIDs []goldpushk.DeployableUnitID
+	}{
+		{
+			message:                           "Testing, all instances, multiple services, multiple canaries",
+			flagInstances:                     []string{"all"},
+			flagServices:                      []string{"healthy-server", "crashing-server"},
+			flagCanaries:                      []string{"goldpushk-test1:healthy-server", "goldpushk-test1:crashing-server"},
+			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{testCorpInstance1CrashingServer, testCorpInstance1HealthyServer, testCorpInstance2CrashingServer, testCorpInstance2HealthyServer, testInstance2CrashingServer, testInstance2HealthyServer},
+			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{testInstance1CrashingServer, testInstance1HealthyServer},
+		},
+
+		{
+			message:                           "Testing, multiple instances, all services, multiple canaries",
+			flagInstances:                     []string{"goldpushk-test1", "goldpushk-test2", "goldpushk-corp-test1", "goldpushk-corp-test2"},
+			flagServices:                      []string{"all"},
+			flagCanaries:                      []string{"goldpushk-test1:healthy-server", "goldpushk-test1:crashing-server"},
+			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{testCorpInstance1CrashingServer, testCorpInstance1HealthyServer, testCorpInstance2CrashingServer, testCorpInstance2HealthyServer, testInstance2CrashingServer, testInstance2HealthyServer},
+			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{testInstance1CrashingServer, testInstance1HealthyServer},
+		},
+	}
+
+	for _, tc := range testCases {
+		deployableUnits, canariedDeployableUnits, err := parseAndValidateFlags(goldpushk.TestingDeployableUnits(), tc.flagInstances, tc.flagServices, tc.flagCanaries)
+		deployableUnitIDs := mapUnitsToIDs(deployableUnits)
+		canariedDeployableUnitIDs := mapUnitsToIDs(canariedDeployableUnits)
+
+		assert.NoError(t, err, tc.message)
+		assert.Equal(t, tc.expectedDeployableUnitIDs, deployableUnitIDs, tc.message)
+		assert.Equal(t, tc.expectedCanariedDeployableUnitIDs, canariedDeployableUnitIDs, tc.message)
+	}
+}
+
+func makeID(instance goldpushk.Instance, service goldpushk.Service) goldpushk.DeployableUnitID {
+	return goldpushk.DeployableUnitID{
+		Instance: instance,
+		Service:  service,
 	}
 }
 
