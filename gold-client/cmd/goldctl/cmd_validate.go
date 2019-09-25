@@ -40,17 +40,9 @@ func (v *validateEnv) runValidateCmd(cmd *cobra.Command, args []string) {
 		logErrfAndExit(cmd, "Error opeing input: %s", err)
 	}
 
-	goldResult, errMessages, err := jsonio.ParseGoldResults(f)
+	goldResult, err := jsonio.ParseGoldResults(f)
 	if err != nil {
-		if len(errMessages) == 0 {
-			logErrfAndExit(cmd, "Error parsing JSON: %s", err)
-		}
-
-		logErr(cmd, "JSON validation failed:\n")
-		for _, msg := range errMessages {
-			logErrf(cmd, "   %s\n", msg)
-		}
-		exitProcess(cmd, 1)
+		logErrfAndExit(cmd, "Invalid JSON for gold: %s", err)
 	}
 	ifErrLogExit(cmd, closeFn())
 	logVerbose(cmd, fmt.Sprintf("Result:\n%s\n", spew.Sdump(goldResult)))
