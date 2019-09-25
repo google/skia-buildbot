@@ -34,6 +34,24 @@
       "revId": "2bb42096759b891d8c22edcef081fa85851cbbe5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a7bd99c_9d958296",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-25T17:26:50Z",
+      "side": 1,
+      "message": "I\u0027m not sure either, but I think it\u0027s better than not having metrics.",
+      "parentUuid": "a4b33f0b_d609cbdd",
+      "revId": "2bb42096759b891d8c22edcef081fa85851cbbe5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
