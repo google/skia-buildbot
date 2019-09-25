@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1c1d23e2_75bc5efe",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 1
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-25T18:47:50Z",
+      "side": 0,
+      "message": "Kevin should review; or, remove this as a separate step to isolate any problems.",
+      "revId": "ba7e1f075ed01968c6adffad00ffedd410082105",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5925c60f_a4461fae",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 1
+      },
+      "lineNbr": 688,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-25T18:47:50Z",
+      "side": 0,
+      "message": "Is this no longer used?",
+      "range": {
+        "startLine": 688,
+        "startChar": 8,
+        "endLine": 688,
+        "endChar": 25
+      },
+      "revId": "ba7e1f075ed01968c6adffad00ffedd410082105",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
