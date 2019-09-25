@@ -707,6 +707,7 @@ func main() {
 		ProjectID:  *btProject,
 		InstanceID: *btInstance,
 		TableID:    *gitstoreTable,
+		AppProfile: "task-scheduler",
 	}
 	autoUpdateRepos, err := gs_pubsub.NewAutoUpdateMap(ctx, *repoUrls, btConf)
 	if err != nil {
