@@ -8,14 +8,6 @@
      "expected": [200],
      "mimetype": "text/html"
    },
-   "debugger-assets-redirect": {
-     "urls": [
-       "http://debugger-assets.skia.org/res/",
-     ],
-     "method": "GET",
-     "expected": [301],
-     "mimetype": "text/html"
-   },
    "debugger-assets-bounce": {
      "urls": [
        "https://debugger-assets.skia.org/",
