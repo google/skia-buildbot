@@ -603,6 +603,23 @@
                       ]
                     },
                     {
+                      "domains": "go.skia.org",
+                      "name": "go.skia.org",
+                      "routes": [
+                        {
+                          "direct_response": {
+                            "body": {
+                              "inline_string": "<meta name=\"go-import\" content=\"go.skia.org/infra git https://skia.googlesource.com/buildbot\"><meta name=\"go-import\" content=\"go.skia.org/skia git https://skia.googlesource.com/skia\">"
+                            },
+                            "status": 200
+                          },
+                          "match": {
+                            "prefix": "/"
+                          }
+                        }
+                      ]
+                    },
+                    {
                       "domains": "autoroll-internal.skia.org",
                       "name": "autoroll-internal.skia.org",
                       "routes": [
