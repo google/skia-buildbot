@@ -14,6 +14,33 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
+func TestNew(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Gather some DeployableUnits to pass to New() as parameters.
+	s := ProductionDeployableUnits()
+	deployableUnits := []DeployableUnit{}
+	deployableUnits = appendUnit(t, deployableUnits, s, Skia, DiffServer)            // Regular deployment.
+	deployableUnits = appendUnit(t, deployableUnits, s, SkiaPublic, SkiaCorrectness) // Public deployment with non-templated ConfigMap.
+	canariedDeployableUnits := []DeployableUnit{}
+	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Skia, IngestionBT)    // Regular deployment with templated ConfigMap.
+	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Fuchsia, DiffServer)  // Internal deployment.
+	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Fuchsia, IngestionBT) // Internal deployment with templated ConfigMap.
+
+	// Call code under test.
+	g := New(deployableUnits, canariedDeployableUnits, "path/to/buildbot", false, "http://skia-public.com", "http://skia-corp.com")
+
+	expected := &Goldpushk{
+		deployableUnits:         deployableUnits,
+		canariedDeployableUnits: canariedDeployableUnits,
+		rootPath:                "path/to/buildbot",
+		dryRun:                  false,
+		skiaPublicConfigRepoUrl: "http://skia-public.com",
+		skiaCorpConfigRepoUrl:   "http://skia-corp.com",
+	}
+	assert.Equal(t, expected, g)
+}
+
 // TODO(lovisolo): Implement and test.
 func TestGoldpushkRun(t *testing.T) {
 	unittest.SmallTest(t)
@@ -33,7 +60,10 @@ func TestGoldpushkCheckOutGitRepositories(t *testing.T) {
 
 	// Create the goldpushk instance under test. We pass it the file://... URLs to
 	// the two Git repositories created earlier.
-	g := New([]DeployableUnit{}, []DeployableUnit{}, "", false, fakeSkiaPublicConfig.RepoUrl(), fakeSkiaCorpConfig.RepoUrl())
+	g := Goldpushk{
+		skiaPublicConfigRepoUrl: fakeSkiaPublicConfig.RepoUrl(),
+		skiaCorpConfigRepoUrl:   fakeSkiaCorpConfig.RepoUrl(),
+	}
 
 	// Hide goldpushk output to stdout.
 	restoreStdout := hideStdout(t)
@@ -78,8 +108,8 @@ func TestGoldpushkGetDeploymentFilePath(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// Create the goldpushk instance under test.
-	g := New([]DeployableUnit{}, []DeployableUnit{}, "", false, "", "")
-	addFakeConfigRepoCheckouts(g)
+	g := Goldpushk{}
+	addFakeConfigRepoCheckouts(&g)
 
 	// Gather the DeployableUnits we will call Goldpushk.getDeploymentFilePath() with.
 	s := ProductionDeployableUnits()
@@ -95,8 +125,10 @@ func TestGoldpushkGetConfigMapFilePath(t *testing.T) {
 
 	// Create the goldpushk instance under test.
 	skiaInfraRoot := "/path/to/buildbot"
-	g := New([]DeployableUnit{}, []DeployableUnit{}, skiaInfraRoot, false, "", "")
-	addFakeConfigRepoCheckouts(g)
+	g := Goldpushk{
+		rootPath: skiaInfraRoot,
+	}
+	addFakeConfigRepoCheckouts(&g)
 
 	// Gather the DeployableUnits we will call Goldpushk.getConfigMapFilePath() with.
 	s := ProductionDeployableUnits()
@@ -143,8 +175,12 @@ func TestRegenerateConfigFiles(t *testing.T) {
 	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Fuchsia, IngestionBT) // Internal deployment with templated ConfigMap.
 
 	// Create the goldpushk instance under test.
-	g := New(deployableUnits, canariedDeployableUnits, "/path/to/buildbot", false, "", "")
-	addFakeConfigRepoCheckouts(g)
+	g := Goldpushk{
+		deployableUnits:         deployableUnits,
+		canariedDeployableUnits: canariedDeployableUnits,
+		rootPath:                "/path/to/buildbot",
+	}
+	addFakeConfigRepoCheckouts(&g)
 
 	// Get the paths to the checked out repositories, ending with a separator.
 	skiaPublicConfigPath := g.skiaPublicConfigCheckout.Dir() + string(filepath.Separator)
@@ -248,7 +284,10 @@ func TestCommitConfigFiles(t *testing.T) {
 
 	// Create the goldpushk instance under test. We pass it the file://... URLs to the two Git
 	// repositories created earlier.
-	g := New([]DeployableUnit{}, []DeployableUnit{}, "", false, fakeSkiaPublicConfig.RepoUrl(), fakeSkiaCorpConfig.RepoUrl())
+	g := Goldpushk{
+		skiaPublicConfigRepoUrl: fakeSkiaPublicConfig.RepoUrl(),
+		skiaCorpConfigRepoUrl:   fakeSkiaCorpConfig.RepoUrl(),
+	}
 
 	// Hide goldpushk output to stdout.
 	restoreStdout := hideStdout(t)
@@ -295,7 +334,10 @@ func TestCommitConfigFilesAbortedByUser(t *testing.T) {
 
 	// Create the goldpushk instance under test. We pass it the file://... URLs to the two Git
 	// repositories created earlier.
-	g := New([]DeployableUnit{}, []DeployableUnit{}, "", false, fakeSkiaPublicConfig.RepoUrl(), fakeSkiaCorpConfig.RepoUrl())
+	g := Goldpushk{
+		skiaPublicConfigRepoUrl: fakeSkiaPublicConfig.RepoUrl(),
+		skiaCorpConfigRepoUrl:   fakeSkiaCorpConfig.RepoUrl(),
+	}
 
 	// Hide goldpushk output to stdout.
 	restoreStdout := hideStdout(t)
