@@ -32,26 +32,6 @@ add_header X-Content-Type-Options "nosniff";
 # Prevent clickjacking.
 # add_header X-Frame-Options "SAMEORIGIN" always;
 
-#####   skia.org   ################################
-server {
-    listen      443;
-    server_name skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/skia.access.log;
-    error_log /var/log/nginx/skia.error.log error;
-
-    if ( $host != 'skia.org' ) {
-        rewrite ^/(.*)$ https://skia.org/$1 permanent;
-    }
-
-    location / {
-        proxy_pass https://35.201.76.220;
-        proxy_set_header Host $host;
-    }
-}
-
 server {
     listen      80 default_server;
     # The envoy-skia-org service in skia-pubic will now handle
@@ -93,27 +73,6 @@ server {
     listen      80;
     server_name perf.skia.org;
     return 301 https://perf.skia.org$request_uri;
-}
-
-#####   android-master-ingest.skia.org   ###########################
-server {
-    listen      443;
-    server_name android-master-ingest.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/android-master-ingest.access.log;
-    error_log /var/log/nginx/android-master-ingest.error.log error;
-
-    location / {
-        proxy_pass https://35.201.76.220;
-        proxy_set_header Host $host;
-    }
-}
-server {
-    listen      80;
-    server_name android-master-ingest.skia.org;
-    return 301 https://android-master-ingest.skia.org$request_uri;
 }
 
 #####   android-master-perf.skia.org   ###########################
@@ -606,27 +565,6 @@ server {
     }
 }
 
-#####   fiddle.skia.org   ###########################
-server {
-    listen      443;
-    server_name fiddle.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/fiddle.access.log;
-    error_log /var/log/nginx/fiddle.error.log error;
-
-    location / {
-        proxy_pass https://35.201.76.220;
-        proxy_set_header Host $host;
-    }
-}
-server {
-    listen      80;
-    server_name fiddle.skia.org;
-    return 301 https://fiddle.skia.org$request_uri;
-}
-
 ####   health.skia.org   ################
 # Just return empty 200 responses for network load balancing health checks.
 # See https://cloud.google.com/compute/docs/load-balancing/health-checks
@@ -661,27 +599,6 @@ server {
     listen      80;
     server_name status.skia.org;
     return 301 https://status.skia.org$request_uri;
-}
-
-#####   status-staging.skia.org   ###########################
-server {
-    listen      443;
-    server_name status-staging.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/status-staging.access.log;
-    error_log /var/log/nginx/status-staging.error.log error;
-
-    location / {
-        proxy_pass https://35.201.76.220;
-        proxy_set_header Host $host;
-    }
-}
-server {
-    listen      80;
-    server_name status-staging.skia.org;
-    return 301 https://status-staging.skia.org$request_uri;
 }
 
 #####   go.skia.org   ###########################
@@ -742,27 +659,6 @@ server {
     listen      80;
     server_name task-scheduler.skia.org;
     return 301 https://task-scheduler.skia.org$request_uri;
-}
-
-#####   task-scheduler-staging.skia.org   ###########################
-server {
-    listen      443;
-    server_name task-scheduler-staging.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/task-scheduler-staging.access.log;
-    error_log /var/log/nginx/task-scheduler-staging.error.log error;
-
-    location / {
-        proxy_pass https://35.201.76.220;
-        proxy_set_header Host $host;
-    }
-}
-server {
-    listen      80;
-    server_name task-scheduler-staging.skia.org;
-    return 301 https://task-scheduler-staging.skia.org$request_uri;
 }
 
 #####   prom.skia.org   ###########################
@@ -852,117 +748,6 @@ server {
 #
 #
 
-#####   debugger.skia.org   ###########################
-server {
-    listen      443;
-    server_name debugger.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/debugger.access.log;
-    error_log /var/log/nginx/debugger.error.log error;
-
-    client_max_body_size 500M;
-
-    location / {
-        proxy_pass https://35.201.76.220;
-        proxy_set_header Host $host;
-    }
-}
-server {
-    listen      80;
-    server_name debugger.skia.org;
-    return 301 https://debugger.skia.org$request_uri;
-}
-#####   debugger-assets.skia.org   ###########################
-server {
-    listen      443;
-    server_name debugger-assets.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/debugger-assets.access.log;
-    error_log /var/log/nginx/debugger-assets.error.log error;
-
-    location / {
-        proxy_pass https://35.201.76.220;
-        proxy_set_header Host $host;
-    }
-}
-server {
-    listen      80;
-    server_name debugger-assets.skia.org;
-    return 301 https://debugger-assets.skia.org$request_uri;
-}
-
-#####   legacy-debugger.skia.org   ###########################
-server {
-    listen      443;
-    server_name legacy-debugger.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/legacy-debugger.access.log;
-    error_log /var/log/nginx/legacy-debugger.error.log error;
-
-    client_max_body_size 500M;
-
-    location / {
-        proxy_pass https://35.201.76.220;
-        proxy_set_header Host $host;
-    }
-}
-server {
-    listen      80;
-    server_name legacy-debugger.skia.org;
-    return 301 https://legacy-debugger.skia.org$request_uri;
-}
-
-#####   skottie.skia.org   ###########################
-server {
-    listen      443;
-    server_name skottie.skia.org;
-
-    ssl on;
-
-    client_max_body_size 20M;
-
-    access_log /var/log/nginx/skottie.access.log;
-    error_log /var/log/nginx/skottie.error.log error;
-
-    location / {
-        proxy_pass https://35.201.76.220;
-        proxy_set_header Host $host;
-    }
-}
-server {
-    listen      80;
-    server_name skottie.skia.org;
-    return 301 https://skottie.skia.org$request_uri;
-}
-#####   skottie-internal.skia.org   ###########################
-server {
-    listen      443;
-    server_name skottie-internal.skia.org;
-
-    ssl on;
-
-    client_max_body_size 200M;
-
-    access_log /var/log/nginx/skottie-internal.access.log;
-    error_log /var/log/nginx/skottie-internal.error.log error;
-
-    location / {
-        proxy_pass https://35.201.76.220;
-        proxy_set_header Host $host;
-    }
-}
-server {
-    listen      80;
-    server_name skottie-internal.skia.org;
-    return 301 https://skottie-internal.skia.org$request_uri;
-}
-
 #####   lottie-gold.skia.org   ###########################
 server {
     listen      443;
@@ -1017,24 +802,6 @@ server {
     return 301 https://chrome-gpu-gold.skia.org$request_uri;
 }
 
-#####   staging-gold.skia.org   ###########################
-server {
-    listen      443;
-    server_name staging-gold.skia.org;
-    ssl on;
-    access_log /var/log/nginx/staging-gold.access.log;
-    error_log /var/log/nginx/staging-gold.error.log error;
-    location / {
-        proxy_pass https://35.201.76.220;
-        proxy_set_header Host $host;
-    }
-}
-server {
-    listen      80;
-    server_name staging-gold.skia.org;
-    return 301 https://staging-gold.skia.org$request_uri;
-}
-
 #####   flutter-gold.skia.org   ###########################
 server {
     listen      443;
@@ -1051,28 +818,6 @@ server {
     listen      80;
     server_name flutter-gold.skia.org;
     return 301 https://flutter-gold.skia.org$request_uri;
-}
-
-
-#####   jsfiddle.skia.org   ###########################
-server {
-    listen      443;
-    server_name jsfiddle.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/jsfiddle.access.log;
-    error_log /var/log/nginx/jsfiddle.error.log error;
-
-    location / {
-        proxy_pass https://35.201.76.220;
-        proxy_set_header Host $host;
-    }
-}
-server {
-    listen      80;
-    server_name jsfiddle.skia.org;
-    return 301 https://jsfiddle.skia.org$request_uri;
 }
 
 #####   task-driver.skia.org   ###########################
