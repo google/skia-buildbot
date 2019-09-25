@@ -9,7 +9,7 @@ import (
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Test invariants of the DeployableUnitSet returned by BuildDeployableUnitSet().                 //
+// Test invariants of the DeployableUnitSet returned by ProductionDeployableUnits().              //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Utility function to generate an assertion message for a given instance/service pair.
@@ -17,18 +17,18 @@ func msg(id DeployableUnitID) string {
 	return fmt.Sprintf("Instance: %s, service: %s", string(id.Instance), string(id.Service))
 }
 
-func TestBuildDeployableUnitSetOnlyContainsKnownInstancesAndServices(t *testing.T) {
+func TestProductionDeployableUnitsOnlyContainsKnownInstancesAndServices(t *testing.T) {
 	unittest.SmallTest(t)
-	deployableUnitSet := BuildDeployableUnitSet()
+	deployableUnitSet := ProductionDeployableUnits()
 	for _, unit := range deployableUnitSet.deployableUnits {
 		assert.True(t, deployableUnitSet.IsKnownInstance(unit.Instance), msg(unit.DeployableUnitID))
 		assert.True(t, deployableUnitSet.IsKnownService(unit.Service), msg(unit.DeployableUnitID))
 	}
 }
 
-func TestBuildDeployableUnitSetContainsAllKnownInstances(t *testing.T) {
+func TestProductionDeployableUnitsContainsAllKnownInstances(t *testing.T) {
 	unittest.SmallTest(t)
-	deployableUnitSet := BuildDeployableUnitSet()
+	deployableUnitSet := ProductionDeployableUnits()
 
 	seen := map[Instance]bool{}
 	for _, unit := range deployableUnitSet.deployableUnits {
@@ -40,9 +40,9 @@ func TestBuildDeployableUnitSetContainsAllKnownInstances(t *testing.T) {
 	}
 }
 
-func TestBuildDeployableUnitSetAllInstancesHaveCommonServices(t *testing.T) {
+func TestProductionDeployableUnitsAllInstancesHaveCommonServices(t *testing.T) {
 	unittest.SmallTest(t)
-	deployableUnitSet := BuildDeployableUnitSet()
+	deployableUnitSet := ProductionDeployableUnits()
 
 	assertHasService := func(i Instance, s Service) {
 		_, ok := deployableUnitSet.Get(DeployableUnitID{Instance: i, Service: s})
@@ -58,17 +58,17 @@ func TestBuildDeployableUnitSetAllInstancesHaveCommonServices(t *testing.T) {
 	}
 }
 
-func TestBuildDeployableUnitSetAllExactlyFuchsiaServicesAreInternal(t *testing.T) {
+func TestProductionDeployableUnitsAllExactlyFuchsiaServicesAreInternal(t *testing.T) {
 	unittest.SmallTest(t)
-	deployableUnitSet := BuildDeployableUnitSet()
+	deployableUnitSet := ProductionDeployableUnits()
 	for _, unit := range deployableUnitSet.deployableUnits {
 		assert.True(t, unit.internal == (unit.Instance == Fuchsia), msg(unit.DeployableUnitID))
 	}
 }
 
-func TestBuildDeployableUnitSetAllIngestionServiceDeploymentsRequireAConfigMap(t *testing.T) {
+func TestProductionDeployableUnitsAllIngestionServiceDeploymentsRequireAConfigMap(t *testing.T) {
 	unittest.SmallTest(t)
-	deployableUnitSet := BuildDeployableUnitSet()
+	deployableUnitSet := ProductionDeployableUnits()
 	for _, unit := range deployableUnitSet.deployableUnits {
 		if unit.Service == IngestionBT {
 			assert.NotEmpty(t, unit.configMapName, msg(unit.DeployableUnitID))
@@ -76,9 +76,9 @@ func TestBuildDeployableUnitSetAllIngestionServiceDeploymentsRequireAConfigMap(t
 	}
 }
 
-func TestBuildDeployableUnitSetAllPublicSkiaCorrectnessDeploymentsRequireAConfigMap(t *testing.T) {
+func TestProductionDeployableUnitsAllPublicSkiaCorrectnessDeploymentsRequireAConfigMap(t *testing.T) {
 	unittest.SmallTest(t)
-	deployableUnitSet := BuildDeployableUnitSet()
+	deployableUnitSet := ProductionDeployableUnits()
 	for _, unit := range deployableUnitSet.deployableUnits {
 		if isPublicInstance(unit.Instance) && unit.Service == SkiaCorrectness {
 			assert.NotEmpty(t, unit.configMapName, msg(unit.DeployableUnitID))
@@ -86,9 +86,9 @@ func TestBuildDeployableUnitSetAllPublicSkiaCorrectnessDeploymentsRequireAConfig
 	}
 }
 
-func TestBuildDeployableUnitSetConfigMapNamesAreCorrect(t *testing.T) {
+func TestProductionDeployableUnitsConfigMapNamesAreCorrect(t *testing.T) {
 	unittest.SmallTest(t)
-	deployableUnitSet := BuildDeployableUnitSet()
+	deployableUnitSet := ProductionDeployableUnits()
 
 	// Public instance.
 	skiaPublicSkiaCorrectness, ok := deployableUnitSet.Get(DeployableUnitID{Instance: SkiaPublic, Service: SkiaCorrectness})
@@ -101,9 +101,9 @@ func TestBuildDeployableUnitSetConfigMapNamesAreCorrect(t *testing.T) {
 	assert.Equal(t, skiaIngestionBT.configMapName, "gold-skia-ingestion-config-bt")
 }
 
-func TestBuildDeployableUnitSetConfigMapInvariantsHold(t *testing.T) {
+func TestProductionDeployableUnitsConfigMapInvariantsHold(t *testing.T) {
 	unittest.SmallTest(t)
-	deployableUnitSet := BuildDeployableUnitSet()
+	deployableUnitSet := ProductionDeployableUnits()
 
 	for _, unit := range deployableUnitSet.deployableUnits {
 		// All DeployableUnits with any ConfigMap settings must have a configMapName

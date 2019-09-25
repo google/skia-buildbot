@@ -59,6 +59,7 @@ var (
 	flagCanaries    []string
 	flagDryRun      bool
 	flagLogToStdErr bool
+	flagTesting     bool
 )
 
 func main() {
@@ -84,6 +85,7 @@ func main() {
 	rootCmd.Flags().StringSliceVarP(&flagCanaries, "canaries", "c", []string{}, "Comma-delimited subset of Gold services to use as canaries, written as instance:service pairs (e.g. \"skia:diffserver,flutter:skiacorrectness\")")
 	rootCmd.Flags().BoolVarP(&flagDryRun, "dryrun", "d", false, "Do everything except applying the new configuration to Kubernetes and committing changes to Git.")
 	rootCmd.Flags().BoolVar(&flagLogToStdErr, "logtostderr", false, "Log debug information to stderr. No logs will be produced if this flag is not set.")
+	rootCmd.Flags().BoolVar(&flagTesting, "testing", false, "Do not deploy any production services; use testing services instead.")
 
 	if err := rootCmd.MarkFlagRequired("services"); err != nil {
 		sklog.Fatalf("Error while setting up command line flags: %s", err)
@@ -98,7 +100,12 @@ func main() {
 
 func run() {
 	// Get set of deployable units. Used as the source of truth across goldpushk.
-	deployableUnitSet := goldpushk.BuildDeployableUnitSet()
+	var deployableUnitSet goldpushk.DeployableUnitSet
+	if flagTesting {
+		deployableUnitSet = goldpushk.TestingDeployableUnits()
+	} else {
+		deployableUnitSet = goldpushk.ProductionDeployableUnits()
+	}
 
 	// Parse and validate command line flags.
 	deployableUnits, canariedDeployableUnits, err := parseAndValidateFlags(deployableUnitSet, flagInstances, flagServices, flagCanaries)

@@ -3,7 +3,7 @@ package goldpushk
 import "fmt"
 
 // The contents of this file are goldpushk's source of truth, specifically the DeployableUnitSet
-// returned by BuildDeployableUnitSet().
+// returned by ProductionDeployableUnits().
 
 const (
 	// Gold instances.
@@ -21,6 +21,16 @@ const (
 	DiffServer      Service = "diffserver"
 	IngestionBT     Service = "ingestion-bt"
 	SkiaCorrectness Service = "skiacorrectness"
+
+	// Testing Gold instances.
+	TestInstance1     Instance = "goldpushk-test1"
+	TestInstance2     Instance = "goldpushk-test2"
+	TestCorpInstance1 Instance = "goldpushk-corp-test1"
+	TestCorpInstance2 Instance = "goldpushk-corp-test2"
+
+	// Testing Gold services.
+	HealthyTestServer  Service = "healthy-server"
+	CrashingTestServer Service = "crashing-server"
 )
 
 var (
@@ -34,9 +44,9 @@ var (
 	}
 )
 
-// BuildDeployableUnitSet returns the DeployableUnitSet that will be used as the source of truth
+// ProductionDeployableUnits returns the DeployableUnitSet that will be used as the source of truth
 // across all of goldpushk.
-func BuildDeployableUnitSet() DeployableUnitSet {
+func ProductionDeployableUnits() DeployableUnitSet {
 	// TODO(lovisolo): Add any missing information.
 
 	s := DeployableUnitSet{
@@ -106,4 +116,32 @@ func isPublicInstance(instance Instance) bool {
 		}
 	}
 	return false
+}
+
+// TestingDeployableUnits returns a DeployableUnitSet comprised of dummy services that can be
+// deployed without disrupting any production services for the purpose of testing goldpushk.
+func TestingDeployableUnits() DeployableUnitSet {
+	s := DeployableUnitSet{
+		knownInstances: []Instance{
+			TestInstance1,
+			TestInstance2,
+			TestCorpInstance1,
+			TestCorpInstance2,
+		},
+		knownServices: []Service{
+			HealthyTestServer,
+			CrashingTestServer,
+		},
+	}
+
+	s.add(TestInstance1, HealthyTestServer)
+	s.add(TestInstance1, CrashingTestServer)
+	s.add(TestInstance2, HealthyTestServer)
+	s.add(TestInstance2, CrashingTestServer)
+	s.addWithOptions(TestCorpInstance1, HealthyTestServer, DeploymentOptions{internal: true})
+	s.addWithOptions(TestCorpInstance1, CrashingTestServer, DeploymentOptions{internal: true})
+	s.addWithOptions(TestCorpInstance2, HealthyTestServer, DeploymentOptions{internal: true})
+	s.addWithOptions(TestCorpInstance2, CrashingTestServer, DeploymentOptions{internal: true})
+
+	return s
 }
