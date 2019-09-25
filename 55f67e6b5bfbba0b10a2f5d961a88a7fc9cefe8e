@@ -22,6 +22,30 @@
       "revId": "55f67e6b5bfbba0b10a2f5d961a88a7fc9cefe8e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7aeca648_21cfc709",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 731,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-25T13:05:16Z",
+      "side": 1,
+      "message": "I left it in because it\u0027s needed for the auto-updating repo graph (which does so via pubsub) but now I realize that I forgot to enable that in Status.  Leaving this in place and will enable the auto-update graph separately.",
+      "parentUuid": "3c85bf6b_bb6727c1",
+      "range": {
+        "startLine": 731,
+        "startChar": 111,
+        "endLine": 731,
+        "endChar": 129
+      },
+      "revId": "55f67e6b5bfbba0b10a2f5d961a88a7fc9cefe8e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
