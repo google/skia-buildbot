@@ -19,10 +19,11 @@ import (
 )
 
 const (
-	btProject  = "fake-test-project"
-	btInstance = "fake-test-instance"
-	repoID     = 9999
-	subID      = "test-subscriber"
+	btProject    = "fake-test-project"
+	btInstance   = "fake-test-instance"
+	btAppProfile = "testing"
+	repoID       = 9999
+	subID        = "test-subscriber"
 )
 
 func TestPubSub(t *testing.T) {
@@ -38,6 +39,7 @@ func TestPubSub(t *testing.T) {
 		ProjectID:  btProject,
 		InstanceID: btInstance,
 		TableID:    btTable,
+		AppProfile: btAppProfile,
 	}
 	p, err := NewPublisher(ctx, btConf, repoID, nil)
 	assert.NoError(t, err)
@@ -112,6 +114,7 @@ func TestUpdateUsingPubSub(t *testing.T) {
 		ProjectID:  btProject,
 		InstanceID: btInstance,
 		TableID:    btTable,
+		AppProfile: btAppProfile,
 	}
 	p, err := NewPublisher(ctx, btConf, repoID, nil)
 	assert.NoError(t, err)

@@ -56,6 +56,8 @@ import (
 )
 
 const (
+	APPNAME = "status"
+
 	// The chrome infra auth group to use for restricting admin rights.
 	AUTH_GROUP_ADMIN_RIGHTS = "google/skia-root@google.com"
 	// The chrome infra auth group to use for restricting edit rights.
@@ -708,7 +710,7 @@ type autoRollStatus struct {
 func main() {
 	// Setup flags.
 	common.InitWithMust(
-		"status",
+		APPNAME,
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
 	)
@@ -776,6 +778,7 @@ func main() {
 		ProjectID:  *btProject,
 		InstanceID: *btInstance,
 		TableID:    *gitstoreTable,
+		AppProfile: APPNAME,
 	}
 	repos, err = bt_gitstore.NewBTGitStoreMap(ctx, *repoUrls, btConf)
 	if err != nil {

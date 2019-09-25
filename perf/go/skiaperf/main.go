@@ -305,7 +305,8 @@ func Init() {
 		gitstoreConfig := &gitstore.BTConfig{
 			ProjectID:  btConfig.Project,
 			InstanceID: btConfig.Instance,
-			TableID:    "git-repos",
+			TableID:    "git-repos2",
+			AppProfile: "skiaperf",
 		}
 
 		gs, err := gitstore.NewBTGitStore(ctx, gitstoreConfig, btConfig.GitUrl)
