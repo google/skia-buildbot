@@ -1,0 +1,153 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eea46077_aabb8c1d",
+        "filename": "golden/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:55:06Z",
+      "side": 1,
+      "message": "You might want two endpoints that actually build and push the docker container.",
+      "revId": "8e839e01ba6ddfe8ca2d607d5fa63d0e012cf24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "acfe2185_1a6fe742",
+        "filename": "golden/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:55:06Z",
+      "side": 1,
+      "message": "AFAICT, this doesn\u0027t use skiaversion in the main server",
+      "range": {
+        "startLine": 99,
+        "startChar": 39,
+        "endLine": 99,
+        "endChar": 50
+      },
+      "revId": "8e839e01ba6ddfe8ca2d607d5fa63d0e012cf24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f2fe8e5_53643da2",
+        "filename": "golden/cmd/goldpushk/testing/crashing_server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:55:06Z",
+      "side": 1,
+      "message": "it is unclear to me what the purpose of this is.",
+      "range": {
+        "startLine": 16,
+        "startChar": 1,
+        "endLine": 16,
+        "endChar": 13
+      },
+      "revId": "8e839e01ba6ddfe8ca2d607d5fa63d0e012cf24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "62a85bf1_dcc8e613",
+        "filename": "golden/cmd/goldpushk/testing/crashing_server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:55:06Z",
+      "side": 1,
+      "message": "I\u0027d give this a sensible default, like 8000",
+      "range": {
+        "startLine": 17,
+        "startChar": 30,
+        "endLine": 17,
+        "endChar": 31
+      },
+      "revId": "8e839e01ba6ddfe8ca2d607d5fa63d0e012cf24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e6731945_72548dd4",
+        "filename": "golden/cmd/goldpushk/testing/crashing_server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:55:06Z",
+      "side": 1,
+      "message": "why not sklog.Fatalf x5?",
+      "range": {
+        "startLine": 21,
+        "startChar": 2,
+        "endLine": 21,
+        "endChar": 13
+      },
+      "revId": "8e839e01ba6ddfe8ca2d607d5fa63d0e012cf24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51b76384_b825529f",
+        "filename": "golden/cmd/goldpushk/testing/crashing_server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:55:06Z",
+      "side": 1,
+      "message": "sklog.Infof?",
+      "range": {
+        "startLine": 41,
+        "startChar": 1,
+        "endLine": 41,
+        "endChar": 12
+      },
+      "revId": "8e839e01ba6ddfe8ca2d607d5fa63d0e012cf24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "489a91dc_909b3ba5",
+        "filename": "golden/cmd/goldpushk/testing/healthy_server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:55:06Z",
+      "side": 1,
+      "message": "Feedback from crashing_server applies here too",
+      "revId": "8e839e01ba6ddfe8ca2d607d5fa63d0e012cf24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
