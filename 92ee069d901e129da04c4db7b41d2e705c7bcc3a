@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a14da76e_f33e9b66",
+        "filename": "go/common/common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T13:57:31Z",
+      "side": 1,
+      "message": "nit: add a test?",
+      "revId": "92ee069d901e129da04c4db7b41d2e705c7bcc3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
