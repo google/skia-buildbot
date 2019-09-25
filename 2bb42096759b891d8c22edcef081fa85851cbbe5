@@ -16,6 +16,24 @@
       "revId": "2bb42096759b891d8c22edcef081fa85851cbbe5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4b33f0b_d609cbdd",
+        "filename": "go/gitstore/bt_gitstore/bt_gitstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-25T17:20:19Z",
+      "side": 1,
+      "message": "I wasn\u0027t sure whether to go that far, but done.",
+      "parentUuid": "4c78fcb4_0e4c3df7",
+      "revId": "2bb42096759b891d8c22edcef081fa85851cbbe5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
