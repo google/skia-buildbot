@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "09a3384c_8d124b80",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T13:01:59Z",
+      "side": 1,
+      "message": "This flag is not defined in this package, so I would just mention BuildTestingDeployableUnitSet also exists which represents servers for testing goldpushk w/o affecting prod.",
+      "range": {
+        "startLine": 10,
+        "startChar": 72,
+        "endLine": 10,
+        "endChar": 100
+      },
+      "revId": "5f4be6c6fa2365751a167fe3fb57b672b0fb97ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d62cfdb9_ecffe17a",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T13:01:59Z",
+      "side": 1,
+      "message": "this is getting a bit wordy, maybe ProductionDeployableUnits() ?",
+      "range": {
+        "startLine": 85,
+        "startChar": 6,
+        "endLine": 85,
+        "endChar": 38
+      },
+      "revId": "5f4be6c6fa2365751a167fe3fb57b672b0fb97ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
