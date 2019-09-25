@@ -10,5 +10,7 @@ COPY --from=gcr.io/skia-public/skia-wasm-release:prod \
 
 USER skia
 
+COPY --from=gcr.io/skia-public/skia-release:prod /tmp/skia/skia/VERSION /etc/skia-prod/VERSION
+
 ENTRYPOINT ["/usr/local/bin/debugger-assets"]
 CMD ["--logtostderr", "--resources_dir=/usr/local/share/debugger-assets"]

@@ -28,7 +28,7 @@ run_server_local: build
 
 .PHONY: run_server_local_wasm
 run_server_local_wasm: build
-	debugger-assets --port=localhost:9000 --local --logtostderr --v2_at_root
+	debugger-assets --port=localhost:9000 --local --logtostderr --v2_at_root --resources_dir .
 
 .PHONY: release
 release: build

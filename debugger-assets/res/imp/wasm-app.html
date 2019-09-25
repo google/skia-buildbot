@@ -323,7 +323,7 @@ The main application element for the Skia Debugger.
   </style>
   <template>
     <header class="horizontal layout center">
-      <h2>Skia Debugger</h2>
+      <h2>Skia WASM Debugger</h2>
       <div class=flex></div>
     </header>
     <div id=content>
@@ -695,6 +695,8 @@ The main application element for the Skia Debugger.
       },
 
       _moveToTargetItem: function() {
+        // Constrain to command list length.
+        this._targetItem = Math.min(this._targetItem, this._filtered.commands.length-1);
         // highlight it in the command list.
         this.$.commands.item = this._targetItem;
         // update wasm module
@@ -779,7 +781,7 @@ The main application element for the Skia Debugger.
         // get the json command list of the player's current frame.
         // it costs considerable time to do this, because it's replaying all commands and
         // flattening all resources they reference to put them in UrlDataManager.
-        if (this.jsonCommandListCache.includes(this.frameIndex)) {
+        if (this.frameIndex in this.jsonCommandListCache) {
           return this.jsonCommandListCache[this.frameIndex];
         }
         const json = this._player.jsonCommandList(this._surface);
