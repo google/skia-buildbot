@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2b8815a5_89a75964",
+        "filename": "golden/cmd/goldpushk/testing/crashing_server/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T16:36:23Z",
+      "side": 1,
+      "message": "os.Exit isn\u0027t needed after Fatal (which panics)",
+      "range": {
+        "startLine": 28,
+        "startChar": 2,
+        "endLine": 28,
+        "endChar": 12
+      },
+      "revId": "717c54ef1ebd4da3d90375b076107658930c90a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

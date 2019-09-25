@@ -178,6 +178,30 @@
     },
     {
       "key": {
+        "uuid": "e105768a_7c5cfddd",
+        "filename": "golden/cmd/goldpushk/testing/crashing_server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T16:36:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "8a1b8696_0ef567ac",
+      "range": {
+        "startLine": 17,
+        "startChar": 30,
+        "endLine": 17,
+        "endChar": 31
+      },
+      "revId": "8e839e01ba6ddfe8ca2d607d5fa63d0e012cf24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e6731945_72548dd4",
         "filename": "golden/cmd/goldpushk/testing/crashing_server/main.go",
         "patchSetId": 2
