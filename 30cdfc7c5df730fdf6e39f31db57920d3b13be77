@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cc1590dd_73630e76",
+        "filename": "golden/k8s-config-templates/gold-common.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:55:10Z",
+      "side": 1,
+      "message": "Services for testing goldpushk",
+      "range": {
+        "startLine": 7,
+        "startChar": 7,
+        "endLine": 7,
+        "endChar": 21
+      },
+      "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c0a9c1f_3d6b60bf",
+        "filename": "golden/k8s-config-templates/gold-crashing-server-template.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:55:10Z",
+      "side": 1,
+      "message": "Since we don\u0027t want this accessible to the general internet, remove this (I think healthcheck will still work?)\n\nIf so, then we can remove this from ingestion-bt also",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 16
+      },
+      "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fdf8fd10_fc46dedd",
+        "filename": "golden/k8s-config-templates/gold-crashing-server-template.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:55:10Z",
+      "side": 1,
+      "message": "I would hard code these to something small.  Unless your intent is to test the use of the json5 as a template?",
+      "range": {
+        "startLine": 46,
+        "startChar": 22,
+        "endLine": 46,
+        "endChar": 40
+      },
+      "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da6e101b_3f55e847",
+        "filename": "golden/k8s-config-templates/gold-healthy-server-template.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:55:10Z",
+      "side": 1,
+      "message": "comments on crashing-server apply here",
+      "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f790ad30_b7725866",
+        "filename": "golden/k8s-config-templates/gold-healthy-server-template.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:55:10Z",
+      "side": 1,
+      "message": "Why is this different than the other?",
+      "range": {
+        "startLine": 53,
+        "startChar": 12,
+        "endLine": 55,
+        "endChar": 31
+      },
+      "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b62c3ee_2bb55685",
+        "filename": "golden/k8s-instances/goldpushk-corp-test1-instance.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:55:10Z",
+      "side": 1,
+      "message": "This can probably be 200m (i.e. 20% of one CPU)",
+      "range": {
+        "startLine": 2,
+        "startChar": 30,
+        "endLine": 2,
+        "endChar": 31
+      },
+      "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4dce2be6_35d4ce97",
+        "filename": "golden/k8s-instances/goldpushk-corp-test1-instance.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-25T12:55:10Z",
+      "side": 1,
+      "message": "This can probably be like 50Mi",
+      "range": {
+        "startLine": 3,
+        "startChar": 30,
+        "endLine": 3,
+        "endChar": 33
+      },
+      "revId": "30cdfc7c5df730fdf6e39f31db57920d3b13be77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
