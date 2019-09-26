@@ -1,0 +1,20 @@
+{{ range . -}}
+{{ range . -}}
+                    {
+                      "domains": "{{ index . 0 }}",
+                      "name": "{{ index . 0 }}",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "{{ index . 1 }}",
+                            "https_redirect": true,
+                            "path_redirect": "{{ index . 2 }}"
+                          }
+                        }
+                      ]
+                    },
+{{ end }}
+{{ end }}
