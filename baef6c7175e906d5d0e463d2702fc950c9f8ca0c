@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4b7a3eaa_7a975ec8",
+        "filename": "golden/go/jsonio/jsonio_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T20:40:26Z",
+      "side": 1,
+      "message": "Smart!",
+      "revId": "baef6c7175e906d5d0e463d2702fc950c9f8ca0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
