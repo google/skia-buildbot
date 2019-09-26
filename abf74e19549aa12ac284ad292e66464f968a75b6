@@ -22,6 +22,30 @@
       "revId": "abf74e19549aa12ac284ad292e66464f968a75b6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd0e557e_173c2981",
+        "filename": "skfe/PROD.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-09-26T18:20:24Z",
+      "side": 1,
+      "message": "Currently yes, though we could also use envoy there and only rely on GKE Ingress to handle the SSL certs.",
+      "parentUuid": "c57a7106_22afa23f",
+      "range": {
+        "startLine": 7,
+        "startChar": 4,
+        "endLine": 7,
+        "endChar": 11
+      },
+      "revId": "abf74e19549aa12ac284ad292e66464f968a75b6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
