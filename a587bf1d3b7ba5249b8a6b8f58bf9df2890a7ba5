@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1efaef66_65dbaaae",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-26T19:25:37Z",
+      "side": 0,
+      "message": "Turns out this wasn\u0027t necessary. There\u0027s no need for two distinct methods getClusterCredentials and switchClusters.\n\nMethod getClusterCredentials switches kubectl to a different cluster, so I deleted method switchClusters, and renamed getClusterCredentials to switchClusters.",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 115,
+        "endChar": 2
+      },
+      "revId": "a587bf1d3b7ba5249b8a6b8f58bf9df2890a7ba5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
