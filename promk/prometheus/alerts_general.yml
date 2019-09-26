@@ -271,7 +271,6 @@ groups:
     labels:
       category: infra
       severity: critical
-      owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.job_name }}'
       description: '{{ $labels.job_name }} has not finished for any commit in the last 8 hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
@@ -283,7 +282,6 @@ groups:
     labels:
       category: infra
       severity: critical
-      owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.job_name }}'
       description: '{{ $labels.job_name }} has not finished for any commit in the last 9 hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
@@ -293,7 +291,6 @@ groups:
     labels:
       category: infra
       severity: critical
-      owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.job_name }}'
       description: '{{ $labels.job_name }} has not completed in the last 28 hours (nightly job). Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
@@ -303,7 +300,6 @@ groups:
     labels:
       category: infra
       severity: critical
-      owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.job_name }}'
       description: '{{ $labels.job_name }} has not completed in the last week + 4 hours (weekly job). Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
