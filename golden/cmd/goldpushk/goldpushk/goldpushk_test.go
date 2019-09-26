@@ -426,6 +426,71 @@ func TestCommitConfigFilesSkipped(t *testing.T) {
 	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 1)
 }
 
+func TestGetClusterCredentials(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Create the goldpushk instance under test.
+	g := Goldpushk{}
+
+	// Set up mocks.
+	commandCollector := exec.CommandCollector{}
+	commandCollectorCtx := exec.NewContext(context.Background(), commandCollector.Run)
+
+	// Test cases.
+	testCases := []struct {
+		cluster     cluster
+		expectedCmd string
+	}{
+		{
+			cluster:     clusterSkiaPublic,
+			expectedCmd: "gcloud container clusters get-credentials skia-public --zone us-central1-a --project skia-public",
+		},
+		{
+			cluster:     clusterSkiaCorp,
+			expectedCmd: "gcloud container clusters get-credentials skia-corp --zone us-central1-a --project google.com:skia-corp",
+		},
+	}
+
+	for i, tc := range testCases {
+		err := g.getClusterCredentials(commandCollectorCtx, tc.cluster)
+		assert.NoError(t, err)
+		assert.Equal(t, tc.expectedCmd, exec.DebugString(commandCollector.Commands()[i]))
+	}
+}
+
+func TestSwitchClusters(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Create the goldpushk instance under test.
+	g := Goldpushk{}
+
+	// Set up mocks.
+	commandCollector := exec.CommandCollector{}
+	commandCollectorCtx := exec.NewContext(context.Background(), commandCollector.Run)
+
+	// Test cases.
+	testCases := []struct {
+		cluster     cluster
+		expectedCmd string
+	}{
+		{
+			cluster:     clusterSkiaPublic,
+			expectedCmd: "gcloud config set project skia-public",
+		},
+		{
+			cluster:     clusterSkiaCorp,
+			expectedCmd: "gcloud config set project google.com:skia-corp",
+		},
+	}
+
+	for i, tc := range testCases {
+		err := g.switchClusters(commandCollectorCtx, tc.cluster)
+		assert.NoError(t, err)
+		assert.Equal(t, tc.expectedCmd, exec.DebugString(commandCollector.Commands()[i]))
+		assert.Equal(t, tc.cluster, g.currentCluster)
+	}
+}
+
 // appendUnit will retrieve a DeployableUnit from the given DeployableUnitSet using the given
 // Instance and Service and append it to the given DeployableUnit slice.
 func appendUnit(t *testing.T, units []DeployableUnit, s DeployableUnitSet, instance Instance, service Service) []DeployableUnit {
