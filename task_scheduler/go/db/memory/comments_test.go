@@ -9,14 +9,13 @@ import (
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/db"
-	"go.skia.org/infra/task_scheduler/go/db/modified"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 // TestCommentBox checks that CommentBox correctly implements CommentDB.
 func TestCommentBox(t *testing.T) {
 	unittest.SmallTest(t)
-	db.TestCommentDB(t, &CommentBox{ModifiedComments: &modified.ModifiedCommentsImpl{}})
+	db.TestCommentDB(t, NewCommentBox())
 }
 
 // TestCommentBoxWithPersistence checks that NewCommentBoxWithPersistence can be
@@ -32,7 +31,7 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 		return nil
 	}
 
-	d := NewCommentBoxWithPersistence(nil, nil, testWriter)
+	d := NewCommentBoxWithPersistence(nil, testWriter)
 
 	now := time.Now()
 
@@ -110,7 +109,7 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 		r1: expected[r1].Copy(),
 		r2: expected[r2].Copy(),
 	}
-	d = NewCommentBoxWithPersistence(nil, init, testWriter)
+	d = NewCommentBoxWithPersistence(init, testWriter)
 
 	{
 		actual, err := d.GetCommentsForRepos([]string{"r0", r1, r2}, now.Add(-10000*time.Hour))
@@ -163,7 +162,7 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 		r1: expected[r1].Copy(),
 		r2: expected[r2].Copy(),
 	}
-	d = NewCommentBoxWithPersistence(nil, init, testWriter)
+	d = NewCommentBoxWithPersistence(init, testWriter)
 
 	{
 		actual, err := d.GetCommentsForRepos([]string{"r0", r1, r2}, now.Add(-10000*time.Hour))
@@ -189,7 +188,7 @@ func TestCommentBoxWithPersistenceError(t *testing.T) {
 		return injectedError
 	}
 
-	d := NewCommentBoxWithPersistence(nil, nil, testWriter)
+	d := NewCommentBoxWithPersistence(nil, testWriter)
 
 	now := time.Now()
 

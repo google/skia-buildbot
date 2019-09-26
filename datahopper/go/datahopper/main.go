@@ -154,7 +154,7 @@ func main() {
 	}()
 
 	// Tasks metrics.
-	d, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts, nil)
+	d, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts)
 	if err != nil {
 		sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 	}
