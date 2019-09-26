@@ -620,6 +620,390 @@
                       ]
                     },
                     {
+                      "domains": "afdo-chromium-roll.skia.org",
+                      "name": "afdo-chromium-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/afdo-chromium-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "android-master-roll.skia.org",
+                      "name": "android-master-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "skia-autoroll.corp.goog",
+                            "https_redirect": true,
+                            "path_redirect": "/r/android-master-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "android-next-roll.skia.org",
+                      "name": "android-next-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "skia-autoroll.corp.goog",
+                            "https_redirect": true,
+                            "path_redirect": "/r/android-next-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "android-o-roll.skia.org",
+                      "name": "android-o-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "skia-autoroll.corp.goog",
+                            "https_redirect": true,
+                            "path_redirect": "/r/android-o-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "angle-chromium-roll.skia.org",
+                      "name": "angle-chromium-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/angle-chromium-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "angle-skia-roll.skia.org",
+                      "name": "angle-skia-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/angle-skia-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "catapult-roll.skia.org",
+                      "name": "catapult-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/catapult-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "chromite-chromium-roll.skia.org",
+                      "name": "chromite-chromium-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/chromite-chromium-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "chromium-skia-roll.skia.org",
+                      "name": "chromium-skia-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/chromium-skia-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "flutter-engine-flutter-roll.skia.org",
+                      "name": "flutter-engine-flutter-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/flutter-engine-flutter-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "lottie-web-lottie-ci-roll.skia.org",
+                      "name": "lottie-web-lottie-ci-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/lottie-web-lottie-ci-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "nacl-roll.skia.org",
+                      "name": "nacl-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/nacl-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "pdfium-roll.skia.org",
+                      "name": "pdfium-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/pdfium-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "perfetto-chromium-roll.skia.org",
+                      "name": "perfetto-chromium-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/perfetto-chromium-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "fuchsia-roll.skia.org",
+                      "name": "fuchsia-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/fuchsia-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "fuchsia-sdk-chromium-roll.skia.org",
+                      "name": "fuchsia-sdk-chromium-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/fuchsia-sdk-chromium-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "skcms-skia-roll.skia.org",
+                      "name": "skcms-skia-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/skcms-skia-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "skia-flutter-roll.skia.org",
+                      "name": "skia-flutter-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/skia-flutter-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "skia-lottie-ci-roll.skia.org",
+                      "name": "skia-lottie-ci-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/skia-lottie-ci-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "spirv-headers-chromium-roll.skia.org",
+                      "name": "spirv-headers-chromium-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/spirv-headers-chromium-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "spirv-tools-chromium-roll.skia.org",
+                      "name": "spirv-tools-chromium-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/spirv-tools-chromium-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "src-internal-chromium-roll.skia.org",
+                      "name": "src-internal-chromium-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "skia-autoroll.cor",
+                            "https_redirect": true,
+                            "path_redirect": "p.goog/r/src-internal-chromium-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "swiftshader-skia-roll.skia.org",
+                      "name": "swiftshader-skia-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/swiftshader-skia-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "webrtc-chromium-roll.skia.org",
+                      "name": "webrtc-chromium-roll.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "autoroll.skia.org",
+                            "https_redirect": true,
+                            "path_redirect": "/r/webrtc-chromium-autoroll"
+                          }
+                        }
+                      ]
+                    },
+                    {
                       "domains": "autoroll-internal.skia.org",
                       "name": "autoroll-internal.skia.org",
                       "routes": [
