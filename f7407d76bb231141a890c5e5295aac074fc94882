@@ -1,0 +1,250 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9963fccd_3c26745a",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 689,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T15:03:32Z",
+      "side": 1,
+      "message": "nit: maybe should be r.SharedConfig.ContinuousIntegrationSystem + \"_\" + r.SharedConfig.TryJobID",
+      "range": {
+        "startLine": 689,
+        "startChar": 12,
+        "endLine": 689,
+        "endChar": 35
+      },
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ddb85d26_93a6b1ce",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 692,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T15:03:32Z",
+      "side": 1,
+      "message": "Would there be any reason to keep backwards compatibility?",
+      "range": {
+        "startLine": 690,
+        "startChar": 0,
+        "endLine": 692,
+        "endChar": 2
+      },
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00f6158a_0997442c",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T15:03:32Z",
+      "side": 1,
+      "message": "This hasn\u0027t been used yet, correct?",
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3e6ca8f_e964727e",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T15:03:32Z",
+      "side": 1,
+      "message": "nit: maybe doc somewhere that if this field is set, BuildBucketID, GerritChangeListID, and GerritPatchSet are ignored.",
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "040e2252_fcfbb8ce",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T15:03:32Z",
+      "side": 1,
+      "message": "I think we\u0027d have to be careful to only re-ingest master results, since old tryjob results would appear identical to master results.",
+      "range": {
+        "startLine": 148,
+        "startChar": 30,
+        "endLine": 148,
+        "endChar": 75
+      },
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cedc03e8_3c14f657",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T15:03:32Z",
+      "side": 1,
+      "message": "typo past",
+      "range": {
+        "startLine": 148,
+        "startChar": 17,
+        "endLine": 148,
+        "endChar": 23
+      },
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc64f9ed_98dd0982",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T15:03:32Z",
+      "side": 1,
+      "message": "nit: Seems like you could just do ret.GerritChangeListID \u003d types.MasterBranch.",
+      "range": {
+        "startLine": 213,
+        "startChar": 0,
+        "endLine": 218,
+        "endChar": 4
+      },
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c75c9698_ef7beb27",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T15:03:32Z",
+      "side": 1,
+      "message": "nit: too many negatives; consider changing the function to be anyEmptyKV or validateParams.",
+      "range": {
+        "startLine": 237,
+        "startChar": 23,
+        "endLine": 237,
+        "endChar": 37
+      },
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1aa3e810_a1593784",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T15:03:32Z",
+      "side": 1,
+      "message": "nit: include index or some other identifier in case there are lots and lots of results",
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b59d73c3_ddba90e8",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T15:03:32Z",
+      "side": 1,
+      "message": "nit: maybe include the invalid value for easier searching",
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "05aef22d_07837873",
+        "filename": "golden/go/jsonio/jsonio_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T15:03:32Z",
+      "side": 1,
+      "message": "🏖",
+      "range": {
+        "startLine": 115,
+        "startChar": 34,
+        "endLine": 115,
+        "endChar": 44
+      },
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bdbba00_debd8e88",
+        "filename": "golden/go/jsonio/jsonio_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T15:03:32Z",
+      "side": 1,
+      "message": "nit: it\u0027s a good idea to assert.Contains or assert.Regexp on the error to make sure you\u0027re testing what you think you\u0027re testing. (E.g. in two months you add a new field and validate that it must be set, but also break all other validation, this test would still pass with no modifications.)",
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

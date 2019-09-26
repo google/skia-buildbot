@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2aa8c223_88e50136",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T15:03:32Z",
+      "side": 0,
+      "message": "We are no longer validating the legacy fields. Is that intentional?",
+      "range": {
+        "startLine": 215,
+        "startChar": 0,
+        "endLine": 216,
+        "endChar": 94
+      },
+      "revId": "067ca1523ed64235a15b343cf9d82de25a333be5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "86975417_833b1a9d",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T15:03:32Z",
+      "side": 0,
+      "message": "Did you intentionally remove the validation of Options? Seems like empty values there would still be a problem.",
+      "revId": "067ca1523ed64235a15b343cf9d82de25a333be5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
