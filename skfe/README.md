@@ -84,6 +84,18 @@ output of each step, as Envoy configs are very wordy.
 Finally `update_probers` can be run to add all the redirects from
 `envoy-starter.json` to `probersk.json5`.
 
+## Admin
+
+You can reach the Envoy admin interface by
+
+    kubectl port-forward <envoy-skia-org pod name>  9000:9000
+
+And then visit
+
+    http://localhost:9000
+
+The admin interface also provides the metrics endpoint to prometheus.
+
 ## FAQ
 
 Q: Why not just use GKE Ingress?
