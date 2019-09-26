@@ -54,10 +54,16 @@ const (
 )
 
 var (
-	flagInstances   []string
-	flagServices    []string
-	flagCanaries    []string
-	flagDryRun      bool
+	// Required flags.
+	flagInstances []string
+	flagServices  []string
+	flagCanaries  []string
+
+	// Optional flags.
+	flagDryRun   bool
+	flagNoCommit bool
+
+	// Flags for debugging.
 	flagLogToStdErr bool
 	flagTesting     bool
 )
@@ -83,7 +89,8 @@ func main() {
 	rootCmd.Flags().StringSliceVarP(&flagInstances, "instances", "i", []string{}, "[REQUIRED] Comma-delimited list of Gold instances to target (e.g. \"skia,flutter\"), or \""+all+"\" to target all instances.")
 	rootCmd.Flags().StringSliceVarP(&flagServices, "services", "s", []string{}, "[REQUIRED] Comma-delimited list of services to target (e.g. \"skiacorrectness,diffserver\"), or \""+all+"\" to target all services.")
 	rootCmd.Flags().StringSliceVarP(&flagCanaries, "canaries", "c", []string{}, "Comma-delimited subset of Gold services to use as canaries, written as instance:service pairs (e.g. \"skia:diffserver,flutter:skiacorrectness\")")
-	rootCmd.Flags().BoolVarP(&flagDryRun, "dryrun", "d", false, "Do everything except applying the new configuration to Kubernetes and committing changes to Git.")
+	rootCmd.Flags().BoolVar(&flagDryRun, "dryrun", false, "Do everything except applying the new configuration to Kubernetes and committing changes to Git.")
+	rootCmd.Flags().BoolVar(&flagNoCommit, "no-commit", false, "Do not commit configuration changes to the skia-public-config or skia-corp-config Git repositories.")
 	rootCmd.Flags().BoolVar(&flagLogToStdErr, "logtostderr", false, "Log debug information to stderr. No logs will be produced if this flag is not set.")
 	rootCmd.Flags().BoolVar(&flagTesting, "testing", false, "Do not deploy any production services; use testing services instead.")
 
@@ -122,7 +129,7 @@ func run() {
 	}
 
 	// Build goldpushk instance.
-	gpk := goldpushk.New(deployableUnits, canariedDeployableUnits, skiaInfraRoot, flagDryRun, skiaPublicConfigRepoUrl, skiaCorpConfigRepoUrl)
+	gpk := goldpushk.New(deployableUnits, canariedDeployableUnits, skiaInfraRoot, flagDryRun, flagNoCommit, skiaPublicConfigRepoUrl, skiaCorpConfigRepoUrl)
 
 	// Run goldpushk.
 	if err = gpk.Run(context.Background()); err != nil {
