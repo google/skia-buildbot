@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "11d74cad_8731126e",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 689,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-26T20:09:54Z",
+      "side": 1,
+      "message": "It really doesn\u0027t matter, it\u0027s mostly to make it easier to find missing tasks. Maybe if we have more than one CIS in the same project, but for now we\u0027ll just leave it as is.",
+      "parentUuid": "9963fccd_3c26745a",
+      "range": {
+        "startLine": 689,
+        "startChar": 12,
+        "endLine": 689,
+        "endChar": 35
+      },
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ddb85d26_93a6b1ce",
         "filename": "gold-client/go/goldclient/goldclient.go",
         "patchSetId": 6
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "5710c022_fdcf23f0",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 692,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-26T20:09:54Z",
+      "side": 1,
+      "message": "I don\u0027t think so. Currently, since this wasn\u0027t set at all for waterfall jobs, it was just 0. I\u0027d rather not keep it around for hysterical raisins.",
+      "parentUuid": "ddb85d26_93a6b1ce",
+      "range": {
+        "startLine": 690,
+        "startChar": 0,
+        "endLine": 692,
+        "endChar": 2
+      },
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "00f6158a_0997442c",
         "filename": "golden/go/jsonio/jsonio.go",
         "patchSetId": 6
@@ -59,6 +107,24 @@
       "writtenOn": "2019-09-26T15:03:32Z",
       "side": 1,
       "message": "This hasn\u0027t been used yet, correct?",
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "63fc744b_96ba1bf3",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-26T20:09:54Z",
+      "side": 1,
+      "message": "Correct - I added it to this struct, but had no consumers/writers",
+      "parentUuid": "00f6158a_0997442c",
       "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -79,6 +145,24 @@
       "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ccd41b4_d3a065a2",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-26T20:09:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a3e6ca8f_e964727e",
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -128,6 +212,54 @@
     },
     {
       "key": {
+        "uuid": "f93a433f_9b669acf",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-26T20:09:54Z",
+      "side": 1,
+      "message": "That\u0027s generally easy to do, since they are in a different GCS folder. I haven\u0027t needed to re-ingest tryjob results yet, since they are more ephemeral.",
+      "parentUuid": "040e2252_fcfbb8ce",
+      "range": {
+        "startLine": 148,
+        "startChar": 30,
+        "endLine": 148,
+        "endChar": 75
+      },
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "12ed8535_38df64bd",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-26T20:09:54Z",
+      "side": 1,
+      "message": "https://brians.wsu.edu/2016/05/30/passed-past/\n\n\u0027no matter however you have ”passed the time” you have never “past the time,” not even in the distant past.\u0027",
+      "parentUuid": "cedc03e8_3c14f657",
+      "range": {
+        "startLine": 148,
+        "startChar": 17,
+        "endLine": 148,
+        "endChar": 23
+      },
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fc64f9ed_98dd0982",
         "filename": "golden/go/jsonio/jsonio.go",
         "patchSetId": 6
@@ -148,6 +280,30 @@
       "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3c2171e_38762f38",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-26T20:09:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fc64f9ed_98dd0982",
+      "range": {
+        "startLine": 213,
+        "startChar": 0,
+        "endLine": 218,
+        "endChar": 4
+      },
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -174,6 +330,30 @@
     },
     {
       "key": {
+        "uuid": "9bebda1a_8552ac04",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-26T20:09:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c75c9698_ef7beb27",
+      "range": {
+        "startLine": 237,
+        "startChar": 23,
+        "endLine": 237,
+        "endChar": 37
+      },
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1aa3e810_a1593784",
         "filename": "golden/go/jsonio/jsonio.go",
         "patchSetId": 6
@@ -191,6 +371,24 @@
     },
     {
       "key": {
+        "uuid": "e5e5f5ac_51acc613",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-26T20:09:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1aa3e810_a1593784",
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b59d73c3_ddba90e8",
         "filename": "golden/go/jsonio/jsonio.go",
         "patchSetId": 6
@@ -205,6 +403,24 @@
       "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8b0141e_ad8a7227",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-26T20:09:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b59d73c3_ddba90e8",
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -245,6 +461,24 @@
       "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db2cd94b_3baecd6e",
+        "filename": "golden/go/jsonio/jsonio_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-26T20:09:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bdbba00_debd8e88",
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
