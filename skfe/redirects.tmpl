@@ -1,0 +1,20 @@
+{{ range .in }}
+{{ index . 0 }} has {{ index . 1 }} keywords.
+
+                    {
+                      "domains": "{{ index . 0 }}",
+                      "name": "{{ index . 0 }}",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "{{ index . 1 }}",
+                            "https_redirect": true,
+                            "path_rewrite": "{{ index . 2 }}"
+                          }
+                        }
+                      ]
+                    },
+{{ end }}
