@@ -22,6 +22,30 @@
       "revId": "6966d472665c25d879e374903418dfe2032bc148",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8fbd6ec1_91e56b68",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-26T16:38:56Z",
+      "side": 1,
+      "message": "Yes, I\u0027m trying to test that goldpushk.New() correctly sets the relevant fields in the returned structure.\n\nSetting both boolean fields to true so their values do not get conflated with the zero value.",
+      "parentUuid": "91f4efb5_d3ed7f74",
+      "range": {
+        "startLine": 37,
+        "startChar": 2,
+        "endLine": 37,
+        "endChar": 33
+      },
+      "revId": "6966d472665c25d879e374903418dfe2032bc148",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
