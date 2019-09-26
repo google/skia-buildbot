@@ -17,10 +17,6 @@ scrape_configs:
     static_configs:
       - targets: ['skia-monitoring:20002']
 
-  - job_name: 'corpproxy'
-    static_configs:
-      - targets: ['skia-proxy:20000']
-
   - job_name: 'logmetrics'
     static_configs:
       - targets: ['skia-monitoring:20001']
@@ -37,18 +33,12 @@ scrape_configs:
     static_configs:
       - targets: ['skia-prom:20007']
 
-  - job_name: 'push'
-    static_configs:
-      - targets: ['skia-push:20000']
-
 # pulld for every server.
   - job_name: 'pulld'
     static_configs:
       - targets: ['skia-monitoring:11000']
       - targets: ['skia-monitoring:11000']
       - targets: ['skia-prom:11000']
-      - targets: ['skia-proxy:11000']
-      - targets: ['skia-push:11000']
       - targets: ['skia-skfe-1:11000']
       - targets: ['skia-skfe-2:11000']
 
