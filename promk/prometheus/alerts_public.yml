@@ -401,3 +401,35 @@ groups:
     annotations:
       abbr: '{{ $labels.exported_instance }}'
       description: 'Low Root Disk Space on {{ $labels.exported_instance }}.'
+
+# Envoy
+  - alert: EnvoyClusterBindError
+    expr: envoy_cluster_bind_errors > 0
+    for: 5m
+    labels:
+      category: infra
+      severity: error
+    annotations:
+      abbr: '{{ $labels.envoy_cluster_name }}'
+      description: 'Envoy Cluster Bind Error for {{ $labels.envoy_cluster_name
+      }}. https://skia.googlesource.com/buildbot/%2B/master/skfe/PROD.md#cluster_bind_error'
+
+  - alert: EnvoyRuntimeLoadError
+    expr: envoy_runtime_load_error > 0
+    for: 5m
+    labels:
+      category: infra
+      severity: error
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: 'Envoy Runtime Load Error for {{ $labels.app }}. https://skia.googlesource.com/buildbot/%2B/master/skfe/PROD.md#runtime_load_error'
+
+  - alert: EnvoyClusterNotOK
+    expr: envoy_cluster_lb_local_cluster_not_ok > 0
+    for: 5m
+    labels:
+      category: infra
+      severity: error
+    annotations:
+      abbr: '{{ $labels.envoy_cluster_name }}'
+      description: 'Envoy Cluster Not OK for {{ $labels.envoy_cluster_name }}. https://skia.googlesource.com/buildbot/%2B/master/skfe/PROD.md#envoy_cluster_lb_local_cluster_not_ok'
