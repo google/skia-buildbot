@@ -1,0 +1,313 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "09fb9730_0afaed2c",
+        "filename": "status/go/incremental/tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T19:05:52Z",
+      "side": 1,
+      "message": "nit: probably need a way to expire old tasks.\n\nAlternatively, just restart the process occasionally.\n\nAlternatively, we only need to track map[taskId]DbModified, and don\u0027t need to remember anything older than N minutes.\n\nx2",
+      "revId": "86a38782b049c59ecf9ffcb4c906392ec11f9988",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41320556_e7a429cb",
+        "filename": "status/go/incremental/tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T19:05:52Z",
+      "side": 1,
+      "message": "nit: map",
+      "range": {
+        "startLine": 47,
+        "startChar": 23,
+        "endLine": 47,
+        "endChar": 28
+      },
+      "revId": "86a38782b049c59ecf9ffcb4c906392ec11f9988",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51dc06d4_7a35f2d2",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T19:05:52Z",
+      "side": 1,
+      "message": "nit: Seems like this can stay db.RemoteDB? (Maybe rename that type?) If not, is db.RemoteDB still used?",
+      "range": {
+        "startLine": 80,
+        "startChar": 18,
+        "endLine": 80,
+        "endChar": 23
+      },
+      "revId": "86a38782b049c59ecf9ffcb4c906392ec11f9988",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a7d42d7d_775bf64c",
+        "filename": "task_scheduler/go/db/cache/cache.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T19:05:52Z",
+      "side": 1,
+      "message": "nit: maybe inline this where it\u0027s used, or switch back to using a slice as argument, to avoid generating temporary maps.",
+      "range": {
+        "startLine": 386,
+        "startChar": 20,
+        "endLine": 386,
+        "endChar": 65
+      },
+      "revId": "86a38782b049c59ecf9ffcb4c906392ec11f9988",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "589cc550_f87d3869",
+        "filename": "task_scheduler/go/db/cache/cache.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 439,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T19:05:52Z",
+      "side": 1,
+      "message": "This needs to come before db.GetTasksFromWindow.\n\nx2",
+      "revId": "86a38782b049c59ecf9ffcb4c906392ec11f9988",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ae96d6e_2129143b",
+        "filename": "task_scheduler/go/db/cache/cache.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 449,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T19:05:52Z",
+      "side": 1,
+      "message": "nit: maybe log when this goroutine exits\n\nx2",
+      "revId": "86a38782b049c59ecf9ffcb4c906392ec11f9988",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ec3f063_fafe06f0",
+        "filename": "task_scheduler/go/db/cache/cache_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T19:05:52Z",
+      "side": 1,
+      "message": "nit: maybe make a local helper func since this is repeated ~verbatim 4 times.",
+      "range": {
+        "startLine": 341,
+        "startChar": 0,
+        "endLine": 350,
+        "endChar": 4
+      },
+      "revId": "86a38782b049c59ecf9ffcb4c906392ec11f9988",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4fa0bebc_5fde5af7",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T19:05:52Z",
+      "side": 1,
+      "message": "nit: Clarify what the context is used for.\n\nnit: Maybe specify that at least one item will be sent on the channel, since some tests depend on that.\n\nx5",
+      "revId": "86a38782b049c59ecf9ffcb4c906392ec11f9988",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8cc613f9_52f7cc85",
+        "filename": "task_scheduler/go/db/memory/comments.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T19:05:52Z",
+      "side": 1,
+      "message": "FWIW, this is unused.",
+      "range": {
+        "startLine": 47,
+        "startChar": 5,
+        "endLine": 47,
+        "endChar": 33
+      },
+      "revId": "86a38782b049c59ecf9ffcb4c906392ec11f9988",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b0d0dc1c_ee3ec578",
+        "filename": "task_scheduler/go/db/memory/comments.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T19:05:52Z",
+      "side": 1,
+      "message": "nit: depending on the answer to the comment above about doc for ctx, maybe this should pay attention to ctx.\n\nIt might be nice to clean up the channel when context is canceled (although the FS impl doesn\u0027t do that, so maybe not?).\n\nx5",
+      "range": {
+        "startLine": 221,
+        "startChar": 44,
+        "endLine": 221,
+        "endChar": 47
+      },
+      "revId": "86a38782b049c59ecf9ffcb4c906392ec11f9988",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d53b274_2f163306",
+        "filename": "task_scheduler/go/db/memory/comments.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T19:05:52Z",
+      "side": 1,
+      "message": "This doesn\u0027t seem correct. Anything added before calling ModifiedTaskCommentsCh should only be passed to the channel in the case of eventual-consistency delay.\n\nIt might be nice to have tests that ensure users are robust against getting duplicated data, but I\u0027m not sure this is the right way to do that.\n\nx5",
+      "range": {
+        "startLine": 226,
+        "startChar": 0,
+        "endLine": 236,
+        "endChar": 2
+      },
+      "revId": "86a38782b049c59ecf9ffcb4c906392ec11f9988",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3898dd0_f99d116d",
+        "filename": "task_scheduler/go/db/memory/memory.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T19:05:52Z",
+      "side": 1,
+      "message": "It might be nice to adapt the tests in task_scheduler/go/db/firestore/modified_chan_test.go to work for the memory impl also.",
+      "revId": "86a38782b049c59ecf9ffcb4c906392ec11f9988",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51bb5c9c_a56efe94",
+        "filename": "task_scheduler/go/db/memory/memory.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T19:05:52Z",
+      "side": 1,
+      "message": "Maybe need to copy here? I suppose we could doc that callers of ModifiedTasksCh can\u0027t modify the tasks or task slices, but I think we\u0027ve been bitten by that approach in the past.\n\nx2",
+      "range": {
+        "startLine": 114,
+        "startChar": 9,
+        "endLine": 114,
+        "endChar": 14
+      },
+      "revId": "86a38782b049c59ecf9ffcb4c906392ec11f9988",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e52b509_f08aa328",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 493,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T19:05:52Z",
+      "side": 1,
+      "message": "nit: I wonder if it\u0027s worthwhile to add a wrapper around PutJobs/PutTasks that also updates the cache.",
+      "revId": "86a38782b049c59ecf9ffcb4c906392ec11f9988",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c11fc68b_3830ae5b",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 3183,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-26T19:05:52Z",
+      "side": 1,
+      "message": "nit: maybe mention we need a select so that the test fails rather than timing out.",
+      "range": {
+        "startLine": 3183,
+        "startChar": 6,
+        "endLine": 3183,
+        "endChar": 20
+      },
+      "revId": "86a38782b049c59ecf9ffcb4c906392ec11f9988",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
