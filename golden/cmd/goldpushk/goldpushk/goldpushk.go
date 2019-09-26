@@ -106,27 +106,26 @@ func (g *Goldpushk) Run(ctx context.Context) error {
 		return nil
 	}
 
-	// Get cluster credentials before running any kubectl commands.
-	if err := g.getClusterCredentials(ctx, clusterSkiaPublic); err != nil {
-		return err
-	}
-	if err := g.getClusterCredentials(ctx, clusterSkiaCorp); err != nil {
+	// Deploy canaries.
+	if err := g.pushCanaries(ctx); err != nil {
 		return err
 	}
 
-	// TODO(lovisolo): Implement methods below.
-	if err := g.pushCanaries(); err != nil {
-		return err
-	}
+	// Monitor canaries.
 	if err := g.monitorCanaries(); err != nil {
 		return err
 	}
-	if err := g.pushServices(); err != nil {
+
+	// Deploy remaining DeployableUnits.
+	if err := g.pushServices(ctx); err != nil {
 		return err
 	}
+
+	// Monitor remaining DeployableUnits.
 	if err := g.monitorServices(); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -375,50 +374,123 @@ func printOutGitStatus(ctx context.Context, checkout *git.TempCheckout, repoName
 	return nil
 }
 
-func (g *Goldpushk) pushCanaries() error {
-	// TODO(lovisolo)
-	return skerr.Fmt("not implemented")
+// pushCanaries deploys the canaried deployable units.
+func (g *Goldpushk) pushCanaries(ctx context.Context) error {
+	if len(g.canariedDeployableUnits) == 0 {
+		return nil
+	}
+
+	fmt.Println("Deploying canaried services.")
+	if err := g.pushDeployableUnits(ctx, g.canariedDeployableUnits); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (g *Goldpushk) monitorCanaries() error {
 	// TODO(lovisolo)
-	return skerr.Fmt("not implemented")
+	fmt.Printf("Monitoring not yet implemented.")
+	return nil
 }
 
-func (g *Goldpushk) pushServices() error {
-	// TODO(lovisolo)
-	return skerr.Fmt("not implemented")
+// pushServices deploys the non-canaried deployable units.
+func (g *Goldpushk) pushServices(ctx context.Context) error {
+	if len(g.canariedDeployableUnits) == 0 {
+		fmt.Println("Deploying services.")
+	} else {
+		fmt.Println("Deploying remaining services.")
+	}
+
+	if err := g.pushDeployableUnits(ctx, g.deployableUnits); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (g *Goldpushk) monitorServices() error {
 	// TODO(lovisolo)
-	return skerr.Fmt("not implemented")
+	fmt.Printf("Monitoring not yet implemented.")
+	return nil
 }
 
-// getClusterCredentials runs the "gcloud" command necessary to get the credentials for the given
-// cluster.
-func (g *Goldpushk) getClusterCredentials(ctx context.Context, cluster cluster) error {
-	sklog.Infof("Getting credentials for cluster %s\n", cluster.name)
+// pushDeployableUnits takes a slice of DeployableUnits and pushes them to their corresponding
+// clusters.
+func (g *Goldpushk) pushDeployableUnits(ctx context.Context, units []DeployableUnit) error {
+	for _, unit := range units {
+		if err := g.pushSingleDeployableUnit(ctx, unit); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	return nil
+}
+
+// pushSingleDeployableUnit pushes the given DeployableUnit to the corresponding cluster by running
+// "kubectl apply -f path/to/config.yaml".
+func (g *Goldpushk) pushSingleDeployableUnit(ctx context.Context, unit DeployableUnit) error {
+	// Get the cluster corresponding to the given DeployableUnit.
+	cluster := clusterSkiaPublic
+	if unit.internal {
+		cluster = clusterSkiaCorp
+	}
+
+	// Switch clusters.
+	if err := g.switchClusters(ctx, cluster); err != nil {
+		return skerr.Wrap(err)
+	}
+
+	// If the DeployableUnit requires a ConfigMap, delete and recreate it.
+	if path, ok := g.getConfigMapFilePath(unit); ok {
+		fmt.Printf("%s: creating ConfigMap named \"%s\" from file %s.\n", unit.CanonicalName(), unit.configMapName, path)
+
+		// Delete existing ConfigMap.
+		cmd := &exec.Command{
+			Name:        "kubectl",
+			Args:        []string{"delete", "configmap", unit.configMapName},
+			InheritPath: true,
+			LogStderr:   true,
+			LogStdout:   true,
+		}
+		if err := exec.Run(ctx, cmd); err != nil {
+			return skerr.Wrapf(err, "failed to run kubectl")
+		}
+
+		// Create new ConfigMap.
+		cmd = &exec.Command{
+			Name:        "kubectl",
+			Args:        []string{"create", "configmap", unit.configMapName, "--from-file", path},
+			InheritPath: true,
+			LogStderr:   true,
+			LogStdout:   true,
+		}
+		if err := exec.Run(ctx, cmd); err != nil {
+			return skerr.Wrapf(err, "failed to run kubectl")
+		}
+	}
+
+	// Push DeployableUnit.
+	path := g.getDeploymentFilePath(unit)
+	fmt.Printf("%s: applying %s.\n", unit.CanonicalName(), path)
 	cmd := &exec.Command{
-		Name:        "gcloud",
-		Args:        []string{"container", "clusters", "get-credentials", cluster.name, "--zone", "us-central1-a", "--project", cluster.projectID},
+		Name:        "kubectl",
+		Args:        []string{"apply", "-f", path},
 		InheritPath: true,
 		LogStderr:   true,
 		LogStdout:   true,
 	}
 	if err := exec.Run(ctx, cmd); err != nil {
-		return skerr.Wrapf(err, "failed to run gcloud")
+		return skerr.Wrapf(err, "failed to run kubectl")
 	}
+
 	return nil
 }
 
 // switchClusters runs the "gcloud" command necessary to switch kubectl to the given cluster.
 func (g *Goldpushk) switchClusters(ctx context.Context, cluster cluster) error {
-	sklog.Infof("Switching to cluster %s\n", cluster.name)
 	if g.currentCluster != cluster {
+		sklog.Infof("Switching to cluster %s\n", cluster.name)
 		cmd := &exec.Command{
 			Name:        "gcloud",
-			Args:        []string{"config", "set", "project", cluster.projectID},
+			Args:        []string{"container", "clusters", "get-credentials", cluster.name, "--zone", "us-central1-a", "--project", cluster.projectID},
 			InheritPath: true,
 			LogStderr:   true,
 			LogStdout:   true,
