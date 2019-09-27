@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "051be211_627e04eb",
+        "filename": "android_compile/go/android_compile_be/checkouts.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-27T18:55:01Z",
+      "side": 1,
+      "message": "This is only used in this file; why not just use a module-level variable?",
+      "range": {
+        "startLine": 218,
+        "startChar": 0,
+        "endLine": 218,
+        "endChar": 63
+      },
+      "revId": "6b2490d5f6face2933cfd2614ea885cccf326818",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ec03b9f_b0f2e1f6",
+        "filename": "promk/prometheus/alerts_corp.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-27T18:55:01Z",
+      "side": 1,
+      "message": "How long does it take to sync the Android checkout?  I would\u0027ve thought it would be more than 5 minutes, in which case this error will fire on the first failure, even if it fixes itself on the next try.",
+      "range": {
+        "startLine": 57,
+        "startChar": 9,
+        "endLine": 57,
+        "endChar": 11
+      },
+      "revId": "6b2490d5f6face2933cfd2614ea885cccf326818",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
