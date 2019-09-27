@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/exec"
@@ -592,6 +593,99 @@ func TestPushServices(t *testing.T) {
 	for i, command := range expectedCommands {
 		assert.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
 	}
+}
+
+func TestGetUptimesSingleCluster(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Gather the DeployableUnits to deploy.
+	s := ProductionDeployableUnits()
+	units := []DeployableUnit{}
+	units = appendUnit(t, units, s, Chrome, BaselineServer)
+	units = appendUnit(t, units, s, ChromeGPU, BaselineServer)
+	units = appendUnit(t, units, s, Flutter, BaselineServer)
+	units = appendUnit(t, units, s, Flutter, DiffServer)
+
+	// Create the goldpushk instance under test.
+	g := &Goldpushk{}
+
+	// Set up mocks.
+	kubectlOutput := `NAME                                                   RUNNING_SINCE
+fiddler                                                2019-09-26T22:59:31Z
+fiddler                                                2019-09-26T22:59:31Z
+fiddler                                                2019-09-26T22:59:54Z
+<none>                                                 <none>
+<none>                                                 <none>
+<none>                                                 <none>
+gitsync2                                               2019-09-25T18:34:24Z
+gitsync2-staging                                       2019-09-25T18:29:42Z
+gold-chrome-baselineserver                             2019-09-24T17:57:25Z
+gold-chrome-baselineserver                             2019-09-24T17:57:19Z
+gold-chrome-baselineserver                             2019-09-24T17:57:33Z
+gold-chrome-diffserver                                 2019-09-05T20:53:42Z
+gold-chrome-gpu-baselineserver                         2019-09-24T17:55:23Z
+gold-chrome-gpu-baselineserver                         2019-09-24T17:55:06Z
+gold-chrome-gpu-baselineserver                         2019-09-24T17:55:14Z
+gold-chrome-gpu-diffserver                             2019-09-14T05:56:23Z
+gold-chrome-gpu-ingestion-bt                           2019-09-24T17:53:24Z
+gold-chrome-gpu-skiacorrectness                        2019-09-23T16:42:39Z
+gold-chrome-ingestion-bt                               2019-09-24T17:56:10Z
+gold-chrome-skiacorrectness                            2019-09-23T16:42:23Z
+gold-flutter-baselineserver                            2019-09-24T17:57:32Z
+gold-flutter-baselineserver                            <none>
+gold-flutter-baselineserver                            2019-09-24T17:57:21Z
+gold-flutter-diffserver                                <none>
+gold-flutter-engine-baselineserver                     2019-09-24T12:11:35Z
+gold-flutter-engine-baselineserver                     2019-09-24T12:11:34Z
+gold-flutter-engine-baselineserver                     2019-09-24T12:11:34Z
+gold-flutter-engine-diffserver                         2019-09-24T12:10:28Z
+gold-flutter-engine-ingestion-bt                       2019-09-24T17:57:45Z
+gold-flutter-engine-skiacorrectness                    2019-09-24T12:21:58Z
+gold-flutter-ingestion-bt                              2019-09-24T17:59:26Z
+gold-flutter-skiacorrectness                           2019-09-23T16:47:49Z
+gold-goldpushk-test1-crashing-server                   <none>
+gold-goldpushk-test1-healthy-server                    2019-09-26T20:31:44Z
+gold-goldpushk-test2-crashing-server                   <none>
+gold-goldpushk-test2-healthy-server                    2019-09-26T20:31:45Z
+gold-lottie-diffserver                                 2019-09-25T07:36:38Z
+gold-lottie-ingestion-bt                               2019-09-24T18:01:03Z
+gold-lottie-skiacorrectness                            2019-09-23T16:49:10Z
+gold-pdfium-diffserver                                 2019-08-16T15:16:37Z
+gold-pdfium-ingestion-bt                               2019-09-25T07:36:14Z
+gold-pdfium-skiacorrectness                            2019-09-23T16:49:22Z
+gold-skia-diffserver                                   2019-09-05T15:17:16Z
+gold-skia-ingestion-bt                                 2019-09-24T18:02:47Z
+gold-skia-public-skiacorrectness                       2019-09-24T16:52:42Z
+gold-skia-skiacorrectness                              2019-09-24T16:51:49Z
+grafana                                                2019-08-28T14:09:11Z
+jsdoc                                                  2019-09-20T13:04:44Z
+jsdoc                                                  2019-09-20T13:04:38Z
+jsfiddle                                               2019-09-26T22:55:01Z
+jsfiddle                                               2019-09-26T22:55:10Z
+k8s-checker                                            2019-09-22T14:50:26Z
+leasing                                                2019-09-12T02:14:12Z
+`
+	commandCollector := exec.CommandCollector{}
+	commandCollector.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
+		n, err := cmd.CombinedOutput.Write([]byte(kubectlOutput))
+		assert.NoError(t, err)
+		assert.Equal(t, len(kubectlOutput), n)
+		return nil
+	})
+	commandCollectorCtx := exec.NewContext(context.Background(), commandCollector.Run)
+
+	// Fake time.
+	now, err := time.Parse(kubectlTimestampLayout, "2019-09-24T17:58:02Z")
+	assert.NoError(t, err)
+
+	// Call code under test.
+	uptime, err := g.getUptimesSingleCluster(commandCollectorCtx, units, now)
+	assert.NoError(t, err)
+
+	// Assert that we get the expected uptimes.
+	assert.Len(t, uptime, 2)
+	assert.Equal(t, int64(29), uptime[makeID(Chrome, BaselineServer)])     // 17:58:02 - 17:57:33
+	assert.Equal(t, int64(159), uptime[makeID(ChromeGPU, BaselineServer)]) // 17:58:02 - 17:55:23
 }
 
 // appendUnit will retrieve a DeployableUnit from the given DeployableUnitSet using the given
