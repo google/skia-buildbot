@@ -51,3 +51,13 @@ groups:
       owner: rmistry@google.com
     annotations:
       description: 'Android tree in {{ $labels.kubernetes_pod_name }} might be broken. Both withpatch and nopatch runs failed on android compile server. https://skia.googlesource.com/buildbot/%2B/master/android_compile/PROD.md#android_tree_broken'
+
+  - alert: AndroidCheckoutSyncFailure
+    expr: android_checkout_sync_failure{} > 0
+    for: 5m
+    labels:
+      category: infra
+      severity: warning
+      owner: rmistry@google.com
+    annotations:
+      description: 'The checkout {{ $labels.checkout }} of the pod {{ $labels.kubernetes_pod_name }} is failing to sync. https://skia.googlesource.com/buildbot/%2B/master/android_compile/PROD.md#android_checkout_sync_failure'

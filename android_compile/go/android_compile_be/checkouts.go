@@ -215,8 +215,10 @@ func updateCheckoutsInParallel(ctx context.Context, checkouts []string) error {
 			}
 			// Now update the Android checkout.
 			if err := updateCheckout(ctx, c, false); err != nil {
+				ac_util.UpdateCheckoutSyncFailureMetric(true, path.Base(c))
 				return fmt.Errorf("Error when updating checkout in %s: %s", c, err)
 			}
+			ac_util.UpdateCheckoutSyncFailureMetric(false, path.Base(c))
 			return nil
 		})
 	}
@@ -502,8 +504,10 @@ func RunCompileTask(ctx context.Context, g *gsFileLocation, task *ac_util.Compil
 
 	// Step 3: Update the Android checkout.
 	if err := updateCheckout(ctx, checkoutPath, false); err != nil {
+		ac_util.UpdateCheckoutSyncFailureMetric(true, path.Base(checkoutPath))
 		return fmt.Errorf("Error when updating checkout in %s: %s", checkoutPath, err)
 	}
+	ac_util.UpdateCheckoutSyncFailureMetric(false, path.Base(checkoutPath))
 
 	// Step 4: Get contents of SkUserConfigManual.h. We will use this after
 	// updating Skia to master/origin and before compiling.
