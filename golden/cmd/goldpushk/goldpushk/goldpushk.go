@@ -15,7 +15,12 @@ package goldpushk
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
+	"text/tabwriter"
+	"time"
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -27,6 +32,11 @@ const (
 	// Paths below are relative to $SKIA_INFRA_ROOT.
 	k8sConfigTemplatesDir = "golden/k8s-config-templates"
 	k8sInstancesDir       = "golden/k8s-instances"
+
+	// Constants used to monitor the status of deployed services.
+	kubectlTimestampLayout     = "2006-01-02T15:04:05Z"
+	minUptimeSeconds           = 30
+	uptimePollFrequencySeconds = 3
 )
 
 // cluster represents a Kubernetes cluster on which to deploy DeployableUnits, and contains all the
@@ -112,7 +122,7 @@ func (g *Goldpushk) Run(ctx context.Context) error {
 	}
 
 	// Monitor canaries.
-	if err := g.monitorCanaries(); err != nil {
+	if err := g.monitorCanaries(ctx); err != nil {
 		return err
 	}
 
@@ -122,7 +132,7 @@ func (g *Goldpushk) Run(ctx context.Context) error {
 	}
 
 	// Monitor remaining DeployableUnits.
-	if err := g.monitorServices(); err != nil {
+	if err := g.monitorServices(ctx); err != nil {
 		return err
 	}
 
@@ -387,9 +397,15 @@ func (g *Goldpushk) pushCanaries(ctx context.Context) error {
 	return nil
 }
 
-func (g *Goldpushk) monitorCanaries() error {
-	// TODO(lovisolo)
-	fmt.Println("\nMonitoring not yet implemented.")
+// monitorCanaries monitors the canaried deployable units after they have been pushed to production.
+func (g *Goldpushk) monitorCanaries(ctx context.Context) error {
+	if len(g.canariedDeployableUnits) == 0 {
+		return nil
+	}
+
+	if err := g.monitor(ctx, g.canariedDeployableUnits); err != nil {
+		return skerr.Wrap(err)
+	}
 	return nil
 }
 
@@ -407,9 +423,12 @@ func (g *Goldpushk) pushServices(ctx context.Context) error {
 	return nil
 }
 
-func (g *Goldpushk) monitorServices() error {
-	// TODO(lovisolo)
-	fmt.Println("\nMonitoring not yet implemented.")
+// monitorServices monitors the non-canaried deployable units after they have been pushed to
+// production.
+func (g *Goldpushk) monitorServices(ctx context.Context) error {
+	if err := g.monitor(ctx, g.deployableUnits); err != nil {
+		return skerr.Wrap(err)
+	}
 	return nil
 }
 
@@ -501,6 +520,236 @@ func (g *Goldpushk) switchClusters(ctx context.Context, cluster cluster) error {
 		g.currentCluster = cluster
 	}
 	return nil
+}
+
+// monitor watches the state of the given DeployableUnits and returns as soon as they seem to be
+// up and running on their respective clusters.
+func (g *Goldpushk) monitor(ctx context.Context, units []DeployableUnit) error {
+	fmt.Printf("\nMonitoring the following services until they all reach %d seconds of uptime (polling every %d seconds):\n", minUptimeSeconds, uptimePollFrequencySeconds)
+	for _, unit := range units {
+		fmt.Printf("  %s\n", unit.CanonicalName())
+	}
+
+	// Estimate uptime table width.
+	uptimeTableWidth := 0
+	for _, unit := range units {
+		if len(unit.CanonicalName()) > uptimeTableWidth {
+			uptimeTableWidth = len(unit.CanonicalName())
+		}
+	}
+	uptimeTableWidth += 20 // Add UPTIME and RUNNING columns estimated width.
+
+	// Print uptime table header.
+	w := tabwriter.NewWriter(os.Stdout, 10, 0, 2, ' ', 0)
+	if _, err := fmt.Fprintln(w, "\nUPTIME\tREADY\tNAME"); err != nil {
+		return skerr.Wrap(err)
+	}
+	if err := w.Flush(); err != nil {
+		return skerr.Wrap(err)
+	}
+
+	// Monitoring loop.
+	for {
+		// Get uptimes, once per cluster.
+		uptime, err := g.getUptimes(ctx, units, time.Now())
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+
+		// Print out uptimes.
+		for _, unit := range units {
+			uptimeStr := "none"
+			running := "No"
+			if s, ok := uptime[unit.DeployableUnitID]; ok {
+				uptimeStr = fmt.Sprintf("%ds", s)
+				if s > minUptimeSeconds {
+					running = "Yes"
+				}
+			}
+			if _, err := fmt.Fprintf(w, "%s\t%s\t%s\n", uptimeStr, running, unit.CanonicalName()); err != nil {
+				return skerr.Wrap(err)
+			}
+		}
+
+		// Decide whether to keep monitoring.
+		done := true
+		for _, unit := range units {
+			if secs, ok := uptime[unit.DeployableUnitID]; !ok || secs < minUptimeSeconds {
+				done = false
+				break
+			}
+		}
+
+		// Finish monitoring if all services are up and running.
+		if done {
+			if err := w.Flush(); err != nil {
+				return skerr.Wrap(err)
+			}
+			break
+		}
+
+		// Separate each snapshot with a horizontal line.
+		for i := 0; i < uptimeTableWidth; i++ {
+			if _, err := fmt.Fprintf(w, "-"); err != nil {
+				return skerr.Wrap(err)
+			}
+		}
+		if _, err := fmt.Fprintf(w, "\n"); err != nil {
+			return skerr.Wrap(err)
+		}
+		if err := w.Flush(); err != nil {
+			return skerr.Wrap(err)
+		}
+
+		// Wait before polling again.
+		time.Sleep(uptimePollFrequencySeconds * time.Second)
+	}
+
+	return nil
+}
+
+// getUptimes groups the given DeployableUnits by cluster, calls getUptimesSingleCluster once per
+// cluster, and returns the union of the uptimes returned by both calls to getUptimesSingleCluster.
+func (g *Goldpushk) getUptimes(ctx context.Context, units []DeployableUnit, now time.Time) (map[DeployableUnitID]int64, error) {
+	// Group units by cluster.
+	publicUnits := []DeployableUnit{}
+	corpUnits := []DeployableUnit{}
+	for _, unit := range units {
+		if unit.internal {
+			corpUnits = append(corpUnits, unit)
+		} else {
+			publicUnits = append(publicUnits, unit)
+		}
+	}
+
+	// This will hold the uptimes from both clusters.
+	allUptimes := make(map[DeployableUnitID]int64)
+
+	// Once per cluster.
+	for i := 0; i < 2; i++ {
+		cluster := clusterSkiaPublic
+		units := publicUnits
+		if i == 1 {
+			cluster = clusterSkiaCorp
+			units = corpUnits
+		}
+
+		// Switch to the current cluster.
+		if err := g.switchClusters(ctx, cluster); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+
+		// Get the uptimes for the current cluster.
+		uptime, err := g.getUptimesSingleCluster(ctx, units, time.Now())
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+
+		// Add uptimes to the multicluster map.
+		for unitID, secs := range uptime {
+			allUptimes[unitID] = secs
+		}
+	}
+
+	return allUptimes, nil
+}
+
+// getUptimesSingleCluster takes a slice of DeployableUnits and returns a map from DeployableUnitID
+// to the number of seconds since all the containers corresponding to that unit have entered the
+// "Running" state.
+//
+// A DeployableUnit will not have a corresponding entry in the returned map if any of its
+// corresponding containers are in a state different from "Running", or if no matching containers
+// are found.
+//
+// This method assumes that all the given units belong to the same Kubernetes cluster, and that
+// kubectl is currently configured to manage said cluster.
+func (g *Goldpushk) getUptimesSingleCluster(ctx context.Context, units []DeployableUnit, now time.Time) (map[DeployableUnitID]int64, error) {
+	// Execute kubectl command that will return per-container uptime.
+	cmd := &exec.Command{
+		Name: "kubectl",
+		// This command outputs a table with one row per pod, and assumes there is at most one container
+		// running on each pod. Columns are:
+		//   - NAME: The app name (e.g. "gold-chrome-diffserver"), or "<none>" if it cannot be
+		//     determined.
+		//   - RUNNING_SINCE: Timestamp (e.g. "2019-09-05T20:53:42Z") that indicates the moment in which
+		//     the only container on the pod entered the "Running" state, or "<none>" if the current
+		//     state is not "Running".
+		Args:        []string{"get", "pods", "-o", "custom-columns=NAME:.metadata.labels.app,RUNNING_SINCE:.status.containerStatuses[0].state.running.startedAt"},
+		InheritPath: true,
+		LogStderr:   true,
+		LogStdout:   true,
+	}
+	stdout, err := exec.RunCommand(ctx, cmd)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to run kubectl")
+	}
+
+	// This map will hold the uptimes (in seconds) parsed from the command output.
+	uptime := make(map[DeployableUnitID]int64)
+
+	// Keeps track of whether a given unit was removed from the uptime dictionary due to one of its
+	// containers having a <none> running time (i.e. not currently in the "Running" state).
+	removed := make(map[DeployableUnitID]bool)
+
+	// We will parse each output line using this regular expression.
+	re := regexp.MustCompile("(\\S+)\\s+(\\S+)")
+
+	// Iterate over all output lines.
+	for _, line := range strings.Split(stdout, "\n") {
+		// Parse line.
+		matches := re.FindStringSubmatch(line)
+
+		// Skip newline at the end.
+		if len(matches) != 3 {
+			continue
+		}
+		nameStr := matches[1]
+		runningSinceStr := matches[2]
+
+		// Try to find the DeployableUnitID of the unit corresponding to the current line.
+		var unitID DeployableUnitID
+		for _, unit := range units {
+			if unit.CanonicalName() == nameStr {
+				unitID = unit.DeployableUnitID
+			}
+		}
+
+		// If no DeployableUnit matches, skip to the next line.
+		if unitID == (DeployableUnitID{}) {
+			continue
+		}
+
+		// If the running time is "<none>", the container corresponding to the current line is not
+		// running. We exclude its DeployableUnit from the output.
+		if runningSinceStr == "<none>" {
+			delete(uptime, unitID)
+			removed[unitID] = true
+			continue
+		}
+
+		// If the DeployableUnit has ever been excluded from the output, skip.
+		if _, ok := removed[unitID]; ok {
+			continue
+		}
+
+		// Parse the timestamp.
+		t, err := time.Parse(kubectlTimestampLayout, runningSinceStr)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+
+		// Compute the number of seconds since the container corresponding to the current line has
+		// entered the "Running" state.
+		secondsSinceRunning := int64(now.Sub(t).Seconds())
+
+		// If it is the most recent for its corresponding DeployableUnit, we update the uptime map.
+		if currentMin, ok := uptime[unitID]; !ok || (secondsSinceRunning < currentMin) {
+			uptime[unitID] = secondsSinceRunning
+		}
+	}
+
+	return uptime, nil
 }
 
 // forAllDeployableUnits applies all deployable units (including canaried units)
