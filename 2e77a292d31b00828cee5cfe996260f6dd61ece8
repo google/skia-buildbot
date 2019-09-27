@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7f5eb412_cf296c89",
+        "filename": "go/gcs/download_helper.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-27T19:28:11Z",
+      "side": 1,
+      "message": "Whoops, forgot to revisit this function. There\u0027s no need to actually open the file here.",
+      "parentUuid": "91df685a_8ca15332",
+      "range": {
+        "startLine": 83,
+        "startChar": 2,
+        "endLine": 83,
+        "endChar": 58
+      },
+      "revId": "2e77a292d31b00828cee5cfe996260f6dd61ece8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dee11ea2_bb5e1519",
         "filename": "go/util/util.go",
         "patchSetId": 2
@@ -72,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "7271d4a6_bb7c47e6",
+        "filename": "go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1027,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-27T19:28:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6c3c10dd_6ca4c06c",
+      "range": {
+        "startLine": 1027,
+        "startChar": 2,
+        "endLine": 1027,
+        "endChar": 7
+      },
+      "revId": "2e77a292d31b00828cee5cfe996260f6dd61ece8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b43400f5_d37aeb37",
         "filename": "go/util/util.go",
         "patchSetId": 2
@@ -92,6 +140,30 @@
       "revId": "2e77a292d31b00828cee5cfe996260f6dd61ece8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d6917d0_6810140f",
+        "filename": "go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1068,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-27T19:28:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b43400f5_d37aeb37",
+      "range": {
+        "startLine": 1068,
+        "startChar": 9,
+        "endLine": 1068,
+        "endChar": 12
+      },
+      "revId": "2e77a292d31b00828cee5cfe996260f6dd61ece8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
