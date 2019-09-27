@@ -55,8 +55,10 @@ type CompileTask struct {
 	CompileServerInstance string `json:"compile_server_instance"`
 	IsMasterBranch        bool   `json:"is_master_branch"`
 	Done                  bool   `json:"done"`
-	Error                 string `json:"error"`
-	InfraFailure          bool   `json:"infra_failure"`
+	// Write Error only to Google storage and not the datastore because sometimes
+	// the error can be large and cause failures when writing to datastore.
+	Error        string `json:"error" datastore:"-"`
+	InfraFailure bool   `json:"infra_failure"`
 }
 
 type sortTasks []*CompileTask

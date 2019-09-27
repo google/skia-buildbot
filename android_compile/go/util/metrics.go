@@ -29,3 +29,12 @@ func UpdateAndroidTreeBrokenMetric(broken bool) {
 	defer androidTreeBrokenMetricMutex.Unlock()
 	androidTreeBrokenMetric.Update(int64(val))
 }
+
+func UpdateCheckoutSyncFailureMetric(failed bool, checkout string) {
+	val := 0
+	if failed {
+		val = 1
+	}
+	syncFailureMetric := metrics2.GetInt64Metric("android_checkout_sync_failure", map[string]string{"checkout": checkout})
+	syncFailureMetric.Update(int64(val))
+}
