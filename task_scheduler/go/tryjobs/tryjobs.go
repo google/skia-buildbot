@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
@@ -72,6 +71,7 @@ const (
 // trigger try jobs and report their results.
 type TryJobIntegrator struct {
 	bb                 *buildbucket_api.Service
+	bb2                buildbucket.BuildBucketInterface
 	bucket             string
 	chr                *cacher.Cacher
 	db                 db.JobDB
@@ -93,6 +93,7 @@ func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB
 	gerrit.TurnOnAuthenticatedGets()
 	rv := &TryJobIntegrator{
 		bb:                 bb,
+		bb2:                buildbucket.NewClient(c),
 		bucket:             bucket,
 		db:                 d,
 		chr:                chr,
@@ -272,15 +273,12 @@ func (t *TryJobIntegrator) sendHeartbeats(now time.Time, jobs []*types.Job) erro
 // the try job wants us to sync, and what repo the patch is for. Returns the
 // top level repo URL, its associated repograph.Graph instance, the patch repo
 // URL, or an error.
-func (t *TryJobIntegrator) getRepo(props *buildbucket.Properties) (string, *repograph.Graph, string, error) {
-	patchRepoUrl, ok := t.projectRepoMapping[props.PatchProject]
+func (t *TryJobIntegrator) getRepo(project string) (string, *repograph.Graph, string, error) {
+	patchRepoUrl, ok := t.projectRepoMapping[project]
 	if !ok {
-		return "", nil, "", fmt.Errorf("Unknown patch project %q", props.PatchProject)
+		return "", nil, "", fmt.Errorf("Unknown patch project %q", project)
 	}
 	topRepoUrl := patchRepoUrl
-	if props.TryJobRepo != "" {
-		topRepoUrl = props.TryJobRepo
-	}
 	r, ok := t.rm[topRepoUrl]
 	if !ok {
 		return "", nil, "", fmt.Errorf("Unknown repo %q", topRepoUrl)
@@ -288,19 +286,15 @@ func (t *TryJobIntegrator) getRepo(props *buildbucket.Properties) (string, *repo
 	return topRepoUrl, r, patchRepoUrl, nil
 }
 
-func (t *TryJobIntegrator) getRevision(ctx context.Context, repo *repograph.Graph, revision string, issue int64) (string, error) {
-	revision = strings.TrimPrefix(revision, "origin/")
-	if revision == "" || revision == "HEAD" {
-		// Obtain the branch name from Gerrit, then use the head of that branch.
-		changeInfo, err := t.gerrit.GetIssueProperties(ctx, issue)
-		if err != nil {
-			return "", fmt.Errorf("Failed to get ChangeInfo: %s", err)
-		}
-		revision = changeInfo.Branch
+func (t *TryJobIntegrator) getRevision(ctx context.Context, repo *repograph.Graph, issue int64) (string, error) {
+	// Obtain the branch name from Gerrit, then use the head of that branch.
+	changeInfo, err := t.gerrit.GetIssueProperties(ctx, issue)
+	if err != nil {
+		return "", fmt.Errorf("Failed to get ChangeInfo: %s", err)
 	}
-	c := repo.Get(revision)
+	c := repo.Get(changeInfo.Branch)
 	if c == nil {
-		return "", fmt.Errorf("Unknown revision %s", revision)
+		return "", fmt.Errorf("Unknown branch %s", changeInfo.Branch)
 	}
 	return c.Hash, nil
 }
@@ -352,54 +346,49 @@ func (t *TryJobIntegrator) tryLeaseBuild(id int64) (int64, error) {
 	return resp.Build.LeaseKey, nil
 }
 
-func (t *TryJobIntegrator) insertNewJob(ctx context.Context, b *buildbucket_api.LegacyApiCommonBuildMessage) error {
-	// Parse the build parameters.
-	var params buildbucket.Parameters
-	if err := json.NewDecoder(strings.NewReader(b.ParametersJson)).Decode(&params); err != nil {
-		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid parameters_json: %s;\n\n%s", err, b.ParametersJson))
+func (t *TryJobIntegrator) insertNewJob(ctx context.Context, buildId int64) error {
+	// Get the build details from the v2 API.
+	build, err := t.bb2.GetBuild(ctx, buildId)
+	if err != nil {
+		return t.remoteCancelBuild(buildId, fmt.Sprintf("Failed to retrieve build %q: %s", buildId, err))
 	}
 
 	// Obtain and validate the RepoState.
-	topRepoUrl, topRepoGraph, patchRepoUrl, err := t.getRepo(&params.Properties)
-	if err != nil {
-		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Unable to find repo: %s", err))
+	if build.Input.GerritChanges == nil || len(build.Input.GerritChanges) != 1 {
+		return t.remoteCancelBuild(buildId, fmt.Sprintf("Invalid Build %d: input: %+v", buildId, build.Input))
 	}
-	revision, err := t.getRevision(ctx, topRepoGraph, params.Properties.Revision, int64(params.Properties.GerritIssue))
+	gerritChange := build.Input.GerritChanges[0]
+	topRepoUrl, topRepoGraph, patchRepoUrl, err := t.getRepo(gerritChange.Project)
 	if err != nil {
-		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid revision: %s", err))
+		return t.remoteCancelBuild(buildId, fmt.Sprintf("Unable to find repo: %s", err))
 	}
-	server := params.Properties.Gerrit
-	issue := params.Properties.GerritIssue
-	patchset := params.Properties.GerritPatchset
-	if params.Properties.PatchStorage == "gerrit" {
-		psSplit := strings.Split(patchset, "/")
-		patchset = psSplit[len(psSplit)-1]
-	} else {
-		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid patch storage: %s", params.Properties.PatchStorage))
+	revision, err := t.getRevision(ctx, topRepoGraph, gerritChange.Change)
+	if err != nil {
+		return t.remoteCancelBuild(buildId, fmt.Sprintf("Invalid revision: %s", err))
 	}
 	rs := types.RepoState{
 		Patch: types.Patch{
-			Server:    server,
-			Issue:     fmt.Sprintf("%d", issue),
+			Server:    gerritChange.Host,
+			Issue:     fmt.Sprintf("%d", gerritChange.Change),
 			PatchRepo: patchRepoUrl,
-			Patchset:  patchset,
+			Patchset:  fmt.Sprintf("%d", gerritChange.Patchset),
 		},
 		Repo:     topRepoUrl,
 		Revision: revision,
 	}
 	if !rs.Valid() || !rs.IsTryJob() {
-		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid RepoState: %s", rs))
+		return t.remoteCancelBuild(buildId, fmt.Sprintf("Invalid RepoState: %s", rs))
 	}
 
 	// Create a Job.
 	if _, err := t.chr.GetOrCacheRepoState(ctx, rs); err != nil {
-		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to obtain JobSpec: %s; \n\n%v", err, params))
+		return t.remoteCancelBuild(buildId, fmt.Sprintf("Failed to obtain JobSpec: %s; \n\n%v", err, rs))
 	}
-	j, err := t.taskCfgCache.MakeJob(ctx, rs, params.BuilderName)
+	j, err := t.taskCfgCache.MakeJob(ctx, rs, build.Builder.Builder)
 	if err != nil {
-		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to create Job from JobSpec: %s; \n\n%v", err, params))
+		return t.remoteCancelBuild(buildId, fmt.Sprintf("Failed to create Job from JobSpec: %s @ %+v: %s", build.Builder.Builder, rs, err))
 	}
-	j.Requested = firestore.FixTimestamp(time.Unix(0, b.CreatedTs*microsToNanos))
+	j.Requested = firestore.FixTimestamp(time.Unix(build.CreateTime.Seconds, int64(build.CreateTime.Nanos)))
 	j.Created = firestore.FixTimestamp(j.Created)
 	if !j.Requested.Before(j.Created) {
 		sklog.Errorf("Try job created time %s is before requested time %s! Setting equal.", j.Created, j.Requested)
@@ -418,7 +407,7 @@ func (t *TryJobIntegrator) insertNewJob(ctx context.Context, b *buildbucket_api.
 	}
 
 	// Attempt to lease the build.
-	leaseKey, err := t.tryLeaseBuild(b.Id)
+	leaseKey, err := t.tryLeaseBuild(buildId)
 	if err != nil {
 		// TODO(borenet): Buildbot cancels the build in this case.
 		// Should we do that too?
@@ -426,10 +415,10 @@ func (t *TryJobIntegrator) insertNewJob(ctx context.Context, b *buildbucket_api.
 	}
 
 	// Update the job and insert into the DB.
-	j.BuildbucketBuildId = b.Id
+	j.BuildbucketBuildId = buildId
 	j.BuildbucketLeaseKey = leaseKey
 	if err := t.db.PutJob(j); err != nil {
-		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to insert Job into the DB: %s", err))
+		return t.remoteCancelBuild(buildId, fmt.Sprintf("Failed to insert Job into the DB: %s", err))
 	}
 
 	// Since Jobs may consist of multiple Tasks, we consider them to be
@@ -475,7 +464,7 @@ func (t *TryJobIntegrator) Poll(ctx context.Context) error {
 			wg.Add(1)
 			go func(b *buildbucket_api.LegacyApiCommonBuildMessage) {
 				defer wg.Done()
-				if err := t.insertNewJob(ctx, b); err != nil {
+				if err := t.insertNewJob(ctx, b.Id); err != nil {
 					mtx.Lock()
 					errs = append(errs, err)
 					mtx.Unlock()
