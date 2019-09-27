@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ec9f7881_0d679dab",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-27T16:59:54Z",
+      "side": 1,
+      "message": "nit: Generally I don\u0027t like bool function parameters because it\u0027s not clear what they mean at the call site. Consider using an enum VALIDATE / SKIP_VALIDATION.",
+      "range": {
+        "startLine": 67,
+        "startChar": 50,
+        "endLine": 67,
+        "endChar": 69
+      },
+      "revId": "207fde1c24539c200a24da16c29e3571d44e5d2f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
