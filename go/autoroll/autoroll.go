@@ -12,6 +12,7 @@ import (
 	"time"
 
 	github_api "github.com/google/go-github/github"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/comment"
 	"go.skia.org/infra/go/gerrit"
@@ -373,20 +374,57 @@ type TryResult struct {
 }
 
 // TryResultFromBuildbucket returns a new TryResult based on a buildbucketpb.Build.
-func TryResultFromBuildbucket(b *buildbucket.Build) (*TryResult, error) {
+func TryResultFromBuildbucket(b *buildbucketpb.Build) (*TryResult, error) {
+	isExperimental := false
+	triggeredByCQ := false
+	for _, tag := range b.Tags {
+		if tag.Key == "user_agent" && tag.Value == "cq" {
+			triggeredByCQ = true
+		}
+		if tag.Key == "cq_experimental" && tag.Value == "true" {
+			isExperimental = true
+		}
+	}
+	category := ""
+	if triggeredByCQ {
+		category = "cq"
+		if isExperimental {
+			category = "cq_experimental"
+		}
+	}
+
+	status := TRYBOT_STATUS_SCHEDULED
+	result := ""
+	switch b.Status {
+	case buildbucketpb.Status_STARTED:
+		status = TRYBOT_STATUS_STARTED
+	case buildbucketpb.Status_SUCCESS:
+		status = TRYBOT_STATUS_COMPLETED
+		result = TRYBOT_RESULT_SUCCESS
+	case buildbucketpb.Status_FAILURE:
+		status = TRYBOT_STATUS_COMPLETED
+		result = TRYBOT_RESULT_FAILURE
+	case buildbucketpb.Status_INFRA_FAILURE:
+		status = TRYBOT_STATUS_COMPLETED
+		result = TRYBOT_RESULT_FAILURE
+	case buildbucketpb.Status_CANCELED:
+		status = TRYBOT_STATUS_COMPLETED
+		result = TRYBOT_RESULT_CANCELED
+	}
+
 	return &TryResult{
-		Builder:  b.Parameters.BuilderName,
-		Category: b.Parameters.Properties.Category,
-		Created:  time.Time(b.Created),
-		Result:   b.Result,
-		Status:   b.Status,
-		Url:      b.Url,
+		Builder:  b.Builder.Builder,
+		Category: category,
+		Created:  time.Unix(b.CreateTime.Seconds, int64(b.CreateTime.Nanos)),
+		Result:   result,
+		Status:   status,
+		Url:      fmt.Sprintf(buildbucket.BUILD_URL_TMPL, buildbucket.DEFAULT_HOST, b.Id),
 	}, nil
 }
 
 // TryResultsFromBuildbucket returns a slice of TryResults based on a slice of
 // buildbucket.Builds.
-func TryResultsFromBuildbucket(tries []*buildbucket.Build) ([]*TryResult, error) {
+func TryResultsFromBuildbucket(tries []*buildbucketpb.Build) ([]*TryResult, error) {
 	res := make([]*TryResult, 0, len(tries))
 	for _, t := range tries {
 		tryResult, err := TryResultFromBuildbucket(t)
