@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dee11ea2_bb5e1519",
+        "filename": "go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1027,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-27T18:49:48Z",
+      "side": 1,
+      "message": "Note that this will cause the warning to be logged, but we\u0027ve already failed whatever we were doing, so I\u0027m not sure it\u0027s worth cluttering things to fix it.",
+      "range": {
+        "startLine": 1027,
+        "startChar": 2,
+        "endLine": 1027,
+        "endChar": 7
+      },
+      "revId": "2e77a292d31b00828cee5cfe996260f6dd61ece8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
