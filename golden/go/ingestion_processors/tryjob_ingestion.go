@@ -131,6 +131,7 @@ func continuousIntegrationSystemFactory(cisName string, _ *sharedconfig.Ingester
 	return nil, skerr.Fmt("ContinuousIntegrationSystem %q not recognized", cisName)
 }
 
+// Process implements the Processor interface.
 func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFileLocation) error {
 	defer metrics2.FuncTimer().Stop()
 	gr, err := processGoldResults(rf)

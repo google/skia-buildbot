@@ -49,13 +49,13 @@ func (_m *GoldClient) Finalize() error {
 	return r0
 }
 
-// SetSharedConfig provides a mock function with given fields: sharedConfig
-func (_m *GoldClient) SetSharedConfig(sharedConfig jsonio.GoldResults) error {
-	ret := _m.Called(sharedConfig)
+// SetSharedConfig provides a mock function with given fields: sharedConfig, skipValidation
+func (_m *GoldClient) SetSharedConfig(sharedConfig jsonio.GoldResults, skipValidation bool) error {
+	ret := _m.Called(sharedConfig, skipValidation)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(jsonio.GoldResults) error); ok {
-		r0 = rf(sharedConfig)
+	if rf, ok := ret.Get(0).(func(jsonio.GoldResults, bool) error); ok {
+		r0 = rf(sharedConfig, skipValidation)
 	} else {
 		r0 = ret.Error(0)
 	}
