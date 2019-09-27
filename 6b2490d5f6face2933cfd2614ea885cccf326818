@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3d5eec8c_8c09355e",
+        "filename": "android_compile/go/android_compile_be/checkouts.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-27T19:00:10Z",
+      "side": 1,
+      "message": "I didnt make it module-level because of the checkouts tag and thought it would be easier to update via a util.",
+      "parentUuid": "051be211_627e04eb",
+      "range": {
+        "startLine": 218,
+        "startChar": 0,
+        "endLine": 218,
+        "endChar": 63
+      },
+      "revId": "6b2490d5f6face2933cfd2614ea885cccf326818",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ec03b9f_b0f2e1f6",
         "filename": "promk/prometheus/alerts_corp.yml",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "6b2490d5f6face2933cfd2614ea885cccf326818",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "89897100_8dd1c3be",
+        "filename": "promk/prometheus/alerts_corp.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-27T19:00:10Z",
+      "side": 1,
+      "message": "Syncing from mirror is normally pretty fast: https://pantheon.corp.google.com/logs/viewer?project\u003dgoogle.com:skia-corp\u0026minLogLevel\u003d0\u0026expandAll\u003dfalse\u0026timestamp\u003d2019-09-27T18:57:26.175000000Z\u0026customFacets\u003d\u0026limitCustomFacetWidth\u003dtrue\u0026interval\u003dP1D\u0026scrollTimestamp\u003d2019-09-27T18:45:27.095771000Z\u0026dateRangeStart\u003d2019-09-26T18:57:39.166Z\u0026dateRangeEnd\u003d2019-09-27T18:57:39.166Z\u0026advancedFilter\u003dlogName%3D\"projects%2Fgoogle.com:skia-corp%2Flogs%2Fandroid-compile\"%20\"Time%20taken%20to%20update%20checkout\"\n\nBut I strongly suspect that if a checkout fails syncing once it will not succeed till mirror is synced again or something else changes.",
+      "parentUuid": "7ec03b9f_b0f2e1f6",
+      "range": {
+        "startLine": 57,
+        "startChar": 9,
+        "endLine": 57,
+        "endChar": 11
+      },
+      "revId": "6b2490d5f6face2933cfd2614ea885cccf326818",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
