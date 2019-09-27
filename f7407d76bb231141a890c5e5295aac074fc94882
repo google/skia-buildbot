@@ -284,6 +284,30 @@
     },
     {
       "key": {
+        "uuid": "d343b7e9_cabf511b",
+        "filename": "golden/go/jsonio/jsonio.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-27T13:24:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ac925c79_770ae936",
+      "range": {
+        "startLine": 148,
+        "startChar": 17,
+        "endLine": 148,
+        "endChar": 23
+      },
+      "revId": "f7407d76bb231141a890c5e5295aac074fc94882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fc64f9ed_98dd0982",
         "filename": "golden/go/jsonio/jsonio.go",
         "patchSetId": 6
