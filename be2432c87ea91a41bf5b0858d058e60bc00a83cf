@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1f3d2e6f_d430e7a7",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 385,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-27T22:44:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a645f61e_b38a1064",
+      "range": {
+        "startLine": 385,
+        "startChar": 9,
+        "endLine": 385,
+        "endChar": 12
+      },
+      "revId": "be2432c87ea91a41bf5b0858d058e60bc00a83cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "76ab48f4_7a77c454",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2019-09-26T20:24:19Z",
       "side": 1,
       "message": "Why all the leading newlines?",
+      "range": {
+        "startLine": 392,
+        "startChar": 14,
+        "endLine": 392,
+        "endChar": 16
+      },
+      "revId": "be2432c87ea91a41bf5b0858d058e60bc00a83cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7a94a12a_3d3ed5e5",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-27T22:44:04Z",
+      "side": 1,
+      "message": "The output becomes hard to read without some kind of structure.\n\nFYI, This is what it currently looks like (I\u0027m a few CLs ahead of this one): https://paste.googleplex.com/4764741127897088.",
+      "parentUuid": "76ab48f4_7a77c454",
       "range": {
         "startLine": 392,
         "startChar": 14,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "d917d2d0_75896e00",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 445,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-27T22:44:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1bb99815_c36b2c98",
+      "range": {
+        "startLine": 445,
+        "startChar": 5,
+        "endLine": 445,
+        "endChar": 31
+      },
+      "revId": "be2432c87ea91a41bf5b0858d058e60bc00a83cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "16af47b3_42e11720",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
         "patchSetId": 4
@@ -91,6 +163,30 @@
       "revId": "be2432c87ea91a41bf5b0858d058e60bc00a83cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2f3f485_82e74a9d",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-09-27T22:44:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "16af47b3_42e11720",
+      "range": {
+        "startLine": 454,
+        "startChar": 28,
+        "endLine": 454,
+        "endChar": 49
+      },
+      "revId": "be2432c87ea91a41bf5b0858d058e60bc00a83cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
