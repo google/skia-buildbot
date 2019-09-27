@@ -514,6 +514,58 @@ func (g *Goldpushk) switchClusters(ctx context.Context, cluster cluster) error {
 	return nil
 }
 
+// getUptimes groups the given DeployableUnits by cluster, calls getUptimesSingleCluster once per
+// cluster, and returns the union of the uptimes returned by both calls to getUptimesSingleCluster.
+func (g *Goldpushk) getUptimes(ctx context.Context, units []DeployableUnit, now time.Time) (map[DeployableUnitID]int64, error) {
+	// Group units by cluster.
+	publicUnits := []DeployableUnit{}
+	corpUnits := []DeployableUnit{}
+	for _, unit := range units {
+		if unit.internal {
+			corpUnits = append(corpUnits, unit)
+		} else {
+			publicUnits = append(publicUnits, unit)
+		}
+	}
+
+	// This will hold the uptimes from both clusters.
+	allUptimes := make(map[DeployableUnitID]int64)
+
+	// Once per cluster.
+	for i := 0; i < 2; i++ {
+		// Select the right cluster and DeployableUnits.
+		cluster := clusterSkiaPublic
+		units := publicUnits
+		if i == 1 {
+			cluster = clusterSkiaCorp
+			units = corpUnits
+		}
+
+		// Skip if no units.
+		if len(units) == 0 {
+			continue
+		}
+
+		// Switch to the current cluster.
+		if err := g.switchClusters(ctx, cluster); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+
+		// Get the uptimes for the current cluster.
+		uptime, err := g.getUptimesSingleCluster(ctx, units, now)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+
+		// Add uptimes to the multicluster map.
+		for unitID, secs := range uptime {
+			allUptimes[unitID] = secs
+		}
+	}
+
+	return allUptimes, nil
+}
+
 // getUptimesSingleCluster takes a slice of DeployableUnits and returns a map from DeployableUnitID
 // to the number of seconds since all the containers corresponding to that unit have entered the
 // "Running" state.
