@@ -11,7 +11,6 @@ import (
 	"github.com/spf13/cobra"
 	"go.skia.org/infra/gold-client/go/goldclient"
 	"go.skia.org/infra/golden/go/jsonio"
-	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -19,18 +18,20 @@ import (
 // Specifically, it houses the flags.
 type imgTest struct {
 	// common flags
-	commitHash   string
-	corpus       string
-	failureFile  string
-	instanceID   string
-	changeListID string
-	tryJobID     string
-	keysFile     string
-	passFailStep bool
-	patchSetID   string
-	uploadOnly   bool
-	urlOverride  string
-	workDir      string
+	codeReviewSystem            string
+	continuousIntegrationSystem string
+	commitHash                  string
+	corpus                      string
+	failureFile                 string
+	instanceID                  string
+	changeListID                string
+	tryJobID                    string
+	keysFile                    string
+	passFailStep                bool
+	patchSetOrder               int
+	uploadOnly                  bool
+	urlOverride                 string
+	workDir                     string
 
 	testName string
 	pngFile  string
@@ -136,13 +137,15 @@ func (i *imgTest) addCommonFlags(cmd *cobra.Command, optional bool) {
 	cmd.Flags().BoolVar(&i.passFailStep, "passfail", false, "Whether the 'add' call returns a pass/fail for each test.")
 	cmd.Flags().BoolVar(&i.uploadOnly, "upload-only", false, "Skip reading expectations from the server. Incompatible with passfail=true.")
 
+	cmd.Flags().StringVar(&i.changeListID, "changelist", "", "ChangeList ID if this is run as a TryJob.")
+	cmd.Flags().StringVar(&i.codeReviewSystem, "crs", "gerrit", "CodeReviewSystem, if any (e.g. 'gerrit', 'github')")
 	cmd.Flags().StringVar(&i.commitHash, "commit", "", "Git commit hash")
+	cmd.Flags().StringVar(&i.continuousIntegrationSystem, "cis", "buildbucket", "ContinuousIntegrationSystem, if any (e.g. 'buildbucket')")
 	cmd.Flags().StringVar(&i.corpus, "corpus", "", "Gold Corpus Name. Overrides any other values (e.g. from keys-file or add-test-key)")
 	cmd.Flags().StringVar(&i.failureFile, "failure-file", "", "Path to the file where to write failure information")
-	cmd.Flags().StringVar(&i.changeListID, "changelist", "", "ChangeList ID if this is run as a TryJob.")
-	cmd.Flags().StringVar(&i.tryJobID, "jobid", "", "TryJob ID if this is a TryJob run.")
 	cmd.Flags().StringVar(&i.keysFile, "keys-file", "", "JSON file containing key/value pairs commmon to all tests")
-	cmd.Flags().StringVar(&i.patchSetID, "patchset", "", "Gerrit patchset number if this is a trybot run. ")
+	cmd.Flags().IntVar(&i.patchSetOrder, "patchset", 0, "PatchSet number if this is run as a TryJob.")
+	cmd.Flags().StringVar(&i.tryJobID, "jobid", "", "TryJob ID if this is a TryJob run.")
 	cmd.Flags().StringVar(&i.urlOverride, "url", "", "URL of the Gold instance. Used for testing, if empty the URL will be derived from the value of 'instance'")
 
 	cmd.Flags().StringVar(&i.changeListID, "issue", "", "[deprecated] Gerrit issue if this is trybot run. ")
@@ -189,7 +192,7 @@ func (i *imgTest) runImgTestCheckCmd(cmd *cobra.Command, args []string) {
 				ChangeListID: i.changeListID,
 				GitHash:      "HEAD",
 			}
-			err = goldClient.SetSharedConfig(gr) // this will load the baseline
+			err = goldClient.SetSharedConfig(gr, true) // this will load the baseline
 			ifErrLogExit(cmd, err)
 		}
 	}
@@ -223,12 +226,6 @@ func (i *imgTest) runImgTestInitCmd(cmd *cobra.Command, args []string) {
 		keyMap[types.CORPUS_FIELD] = i.corpus
 	}
 
-	validation := shared.Validation{}
-	issueID := validation.Int64Value("issue", i.changeListID, types.MasterBranch)
-	patchsetID := validation.Int64Value("patchset", i.patchSetID, 0)
-	jobID := validation.Int64Value("jobid", i.tryJobID, 0)
-	ifErrLogExit(cmd, validation.Errors())
-
 	config := goldclient.GoldClientConfig{
 		FailureFile:     i.failureFile,
 		InstanceID:      i.instanceID,
@@ -241,20 +238,18 @@ func (i *imgTest) runImgTestInitCmd(cmd *cobra.Command, args []string) {
 	ifErrLogExit(cmd, err)
 
 	// Define the meta data of the result that is shared by all tests.
-	// TODO(kjlubick): make the CodeReviewSystem (e.g. gerrit) and
-	// ContinuousIntegrationSystem (e.g. buildbucket) configurable
-	// via command line args.
-	// See https://bugs.chromium.org/p/skia/issues/detail?id=9340
 	gr := jsonio.GoldResults{
-		GitHash:            i.commitHash,
-		Key:                keyMap,
-		GerritChangeListID: issueID,
-		GerritPatchSet:     patchsetID,
-		BuildBucketID:      jobID,
+		GitHash:                     i.commitHash,
+		Key:                         keyMap,
+		ChangeListID:                i.changeListID,
+		PatchSetOrder:               i.patchSetOrder,
+		CodeReviewSystem:            i.codeReviewSystem,
+		TryJobID:                    i.tryJobID,
+		ContinuousIntegrationSystem: i.continuousIntegrationSystem,
 	}
 
 	logVerbose(cmd, "Loading hashes and baseline from Gold\n")
-	err = goldClient.SetSharedConfig(gr)
+	err = goldClient.SetSharedConfig(gr, false)
 	ifErrLogExit(cmd, err)
 
 	logInfof(cmd, "Directory %s successfully loaded with configuration\n", i.workDir)
@@ -280,19 +275,15 @@ func (i *imgTest) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 		keyMap, err := readKeysFile(i.keysFile)
 		ifErrLogExit(cmd, err)
 
-		validation := shared.Validation{}
-		issueID := validation.Int64Value("issue", i.changeListID, 0)
-		patchsetID := validation.Int64Value("patchset", i.patchSetID, 0)
-		jobID := validation.Int64Value("jobid", i.tryJobID, 0)
-		ifErrLogExit(cmd, validation.Errors())
-
 		// Define the meta data of the result that is shared by all tests.
 		gr := jsonio.GoldResults{
-			GitHash:            i.commitHash,
-			Key:                keyMap,
-			GerritChangeListID: issueID,
-			GerritPatchSet:     patchsetID,
-			BuildBucketID:      jobID,
+			GitHash:                     i.commitHash,
+			Key:                         keyMap,
+			ChangeListID:                i.changeListID,
+			PatchSetOrder:               i.patchSetOrder,
+			CodeReviewSystem:            i.codeReviewSystem,
+			TryJobID:                    i.tryJobID,
+			ContinuousIntegrationSystem: i.continuousIntegrationSystem,
 		}
 
 		config := goldclient.GoldClientConfig{
@@ -306,7 +297,7 @@ func (i *imgTest) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 		goldClient, err = goldclient.NewCloudClient(auth, config)
 		ifErrLogExit(cmd, err)
 
-		err = goldClient.SetSharedConfig(gr)
+		err = goldClient.SetSharedConfig(gr, false)
 		ifErrLogExit(cmd, err)
 	} else {
 		// the user is presumed to have called init first, so we can just load it

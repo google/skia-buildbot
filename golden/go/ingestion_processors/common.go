@@ -18,7 +18,7 @@ import (
 func parseGoldResultsFromReader(r io.ReadCloser) (*jsonio.GoldResults, error) {
 	defer util.Close(r)
 
-	gr, _, err := jsonio.ParseGoldResults(r)
+	gr, err := jsonio.ParseGoldResults(r)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
