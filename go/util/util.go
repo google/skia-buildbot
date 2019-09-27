@@ -1061,13 +1061,20 @@ func WithGzipWriter(w io.Writer, fn func(w io.Writer) error) (err error) {
 }
 
 // WithReadFile opens the given file for reading and runs the given function.
-func WithReadFile(file string, fn func(f io.Reader) error) error {
-	f, err := os.Open(file)
+func WithReadFile(file string, fn func(f io.Reader) error) (err error) {
+	var f *os.File
+	f, err = os.Open(file)
 	if err != nil {
 		return err
 	}
-	defer Close(f)
-	return fn(f)
+	defer func() {
+		err2 := f.Close()
+		if err == nil && err2 != nil {
+			err = fmt.Errorf("Failed to close file: %s", err2)
+		}
+	}()
+	err = fn(f)
+	return
 }
 
 // ReadGobFile reads data from the given file into the given data structure.
