@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "91df685a_8ca15332",
+        "filename": "go/gcs/download_helper.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-27T19:10:58Z",
+      "side": 1,
+      "message": "don\u0027t you need to do:\nerr \u003d ...\nreturn\n\nhere and below?",
+      "range": {
+        "startLine": 83,
+        "startChar": 2,
+        "endLine": 83,
+        "endChar": 58
+      },
+      "revId": "2e77a292d31b00828cee5cfe996260f6dd61ece8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "dee11ea2_bb5e1519",
         "filename": "go/util/util.go",
         "patchSetId": 2
@@ -22,6 +45,53 @@
       "revId": "2e77a292d31b00828cee5cfe996260f6dd61ece8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6c3c10dd_6ca4c06c",
+        "filename": "go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1027,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-27T19:10:58Z",
+      "side": 1,
+      "message": "Why not just change this to _ \u003d f.Close() with a comment saying the error isn\u0027t helpful since we\u0027ve already failed.",
+      "parentUuid": "dee11ea2_bb5e1519",
+      "range": {
+        "startLine": 1027,
+        "startChar": 2,
+        "endLine": 1027,
+        "endChar": 7
+      },
+      "revId": "2e77a292d31b00828cee5cfe996260f6dd61ece8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b43400f5_d37aeb37",
+        "filename": "go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1068,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-27T19:10:58Z",
+      "side": 1,
+      "message": "just return?",
+      "range": {
+        "startLine": 1068,
+        "startChar": 9,
+        "endLine": 1068,
+        "endChar": 12
+      },
+      "revId": "2e77a292d31b00828cee5cfe996260f6dd61ece8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
