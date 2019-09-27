@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ac25601d_d077dfe5",
+        "filename": "go/gcs/download_helper.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-27T19:36:42Z",
+      "side": 1,
+      "message": "skerr.Wrapf x 3",
+      "range": {
+        "startLine": 70,
+        "startChar": 16,
+        "endLine": 70,
+        "endChar": 19
+      },
+      "revId": "b49724cd0e2fd504884091b1d45e105f095b4cf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
