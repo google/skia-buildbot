@@ -3,8 +3,6 @@ package jsonio
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"strings"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
@@ -12,65 +10,281 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-func TestValidate(t *testing.T) {
+// TestValidateInvalid tests a bunch of cases that fail validation
+func TestValidateInvalid(t *testing.T) {
 	unittest.SmallTest(t)
 
-	empty := &GoldResults{}
-	errMsgs, err := empty.Validate(false)
-	assert.Error(t, err)
-	assertErrorFields(t, errMsgs,
-		"gitHash",
-		"key",
-		"results")
-	assert.NotNil(t, errMsgs)
-
-	wrongResults := &GoldResults{
-		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
-		Key:     map[string]string{"param1": "value1"},
+	type invalidInput struct {
+		results       GoldResults
+		ignoreResults bool
+		errFragment   string // should be unique enough to make sure we stopped on the right error.
 	}
-	errMsgs, err = wrongResults.Validate(false)
-	assert.Error(t, err)
-	assertErrorFields(t, errMsgs, "results")
 
-	wrongResults.Results = []*Result{}
-	errMsgs, err = wrongResults.Validate(false)
-	assert.Error(t, err)
-	assertErrorFields(t, errMsgs, "results")
-
-	wrongResults.Results = []*Result{
-		{Key: map[string]string{}},
+	tests := map[string]invalidInput{
+		"empty": {
+			results:       GoldResults{},
+			ignoreResults: true,
+			errFragment:   `"gitHash" must be hexadecimal`,
+		},
+		"invalidHash": {
+			results: GoldResults{
+				GitHash: "whoops this isn't hexadecimal",
+				Key:     map[string]string{"param1": "value1"},
+			},
+			ignoreResults: true,
+			errFragment:   `must be hexadecimal`,
+		},
+		"missingKey": {
+			results: GoldResults{
+				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+			},
+			ignoreResults: true,
+			errFragment:   `field "key" must not be empty`,
+		},
+		"missingResults": {
+			results: GoldResults{
+				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+				Key:     map[string]string{"param1": "value1"},
+			},
+			ignoreResults: false,
+			errFragment:   `field "results" must not be empty`,
+		},
+		"emptyResults": {
+			results: GoldResults{
+				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+				Key:     map[string]string{"param1": "value1"},
+				Results: []*Result{},
+			},
+			ignoreResults: false,
+			errFragment:   `field "results" must not be empty`,
+		},
+		"emptyKeyResults": {
+			results: GoldResults{
+				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+				Key:     map[string]string{"param1": "value1"},
+				Results: []*Result{
+					{
+						Key:    map[string]string{},
+						Digest: "12345abc",
+					},
+				},
+			},
+			ignoreResults: false,
+			errFragment:   `results" index 0: field "key" must not be empty`,
+		},
+		"noNameField": {
+			results: GoldResults{
+				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+				Key:     map[string]string{"param1": "value1"},
+				Results: []*Result{
+					{
+						Key: map[string]string{
+							"no_name": "bar",
+						},
+						Digest: "12345abc",
+					},
+				},
+			},
+			ignoreResults: false,
+			errFragment:   `field "key" is missing key name`,
+		},
+		"missingDigest": {
+			results: GoldResults{
+				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+				Key:     map[string]string{"param1": "value1"},
+				Results: []*Result{
+					{
+						Key: map[string]string{
+							types.PRIMARY_KEY_FIELD: "bar",
+						},
+					},
+				},
+			},
+			ignoreResults: false,
+			errFragment:   `missing digest`,
+		},
+		"invalidDigest": {
+			results: GoldResults{
+				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+				Key:     map[string]string{"param1": "value1"},
+				Results: []*Result{
+					{
+						Key: map[string]string{
+							types.PRIMARY_KEY_FIELD: "bar",
+						},
+						Digest: "not hexadecimal",
+					},
+				},
+			},
+			ignoreResults: false,
+			errFragment:   `must be hexadecimal`,
+		},
+		"missingOptions": {
+			results: GoldResults{
+				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+				Key:     map[string]string{"param1": "value1"},
+				Results: []*Result{
+					{
+						Key: map[string]string{
+							types.PRIMARY_KEY_FIELD: "bar",
+						},
+						Digest: "abc123",
+						Options: map[string]string{
+							"oops": "",
+						},
+					},
+				},
+			},
+			ignoreResults: false,
+			errFragment:   `with key "oops"`,
+		},
+		"missingOptions2": {
+			results: GoldResults{
+				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+				Key:     map[string]string{"param1": "value1"},
+				Results: []*Result{
+					{
+						Key: map[string]string{
+							types.PRIMARY_KEY_FIELD: "bar",
+						},
+						Digest: "abc123",
+						Options: map[string]string{
+							"": "missing",
+						},
+					},
+				},
+			},
+			ignoreResults: false,
+			errFragment:   `with value "missing"`,
+		},
+		"missingOptions3": {
+			results: GoldResults{
+				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+				Key:     map[string]string{"param1": "value1"},
+				Results: []*Result{
+					{
+						Key: map[string]string{
+							types.PRIMARY_KEY_FIELD: "bar",
+						},
+						Digest: "abc123",
+						Options: map[string]string{
+							"": "",
+						},
+					},
+				},
+			},
+			ignoreResults: false,
+			errFragment:   `empty key and value`,
+		},
+		"partialChangeListInfo": {
+			results: GoldResults{
+				GitHash:          "aaa27ef254ad66609606c7af0730ee062b25edf9",
+				Key:              map[string]string{"param1": "value1"},
+				ChangeListID:     "missing_tryjob",
+				CodeReviewSystem: "some_system",
+				PatchSetOrder:    1,
+			},
+			ignoreResults: true,
+			errFragment:   `all of or none of`,
+		},
+		"partialChangeListInfo2": {
+			results: GoldResults{
+				GitHash:                     "aaa27ef254ad66609606c7af0730ee062b25edf9",
+				Key:                         map[string]string{"param1": "value1"},
+				ChangeListID:                "missing_patchset",
+				CodeReviewSystem:            "some_system",
+				PatchSetOrder:               0, // order, by definition, starts at 1
+				TryJobID:                    "12345",
+				ContinuousIntegrationSystem: "sandbucket",
+			},
+			ignoreResults: true,
+			errFragment:   `all of or none of`,
+		},
+		"partialChangeListInfo3": {
+			results: GoldResults{
+				GitHash:                     "aaa27ef254ad66609606c7af0730ee062b25edf9",
+				Key:                         map[string]string{"param1": "value1"},
+				TryJobID:                    "12345",
+				ContinuousIntegrationSystem: "sandbucket",
+			},
+			ignoreResults: true,
+			errFragment:   `all of or none of`,
+		},
 	}
-	errMsgs, err = wrongResults.Validate(false)
-	assert.Error(t, err)
-	assertErrorFields(t, errMsgs, "results")
 
-	// Now ignore the results in the validation.
-	errMsgs, err = wrongResults.Validate(true)
-	assert.NoError(t, err)
-	assert.Equal(t, []string(nil), errMsgs)
-
-	// Check that the Validate accounts for both MasterBranch and
-	// LegacyMasterBranch values.
-	legacyMaster := &GoldResults{
-		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
-		Key:     map[string]string{"param1": "value1"},
-
-		GerritChangeListID: types.LegacyMasterBranch,
+	for name, testCase := range tests {
+		err := testCase.results.Validate(testCase.ignoreResults)
+		assert.Error(t, err, "when processing %s: %v", name, testCase)
+		assert.Contains(t, err.Error(), testCase.errFragment, name)
+		assert.NotEmpty(t, testCase.errFragment, "write an assertion for %s - %s", name, err.Error())
 	}
-	_, err = legacyMaster.Validate(true)
-	assert.NoError(t, err)
-
-	master := &GoldResults{
-		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
-		Key:     map[string]string{"param1": "value1"},
-
-		GerritChangeListID: types.MasterBranch,
-	}
-	_, err = master.Validate(true)
-	assert.NoError(t, err)
 }
 
-func TestParseGoldResults(t *testing.T) {
+// TestValidateValid tests a few cases that pass validation
+func TestValidateValid(t *testing.T) {
+	unittest.SmallTest(t)
+
+	type validInput struct {
+		results       GoldResults
+		ignoreResults bool
+	}
+
+	tests := map[string]validInput{
+		"emptyResultsButResultsIgnored": {
+			results: GoldResults{
+				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+				Key:     map[string]string{"param1": "value1"},
+				Results: []*Result{},
+			},
+			ignoreResults: true,
+		},
+		"masterBranch": {
+			results: GoldResults{
+				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+				Key:     map[string]string{"param1": "value1"},
+				Results: []*Result{
+					{
+						Key: map[string]string{
+							types.PRIMARY_KEY_FIELD: "bar",
+						},
+						Digest: "12345abc",
+					},
+				},
+			},
+			ignoreResults: false,
+		},
+		"onChangeList": {
+			results: GoldResults{
+				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+				Key:     map[string]string{"param1": "value1"},
+				Results: []*Result{
+					{
+						Key: map[string]string{
+							types.PRIMARY_KEY_FIELD: "bar",
+						},
+						Digest: "12345abc",
+					},
+				},
+				ChangeListID:                "123456",
+				CodeReviewSystem:            "some_system",
+				PatchSetOrder:               1,
+				TryJobID:                    "12345",
+				ContinuousIntegrationSystem: "sandbucket",
+			},
+			ignoreResults: false,
+		},
+	}
+
+	for name, testCase := range tests {
+		err := testCase.results.Validate(testCase.ignoreResults)
+		assert.NoError(t, err, "when processing %s: %v", name, testCase)
+	}
+
+}
+
+// TestParseGoldResultsValid tests a variety of valid inputs to make sure our parsing logic
+// does not regress. It handles a variety of legacy and non legacy data.
+func TestParseGoldResultsValid(t *testing.T) {
 	unittest.SmallTest(t)
 	r := testParse(t, legacySkiaTryjobJSON)
 
@@ -80,10 +294,18 @@ func TestParseGoldResults(t *testing.T) {
 	assert.Equal(t, int64(12345), r.GerritChangeListID)
 	assert.Equal(t, int64(10), r.GerritPatchSet)
 	assert.Equal(t, int64(549340494940393), r.BuildBucketID)
+	assert.Equal(t, "12345", r.ChangeListID)
+	assert.Equal(t, 10, r.PatchSetOrder)
+	assert.Equal(t, "549340494940393", r.TryJobID)
+	// When we detect a legacy system, default to gerrit and buildbucket
+	assert.Equal(t, "gerrit", r.CodeReviewSystem)
+	assert.Equal(t, "buildbucket", r.ContinuousIntegrationSystem)
 	assert.Len(t, r.Results, 3)
 
 	r = testParse(t, legacySkiaJSON)
 	assert.Equal(t, types.MasterBranch, r.GerritChangeListID)
+	assert.Empty(t, r.ChangeListID)
+	assert.Empty(t, r.TryJobID)
 	assert.Equal(t, "Test-Android-Clang-Nexus7-CPU-Tegra3-arm-Release-All-Android", r.Builder)
 	assert.Equal(t, r.Results[0].Key[types.PRIMARY_KEY_FIELD], "skottie_multiframe")
 	assert.Contains(t, r.Results[0].Options, "color_type")
@@ -92,20 +314,50 @@ func TestParseGoldResults(t *testing.T) {
 	assert.Equal(t, int64(1762193), r.GerritChangeListID)
 	assert.Equal(t, int64(2), r.GerritPatchSet)
 	assert.Equal(t, int64(8904604368086838672), r.BuildBucketID)
+	assert.Equal(t, "1762193", r.ChangeListID)
+	assert.Equal(t, 2, r.PatchSetOrder)
+	assert.Equal(t, "8904604368086838672", r.TryJobID)
+	// When we detect a legacy system, default to gerrit and buildbucket
+	assert.Equal(t, "gerrit", r.CodeReviewSystem)
+	assert.Equal(t, "buildbucket", r.ContinuousIntegrationSystem)
 	assert.Contains(t, r.Key, "vendor_id")
 
+	r = testParse(t, goldCtlTryjobJSON)
+	assert.Equal(t, "1762193", r.ChangeListID)
+	assert.Equal(t, 2, r.PatchSetOrder)
+	assert.Equal(t, "8904604368086838672", r.TryJobID)
+	assert.Equal(t, "gerrit", r.CodeReviewSystem)
+	assert.Equal(t, "buildbucket", r.ContinuousIntegrationSystem)
+	assert.Contains(t, r.Key, "vendor_id")
+
+	r = testParse(t, goldCtlMasterBranchJSON)
+	assert.Empty(t, r.ChangeListID)
+	assert.Empty(t, r.TryJobID)
+	assert.Equal(t, map[string]string{
+		"device_id": "0x1cb3",
+		"msaa":      "True",
+	}, r.Key)
+
 	r = testParse(t, legacyGoldCtlJSON)
-	assert.Equal(t, types.LegacyMasterBranch, r.GerritChangeListID)
+	assert.Equal(t, types.MasterBranch, r.GerritChangeListID)
+	assert.Empty(t, r.ChangeListID)
+	assert.Empty(t, r.TryJobID)
 	assert.Contains(t, r.Key, "vendor_id")
 
 	r = testParse(t, legacyMasterBranchJSON)
-	assert.Equal(t, types.LegacyMasterBranch, r.GerritChangeListID)
-
-	r = testParse(t, masterBranchJSON)
 	assert.Equal(t, types.MasterBranch, r.GerritChangeListID)
+	assert.Empty(t, r.ChangeListID)
+	assert.Empty(t, r.TryJobID)
 
-	r = testParse(t, emptyMasterBranchJSON)
+	r = testParse(t, negativeMasterBranchJSON)
 	assert.Equal(t, types.MasterBranch, r.GerritChangeListID)
+	assert.Empty(t, r.ChangeListID)
+	assert.Empty(t, r.TryJobID)
+
+	r = testParse(t, emptyIssueJSON)
+	assert.Equal(t, types.MasterBranch, r.GerritChangeListID)
+	assert.Empty(t, r.ChangeListID)
+	assert.Empty(t, r.TryJobID)
 }
 
 func TestGenJson(t *testing.T) {
@@ -115,7 +367,7 @@ func TestGenJson(t *testing.T) {
 	goldResults := testParse(t, legacySkiaTryjobJSON)
 
 	// For good measure we validate.
-	_, err := goldResults.Validate(false)
+	err := goldResults.Validate(false)
 	assert.NoError(t, err)
 
 	// Encode and decode the results.
@@ -128,20 +380,9 @@ func TestGenJson(t *testing.T) {
 func testParse(t *testing.T, jsonStr string) *GoldResults {
 	buf := bytes.NewBuffer([]byte(jsonStr))
 
-	ret, errMsg, err := ParseGoldResults(buf)
+	ret, err := ParseGoldResults(buf)
 	assert.NoError(t, err)
-	assert.Nil(t, errMsg)
 	return ret
-}
-
-func assertErrorFields(t *testing.T, errMsgs []string, expectedFields ...string) {
-	for _, msg := range errMsgs {
-		found := false
-		for _, ef := range expectedFields {
-			found = found || strings.Contains(msg, ef)
-		}
-		assert.True(t, found, fmt.Sprintf("Could not find %v in msg: %s", expectedFields, msg))
-	}
 }
 
 const (
@@ -283,7 +524,7 @@ const (
 		"issue": "0"
 	}`
 
-	masterBranchJSON = `{
+	negativeMasterBranchJSON = `{
 		"gitHash" : "c4711517219f333c1116f47706eb57b51b5f8fc7",
 		"key" : {
 			"arch" : "arm64"
@@ -291,13 +532,34 @@ const (
 		"issue": "-1"
 	}`
 
-	emptyMasterBranchJSON = `{
+	emptyIssueJSON = `{
 		"gitHash" : "c4711517219f333c1116f47706eb57b51b5f8fc7",
 		"key" : {
 			"arch" : "arm64"
 		},
 		"issue": ""
 	}`
+
+	// This is what goldctl should spit out when running on the master branch
+	goldCtlMasterBranchJSON = `{
+  "gitHash": "e1681c90cf6a4c3b6be2bc4b4cea59849c16a438",
+  "key": {
+    "device_id": "0x1cb3",
+    "msaa": "True"
+  },
+  "results": [
+    {
+      "key": {
+        "name": "Pixel_CanvasDisplayLinearRGBUnaccelerated2DGPUCompositing",
+        "source_type": "chrome-gpu"
+      },
+      "options": {
+        "ext": "png"
+      },
+      "md5": "690f72c0b56ae014c8ac66e7f25c0779"
+    }
+  ]
+}`
 
 	// This is what goldctl spits out before Aug 2019 when run on a tryjob, it
 	// should continue to be valid if the schema changes (so we can re-ingest).
@@ -306,7 +568,6 @@ const (
   "key": {
     "device_id": "0x1cb3",
     "device_string": "None",
-    "model_name": "",
     "msaa": "True",
     "vendor_id": "0x10de",
     "vendor_string": "None"
@@ -328,6 +589,35 @@ const (
   "patchset": "2",
   "builder": "",
   "task_id": ""
+}`
+
+	// This is what goldctl should spit out for a tryjob run starting after Sept 2019.
+	goldCtlTryjobJSON = `{
+  "gitHash": "e1681c90cf6a4c3b6be2bc4b4cea59849c16a438",
+  "key": {
+    "device_id": "0x1cb3",
+    "device_string": "None",
+    "msaa": "True",
+    "vendor_id": "0x10de",
+    "vendor_string": "None"
+  },
+  "results": [
+    {
+      "key": {
+        "name": "Pixel_CanvasDisplayLinearRGBUnaccelerated2DGPUCompositing",
+        "source_type": "chrome-gpu"
+      },
+      "options": {
+        "ext": "png"
+      },
+      "md5": "690f72c0b56ae014c8ac66e7f25c0779"
+    }
+  ],
+  "change_list_id": "1762193",
+  "patch_set_order": 2,
+  "crs": "gerrit",
+  "try_job_id": "8904604368086838672",
+  "cis": "buildbucket"
 }`
 
 	// This is what goldctl spits out before Aug 2019 when run on the waterfall, it

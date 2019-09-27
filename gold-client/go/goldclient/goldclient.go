@@ -64,7 +64,7 @@ type GoldClient interface {
 	// with all tests. This is safe to be called more than once, although
 	// new settings will overwrite the old ones. This will cause the
 	// baseline and known hashes to be (re-)downloaded from Gold.
-	SetSharedConfig(sharedConfig jsonio.GoldResults) error
+	SetSharedConfig(sharedConfig jsonio.GoldResults, skipValidation bool) error
 
 	// Test adds a test result to the current test run. If the GoldClient is configured to
 	// return PASS/FAIL for each test, the returned boolean indicates whether the test passed
@@ -84,20 +84,20 @@ type GoldClient interface {
 	// An error is only returned if there was a technical problem in processing the test.
 	Check(name types.TestName, imgFileName string) (bool, error)
 
-	// Upload the JSON file for all Test() calls previously seen.
+	// Finalize uploads the JSON file for all Test() calls previously seen.
 	// A no-op if configured for PASS/FAIL mode, since the JSON would have been uploaded
 	// on the calls to Test().
 	Finalize() error
 }
 
-// This interface contains some "optional" methods that can assist
+// GoldClientDebug contains some "optional" methods that can assist
 // in debugging.
 type GoldClientDebug interface {
-	// Returns a human-readable representation of the baseline as a string.
+	// DumpBaseline returns a human-readable representation of the baseline as a string.
 	// This is a set of test names that each have  a set of image
 	// digests that each have exactly one types.Label.
 	DumpBaseline() (string, error)
-	// Returns a human-readable representation of the known image digests
+	// DumpKnownHashes returns a human-readable representation of the known image digests
 	// which is a list of hashes.
 	DumpKnownHashes() (string, error)
 }
@@ -108,7 +108,7 @@ type HTTPClient interface {
 	Get(url string) (resp *http.Response, err error)
 }
 
-// cloudClient implements the GoldClient interface for the remote Gold service.
+// CloudClient implements the GoldClient interface for the remote Gold service.
 type CloudClient struct {
 	// workDir is a temporary directory that has to exist between related calls
 	workDir string
@@ -241,7 +241,13 @@ func LoadCloudClient(authOpt AuthOpt, workDir string) (*CloudClient, error) {
 }
 
 // SetSharedConfig implements the GoldClient interface.
-func (c *CloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults) error {
+func (c *CloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults, skipValidation bool) error {
+	if !skipValidation {
+		if err := sharedConfig.Validate(true); err != nil {
+			return skerr.Wrapf(err, "invalid configuration")
+		}
+	}
+
 	existingConfig := GoldClientConfig{
 		WorkDir: c.workDir,
 	}
@@ -294,6 +300,15 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 	if err != nil {
 		return false, skerr.Wrap(err)
 	}
+
+	// Add the result of this test.
+	c.addResult(name, imgHash, additionalKeys)
+
+	// At this point the result should be correct for uploading.
+	if err := c.resultState.SharedConfig.Validate(false); err != nil {
+		return false, skerr.Wrapf(err, "invalid test config")
+	}
+
 	fmt.Printf("Given image with hash %s for test %s\n", imgHash, name)
 	for expectHash, expectLabel := range c.resultState.Expectations[name] {
 		fmt.Printf("Expectation for test: %s (%s)\n", expectHash, expectLabel.String())
@@ -309,14 +324,6 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 			}
 			return nil
 		})
-	}
-
-	// Add the result of this test.
-	c.addResult(name, imgHash, additionalKeys)
-
-	// At this point the result should be correct for uploading.
-	if _, err := c.resultState.SharedConfig.Validate(false); err != nil {
-		return false, skerr.Wrap(err)
 	}
 
 	// If we do per test pass/fail then upload the result and compare it to the baseline.
@@ -441,7 +448,7 @@ func (c *CloudClient) isReady() error {
 	}
 
 	// Check if the GoldResults instance is complete once results are added.
-	if _, err := c.resultState.SharedConfig.Validate(true); err != nil {
+	if err := c.resultState.SharedConfig.Validate(true); err != nil {
 		return skerr.Fmt("Gold results fields invalid: %s", err)
 	}
 
@@ -642,9 +649,7 @@ func (r *resultState) loadExpectations(httpClient HTTPClient) error {
 	urlPath := strings.Replace(shared.ExpectationsRoute, "{commit_hash}", "HEAD", 1)
 	if r.SharedConfig != nil {
 		urlPath = strings.Replace(shared.ExpectationsRoute, "{commit_hash}", r.SharedConfig.GitHash, 1)
-		if !types.IsMasterBranch(r.SharedConfig.GerritChangeListID) {
-			urlPath = fmt.Sprintf("%s?issue=%d", urlPath, r.SharedConfig.GerritChangeListID)
-		} else if r.SharedConfig.ChangeListID != "" {
+		if r.SharedConfig.ChangeListID != "" {
 			urlPath = fmt.Sprintf("%s?issue=%s", urlPath, r.SharedConfig.ChangeListID)
 		}
 	}
@@ -688,6 +693,10 @@ func (r *resultState) getResultFilePath(now time.Time) string {
 	// hour and increase readability of the paths for troubleshooting.
 	// It is vital that the times segments of the path are based on UTC location.
 	fileName := fmt.Sprintf("dm-%d.json", now.UnixNano())
+	builder := r.SharedConfig.TryJobID
+	if builder == "" {
+		builder = "waterfall"
+	}
 	segments := []interface{}{
 		jsonPrefix,
 		year,
@@ -695,12 +704,12 @@ func (r *resultState) getResultFilePath(now time.Time) string {
 		day,
 		hour,
 		r.SharedConfig.GitHash,
-		r.SharedConfig.BuildBucketID,
+		builder,
 		now.Unix(),
 		fileName}
-	path := fmt.Sprintf("%s/%04d/%02d/%02d/%02d/%s/%d/%d/%s", segments...)
+	path := fmt.Sprintf("%s/%04d/%02d/%02d/%02d/%s/%s/%d/%s", segments...)
 
-	if !types.IsMasterBranch(r.SharedConfig.GerritChangeListID) {
+	if r.SharedConfig.ChangeListID != "" {
 		path = "trybot/" + path
 	}
 	return fmt.Sprintf("%s/%s", r.Bucket, path)
@@ -722,7 +731,7 @@ func loadJSONFile(fileName string, data interface{}) (bool, error) {
 		return json.NewDecoder(r).Decode(data)
 	})
 	if err != nil {
-		return false, skerr.Fmt("Error reading/parsing JSON file: %s", err)
+		return false, skerr.Wrapf(err, "reading/parsing JSON file: %s", fileName)
 	}
 
 	return true, nil
@@ -734,7 +743,7 @@ func saveJSONFile(fileName string, data interface{}) error {
 		return json.NewEncoder(w).Encode(data)
 	})
 	if err != nil {
-		return skerr.Fmt("Error writing/serializing to JSON: %s", err)
+		return skerr.Wrapf(err, "writing/serializing to JSON file %s", fileName)
 	}
 	return nil
 }

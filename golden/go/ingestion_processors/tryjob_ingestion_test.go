@@ -237,7 +237,6 @@ func makeTryJobResults() []tjstore.TryJobResult {
 			GroupParams: paramtools.Params{
 				"device_id":     "0x1cb3",
 				"device_string": "None",
-				"model_name":    "",
 				"msaa":          "True",
 				"vendor_id":     "0x10de",
 				"vendor_string": "None",

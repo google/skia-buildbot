@@ -41,7 +41,6 @@ package jsonio
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"reflect"
 	"regexp"
@@ -53,48 +52,40 @@ import (
 )
 
 var (
-	rawGoldResultsJsonMap map[string]string
-	goldResultsJsonMap    map[string]string
-	resultJsonMap         map[string]string
+	goldResultsFields map[string]string
+	resultFields      map[string]string
 
-	// regexp to validate basic types.
-	regExHexadecimal = regexp.MustCompile(`^[0-9a-fA-F]+$`)
-	regExInt         = regexp.MustCompile(`^(?:[-+]?(?:0|[1-9][0-9]*))$`)
+	// regexp to validate if a string matches hexadecimal
+	isHex = regexp.MustCompile(`^[0-9a-fA-F]+$`)
 )
 
 func init() {
-	rawGoldResultsJsonMap = jsonNameMap(rawGoldResults{})
-	goldResultsJsonMap = jsonNameMap(GoldResults{})
-	resultJsonMap = jsonNameMap(Result{})
+	goldResultsFields = jsonNameMap(GoldResults{})
+	resultFields = jsonNameMap(Result{})
 }
 
 // ParseGoldResults parses JSON encoded Gold results. This needs to be called
 // instead of parsing directly into an instance of GoldResult.
-func ParseGoldResults(r io.Reader) (*GoldResults, []string, error) {
+func ParseGoldResults(r io.Reader) (*GoldResults, error) {
 	// Decode JSON into a type that is more tolerant to failures. If there is
 	// a failure we just return the failure.
 	raw := &rawGoldResults{}
 	if err := json.NewDecoder(r).Decode(raw); err != nil {
-		return nil, nil, skerr.Wrapf(err, "could not parse json")
+		return nil, skerr.Wrapf(err, "could not parse json")
 	}
 
-	// parse and validate the raw input from the previous step, i.e.
-	// parse string encoded integers.
-	var errMessages []string = nil
-	ret, errs := raw.parseValidate()
-	if len(errs) > 0 {
-		errMessages = append(errMessages, errs...)
+	// parse the raw input from the previous step, converting strings -> ints where appropriate
+	ret, err := raw.parse()
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
 
 	// Extract the embedded Gold result and validate it.
-	if errMsg, err := ret.Validate(true); err != nil {
-		errMessages = append(errMessages, errMsg...)
+	if err := ret.Validate(true); err != nil {
+		return nil, skerr.Wrap(err)
 	}
 
-	if len(errMessages) > 0 {
-		return nil, errMessages, messagesToError(errMessages)
-	}
-	return ret, nil, nil
+	return ret, nil
 }
 
 // GoldResults is the top level structure to capture the the results of a
@@ -104,7 +95,7 @@ type GoldResults struct {
 	Key     map[string]string `json:"key"      validate:"required,min=1"`
 	Results []*Result         `json:"results"  validate:"min=1"`
 
-	// TODO(kjlubick): Remove these and have the legacy values be piped into the new ones below
+	// TODO(kjlubick): Remove these once I've updated the go code in Skia's repo.
 	BuildBucketID      int64 `json:"buildbucket_build_id,string"`
 	GerritChangeListID int64 `json:"issue,string"`
 	GerritPatchSet     int64 `json:"patchset,string"`
@@ -112,14 +103,14 @@ type GoldResults struct {
 	// These are the preferred way to indicate these results were ingested from a TryJob.
 	// See https://bugs.chromium.org/p/skia/issues/detail?id=9340
 	// ChangeListID and PatchSetID correspond to code_review.ChangeList.SystemID and
-	// code_review.ChangeList.PatchSetID, respectively
-	ChangeListID     string `json:"change_list_id"`
-	PatchSetID       string `json:"patch_set_id"`
-	CodeReviewSystem string `json:"crs"`
+	// code_review.PatchSet.Order, respectively
+	ChangeListID     string `json:"change_list_id,omitempty"`
+	PatchSetOrder    int    `json:"patch_set_order,omitempty"`
+	CodeReviewSystem string `json:"crs,omitempty"`
 
 	// TryJobID corresponds to continuous_integration.TryJob.SystemID
-	TryJobID                    string `json:"try_job_id"`
-	ContinuousIntegrationSystem string `json:"cis"`
+	TryJobID                    string `json:"try_job_id,omitempty"`
+	ContinuousIntegrationSystem string `json:"cis,omitempty"`
 
 	// Optional fields for tryjobs - can make debugging easier
 	Builder string `json:"builder"`
@@ -142,124 +133,175 @@ type rawGoldResults struct {
 	Key     map[string]string `json:"key"      validate:"required,min=1"`
 	Results []*Result         `json:"results"  validate:"min=1"`
 
-	// Required fields for tryjobs.
+	// ChangeListID and PatchSetID correspond to code_review.ChangeList.SystemID and
+	// code_review.PatchSet.Order, respectively
+	ChangeListID     string `json:"change_list_id"`
+	PatchSetOrder    int    `json:"patch_set_order"`
+	CodeReviewSystem string `json:"crs"`
+
+	// TryJobID corresponds to continuous_integration.TryJob.SystemID
+	TryJobID                    string `json:"try_job_id"`
+	ContinuousIntegrationSystem string `json:"cis"`
+
+	// Legacy fields for tryjob support - keep these around until a few months after Skia's dm
+	// is updated to produce the new format in case we want to re-ingest old results
+	// (after that, TryJob results that old probably won't matter)
+	// If ChangeListID is set, these will be ignored.
 	BuildBucketID      string `json:"buildbucket_build_id"`
 	GerritChangeListID string `json:"issue"`
 	GerritPatchSet     string `json:"patchset"`
-
-	// Newly added fields for tryjobs - will be required one day
-	CodeReviewSystem            string `json:"crs"`
-	ContinuousIntegrationSystem string `json:"cis"`
 
 	// Optional fields for tryjobs - can make debugging easier
 	Builder string `json:"builder"`
 	TaskID  string `json:"task_id"`
 }
 
-// parseValidate validates the rawGoldResult instance and parses integers
-// that are encoded as strings, returning a GoldResults instance.
-func (r *rawGoldResults) parseValidate() (*GoldResults, []string) {
-	jn := rawGoldResultsJsonMap
-	var errs []string
-	mb := strconv.FormatInt(types.MasterBranch, 10)
-	lmb := strconv.FormatInt(types.LegacyMasterBranch, 10)
-	issueValid := (r.GerritChangeListID == "") || (r.GerritChangeListID == mb) || (r.GerritChangeListID == lmb) ||
-		(r.GerritChangeListID != "" && r.BuildBucketID != "" && r.GerritPatchSet != "")
-	addErrMessage(&errs, issueValid, "fields '%s', '%s' must not be empty if field '%s' contains a value", jn["Patchset"], jn["BuildBucketID"], jn["Issue"])
-
-	f := []string{"Issue", r.GerritChangeListID, "Patchset", r.GerritPatchSet, "BuildBucketID", r.BuildBucketID}
-	for i := 0; i < len(f); i += 2 {
-		valid := f[i+1] == "" || regExInt.MatchString(f[i+1])
-		addErrMessage(&errs, valid, "field '%s' must be empty or contain a valid integer", jn[f[i]])
+// parse turns a rawGoldResults into GoldResults. The only validation it does is when
+// converting strings into integer values - if those fail, it will return an error.
+func (r *rawGoldResults) parse() (*GoldResults, error) {
+	ret := &GoldResults{
+		GitHash: r.GitHash,
+		Key:     r.Key,
+		Results: r.Results,
+		Builder: r.Builder,
+		TaskID:  r.TaskID,
 	}
+	if r.ChangeListID == "" && r.GerritChangeListID == "" {
+		// Legacy support
+		ret.GerritChangeListID = types.MasterBranch
+	} else {
+		mb := strconv.FormatInt(types.MasterBranch, 10)
+		lmb := strconv.FormatInt(types.LegacyMasterBranch, 10)
+		if r.ChangeListID != "" {
+			ret.ChangeListID = r.ChangeListID
+			ret.CodeReviewSystem = r.CodeReviewSystem
+			ret.PatchSetOrder = r.PatchSetOrder
+			ret.TryJobID = r.TryJobID
+			ret.ContinuousIntegrationSystem = r.ContinuousIntegrationSystem
+			// Legacy values - ignoring errors here as the values will be going away soon
+			// from GoldResults
+			if n, err := strconv.ParseInt(ret.ChangeListID, 10, 64); err == nil {
+				ret.GerritChangeListID = n
+			}
+			if n, err := strconv.ParseInt(ret.TryJobID, 10, 64); err == nil {
+				ret.BuildBucketID = n
+			}
+			ret.GerritPatchSet = int64(ret.PatchSetOrder)
+		} else if r.GerritChangeListID != mb && r.GerritChangeListID != lmb {
+			// Handles legacy inputs
+			ret.ChangeListID = r.GerritChangeListID
+			ret.CodeReviewSystem = "gerrit"
+			ret.TryJobID = r.BuildBucketID
+			ret.ContinuousIntegrationSystem = "buildbucket"
 
-	var ret *GoldResults
-	if errs == nil {
-		ret = &GoldResults{
-			GitHash: r.GitHash,
-			Key:     r.Key,
-			Results: r.Results,
-			Builder: r.Builder,
-			TaskID:  r.TaskID,
-		}
-		if r.GerritChangeListID == "" {
-			ret.GerritChangeListID = types.MasterBranch
+			if n, err := strconv.ParseInt(r.GerritChangeListID, 10, 64); err != nil {
+				return nil, skerr.Wrapf(err, "invalid value for issue: %q", r.GerritChangeListID)
+			} else {
+				ret.GerritChangeListID = n
+			}
+			if n, err := strconv.ParseInt(r.BuildBucketID, 10, 64); err != nil {
+				return nil, skerr.Wrapf(err, "invalid value for buildbucket_build_id: %q", r.BuildBucketID)
+			} else {
+				ret.BuildBucketID = n
+			}
+			if n, err := strconv.ParseInt(r.GerritPatchSet, 10, 64); err != nil {
+				return nil, skerr.Wrapf(err, "invalid value for patchset: %q", r.GerritPatchSet)
+			} else {
+				ret.GerritPatchSet = n
+				ret.PatchSetOrder = int(n)
+			}
 		} else {
-			// If there was no error we can just parse the strings to int64.
-			ret.GerritChangeListID, _ = strconv.ParseInt(r.GerritChangeListID, 10, 64)
-			ret.BuildBucketID, _ = strconv.ParseInt(r.BuildBucketID, 10, 64)
-			ret.GerritPatchSet, _ = strconv.ParseInt(r.GerritPatchSet, 10, 64)
+			// Set GerritChangeListID to -1 to indicate "master branch"
+			ret.GerritChangeListID = types.MasterBranch
 		}
-
 	}
-	return ret, errs
+
+	return ret, nil
 }
 
-// Validate validates the instance of GoldResult. If there are no errors
-// both return values will be nil. Otherwise the first return value contains
-// error messages (one for each field) and the returned error contains a
-// concatenation of these error messages.
-func (g *GoldResults) Validate(ignoreResults bool) ([]string, error) {
+// Validate validates the instance of GoldResult to make sure it is self consistent.
+func (g *GoldResults) Validate(ignoreResults bool) error {
 	if g == nil {
-		msg := "Received nil pointer for GoldResult"
-		return []string{msg}, fmt.Errorf(msg)
+		return skerr.Fmt("Received nil pointer for GoldResult")
 	}
 
-	jn := goldResultsJsonMap
-	errMsg := []string{}
+	jn := goldResultsFields
 
 	// Validate the fields
-	addErrMessage(&errMsg, regExHexadecimal.MatchString(g.GitHash), "field '%s' must be hexadecimal. Received '%s'", jn["GitHash"], g.GitHash)
-	addErrMessage(&errMsg, len(g.Key) > 0 && hasNonEmptyKV(g.Key), "field '%s' must not be empty and must not have empty keys or values", jn["Key"])
+	if !isHex.MatchString(g.GitHash) {
+		return skerr.Fmt("field %q must be hexadecimal. Received %q", jn["GitHash"], g.GitHash)
+	}
+	if len(g.Key) == 0 {
+		return skerr.Fmt("field %q must not be empty", jn["Key"])
+	}
+	if ok, err := validateParams(g.Key); !ok {
+		return skerr.Wrapf(err, "field %q must not have empty keys or values", jn["Key"])
+	}
 
-	validIssue := types.IsMasterBranch(g.GerritChangeListID) ||
-		(!types.IsMasterBranch(g.GerritChangeListID) && g.GerritPatchSet > 0 && g.BuildBucketID > 0)
-	addErrMessage(&errMsg, validIssue, "fields '%s', '%s', '%s' must all be set or all not be set", jn["Issue"], jn["Patchset"], jn["BuildBucketID"])
+	if !((g.ContinuousIntegrationSystem == "" && g.CodeReviewSystem == "" && g.TryJobID == "" && g.ChangeListID == "" && g.PatchSetOrder == 0) ||
+		(g.ContinuousIntegrationSystem != "" && g.CodeReviewSystem != "" && g.TryJobID != "" && g.ChangeListID != "" && g.PatchSetOrder > 0)) {
+		return skerr.Fmt("Either all of or none of fields [%q, %q, %q, %q, %q] must be set",
+			jn["ContinuousIntegrationSystem"], jn["CodeReviewSystem"], jn["TryJobID"], jn["ChangeListID"], jn["PatchSetOrder"])
+	}
 
 	if !ignoreResults {
-		addErrMessage(&errMsg, len(g.Results) > 0, "field '%s' must not be empty.", jn["Results"])
-		for _, r := range g.Results {
-			r.validate(&errMsg, jn["Results"])
+		if len(g.Results) == 0 {
+			return skerr.Fmt("field %q must not be empty", jn["Results"])
+		}
+		for i, r := range g.Results {
+			if err := r.validate(); err != nil {
+				return skerr.Wrapf(err, "validating field %q index %d", jn["Results"], i)
+			}
 		}
 	}
 
-	// If we have an error construct an error object from the error messages.
-	if len(errMsg) > 0 {
-		return errMsg, skerr.Fmt("errors in Validate: %s", messagesToError(errMsg))
-	}
-	return nil, nil
+	return nil
 }
 
 // validate the Result instance.
-func (r *Result) validate(errMsg *[]string, parentField string) {
-	jn := resultJsonMap
-	addErrMessage(errMsg, len(r.Key) > 0 && hasNonEmptyKV(r.Key), "field '%s' must be non-empty and must not have empty keys or values", parentField+"."+jn["Key"])
-	addErrMessage(errMsg, hasNonEmptyKV(r.Options), "field '%s' must not have empty keys or values", parentField+"."+jn["Options"])
-	addErrMessage(errMsg, regExHexadecimal.MatchString(string(r.Digest)), "field '%s' must be hexadecimal", parentField+"."+jn["Digest"])
-}
-
-// addErrMessage adds an error message to errMsg if isValid is false. The
-// error message is created using formatStr and args.
-func addErrMessage(errMsg *[]string, isValid bool, formatStr string, args ...interface{}) {
-	if isValid {
-		return
+func (r *Result) validate() error {
+	if r == nil {
+		return skerr.Fmt("nil result")
 	}
-	*errMsg = append(*errMsg, fmt.Sprintf(formatStr, args...))
-}
-
-// messagesToError concatenates the error messages into a single error
-func messagesToError(errMessages []string) error {
-	return fmt.Errorf("%s", strings.Join(errMessages, "\n")+"\n")
-}
-
-// returns true if all keys and values in the map are not empty strings
-func hasNonEmptyKV(kvMap map[string]string) bool {
-	for k, v := range kvMap {
-		if strings.TrimSpace(k) == "" && strings.TrimSpace(v) == "" {
-			return false
+	jn := resultFields
+	if len(r.Key) == 0 {
+		return skerr.Fmt("field %q must not be empty", jn["Key"])
+	}
+	if ok, err := validateParams(r.Key); !ok {
+		return skerr.Wrapf(err, "field %q must not have empty keys or values", jn["Key"])
+	}
+	if len(r.Options) != 0 {
+		// Options are optional, so only validate them if they exist.
+		if ok, err := validateParams(r.Options); !ok {
+			return skerr.Wrapf(err, "field %q must not have empty keys or values", jn["Options"])
 		}
 	}
-	return true
+	if _, ok := r.Key[types.PRIMARY_KEY_FIELD]; !ok {
+		return skerr.Fmt("field %q is missing key %s", jn["Key"], types.PRIMARY_KEY_FIELD)
+	}
+	if r.Digest == "" {
+		return skerr.Fmt("missing digest (field %q)", jn["Digest"])
+	}
+	if !isHex.MatchString(string(r.Digest)) {
+		return skerr.Fmt("field %q must be hexadecimal. Recieved %q", jn["Digest"], r.Digest)
+	}
+	return nil
+}
+
+// validateParams returns true if all keys and values in the map are not empty strings.
+func validateParams(kvMap map[string]string) (bool, error) {
+	for k, v := range kvMap {
+		if strings.TrimSpace(k) == "" && strings.TrimSpace(v) == "" {
+			return false, skerr.Fmt("empty key and value")
+		}
+		if strings.TrimSpace(k) == "" {
+			return false, skerr.Fmt("empty key (with value %q)", v)
+		}
+		if strings.TrimSpace(v) == "" {
+			return false, skerr.Fmt("empty value (with key %q)", k)
+		}
+	}
+	return true, nil
 }
 
 // jsonNameMap returns a map that maps a field name of the given struct to
