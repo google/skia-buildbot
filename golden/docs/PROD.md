@@ -18,6 +18,22 @@ Some things to look for:
  - How fresh is the tile data? (this could indicate something is stuck).
  - How is ingestion liveness?  Anything stuck?
 
+QPS
+---
+To determine load of various services, we can use the fact that there are
+`defer metrics2.FuncTimer().Stop()` all around the code base to get a rough idea of QPS/load.
+
+On <https://prom2.skia.org> or <https://skia-prom.corp.goog>, try doing the search:
+
+    rate(timer_func_timer_ns_count{appgroup=~"gold.+"}[1m])
+
+You can even search by package, e.g. all Firestore related functions:
+
+    rate(timer_func_timer_ns_count{package=~".+fs_.+"}[1m])
+
+If you find something problematic, then `timer_func_timer_ns{appgroup=~"gold.+"}/1000000000` is
+how to see how many milliseconds a given timer actually took.
+
 General Logs
 ============
 Logs for Gold instances in skia-public/skia-corp are in the usual
