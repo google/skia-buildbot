@@ -22,6 +22,30 @@
       "revId": "4235aa59f8dcf5cf8ecc3f5a873aa2fec161e0e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66f3a9b8_6270eb96",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 378,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-30T18:13:22Z",
+      "side": 1,
+      "message": "That would make the expiration part kind of useless. Reading the code, it does not return expired items: https://github.com/patrickmn/go-cache/blob/5633e0862627c011927fa39556acae8b1f1df58a/cache.go#L128",
+      "parentUuid": "dbe12935_ac7795eb",
+      "range": {
+        "startLine": 378,
+        "startChar": 28,
+        "endLine": 378,
+        "endChar": 36
+      },
+      "revId": "4235aa59f8dcf5cf8ecc3f5a873aa2fec161e0e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
