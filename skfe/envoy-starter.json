@@ -1277,7 +1277,10 @@
                             "prefix": "/json/roll"
                           },
                           "route": {
-                            "cluster": "autoroll-google3"
+                            "cluster": "autoroll-google3",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         },
                         {
@@ -1301,7 +1304,10 @@
                             "prefix": "/img/"
                           },
                           "route": {
-                            "cluster": "gold-skia-diffserver"
+                            "cluster": "gold-skia-diffserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         },
                         {
@@ -1309,7 +1315,10 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-skia-skiacorrectness"
+                            "cluster": "gold-skia-skiacorrectness",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         }
                       ]
@@ -1323,7 +1332,10 @@
                             "prefix": "/img/"
                           },
                           "route": {
-                            "cluster": "gold-skia-diffserver"
+                            "cluster": "gold-skia-diffserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         },
                         {
@@ -1331,7 +1343,10 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-skia-public-skiacorrectness"
+                            "cluster": "gold-skia-public-skiacorrectness",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         }
                       ]
@@ -1345,7 +1360,10 @@
                             "prefix": "/img/"
                           },
                           "route": {
-                            "cluster": "gold-lottie-diffserver"
+                            "cluster": "gold-lottie-diffserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         },
                         {
@@ -1353,7 +1371,10 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-lottie-skiacorrectness"
+                            "cluster": "gold-lottie-skiacorrectness",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         }
                       ]
@@ -1367,7 +1388,10 @@
                             "prefix": "/img/"
                           },
                           "route": {
-                            "cluster": "gold-pdfium-diffserver"
+                            "cluster": "gold-pdfium-diffserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         },
                         {
@@ -1375,7 +1399,10 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-pdfium-skiacorrectness"
+                            "cluster": "gold-pdfium-skiacorrectness",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         }
                       ]
@@ -1389,7 +1416,10 @@
                             "prefix": "/json/hashes"
                           },
                           "route": {
-                            "cluster": "gold-flutter-baselineserver"
+                            "cluster": "gold-flutter-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         },
                         {
@@ -1397,7 +1427,10 @@
                             "prefix": "/json/expectations/"
                           },
                           "route": {
-                            "cluster": "gold-flutter-baselineserver"
+                            "cluster": "gold-flutter-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         },
                         {
@@ -1405,7 +1438,10 @@
                             "prefix": "/img/"
                           },
                           "route": {
-                            "cluster": "gold-flutter-diffserver"
+                            "cluster": "gold-flutter-diffserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         },
                         {
@@ -1413,7 +1449,10 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-flutter-skiacorrectness"
+                            "cluster": "gold-flutter-skiacorrectness",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         }
                       ]
@@ -1427,7 +1466,10 @@
                             "prefix": "/json/hashes"
                           },
                           "route": {
-                            "cluster": "gold-chrome-gpu-baselineserver"
+                            "cluster": "gold-chrome-gpu-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         },
                         {
@@ -1435,7 +1477,10 @@
                             "prefix": "/json/expectations/"
                           },
                           "route": {
-                            "cluster": "gold-chrome-gpu-baselineserver"
+                            "cluster": "gold-chrome-gpu-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         },
                         {
@@ -1443,7 +1488,10 @@
                             "prefix": "/img/"
                           },
                           "route": {
-                            "cluster": "gold-chrome-gpu-diffserver"
+                            "cluster": "gold-chrome-gpu-diffserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         },
                         {
@@ -1451,7 +1499,10 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-chrome-gpu-skiacorrectness"
+                            "cluster": "gold-chrome-gpu-skiacorrectness",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         }
                       ]
@@ -1465,7 +1516,10 @@
                             "prefix": "/json/hashes"
                           },
                           "route": {
-                            "cluster": "gold-chrome-baselineserver"
+                            "cluster": "gold-chrome-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         },
                         {
@@ -1473,7 +1527,10 @@
                             "prefix": "/json/expectations/"
                           },
                           "route": {
-                            "cluster": "gold-chrome-baselineserver"
+                            "cluster": "gold-chrome-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         },
                         {
@@ -1481,7 +1538,10 @@
                             "prefix": "/img/"
                           },
                           "route": {
-                            "cluster": "gold-chrome-diffserver"
+                            "cluster": "gold-chrome-diffserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         },
                         {
@@ -1489,7 +1549,10 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-chrome-skiacorrectness"
+                            "cluster": "gold-chrome-skiacorrectness",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         }
                       ]
@@ -1503,7 +1566,10 @@
                             "prefix": "/json/hashes"
                           },
                           "route": {
-                            "cluster": "gold-flutter-engine-baselineserver"
+                            "cluster": "gold-flutter-engine-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         },
                         {
@@ -1511,7 +1577,10 @@
                             "prefix": "/json/expectations/"
                           },
                           "route": {
-                            "cluster": "gold-flutter-engine-baselineserver"
+                            "cluster": "gold-flutter-engine-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         },
                         {
@@ -1519,7 +1588,10 @@
                             "prefix": "/img/"
                           },
                           "route": {
-                            "cluster": "gold-flutter-engine-diffserver"
+                            "cluster": "gold-flutter-engine-diffserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         },
                         {
@@ -1527,7 +1599,10 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-flutter-engine-skiacorrectness"
+                            "cluster": "gold-flutter-engine-skiacorrectness",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         }
                       ]
