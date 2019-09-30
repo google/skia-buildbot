@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1053c272_5640f373",
+        "filename": "go/autoroll/autoroll.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-30T17:31:52Z",
+      "side": 1,
+      "message": "I started to use it for TRYJOB_STATUS_COMPLETED, but I realized that I needed to go through all of the cases anyway for TryResult.Result, so I didn\u0027t bother.",
+      "parentUuid": "bec6615b_2ec94b43",
+      "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0405383f_5992decd",
         "filename": "go/autoroll/autoroll.go",
         "patchSetId": 2
@@ -30,6 +48,30 @@
       "writtenOn": "2019-09-30T15:02:12Z",
       "side": 1,
       "message": "Weird that buildbucketpb does not give us the host.",
+      "range": {
+        "startLine": 421,
+        "startChar": 64,
+        "endLine": 421,
+        "endChar": 76
+      },
+      "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "553722c6_0b98f047",
+        "filename": "go/autoroll/autoroll.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-30T17:31:52Z",
+      "side": 1,
+      "message": "I think the assumption is that you know the API you\u0027re talking to.  We only use the one BB host at the moment; if there are ever more instances we\u0027ll need to change this.",
+      "parentUuid": "0405383f_5992decd",
       "range": {
         "startLine": 421,
         "startChar": 64,
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "de3931b2_19310466",
+        "filename": "go/cq/cq.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-30T17:31:52Z",
+      "side": 1,
+      "message": "I thought I\u0027d already done that; done.",
+      "parentUuid": "a67d63ea_95fc9819",
+      "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9c09ad39_a35410c1",
         "filename": "golden/go/continuous_integration/buildbucket_cis/buildbucket_cis_test.go",
         "patchSetId": 2
@@ -79,6 +139,30 @@
       "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11024f91_3fd22198",
+        "filename": "golden/go/continuous_integration/buildbucket_cis/buildbucket_cis_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-30T17:31:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9c09ad39_a35410c1",
+      "range": {
+        "startLine": 34,
+        "startChar": 46,
+        "endLine": 34,
+        "endChar": 67
+      },
+      "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -105,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "22b86b1d_aee996e1",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-30T17:31:52Z",
+      "side": 1,
+      "message": "Done, and simplified to return only the one repo URL.",
+      "parentUuid": "c699e4df_c2f39cfc",
+      "range": {
+        "startLine": 272,
+        "startChar": 0,
+        "endLine": 275,
+        "endChar": 20
+      },
+      "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c8f6155f_6ddbab6f",
         "filename": "task_scheduler/go/tryjobs/tryjobs.go",
         "patchSetId": 2
@@ -119,6 +227,24 @@
       "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd5e9945_729801a9",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-30T17:31:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c8f6155f_6ddbab6f",
+      "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -145,6 +271,30 @@
     },
     {
       "key": {
+        "uuid": "27394712_82597301",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-30T17:31:52Z",
+      "side": 1,
+      "message": "Filed https://bugs.chromium.org/p/skia/issues/detail?id\u003d9481",
+      "parentUuid": "3fc42aff_8e95797e",
+      "range": {
+        "startLine": 361,
+        "startChar": 1,
+        "endLine": 361,
+        "endChar": 11
+      },
+      "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bbe52099_8ad3bac7",
         "filename": "task_scheduler/go/tryjobs/tryjobs.go",
         "patchSetId": 2
@@ -168,6 +318,30 @@
     },
     {
       "key": {
+        "uuid": "80ade996_c2a25cda",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-30T17:31:52Z",
+      "side": 1,
+      "message": "Changed to add the https:// prefix.",
+      "parentUuid": "bbe52099_8ad3bac7",
+      "range": {
+        "startLine": 371,
+        "startChar": 14,
+        "endLine": 371,
+        "endChar": 31
+      },
+      "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7f0a18b1_3b0bacfd",
         "filename": "task_scheduler/go/tryjobs/tryjobs_test.go",
         "patchSetId": 2
@@ -188,6 +362,30 @@
       "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ad07675_e7233fb0",
+        "filename": "task_scheduler/go/tryjobs/tryjobs_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-09-30T17:31:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7f0a18b1_3b0bacfd",
+      "range": {
+        "startLine": 377,
+        "startChar": 0,
+        "endLine": 384,
+        "endChar": 142
+      },
+      "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
