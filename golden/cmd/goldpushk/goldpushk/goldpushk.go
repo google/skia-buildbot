@@ -16,6 +16,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -82,51 +83,50 @@ func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableU
 func (g *Goldpushk) Run(ctx context.Context) error {
 	// Print out list of targeted deployable units, and ask for confirmation.
 	if ok, err := g.printOutInputsAndAskConfirmation(); err != nil {
-		return err
+		return skerr.Wrap(err)
 	} else if !ok {
 		return nil
 	}
 
 	// Check out Git repositories.
 	if err := g.checkOutGitRepositories(ctx); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	defer g.skiaPublicConfigCheckout.Delete()
 	defer g.skiaCorpConfigCheckout.Delete()
 
 	// Regenerate config files.
 	if err := g.regenerateConfigFiles(ctx); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 
 	// Commit config files, giving the user the option to abort.
 	if ok, err := g.commitConfigFiles(ctx); err != nil {
-		return err
+		return skerr.Wrap(err)
 	} else if !ok {
 		return nil
 	}
 
-	// Get cluster credentials before running any kubectl commands.
-	if err := g.getClusterCredentials(ctx, clusterSkiaPublic); err != nil {
-		return err
-	}
-	if err := g.getClusterCredentials(ctx, clusterSkiaCorp); err != nil {
-		return err
+	// Deploy canaries.
+	if err := g.pushCanaries(ctx); err != nil {
+		return skerr.Wrap(err)
 	}
 
-	// TODO(lovisolo): Implement methods below.
-	if err := g.pushCanaries(); err != nil {
-		return err
-	}
+	// Monitor canaries.
 	if err := g.monitorCanaries(); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
-	if err := g.pushServices(); err != nil {
-		return err
+
+	// Deploy remaining DeployableUnits.
+	if err := g.pushServices(ctx); err != nil {
+		return skerr.Wrap(err)
 	}
+
+	// Monitor remaining DeployableUnits.
 	if err := g.monitorServices(); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
+
 	return nil
 }
 
@@ -306,7 +306,7 @@ func (g *Goldpushk) expandTemplate(ctx context.Context, instance Instance, templ
 	}
 
 	if err := exec.Run(ctx, cmd); err != nil {
-		return skerr.Wrapf(err, "failed to run kube-conf-gen")
+		return skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
 	}
 	sklog.Infof("Generated %s", outputPath)
 	return nil
@@ -375,56 +375,143 @@ func printOutGitStatus(ctx context.Context, checkout *git.TempCheckout, repoName
 	return nil
 }
 
-func (g *Goldpushk) pushCanaries() error {
-	// TODO(lovisolo)
-	return skerr.Fmt("not implemented")
+// pushCanaries deploys the canaried deployable units.
+func (g *Goldpushk) pushCanaries(ctx context.Context) error {
+	if len(g.canariedDeployableUnits) == 0 {
+		return nil
+	}
+
+	fmt.Println("\nPushing canaried services.")
+	if err := g.pushDeployableUnits(ctx, g.canariedDeployableUnits); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
 }
 
 func (g *Goldpushk) monitorCanaries() error {
 	// TODO(lovisolo)
-	return skerr.Fmt("not implemented")
+	fmt.Println("\nMonitoring not yet implemented.")
+	return nil
 }
 
-func (g *Goldpushk) pushServices() error {
-	// TODO(lovisolo)
-	return skerr.Fmt("not implemented")
+// pushServices deploys the non-canaried deployable units.
+func (g *Goldpushk) pushServices(ctx context.Context) error {
+	if len(g.canariedDeployableUnits) == 0 {
+		fmt.Println("\nPushing services.")
+	} else {
+		fmt.Println("\nPushing remaining services.")
+	}
+
+	if err := g.pushDeployableUnits(ctx, g.deployableUnits); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
 }
 
 func (g *Goldpushk) monitorServices() error {
 	// TODO(lovisolo)
-	return skerr.Fmt("not implemented")
+	fmt.Println("\nMonitoring not yet implemented.")
+	return nil
 }
 
-// getClusterCredentials runs the "gcloud" command necessary to get the credentials for the given
-// cluster.
-func (g *Goldpushk) getClusterCredentials(ctx context.Context, cluster cluster) error {
-	sklog.Infof("Getting credentials for cluster %s\n", cluster.name)
+// pushDeployableUnits takes a slice of DeployableUnits and pushes them to their corresponding
+// clusters.
+func (g *Goldpushk) pushDeployableUnits(ctx context.Context, units []DeployableUnit) error {
+	for _, unit := range units {
+		if err := g.pushSingleDeployableUnit(ctx, unit); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	return nil
+}
+
+// pushSingleDeployableUnit pushes the given DeployableUnit to the corresponding cluster by running
+// "kubectl apply -f path/to/config.yaml".
+func (g *Goldpushk) pushSingleDeployableUnit(ctx context.Context, unit DeployableUnit) error {
+	// Get the cluster corresponding to the given DeployableUnit.
+	cluster := clusterSkiaPublic
+	if unit.internal {
+		cluster = clusterSkiaCorp
+	}
+
+	// Switch clusters.
+	if err := g.switchClusters(ctx, cluster); err != nil {
+		return skerr.Wrap(err)
+	}
+
+	// Push ConfigMap if the DeployableUnit requires one.
+	if err := g.maybePushConfigMap(ctx, unit); err != nil {
+		return skerr.Wrap(err)
+	}
+
+	// Push DeployableUnit.
+	path := g.getDeploymentFilePath(unit)
+	fmt.Printf("%s: applying %s.\n", unit.CanonicalName(), path)
 	cmd := &exec.Command{
-		Name:        "gcloud",
-		Args:        []string{"container", "clusters", "get-credentials", cluster.name, "--zone", "us-central1-a", "--project", cluster.projectID},
+		Name:        "kubectl",
+		Args:        []string{"apply", "-f", path},
 		InheritPath: true,
 		LogStderr:   true,
 		LogStdout:   true,
 	}
 	if err := exec.Run(ctx, cmd); err != nil {
-		return skerr.Wrapf(err, "failed to run gcloud")
+		return skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
+	}
+
+	return nil
+}
+
+// maybePushConfigMap pushes the ConfigMap required by the given DeployableUnit, if it needs one.
+func (g *Goldpushk) maybePushConfigMap(ctx context.Context, unit DeployableUnit) error {
+	// If the DeployableUnit requires a ConfigMap, delete and recreate it.
+	if path, ok := g.getConfigMapFilePath(unit); ok {
+		fmt.Printf("%s: creating ConfigMap named \"%s\" from file %s.\n", unit.CanonicalName(), unit.configMapName, path)
+
+		// Delete existing ConfigMap.
+		cmd := &exec.Command{
+			Name:        "kubectl",
+			Args:        []string{"delete", "configmap", unit.configMapName},
+			InheritPath: true,
+			LogStderr:   true,
+			LogStdout:   true,
+		}
+		if err := exec.Run(ctx, cmd); err != nil {
+			// TODO(lovisolo): Figure out a less brittle way to detect exit status 1.
+			if strings.HasPrefix(err.Error(), "Command exited with exit status 1") {
+				sklog.Infof("Did not delete ConfigMap %s as it does not exist on the cluster.", unit.configMapName)
+			} else {
+				return skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
+			}
+		}
+
+		// Create new ConfigMap.
+		cmd = &exec.Command{
+			Name:        "kubectl",
+			Args:        []string{"create", "configmap", unit.configMapName, "--from-file", path},
+			InheritPath: true,
+			LogStderr:   true,
+			LogStdout:   true,
+		}
+		if err := exec.Run(ctx, cmd); err != nil {
+			return skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
+		}
 	}
 	return nil
 }
 
 // switchClusters runs the "gcloud" command necessary to switch kubectl to the given cluster.
 func (g *Goldpushk) switchClusters(ctx context.Context, cluster cluster) error {
-	sklog.Infof("Switching to cluster %s\n", cluster.name)
 	if g.currentCluster != cluster {
+		sklog.Infof("Switching to cluster %s\n", cluster.name)
 		cmd := &exec.Command{
 			Name:        "gcloud",
-			Args:        []string{"config", "set", "project", cluster.projectID},
+			Args:        []string{"container", "clusters", "get-credentials", cluster.name, "--zone", "us-central1-a", "--project", cluster.projectID},
 			InheritPath: true,
 			LogStderr:   true,
 			LogStdout:   true,
 		}
 		if err := exec.Run(ctx, cmd); err != nil {
-			return skerr.Wrapf(err, "failed to run gcloud")
+			return skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
 		}
 		g.currentCluster = cluster
 	}
@@ -451,10 +538,15 @@ func (g *Goldpushk) forAllDeployableUnits(f func(unit DeployableUnit) error) err
 // function.
 func (g *Goldpushk) forAllGitRepos(f func(repo *git.TempCheckout, name string) error) error {
 	if err := f(g.skiaPublicConfigCheckout, "skia-public-config"); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	if err := f(g.skiaCorpConfigCheckout, "skia-corp-config"); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	return nil
+}
+
+// cmdToDebugStr returns a human-readable string representation of an *exec.Command.
+func cmdToDebugStr(cmd *exec.Command) string {
+	return fmt.Sprintf("%s %s", cmd.Name, strings.Join(cmd.Args, " "))
 }
