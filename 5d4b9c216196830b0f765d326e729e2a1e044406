@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "06c439f1_08989b8c",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-30T19:18:09Z",
+      "side": 1,
+      "message": "Seems a little low?",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 27
+      },
+      "revId": "5d4b9c216196830b0f765d326e729e2a1e044406",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dfa72745_022fc874",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-30T19:18:09Z",
+      "side": 1,
+      "message": "nit: ReportError uses http.StatusInternalServerError, but this should probably be http.StatusServiceUnavailable.\n\nMaybe incorporate this into limitForAnonUsers.",
+      "revId": "5d4b9c216196830b0f765d326e729e2a1e044406",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
