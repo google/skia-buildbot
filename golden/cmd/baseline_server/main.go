@@ -92,12 +92,15 @@ func main() {
 	// Baseline doesn't need to access this, just needs a way to indicate which CRS we are on.
 	emptyCLStore := fs_clstore.New(nil, *primaryCRS)
 
-	// We only need to fill in the WebHandlers struct with the following subset, since the baseline
+	// We only need to fill in the HandlersConfig struct with the following subset, since the baseline
 	// server only supplies a subset of the functionality.
-	handlers := web.WebHandlers{
+	handlers, err := web.NewHandlers(web.HandlersConfig{
 		GCSClient:       gsClient,
 		Baseliner:       baseliner,
 		ChangeListStore: emptyCLStore,
+	}, web.BaselineSubset)
+	if err != nil {
+		sklog.Fatalf("Failed to initialize web handlers: %s", err)
 	}
 
 	// Set up a router for all the application endpoints which are part of the Gold API.
