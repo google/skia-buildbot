@@ -1067,11 +1067,12 @@
                       "routes": [
                         {
                           "match": {
-                            "prefix": "/p/"
+                            "path": "/"
                           },
                           "redirect": {
                             "host_redirect": "bugs.chromium.org",
-                            "https_redirect": true
+                            "https_redirect": true,
+                            "path_redirect": "/p/skia/issues/list"
                           }
                         },
                         {
@@ -1092,11 +1093,12 @@
                       "routes": [
                         {
                           "match": {
-                            "prefix": "/p/"
+                            "path": "/"
                           },
                           "redirect": {
                             "host_redirect": "bugs.chromium.org",
-                            "https_redirect": true
+                            "https_redirect": true,
+                            "path_redirect": "/p/skia/issues/list"
                           }
                         },
                         {
