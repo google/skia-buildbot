@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3fec40e4_b43a094b",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-30T18:44:42Z",
+      "side": 1,
+      "message": "I would describe kubectlTimestampLayout as \"how kubectl output times as of Sept 30 2019\" (bonus points if you mention the version of kubectl)",
+      "range": {
+        "startLine": 34,
+        "startChar": 4,
+        "endLine": 34,
+        "endChar": 62
+      },
+      "revId": "54ff35f8be447691954a998fe7f67a3972671684",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3ebdf0b_22d1e77d",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 538,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-30T18:44:42Z",
+      "side": 1,
+      "message": "I\u0027d recommend returning a time.Duration.  Then we don\u0027t have to say \"it is seconds\" all over the place.",
+      "range": {
+        "startLine": 538,
+        "startChar": 126,
+        "endLine": 538,
+        "endChar": 131
+      },
+      "revId": "54ff35f8be447691954a998fe7f67a3972671684",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "724734e9_3202d01c",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 579,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-30T18:44:42Z",
+      "side": 1,
+      "message": "regexes with groups can be a bit easier to read if you name them\n(?P\u003cname\u003e\\\\S+)\\\\s+(?P\u003ctimestamp\u003e\\\\S+)\n\n(no need to change lines 592 or 593, actually using the named groups is a bit awkward. It just helps with reading them)",
+      "range": {
+        "startLine": 579,
+        "startChar": 27,
+        "endLine": 579,
+        "endChar": 28
+      },
+      "revId": "54ff35f8be447691954a998fe7f67a3972671684",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7c2a4d2_4252d79f",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 613,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-30T18:44:42Z",
+      "side": 1,
+      "message": "Document how this was generated (in case we need to re-generate it in the future)",
+      "range": {
+        "startLine": 613,
+        "startChar": 4,
+        "endLine": 613,
+        "endChar": 17
+      },
+      "revId": "54ff35f8be447691954a998fe7f67a3972671684",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54b5733e_c0dd3f8b",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 614,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-30T18:44:42Z",
+      "side": 1,
+      "message": "I usually stick big long constants at the bottom of the test files.",
+      "range": {
+        "startLine": 614,
+        "startChar": 18,
+        "endLine": 614,
+        "endChar": 23
+      },
+      "revId": "54ff35f8be447691954a998fe7f67a3972671684",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "749ef199_f844a6eb",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 679,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-30T18:44:42Z",
+      "side": 1,
+      "message": "should this be a named constant/variable? Perhaps a mockTs :\u003d time.Date(2019, ...) instead of parsing the string.",
+      "range": {
+        "startLine": 679,
+        "startChar": 49,
+        "endLine": 679,
+        "endChar": 69
+      },
+      "revId": "54ff35f8be447691954a998fe7f67a3972671684",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
