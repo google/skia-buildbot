@@ -2,6 +2,7 @@ package goldpushk
 
 import (
 	"context"
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -426,7 +427,7 @@ func TestCommitConfigFilesSkipped(t *testing.T) {
 	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 1)
 }
 
-func TestGetClusterCredentials(t *testing.T) {
+func TestSwitchClusters(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// Create the goldpushk instance under test.
@@ -452,42 +453,145 @@ func TestGetClusterCredentials(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		err := g.getClusterCredentials(commandCollectorCtx, tc.cluster)
+		err := g.switchClusters(commandCollectorCtx, tc.cluster)
 		assert.NoError(t, err)
 		assert.Equal(t, tc.expectedCmd, exec.DebugString(commandCollector.Commands()[i]))
 	}
 }
 
-func TestSwitchClusters(t *testing.T) {
+func TestPushSingleDeployableUnitDeleteNonexistentConfigMap(t *testing.T) {
 	unittest.SmallTest(t)
 
+	// Gather the DeployableUnit to deploy.
+	s := ProductionDeployableUnits()
+	unit, ok := s.Get(makeID(Skia, IngestionBT))
+	assert.True(t, ok)
+
 	// Create the goldpushk instance under test.
-	g := Goldpushk{}
+	g := &Goldpushk{}
+	addFakeConfigRepoCheckouts(g)
+
+	// Set up mocks.
+	commandCollector := exec.CommandCollector{}
+	commandCollector.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
+		if cmd.Name == "kubectl" && cmd.Args[0] == "delete" {
+			// This is the actual error message that is returned when the command exits with status 1.
+			return errors.New("Command exited with exit status 1: kubectl delete configmap gold-skia-ingestion-config-bt")
+		}
+		return nil
+	})
+	commandCollectorCtx := exec.NewContext(context.Background(), commandCollector.Run)
+
+	// Call code under test.
+	err := g.pushSingleDeployableUnit(commandCollectorCtx, unit)
+	assert.NoError(t, err)
+
+	// Assert that the correct kubectl and gcloud commands were executed.
+	expectedCommands := []string{
+		"gcloud container clusters get-credentials skia-public --zone us-central1-a --project skia-public",
+		"kubectl delete configmap gold-skia-ingestion-config-bt",
+		"kubectl create configmap gold-skia-ingestion-config-bt --from-file /path/to/skia-public-config/gold-skia-ingestion-config-bt.json5",
+		"kubectl apply -f /path/to/skia-public-config/gold-skia-ingestion-bt.yaml",
+	}
+	assert.Len(t, commandCollector.Commands(), len(expectedCommands))
+	for i, command := range expectedCommands {
+		assert.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
+	}
+}
+
+func TestPushCanaries(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Gather the DeployableUnits to deploy.
+	s := ProductionDeployableUnits()
+	units := []DeployableUnit{}
+	units = appendUnit(t, units, s, Skia, DiffServer)     // Public.
+	units = appendUnit(t, units, s, Skia, IngestionBT)    // Public, with config map.
+	units = appendUnit(t, units, s, Fuchsia, DiffServer)  // Internal.
+	units = appendUnit(t, units, s, Fuchsia, IngestionBT) // Internal, with config map.
+
+	// Create the goldpushk instance under test.
+	g := &Goldpushk{
+		canariedDeployableUnits: units,
+	}
+	addFakeConfigRepoCheckouts(g)
+
+	// Hide goldpushk output to stdout.
+	restoreStdout := hideStdout(t)
+	defer restoreStdout()
 
 	// Set up mocks.
 	commandCollector := exec.CommandCollector{}
 	commandCollectorCtx := exec.NewContext(context.Background(), commandCollector.Run)
 
-	// Test cases.
-	testCases := []struct {
-		cluster     cluster
-		expectedCmd string
-	}{
-		{
-			cluster:     clusterSkiaPublic,
-			expectedCmd: "gcloud config set project skia-public",
-		},
-		{
-			cluster:     clusterSkiaCorp,
-			expectedCmd: "gcloud config set project google.com:skia-corp",
-		},
-	}
+	// Call code under test.
+	err := g.pushCanaries(commandCollectorCtx)
+	assert.NoError(t, err)
 
-	for i, tc := range testCases {
-		err := g.switchClusters(commandCollectorCtx, tc.cluster)
-		assert.NoError(t, err)
-		assert.Equal(t, tc.expectedCmd, exec.DebugString(commandCollector.Commands()[i]))
-		assert.Equal(t, tc.cluster, g.currentCluster)
+	// Assert that the correct kubectl and gcloud commands were executed.
+	expectedCommands := []string{
+		"gcloud container clusters get-credentials skia-public --zone us-central1-a --project skia-public",
+		"kubectl apply -f /path/to/skia-public-config/gold-skia-diffserver.yaml",
+		"kubectl delete configmap gold-skia-ingestion-config-bt",
+		"kubectl create configmap gold-skia-ingestion-config-bt --from-file /path/to/skia-public-config/gold-skia-ingestion-config-bt.json5",
+		"kubectl apply -f /path/to/skia-public-config/gold-skia-ingestion-bt.yaml",
+		"gcloud container clusters get-credentials skia-corp --zone us-central1-a --project google.com:skia-corp",
+		"kubectl apply -f /path/to/skia-corp-config/gold-fuchsia-diffserver.yaml",
+		"kubectl delete configmap gold-fuchsia-ingestion-config-bt",
+		"kubectl create configmap gold-fuchsia-ingestion-config-bt --from-file /path/to/skia-corp-config/gold-fuchsia-ingestion-config-bt.json5",
+		"kubectl apply -f /path/to/skia-corp-config/gold-fuchsia-ingestion-bt.yaml",
+	}
+	assert.Len(t, commandCollector.Commands(), len(expectedCommands))
+	for i, command := range expectedCommands {
+		assert.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
+	}
+}
+
+func TestPushServices(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Gather the DeployableUnits to deploy.
+	s := ProductionDeployableUnits()
+	units := []DeployableUnit{}
+	units = appendUnit(t, units, s, Skia, DiffServer)     // Public.
+	units = appendUnit(t, units, s, Skia, IngestionBT)    // Public, with config map.
+	units = appendUnit(t, units, s, Fuchsia, DiffServer)  // Internal.
+	units = appendUnit(t, units, s, Fuchsia, IngestionBT) // Internal, with config map.
+
+	// Create the goldpushk instance under test.
+	g := &Goldpushk{
+		deployableUnits: units,
+	}
+	addFakeConfigRepoCheckouts(g)
+
+	// Hide goldpushk output to stdout.
+	restoreStdout := hideStdout(t)
+	defer restoreStdout()
+
+	// Set up mocks.
+	commandCollector := exec.CommandCollector{}
+	commandCollectorCtx := exec.NewContext(context.Background(), commandCollector.Run)
+
+	// Call code under test.
+	err := g.pushServices(commandCollectorCtx)
+	assert.NoError(t, err)
+
+	// Assert that the correct kubectl and gcloud commands were executed.
+	expectedCommands := []string{
+		"gcloud container clusters get-credentials skia-public --zone us-central1-a --project skia-public",
+		"kubectl apply -f /path/to/skia-public-config/gold-skia-diffserver.yaml",
+		"kubectl delete configmap gold-skia-ingestion-config-bt",
+		"kubectl create configmap gold-skia-ingestion-config-bt --from-file /path/to/skia-public-config/gold-skia-ingestion-config-bt.json5",
+		"kubectl apply -f /path/to/skia-public-config/gold-skia-ingestion-bt.yaml",
+		"gcloud container clusters get-credentials skia-corp --zone us-central1-a --project google.com:skia-corp",
+		"kubectl apply -f /path/to/skia-corp-config/gold-fuchsia-diffserver.yaml",
+		"kubectl delete configmap gold-fuchsia-ingestion-config-bt",
+		"kubectl create configmap gold-fuchsia-ingestion-config-bt --from-file /path/to/skia-corp-config/gold-fuchsia-ingestion-config-bt.json5",
+		"kubectl apply -f /path/to/skia-corp-config/gold-fuchsia-ingestion-bt.yaml",
+	}
+	assert.Len(t, commandCollector.Commands(), len(expectedCommands))
+	for i, command := range expectedCommands {
+		assert.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
 	}
 }
 
