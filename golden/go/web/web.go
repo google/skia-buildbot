@@ -511,7 +511,7 @@ func (wh *Handlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !types.IsMasterBranch(query.DeprecatedIssue) || (query.BlameGroupID != "") {
+	if query.ChangeListID != "" || query.BlameGroupID != "" {
 		msg := "Search query cannot contain blame or issue information."
 		httputils.ReportError(w, r, errors.New(msg), msg)
 		return

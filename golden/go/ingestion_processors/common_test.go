@@ -42,7 +42,6 @@ func TestDMResults(t *testing.T) {
 			"model":            "ShuttleB",
 			"os":               "Win8",
 		},
-		GerritChangeListID: types.MasterBranch,
 		Results: []*jsonio.Result{
 			{
 				Key: map[string]string{

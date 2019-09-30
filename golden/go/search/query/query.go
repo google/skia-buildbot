@@ -98,9 +98,6 @@ func ParseDTQuery(r io.ReadCloser, limitDefault int32, q *DigestTable) error {
 	q.ColumnQuery.PatchSets = validate.Int64SliceValue("patchsets", q.ColumnQuery.PatchSetsStr, nil)
 	q.RowQuery.PatchSets = validate.Int64SliceValue("patchsets", q.RowQuery.PatchSetsStr, nil)
 
-	q.ColumnQuery.DeprecatedIssue = validate.Int64Value("column.issue", q.ColumnQuery.ChangeListID, 0)
-	q.RowQuery.DeprecatedIssue = validate.Int64Value("row.issue", q.RowQuery.ChangeListID, 0)
-
 	// Parse the general parameters of the query.
 	validate.StrValue("sortRows", &q.SortRows, rowSortFields, SortByImageCounts)
 	validate.StrValue("rowsDir", &q.RowsDir, sortDirections, SortDescending)
@@ -110,7 +107,7 @@ func ParseDTQuery(r io.ReadCloser, limitDefault int32, q *DigestTable) error {
 	return validate.Errors()
 }
 
-// ParseQuery parses the request parameters from the URL query string or from the
+// ParseSearch parses the request parameters from the URL query string or from the
 // form parameters and stores the parsed and validated values in query.
 func ParseSearch(r *http.Request, q *Search) error {
 	if err := r.ParseForm(); err != nil {
@@ -151,7 +148,6 @@ func ParseSearch(r *http.Request, q *Search) error {
 	// Parse out the issue and patchsets.
 	q.PatchSets = validate.Int64SliceFormValue(r, "patchsets", nil)
 	q.ChangeListID = r.FormValue("issue")
-	q.DeprecatedIssue = validate.Int64FormValue(r, "issue", types.LegacyMasterBranch)
 
 	// Check whether any of the validations failed.
 	if err := validate.Errors(); err != nil {

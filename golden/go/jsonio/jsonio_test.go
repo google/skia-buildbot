@@ -291,9 +291,6 @@ func TestParseGoldResultsValid(t *testing.T) {
 	// Make sure some key fields come out correctly, i.e. are converted correctly from string to int.
 	assert.Equal(t, "c4711517219f333c1116f47706eb57b51b5f8fc7", r.GitHash)
 	assert.Equal(t, "Xb0VhENPSRFGnf2elVQd", r.TaskID)
-	assert.Equal(t, int64(12345), r.GerritChangeListID)
-	assert.Equal(t, int64(10), r.GerritPatchSet)
-	assert.Equal(t, int64(549340494940393), r.BuildBucketID)
 	assert.Equal(t, "12345", r.ChangeListID)
 	assert.Equal(t, 10, r.PatchSetOrder)
 	assert.Equal(t, "549340494940393", r.TryJobID)
@@ -303,7 +300,6 @@ func TestParseGoldResultsValid(t *testing.T) {
 	assert.Len(t, r.Results, 3)
 
 	r = testParse(t, legacySkiaJSON)
-	assert.Equal(t, types.MasterBranch, r.GerritChangeListID)
 	assert.Empty(t, r.ChangeListID)
 	assert.Empty(t, r.TryJobID)
 	assert.Equal(t, "Test-Android-Clang-Nexus7-CPU-Tegra3-arm-Release-All-Android", r.Builder)
@@ -311,9 +307,6 @@ func TestParseGoldResultsValid(t *testing.T) {
 	assert.Contains(t, r.Results[0].Options, "color_type")
 
 	r = testParse(t, legacyGoldCtlTryjobJSON)
-	assert.Equal(t, int64(1762193), r.GerritChangeListID)
-	assert.Equal(t, int64(2), r.GerritPatchSet)
-	assert.Equal(t, int64(8904604368086838672), r.BuildBucketID)
 	assert.Equal(t, "1762193", r.ChangeListID)
 	assert.Equal(t, 2, r.PatchSetOrder)
 	assert.Equal(t, "8904604368086838672", r.TryJobID)
@@ -339,23 +332,19 @@ func TestParseGoldResultsValid(t *testing.T) {
 	}, r.Key)
 
 	r = testParse(t, legacyGoldCtlJSON)
-	assert.Equal(t, types.MasterBranch, r.GerritChangeListID)
 	assert.Empty(t, r.ChangeListID)
 	assert.Empty(t, r.TryJobID)
 	assert.Contains(t, r.Key, "vendor_id")
 
 	r = testParse(t, legacyMasterBranchJSON)
-	assert.Equal(t, types.MasterBranch, r.GerritChangeListID)
 	assert.Empty(t, r.ChangeListID)
 	assert.Empty(t, r.TryJobID)
 
 	r = testParse(t, negativeMasterBranchJSON)
-	assert.Equal(t, types.MasterBranch, r.GerritChangeListID)
 	assert.Empty(t, r.ChangeListID)
 	assert.Empty(t, r.TryJobID)
 
 	r = testParse(t, emptyIssueJSON)
-	assert.Equal(t, types.MasterBranch, r.GerritChangeListID)
 	assert.Empty(t, r.ChangeListID)
 	assert.Empty(t, r.TryJobID)
 }
