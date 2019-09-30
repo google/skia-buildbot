@@ -56,8 +56,10 @@ func TestByQuerySunnyDay(t *testing.T) {
 	mis.On("GetBlame", bug_revert.TestTwo, bug_revert.UntriagedDigestFoxtrot, commits).
 		Return(makeBugRevertFoxtrotBlame(), nil)
 
-	wh := WebHandlers{
-		Indexer: mim,
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer: mim,
+		},
 	}
 
 	output, err := wh.computeByBlame(query)
@@ -171,9 +173,11 @@ func TestGetChangeListsSunnyDay(t *testing.T) {
 	mcls.On("GetChangeLists", testutils.AnyContext, 0, 50).Return(makeCodeReviewCLs(), 3, nil)
 	mcls.On("System").Return("gerrit")
 
-	wh := WebHandlers{
-		CodeReviewURLPrefix: "example.com/cl",
-		ChangeListStore:     mcls,
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			CodeReviewURLPrefix: "example.com/cl",
+			ChangeListStore:     mcls,
+		},
 	}
 
 	cls, pagination, err := wh.getIngestedChangeLists(context.Background(), 0, 50)
@@ -299,11 +303,13 @@ func TestGetCLSummarySunnyDay(t *testing.T) {
 	mtjs.On("GetTryJobs", testutils.AnyContext, psID).Return(tj2, nil)
 	mtjs.On("System").Return("buildbucket")
 
-	wh := WebHandlers{
-		ContinuousIntegrationURLPrefix: "example.com/tj",
-		CodeReviewURLPrefix:            "example.com/cl",
-		ChangeListStore:                mcls,
-		TryJobStore:                    mtjs,
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			ContinuousIntegrationURLPrefix: "example.com/tj",
+			CodeReviewURLPrefix:            "example.com/cl",
+			ChangeListStore:                mcls,
+			TryJobStore:                    mtjs,
+		},
 	}
 
 	cl, err := wh.getCLSummary(context.Background(), expectedCLID)
@@ -383,8 +389,10 @@ func TestTriageMaster(t *testing.T) {
 		},
 	}, user).Return(nil)
 
-	wh := WebHandlers{
-		ExpectationsStore: mes,
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			ExpectationsStore: mes,
+		},
 	}
 
 	tr := frontend.TriageRequest{
@@ -425,9 +433,11 @@ func TestTriageChangeList(t *testing.T) {
 
 	mcs.On("System").Return(crs)
 
-	wh := WebHandlers{
-		ExpectationsStore: mes,
-		ChangeListStore:   mcs,
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			ExpectationsStore: mes,
+			ChangeListStore:   mcs,
+		},
 	}
 
 	tr := frontend.TriageRequest{
@@ -464,8 +474,10 @@ func TestBulkTriageMaster(t *testing.T) {
 		},
 	}, user).Return(nil)
 
-	wh := WebHandlers{
-		ExpectationsStore: mes,
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			ExpectationsStore: mes,
+		},
 	}
 
 	tr := frontend.TriageRequest{
@@ -502,8 +514,10 @@ func TestTriageMasterLegacy(t *testing.T) {
 		},
 	}, user).Return(nil)
 
-	wh := WebHandlers{
-		ExpectationsStore: mes,
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			ExpectationsStore: mes,
+		},
 	}
 
 	tr := frontend.TriageRequest{
@@ -517,4 +531,26 @@ func TestTriageMasterLegacy(t *testing.T) {
 
 	err := wh.triage(context.Background(), user, tr)
 	assert.NoError(t, err)
+}
+
+// TestNew makes sure that if we omit values from HandlersConfig, New returns an error, depending
+// on which validation mode is set.
+func TestNewChecksValues(t *testing.T) {
+	unittest.SmallTest(t)
+
+	hc := HandlersConfig{}
+	_, err := NewHandlers(hc, BaselineSubset)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot be nil")
+
+	hc = HandlersConfig{
+		GCSClient:       &mocks.GCSClient{},
+		Baseliner:       &mocks.BaselineFetcher{},
+		ChangeListStore: &mock_clstore.Store{},
+	}
+	_, err = NewHandlers(hc, BaselineSubset)
+	assert.NoError(t, err)
+	_, err = NewHandlers(hc, FullFrontEnd)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot be nil")
 }
