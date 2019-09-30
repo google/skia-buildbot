@@ -224,12 +224,12 @@ func commentsForRepoHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_, repoUrl, err := getRepo(r)
 	if err != nil {
-		httputils.ReportError(w, r, err, err.Error())
+		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	comments, err := taskDb.GetCommentsForRepos([]string{repoUrl}, time.Now().Add(-10000*time.Hour))
 	if err != nil {
-		httputils.ReportError(w, r, err, err.Error())
+		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(comments); err != nil {
@@ -242,22 +242,22 @@ func incrementalJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_, repoUrl, err := getRepo(r)
 	if err != nil {
-		httputils.ReportError(w, r, err, err.Error())
+		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	from, err := getIntParam("from", r)
 	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid parameter for \"from\": %s", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Invalid parameter for \"from\": %s", err), http.StatusInternalServerError)
 		return
 	}
 	to, err := getIntParam("to", r)
 	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid parameter for \"to\": %s", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Invalid parameter for \"to\": %s", err), http.StatusInternalServerError)
 		return
 	}
 	n, err := getIntParam("n", r)
 	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid parameter for \"n\": %s", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Invalid parameter for \"n\": %s", err), http.StatusInternalServerError)
 		return
 	}
 	expectPodId := getStringParam("pod", r)
@@ -286,11 +286,11 @@ func incrementalJsonHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to retrieve updates: %s", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to retrieve updates: %s", err), http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(update); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode response: %s", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -302,12 +302,12 @@ func addTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	id, ok := mux.Vars(r)["id"]
 	if !ok {
-		httputils.ReportError(w, r, fmt.Errorf("No task ID given!"), "No task ID given!")
+		httputils.ReportError(w, fmt.Errorf("No task ID given!"), "No task ID given!", http.StatusInternalServerError)
 		return
 	}
 	task, err := taskDb.GetTaskById(id)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to obtain task details.")
+		httputils.ReportError(w, err, "Failed to obtain task details.", http.StatusInternalServerError)
 		return
 	}
 
@@ -315,7 +315,7 @@ func addTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Comment string `json:"comment"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %s", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to add comment: %s", err), http.StatusInternalServerError)
 		return
 	}
 	c := types.TaskComment{
@@ -328,11 +328,11 @@ func addTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Message:   comment.Comment,
 	}
 	if err := taskDb.PutTaskComment(&c); err != nil {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to add comment: %s", err))
+		httputils.ReportError(w, nil, fmt.Sprintf("Failed to add comment: %s", err), http.StatusInternalServerError)
 		return
 	}
 	if err := iCache.Update(context.Background(), false); err != nil {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
+		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -343,17 +343,17 @@ func deleteTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	id, ok := mux.Vars(r)["id"]
 	if !ok {
-		httputils.ReportError(w, r, fmt.Errorf("No task ID given!"), "No task ID given!")
+		httputils.ReportError(w, fmt.Errorf("No task ID given!"), "No task ID given!", http.StatusInternalServerError)
 		return
 	}
 	task, err := taskDb.GetTaskById(id)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to obtain task details.")
+		httputils.ReportError(w, err, "Failed to obtain task details.", http.StatusInternalServerError)
 		return
 	}
 	timestamp, err := strconv.ParseInt(mux.Vars(r)["timestamp"], 10, 64)
 	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Invalid comment id: %v", err), http.StatusInternalServerError)
 		return
 	}
 	c := &types.TaskComment{
@@ -365,11 +365,11 @@ func deleteTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := taskDb.DeleteTaskComment(c); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to delete comment: %v", err), http.StatusInternalServerError)
 		return
 	}
 	if err := iCache.Update(context.Background(), false); err != nil {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
+		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -379,12 +379,12 @@ func addTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	taskSpec, ok := mux.Vars(r)["taskSpec"]
 	if !ok {
-		httputils.ReportError(w, r, nil, "No taskSpec provided!")
+		httputils.ReportError(w, nil, "No taskSpec provided!", http.StatusInternalServerError)
 		return
 	}
 	_, repoUrl, err := getRepo(r)
 	if err != nil {
-		httputils.ReportError(w, r, err, err.Error())
+		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -394,7 +394,7 @@ func addTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 		IgnoreFailure bool   `json:"ignoreFailure"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to add comment: %v", err), http.StatusInternalServerError)
 		return
 	}
 	defer util.Close(r.Body)
@@ -409,11 +409,11 @@ func addTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Message:       comment.Comment,
 	}
 	if err := taskDb.PutTaskSpecComment(&c); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add task spec comment: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to add task spec comment: %v", err), http.StatusInternalServerError)
 		return
 	}
 	if err := iCache.Update(context.Background(), false); err != nil {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
+		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -423,17 +423,17 @@ func deleteTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	taskSpec, ok := mux.Vars(r)["taskSpec"]
 	if !ok {
-		httputils.ReportError(w, r, nil, "No taskSpec provided!")
+		httputils.ReportError(w, nil, "No taskSpec provided!", http.StatusInternalServerError)
 		return
 	}
 	_, repoUrl, err := getRepo(r)
 	if err != nil {
-		httputils.ReportError(w, r, err, err.Error())
+		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	timestamp, err := strconv.ParseInt(mux.Vars(r)["timestamp"], 10, 64)
 	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid timestamp: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Invalid timestamp: %v", err), http.StatusInternalServerError)
 		return
 	}
 	c := types.TaskSpecComment{
@@ -442,11 +442,11 @@ func deleteTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Timestamp: time.Unix(0, timestamp),
 	}
 	if err := taskDb.DeleteTaskSpecComment(&c); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to delete comment: %v", err), http.StatusInternalServerError)
 		return
 	}
 	if err := iCache.Update(context.Background(), false); err != nil {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
+		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -456,7 +456,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_, repoUrl, err := getRepo(r)
 	if err != nil {
-		httputils.ReportError(w, r, err, err.Error())
+		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	commit := mux.Vars(r)["commit"]
@@ -465,7 +465,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		IgnoreFailure bool   `json:"ignoreFailure"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to add comment: %v", err), http.StatusInternalServerError)
 		return
 	}
 	defer util.Close(r.Body)
@@ -479,11 +479,11 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Message:       comment.Comment,
 	}
 	if err := taskDb.PutCommitComment(&c); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add commit comment: %s", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to add commit comment: %s", err), http.StatusInternalServerError)
 		return
 	}
 	if err := iCache.Update(context.Background(), false); err != nil {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
+		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -493,13 +493,13 @@ func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_, repoUrl, err := getRepo(r)
 	if err != nil {
-		httputils.ReportError(w, r, err, err.Error())
+		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	commit := mux.Vars(r)["commit"]
 	timestamp, err := strconv.ParseInt(mux.Vars(r)["timestamp"], 10, 64)
 	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Invalid comment id: %v", err), http.StatusInternalServerError)
 		return
 	}
 	c := types.CommitComment{
@@ -508,11 +508,11 @@ func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Timestamp: time.Unix(0, timestamp),
 	}
 	if err := taskDb.DeleteCommitComment(&c); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete commit comment: %s", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to delete commit comment: %s", err), http.StatusInternalServerError)
 		return
 	}
 	if err := iCache.Update(context.Background(), false); err != nil {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
+		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -535,7 +535,7 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 
 	repoName, repoUrl, err := getRepo(r)
 	if err != nil {
-		httputils.ReportError(w, r, err, err.Error())
+		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -552,7 +552,7 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := commitsTemplate.Execute(w, d); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to expand template: %v", err), http.StatusInternalServerError)
 	}
 }
 
@@ -571,7 +571,7 @@ func capacityHandler(w http.ResponseWriter, r *http.Request) {
 		Repos: getRepoNames(),
 	}
 	if err := capacityTemplate.Execute(w, page); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to expand template: %v", err), http.StatusInternalServerError)
 	}
 }
 
@@ -579,7 +579,7 @@ func capacityStatsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(capacityClient.CapacityMetrics()); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode response: %s", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -594,17 +594,17 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the number of finished tasks for the requested commit.
 	hash := r.FormValue("commit")
 	if !util.ValidateCommit(hash) {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("%q is not a valid commit hash.", hash))
+		httputils.ReportError(w, nil, fmt.Sprintf("%q is not a valid commit hash.", hash), http.StatusInternalServerError)
 		return
 	}
 	_, repoUrl, err := getRepo(r)
 	if err != nil {
-		httputils.ReportError(w, r, err, err.Error())
+		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	tasks, err := tCache.GetTasksForCommits(repoUrl, []string{hash})
 	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get the number of finished builds."))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to get the number of finished builds."), http.StatusInternalServerError)
 		return
 	}
 	finished := 0
@@ -620,7 +620,7 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 		Revision: hash,
 	})
 	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get number of tasks at commit."))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to get number of tasks at commit."), http.StatusInternalServerError)
 		return
 	}
 	proportion := 1.0
@@ -640,7 +640,7 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 		TotalTasks:         tasksForCommit,
 	}
 	if err := json.NewEncoder(w).Encode(res); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON."))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode JSON."), http.StatusInternalServerError)
 		return
 	}
 }
@@ -648,7 +648,7 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 func lkgrHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	if _, err := w.Write([]byte(lkgrObj.Get())); err != nil {
-		httputils.ReportError(w, r, err, "Failed to write response.")
+		httputils.ReportError(w, err, "Failed to write response.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -658,7 +658,7 @@ func autorollStatusHandler(w http.ResponseWriter, r *http.Request) {
 	autorollMtx.RLock()
 	defer autorollMtx.RUnlock()
 	if _, err := w.Write(autorollStatus); err != nil {
-		httputils.ReportError(w, r, err, "Failed to write response.")
+		httputils.ReportError(w, err, "Failed to write response.", http.StatusInternalServerError)
 		return
 	}
 }

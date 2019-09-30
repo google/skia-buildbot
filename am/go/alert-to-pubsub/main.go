@@ -156,12 +156,12 @@ func (s *Server) alertHandler(w http.ResponseWriter, r *http.Request) {
 	var incomingAlerts []Alert
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to read JSON.")
+		httputils.ReportError(w, err, "Failed to read JSON.", http.StatusInternalServerError)
 		return
 	}
 	defer util.Close(r.Body)
 	if err := json.Unmarshal(b, &incomingAlerts); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
 	sklog.Infof("Received %d incomingAlerts.", len(incomingAlerts))

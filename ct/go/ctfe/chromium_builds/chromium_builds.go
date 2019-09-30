@@ -231,14 +231,14 @@ func getRevDataHandler(getLkgr func() (string, error), gitRepoUrl string, w http
 	w.Header().Set("Content-Type", "application/json")
 	revString := r.FormValue("rev")
 	if revString == "" {
-		httputils.ReportError(w, r, nil, "No revision specified")
+		httputils.ReportError(w, nil, "No revision specified", http.StatusInternalServerError)
 		return
 	}
 
 	if strings.EqualFold(revString, "LKGR") {
 		lkgr, err := getLkgr()
 		if err != nil {
-			httputils.ReportError(w, r, nil, "Unable to retrieve LKGR revision")
+			httputils.ReportError(w, nil, "Unable to retrieve LKGR revision", http.StatusInternalServerError)
 		}
 		sklog.Infof("Retrieved LKGR commit hash: %s", lkgr)
 		revString = lkgr
@@ -247,30 +247,30 @@ func getRevDataHandler(getLkgr func() (string, error), gitRepoUrl string, w http
 	sklog.Infof("Reading revision detail from %s", commitUrl)
 	resp, err := httpClient.Get(commitUrl)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Unable to retrieve revision detail")
+		httputils.ReportError(w, err, "Unable to retrieve revision detail", http.StatusInternalServerError)
 		return
 	}
 	defer skutil.Close(resp.Body)
 	if resp.StatusCode == 404 {
 		// Return successful empty response, since the user could be typing.
 		if err := json.NewEncoder(w).Encode(map[string]interface{}{}); err != nil {
-			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+			httputils.ReportError(w, err, fmt.Sprintf("Failed to encode JSON: %v", err), http.StatusInternalServerError)
 			return
 		}
 		return
 	}
 	if resp.StatusCode != 200 {
-		httputils.ReportError(w, r, nil, "Unable to retrieve revision detail")
+		httputils.ReportError(w, nil, "Unable to retrieve revision detail", http.StatusInternalServerError)
 		return
 	}
 	// Remove junk in the first line. https://code.google.com/p/gitiles/issues/detail?id=31
 	bufBody := bufio.NewReader(resp.Body)
 	if _, err = bufBody.ReadString('\n'); err != nil {
-		httputils.ReportError(w, r, err, "Unable to retrieve revision detail")
+		httputils.ReportError(w, err, "Unable to retrieve revision detail", http.StatusInternalServerError)
 		return
 	}
 	if _, err = io.Copy(w, bufBody); err != nil {
-		httputils.ReportError(w, r, err, "Unable to retrieve revision detail")
+		httputils.ReportError(w, err, "Unable to retrieve revision detail", http.StatusInternalServerError)
 		return
 	}
 }

@@ -315,18 +315,18 @@ func (srv *Server) updateHandler(w http.ResponseWriter, r *http.Request) {
 	defer util.Close(r.Body)
 	var req Named
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Error decoding JSON.")
+		httputils.ReportError(w, err, "Error decoding JSON.", http.StatusInternalServerError)
 		return
 	}
 	req.User = srv.user(r)
 	auditlog.Log(r, "update", req)
 
 	if req.Hash == "" {
-		httputils.ReportError(w, r, nil, "Invalid request, Hash must be non-empty.")
+		httputils.ReportError(w, nil, "Invalid request, Hash must be non-empty.", http.StatusInternalServerError)
 		return
 	}
 	if err := srv.store.Exists(req.Hash); err != nil {
-		httputils.ReportError(w, r, err, "Hash is not a valid fiddle.")
+		httputils.ReportError(w, err, "Hash is not a valid fiddle.", http.StatusInternalServerError)
 		return
 	}
 	// Name == ""     => Create
@@ -338,21 +338,21 @@ func (srv *Server) updateHandler(w http.ResponseWriter, r *http.Request) {
 		name = req.Name
 	}
 	if name == "" {
-		httputils.ReportError(w, r, nil, "Name must not be empty.")
+		httputils.ReportError(w, nil, "Name must not be empty.", http.StatusInternalServerError)
 		return
 	}
 	if !srv.store.ValidName(name) {
-		httputils.ReportError(w, r, nil, "Invalid characaters found in name.")
+		httputils.ReportError(w, nil, "Invalid characaters found in name.", http.StatusInternalServerError)
 		return
 	}
 	if err := srv.store.WriteName(name, req.Hash, req.User, req.Status); err != nil {
-		httputils.ReportError(w, r, err, "Failed update.")
+		httputils.ReportError(w, err, "Failed update.", http.StatusInternalServerError)
 		return
 	}
 	if req.Name != "" && req.NewName != "" {
 		// This is a rename so delete old Name.
 		if err := srv.store.DeleteName(req.Name); err != nil {
-			httputils.ReportError(w, r, err, "Failed delete on rename.")
+			httputils.ReportError(w, err, "Failed delete on rename.", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -372,12 +372,12 @@ func (srv *Server) deleteHandler(w http.ResponseWriter, r *http.Request) {
 	defer util.Close(r.Body)
 	var req Named
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Error decoding JSON.")
+		httputils.ReportError(w, err, "Error decoding JSON.", http.StatusInternalServerError)
 		return
 	}
 	auditlog.Log(r, "delete", req)
 	if err := srv.store.DeleteName(req.Name); err != nil {
-		httputils.ReportError(w, r, err, "Failed to delete.")
+		httputils.ReportError(w, err, "Failed to delete.", http.StatusInternalServerError)
 
 	}
 	srv.namedHandler(w, r)
@@ -386,7 +386,7 @@ func (srv *Server) deleteHandler(w http.ResponseWriter, r *http.Request) {
 func (srv *Server) namedHandler(w http.ResponseWriter, r *http.Request) {
 	named, err := srv.store.ListAllNames()
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to read named fiddles.")
+		httputils.ReportError(w, err, "Failed to read named fiddles.", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")

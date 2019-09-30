@@ -23,7 +23,7 @@ func logsHandler(w http.ResponseWriter, r *http.Request, lm *logs.LogsManager, t
 	w.Header().Set("Content-Type", "text/plain")
 	entries, err := lm.Search(taskId, stepId, logId)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to search log entries.")
+		httputils.ReportError(w, err, "Failed to search log entries.", http.StatusInternalServerError)
 		return
 	}
 	if len(entries) == 0 {
@@ -38,7 +38,7 @@ func logsHandler(w http.ResponseWriter, r *http.Request, lm *logs.LogsManager, t
 			line += "\n"
 		}
 		if _, err := w.Write([]byte(line)); err != nil {
-			httputils.ReportError(w, r, err, "Failed to write response.")
+			httputils.ReportError(w, err, "Failed to write response.", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -101,7 +101,7 @@ func getTaskDriver(w http.ResponseWriter, r *http.Request, d db.DB) *db.TaskDriv
 	}
 	td, err := d.GetTaskDriver(id)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to retrieve task driver.")
+		httputils.ReportError(w, err, "Failed to retrieve task driver.", http.StatusInternalServerError)
 		return nil
 	}
 	if td == nil {
@@ -122,7 +122,7 @@ func getTaskDriverDisplay(w http.ResponseWriter, r *http.Request, d db.DB) *disp
 	}
 	disp, err := display.TaskDriverForDisplay(td)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to format task driver for response.")
+		httputils.ReportError(w, err, "Failed to format task driver for response.", http.StatusInternalServerError)
 		return nil
 	}
 	return disp
@@ -138,7 +138,7 @@ func jsonTaskDriverHandler(d db.DB) http.HandlerFunc {
 		}
 
 		if err := json.NewEncoder(w).Encode(disp); err != nil {
-			httputils.ReportError(w, r, err, "Failed to encode response.")
+			httputils.ReportError(w, err, "Failed to encode response.", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -159,7 +159,7 @@ func fullErrorHandler(d db.DB) http.HandlerFunc {
 		}
 		errIdx, err := strconv.Atoi(errId)
 		if err != nil || errIdx < 0 {
-			httputils.ReportError(w, r, err, "Invalid error ID")
+			httputils.ReportError(w, err, "Invalid error ID", http.StatusInternalServerError)
 			return
 		}
 		td := getTaskDriver(w, r, d)
@@ -178,7 +178,7 @@ func fullErrorHandler(d db.DB) http.HandlerFunc {
 		}
 		w.Header().Set("Content-Type", "text/plain")
 		if _, err := w.Write([]byte(step.Errors[errIdx])); err != nil {
-			httputils.ReportError(w, r, err, "Failed to write response.")
+			httputils.ReportError(w, err, "Failed to write response.", http.StatusInternalServerError)
 			return
 		}
 	}

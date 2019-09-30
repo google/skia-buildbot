@@ -150,7 +150,7 @@ func makeInstanceMetadataHandler(im InstanceMetadata) func(http.ResponseWriter, 
 
 		key, ok := mux.Vars(r)["key"]
 		if !ok {
-			httputils.ReportError(w, r, nil, "Metadata key is required.")
+			httputils.ReportError(w, nil, "Metadata key is required.", http.StatusInternalServerError)
 		}
 
 		sklog.Infof("Instance metadata: %s", key)
@@ -160,7 +160,7 @@ func makeInstanceMetadataHandler(im InstanceMetadata) func(http.ResponseWriter, 
 			return
 		}
 		if _, err := w.Write([]byte(val)); err != nil {
-			httputils.ReportError(w, r, nil, "Failed to write response.")
+			httputils.ReportError(w, nil, "Failed to write response.", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -172,7 +172,7 @@ func makeProjectMetadataHandler(pm ProjectMetadata) func(http.ResponseWriter, *h
 	return func(w http.ResponseWriter, r *http.Request) {
 		key, ok := mux.Vars(r)["key"]
 		if !ok {
-			httputils.ReportError(w, r, nil, "Metadata key is required.")
+			httputils.ReportError(w, nil, "Metadata key is required.", http.StatusInternalServerError)
 		}
 		sklog.Infof("Project metadata: %s", key)
 		val, err := pm.Get(key)
@@ -181,7 +181,7 @@ func makeProjectMetadataHandler(pm ProjectMetadata) func(http.ResponseWriter, *h
 			return
 		}
 		if _, err := w.Write([]byte(val)); err != nil {
-			httputils.ReportError(w, r, nil, "Failed to write response.")
+			httputils.ReportError(w, nil, "Failed to write response.", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -250,13 +250,13 @@ func SetupServer(r *mux.Router, pm ProjectMetadata, im InstanceMetadata, tokenMa
 			tok = t
 		} else {
 			// 4. None of the above. Return an error.
-			httputils.ReportError(w, r, fmt.Errorf("Unknown IP address %s and no default token provided.", ipAddr), "Failed to retrieve token.")
+			httputils.ReportError(w, fmt.Errorf("Unknown IP address %s and no default token provided.", ipAddr), "Failed to retrieve token.", http.StatusInternalServerError)
 			return
 		}
 
 		t, err := tok.Get()
 		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to obtain key.")
+			httputils.ReportError(w, err, "Failed to obtain key.", http.StatusInternalServerError)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -273,7 +273,7 @@ func SetupServer(r *mux.Router, pm ProjectMetadata, im InstanceMetadata, tokenMa
 		}
 		sklog.Infof("Token requested by %s, serving %s", r.RemoteAddr, res.AccessToken[len(res.AccessToken)-8:])
 		if err := json.NewEncoder(w).Encode(res); err != nil {
-			httputils.ReportError(w, r, err, "Failed to write response.")
+			httputils.ReportError(w, err, "Failed to write response.", http.StatusInternalServerError)
 			return
 		}
 	})

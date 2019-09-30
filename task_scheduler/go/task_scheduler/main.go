@@ -170,7 +170,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	enc, err := json.Marshal(ts.Status())
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode JSON.")
+		httputils.ReportError(w, err, "Failed to encode JSON.", http.StatusInternalServerError)
 		return
 	}
 	if err := mainTemplate.Execute(w, struct {
@@ -178,7 +178,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}{
 		Data: string(enc),
 	}); err != nil {
-		httputils.ReportError(w, r, err, "Failed to execute template.")
+		httputils.ReportError(w, err, "Failed to execute template.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -197,7 +197,7 @@ func blacklistHandler(w http.ResponseWriter, r *http.Request) {
 		Rules: rules,
 	})
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode JSON.")
+		httputils.ReportError(w, err, "Failed to encode JSON.", http.StatusInternalServerError)
 		return
 	}
 	if err := blacklistTemplate.Execute(w, struct {
@@ -205,7 +205,7 @@ func blacklistHandler(w http.ResponseWriter, r *http.Request) {
 	}{
 		Data: string(enc),
 	}); err != nil {
-		httputils.ReportError(w, r, err, "Failed to execute template.")
+		httputils.ReportError(w, err, "Failed to execute template.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -219,7 +219,7 @@ func triggerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	page := struct{}{}
 	if err := triggerTemplate.Execute(w, page); err != nil {
-		httputils.ReportError(w, r, err, "Failed to execute template.")
+		httputils.ReportError(w, err, "Failed to execute template.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -231,18 +231,18 @@ func jsonBlacklistHandler(w http.ResponseWriter, r *http.Request) {
 			Id string `json:"id"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
-			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
+			httputils.ReportError(w, err, fmt.Sprintf("Failed to decode request body: %s", err), http.StatusInternalServerError)
 			return
 		}
 		defer util.Close(r.Body)
 		if err := ts.GetBlacklist().RemoveRule(msg.Id); err != nil {
-			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete blacklist rule: %s", err))
+			httputils.ReportError(w, err, fmt.Sprintf("Failed to delete blacklist rule: %s", err), http.StatusInternalServerError)
 			return
 		}
 	} else if r.Method == http.MethodPost {
 		var rule blacklist.Rule
 		if err := json.NewDecoder(r.Body).Decode(&rule); err != nil {
-			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
+			httputils.ReportError(w, err, fmt.Sprintf("Failed to decode request body: %s", err), http.StatusInternalServerError)
 			return
 		}
 		defer util.Close(r.Body)
@@ -250,13 +250,13 @@ func jsonBlacklistHandler(w http.ResponseWriter, r *http.Request) {
 		if len(rule.Commits) == 2 {
 			rangeRule, err := blacklist.NewCommitRangeRule(context.Background(), rule.Name, rule.AddedBy, rule.Description, rule.TaskSpecPatterns, rule.Commits[0], rule.Commits[1], repos)
 			if err != nil {
-				httputils.ReportError(w, r, err, fmt.Sprintf("Failed to create commit range rule: %s", err))
+				httputils.ReportError(w, err, fmt.Sprintf("Failed to create commit range rule: %s", err), http.StatusInternalServerError)
 				return
 			}
 			rule = *rangeRule
 		}
 		if err := ts.GetBlacklist().AddRule(&rule, repos); err != nil {
-			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add blacklist rule: %s", err))
+			httputils.ReportError(w, err, fmt.Sprintf("Failed to add blacklist rule: %s", err), http.StatusInternalServerError)
 			return
 		}
 	}
@@ -266,7 +266,7 @@ func jsonBlacklistHandler(w http.ResponseWriter, r *http.Request) {
 		Rules: ts.GetBlacklist().GetRules(),
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode response: %s", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -282,25 +282,25 @@ func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer util.Close(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to decode request body: %s", err), http.StatusInternalServerError)
 		return
 	}
 	ids := make([]string, 0, len(msg))
 	for _, j := range msg {
 		_, repoName, _, err := repos.FindCommit(j.Commit)
 		if err != nil {
-			httputils.ReportError(w, r, err, "Unable to find the given commit in any repo.")
+			httputils.ReportError(w, err, "Unable to find the given commit in any repo.", http.StatusInternalServerError)
 			return
 		}
 		id, err := ts.TriggerJob(context.Background(), repoName, j.Commit, j.Name)
 		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to trigger jobs.")
+			httputils.ReportError(w, err, "Failed to trigger jobs.", http.StatusInternalServerError)
 			return
 		}
 		ids = append(ids, id)
 	}
 	if err := json.NewEncoder(w).Encode(ids); err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode response.")
+		httputils.ReportError(w, err, "Failed to encode response.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -309,7 +309,7 @@ func jsonJobHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id, ok := mux.Vars(r)["id"]
 	if !ok {
-		httputils.ReportError(w, r, nil, "Job ID is required.")
+		httputils.ReportError(w, nil, "Job ID is required.", http.StatusInternalServerError)
 		return
 	}
 
@@ -319,7 +319,7 @@ func jsonJobHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Unknown Job", 404)
 			return
 		}
-		httputils.ReportError(w, r, err, "Error retrieving Job.")
+		httputils.ReportError(w, err, "Error retrieving Job.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(struct {
@@ -329,7 +329,7 @@ func jsonJobHandler(w http.ResponseWriter, r *http.Request) {
 		Job:            job,
 		TaskDimensions: dimsByTask,
 	}); err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode response.")
+		httputils.ReportError(w, err, "Failed to encode response.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -338,17 +338,17 @@ func jsonCancelJobHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id, ok := mux.Vars(r)["id"]
 	if !ok {
-		httputils.ReportError(w, r, nil, "Job ID is required.")
+		httputils.ReportError(w, nil, "Job ID is required.", http.StatusInternalServerError)
 		return
 	}
 
 	job, err := ts.CancelJob(id)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to cancel job.")
+		httputils.ReportError(w, err, "Failed to cancel job.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(job); err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode response.")
+		httputils.ReportError(w, err, "Failed to encode response.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -363,7 +363,7 @@ func jobHandler(w http.ResponseWriter, r *http.Request) {
 
 	id, ok := mux.Vars(r)["id"]
 	if !ok {
-		httputils.ReportError(w, r, nil, "Job ID is required.")
+		httputils.ReportError(w, nil, "Job ID is required.", http.StatusInternalServerError)
 		return
 	}
 
@@ -375,7 +375,7 @@ func jobHandler(w http.ResponseWriter, r *http.Request) {
 		SwarmingServer: *swarmingServer,
 	}
 	if err := jobTemplate.Execute(w, page); err != nil {
-		httputils.ReportError(w, r, err, "Failed to execute template.")
+		httputils.ReportError(w, err, "Failed to execute template.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -398,7 +398,7 @@ func jobSearchHandler(w http.ResponseWriter, r *http.Request) {
 		Statuses: types.VALID_JOB_STATUSES,
 	}
 	if err := jobSearchTemplate.Execute(w, &page); err != nil {
-		httputils.ReportError(w, r, err, "Failed to execute template.")
+		httputils.ReportError(w, err, "Failed to execute template.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -413,13 +413,13 @@ func jobTimelineHandler(w http.ResponseWriter, r *http.Request) {
 
 	jobId, ok := mux.Vars(r)["id"]
 	if !ok {
-		httputils.ReportError(w, r, nil, "Job ID is required.")
+		httputils.ReportError(w, nil, "Job ID is required.", http.StatusInternalServerError)
 		return
 	}
 
 	job, err := tsDb.GetJobById(jobId)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to retrieve Job.")
+		httputils.ReportError(w, err, "Failed to retrieve Job.", http.StatusInternalServerError)
 		return
 	}
 	type unifiedTask struct {
@@ -431,12 +431,12 @@ func jobTimelineHandler(w http.ResponseWriter, r *http.Request) {
 		for _, t := range summaries {
 			task, err := tsDb.GetTaskById(t.Id)
 			if err != nil {
-				httputils.ReportError(w, r, err, "Failed to retrieve Task.")
+				httputils.ReportError(w, err, "Failed to retrieve Task.", http.StatusInternalServerError)
 				return
 			}
 			swarmingTask, err := swarm.GetTask(task.SwarmingTaskId, true)
 			if err != nil {
-				httputils.ReportError(w, r, err, "Failed to retrieve Swarming task.")
+				httputils.ReportError(w, err, "Failed to retrieve Swarming task.", http.StatusInternalServerError)
 				return
 			}
 			tasks = append(tasks, &unifiedTask{
@@ -455,7 +455,7 @@ func jobTimelineHandler(w http.ResponseWriter, r *http.Request) {
 		Epochs: []time.Time{}, // TODO(borenet): Record tick timestamps.
 	})
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode JSON.")
+		httputils.ReportError(w, err, "Failed to encode JSON.", http.StatusInternalServerError)
 		return
 	}
 	if err := jobTimelineTemplate.Execute(w, struct {
@@ -463,7 +463,7 @@ func jobTimelineHandler(w http.ResponseWriter, r *http.Request) {
 	}{
 		Data: string(enc),
 	}); err != nil {
-		httputils.ReportError(w, r, err, "Failed to execute template.")
+		httputils.ReportError(w, err, "Failed to execute template.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -478,7 +478,7 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 
 	id, ok := mux.Vars(r)["id"]
 	if !ok {
-		httputils.ReportError(w, r, nil, "Task ID is required.")
+		httputils.ReportError(w, nil, "Task ID is required.", http.StatusInternalServerError)
 		return
 	}
 
@@ -490,7 +490,7 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 		SwarmingServer: *swarmingServer,
 	}
 	if err := taskTemplate.Execute(w, page); err != nil {
-		httputils.ReportError(w, r, err, "Failed to execute template.")
+		httputils.ReportError(w, err, "Failed to execute template.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -499,7 +499,7 @@ func jsonGetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id, ok := mux.Vars(r)["id"]
 	if !ok {
-		httputils.ReportError(w, r, nil, "Task ID is required.")
+		httputils.ReportError(w, nil, "Task ID is required.", http.StatusInternalServerError)
 		return
 	}
 
@@ -509,11 +509,11 @@ func jsonGetTaskHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Unknown Task", 404)
 			return
 		}
-		httputils.ReportError(w, r, err, "Error retrieving Job.")
+		httputils.ReportError(w, err, "Error retrieving Job.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(task); err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode response.")
+		httputils.ReportError(w, err, "Failed to encode response.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -522,17 +522,17 @@ func jsonGetTaskHandler(w http.ResponseWriter, r *http.Request) {
 func jsonJobSearchHandler(w http.ResponseWriter, r *http.Request) {
 	var params db.JobSearchParams
 	if err := httputils.ParseFormValues(r, &params); err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse request parameters.")
+		httputils.ReportError(w, err, "Failed to parse request parameters.", http.StatusInternalServerError)
 		return
 	}
 	jobs, err := db.SearchJobs(tsDb, &params)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to search for jobs.")
+		httputils.ReportError(w, err, "Failed to search for jobs.", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(jobs); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode response: %s", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -541,17 +541,17 @@ func jsonJobSearchHandler(w http.ResponseWriter, r *http.Request) {
 func jsonTaskSearchHandler(w http.ResponseWriter, r *http.Request) {
 	var params db.TaskSearchParams
 	if err := httputils.ParseFormValues(r, &params); err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse request parameters.")
+		httputils.ReportError(w, err, "Failed to parse request parameters.", http.StatusInternalServerError)
 		return
 	}
 	tasks, err := db.SearchTasks(tsDb, &params)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to search for tasks.")
+		httputils.ReportError(w, err, "Failed to search for tasks.", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(tasks); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode response: %s", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -561,20 +561,20 @@ func jsonTaskSearchHandler(w http.ResponseWriter, r *http.Request) {
 func jsonTaskCandidateSearchHandler(w http.ResponseWriter, r *http.Request) {
 	var params scheduling.TaskCandidateSearchTerms
 	if err := httputils.ParseFormValues(r, &params); err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse request parameters.")
+		httputils.ReportError(w, err, "Failed to parse request parameters.", http.StatusInternalServerError)
 		return
 	}
 	candidates := ts.SearchQueue(&params)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(candidates); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode response: %s", err), http.StatusInternalServerError)
 		return
 	}
 }
 
 func googleVerificationHandler(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write([]byte("google-site-verification: google2c59f97e1ced9fdc.html")); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to write response: %s", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to write response: %s", err), http.StatusInternalServerError)
 		return
 	}
 }

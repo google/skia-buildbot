@@ -165,7 +165,7 @@ func (wh *Handlers) cheapLimitForAnonUsers(r *http.Request) error {
 func (wh *Handlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, r, err, "Try again later")
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
@@ -174,18 +174,18 @@ func (wh *Handlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 	if v := r.FormValue("query"); v != "" {
 		var err error
 		if qp, err = url.ParseQuery(v); err != nil {
-			httputils.ReportError(w, r, err, "invalid input")
+			httputils.ReportError(w, err, "invalid input", http.StatusInternalServerError)
 			return
 		} else if qp.Get(types.CORPUS_FIELD) == "" {
 			// If no corpus specified report an error.
-			httputils.ReportError(w, r, skerr.Fmt("did not receive value for corpus"), "invalid input")
+			httputils.ReportError(w, skerr.Fmt("did not receive value for corpus"), "invalid input", http.StatusInternalServerError)
 			return
 		}
 	}
 
 	blameEntries, err := wh.computeByBlame(qp)
 	if err != nil {
-		httputils.ReportError(w, r, skerr.Wrapf(err, "computing blame %v", qp), "")
+		httputils.ReportError(w, skerr.Wrapf(err, "computing blame %v", qp), "", http.StatusInternalServerError)
 		return
 	}
 
@@ -356,20 +356,20 @@ type TestRollup struct {
 func (wh *Handlers) ChangeListsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, r, err, "Try again later")
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
 	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, pageSize, maxPageSize)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Invalid pagination params.")
+		httputils.ReportError(w, err, "Invalid pagination params.", http.StatusInternalServerError)
 		return
 	}
 
 	cls, pagination, err := wh.getIngestedChangeLists(r.Context(), offset, size)
 
 	if err != nil {
-		httputils.ReportError(w, r, err, "Retrieving changelists results failed.")
+		httputils.ReportError(w, err, "Retrieving changelists results failed.", http.StatusInternalServerError)
 		return
 	}
 
@@ -403,20 +403,20 @@ func (wh *Handlers) getIngestedChangeLists(ctx context.Context, offset, size int
 func (wh *Handlers) ChangeListSummaryHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, r, err, "Try again later")
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 	// mux.Vars also has "system", which can be used if we ever need to implement
 	// the functionality to handle two code review systems at once.
 	clID, ok := mux.Vars(r)["id"]
 	if !ok {
-		httputils.ReportError(w, r, nil, "Must specify 'id' of ChangeList.")
+		httputils.ReportError(w, nil, "Must specify 'id' of ChangeList.", http.StatusInternalServerError)
 		return
 	}
 
 	rv, err := wh.getCLSummary(r.Context(), clID)
 	if err != nil {
-		httputils.ReportError(w, r, err, "could not retrieve data for the specified CL.")
+		httputils.ReportError(w, err, "could not retrieve data for the specified CL.", http.StatusInternalServerError)
 		return
 	}
 	sendJSONResponse(w, rv)
@@ -480,7 +480,7 @@ func (wh *Handlers) getCLSummary(ctx context.Context, clID string) (frontend.Cha
 func (wh *Handlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, r, err, "Try again later")
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
@@ -491,7 +491,7 @@ func (wh *Handlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	searchResponse, err := wh.SearchAPI.Search(r.Context(), query)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Search for digests failed.")
+		httputils.ReportError(w, err, "Search for digests failed.", http.StatusInternalServerError)
 		return
 	}
 	sendJSONResponse(w, searchResponse)
@@ -502,7 +502,7 @@ func (wh *Handlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
 func (wh *Handlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, r, err, "Try again later")
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
@@ -513,7 +513,7 @@ func (wh *Handlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
 
 	if query.ChangeListID != "" || query.BlameGroupID != "" {
 		msg := "Search query cannot contain blame or issue information."
-		httputils.ReportError(w, r, errors.New(msg), msg)
+		httputils.ReportError(w, errors.New(msg), msg, http.StatusInternalServerError)
 		return
 	}
 
@@ -523,7 +523,7 @@ func (wh *Handlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
 	// Execute the search
 	searchResponse, err := wh.SearchAPI.Search(r.Context(), query)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Search for digests failed.")
+		httputils.ReportError(w, err, "Search for digests failed.", http.StatusInternalServerError)
 		return
 	}
 
@@ -543,7 +543,7 @@ func (wh *Handlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", "attachment; filename=meta.json")
 
 	if err := export.WriteTestRecords(ret, w); err != nil {
-		httputils.ReportError(w, r, err, "Unable to serialized knowledge base.")
+		httputils.ReportError(w, err, "Unable to serialized knowledge base.", http.StatusInternalServerError)
 	}
 }
 
@@ -551,7 +551,7 @@ func (wh *Handlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
 func parseSearchQuery(w http.ResponseWriter, r *http.Request) (*query.Search, bool) {
 	q := query.Search{Limit: 50}
 	if err := query.ParseSearch(r, &q); err != nil {
-		httputils.ReportError(w, r, err, "Search for digests failed.")
+		httputils.ReportError(w, err, "Search for digests failed.", http.StatusInternalServerError)
 		return nil, false
 	}
 	return &q, true
@@ -561,25 +561,25 @@ func parseSearchQuery(w http.ResponseWriter, r *http.Request) (*query.Search, bo
 func (wh *Handlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, r, err, "Try again later")
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
 	// Extract: test, digest.
 	if err := r.ParseForm(); err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse form values")
+		httputils.ReportError(w, err, "Failed to parse form values", http.StatusInternalServerError)
 		return
 	}
 	test := r.Form.Get("test")
 	digest := r.Form.Get("digest")
 	if test == "" || !validation.IsValidDigest(digest) {
-		httputils.ReportError(w, r, fmt.Errorf("Some query parameters are wrong or missing: %q %q", test, digest), "Missing query parameters.")
+		httputils.ReportError(w, fmt.Errorf("Some query parameters are wrong or missing: %q %q", test, digest), "Missing query parameters.", http.StatusInternalServerError)
 		return
 	}
 
 	ret, err := wh.SearchAPI.GetDigestDetails(types.TestName(test), types.Digest(digest))
 	if err != nil {
-		httputils.ReportError(w, r, err, "Unable to get digest details.")
+		httputils.ReportError(w, err, "Unable to get digest details.", http.StatusInternalServerError)
 		return
 	}
 	sendJSONResponse(w, ret)
@@ -589,26 +589,26 @@ func (wh *Handlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
 func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, r, err, "Try again later")
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
 	// Extract: test, left, right where left and right are digests.
 	if err := r.ParseForm(); err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse form values")
+		httputils.ReportError(w, err, "Failed to parse form values", http.StatusInternalServerError)
 		return
 	}
 	test := r.Form.Get("test")
 	left := r.Form.Get("left")
 	right := r.Form.Get("right")
 	if test == "" || !validation.IsValidDigest(left) || !validation.IsValidDigest(right) {
-		httputils.ReportError(w, r, fmt.Errorf("Some query parameters are missing or wrong: %q %q %q", test, left, right), "Missing query parameters.")
+		httputils.ReportError(w, fmt.Errorf("Some query parameters are missing or wrong: %q %q %q", test, left, right), "Missing query parameters.", http.StatusInternalServerError)
 		return
 	}
 
 	ret, err := wh.SearchAPI.DiffDigests(types.TestName(test), types.Digest(left), types.Digest(right))
 	if err != nil {
-		httputils.ReportError(w, r, err, "Unable to compare digests")
+		httputils.ReportError(w, err, "Unable to compare digests", http.StatusInternalServerError)
 		return
 	}
 
@@ -626,7 +626,7 @@ type IgnoresRequest struct {
 func (wh *Handlers) IgnoresHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, r, err, "Try again later")
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
@@ -636,7 +636,7 @@ func (wh *Handlers) IgnoresHandler(w http.ResponseWriter, r *http.Request) {
 	// in the file - Fix that after the Storages refactoring.
 	ignores, err := wh.IgnoreStore.List()
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to retrieve ignore rules, there may be none.")
+		httputils.ReportError(w, err, "Failed to retrieve ignore rules, there may be none.", http.StatusInternalServerError)
 		return
 	}
 
@@ -652,26 +652,26 @@ func (wh *Handlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Request)
 	defer metrics2.FuncTimer().Stop()
 	user := login.LoggedInAs(r)
 	if user == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to update an ignore rule.")
+		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to update an ignore rule.", http.StatusInternalServerError)
 		return
 	}
 	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 0)
 	if err != nil {
-		httputils.ReportError(w, r, err, "ID must be valid integer.")
+		httputils.ReportError(w, err, "ID must be valid integer.", http.StatusInternalServerError)
 		return
 	}
 	req := &IgnoresRequest{}
 	if err := parseJSON(r, req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse submitted data.")
+		httputils.ReportError(w, err, "Failed to parse submitted data.", http.StatusInternalServerError)
 		return
 	}
 	if req.Filter == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Invalid Filter: %q", req.Filter), "Filters can't be empty.")
+		httputils.ReportError(w, fmt.Errorf("Invalid Filter: %q", req.Filter), "Filters can't be empty.", http.StatusInternalServerError)
 		return
 	}
 	d, err := human.ParseDuration(req.Duration)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse duration")
+		httputils.ReportError(w, err, "Failed to parse duration", http.StatusInternalServerError)
 		return
 	}
 	ignoreRule := ignore.NewRule(user, time.Now().Add(d), req.Filter, req.Note)
@@ -679,7 +679,7 @@ func (wh *Handlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Request)
 
 	err = wh.IgnoreStore.Update(id, ignoreRule)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Unable to update ignore rule.")
+		httputils.ReportError(w, err, "Unable to update ignore rule.", http.StatusInternalServerError)
 		return
 	}
 
@@ -692,17 +692,17 @@ func (wh *Handlers) IgnoresDeleteHandler(w http.ResponseWriter, r *http.Request)
 	defer metrics2.FuncTimer().Stop()
 	user := login.LoggedInAs(r)
 	if user == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.")
+		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.", http.StatusInternalServerError)
 		return
 	}
 	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 0)
 	if err != nil {
-		httputils.ReportError(w, r, err, "ID must be valid integer.")
+		httputils.ReportError(w, err, "ID must be valid integer.", http.StatusInternalServerError)
 		return
 	}
 
 	if numDeleted, err := wh.IgnoreStore.Delete(id); err != nil {
-		httputils.ReportError(w, r, err, "Unable to delete ignore rule.")
+		httputils.ReportError(w, err, "Unable to delete ignore rule.", http.StatusInternalServerError)
 	} else if numDeleted == 1 {
 		sklog.Infof("Successfully deleted ignore with id %d", id)
 		// If delete worked just list the current ignores and return them.
@@ -719,27 +719,27 @@ func (wh *Handlers) IgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	user := login.LoggedInAs(r)
 	if user == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.")
+		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.", http.StatusInternalServerError)
 		return
 	}
 	req := &IgnoresRequest{}
 	if err := parseJSON(r, req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse submitted data.")
+		httputils.ReportError(w, err, "Failed to parse submitted data.", http.StatusInternalServerError)
 		return
 	}
 	if req.Filter == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Invalid Filter: %q", req.Filter), "Filters can't be empty.")
+		httputils.ReportError(w, fmt.Errorf("Invalid Filter: %q", req.Filter), "Filters can't be empty.", http.StatusInternalServerError)
 		return
 	}
 	d, err := human.ParseDuration(req.Duration)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse duration")
+		httputils.ReportError(w, err, "Failed to parse duration", http.StatusInternalServerError)
 		return
 	}
 	ignoreRule := ignore.NewRule(user, time.Now().Add(d), req.Filter, req.Note)
 
 	if err = wh.IgnoreStore.Create(ignoreRule); err != nil {
-		httputils.ReportError(w, r, err, "Failed to create ignore rule.")
+		httputils.ReportError(w, err, "Failed to create ignore rule.", http.StatusInternalServerError)
 		return
 	}
 
@@ -755,19 +755,19 @@ func (wh *Handlers) TriageHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	user := login.LoggedInAs(r)
 	if user == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to triage.")
+		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to triage.", http.StatusInternalServerError)
 		return
 	}
 
 	req := frontend.TriageRequest{}
 	if err := parseJSON(r, &req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse JSON request.")
+		httputils.ReportError(w, err, "Failed to parse JSON request.", http.StatusInternalServerError)
 		return
 	}
 	sklog.Infof("Triage request: %#v", req)
 
 	if err := wh.triage(r.Context(), user, req); err != nil {
-		httputils.ReportError(w, r, err, "Could not triage")
+		httputils.ReportError(w, err, "Could not triage", http.StatusInternalServerError)
 		return
 	}
 	// Nothing to return, so just set 200
@@ -808,7 +808,7 @@ func (wh *Handlers) triage(ctx context.Context, user string, req frontend.Triage
 func (wh *Handlers) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, r, err, "Try again later")
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
@@ -821,26 +821,26 @@ func (wh *Handlers) StatusHandler(w http.ResponseWriter, r *http.Request) {
 func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, r, err, "Try again later")
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
 	// Extract the test name as we only allow clustering within a test.
 	q := query.Search{Limit: 50}
 	if err := query.ParseSearch(r, &q); err != nil {
-		httputils.ReportError(w, r, err, "Unable to parse query parameter.")
+		httputils.ReportError(w, err, "Unable to parse query parameter.", http.StatusInternalServerError)
 		return
 	}
 	testName := q.TraceValues.Get(types.PRIMARY_KEY_FIELD)
 	if testName == "" {
-		httputils.ReportError(w, r, fmt.Errorf("test name parameter missing"), "No test name provided.")
+		httputils.ReportError(w, fmt.Errorf("test name parameter missing"), "No test name provided.", http.StatusInternalServerError)
 		return
 	}
 
 	idx := wh.Indexer.GetIndex()
 	searchResponse, err := wh.SearchAPI.Search(r.Context(), &q)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Search for digests failed.")
+		httputils.ReportError(w, err, "Search for digests failed.", http.StatusInternalServerError)
 		return
 	}
 
@@ -948,14 +948,14 @@ type ClusterDiffResult struct {
 func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, r, err, "Try again later")
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
 	// Parse the query object like with the other searches.
 	q := query.Search{}
 	if err := query.ParseSearch(r, &q); err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse form data.")
+		httputils.ReportError(w, err, "Failed to parse form data.", http.StatusInternalServerError)
 		return
 	}
 
@@ -963,7 +963,7 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	// filter the response from summaries.Get(). If the query is broader than that, or
 	// include==true, then we need to call summaries.CalcSummaries().
 	if err := r.ParseForm(); err != nil {
-		httputils.ReportError(w, r, err, "Invalid request.")
+		httputils.ReportError(w, err, "Invalid request.", http.StatusInternalServerError)
 		return
 	}
 
@@ -981,7 +981,7 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 		sklog.Infof("%q %q %q", r.FormValue("query"), r.FormValue("include"), r.FormValue("head"))
 		sumMap, err := idx.CalcSummaries(nil, q.TraceValues, q.IgnoreState(), q.Head)
 		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to calculate summaries.")
+			httputils.ReportError(w, err, "Failed to calculate summaries.", http.StatusInternalServerError)
 			return
 		}
 		for _, sum := range sumMap {
@@ -1024,7 +1024,7 @@ type FailureList struct {
 func (wh *Handlers) ListFailureHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, r, err, "Try again later")
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
@@ -1071,20 +1071,20 @@ func (wh *Handlers) ClearDigests(w http.ResponseWriter, r *http.Request) {
 func (wh *Handlers) purgeDigests(w http.ResponseWriter, r *http.Request) bool {
 	user := login.LoggedInAs(r)
 	if user == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to clear digests.")
+		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to clear digests.", http.StatusInternalServerError)
 		return false
 	}
 
 	digests := types.DigestSlice{}
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&digests); err != nil {
-		httputils.ReportError(w, r, err, "Unable to decode digest list.")
+		httputils.ReportError(w, err, "Unable to decode digest list.", http.StatusInternalServerError)
 		return false
 	}
 	purgeGCS := r.URL.Query().Get("purge") == "true"
 
 	if err := wh.DiffStore.PurgeDigests(digests, purgeGCS); err != nil {
-		httputils.ReportError(w, r, err, "Unable to clear digests.")
+		httputils.ReportError(w, err, "Unable to clear digests.", http.StatusInternalServerError)
 		return false
 	}
 	return true
@@ -1095,7 +1095,7 @@ func (wh *Handlers) purgeDigests(w http.ResponseWriter, r *http.Request) bool {
 func (wh *Handlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, r, err, "Try again later")
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
@@ -1119,7 +1119,7 @@ func (wh *Handlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		httputils.ReportError(w, r, err, "Unable to retrieve triage log.")
+		httputils.ReportError(w, err, "Unable to retrieve triage log.", http.StatusInternalServerError)
 		return
 	}
 
@@ -1143,7 +1143,7 @@ func (wh *Handlers) TriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the user and make sure they are logged in.
 	user := login.LoggedInAs(r)
 	if user == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to change expectations.")
+		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to change expectations.", http.StatusInternalServerError)
 		return
 	}
 
@@ -1153,7 +1153,7 @@ func (wh *Handlers) TriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 	// Do the undo procedure.
 	_, err := wh.ExpectationsStore.UndoChange(r.Context(), changeID, user)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Unable to undo.")
+		httputils.ReportError(w, err, "Unable to undo.", http.StatusInternalServerError)
 		return
 	}
 
@@ -1165,7 +1165,7 @@ func (wh *Handlers) TriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 func (wh *Handlers) ParamsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, r, err, "Try again later")
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
@@ -1182,13 +1182,13 @@ func (wh *Handlers) ParamsHandler(w http.ResponseWriter, r *http.Request) {
 func (wh *Handlers) CommitsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, r, err, "Try again later")
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
 	cpxTile := wh.TileSource.GetTile()
 	if cpxTile == nil {
-		httputils.ReportError(w, r, nil, "Not loaded yet - try back later")
+		httputils.ReportError(w, nil, "Not loaded yet - try back later", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -1219,7 +1219,7 @@ type commitInfo struct {
 func (wh *Handlers) GitLogHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, r, err, "Try again later")
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
@@ -1278,7 +1278,7 @@ func (wh *Handlers) GitLogHandler(w http.ResponseWriter, r *http.Request) {
 
 		commits, err := wh.VCS.DetailsMulti(ctx, hashes, false)
 		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to look up commit data.")
+			httputils.ReportError(w, err, "Failed to look up commit data.", http.StatusInternalServerError)
 			return
 		}
 
@@ -1304,7 +1304,7 @@ func (wh *Handlers) GitLogHandler(w http.ResponseWriter, r *http.Request) {
 func (wh *Handlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, r, err, "Try again later")
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
@@ -1326,20 +1326,20 @@ func (wh *Handlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request)
 func (wh *Handlers) DigestTableHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, r, err, "Try again later")
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
 
 	// Note that testName cannot be empty by definition of the route that got us here.
 	var q query.DigestTable
 	if err := query.ParseDTQuery(r.Body, 5, &q); err != nil {
-		httputils.ReportError(w, r, err, err.Error())
+		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	table, err := wh.SearchAPI.GetDigestTable(&q)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Search for digests failed.")
+		httputils.ReportError(w, err, "Search for digests failed.", http.StatusInternalServerError)
 		return
 	}
 	sendJSONResponse(w, table)
@@ -1371,7 +1371,7 @@ func (wh *Handlers) BaselineHandler(w http.ResponseWriter, r *http.Request) {
 
 	bl, err := wh.Baseliner.FetchBaseline(issueIDStr, wh.ChangeListStore.System(), issueOnly)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Fetching baselines failed.")
+		httputils.ReportError(w, err, "Fetching baselines failed.", http.StatusInternalServerError)
 		return
 	}
 

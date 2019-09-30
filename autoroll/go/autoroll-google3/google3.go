@@ -379,26 +379,26 @@ func (roll Roll) AsIssue() (*autoroll.AutoRollIssue, error) {
 func (a *AutoRoller) rollHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := webhook.AuthenticateRequest(r)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed authentication.")
+		httputils.ReportError(w, err, "Failed authentication.", http.StatusInternalServerError)
 		return
 	}
 	roll := Roll{}
 	if err := json.Unmarshal(data, &roll); err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse request.")
+		httputils.ReportError(w, err, "Failed to parse request.", http.StatusInternalServerError)
 		return
 	}
 	issue, err := roll.AsIssue()
 	if err != nil {
-		httputils.ReportError(w, r, nil, err.Error())
+		httputils.ReportError(w, nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	ctx := context.Background()
 	if err := a.AddOrUpdateIssue(ctx, issue, r.Method); err != nil {
-		httputils.ReportError(w, r, nil, err.Error())
+		httputils.ReportError(w, nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	if err := a.UpdateStatus(ctx, roll.ErrorMsg, false); err != nil {
-		httputils.ReportError(w, r, err, "Failed to set new status.")
+		httputils.ReportError(w, err, "Failed to set new status.", http.StatusInternalServerError)
 		return
 	}
 }

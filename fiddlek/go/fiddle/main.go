@@ -165,7 +165,7 @@ func namedHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	named, err := fiddleStore.ListAllNames()
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to retrieve list of named fiddles.")
+		httputils.ReportError(w, err, "Failed to retrieve list of named fiddles.", http.StatusInternalServerError)
 	}
 	if err := templates.ExecuteTemplate(w, "named.html", named); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
@@ -234,7 +234,7 @@ func embedHandle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(context); err != nil {
-		httputils.ReportError(w, r, err, "Failed to JSON Encode response.")
+		httputils.ReportError(w, err, "Failed to JSON Encode response.", http.StatusInternalServerError)
 	}
 }
 
@@ -339,13 +339,13 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	dec := json.NewDecoder(r.Body)
 	defer util.Close(r.Body)
 	if err := dec.Decode(req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode request.")
+		httputils.ReportError(w, err, "Failed to decode request.", http.StatusInternalServerError)
 		return
 	}
 
 	resp, err, msg := runImpl(ctx, req)
 	if err != nil {
-		httputils.ReportError(w, r, err, msg)
+		httputils.ReportError(w, err, msg, http.StatusInternalServerError)
 		return
 	}
 
@@ -353,7 +353,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
 	if err := enc.Encode(resp); err != nil {
-		httputils.ReportError(w, r, err, "Failed to JSON Encode response.")
+		httputils.ReportError(w, err, "Failed to JSON Encode response.", http.StatusInternalServerError)
 	}
 }
 

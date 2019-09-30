@@ -73,12 +73,12 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 	unownedPendingTasks, ownedPendingTasks, err := util.GetPendingCompileTasks("" /* ownedByInstance */)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get unowned/owned compile tasks")
+		httputils.ReportError(w, err, "Failed to get unowned/owned compile tasks", http.StatusInternalServerError)
 		return
 	}
 	androidCompileInstances, err := util.GetAllCompileInstances(context.Background())
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get android compile instances")
+		httputils.ReportError(w, err, "Failed to get android compile instances", http.StatusInternalServerError)
 		return
 	}
 
@@ -93,7 +93,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := indexTemplate.Execute(w, info); err != nil {
-		httputils.ReportError(w, r, err, "Failed to expand template")
+		httputils.ReportError(w, err, "Failed to expand template", http.StatusInternalServerError)
 		return
 	}
 	return
@@ -110,7 +110,7 @@ func forceSyncHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := util.SetForceMirrorUpdateOnAllInstances(context.Background()); err != nil {
-		httputils.ReportError(w, r, err, "Failed to set force mirror update on all instances")
+		httputils.ReportError(w, err, "Failed to set force mirror update on all instances", http.StatusInternalServerError)
 		return
 	}
 

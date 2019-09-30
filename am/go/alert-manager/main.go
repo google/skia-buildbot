@@ -233,7 +233,7 @@ func (srv *Server) addNoteHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var req AddNoteRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode add note request.")
+		httputils.ReportError(w, err, "Failed to decode add note request.", http.StatusInternalServerError)
 		return
 	}
 	auditlog.Log(r, "add-note", req)
@@ -245,7 +245,7 @@ func (srv *Server) addNoteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	in, err := srv.incidentStore.AddNote(req.Key, note)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to add note.")
+		httputils.ReportError(w, err, "Failed to add note.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(in); err != nil {
@@ -257,7 +257,7 @@ func (srv *Server) addSilenceNoteHandler(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "application/json")
 	var req AddNoteRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode add note request.")
+		httputils.ReportError(w, err, "Failed to decode add note request.", http.StatusInternalServerError)
 		return
 	}
 	auditlog.Log(r, "add-silence-note", req)
@@ -269,7 +269,7 @@ func (srv *Server) addSilenceNoteHandler(w http.ResponseWriter, r *http.Request)
 	}
 	in, err := srv.silenceStore.AddNote(req.Key, note)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to add note.")
+		httputils.ReportError(w, err, "Failed to add note.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(in); err != nil {
@@ -286,13 +286,13 @@ func (srv *Server) delNoteHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var req DelNoteRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode add note request.")
+		httputils.ReportError(w, err, "Failed to decode add note request.", http.StatusInternalServerError)
 		return
 	}
 	auditlog.Log(r, "del-note", req)
 	in, err := srv.incidentStore.DeleteNote(req.Key, req.Index)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to add note.")
+		httputils.ReportError(w, err, "Failed to add note.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(in); err != nil {
@@ -304,13 +304,13 @@ func (srv *Server) delSilenceNoteHandler(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "application/json")
 	var req DelNoteRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode add note request.")
+		httputils.ReportError(w, err, "Failed to decode add note request.", http.StatusInternalServerError)
 		return
 	}
 	auditlog.Log(r, "del-silence-note", req)
 	in, err := srv.silenceStore.DeleteNote(req.Key, req.Index)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to add note.")
+		httputils.ReportError(w, err, "Failed to add note.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(in); err != nil {
@@ -326,14 +326,14 @@ func (srv *Server) takeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var req TakeRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode take request.")
+		httputils.ReportError(w, err, "Failed to decode take request.", http.StatusInternalServerError)
 		return
 	}
 	auditlog.Log(r, "take", req)
 
 	in, err := srv.incidentStore.Assign(req.Key, srv.user(r))
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to assign.")
+		httputils.ReportError(w, err, "Failed to assign.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(in); err != nil {
@@ -363,12 +363,12 @@ func (srv *Server) statsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var req StatsRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode stats request.")
+		httputils.ReportError(w, err, "Failed to decode stats request.", http.StatusInternalServerError)
 		return
 	}
 	ins, err := srv.incidentStore.GetRecentlyResolvedInRange(req.Range)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to query for Incidents.")
+		httputils.ReportError(w, err, "Failed to query for Incidents.", http.StatusInternalServerError)
 	}
 	count := map[string]*Stat{}
 	for _, in := range ins {
@@ -401,12 +401,12 @@ func (srv *Server) incidentsInRangeHandler(w http.ResponseWriter, r *http.Reques
 
 	var req IncidentsInRangeRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode incident range request.")
+		httputils.ReportError(w, err, "Failed to decode incident range request.", http.StatusInternalServerError)
 		return
 	}
 	ret, err := srv.incidentStore.GetRecentlyResolvedInRangeWithID(req.Range, req.Incident.ID)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to query for incidents.")
+		httputils.ReportError(w, err, "Failed to query for incidents.", http.StatusInternalServerError)
 	}
 	if err := json.NewEncoder(w).Encode(ret); err != nil {
 		sklog.Errorf("Failed to send response: %s", err)
@@ -422,13 +422,13 @@ func (srv *Server) assignHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var req AssignRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode take request.")
+		httputils.ReportError(w, err, "Failed to decode take request.", http.StatusInternalServerError)
 		return
 	}
 	auditlog.Log(r, "assign", req)
 	in, err := srv.incidentStore.Assign(req.Key, req.Email)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to assign.")
+		httputils.ReportError(w, err, "Failed to assign.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(in); err != nil {
@@ -449,7 +449,7 @@ func (srv *Server) silencesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	silences, err := srv.silenceStore.GetAll()
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to load recents.")
+		httputils.ReportError(w, err, "Failed to load recents.", http.StatusInternalServerError)
 		return
 	}
 	if silences == nil {
@@ -457,7 +457,7 @@ func (srv *Server) silencesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	recents, err := srv.silenceStore.GetRecentlyArchived()
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to load recents.")
+		httputils.ReportError(w, err, "Failed to load recents.", http.StatusInternalServerError)
 		return
 	}
 	silences = append(silences, recents...)
@@ -470,12 +470,12 @@ func (srv *Server) incidentHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	ins, err := srv.incidentStore.GetAll()
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to load incidents.")
+		httputils.ReportError(w, err, "Failed to load incidents.", http.StatusInternalServerError)
 		return
 	}
 	recents, err := srv.incidentStore.GetRecentlyResolved()
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to load recents.")
+		httputils.ReportError(w, err, "Failed to load recents.", http.StatusInternalServerError)
 		return
 	}
 	ins = append(ins, recents...)
@@ -490,7 +490,7 @@ func (srv *Server) recentIncidentsHandler(w http.ResponseWriter, r *http.Request
 	key := r.FormValue("key")
 	ins, err := srv.incidentStore.GetRecentlyResolvedForID(id, key)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to load incidents.")
+		httputils.ReportError(w, err, "Failed to load incidents.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(ins); err != nil {
@@ -502,13 +502,13 @@ func (srv *Server) saveSilenceHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var req silence.Silence
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode silence creation request.")
+		httputils.ReportError(w, err, "Failed to decode silence creation request.", http.StatusInternalServerError)
 		return
 	}
 	auditlog.Log(r, "create-silence", req)
 	silence, err := srv.silenceStore.Put(&req)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to create silence.")
+		httputils.ReportError(w, err, "Failed to create silence.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(silence); err != nil {
@@ -520,13 +520,13 @@ func (srv *Server) archiveSilenceHandler(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "application/json")
 	var req silence.Silence
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode silence creation request.")
+		httputils.ReportError(w, err, "Failed to decode silence creation request.", http.StatusInternalServerError)
 		return
 	}
 	auditlog.Log(r, "archive-silence", req)
 	silence, err := srv.silenceStore.Archive(req.Key)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to archive silence.")
+		httputils.ReportError(w, err, "Failed to archive silence.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(silence); err != nil {
@@ -538,13 +538,13 @@ func (srv *Server) reactivateSilenceHandler(w http.ResponseWriter, r *http.Reque
 	w.Header().Set("Content-Type", "application/json")
 	var req silence.Silence
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode silence reactivation request.")
+		httputils.ReportError(w, err, "Failed to decode silence reactivation request.", http.StatusInternalServerError)
 		return
 	}
 	auditlog.Log(r, "reactivate-silence", req)
 	silence, err := srv.silenceStore.Reactivate(req.Key, req.Duration, srv.user(r))
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to reactivate silence.")
+		httputils.ReportError(w, err, "Failed to reactivate silence.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(silence); err != nil {
@@ -556,12 +556,12 @@ func (srv *Server) deleteSilenceHandler(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "application/json")
 	var sil silence.Silence
 	if err := json.NewDecoder(r.Body).Decode(&sil); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode silence deletion request.")
+		httputils.ReportError(w, err, "Failed to decode silence deletion request.", http.StatusInternalServerError)
 		return
 	}
 	auditlog.Log(r, "delete-silence", sil)
 	if err := srv.silenceStore.Delete(sil.Key); err != nil {
-		httputils.ReportError(w, r, err, "Failed to delete silence.")
+		httputils.ReportError(w, err, "Failed to delete silence.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(sil); err != nil {

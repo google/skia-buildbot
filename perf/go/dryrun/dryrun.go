@@ -112,15 +112,15 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 
 	var req StartRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Could not decode POST body.")
+		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return
 	}
 	if req.Config.Query == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Query was empty."), "A Query is required.")
+		httputils.ReportError(w, fmt.Errorf("Query was empty."), "A Query is required.", http.StatusInternalServerError)
 		return
 	}
 	if err := req.Config.Validate(); err != nil {
-		httputils.ReportError(w, r, err, "Invalid Alert config.")
+		httputils.ReportError(w, err, "Invalid Alert config.", http.StatusInternalServerError)
 		return
 	}
 	d.mutex.Lock()
@@ -207,7 +207,7 @@ func (d *Requests) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	// Grab the running dryrun.
 	running, ok := d.inFlight[id]
 	if !ok {
-		httputils.ReportError(w, r, fmt.Errorf("Invalid id: %q", id), "Invalid or expired dry run.")
+		httputils.ReportError(w, fmt.Errorf("Invalid id: %q", id), "Invalid or expired dry run.", http.StatusInternalServerError)
 		return
 	}
 	// Convert the Running.Regressions into a properly formed Status response.
@@ -223,7 +223,7 @@ func (d *Requests) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	for _, key := range keys {
 		commitId, err := cid.FromID(key)
 		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to parse commit id.")
+			httputils.ReportError(w, err, "Failed to parse commit id.", http.StatusInternalServerError)
 			return
 		}
 		cids = append(cids, commitId)
@@ -231,7 +231,7 @@ func (d *Requests) StatusHandler(w http.ResponseWriter, r *http.Request) {
 
 	cidd, err := d.cidl.Lookup(r.Context(), cids)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to find commit ids.")
+		httputils.ReportError(w, err, "Failed to find commit ids.", http.StatusInternalServerError)
 		return
 	}
 	status := &Status{

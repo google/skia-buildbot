@@ -397,14 +397,14 @@ func activityHandler(w http.ResponseWriter, r *http.Request) {
 	if len(match[1]) > 0 {
 		num, err := strconv.ParseInt(match[1], 10, 0)
 		if err != nil {
-			httputils.ReportError(w, r, err, "Failed parsing the given number.")
+			httputils.ReportError(w, err, "Failed parsing the given number.", http.StatusInternalServerError)
 			return
 		}
 		n = int(num)
 	}
 	a, err := activitylog.GetRecent(n)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to retrieve activity.")
+		httputils.ReportError(w, err, "Failed to retrieve activity.", http.StatusInternalServerError)
 		return
 	}
 	if err := templates.ExecuteTemplate(w, "activitylog.html", a); err != nil {
@@ -448,7 +448,7 @@ type AlertsStatus struct {
 func alertsHandler(w http.ResponseWriter, r *http.Request) {
 	count, err := regressionCount(DEFAULT_ALERT_CATEGORY)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to load untriaged count.")
+		httputils.ReportError(w, err, "Failed to load untriaged count.", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -492,7 +492,7 @@ func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var rr RangeRequest
 	if err := json.NewDecoder(r.Body).Decode(&rr); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
 
@@ -530,7 +530,7 @@ func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := cidl.Lookup(context.Background(), cids)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to lookup all commit ids")
+		httputils.ReportError(w, err, "Failed to lookup all commit ids", http.StatusInternalServerError)
 		return
 	}
 
@@ -560,7 +560,7 @@ func frameStartHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	fr := &dataframe.FrameRequest{}
 	if err := json.NewDecoder(r.Body).Decode(fr); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
 	// Remove all empty queries.
@@ -573,7 +573,7 @@ func frameStartHandler(w http.ResponseWriter, r *http.Request) {
 	fr.Queries = q
 
 	if len(fr.Formulas) == 0 && len(fr.Queries) == 0 && fr.Keys == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Invalid query."), "Empty queries are not allowed.")
+		httputils.ReportError(w, fmt.Errorf("Invalid query."), "Empty queries are not allowed.", http.StatusInternalServerError)
 		return
 	}
 
@@ -603,7 +603,7 @@ func frameStatusHandler(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	state, message, percent, err := frameRequests.Status(id)
 	if err != nil {
-		httputils.ReportError(w, r, err, message)
+		httputils.ReportError(w, err, message, http.StatusInternalServerError)
 		return
 	}
 
@@ -626,7 +626,7 @@ func frameResultsHandler(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	df, err := frameRequests.Response(id)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Async processing of frame failed.")
+		httputils.ReportError(w, err, "Async processing of frame failed.", http.StatusInternalServerError)
 		return
 	}
 
@@ -653,18 +653,18 @@ func countHandler(w http.ResponseWriter, r *http.Request) {
 
 	var cr CountRequest
 	if err := json.NewDecoder(r.Body).Decode(&cr); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
 
 	u, err := url.ParseQuery(cr.Q)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Invalid URL query.")
+		httputils.ReportError(w, err, "Invalid URL query.", http.StatusInternalServerError)
 		return
 	}
 	q, err := query.New(u)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Invalid query.")
+		httputils.ReportError(w, err, "Invalid query.", http.StatusInternalServerError)
 		return
 	}
 	resp := countHandlerResponse{}
@@ -675,7 +675,7 @@ func countHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		count, ps, err := dfBuilder.PreflightQuery(r.Context(), time.Now(), q)
 		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to Preflight the query.")
+			httputils.ReportError(w, err, "Failed to Preflight the query.", http.StatusInternalServerError)
 		}
 
 		resp.Count = int(count)
@@ -692,12 +692,12 @@ func cidHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	cids := []*cid.CommitID{}
 	if err := json.NewDecoder(r.Body).Decode(&cids); err != nil {
-		httputils.ReportError(w, r, err, "Could not decode POST body.")
+		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return
 	}
 	resp, err := cidl.Lookup(context.Background(), cids)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to lookup all commit ids")
+		httputils.ReportError(w, err, "Failed to lookup all commit ids", http.StatusInternalServerError)
 		return
 	}
 
@@ -721,12 +721,12 @@ func clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 
 	req := &regression.ClusterRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Could not decode POST body.")
+		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return
 	}
 	id, err := clusterRequests.Add(context.Background(), req)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Cluster request was invalid")
+		httputils.ReportError(w, err, "Cluster request was invalid", http.StatusInternalServerError)
 		return
 	}
 	resp := ClusterStartResponse{
@@ -757,7 +757,7 @@ func clusterStatusHandler(w http.ResponseWriter, r *http.Request) {
 	status := &ClusterStatus{}
 	state, msg, err := clusterRequests.Status(id)
 	if err != nil {
-		httputils.ReportError(w, r, err, msg)
+		httputils.ReportError(w, err, msg, http.StatusInternalServerError)
 		return
 	}
 	status.State = state
@@ -765,7 +765,7 @@ func clusterStatusHandler(w http.ResponseWriter, r *http.Request) {
 	if state == regression.PROCESS_SUCCESS {
 		value, err := clusterRequests.Response(id)
 		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to retrieve results.")
+			httputils.ReportError(w, err, "Failed to retrieve results.", http.StatusInternalServerError)
 			return
 		}
 		status.Value = value
@@ -787,14 +787,14 @@ func clusterStatusHandler2(w http.ResponseWriter, r *http.Request) {
 	status := &ClusterStatus{}
 	state, msg, err := clusterRequests.Status(id)
 	if err != nil {
-		httputils.ReportError(w, r, err, msg)
+		httputils.ReportError(w, err, msg, http.StatusInternalServerError)
 		return
 	}
 	status.State = state
 	status.Message = msg
 	values, err := clusterRequests.Responses(id)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to retrieve results.")
+		httputils.ReportError(w, err, "Failed to retrieve results.", http.StatusInternalServerError)
 		return
 	}
 	status.Values = values
@@ -821,7 +821,7 @@ func clusterStatusHandler2(w http.ResponseWriter, r *http.Request) {
 func keysHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := shortcut2.Insert(r.Body)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Error inserting shortcut.")
+		httputils.ReportError(w, err, "Error inserting shortcut.", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -844,7 +844,7 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := r.ParseForm(); err != nil {
-		httputils.ReportError(w, r, err, "Could not parse query parameters.")
+		httputils.ReportError(w, err, "Could not parse query parameters.", http.StatusInternalServerError)
 		return
 	}
 	ctx := context.Background()
@@ -853,12 +853,12 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 	dest := mux.Vars(r)["dest"]
 	index, err := vcs.IndexOf(ctx, hash)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Could not look up git hash.")
+		httputils.ReportError(w, err, "Could not look up git hash.", http.StatusInternalServerError)
 		return
 	}
 	last := vcs.LastNIndex(1)
 	if len(last) != 1 {
-		httputils.ReportError(w, r, fmt.Errorf("VCS.LastN(1) returned 0 hashes."), "Failed to find last hash.")
+		httputils.ReportError(w, fmt.Errorf("VCS.LastN(1) returned 0 hashes."), "Failed to find last hash.", http.StatusInternalServerError)
 		return
 	}
 	lastIndex := last[0].Index
@@ -887,7 +887,7 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		httputils.ReportError(w, r, err, "Could not convert indices to hashes.")
+		httputils.ReportError(w, err, "Could not convert indices to hashes.", http.StatusInternalServerError)
 		return
 	}
 	beginTime := details[0].Timestamp
@@ -927,17 +927,17 @@ type TriageResponse struct {
 func triageHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if login.LoggedInAs(r) == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to triage.")
+		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to triage.", http.StatusInternalServerError)
 		return
 	}
 	tr := &TriageRequest{}
 	if err := json.NewDecoder(r.Body).Decode(tr); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
 	detail, err := cidl.Lookup(context.Background(), []*cid.CommitID{tr.Cid})
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to find CommitID.")
+		httputils.ReportError(w, err, "Failed to find CommitID.", http.StatusInternalServerError)
 		return
 	}
 
@@ -949,7 +949,7 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to triage.")
+		httputils.ReportError(w, err, "Failed to triage.", http.StatusInternalServerError)
 		return
 	}
 
@@ -1023,7 +1023,7 @@ func regressionCountHandler(w http.ResponseWriter, r *http.Request) {
 
 	count, err := regressionCount(category)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to count regressions.")
+		httputils.ReportError(w, err, "Failed to count regressions.", http.StatusInternalServerError)
 	}
 
 	if err := json.NewEncoder(w).Encode(struct{ Count int }{Count: count}); err != nil {
@@ -1076,20 +1076,20 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	rr := &RegressionRangeRequest{}
 	if err := json.NewDecoder(r.Body).Decode(rr); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
 
 	// Query for Regressions in the range.
 	regMap, err := regStore.Range(rr.Begin, rr.End)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to retrieve clusters.")
+		httputils.ReportError(w, err, "Failed to retrieve clusters.", http.StatusInternalServerError)
 		return
 	}
 
 	headers, err := configProvider()
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to retrieve alert configs.")
+		httputils.ReportError(w, err, "Failed to retrieve alert configs.", http.StatusInternalServerError)
 		return
 	}
 
@@ -1151,7 +1151,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		for _, key := range keys {
 			c, err := cid.FromID(key)
 			if err != nil {
-				httputils.ReportError(w, r, err, "Got an invalid commit id.")
+				httputils.ReportError(w, err, "Got an invalid commit id.", http.StatusInternalServerError)
 				return
 			}
 			ids = append(ids, c)
@@ -1161,7 +1161,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	// Convert the CommitIDs to CommitDetails.
 	cids, err := cidl.Lookup(ctx, ids)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to look up commit details")
+		httputils.ReportError(w, err, "Failed to look up commit details", http.StatusInternalServerError)
 		return
 	}
 
@@ -1233,7 +1233,7 @@ func detailsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	dr := &DetailsRequest{}
 	if err := json.NewDecoder(r.Body).Decode(dr); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
 
@@ -1242,37 +1242,37 @@ func detailsHandler(w http.ResponseWriter, r *http.Request) {
 	index := int32(dr.CID.Offset)
 	name, err = traceStore.GetSource(r.Context(), index, dr.TraceID)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to load details")
+		httputils.ReportError(w, err, "Failed to load details", http.StatusInternalServerError)
 		return
 	}
 
 	sklog.Infof("Full URL to source: %q", name)
 	u, err := url.Parse(name)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse source file location.")
+		httputils.ReportError(w, err, "Failed to parse source file location.", http.StatusInternalServerError)
 		return
 	}
 	if u.Host == "" || u.Path == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Invalid source location: %q", name), "Invalid source location.")
+		httputils.ReportError(w, fmt.Errorf("Invalid source location: %q", name), "Invalid source location.", http.StatusInternalServerError)
 		return
 	}
 	sklog.Infof("Host: %q Path: %q", u.Host, u.Path)
 	reader, err := storageClient.Bucket(u.Host).Object(u.Path[1:]).NewReader(context.Background())
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get reader for source file location")
+		httputils.ReportError(w, err, "Failed to get reader for source file location", http.StatusInternalServerError)
 		return
 	}
 	defer util.Close(reader)
 	res := map[string]interface{}{}
 	if err := json.NewDecoder(reader).Decode(&res); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode JSON source file")
+		httputils.ReportError(w, err, "Failed to decode JSON source file", http.StatusInternalServerError)
 		return
 	}
 	if !includeResults {
 		delete(res, "results")
 	}
 	if b, err := json.MarshalIndent(res, "", "  "); err != nil {
-		httputils.ReportError(w, r, err, "Failed to re-encode JSON source file")
+		httputils.ReportError(w, err, "Failed to re-encode JSON source file", http.StatusInternalServerError)
 		return
 	} else {
 		if _, err := w.Write(b); err != nil {
@@ -1313,13 +1313,13 @@ func shiftHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	var sr ShiftRequest
 	if err := json.NewDecoder(r.Body).Decode(&sr); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
 	sklog.Infof("ShiftRequest: %#v", &sr)
 	commits := vcs.Range(time.Unix(sr.Begin, 0), time.Unix(sr.End, 0))
 	if len(commits) == 0 {
-		httputils.ReportError(w, r, fmt.Errorf("No commits found in range."), "No commits found in range.")
+		httputils.ReportError(w, fmt.Errorf("No commits found in range."), "No commits found in range.", http.StatusInternalServerError)
 		return
 	}
 	numCommits := sr.NumCommits
@@ -1328,7 +1328,7 @@ func shiftHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	beginCommit, err := vcs.ByIndex(ctx, commits[0].Index+sr.BeginOffset)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Scrolled too far.")
+		httputils.ReportError(w, err, "Scrolled too far.", http.StatusInternalServerError)
 		return
 	}
 	var endCommitTs time.Time
@@ -1337,7 +1337,7 @@ func shiftHandler(w http.ResponseWriter, r *http.Request) {
 		// We went too far, so just use the last index.
 		commits := vcs.LastNIndex(1)
 		if len(commits) == 0 {
-			httputils.ReportError(w, r, err, "Scrolled too far.")
+			httputils.ReportError(w, err, "Scrolled too far.", http.StatusInternalServerError)
 			return
 		}
 		endCommitTs = commits[0].Timestamp
@@ -1345,7 +1345,7 @@ func shiftHandler(w http.ResponseWriter, r *http.Request) {
 		endCommitTs = endCommit.Timestamp
 	}
 	if beginCommit.Timestamp.Unix() == endCommitTs.Unix() {
-		httputils.ReportError(w, r, err, "No commits found in range.")
+		httputils.ReportError(w, err, "No commits found in range.", http.StatusInternalServerError)
 		return
 	}
 	resp := ShiftResponse{
@@ -1363,7 +1363,7 @@ func alertListHandler(w http.ResponseWriter, r *http.Request) {
 	show := mux.Vars(r)["show"]
 	resp, err := alertStore.List(show == "true")
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to retrieve alert configs.")
+		httputils.ReportError(w, err, "Failed to retrieve alert configs.", http.StatusInternalServerError)
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to write JSON response: %s", err)
@@ -1380,17 +1380,17 @@ func alertNewHandler(w http.ResponseWriter, r *http.Request) {
 func alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if login.LoggedInAs(r) == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to edit alerts.")
+		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to edit alerts.", http.StatusInternalServerError)
 		return
 	}
 
 	cfg := &alerts.Config{}
 	if err := json.NewDecoder(r.Body).Decode(cfg); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
 	if err := alertStore.Save(cfg); err != nil {
-		httputils.ReportError(w, r, err, "Failed to save alerts.Config.")
+		httputils.ReportError(w, err, "Failed to save alerts.Config.", http.StatusInternalServerError)
 	}
 	link := ""
 	if cfg.ID != alerts.INVALID_ID {
@@ -1409,17 +1409,17 @@ func alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 func alertDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if login.LoggedInAs(r) == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to delete alerts.")
+		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to delete alerts.", http.StatusInternalServerError)
 		return
 	}
 
 	sid := mux.Vars(r)["id"]
 	id, err := strconv.ParseInt(sid, 10, 64)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse alert id.")
+		httputils.ReportError(w, err, "Failed to parse alert id.", http.StatusInternalServerError)
 	}
 	if err := alertStore.Delete(int(id)); err != nil {
-		httputils.ReportError(w, r, err, "Failed to delete the alerts.Config.")
+		httputils.ReportError(w, err, "Failed to delete the alerts.Config.", http.StatusInternalServerError)
 		return
 	}
 	a := &activitylog.Activity{
@@ -1443,13 +1443,13 @@ type TryBugResponse struct {
 func alertBugTryHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if login.LoggedInAs(r) == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to test alerts.")
+		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to test alerts.", http.StatusInternalServerError)
 		return
 	}
 
 	req := &TryBugRequest{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
 	resp := &TryBugResponse{
@@ -1463,18 +1463,18 @@ func alertBugTryHandler(w http.ResponseWriter, r *http.Request) {
 func alertNotifyTryHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if login.LoggedInAs(r) == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to try alerts.")
+		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to try alerts.", http.StatusInternalServerError)
 		return
 	}
 
 	req := &alerts.Config{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
 
 	if err := notifier.ExampleSend(req); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to send email: %s", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to send email: %s", err), http.StatusInternalServerError)
 	}
 }
 

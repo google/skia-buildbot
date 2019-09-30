@@ -47,17 +47,17 @@ func emailHandler(w http.ResponseWriter, r *http.Request) {
 	to := r.URL.Query()["email"]
 	sklog.Infof("Sending to: %q", to)
 	if len(to) == 0 {
-		httputils.ReportError(w, r, fmt.Errorf("Missing email addresses in URL: %q", r.RequestURI), "Email addresses missing.")
+		httputils.ReportError(w, fmt.Errorf("Missing email addresses in URL: %q", r.RequestURI), "Email addresses missing.", http.StatusInternalServerError)
 		return
 	}
 	body, subject, err := alertmanager.Email(r.Body)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to generate an outgoing email.")
+		httputils.ReportError(w, err, "Failed to generate an outgoing email.", http.StatusInternalServerError)
 		return
 	}
 
 	if err := emailAuth.Send(FROM_ADDRESS, to, subject, body); err != nil {
-		httputils.ReportError(w, r, err, "Failed to send outgoing email.")
+		httputils.ReportError(w, err, "Failed to send outgoing email.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -70,14 +70,14 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse the chat room name out of the url query params, i.e. ?room=skiabot_alerts.
 	to := r.URL.Query().Get("room")
 	if to == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Missing room in URL: %q", r.RequestURI), "Chat room name missing.")
+		httputils.ReportError(w, fmt.Errorf("Missing room in URL: %q", r.RequestURI), "Chat room name missing.", http.StatusInternalServerError)
 		return
 	}
 
 	// Compose the message.
 	body, err := alertmanager.Chat(r.Body)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to generate an outgoing chat.")
+		httputils.ReportError(w, err, "Failed to generate an outgoing chat.", http.StatusInternalServerError)
 		return
 	}
 
@@ -86,7 +86,7 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Send the message to the chat room.
 	if err := chatbot.SendUsingConfig(body, to, threadId, chatBotConfigReader); err != nil {
-		httputils.ReportError(w, r, err, "Failed to send outgoing chat.")
+		httputils.ReportError(w, err, "Failed to send outgoing chat.", http.StatusInternalServerError)
 		return
 	}
 }
