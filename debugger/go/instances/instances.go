@@ -295,7 +295,7 @@ func (s *Instances) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		instanceID = parts[1]
 		r.URL.Path = parts[2]
 	} else {
-		httputils.ReportError(w, r, fmt.Errorf("Invalid URL %q", r.URL.Path), "Not a valid URL.")
+		httputils.ReportError(w, fmt.Errorf("Invalid URL %q", r.URL.Path), "Not a valid URL.")
 		return
 	}
 
@@ -303,12 +303,12 @@ func (s *Instances) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if co == nil {
 		// If no instance then start one up.
 		if err := s.startInstance(instanceID); err != nil {
-			httputils.ReportError(w, r, err, "Failed to start new instance.")
+			httputils.ReportError(w, err, "Failed to start new instance.")
 			return
 		}
 		co = s.getInstance(instanceID)
 		if co == nil {
-			httputils.ReportError(w, r, fmt.Errorf("Failed to start instance %q", instanceID), "Started instance, but then couldn't find it.")
+			httputils.ReportError(w, fmt.Errorf("Failed to start instance %q", instanceID), "Started instance, but then couldn't find it.")
 			return
 		}
 	}
@@ -324,7 +324,7 @@ func (s *Instances) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					Started: co.started.Unix(),
 				},
 			); err != nil {
-				httputils.ReportError(w, r, err, "Failed to serialize response.")
+				httputils.ReportError(w, err, "Failed to serialize response.")
 			}
 			return
 		} else if r.Method == "POST" {
