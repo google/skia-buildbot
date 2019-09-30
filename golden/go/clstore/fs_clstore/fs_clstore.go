@@ -176,7 +176,7 @@ func (s *StoreImpl) GetPatchSet(ctx context.Context, clID, psID string) (code_re
 	return ps, nil
 }
 
-// GetPatchSet implements the clstore.Store interface.
+// GetPatchSetByOrder implements the clstore.Store interface.
 func (s *StoreImpl) GetPatchSetByOrder(ctx context.Context, clID string, psOrder int) (code_review.PatchSet, error) {
 	defer metrics2.FuncTimer().Stop()
 	fID := s.changeListFirestoreID(clID)
