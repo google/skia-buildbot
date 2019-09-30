@@ -1,0 +1,170 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e6ad0b07_4dc28710",
+        "filename": "task_scheduler/go/db/cache/cache.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-30T17:38:32Z",
+      "side": 1,
+      "message": "nit: shouldn\u0027t be necessary, x2 (x4 total)",
+      "range": {
+        "startLine": 392,
+        "startChar": 24,
+        "endLine": 392,
+        "endChar": 32
+      },
+      "revId": "3bb7a8adaf4463b08f88e7e41077e494c217c64e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b603af6e_7c40b740",
+        "filename": "task_scheduler/go/db/cache/cache.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 403,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-30T17:38:32Z",
+      "side": 1,
+      "message": "nit: probably not necessary, could be unexpected behavior, x2",
+      "revId": "3bb7a8adaf4463b08f88e7e41077e494c217c64e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a67dd675_e7be3d82",
+        "filename": "task_scheduler/go/db/cache/cache.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 429,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-30T17:38:32Z",
+      "side": 1,
+      "message": "nit: no-op, x2",
+      "revId": "3bb7a8adaf4463b08f88e7e41077e494c217c64e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8966f6f5_3c1246d5",
+        "filename": "task_scheduler/go/db/cache/cache.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-30T17:38:32Z",
+      "side": 1,
+      "message": "nit: shouldn\u0027t be necessary, x2 (x4 total)",
+      "range": {
+        "startLine": 432,
+        "startChar": 24,
+        "endLine": 432,
+        "endChar": 32
+      },
+      "revId": "3bb7a8adaf4463b08f88e7e41077e494c217c64e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7d3d704_f3bf2b8b",
+        "filename": "task_scheduler/go/db/comments.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-30T17:38:32Z",
+      "side": 1,
+      "message": "nit: it\u0027s not clear how immediate the FS impl will be",
+      "range": {
+        "startLine": 47,
+        "startChar": 42,
+        "endLine": 47,
+        "endChar": 53
+      },
+      "revId": "3bb7a8adaf4463b08f88e7e41077e494c217c64e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39f90d63_411c85d1",
+        "filename": "task_scheduler/go/db/memory/comments.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-30T17:38:32Z",
+      "side": 1,
+      "message": "I think ch could be closed at this point, since this is in a goroutine. x5",
+      "range": {
+        "startLine": 166,
+        "startChar": 3,
+        "endLine": 166,
+        "endChar": 32
+      },
+      "revId": "3bb7a8adaf4463b08f88e7e41077e494c217c64e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f7bbfadd_5473c8a1",
+        "filename": "task_scheduler/go/db/memory/memory.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-30T17:38:32Z",
+      "side": 1,
+      "message": "I think this copy happens too late -- caller might have modified \u0027tasks\u0027 already.\n\nProbably line 108 should be something like\ntaskCpy :\u003d task.Copy()\naddedTasks \u003d append(addedTasks, taskCpy)\nd.tasks[task.Id] \u003d taskCpy\n\nThen line 114 can just copy addedTasks instead of tasks.\n\nx2\n\nThanks for adding tests for copying here! Adjusting the test to modify expected[0] after the call to PutTasks would expose this problem (flakily).",
+      "range": {
+        "startLine": 114,
+        "startChar": 0,
+        "endLine": 117,
+        "endChar": 4
+      },
+      "revId": "3bb7a8adaf4463b08f88e7e41077e494c217c64e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1b79910_66b6bc44",
+        "filename": "task_scheduler/go/db/memory/modified_chan_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-30T17:38:32Z",
+      "side": 1,
+      "message": "nit: missing test size, x5",
+      "revId": "3bb7a8adaf4463b08f88e7e41077e494c217c64e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
