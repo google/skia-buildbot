@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "a67d63ea_95fc9819",
+        "filename": "go/cq/cq.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-30T14:21:41Z",
+      "side": 1,
+      "message": "Can you use https://godoc.org/github.com/golang/protobuf/ptypes#Timestamp ? Several in this CL.",
+      "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9c09ad39_a35410c1",
         "filename": "golden/go/continuous_integration/buildbucket_cis/buildbucket_cis_test.go",
         "patchSetId": 2
@@ -18,6 +35,115 @@
         "startChar": 46,
         "endLine": 34,
         "endChar": 67
+      },
+      "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c699e4df_c2f39cfc",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-30T14:21:41Z",
+      "side": 1,
+      "message": "nit: update doc",
+      "range": {
+        "startLine": 272,
+        "startChar": 0,
+        "endLine": 275,
+        "endChar": 20
+      },
+      "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8f6155f_6ddbab6f",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-30T14:21:41Z",
+      "side": 1,
+      "message": "nit: mention GerritChanges in the message",
+      "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3fc42aff_8e95797e",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-30T14:21:41Z",
+      "side": 1,
+      "message": "Is there a TODO or bug to determine this correctly?",
+      "range": {
+        "startLine": 361,
+        "startChar": 1,
+        "endLine": 361,
+        "endChar": 11
+      },
+      "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bbe52099_8ad3bac7",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-30T14:21:41Z",
+      "side": 1,
+      "message": "Has this changed from \"https://skia-review.googlesource.com\" to \"skia-review.googlesource.com\"? (Asking based on changes in go/buildbucket/buildbucket_test.go.) If so, do we need to do anything for backwards compatibility?\n\nI suppose if it only affects searching for jobs via the UI, it\u0027s not a big deal.",
+      "range": {
+        "startLine": 371,
+        "startChar": 14,
+        "endLine": 371,
+        "endChar": 31
+      },
+      "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f0a18b1_3b0bacfd",
+        "filename": "task_scheduler/go/tryjobs/tryjobs_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-30T14:21:41Z",
+      "side": 1,
+      "message": "nit: maybe make a helper function for this",
+      "range": {
+        "startLine": 377,
+        "startChar": 0,
+        "endLine": 384,
+        "endChar": 142
       },
       "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
