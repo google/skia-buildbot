@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e9e62017_218fe9f8",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 574,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-30T20:01:47Z",
+      "side": 1,
+      "message": "nit: uptime",
+      "range": {
+        "startLine": 574,
+        "startChar": 14,
+        "endLine": 574,
+        "endChar": 18
+      },
+      "revId": "66cac81ffd4e1f3dce2254a3177e3986f3df34d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e80a2cc_ced6166a",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 662,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-30T20:01:47Z",
+      "side": 1,
+      "message": "Should you error on the \"else\" branch?",
+      "range": {
+        "startLine": 662,
+        "startChar": 51,
+        "endLine": 662,
+        "endChar": 52
+      },
+      "revId": "66cac81ffd4e1f3dce2254a3177e3986f3df34d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
