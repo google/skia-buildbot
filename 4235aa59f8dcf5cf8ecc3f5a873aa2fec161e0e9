@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dbe12935_ac7795eb",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 378,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-30T18:08:12Z",
+      "side": 1,
+      "message": "Docs for github.com/patrickmn/go-cache aren\u0027t clear (to me) if this can return expired items.",
+      "range": {
+        "startLine": 378,
+        "startChar": 28,
+        "endLine": 378,
+        "endChar": 36
+      },
+      "revId": "4235aa59f8dcf5cf8ecc3f5a873aa2fec161e0e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
