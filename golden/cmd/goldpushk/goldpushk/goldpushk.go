@@ -16,7 +16,9 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -28,6 +30,13 @@ const (
 	// Paths below are relative to $SKIA_INFRA_ROOT.
 	k8sConfigTemplatesDir = "golden/k8s-config-templates"
 	k8sInstancesDir       = "golden/k8s-instances"
+
+	// kubectl timestamp format as of September 30, 2019.
+	//
+	// $ kubectl version --short
+	// Client Version: v1.16.0
+	// Server Version: v1.14.6-gke.1
+	kubectlTimestampLayout = "2006-01-02T15:04:05Z"
 )
 
 // cluster represents a Kubernetes cluster on which to deploy DeployableUnits, and contains all the
@@ -516,6 +525,126 @@ func (g *Goldpushk) switchClusters(ctx context.Context, cluster cluster) error {
 		g.currentCluster = cluster
 	}
 	return nil
+}
+
+// getUptimesSingleCluster takes a slice of DeployableUnits and returns a dictionary mapping
+// DeployableUnitIDs to the time duration since all the containers corresponding to that unit have
+// entered the "Running" state.
+//
+// A DeployableUnit will not have a corresponding entry in the returned map if any of its containers
+// are in a state other than "Running", or if no matching containers are found.
+//
+// This method makes the following assumptions:
+//   - All the given DeployableUnits belong to the same Kubernetes cluster.
+//   - kubectl is already set up to operate on that cluster.
+//   - A DeployableUnit may correspond to more than one pod (e.g. ReplicaSets).
+//   - There is only one container running on each pod.
+func (g *Goldpushk) getUptimesSingleCluster(ctx context.Context, units []DeployableUnit, now time.Time) (map[DeployableUnitID]time.Duration, error) {
+	// Execute kubectl command that will return per-container uptime.
+	cmd := &exec.Command{
+		Name: "kubectl",
+		// This command outputs a table with one row per pod, and assumes there is at most one container
+		// running on each pod. Columns are:
+		//   - NAME: The app name (e.g. "gold-chrome-diffserver"), or "<none>" if it cannot be
+		//     determined.
+		//   - RUNNING_SINCE: Timestamp (e.g. "2019-09-05T20:53:42Z") that indicates the moment in which
+		//     the only container on the pod entered the "Running" state, or "<none>" if the current
+		//     state is not "Running".
+		Args:        []string{"get", "pods", "-o", "custom-columns=NAME:.metadata.labels.app,RUNNING_SINCE:.status.containerStatuses[0].state.running.startedAt"},
+		InheritPath: true,
+		LogStderr:   true,
+		LogStdout:   true,
+	}
+	stdout, err := exec.RunCommand(ctx, cmd)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
+	}
+
+	// This map will hold the uptimes parsed from the command output.
+	uptime := make(map[DeployableUnitID]time.Duration)
+
+	// If at least one of the containers corresponding to a DeployableUnit is not running, then it
+	// will be excluded from the returned dictionary.
+	//
+	// Take for example the fictitious "kubectl get pods ..." command output below:
+	//   NAME                        RUNNING_SINCE
+	//   ...
+	//   gold-chrome-baselineserver  2019-09-30T13:20:33Z
+	//   gold-chrome-baselineserver  <none>
+	//   gold-chrome-baselineserver  2019-09-30T13:43:05Z
+	//   ...
+	// In this example, DeployableUnit "gold-chrome-baselineserver" will be excluded from the returned
+	// dictionary because one of its containers is not running.
+	//
+	// The dictionary below keeps track of which DeployableUnits to exclude from this method's output.
+	excludeFromOutput := make(map[DeployableUnitID]bool)
+
+	// We will parse each output line using this regular expression.
+	re := regexp.MustCompile("(?P<name>\\S+)\\s+(?P<runningSince>\\S+)")
+
+	// Iterate over all output lines.
+	for _, line := range strings.Split(stdout, "\n") {
+		// Skip empty line at the end.
+		if line == "" {
+			continue
+		}
+
+		// Parse line, e.g. "gold-chrome-baselineserver  2019-09-30T13:20:33Z"
+		matches := re.FindStringSubmatch(line)
+
+		// Extract values from current line.
+		nameStr := matches[1]         // e.g. "gold-chrome-baselineserver"
+		runningSinceStr := matches[2] // e.g. "2019-09-30T13:20:33Z"
+
+		// Iterate over the given DeployableUnits; see if there is a DeployableUnit that matches the
+		// current line.
+		var unitID DeployableUnitID
+		for _, unit := range units {
+			if unit.CanonicalName() == nameStr {
+				unitID = unit.DeployableUnitID
+			}
+		}
+
+		// If no DeployableUnit matches, skip to the next line. This is OK since "kubectl get pods"
+		// returns information about all pods running on the cluster, and not just the ones we are
+		// interested in.
+		if unitID == (DeployableUnitID{}) {
+			continue
+		}
+
+		// If the running time is "<none>", the container corresponding to the current line is not in
+		// the "Running" state. We exclude its DeployableUnit from the output.
+		if runningSinceStr == "<none>" {
+			delete(uptime, unitID) // Delete it from the output if it was previously added.
+			excludeFromOutput[unitID] = true
+			continue
+		}
+
+		// If the DeployableUnit has been excluded from the output due to another of its containers not
+		// being in the "Running" state, skip to the next line.
+		if _, ok := excludeFromOutput[unitID]; ok {
+			continue
+		}
+
+		// Parse the timestamp, e.g. "2019-09-30T13:20:33Z".
+		t, err := time.Parse(kubectlTimestampLayout, runningSinceStr)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+
+		// Compute the time duration since the container corresponding to the current line has entered
+		// the "Running" state.
+
+		runningFor := now.Sub(t)
+
+		// We'll report the uptime corresponding to the container that has most recently entered the
+		// "Running" state for the current DeployableUnit.
+		if currentMin, ok := uptime[unitID]; !ok || (runningFor < currentMin) {
+			uptime[unitID] = runningFor
+		}
+	}
+
+	return uptime, nil
 }
 
 // forAllDeployableUnits applies all deployable units (including canaried units)
