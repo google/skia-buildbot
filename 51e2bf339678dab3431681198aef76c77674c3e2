@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b829ec24_d1769075",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 626,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-30T19:13:28Z",
+      "side": 1,
+      "message": "time.UTC should work (see https://golang.org/pkg/time/#Location)",
+      "range": {
+        "startLine": 626,
+        "startChar": 45,
+        "endLine": 626,
+        "endChar": 53
+      },
+      "revId": "51e2bf339678dab3431681198aef76c77674c3e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
