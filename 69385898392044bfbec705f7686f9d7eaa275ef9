@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "78e39efd_9a856f87",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-09-30T17:58:15Z",
+      "side": 1,
+      "message": "uber-nit: if for some reason we get multiple GerritChanges and someone is frantically debugging what\u0027s going wrong, this message might be misleading.",
+      "range": {
+        "startLine": 357,
+        "startChar": 75,
+        "endLine": 357,
+        "endChar": 99
+      },
+      "revId": "69385898392044bfbec705f7686f9d7eaa275ef9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
