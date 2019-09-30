@@ -539,6 +539,9 @@
             "port_value": 8000
           }
         },
+        "listener_filters_timeout": {
+          "seconds": 600
+        },
         "filter_chains": {
           "filters": [
             {
