@@ -87,10 +87,9 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 	// BetaUntriaged1Digest has no negative images to compare against, so diffstore isn't queried.
 
 	q := &query.Search{
-		ChangeListID:    "",
-		DeprecatedIssue: types.LegacyMasterBranch,
-		Unt:             true,
-		Head:            true,
+		ChangeListID: "",
+		Unt:          true,
+		Head:         true,
 
 		Metric:   diff.METRIC_COMBINED,
 		FRGBAMin: 0,
@@ -247,7 +246,6 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
-	clInt := int64(1234)
 	clID := "1234"
 	crs := "gerrit"
 	AlphaNowGoodDigest := data.AlphaUntriaged1Digest
@@ -367,10 +365,9 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	s := New(mds, mes, mi, mcls, mtjs, everythingPublic)
 
 	q := &query.Search{
-		ChangeListID:    clID,
-		DeprecatedIssue: clInt,
-		NewCLStore:      true,
-		IncludeMaster:   false,
+		ChangeListID:  clID,
+		NewCLStore:    true,
+		IncludeMaster: false,
 
 		Unt:  true,
 		Head: true,

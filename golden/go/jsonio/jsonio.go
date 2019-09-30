@@ -95,13 +95,7 @@ type GoldResults struct {
 	Key     map[string]string `json:"key"      validate:"required,min=1"`
 	Results []*Result         `json:"results"  validate:"min=1"`
 
-	// TODO(kjlubick): Remove these once I've updated the go code in Skia's repo.
-	BuildBucketID      int64 `json:"buildbucket_build_id,string"`
-	GerritChangeListID int64 `json:"issue,string"`
-	GerritPatchSet     int64 `json:"patchset,string"`
-
-	// These are the preferred way to indicate these results were ingested from a TryJob.
-	// See https://bugs.chromium.org/p/skia/issues/detail?id=9340
+	// These indicate the results were ingested from a TryJob.
 	// ChangeListID and PatchSetID correspond to code_review.ChangeList.SystemID and
 	// code_review.PatchSet.Order, respectively
 	ChangeListID     string `json:"change_list_id,omitempty"`
@@ -167,54 +161,29 @@ func (r *rawGoldResults) parse() (*GoldResults, error) {
 		TaskID:  r.TaskID,
 	}
 	if r.ChangeListID == "" && r.GerritChangeListID == "" {
-		// Legacy support
-		ret.GerritChangeListID = types.MasterBranch
-	} else {
-		mb := strconv.FormatInt(types.MasterBranch, 10)
-		lmb := strconv.FormatInt(types.LegacyMasterBranch, 10)
-		if r.ChangeListID != "" {
-			ret.ChangeListID = r.ChangeListID
-			ret.CodeReviewSystem = r.CodeReviewSystem
-			ret.PatchSetOrder = r.PatchSetOrder
-			ret.TryJobID = r.TryJobID
-			ret.ContinuousIntegrationSystem = r.ContinuousIntegrationSystem
-			// Legacy values - ignoring errors here as the values will be going away soon
-			// from GoldResults
-			if n, err := strconv.ParseInt(ret.ChangeListID, 10, 64); err == nil {
-				ret.GerritChangeListID = n
-			}
-			if n, err := strconv.ParseInt(ret.TryJobID, 10, 64); err == nil {
-				ret.BuildBucketID = n
-			}
-			ret.GerritPatchSet = int64(ret.PatchSetOrder)
-		} else if r.GerritChangeListID != mb && r.GerritChangeListID != lmb {
-			// Handles legacy inputs
-			ret.ChangeListID = r.GerritChangeListID
-			ret.CodeReviewSystem = "gerrit"
-			ret.TryJobID = r.BuildBucketID
-			ret.ContinuousIntegrationSystem = "buildbucket"
-
-			if n, err := strconv.ParseInt(r.GerritChangeListID, 10, 64); err != nil {
-				return nil, skerr.Wrapf(err, "invalid value for issue: %q", r.GerritChangeListID)
-			} else {
-				ret.GerritChangeListID = n
-			}
-			if n, err := strconv.ParseInt(r.BuildBucketID, 10, 64); err != nil {
-				return nil, skerr.Wrapf(err, "invalid value for buildbucket_build_id: %q", r.BuildBucketID)
-			} else {
-				ret.BuildBucketID = n
-			}
-			if n, err := strconv.ParseInt(r.GerritPatchSet, 10, 64); err != nil {
-				return nil, skerr.Wrapf(err, "invalid value for patchset: %q", r.GerritPatchSet)
-			} else {
-				ret.GerritPatchSet = n
-				ret.PatchSetOrder = int(n)
-			}
-		} else {
-			// Set GerritChangeListID to -1 to indicate "master branch"
-			ret.GerritChangeListID = types.MasterBranch
-		}
+		return ret, nil
 	}
+
+	if r.ChangeListID != "" {
+		ret.ChangeListID = r.ChangeListID
+		ret.CodeReviewSystem = r.CodeReviewSystem
+		ret.PatchSetOrder = r.PatchSetOrder
+		ret.TryJobID = r.TryJobID
+		ret.ContinuousIntegrationSystem = r.ContinuousIntegrationSystem
+
+	} else if r.GerritChangeListID != "0" && r.GerritChangeListID != "-1" {
+		// Handles legacy inputs for older inputs that specified GerritChangeListID
+		ret.ChangeListID = r.GerritChangeListID
+		ret.CodeReviewSystem = "gerrit"
+		ret.TryJobID = r.BuildBucketID
+		ret.ContinuousIntegrationSystem = "buildbucket"
+
+		if n, err := strconv.ParseInt(r.GerritPatchSet, 10, 64); err != nil {
+			return nil, skerr.Wrapf(err, "invalid value for patchset: %q", r.GerritPatchSet)
+		} else {
+			ret.PatchSetOrder = int(n)
+		}
+	} // else we are looking at a legacy master branch way.
 
 	return ret, nil
 }

@@ -3,7 +3,6 @@ package ingestion_processors
 import (
 	"context"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"go.skia.org/infra/go/buildbucket"
@@ -146,8 +145,8 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	if crs == "" || crs == g.crsName {
 		// Default to Gerrit
 		crs = gerritCRS
-		clID = strconv.FormatInt(gr.GerritChangeListID, 10)
-		psOrder = int(gr.GerritPatchSet)
+		clID = gr.ChangeListID
+		psOrder = gr.PatchSetOrder
 	} else {
 		sklog.Warningf("Result %s said it was for crs %q, but this ingester is configured for %s", rf.Name(), crs, g.crsName)
 		// We only support one CRS and one CIS at the moment, but if needed, we can have
@@ -160,7 +159,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	if cis == "" || cis == g.cisName {
 		// Default to BuildBucket
 		cis = buildbucketCIS
-		tjID = strconv.FormatInt(gr.BuildBucketID, 10)
+		tjID = gr.TryJobID
 	} else {
 		sklog.Warningf("Result %s said it was for cis %q, but this ingester is configured for %s", rf.Name(), cis, g.cisName)
 		// We only support one CRS and one CIS at the moment, but if needed, we can have

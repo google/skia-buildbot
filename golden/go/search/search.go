@@ -90,7 +90,9 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	// Keep track if we are including reference diffs. This is going to be true
 	// for the majority of queries.
 	getRefDiffs := !q.NoDiff
-	isChangeListSearch := !types.IsMasterBranch(q.DeprecatedIssue)
+	// TODO(kjlubick) remove the legacy check against "0" once the frontend is updated
+	//   not to pass it.
+	isChangeListSearch := q.ChangeListID != "" && q.ChangeListID != "0"
 	// Get the expectations and the current index, which we assume constant
 	// for the duration of this query.
 	crs := ""

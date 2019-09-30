@@ -62,11 +62,10 @@ type Search struct {
 	RTraceValues paramtools.ParamSet `json:"-"`
 
 	// Trybot support.
-	ChangeListID    string  `json:"issue"`
-	DeprecatedIssue int64   `json:"-"`
-	PatchSetsStr    string  `json:"patchsets"` // Comma-separated list of patchsets.
-	PatchSets       []int64 `json:"-"`
-	IncludeMaster   bool    `json:"master"` // Include digests also contained in master when searching code review issues.
+	ChangeListID  string  `json:"issue"`
+	PatchSetsStr  string  `json:"patchsets"` // Comma-separated list of patchsets.
+	PatchSets     []int64 `json:"-"`
+	IncludeMaster bool    `json:"master"` // Include digests also contained in master when searching code review issues.
 
 	// Filtering.
 	FCommitBegin string  `json:"fbegin"`     // Start commit
