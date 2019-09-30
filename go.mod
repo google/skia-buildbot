@@ -157,4 +157,4 @@ require (
 	sigs.k8s.io/structured-merge-diff v0.0.0-20190920212726-9db5fb9387fd // indirect
 )
 
-go 1.12
+go 1.13
