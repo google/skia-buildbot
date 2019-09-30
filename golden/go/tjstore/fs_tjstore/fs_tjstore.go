@@ -303,7 +303,7 @@ func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, t
 	if len(r) == 0 {
 		return nil
 	}
-
+	defer metrics2.FuncTimer().Stop()
 	// maps hash -> params we want to store
 	paramsToStore := map[string]paramtools.Params{}
 	var xtr []resultEntry

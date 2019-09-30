@@ -1,4 +1,4 @@
-// Implements an ExpectationsStore based on Firestore. See FIRESTORE.md for the schema
+// Package fs_expstore an ExpectationsStore based on Firestore. See FIRESTORE.md for the schema
 // and design rationale.
 package fs_expstore
 
@@ -498,13 +498,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 	if offset < 0 || size <= 0 {
 		return nil, 0, skerr.Fmt("offset: %d and size: %d must be positive", offset, size)
 	}
-	tags := map[string]string{
-		"with_details": "false",
-	}
-	if details {
-		tags["with_details"] = "true"
-	}
-	defer metrics2.NewTimer("gold_query_log", tags).Stop()
+	defer metrics2.FuncTimer().Stop()
 
 	// Fetch the records, which have everything except the details.
 	q := f.client.Collection(triageRecordsCollection).OrderBy(tsField, firestore.Desc).Offset(offset).Limit(size)
