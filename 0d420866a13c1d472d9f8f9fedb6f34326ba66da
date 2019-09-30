@@ -2,6 +2,46 @@
   "comments": [
     {
       "key": {
+        "uuid": "bec6615b_2ec94b43",
+        "filename": "go/autoroll/autoroll.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-30T15:02:12Z",
+      "side": 1,
+      "message": "Do we care about Status_ENDED_MASK ?\n\nhttps://cs.chromium.org/chromium/infra/go/src/go.chromium.org/luci/buildbucket/cli/collect.go?q\u003dStatus_ENDED_MASK\u0026sq\u003dpackage:chromium\u0026dr\u003dC\u0026l\u003d90",
+      "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0405383f_5992decd",
+        "filename": "go/autoroll/autoroll.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-09-30T15:02:12Z",
+      "side": 1,
+      "message": "Weird that buildbucketpb does not give us the host.",
+      "range": {
+        "startLine": 421,
+        "startChar": 64,
+        "endLine": 421,
+        "endChar": 76
+      },
+      "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a67d63ea_95fc9819",
         "filename": "go/cq/cq.go",
         "patchSetId": 2
