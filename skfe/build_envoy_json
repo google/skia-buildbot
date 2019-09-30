@@ -33,7 +33,12 @@ kubectl get services -o json | jq '{
                                         routes: [
                                             {
                                                 match: { prefix: "/" },
-                                                route: { cluster: .metadata.name }
+                                                route: {
+                                                    cluster: .metadata.name,
+                                                    timeout: {
+                                                        seconds: 600
+                                                    }
+                                                }
                                             }
                                         ]
                                     }
