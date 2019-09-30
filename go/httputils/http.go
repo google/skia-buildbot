@@ -368,20 +368,17 @@ func ReadAndClose(r io.ReadCloser) string {
 	return ""
 }
 
-// TODO(stephana): Remove 'r' from the argument list since it's not used. It would
-// be also useful if we could specify a return status explicitly.
-
 // ReportError formats an HTTP error response and also logs the detailed error message.
 // The message parameter is returned in the HTTP response. If it is not provided then
 // "Unknown error" will be returned instead.
-func ReportError(w http.ResponseWriter, r *http.Request, err error, message string) {
+func ReportError(w http.ResponseWriter, err error, message string, code int) {
 	sklog.Errorln(message, err)
 	if err != io.ErrClosedPipe {
 		httpErrMsg := message
 		if message == "" {
 			httpErrMsg = "Unknown error"
 		}
-		http.Error(w, httpErrMsg, http.StatusInternalServerError)
+		http.Error(w, httpErrMsg, code)
 	}
 }
 

@@ -101,17 +101,17 @@ func loadHandler(w http.ResponseWriter, r *http.Request) {
 	client := httputils.NewTimeoutClient()
 	resp, err := client.Get(r.FormValue("url"))
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to retrieve the SKP.")
+		httputils.ReportError(w, err, "Failed to retrieve the SKP.", http.StatusInternalServerError)
 		return
 	}
 	if resp.StatusCode != 200 {
-		httputils.ReportError(w, r, err, "Failed to retrieve the SKP, bad status code.")
+		httputils.ReportError(w, err, "Failed to retrieve the SKP, bad status code.", http.StatusInternalServerError)
 		return
 	}
 	defer util.Close(r.Body)
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to read body.")
+		httputils.ReportError(w, err, "Failed to read body.", http.StatusInternalServerError)
 		return
 	}
 
@@ -120,15 +120,15 @@ func loadHandler(w http.ResponseWriter, r *http.Request) {
 	multipartWriter := multipart.NewWriter(body)
 	formFile, err := multipartWriter.CreateFormFile("file", "file.skp")
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to create new multipart/form-file object to pass to skiaserve.")
+		httputils.ReportError(w, err, "Failed to create new multipart/form-file object to pass to skiaserve.", http.StatusInternalServerError)
 		return
 	}
 	if _, err := formFile.Write(b); err != nil {
-		httputils.ReportError(w, r, err, "Failed to copy SKP into multipart/form-file object to pass to skiaserve.")
+		httputils.ReportError(w, err, "Failed to copy SKP into multipart/form-file object to pass to skiaserve.", http.StatusInternalServerError)
 		return
 	}
 	if err := multipartWriter.Close(); err != nil {
-		httputils.ReportError(w, r, err, "Failed to close new multipart/form-file object to pass to skiaserve.")
+		httputils.ReportError(w, err, "Failed to close new multipart/form-file object to pass to skiaserve.", http.StatusInternalServerError)
 		return
 	}
 
@@ -136,7 +136,7 @@ func loadHandler(w http.ResponseWriter, r *http.Request) {
 	instanceID := instances.NewInstanceID()
 	req, err := http.NewRequest("POST", fmt.Sprintf("/%s/new", instanceID), body)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to create new request object to pass to skiaserve.")
+		httputils.ReportError(w, err, "Failed to create new request object to pass to skiaserve.", http.StatusInternalServerError)
 		return
 	}
 	// Copy over cookies so the request is authenticated.
@@ -147,7 +147,7 @@ func loadHandler(w http.ResponseWriter, r *http.Request) {
 	rec := httptest.NewRecorder()
 	co.ServeHTTP(rec, req)
 	if rec.Code >= 400 {
-		httputils.ReportError(w, r, fmt.Errorf("Bad status from SKP upload: Status %d Body %q", rec.Code, rec.Body.String()), "Failed to upload SKP.")
+		httputils.ReportError(w, fmt.Errorf("Bad status from SKP upload: Status %d Body %q", rec.Code, rec.Body.String()), "Failed to upload SKP.", http.StatusInternalServerError)
 	} else {
 		http.Redirect(w, r, fmt.Sprintf("/%s/", instanceID), 303)
 	}

@@ -49,7 +49,7 @@ func htmlHandler(page []byte) func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "max-age=60")
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write(page); err != nil {
-			httputils.ReportError(w, r, err, "Server could not load page")
+			httputils.ReportError(w, err, "Server could not load page", http.StatusInternalServerError)
 		}
 	}
 }
@@ -110,7 +110,7 @@ func codeHandler(w http.ResponseWriter, r *http.Request) {
 	cr := fiddleContext{Code: code}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(cr); err != nil {
-		httputils.ReportError(w, r, err, "Failed to JSON Encode response.")
+		httputils.ReportError(w, err, "Failed to JSON Encode response.", http.StatusInternalServerError)
 	}
 }
 
@@ -133,7 +133,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 	dec := json.NewDecoder(r.Body)
 	defer util.Close(r.Body)
 	if err := dec.Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode request.")
+		httputils.ReportError(w, err, "Failed to decode request.", http.StatusInternalServerError)
 		return
 	}
 	if !util.In(req.Type, knownTypes) {
@@ -147,12 +147,12 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 
 	hash, err := fiddleStore.PutCode(req.Code, req.Type)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to save fiddle.")
+		httputils.ReportError(w, err, "Failed to save fiddle.", http.StatusInternalServerError)
 	}
 	sr := saveResponse{NewURL: fmt.Sprintf("/%s/%s", req.Type, hash)}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(sr); err != nil {
-		httputils.ReportError(w, r, err, "Failed to JSON Encode response.")
+		httputils.ReportError(w, err, "Failed to JSON Encode response.", http.StatusInternalServerError)
 	}
 }
 

@@ -115,7 +115,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
 	if err := indexTemplate.Execute(w, nil); err != nil {
-		httputils.ReportError(w, r, err, "Failed to expand template")
+		httputils.ReportError(w, err, "Failed to expand template", http.StatusInternalServerError)
 		return
 	}
 	return
@@ -131,18 +131,18 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 
 	taskParam := r.FormValue("task")
 	if taskParam == "" {
-		httputils.ReportError(w, r, nil, "Missing task parameter")
+		httputils.ReportError(w, nil, "Missing task parameter", http.StatusInternalServerError)
 		return
 	}
 	taskID, err := strconv.ParseInt(taskParam, 10, 64)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Invalid task parameter")
+		httputils.ReportError(w, err, "Invalid task parameter", http.StatusInternalServerError)
 		return
 	}
 
 	k, t, err := GetDSTask(taskID)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Could not find task")
+		httputils.ReportError(w, err, "Could not find task", http.StatusInternalServerError)
 		return
 	}
 
@@ -151,7 +151,7 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 		Expired: t.Done,
 	}
 	if err := json.NewEncoder(w).Encode(status); err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode JSON")
+		httputils.ReportError(w, err, "Failed to encode JSON", http.StatusInternalServerError)
 		return
 
 	}
@@ -164,18 +164,18 @@ func poolDetailsHandler(w http.ResponseWriter, r *http.Request) {
 
 	poolParam := r.FormValue("pool")
 	if poolParam == "" {
-		httputils.ReportError(w, r, nil, "Missing pool parameter")
+		httputils.ReportError(w, nil, "Missing pool parameter", http.StatusInternalServerError)
 		return
 	}
 	poolToDetailsMutex.Lock()
 	defer poolToDetailsMutex.Unlock()
 	poolDetails, ok := poolToDetails[poolParam]
 	if !ok {
-		httputils.ReportError(w, r, nil, "No such pool")
+		httputils.ReportError(w, nil, "No such pool", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(poolDetails); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode JSON: %v", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -239,7 +239,7 @@ func leasesHandlerHelper(w http.ResponseWriter, r *http.Request, filterUser stri
 
 	tasks, err := getLeasingTasks(filterUser)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to expand template")
+		httputils.ReportError(w, err, "Failed to expand template", http.StatusInternalServerError)
 		return
 	}
 
@@ -249,7 +249,7 @@ func leasesHandlerHelper(w http.ResponseWriter, r *http.Request, filterUser stri
 		Tasks: tasks,
 	}
 	if err := leasesListTemplate.Execute(w, templateTasks); err != nil {
-		httputils.ReportError(w, r, err, "Failed to expand template")
+		httputils.ReportError(w, err, "Failed to expand template", http.StatusInternalServerError)
 		return
 	}
 	return
@@ -268,29 +268,29 @@ func extendTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	taskParam := r.FormValue("task")
 	if taskParam == "" {
-		httputils.ReportError(w, r, nil, "Missing task parameter")
+		httputils.ReportError(w, nil, "Missing task parameter", http.StatusInternalServerError)
 		return
 	}
 	taskID, err := strconv.ParseInt(taskParam, 10, 64)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Invalid task parameter")
+		httputils.ReportError(w, err, "Invalid task parameter", http.StatusInternalServerError)
 		return
 	}
 
 	durationParam := r.FormValue("duration")
 	if durationParam == "" {
-		httputils.ReportError(w, r, nil, "Missing duration parameter")
+		httputils.ReportError(w, nil, "Missing duration parameter", http.StatusInternalServerError)
 		return
 	}
 	durationHrs, err := strconv.Atoi(durationParam)
 	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to parse %s", durationParam))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to parse %s", durationParam), http.StatusInternalServerError)
 		return
 	}
 
 	k, t, err := GetDSTask(taskID)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Could not find task")
+		httputils.ReportError(w, err, "Could not find task", http.StatusInternalServerError)
 		return
 	}
 
@@ -299,7 +299,7 @@ func extendTaskHandler(w http.ResponseWriter, r *http.Request) {
 	newLeaseEndTime := t.LeaseEndTime.Add(time.Hour * time.Duration(durationHrs))
 	maxPossibleLeaseEndTime := t.Created.Add(time.Hour * time.Duration(MAX_LEASE_DURATION_HRS))
 	if newLeaseEndTime.After(maxPossibleLeaseEndTime) {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Can not extend lease beyond %d hours of the task creation time", MAX_LEASE_DURATION_HRS))
+		httputils.ReportError(w, nil, fmt.Sprintf("Can not extend lease beyond %d hours of the task creation time", MAX_LEASE_DURATION_HRS), http.StatusInternalServerError)
 		return
 	}
 
@@ -308,12 +308,12 @@ func extendTaskHandler(w http.ResponseWriter, r *http.Request) {
 	// Reset the warning sent flag since the lease has been extended.
 	t.WarningSent = false
 	if _, err := UpdateDSTask(k, t); err != nil {
-		httputils.ReportError(w, r, err, "Error updating task in datastore")
+		httputils.ReportError(w, err, "Error updating task in datastore", http.StatusInternalServerError)
 		return
 	}
 	// Inform the requester that the task has been extended by durationHrs.
 	if err := SendExtensionEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId, durationHrs); err != nil {
-		httputils.ReportError(w, r, err, "Error sending extension email")
+		httputils.ReportError(w, err, "Error sending extension email", http.StatusInternalServerError)
 		return
 	}
 }
@@ -323,18 +323,18 @@ func expireTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	taskParam := r.FormValue("task")
 	if taskParam == "" {
-		httputils.ReportError(w, r, nil, "Missing task parameter")
+		httputils.ReportError(w, nil, "Missing task parameter", http.StatusInternalServerError)
 		return
 	}
 	taskID, err := strconv.ParseInt(taskParam, 10, 64)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Invalid task parameter")
+		httputils.ReportError(w, err, "Invalid task parameter", http.StatusInternalServerError)
 		return
 	}
 
 	k, t, err := GetDSTask(taskID)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Could not find task")
+		httputils.ReportError(w, err, "Could not find task", http.StatusInternalServerError)
 		return
 	}
 
@@ -344,12 +344,12 @@ func expireTaskHandler(w http.ResponseWriter, r *http.Request) {
 	t.LeaseEndTime = time.Now()
 	t.SwarmingTaskState = getCompletedStateStr(false)
 	if _, err := UpdateDSTask(k, t); err != nil {
-		httputils.ReportError(w, r, err, "Error updating task in datastore")
+		httputils.ReportError(w, err, "Error updating task in datastore", http.StatusInternalServerError)
 		return
 	}
 	// Inform the requester that the task has completed.
 	if err := SendCompletionEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId); err != nil {
-		httputils.ReportError(w, r, err, "Error sending completion email")
+		httputils.ReportError(w, err, "Error sending completion email", http.StatusInternalServerError)
 		return
 	}
 }
@@ -360,7 +360,7 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	task := &Task{}
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add %T task", task))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to add %T task", task), http.StatusInternalServerError)
 		return
 	}
 	defer util.Close(r.Body)
@@ -371,11 +371,11 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 		// necessary.
 		validBotId, err := IsBotIdValid(task.SwarmingPool, task.SwarmingBotId)
 		if err != nil {
-			httputils.ReportError(w, r, err, fmt.Sprintf("Error querying swarming for botId %s in pool %s", task.SwarmingBotId, task.SwarmingPool))
+			httputils.ReportError(w, err, fmt.Sprintf("Error querying swarming for botId %s in pool %s", task.SwarmingBotId, task.SwarmingPool), http.StatusInternalServerError)
 			return
 		}
 		if !validBotId {
-			httputils.ReportError(w, r, err, fmt.Sprintf("Could not find botId %s in pool %s", task.SwarmingBotId, task.SwarmingPool))
+			httputils.ReportError(w, err, fmt.Sprintf("Could not find botId %s in pool %s", task.SwarmingBotId, task.SwarmingPool), http.StatusInternalServerError)
 			return
 		}
 	}
@@ -398,12 +398,12 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	if task.TaskIdForIsolates != "" {
 		t, err := GetSwarmingTaskMetadata(task.SwarmingPool, task.TaskIdForIsolates)
 		if err != nil {
-			httputils.ReportError(w, r, err, fmt.Sprintf("Could not find taskId %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool))
+			httputils.ReportError(w, err, fmt.Sprintf("Could not find taskId %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool), http.StatusInternalServerError)
 			return
 		}
 		isolateDetails, err = GetIsolateDetails(ctx, *serviceAccountFile, t.Request.Properties)
 		if err != nil {
-			httputils.ReportError(w, r, err, fmt.Sprintf("Could not get isolate details of task %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool))
+			httputils.ReportError(w, err, fmt.Sprintf("Could not get isolate details of task %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool), http.StatusInternalServerError)
 			return
 		}
 	} else {
@@ -412,18 +412,18 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	datastoreKey, err := PutDSTask(key, task)
 	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Error putting task in datastore: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Error putting task in datastore: %v", err), http.StatusInternalServerError)
 		return
 	}
 	isolateHash, err := GetIsolateHash(ctx, task.SwarmingPool, isolateDetails.IsolateDep)
 	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Error when getting isolate hash: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Error when getting isolate hash: %v", err), http.StatusInternalServerError)
 		return
 	}
 	// Trigger the swarming task.
 	swarmingTaskId, err := TriggerSwarmingTask(task.SwarmingPool, task.Requester, strconv.Itoa(int(datastoreKey.ID)), task.OsType, task.DeviceType, task.Architecture, task.SwarmingBotId, serverURL, isolateHash, isolateDetails, task.SetupDebugger)
 	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Error when triggering swarming task: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Error when triggering swarming task: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -432,7 +432,7 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task.SwarmingServer = swarmingInstance.SwarmingServer
 	task.SwarmingTaskId = swarmingTaskId
 	if _, err = UpdateDSTask(datastoreKey, task); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Error updating task with swarming fields in datastore: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Error updating task with swarming fields in datastore: %v", err), http.StatusInternalServerError)
 		return
 	}
 

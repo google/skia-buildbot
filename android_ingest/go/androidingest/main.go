@@ -256,12 +256,12 @@ func rangeRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	beginID, redirBranch, err := process.Repo.LookupBuildID(ctx, begin)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed looking up Build ID.")
+		httputils.ReportError(w, err, "Failed looking up Build ID.", http.StatusInternalServerError)
 		return
 	}
 	endID, _, err := process.Repo.LookupBuildID(ctx, end)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed looking up Build ID.")
+		httputils.ReportError(w, err, "Failed looking up Build ID.", http.StatusInternalServerError)
 		return
 	}
 

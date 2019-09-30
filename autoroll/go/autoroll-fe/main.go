@@ -150,12 +150,12 @@ func modeJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer util.Close(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(&mode); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode request body.")
+		httputils.ReportError(w, err, "Failed to decode request body.", http.StatusInternalServerError)
 		return
 	}
 
 	if err := roller.Mode.Add(context.Background(), mode.Mode, login.LoggedInAs(r), mode.Message); err != nil {
-		httputils.ReportError(w, r, err, "Failed to set AutoRoll mode.")
+		httputils.ReportError(w, err, "Failed to set AutoRoll mode.", http.StatusInternalServerError)
 		return
 	}
 
@@ -176,12 +176,12 @@ func strategyJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer util.Close(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(&strategy); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode request body.")
+		httputils.ReportError(w, err, "Failed to decode request body.", http.StatusInternalServerError)
 		return
 	}
 
 	if err := roller.Strategy.Add(context.Background(), strategy.Strategy, login.LoggedInAs(r), strategy.Message); err != nil {
-		httputils.ReportError(w, r, err, "Failed to set AutoRoll strategy.")
+		httputils.ReportError(w, err, "Failed to set AutoRoll strategy.", http.StatusInternalServerError)
 		return
 	}
 
@@ -212,7 +212,7 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 		var err error
 		manualRequests, err = manualRollDB.GetRecent(roller.Cfg.RollerName, len(status.NotRolledRevisions))
 		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to obtain manual roll requests.")
+			httputils.ReportError(w, err, "Failed to obtain manual roll requests.", http.StatusInternalServerError)
 			return
 		}
 	} else {
@@ -230,7 +230,7 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 		Strategy:            strategy,
 		SupportsManualRolls: roller.Cfg.SupportsManualRolls,
 	}); err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode response.")
+		httputils.ReportError(w, err, "Failed to encode response.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -249,7 +249,7 @@ func miniStatusJsonHandler(w http.ResponseWriter, r *http.Request) {
 		AutoRollMiniStatus: status,
 		Mode:               mode.Mode,
 	}); err != nil {
-		httputils.ReportError(w, r, err, "Failed to obtain status.")
+		httputils.ReportError(w, err, "Failed to obtain status.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -262,7 +262,7 @@ func unthrottleHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := unthrottle.Unthrottle(context.Background(), roller.Cfg.RollerName); err != nil {
-		httputils.ReportError(w, r, err, "Failed to unthrottle.")
+		httputils.ReportError(w, err, "Failed to unthrottle.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -288,7 +288,7 @@ func rollerHandler(w http.ResponseWriter, r *http.Request) {
 		ParentName: roller.Cfg.ParentName,
 	}
 	if err := rollerTemplate.Execute(w, page); err != nil {
-		httputils.ReportError(w, r, err, "Failed to expand template.")
+		httputils.ReportError(w, err, "Failed to expand template.", http.StatusInternalServerError)
 	}
 }
 
@@ -306,7 +306,7 @@ func jsonAllHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if err := json.NewEncoder(w).Encode(statuses); err != nil {
-		httputils.ReportError(w, r, err, "Failed to obtain status.")
+		httputils.ReportError(w, err, "Failed to obtain status.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -320,7 +320,7 @@ func newManualRollHandler(w http.ResponseWriter, r *http.Request) {
 	var req manual.ManualRollRequest
 	defer util.Close(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode request body.")
+		httputils.ReportError(w, err, "Failed to decode request body.", http.StatusInternalServerError)
 		return
 	}
 	req.Requester = login.LoggedInAs(r)
@@ -328,11 +328,11 @@ func newManualRollHandler(w http.ResponseWriter, r *http.Request) {
 	req.Status = manual.STATUS_PENDING
 	req.Timestamp = firestore.FixTimestamp(time.Now())
 	if err := manualRollDB.Put(&req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to insert manual roll request.")
+		httputils.ReportError(w, err, "Failed to insert manual roll request.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode response.")
+		httputils.ReportError(w, err, "Failed to encode response.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -350,7 +350,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		Rollers: rollerNames,
 	}
 	if err := mainTemplate.Execute(w, page); err != nil {
-		httputils.ReportError(w, r, errors.New("Failed to expand template."), fmt.Sprintf("Failed to expand template: %s", err))
+		httputils.ReportError(w, errors.New("Failed to expand template."), fmt.Sprintf("Failed to expand template: %s", err), http.StatusInternalServerError)
 	}
 }
 

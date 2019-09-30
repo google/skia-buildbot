@@ -98,7 +98,7 @@ func powercycledBotsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to decode request body: %s", err), http.StatusInternalServerError)
 		return
 	}
 	email := login.LoggedInAs(r)

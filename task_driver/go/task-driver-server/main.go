@@ -66,7 +66,7 @@ func logsHandler(w http.ResponseWriter, r *http.Request, taskId, stepId, logId s
 	w.Header().Set("Content-Type", "text/plain")
 	entries, err := lm.Search(taskId, stepId, logId)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to search log entries.")
+		httputils.ReportError(w, err, "Failed to search log entries.", http.StatusInternalServerError)
 		return
 	}
 	if len(entries) == 0 {
@@ -81,7 +81,7 @@ func logsHandler(w http.ResponseWriter, r *http.Request, taskId, stepId, logId s
 			line += "\n"
 		}
 		if _, err := w.Write([]byte(line)); err != nil {
-			httputils.ReportError(w, r, err, "Failed to write response.")
+			httputils.ReportError(w, err, "Failed to write response.", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -138,7 +138,7 @@ func getTaskDriver(w http.ResponseWriter, r *http.Request) *db.TaskDriverRun {
 	}
 	td, err := d.GetTaskDriver(id)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to retrieve task driver.")
+		httputils.ReportError(w, err, "Failed to retrieve task driver.", http.StatusInternalServerError)
 		return nil
 	}
 	if td == nil {
@@ -167,7 +167,7 @@ func getTaskDriverDisplay(w http.ResponseWriter, r *http.Request) *display.TaskD
 	}
 	disp, err := display.TaskDriverForDisplay(td)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to format task driver for response.")
+		httputils.ReportError(w, err, "Failed to format task driver for response.", http.StatusInternalServerError)
 		return nil
 	}
 	return disp
@@ -187,7 +187,7 @@ func taskDriverHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	b, err := json.Marshal(disp)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode response.")
+		httputils.ReportError(w, err, "Failed to encode response.", http.StatusInternalServerError)
 		return
 	}
 	page := struct {
@@ -199,7 +199,7 @@ func taskDriverHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/html")
 	if err := tdTemplate.Execute(w, page); err != nil {
-		httputils.ReportError(w, r, err, "Server could not load page")
+		httputils.ReportError(w, err, "Server could not load page", http.StatusInternalServerError)
 		return
 	}
 }
@@ -213,7 +213,7 @@ func jsonTaskDriverHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(disp); err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode response.")
+		httputils.ReportError(w, err, "Failed to encode response.", http.StatusInternalServerError)
 		return
 	}
 }
