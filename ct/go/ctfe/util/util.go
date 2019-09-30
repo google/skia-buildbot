@@ -113,7 +113,7 @@ func ExecuteSimpleTemplate(template *template.Template, w http.ResponseWriter, r
 
 	PreExecuteTemplateHook()
 	if err := template.Execute(w, struct{}{}); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to expand template: %v", err), http.StatusInternalServerError)
 		return
 	}
 }

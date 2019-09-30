@@ -45,7 +45,7 @@ func sendResponseWithPagination(w http.ResponseWriter, data interface{}, paginat
 func sendJSONResponse(w http.ResponseWriter, resp interface{}) {
 	setJSONHeaders(w)
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		httputils.ReportError(w, nil, err, "Failed to encode JSON response.")
+		httputils.ReportError(w, err, "Failed to encode JSON response.", http.StatusInternalServerError)
 	}
 }
 

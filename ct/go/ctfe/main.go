@@ -309,19 +309,19 @@ func resultsHandler(w http.ResponseWriter, r *http.Request) {
 	resp, err := client.Get(storageURL)
 	if err != nil {
 		sklog.Errorf("resultsHandler: Unable to get data from %s: %s", storageURL, err)
-		httputils.ReportError(w, r, err, "Unable to get data from google storage")
+		httputils.ReportError(w, err, "Unable to get data from google storage", http.StatusInternalServerError)
 		return
 	}
 	defer skutil.Close(resp.Body)
 	if resp.StatusCode != 200 {
 		sklog.Errorf("resultsHandler: %s returned %d", storageURL, resp.StatusCode)
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Google storage request returned %d", resp.StatusCode))
+		httputils.ReportError(w, nil, fmt.Sprintf("Google storage request returned %d", resp.StatusCode), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
 	if _, err := io.Copy(w, resp.Body); err != nil {
 		sklog.Errorf("Error when copying response from %s: %s", storageURL, err)
-		httputils.ReportError(w, r, err, "Error when copying response from google storage")
+		httputils.ReportError(w, err, "Error when copying response from google storage", http.StatusInternalServerError)
 		return
 	}
 }

@@ -603,7 +603,7 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	if origin := r.Header.Get("Origin"); origin != "" {
 		u, err := url.Parse(origin)
 		if err != nil {
-			httputils.ReportError(w, r, err, "Invalid Origin")
+			httputils.ReportError(w, err, "Invalid Origin", http.StatusInternalServerError)
 			return
 		}
 		if strings.HasSuffix(u.Host, "."+COOKIE_DOMAIN_SKIA_ORG) ||
@@ -653,7 +653,7 @@ func ForceAuth(h http.Handler, oauthCallbackPath string) http.Handler {
 				redirectUrl := LoginURL(w, r)
 				sklog.Infof("Redirect URL: %s", redirectUrl)
 				if redirectUrl == "" {
-					httputils.ReportError(w, r, fmt.Errorf("Unable to get redirect URL."), "Redirect to login failed:")
+					httputils.ReportError(w, fmt.Errorf("Unable to get redirect URL."), "Redirect to login failed:", http.StatusInternalServerError)
 					return
 				}
 				http.Redirect(w, r, redirectUrl, http.StatusTemporaryRedirect)

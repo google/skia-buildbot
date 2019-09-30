@@ -301,7 +301,7 @@ func (s *Server) stateHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.FormValue("refresh") == "true" {
 		if err := s.packageInfo.ForceRefresh(); err != nil {
-			httputils.ReportError(w, r, err, "Failed to refresh.")
+			httputils.ReportError(w, err, "Failed to refresh.", http.StatusInternalServerError)
 		}
 	}
 	allAvailable := s.packageInfo.AllAvailable()
@@ -341,18 +341,18 @@ func (s *Server) stateHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		if !login.IsAdmin(r) {
-			httputils.ReportError(w, r, nil, "You must be logged on as an admin to push.")
+			httputils.ReportError(w, nil, "You must be logged on as an admin to push.", http.StatusInternalServerError)
 			return
 		}
 		push := PushNewPackage{}
 		dec := json.NewDecoder(r.Body)
 		defer util.Close(r.Body)
 		if err := dec.Decode(&push); err != nil {
-			httputils.ReportError(w, r, fmt.Errorf("Failed to decode push request"), "Failed to decode push request")
+			httputils.ReportError(w, fmt.Errorf("Failed to decode push request"), "Failed to decode push request", http.StatusInternalServerError)
 			return
 		}
 		if installedPackages, ok := allInstalled[push.Server]; !ok {
-			httputils.ReportError(w, r, fmt.Errorf("Unknown server name"), "Unknown server name")
+			httputils.ReportError(w, fmt.Errorf("Unknown server name"), "Unknown server name", http.StatusInternalServerError)
 			return
 		} else {
 			// Find a string starting with the same appname, replace it with
@@ -368,7 +368,7 @@ func (s *Server) stateHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			sklog.Infof("Updating %s with %#v giving %#v", push.Server, push.Name, newInstalled)
 			if err := s.packageInfo.PutInstalled(push.Server, newInstalled, installedPackages.Generation); err != nil {
-				httputils.ReportError(w, r, err, "Failed to update server.")
+				httputils.ReportError(w, err, "Failed to update server.", http.StatusInternalServerError)
 				return
 			}
 			body := fmt.Sprintf(CHAT_MSG, login.LoggedInAs(r), appName, push.Server)
@@ -452,11 +452,11 @@ func (s *Server) startStatusUpdate() {
 // running on the machine hosting that service.
 func (s *Server) changeHandler(w http.ResponseWriter, r *http.Request) {
 	if !login.IsAdmin(r) {
-		httputils.ReportError(w, r, nil, "You must be logged on as an admin to push.")
+		httputils.ReportError(w, nil, "You must be logged on as an admin to push.", http.StatusInternalServerError)
 		return
 	}
 	if err := r.ParseForm(); err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse form.")
+		httputils.ReportError(w, err, "Failed to parse form.", http.StatusInternalServerError)
 		return
 	}
 	action := r.Form.Get("action")
@@ -471,12 +471,12 @@ func (s *Server) changeHandler(w http.ResponseWriter, r *http.Request) {
 	url := fmt.Sprintf("http://%s:10000/_/change?name=%s&action=%s", machine, name, action)
 	resp, err := s.fastClient.Post(url, "", nil)
 	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to reach %s: %v %s", machine, resp, err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to reach %s: %v %s", machine, resp, err), http.StatusInternalServerError)
 		return
 	}
 	defer util.Close(resp.Body)
 	if resp.StatusCode != 200 {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to reach %s: %v %s", machine, resp, err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to reach %s: %v %s", machine, resp, err), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")

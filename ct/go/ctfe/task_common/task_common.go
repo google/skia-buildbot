@@ -162,16 +162,16 @@ func (vars *AddTaskCommonVars) IsAdminTask() bool {
 
 func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	if !ctfeutil.UserHasEditRights(r) {
-		httputils.ReportError(w, r, nil, "Please login with google account to add tasks")
+		httputils.ReportError(w, nil, "Please login with google account to add tasks", http.StatusInternalServerError)
 		return
 	}
 	if task.IsAdminTask() && !ctfeutil.UserHasAdminRights(r) {
-		httputils.ReportError(w, r, nil, "Must be admin to add admin tasks; contact rmistry@")
+		httputils.ReportError(w, nil, "Must be admin to add admin tasks; contact rmistry@", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add %T task", task))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to add %T task", task), http.StatusInternalServerError)
 		return
 	}
 	defer skutil.Close(r.Body)
@@ -179,12 +179,12 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	task.GetAddTaskCommonVars().Username = login.LoggedInAs(r)
 	task.GetAddTaskCommonVars().TsAdded = ctutil.GetCurrentTs()
 	if len(task.GetAddTaskCommonVars().Username) > 255 {
-		httputils.ReportError(w, r, nil, "Username is too long, limit 255 bytes")
+		httputils.ReportError(w, nil, "Username is too long, limit 255 bytes", http.StatusInternalServerError)
 		return
 	}
 
 	if err := AddAndTriggerTask(r.Context(), task); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to insert or trigger %T task", task))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to insert or trigger %T task", task), http.StatusInternalServerError)
 		return
 	}
 }
@@ -371,25 +371,25 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	params.FutureRunsOnly = parseBoolFormValue(r.FormValue("include_future_runs"))
 	params.ExcludeDummyPageSets = parseBoolFormValue(r.FormValue("exclude_dummy_page_sets"))
 	if params.SuccessfulOnly && params.PendingOnly {
-		httputils.ReportError(w, r, fmt.Errorf("Inconsistent params: successful %v not_completed %v", r.FormValue("successful"), r.FormValue("not_completed")), "Inconsistent params")
+		httputils.ReportError(w, fmt.Errorf("Inconsistent params: successful %v not_completed %v", r.FormValue("successful"), r.FormValue("not_completed")), "Inconsistent params", http.StatusInternalServerError)
 		return
 	}
 	if params.ExcludeDummyPageSets && !HasPageSetsColumn(prototype) {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Task %s does not use page sets and thus cannot exclude dummy page sets.", prototype.GetTaskName()))
+		httputils.ReportError(w, nil, fmt.Sprintf("Task %s does not use page sets and thus cannot exclude dummy page sets.", prototype.GetTaskName()), http.StatusInternalServerError)
 		return
 	}
 	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
 	if err == nil {
 		params.Offset, params.Size = offset, size
 	} else {
-		httputils.ReportError(w, r, err, "Failed to get pagination params")
+		httputils.ReportError(w, err, "Failed to get pagination params", http.StatusInternalServerError)
 		return
 	}
 	params.CountQuery = false
 	it := DatastoreTaskQuery(r.Context(), prototype, params)
 	data, err := prototype.Query(it)
 	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to query %s tasks", prototype.GetTaskName()))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to query %s tasks", prototype.GetTaskName()), http.StatusInternalServerError)
 		return
 	}
 
@@ -402,7 +402,7 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		if err == iterator.Done {
 			break
 		} else if err != nil {
-			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to query %s tasks", prototype.GetTaskName()))
+			httputils.ReportError(w, err, fmt.Sprintf("Failed to query %s tasks", prototype.GetTaskName()), http.StatusInternalServerError)
 			return
 		}
 		count++
@@ -433,7 +433,7 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		"ids":         ids,
 	}
 	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode JSON")
+		httputils.ReportError(w, err, "Failed to encode JSON", http.StatusInternalServerError)
 		return
 	}
 }
@@ -474,13 +474,13 @@ func getClosedTasksChannel(tasks []*swarmingapi.SwarmingRpcsTaskRequestMetadata)
 
 func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	if !ctfeutil.UserHasEditRights(r) {
-		httputils.ReportError(w, r, nil, "Please login with google account to delete tasks")
+		httputils.ReportError(w, nil, "Please login with google account to delete tasks", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	vars := struct{ Id int64 }{}
 	if err := json.NewDecoder(r.Body).Decode(&vars); err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse delete request")
+		httputils.ReportError(w, err, "Failed to parse delete request", http.StatusInternalServerError)
 		return
 	}
 	defer skutil.Close(r.Body)
@@ -489,7 +489,7 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	key.ID = vars.Id
 	task, err := prototype.Get(r.Context(), key)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to find requested task")
+		httputils.ReportError(w, err, "Failed to find requested task", http.StatusInternalServerError)
 		return
 	}
 
@@ -498,7 +498,7 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		runID := GetRunID(task)
 		tasks, err := swarm.ListTasks(time.Time{}, time.Time{}, []string{fmt.Sprintf("runid:%s", runID)}, "")
 		if err != nil {
-			httputils.ReportError(w, r, err, fmt.Sprintf("Could not list tasks for %s", runID))
+			httputils.ReportError(w, err, fmt.Sprintf("Could not list tasks for %s", runID), http.StatusInternalServerError)
 		}
 		sklog.Infof("Starting cancelation of %d tasks...", len(tasks))
 		tasksChannel := getClosedTasksChannel(tasks)
@@ -530,7 +530,7 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		skutil.LogErr(task.SendCompletionEmail(r.Context(), false))
 	}
 	if err := ds.DS.Delete(r.Context(), key); err != nil {
-		httputils.ReportError(w, r, err, "Failed to delete")
+		httputils.ReportError(w, err, "Failed to delete", http.StatusInternalServerError)
 		return
 	}
 
@@ -539,13 +539,13 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 
 func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	if !ctfeutil.UserHasEditRights(r) {
-		httputils.ReportError(w, r, nil, "Please login with google account to redo tasks")
+		httputils.ReportError(w, nil, "Please login with google account to redo tasks", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	vars := struct{ Id int64 }{}
 	if err := json.NewDecoder(r.Body).Decode(&vars); err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse redo request")
+		httputils.ReportError(w, err, "Failed to parse redo request", http.StatusInternalServerError)
 		return
 	}
 	defer skutil.Close(r.Body)
@@ -554,13 +554,13 @@ func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	key.ID = vars.Id
 	task, err := prototype.Get(r.Context(), key)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to find requested task")
+		httputils.ReportError(w, err, "Failed to find requested task", http.StatusInternalServerError)
 		return
 	}
 
 	addTaskVars, err := task.GetPopulatedAddTaskVars()
 	if err != nil {
-		httputils.ReportError(w, r, err, "Could not GetPopulatedAddTaskVars")
+		httputils.ReportError(w, err, "Could not GetPopulatedAddTaskVars", http.StatusInternalServerError)
 	}
 	// Replace the username with the new requester.
 	addTaskVars.GetAddTaskCommonVars().Username = login.LoggedInAs(r)
@@ -568,7 +568,7 @@ func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	// repeat_after_days causes the same task to be unknowingly repeated.
 	addTaskVars.GetAddTaskCommonVars().RepeatAfterDays = "0"
 	if err := AddAndTriggerTask(r.Context(), addTaskVars); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to insert or trigger %T task", task))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to insert or trigger %T task", task), http.StatusInternalServerError)
 		return
 	}
 }
@@ -598,7 +598,7 @@ func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	sort.Sort(ByPageSetDesc(pageSets))
 	if err := json.NewEncoder(w).Encode(pageSets); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode JSON: %v", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -657,7 +657,7 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 	if len(matches) < 3 || matches[1] == "" || matches[2] == "" {
 		// Return successful empty response, since the user could still be typing.
 		if err := json.NewEncoder(w).Encode(map[string]interface{}{}); err != nil {
-			httputils.ReportError(w, r, err, "Failed to encode JSON")
+			httputils.ReportError(w, err, "Failed to encode JSON", http.StatusInternalServerError)
 		}
 		return
 	}
@@ -665,28 +665,28 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 	clString := matches[2]
 	g, err := gerrit.NewGerrit(crURL, "", httpClient)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to talk to Gerrit")
+		httputils.ReportError(w, err, "Failed to talk to Gerrit", http.StatusInternalServerError)
 		return
 	}
 	cl, err := strconv.ParseInt(clString, 10, 32)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Invalid Gerrit CL number")
+		httputils.ReportError(w, err, "Invalid Gerrit CL number", http.StatusInternalServerError)
 		return
 	}
 	change, err := g.GetIssueProperties(context.TODO(), cl)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get issue properties from Gerrit")
+		httputils.ReportError(w, err, "Failed to get issue properties from Gerrit", http.StatusInternalServerError)
 		return
 	}
 
 	// Check to see if the change has any open dependencies.
 	activeDep, err := g.HasOpenDependency(context.TODO(), cl, len(change.Patchsets))
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get related changes from Gerrit")
+		httputils.ReportError(w, err, "Failed to get related changes from Gerrit", http.StatusInternalServerError)
 		return
 	}
 	if activeDep {
-		httputils.ReportError(w, r, err, fmt.Sprintf("This CL has an open dependency. Please squash your changes into a single CL."))
+		httputils.ReportError(w, err, fmt.Sprintf("This CL has an open dependency. Please squash your changes into a single CL."), http.StatusInternalServerError)
 		return
 	}
 
@@ -694,11 +694,11 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 	latestPatchsetID := strconv.Itoa(len(change.Patchsets))
 	isBinary, err := g.IsBinaryPatch(context.TODO(), cl, latestPatchsetID)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get list of files from Gerrit")
+		httputils.ReportError(w, err, "Failed to get list of files from Gerrit", http.StatusInternalServerError)
 		return
 	}
 	if isBinary {
-		httputils.ReportError(w, r, err, fmt.Sprintf("CT cannot get a full index for binary files via the Gerrit API. Details in skbug.com/7302."))
+		httputils.ReportError(w, err, fmt.Sprintf("CT cannot get a full index for binary files via the Gerrit API. Details in skbug.com/7302."), http.StatusInternalServerError)
 		return
 	}
 
@@ -711,17 +711,17 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	patch, err = g.GetPatch(context.TODO(), cl, latestPatchsetID)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to download patch from Gerrit")
+		httputils.ReportError(w, err, "Failed to download patch from Gerrit", http.StatusInternalServerError)
 		return
 	}
 
 	clData, err := gatherCLData(detail, patch)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get CL data")
+		httputils.ReportError(w, err, "Failed to get CL data", http.StatusInternalServerError)
 		return
 	}
 	if err = json.NewEncoder(w).Encode(clData); err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode JSON")
+		httputils.ReportError(w, err, "Failed to encode JSON", http.StatusInternalServerError)
 		return
 	}
 }
@@ -734,7 +734,7 @@ func benchmarksPlatformsHandler(w http.ResponseWriter, r *http.Request) {
 		"platforms":  ctutil.SupportedPlatformsToDesc,
 	}
 	if err := json.NewEncoder(w).Encode(data); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode JSON: %v", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -746,7 +746,7 @@ func taskPrioritiesHandler(w http.ResponseWriter, r *http.Request) {
 		"task_priorities": ctutil.TaskPrioritiesToDesc,
 	}
 	if err := json.NewEncoder(w).Encode(data); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode JSON: %v", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -766,7 +766,7 @@ func isAdminHandler(w http.ResponseWriter, r *http.Request) {
 		"isAdmin": ctfeutil.UserHasAdminRights(r),
 	}
 	if err := json.NewEncoder(w).Encode(data); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode JSON: %v", err), http.StatusInternalServerError)
 		return
 	}
 }

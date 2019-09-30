@@ -124,17 +124,17 @@ func getFunctionForAction(action types.Action) func(name string, mode string, ch
 //
 func changeHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse form.")
+		httputils.ReportError(w, err, "Failed to parse form.", http.StatusInternalServerError)
 		return
 	}
 	action := r.Form.Get("action")
 	if !util.In(action, ACTIONS) {
-		httputils.ReportError(w, r, fmt.Errorf("Not a valid action: %s", action), "Invalid action.")
+		httputils.ReportError(w, fmt.Errorf("Not a valid action: %s", action), "Invalid action.", http.StatusInternalServerError)
 		return
 	}
 	name := r.Form.Get("name")
 	if name == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Not a valid service name: %s", name), "Invalid service name.")
+		httputils.ReportError(w, fmt.Errorf("Not a valid service name: %s", name), "Invalid service name.", http.StatusInternalServerError)
 		return
 	}
 	if *local {
@@ -258,7 +258,7 @@ func listUnits() ([]*systemd.UnitStatus, error) {
 func listHandler(w http.ResponseWriter, r *http.Request) {
 	units, err := listUnits()
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to list units.")
+		httputils.ReportError(w, err, "Failed to list units.", http.StatusInternalServerError)
 		return
 	}
 	resp := &types.ListResponse{

@@ -140,7 +140,7 @@ func (srv *Server) jsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, err = io.Copy(w, reader); err != nil {
-		httputils.ReportError(w, r, err, "Failed to write JSON file.")
+		httputils.ReportError(w, err, "Failed to write JSON file.", http.StatusInternalServerError)
 		return
 	}
 }
@@ -160,12 +160,12 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	defer util.Close(r.Body)
 	var req UploadRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Error decoding JSON.")
+		httputils.ReportError(w, err, "Error decoding JSON.", http.StatusInternalServerError)
 		return
 	}
 	// Check for maliciously sized input on any field we upload to GCS
 	if len(req.Filename) > MAX_FILENAME_SIZE {
-		httputils.ReportError(w, r, nil, "Input file(s) too big")
+		httputils.ReportError(w, nil, "Input file(s) too big", http.StatusInternalServerError)
 		return
 	}
 
@@ -173,18 +173,18 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	h := md5.New()
 	b, err := json.Marshal(req)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Can't re-encode request.")
+		httputils.ReportError(w, err, "Can't re-encode request.", http.StatusInternalServerError)
 		return
 	}
 	if _, err = h.Write(b); err != nil {
-		httputils.ReportError(w, r, err, "Failed calculating hash.")
+		httputils.ReportError(w, err, "Failed calculating hash.", http.StatusInternalServerError)
 		return
 	}
 	hash := fmt.Sprintf("%x", h.Sum(nil))
 
 	if strings.HasSuffix(req.Filename, ".json") {
 		if err := srv.createFromJSON(&req, hash, ctx); err != nil {
-			httputils.ReportError(w, r, err, "Failed handing input of JSON.")
+			httputils.ReportError(w, err, "Failed handing input of JSON.", http.StatusInternalServerError)
 			return
 		}
 	} else {

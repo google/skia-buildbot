@@ -129,16 +129,16 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if cl != "" {
 		issue, err := strconv.ParseInt(cl, 10, 64)
 		if err != nil {
-			httputils.ReportError(w, r, fmt.Errorf("Not a valid integer id for an issue."), "The CL given is not valid.")
+			httputils.ReportError(w, fmt.Errorf("Not a valid integer id for an issue."), "The CL given is not valid.", http.StatusInternalServerError)
 			return
 		}
 		d, err = docset.NewDocSetForIssue(context.Background(), *workDir, *docRepo, issue)
 		if err == docset.IssueCommittedErr {
-			httputils.ReportError(w, r, err, "Failed to load the given CL, that issue is closed.")
+			httputils.ReportError(w, err, "Failed to load the given CL, that issue is closed.", http.StatusInternalServerError)
 			return
 		}
 		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to load the given CL.")
+			httputils.ReportError(w, err, "Failed to load the given CL.", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -175,7 +175,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	// Write the response.
 	b, err := d.Body(filename)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to load file")
+		httputils.ReportError(w, err, "Failed to load file", http.StatusInternalServerError)
 		return
 	}
 	if raw {
@@ -188,7 +188,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Resolve the serve side includes if there are any.
 		if body, err = ssi.ProcessSSI(body); err != nil {
-			httputils.ReportError(w, r, err, "Failed to load file")
+			httputils.ReportError(w, err, "Failed to load file", http.StatusInternalServerError)
 			return
 		}
 
