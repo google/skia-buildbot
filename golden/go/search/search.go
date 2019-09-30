@@ -7,7 +7,11 @@ import (
 	"fmt"
 	"sort"
 	"sync"
+	"time"
 
+	"go.skia.org/infra/golden/go/code_review"
+
+	ttlcache "github.com/patrickmn/go-cache"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
@@ -33,6 +37,14 @@ const (
 
 	// TODO(kjlubick): no tests for this option yet.
 	GROUP_TEST_MAX_COUNT = "count"
+
+	// These params configure how long we should hold values in storeCache.
+	// They are arbitrarily defined, loosely based on the idea that data flowing
+	// into the store for a given CL does not change at all after ingestion is complete
+	// and even during ingestion, things are likely to not change much over a time period
+	// less than one minute.
+	searchCacheFreshness = 1 * time.Minute
+	searchCacheCleanup   = 5 * time.Minute
 )
 
 // SearchImpl holds onto various objects needed to search the latest
@@ -43,6 +55,11 @@ type SearchImpl struct {
 	indexSource       indexer.IndexSource
 	changeListStore   clstore.Store
 	tryJobStore       tjstore.Store
+
+	// storeCache allows for better performance by caching values from changeListStore and
+	// tryJobStore for a little while, before evicting them.
+	// See skbug.com/9476
+	storeCache *ttlcache.Cache
 
 	// optional. If specified, will only show the params that match this query. This is
 	// opt-in, to avoid leaking.
@@ -58,6 +75,8 @@ func New(ds diff.DiffStore, es expstorage.ExpectationsStore, is indexer.IndexSou
 		changeListStore:        cls,
 		tryJobStore:            tjs,
 		publiclyViewableParams: publiclyViewableParams,
+
+		storeCache: ttlcache.New(searchCacheFreshness, searchCacheCleanup),
 	}
 }
 
@@ -256,7 +275,7 @@ const extractFilterShards = 16
 func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp common.ExpSlice, addFn filterAddFn) error {
 	clID := q.ChangeListID
 	// We know xps is sorted by order, if it is non-nil.
-	xps, err := s.changeListStore.GetPatchSets(ctx, clID)
+	xps, err := s.getPatchSets(ctx, clID)
 	if err != nil {
 		return skerr.Wrapf(err, "getting PatchSets for CL %s", clID)
 	}
@@ -290,7 +309,7 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 		PS:  ps.SystemID,
 	}
 
-	xtr, err := s.tryJobStore.GetResults(ctx, id)
+	xtr, err := s.getTryJobResults(ctx, id)
 	if err != nil {
 		return skerr.Wrapf(err, "getting tryjob results for %v", id)
 	}
@@ -351,6 +370,35 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 
 	wg.Wait()
 	return nil
+}
+
+// getPatchSets returns the PatchSets for a given CL either from the store or from the cache.
+func (s *SearchImpl) getPatchSets(ctx context.Context, id string) ([]code_review.PatchSet, error) {
+	key := "patchsets_" + id
+	if xtr, ok := s.storeCache.Get(key); ok {
+		return xtr.([]code_review.PatchSet), nil
+	}
+	xps, err := s.changeListStore.GetPatchSets(ctx, id)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	s.storeCache.SetDefault(key, xps)
+	return xps, nil
+}
+
+// getTryJobResults returns the TryJobResults for a given CL either from the store or
+// from the cache.
+func (s *SearchImpl) getTryJobResults(ctx context.Context, id tjstore.CombinedPSID) ([]tjstore.TryJobResult, error) {
+	key := "tjresults_" + id.Key()
+	if xtr, ok := s.storeCache.Get(key); ok {
+		return xtr.([]tjstore.TryJobResult), nil
+	}
+	xtr, err := s.tryJobStore.GetResults(ctx, id)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	s.storeCache.SetDefault(key, xtr)
+	return xtr, nil
 }
 
 // DiffDigests implements the SearchAPI interface.

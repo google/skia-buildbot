@@ -225,6 +225,7 @@ func TestSearchThreeDevicesSunnyDay(t *testing.T) {
 			},
 		},
 	}, resp)
+
 }
 
 // TestSearchThreeDevicesChangeListSunnyDay covers the case
@@ -299,7 +300,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 			Order:        4,
 			// All the rest are ignored
 		},
-	}, nil)
+	}, nil).Once() // this should be cached after fetch, as it could be expensive to retrieve.
 	mcls.On("System").Return(crs)
 
 	expectedID := tjstore.CombinedPSID{
@@ -354,7 +355,7 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 				types.CORPUS_FIELD:      "gm",
 			},
 		},
-	}, nil)
+	}, nil).Once() // this should be cached after fetch, as it could be expensive to retrieve.
 
 	mds.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{})
 
@@ -434,6 +435,10 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 			},
 		},
 	}, resp)
+
+	// Validate that we cache the .*Store values in two quick responses.
+	_, err = s.Search(context.Background(), q)
+	assert.NoError(t, err)
 }
 
 var everythingPublic = paramtools.ParamSet{}
