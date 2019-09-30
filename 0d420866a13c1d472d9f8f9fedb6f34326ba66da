@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c09ad39_a35410c1",
+        "filename": "golden/go/continuous_integration/buildbucket_cis/buildbucket_cis_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-30T12:13:05Z",
+      "side": 1,
+      "message": "strconv.FormatInt()",
+      "range": {
+        "startLine": 34,
+        "startChar": 46,
+        "endLine": 34,
+        "endChar": 67
+      },
+      "revId": "0d420866a13c1d472d9f8f9fedb6f34326ba66da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
