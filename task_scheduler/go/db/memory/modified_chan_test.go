@@ -1,4 +1,4 @@
-package firestore
+package memory
 
 import (
 	"testing"
@@ -7,31 +7,26 @@ import (
 )
 
 func TestModifiedTasksCh(t *testing.T) {
-	d, cleanup := setup(t)
-	defer cleanup()
+	d := NewInMemoryDB()
 	db.TestModifiedTasksCh(t, d)
 }
 
 func TestModifiedJobsCh(t *testing.T) {
-	d, cleanup := setup(t)
-	defer cleanup()
+	d := NewInMemoryDB()
 	db.TestModifiedJobsCh(t, d)
 }
 
 func TestModifiedTaskCommentsCh(t *testing.T) {
-	d, cleanup := setup(t)
-	defer cleanup()
+	d := NewInMemoryDB()
 	db.TestModifiedTaskCommentsCh(t, d)
 }
 
 func TestModifiedTaskSpecCommentsCh(t *testing.T) {
-	d, cleanup := setup(t)
-	defer cleanup()
+	d := NewInMemoryDB()
 	db.TestModifiedTaskSpecCommentsCh(t, d)
 }
 
 func TestModifiedCommitCommentsCh(t *testing.T) {
-	d, cleanup := setup(t)
-	defer cleanup()
+	d := NewInMemoryDB()
 	db.TestModifiedCommitCommentsCh(t, d)
 }

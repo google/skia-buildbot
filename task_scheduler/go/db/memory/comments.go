@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -8,39 +9,29 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
-	"go.skia.org/infra/task_scheduler/go/db/modified"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 // CommentBox implements CommentDB with in-memory storage.
-//
-// When created via NewCommentBoxWithPersistence, CommentBox will persist the
-// in-memory representation on every change using the provided writer function.
 type CommentBox struct {
-	db.ModifiedComments
-
 	// mtx protects comments.
 	mtx sync.RWMutex
 	// comments is map[repo_name]*types.RepoComments.
 	comments map[string]*types.RepoComments
 	// writer is called to persist comments after every change.
 	writer func(map[string]*types.RepoComments) error
+	modTC  map[chan<- []*types.TaskComment]bool
+	modTSC map[chan<- []*types.TaskSpecComment]bool
+	modCC  map[chan<- []*types.CommitComment]bool
 }
 
-// NewCommentBoxWithPersistence creates a CommentBox that is initialized with
-// init and sends the updated in-memory representation to writer after each
-// change. The value of init and the argument to writer is
-// map[repo_name]*types.RepoComments. init must not be modified by the caller. writer
-// must not call any methods of CommentBox. writer may return an error to
-// prevent a change from taking effect.
-func NewCommentBoxWithPersistence(modComments db.ModifiedComments, init map[string]*types.RepoComments, writer func(map[string]*types.RepoComments) error) *CommentBox {
-	if modComments == nil {
-		modComments = &modified.ModifiedCommentsImpl{}
-	}
+// NewCommentBox returns a CommentBox instance with no writer.
+func NewCommentBox() *CommentBox {
 	return &CommentBox{
-		ModifiedComments: modComments,
-		comments:         init,
-		writer:           writer,
+		comments: map[string]*types.RepoComments{},
+		modTC:    map[chan<- []*types.TaskComment]bool{},
+		modTSC:   map[chan<- []*types.TaskSpecComment]bool{},
+		modCC:    map[chan<- []*types.CommitComment]bool{},
 	}
 }
 
@@ -169,7 +160,12 @@ func (b *CommentBox) PutTaskComment(c *types.TaskComment) error {
 		}
 		return err
 	}
-	b.TrackModifiedTaskComment(c)
+	for ch := range b.modTC {
+		// Don't block in case a listener forgot about us.
+		go func(ch chan<- []*types.TaskComment, c *types.TaskComment) {
+			ch <- []*types.TaskComment{c}
+		}(ch, c.Copy())
+	}
 	return nil
 }
 
@@ -192,9 +188,36 @@ func (b *CommentBox) DeleteTaskComment(c *types.TaskComment) error {
 		deleted := true
 		c.Deleted = &deleted
 		existing.Deleted = &deleted
-		b.TrackModifiedTaskComment(existing)
+		for ch := range b.modTC {
+			// Don't block in case a listener forgot about us.
+			go func(ch chan<- []*types.TaskComment, c *types.TaskComment) {
+				ch <- []*types.TaskComment{c}
+			}(ch, existing.Copy())
+		}
 	}
 	return nil
+}
+
+// See docs for CommentDB interface.
+func (b *CommentBox) ModifiedTaskCommentsCh(ctx context.Context) <-chan []*types.TaskComment {
+	b.mtx.Lock()
+	defer b.mtx.Unlock()
+	rv := make(chan []*types.TaskComment)
+	b.modTC[rv] = true
+	done := ctx.Done()
+	if done != nil {
+		go func() {
+			<-done
+			b.mtx.Lock()
+			defer b.mtx.Unlock()
+			delete(b.modTC, rv)
+			close(rv)
+		}()
+	}
+	go func() {
+		rv <- []*types.TaskComment{}
+	}()
+	return rv
 }
 
 // putTaskSpecComment validates c and adds c to b.comments, or returns
@@ -271,7 +294,12 @@ func (b *CommentBox) PutTaskSpecComment(c *types.TaskSpecComment) error {
 		}
 		return err
 	}
-	b.TrackModifiedTaskSpecComment(c)
+	for ch := range b.modTSC {
+		// Don't block in case a listener forgot about us.
+		go func(ch chan<- []*types.TaskSpecComment, c *types.TaskSpecComment) {
+			ch <- []*types.TaskSpecComment{c}
+		}(ch, c.Copy())
+	}
 	return nil
 }
 
@@ -294,9 +322,36 @@ func (b *CommentBox) DeleteTaskSpecComment(c *types.TaskSpecComment) error {
 		deleted := true
 		c.Deleted = &deleted
 		existing.Deleted = &deleted
-		b.TrackModifiedTaskSpecComment(existing)
+		for ch := range b.modTSC {
+			// Don't block in case a listener forgot about us.
+			go func(ch chan<- []*types.TaskSpecComment, c *types.TaskSpecComment) {
+				ch <- []*types.TaskSpecComment{c}
+			}(ch, existing.Copy())
+		}
 	}
 	return nil
+}
+
+// See docs for CommentDB interface.
+func (b *CommentBox) ModifiedTaskSpecCommentsCh(ctx context.Context) <-chan []*types.TaskSpecComment {
+	b.mtx.Lock()
+	defer b.mtx.Unlock()
+	rv := make(chan []*types.TaskSpecComment)
+	b.modTSC[rv] = true
+	done := ctx.Done()
+	if done != nil {
+		go func() {
+			<-done
+			b.mtx.Lock()
+			defer b.mtx.Unlock()
+			delete(b.modTSC, rv)
+			close(rv)
+		}()
+	}
+	go func() {
+		rv <- []*types.TaskSpecComment{}
+	}()
+	return rv
 }
 
 // putCommitComment validates c and adds c to b.comments, or returns
@@ -373,7 +428,12 @@ func (b *CommentBox) PutCommitComment(c *types.CommitComment) error {
 		}
 		return err
 	}
-	b.TrackModifiedCommitComment(c)
+	for ch := range b.modCC {
+		// Don't block in case a listener forgot about us.
+		go func(ch chan<- []*types.CommitComment, c *types.CommitComment) {
+			ch <- []*types.CommitComment{c}
+		}(ch, c.Copy())
+	}
 	return nil
 }
 
@@ -396,7 +456,34 @@ func (b *CommentBox) DeleteCommitComment(c *types.CommitComment) error {
 		deleted := true
 		c.Deleted = &deleted
 		existing.Deleted = &deleted
-		b.TrackModifiedCommitComment(existing)
+		for ch := range b.modCC {
+			// Don't block in case a listener forgot about us.
+			go func(ch chan<- []*types.CommitComment, c *types.CommitComment) {
+				ch <- []*types.CommitComment{c}
+			}(ch, existing.Copy())
+		}
 	}
 	return nil
+}
+
+// See docs for CommentDB interface.
+func (b *CommentBox) ModifiedCommitCommentsCh(ctx context.Context) <-chan []*types.CommitComment {
+	b.mtx.Lock()
+	defer b.mtx.Unlock()
+	rv := make(chan []*types.CommitComment)
+	b.modCC[rv] = true
+	done := ctx.Done()
+	if done != nil {
+		go func() {
+			<-done
+			b.mtx.Lock()
+			defer b.mtx.Unlock()
+			delete(b.modCC, rv)
+			close(rv)
+		}()
+	}
+	go func() {
+		rv <- []*types.CommitComment{}
+	}()
+	return rv
 }

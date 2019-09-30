@@ -48,6 +48,7 @@ func TestUpdateJobs(t *testing.T) {
 	j1 := tryjob(gb.RepoUrl())
 	MockHeartbeats(t, mock, now, []*types.Job{j1}, nil)
 	assert.NoError(t, trybots.db.PutJobs([]*types.Job{j1}))
+	trybots.jCache.AddJobs([]*types.Job{j1})
 	assert.NoError(t, trybots.updateJobs(now))
 	assert.True(t, mock.Empty())
 	assertActiveTryJob(j1)
@@ -56,6 +57,7 @@ func TestUpdateJobs(t *testing.T) {
 	j1.Status = types.JOB_STATUS_SUCCESS
 	j1.Finished = now
 	assert.NoError(t, trybots.db.PutJobs([]*types.Job{j1}))
+	trybots.jCache.AddJobs([]*types.Job{j1})
 	MockJobSuccess(mock, j1, now, nil, false)
 	assert.NoError(t, trybots.updateJobs(now))
 	assert.True(t, mock.Empty())
@@ -67,6 +69,7 @@ func TestUpdateJobs(t *testing.T) {
 	j1.BuildbucketLeaseKey = 12345
 	j1.Status = types.JOB_STATUS_FAILURE
 	assert.NoError(t, trybots.db.PutJobs([]*types.Job{j1}))
+	trybots.jCache.AddJobs([]*types.Job{j1})
 	MockJobFailure(mock, j1, now, nil)
 	assert.NoError(t, trybots.updateJobs(now))
 	assert.True(t, mock.Empty())
@@ -81,6 +84,7 @@ func TestUpdateJobs(t *testing.T) {
 	MockHeartbeats(t, mock, now, jobs[:LEASE_BATCH_SIZE], nil)
 	MockHeartbeats(t, mock, now, jobs[LEASE_BATCH_SIZE:], nil)
 	assert.NoError(t, trybots.db.PutJobs(jobs))
+	trybots.jCache.AddJobs(jobs)
 	assert.NoError(t, trybots.updateJobs(now))
 	assert.True(t, mock.Empty())
 
@@ -91,6 +95,7 @@ func TestUpdateJobs(t *testing.T) {
 		j.Finished = time.Now()
 	}
 	assert.NoError(t, trybots.db.PutJobs(jobs[2:]))
+	trybots.jCache.AddJobs(jobs[2:])
 	for _, j := range jobs[2:] {
 		MockJobSuccess(mock, j, now, nil, false)
 	}
@@ -251,6 +256,7 @@ func TestJobFinished(t *testing.T) {
 	j.Status = types.JOB_STATUS_SUCCESS
 	j.Finished = now
 	assert.NoError(t, trybots.db.PutJobs([]*types.Job{j}))
+	trybots.jCache.AddJobs([]*types.Job{j})
 	MockJobSuccess(mock, j, now, nil, false)
 	assert.NoError(t, trybots.jobFinished(j))
 	assert.True(t, mock.Empty())
@@ -264,6 +270,7 @@ func TestJobFinished(t *testing.T) {
 	// Failed job.
 	j.Status = types.JOB_STATUS_FAILURE
 	assert.NoError(t, trybots.db.PutJobs([]*types.Job{j}))
+	trybots.jCache.AddJobs([]*types.Job{j})
 	MockJobFailure(mock, j, now, nil)
 	assert.NoError(t, trybots.jobFinished(j))
 	assert.True(t, mock.Empty())
@@ -276,6 +283,7 @@ func TestJobFinished(t *testing.T) {
 	// Mishap.
 	j.Status = types.JOB_STATUS_MISHAP
 	assert.NoError(t, trybots.db.PutJobs([]*types.Job{j}))
+	trybots.jCache.AddJobs([]*types.Job{j})
 	MockJobMishap(mock, j, now, nil)
 	assert.NoError(t, trybots.jobFinished(j))
 	assert.True(t, mock.Empty())
@@ -423,6 +431,7 @@ func TestRetry(t *testing.T) {
 	assert.True(t, j1.Valid())
 	assert.False(t, j1.IsForce)
 	assert.NoError(t, trybots.db.PutJobs([]*types.Job{j1}))
+	trybots.jCache.AddJobs([]*types.Job{j1})
 	assert.NoError(t, trybots.jCache.Update())
 
 	// Obtain a second try job, ensure that it gets IsForce = true.
@@ -461,6 +470,7 @@ func TestPoll(t *testing.T) {
 			assert.True(t, ok)
 		}
 		assert.NoError(t, trybots.db.PutJobs(jobs))
+		trybots.jCache.AddJobs(jobs)
 	}
 
 	makeBuilds := func(n int) []*buildbucket_api.LegacyApiCommonBuildMessage {

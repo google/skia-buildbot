@@ -75,7 +75,7 @@ func main() {
 		defer wg.Done()
 
 		// Obtain average task durations for the last 5 days.
-		db, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *fsInstance, ts, nil)
+		db, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *fsInstance, ts)
 		if err != nil {
 			sklog.Fatal(err)
 		}
