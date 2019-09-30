@@ -5,9 +5,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/timestamp"
 	github_api "github.com/google/go-github/github"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/buildbucket"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/comment"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/gerrit"
@@ -55,6 +57,14 @@ func TestAutoRollIssueCopy(t *testing.T) {
 	deepequal.AssertCopy(t, roll, roll.Copy())
 }
 
+func ts(t time.Time) *timestamp.Timestamp {
+	rv, err := ptypes.TimestampProto(t)
+	if err != nil {
+		panic(err)
+	}
+	return rv
+}
+
 func TestTrybotResults(t *testing.T) {
 	unittest.SmallTest(t)
 	// Create a fake roll with one in-progress trybot.
@@ -69,13 +79,22 @@ func TestTrybotResults(t *testing.T) {
 	}
 	roll.Result = rollResult(roll)
 
-	trybot := &buildbucket.Build{
-		Created: time.Now().UTC(),
-		Status:  TRYBOT_STATUS_STARTED,
-		Parameters: &buildbucket.Parameters{
-			BuilderName: "fake-builder",
-			Properties: buildbucket.Properties{
-				Category: "cq",
+	trybot := &buildbucketpb.Build{
+		Builder: &buildbucketpb.BuilderID{
+			Project: "skia",
+			Bucket:  "fake",
+			Builder: "fake-builder",
+		},
+		CreateTime: ts(time.Now().UTC()),
+		Status:     buildbucketpb.Status_STARTED,
+		Tags: []*buildbucketpb.StringPair{
+			{
+				Key:   "user_agent",
+				Value: "cq",
+			},
+			{
+				Key:   "cq_experimental",
+				Value: "false",
 			},
 		},
 	}
@@ -91,13 +110,22 @@ func TestTrybotResults(t *testing.T) {
 	assert.True(t, roll.AllTrybotsFinished())
 	assert.False(t, roll.AllTrybotsSucceeded())
 
-	retry := &buildbucket.Build{
-		Created: time.Now().UTC(),
-		Status:  TRYBOT_STATUS_STARTED,
-		Parameters: &buildbucket.Parameters{
-			BuilderName: "fake-builder",
-			Properties: buildbucket.Properties{
-				Category: "cq",
+	retry := &buildbucketpb.Build{
+		Builder: &buildbucketpb.BuilderID{
+			Project: "skia",
+			Bucket:  "fake",
+			Builder: "fake-builder",
+		},
+		CreateTime: ts(time.Now().UTC()),
+		Status:     buildbucketpb.Status_STARTED,
+		Tags: []*buildbucketpb.StringPair{
+			{
+				Key:   "user_agent",
+				Value: "cq",
+			},
+			{
+				Key:   "cq_experimental",
+				Value: "false",
 			},
 		},
 	}
@@ -119,14 +147,22 @@ func TestTrybotResults(t *testing.T) {
 	assert.True(t, roll.AllTrybotsSucceeded())
 
 	// Verify that an "experimental" trybot doesn't count against us.
-	exp := &buildbucket.Build{
-		Created: time.Now().UTC(),
-		Result:  TRYBOT_RESULT_SUCCESS,
-		Status:  TRYBOT_STATUS_COMPLETED,
-		Parameters: &buildbucket.Parameters{
-			BuilderName: "fake-builder",
-			Properties: buildbucket.Properties{
-				Category: "cq-experimental",
+	exp := &buildbucketpb.Build{
+		Builder: &buildbucketpb.BuilderID{
+			Project: "skia",
+			Bucket:  "fake",
+			Builder: "fake-builder",
+		},
+		CreateTime: ts(time.Now().UTC()),
+		Status:     buildbucketpb.Status_STARTED,
+		Tags: []*buildbucketpb.StringPair{
+			{
+				Key:   "user_agent",
+				Value: "cq",
+			},
+			{
+				Key:   "cq_experimental",
+				Value: "true",
 			},
 		},
 	}

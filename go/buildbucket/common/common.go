@@ -14,16 +14,20 @@ import (
 var (
 	// GetBuildFields is a FieldMask which indicates which fields we want
 	// returned from a GetBuild request.
+	// TODO(borenet): This is the union of all fields needed by all users
+	// of GetBuild. We should use a separate Field Mask per use case.
 	GetBuildFields = &field_mask.FieldMask{
 		Paths: []string{
-			"id",
 			"builder",
-			"created_by",
 			"create_time",
-			"start_time",
+			"created_by",
 			"end_time",
-			"status",
+			"id",
+			"input.gerrit_changes",
 			"input.properties",
+			"start_time",
+			"status",
+			"tags",
 		},
 	}
 
