@@ -72,13 +72,6 @@ ALERT DiskSpaceLow
     description = "Low Disk Space on {{ $labels.host }} on disk {{ $labels.resource }}.",
   }
 
-ALERT DirtyPackages
-  IF min_over_time(dirty_packages[25h]) >= 1
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    description = "One or more dirty packages have been running for more than 24 hours. https://push.skia.org",
-  }
-
 ALERT PackageInstall
   IF rate(pulld_failed_install[10m]) > 1
   LABELS { category = "infra", severity = "warning" }
