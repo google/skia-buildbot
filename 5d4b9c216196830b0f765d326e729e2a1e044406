@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "adee4d2f_e52acc73",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-30T19:30:15Z",
+      "side": 1,
+      "message": "I figured I\u0027d start low and wait for people to complain :)",
+      "parentUuid": "06c439f1_08989b8c",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 27
+      },
+      "revId": "5d4b9c216196830b0f765d326e729e2a1e044406",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dfa72745_022fc874",
         "filename": "golden/go/web/web.go",
         "patchSetId": 3
@@ -39,6 +63,24 @@
       "revId": "5d4b9c216196830b0f765d326e729e2a1e044406",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84008461_f6555fcd",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-30T19:30:15Z",
+      "side": 1,
+      "message": "I\u0027d like to fix up ReportError (followup CL on its way)",
+      "parentUuid": "dfa72745_022fc874",
+      "revId": "5d4b9c216196830b0f765d326e729e2a1e044406",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
