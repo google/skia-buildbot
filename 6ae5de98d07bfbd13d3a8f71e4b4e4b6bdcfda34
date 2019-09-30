@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bfd6b7b1_06b61bdf",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-30T14:25:53Z",
+      "side": 1,
+      "message": "nit: you may consider putting the contents of this branch into a helper function g.updateConfigMapFile",
+      "range": {
+        "startLine": 444,
+        "startChar": 2,
+        "endLine": 444,
+        "endChar": 5
+      },
+      "revId": "6ae5de98d07bfbd13d3a8f71e4b4e4b6bdcfda34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b547a65_414f85d9",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 455,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-30T14:25:53Z",
+      "side": 1,
+      "message": "Check out https://golang.org/pkg/os/exec/#ExitError which might be what is returned.",
+      "revId": "6ae5de98d07bfbd13d3a8f71e4b4e4b6bdcfda34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e646fde9_5a1a043d",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 478,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-09-30T14:25:53Z",
+      "side": 1,
+      "message": "Add a comment that this is the real error message seen.",
+      "revId": "6ae5de98d07bfbd13d3a8f71e4b4e4b6bdcfda34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
