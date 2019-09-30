@@ -425,7 +425,7 @@ func main() {
 	}
 	sklog.Infof("statusWatcher created")
 
-	handlers := web.WebHandlers{
+	handlers, err := web.NewHandlers(web.HandlersConfig{
 		Baseliner:       baseliner,
 		ChangeListStore: cls,
 		// TODO(kjlubick): have a more generic way to input these two URLs
@@ -441,6 +441,9 @@ func main() {
 		TileSource:                     tileSource,
 		TryJobStore:                    tjs,
 		VCS:                            vcs,
+	}, web.FullFrontEnd)
+	if err != nil {
+		sklog.Fatalf("Failed to initialize web handlers: %s", err)
 	}
 
 	mainTimer.Stop()

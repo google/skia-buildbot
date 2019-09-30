@@ -40,6 +40,7 @@ import (
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/validation"
 	"go.skia.org/infra/golden/go/web/frontend"
+	"golang.org/x/time/rate"
 )
 
 const (
@@ -48,11 +49,28 @@ const (
 
 	// maxPageSize is the maximum page size used for pagination.
 	maxPageSize = 100
+
+	// These params limit how anonymous (not logged-in) users can hit various endpoints.
+	// We have two buckets of requests - cheap and expensive. Expensive stuff hits a database
+	// or similar, where as cheap stuff is cached. These limits are shared by *all* endpoints
+	// in a given bucket. See skbug.com/9476 for more.
+	maxAnonQPSExpensive   = rate.Limit(1.0)
+	maxAnonBurstExpensive = 5
+	maxAnonQPSCheap       = rate.Limit(5.0)
+	maxAnonBurstCheap     = 20
 )
 
-// WebHandlers holds the environment needed by the various http hander functions
-// that have WebHandlers as its receiver.
-type WebHandlers struct {
+type validateFields int
+
+const (
+	// FullFrontEnd means all fields should be set
+	FullFrontEnd validateFields = iota
+	// BaselineSubset means just the fields needed for Baseline Server should be set.
+	BaselineSubset
+)
+
+// HandlersConfig holds the environment needed by the various http handler functions.
+type HandlersConfig struct {
 	Baseliner                      baseline.BaselineFetcher
 	ChangeListStore                clstore.Store
 	CodeReviewURLPrefix            string
@@ -69,12 +87,87 @@ type WebHandlers struct {
 	VCS                            vcsinfo.VCS
 }
 
+// Handlers represents all the handlers (e.g. JSON endpoints) of Gold.
+// It should be created by clients using NewHandlers.
+type Handlers struct {
+	HandlersConfig
+
+	anonymousExpensiveQuota *rate.Limiter
+	anonymousCheapQuota     *rate.Limiter
+}
+
+// NewHandlers returns a new instance of Handlers.
+func NewHandlers(conf HandlersConfig, val validateFields) (*Handlers, error) {
+	// These fields are required by all types.
+	if conf.Baseliner == nil {
+		return nil, skerr.Fmt("Baseliner cannot be nil")
+	}
+	if conf.ChangeListStore == nil {
+		return nil, skerr.Fmt("ChangeListStore cannot be nil")
+	}
+	if conf.GCSClient == nil {
+		return nil, skerr.Fmt("GCSClient cannot be nil")
+	}
+
+	if val == FullFrontEnd {
+		if conf.DiffStore == nil {
+			return nil, skerr.Fmt("DiffStore cannot be nil")
+		}
+		if conf.ExpectationsStore == nil {
+			return nil, skerr.Fmt("ExpectationsStore cannot be nil")
+		}
+		if conf.IgnoreStore == nil {
+			return nil, skerr.Fmt("IgnoreStore cannot be nil")
+		}
+		if conf.Indexer == nil {
+			return nil, skerr.Fmt("Indexer cannot be nil")
+		}
+		if conf.StatusWatcher == nil {
+			return nil, skerr.Fmt("StatusWatcher cannot be nil")
+		}
+		if conf.TileSource == nil {
+			return nil, skerr.Fmt("TileSource cannot be nil")
+		}
+		if conf.TryJobStore == nil {
+			return nil, skerr.Fmt("TryJobStore cannot be nil")
+		}
+		if conf.VCS == nil {
+			return nil, skerr.Fmt("VCS cannot be nil")
+		}
+	}
+	return &Handlers{
+		HandlersConfig:          conf,
+		anonymousExpensiveQuota: rate.NewLimiter(maxAnonQPSExpensive, maxAnonBurstExpensive),
+		anonymousCheapQuota:     rate.NewLimiter(maxAnonQPSCheap, maxAnonBurstCheap),
+	}, nil
+}
+
+// limitForAnonUsers blocks using the configured rate.Limiter for expensive queries.
+func (wh *Handlers) limitForAnonUsers(r *http.Request) error {
+	if login.LoggedInAs(r) != "" {
+		return nil
+	}
+	return wh.anonymousExpensiveQuota.Wait(r.Context())
+}
+
+// cheapLimitForAnonUsers blocks using the configured rate.Limiter for cheap queries.
+func (wh *Handlers) cheapLimitForAnonUsers(r *http.Request) error {
+	if login.LoggedInAs(r) != "" {
+		return nil
+	}
+	return wh.anonymousCheapQuota.Wait(r.Context())
+}
+
 // TODO(stephana): once the byBlameHandler is removed, refactor this to
 // remove the redundant types ByBlameEntry and ByBlame.
 
 // ByBlameHandler returns a json object with the digests to be triaged grouped by blamelist.
-func (wh *WebHandlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, r, err, "Try again later")
+		return
+	}
 
 	// Extract the corpus from the query parameters.
 	var qp url.Values = nil
@@ -103,7 +196,7 @@ func (wh *WebHandlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 
 // computeByBlame creates several ByBlameEntry structs based on the state
 // of HEAD and returns them in a slice, for use by the frontend.
-func (wh *WebHandlers) computeByBlame(qp url.Values) ([]ByBlameEntry, error) {
+func (wh *Handlers) computeByBlame(qp url.Values) ([]ByBlameEntry, error) {
 	idx := wh.Indexer.GetIndex()
 	// At this point query contains at least a corpus.
 	untriagedSummaries, err := idx.CalcSummaries(nil, qp, types.ExcludeIgnoredTraces, true /*=head*/)
@@ -260,8 +353,13 @@ type TestRollup struct {
 
 // ChangeListsHandler returns the list of code_review.ChangeLists that have
 // uploaded results to Gold (via TryJobs).
-func (wh *WebHandlers) ChangeListsHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) ChangeListsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, r, err, "Try again later")
+		return
+	}
+
 	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, pageSize, maxPageSize)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Invalid pagination params.")
@@ -280,7 +378,7 @@ func (wh *WebHandlers) ChangeListsHandler(w http.ResponseWriter, r *http.Request
 
 // getIngestedChangeLists performs the core of the logic for ChangeListsHandler,
 // by fetching N ChangeLists given an offset.
-func (wh *WebHandlers) getIngestedChangeLists(ctx context.Context, offset, size int) ([]frontend.ChangeList, *httputils.ResponsePagination, error) {
+func (wh *Handlers) getIngestedChangeLists(ctx context.Context, offset, size int) ([]frontend.ChangeList, *httputils.ResponsePagination, error) {
 	cls, total, err := wh.ChangeListStore.GetChangeLists(ctx, offset, size)
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "fetching ChangeLists from [%d:%d)", offset, offset+size)
@@ -302,8 +400,12 @@ func (wh *WebHandlers) getIngestedChangeLists(ctx context.Context, offset, size 
 // ChangeListSummaryHandler returns a summary of the data we have collected
 // for a given ChangeList, specifically any TryJobs that have uploaded data
 // to Gold belonging to various patchsets in it.
-func (wh *WebHandlers) ChangeListSummaryHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) ChangeListSummaryHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, r, err, "Try again later")
+		return
+	}
 	// mux.Vars also has "system", which can be used if we ever need to implement
 	// the functionality to handle two code review systems at once.
 	clID, ok := mux.Vars(r)["id"]
@@ -323,7 +425,7 @@ func (wh *WebHandlers) ChangeListSummaryHandler(w http.ResponseWriter, r *http.R
 // getCLSummary does a bulk of the work for ChangeListSummaryHandler, specifically
 // fetching the ChangeList and PatchSets from clstore and any associated TryJobs from
 // the tjstore.
-func (wh *WebHandlers) getCLSummary(ctx context.Context, clID string) (frontend.ChangeListSummary, error) {
+func (wh *Handlers) getCLSummary(ctx context.Context, clID string) (frontend.ChangeListSummary, error) {
 	cl, err := wh.ChangeListStore.GetChangeList(ctx, clID)
 	if err != nil {
 		return frontend.ChangeListSummary{}, skerr.Wrapf(err, "getting CL %s", clID)
@@ -375,8 +477,13 @@ func (wh *WebHandlers) getCLSummary(ctx context.Context, clID string) (frontend.
 
 // SearchHandler is the endpoint for all searches, including accessing
 // results that belong to a tryjob.
-func (wh *WebHandlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, r, err, "Try again later")
+		return
+	}
+
 	query, ok := parseSearchQuery(w, r)
 	if !ok {
 		return
@@ -392,9 +499,12 @@ func (wh *WebHandlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
 
 // ExportHandler is the endpoint to export the Gold knowledge base.
 // It has the same interface as the search endpoint.
-func (wh *WebHandlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	ctx := r.Context()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, r, err, "Try again later")
+		return
+	}
 
 	query, ok := parseSearchQuery(w, r)
 	if !ok {
@@ -411,7 +521,7 @@ func (wh *WebHandlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
 	query.NoDiff = true
 
 	// Execute the search
-	searchResponse, err := wh.SearchAPI.Search(ctx, query)
+	searchResponse, err := wh.SearchAPI.Search(r.Context(), query)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
@@ -448,8 +558,13 @@ func parseSearchQuery(w http.ResponseWriter, r *http.Request) (*query.Search, bo
 }
 
 // DetailsHandler returns the details about a single digest.
-func (wh *WebHandlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, r, err, "Try again later")
+		return
+	}
+
 	// Extract: test, digest.
 	if err := r.ParseForm(); err != nil {
 		httputils.ReportError(w, r, err, "Failed to parse form values")
@@ -471,8 +586,13 @@ func (wh *WebHandlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // DiffHandler returns difference between two digests.
-func (wh *WebHandlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, r, err, "Try again later")
+		return
+	}
+
 	// Extract: test, left, right where left and right are digests.
 	if err := r.ParseForm(); err != nil {
 		httputils.ReportError(w, r, err, "Failed to parse form values")
@@ -503,8 +623,13 @@ type IgnoresRequest struct {
 }
 
 // IgnoresHandler returns the current ignore rules in JSON format.
-func (wh *WebHandlers) IgnoresHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) IgnoresHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, r, err, "Try again later")
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 
 	// TODO(kjlubick): these ignore structs used to have counts of how often they were applied
@@ -523,7 +648,7 @@ func (wh *WebHandlers) IgnoresHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // IgnoresUpdateHandler updates an existing ignores rule.
-func (wh *WebHandlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	user := login.LoggedInAs(r)
 	if user == "" {
@@ -563,7 +688,7 @@ func (wh *WebHandlers) IgnoresUpdateHandler(w http.ResponseWriter, r *http.Reque
 }
 
 // IgnoresDeleteHandler deletes an existing ignores rule.
-func (wh *WebHandlers) IgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) IgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	user := login.LoggedInAs(r)
 	if user == "" {
@@ -590,7 +715,7 @@ func (wh *WebHandlers) IgnoresDeleteHandler(w http.ResponseWriter, r *http.Reque
 }
 
 // IgnoresAddHandler is for adding a new ignore rule.
-func (wh *WebHandlers) IgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) IgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	user := login.LoggedInAs(r)
 	if user == "" {
@@ -626,7 +751,7 @@ func (wh *WebHandlers) IgnoresAddHandler(w http.ResponseWriter, r *http.Request)
 //
 // It accepts a POST'd JSON serialization of TriageRequest and updates
 // the expectations.
-func (wh *WebHandlers) TriageHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) TriageHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	user := login.LoggedInAs(r)
 	if user == "" {
@@ -650,7 +775,7 @@ func (wh *WebHandlers) TriageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // triage processes the given TriageRequest.
-func (wh *WebHandlers) triage(ctx context.Context, user string, req frontend.TriageRequest) error {
+func (wh *Handlers) triage(ctx context.Context, user string, req frontend.TriageRequest) error {
 	// Build the expectations change request from the list of digests passed in.
 	tc := make(types.Expectations, len(req.TestDigestStatus))
 	for test, digests := range req.TestDigestStatus {
@@ -680,17 +805,25 @@ func (wh *WebHandlers) triage(ctx context.Context, user string, req frontend.Tri
 }
 
 // StatusHandler returns the current status of with respect to HEAD.
-func (wh *WebHandlers) StatusHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, r, err, "Try again later")
+		return
+	}
+
 	sendJSONResponse(w, wh.StatusWatcher.GetStatus())
 }
 
 // ClusterDiffHandler calculates the NxN diffs of all the digests that match
 // the incoming query and returns the data in a format appropriate for
 // handling in d3.
-func (wh *WebHandlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	ctx := r.Context()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, r, err, "Try again later")
+		return
+	}
 
 	// Extract the test name as we only allow clustering within a test.
 	q := query.Search{Limit: 50}
@@ -705,7 +838,7 @@ func (wh *WebHandlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	idx := wh.Indexer.GetIndex()
-	searchResponse, err := wh.SearchAPI.Search(ctx, &q)
+	searchResponse, err := wh.SearchAPI.Search(r.Context(), &q)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
@@ -812,8 +945,13 @@ type ClusterDiffResult struct {
 //    ...
 //  ]
 //
-func (wh *WebHandlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, r, err, "Try again later")
+		return
+	}
+
 	// Parse the query object like with the other searches.
 	q := query.Search{}
 	if err := query.ParseSearch(r, &q); err != nil {
@@ -883,8 +1021,13 @@ type FailureList struct {
 }
 
 // ListFailureHandler returns the digests that have failed to load.
-func (wh *WebHandlers) ListFailureHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) ListFailureHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, r, err, "Try again later")
+		return
+	}
+
 	unavailable := wh.DiffStore.UnavailableDigests()
 	ret := FailureList{
 		DigestFailures: make([]*diff.DigestFailure, 0, len(unavailable)),
@@ -906,7 +1049,7 @@ func (wh *WebHandlers) ListFailureHandler(w http.ResponseWriter, r *http.Request
 
 // ClearFailureHandler removes failing digests from the local cache and
 // returns the current failures.
-func (wh *WebHandlers) ClearFailureHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) ClearFailureHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if !wh.purgeDigests(w, r) {
 		return
@@ -915,7 +1058,7 @@ func (wh *WebHandlers) ClearFailureHandler(w http.ResponseWriter, r *http.Reques
 }
 
 // ClearDigests clears digests from the local cache and GS.
-func (wh *WebHandlers) ClearDigests(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) ClearDigests(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if !wh.purgeDigests(w, r) {
 		return
@@ -925,7 +1068,7 @@ func (wh *WebHandlers) ClearDigests(w http.ResponseWriter, r *http.Request) {
 
 // purgeDigests removes digests from the local cache and from GS if a query argument is set.
 // Returns true if there was no error sent to the response writer.
-func (wh *WebHandlers) purgeDigests(w http.ResponseWriter, r *http.Request) bool {
+func (wh *Handlers) purgeDigests(w http.ResponseWriter, r *http.Request) bool {
 	user := login.LoggedInAs(r)
 	if user == "" {
 		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to clear digests.")
@@ -949,8 +1092,13 @@ func (wh *WebHandlers) purgeDigests(w http.ResponseWriter, r *http.Request) bool
 
 // TriageLogHandler returns the entries in the triagelog paginated
 // in reverse chronological order.
-func (wh *WebHandlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, r, err, "Try again later")
+		return
+	}
+
 	// Get the pagination params.
 	var logEntries []expstorage.TriageLogEntry
 	var total int
@@ -990,7 +1138,7 @@ func (wh *WebHandlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) 
 // that should be reversed.
 // If successful it returns the same result as a call to jsonTriageLogHandler
 // to reflect the changed triagelog.
-func (wh *WebHandlers) TriageUndoHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) TriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	// Get the user and make sure they are logged in.
 	user := login.LoggedInAs(r)
@@ -1014,8 +1162,13 @@ func (wh *WebHandlers) TriageUndoHandler(w http.ResponseWriter, r *http.Request)
 }
 
 // ParamsHandler returns the union of all parameters.
-func (wh *WebHandlers) ParamsHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) ParamsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, r, err, "Try again later")
+		return
+	}
+
 	tile := wh.Indexer.GetIndex().Tile().GetTile(types.IncludeIgnoredTraces)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(tile.ParamSet); err != nil {
@@ -1023,11 +1176,16 @@ func (wh *WebHandlers) ParamsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ParamsHandler returns the commits from the most recent tile.
+// CommitsHandler returns the commits from the most recent tile.
 // Note that this returns things of tiling.Commit, which lacks information
 // like the message. For a fuller commit, see GitLogHandler.
-func (wh *WebHandlers) CommitsHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) CommitsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, r, err, "Try again later")
+		return
+	}
+
 	cpxTile := wh.TileSource.GetTile()
 	if cpxTile == nil {
 		httputils.ReportError(w, r, nil, "Not loaded yet - try back later")
@@ -1058,8 +1216,13 @@ type commitInfo struct {
 // https://chromium.googlesource.com/chromium/src/+log/[start]~1..[end]
 // Essentially, we just need the commit Subject for each of the commits,
 // although this could easily be expanded to have more of the commit info.
-func (wh *WebHandlers) GitLogHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) GitLogHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, r, err, "Try again later")
+		return
+	}
+
 	// We have start and end as request params
 	p := r.URL.Query()
 	startHashes := p["start"] // the oldest commit
@@ -1135,42 +1298,16 @@ func (wh *WebHandlers) GitLogHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// textAllHashesHandler returns the list of all hashes we currently know about
-// regardless of triage status.
-// Endpoint used by the buildbots to avoid transferring already known images.
-func (wh *WebHandlers) TextAllHashesHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	unavailableDigests := wh.DiffStore.UnavailableDigests()
-
-	idx := wh.Indexer.GetIndex()
-	byTest := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
-	hashes := map[types.Digest]bool{}
-	for _, test := range byTest {
-		for k := range test {
-			if _, ok := unavailableDigests[k]; !ok {
-				hashes[k] = true
-			}
-		}
-	}
-
-	w.Header().Set("Content-Type", "text/plain")
-	for k := range hashes {
-		if _, err := w.Write([]byte(k)); err != nil {
-			sklog.Errorf("Failed to write or encode result: %s", err)
-			return
-		}
-		if _, err := w.Write([]byte("\n")); err != nil {
-			sklog.Errorf("Failed to write or encode result: %s", err)
-			return
-		}
-	}
-}
-
 // TextKnownHashesProxy returns known hashes that have been written to GCS in the background
 // Each line contains a single digest for an image. Bots will then only upload images which
 // have a hash not found on this list, avoiding significant amounts of unnecessary uploads.
-func (wh *WebHandlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, r, err, "Try again later")
+		return
+	}
+
 	w.Header().Set("Content-Type", "text/plain")
 	if err := wh.GCSClient.LoadKnownDigests(w); err != nil {
 		sklog.Errorf("Failed to copy the known hashes from GCS: %s", err)
@@ -1186,8 +1323,13 @@ func (wh *WebHandlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Reque
 // Output format in JSON:
 //
 //
-func (wh *WebHandlers) DigestTableHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) DigestTableHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, r, err, "Try again later")
+		return
+	}
+
 	// Note that testName cannot be empty by definition of the route that got us here.
 	var q query.DigestTable
 	if err := query.ParseDTQuery(r.Body, 5, &q); err != nil {
@@ -1211,8 +1353,10 @@ func (wh *WebHandlers) DigestTableHandler(w http.ResponseWriter, r *http.Request
 // the baseline. In that case the returned options will be blend of the master
 // baseline and the baseline defined for the issue (usually based on tryjob
 // results).
-func (wh *WebHandlers) BaselineHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) BaselineHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
+	// No limit for anon users - this is an endpoint backed up by baseline servers, and
+	// should be able to handle a large load.
 	issueIDStr := ""
 	issueOnly := false
 	var ok bool
@@ -1239,6 +1383,7 @@ func MakeResourceHandler(resourceDir string) func(http.ResponseWriter, *http.Req
 	fileServer := http.FileServer(http.Dir(resourceDir))
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer metrics2.FuncTimer().Stop()
+		// No limit for anon users - this should be fast enough to handle a large load.
 		w.Header().Add("Cache-Control", "max-age=300")
 		fileServer.ServeHTTP(w, r)
 	}
