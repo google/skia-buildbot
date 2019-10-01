@@ -41,8 +41,10 @@ const (
 
 	COMPILE_TASK_LOGS_BUCKET = "android-compile-logs"
 
-	// If the mirror sync time exceeds this, then the mirror is recreated
-	// before the next sync. More context is in skbug.com/8053
+	MIRROR_ALLOWABLE_EXCEED_MAX_SYNC_TIME = 2
+	// If the mirror sync time exceeds this duration MIRROR_ALLOWABLE_EXCEED_MAX_SYNC_TIME times,
+	// then the mirror is recreated before the next sync. More context is in skbug.com/8053 and
+	// skbug.com/9490
 	MAX_MIRROR_SYNC_TIME_BEFORE_RECREATION = time.Minute * 25
 
 	// Exponential backoff values used to retry the syncing of the checkout.
@@ -95,6 +97,8 @@ var (
 	// while the other local checkouts will acquire a RLock().
 	checkoutsMutex sync.RWMutex
 
+	// How many times the mirror sync time exceeded the max allowable duration.
+	mirrorSyncExceededCount int
 	// Whether the mirror should be recreated before it is synced.
 	recreateMirror bool
 )
@@ -300,14 +304,25 @@ func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) err
 				if recreateMirror {
 					// We did the first sync of a recreated mirror. The first sync takes longer than usual
 					// thus we do not need to check if duration exceeded MAX_MIRROR_SYNC_TIME_BEFORE_RECREATION.
-					// Initialize recreateMirror back to false.
+					// Initialize recreateMirror back to false and reset mirrorSyncExceededCount.
 					recreateMirror = false
+					mirrorSyncExceededCount = 0
 				} else {
-					recreateMirror = duration > MAX_MIRROR_SYNC_TIME_BEFORE_RECREATION
-				}
-				if recreateMirror {
-					sklog.Warningf("Mirror sync time %s was greater than %s", duration, MAX_MIRROR_SYNC_TIME_BEFORE_RECREATION)
-					sklog.Info("Will recreate mirror before next sync.")
+					if duration > MAX_MIRROR_SYNC_TIME_BEFORE_RECREATION {
+						sklog.Warningf("Mirror sync time %s was greater than %s", duration, MAX_MIRROR_SYNC_TIME_BEFORE_RECREATION)
+						mirrorSyncExceededCount++
+						if mirrorSyncExceededCount >= MIRROR_ALLOWABLE_EXCEED_MAX_SYNC_TIME {
+							sklog.Infof("This happened %d times in a row. Will recreate mirror before next sync.", mirrorSyncExceededCount)
+							recreateMirror = true
+						} else {
+							sklog.Infof("This happened %d times in a row. The limit is %d times.", mirrorSyncExceededCount, MIRROR_ALLOWABLE_EXCEED_MAX_SYNC_TIME)
+							recreateMirror = false
+						}
+
+					} else {
+						recreateMirror = false
+						mirrorSyncExceededCount = 0
+					}
 				}
 				MirrorLastSynced = time.Now()
 				if err := ac_util.UpdateInstanceInDS(ctx, hostname, MirrorLastSynced.Format("Mon Jan 2 15:04:05 MST"), *repoUpdateDuration, false); err != nil {
