@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ec932874_e2702a95",
+        "filename": "golden/k8s-config-templates/gold-common.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-01T18:52:20Z",
+      "side": 1,
+      "message": "Can you also push not-dirty images here?",
+      "range": {
+        "startLine": 9,
+        "startChar": 113,
+        "endLine": 9,
+        "endChar": 118
+      },
+      "revId": "2baec87ef0b3248d7fc6353d7ae0d984bc2c6146",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
