@@ -5,6 +5,6 @@
     "SKIACORRECTNESS_IMAGE": "gcr.io/skia-public/gold-skiacorrectness:2019-10-01T17_52_20Z-kjlubick-8f979f3-clean",
 
     // Services for testing goldpushk.
-    "HEALTHY_SERVER_IMAGE": "gcr.io/skia-public/goldpushk-healthy-server:2019-09-25T17_08_30Z-lovisolo-c628907-dirty",
-    "CRASHING_SERVER_IMAGE": "gcr.io/skia-public/goldpushk-crashing-server:2019-09-25T17_10_03Z-lovisolo-c628907-dirty",
+    "HEALTHY_SERVER_IMAGE": "gcr.io/skia-public/goldpushk-healthy-server:2019-10-01T19_04_33Z-lovisolo-cdfa86a-clean",
+    "CRASHING_SERVER_IMAGE": "gcr.io/skia-public/goldpushk-crashing-server:2019-10-01T19_05_12Z-lovisolo-cdfa86a-clean",
 }
