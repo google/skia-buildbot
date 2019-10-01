@@ -1,6 +1,7 @@
 package diffstore
 
 import (
+	"bytes"
 	"fmt"
 	"image"
 	"math"
@@ -230,6 +231,14 @@ func (m *MemDiffStore) PurgeDigests(digests types.DigestSlice, purgeGCS bool) er
 // ImageHandler implements the DiffStore interface.
 func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 	handlerFunc := func(w http.ResponseWriter, r *http.Request) {
+		// Go's image package has no color profile support and we convert to 8-bit NRGBA to diff, but
+		// our source images may have embedded color profiles and be up to 16-bit. So we must at least
+		// take care to serve the original .pngs unaltered.
+		//
+		// TODO(lovisolo): Diff in NRGBA64?
+		// TODO(lovisolo): Make sure each pair of images is in the same color space before diffing?
+		//                 (They probably are today but it'd be a good sanity check to make sure.)
+
 		dotExt := "." + common.IMG_EXTENSION
 		urlPath := r.URL.Path
 		sklog.Debugf("diffstore handling %s", urlPath)
@@ -257,8 +266,8 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 		imgID := urlPath[idx+1 : len(urlPath)-len(dotExt)]
 		imgDigest := types.Digest(imgID)
 
-		// Image to be returned by the handler.
-		var img *image.NRGBA
+		// Cache images for 12 hours.
+		w.Header().Set("Cache-Control", "public, max-age=43200")
 
 		if dir == DEFAULT_IMG_DIR_NAME {
 			// Validate the requested image ID.
@@ -275,7 +284,12 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 				return
 			}
 
-			img = imgs[0]
+			// Write output image to the http.ResponseWriter. Content-Type is set automatically based on
+			// the first 512 bytes of written data. See docs for ResponseWriter.Write() for details.
+			if _, err := w.Write(imgs[0]); err != nil {
+				sklog.Errorf("Error writing image to http.ResponseWriter: %s", err)
+				noCacheNotFound(w, r)
+			}
 		} else {
 			// Validate the requested diff image ID.
 			if !validation.IsValidDiffImgID(imgID) {
@@ -294,27 +308,55 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 				return
 			}
 
-			leftImg := imgs[0]
-			rightImg := imgs[1]
+			// Decode images.
+			leftImg, rightImg, err := decodeImages(imgs[0], imgs[1])
+			if err != nil {
+				sklog.Errorf("Error decoding left/right images for diff %s: %s", imgID, err)
+				noCacheNotFound(w, r)
+				return
+			}
 
-			// Compute the diff image and write it to the response.
-			_, img = diff.PixelDiff(leftImg, rightImg)
+			// Compute the diff image.
+			_, diffImg := diff.PixelDiff(leftImg, rightImg)
+
+			// Write output image to the http.ResponseWriter. Content-Type is set automatically based on
+			// the first 512 bytes of written data. See docs for ResponseWriter.Write() for details.
+			//
+			// The encoding step below does not take color profiles into account. This is fine since both
+			// the left and right images used to compute the diff are in the same color space, and also
+			// because the resulting diff image is just a visual approximation of the differences between
+			// the left and right images.
+			if err := common.EncodeImg(w, diffImg); err != nil {
+				sklog.Errorf("Error encoding diff image: %s", err)
+				noCacheNotFound(w, r)
+			}
 		}
-
-		if err := common.EncodeImg(w, img); err != nil {
-			sklog.Errorf("Error encoding image: %s", imgID)
-			noCacheNotFound(w, r)
-			return
-		}
-
-		// Cache images for 12 hours.
-		w.Header().Set("Cache-Control", "public, max-age=43200")
 	}
 
 	sklog.Infof("Created diffstore with base directory: %s", m.baseDir)
 
 	// The above function relies on the URL prefix being stripped.
 	return http.StripPrefix(urlPrefix, http.HandlerFunc(handlerFunc)), nil
+}
+
+// decodeImages takes two images (left and right) represented as byte slices, decodes them and
+// returns two image.NRGBA pointers with the results.
+func decodeImages(leftBytes, rightBytes []byte) (leftImg, rightImg *image.NRGBA, err error) {
+	// TODO(lovisolo): Decode images in parallel using a wait group.
+
+	// Decode left image.
+	leftImg, err = common.DecodeImg(bytes.NewReader(leftBytes))
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
+
+	// Decode right image.
+	rightImg, err = common.DecodeImg(bytes.NewReader(rightBytes))
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
+
+	return leftImg, rightImg, nil
 }
 
 // noCacheNotFound disables caching and returns a 404.
@@ -341,8 +383,14 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 		return nil, skerr.Wrapf(err, "Failed retrieving the following digests from ImageLoader: %s, %s.", leftDigest, rightDigest)
 	}
 
+	// Decode images. We are guaranteed to have two images at this point.
+	leftImg, rightImg, err := decodeImages(imgs[0], imgs[1])
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Error decoding left/right images while computing diff metrics for %s", id)
+	}
+
 	// We are guaranteed to have two images at this point.
-	diffMetrics := d.mapper.DiffFn(imgs[0], imgs[1])
+	diffMetrics := d.mapper.DiffFn(leftImg, rightImg)
 
 	// Save the diffMetrics.
 	d.saveDiffMetricsAsync(id, leftDigest, rightDigest, diffMetrics)

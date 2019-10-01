@@ -104,7 +104,7 @@ func TestImageLoaderGetSingleDigestFoundInBucket(t *testing.T) {
 	// Assert that the correct image was returned.
 	assert.NoError(t, err)
 	assert.Len(t, images, 1)
-	assert.Equal(t, images[0], image1)
+	assert.Equal(t, images[0], imageToPng(image1).Bytes())
 }
 
 func TestImageLoaderGetSingleDigestNotFound(t *testing.T) {
@@ -159,8 +159,8 @@ func TestImageLoaderGetMultipleDigestsAllFoundInBucket(t *testing.T) {
 	// Assert that the correct images were returned.
 	assert.NoError(t, err)
 	assert.Len(t, images, 2)
-	assert.Equal(t, images[0], image1)
-	assert.Equal(t, images[1], image2)
+	assert.Equal(t, images[0], imageToPng(image1).Bytes())
+	assert.Equal(t, images[1], imageToPng(image2).Bytes())
 }
 
 func TestImageLoaderGetMultipleDigestsDigest1FoundInBucketDigest2NotFound(t *testing.T) {
@@ -237,8 +237,8 @@ func TestImageLoaderWarm(t *testing.T) {
 	// Assert that the correct images were returned.
 	assert.NoError(t, err)
 	assert.Len(t, images, 2)
-	assert.Equal(t, images[0], image1)
-	assert.Equal(t, images[1], image2)
+	assert.Equal(t, images[0], imageToPng(image1).Bytes())
+	assert.Equal(t, images[1], imageToPng(image2).Bytes())
 }
 
 // TODO(lovisolo): Add test cases for multiple digests, and decide what to do about purgeGCS=false.
