@@ -1,9 +1,0 @@
-[Unit]
-Description=Rotate nginx logs.
-Requires=network-online.target
-After=network-online.target
-
-[Service]
-Type=simple
-ExecStart=/usr/local/bin/rotate_nginx_logs.sh
-Restart=no

@@ -1,6 +1,0 @@
-[Unit]
-Description=Run log rotation once a week
-
-[Timer]
-OnCalendar=weekly
-Persistent=true

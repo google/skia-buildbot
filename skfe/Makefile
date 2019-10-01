@@ -14,13 +14,3 @@ push: release validate
 
 run-local:
 	docker run -ti -p 8000:8000 envoy-skia-org:latest --config-path /etc/envoy/computed.json
-
-legacy-default:
-	go install -v ./go/certpoller
-
-legacy-loadtest:
-	go install -v ./go/loadtest
-
-legacy-release: legacy-default
-	./build_release "`git log -n1 --format=%s`"
-
