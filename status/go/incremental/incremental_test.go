@@ -22,7 +22,7 @@ import (
 
 func setup(t *testing.T) (context.Context, string, *IncrementalCache, repograph.Map, db.DB, *git_testutils.GitBuilder, func()) {
 	unittest.LargeTest(t)
-	d := memory.NewInMemoryDB(nil)
+	d := memory.NewInMemoryDB()
 
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
@@ -105,6 +105,18 @@ func TestIncrementalCache(t *testing.T) {
 	assert.NoError(t, err)
 	t0.Status = types.TASK_STATUS_SUCCESS
 	assert.NoError(t, taskDb.PutTask(t0))
+
+	// Wait for the task to show up.
+	assert.NoError(t, testutils.EventuallyConsistent(2*time.Second, func() error {
+		cache.tasks.mtx.Lock()
+		defer cache.tasks.mtx.Unlock()
+		if _, ok := cache.tasks.nextUpdateTasks[t0.Id]; ok {
+			return nil
+		}
+		time.Sleep(50 * time.Millisecond)
+		return testutils.TryAgainErr
+	}))
+
 	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the updated task.
 	assert.Equal(t, []*git.Branch(nil), u.BranchHeads)

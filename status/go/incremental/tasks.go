@@ -1,6 +1,7 @@
 package incremental
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -13,21 +14,39 @@ import (
 
 // taskCache is a struct used for tracking modified tasks.
 type taskCache struct {
-	db      db.TaskReader
-	mtx     sync.Mutex
-	queryId string
+	allTasks        map[string]*types.Task
+	db              db.TaskReader
+	mtx             sync.Mutex
+	nextUpdateTasks map[string]*types.Task
+	shouldReset     bool
 }
 
 // newTaskCache returns a taskCache instance.
-func newTaskCache(d db.TaskReader) *taskCache {
-	return &taskCache{
-		db: d,
+func newTaskCache(ctx context.Context, d db.RemoteDB) *taskCache {
+	tc := &taskCache{
+		allTasks:        map[string]*types.Task{},
+		db:              d,
+		nextUpdateTasks: map[string]*types.Task{},
+		shouldReset:     true,
 	}
+	go func() {
+		for tasks := range d.ModifiedTasksCh(ctx) {
+			tc.mtx.Lock()
+			for _, task := range tasks {
+				if old, ok := tc.allTasks[task.Id]; !ok || task.DbModified.After(old.DbModified) {
+					tc.allTasks[task.Id] = task
+					tc.nextUpdateTasks[task.Id] = task
+				}
+			}
+			tc.mtx.Unlock()
+		}
+	}()
+	return tc
 }
 
-// mapTasks converts a slice of types.Tasks to a map of pared-down Task objects,
+// mapTasks converts a map of types.Tasks to a map of pared-down Task objects,
 // keyed by repo.
-func mapTasks(tasks []*types.Task) map[string][]*Task {
+func mapTasks(tasks map[string]*types.Task) map[string][]*Task {
 	rv := map[string][]*Task{}
 	for _, t := range tasks {
 		rv[t.Repo] = append(rv[t.Repo], &Task{
@@ -48,25 +67,27 @@ func mapTasks(tasks []*types.Task) map[string][]*Task {
 // Reset (re)establishes connection to the remote database and returns all tasks
 // in the desired range. The boolean return value is the "startOver" indicator
 // as returned by Update(), included here for convenience so that Update() can
-// just "return c.Reset(...)".  Assumes the caller holds a lock.
+// just "return c.Reset(...)".
 func (c *taskCache) Reset(w *window.Window) (map[string][]*Task, bool, error) {
 	sklog.Infof("Resetting DB connection.")
-	if c.queryId != "" {
-		c.db.StopTrackingModifiedTasks(c.queryId)
-		c.queryId = ""
-	}
-	queryId, err := c.db.StartTrackingModifiedTasks()
-	if err != nil {
-		return nil, false, err
-	}
-	c.queryId = queryId
 	tasks, err := db.GetTasksFromWindow(c.db, w, time.Now())
 	if err != nil {
-		c.db.StopTrackingModifiedTasks(c.queryId)
-		c.queryId = ""
 		return nil, false, err
 	}
-	return mapTasks(tasks), true, nil
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	c.allTasks = make(map[string]*types.Task, len(tasks))
+	for _, task := range tasks {
+		c.allTasks[task.Id] = task
+	}
+	for _, task := range c.nextUpdateTasks {
+		if old, ok := c.allTasks[task.Id]; !ok || task.DbModified.After(old.DbModified) {
+			c.allTasks[task.Id] = task
+		}
+	}
+	c.nextUpdateTasks = map[string]*types.Task{}
+	c.shouldReset = false
+	return mapTasks(c.allTasks), true, nil
 }
 
 // Update returns any new tasks since the last Update() call. In the case of a
@@ -74,26 +95,25 @@ func (c *taskCache) Reset(w *window.Window) (map[string][]*Task, bool, error) {
 // returned, and the boolean return value is set to true.
 func (c *taskCache) Update(w *window.Window) (map[string][]*Task, bool, error) {
 	defer metrics2.FuncTimer().Stop()
-	if c.queryId == "" {
-		// Initial update, or if we failed to reconnect after a previous
-		// lost connection.
+	if c.shouldReset {
 		return c.Reset(w)
 	}
-	// Note that GetModifiedTasks could technically return tasks we've
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	// Note that ModifiedTasksCh could technically return tasks we've
 	// already seen. In this case, that will cause us to resend some tasks
 	// to the client, which is wasteful but won't cause incorrect results.
-	newTasks, err := c.db.GetModifiedTasks(c.queryId)
-	if err != nil {
-		sklog.Errorf("Connection to db lost; re-initializing cache from scratch. Error: %s", err)
-		return c.Reset(w)
+	newTasks := c.nextUpdateTasks
+	c.nextUpdateTasks = map[string]*types.Task{}
+	for id, t := range c.allTasks {
+		if !w.TestTime(t.Repo, t.Created) {
+			delete(c.allTasks, id)
+		}
 	}
 	return mapTasks(newTasks), false, nil
 }
 
 // ResetNextTime forces the taskCache to Reset() on the next call to Update().
 func (c *taskCache) ResetNextTime() {
-	if c.queryId != "" {
-		c.db.StopTrackingModifiedTasks(c.queryId)
-		c.queryId = ""
-	}
+	c.shouldReset = true
 }
