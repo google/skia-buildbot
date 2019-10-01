@@ -1051,6 +1051,16 @@
                       "routes": [
                         {
                           "match": {
+                            "path": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "bugs.chromium.org",
+                            "https_redirect": true,
+                            "path_redirect": "/p/skia/issues/list"
+                          }
+                        },
+                        {
+                          "match": {
                             "prefix": "/"
                           },
                           "redirect": {
