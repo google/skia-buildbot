@@ -423,7 +423,6 @@ func main() {
 	// Other tests.
 	tests = append(tests, cmdTest([]string{"go", "vet", "./..."}, ".", "go vet", unittest.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"errcheck", "-ignore", ":Close", "go.skia.org/infra/..."}, ".", "errcheck", unittest.MEDIUM_TEST))
-	tests = append(tests, cmdTest([]string{"go", "run", "prober/go/build_probers_json5/main.go", "--srcdir=.", "--dest=/tmp/allprobers.json5"}, ".", "probers test", unittest.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"python", "infra/bots/recipes.py", "test", "run"}, ".", "recipes test", unittest.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"go", "run", "infra/bots/gen_tasks.go", "--test"}, ".", "gen_tasks.go --test", unittest.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"python", "go/testutils/unittest/uncategorized_tests.py"}, ".", "uncategorized tests", unittest.SMALL_TEST))
