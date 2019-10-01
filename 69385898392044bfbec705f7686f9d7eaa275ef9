@@ -22,6 +22,30 @@
       "revId": "69385898392044bfbec705f7686f9d7eaa275ef9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80228f78_ce3d1c8d",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-01T12:04:18Z",
+      "side": 1,
+      "message": "Changed to \"exactly one\".  It\u0027s not clear to me if/when there would be multiple GerritChanges; I confirmed that there\u0027s only one in the case of dependent CLs.",
+      "parentUuid": "78e39efd_9a856f87",
+      "range": {
+        "startLine": 357,
+        "startChar": 75,
+        "endLine": 357,
+        "endChar": 99
+      },
+      "revId": "69385898392044bfbec705f7686f9d7eaa275ef9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
