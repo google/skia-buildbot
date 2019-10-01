@@ -11,6 +11,8 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/util"
+
 	"cloud.google.com/go/firestore"
 	"github.com/cenkalti/backoff"
 	"go.skia.org/infra/go/eventbus"
@@ -399,7 +401,7 @@ func (f *Store) AddChange(ctx context.Context, newExp types.Expectations, userID
 	}
 
 	// firestore can do up to 500 writes at once, we have 2 writes per entry, plus 1 triageRecord
-	batchSize := (500 / 2) - 1
+	const batchSize = (ifirestore.MAX_TRANSACTION_DOCS / 2) - 1
 
 	b := f.client.Batch()
 
@@ -414,19 +416,14 @@ func (f *Store) AddChange(ctx context.Context, newExp types.Expectations, userID
 	}
 	b.Set(tr, record)
 
-	// In batches, add ExpectationEntry and TriageChange Documents
-	for i := 0; i < len(entries); i += batchSize {
-		stop := i + batchSize
-		if stop > len(entries) {
-			stop = len(entries)
-		}
-		sklog.Debugf("Storing new expectations [%d, %d]", i, stop)
-		for idx, entry := range entries[i:stop] {
+	err := util.ChunkIter(len(entries), batchSize, func(start, stop int) error {
+		sklog.Debugf("Storing new expectations [%d, %d]", start, stop)
+		for offset, entry := range entries[start:stop] {
 			e := f.client.Collection(expectationsCollection).Doc(entry.ID())
 			b.Set(e, entry)
 
 			tc := f.client.Collection(triageChangesCollection).NewDoc()
-			change := changes[idx]
+			change := changes[start+offset]
 			change.RecordID = tr.ID
 			b.Set(tc, change)
 		}
@@ -448,19 +445,23 @@ func (f *Store) AddChange(ctx context.Context, newExp types.Expectations, userID
 		if err := backoff.Retry(o, exp); err != nil {
 			// We really hope this doesn't happen, as it may leave the data in a partially
 			// broken state.
-			return skerr.Wrapf(err, "writing entries with retry [%d, %d]", i, stop)
+			return skerr.Wrapf(err, "writing entries with retry [%d, %d]", start, stop)
 		}
 		// Go on to the next batch, if needed.
 		if stop < len(entries) {
 			b = f.client.Batch()
 		}
+		return nil
+	})
+	if err != nil {
+		return skerr.Wrap(err)
 	}
 
 	// We have succeeded this potentially long write, so mark it completed.
 	update := map[string]interface{}{
-		"committed": true,
+		committedField: true,
 	}
-	_, err := f.client.Set(tr, update, 10, maxOperationTime, firestore.MergeAll)
+	_, err = f.client.Set(tr, update, 10, maxOperationTime, firestore.MergeAll)
 	return err
 }
 
