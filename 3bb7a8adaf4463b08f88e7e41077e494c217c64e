@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "476a2a03_a42e5eee",
+        "filename": "task_scheduler/go/db/cache/cache.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-01T14:45:08Z",
+      "side": 1,
+      "message": "You got it. Sorry for being too terse.",
+      "parentUuid": "4dbf1f20_d77dafb3",
+      "range": {
+        "startLine": 392,
+        "startChar": 24,
+        "endLine": 392,
+        "endChar": 32
+      },
+      "revId": "3bb7a8adaf4463b08f88e7e41077e494c217c64e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b603af6e_7c40b740",
         "filename": "task_scheduler/go/db/cache/cache.go",
         "patchSetId": 7
@@ -201,6 +225,30 @@
       "side": 1,
       "message": "I\u0027m not sure how to word this; \"soon\"?",
       "parentUuid": "e7d3d704_f3bf2b8b",
+      "range": {
+        "startLine": 47,
+        "startChar": 42,
+        "endLine": 47,
+        "endChar": 53
+      },
+      "revId": "3bb7a8adaf4463b08f88e7e41077e494c217c64e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92a45e72_ef67221e",
+        "filename": "task_scheduler/go/db/comments.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-01T14:45:08Z",
+      "side": 1,
+      "message": "🤷 It\u0027s a lot easier to complain than create...",
+      "parentUuid": "c1639107_c293c602",
       "range": {
         "startLine": 47,
         "startChar": 42,
