@@ -261,6 +261,30 @@
     },
     {
       "key": {
+        "uuid": "4c56d51e_ac8ba3fe",
+        "filename": "task_scheduler/go/db/comments.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-01T15:13:26Z",
+      "side": 1,
+      "message": "I\u0027d probably just replace this sentence with \"At least one item will be sent on the returned channel.\"",
+      "parentUuid": "92a45e72_ef67221e",
+      "range": {
+        "startLine": 47,
+        "startChar": 42,
+        "endLine": 47,
+        "endChar": 53
+      },
+      "revId": "3bb7a8adaf4463b08f88e7e41077e494c217c64e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "39f90d63_411c85d1",
         "filename": "task_scheduler/go/db/memory/comments.go",
         "patchSetId": 7
