@@ -15,7 +15,7 @@ import (
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/prometheus/go/alertmanager"
+	"go.skia.org/infra/notifier/go/alertmanager"
 )
 
 const (
