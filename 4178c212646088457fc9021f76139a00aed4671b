@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "242678d4_7861f31c",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-01T00:55:01Z",
+      "side": 1,
+      "message": "nit: images are fairly large, so it would be good to avoid extra copies.\n\nI would probably just copy lines 318-324 here and go back to passing w to EncodeImg on line 311.",
+      "range": {
+        "startLine": 280,
+        "startChar": 3,
+        "endLine": 280,
+        "endChar": 26
+      },
+      "revId": "4178c212646088457fc9021f76139a00aed4671b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "efc8c589_e92a7842",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-01T00:55:01Z",
+      "side": 1,
+      "message": "This will have no effect after writing to w.",
+      "range": {
+        "startLine": 326,
+        "startChar": 0,
+        "endLine": 327,
+        "endChar": 58
+      },
+      "revId": "4178c212646088457fc9021f76139a00aed4671b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86f24014_5c27c97e",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-01T00:55:01Z",
+      "side": 1,
+      "message": "nit: Consider using a sync.WaitGroup and goroutines to decode in parallel.",
+      "range": {
+        "startLine": 339,
+        "startChar": 0,
+        "endLine": 350,
+        "endChar": 0
+      },
+      "revId": "4178c212646088457fc9021f76139a00aed4671b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
