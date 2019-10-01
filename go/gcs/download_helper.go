@@ -11,6 +11,7 @@ import (
 	"runtime"
 
 	"cloud.google.com/go/storage"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -44,20 +45,16 @@ func (d *DownloadHelper) Download(name, hash string) error {
 	}
 	resp, err := d.s.Bucket(d.bucket).Object(object).NewReader(context.Background())
 	if err != nil {
-		return fmt.Errorf("Download helper can't get reader for %s: %s", name, err)
+		return skerr.Wrapf(err, "Download helper can't get reader for %s", name)
 	}
-	f, err := os.Create(filepath)
-	if err != nil {
-		return fmt.Errorf("Download helper cannot create filepath %s: %s", filepath, err)
-	}
-	defer util.Close(f)
-	if _, err := io.Copy(f, resp); err != nil {
-		return fmt.Errorf("Download helper can't download %s: %s", name, err)
+	if err := util.WithWriteFile(filepath, func(w io.Writer) error {
+		_, err := io.Copy(w, resp)
+		return skerr.Wrap(err)
+	}); err != nil {
+		return skerr.Wrapf(err, "Download helper failed to download %s", name)
 	}
 	if runtime.GOOS != "windows" {
-		if err := f.Chmod(0755); err != nil {
-			return err
-		}
+		return skerr.Wrap(os.Chmod(filepath, 0755))
 	}
 	return nil
 }
@@ -65,27 +62,27 @@ func (d *DownloadHelper) Download(name, hash string) error {
 // MaybeDownload downloads the given binary from Google Storage if necessary.
 func (d *DownloadHelper) MaybeDownload(name, hash string) error {
 	filepath := path.Join(d.workdir, name)
-	f, err := os.Open(filepath)
+	info, err := os.Stat(filepath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return d.Download(name, hash)
 		} else {
-			return fmt.Errorf("Failed to open %s: %s", filepath, err)
+			return skerr.Wrapf(err, "Failed to stat %s", filepath)
 		}
 	}
-	defer util.Close(f)
-	info, err := f.Stat()
+	info, err = os.Stat(filepath)
 	if err != nil {
-		return fmt.Errorf("Failed to stat %s: %s", filepath, err)
+		return skerr.Wrapf(err, "Failed to stat %s", filepath)
 	}
 	if info.Mode() != 0755 {
 		sklog.Infof("Binary %s is not executable.", filepath)
 		return d.Download(name, hash)
 	}
 
-	contents, err := ioutil.ReadAll(f)
+	var contents []byte
+	contents, err = ioutil.ReadFile(filepath)
 	if err != nil {
-		return fmt.Errorf("Failed to read %s: %s", filepath, err)
+		return skerr.Wrapf(err, "Failed to read %s", filepath)
 	}
 	sha1sum := sha1.Sum(contents)
 	sha1str := fmt.Sprintf("%x", sha1sum)
