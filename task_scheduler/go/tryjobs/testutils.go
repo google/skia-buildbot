@@ -9,11 +9,14 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
 	assert "github.com/stretchr/testify/require"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
-	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/buildbucket/mocks"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
@@ -61,9 +64,8 @@ const (
     }
   }
 }`
-	gerritUrl      = "https://skia-review.googlesource.com/"
 	gerritIssue    = 2112
-	gerritPatchset = "3"
+	gerritPatchset = 3
 	patchProject   = "skia"
 	parentProject  = "parent-project"
 
@@ -72,15 +74,15 @@ const (
 
 var (
 	gerritPatch = types.Patch{
-		Server:   gerritUrl,
+		Server:   fakeGerritUrl,
 		Issue:    fmt.Sprintf("%d", gerritIssue),
-		Patchset: gerritPatchset,
+		Patchset: fmt.Sprintf("%d", gerritPatchset),
 	}
 )
 
 // setup prepares the tests to run. Returns the created temporary dir,
 // TryJobIntegrator instance, and URLMock instance.
-func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutils.GitBuilder, *mockhttpclient.URLMock, func()) {
+func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutils.GitBuilder, *mockhttpclient.URLMock, *mocks.BuildBucketInterface, func()) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
@@ -145,8 +147,7 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 	assert.NoError(t, err)
 	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, jCache, projectRepoMapping, rm, taskCfgCache, chr, g)
 	assert.NoError(t, err)
-
-	return ctx, integrator, gb, mock, func() {
+	return ctx, integrator, gb, mock, MockBuildbucket(integrator), func() {
 		testutils.AssertCloses(t, isolateClient)
 		testutils.AssertCloses(t, taskCfgCache)
 		testutils.RemoveAll(t, tmpDir)
@@ -157,33 +158,39 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 	}
 }
 
-func Params(t sktest.TestingT, builder, project, revision, server, issue, patchset string) buildbucket.Parameters {
-	p := buildbucket.Parameters{
-		BuilderName: builder,
-		Properties: buildbucket.Properties{
-			PatchProject: project,
-			Revision:     revision,
-		},
-	}
-	issueInt, err := strconv.Atoi(issue)
-	assert.NoError(t, err)
-	p.Properties.PatchStorage = "gerrit"
-	p.Properties.Gerrit = server
-	p.Properties.GerritIssue = int64(issueInt)
-	p.Properties.GerritPatchset = patchset
-	return p
+func MockBuildbucket(tj *TryJobIntegrator) *mocks.BuildBucketInterface {
+	bbMock := &mocks.BuildBucketInterface{}
+	tj.bb2 = bbMock
+	return bbMock
 }
 
-func Build(t sktest.TestingT, now time.Time) *buildbucket_api.LegacyApiCommonBuildMessage {
-	return &buildbucket_api.LegacyApiCommonBuildMessage{
-		Bucket:            BUCKET_TESTING,
-		CreatedBy:         "tests",
-		CreatedTs:         now.Unix() * secondsToMicros,
-		Id:                rand.Int63(),
-		LeaseExpirationTs: now.Add(LEASE_DURATION_INITIAL).Unix() * secondsToMicros,
-		LeaseKey:          987654321,
-		ParametersJson:    testutils.MarshalJSON(t, Params(t, "fake-job", patchProject, "master", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset)),
-		Status:            "SCHEDULED",
+func Build(t sktest.TestingT, now time.Time) *buildbucketpb.Build {
+	issue, err := strconv.Atoi(gerritPatch.Issue)
+	assert.NoError(t, err)
+	patchset, err := strconv.Atoi(gerritPatch.Patchset)
+	assert.NoError(t, err)
+	ts, err := ptypes.TimestampProto(now)
+	assert.NoError(t, err)
+	return &buildbucketpb.Build{
+		Builder: &buildbucketpb.BuilderID{
+			Project: "TESTING",
+			Bucket:  BUCKET_TESTING,
+			Builder: "fake-job",
+		},
+		CreatedBy:  "tests",
+		CreateTime: ts,
+		Id:         rand.Int63(),
+		Input: &buildbucketpb.Build_Input{
+			GerritChanges: []*buildbucketpb.GerritChange{
+				{
+					Host:     strings.TrimPrefix(fakeGerritUrl, "https://"),
+					Project:  patchProject,
+					Change:   int64(issue),
+					Patchset: int64(patchset),
+				},
+			},
+		},
+		Status: buildbucketpb.Status_SCHEDULED,
 	}
 }
 
@@ -337,9 +344,15 @@ func MockJobMishap(mock *mockhttpclient.URLMock, j *types.Job, now time.Time, ex
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/fail?alt=json&prettyPrint=false", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockPeek(mock *mockhttpclient.URLMock, builds []*buildbucket_api.LegacyApiCommonBuildMessage, now time.Time, cursor, nextcursor string, err error) {
+func MockPeek(mock *mockhttpclient.URLMock, builds []*buildbucketpb.Build, now time.Time, cursor, nextcursor string, err error) {
+	legacyBuilds := make([]*buildbucket_api.LegacyApiCommonBuildMessage, 0, len(builds))
+	for _, b := range builds {
+		legacyBuilds = append(legacyBuilds, &buildbucket_api.LegacyApiCommonBuildMessage{
+			Id: b.Id,
+		})
+	}
 	resp := buildbucket_api.LegacyApiSearchResponseMessage{
-		Builds:     builds,
+		Builds:     legacyBuilds,
 		NextCursor: nextcursor,
 	}
 	if err != nil {
@@ -351,5 +364,5 @@ func MockPeek(mock *mockhttpclient.URLMock, builds []*buildbucket_api.LegacyApiC
 	if err != nil {
 		panic(err)
 	}
-	mock.MockOnce(fmt.Sprintf("%speek?alt=json&bucket=%s&max_builds=50&prettyPrint=false&start_cursor=%s", API_URL_TESTING, BUCKET_TESTING, cursor), mockhttpclient.MockGetDialogue(respBytes))
+	mock.MockOnce(fmt.Sprintf("%speek?alt=json&bucket=%s&max_builds=%d&prettyPrint=false&start_cursor=%s", API_URL_TESTING, BUCKET_TESTING, PEEK_MAX_BUILDS, cursor), mockhttpclient.MockGetDialogue(respBytes))
 }
