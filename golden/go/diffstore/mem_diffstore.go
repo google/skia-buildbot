@@ -342,20 +342,31 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 // decodeImages takes two images (left and right) represented as byte slices, decodes them and
 // returns two image.NRGBA pointers with the results.
 func decodeImages(leftBytes, rightBytes []byte) (leftImg, rightImg *image.NRGBA, err error) {
-	// TODO(lovisolo): Decode images in parallel using a wait group.
+	var leftErr, rightErr error
+
+	var wg sync.WaitGroup
+	wg.Add(2)
 
 	// Decode left image.
-	leftImg, err = common.DecodeImg(bytes.NewReader(leftBytes))
-	if err != nil {
-		return nil, nil, skerr.Wrap(err)
-	}
+	go func() {
+		defer wg.Done()
+		leftImg, leftErr = common.DecodeImg(bytes.NewReader(leftBytes))
+	}()
 
 	// Decode right image.
-	rightImg, err = common.DecodeImg(bytes.NewReader(rightBytes))
-	if err != nil {
-		return nil, nil, skerr.Wrap(err)
-	}
+	go func() {
+		defer wg.Done()
+		rightImg, rightErr = common.DecodeImg(bytes.NewReader(rightBytes))
+	}()
 
+	wg.Wait()
+
+	if leftErr != nil {
+		return nil, nil, skerr.Wrap(leftErr)
+	}
+	if rightErr != nil {
+		return nil, nil, skerr.Wrap(rightErr)
+	}
 	return leftImg, rightImg, nil
 }
 

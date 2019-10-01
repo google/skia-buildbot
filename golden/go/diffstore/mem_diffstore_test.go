@@ -237,6 +237,64 @@ func TestCodec(t *testing.T) {
 	assert.Equal(t, diffMetrics, metrics)
 }
 
+func TestDecodeImagesSuccess(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Expected output.
+	expectedLeftImage := image1
+	expectedRightImage := image2
+
+	// Inputs.
+	leftBytes := imageToPng(expectedLeftImage).Bytes()
+	rightBytes := imageToPng(expectedRightImage).Bytes()
+
+	// Call code under test.
+	actualLeftImage, actualRightImage, err := decodeImages(leftBytes, rightBytes)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedLeftImage, actualLeftImage)
+	assert.Equal(t, expectedRightImage, actualRightImage)
+}
+
+func TestDecodeImagesErrorDecodingLeftImage(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Inputs.
+	leftBytes := []byte("I'm not a PNG image")
+	rightBytes := imageToPng(image1).Bytes()
+
+	// Call code under test.
+	_, _, err := decodeImages(leftBytes, rightBytes)
+
+	assert.Error(t, err)
+}
+
+func TestDecodeImagesErrorDecodingRightImage(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Inputs.
+	leftBytes := imageToPng(image1).Bytes()
+	rightBytes := []byte("I'm not a PNG image")
+
+	// Call code under test.
+	_, _, err := decodeImages(leftBytes, rightBytes)
+
+	assert.Error(t, err)
+}
+
+func TestDecodeImagesErrorDecodingLeftAndRightImages(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Inputs.
+	leftBytes := []byte("I'm not a PNG image")
+	rightBytes := []byte("I'm not a PNG image")
+
+	// Call code under test.
+	_, _, err := decodeImages(leftBytes, rightBytes)
+
+	assert.Error(t, err)
+}
+
 // Allows for sorting slices of digests by the length (longer slices first)
 type digestSliceSlice []types.DigestSlice
 
