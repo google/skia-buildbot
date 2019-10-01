@@ -416,6 +416,65 @@ func TestQueryLogDetails(t *testing.T) {
 	}, entries[3].Details)
 }
 
+// TestQueryLogDetailsLarge checks that the details are filled in correctly, even in cases
+// where we had to write in multiple chunks. (skbug.com/9485)
+func TestQueryLogDetailsLarge(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := firestore.NewClientForTesting(t)
+	defer cleanup()
+	ctx := context.Background()
+
+	f, err := New(ctx, c, nil, ReadWrite)
+	assert.NoError(t, err)
+
+	// 800 should spread us across 3 "shards", which are ~250 expectations.
+	const numExp = 800
+	delta := types.Expectations{}
+	for i := uint64(0); i < numExp; i++ {
+		n := types.TestName(fmt.Sprintf("test_%03d", i))
+		// An MD5 hash is 128 bits, which is 32 chars
+		d := types.Digest(fmt.Sprintf("%032d", i))
+		delta.AddDigest(n, d, types.POSITIVE)
+	}
+	err = f.AddChange(ctx, delta, "test@example.com")
+	assert.NoError(t, err)
+
+	entries, n, err := f.QueryLog(ctx, 0, 2, true)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, n) // 1 big operation
+
+	entry := entries[0]
+	assert.Equal(t, numExp, entry.ChangeCount)
+	assert.Len(t, entry.Details, numExp)
+
+	// spot check some details
+	assert.Equal(t, expstorage.TriageDetail{
+		TestName: "test_000",
+		Digest:   "00000000000000000000000000000000",
+		Label:    types.POSITIVE.String(),
+	}, entry.Details[0])
+	assert.Equal(t, expstorage.TriageDetail{
+		TestName: "test_200",
+		Digest:   "00000000000000000000000000000200",
+		Label:    types.POSITIVE.String(),
+	}, entry.Details[200])
+	assert.Equal(t, expstorage.TriageDetail{
+		TestName: "test_400",
+		Digest:   "00000000000000000000000000000400",
+		Label:    types.POSITIVE.String(),
+	}, entry.Details[400])
+	assert.Equal(t, expstorage.TriageDetail{
+		TestName: "test_600",
+		Digest:   "00000000000000000000000000000600",
+		Label:    types.POSITIVE.String(),
+	}, entry.Details[600])
+	assert.Equal(t, expstorage.TriageDetail{
+		TestName: "test_799",
+		Digest:   "00000000000000000000000000000799",
+		Label:    types.POSITIVE.String(),
+	}, entry.Details[799])
+}
+
 // TestUndoChangeSunnyDay checks undoing entries that exist.
 func TestUndoChangeSunnyDay(t *testing.T) {
 	unittest.LargeTest(t)
