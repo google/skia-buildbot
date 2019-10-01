@@ -72,6 +72,24 @@ func TestValidateInvalid(t *testing.T) {
 			ignoreResults: false,
 			errFragment:   `results" index 0: field "key" must not be empty`,
 		},
+		// TODO(kjlubick) chrome-gpu is currently uploading a key with an empty value
+		//   Re-enable this check once they are fixed.
+		//"emptyKeyValue": {
+		//	results: GoldResults{
+		//		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		//		Key:     map[string]string{"param1": ""},
+		//		Results: []*Result{
+		//			{
+		//				Key: map[string]string{
+		//					types.PRIMARY_KEY_FIELD: "foo",
+		//				},
+		//				Digest: "12345abc",
+		//			},
+		//		},
+		//	},
+		//	ignoreResults: false,
+		//	errFragment:   `field "key" must not have empty keys`,
+		//},
 		"noNameField": {
 			results: GoldResults{
 				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
