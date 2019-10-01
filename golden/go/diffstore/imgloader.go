@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"image"
 	"io"
 	"path"
 	"sync"
@@ -101,11 +100,11 @@ type errResult struct {
 	id  types.Digest
 }
 
-// Get returns the images identified by digests and returns them as NRGBA images.
+// Get returns the images identified by digests and returns them as byte slices.
 // Priority determines the order in which multiple concurrent calls are processed.
-func (il *ImageLoader) Get(priority int64, images types.DigestSlice) ([]*image.NRGBA, error) {
+func (il *ImageLoader) Get(priority int64, images types.DigestSlice) ([][]byte, error) {
 	// Parallel load the requested images.
-	result := make([]*image.NRGBA, len(images))
+	result := make([][]byte, len(images))
 	errCh := make(chan errResult, len(images))
 	sklog.Debugf("About to Get %d images.", len(images))
 	var wg sync.WaitGroup
@@ -117,7 +116,7 @@ func (il *ImageLoader) Get(priority int64, images types.DigestSlice) ([]*image.N
 			if err != nil {
 				errCh <- errResult{err: err, id: id}
 			} else {
-				result[idx] = img.(*image.NRGBA)
+				result[idx] = img.([]byte)
 			}
 		}(idx, id)
 	}
@@ -169,14 +168,7 @@ func (il *ImageLoader) imageLoadWorker(priority int64, imageID types.Digest) (in
 		util.LogErr(il.failureStore.AddDigestFailure(diff.NewDigestFailure(imageID, diff.HTTP)))
 		return nil, err
 	}
-
-	// Decode it and return it.
-	img, err := common.DecodeImg(bytes.NewBuffer(imgBytes))
-	if err != nil {
-		util.LogErr(il.failureStore.AddDigestFailure(diff.NewDigestFailure(imageID, diff.CORRUPTED)))
-		return nil, err
-	}
-	return img, nil
+	return imgBytes, nil
 }
 
 // downloadImg retrieves the given image from Google storage.
