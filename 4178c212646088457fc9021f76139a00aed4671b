@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "5512d725_a284d4aa",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-01T12:47:37Z",
+      "side": 1,
+      "message": "ubernit: why are these in the opposite order?",
+      "range": {
+        "startLine": 163,
+        "startChar": 0,
+        "endLine": 163,
+        "endChar": 5
+      },
+      "revId": "4178c212646088457fc9021f76139a00aed4671b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "242678d4_7861f31c",
         "filename": "golden/go/diffstore/mem_diffstore.go",
         "patchSetId": 2
