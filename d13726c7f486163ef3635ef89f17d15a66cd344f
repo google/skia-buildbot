@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "be57ae37_6cfc7e50",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-01T17:00:48Z",
+      "side": 1,
+      "message": "ubernit: wrap to 100 cols (and below)",
+      "range": {
+        "startLine": 287,
+        "startChar": 93,
+        "endLine": 287,
+        "endChar": 95
+      },
+      "revId": "d13726c7f486163ef3635ef89f17d15a66cd344f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3408d771_ffcc4688",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-01T17:00:48Z",
+      "side": 1,
+      "message": "nit: add comment explaining that it\u0027s ok to encode the diff w/o any color profile, since it\u0027s just an approximation of the diff.",
+      "revId": "d13726c7f486163ef3635ef89f17d15a66cd344f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
