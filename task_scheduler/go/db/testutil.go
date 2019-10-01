@@ -38,15 +38,14 @@ var AssertDeepEqual func(t sktest.TestingT, expected, actual interface{})
 
 // findModifiedTasks asserts that GetModifiedTasks returns at least the given
 // expected set of tasks.
-func findModifiedTasks(t sktest.TestingT, m ModifiedTasksReader, id string, expect ...*types.Task) {
+func findModifiedTasks(t sktest.TestingT, m <-chan []*types.Task, expect ...*types.Task) {
 	expectMap := make(map[string]*types.Task, len(expect))
 	for _, e := range expect {
 		expectMap[e.Id] = e
 	}
 	actualMap := make(map[string]*types.Task, len(expectMap))
 	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
-		tasks, err := m.GetModifiedTasks(id)
-		assert.NoError(t, err)
+		tasks := <-m
 		for _, a := range tasks {
 			// Ignore tasks not in the expected list.
 			if _, ok := expectMap[a.Id]; !ok {
@@ -67,15 +66,14 @@ func findModifiedTasks(t sktest.TestingT, m ModifiedTasksReader, id string, expe
 	}))
 }
 
-func findModifiedJobs(t sktest.TestingT, m ModifiedJobsReader, id string, expect ...*types.Job) {
+func findModifiedJobs(t sktest.TestingT, m <-chan []*types.Job, expect ...*types.Job) {
 	expectMap := make(map[string]*types.Job, len(expect))
 	for _, e := range expect {
 		expectMap[e.Id] = e
 	}
 	actualMap := make(map[string]*types.Job, len(expectMap))
 	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
-		jobs, err := m.GetModifiedJobs(id)
-		assert.NoError(t, err)
+		jobs := <-m
 		for _, a := range jobs {
 			// Ignore tasks not in the expected list.
 			if _, ok := expectMap[a.Id]; !ok {
@@ -95,7 +93,7 @@ func findModifiedJobs(t sktest.TestingT, m ModifiedJobsReader, id string, expect
 	}))
 }
 
-func findModifiedComments(t sktest.TestingT, m ModifiedComments, id string, e1Slice []*types.TaskComment, e2Slice []*types.TaskSpecComment, e3Slice []*types.CommitComment) {
+func findModifiedComments(t sktest.TestingT, tc <-chan []*types.TaskComment, tsc <-chan []*types.TaskSpecComment, cc <-chan []*types.CommitComment, e1Slice []*types.TaskComment, e2Slice []*types.TaskSpecComment, e3Slice []*types.CommitComment) {
 	e1 := make(map[string]*types.TaskComment, len(e1Slice))
 	for _, c := range e1Slice {
 		e1[c.Id()] = c
@@ -112,25 +110,28 @@ func findModifiedComments(t sktest.TestingT, m ModifiedComments, id string, e1Sl
 	a2 := make(map[string]*types.TaskSpecComment, len(e2))
 	a3 := make(map[string]*types.CommitComment, len(e3))
 	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
-		c1, c2, c3, err := m.GetModifiedComments(id)
-		assert.NoError(t, err)
-		for _, c := range c1 {
-			if _, ok := e1[c.Id()]; !ok {
-				continue
+		select {
+		case c1 := <-tc:
+			for _, c := range c1 {
+				if _, ok := e1[c.Id()]; !ok {
+					continue
+				}
+				a1[c.Id()] = c
 			}
-			a1[c.Id()] = c
-		}
-		for _, c := range c2 {
-			if _, ok := e2[c.Id()]; !ok {
-				continue
+		case c2 := <-tsc:
+			for _, c := range c2 {
+				if _, ok := e2[c.Id()]; !ok {
+					continue
+				}
+				a2[c.Id()] = c
 			}
-			a2[c.Id()] = c
-		}
-		for _, c := range c3 {
-			if _, ok := e3[c.Id()]; !ok {
-				continue
+		case c3 := <-cc:
+			for _, c := range c3 {
+				if _, ok := e3[c.Id()]; !ok {
+					continue
+				}
+				a3[c.Id()] = c
 			}
-			a3[c.Id()] = c
 		}
 		if len(a1) != len(e1) || len(a2) != len(e2) || len(a3) != len(e3) {
 			time.Sleep(100 * time.Millisecond)
@@ -145,14 +146,11 @@ func findModifiedComments(t sktest.TestingT, m ModifiedComments, id string, e1Sl
 
 // TestTaskDB performs basic tests for an implementation of TaskDB.
 func TestTaskDB(t sktest.TestingT, db TaskDB) {
-	_, err := db.GetModifiedTasks("dummy-id")
-	assert.True(t, IsUnknownId(err))
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	mod := db.ModifiedTasksCh(ctx)
 
-	id, err := db.StartTrackingModifiedTasks()
-	assert.NoError(t, err)
-
-	tasks, err := db.GetModifiedTasks(id)
-	assert.NoError(t, err)
+	tasks := <-mod
 	assert.Equal(t, 0, len(tasks))
 
 	t1 := types.MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
@@ -188,7 +186,7 @@ func TestTaskDB(t sktest.TestingT, db TaskDB) {
 	AssertDeepEqual(t, t1, t1Again)
 
 	// Ensure that the task shows up in the modified list.
-	findModifiedTasks(t, db, id, t1)
+	findModifiedTasks(t, mod, t1)
 
 	// Ensure that the task shows up in the correct date ranges.
 	t1Before := t1.Created
@@ -218,7 +216,7 @@ func TestTaskDB(t sktest.TestingT, db TaskDB) {
 	assert.Equal(t, url.QueryEscape(t3.Id), t3.Id)
 
 	// Ensure that both tasks show up in the modified list.
-	findModifiedTasks(t, db, id, t2, t3)
+	findModifiedTasks(t, mod, t2, t3)
 
 	// Make an update to t1 and t2. Ensure modified times change.
 	t2LastModified := t2.DbModified
@@ -229,7 +227,7 @@ func TestTaskDB(t sktest.TestingT, db TaskDB) {
 	assert.False(t, t2.DbModified.Equal(t2LastModified))
 
 	// Ensure that both tasks show up in the modified list.
-	findModifiedTasks(t, db, id, t1, t2)
+	findModifiedTasks(t, mod, t1, t2)
 
 	// Ensure that all tasks show up in the correct time ranges, in sorted order.
 	t2Before := t2.Created
@@ -718,14 +716,11 @@ func TestUpdateTasksWithRetries(t sktest.TestingT, db TaskDB) {
 
 // TestJobDB performs basic tests on an implementation of JobDB.
 func TestJobDB(t sktest.TestingT, db JobDB) {
-	_, err := db.GetModifiedJobs("dummy-id")
-	assert.True(t, IsUnknownId(err))
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	mod := db.ModifiedJobsCh(ctx)
 
-	id, err := db.StartTrackingModifiedJobs()
-	assert.NoError(t, err)
-
-	jobs, err := db.GetModifiedJobs(id)
-	assert.NoError(t, err)
+	jobs := <-mod
 	assert.Equal(t, 0, len(jobs))
 
 	now := time.Now().Add(TS_RESOLUTION)
@@ -748,7 +743,7 @@ func TestJobDB(t sktest.TestingT, db JobDB) {
 	AssertDeepEqual(t, j1, j1Again)
 
 	// Ensure that the job shows up in the modified list.
-	findModifiedJobs(t, db, id, j1)
+	findModifiedJobs(t, mod, j1)
 
 	// Ensure that the job shows up in the correct date ranges.
 	timeStart := util.TimeUnixZero
@@ -786,7 +781,7 @@ func TestJobDB(t sktest.TestingT, db JobDB) {
 	assert.Equal(t, url.QueryEscape(j3.Id), j3.Id)
 
 	// Ensure that both jobs show up in the modified list.
-	findModifiedJobs(t, db, id, j2, j3)
+	findModifiedJobs(t, mod, j2, j3)
 
 	// Make an update to j1 and j2. Ensure modified times change.
 	j2LastModified := j2.DbModified
@@ -797,7 +792,7 @@ func TestJobDB(t sktest.TestingT, db JobDB) {
 	assert.False(t, j2.DbModified.Equal(j2LastModified))
 
 	// Ensure that both jobs show up in the modified list.
-	findModifiedJobs(t, db, id, j1, j2)
+	findModifiedJobs(t, mod, j1, j2)
 
 	// Ensure that all jobs show up in the correct time ranges, in sorted order.
 	j2Before := j2.Created
@@ -861,17 +856,6 @@ func TestJobDB(t sktest.TestingT, db JobDB) {
 	AssertDeepEqual(t, []*types.Job{}, jobs)
 }
 
-// Test that a JobDB properly tracks its maximum number of users.
-func TestJobDBTooManyUsers(t sktest.TestingT, db JobDB) {
-	// Max out the number of modified-jobs users; ensure that we error out.
-	for i := 0; i < MAX_MODIFIED_DATA_USERS; i++ {
-		_, err := db.StartTrackingModifiedJobs()
-		assert.NoError(t, err)
-	}
-	_, err := db.StartTrackingModifiedJobs()
-	assert.True(t, IsTooManyUsers(err))
-}
-
 // Test that PutJob and PutJobs return ErrConcurrentUpdate when a cached Job
 // has been updated in the DB.
 func TestJobDBConcurrentUpdate(t sktest.TestingT, db JobDB) {
@@ -924,14 +908,15 @@ func TestJobDBConcurrentUpdate(t sktest.TestingT, db JobDB) {
 
 // TestCommentDB validates that db correctly implements the CommentDB interface.
 func TestCommentDB(t sktest.TestingT, db CommentDB) {
-	_, _, _, err := db.GetModifiedComments("dummy-id")
-	assert.True(t, IsUnknownId(err))
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	modTC := db.ModifiedTaskCommentsCh(ctx)
+	modTSC := db.ModifiedTaskSpecCommentsCh(ctx)
+	modCC := db.ModifiedCommitCommentsCh(ctx)
 
-	id, err := db.StartTrackingModifiedComments()
-	assert.NoError(t, err)
-
-	c1, c2, c3, err := db.GetModifiedComments(id)
-	assert.NoError(t, err)
+	c1 := <-modTC
+	c2 := <-modTSC
+	c3 := <-modCC
 	assert.Equal(t, 0, len(c1))
 	assert.Equal(t, 0, len(c2))
 	assert.Equal(t, 0, len(c3))
@@ -992,7 +977,7 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 	cc5.Message = "modifying after Put shouldn't affect stored comment"
 
 	// Ensure that all comments show up in the modified list.
-	findModifiedComments(t, db, id, []*types.TaskComment{tc1, tc4, tc5, tc6copy, tc3, tc2}, []*types.TaskSpecComment{sc1, sc4, sc5copy, sc3, sc2}, []*types.CommitComment{cc1, cc4, cc5copy, cc3, cc2})
+	findModifiedComments(t, modTC, modTSC, modCC, []*types.TaskComment{tc1, tc4, tc5, tc6copy, tc3, tc2}, []*types.TaskSpecComment{sc1, sc4, sc5copy, sc3, sc2}, []*types.CommitComment{cc1, cc4, cc5copy, cc3, cc2})
 
 	// Check that adding duplicate non-identical comment gives an error.
 	tc1different := tc1.Copy()
@@ -1084,9 +1069,6 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 			AssertDeepEqual(t, cc2, ccs[offset+1])
 		}
 	}
-	// Clear out modified comments.
-	_, _, _, err = db.GetModifiedComments(id)
-	assert.NoError(t, err)
 
 	// Delete some comments.
 	assert.NoError(t, db.DeleteTaskComment(tc3))
@@ -1122,7 +1104,7 @@ func TestCommentDB(t sktest.TestingT, db CommentDB) {
 		tc3.Deleted = &deleted
 		sc3.Deleted = &deleted
 		cc3.Deleted = &deleted
-		findModifiedComments(t, db, id, []*types.TaskComment{tc1, tc3}, []*types.TaskSpecComment{sc1, sc3}, []*types.CommitComment{cc1, cc3})
+		findModifiedComments(t, modTC, modTSC, modCC, []*types.TaskComment{tc1, tc3}, []*types.TaskSpecComment{sc1, sc3}, []*types.CommitComment{cc1, cc3})
 	}
 
 	// Delete all the comments.
@@ -1271,271 +1253,6 @@ func TestTaskDBGetTasksFromWindow(t sktest.TestingT, db TaskDB) {
 	test(timeWindow, 0, repos, 35)
 	test(time.Duration(0), 100, repos, 35)
 	test(time.Duration(0), 3, repos, 9)
-}
-
-func TestModifiedTasks(t sktest.TestingT, m ModifiedTasks) {
-	_, err := m.GetModifiedTasks("dummy-id")
-	assert.True(t, IsUnknownId(err))
-
-	id, err := m.StartTrackingModifiedTasks()
-	assert.NoError(t, err)
-
-	tasks, err := m.GetModifiedTasks(id)
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(tasks))
-
-	t1 := types.MakeTestTask(time.Unix(0, 1470674132000000), []string{"a", "b", "c", "d"})
-	t1.Id = "1"
-
-	// Insert the task.
-	m.TrackModifiedTask(t1)
-
-	// Ensure that the task shows up in the modified list.
-	findModifiedTasks(t, m, id, t1)
-
-	// Insert two more tasks.
-	t2 := types.MakeTestTask(time.Unix(0, 1470674376000000), []string{"e", "f"})
-	t2.Id = "2"
-	m.TrackModifiedTask(t2)
-	t3 := types.MakeTestTask(time.Unix(0, 1470674884000000), []string{"g", "h"})
-	t3.Id = "3"
-	m.TrackModifiedTask(t3)
-
-	// Ensure that both tasks show up in the modified list.
-	findModifiedTasks(t, m, id, t2, t3)
-
-	// Ensure that we ignore a second update if the timestamp is before the
-	// first. Note that the recipient could still receive a modified task
-	// which is outdated, but this prevents missed modifications due to the
-	// ModifiedTasks itself receiving an outdated task which overwrites a
-	// newer one.
-	t3Newer := t3.Copy()
-	t3Newer.DbModified = t3.DbModified.Add(time.Minute)
-	m.TrackModifiedTask(t3Newer)
-	m.TrackModifiedTask(t3)
-	findModifiedTasks(t, m, id, t3Newer)
-
-	// Check StopTrackingModifiedTasks.
-	m.StopTrackingModifiedTasks(id)
-	err = testutils.EventuallyConsistent(10*time.Second, func() error {
-		_, err := m.GetModifiedTasks(id)
-		if err == nil {
-			return testutils.TryAgainErr
-		}
-		return err
-	})
-	assert.True(t, IsUnknownId(err))
-}
-
-// Test that if a Task is modified multiple times, it only appears once in the
-// result of GetModifiedTasks.
-func TestMultipleTaskModifications(t sktest.TestingT, m ModifiedTasks) {
-	id, err := m.StartTrackingModifiedTasks()
-	assert.NoError(t, err)
-
-	t1 := types.MakeTestTask(time.Unix(0, 1470674132000000), []string{"a", "b", "c", "d"})
-	t1.Id = "1"
-
-	// Insert the task.
-	m.TrackModifiedTask(t1)
-
-	// Make several more modifications.
-	t1.Status = types.TASK_STATUS_RUNNING
-	t1.DbModified = t1.DbModified.Add(time.Second)
-	m.TrackModifiedTask(t1)
-	t1.Status = types.TASK_STATUS_SUCCESS
-	t1.DbModified = t1.DbModified.Add(time.Second)
-	m.TrackModifiedTask(t1)
-
-	// Ensure that the task shows up only once in the modified list and is
-	// the most recent value.
-	var actual *types.Task
-	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
-		tasks, err := m.GetModifiedTasks(id)
-		if err != nil {
-			return err
-		}
-		if len(tasks) == 1 {
-			if actual == nil || actual.DbModified.Before(tasks[0].DbModified) {
-				actual = tasks[0]
-			}
-		}
-		if deepequal.DeepEqual(t1, actual) {
-			return nil
-		}
-		time.Sleep(100 * time.Millisecond)
-		return testutils.TryAgainErr
-	}))
-}
-
-func TestModifiedJobs(t sktest.TestingT, m ModifiedJobs) {
-	_, err := m.GetModifiedJobs("dummy-id")
-	assert.True(t, IsUnknownId(err))
-
-	id, err := m.StartTrackingModifiedJobs()
-	assert.NoError(t, err)
-
-	time.Sleep(time.Second)
-	jobs, err := m.GetModifiedJobs(id)
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(jobs))
-
-	j1 := types.MakeTestJob(time.Unix(0, 1470674132000000))
-	j1.Id = "1"
-
-	// Insert the job.
-	m.TrackModifiedJob(j1)
-
-	// Ensure that the job shows up in the modified list.
-	findModifiedJobs(t, m, id, j1)
-
-	// Insert two more jobs.
-	j2 := types.MakeTestJob(time.Unix(0, 1470674376000000))
-	j2.Id = "2"
-	m.TrackModifiedJob(j2)
-	j3 := types.MakeTestJob(time.Unix(0, 1470674884000000))
-	j3.Id = "3"
-	m.TrackModifiedJob(j3)
-
-	// Ensure that both jobs show up in the modified list.
-	findModifiedJobs(t, m, id, j2, j3)
-
-	// Check StopTrackingModifiedJobs.
-	m.StopTrackingModifiedJobs(id)
-	err = testutils.EventuallyConsistent(10*time.Second, func() error {
-		_, err := m.GetModifiedJobs(id)
-		if err == nil {
-			return testutils.TryAgainErr
-		}
-		return err
-	})
-	assert.True(t, IsUnknownId(err))
-}
-
-func TestMultipleJobModifications(t sktest.TestingT, m ModifiedJobs) {
-	id, err := m.StartTrackingModifiedJobs()
-	assert.NoError(t, err)
-
-	j1 := types.MakeTestJob(time.Unix(0, 1470674132000000))
-	j1.Id = "1"
-
-	// Insert the job.
-	m.TrackModifiedJob(j1)
-
-	// Make several more modifications.
-	j1.Status = types.JOB_STATUS_IN_PROGRESS
-	j1.DbModified = j1.DbModified.Add(time.Second)
-	m.TrackModifiedJob(j1)
-	j1.Status = types.JOB_STATUS_SUCCESS
-	j1.DbModified = j1.DbModified.Add(time.Second)
-	m.TrackModifiedJob(j1)
-
-	// Ensure that the task shows up only once in the modified list and is
-	// the most recent value.
-	var actual *types.Job
-	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
-		jobs, err := m.GetModifiedJobs(id)
-		if err != nil {
-			return err
-		}
-		if len(jobs) == 1 {
-			if actual == nil || actual.DbModified.Before(jobs[0].DbModified) {
-				actual = jobs[0]
-			}
-		}
-		if deepequal.DeepEqual(j1, actual) {
-			return nil
-		}
-		time.Sleep(100 * time.Millisecond)
-		return testutils.TryAgainErr
-	}))
-}
-
-func TestModifiedComments(t sktest.TestingT, m ModifiedComments) {
-	_, _, _, err := m.GetModifiedComments("dummy-id")
-	assert.True(t, IsUnknownId(err))
-
-	id, err := m.StartTrackingModifiedComments()
-	assert.NoError(t, err)
-
-	time.Sleep(time.Second)
-	a1, a2, a3, err := m.GetModifiedComments(id)
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(a1))
-	assert.Equal(t, 0, len(a2))
-	assert.Equal(t, 0, len(a3))
-
-	c1 := types.MakeTaskComment(1, 1, 1, 1, time.Now())
-
-	// Insert the comment.
-	m.TrackModifiedTaskComment(c1)
-
-	// Ensure that the comment shows up in the modified list.
-	findModifiedComments(t, m, id, []*types.TaskComment{c1}, []*types.TaskSpecComment{}, []*types.CommitComment{})
-
-	// Insert two more comments.
-	c2 := types.MakeTaskComment(2, 2, 2, 2, time.Now())
-	m.TrackModifiedTaskComment(c2)
-	c3 := types.MakeTaskComment(3, 3, 3, 3, time.Now())
-	m.TrackModifiedTaskComment(c3)
-
-	// Ensure that both comments show up in the modified list.
-	findModifiedComments(t, m, id, []*types.TaskComment{c2, c3}, []*types.TaskSpecComment{}, []*types.CommitComment{})
-
-	// Insert two more comments.
-	c4 := types.MakeTaskSpecComment(4, 4, 4, time.Now())
-	m.TrackModifiedTaskSpecComment(c4)
-	c5 := types.MakeCommitComment(5, 5, 5, time.Now())
-	m.TrackModifiedCommitComment(c5)
-
-	// Ensure that both comments show up in the modified list.
-	findModifiedComments(t, m, id, []*types.TaskComment{}, []*types.TaskSpecComment{c4}, []*types.CommitComment{c5})
-
-	// Check StopTrackingModifiedComments.
-	m.StopTrackingModifiedComments(id)
-	err = testutils.EventuallyConsistent(10*time.Second, func() error {
-		_, _, _, err := m.GetModifiedComments(id)
-		if err == nil {
-			return testutils.TryAgainErr
-		}
-		return err
-	})
-	assert.True(t, IsUnknownId(err))
-}
-
-func TestMultipleCommentModifications(t sktest.TestingT, m ModifiedComments) {
-	id, err := m.StartTrackingModifiedComments()
-	assert.NoError(t, err)
-
-	c1 := types.MakeTaskComment(1, 1, 1, 1, time.Now())
-
-	// Insert the comment.
-	m.TrackModifiedTaskComment(c1)
-
-	// Delete the comment.
-	deleted := true
-	c1.Deleted = &deleted
-	m.TrackModifiedTaskComment(c1)
-
-	// Ensure that the comment shows up only once in the modified list and
-	// is the most recent value.
-	var actual *types.TaskComment
-	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
-		a1, _, _, err := m.GetModifiedComments(id)
-		if err != nil {
-			return err
-		}
-		if len(a1) == 1 {
-			if actual == nil || actual.Deleted == nil {
-				actual = a1[0]
-			}
-		}
-		if deepequal.DeepEqual(c1, actual) {
-			return nil
-		}
-		time.Sleep(100 * time.Millisecond)
-		return testutils.TryAgainErr
-	}))
 }
 
 func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {

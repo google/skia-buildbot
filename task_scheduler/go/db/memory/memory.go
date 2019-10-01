@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"sync"
@@ -11,14 +12,15 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
-	"go.skia.org/infra/task_scheduler/go/db/modified"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 type inMemoryTaskDB struct {
-	tasks    map[string]*types.Task
-	tasksMtx sync.RWMutex
-	db.ModifiedTasks
+	tasks         map[string]*types.Task
+	tasksMtx      sync.RWMutex
+	mod           chan<- []*types.Task
+	modClients    map[chan<- []*types.Task]bool
+	modClientsMtx sync.Mutex
 }
 
 // See docs for TaskDB interface. Does not take any locks.
@@ -87,6 +89,7 @@ func (d *inMemoryTaskDB) PutTasks(tasks []*types.Task) error {
 
 	// Insert.
 	now := time.Now()
+	added := make([]*types.Task, 0, len(tasks))
 	for _, task := range tasks {
 		if task.Id == "" {
 			if err := d.AssignId(task); err != nil {
@@ -105,9 +108,12 @@ func (d *inMemoryTaskDB) PutTasks(tasks []*types.Task) error {
 		}
 
 		// TODO(borenet): Keep tasks in a sorted slice.
-		d.tasks[task.Id] = task.Copy()
+		cpy := task.Copy()
+		added = append(added, cpy)
+		d.tasks[task.Id] = cpy
 	}
-	d.TrackModifiedTasks(tasks)
+	// Send the modified tasks to any listeners.
+	d.mod <- added
 	return nil
 }
 
@@ -118,23 +124,77 @@ func (d *inMemoryTaskDB) PutTasksInChunks(tasks []*types.Task) error {
 	})
 }
 
+// See docs for TaskDB interface.
+func (d *inMemoryTaskDB) ModifiedTasksCh(ctx context.Context) <-chan []*types.Task {
+	d.modClientsMtx.Lock()
+	defer d.modClientsMtx.Unlock()
+	localCh := make(chan []*types.Task)
+	rv := make(chan []*types.Task)
+	d.modClients[localCh] = true
+	done := ctx.Done()
+	go func() {
+		// The DB spec states that we should pass an initial value along
+		// the channel.
+		rv <- []*types.Task{}
+		for {
+			select {
+			case mod := <-localCh:
+				rv <- mod
+			case <-done:
+				close(rv)
+				// Remove the local channel. Note that we don't
+				// close it, because other goroutines might be
+				// trying to write to it. In that case, both the
+				// channel and those goroutines will leak.
+				d.modClientsMtx.Lock()
+				delete(d.modClients, localCh)
+				d.modClientsMtx.Unlock()
+				return
+			}
+		}
+	}()
+	return rv
+}
+
 // NewInMemoryTaskDB returns an extremely simple, inefficient, in-memory TaskDB
 // implementation.
-func NewInMemoryTaskDB(modTasks db.ModifiedTasks) db.TaskDB {
-	if modTasks == nil {
-		modTasks = &modified.ModifiedTasksImpl{}
+func NewInMemoryTaskDB() db.TaskDB {
+	mod := make(chan []*types.Task)
+	rv := &inMemoryTaskDB{
+		tasks:      map[string]*types.Task{},
+		mod:        mod,
+		modClients: map[chan<- []*types.Task]bool{},
 	}
-	db := &inMemoryTaskDB{
-		tasks:         map[string]*types.Task{},
-		ModifiedTasks: modTasks,
-	}
-	return db
+	// This goroutine multiplexes modified data out to the various clients.
+	go func() {
+		for data := range mod {
+			rv.modClientsMtx.Lock()
+			for ch := range rv.modClients {
+				// NOTE: This would cause a goroutine leak if a
+				// client stopped reading from their channel. We
+				// could add a timeout for the channel write,
+				// but this isn't intended to be used in
+				// production anyway.
+				go func(ch chan<- []*types.Task, data []*types.Task) {
+					send := make([]*types.Task, 0, len(data))
+					for _, elem := range data {
+						send = append(send, elem.Copy())
+					}
+					ch <- send
+				}(ch, data)
+			}
+			rv.modClientsMtx.Unlock()
+		}
+	}()
+	return rv
 }
 
 type inMemoryJobDB struct {
-	jobs    map[string]*types.Job
-	jobsMtx sync.RWMutex
-	db.ModifiedJobs
+	jobs          map[string]*types.Job
+	jobsMtx       sync.RWMutex
+	mod           chan<- []*types.Job
+	modClients    map[chan<- []*types.Job]bool
+	modClientsMtx sync.Mutex
 }
 
 func (d *inMemoryJobDB) assignId(j *types.Job) error {
@@ -203,6 +263,7 @@ func (d *inMemoryJobDB) PutJobs(jobs []*types.Job) error {
 
 	// Insert.
 	now := time.Now()
+	added := make([]*types.Job, 0, len(jobs))
 	for _, job := range jobs {
 		if job.Id == "" {
 			if err := d.assignId(job); err != nil {
@@ -221,9 +282,11 @@ func (d *inMemoryJobDB) PutJobs(jobs []*types.Job) error {
 		}
 
 		// TODO(borenet): Keep jobs in a sorted slice.
-		d.jobs[job.Id] = job.Copy()
+		cpy := job.Copy()
+		added = append(added, cpy)
+		d.jobs[job.Id] = cpy
 	}
-	d.TrackModifiedJobs(jobs)
+	d.mod <- added
 	return nil
 }
 
@@ -234,24 +297,73 @@ func (d *inMemoryJobDB) PutJobsInChunks(jobs []*types.Job) error {
 	})
 }
 
+// See docs for JobDB interface.
+func (d *inMemoryJobDB) ModifiedJobsCh(ctx context.Context) <-chan []*types.Job {
+	d.modClientsMtx.Lock()
+	defer d.modClientsMtx.Unlock()
+	localCh := make(chan []*types.Job)
+	rv := make(chan []*types.Job)
+	d.modClients[localCh] = true
+	done := ctx.Done()
+	go func() {
+		// The DB spec states that we should pass an initial value along
+		// the channel.
+		rv <- []*types.Job{}
+		for {
+			select {
+			case mod := <-localCh:
+				rv <- mod
+			case <-done:
+				close(rv)
+				// Remove the local channel. Note that we don't
+				// close it, because other goroutines might be
+				// trying to write to it. In that case, both the
+				// channel and those goroutines will leak.
+				d.modClientsMtx.Lock()
+				delete(d.modClients, localCh)
+				d.modClientsMtx.Unlock()
+				return
+			}
+		}
+	}()
+	return rv
+}
+
 // NewInMemoryJobDB returns an extremely simple, inefficient, in-memory JobDB
 // implementation.
-func NewInMemoryJobDB(modJobs db.ModifiedJobs) db.JobDB {
-	if modJobs == nil {
-		modJobs = &modified.ModifiedJobsImpl{}
+func NewInMemoryJobDB() db.JobDB {
+	mod := make(chan []*types.Job)
+	rv := &inMemoryJobDB{
+		jobs:       map[string]*types.Job{},
+		mod:        mod,
+		modClients: map[chan<- []*types.Job]bool{},
 	}
-	db := &inMemoryJobDB{
-		jobs:         map[string]*types.Job{},
-		ModifiedJobs: modJobs,
-	}
-	return db
+	// This goroutine multiplexes modified data out to the various clients.
+	go func() {
+		for data := range mod {
+			rv.modClientsMtx.Lock()
+			for ch := range rv.modClients {
+				// NOTE: This would cause a goroutine leak if a
+				// client stopped reading from their channel. We
+				// could add a timeout for the channel write,
+				// but this isn't intended to be used in
+				// production anyway.
+				go func(ch chan<- []*types.Job, data []*types.Job) {
+					send := make([]*types.Job, 0, len(data))
+					for _, elem := range data {
+						send = append(send, elem.Copy())
+					}
+					ch <- send
+				}(ch, data)
+			}
+			rv.modClientsMtx.Unlock()
+		}
+	}()
+	return rv
 }
 
 // NewInMemoryDB returns an extremely simple, inefficient, in-memory DB
 // implementation.
-func NewInMemoryDB(mod db.ModifiedData) db.DB {
-	if mod == nil {
-		mod = modified.NewModifiedData()
-	}
-	return db.NewDB(NewInMemoryTaskDB(mod), NewInMemoryJobDB(mod), &CommentBox{ModifiedComments: mod})
+func NewInMemoryDB() db.DB {
+	return db.NewDB(NewInMemoryTaskDB(), NewInMemoryJobDB(), NewCommentBox())
 }

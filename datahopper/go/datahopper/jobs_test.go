@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/gob"
 	"fmt"
 	"io/ioutil"
@@ -28,7 +29,7 @@ import (
 
 // Create a db.JobDB and jobEventDB.
 func setupJobs(t *testing.T, now time.Time) (*jobEventDB, db.JobDB) {
-	jdb := memory.NewInMemoryJobDB(nil)
+	jdb := memory.NewInMemoryJobDB()
 	edb := &jobEventDB{
 		cached: []*events.Event{},
 		db:     jdb,
@@ -348,8 +349,10 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 
-	d := memory.NewInMemoryDB(nil)
+	d := memory.NewInMemoryDB()
 	ctx, gb, _, _ := tcc_testutils.SetupTestRepo(t)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, wd)
 	assert.NoError(t, err)
 	assert.NoError(t, repos.Update(ctx))
@@ -404,7 +407,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 		assert.Equal(t, perfAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_OVERDUE_JOB_SPECS, tags))
 	}
 
-	om, err := newOverdueJobMetrics(d, repos, tcc)
+	om, err := newOverdueJobMetrics(ctx, d, repos, tcc)
 	assert.NoError(t, err)
 
 	// No jobs have finished yet.
