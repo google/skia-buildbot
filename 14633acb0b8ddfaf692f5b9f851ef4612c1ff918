@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "55c929b1_9ee3f64a",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 404,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-01T15:34:00Z",
+      "side": 1,
+      "message": "nit: ifirestore.MAX_TRANSACTION_DOCS",
+      "range": {
+        "startLine": 404,
+        "startChar": 20,
+        "endLine": 404,
+        "endChar": 23
+      },
+      "revId": "14633acb0b8ddfaf692f5b9f851ef4612c1ff918",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
