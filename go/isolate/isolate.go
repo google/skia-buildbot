@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
 )
@@ -163,11 +164,11 @@ func (t *Task) Validate() error {
 // WriteIsolatedGenJson writes a temporary .isolated.gen.json file for the task.
 func WriteIsolatedGenJson(t *Task, genJsonFile, isolatedFile string) error {
 	if err := t.Validate(); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	isolateFile, err := filepath.Abs(t.IsolateFile)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	args := []string{
 		"--isolate", isolateFile,
@@ -184,7 +185,7 @@ func WriteIsolatedGenJson(t *Task, genJsonFile, isolatedFile string) error {
 	}
 	baseDir, err := filepath.Abs(t.BaseDir)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	gen := struct {
 		Version int      `json:"version"`
@@ -195,15 +196,10 @@ func WriteIsolatedGenJson(t *Task, genJsonFile, isolatedFile string) error {
 		Dir:     baseDir,
 		Args:    args,
 	}
-	f, err := os.Create(genJsonFile)
-	if err != nil {
-		return fmt.Errorf("Failed to create %s: %s", genJsonFile, err)
-	}
-	defer util.Close(f)
-	if err := json.NewEncoder(f).Encode(&gen); err != nil {
-		return fmt.Errorf("Failed to write %s: %s", genJsonFile, err)
-	}
-	return nil
+	err = util.WithWriteFile(genJsonFile, func(w io.Writer) error {
+		return json.NewEncoder(w).Encode(&gen)
+	})
+	return skerr.Wrap(err)
 }
 
 // isolateFile is a struct representing the contents of a .isolate file.
