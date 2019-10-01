@@ -16,7 +16,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	assert "github.com/stretchr/testify/require"
-	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/deepequal"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
@@ -2708,6 +2708,8 @@ func TestTrybots(t *testing.T) {
 	// receive a try request, execute the necessary tasks, and report its
 	// results back.
 
+	bbMock := tryjobs.MockBuildbucket(s.tryjobs)
+
 	// Run ourselves out of tasks.
 	bot1 := makeBot("bot1", linuxTaskDims)
 	bot2 := makeBot("bot2", androidTaskDims)
@@ -2754,10 +2756,27 @@ func TestTrybots(t *testing.T) {
 		Repo:     rs2.Repo,
 		Revision: rs2.Revision,
 	}
-	b.ParametersJson = testutils.MarshalJSON(t, tryjobs.Params(t, tcc_testutils.TestTaskName, "skia", rs.Revision, rs.Server, rs.Issue, rs.Patchset))
-	tryjobs.MockPeek(mock, []*buildbucket_api.LegacyApiCommonBuildMessage{b}, now, "", "", nil)
+	b.Builder.Builder = tcc_testutils.TestTaskName
+	b.Input.GerritChanges = []*buildbucketpb.GerritChange{
+		{
+			Host:     rs.Server,
+			Project:  "skia",
+			Change:   10001,
+			Patchset: 20002,
+		},
+	}
+	tryjobs.MockPeek(mock, []*buildbucketpb.Build{b}, now, "", "", nil)
 	tryjobs.MockTryLeaseBuild(mock, b.Id, nil)
 	tryjobs.MockJobStarted(mock, b.Id, nil)
+	bbMock.On("GetBuild", ctx, b.Id).Return(b, nil)
+	issueBytes, err := json.Marshal(&gerrit.ChangeInfo{
+		Id:      issue,
+		Project: "skia",
+		Branch:  "master",
+	})
+	assert.NoError(t, err)
+	issueBytes = append([]byte("XSS\n"), issueBytes...)
+	mock.Mock(fmt.Sprintf("%s/a%s", fakeGerritUrl, fmt.Sprintf(gerrit.URL_TMPL_CHANGE, 10001)), mockhttpclient.MockGetDialogue(issueBytes))
 	assert.NoError(t, s.tryjobs.Poll(ctx))
 	assert.True(t, mock.Empty())
 

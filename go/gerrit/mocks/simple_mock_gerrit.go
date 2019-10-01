@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/stretchr/testify/mock"
-	"go.skia.org/infra/go/buildbucket"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/gerrit"
 )
 
@@ -75,7 +75,7 @@ func (g *SimpleGerritInterface) Search(ctx context.Context, limit int, terms ...
 	results = append(results, &gerrit.ChangeInfo{Issue: g.IssueID})
 	return results, nil
 }
-func (g *SimpleGerritInterface) GetTrybotResults(ctx context.Context, issueID int64, patchsetID int64) ([]*buildbucket.Build, error) {
+func (g *SimpleGerritInterface) GetTrybotResults(ctx context.Context, issueID int64, patchsetID int64) ([]*buildbucketpb.Build, error) {
 	return nil, nil
 }
 

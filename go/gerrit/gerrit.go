@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/golang/groupcache/lru"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/gitauth"
@@ -213,7 +214,7 @@ type GerritInterface interface {
 	GetIssueProperties(context.Context, int64) (*ChangeInfo, error)
 	GetPatch(context.Context, int64, string) (string, error)
 	GetRepoUrl() string
-	GetTrybotResults(context.Context, int64, int64) ([]*buildbucket.Build, error)
+	GetTrybotResults(context.Context, int64, int64) ([]*buildbucketpb.Build, error)
 	GetUserEmail(context.Context) (string, error)
 	Initialized() bool
 	IsBinaryPatch(ctx context.Context, issue int64, patch string) (bool, error)
@@ -851,7 +852,7 @@ func (g *Gerrit) Search(ctx context.Context, limit int, terms ...*SearchTerm) ([
 	return issues, nil
 }
 
-func (g *Gerrit) GetTrybotResults(ctx context.Context, issueID int64, patchsetID int64) ([]*buildbucket.Build, error) {
+func (g *Gerrit) GetTrybotResults(ctx context.Context, issueID int64, patchsetID int64) ([]*buildbucketpb.Build, error) {
 	return g.BuildbucketClient.GetTrybotsForCL(ctx, issueID, patchsetID, g.url)
 }
 
