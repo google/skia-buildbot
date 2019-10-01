@@ -57,7 +57,7 @@ type CompileTask struct {
 	Done                  bool   `json:"done"`
 	// Write Error only to Google storage and not the datastore because sometimes
 	// the error can be large and cause failures when writing to datastore.
-	Error        string `json:"error" datastore:"-"`
+	Error        string `json:"error" datastore:"-,omitempty"`
 	InfraFailure bool   `json:"infra_failure"`
 }
 
