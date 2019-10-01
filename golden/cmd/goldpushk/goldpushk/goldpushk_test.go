@@ -639,6 +639,69 @@ func TestGetUptimesSingleCluster(t *testing.T) {
 	assert.NotContains(t, uptime, makeID(Flutter, DiffServer))
 }
 
+func TestGetUptimes(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Gather the DeployableUnits to deploy.
+	s := ProductionDeployableUnits()
+	units := []DeployableUnit{}
+	units = appendUnit(t, units, s, Chrome, DiffServer)  // Public instance (skia-public).
+	units = appendUnit(t, units, s, Fuchsia, DiffServer) // Internal instance (skia-corp).
+
+	// Create the goldpushk instance under test.
+	g := &Goldpushk{}
+
+	// Fake kubectl outputs.
+	kubectlPublicOutput := "NAME  RUNNING_SINCE\ngold-chrome-diffserver  2019-09-24T17:57:02Z\n"
+	kubectlCorpOutput := "NAME  RUNNING_SINCE\ngold-fuchsia-diffserver  2019-09-24T17:56:32Z\n"
+
+	// Set up mocks.
+	numTimesKubectlGet := 0
+	commandCollector := exec.CommandCollector{}
+	commandCollector.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
+		if cmd.Name == "kubectl" && cmd.Args[0] == "get" {
+			numTimesKubectlGet++
+
+			// First call corresponds to the skia-public cluster, second call corresponds to skia-corp.
+			output := kubectlPublicOutput
+			if numTimesKubectlGet == 2 {
+				output = kubectlCorpOutput
+			}
+
+			n, err := cmd.CombinedOutput.Write([]byte(output))
+			assert.NoError(t, err)
+			assert.Equal(t, len(output), n)
+		}
+		return nil
+	})
+	commandCollectorCtx := exec.NewContext(context.Background(), commandCollector.Run)
+
+	// Fake time.
+	now := time.Date(2019, 9, 24, 17, 58, 2, 0, time.UTC) // 2019-09-24T17:58:02Z
+
+	// Call code under test.
+	uptime, err := g.getUptimes(commandCollectorCtx, units, now)
+	assert.NoError(t, err)
+
+	// Assert that the correct kubectl and gcloud commands were executed.
+	expectedCommands := []string{
+		"gcloud container clusters get-credentials skia-public --zone us-central1-a --project skia-public",
+		"kubectl get pods -o custom-columns=NAME:.metadata.labels.app,RUNNING_SINCE:.status.containerStatuses[0].state.running.startedAt",
+		"gcloud container clusters get-credentials skia-corp --zone us-central1-a --project google.com:skia-corp",
+		"kubectl get pods -o custom-columns=NAME:.metadata.labels.app,RUNNING_SINCE:.status.containerStatuses[0].state.running.startedAt",
+	}
+	assert.Len(t, commandCollector.Commands(), len(expectedCommands))
+	for i, command := range expectedCommands {
+		assert.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
+	}
+
+	// Assert that we get the expected uptimes.
+	assert.Len(t, uptime, 2)
+	assert.Equal(t, 60*time.Second, uptime[makeID(Chrome, DiffServer)])  // 17:58:02 - 17:57:02
+	assert.Equal(t, 90*time.Second, uptime[makeID(Fuchsia, DiffServer)]) // 17:58:02 - 17:56:32
+
+}
+
 // appendUnit will retrieve a DeployableUnit from the given DeployableUnitSet using the given
 // Instance and Service and append it to the given DeployableUnit slice.
 func appendUnit(t *testing.T, units []DeployableUnit, s DeployableUnitSet, instance Instance, service Service) []DeployableUnit {
