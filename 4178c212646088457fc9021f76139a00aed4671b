@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b0effdf5_9d279fd8",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-01T16:46:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5512d725_a284d4aa",
+      "range": {
+        "startLine": 163,
+        "startChar": 0,
+        "endLine": 163,
+        "endChar": 5
+      },
+      "revId": "4178c212646088457fc9021f76139a00aed4671b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "242678d4_7861f31c",
         "filename": "golden/go/diffstore/mem_diffstore.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "4178c212646088457fc9021f76139a00aed4671b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc82f9ee_1c13746a",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-01T16:46:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "242678d4_7861f31c",
+      "range": {
+        "startLine": 280,
+        "startChar": 3,
+        "endLine": 280,
+        "endChar": 26
+      },
+      "revId": "4178c212646088457fc9021f76139a00aed4671b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "6d54164c_a64e02fd",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-01T16:46:18Z",
+      "side": 1,
+      "message": "You\u0027re absolutely right. As it is right now:\n\n  $ wget --server-response --spider \n  http://localhost:9051/img/images/2e3685165791220ea7064d4c14696514.png\n  Spider mode enabled. Check if remote file exists.\n  --2019-10-01 12:25:00--  \n  http://localhost:9051/img/images/2e3685165791220ea7064d4c14696514.png\n  Resolving localhost (localhost)... ::1, 127.0.0.1\n  Connecting to localhost (localhost)|::1|:9051... connected.\n  HTTP request sent, awaiting response... \n    HTTP/1.1 200 OK\n    Date: Tue, 01 Oct 2019 16:25:01 GMT\n    Content-Type: image/png\n  Length: unspecified [image/png]\n  Remote file exists.\n\nAfter moving this line to the top:\n\n  $ wget --server-response --spider \n  http://localhost:9051/img/images/2e3685165791220ea7064d4c14696514.png                                              \n  Spider mode enabled. Check if remote file exists.\n  --2019-10-01 12:24:31--  \n  http://localhost:9051/img/images/2e3685165791220ea7064d4c14696514.png                                                                            \n  Resolving localhost (localhost)... ::1, 127.0.0.1\n  Connecting to localhost (localhost)|::1|:9051... connected.\n  HTTP request sent, awaiting response...\n    HTTP/1.1 200 OK\n    Cache-Control: public, max-age\u003d43200\n    Date: Tue, 01 Oct 2019 16:24:31 GMT\n    Content-Type: image/png\n  Length: unspecified [image/png]\n  Remote file exists.",
+      "parentUuid": "efc8c589_e92a7842",
+      "range": {
+        "startLine": 326,
+        "startChar": 0,
+        "endLine": 327,
+        "endChar": 58
+      },
+      "revId": "4178c212646088457fc9021f76139a00aed4671b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "86f24014_5c27c97e",
         "filename": "golden/go/diffstore/mem_diffstore.go",
         "patchSetId": 2
@@ -91,6 +163,30 @@
       "revId": "4178c212646088457fc9021f76139a00aed4671b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc22bf92_a4965008",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-01T16:46:18Z",
+      "side": 1,
+      "message": "Addressed in https://skia-review.googlesource.com/c/buildbot/+/245365.",
+      "parentUuid": "86f24014_5c27c97e",
+      "range": {
+        "startLine": 339,
+        "startChar": 0,
+        "endLine": 350,
+        "endChar": 0
+      },
+      "revId": "4178c212646088457fc9021f76139a00aed4671b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
