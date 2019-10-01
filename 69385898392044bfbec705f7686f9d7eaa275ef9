@@ -46,6 +46,30 @@
       "revId": "69385898392044bfbec705f7686f9d7eaa275ef9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c58ff140_54714feb",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-01T14:59:50Z",
+      "side": 1,
+      "message": "My guess is that this is for super-fancy cross-repo tryjobs involving changes in multiple repos.",
+      "parentUuid": "80228f78_ce3d1c8d",
+      "range": {
+        "startLine": 357,
+        "startChar": 75,
+        "endLine": 357,
+        "endChar": 99
+      },
+      "revId": "69385898392044bfbec705f7686f9d7eaa275ef9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
