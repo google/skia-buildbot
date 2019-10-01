@@ -136,7 +136,7 @@ func New() (baseapp.App, error) {
 	}
 	srv.loadTemplates()
 
-	locations := []string{"skia-public", "google.com:skia-corp", "google.com:skia-buildbots"}
+	locations := []string{"skia-public", "google.com:skia-corp"}
 	livenesses := map[string]metrics2.Liveness{}
 	for _, location := range locations {
 		livenesses[location] = metrics2.NewLiveness("alive", map[string]string{"location": location})
