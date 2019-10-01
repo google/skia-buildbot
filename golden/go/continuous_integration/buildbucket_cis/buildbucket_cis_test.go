@@ -3,11 +3,14 @@ package buildbucket_cis
 import (
 	"context"
 	"errors"
+	"strconv"
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/timestamp"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/buildbucket"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/buildbucket/mocks"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -22,16 +25,16 @@ func TestGetTryJobSunnyDay(t *testing.T) {
 
 	c := New(mbi)
 
-	id := "8904420728436446512"
+	id := int64(8904420728436446512)
 	ts := time.Date(2019, time.August, 22, 13, 21, 39, 0, time.UTC)
 
 	cb := getCompletedBuild()
 	mbi.On("GetBuild", testutils.AnyContext, id).Return(&cb, nil)
 
-	tj, err := c.GetTryJob(context.Background(), id)
+	tj, err := c.GetTryJob(context.Background(), strconv.FormatInt(id, 10))
 	assert.NoError(t, err)
 	assert.Equal(t, continuous_integration.TryJob{
-		SystemID:    id,
+		SystemID:    strconv.FormatInt(id, 10),
 		DisplayName: "Infra-PerCommit-Medium",
 		Updated:     ts,
 	}, tj)
@@ -45,16 +48,16 @@ func TestGetTryJobRunning(t *testing.T) {
 
 	c := New(mbi)
 
-	id := "8904420728436446512"
+	id := int64(8904420728436446512)
 	ts := time.Date(2019, time.August, 22, 14, 31, 21, 0, time.UTC)
 
 	rb := getRunningBuild()
 	mbi.On("GetBuild", testutils.AnyContext, id).Return(&rb, nil)
 
-	tj, err := c.GetTryJob(context.Background(), id)
+	tj, err := c.GetTryJob(context.Background(), strconv.FormatInt(id, 10))
 	assert.NoError(t, err)
 	assert.Equal(t, continuous_integration.TryJob{
-		SystemID:    id,
+		SystemID:    strconv.FormatInt(id, 10),
 		DisplayName: "linux-rel",
 		Updated:     ts,
 	}, tj)
@@ -68,11 +71,11 @@ func TestGetTryJobDoesNotExist(t *testing.T) {
 
 	c := New(mbi)
 
-	id := "8904420728436446512"
+	id := int64(8904420728436446512)
 
 	mbi.On("GetBuild", testutils.AnyContext, id).Return(nil, errors.New("rpc error: code = NotFound desc = not found"))
 
-	_, err := c.GetTryJob(context.Background(), id)
+	_, err := c.GetTryJob(context.Background(), strconv.FormatInt(id, 10))
 	assert.Error(t, err)
 	assert.Equal(t, continuous_integration.ErrNotFound, err)
 }
@@ -85,56 +88,60 @@ func TestGetTryJobOtherError(t *testing.T) {
 
 	c := New(mbi)
 
-	id := "8904420728436446512"
+	id := int64(8904420728436446512)
 
 	mbi.On("GetBuild", testutils.AnyContext, id).Return(nil, errors.New("oops, sentient AI"))
 
-	_, err := c.GetTryJob(context.Background(), id)
+	_, err := c.GetTryJob(context.Background(), strconv.FormatInt(id, 10))
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "fetching Tryjob")
 	assert.Contains(t, err.Error(), "oops")
 }
 
+func ts(t time.Time) *timestamp.Timestamp {
+	rv, err := ptypes.TimestampProto(t)
+	if err != nil {
+		panic(err)
+	}
+	return rv
+}
+
 // This code can be used to fetch real data from buildbucket
 // func TestReal(t *testing.T) {
 // 	bb := buildbucket.NewClient(httputils.DefaultClientConfig().Client())
-// 	b, err := bb.GetBuild(context.Background(), "8904415893681430384")
+// 	b, err := bb.GetBuild(context.Background(), 8904415893681430384)
 // 	spew.Dump(b)
 // 	fmt.Printf("err: %v\n", err)
 // }
 
 // Based on a real-world query for a Tryjob that completed
-func getCompletedBuild() buildbucket.Build {
-	return buildbucket.Build{
-		Bucket:    "my.bucket",
-		Completed: time.Date(2019, time.August, 22, 13, 21, 39, 0, time.UTC),
-		CreatedBy: "test@example.com",
-		Created:   time.Date(2019, time.August, 22, 13, 14, 31, 0, time.UTC),
-		Id:        "8904420728436446512",
-		Url:       "https://cr-buildbucket.appspot.com/build/8904420728436446512",
-		Parameters: &buildbucket.Parameters{
-			BuilderName: "Infra-PerCommit-Medium",
-			// Properties omitted for brevity
+func getCompletedBuild() buildbucketpb.Build {
+	return buildbucketpb.Build{
+		Builder: &buildbucketpb.BuilderID{
+			Project: "skia",
+			Bucket:  "my.bucket",
+			Builder: "Infra-PerCommit-Medium",
 		},
-		Result: "SUCCESS",
-		Status: "COMPLETED",
+		EndTime:    ts(time.Date(2019, time.August, 22, 13, 21, 39, 0, time.UTC)),
+		CreatedBy:  "test@example.com",
+		CreateTime: ts(time.Date(2019, time.August, 22, 13, 14, 31, 0, time.UTC)),
+		Id:         8904420728436446512,
+		Status:     buildbucketpb.Status_SUCCESS,
 	}
 }
 
 // Based on a real-world query for a Tryjob that was still running
-func getRunningBuild() buildbucket.Build {
-	return buildbucket.Build{
-		Bucket:    "other.bucket",
-		Completed: time.Time{},
-		CreatedBy: "test@example.com",
-		Created:   time.Date(2019, time.August, 22, 14, 31, 21, 0, time.UTC),
-		Id:        "8904415893681430384",
-		Url:       "https://cr-buildbucket.appspot.com/build/8904415893681430384",
-		Parameters: &buildbucket.Parameters{
-			BuilderName: "linux-rel",
-			// Properties omitted for brevity
+func getRunningBuild() buildbucketpb.Build {
+	return buildbucketpb.Build{
+		Builder: &buildbucketpb.BuilderID{
+			Project: "other",
+			Bucket:  "other.bucket",
+			Builder: "linux-rel",
 		},
-		Result: "",
-		Status: "STARTED",
+		EndTime:    nil,
+		CreatedBy:  "test@example.com",
+		CreateTime: ts(time.Date(2019, time.August, 22, 14, 31, 21, 0, time.UTC)),
+		Id:         8904415893681430384,
+		Status:     buildbucketpb.Status_STARTED,
 	}
 }

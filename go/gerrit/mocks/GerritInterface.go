@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	buildbucket "go.skia.org/infra/go/buildbucket"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 
 	gerrit "go.skia.org/infra/go/gerrit"
 
@@ -264,15 +264,15 @@ func (_m *GerritInterface) GetRepoUrl() string {
 }
 
 // GetTrybotResults provides a mock function with given fields: _a0, _a1, _a2
-func (_m *GerritInterface) GetTrybotResults(_a0 context.Context, _a1 int64, _a2 int64) ([]*buildbucket.Build, error) {
+func (_m *GerritInterface) GetTrybotResults(_a0 context.Context, _a1 int64, _a2 int64) ([]*buildbucketpb.Build, error) {
 	ret := _m.Called(_a0, _a1, _a2)
 
-	var r0 []*buildbucket.Build
-	if rf, ok := ret.Get(0).(func(context.Context, int64, int64) []*buildbucket.Build); ok {
+	var r0 []*buildbucketpb.Build
+	if rf, ok := ret.Get(0).(func(context.Context, int64, int64) []*buildbucketpb.Build); ok {
 		r0 = rf(_a0, _a1, _a2)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*buildbucket.Build)
+			r0 = ret.Get(0).([]*buildbucketpb.Build)
 		}
 	}
 

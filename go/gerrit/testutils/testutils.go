@@ -6,7 +6,7 @@ import (
 	"path"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/buildbucket"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/buildbucket/bb_testutils"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/mockhttpclient"
@@ -67,7 +67,7 @@ func (g *MockGerrit) MockGetIssueProperties(ci *gerrit.ChangeInfo) {
 	g.Mock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
 }
 
-func (g *MockGerrit) MockGetTrybotResults(ci *gerrit.ChangeInfo, patchset int, results []*buildbucket.Build) {
+func (g *MockGerrit) MockGetTrybotResults(ci *gerrit.ChangeInfo, patchset int, results []*buildbucketpb.Build) {
 	g.bb.MockGetTrybotsForCL(ci.Issue, int64(patchset), g.Gerrit.Url(ci.Issue), results, nil)
 }
 

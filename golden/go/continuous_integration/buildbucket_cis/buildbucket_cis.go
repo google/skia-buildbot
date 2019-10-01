@@ -2,8 +2,11 @@ package buildbucket_cis
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
+	"github.com/golang/protobuf/ptypes"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/skerr"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
@@ -35,20 +38,32 @@ func (c *CISImpl) GetTryJob(ctx context.Context, id string) (ci.TryJob, error) {
 	if err := c.rl.Wait(ctx); err != nil {
 		return ci.TryJob{}, skerr.Wrap(err)
 	}
-	tj, err := c.bbClient.GetBuild(ctx, id)
+	buildId, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return ci.TryJob{}, skerr.Wrapf(err, "Invalid TryJob ID %q", id)
+	}
+	tj, err := c.bbClient.GetBuild(ctx, buildId)
 	if err != nil {
 		if strings.Contains(err.Error(), "NotFound") {
 			return ci.TryJob{}, ci.ErrNotFound
 		}
 		return ci.TryJob{}, skerr.Wrapf(err, "fetching Tryjob %s from buildbucket", id)
 	}
-	ts := tj.Created
-	if tj.Status == buildbucket.STATUS_COMPLETED {
-		ts = tj.Completed
+	ts, err := ptypes.Timestamp(tj.CreateTime)
+	if err != nil {
+		return ci.TryJob{}, skerr.Wrapf(err, "Failed to convert timestamp for %d", tj.Id)
+	}
+	ts = ts.UTC()
+	if tj.Status&buildbucketpb.Status_ENDED_MASK > 0 {
+		ts, err = ptypes.Timestamp(tj.EndTime)
+		if err != nil {
+			return ci.TryJob{}, skerr.Wrapf(err, "Failed to convert timestamp for %d", tj.Id)
+		}
+		ts = ts.UTC()
 	}
 	return ci.TryJob{
 		SystemID:    id,
-		DisplayName: tj.Parameters.BuilderName,
+		DisplayName: tj.Builder.Builder,
 		Updated:     ts,
 	}, nil
 }

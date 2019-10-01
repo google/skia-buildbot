@@ -2,14 +2,15 @@ package tryjobs
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
-	"go.skia.org/infra/go/buildbucket"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/mockhttpclient"
@@ -21,7 +22,7 @@ import (
 // Verify that updateJobs sends heartbeats for unfinished try Jobs and
 // success/failure for finished Jobs.
 func TestUpdateJobs(t *testing.T) {
-	_, trybots, gb, mock, cleanup := setup(t)
+	_, trybots, gb, mock, _, cleanup := setup(t)
 	defer cleanup()
 
 	now := time.Now()
@@ -114,45 +115,37 @@ func TestUpdateJobs(t *testing.T) {
 }
 
 func TestGetRepo(t *testing.T) {
-	_, trybots, _, _, cleanup := setup(t)
+	_, trybots, _, _, _, cleanup := setup(t)
 	defer cleanup()
 
-	props := &buildbucket.Properties{
-		PatchProject: patchProject,
-	}
-
 	// Test basic.
-	url, r, patchRepo, err := trybots.getRepo(props)
+	url, r, err := trybots.getRepo(patchProject)
 	assert.NoError(t, err)
 	repo := trybots.projectRepoMapping[patchProject]
 	assert.Equal(t, repo, url)
-	assert.Equal(t, repo, patchRepo)
 	assert.NotNil(t, r)
 
 	// Bogus repo.
-	props.PatchProject = "bogus"
-	_, _, _, err = trybots.getRepo(props)
+	_, _, err = trybots.getRepo("bogus")
 	assert.EqualError(t, err, "Unknown patch project \"bogus\"")
 
 	// Cross-repo try job.
-	parentUrl := trybots.projectRepoMapping[parentProject]
-	props.PatchProject = patchProject
-	props.TryJobRepo = parentUrl
-	url, r, patchRepo, err = trybots.getRepo(props)
-	assert.NoError(t, err)
-	assert.Equal(t, parentUrl, url)
-	assert.Equal(t, repo, patchRepo)
+	// TODO(borenet): Cross-repo try jobs are disabled until we fire out a
+	// workaround.
+	//parentUrl := trybots.projectRepoMapping[parentProject]
+	//props.PatchProject = patchProject
+	//url, r, patchRepo, err = trybots.getRepo(props)
+	//assert.NoError(t, err)
+	//assert.Equal(t, parentUrl, url)
+	//assert.Equal(t, repo, patchRepo)
 }
 
 func TestGetRevision(t *testing.T) {
-	_, trybots, _, mock, cleanup := setup(t)
+	_, trybots, _, mock, _, cleanup := setup(t)
 	defer cleanup()
 
 	// Get the (only) commit from the repo.
-	props := &buildbucket.Properties{
-		PatchProject: patchProject,
-	}
-	_, r, _, err := trybots.getRepo(props)
+	_, r, err := trybots.getRepo(patchProject)
 	assert.NoError(t, err)
 	c := r.Get("master").Hash
 
@@ -166,28 +159,13 @@ func TestGetRevision(t *testing.T) {
 	url := fmt.Sprintf("%s/a/changes/%d/detail?o=ALL_REVISIONS", fakeGerritUrl, gerritIssue)
 	mock.Mock(url, mockhttpclient.MockGetDialogue(serialized))
 
-	// Try different inputs to getRevision.
-	tests := map[string]string{
-		"":              c,
-		"HEAD":          c,
-		"master":        c,
-		"origin/master": c,
-		c:               c,
-		"abc123":        "",
-	}
-	for input, expect := range tests {
-		got, err := trybots.getRevision(context.TODO(), r, input, gerritIssue)
-		if expect == "" {
-			assert.Error(t, err)
-		} else {
-			assert.NoError(t, err)
-			assert.Equal(t, expect, got, fmt.Sprintf("Input: %q", input))
-		}
-	}
+	got, err := trybots.getRevision(context.TODO(), r, gerritIssue)
+	assert.NoError(t, err)
+	assert.Equal(t, c, got)
 }
 
 func TestCancelBuild(t *testing.T) {
-	_, trybots, _, mock, cleanup := setup(t)
+	_, trybots, _, mock, _, cleanup := setup(t)
 	defer cleanup()
 
 	id := int64(12345)
@@ -202,7 +180,7 @@ func TestCancelBuild(t *testing.T) {
 }
 
 func TestTryLeaseBuild(t *testing.T) {
-	_, trybots, _, mock, cleanup := setup(t)
+	_, trybots, _, mock, _, cleanup := setup(t)
 	defer cleanup()
 
 	id := int64(12345)
@@ -220,7 +198,7 @@ func TestTryLeaseBuild(t *testing.T) {
 }
 
 func TestJobStarted(t *testing.T) {
-	_, trybots, gb, mock, cleanup := setup(t)
+	_, trybots, gb, mock, _, cleanup := setup(t)
 	defer cleanup()
 
 	j := tryjob(gb.RepoUrl())
@@ -238,7 +216,7 @@ func TestJobStarted(t *testing.T) {
 }
 
 func TestJobFinished(t *testing.T) {
-	_, trybots, gb, mock, cleanup := setup(t)
+	_, trybots, gb, mock, _, cleanup := setup(t)
 	defer cleanup()
 
 	j := tryjob(gb.RepoUrl())
@@ -301,8 +279,10 @@ func (aj addedJobs) getAddedJob(t *testing.T, d db.JobReader) *types.Job {
 }
 
 func TestInsertNewJob(t *testing.T) {
-	ctx, trybots, _, mock, cleanup := setup(t)
+	ctx, trybots, gb, mock, mockBB, cleanup := setup(t)
 	defer cleanup()
+
+	mockGetChangeInfo(t, mock, gerritIssue, patchProject, "master")
 
 	now := time.Now()
 
@@ -312,28 +292,31 @@ func TestInsertNewJob(t *testing.T) {
 	b1 := Build(t, now)
 	MockTryLeaseBuild(mock, b1.Id, nil)
 	MockJobStarted(mock, b1.Id, nil)
-	err := trybots.insertNewJob(ctx, b1)
+	mockBB.On("GetBuild", ctx, b1.Id).Return(b1, nil)
+	err := trybots.insertNewJob(ctx, b1.Id)
 	assert.NoError(t, err)
 	assert.True(t, mock.Empty())
 	result := aj.getAddedJob(t, trybots.db)
 	assert.Equal(t, result.BuildbucketBuildId, b1.Id)
-	assert.Equal(t, result.BuildbucketLeaseKey, b1.LeaseKey)
+	assert.NotEqual(t, "", result.BuildbucketLeaseKey)
 	assert.True(t, result.Valid())
 
 	// Failed to lease build.
 	expectErr := fmt.Errorf("Can't lease this!")
 	MockTryLeaseBuild(mock, b1.Id, expectErr)
-	err = trybots.insertNewJob(ctx, b1)
+	mockBB.On("GetBuild", ctx, b1.Id).Return(b1, nil)
+	err = trybots.insertNewJob(ctx, b1.Id)
 	assert.Contains(t, err.Error(), expectErr.Error())
 	result = aj.getAddedJob(t, trybots.db)
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 
-	// Invalid parameters_json.
+	// No GerritChanges.
 	b2 := Build(t, now)
-	b2.ParametersJson = "dklsadfklas"
-	MockCancelBuild(mock, b2.Id, "Invalid parameters_json: invalid character 'd' looking for beginning of value;\\\\n\\\\ndklsadfklas", nil)
-	err = trybots.insertNewJob(ctx, b2)
+	b2.Input.GerritChanges = nil
+	MockCancelBuild(mock, b2.Id, fmt.Sprintf("Invalid Build %d: input should have exactly one GerritChanges: ", b2.Id), nil)
+	mockBB.On("GetBuild", ctx, b2.Id).Return(b2, nil)
+	err = trybots.insertNewJob(ctx, b2.Id)
 	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
 	result = aj.getAddedJob(t, trybots.db)
 	assert.Nil(t, result)
@@ -341,51 +324,27 @@ func TestInsertNewJob(t *testing.T) {
 
 	// Invalid repo.
 	b3 := Build(t, now)
-	b3.ParametersJson = testutils.MarshalJSON(t, Params(t, "fake-job", "bogus-repo", "master", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
+	b3.Input.GerritChanges[0].Project = "bogus-repo"
 	MockCancelBuild(mock, b3.Id, "Unable to find repo: Unknown patch project \\\\\\\"bogus-repo\\\\\\\"", nil)
-	err = trybots.insertNewJob(ctx, b3)
-	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
-	result = aj.getAddedJob(t, trybots.db)
-	assert.Nil(t, result)
-	assert.True(t, mock.Empty())
-
-	// Invalid revision.
-	b4 := Build(t, now)
-	b4.ParametersJson = testutils.MarshalJSON(t, Params(t, "fake-job", patchProject, "abz", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
-	MockCancelBuild(mock, b4.Id, "Invalid revision: Unknown revision abz", nil)
-	err = trybots.insertNewJob(ctx, b4)
-	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
-	result = aj.getAddedJob(t, trybots.db)
-	assert.Nil(t, result)
-	assert.True(t, mock.Empty())
-
-	// Invalid patch storage.
-	b6 := Build(t, now)
-	p := Params(t, "fake-job", patchProject, "master", gerritUrl, gerritPatch.Issue, gerritPatch.Patchset)
-	p.Properties.PatchStorage = "???"
-	b6.ParametersJson = testutils.MarshalJSON(t, p)
-	MockCancelBuild(mock, b6.Id, "Invalid patch storage: ???", nil)
-	err = trybots.insertNewJob(ctx, b6)
-	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
-	result = aj.getAddedJob(t, trybots.db)
-	assert.Nil(t, result)
-	assert.True(t, mock.Empty())
-
-	// Invalid RepoState.
-	b7 := Build(t, now)
-	b7.ParametersJson = testutils.MarshalJSON(t, Params(t, "fake-job", patchProject, "bad-revision", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
-	MockCancelBuild(mock, b7.Id, "Invalid revision: Unknown revision bad-revision", nil)
-	err = trybots.insertNewJob(ctx, b7)
+	mockBB.On("GetBuild", ctx, b3.Id).Return(b3, nil)
+	err = trybots.insertNewJob(ctx, b3.Id)
 	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
 	result = aj.getAddedJob(t, trybots.db)
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 
 	// Invalid JobSpec.
+	rs := types.RepoState{
+		Patch:    gerritPatch,
+		Repo:     gb.RepoUrl(),
+		Revision: trybots.rm[gb.RepoUrl()].Get("master").Hash,
+	}
+	rs.Patch.PatchRepo = rs.Repo
 	b8 := Build(t, now)
-	b8.ParametersJson = testutils.MarshalJSON(t, Params(t, "bogus-job", patchProject, "master", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
-	MockCancelBuild(mock, b8.Id, "Failed to create Job from JobSpec: No such job: bogus-job; \\\\n\\\\n{bogus-job { https://skia-review.googlesource.com/ 2112 3 skia gerrit  master }}", nil)
-	err = trybots.insertNewJob(ctx, b8)
+	b8.Builder.Builder = "bogus-job"
+	MockCancelBuild(mock, b8.Id, fmt.Sprintf("Failed to create Job from JobSpec: bogus-job @ %+v: No such job: bogus-job", rs), nil)
+	mockBB.On("GetBuild", ctx, b8.Id).Return(b8, nil)
+	err = trybots.insertNewJob(ctx, b8.Id)
 	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
 	result = aj.getAddedJob(t, trybots.db)
 	assert.Nil(t, result)
@@ -393,19 +352,33 @@ func TestInsertNewJob(t *testing.T) {
 
 	// Failure to cancel the build.
 	b9 := Build(t, now)
-	b9.ParametersJson = testutils.MarshalJSON(t, Params(t, "bogus-job", patchProject, "master", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
+	b9.Builder.Builder = "bogus-job"
 	expect := fmt.Errorf("no cancel!")
-	MockCancelBuild(mock, b9.Id, "Failed to create Job from JobSpec: No such job: bogus-job; \\\\n\\\\n{bogus-job { https://skia-review.googlesource.com/ 2112 3 skia gerrit  master }}", expect)
-	err = trybots.insertNewJob(ctx, b9)
+	MockCancelBuild(mock, b9.Id, fmt.Sprintf("Failed to create Job from JobSpec: bogus-job @ %+v: No such job: bogus-job", rs), expect)
+	mockBB.On("GetBuild", ctx, b9.Id).Return(b9, nil)
+	err = trybots.insertNewJob(ctx, b9.Id)
 	assert.EqualError(t, err, expect.Error())
 	result = aj.getAddedJob(t, trybots.db)
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 }
 
+func mockGetChangeInfo(t *testing.T, mock *mockhttpclient.URLMock, id int, project, branch string) {
+	issueBytes, err := json.Marshal(&gerrit.ChangeInfo{
+		Id:      strconv.FormatInt(gerritIssue, 10),
+		Project: project,
+		Branch:  branch,
+	})
+	assert.NoError(t, err)
+	issueBytes = append([]byte("XSS\n"), issueBytes...)
+	mock.Mock(fmt.Sprintf("%s/a%s", fakeGerritUrl, fmt.Sprintf(gerrit.URL_TMPL_CHANGE, gerritIssue)), mockhttpclient.MockGetDialogue(issueBytes))
+}
+
 func TestRetry(t *testing.T) {
-	ctx, trybots, _, mock, cleanup := setup(t)
+	ctx, trybots, _, mock, mockBB, cleanup := setup(t)
 	defer cleanup()
+
+	mockGetChangeInfo(t, mock, gerritIssue, patchProject, "master")
 
 	now := time.Now()
 
@@ -414,12 +387,13 @@ func TestRetry(t *testing.T) {
 	b1 := Build(t, now)
 	MockTryLeaseBuild(mock, b1.Id, nil)
 	MockJobStarted(mock, b1.Id, nil)
-	err := trybots.insertNewJob(ctx, b1)
+	mockBB.On("GetBuild", ctx, b1.Id).Return(b1, nil)
+	err := trybots.insertNewJob(ctx, b1.Id)
 	assert.NoError(t, err)
 	j1 := aj.getAddedJob(t, trybots.db)
 	assert.True(t, mock.Empty())
 	assert.Equal(t, j1.BuildbucketBuildId, b1.Id)
-	assert.Equal(t, j1.BuildbucketLeaseKey, b1.LeaseKey)
+	assert.NotEqual(t, "", j1.BuildbucketLeaseKey)
 	assert.True(t, j1.Valid())
 	assert.False(t, j1.IsForce)
 	assert.NoError(t, trybots.db.PutJobs([]*types.Job{j1}))
@@ -429,23 +403,26 @@ func TestRetry(t *testing.T) {
 	b2 := Build(t, now)
 	MockTryLeaseBuild(mock, b2.Id, nil)
 	MockJobStarted(mock, b2.Id, nil)
-	err = trybots.insertNewJob(ctx, b2)
+	mockBB.On("GetBuild", ctx, b2.Id).Return(b2, nil)
+	err = trybots.insertNewJob(ctx, b2.Id)
 	assert.NoError(t, err)
 	assert.True(t, mock.Empty())
 	j2 := aj.getAddedJob(t, trybots.db)
 	assert.Equal(t, j2.BuildbucketBuildId, b2.Id)
-	assert.Equal(t, j2.BuildbucketLeaseKey, b2.LeaseKey)
+	assert.NotEqual(t, "", j2.BuildbucketLeaseKey)
 	assert.True(t, j2.Valid())
 	assert.True(t, j2.IsForce)
 }
 
 func TestPoll(t *testing.T) {
-	ctx, trybots, _, mock, cleanup := setup(t)
+	ctx, trybots, _, mock, mockBB, cleanup := setup(t)
 	defer cleanup()
+
+	mockGetChangeInfo(t, mock, gerritIssue, patchProject, "master")
 
 	now := time.Now()
 
-	assertAdded := func(builds []*buildbucket_api.LegacyApiCommonBuildMessage) {
+	assertAdded := func(builds []*buildbucketpb.Build) {
 		jobs, err := trybots.getActiveTryJobs()
 		assert.NoError(t, err)
 		byId := make(map[int64]*types.Job, len(jobs))
@@ -463,24 +440,25 @@ func TestPoll(t *testing.T) {
 		assert.NoError(t, trybots.db.PutJobs(jobs))
 	}
 
-	makeBuilds := func(n int) []*buildbucket_api.LegacyApiCommonBuildMessage {
-		builds := make([]*buildbucket_api.LegacyApiCommonBuildMessage, 0, n)
+	makeBuilds := func(n int) []*buildbucketpb.Build {
+		builds := make([]*buildbucketpb.Build, 0, n)
 		for i := 0; i < n; i++ {
 			builds = append(builds, Build(t, now))
 		}
 		return builds
 	}
 
-	mockBuilds := func(builds []*buildbucket_api.LegacyApiCommonBuildMessage) []*buildbucket_api.LegacyApiCommonBuildMessage {
+	mockBuilds := func(builds []*buildbucketpb.Build) []*buildbucketpb.Build {
 		MockPeek(mock, builds, now, "", "", nil)
 		for _, b := range builds {
 			MockTryLeaseBuild(mock, b.Id, nil)
 			MockJobStarted(mock, b.Id, nil)
+			mockBB.On("GetBuild", ctx, b.Id).Return(b, nil)
 		}
 		return builds
 	}
 
-	check := func(builds []*buildbucket_api.LegacyApiCommonBuildMessage) {
+	check := func(builds []*buildbucketpb.Build) {
 		assert.Nil(t, trybots.Poll(ctx))
 		assert.True(t, mock.Empty())
 		assertAdded(builds)
@@ -499,6 +477,7 @@ func TestPoll(t *testing.T) {
 	for _, b := range builds {
 		MockTryLeaseBuild(mock, b.Id, nil)
 		MockJobStarted(mock, b.Id, nil)
+		mockBB.On("GetBuild", ctx, b.Id).Return(b, nil)
 	}
 	check(builds)
 
@@ -507,14 +486,16 @@ func TestPoll(t *testing.T) {
 	builds = makeBuilds(5)
 	failIdx := 2
 	failBuild := builds[failIdx]
-	failBuild.ParametersJson = "???"
+	failBuild.Input.GerritChanges[0].Project = "bogus"
 	MockPeek(mock, builds, now, "", "", nil)
 	builds = append(builds[:failIdx], builds[failIdx+1:]...)
 	for _, b := range builds {
 		MockTryLeaseBuild(mock, b.Id, nil)
 		MockJobStarted(mock, b.Id, nil)
+		mockBB.On("GetBuild", ctx, b.Id).Return(b, nil)
 	}
-	MockCancelBuild(mock, failBuild.Id, "Invalid parameters_json: invalid character '?' looking for beginning of value;\\\\n\\\\n???", nil)
+	mockBB.On("GetBuild", ctx, failBuild.Id).Return(failBuild, nil)
+	MockCancelBuild(mock, failBuild.Id, "Unable to find repo: Unknown patch project \\\\\\\"bogus\\\\\\\"", nil)
 	check(builds)
 
 	// Multiple new builds, fail jobStarted, ensure that the others are
@@ -526,7 +507,9 @@ func TestPoll(t *testing.T) {
 	for _, b := range builds {
 		MockTryLeaseBuild(mock, b.Id, nil)
 		MockJobStarted(mock, b.Id, nil)
+		mockBB.On("GetBuild", ctx, b.Id).Return(b, nil)
 	}
+	mockBB.On("GetBuild", ctx, failBuild.Id).Return(failBuild, nil)
 	MockTryLeaseBuild(mock, failBuild.Id, nil)
 	MockJobStarted(mock, failBuild.Id, fmt.Errorf("Failed to start build."))
 	assert.EqualError(t, trybots.Poll(ctx), "Got errors loading builds from Buildbucket: [Failed to send job-started notification with: Failed to start build.]")
@@ -543,6 +526,7 @@ func TestPoll(t *testing.T) {
 	for _, b := range builds {
 		MockTryLeaseBuild(mock, b.Id, nil)
 		MockJobStarted(mock, b.Id, nil)
+		mockBB.On("GetBuild", ctx, b.Id).Return(b, nil)
 	}
 	assert.EqualError(t, trybots.Poll(ctx), "Got errors loading builds from Buildbucket: [Failed peek]")
 	assert.True(t, mock.Empty())

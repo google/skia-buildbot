@@ -11,7 +11,8 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	"go.skia.org/infra/go/buildbucket"
+	"github.com/golang/protobuf/ptypes"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitiles"
@@ -199,9 +200,9 @@ func (c *Client) ReportCQStats(ctx context.Context, change int64) error {
 		return err
 	}
 	// Consider only CQ bots.
-	cqBuilds := []*buildbucket.Build{}
+	cqBuilds := []*buildbucketpb.Build{}
 	for _, b := range builds {
-		if c.isCQTryBot(b.Parameters.BuilderName) {
+		if c.isCQTryBot(b.Builder.Builder) {
 			cqBuilds = append(cqBuilds, b)
 		}
 	}
@@ -225,23 +226,33 @@ func (c *Client) ReportCQStats(ctx context.Context, change int64) error {
 // change and patchsetID:
 // * The total time the change spent waiting for CQ trybots to complete.
 // * The time each CQ trybot took to complete.
-func (c *Client) ReportCQStatsForLandedCL(cqBuilds []*buildbucket.Build, gerritURL string) {
+func (c *Client) ReportCQStatsForLandedCL(cqBuilds []*buildbucketpb.Build, gerritURL string) {
 	endTimeOfCQBots := time.Time{}
 	maximumTrybotDuration := int64(0)
 	for _, b := range cqBuilds {
-		createdTime := time.Time(b.Created).UTC()
-		completedTime := time.Time(b.Completed).UTC()
-		if (completedTime == time.Time{}.UTC()) {
-			sklog.Warningf("Skipping %s on %s. The correct completed time has not shown up in Buildbucket yet.", b.Parameters.BuilderName, gerritURL)
+		createdTime, err := ptypes.Timestamp(b.CreateTime)
+		if err != nil {
+			sklog.Errorf("Failed to convert timestamp for %d; skipping: %s", b.Id, err)
 			continue
 		}
+		createdTime = createdTime.UTC()
+		if b.EndTime == nil {
+			sklog.Warningf("Skipping %s on %s. The correct completed time has not shown up in Buildbucket yet.", b.Builder.Builder, gerritURL)
+			continue
+		}
+		completedTime, err := ptypes.Timestamp(b.EndTime)
+		if err != nil {
+			sklog.Errorf("Failed to convert timestamp for %d; skipping: %s", b.Id, err)
+			continue
+		}
+		completedTime = completedTime.UTC()
 		if endTimeOfCQBots.Before(completedTime) {
 			endTimeOfCQBots = completedTime
 		}
 
 		duration := int64(completedTime.Sub(createdTime).Seconds())
-		sklog.Infof("%s was created at %s by %s and completed at %s. Total duration: %d", b.Parameters.BuilderName, createdTime, gerritURL, completedTime, duration)
-		landedTrybotDurationMetric := c.getLandedTrybotDurationMetric(b.Parameters.BuilderName)
+		sklog.Infof("%s was created at %s by %s and completed at %s. Total duration: %d", b.Builder.Builder, createdTime, gerritURL, completedTime, duration)
+		landedTrybotDurationMetric := c.getLandedTrybotDurationMetric(b.Builder.Builder)
 		landedTrybotDurationMetric.Update(duration)
 
 		if duration > maximumTrybotDuration {
@@ -259,16 +270,26 @@ func (c *Client) ReportCQStatsForLandedCL(cqBuilds []*buildbucket.Build, gerritU
 // change and patchsetID:
 // * How long CQ trybots have been running for.
 // * How many CQ trybots have been triggered.
-func (c *Client) ReportCQStatsForInFlightCL(cqBuilds []*buildbucket.Build, gerritURL string) {
+func (c *Client) ReportCQStatsForInFlightCL(cqBuilds []*buildbucketpb.Build, gerritURL string) {
 	totalTriggeredCQBots := int(0)
 	currentTime := time.Now()
 	for _, b := range cqBuilds {
 		totalTriggeredCQBots++
 
-		createdTime := time.Time(b.Created).UTC()
-		completedTime := time.Time(b.Completed).UTC()
-		if (completedTime != time.Time{}.UTC()) {
-			if time.Hour*24 < time.Now().UTC().Sub(createdTime) {
+		createdTime, err := ptypes.Timestamp(b.CreateTime)
+		if err != nil {
+			sklog.Errorf("Failed to convert timestamp for %d; skipping: %s", b.Id, err)
+			continue
+		}
+		createdTime = createdTime.UTC()
+		if b.EndTime != nil {
+			completedTime, err := ptypes.Timestamp(b.EndTime)
+			if err != nil {
+				sklog.Errorf("Failed to convert timestamp for %d; skipping: %s", b.Id, err)
+				continue
+			}
+			completedTime = completedTime.UTC()
+			if time.Hour*24 < time.Now().UTC().Sub(completedTime) {
 				// The build has completed more than a day ago. Do not include it
 				// in totalTriggeredCQBots. See skbug.com/7340.
 				totalTriggeredCQBots--
@@ -279,9 +300,9 @@ func (c *Client) ReportCQStatsForInFlightCL(cqBuilds []*buildbucket.Build, gerri
 
 		duration := int64(currentTime.Sub(createdTime).Seconds())
 		if duration > CQ_TRYBOT_DURATION_SECS_THRESHOLD {
-			sklog.Errorf("CQTrybotDurationError: %s was triggered by %s and is still running after %d seconds. Threshold is %d seconds.", b.Parameters.BuilderName, gerritURL, duration, CQ_TRYBOT_DURATION_SECS_THRESHOLD)
+			sklog.Errorf("CQTrybotDurationError: %s was triggered by %s and is still running after %d seconds. Threshold is %d seconds.", b.Builder.Builder, gerritURL, duration, CQ_TRYBOT_DURATION_SECS_THRESHOLD)
 		}
-		inflightTrybotDurationMetric := c.getInflightTrybotDurationMetric(b.Parameters.BuilderName)
+		inflightTrybotDurationMetric := c.getInflightTrybotDurationMetric(b.Builder.Builder)
 		inflightTrybotDurationMetric.Update(duration)
 	}
 

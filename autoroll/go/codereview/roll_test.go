@@ -8,11 +8,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
 	assert "github.com/stretchr/testify/require"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/autoroll"
-	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/gerrit"
@@ -216,21 +217,31 @@ func TestGerritRoll(t *testing.T) {
 	assert.Nil(t, recent.CurrentRoll())
 
 	// Upload and retrieve another roll, dry run this time.
+	ts, err := ptypes.TimestampProto(time.Now().UTC().Round(time.Millisecond))
+	assert.NoError(t, err)
 	ci, issue = makeFakeRoll(124, from, to, true, false)
 	g.MockGetIssueProperties(ci)
-	tryjob := &buildbucket.Build{
-		Id:      "99999",
-		Created: time.Now().UTC().Round(time.Millisecond),
-		Status:  autoroll.TRYBOT_STATUS_STARTED,
-		Parameters: &buildbucket.Parameters{
-			BuilderName: "fake-builder",
-			Properties: buildbucket.Properties{
-				Category:       "cq",
-				GerritPatchset: "1",
+	tryjob := &buildbucketpb.Build{
+		Builder: &buildbucketpb.BuilderID{
+			Project: "skia",
+			Bucket:  "fake",
+			Builder: "fake-builder",
+		},
+		Id:         99999,
+		CreateTime: ts,
+		Status:     buildbucketpb.Status_STARTED,
+		Tags: []*buildbucketpb.StringPair{
+			{
+				Key:   "user_agent",
+				Value: "cq",
+			},
+			{
+				Key:   "cq_experimental",
+				Value: "false",
 			},
 		},
 	}
-	g.MockGetTrybotResults(ci, 1, []*buildbucket.Build{tryjob})
+	g.MockGetTrybotResults(ci, 1, []*buildbucketpb.Build{tryjob})
 	gr, err = newGerritRoll(ctx, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
 	assert.NoError(t, err)
 	assert.True(t, issue.IsDryRun)
@@ -251,8 +262,7 @@ func TestGerritRoll(t *testing.T) {
 	g.AssertEmpty()
 
 	// Success.
-	tryjob.Status = autoroll.TRYBOT_STATUS_COMPLETED
-	tryjob.Result = autoroll.TRYBOT_RESULT_SUCCESS
+	tryjob.Status = buildbucketpb.Status_SUCCESS
 	ci.Labels[gerrit.COMMITQUEUE_LABEL] = &gerrit.LabelEntry{
 		All: []*gerrit.LabelDetail{
 			{
@@ -261,7 +271,7 @@ func TestGerritRoll(t *testing.T) {
 		},
 	}
 	g.MockGetIssueProperties(ci)
-	g.MockGetTrybotResults(ci, 1, []*buildbucket.Build{tryjob})
+	g.MockGetTrybotResults(ci, 1, []*buildbucketpb.Build{tryjob})
 	assert.NoError(t, gr.Update(ctx))
 	assert.True(t, issue.IsDryRun)
 	assert.False(t, gr.IsFinished())
@@ -273,7 +283,7 @@ func TestGerritRoll(t *testing.T) {
 	// Close for cleanup.
 	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(ci)
-	g.MockGetTrybotResults(ci, 1, []*buildbucket.Build{tryjob})
+	g.MockGetTrybotResults(ci, 1, []*buildbucketpb.Build{tryjob})
 	assert.NoError(t, gr.Update(ctx))
 
 	// Verify that all of the mutation functions handle a conflict (eg.
