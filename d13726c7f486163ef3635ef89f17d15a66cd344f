@@ -39,6 +39,24 @@
       "revId": "d13726c7f486163ef3635ef89f17d15a66cd344f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aa615910_32e826a9",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2019-10-01T17:06:06Z",
+      "side": 1,
+      "message": "Yeah, the important thing is that when we do |a-b|, a and b are in the same color space.\n\n|a-b| itself isn\u0027t _really_ a color, so it\u0027s probably fine to just treat as a plain old number. But if the image package weren\u0027t so... minimalist, I do think we\u0027d probably want to tag the diff itself with the same profile so we document what our diffs like \"1 bit difference in red channel, 4 bit difference in green channel\" mean if it ever comes down to a deep debugging investigation.",
+      "parentUuid": "3408d771_ffcc4688",
+      "revId": "d13726c7f486163ef3635ef89f17d15a66cd344f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
