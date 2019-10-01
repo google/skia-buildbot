@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "58ec690e_65018593",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 574,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-01T20:50:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e9e62017_218fe9f8",
+      "range": {
+        "startLine": 574,
+        "startChar": 14,
+        "endLine": 574,
+        "endChar": 18
+      },
+      "revId": "66cac81ffd4e1f3dce2254a3177e3986f3df34d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4e80a2cc_ced6166a",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "66cac81ffd4e1f3dce2254a3177e3986f3df34d2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f329f667_9e47d27f",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 662,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-01T20:50:19Z",
+      "side": 1,
+      "message": "The \"else\" branch would include the gcloud commands to switch between clusters, so there\u0027s no need to throw an error.",
+      "parentUuid": "4e80a2cc_ced6166a",
+      "range": {
+        "startLine": 662,
+        "startChar": 51,
+        "endLine": 662,
+        "endChar": 52
+      },
+      "revId": "66cac81ffd4e1f3dce2254a3177e3986f3df34d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
