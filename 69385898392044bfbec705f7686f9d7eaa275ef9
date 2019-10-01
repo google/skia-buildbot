@@ -70,6 +70,30 @@
       "revId": "69385898392044bfbec705f7686f9d7eaa275ef9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "544faccc_19401c64",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-01T16:36:55Z",
+      "side": 1,
+      "message": "I agree.  I\u0027m not sure how you\u0027d trigger one of those, other than directly through BB API.",
+      "parentUuid": "c58ff140_54714feb",
+      "range": {
+        "startLine": 357,
+        "startChar": 75,
+        "endLine": 357,
+        "endChar": 99
+      },
+      "revId": "69385898392044bfbec705f7686f9d7eaa275ef9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
