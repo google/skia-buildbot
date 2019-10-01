@@ -32,7 +32,6 @@ const template = (ele) => html`
   <select-sk @selection-changed=${ele._selectionChanged}>
     <div value=kmeans ?selected=${ele.algo === 'kmeans'} title="Use k-means clustering on the trace shapes.">K-Means</div>
     <div value=stepfit ?selected=${ele.algo === 'stepfit'} title="Only look for traces that step up or down at the selected commit.">StepFit</div>
-    <div value=tail ?selected=${ele.algo === 'tail'}  title="Only look for traces with a jumping tail.">Tail</div>
   </select-sk>
   `;
 

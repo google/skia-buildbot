@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
@@ -372,9 +373,8 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 			summary, err = clustering2.CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
 		case types.STEPFIT_ALGO:
 			summary, err = StepFit(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
-		case types.TAIL_ALGO:
-			summary, err = Tail(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
-
+		default:
+			p.reportError(skerr.Fmt("Invalid type of clustering: %s", p.request.Algo), "Invalid type of clustering.")
 		}
 		if err != nil {
 			p.reportError(err, "Invalid clustering.")
