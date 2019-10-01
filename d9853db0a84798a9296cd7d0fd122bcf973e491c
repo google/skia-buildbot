@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f77217ba_d9483e91",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-01T17:46:33Z",
+      "side": 1,
+      "message": "nit: This can be \"defer wg.Done()\", x2\n\n(By x2, I mean there is another instance on line 355.)",
+      "range": {
+        "startLine": 347,
+        "startChar": 0,
+        "endLine": 349,
+        "endChar": 5
+      },
+      "revId": "d9853db0a84798a9296cd7d0fd122bcf973e491c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb410a98_cc5072af",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-01T17:46:33Z",
+      "side": 1,
+      "message": "Can this be image1? x4",
+      "range": {
+        "startLine": 244,
+        "startChar": 22,
+        "endLine": 244,
+        "endChar": 49
+      },
+      "revId": "d9853db0a84798a9296cd7d0fd122bcf973e491c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
