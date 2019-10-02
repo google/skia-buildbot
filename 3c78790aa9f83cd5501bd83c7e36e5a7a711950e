@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dc09835f_e3293d3f",
+        "filename": "golden/cmd/goldpushk/testing/healthy_server/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-02T12:31:40Z",
+      "side": 1,
+      "message": "nit: Fatalln",
+      "range": {
+        "startLine": 31,
+        "startChar": 8,
+        "endLine": 31,
+        "endChar": 14
+      },
+      "revId": "3c78790aa9f83cd5501bd83c7e36e5a7a711950e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b69c23db_bbdf8125",
+        "filename": "golden/k8s-config-templates/gold-healthy-server-template.yaml",
+        "patchSetId": 5
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-02T12:31:40Z",
+      "side": 1,
+      "message": "This is an uncommon mode",
+      "range": {
+        "startLine": 49,
+        "startChar": 25,
+        "endLine": 49,
+        "endChar": 28
+      },
+      "revId": "3c78790aa9f83cd5501bd83c7e36e5a7a711950e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
