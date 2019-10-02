@@ -14,15 +14,14 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
-func setup(t *testing.T) (context.Context, string, *IncrementalCache, repograph.Map, db.DB, *git_testutils.GitBuilder, func()) {
+func setup(t *testing.T) (context.Context, string, *IncrementalCache, repograph.Map, *memory.InMemoryDB, *git_testutils.GitBuilder, func()) {
 	unittest.LargeTest(t)
-	d := memory.NewInMemoryDB(nil)
+	d := memory.NewInMemoryDB()
 
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
@@ -105,6 +104,7 @@ func TestIncrementalCache(t *testing.T) {
 	assert.NoError(t, err)
 	t0.Status = types.TASK_STATUS_SUCCESS
 	assert.NoError(t, taskDb.PutTask(t0))
+	taskDb.Wait()
 	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the updated task.
 	assert.Equal(t, []*git.Branch(nil), u.BranchHeads)
