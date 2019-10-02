@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9d052c75_f807a2a2",
+        "filename": "skfe/deploy_new_certs.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-02T18:41:25Z",
+      "side": 1,
+      "message": "Nit: It also removes unused certs.",
+      "revId": "0aae9d64741d53920729f7c00472509d07b3a61e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "87fa7ed2_03a5e927",
+        "filename": "skfe/deploy_new_certs.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-02T18:41:25Z",
+      "side": 1,
+      "message": "Nit: We should ask user to make sure (or make sure for them) that they are in \"skia-public\" (in case it is accidentally kubectl applied to skia-corp).",
+      "revId": "0aae9d64741d53920729f7c00472509d07b3a61e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
