@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "19219a7a_564af291",
+        "filename": "datahopper/PROD.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-02T15:11:45Z",
+      "side": 1,
+      "message": "nit: If this is the same URL in all 6 places, maybe use a reference-style link instead, i.e.:\n\n...\nOtherwise, you should check the [logs] to try to diagnose what\u0027s failing.\n...\n - Check the [Datahopper logs][logs] for any warnings or errors. ...\n...\n[logs]: https://console.cloud.google.com/logs/viewer?project\u003dskia-public\u0026minLogLevel\u003d500\u0026expandAll\u003dfalse\u0026interval\u003dPT1H\u0026advancedFilter\u003dlogName%3D%22projects%2Fskia-public%2Flogs%2Fdatahopper%22%20AND%20severity%3DERROR",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 217
+      },
+      "revId": "46e6e0aaa78eafaa481a8c54ea4f03260f2f993d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
