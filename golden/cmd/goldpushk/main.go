@@ -23,7 +23,6 @@
 //
 //   Print out all Gold instances and services goldpushk is able to manage:
 //     $ goldpushk --list
-//     $ goldpushk -l
 
 package main
 
@@ -34,8 +33,10 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/cmd/goldpushk/goldpushk"
@@ -60,6 +61,7 @@ var (
 	flagCanaries  []string
 
 	// Optional flags.
+	flagList                       bool
 	flagDryRun                     bool
 	flagNoCommit                   bool
 	flagMinUptimeSeconds           int
@@ -71,7 +73,6 @@ var (
 )
 
 func main() {
-	// TODO(lovisolo): Add --list flag.
 	rootCmd := &cobra.Command{
 		Use:  "goldpushk",
 		Long: "goldpushk pushes Gold services to production.",
@@ -83,11 +84,12 @@ func main() {
 			sklog.SetLogger(sklog.NewStdErrCloudLogger(logMode))
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			run()
+			run(cmd)
 		},
 	}
 
 	rootCmd.Flags().SortFlags = false
+	rootCmd.Flags().BoolVar(&flagList, "list", false, "List known Gold instances and services (tip: try combining this flag with --testing).")
 	rootCmd.Flags().StringSliceVarP(&flagInstances, "instances", "i", []string{}, "[REQUIRED] Comma-delimited list of Gold instances to target (e.g. \"skia,flutter\"), or \""+all+"\" to target all instances.")
 	rootCmd.Flags().StringSliceVarP(&flagServices, "services", "s", []string{}, "[REQUIRED] Comma-delimited list of services to target (e.g. \"skiacorrectness,diffserver\"), or \""+all+"\" to target all services.")
 	rootCmd.Flags().StringSliceVarP(&flagCanaries, "canaries", "c", []string{}, "Comma-delimited subset of Gold services to use as canaries, written as instance:service pairs (e.g. \"skia:diffserver,flutter:skiacorrectness\")")
@@ -98,24 +100,42 @@ func main() {
 	rootCmd.Flags().BoolVar(&flagLogToStdErr, "logtostderr", false, "Log debug information to stderr. No logs will be produced if this flag is not set.")
 	rootCmd.Flags().BoolVar(&flagTesting, "testing", false, "Do not deploy any production services; use testing services instead.")
 
-	if err := rootCmd.MarkFlagRequired("services"); err != nil {
-		sklog.Fatalf("Error while setting up command line flags: %s", err)
-	}
-	if err := rootCmd.MarkFlagRequired("instances"); err != nil {
-		sklog.Fatalf("Error while setting up command line flags: %s", err)
-	}
 	if _, err := rootCmd.ExecuteC(); err != nil {
 		sklog.Fatalf("Error while running Cobra command: %s", err)
 	}
 }
 
-func run() {
+func run(cmd *cobra.Command) {
 	// Get set of deployable units. Used as the source of truth across goldpushk.
 	var deployableUnitSet goldpushk.DeployableUnitSet
 	if flagTesting {
 		deployableUnitSet = goldpushk.TestingDeployableUnits()
 	} else {
 		deployableUnitSet = goldpushk.ProductionDeployableUnits()
+	}
+
+	// If --list is passed, print known services and exit. This takes into account flag --testing.
+	if flagList {
+		if err := listKnownServices(deployableUnitSet); err != nil {
+			sklog.Fatalf("Error while printing list of known services: %s", err)
+		}
+		return
+	}
+
+	// If --list was not provided, validate presence of flags --services and --instances.
+	if len(flagInstances) == 0 {
+		fmt.Println("Error: flag \"instances\" is required.")
+		if err := cmd.Usage(); err != nil {
+			sklog.Fatalf("Error while printing usage: %s", err)
+		}
+		os.Exit(1)
+	}
+	if len(flagServices) == 0 {
+		fmt.Println("Error: flag \"services\" is required.")
+		if err := cmd.Usage(); err != nil {
+			sklog.Fatalf("Error while printing usage: %s", err)
+		}
+		os.Exit(1)
 	}
 
 	// Parse and validate command line flags.
@@ -140,6 +160,39 @@ func run() {
 		fmt.Printf("Error: %s.\n", err)
 		os.Exit(1)
 	}
+}
+
+// listKnownServices prints out a table of known services.
+func listKnownServices(deployableUnitSet goldpushk.DeployableUnitSet) error {
+	mode := "production"
+	if flagTesting {
+		mode = "testing"
+	}
+	fmt.Printf("Known Gold instances and services (%s):\n", mode)
+
+	// Print out table header.
+	w := tabwriter.NewWriter(os.Stdout, 10, 0, 2, ' ', 0)
+	if _, err := fmt.Fprintln(w, "\nINSTANCE\tSERVICE\tCANONICAL NAME"); err != nil {
+		return skerr.Wrap(err)
+	}
+
+	// Print out table body.
+	for _, instance := range deployableUnitSet.KnownInstances() {
+		for _, service := range deployableUnitSet.KnownServices() {
+			unit, ok := deployableUnitSet.Get(goldpushk.DeployableUnitID{Instance: instance, Service: service})
+			if ok {
+				if _, err := fmt.Fprintf(w, "%s\t%s\t%s\n", instance, service, unit.CanonicalName()); err != nil {
+					return skerr.Wrap(err)
+				}
+			}
+		}
+	}
+
+	// Flush output and return.
+	if err := w.Flush(); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
 }
 
 // containsWildcardValue determines whether or not a flag contains the special
