@@ -27,12 +27,17 @@ import (
 const (
 	gsImageBaseDir = "dm-images-v1"
 
-	// These digests match the images below.
-	digest1 = types.Digest("bde6b72edc996515916348e8f4dd406d")
-	digest2 = types.Digest("96f28080f8cebfdb463bb00724aba779")
+	// These digests correspond to the images below and are arbitrarily chosen.
+	digest1 = types.Digest("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+	digest2 = types.Digest("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
 
+	// Fake GS paths to the test images.
 	image1GsPath = gsImageBaseDir + "/" + string(digest1) + ".png"
 	image2GsPath = gsImageBaseDir + "/" + string(digest2) + ".png"
+
+	// MD5 hashes of the PNG files.
+	image1Md5Hash = "bde6b72edc996515916348e8f4dd406d" // = md5sum(aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.png)
+	image2Md5Hash = "96f28080f8cebfdb463bb00724aba779" // = md5sum(bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.png)
 
 	skTextImage1 = `! SKTEXTSIMPLE
 	1 5
@@ -56,10 +61,10 @@ const (
 var image1 = skTextToImage(skTextImage1)
 var image2 = skTextToImage(skTextImage2)
 
-func TestImageLoaderExpectedDigestsAreCorrect(t *testing.T) {
+func TestImageLoaderExpectedMd5HashesAreCorrect(t *testing.T) {
 	unittest.SmallTest(t)
-	assert.Equal(t, imageToDigest(image1), digest1)
-	assert.Equal(t, imageToDigest(image2), digest2)
+	assert.Equal(t, bytesToMd5HashString(imageToPng(image1).Bytes()), image1Md5Hash)
+	assert.Equal(t, bytesToMd5HashString(imageToPng(image2).Bytes()), image2Md5Hash)
 }
 
 // Sets up the mock GCSClient and temp folder for images, and returns the test ImageLoader instance.
@@ -91,7 +96,7 @@ func TestImageLoaderGetSingleDigestFoundInBucket(t *testing.T) {
 	defer mockFailureStore.AssertExpectations(t)
 
 	// digest1 is present in the GCS bucket.
-	oa := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
+	oa := &storage.ObjectAttrs{MD5: md5HashToBytes(image1Md5Hash)}
 	mockClient.On("GetFileObjectAttrs", testutils.AnyContext, image1GsPath).Return(oa, nil)
 
 	// digest1 is read.
@@ -138,7 +143,7 @@ func TestImageLoaderGetMultipleDigestsAllFoundInBucket(t *testing.T) {
 	defer mockFailureStore.AssertExpectations(t)
 
 	// digest1 is present in the GCS bucket.
-	oa1 := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
+	oa1 := &storage.ObjectAttrs{MD5: md5HashToBytes(image1Md5Hash)}
 	mockClient.On("GetFileObjectAttrs", testutils.AnyContext, image1GsPath).Return(oa1, nil)
 
 	// digest1 is read.
@@ -146,7 +151,7 @@ func TestImageLoaderGetMultipleDigestsAllFoundInBucket(t *testing.T) {
 	mockClient.On("FileReader", testutils.AnyContext, image1GsPath).Return(reader1, nil)
 
 	// digest2 is present in the GCS bucket.
-	oa2 := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest2)}
+	oa2 := &storage.ObjectAttrs{MD5: md5HashToBytes(image2Md5Hash)}
 	mockClient.On("GetFileObjectAttrs", testutils.AnyContext, image2GsPath).Return(oa2, nil)
 
 	// digest2 is read.
@@ -171,7 +176,7 @@ func TestImageLoaderGetMultipleDigestsDigest1FoundInBucketDigest2NotFound(t *tes
 	defer mockFailureStore.AssertExpectations(t)
 
 	// digest1 is present in the GCS bucket.
-	oa1 := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
+	oa1 := &storage.ObjectAttrs{MD5: md5HashToBytes(image1Md5Hash)}
 	mockClient.On("GetFileObjectAttrs", testutils.AnyContext, image1GsPath).Return(oa1, nil)
 
 	// digest1 is read.
@@ -201,7 +206,7 @@ func TestImageLoaderWarm(t *testing.T) {
 	defer mockFailureStore.AssertExpectations(t)
 
 	// digest1 is present in the GCS bucket.
-	oa1 := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
+	oa1 := &storage.ObjectAttrs{MD5: md5HashToBytes(image1Md5Hash)}
 	mockClient.On("GetFileObjectAttrs", testutils.AnyContext, image1GsPath).Return(oa1, nil).
 		Once() // This ensures that Get doesn't hit GCS after a call to Warm for the same digest.
 
@@ -211,7 +216,7 @@ func TestImageLoaderWarm(t *testing.T) {
 		Once() // This ensures that Get doesn't hit GCS after a call to Warm for the same digest.
 
 	// digest2 is present in the GCS bucket.
-	oa2 := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest2)}
+	oa2 := &storage.ObjectAttrs{MD5: md5HashToBytes(image2Md5Hash)}
 	mockClient.On("GetFileObjectAttrs", testutils.AnyContext, image2GsPath).Return(oa2, nil).
 		Once() // This ensures that Get doesn't hit GCS after a call to Warm for the same digest.
 
@@ -250,7 +255,7 @@ func TestImageLoaderPurgeImages(t *testing.T) {
 	defer mockFailureStore.AssertExpectations(t)
 
 	// digest1 is present in the GCS bucket.
-	oa := &storage.ObjectAttrs{MD5: digestToMD5Bytes(digest1)}
+	oa := &storage.ObjectAttrs{MD5: md5HashToBytes(image1Md5Hash)}
 	mockClient.On("GetFileObjectAttrs", testutils.AnyContext, image1GsPath).Return(oa, nil)
 
 	// digest1 is read.
@@ -298,16 +303,16 @@ func imageToPng(image *image.NRGBA) *bytes.Buffer {
 	return buf
 }
 
-// Takes an image and returns a string with its MD5 hash.
-func imageToDigest(image *image.NRGBA) types.Digest {
+// Takes a byte slice and returns its MD5 hash as a human-readable string.
+func bytesToMd5HashString(bytes []byte) string {
 	md5 := md5.New()
-	md5.Write(imageToPng(image).Bytes())
-	return types.Digest(hex.EncodeToString(md5.Sum(nil)))
+	md5.Write(bytes)
+	return hex.EncodeToString(md5.Sum(nil))
 }
 
 // Takes a string with an MD5 hash and encodes it as a byte array.
-func digestToMD5Bytes(digest types.Digest) []byte {
-	bytes, err := hex.DecodeString(string(digest))
+func md5HashToBytes(md5Hash string) []byte {
+	bytes, err := hex.DecodeString(md5Hash)
 	if err != nil {
 		// This indicates an error with the static test data which is initialized before executing the
 		// tests, thus we panic instead of asserting the absence of errors with assert.NoError.
