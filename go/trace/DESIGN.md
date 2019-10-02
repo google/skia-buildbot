@@ -69,17 +69,17 @@ interface for talking to the data store, and then a separate service that
 implements a gRPC interface and stores the data in BoltDB.
 
 
-                 +-------------+
-                 | tracedb.DB  |
-                 | interface   |
-                 +-------------+
-                        |
+                 +-------------+
+                 | tracedb.DB  |
+                 | interface   |
+                 +-------------+
                         |
-                        |
-                 +------v------+
-                 | gRPC Server |
-                 | BoltDB      |
-                 +-------------+
+                        |
+                        |
+                 +------v------+
+                 | gRPC Server |
+                 | BoltDB      |
+                 +-------------+
 
 
 tracedb.DB Interface

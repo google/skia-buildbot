@@ -20,41 +20,40 @@ This is the general flow of data for the Skia performance application.
 The frontend is available at http://perf.skia.org for Skia.
 
 ```
-
-               +-------------+
-               |             |
-               |   Ingress   |
-               |             |
-               |             |
-               |             |
-               +-------------+
+               +-------------+
+               |             |
+               |   Ingress   |
+               |             |
+               |             |
+               |             |
+               +-------------+
                           ^
-                          |
-              GKE Instance| skia-perf
-                          |
-                       ---+
-                       |
-            +----------+-------------+
-            |        Perf (Go)       |
-            +------------------------+
-              ^    ^       ^
-              |    |       | (PubSub Events)
-              |    |       |
-              |    | +-----+--------------+
-              |    | | Perf Ingester (Go) |
-              |    | +--+-----------------+
-              |    |    |       ^
-              |    |    |       |
-              v    |    |       |
-    +---------+-+  |    | +-----+----+
-    | Datastore |  |    | | Google   |
-    |           |  |    | | Storage  |
-    +-----------+  |    | +----------+
-                   |    v
-                 +-+--------+
-                 |   Tile   |
-                 |   Store  |
-                 +----------+
+                          |
+              GKE Instance| skia-perf
+                          |
+                       ---+
+                       |
+            +----------+-------------+
+            |        Perf (Go)       |
+            +------------------------+
+              ^    ^       ^
+              |    |       | (PubSub Events)
+              |    |       |
+              |    | +-----+--------------+
+              |    | | Perf Ingester (Go) |
+              |    | +--+-----------------+
+              |    |    |       ^
+              |    |    |       |
+              v    |    |       |
+    +---------+-+  |    | +-----+----+
+    | Datastore |  |    | | Google   |
+    |           |  |    | | Storage  |
+    +-----------+  |    | +----------+
+                   |    v
+                 +-+--------+
+                 |   Tile   |
+                 |   Store  |
+                 +----------+
 
 ```
 
