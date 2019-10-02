@@ -72,4 +72,16 @@ func (a *authEnv) runAuthCmd(cmd *cobra.Command, args []string) {
 		fmt.Printf("Authentication set up in directory %s\n", filepath.Clean(a.flagWorkDir))
 	}
 
+	// Open up the auth we configured and see if we can get an authenticated HTTPClient.
+	// This helps catch auth errors early.
+	authDir, err := goldclient.LoadAuthOpt(a.flagWorkDir)
+	ifErrLogExit(cmd, err)
+
+	err = authDir.Validate()
+	ifErrLogExit(cmd, err)
+
+	_, err = authDir.GetHTTPClient()
+	ifErrLogExit(cmd, err)
+
+	fmt.Println("self test passed")
 }

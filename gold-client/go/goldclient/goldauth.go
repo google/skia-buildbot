@@ -43,7 +43,7 @@ type authOpt struct {
 	dryRun bool //unexported, i.e. not saved to JSON
 }
 
-// Implements the AuthOpt interface.
+// Validate implements the AuthOpt interface.
 func (a *authOpt) Validate() error {
 	if !a.GSUtil && !a.Luci && a.ServiceAccount == "" {
 		return skerr.Fmt("No valid authentication method provided.")
@@ -51,31 +51,35 @@ func (a *authOpt) Validate() error {
 	return nil
 }
 
-// Implements the AuthOpt interface.
+// GetHTTPClient implements the AuthOpt interface.
 func (a *authOpt) GetHTTPClient() (HTTPClient, error) {
 	if a.GSUtil {
 		return httputils.DefaultClientConfig().Client(), nil
 	}
 	var tokenSrc oauth2.TokenSource
-	var err error
 	if a.Luci {
+		var err error
 		tokenSrc, err = auth.NewLUCIContextTokenSource(gstorage.ScopeFullControl, auth.SCOPE_USERINFO_EMAIL)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "instantiating LUCI auth token source")
+		}
 	} else {
+		var err error
 		tokenSrc, err = auth.NewJWTServiceAccountTokenSource("", a.ServiceAccount, gstorage.ScopeFullControl, auth.SCOPE_USERINFO_EMAIL)
-	}
-	if err != nil {
-		return nil, skerr.Fmt("Unable to instantiate auth token source: %s", err)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "instantiating JWT auth token source")
+		}
 	}
 
 	// Retrieve a token to make sure we can retrieve a token. We assume this is cached
 	// inside tokenSrc.
 	if _, err := tokenSrc.Token(); err != nil {
-		return nil, skerr.Fmt("Error retrieving initial auth token: %s", err)
+		return nil, skerr.Wrapf(err, "retrieving initial auth token")
 	}
 	return httputils.DefaultClientConfig().WithTokenSource(tokenSrc).Client(), nil
 }
 
-// Implements the AuthOpt interface.
+// GetGoldUploader implements the AuthOpt interface.
 func (a *authOpt) GetGoldUploader() (GoldUploader, error) {
 	if a.dryRun {
 		return &dryRunUploader{}, nil
@@ -96,7 +100,7 @@ func (a *authOpt) GetGoldUploader() (GoldUploader, error) {
 	return &gsutilUploader{}, nil
 }
 
-// Implements the AuthOpt interface.
+// SetDryRun implements the AuthOpt interface.
 func (a *authOpt) SetDryRun(isDryRun bool) {
 	a.dryRun = isDryRun
 }
@@ -134,7 +138,7 @@ func InitLUCIAuth(workDir string) error {
 	a := authOpt{Luci: true}
 	outFile := filepath.Join(workDir, authFile)
 	if err := saveJSONFile(outFile, a); err != nil {
-		return skerr.Fmt("Could not write JSON file: %s", err)
+		return skerr.Wrapf(err, "writing to JSON file %s", outFile)
 	}
 	return nil
 }
