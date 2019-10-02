@@ -69,7 +69,7 @@ func TestGoldpushkCheckOutGitRepositories(t *testing.T) {
 	}
 
 	// Hide goldpushk output to stdout.
-	restoreStdout := hideStdout(t)
+	_, restoreStdout := hideStdout(t)
 	defer restoreStdout()
 
 	// Check out the fake "skia-public-config" and "skia-corp-config"
@@ -297,7 +297,7 @@ func TestCommitConfigFiles(t *testing.T) {
 	}
 
 	// Hide goldpushk output to stdout.
-	restoreStdout := hideStdout(t)
+	_, restoreStdout := hideStdout(t)
 	defer restoreStdout()
 
 	// Check out the fake "skia-public-config" and "skia-corp-config" repositories created earlier.
@@ -351,7 +351,7 @@ func TestCommitConfigFilesAbortedByUser(t *testing.T) {
 	}
 
 	// Hide goldpushk output to stdout.
-	restoreStdout := hideStdout(t)
+	_, restoreStdout := hideStdout(t)
 	defer restoreStdout()
 
 	// Check out the fake "skia-public-config" and "skia-corp-config" repositories created earlier.
@@ -404,7 +404,7 @@ func TestCommitConfigFilesSkipped(t *testing.T) {
 	}
 
 	// Hide goldpushk output to stdout.
-	restoreStdout := hideStdout(t)
+	_, restoreStdout := hideStdout(t)
 	defer restoreStdout()
 
 	// Check out the fake "skia-public-config" and "skia-corp-config" repositories created earlier.
@@ -472,6 +472,10 @@ func TestPushSingleDeployableUnitDeleteNonexistentConfigMap(t *testing.T) {
 	g := &Goldpushk{}
 	addFakeConfigRepoCheckouts(g)
 
+	// Hide goldpushk output to stdout.
+	_, restoreStdout := hideStdout(t)
+	defer restoreStdout()
+
 	// Set up mocks.
 	commandCollector := exec.CommandCollector{}
 	commandCollector.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
@@ -518,7 +522,7 @@ func TestPushCanaries(t *testing.T) {
 	addFakeConfigRepoCheckouts(g)
 
 	// Hide goldpushk output to stdout.
-	restoreStdout := hideStdout(t)
+	_, restoreStdout := hideStdout(t)
 	defer restoreStdout()
 
 	// Set up mocks.
@@ -566,7 +570,7 @@ func TestPushServices(t *testing.T) {
 	addFakeConfigRepoCheckouts(g)
 
 	// Hide goldpushk output to stdout.
-	restoreStdout := hideStdout(t)
+	_, restoreStdout := hideStdout(t)
 	defer restoreStdout()
 
 	// Set up mocks.
@@ -699,14 +703,126 @@ func TestGetUptimes(t *testing.T) {
 	assert.Len(t, uptime, 2)
 	assert.Equal(t, 60*time.Second, uptime[makeID(Chrome, DiffServer)])  // 17:58:02 - 17:57:02
 	assert.Equal(t, 90*time.Second, uptime[makeID(Fuchsia, DiffServer)]) // 17:58:02 - 17:56:32
+}
 
+func TestMonitor(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Gather the DeployableUnits to monitor.
+	s := ProductionDeployableUnits()
+	units := []DeployableUnit{}
+	units = appendUnit(t, units, s, Chrome, BaselineServer)
+	units = appendUnit(t, units, s, Chrome, DiffServer)
+	units = appendUnit(t, units, s, Chrome, IngestionBT)
+
+	// Create the goldpushk instance under test.
+	g := &Goldpushk{}
+	// TODO(lovisolo): Set monitoring parameters here (minimum uptime, polling frequency) once they're
+	//                 exposed as flags.
+
+	// Capture and hide goldpushk output to stdout.
+	fakeStdout, restoreStdout := hideStdout(t)
+	defer restoreStdout()
+
+	// Mock uptimes. This array holds the return values of the mock uptimesFn, ordered
+	// chronologically.
+	mockUptimes := []map[DeployableUnitID]time.Duration{
+		// At t=0, no services are running.
+		{},
+		// At t=5s, gold-chrome-baselineserver is up.
+		{
+			makeID(Chrome, BaselineServer): 0 * time.Second,
+		},
+		// At t=10s, gold-chrome-diffserver is up.
+		{
+			makeID(Chrome, BaselineServer): 5 * time.Second,
+			makeID(Chrome, DiffServer):     2 * time.Second,
+		},
+		// At t=15s, gold-chrome-ingestion-bt is up.
+		{
+			makeID(Chrome, BaselineServer): 10 * time.Second,
+			makeID(Chrome, DiffServer):     7 * time.Second,
+			makeID(Chrome, IngestionBT):    1 * time.Second,
+		},
+		// t=20s.
+		{
+			makeID(Chrome, BaselineServer): 15 * time.Second,
+			makeID(Chrome, DiffServer):     12 * time.Second,
+			makeID(Chrome, IngestionBT):    6 * time.Second,
+		},
+		// t=25s.
+		{
+			makeID(Chrome, BaselineServer): 20 * time.Second,
+			makeID(Chrome, DiffServer):     17 * time.Second,
+			makeID(Chrome, IngestionBT):    11 * time.Second,
+		},
+		// t=30s.
+		{
+			makeID(Chrome, BaselineServer): 25 * time.Second,
+			makeID(Chrome, DiffServer):     22 * time.Second,
+			makeID(Chrome, IngestionBT):    16 * time.Second,
+		},
+		// At t=35s, gold-chrome-baselineserver has been running for at least 30s.
+		{
+			makeID(Chrome, BaselineServer): 30 * time.Second,
+			makeID(Chrome, DiffServer):     27 * time.Second,
+			makeID(Chrome, IngestionBT):    21 * time.Second,
+		},
+		// At t=40s, gold-chrome-diffserver has been running for at least 30s.
+		{
+			makeID(Chrome, BaselineServer): 35 * time.Second,
+			makeID(Chrome, DiffServer):     32 * time.Second,
+			makeID(Chrome, IngestionBT):    26 * time.Second,
+		},
+		// At t=45s, gold-chrome-ingestion-bt has been running for at least 30s. Monitoring should end.
+		{
+			makeID(Chrome, BaselineServer): 40 * time.Second,
+			makeID(Chrome, DiffServer):     37 * time.Second,
+			makeID(Chrome, IngestionBT):    31 * time.Second,
+		},
+	}
+
+	// Keep track of how many times the mock uptimesFn was called.
+	numTimesMockUptimesFnWasCalled := 0
+
+	// Mock uptimesFn.
+	mockUptimesFn := func(_ context.Context, uptimesFnUnits []DeployableUnit, _ time.Time) (map[DeployableUnitID]time.Duration, error) {
+		assert.Equal(t, units, uptimesFnUnits)
+		uptimes := mockUptimes[numTimesMockUptimesFnWasCalled]
+		numTimesMockUptimesFnWasCalled += 1
+		return uptimes, nil
+	}
+
+	// Mock sleepFn.
+	mockSleepFn := func(d time.Duration) {
+		assert.Equal(t, 3*time.Second, d)
+	}
+
+	// Call code under test.
+	err := g.monitor(context.Background(), units, mockUptimesFn, mockSleepFn)
+	assert.NoError(t, err)
+
+	// Assert that the mock uptimesFn was called the expected number of times, which means that
+	// monitoring ends as soon as all services have been running for the required amount of time
+	// (which in this case is 30s).
+	assert.Equal(t, 10, numTimesMockUptimesFnWasCalled)
+
+	// Read the captured stdout.
+	_, err = fakeStdout.Seek(0, 0)
+	assert.NoError(t, err)
+	stdoutBytes, err := ioutil.ReadAll(fakeStdout)
+	assert.NoError(t, err)
+	actualMonitorStdout := string(stdoutBytes)
+
+	// Assert that monitoring produced the expected output on stdout.
+	assert.Equal(t, expectedMonitorStdout, actualMonitorStdout)
 }
 
 // appendUnit will retrieve a DeployableUnit from the given DeployableUnitSet using the given
 // Instance and Service and append it to the given DeployableUnit slice.
 func appendUnit(t *testing.T, units []DeployableUnit, s DeployableUnitSet, instance Instance, service Service) []DeployableUnit {
 	unit, ok := s.Get(DeployableUnitID{Instance: instance, Service: service})
-	assert.True(t, ok)
+	assert.True(t, ok, "Instance: %s, Service: %s", instance, service)
 	return append(units, unit)
 }
 
@@ -762,7 +878,7 @@ func writeFileIntoRepo(t *testing.T, repo *git.TempCheckout, name, contents stri
 
 // hideStdout replaces os.Stdout with a temp file. This hides any output generated by the code under
 // test and leads to a less noisy "go test" output.
-func hideStdout(t *testing.T) (cleanup func()) {
+func hideStdout(t *testing.T) (fakeStdout *os.File, cleanup func()) {
 	// Back up the real stdout.
 	stdout := os.Stdout
 	cleanup = func() {
@@ -774,7 +890,7 @@ func hideStdout(t *testing.T) (cleanup func()) {
 	assert.NoError(t, err)
 	os.Stdout = fakeStdout
 
-	return cleanup
+	return fakeStdout, cleanup
 }
 
 // fakeStdin fakes user input via stdin. It replaces stdin with a temporary file with the given fake
@@ -882,4 +998,53 @@ jsfiddle                                               2019-09-26T22:55:01Z
 jsfiddle                                               2019-09-26T22:55:10Z
 k8s-checker                                            2019-09-22T14:50:26Z
 leasing                                                2019-09-12T02:14:12Z
+`
+
+// Generated by printing out the stdout captured in TestMonitor above.
+const expectedMonitorStdout = `
+Monitoring the following services until they all reach 30 seconds of uptime (polling every 3 seconds):
+  gold-chrome-baselineserver
+  gold-chrome-diffserver
+  gold-chrome-ingestion-bt
+
+UPTIME    READY     NAME
+<None>    No        gold-chrome-baselineserver
+<None>    No        gold-chrome-diffserver
+<None>    No        gold-chrome-ingestion-bt
+----------------------------------------------
+0s        No        gold-chrome-baselineserver
+<None>    No        gold-chrome-diffserver
+<None>    No        gold-chrome-ingestion-bt
+----------------------------------------------
+5s        No        gold-chrome-baselineserver
+2s        No        gold-chrome-diffserver
+<None>    No        gold-chrome-ingestion-bt
+----------------------------------------------
+10s       No        gold-chrome-baselineserver
+7s        No        gold-chrome-diffserver
+1s        No        gold-chrome-ingestion-bt
+----------------------------------------------
+15s       No        gold-chrome-baselineserver
+12s       No        gold-chrome-diffserver
+6s        No        gold-chrome-ingestion-bt
+----------------------------------------------
+20s       No        gold-chrome-baselineserver
+17s       No        gold-chrome-diffserver
+11s       No        gold-chrome-ingestion-bt
+----------------------------------------------
+25s       No        gold-chrome-baselineserver
+22s       No        gold-chrome-diffserver
+16s       No        gold-chrome-ingestion-bt
+----------------------------------------------
+30s       No        gold-chrome-baselineserver
+27s       No        gold-chrome-diffserver
+21s       No        gold-chrome-ingestion-bt
+----------------------------------------------
+35s       Yes       gold-chrome-baselineserver
+32s       Yes       gold-chrome-diffserver
+26s       No        gold-chrome-ingestion-bt
+----------------------------------------------
+40s       Yes       gold-chrome-baselineserver
+37s       Yes       gold-chrome-diffserver
+31s       Yes       gold-chrome-ingestion-bt
 `
