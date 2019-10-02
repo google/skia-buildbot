@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4d8f7e38_fc578689",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 630,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-02T16:38:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "df625587_bbf23d75",
+      "range": {
+        "startLine": 630,
+        "startChar": 3,
+        "endLine": 630,
+        "endChar": 8
+      },
+      "revId": "b83b18207278cf5744dd53da113ac170bfbb5c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "de4c588a_ff30eacd",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
         "patchSetId": 12
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "e681883c_1665b2b5",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 789,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-02T16:38:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "de4c588a_ff30eacd",
+      "range": {
+        "startLine": 789,
+        "startChar": 42,
+        "endLine": 789,
+        "endChar": 43
+      },
+      "revId": "b83b18207278cf5744dd53da113ac170bfbb5c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "95e3a299_a9766038",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
         "patchSetId": 12
@@ -68,6 +116,30 @@
       "revId": "b83b18207278cf5744dd53da113ac170bfbb5c81",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e0880c7_12c9bf08",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 796,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-02T16:38:11Z",
+      "side": 1,
+      "message": "Instead of asserting the value is within a range, I\u0027m asserting that the value is exactly what I expect it to be.",
+      "parentUuid": "95e3a299_a9766038",
+      "range": {
+        "startLine": 796,
+        "startChar": 38,
+        "endLine": 796,
+        "endChar": 40
+      },
+      "revId": "b83b18207278cf5744dd53da113ac170bfbb5c81",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
