@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "173122c0_43ba9e74",
+        "filename": "golden/cmd/goldpushk/testing/healthy_server/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-02T16:30:24Z",
+      "side": 1,
+      "message": "As discussed in person, I\u0027ve removed the newlines for consistency and because each entry gets its own line in the logs anyway.",
+      "parentUuid": "dc09835f_e3293d3f",
+      "range": {
+        "startLine": 31,
+        "startChar": 8,
+        "endLine": 31,
+        "endChar": 14
+      },
+      "revId": "3c78790aa9f83cd5501bd83c7e36e5a7a711950e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b69c23db_bbdf8125",
         "filename": "golden/k8s-config-templates/gold-healthy-server-template.yaml",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "3c78790aa9f83cd5501bd83c7e36e5a7a711950e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99aac15f_666bf92e",
+        "filename": "golden/k8s-config-templates/gold-healthy-server-template.yaml",
+        "patchSetId": 5
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-02T16:30:24Z",
+      "side": 1,
+      "message": "Ok, using 444 instead.\n\nJust FYI: ingestion-bt uses mode 420 as well, see https://cs.chromium.org/chromium/skia/buildbot/golden/k8s-config-templates/gold-ingestion-bt-template.yaml?l\u003d77\u0026rcl\u003d5601787169633b7c559f902c9414fdff94e7d347.",
+      "parentUuid": "b69c23db_bbdf8125",
+      "range": {
+        "startLine": 49,
+        "startChar": 25,
+        "endLine": 49,
+        "endChar": 28
+      },
+      "revId": "3c78790aa9f83cd5501bd83c7e36e5a7a711950e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
