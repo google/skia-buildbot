@@ -39,11 +39,6 @@ const (
 	// Client Version: v1.16.0
 	// Server Version: v1.14.6-gke.1
 	kubectlTimestampLayout = "2006-01-02T15:04:05Z"
-
-	// Monitoring parameters.
-	// TODO(lovisolo): Turn these parameters into command-line flags.
-	minUptimeSeconds           = 30
-	uptimePollFrequencySeconds = 3
 )
 
 // cluster represents a Kubernetes cluster on which to deploy DeployableUnits, and contains all the
@@ -61,11 +56,13 @@ var (
 // Goldpushk contains information about the deployment steps to be carried out.
 type Goldpushk struct {
 	// Input parameters (provided via flags or environment variables).
-	deployableUnits         []DeployableUnit
-	canariedDeployableUnits []DeployableUnit
-	rootPath                string // Path to the buildbot checkout.
-	dryRun                  bool
-	noCommit                bool
+	deployableUnits            []DeployableUnit
+	canariedDeployableUnits    []DeployableUnit
+	rootPath                   string // Path to the buildbot checkout.
+	dryRun                     bool   // TODO(lovisolo): Implement.
+	noCommit                   bool
+	minUptimeSeconds           int
+	uptimePollFrequencySeconds int
 
 	// Other constructor parameters.
 	skiaPublicConfigRepoUrl string
@@ -83,15 +80,17 @@ type Goldpushk struct {
 }
 
 // New is the Goldpushk constructor.
-func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableUnit, skiaInfraRootPath string, dryRun, noCommit bool, skiaPublicConfigRepoUrl, skiaCorpConfigRepoUrl string) *Goldpushk {
+func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableUnit, skiaInfraRootPath string, dryRun, noCommit bool, minUptimeSeconds, uptimePollFrequencySeconds int, skiaPublicConfigRepoUrl, skiaCorpConfigRepoUrl string) *Goldpushk {
 	return &Goldpushk{
-		deployableUnits:         deployableUnits,
-		canariedDeployableUnits: canariedDeployableUnits,
-		rootPath:                skiaInfraRootPath,
-		dryRun:                  dryRun,
-		noCommit:                noCommit,
-		skiaPublicConfigRepoUrl: skiaPublicConfigRepoUrl,
-		skiaCorpConfigRepoUrl:   skiaCorpConfigRepoUrl,
+		deployableUnits:            deployableUnits,
+		canariedDeployableUnits:    canariedDeployableUnits,
+		rootPath:                   skiaInfraRootPath,
+		dryRun:                     dryRun,
+		noCommit:                   noCommit,
+		minUptimeSeconds:           minUptimeSeconds,
+		uptimePollFrequencySeconds: uptimePollFrequencySeconds,
+		skiaPublicConfigRepoUrl:    skiaPublicConfigRepoUrl,
+		skiaCorpConfigRepoUrl:      skiaCorpConfigRepoUrl,
 	}
 }
 
@@ -557,7 +556,7 @@ type sleepFn func(time.Duration)
 // It does so by polling the clusters via kubectl every N seconds, and it prints out a status table
 // on each iteration.
 func (g *Goldpushk) monitor(ctx context.Context, units []DeployableUnit, getUptimes uptimesFn, sleep sleepFn) error {
-	fmt.Printf("\nMonitoring the following services until they all reach %d seconds of uptime (polling every %d seconds):\n", minUptimeSeconds, uptimePollFrequencySeconds)
+	fmt.Printf("\nMonitoring the following services until they all reach %d seconds of uptime (polling every %d seconds):\n", g.minUptimeSeconds, g.uptimePollFrequencySeconds)
 	for _, unit := range units {
 		fmt.Printf("  %s\n", unit.CanonicalName())
 	}
@@ -602,7 +601,7 @@ func (g *Goldpushk) monitor(ctx context.Context, units []DeployableUnit, getUpti
 			// We now check if it does have an uptime, and update the variables above accordingly if so.
 			if t, ok := uptimes[unit.DeployableUnitID]; ok {
 				uptimeStr = fmt.Sprintf("%ds", int64(t.Seconds()))
-				if t.Seconds() > minUptimeSeconds {
+				if int(t.Seconds()) > g.minUptimeSeconds {
 					running = "Yes"
 				}
 			}
@@ -616,7 +615,7 @@ func (g *Goldpushk) monitor(ctx context.Context, units []DeployableUnit, getUpti
 		// Have all DeployableUnits been running for at least minUptimeSeconds?
 		done := true
 		for _, unit := range units {
-			if t, ok := uptimes[unit.DeployableUnitID]; !ok || t.Seconds() < minUptimeSeconds {
+			if t, ok := uptimes[unit.DeployableUnitID]; !ok || int(t.Seconds()) < g.minUptimeSeconds {
 				done = false
 				break
 			}
@@ -644,7 +643,7 @@ func (g *Goldpushk) monitor(ctx context.Context, units []DeployableUnit, getUpti
 		}
 
 		// Wait before polling again.
-		sleep(uptimePollFrequencySeconds * time.Second)
+		sleep(time.Duration(g.uptimePollFrequencySeconds) * time.Second)
 	}
 }
 

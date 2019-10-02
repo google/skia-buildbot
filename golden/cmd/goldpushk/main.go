@@ -60,8 +60,10 @@ var (
 	flagCanaries  []string
 
 	// Optional flags.
-	flagDryRun   bool
-	flagNoCommit bool
+	flagDryRun                     bool
+	flagNoCommit                   bool
+	flagMinUptimeSeconds           int
+	flagUptimePollFrequencySeconds int
 
 	// Flags for debugging.
 	flagLogToStdErr bool
@@ -91,6 +93,8 @@ func main() {
 	rootCmd.Flags().StringSliceVarP(&flagCanaries, "canaries", "c", []string{}, "Comma-delimited subset of Gold services to use as canaries, written as instance:service pairs (e.g. \"skia:diffserver,flutter:skiacorrectness\")")
 	rootCmd.Flags().BoolVar(&flagDryRun, "dryrun", false, "Do everything except applying the new configuration to Kubernetes and committing changes to Git.")
 	rootCmd.Flags().BoolVar(&flagNoCommit, "no-commit", false, "Do not commit configuration changes to the skia-public-config or skia-corp-config Git repositories.")
+	rootCmd.Flags().IntVar(&flagMinUptimeSeconds, "min-uptime", 30, "Minimum uptime in seconds required for all services before exiting the monitoring step.")
+	rootCmd.Flags().IntVar(&flagUptimePollFrequencySeconds, "poll-freq", 3, "How often to poll Kubernetes for service uptimes, in seconds.")
 	rootCmd.Flags().BoolVar(&flagLogToStdErr, "logtostderr", false, "Log debug information to stderr. No logs will be produced if this flag is not set.")
 	rootCmd.Flags().BoolVar(&flagTesting, "testing", false, "Do not deploy any production services; use testing services instead.")
 
@@ -129,7 +133,7 @@ func run() {
 	}
 
 	// Build goldpushk instance.
-	gpk := goldpushk.New(deployableUnits, canariedDeployableUnits, skiaInfraRoot, flagDryRun, flagNoCommit, skiaPublicConfigRepoUrl, skiaCorpConfigRepoUrl)
+	gpk := goldpushk.New(deployableUnits, canariedDeployableUnits, skiaInfraRoot, flagDryRun, flagNoCommit, flagMinUptimeSeconds, flagUptimePollFrequencySeconds, skiaPublicConfigRepoUrl, skiaCorpConfigRepoUrl)
 
 	// Run goldpushk.
 	if err = gpk.Run(context.Background()); err != nil {
