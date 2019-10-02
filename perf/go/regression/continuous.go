@@ -28,6 +28,10 @@ const (
 	// MAX_PARALLEL_RECEIVES is the maximum number of Go routines used when
 	// receiving PubSub messages.
 	MAX_PARALLEL_RECEIVES = 1
+
+	// POLLING_CLUSTERING_DELAY is the time to wait between clustering runs, but
+	// only when not doing event driven regression detection.
+	POLLING_CLUSTERING_DELAY = 5 * time.Minute
 )
 
 // ConfigProvider is a function that's called to return a slice of alerts.Config. It is passed to NewContinuous.
@@ -339,7 +343,7 @@ func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
 		sklog.Info("Not event driven clustering.")
 	}
 	go func() {
-		for {
+		for range time.Tick(POLLING_CLUSTERING_DELAY) {
 			configs, err := c.provider()
 			if err != nil {
 				sklog.Errorf("Failed to get list of configs: %s", err)
