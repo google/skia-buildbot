@@ -59,7 +59,7 @@ type Goldpushk struct {
 	deployableUnits            []DeployableUnit
 	canariedDeployableUnits    []DeployableUnit
 	rootPath                   string // Path to the buildbot checkout.
-	dryRun                     bool   // TODO(lovisolo): Implement.
+	dryRun                     bool
 	noCommit                   bool
 	minUptimeSeconds           int
 	uptimePollFrequencySeconds int
@@ -140,6 +140,18 @@ func (g *Goldpushk) Run(ctx context.Context) error {
 	// Monitor remaining DeployableUnits.
 	if err := g.monitorServices(ctx); err != nil {
 		return skerr.Wrap(err)
+	}
+
+	// Give the user a chance to examine the generated files before exiting and cleaning up the Git
+	// repositories.
+	if g.dryRun {
+		fmt.Println("\nDry-run finished. Any generated files can be found in the following Git repository checkouts:")
+		fmt.Printf("  %s\n", g.skiaPublicConfigCheckout.GitDir)
+		fmt.Printf("  %s\n", g.skiaCorpConfigCheckout.GitDir)
+		fmt.Println("Press enter to delete the checkouts above and exit.")
+		if _, err := fmt.Scanln(); err != nil {
+			return skerr.Wrap(err)
+		}
 	}
 
 	return nil
@@ -338,9 +350,13 @@ func (g *Goldpushk) commitConfigFiles(ctx context.Context) (bool, error) {
 		return false, skerr.Wrap(err)
 	}
 
-	// Skip if noCommit is true.
-	if g.noCommit {
-		fmt.Println("\nSkipping commit step.")
+	// Skip if --no-commit or --dryrun.
+	if g.dryRun || g.noCommit {
+		reason := "dry run"
+		if g.noCommit {
+			reason = "no commit"
+		}
+		fmt.Printf("\nSkipping commit step (%s)\n", reason)
 		return true, nil
 	}
 
@@ -440,6 +456,11 @@ func (g *Goldpushk) monitorServices(ctx context.Context) error {
 // pushDeployableUnits takes a slice of DeployableUnits and pushes them to their corresponding
 // clusters.
 func (g *Goldpushk) pushDeployableUnits(ctx context.Context, units []DeployableUnit) error {
+	if g.dryRun {
+		fmt.Println("\nSkipping push step (dry run).")
+		return nil
+	}
+
 	for _, unit := range units {
 		if err := g.pushSingleDeployableUnit(ctx, unit); err != nil {
 			return skerr.Wrap(err)
@@ -559,6 +580,11 @@ func (g *Goldpushk) monitor(ctx context.Context, units []DeployableUnit, getUpti
 	fmt.Printf("\nMonitoring the following services until they all reach %d seconds of uptime (polling every %d seconds):\n", g.minUptimeSeconds, g.uptimePollFrequencySeconds)
 	for _, unit := range units {
 		fmt.Printf("  %s\n", unit.CanonicalName())
+	}
+
+	if g.dryRun {
+		fmt.Println("\nSkipping monitoring step (dry run).")
+		return nil
 	}
 
 	// Estimate the width of the status table to print at each monitoring iteration. This table
