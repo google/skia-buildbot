@@ -56,15 +56,25 @@ func readFile(filename string) (io.Reader, error) {
 	return f, nil
 }
 
-// ReadFile reads a file from the caller's testdata directory.
-func ReadFile(filename string) (string, error) {
+// ReadFileBytes reads a file from the caller's testdata directory and returns its contents as a
+// slice of bytes.
+func ReadFileBytes(filename string) ([]byte, error) {
 	f, err := readFile(filename)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
-		return "", fmt.Errorf("Could not read %s: %v", filename, err)
+		return nil, fmt.Errorf("Could not read %s: %v", filename, err)
+	}
+	return b, nil
+}
+
+// ReadFile reads a file from the caller's testdata directory.
+func ReadFile(filename string) (string, error) {
+	b, err := ReadFileBytes(filename)
+	if err != nil {
+		return "", err
 	}
 	return string(b), nil
 }
