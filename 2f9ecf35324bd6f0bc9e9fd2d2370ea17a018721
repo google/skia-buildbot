@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c038b1d9_b1fabd3f",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-02T12:27:12Z",
+      "side": 1,
+      "message": "nit: say something like \"this digest is valid, but arbitrary.",
+      "range": {
+        "startLine": 38,
+        "startChar": 4,
+        "endLine": 38,
+        "endChar": 19
+      },
+      "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "78efcf50_7e105d78",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-02T12:27:12Z",
+      "side": 1,
+      "message": "Did you compute this? Is this what dm computed?",
+      "range": {
+        "startLine": 51,
+        "startChar": 4,
+        "endLine": 51,
+        "endChar": 31
+      },
+      "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f40d436f_432b7540",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-02T12:27:12Z",
+      "side": 1,
+      "message": "We should know if this test calls this or not",
+      "range": {
+        "startLine": 338,
+        "startChar": 52,
+        "endLine": 338,
+        "endChar": 60
+      },
+      "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6fe475c7_d839f2cc",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-02T12:27:12Z",
+      "side": 1,
+      "message": "\u003d nil is redundent",
+      "range": {
+        "startLine": 341,
+        "startChar": 29,
+        "endLine": 341,
+        "endChar": 34
+      },
+      "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f455d2b9_7fe18346",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-02T12:27:12Z",
+      "side": 1,
+      "message": "I think this is misleading. It is conflating the difference between the MD5 hash of the image (used to make sure it was downloaded w/o being corrected) and the digest of the image (the md5 hash of the pixels*). You should remove imageToDigest and digestToMD5Bytes as they are not representative of what goes on IRL.\n\n\n*simplified, DM includes the size and a salt.",
+      "range": {
+        "startLine": 345,
+        "startChar": 29,
+        "endLine": 345,
+        "endChar": 59
+      },
+      "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c40dc03_a2a87c6a",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-02T12:27:12Z",
+      "side": 1,
+      "message": "This needs a comment indicating that this a whitebox test, in which we know we don\u0027t need any other fields of ObjectAttrs",
+      "range": {
+        "startLine": 345,
+        "startChar": 17,
+        "endLine": 345,
+        "endChar": 28
+      },
+      "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b8a6523_b1c48dac",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-02T12:27:12Z",
+      "side": 1,
+      "message": "nit: put this as a local above on line 348 to tell the reader that it should be unchanged from the bytes on GCS (same as the 16 bit one, which isn\u0027t special)",
+      "range": {
+        "startLine": 413,
+        "startChar": 17,
+        "endLine": 413,
+        "endChar": 35
+      },
+      "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "daaf888f_e7faac56",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-02T12:27:12Z",
+      "side": 1,
+      "message": "It would be nice to make sure the header (rr.Result().Header) has Cache-Control set",
+      "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f5f38e4_448e8472",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-02T12:27:12Z",
+      "side": 1,
+      "message": "nit: omit call with Image 2. I don\u0027t think it adds test coverage, right?",
+      "range": {
+        "startLine": 415,
+        "startChar": 1,
+        "endLine": 415,
+        "endChar": 12
+      },
+      "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
