@@ -13,7 +13,7 @@ goroutine has not successfully updated its job cache for some time.
 
 If there are Task Scheduler alerts, resolve those first.
 
-Otherwise, you should check the [logs] to try to diagnose what's failing.
+Otherwise, you should check the logs to try to diagnose what's failing.
 
 
 bot_coverage_metrics
@@ -22,7 +22,7 @@ bot_coverage_metrics
 The [bot coverage
 metrics](https://skia.googlesource.com/buildbot/+/master/datahopper/go/bot_metrics/bot_metrics.go)
 goroutine has not successfully completed a cycle for some time. You should
-check the [logs] to try to diagnose what's failing.
+check the logs to try to diagnose what's failing.
 
 
 swarming_task_metrics
@@ -31,7 +31,7 @@ swarming_task_metrics
 The [Swarming task
 metrics](https://skia.googlesource.com/buildbot/+/master/datahopper/go/swarming_metrics/tasks.go)
 goroutine has not successfully queried for Swarming tasks for some time. You should
-check the [logs] to try to diagnose what's failing.
+check the logs to try to diagnose what's failing.
 
 
 event_metrics
@@ -50,7 +50,7 @@ swarming_bot_metrics
 The [Swarming bot
 metrics](https://skia.googlesource.com/buildbot/+/master/datahopper/go/swarming_metrics/bots.go)
 goroutine has not successfully queried for Swarming bots for some time. See the
-alert for which pool and server is failing. You should check the [logs] to try
+alert for which pool and server is failing. You should check the logs to try
 to diagnose what's failing.
 
 
@@ -65,7 +65,7 @@ backup for some time.
 Try running `gcloud beta firestore operations list --project=skia-firestore `. If
 no output or error, check for a GCP Firestore outage.
 
-Otherwise, you should check the [logs] to try to diagnose what's failing.
+Otherwise, you should check the logs to try to diagnose what's failing.
 
 
 firestore_nightly_backup
@@ -88,7 +88,7 @@ has not succeeded in more than 24 hours. There are several things to check:
    - If no output (without filtering through grep) or error, check for a GCP
      Firestore outage.
 
- - Check the [Datahopper logs][logs] for any warnings or errors. One likely
+ - Check the Datahopper logs for any warnings or errors. One likely
    problem is a change in the output of the REST API. See [the
    code](https://skia.googlesource.com/buildbot/+/master/datahopper/go/datahopper/firestore_backup_metrics.go)
    for the URL used to retrieve Firestore export operations. You can also run
@@ -118,5 +118,3 @@ has not succeeded in more than 24 hours. There are several things to check:
    --from=cronjob/firestore-export-everything-nightly
    firestore-export-everything-manual`, wait for the job to finish, then run
    `kubectl delete job firestore-export-everything-manual`.
-
-[logs]: https://console.cloud.google.com/logs/viewer?project=skia-public&minLogLevel=500&expandAll=false&interval=PT1H&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fdatahopper%22%20AND%20severity%3DERROR
