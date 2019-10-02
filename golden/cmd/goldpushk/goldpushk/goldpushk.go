@@ -15,9 +15,11 @@ package goldpushk
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"text/tabwriter"
 	"time"
 
 	"go.skia.org/infra/go/exec"
@@ -37,6 +39,11 @@ const (
 	// Client Version: v1.16.0
 	// Server Version: v1.14.6-gke.1
 	kubectlTimestampLayout = "2006-01-02T15:04:05Z"
+
+	// Monitoring parameters.
+	// TODO(lovisolo): Turn these parameters into command-line flags.
+	minUptimeSeconds           = 30
+	uptimePollFrequencySeconds = 3
 )
 
 // cluster represents a Kubernetes cluster on which to deploy DeployableUnits, and contains all the
@@ -122,7 +129,7 @@ func (g *Goldpushk) Run(ctx context.Context) error {
 	}
 
 	// Monitor canaries.
-	if err := g.monitorCanaries(); err != nil {
+	if err := g.monitorCanaries(ctx); err != nil {
 		return skerr.Wrap(err)
 	}
 
@@ -132,7 +139,7 @@ func (g *Goldpushk) Run(ctx context.Context) error {
 	}
 
 	// Monitor remaining DeployableUnits.
-	if err := g.monitorServices(); err != nil {
+	if err := g.monitorServices(ctx); err != nil {
 		return skerr.Wrap(err)
 	}
 
@@ -384,7 +391,7 @@ func printOutGitStatus(ctx context.Context, checkout *git.TempCheckout, repoName
 	return nil
 }
 
-// pushCanaries deploys the canaried deployable units.
+// pushCanaries deploys the canaried DeployableUnits.
 func (g *Goldpushk) pushCanaries(ctx context.Context) error {
 	if len(g.canariedDeployableUnits) == 0 {
 		return nil
@@ -397,13 +404,18 @@ func (g *Goldpushk) pushCanaries(ctx context.Context) error {
 	return nil
 }
 
-func (g *Goldpushk) monitorCanaries() error {
-	// TODO(lovisolo)
-	fmt.Println("\nMonitoring not yet implemented.")
+// monitorCanaries monitors the canaried DeployableUnits after they have been pushed to production.
+func (g *Goldpushk) monitorCanaries(ctx context.Context) error {
+	if len(g.canariedDeployableUnits) == 0 {
+		return nil
+	}
+	if err := g.monitor(ctx, g.canariedDeployableUnits, g.getUptimes, time.Sleep); err != nil {
+		return skerr.Wrap(err)
+	}
 	return nil
 }
 
-// pushServices deploys the non-canaried deployable units.
+// pushServices deploys the non-canaried DeployableUnits.
 func (g *Goldpushk) pushServices(ctx context.Context) error {
 	if len(g.canariedDeployableUnits) == 0 {
 		fmt.Println("\nPushing services.")
@@ -417,9 +429,12 @@ func (g *Goldpushk) pushServices(ctx context.Context) error {
 	return nil
 }
 
-func (g *Goldpushk) monitorServices() error {
-	// TODO(lovisolo)
-	fmt.Println("\nMonitoring not yet implemented.")
+// monitorServices monitors the non-canaried DeployableUnits after they have been pushed to
+// production.
+func (g *Goldpushk) monitorServices(ctx context.Context) error {
+	if err := g.monitor(ctx, g.deployableUnits, g.getUptimes, time.Sleep); err != nil {
+		return skerr.Wrap(err)
+	}
 	return nil
 }
 
@@ -525,6 +540,112 @@ func (g *Goldpushk) switchClusters(ctx context.Context, cluster cluster) error {
 		g.currentCluster = cluster
 	}
 	return nil
+}
+
+// uptimesFn has the same signature as method Goldpushk.getUptimes(). To facilitate testing, method
+// Goldpushk.monitor() takes an uptimesFn instance as a parameter instead of calling
+// Goldpushk.getUptimes() directly.
+type uptimesFn func(context.Context, []DeployableUnit, time.Time) (map[DeployableUnitID]time.Duration, error)
+
+// sleepFn has the same signature as time.Sleep(). Its purpose is to enable mocking that function
+// from tests.
+type sleepFn func(time.Duration)
+
+// monitor watches the state of the given DeployableUnits and returns as soon as they seem to be
+// up and running on their respective clusters.
+//
+// It does so by polling the clusters via kubectl every N seconds, and it prints out a status table
+// on each iteration.
+func (g *Goldpushk) monitor(ctx context.Context, units []DeployableUnit, getUptimes uptimesFn, sleep sleepFn) error {
+	fmt.Printf("\nMonitoring the following services until they all reach %d seconds of uptime (polling every %d seconds):\n", minUptimeSeconds, uptimePollFrequencySeconds)
+	for _, unit := range units {
+		fmt.Printf("  %s\n", unit.CanonicalName())
+	}
+
+	// Estimate the width of the status table to print at each monitoring iteration. This table
+	// consists of three columns: UPTIME, READY and NAME. The first two are both 10 characters wide.
+	statusTableWidth := 20 // UPTIME + READY.
+	// We determine the width of column NAME by looking for the longest name among all DeployableUnits
+	// to monitor (e.g. "gold-skia-diffserver").
+	longestName := 0
+	for _, unit := range units {
+		if len(unit.CanonicalName()) > longestName {
+			longestName = len(unit.CanonicalName())
+		}
+	}
+	statusTableWidth += longestName
+
+	// Print status table header.
+	w := tabwriter.NewWriter(os.Stdout, 10, 0, 2, ' ', 0)
+	if _, err := fmt.Fprintln(w, "\nUPTIME\tREADY\tNAME"); err != nil {
+		return skerr.Wrap(err)
+	}
+	if err := w.Flush(); err != nil {
+		return skerr.Wrap(err)
+	}
+
+	// Monitoring loop.
+	for {
+		// Get uptimes.
+		uptimes, err := getUptimes(ctx, units, time.Now())
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+
+		// Print out uptimes for each DeployableUnit.
+		for _, unit := range units {
+			// First we assume the DeployableUnit has no uptime. If it's not yet running, it won't show up
+			// in the uptimes dictionary.
+			uptimeStr := "<None>"
+			running := "No"
+
+			// We now check if it does have an uptime, and update the variables above accordingly if so.
+			if t, ok := uptimes[unit.DeployableUnitID]; ok {
+				uptimeStr = fmt.Sprintf("%ds", int64(t.Seconds()))
+				if t.Seconds() > minUptimeSeconds {
+					running = "Yes"
+				}
+			}
+
+			// Print out a row in the status table for the current DeployableUnit.
+			if _, err := fmt.Fprintf(w, "%s\t%s\t%s\n", uptimeStr, running, unit.CanonicalName()); err != nil {
+				return skerr.Wrap(err)
+			}
+		}
+
+		// Have all DeployableUnits been running for at least minUptimeSeconds?
+		done := true
+		for _, unit := range units {
+			if t, ok := uptimes[unit.DeployableUnitID]; !ok || t.Seconds() < minUptimeSeconds {
+				done = false
+				break
+			}
+		}
+
+		// If so, break out of the monitoring loop.
+		if done {
+			if err := w.Flush(); err != nil {
+				return skerr.Wrap(err)
+			}
+			return nil
+		}
+
+		// Otherwise, print a horizontal line to separate the uptimes from this iteration and the next.
+		for i := 0; i < statusTableWidth; i++ {
+			if _, err := fmt.Fprintf(w, "-"); err != nil {
+				return skerr.Wrap(err)
+			}
+		}
+		if _, err := fmt.Fprintf(w, "\n"); err != nil {
+			return skerr.Wrap(err)
+		}
+		if err := w.Flush(); err != nil {
+			return skerr.Wrap(err)
+		}
+
+		// Wait before polling again.
+		sleep(uptimePollFrequencySeconds * time.Second)
+	}
 }
 
 // getUptimes groups the given DeployableUnits by cluster, calls getUptimesSingleCluster once per
