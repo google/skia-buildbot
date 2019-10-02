@@ -14,7 +14,7 @@ goroutine has not successfully updated its job cache for some time.
 If there are Task Scheduler alerts, resolve those first.
 
 Otherwise, you should check the
-[logs](https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2Fskia-datahopper2&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fdatahopper)
+[logs](https://console.cloud.google.com/logs/viewer?project=skia-public&minLogLevel=500&expandAll=false&interval=PT1H&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fdatahopper%22%20AND%20severity%3DERROR)
 to try to diagnose what's failing.
 
 
@@ -25,7 +25,7 @@ The [bot coverage
 metrics](https://skia.googlesource.com/buildbot/+/master/datahopper/go/bot_metrics/bot_metrics.go)
 goroutine has not successfully completed a cycle for some time. You should
 check the
-[logs](https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2Fskia-datahopper2&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fdatahopper)
+[logs](https://console.cloud.google.com/logs/viewer?project=skia-public&minLogLevel=500&expandAll=false&interval=PT1H&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fdatahopper%22%20AND%20severity%3DERROR)
 to try to diagnose what's failing.
 
 
@@ -36,7 +36,7 @@ The [Swarming task
 metrics](https://skia.googlesource.com/buildbot/+/master/datahopper/go/swarming_metrics/tasks.go)
 goroutine has not successfully queried for Swarming tasks for some time. You should
 check the
-[logs](https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2Fskia-datahopper2&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fdatahopper)
+[logs](https://console.cloud.google.com/logs/viewer?project=skia-public&minLogLevel=500&expandAll=false&interval=PT1H&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fdatahopper%22%20AND%20severity%3DERROR)
 to try to diagnose what's failing.
 
 
@@ -57,7 +57,7 @@ The [Swarming bot
 metrics](https://skia.googlesource.com/buildbot/+/master/datahopper/go/swarming_metrics/bots.go)
 goroutine has not successfully queried for Swarming bots for some time. See the
 alert for which pool and server is failing. You should check the
-[logs](https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2Fskia-datahopper2&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fdatahopper)
+[logs](https://console.cloud.google.com/logs/viewer?project=skia-public&minLogLevel=500&expandAll=false&interval=PT1H&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fdatahopper%22%20AND%20severity%3DERROR)
 to try to diagnose what's failing.
 
 
@@ -73,7 +73,7 @@ Try running `gcloud beta firestore operations list --project=skia-firestore `. I
 no output or error, check for a GCP Firestore outage.
 
 Otherwise, you should check the
-[logs](https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2Fskia-datahopper2&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fdatahopper)
+[logs](https://console.cloud.google.com/logs/viewer?project=skia-public&minLogLevel=500&expandAll=false&interval=PT1H&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fdatahopper%22%20AND%20severity%3DERROR)
 to try to diagnose what's failing.
 
 
@@ -98,7 +98,7 @@ has not succeeded in more than 24 hours. There are several things to check:
      Firestore outage.
 
  - Check the [Datahopper
-   logs](https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2Fskia-datahopper2&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fdatahopper)
+   logs](https://console.cloud.google.com/logs/viewer?project=skia-public&minLogLevel=500&expandAll=false&interval=PT1H&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fdatahopper%22%20AND%20severity%3DERROR)
    for any warnings or errors. One likely problem is a change in the output of
    the REST API. See [the
    code](https://skia.googlesource.com/buildbot/+/master/datahopper/go/datahopper/firestore_backup_metrics.go)
