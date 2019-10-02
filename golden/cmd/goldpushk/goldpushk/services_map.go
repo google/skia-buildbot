@@ -134,13 +134,21 @@ func TestingDeployableUnits() DeployableUnitSet {
 		},
 	}
 
-	s.add(TestInstance1, HealthyTestServer)
+	addHealthyServerInstance := func(instance Instance, service Service, internal bool) {
+		s.addWithOptions(instance, service, DeploymentOptions{
+			configMapName:     fmt.Sprintf("gold-%s-healthy-server-config", instance),
+			configMapTemplate: "golden/cmd/goldpushk/testing/healthy_server/config-template.json5",
+			internal:          internal,
+		})
+	}
+
+	addHealthyServerInstance(TestInstance1, HealthyTestServer, false)
 	s.add(TestInstance1, CrashingTestServer)
-	s.add(TestInstance2, HealthyTestServer)
+	addHealthyServerInstance(TestInstance2, HealthyTestServer, false)
 	s.add(TestInstance2, CrashingTestServer)
-	s.addWithOptions(TestCorpInstance1, HealthyTestServer, DeploymentOptions{internal: true})
+	addHealthyServerInstance(TestCorpInstance1, HealthyTestServer, true)
 	s.addWithOptions(TestCorpInstance1, CrashingTestServer, DeploymentOptions{internal: true})
-	s.addWithOptions(TestCorpInstance2, HealthyTestServer, DeploymentOptions{internal: true})
+	addHealthyServerInstance(TestCorpInstance2, HealthyTestServer, true)
 	s.addWithOptions(TestCorpInstance2, CrashingTestServer, DeploymentOptions{internal: true})
 
 	return s
