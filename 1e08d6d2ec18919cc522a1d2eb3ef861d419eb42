@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a4657f7_f0193a87",
+        "filename": "ds/go/datastore_backup/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-02T16:39:13Z",
+      "side": 1,
+      "message": "Can we add a log line here (in else) saying something like: we are done with this round of backups.",
+      "revId": "1e08d6d2ec18919cc522a1d2eb3ef861d419eb42",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
