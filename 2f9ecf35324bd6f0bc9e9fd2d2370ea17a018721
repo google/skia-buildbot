@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "cff90c44_eaed4885",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-02T18:20:16Z",
+      "side": 1,
+      "message": "Done.\n\nI changed the digest value to \"fff...\" to differentiate it from digest1 in imgloader_test.go.",
+      "parentUuid": "c038b1d9_b1fabd3f",
+      "range": {
+        "startLine": 38,
+        "startChar": 4,
+        "endLine": 38,
+        "endChar": 19
+      },
+      "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "78efcf50_7e105d78",
         "filename": "golden/go/diffstore/mem_diffstore_test.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd7196e8_f4e640ef",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-02T18:20:16Z",
+      "side": 1,
+      "message": "Nevermind; I was conflating the MD5 hash of the PNG file and the image digest. I had renamed the image file to match its MD5 hash, which is wrong.\n\nIn this patchset, I\u0027ve restored the PNG file name to its original name as in skbug.com/9483, and I\u0027ve explicitly computed the MD5 hash of the PNG into a new constant md5Hash16BitImage below.\n\nI\u0027ve also made some similar changes to imgloader_test.go (see this CL\u0027s ancestor) where I was conflating digests and MD5 hashes in a similar way.",
+      "parentUuid": "78efcf50_7e105d78",
+      "range": {
+        "startLine": 51,
+        "startChar": 4,
+        "endLine": 51,
+        "endChar": 31
+      },
+      "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "17032ffd_ca9ea6ff",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-02T18:20:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f40d436f_432b7540",
+      "range": {
+        "startLine": 338,
+        "startChar": 52,
+        "endLine": 338,
+        "endChar": 60
+      },
+      "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6fe475c7_d839f2cc",
         "filename": "golden/go/diffstore/mem_diffstore_test.go",
         "patchSetId": 2
@@ -91,6 +163,30 @@
       "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f48a9f08_85f5c94a",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-02T18:20:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6fe475c7_d839f2cc",
+      "range": {
+        "startLine": 341,
+        "startChar": 29,
+        "endLine": 341,
+        "endChar": 34
+      },
+      "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -140,6 +236,54 @@
     },
     {
       "key": {
+        "uuid": "45e7a93b_0df3f90c",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-02T18:20:16Z",
+      "side": 1,
+      "message": "Added a comment at the top of this test, just before declaring the mock objects.",
+      "parentUuid": "2c40dc03_a2a87c6a",
+      "range": {
+        "startLine": 345,
+        "startChar": 17,
+        "endLine": 345,
+        "endChar": 28
+      },
+      "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cae93588_170ca369",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-02T18:20:16Z",
+      "side": 1,
+      "message": "You\u0027re right, this is misleading.\n\nI\u0027ve rebased this CL on top of https://skia-review.googlesource.com/c/buildbot/+/245587, where I\u0027m making the changes you suggested.",
+      "parentUuid": "f455d2b9_7fe18346",
+      "range": {
+        "startLine": 345,
+        "startChar": 29,
+        "endLine": 345,
+        "endChar": 59
+      },
+      "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5b8a6523_b1c48dac",
         "filename": "golden/go/diffstore/mem_diffstore_test.go",
         "patchSetId": 2
@@ -180,6 +324,48 @@
     },
     {
       "key": {
+        "uuid": "d725d363_d1bed7c4",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-02T18:20:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b8a6523_b1c48dac",
+      "range": {
+        "startLine": 413,
+        "startChar": 17,
+        "endLine": 413,
+        "endChar": 35
+      },
+      "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1f4b55ae_a38d9072",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-02T18:20:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "daaf888f_e7faac56",
+      "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2f5f38e4_448e8472",
         "filename": "golden/go/diffstore/mem_diffstore_test.go",
         "patchSetId": 2
@@ -200,6 +386,30 @@
       "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd0d24eb_488cad16",
+        "filename": "golden/go/diffstore/mem_diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-02T18:20:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2f5f38e4_448e8472",
+      "range": {
+        "startLine": 415,
+        "startChar": 1,
+        "endLine": 415,
+        "endChar": 12
+      },
+      "revId": "2f9ecf35324bd6f0bc9e9fd2d2370ea17a018721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
