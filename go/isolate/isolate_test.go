@@ -21,7 +21,7 @@ func TestCopyIsolatedFile(t *testing.T) {
 	link := "link"
 	mode := 777
 	size := int64(9000)
-	ro := isolated.Writeable
+	ro := isolated.Writable
 	iso := &isolated.Isolated{
 		Algo:    "smrt",
 		Command: []string{"sit", "shake"},
@@ -179,7 +179,7 @@ func TestReUploadIsolatedFiles(t *testing.T) {
 	link := "link"
 	mode := 777
 	size := int64(9000)
-	ro := isolated.Writeable
+	ro := isolated.Writable
 	i1 := &isolated.Isolated{
 		Algo:    "smrt",
 		Command: []string{"sit", "shake"},

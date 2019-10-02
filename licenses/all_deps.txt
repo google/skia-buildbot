@@ -94,6 +94,8 @@ github.com/Masterminds/goutils
 github.com/Masterminds/semver
 github.com/Masterminds/sprig
 github.com/matttproud/golang_protobuf_extensions/pbutil
+github.com/mitchellh/copystructure
+github.com/mitchellh/reflectwalk
 github.com/modern-go/concurrent
 github.com/modern-go/reflect2
 github.com/nfnt/resize
