@@ -383,7 +383,7 @@ func TestCommitConfigFilesAbortedByUser(t *testing.T) {
 	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 1)
 }
 
-func TestCommitConfigFilesSkipped(t *testing.T) {
+func TestCommitConfigFilesSkippedWithFlagNoCommit(t *testing.T) {
 	unittest.MediumTest(t)
 
 	ctx := context.Background()
@@ -403,6 +403,53 @@ func TestCommitConfigFilesSkipped(t *testing.T) {
 		skiaPublicConfigRepoUrl: fakeSkiaPublicConfig.RepoUrl(),
 		skiaCorpConfigRepoUrl:   fakeSkiaCorpConfig.RepoUrl(),
 		noCommit:                true,
+	}
+
+	// Hide goldpushk output to stdout.
+	_, restoreStdout := hideStdout(t)
+	defer restoreStdout()
+
+	// Check out the fake "skia-public-config" and "skia-corp-config" repositories created earlier.
+	// This will run "git clone file://..." for each repository.
+	err := g.checkOutGitRepositories(ctx)
+	assert.NoError(t, err)
+	defer g.skiaPublicConfigCheckout.Delete()
+	defer g.skiaCorpConfigCheckout.Delete()
+
+	// Add changes to skia-public-config and skia-corp-config.
+	writeFileIntoRepo(t, g.skiaPublicConfigCheckout, "foo.yaml", "I'm a change in skia-public-config.")
+	writeFileIntoRepo(t, g.skiaCorpConfigCheckout, "bar.yaml", "I'm a change in skia-corp-config.")
+
+	// Call the function under test, which should not commit nor push any changes.
+	ok, err := g.commitConfigFiles(ctx)
+	assert.NoError(t, err)
+	assert.True(t, ok)
+
+	// Assert that no changes were pushed to skia-public-config or skia-corp-config.
+	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
+	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 1)
+}
+
+func TestCommitConfigFilesSkippedWithFlagDryRun(t *testing.T) {
+	unittest.MediumTest(t)
+
+	ctx := context.Background()
+
+	// Create two fake skia-{public,corp}-config repositories (i.e. "git init" two temp directories).
+	fakeSkiaPublicConfig, fakeSkiaCorpConfig := createFakeConfigRepos(t, ctx)
+	defer fakeSkiaPublicConfig.Cleanup()
+	defer fakeSkiaCorpConfig.Cleanup()
+
+	// Assert that there is just one commit on both repositories.
+	assertNumCommits(t, ctx, fakeSkiaPublicConfig, 1)
+	assertNumCommits(t, ctx, fakeSkiaCorpConfig, 1)
+
+	// Create the goldpushk instance under test. We pass it the file://... URLs to the two Git
+	// repositories created earlier.
+	g := Goldpushk{
+		skiaPublicConfigRepoUrl: fakeSkiaPublicConfig.RepoUrl(),
+		skiaCorpConfigRepoUrl:   fakeSkiaCorpConfig.RepoUrl(),
+		dryRun:                  true,
 	}
 
 	// Hide goldpushk output to stdout.
@@ -554,6 +601,47 @@ func TestPushCanaries(t *testing.T) {
 	}
 }
 
+func TestPushCanariesDryRun(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Gather the DeployableUnits to deploy.
+	s := ProductionDeployableUnits()
+	units := []DeployableUnit{}
+	units = appendUnit(t, units, s, Skia, DiffServer)     // Public.
+	units = appendUnit(t, units, s, Skia, IngestionBT)    // Public, with config map.
+	units = appendUnit(t, units, s, Fuchsia, DiffServer)  // Internal.
+	units = appendUnit(t, units, s, Fuchsia, IngestionBT) // Internal, with config map.
+
+	// Create the goldpushk instance under test.
+	g := &Goldpushk{
+		canariedDeployableUnits: units,
+		dryRun:                  true,
+	}
+
+	// Capture and hide goldpushk output to stdout.
+	fakeStdout, restoreStdout := hideStdout(t)
+	defer restoreStdout()
+
+	// Set up mocks.
+	commandCollector := exec.CommandCollector{}
+	commandCollectorCtx := exec.NewContext(context.Background(), commandCollector.Run)
+
+	// Call code under test.
+	err := g.pushCanaries(commandCollectorCtx)
+	assert.NoError(t, err)
+
+	// Assert that no commands were executed.
+	assert.Len(t, commandCollector.Commands(), 0)
+
+	// Assert that the expected output was written to stdout.
+	expectedStdout := `
+Pushing canaried services.
+
+Skipping push step (dry run).
+`
+	assert.Equal(t, expectedStdout, readFakeStdout(t, fakeStdout))
+}
+
 func TestPushServices(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -600,6 +688,47 @@ func TestPushServices(t *testing.T) {
 	for i, command := range expectedCommands {
 		assert.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
 	}
+}
+
+func TestPushServicesDryRun(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Gather the DeployableUnits to deploy.
+	s := ProductionDeployableUnits()
+	units := []DeployableUnit{}
+	units = appendUnit(t, units, s, Skia, DiffServer)     // Public.
+	units = appendUnit(t, units, s, Skia, IngestionBT)    // Public, with config map.
+	units = appendUnit(t, units, s, Fuchsia, DiffServer)  // Internal.
+	units = appendUnit(t, units, s, Fuchsia, IngestionBT) // Internal, with config map.
+
+	// Create the goldpushk instance under test.
+	g := &Goldpushk{
+		deployableUnits: units,
+		dryRun:          true,
+	}
+
+	// Capture and hide goldpushk output to stdout.
+	fakeStdout, restoreStdout := hideStdout(t)
+	defer restoreStdout()
+
+	// Set up mocks.
+	commandCollector := exec.CommandCollector{}
+	commandCollectorCtx := exec.NewContext(context.Background(), commandCollector.Run)
+
+	// Call code under test.
+	err := g.pushServices(commandCollectorCtx)
+	assert.NoError(t, err)
+
+	// Assert that no commands were executed.
+	assert.Len(t, commandCollector.Commands(), 0)
+
+	// Assert that the expected output was written to stdout.
+	expectedStdout := `
+Pushing services.
+
+Skipping push step (dry run).
+`
+	assert.Equal(t, expectedStdout, readFakeStdout(t, fakeStdout))
 }
 
 func TestGetUptimesSingleCluster(t *testing.T) {
@@ -810,15 +939,48 @@ func TestMonitor(t *testing.T) {
 	// (which in this case is 30s).
 	assert.Equal(t, 10, numTimesMockUptimesFnWasCalled)
 
-	// Read the captured stdout.
-	_, err = fakeStdout.Seek(0, 0)
+	// Assert that monitoring produced the expected output on stdout.
+	assert.Equal(t, expectedMonitorStdout, readFakeStdout(t, fakeStdout))
+}
+
+func TestMonitorDryRun(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Gather the DeployableUnits to monitor.
+	s := ProductionDeployableUnits()
+	units := []DeployableUnit{}
+	units = appendUnit(t, units, s, Chrome, BaselineServer)
+	units = appendUnit(t, units, s, Chrome, DiffServer)
+	units = appendUnit(t, units, s, Chrome, IngestionBT)
+
+	// Create the goldpushk instance under test.
+	g := &Goldpushk{
+		dryRun:                     true,
+		minUptimeSeconds:           30,
+		uptimePollFrequencySeconds: 5,
+	}
+
+	// Capture and hide goldpushk output to stdout.
+	fakeStdout, restoreStdout := hideStdout(t)
+	defer restoreStdout()
+
+	// Mock uptimesFn.
+	mockUptimesFn := func(_ context.Context, _ []DeployableUnit, _ time.Time) (map[DeployableUnitID]time.Duration, error) {
+		assert.Fail(t, "uptimesFn should never be called in dry mode")
+		return nil, nil
+	}
+
+	// Mock sleepFn.
+	mockSleepFn := func(d time.Duration) {
+		assert.Fail(t, "sleepFn should never be called in dry mode")
+	}
+
+	// Call code under test.
+	err := g.monitor(context.Background(), units, mockUptimesFn, mockSleepFn)
 	assert.NoError(t, err)
-	stdoutBytes, err := ioutil.ReadAll(fakeStdout)
-	assert.NoError(t, err)
-	actualMonitorStdout := string(stdoutBytes)
 
 	// Assert that monitoring produced the expected output on stdout.
-	assert.Equal(t, expectedMonitorStdout, actualMonitorStdout)
+	assert.Equal(t, expectedMonitorDryRunStdout, readFakeStdout(t, fakeStdout))
 }
 
 // appendUnit will retrieve a DeployableUnit from the given DeployableUnitSet using the given
@@ -894,6 +1056,16 @@ func hideStdout(t *testing.T) (fakeStdout *os.File, cleanup func()) {
 	os.Stdout = fakeStdout
 
 	return fakeStdout, cleanup
+}
+
+// readFakeStdout takes the *os.File returned by hideStdout(), and reads and returns its contents.
+func readFakeStdout(t *testing.T, fakeStdout *os.File) string {
+	// Read the captured stdout.
+	_, err := fakeStdout.Seek(0, 0)
+	assert.NoError(t, err)
+	stdoutBytes, err := ioutil.ReadAll(fakeStdout)
+	assert.NoError(t, err)
+	return string(stdoutBytes)
 }
 
 // fakeStdin fakes user input via stdin. It replaces stdin with a temporary file with the given fake
@@ -1050,4 +1222,14 @@ UPTIME    READY     NAME
 40s       Yes       gold-chrome-baselineserver
 37s       Yes       gold-chrome-diffserver
 31s       Yes       gold-chrome-ingestion-bt
+`
+
+// Generated by printing out the stdout captured in TestMonitorDryRun above.
+const expectedMonitorDryRunStdout = `
+Monitoring the following services until they all reach 30 seconds of uptime (polling every 5 seconds):
+  gold-chrome-baselineserver
+  gold-chrome-diffserver
+  gold-chrome-ingestion-bt
+
+Skipping monitoring step (dry run).
 `
