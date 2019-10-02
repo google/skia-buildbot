@@ -1,8 +1,13 @@
 package diffstore
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"path"
 	"sort"
 	"testing"
@@ -10,6 +15,7 @@ import (
 	"cloud.google.com/go/storage"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs/gcsclient"
+	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/tiling"
@@ -28,7 +34,36 @@ const (
 
 	// Prefix for the image url handler.
 	IMAGE_URL_PREFIX = "/img/"
+
+	// Missing digest (valid, but arbitrary).
+	missingDigest       = types.Digest("ffffffffffffffffffffffffffffffff")
+	missingDigestGsPath = gsImageBaseDir + "/" + string(missingDigest) + ".png"
+
+	// Diff between skTextImage1 and skTextImage2.
+	skTextDiffImages1And2 = `! SKTEXTSIMPLE
+	1 5
+	0xfdd0a2ff
+	0xfdd0a2ff
+	0xfdd0a2ff
+	0xfdd0a2ff
+	0xc6dbefff`
+
+	// Digest for the 16-bit image stored in the testdata directory. This is the same image used to
+	// test preservation of color space information in skbug.com/9483.
+	digest16BitImage       = types.Digest("8a90a2f1245dc87d96bfb74bdc4ab97e")
+	digest16BitImageGsPath = gsImageBaseDir + "/" + string(digest16BitImage) + ".png"
+
+	// MD5 hash of the 16-bit PNG image above. Needed for the storage.ObjectAttrs instance returned by
+	// the mock GCS client.
+	md5Hash16BitImage = "22ea2cb4e3eabd2bb3faba7a07e18b7a" // = md5sum(8a90a2f1245dc87d96bfb74bdc4ab97e.png)
 )
+
+func TestMd5Hash16BitImageIsCorrect(t *testing.T) {
+	unittest.SmallTest(t)
+	bytes, err := testutils.ReadFileBytes(fmt.Sprintf("%s.png", digest16BitImage))
+	assert.NoError(t, err)
+	assert.Equal(t, md5Hash16BitImage, bytesToMd5HashString(bytes))
+}
 
 func TestMemDiffStore(t *testing.T) {
 	unittest.LargeTest(t)
@@ -293,6 +328,119 @@ func TestDecodeImagesErrorDecodingLeftAndRightImages(t *testing.T) {
 	_, _, err := decodeImages(leftBytes, rightBytes)
 
 	assert.Error(t, err)
+}
+
+func TestMemDiffStoreImageHandler(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// This is a white-box test. The mock failure store and GCS client below return only what is
+	// needed for this test to pass, and nothing more (e.g. field "MD5" in *storage.ObjectAttrs).
+
+	// Build mock FailureStore.
+	mockFailureStore := &mocks.FailureStore{}
+	defer mockFailureStore.AssertExpectations(t)
+
+	// Failure is stored.
+	mockFailureStore.On("AddDigestFailure", diffFailureMatcher(missingDigest, "http_error")).Return(nil)
+	mockFailureStore.On("AddDigestFailureIfNew", diffFailureMatcher(missingDigest, "other")).Return(nil)
+
+	// Build mock GCSClient.
+	mockBucketClient := test_gcsclient.NewMockClient()
+	defer mockBucketClient.AssertExpectations(t)
+
+	// Only used for logging errors, which only some tests produce.
+	mockBucketClient.On("Bucket").Return("test-bucket")
+
+	// missingDigest is not present in the GCS bucket.
+	var oa *storage.ObjectAttrs
+	mockBucketClient.On("GetFileObjectAttrs", testutils.AnyContext, missingDigestGsPath).Return(oa, errors.New("not found"))
+
+	// digest1 is present in the GCS bucket.
+	oa1 := &storage.ObjectAttrs{MD5: md5HashToBytes(image1Md5Hash)}
+	mockBucketClient.On("GetFileObjectAttrs", testutils.AnyContext, image1GsPath).Return(oa1, nil)
+
+	// digest1 is read.
+	pngImage1Bytes := imageToPng(image1).Bytes()
+	reader1 := ioutil.NopCloser(bytes.NewBuffer(pngImage1Bytes))
+	mockBucketClient.On("FileReader", testutils.AnyContext, image1GsPath).Return(reader1, nil)
+
+	// digest2 is present in the GCS bucket.
+	oa2 := &storage.ObjectAttrs{MD5: md5HashToBytes(image2Md5Hash)}
+	mockBucketClient.On("GetFileObjectAttrs", testutils.AnyContext, image2GsPath).Return(oa2, nil)
+
+	// digest2 is read.
+	reader2 := ioutil.NopCloser(imageToPng(image2))
+	mockBucketClient.On("FileReader", testutils.AnyContext, image2GsPath).Return(reader2, nil)
+
+	// digest16BitImage is present in the GCS bucket.
+	oa3 := &storage.ObjectAttrs{MD5: md5HashToBytes(md5Hash16BitImage)}
+	mockBucketClient.On("GetFileObjectAttrs", testutils.AnyContext, digest16BitImageGsPath).Return(oa3, nil)
+
+	// digest16BitImage is read.
+	bytes16BitImage, err := testutils.ReadFileBytes(fmt.Sprintf("%s.png", digest16BitImage))
+	assert.NoError(t, err)
+	reader3 := ioutil.NopCloser(bytes.NewReader(bytes16BitImage))
+	mockBucketClient.On("FileReader", testutils.AnyContext, digest16BitImageGsPath).Return(reader3, nil)
+
+	// Dummy mapper.
+	m := disk_mapper.New(&diff.DiffMetrics{})
+
+	// Temporary dir for the Bolt store.
+	baseDir, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	// Build MemDiffStore instance under test.
+	diffStore, err := NewMemDiffStore(mockBucketClient, baseDir, gsImageBaseDir, 10, m, mockFailureStore)
+	assert.NoError(t, err)
+
+	// Get the HTTP handler function under test.
+	handlerFn, err := diffStore.ImageHandler("/img/")
+	assert.NoError(t, err)
+
+	// Executes GET requests.
+	get := func(urlFmt string, elem ...interface{}) *httptest.ResponseRecorder {
+		url := fmt.Sprintf(urlFmt, elem...)
+
+		// Create request.
+		req, err := http.NewRequest("GET", url, nil)
+		assert.NoError(t, err)
+
+		// Create the ResponseRecorder that will be returned after the request is served.
+		rr := httptest.NewRecorder()
+
+		// Serve request.
+		handlerFn.ServeHTTP(rr, req)
+
+		return rr
+	}
+
+	// Invalid digest.
+	rr := get("/img/images/foo.png")
+	assert.Equal(t, http.StatusNotFound, rr.Code)
+	assert.Equal(t, "no-cache, no-store, must-revalidate", rr.Header().Get("Cache-Control"))
+
+	// Missing digest.
+	rr = get("/img/images/%s.png", missingDigest)
+	assert.Equal(t, http.StatusNotFound, rr.Code)
+	assert.Equal(t, "no-cache, no-store, must-revalidate", rr.Header().Get("Cache-Control"))
+
+	// Image 1.
+	rr = get("/img/images/%s.png", digest1)
+	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.Equal(t, pngImage1Bytes, rr.Body.Bytes())
+	assert.Equal(t, "public, max-age=43200", rr.Header().Get("Cache-Control"))
+
+	// Diff between images 1 and 2.
+	rr = get("/img/diffs/%s-%s.png", digest1, digest2)
+	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.Equal(t, imageToPng(skTextToImage(skTextDiffImages1And2)).Bytes(), rr.Body.Bytes())
+	assert.Equal(t, "public, max-age=43200", rr.Header().Get("Cache-Control"))
+
+	// 16-bit image is returned verbatim as found in GCS. See skbug.com/9483 for more context.
+	rr = get("/img/images/%s.png", digest16BitImage)
+	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.Equal(t, bytes16BitImage, rr.Body.Bytes())
+	assert.Equal(t, "public, max-age=43200", rr.Header().Get("Cache-Control"))
 }
 
 // Allows for sorting slices of digests by the length (longer slices first)
