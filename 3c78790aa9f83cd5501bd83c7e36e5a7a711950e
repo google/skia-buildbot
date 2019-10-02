@@ -93,6 +93,30 @@
       "revId": "3c78790aa9f83cd5501bd83c7e36e5a7a711950e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "23d9398a_dd3697a5",
+        "filename": "golden/k8s-config-templates/gold-healthy-server-template.yaml",
+        "patchSetId": 5
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-02T16:32:44Z",
+      "side": 1,
+      "message": "We should make that one 444 also, assuming no problems",
+      "parentUuid": "99aac15f_666bf92e",
+      "range": {
+        "startLine": 49,
+        "startChar": 25,
+        "endLine": 49,
+        "endChar": 28
+      },
+      "revId": "3c78790aa9f83cd5501bd83c7e36e5a7a711950e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
