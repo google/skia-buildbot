@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5771c6cb_36fc7568",
+        "filename": "task_scheduler/go/db/memory/comments.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-02T18:46:09Z",
+      "side": 1,
+      "message": "Done, I think.",
+      "parentUuid": "9f838ecd_f1ce8602",
+      "range": {
+        "startLine": 270,
+        "startChar": 0,
+        "endLine": 273,
+        "endChar": 19
+      },
+      "revId": "813ef9347f2de8c9c2ea4878ba9a3256d6f417e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "112a8526_76f412d2",
         "filename": "task_scheduler/go/db/modified_chan_testutil.go",
         "patchSetId": 9
@@ -36,6 +60,24 @@
       "writtenOn": "2019-10-01T14:45:08Z",
       "side": 1,
       "message": "Note that the firestore tests also specify LargeTest.",
+      "revId": "813ef9347f2de8c9c2ea4878ba9a3256d6f417e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "109522f9_9bd9e83d",
+        "filename": "task_scheduler/go/db/modified_chan_testutil.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-02T18:46:09Z",
+      "side": 1,
+      "message": "Removed from this file, categorized the in-memory impl as small.",
+      "parentUuid": "112a8526_76f412d2",
       "revId": "813ef9347f2de8c9c2ea4878ba9a3256d6f417e3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
