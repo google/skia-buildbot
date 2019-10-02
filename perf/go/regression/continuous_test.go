@@ -2,6 +2,7 @@ package regression
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/paramtools"
@@ -31,6 +32,7 @@ func TestBuildConfigsAndParamSet(t *testing.T) {
 				"config": []string{"8888", "565"},
 			}
 		},
+		pollingDelay: time.Nanosecond,
 	}
 
 	// Build channel.
