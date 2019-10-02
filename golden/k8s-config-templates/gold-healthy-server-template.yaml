@@ -25,9 +25,13 @@ spec:
           args:
             - "--instance={{.INSTANCE_ID}}"
             - "--port=8000"
+            - "--config_filename=/etc/gold-healthy-server-config/gold-{{.INSTANCE_ID}}-healthy-server-config.json5"
           ports:
             - containerPort: 8000
               name: http
+          volumeMounts:
+            - name: gold-{{.INSTANCE_ID}}-healthy-server-config-volume
+              mountPath: /etc/gold-healthy-server-config
           resources:
             requests:
               memory: "{{.MAIN_MEMORY}}"
@@ -39,3 +43,8 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
             failureThreshold: 6
+      volumes:
+        - name: gold-{{.INSTANCE_ID}}-healthy-server-config-volume
+          configMap:
+            defaultMode: 444
+            name: gold-{{.INSTANCE_ID}}-healthy-server-config
