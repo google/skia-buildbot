@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "060009b8_9dcbdc29",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 968,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-02T20:39:02Z",
+      "side": 1,
+      "message": "nit: _",
+      "range": {
+        "startLine": 968,
+        "startChar": 42,
+        "endLine": 968,
+        "endChar": 56
+      },
+      "revId": "54ce0680b428a468484ef663d1ec8c77ff93b1f3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
