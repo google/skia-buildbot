@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8fe0b09e_6fc6bffe",
+        "filename": "datahopper/PROD.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-02T16:27:48Z",
+      "side": 1,
+      "message": "Can we just use the log links from the alerts?  There are three instances, so this link will be wrong for two of them.",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 122,
+        "endChar": 217
+      },
+      "revId": "4e254134ed209cebf3ce12f177f8978ce2fccbfa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
