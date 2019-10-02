@@ -5,29 +5,29 @@ Alert manager converts Prometheus alerts into PubSub events which
 are then used to drive the state in alert-manager.
 
 ```
-		+-----------------------------+      +--------------------------+
-		|  Prometheus (skia|buildbot) |      | Prometheus (skia|public) |
-		+-------------+---------------+      +------------+-------------+
-									|                                   |
-									|                                   |
-				 +--------v--------+                 +--------v--------+
-				 |                 |                 |                 |
-				 | alert-to-pubsub +-------+      +--+ alert-to-pubsub |
-				 |                 |       |      |  |                 |
-				 +-----------------+       |      |  +-----------------+
-																	 |      |
-													+--------v------v----------+
-													| PubSub                   |
-													| Topic: prometheus-alerts |
-													+---------------+----------+
-																					|
-		 +-----------------+                  |
-		 |                 |          +-------v-------+
-		 | Cloud Datastore <----------+               |
-		 |   IncidentAm    |          | alert-manager |
-		 |   SilenceAm     +---------->               |
-		 |                 |          +---------------+
-		 +-----------------+
+        +-----------------------------+      +--------------------------+
+        |  Prometheus (skia|buildbot) |      | Prometheus (skia|public) |
+        +-------------+---------------+      +------------+-------------+
+                                    |                                   |
+                                    |                                   |
+                           +--------v--------+                 +--------v--------+
+                           |                 |                 |                 |
+                           | alert-to-pubsub +-------+      +--+ alert-to-pubsub |
+                           |                 |       |      |  |                 |
+                           +-----------------+       |      |  +-----------------+
+                                                     |      |
+                                            +--------v------v----------+
+                                            | PubSub                   |
+                                            | Topic: prometheus-alerts |
+                                            +---------------+----------+
+                                              |
+         +-----------------+                  |
+         |                 |          +-------v-------+
+         | Cloud Datastore <----------+               |
+         |   IncidentAm    |          | alert-manager |
+         |   SilenceAm     +---------->               |
+         |                 |          +---------------+
+         +-----------------+
 ```
 
 The alert-manager application is state-less, all state is stored
