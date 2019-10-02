@@ -19,6 +19,7 @@ import (
 // flags
 var (
 	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	duration = flag.Duration("duration", time.Hour*24*7, "Time between backups.")
 )
 
 const (
@@ -42,9 +43,10 @@ func main() {
 	if err := backup.Step(client, PROJECT, BUCKET); err != nil {
 		sklog.Errorf("Failed to do first backup step: %s", err)
 	}
-	for range time.Tick(24 * time.Hour) {
+	for range time.Tick(*duration) {
 		if err := backup.Step(client, PROJECT, BUCKET); err != nil {
 			sklog.Errorf("Failed to backup: %s", err)
 		}
+		sklog.Info("Finished queuing all backups.")
 	}
 }
