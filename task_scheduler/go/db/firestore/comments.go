@@ -130,7 +130,6 @@ func (d *firestoreDB) PutTaskComment(c *types.TaskComment) error {
 	if err != nil {
 		return err
 	}
-	d.TrackModifiedTaskComment(c)
 	return nil
 }
 
@@ -160,9 +159,6 @@ func (d *firestoreDB) DeleteTaskComment(c *types.TaskComment) error {
 	}); err != nil {
 		return err
 	}
-	if existing != nil {
-		d.TrackModifiedTaskComment(existing)
-	}
 	return nil
 }
 
@@ -182,7 +178,6 @@ func (d *firestoreDB) PutTaskSpecComment(c *types.TaskSpecComment) error {
 	if err != nil {
 		return err
 	}
-	d.TrackModifiedTaskSpecComment(c)
 	return nil
 }
 
@@ -212,9 +207,6 @@ func (d *firestoreDB) DeleteTaskSpecComment(c *types.TaskSpecComment) error {
 	}); err != nil {
 		return err
 	}
-	if existing != nil {
-		d.TrackModifiedTaskSpecComment(existing)
-	}
 	return nil
 }
 
@@ -234,7 +226,6 @@ func (d *firestoreDB) PutCommitComment(c *types.CommitComment) error {
 	if err != nil {
 		return err
 	}
-	d.TrackModifiedCommitComment(c)
 	return nil
 }
 
@@ -263,9 +254,6 @@ func (d *firestoreDB) DeleteCommitComment(c *types.CommitComment) error {
 		return nil
 	}); err != nil {
 		return err
-	}
-	if existing != nil {
-		d.TrackModifiedCommitComment(existing)
 	}
 	return nil
 }
