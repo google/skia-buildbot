@@ -96,7 +96,7 @@ func main() {
 		sklog.Fatalf("Could not create metrics store: %s.", err)
 	}
 
-	memDiffStore, err := diffstore.NewMemDiffStore(gcsClient, *imageDir, *gsBaseDir, *cacheSize, mapper, mStore, fStore)
+	memDiffStore, err := diffstore.NewMemDiffStore(gcsClient, *gsBaseDir, *cacheSize, mapper, mStore, fStore)
 	if err != nil {
 		sklog.Fatalf("Allocating DiffStore failed: %s", err)
 	}

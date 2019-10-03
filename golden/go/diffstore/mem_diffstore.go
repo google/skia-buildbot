@@ -50,9 +50,6 @@ const (
 
 // MemDiffStore implements the diff.DiffStore interface.
 type MemDiffStore struct {
-	// baseDir contains the root directory of where all data are stored.
-	baseDir string
-
 	// diffMetricsCache caches and calculates diff metrics.
 	diffMetricsCache rtcache.ReadThroughCache
 
@@ -79,7 +76,7 @@ type MemDiffStore struct {
 // If diffFn is not specified, the diff.DefaultDiffFn will be used. If codec is
 // not specified, a JSON codec for the diff.DiffMetrics struct will be used.
 // If mapper is not specified, GoldIDPathMapper will be used.
-func NewMemDiffStore(client gcs.GCSClient, baseDir string, gsImageBaseDir string, gigs int, m mapper.Mapper, mStore metricsstore.MetricsStore, fStore failurestore.FailureStore) (diff.DiffStore, error) {
+func NewMemDiffStore(client gcs.GCSClient, gsImageBaseDir string, gigs int, m mapper.Mapper, mStore metricsstore.MetricsStore, fStore failurestore.FailureStore) (diff.DiffStore, error) {
 	imageCacheCount, diffCacheCount := getCacheCounts(gigs)
 
 	// Set up image retrieval, caching and serving.
@@ -90,7 +87,6 @@ func NewMemDiffStore(client gcs.GCSClient, baseDir string, gsImageBaseDir string
 	}
 
 	ret := &MemDiffStore{
-		baseDir:         baseDir,
 		imgLoader:       imgLoader,
 		metricsStore:    mStore,
 		mapper:          m,
@@ -327,7 +323,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 		}
 	}
 
-	sklog.Infof("Created diffstore with base directory: %s", m.baseDir)
+	sklog.Infof("Created diffstore")
 
 	// The above function relies on the URL prefix being stripped.
 	return http.StripPrefix(urlPrefix, http.HandlerFunc(handlerFunc)), nil
