@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -34,6 +35,7 @@ import (
 	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
@@ -237,10 +239,9 @@ func main() {
 		Tasks: moarTasks,
 		Jobs:  jobs,
 	}
-	f, err := os.Create(path.Join(repoDir, specs.TASKS_CFG_FILE))
-	assertNoError(err)
-	assertNoError(json.NewEncoder(f).Encode(&cfg))
-	assertNoError(f.Close())
+	assertNoError(util.WithWriteFile(path.Join(repoDir, specs.TASKS_CFG_FILE), func(w io.Writer) error {
+		return json.NewEncoder(w).Encode(&cfg)
+	}))
 	run(ctx, repoDir, "git", "add", specs.TASKS_CFG_FILE)
 	commit(ctx, repoDir, "Add more tasks!")
 	run(ctx, repoDir, "git", "push", "origin", "master")
