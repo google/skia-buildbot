@@ -67,7 +67,7 @@ func Step(client *http.Client, project, bucket string) error {
 	success := true
 	for ns, kinds := range ds.KindsToBackup {
 		req := Request{
-			OutputUrlPrefix: fmt.Sprintf("gs://%s/ds/", bucket) + time.Now().Format("2006/01/02/15/04"),
+			OutputUrlPrefix: fmt.Sprintf("gs://%s/%s/", bucket, project) + time.Now().Format("2006/01/02/15/04"),
 			EntityFilter: EntityFilter{
 				Kinds:        kinds,
 				NamespaceIds: []string{ns},
