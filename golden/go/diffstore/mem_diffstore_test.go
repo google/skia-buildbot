@@ -86,10 +86,10 @@ func TestMemDiffStore(t *testing.T) {
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
-	testDiffStore(t, tile, baseDir, diffStore, memDiffStore)
+	testDiffStore(t, tile, diffStore, memDiffStore)
 }
 
-func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore diff.DiffStore, memDiffStore *MemDiffStore) {
+func testDiffStore(t *testing.T, tile *tiling.Tile, diffStore diff.DiffStore, memDiffStore *MemDiffStore) {
 	// Pick the test with highest number of digests.
 	byName := map[types.TestName]types.DigestSet{}
 	for _, trace := range tile.Traces {
