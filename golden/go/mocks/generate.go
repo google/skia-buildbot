@@ -6,7 +6,8 @@ package mocks
 //go:generate mockery -name DiffStore -dir ../diff -output .
 //go:generate mockery -name DigestCounter -dir ../digest_counter -output .
 //go:generate mockery -name ExpectationsStore -dir ../expstorage -output .
+//go:generate mockery -name FailureStore -dir ../diffstore/failurestore -output .
 //go:generate mockery -name GCSClient -dir ../storage -output .
+//go:generate mockery -name MetricsStore -dir ../diffstore/metricsstore -output .
 //go:generate mockery -name TileSource -dir ../tilesource -output .
 //go:generate mockery -name TraceStore -dir ../tracestore -output .
-//go:generate mockery -name FailureStore -dir ../diffstore/failurestore -output .
