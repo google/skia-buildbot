@@ -6,6 +6,7 @@ import (
 	"sync"
 	"testing"
 
+	"go.skia.org/infra/golden/go/diffstore/metricsstore/bolt_metricsstore"
 	"go.skia.org/infra/golden/go/ignore"
 
 	"cloud.google.com/go/storage"
@@ -55,7 +56,9 @@ func BenchmarkMemDiffStore(b *testing.B) {
 
 	mapper := disk_mapper.New(&diff.DiffMetrics{})
 	mfs := &mocks.FailureStore{}
-	diffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, mapper, mfs)
+	mStore, err := bolt_metricsstore.New(baseDir, mapper)
+	assert.NoError(b, err)
+	diffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, mapper, mStore, mfs)
 	assert.NoError(b, err)
 	allDigests := make([]types.DigestSlice, 0, PROCESS_N_TESTS)
 	processed := 0
