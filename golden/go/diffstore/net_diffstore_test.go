@@ -36,7 +36,7 @@ func TestNetDiffStore(t *testing.T) {
 	mfs := &mocks.FailureStore{}
 	mStore, err := bolt_metricsstore.New(baseDir, m)
 	assert.NoError(t, err)
-	memDiffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mStore, mfs)
+	memDiffStore, err := NewMemDiffStore(gcsClient, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mStore, mfs)
 	assert.NoError(t, err)
 
 	// Start the server that wraps around the MemDiffStore.
