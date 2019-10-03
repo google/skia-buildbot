@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "f2adbf81_58e0f98b",
+        "filename": "datahopper/go/datahopper/jobs_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-03T16:36:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b0283b63_55e85a79",
+      "revId": "e776e02afc4250438060e768d1037e5c5f4015ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ba6e1336_37da44d6",
         "filename": "datahopper/go/datahopper/jobs_test.go",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "f198fb75_a369214b",
+        "filename": "datahopper/go/datahopper/jobs_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-03T16:36:06Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "ba6e1336_37da44d6",
+      "revId": "e776e02afc4250438060e768d1037e5c5f4015ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "267a8cf8_548142bd",
         "filename": "datahopper/go/datahopper/tasks_test.go",
         "patchSetId": 1
@@ -50,6 +86,24 @@
       "revId": "e776e02afc4250438060e768d1037e5c5f4015ee",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7606f0d8_82b05eb7",
+        "filename": "datahopper/go/datahopper/tasks_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-03T16:36:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "267a8cf8_548142bd",
+      "revId": "e776e02afc4250438060e768d1037e5c5f4015ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
