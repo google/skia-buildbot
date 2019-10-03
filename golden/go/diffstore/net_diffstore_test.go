@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
+	"go.skia.org/infra/golden/go/diffstore/metricsstore/bolt_metricsstore"
 	d_utils "go.skia.org/infra/golden/go/diffstore/testutils"
 	"go.skia.org/infra/golden/go/mocks"
 	"google.golang.org/api/option"
@@ -33,7 +34,9 @@ func TestNetDiffStore(t *testing.T) {
 
 	m := disk_mapper.New(&diff.DiffMetrics{})
 	mfs := &mocks.FailureStore{}
-	memDiffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mfs)
+	mStore, err := bolt_metricsstore.New(baseDir, m)
+	assert.NoError(t, err)
+	memDiffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mStore, mfs)
 	assert.NoError(t, err)
 
 	// Start the server that wraps around the MemDiffStore.

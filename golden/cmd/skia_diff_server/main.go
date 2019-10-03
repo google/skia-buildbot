@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/diffstore/failurestore/bolt_failurestore"
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
+	"go.skia.org/infra/golden/go/diffstore/metricsstore/bolt_metricsstore"
 	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
 	"google.golang.org/grpc"
@@ -88,7 +89,14 @@ func main() {
 
 	// Get the DiffStore that does the work loading and diffing images.
 	mapper := disk_mapper.New(&diff.DiffMetrics{})
-	memDiffStore, err := diffstore.NewMemDiffStore(gcsClient, *imageDir, *gsBaseDir, *cacheSize, mapper, fStore)
+
+	// Build metrics store.
+	mStore, err := bolt_metricsstore.New(*imageDir, mapper)
+	if err != nil {
+		sklog.Fatalf("Could not create metrics store: %s.", err)
+	}
+
+	memDiffStore, err := diffstore.NewMemDiffStore(gcsClient, *imageDir, *gsBaseDir, *cacheSize, mapper, mStore, fStore)
 	if err != nil {
 		sklog.Fatalf("Allocating DiffStore failed: %s", err)
 	}
