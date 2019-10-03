@@ -372,10 +372,10 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 	if err != nil {
 		return nil, fmt.Errorf("Failed to find end index: %s", err)
 	}
-	beginIndex := endIndex - (b.tileSize - 1)
-	if beginIndex < 0 {
-		beginIndex = 0
-	}
+	// beginIndex is the index of the first commit in the tile that endIndex is
+	// in. We are OK if beginIndex == endIndex because fromIndexRange returns
+	// headers from begin to end *inclusive*.
+	beginIndex := b.store.IndexOfTileStart(endIndex)
 
 	sklog.Infof("BeginIndex: %d  EndIndex: %d", beginIndex, endIndex)
 	for total < n {
@@ -442,11 +442,15 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 		}
 		steps += 1
 
-		endIndex -= b.tileSize
-		beginIndex -= b.tileSize
+		// Now step back a full tile.
+
+		// At this point we know beginIndex points to the 0th column in a tile,
+		// so endIndex is easy to calculate.
+		endIndex = beginIndex - 1
 		if endIndex < 0 {
 			break
 		}
+		beginIndex = b.store.IndexOfTileStart(endIndex)
 		if beginIndex < 0 {
 			beginIndex = 0
 		}

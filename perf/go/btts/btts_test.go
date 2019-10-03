@@ -496,3 +496,48 @@ func TestOpsCacheEntry(t *testing.T) {
 	_, err = NewOpsCacheEntryFromRow(row)
 	assert.Error(t, err)
 }
+
+func TestBigTableTraceStore_IndexOfTileStart(t *testing.T) {
+	unittest.SmallTest(t)
+	type fields struct {
+		tileSize int32
+	}
+	type args struct {
+		index int32
+	}
+	tests := []struct {
+		name     string
+		tileSize int32
+		index    int32
+		want     int32
+	}{
+		{
+			name:     "basic",
+			tileSize: 100,
+			index:    2,
+			want:     0,
+		},
+		{
+			name:     "offset",
+			tileSize: 100,
+			index:    202,
+			want:     200,
+		},
+		{
+			name:     "offset exact",
+			tileSize: 100,
+			index:    200,
+			want:     200,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &BigTableTraceStore{
+				tileSize: tt.tileSize,
+			}
+			if got := b.IndexOfTileStart(tt.index); got != tt.want {
+				t.Errorf("BigTableTraceStore.IndexOfTileStart() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
