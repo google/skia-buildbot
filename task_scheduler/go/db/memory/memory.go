@@ -15,11 +15,21 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
+// modClientState pairs a context passed to ModifiedTasksCh with the returned channel, plus a WaitGroup for pending sends on the channel.
+type modClientState struct {
+	// ch sends data to the modified data client.
+	ch chan<- []*types.Task
+	// ctx controls when to stop sending on ch.
+	ctx context.Context
+	// wg tracks the goroutines that are waiting to send on ch.
+	wg sync.WaitGroup
+}
+
 type InMemoryTaskDB struct {
 	tasks         map[string]*types.Task
 	tasksMtx      sync.RWMutex
 	mod           chan<- []*types.Task
-	modClients    map[chan<- []*types.Task]context.Context
+	modClients    map[*modClientState]struct{}
 	modClientsMtx sync.Mutex
 	modClientsWg  sync.WaitGroup
 }
@@ -114,7 +124,7 @@ func (d *InMemoryTaskDB) PutTasks(tasks []*types.Task) error {
 		d.tasks[task.Id] = cpy
 	}
 	// Send the modified tasks to any listeners.
-	d.modClientsWg.Add(1) // Corresponds to Done() in NewInMemoryTaskDB.
+	d.modClientsWg.Add(1) // Corresponds to Done() in watchModifiedData.
 	d.mod <- added
 	return nil
 }
@@ -128,63 +138,63 @@ func (d *InMemoryTaskDB) PutTasksInChunks(tasks []*types.Task) error {
 
 // See docs for TaskDB interface.
 func (d *InMemoryTaskDB) ModifiedTasksCh(ctx context.Context) <-chan []*types.Task {
+	rv := make(chan []*types.Task)
+	mcs := &modClientState{
+		ch:  rv,
+		ctx: ctx,
+	}
 	d.modClientsMtx.Lock()
 	defer d.modClientsMtx.Unlock()
-	localCh := make(chan []*types.Task)
-	rv := make(chan []*types.Task)
-	d.modClients[localCh] = ctx
-	done := ctx.Done()
+	d.modClients[mcs] = struct{}{}
 	go func() {
 		// The DB spec states that we should pass an initial value along
 		// the channel.
 		rv <- []*types.Task{}
-		for {
-			select {
-			case mod := <-localCh:
-				rv <- mod
-				// Corresponds to Add() in NewInMemoryTaskDB.
-				d.modClientsWg.Done()
-			case <-done:
-				close(rv)
-				// Remove the local channel. Note that we don't
-				// close it, because other goroutines might be
-				// trying to write to it.
-				d.modClientsMtx.Lock()
-				delete(d.modClients, localCh)
-				d.modClientsMtx.Unlock()
-				return
-			}
-		}
 	}()
+	go d.cleanupClientWhenDone(mcs)
 	return rv
 }
 
 // Wait for all clients to receive modified data.
 func (d *InMemoryTaskDB) Wait() {
 	d.modClientsWg.Wait()
+	d.modClientsMtx.Lock()
+	defer d.modClientsMtx.Unlock()
+	for mcs := range d.modClients {
+		mcs.wg.Wait()
+	}
+}
+
+// cleanupClientWhenDone cleans up modClients and closes the channel if context is canceled. Should be called in a goroutine.
+func (d *InMemoryTaskDB) cleanupClientWhenDone(mcs *modClientState) {
+	<-mcs.ctx.Done()
+	func() {
+		d.modClientsMtx.Lock()
+		defer d.modClientsMtx.Unlock()
+		delete(d.modClients, mcs)
+	}()
+	mcs.wg.Wait()
+	close(mcs.ch)
 }
 
 // watchModifiedData multiplexes modified data out to the various clients.
 func (d *InMemoryTaskDB) watchModifiedData(mod <-chan []*types.Task) {
 	for data := range mod {
 		d.modClientsMtx.Lock()
-		for ch, ctx := range d.modClients {
-			if ctx.Err() != nil {
-				continue
-			}
-
-			// Corresponds to Done() in ModifiedTasksCh.
-			d.modClientsWg.Add(1)
-			go func(ctx context.Context, ch chan<- []*types.Task, data []*types.Task) {
+		for mcs := range d.modClients {
+			// Corresponds to Done() below.
+			mcs.wg.Add(1)
+			go func(mcs *modClientState, data []*types.Task) {
+				defer mcs.wg.Done()
 				send := make([]*types.Task, 0, len(data))
 				for _, elem := range data {
 					send = append(send, elem.Copy())
 				}
 				select {
-				case ch <- send:
-				case <-ctx.Done():
+				case mcs.ch <- send:
+				case <-mcs.ctx.Done():
 				}
-			}(ctx, ch, data)
+			}(mcs, data)
 		}
 		d.modClientsMtx.Unlock()
 		// Corresponds to Add() in PutTasks.
@@ -199,7 +209,7 @@ func NewInMemoryTaskDB() *InMemoryTaskDB {
 	rv := &InMemoryTaskDB{
 		tasks:      map[string]*types.Task{},
 		mod:        mod,
-		modClients: map[chan<- []*types.Task]context.Context{},
+		modClients: map[*modClientState]struct{}{},
 	}
 	go rv.watchModifiedData(mod)
 	return rv
