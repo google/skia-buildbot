@@ -68,16 +68,16 @@ no output or error, check for a GCP Firestore outage.
 Otherwise, you should check the logs to try to diagnose what's failing.
 
 
-firestore_nightly_backup
+firestore_weekly_backup
 ------------------------
 
-The nightly backup of all Firestore collections in the skia-firestore project
+The weekly backup of all Firestore collections in the skia-firestore project
 has not succeeded in more than 24 hours. There are several things to check:
 
  - Run `gcloud beta firestore operations list --project=skia-firestore
    "--filter=metadata.outputUriPrefix~^gs://skia-firestore-backup/everything/" |
    grep -C 14 "endTime: '$(date --utc +%Y-%m-)"` (please modify if it's the
-   first of the month).
+   first week of the month).
 
    - If you see a recent endTime with "operationState: SUCCESSFUL," see below
      for diagnosing issues in Datahopper.
@@ -106,15 +106,15 @@ has not succeeded in more than 24 hours. There are several things to check:
    search for the error.
 
  - Check the logs for the most recent run of the
-   [firestore-export-everything-nightly](https://console.cloud.google.com/kubernetes/cronjob/us-central1-a/skia-public/default/firestore-export-everything-nightly?project=skia-public&folder&organizationId=433637338589)
+   [firestore-export-everything-weekly](https://console.cloud.google.com/kubernetes/cronjob/us-central1-a/skia-public/default/firestore-export-everything-weekly?project=skia-public&folder&organizationId=433637338589)
    CronJob. If no recent run, check for misconfiguration. You can update the
    CronJob by running `make push` in the `firestore` directory. The
    configuration for the CronJob is
-   [here](https://skia.googlesource.com/skia-public-config/+/master/firestore-export-everything-nightly.yaml).
+   [here](https://skia.googlesource.com/skia-public-config/+/master/firestore-export-everything-weekly.yaml).
 
  - To manually trigger a new export, run `gcloud beta firestore export
    --project=skia-firestore --async gs://skia-firestore-backup/everything/$(date
    --utc +%Y-%m-%dT%H:%M:%SZ)`. Alternatively, run `kubectl create job
-   --from=cronjob/firestore-export-everything-nightly
+   --from=cronjob/firestore-export-everything-weekly
    firestore-export-everything-manual`, wait for the job to finish, then run
    `kubectl delete job firestore-export-everything-manual`.
