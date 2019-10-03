@@ -28,6 +28,7 @@
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
     "MAIN_CPU":                "20",
     "MAIN_MEMORY":             "150Gi",
+    "RESTRICT_CL_SEARCH":      true,
     "SKCORR_DEFAULT_CORPUS":   "gm",
     "SKCORR_DIFF_SERVER":      "gold-skia-diffserver",
     "SKCORR_TITLE":            "Public Skia Gold",

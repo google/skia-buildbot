@@ -115,6 +115,7 @@ func main() {
 		pubsubProjectID     = flag.String("pubsub_project_id", "", "Project ID that houses the pubsub topics (e.g. for ingestion).")
 		redirectURL         = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 		resourcesDir        = flag.String("resources_dir", "", "The directory to find Polymer templates, JS, and CSS files.")
+		restrictCLSearch    = flag.Bool("restrict_cl_search", false, "If a user must be logged in to search results tied to CLs")
 		showBotProgress     = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
 		siteURL             = flag.String("site_url", "https://gold.skia.org", "URL where this app is hosted.")
 		tileFreshness       = flag.Duration("tile_freshness", time.Minute, "How often to re-fetch the tile")
@@ -436,6 +437,7 @@ func main() {
 		GCSClient:                      gsClient,
 		IgnoreStore:                    ignoreStore,
 		Indexer:                        ixr,
+		RestrictCLSearch:               *restrictCLSearch,
 		SearchAPI:                      searchAPI,
 		StatusWatcher:                  statusWatcher,
 		TileSource:                     tileSource,

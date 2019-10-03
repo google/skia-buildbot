@@ -28,6 +28,7 @@
   "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
   "MAIN_CPU":                "4",
   "MAIN_MEMORY":             "4Gi",
+  "RESTRICT_CL_SEARCH":      false,
   "SKCORR_DEFAULT_CORPUS":   "flutter-engine",
   "SKCORR_DIFF_SERVER":      "gold-flutter-engine-diffserver",
   "SKCORR_TITLE":            "Flutter Engine Gold",

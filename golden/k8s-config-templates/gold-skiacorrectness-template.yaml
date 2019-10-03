@@ -76,6 +76,7 @@ spec:
             - "--pubsub_project_id={{.PUBSUB_PROJECT}}"
             - "--redirect_url={{.SITE_URL}}/oauth2callback/"
             - "--resources_dir=/usr/local/share/skiacorrectness/frontend"
+            - "--restrict_cl_search={{.RESTRICT_CL_SEARCH}}"
             - "--show_bot_progress=false"
             - "--site_url={{.SITE_URL}}"
             - "--tile_freshness={{.TILE_FRESHNESS}}"

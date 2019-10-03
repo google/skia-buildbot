@@ -80,6 +80,7 @@ type HandlersConfig struct {
 	GCSClient                      storage.GCSClient
 	IgnoreStore                    ignore.Store
 	Indexer                        indexer.IndexSource
+	RestrictCLSearch               bool
 	SearchAPI                      search.SearchAPI
 	StatusWatcher                  *status.StatusWatcher
 	TileSource                     tilesource.TileSource
@@ -410,7 +411,7 @@ func (wh *Handlers) ChangeListSummaryHandler(w http.ResponseWriter, r *http.Requ
 	// the functionality to handle two code review systems at once.
 	clID, ok := mux.Vars(r)["id"]
 	if !ok {
-		httputils.ReportError(w, nil, "Must specify 'id' of ChangeList.", http.StatusInternalServerError)
+		httputils.ReportError(w, nil, "Must specify 'id' of ChangeList.", http.StatusBadRequest)
 		return
 	}
 
@@ -484,12 +485,19 @@ func (wh *Handlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query, ok := parseSearchQuery(w, r)
+	q, ok := parseSearchQuery(w, r)
 	if !ok {
 		return
 	}
 
-	searchResponse, err := wh.SearchAPI.Search(r.Context(), query)
+	if wh.RestrictCLSearch {
+		if q.ChangeListID != "" && login.LoggedInAs(r) == "" {
+			http.Error(w, "You must be logged in to view CL results", http.StatusUnauthorized)
+			return
+		}
+	}
+
+	searchResponse, err := wh.SearchAPI.Search(r.Context(), q)
 	if err != nil {
 		httputils.ReportError(w, err, "Search for digests failed.", http.StatusInternalServerError)
 		return
@@ -506,22 +514,22 @@ func (wh *Handlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query, ok := parseSearchQuery(w, r)
+	q, ok := parseSearchQuery(w, r)
 	if !ok {
 		return
 	}
 
-	if query.ChangeListID != "" || query.BlameGroupID != "" {
+	if q.ChangeListID != "" || q.BlameGroupID != "" {
 		msg := "Search query cannot contain blame or issue information."
-		httputils.ReportError(w, errors.New(msg), msg, http.StatusInternalServerError)
+		httputils.ReportError(w, errors.New(msg), msg, http.StatusBadRequest)
 		return
 	}
 
 	// Mark the query to avoid expensive diffs.
-	query.NoDiff = true
+	q.NoDiff = true
 
 	// Execute the search
-	searchResponse, err := wh.SearchAPI.Search(r.Context(), query)
+	searchResponse, err := wh.SearchAPI.Search(r.Context(), q)
 	if err != nil {
 		httputils.ReportError(w, err, "Search for digests failed.", http.StatusInternalServerError)
 		return
@@ -551,7 +559,7 @@ func (wh *Handlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
 func parseSearchQuery(w http.ResponseWriter, r *http.Request) (*query.Search, bool) {
 	q := query.Search{Limit: 50}
 	if err := query.ParseSearch(r, &q); err != nil {
-		httputils.ReportError(w, err, "Search for digests failed.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Invalid request params", http.StatusBadRequest)
 		return nil, false
 	}
 	return &q, true
