@@ -29,11 +29,13 @@ import (
 )
 
 const (
-	repoUrlTemplate = "https://skia.googlesource.com/%s-config"
+	repoURLTemplate = "https://skia.googlesource.com/%s-config"
 	repoBaseDir     = "/tmp"
 	repoDirTemplate = "/tmp/%s-config"
 
 	containerRegistryProject = "skia-public"
+
+	maxListSize = 10
 )
 
 // Project is used to map cluster name to GCE project info.
@@ -71,10 +73,6 @@ under /tmp.
 The command applies the changes by default, or just changes the local yaml files
 if --dry-run is supplied.
 
-If no image names are supplied then pushk looks through all the yaml files for
-appropriate images (ones that match the SERVER and project) and tries to push a
-new image for each of them.
-
 Examples:
   # Pusk an exact tag.
   pushk gcr.io/skia-public/fiddler:694900e3ca9468784a5794dc53382d1c8411ab07
@@ -91,6 +89,9 @@ Examples:
   # Rollback docserver.
   pushk --rollback docserver
 
+  # List the last few versions of the docserver image. Doesn't apply anything.
+  pushk --list docserver
+
   # Compute any changes a push to docserver will make, but do not apply them.
   pushk --dry-run docserver
 
@@ -101,7 +102,7 @@ Examples:
 
 // toFullRepoURL converts the project name into a git repo URL.
 func toFullRepoURL(s string) string {
-	return fmt.Sprintf(repoUrlTemplate, s)
+	return fmt.Sprintf(repoURLTemplate, s)
 
 }
 
@@ -117,6 +118,7 @@ var (
 	ignoreDirty = flag.Bool("ignore-dirty", false, "If true, then do not fail out if the git repo is dirty.")
 	message     = flag.String("message", "Push", "Message to go along with the change.")
 	rollback    = flag.Bool("rollback", false, "If true go back to the second most recent image, otherwise use most recent image.")
+	list        = flag.Bool("list", false, "List the last few versions of the given image.")
 )
 
 var (
@@ -152,6 +154,9 @@ func imageFromCmdLineImage(imageName string, tp tagProvider) (string, error) {
 		if *rollback {
 			return "", fmt.Errorf("Supplying a fully qualified image name and the --rollback flag are mutually exclusive.")
 		}
+		if *list {
+			return "", fmt.Errorf("Supplying a fully qualified image name and the --list flag are mutually exclusive.")
+		}
 		return imageName, nil
 	}
 	// Get all the tags for the selected image.
@@ -164,6 +169,15 @@ func imageFromCmdLineImage(imageName string, tp tagProvider) (string, error) {
 	tags, err = filter(tags)
 	if err != nil {
 		return "", fmt.Errorf("Failed to filter: %s", err)
+	}
+
+	if *list {
+		if len(tags) > maxListSize {
+			tags = tags[len(tags)-maxListSize:]
+		}
+		for _, tag := range tags {
+			fmt.Println(tag)
+		}
 	}
 
 	// Pick the target tag we want to move to.
@@ -252,6 +266,10 @@ func main() {
 		image, err := imageFromCmdLineImage(imageName, gcrTagProvider)
 		if err != nil {
 			sklog.Fatal(err)
+		}
+		if *list {
+			// imageFromCmdLineImage printed out the tags, so nothing more to do.
+			continue
 		}
 
 		// imageRegex has the following groups returned on match:
