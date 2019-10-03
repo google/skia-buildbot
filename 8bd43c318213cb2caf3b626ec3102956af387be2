@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb66fcb4_ac3f5914",
+        "filename": "task_scheduler/go/db/cache/cache.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 418,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-03T00:33:50Z",
+      "side": 1,
+      "message": "nit: Probably better to just doc that it\u0027s not goroutine-safe.\n\n(If there\u0027s a need to make it goroutine-safe, you should keep modMtx locked when accessing onModFn below. Then I\u0027d need to think harder about deadlocks.)",
+      "range": {
+        "startLine": 417,
+        "startChar": 0,
+        "endLine": 418,
+        "endChar": 24
+      },
+      "revId": "8bd43c318213cb2caf3b626ec3102956af387be2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13822094_8c3a9f05",
+        "filename": "task_scheduler/go/db/cache/cache_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-03T00:33:50Z",
+      "side": 1,
+      "message": "Seems like there\u0027s a race condition / deadlock here:\nt1: goroutine A calls NewTaskCache, which creates mod :\u003d ModifiedTasksCh and starts goroutine B\nt2: goroutine B reads first item from mod\nt3: goroutine B checks for c.onModFn, sees it\u0027s nil\nt4: goroutine A calls c.OnModifiedTasks to set c.onModFn\nindefinitely:\n  - goroutine A waits for onModFn to be called (to continue past \u003c-wait)\n  - goroutine B waits for new modified tasks to be returned on mod\n\nISTM the only way to make this work would be to pass the onModFn to NewTaskCache. (IMO that has the added benefit that you can remove OnModifiedTasks, given later comments. Maybe we\u0027d need to add it back someday, but I\u0027ll worry about that when it comes up.)",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 58,
+        "endChar": 7
+      },
+      "revId": "8bd43c318213cb2caf3b626ec3102956af387be2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8111c1d2_9e6e944c",
+        "filename": "task_scheduler/go/db/cache/cache_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-03T00:33:50Z",
+      "side": 1,
+      "message": "nit: unused?",
+      "range": {
+        "startLine": 264,
+        "startChar": 0,
+        "endLine": 268,
+        "endChar": 7
+      },
+      "revId": "8bd43c318213cb2caf3b626ec3102956af387be2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54f65ba9_ab3d9e7a",
+        "filename": "task_scheduler/go/db/memory/memory.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-03T00:33:50Z",
+      "side": 1,
+      "message": "nit: unused?",
+      "revId": "8bd43c318213cb2caf3b626ec3102956af387be2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d459a416_f3078193",
+        "filename": "task_scheduler/go/db/memory/memory.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-03T00:33:50Z",
+      "side": 1,
+      "message": "unused?",
+      "range": {
+        "startLine": 146,
+        "startChar": 4,
+        "endLine": 146,
+        "endChar": 7
+      },
+      "revId": "8bd43c318213cb2caf3b626ec3102956af387be2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a5402303_fcf40e8b",
+        "filename": "task_scheduler/go/db/memory/memory.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-03T00:33:50Z",
+      "side": 1,
+      "message": "nit: maybe make this a method",
+      "range": {
+        "startLine": 183,
+        "startChar": 4,
+        "endLine": 183,
+        "endChar": 10
+      },
+      "revId": "8bd43c318213cb2caf3b626ec3102956af387be2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c44bbcd_d9d58344",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-03T00:33:50Z",
+      "side": 1,
+      "message": "unused?",
+      "range": {
+        "startLine": 338,
+        "startChar": 0,
+        "endLine": 341,
+        "endChar": 2
+      },
+      "revId": "8bd43c318213cb2caf3b626ec3102956af387be2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7fcaa6b1_52ca1a81",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-03T00:33:50Z",
+      "side": 1,
+      "message": "nit: maybe change this to memory.InMemoryDB, then remove type assertions (aka casts) for memory.InMemoryDB below.",
+      "range": {
+        "startLine": 193,
+        "startChar": 70,
+        "endLine": 193,
+        "endChar": 75
+      },
+      "revId": "8bd43c318213cb2caf3b626ec3102956af387be2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e49aa54_cb35d454",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 1985,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-03T00:33:50Z",
+      "side": 1,
+      "message": "Unless I\u0027m misunderstanding something, there\u0027s not really any asynchronous behavior with TaskScheduler.tCache, unless you\u0027re bypassing TaskScheduler to modify things directly in the DB.  (Which maybe we should test.) In this test, everything seems to be going through TaskScheduler.putTask/s, so we shouldn\u0027t need OnModifiedTasks.",
+      "range": {
+        "startLine": 1982,
+        "startChar": 0,
+        "endLine": 1985,
+        "endChar": 3
+      },
+      "revId": "8bd43c318213cb2caf3b626ec3102956af387be2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
