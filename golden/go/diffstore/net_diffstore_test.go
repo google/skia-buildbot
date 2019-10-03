@@ -72,5 +72,5 @@ func TestNetDiffStore(t *testing.T) {
 	assert.NoError(t, err)
 
 	// run tests against it.
-	testDiffStore(t, tile, baseDir, netDiffStore, memDiffStore.(*MemDiffStore))
+	testDiffStore(t, tile, netDiffStore, memDiffStore.(*MemDiffStore))
 }
