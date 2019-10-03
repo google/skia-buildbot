@@ -23,8 +23,8 @@ var (
 )
 
 const (
-	BUCKET  = "skia-backups"
-	PROJECT = "google.com:skia-buildbots"
+	bucket  = "skia-datastore-backups"
+	project = "skia-backups"
 )
 
 func main() {
@@ -40,11 +40,11 @@ func main() {
 	}
 	// backup package handles retries and specifically handles "resource exhausted" HTTP status code.
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().Client()
-	if err := backup.Step(client, PROJECT, BUCKET); err != nil {
+	if err := backup.Step(client, project, bucket); err != nil {
 		sklog.Errorf("Failed to do first backup step: %s", err)
 	}
 	for range time.Tick(*duration) {
-		if err := backup.Step(client, PROJECT, BUCKET); err != nil {
+		if err := backup.Step(client, project, bucket); err != nil {
 			sklog.Errorf("Failed to backup: %s", err)
 		}
 		sklog.Info("Finished queuing all backups.")
