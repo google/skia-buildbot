@@ -10,7 +10,7 @@ Alerts
 backup_not_done
 ---------------
 
-Backups should run once a day. Restarting datastore_backup should immediately
+Backups should run once a week. Restarting datastore_backup should immediately
 trigger a backup, confirm this by looking in the logs and also by inspecting
 gs://skia-backups/ds/ for a new set of backups.
 

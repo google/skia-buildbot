@@ -123,13 +123,13 @@ groups:
 
  # datatore backups
   - alert: BackupNotDone
-    expr: liveness_backup_success_s/60/60 > 25
+    expr: liveness_backup_success_s/60/60/24 > 7
     labels:
       category: infra
       severity: critical
     annotations:
       abbr: skia-public
-      description: 'A backup of Cloud Datastore has not succeeded in the last 25 hours. https://skia.googlesource.com/buildbot/%2B/master/ds/PROD.md#backup_not_done'
+      description: 'A backup of Cloud Datastore has not succeeded in the last week. https://skia.googlesource.com/buildbot/%2B/master/ds/PROD.md#backup_not_done'
 
 # alert-to-pubsub liveness
   - alert: AlertToPubSubLiveness
