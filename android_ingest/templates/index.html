@@ -21,7 +21,17 @@
   </head>
   <body>
     <h1>Android Ingestion Status</h1>
-    {%range .Recent%}
+    <h2>Recent Good Requests</h2>
+    {%range .RecentGood%}
+      <details-sk>
+        <summary-sk>
+          {%.TS%}
+        </summary-sk>
+        <pre><code>{%.JSON%}</code></pre>
+      </details-sk>
+    {%end%}
+    <h2>Recent Bad Requests</h2>
+    {%range .RecentBad%}
       <details-sk>
         <summary-sk>
           {%.TS%}

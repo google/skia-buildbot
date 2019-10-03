@@ -37,8 +37,8 @@ import (
 )
 
 const (
-	// TX_LOG_DIR is the sub-directory of *storageUrl that is used to store the incoming POST transaction log.
-	TX_LOG_DIR = "tx_log"
+	// txLogDir is the sub-directory of *storageUrl that is used to store the incoming POST transaction log.
+	txLogDir = "tx_log"
 )
 
 // flags
@@ -46,9 +46,9 @@ var (
 	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	repoUrl      = flag.String("repo_url", "", "URL of the git repo where buildids are to be stored.")
+	repoURL      = flag.String("repo_url", "", "URL of the git repo where buildids are to be stored.")
 	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	storageUrl   = flag.String("storage_url", "gs://skia-perf/android-ingest", "The GCS URL of where to store the ingested perf data.")
+	storageURL   = flag.String("storage_url", "gs://skia-perf/android-ingest", "The GCS URL of where to store the ingested perf data.")
 	workRoot     = flag.String("work_root", "", "Directory location where all the work is done.")
 	subdomain    = flag.String("subdomain", "android-ingest", "The subdomain [foo].skia.org of where this app is running.")
 	authorEmail  = flag.String("author_email", "skia-android-ingest@skia-public.iam.gserviceaccount.com", "Email address of the git author.")
@@ -67,7 +67,7 @@ var (
 	lookupCache *lookup.Cache
 )
 
-func Init() {
+func initialize() {
 	ctx := context.Background()
 	loadTemplates()
 
@@ -91,12 +91,12 @@ func Init() {
 	}
 
 	// The repo we're adding commits to.
-	checkout, err := git.NewCheckout(ctx, *repoUrl, *workRoot)
+	checkout, err := git.NewCheckout(ctx, *repoURL, *workRoot)
 	if err != nil {
-		sklog.Fatalf("Unable to create the checkout of %q at %q: %s", *repoUrl, *workRoot, err)
+		sklog.Fatalf("Unable to create the checkout of %q at %q: %s", *repoURL, *workRoot, err)
 	}
 	if err := checkout.Update(ctx); err != nil {
-		sklog.Fatalf("Unable to update the checkout of %q at %q: %s", *repoUrl, *workRoot, err)
+		sklog.Fatalf("Unable to update the checkout of %q at %q: %s", *repoURL, *workRoot, err)
 	}
 
 	// checkout isn't go routine safe, but lookup.New() only uses it in New(), so this
@@ -113,17 +113,17 @@ func Init() {
 	}
 	process.Start(ctx)
 
-	storageHttpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(storageHttpClient))
+	storageHTTPClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(storageHTTPClient))
 	if err != nil {
 		sklog.Fatalf("Problem creating storage client: %s", err)
 	}
-	gsUrl, err := url.Parse(*storageUrl)
+	gsURL, err := url.Parse(*storageURL)
 	if err != nil {
-		sklog.Fatalf("--storage_url value %q is not a valid URL: %s", *storageUrl, err)
+		sklog.Fatalf("--storage_url value %q is not a valid URL: %s", *storageURL, err)
 	}
-	bucket = storageClient.Bucket(gsUrl.Host)
-	gcsPath = gsUrl.Path
+	bucket = storageClient.Bucket(gsURL.Host)
+	gcsPath = gsURL.Path
 	if strings.HasPrefix(gcsPath, "/") {
 		gcsPath = gcsPath[1:]
 	}
@@ -156,10 +156,11 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		badRequest(w, r, err, "Failed to read body.")
+		recentRequests.AddBad(b)
 		return
 	}
 	// Write the data to the transaction log before even attempting to parse.
-	txLogName := upload.LogPath(filepath.Join(gcsPath, TX_LOG_DIR), time.Now().UTC(), b)
+	txLogName := upload.LogPath(filepath.Join(gcsPath, txLogDir), time.Now().UTC(), b)
 	writer := bucket.Object(txLogName).NewWriter(context.Background())
 	if _, err := writer.Write(b); err != nil {
 		sklog.Errorf("Failed to create a log entry for incoming JSON data: %s", err)
@@ -173,6 +174,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		err = fmt.Errorf("Failed to find valid incoming JSON in: %q : %s", txLogName, err)
 		badRequest(w, r, err, "Failed to find valid incoming JSON")
+		recentRequests.AddBad(b)
 		return
 	}
 
@@ -190,19 +192,20 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	util.Close(writer)
 
 	// Store locally.
-	recentRequests.Add(b)
+	recentRequests.AddGood(b)
 
 	uploads.Inc(1)
 }
 
-// IndexContent is the data passed to the index.html template.
+// IndexContext is the data passed to the index.html template.
 type IndexContext struct {
-	Recent      []*recent.Request
-	LastBuildId int64
+	RecentGood  []*recent.Request
+	RecentBad   []*recent.Request
+	LastBuildID int64
 }
 
-// MainHandler displays the main page with the last MAX_RECENT Requests.
-func MainHandler(w http.ResponseWriter, r *http.Request) {
+// indexHandler displays the main page with the last MAX_RECENT Requests.
+func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	user := login.LoggedInAs(r)
 	if !*local && user == "" {
@@ -213,15 +216,17 @@ func MainHandler(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 
-	var lastBuildId int64 = -1
+	var lastBuildID int64 = -1
 	// process is nil when testing.
 	if process != nil {
-		lastBuildId, _, _, _ = process.Last(context.Background())
+		lastBuildID, _, _, _ = process.Last(context.Background())
 	}
 
+	good, bad := recentRequests.List()
 	indexContent := &IndexContext{
-		Recent:      recentRequests.List(),
-		LastBuildId: lastBuildId,
+		RecentGood:  good,
+		RecentBad:   bad,
+		LastBuildID: lastBuildID,
 	}
 
 	if err := templates.ExecuteTemplate(w, "index.html", indexContent); err != nil {
@@ -286,21 +291,21 @@ func main() {
 	if *workRoot == "" {
 		sklog.Fatal("The --work_root flag must be supplied.")
 	}
-	if *repoUrl == "" {
+	if *repoURL == "" {
 		sklog.Fatal("The --repo_url flag must be supplied.")
 	}
 	if !*local {
 		login.SimpleInitWithAllow(*port, *local, nil, nil, allowed.Googlers())
 	}
 
-	Init()
+	initialize()
 
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 	r.HandleFunc("/upload", UploadHandler).Methods("POST")
 	r.HandleFunc("/r/{id:[a-zA-Z0-9]+}", redirectHandler)
 	r.HandleFunc("/rr/{begin:[a-zA-Z0-9]+}/{end:[a-zA-Z0-9]+}", rangeRedirectHandler)
-	r.HandleFunc("/", MainHandler)
+	r.HandleFunc("/", indexHandler)
 
 	h := httputils.LoggingGzipRequestResponse(r)
 	if !*local {
