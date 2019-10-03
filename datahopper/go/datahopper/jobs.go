@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
@@ -66,7 +65,7 @@ const (
 // jobEventDB implements the events.EventDB interface.
 type jobEventDB struct {
 	cached []*events.Event
-	db     db.JobReader
+	jCache cache.JobCache
 	em     *events.EventMetrics
 	// Do not lock mtx when calling methods on em. Otherwise deadlock can occur.
 	// E.g. (now fixed):
@@ -122,11 +121,14 @@ func (j *jobEventDB) Range(stream string, start, end time.Time) ([]*events.Event
 // call this method, but it can be called concurrently with other methods.
 func (j *jobEventDB) update() error {
 	defer metrics2.FuncTimer().Stop()
+	if err := j.jCache.Update(); err != nil {
+		return err
+	}
 	now := time.Now()
 	longestPeriod := TIME_PERIODS[len(TIME_PERIODS)-1]
-	jobs, err := j.db.GetJobsFromDateRange(now.Add(-longestPeriod), now, "")
+	jobs, err := j.jCache.GetJobsFromDateRange(now.Add(-longestPeriod), now)
 	if err != nil {
-		return fmt.Errorf("Failed to load jobs from %s to %s: %s", now.Add(-longestPeriod), now, err)
+		return skerr.Wrapf(err, "Failed to load jobs from %s to %s", now.Add(-longestPeriod), now)
 	}
 	sklog.Debugf("jobEventDB.update: Processing %d jobs for time range %s to %s.", len(jobs), now.Add(-longestPeriod), now)
 	cached := make([]*events.Event, 0, len(jobs))
@@ -136,7 +138,7 @@ func (j *jobEventDB) update() error {
 		}
 		var buf bytes.Buffer
 		if err := gob.NewEncoder(&buf).Encode(job); err != nil {
-			return fmt.Errorf("Failed to encode %#v to GOB: %s", job, err)
+			return skerr.Wrapf(err, "Failed to encode %#v to GOB", job)
 		}
 		ev := &events.Event{
 			Stream:    JOB_STREAM,
@@ -379,10 +381,10 @@ func addJobAggregates(s *events.EventStream, instance string) error {
 
 // StartJobMetrics starts a goroutine which ingests metrics data based on Jobs.
 // The caller is responsible for updating the passed-in repos and TaskCfgCache.
-func StartJobMetrics(ctx context.Context, jobDb db.JobReader, instance string, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache) error {
+func StartJobMetrics(ctx context.Context, jCache cache.JobCache, w *window.Window, instance string, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache) error {
 	edb := &jobEventDB{
 		cached: []*events.Event{},
-		db:     jobDb,
+		jCache: jCache,
 	}
 	em, err := events.NewEventMetrics(edb, "job_metrics")
 	if err != nil {
@@ -395,7 +397,7 @@ func StartJobMetrics(ctx context.Context, jobDb db.JobReader, instance string, r
 		return err
 	}
 
-	om, err := newOverdueJobMetrics(ctx, jobDb, repos, tcc)
+	om, err := newOverdueJobMetrics(jCache, repos, tcc, w)
 	if err != nil {
 		return err
 	}
@@ -439,15 +441,7 @@ type overdueJobMetrics struct {
 
 // Return an overdueJobMetrics instance. The caller is responsible for updating
 // the passed-in repos and TaskCfgCache.
-func newOverdueJobMetrics(ctx context.Context, jobDb db.JobReader, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache) (*overdueJobMetrics, error) {
-	w, err := window.New(OVERDUE_JOB_METRICS_PERIOD, OVERDUE_JOB_METRICS_NUM_COMMITS, repos)
-	if err != nil {
-		return nil, err
-	}
-	jCache, err := cache.NewJobCache(ctx, jobDb, w, cache.GitRepoGetRevisionTimestamp(repos), nil)
-	if err != nil {
-		return nil, err
-	}
+func newOverdueJobMetrics(jCache cache.JobCache, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, w *window.Window) (*overdueJobMetrics, error) {
 	return &overdueJobMetrics{
 		overdueMetrics: map[jobSpecMetricKey]metrics2.Int64Metric{},
 		jCache:         jCache,

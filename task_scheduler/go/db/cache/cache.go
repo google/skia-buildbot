@@ -17,6 +17,8 @@ import (
 const (
 	// Allocate enough space for this many tasks.
 	TASKS_INIT_CAPACITY = 60000
+	// Allocate enough space for this many jobs.
+	JOBS_INIT_CAPACITY = 10000
 )
 
 type TaskCache interface {
@@ -467,6 +469,10 @@ type JobCache interface {
 	// the given RepoState. Does not search the underlying DB.
 	GetJobsByRepoState(string, types.RepoState) ([]*types.Job, error)
 
+	// GetJobsFromDateRange retrieves all jobs which were created in the
+	// given date range.
+	GetJobsFromDateRange(time.Time, time.Time) ([]*types.Job, error)
+
 	// GetMatchingJobsFromDateRange retrieves all jobs which were created
 	// in the given date range and match one of the given job names.
 	GetMatchingJobsFromDateRange(names []string, from time.Time, to time.Time) (map[string][]*types.Job, error)
@@ -492,9 +498,11 @@ type jobCache struct {
 	mtx                  sync.RWMutex
 	jobs                 map[string]*types.Job
 	jobsByNameAndState   map[types.RepoState]map[string]map[string]*types.Job
-	timeWindow           *window.Window
-	triggeredForCommit   map[string]map[string]bool
-	unfinished           map[string]*types.Job
+	// jobsByTime is sorted by Task.Created.
+	jobsByTime         []*types.Job
+	timeWindow         *window.Window
+	triggeredForCommit map[string]map[string]bool
+	unfinished         map[string]*types.Job
 
 	modified map[string]*types.Job
 	modMtx   sync.Mutex
@@ -555,17 +563,40 @@ func (c *jobCache) GetJobsByRepoState(name string, rs types.RepoState) ([]*types
 	return rv, nil
 }
 
+// searchJobSlice returns the index in tasks of the first Job whose Created
+// time is >= ts.
+func searchJobSlice(jobs []*types.Job, ts time.Time) int {
+	return sort.Search(len(jobs), func(i int) bool {
+		return !jobs[i].Created.Before(ts)
+	})
+}
+
 // See documentation for JobCache interface.
-func (c *jobCache) GetMatchingJobsFromDateRange(names []string, from time.Time, to time.Time) (map[string][]*types.Job, error) {
+func (c *jobCache) GetJobsFromDateRange(from time.Time, to time.Time) ([]*types.Job, error) {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
+	fromIdx := searchJobSlice(c.jobsByTime, from)
+	toIdx := searchJobSlice(c.jobsByTime, to)
+	rv := make([]*types.Job, toIdx-fromIdx)
+	for i, job := range c.jobsByTime[fromIdx:toIdx] {
+		rv[i] = job.Copy()
+	}
+	return rv, nil
+}
+
+// See documentation for JobCache interface.
+func (c *jobCache) GetMatchingJobsFromDateRange(names []string, from time.Time, to time.Time) (map[string][]*types.Job, error) {
+	jobs, err := c.GetJobsFromDateRange(from, to)
+	if err != nil {
+		return nil, err
+	}
 	m := make(map[string]bool, len(names))
 	for _, name := range names {
 		m[name] = true
 	}
 	rv := make(map[string][]*types.Job, len(names))
-	for _, job := range c.jobs {
-		if !from.After(job.Created) && job.Created.Before(to) && m[job.Name] {
+	for _, job := range jobs {
+		if m[job.Name] {
 			rv[job.Name] = append(rv[job.Name], job)
 		}
 	}
@@ -595,30 +626,6 @@ func (c *jobCache) UnfinishedJobs() ([]*types.Job, error) {
 // is before start. Assumes the caller holds a lock. This is a helper for
 // Update.
 func (c *jobCache) expireJobs() {
-	expiredUnfinishedCount := 0
-	for _, job := range c.jobs {
-		if !c.timeWindow.TestTime(job.Repo, c.getJobTimestamp(job)) {
-			delete(c.jobs, job.Id)
-			delete(c.unfinished, job.Id)
-
-			byName := c.jobsByNameAndState[job.RepoState]
-			byId := byName[job.Name]
-			delete(byId, job.Id)
-			if len(byId) == 0 {
-				delete(byName, job.Name)
-			}
-			if len(byName) == 0 {
-				delete(c.jobsByNameAndState, job.RepoState)
-			}
-
-			if !job.Done() {
-				expiredUnfinishedCount++
-			}
-		}
-	}
-	if expiredUnfinishedCount > 0 {
-		sklog.Infof("Expired %d unfinished jobs created before window.", expiredUnfinishedCount)
-	}
 	for repo, revMap := range c.triggeredForCommit {
 		for rev := range revMap {
 			ts, err := c.getRevisionTimestamp(repo, rev)
@@ -630,6 +637,41 @@ func (c *jobCache) expireJobs() {
 				delete(revMap, rev)
 			}
 		}
+	}
+
+	expiredUnfinishedCount := 0
+	defer func() {
+		if expiredUnfinishedCount > 0 {
+			sklog.Infof("Expired %d unfinished jobs created before window.", expiredUnfinishedCount)
+		}
+	}()
+	for i, job := range c.jobsByTime {
+		if c.timeWindow.TestTime(job.Repo, job.Created) {
+			c.jobsByTime = c.jobsByTime[i:]
+			return
+		}
+		// Allow GC.
+		c.jobsByTime[i] = nil
+		delete(c.jobs, job.Id)
+		delete(c.unfinished, job.Id)
+
+		byName := c.jobsByNameAndState[job.RepoState]
+		byId := byName[job.Name]
+		delete(byId, job.Id)
+		if len(byId) == 0 {
+			delete(byName, job.Name)
+		}
+		if len(byName) == 0 {
+			delete(c.jobsByNameAndState, job.RepoState)
+		}
+
+		if !job.Done() {
+			expiredUnfinishedCount++
+		}
+	}
+	if len(c.jobsByTime) > 0 {
+		sklog.Warningf("All jobs expired because they are outside the window.")
+		c.jobsByTime = nil
 	}
 }
 
@@ -670,6 +712,38 @@ func (c *jobCache) insertOrUpdateJob(job *types.Job) {
 		delete(c.unfinished, job.Id)
 	} else {
 		c.unfinished[job.Id] = job
+	}
+
+	if isUpdate {
+		// Loop in case there are multiple tasks with the same Created time.
+		for i := searchJobSlice(c.jobsByTime, job.Created); i < len(c.jobsByTime); i++ {
+			other := c.jobsByTime[i]
+			if other.Id == job.Id {
+				c.jobsByTime[i] = job
+				break
+			}
+			if !other.Created.Equal(job.Created) {
+				panic(fmt.Sprintf("jobCache inconsistent; c.jobs contains job not in c.jobsByTime. old: %v, task: %v", old, job))
+			}
+		}
+	} else {
+		// If profiling indicates this code is slow or GCs too much, see
+		// https://skia.googlesource.com/buildbot/+/0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6
+		// for a different implementation.
+		// Most common case is that the new job should be inserted at the end.
+		if len(c.jobsByTime) == 0 {
+			c.jobsByTime = append(make([]*types.Job, 0, JOBS_INIT_CAPACITY), job)
+		} else if lastJob := c.jobsByTime[len(c.jobsByTime)-1]; !job.Created.Before(lastJob.Created) {
+			c.jobsByTime = append(c.jobsByTime, job)
+		} else {
+			insertIdx := searchJobSlice(c.jobsByTime, job.Created)
+			// Extend size by one:
+			c.jobsByTime = append(c.jobsByTime, nil)
+			// Move later elements out of the way:
+			copy(c.jobsByTime[insertIdx+1:], c.jobsByTime[insertIdx:])
+			// Assign at the correct index:
+			c.jobsByTime[insertIdx] = job
+		}
 	}
 }
 

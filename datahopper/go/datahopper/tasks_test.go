@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/gob"
 	"testing"
 	"time"
@@ -9,20 +10,39 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/metrics2/events"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"go.skia.org/infra/task_scheduler/go/window"
 )
 
-// Create a db.TaskDB and taskEventDB.
-func setupTasks(t *testing.T, now time.Time) (*taskEventDB, db.TaskDB) {
+// Create a db.TaskDB and taskEventDB, a channel which should be read from
+// immediately after every Put into the TaskDB, and a cleanup function which
+// should be deferred.
+func setupTasks(t *testing.T, now time.Time) (*taskEventDB, db.TaskDB, <-chan struct{}, func()) {
+	ctx, cancel := context.WithCancel(context.Background())
 	tdb := memory.NewInMemoryTaskDB()
+	period := TIME_PERIODS[len(TIME_PERIODS)-1]
+	w, err := window.New(period, 0, nil)
+	if err != nil {
+		sklog.Fatalf("Failed to create time window: %s", err)
+	}
+	wait := make(chan struct{})
+	tCache, err := cache.NewTaskCache(ctx, tdb, w, func() {
+		wait <- struct{}{}
+	})
+	if err != nil {
+		sklog.Fatalf("Failed to create task cache: %s", err)
+	}
+	<-wait
 	edb := &taskEventDB{
 		cached: []*events.Event{},
-		db:     tdb,
+		tCache: tCache,
 	}
-	return edb, tdb
+	return edb, tdb, wait, cancel
 }
 
 // makeTask returns a fake task with only the fields relevant to this test set.
@@ -50,7 +70,8 @@ func assertTaskEvent(t *testing.T, ev *events.Event, task *types.Task) {
 func TestTaskUpdate(t *testing.T) {
 	unittest.SmallTest(t)
 	now := time.Now()
-	edb, tdb := setupTasks(t, now)
+	edb, tdb, wait, cancel := setupTasks(t, now)
+	defer cancel()
 	start := now.Add(-TIME_PERIODS[len(TIME_PERIODS)-1])
 	tasks := []*types.Task{
 		// 0: Filtered out -- too early.
@@ -65,6 +86,7 @@ func TestTaskUpdate(t *testing.T) {
 		makeTask(start.Add(7*time.Minute), "A", types.TASK_STATUS_SUCCESS),
 	}
 	assert.NoError(t, tdb.PutTasks(tasks))
+	<-wait
 	assert.NoError(t, edb.update())
 	evs, err := edb.Range(TASK_STREAM, start.Add(-time.Hour), start.Add(time.Hour))
 	assert.NoError(t, err)
@@ -80,7 +102,8 @@ func TestTaskUpdate(t *testing.T) {
 func TestTaskRange(t *testing.T) {
 	unittest.SmallTest(t)
 	now := time.Now()
-	edb, tdb := setupTasks(t, now)
+	edb, tdb, wait, cancel := setupTasks(t, now)
+	defer cancel()
 	base := now.Add(-time.Hour)
 	tasks := []*types.Task{
 		makeTask(base.Add(-time.Nanosecond), "A", types.TASK_STATUS_SUCCESS),
@@ -89,6 +112,7 @@ func TestTaskRange(t *testing.T) {
 		makeTask(base.Add(time.Minute), "A", types.TASK_STATUS_SUCCESS),
 	}
 	assert.NoError(t, tdb.PutTasks(tasks))
+	<-wait
 	assert.NoError(t, edb.update())
 
 	test := func(start, end time.Time, startIdx, count int) {
@@ -129,7 +153,8 @@ func TestTaskRange(t *testing.T) {
 func TestComputeTaskFlakeRate(t *testing.T) {
 	unittest.SmallTest(t)
 	now := time.Now()
-	edb, tdb := setupTasks(t, now)
+	edb, tdb, wait, cancel := setupTasks(t, now)
+	defer cancel()
 	created := now.Add(-time.Hour)
 
 	tester := newDynamicAggregateFnTester(t, computeTaskFlakeRate)
@@ -146,6 +171,7 @@ func TestComputeTaskFlakeRate(t *testing.T) {
 		task := makeTask(created, name, status)
 		task.Revision = commit
 		assert.NoError(t, tdb.PutTask(task))
+		<-wait
 	}
 	{
 		name := "NoFlakes"

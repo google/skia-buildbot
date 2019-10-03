@@ -29,8 +29,10 @@ import (
 	"go.skia.org/infra/go/taskname"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/perfclient"
+	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
+	"go.skia.org/infra/task_scheduler/go/window"
 	"google.golang.org/api/option"
 )
 
@@ -153,22 +155,43 @@ func main() {
 		}
 	}()
 
-	// Tasks metrics.
+	// Task and Job DB and shared caches.
 	d, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts)
 	if err != nil {
 		sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 	}
-	if err := StartTaskMetrics(ctx, d, *firestoreInstance); err != nil {
+	period := TIME_PERIODS[len(TIME_PERIODS)-1]
+	if OVERDUE_JOB_METRICS_PERIOD > period {
+		period = OVERDUE_JOB_METRICS_PERIOD
+	}
+	if bot_metrics.MAX_TIME_PERIOD > period {
+		period = bot_metrics.MAX_TIME_PERIOD
+	}
+	w, err := window.New(period, OVERDUE_JOB_METRICS_NUM_COMMITS, repos)
+	if err != nil {
+		sklog.Fatalf("Failed to create time window: %s", err)
+	}
+	tCache, err := cache.NewTaskCache(ctx, d, w, nil)
+	if err != nil {
+		sklog.Fatalf("Failed to create task cache: %s", err)
+	}
+	jCache, err := cache.NewJobCache(ctx, d, w, cache.GitRepoGetRevisionTimestamp(repos), nil)
+	if err != nil {
+		sklog.Fatalf("Failed to create job cache: %s", err)
+	}
+
+	// Task metrics.
+	if err := StartTaskMetrics(ctx, tCache, *firestoreInstance); err != nil {
 		sklog.Fatal(err)
 	}
 
 	// Jobs metrics.
-	if err := StartJobMetrics(ctx, d, *firestoreInstance, repos, tcc); err != nil {
+	if err := StartJobMetrics(ctx, jCache, w, *firestoreInstance, repos, tcc); err != nil {
 		sklog.Fatal(err)
 	}
 
 	// Generate "time to X% bot coverage" metrics.
-	if err := bot_metrics.Start(ctx, d, repos, tcc, *btProject, *btInstance, ts); err != nil {
+	if err := bot_metrics.Start(ctx, tCache, repos, tcc, *btProject, *btInstance, ts); err != nil {
 		sklog.Fatal(err)
 	}
 
