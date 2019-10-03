@@ -19,9 +19,10 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -50,7 +51,10 @@ var (
 		"Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Debug-CT_DM_1m_SKPs",
 	}
 
-	PERCENTILES = []float64{50.0, 75.0, 90.0, 99.0, 100.0}
+	PERCENTILES  = []float64{50.0, 75.0, 90.0, 99.0, 100.0}
+	TIME_PERIODS = []time.Duration{24 * time.Hour, 7 * 24 * time.Hour}
+
+	MAX_TIME_PERIOD = TIME_PERIODS[len(TIME_PERIODS)-1] + COMMIT_TASK_WINDOW
 )
 
 // fmtPercent returns a string representation of the given percentage as float64.
@@ -190,7 +194,11 @@ func addMetric(s *events.EventStream, repoUrl string, pct float64, period time.D
 // cycle runs ingestion of task data, maps each task to the commits it covered
 // before any other task, and inserts event data based on the lag time between
 // a commit landing and each task finishing for that commit.
-func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time) error {
+func cycle(ctx context.Context, tCache cache.TaskCache, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time) error {
+	if err := tCache.Update(); err != nil {
+		return skerr.Wrapf(err, "Failed to update task cache")
+	}
+
 	totalCommits := 0
 	for _, r := range repos {
 		totalCommits += r.Len()
@@ -203,7 +211,7 @@ func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 	period := 24 * time.Hour
 	periodStart := lastFinished
 	if util.TimeIsZero(periodStart) {
-		periodStart = BEGINNING_OF_TIME
+		periodStart = time.Now().Add(-MAX_TIME_PERIOD)
 	} else {
 		periodStart = periodStart.Add(-COMMIT_TASK_WINDOW) // In case we backfilled and finished some tasks.
 	}
@@ -222,7 +230,7 @@ func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 		}
 
 		sklog.Infof("Loading data for %s - %s", periodStart, periodEnd)
-		tasks, err := taskDb.GetTasksFromDateRange(periodStart, periodEnd, "")
+		tasks, err := tCache.GetTasksFromDateRange(periodStart, periodEnd)
 		if err != nil {
 			return fmt.Errorf("Failed to load tasks from %s to %s: %s", periodStart, periodEnd, err)
 		}
@@ -400,11 +408,11 @@ func getLastIngestionTs(edb events.EventDB, repos repograph.Map) (time.Time, err
 
 // Start initiates "average time to X% bot coverage" metrics data generation.
 // The caller is responsible for updating the passed-in repos and TaskCfgCache.
-func Start(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, btProject, btInstance string, ts oauth2.TokenSource) error {
+func Start(ctx context.Context, tCache cache.TaskCache, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, btProject, btInstance string, ts oauth2.TokenSource) error {
 	// Set up event metrics.
 	edb, err := events.NewBTEventDB(ctx, btProject, btInstance, ts)
 	if err != nil {
-		return fmt.Errorf("Failed to create EventDB: %s", err)
+		return skerr.Wrapf(err, "Failed to create EventDB")
 	}
 	em, err := events.NewEventMetrics(edb, "time_to_bot_coverage")
 	if err != nil {
@@ -412,7 +420,7 @@ func Start(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 	}
 	for repoUrl := range repos {
 		s := em.GetEventStream(fmtStream(repoUrl))
-		for _, p := range []time.Duration{24 * time.Hour, 7 * 24 * time.Hour} {
+		for _, p := range TIME_PERIODS {
 			for _, pct := range PERCENTILES {
 				if err := addMetric(s, repoUrl, pct, p); err != nil {
 					return fmt.Errorf("Failed to add metric: %s", err)
@@ -428,7 +436,7 @@ func Start(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 	}
 	go util.RepeatCtx(10*time.Minute, ctx, func(ctx context.Context) {
 		now := time.Now()
-		if err := cycle(ctx, taskDb, repos, tcc, edb, em, lastFinished, now); err != nil {
+		if err := cycle(ctx, tCache, repos, tcc, edb, em, lastFinished, now); err != nil {
 			sklog.Errorf("Failed to obtain avg time to X%% bot coverage metrics: %s", err)
 		} else {
 			lastFinished = now

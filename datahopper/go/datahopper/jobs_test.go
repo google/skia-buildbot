@@ -19,21 +19,43 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"go.skia.org/infra/task_scheduler/go/window"
 )
 
-// Create a db.JobDB and jobEventDB.
-func setupJobs(t *testing.T, now time.Time) (*jobEventDB, *memory.InMemoryJobDB) {
+// Create a db.JobDB and jobEventDB, a channel which should be read from
+// immediately after every Put into the JobDB, and a cleanup function which
+// should be deferred.
+func setupJobs(t *testing.T, now time.Time) (*jobEventDB, db.JobDB, <-chan struct{}, func()) {
+	ctx, cancel := context.WithCancel(context.Background())
 	jdb := memory.NewInMemoryJobDB()
+	period := TIME_PERIODS[len(TIME_PERIODS)-1]
+	if OVERDUE_JOB_METRICS_PERIOD > period {
+		period = OVERDUE_JOB_METRICS_PERIOD
+	}
+	w, err := window.New(period, 0, nil)
+	if err != nil {
+		sklog.Fatalf("Failed to create time window: %s", err)
+	}
+	wait := make(chan struct{})
+	jCache, err := cache.NewJobCache(ctx, jdb, w, cache.GitRepoGetRevisionTimestamp(nil), func() {
+		wait <- struct{}{}
+	})
+	if err != nil {
+		sklog.Fatalf("Failed to create job cache: %s", err)
+	}
+	<-wait
 	edb := &jobEventDB{
 		cached: []*events.Event{},
-		db:     jdb,
+		jCache: jCache,
 	}
-	return edb, jdb
+	return edb, jdb, wait, cancel
 }
 
 // makeJob returns a fake job with only the fields relevant to this test set.
@@ -70,8 +92,10 @@ func assertJobEvent(t *testing.T, ev *events.Event, j *types.Job) {
 func TestJobUpdate(t *testing.T) {
 	unittest.SmallTest(t)
 	now := time.Now()
-	edb, jdb := setupJobs(t, now)
+	edb, jdb, wait, cleanup := setupJobs(t, now)
+	defer cleanup()
 	start := now.Add(-TIME_PERIODS[len(TIME_PERIODS)-1])
+	sklog.Errorf("start: %s", start)
 	jobs := []*types.Job{
 		// 0: Filtered out -- too early.
 		makeJob(start.Add(-time.Minute), "A", types.JOB_STATUS_SUCCESS, NORMAL, time.Minute),
@@ -85,6 +109,7 @@ func TestJobUpdate(t *testing.T) {
 		makeJob(start.Add(7*time.Minute), "A", types.JOB_STATUS_SUCCESS, NORMAL, time.Hour),
 	}
 	assert.NoError(t, jdb.PutJobs(jobs))
+	<-wait
 	assert.NoError(t, edb.update())
 	evs, err := edb.Range(JOB_STREAM, start.Add(-time.Hour), start.Add(time.Hour))
 	assert.NoError(t, err)
@@ -100,7 +125,8 @@ func TestJobUpdate(t *testing.T) {
 func TestJobRange(t *testing.T) {
 	unittest.SmallTest(t)
 	now := time.Now()
-	edb, jdb := setupJobs(t, now)
+	edb, jdb, wait, cleanup := setupJobs(t, now)
+	defer cleanup()
 	base := now.Add(-time.Hour)
 	jobs := []*types.Job{
 		makeJob(base.Add(-time.Nanosecond), "A", types.JOB_STATUS_SUCCESS, NORMAL, time.Minute),
@@ -109,6 +135,7 @@ func TestJobRange(t *testing.T) {
 		makeJob(base.Add(time.Minute), "A", types.JOB_STATUS_SUCCESS, NORMAL, time.Minute),
 	}
 	assert.NoError(t, jdb.PutJobs(jobs))
+	<-wait
 	assert.NoError(t, edb.update())
 
 	test := func(start, end time.Time, startIdx, count int) {
@@ -192,7 +219,8 @@ func (dt *DynamicAggregateFnTester) Run(evs []*events.Event) {
 func TestComputeAvgJobDuration(t *testing.T) {
 	unittest.SmallTest(t)
 	now := time.Now()
-	edb, jdb := setupJobs(t, now)
+	edb, jdb, wait, cleanup := setupJobs(t, now)
+	defer cleanup()
 	created := now.Add(-time.Hour)
 
 	tester := newDynamicAggregateFnTester(t, computeAvgJobDuration)
@@ -218,6 +246,7 @@ func TestComputeAvgJobDuration(t *testing.T) {
 		makeJob(created, "IgnoredStatus", types.JOB_STATUS_MISHAP, NORMAL, time.Minute),
 	}
 	assert.NoError(t, jdb.PutJobs(jobsStatus))
+	<-wait
 
 	expect("AllStatus", NORMAL, jobsStatus[0:3])
 
@@ -233,6 +262,7 @@ func TestComputeAvgJobDuration(t *testing.T) {
 		makeJob(created, "AllTypes", types.JOB_STATUS_SUCCESS, FORCED, 12*time.Minute),
 	}
 	assert.NoError(t, jdb.PutJobs(jobsType))
+	<-wait
 
 	expect("OnlyForced", FORCED, jobsType[0:2])
 	expect("NormalAndTryjob", NORMAL, []*types.Job{jobsType[2], jobsType[5]})
@@ -252,7 +282,8 @@ func TestComputeAvgJobDuration(t *testing.T) {
 func TestComputeJobFailureMishapRate(t *testing.T) {
 	unittest.SmallTest(t)
 	now := time.Now()
-	edb, jdb := setupJobs(t, now)
+	edb, jdb, wait, cleanup := setupJobs(t, now)
+	defer cleanup()
 	created := now.Add(-time.Hour)
 
 	tester := newDynamicAggregateFnTester(t, computeJobFailureMishapRate)
@@ -268,6 +299,7 @@ func TestComputeJobFailureMishapRate(t *testing.T) {
 	addJob := func(name string, status types.JobStatus, jobType jobTypeString) {
 		jobCount++
 		assert.NoError(t, jdb.PutJob(makeJob(created, name, status, jobType, time.Minute)))
+		<-wait
 	}
 
 	{
@@ -348,7 +380,6 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 
-	d := memory.NewInMemoryDB()
 	ctx, gb, _, _ := tcc_testutils.SetupTestRepo(t)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -356,6 +387,23 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, repos.Update(ctx))
 	repo := repos[gb.RepoUrl()]
+
+	d := memory.NewInMemoryDB()
+	period := TIME_PERIODS[len(TIME_PERIODS)-1]
+	if OVERDUE_JOB_METRICS_PERIOD > period {
+		period = OVERDUE_JOB_METRICS_PERIOD
+	}
+	w, err := window.New(period, OVERDUE_JOB_METRICS_NUM_COMMITS, repos)
+	if err != nil {
+		sklog.Fatalf("Failed to create time window: %s", err)
+	}
+	wait := make(chan struct{})
+	jCache, err := cache.NewJobCache(ctx, d, w, cache.GitRepoGetRevisionTimestamp(repos), func() {
+		wait <- struct{}{}
+	})
+	if err != nil {
+		sklog.Fatalf("Failed to create job cache: %s", err)
+	}
 
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
 	defer btCleanup()
@@ -391,7 +439,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	c2age := "55"
 	c3age := "50"
 
-	om, err := newOverdueJobMetrics(ctx, d, repos, tcc)
+	om, err := newOverdueJobMetrics(jCache, repos, tcc, w)
 	assert.NoError(t, err)
 
 	check := func(buildAge, testAge, perfAge string) {
@@ -456,6 +504,8 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 		Created: c2time,
 	}
 	assert.NoError(t, d.PutJobs([]*types.Job{j1, j2, j3, j4, j5}))
+	<-wait
+
 	// Jobs have not completed, so same as above.
 	check(c1age, c1age, c2age)
 
@@ -463,6 +513,8 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	j2.Status = types.JOB_STATUS_SUCCESS
 	j2.Finished = time.Now()
 	assert.NoError(t, d.PutJob(j2))
+	<-wait
+
 	// Expect Build to be up-to-date.
 	check("0", c1age, c2age)
 
@@ -485,5 +537,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 		Created: c3time,
 	}
 	assert.NoError(t, d.PutJob(j6))
+	<-wait
+
 	check(c3age, c1age, fmt.Sprintf("Could not find anything for overdue_job_specs_s{job_name=\"%s\",job_trigger=\"\",repo=\"%s\"}", tcc_testutils.PerfTaskName, gb.RepoUrl()))
 }

@@ -11,9 +11,10 @@ import (
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/flakes"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -25,7 +26,7 @@ const (
 // taskEventDB implements the events.EventDB interface.
 type taskEventDB struct {
 	cached []*events.Event
-	db     db.TaskReader
+	tCache cache.TaskCache
 	em     *events.EventMetrics
 	// Do not lock mtx when calling methods on em. Otherwise deadlock can occur.
 	// E.g. (now fixed):
@@ -81,11 +82,14 @@ func (t *taskEventDB) Range(stream string, start, end time.Time) ([]*events.Even
 // call this method, but it can be called concurrently with other methods.
 func (t *taskEventDB) update() error {
 	defer metrics2.FuncTimer().Stop()
+	if err := t.tCache.Update(); err != nil {
+		return skerr.Wrapf(err, "Failed to update cache")
+	}
 	now := time.Now()
 	longestPeriod := TIME_PERIODS[len(TIME_PERIODS)-1]
-	tasks, err := t.db.GetTasksFromDateRange(now.Add(-longestPeriod), now, "")
+	tasks, err := t.tCache.GetTasksFromDateRange(now.Add(-longestPeriod), now)
 	if err != nil {
-		return fmt.Errorf("Failed to load tasks from %s to %s: %s", now.Add(-longestPeriod), now, err)
+		return skerr.Wrapf(err, "Failed to load tasks from %s to %s", now.Add(-longestPeriod), now)
 	}
 	sklog.Debugf("taskEventDB.update: Processing %d tasks for time range %s to %s.", len(tasks), now.Add(-longestPeriod), now)
 	cached := make([]*events.Event, 0, len(tasks))
@@ -95,7 +99,7 @@ func (t *taskEventDB) update() error {
 		}
 		var buf bytes.Buffer
 		if err := gob.NewEncoder(&buf).Encode(task); err != nil {
-			return fmt.Errorf("Failed to encode %#v to GOB: %s", task, err)
+			return skerr.Wrapf(err, "Failed to encode %#v to GOB", task)
 		}
 		ev := &events.Event{
 			Stream:    TASK_STREAM,
@@ -173,10 +177,10 @@ func addTaskAggregates(s *events.EventStream, instance string) error {
 }
 
 // StartTaskMetrics starts a goroutine which ingests metrics data based on Tasks.
-func StartTaskMetrics(ctx context.Context, taskDb db.TaskReader, instance string) error {
+func StartTaskMetrics(ctx context.Context, tCache cache.TaskCache, instance string) error {
 	edb := &taskEventDB{
 		cached: []*events.Event{},
-		db:     taskDb,
+		tCache: tCache,
 	}
 	em, err := events.NewEventMetrics(edb, "task_metrics")
 	if err != nil {
