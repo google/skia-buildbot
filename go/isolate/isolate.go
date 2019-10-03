@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -303,13 +302,10 @@ func CopyIsolated(iso *isolated.Isolated) *isolated.Isolated {
 
 // ReadIsolatedFile reads the given isolated file.
 func ReadIsolatedFile(filepath string) (*isolated.Isolated, error) {
-	f, err := os.Open(filepath)
-	if err != nil {
-		return nil, err
-	}
-	defer util.Close(f)
 	var iso isolated.Isolated
-	if err := json.NewDecoder(f).Decode(&iso); err != nil {
+	if err := util.WithReadFile(filepath, func(r io.Reader) error {
+		return json.NewDecoder(r).Decode(&iso)
+	}); err != nil {
 		return nil, err
 	}
 	return &iso, nil
@@ -317,15 +313,9 @@ func ReadIsolatedFile(filepath string) (*isolated.Isolated, error) {
 
 // WriteIsolatedFile writes the given isolated file.
 func WriteIsolatedFile(filepath string, i *isolated.Isolated) error {
-	f, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	if err := json.NewEncoder(f).Encode(i); err != nil {
-		defer util.Close(f)
-		return err
-	}
-	return f.Close()
+	return util.WithWriteFile(filepath, func(w io.Writer) error {
+		return json.NewEncoder(w).Encode(i)
+	})
 }
 
 // BatchArchiveTasks runs `isolate batcharchive` for the tasks.

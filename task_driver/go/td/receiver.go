@@ -234,19 +234,8 @@ func (r *ReportReceiver) Close() error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 
-	// Write the report to the desired output.
-	var w io.Writer
 	if r.output == "" {
 		return nil
-	} else if r.output == "-" {
-		w = os.Stdout
-	} else {
-		f, err := os.Create(r.output)
-		if err != nil {
-			return err
-		}
-		defer util.Close(f)
-		w = f
 	}
 
 	// Visit each step, attaching the final log contents to each logData
@@ -268,8 +257,15 @@ func (r *ReportReceiver) Close() error {
 	if err != nil {
 		return err
 	}
-	_, err = w.Write(b)
-	return err
+	// Write the report to the desired output.
+	if r.output == "-" {
+		_, err = os.Stdout.Write(b)
+		return err
+	}
+	return util.WithWriteFile(r.output, func(w io.Writer) error {
+		_, err := w.Write(b)
+		return err
+	})
 }
 
 // See documentation for Receiver interface.
