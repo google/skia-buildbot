@@ -16,6 +16,24 @@
       "revId": "5c99ac6c23da6c81ddeda5d44f0b657827d759fb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af2c1de5_72557ef5",
+        "filename": "ds/go/datastore_backup/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-03T17:55:01Z",
+      "side": 1,
+      "message": "Yes, just sent a CL to really address that.\n\nThis is the backup that was used in google.com:skia-buildbots.",
+      "parentUuid": "2e8489d5_13b052e4",
+      "revId": "5c99ac6c23da6c81ddeda5d44f0b657827d759fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
