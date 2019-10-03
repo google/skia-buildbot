@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3628c059_be9a7500",
+        "filename": "perf/go/btts/btts_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 539,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-03T16:32:02Z",
+      "side": 1,
+      "message": "Any issue with using testify/assert or require?",
+      "range": {
+        "startLine": 539,
+        "startChar": 4,
+        "endLine": 539,
+        "endChar": 13
+      },
+      "revId": "d6400da339ea4c031d630f27867a90b67c8c049c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bca47af2_444dbea1",
+        "filename": "perf/go/dfbuilder/dfbuilder.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 451,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-03T16:32:02Z",
+      "side": 1,
+      "message": "This is all a fancy way to step back one tile, right?",
+      "range": {
+        "startLine": 447,
+        "startChar": 2,
+        "endLine": 451,
+        "endChar": 49
+      },
+      "revId": "d6400da339ea4c031d630f27867a90b67c8c049c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
