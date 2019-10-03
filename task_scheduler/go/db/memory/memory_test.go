@@ -16,45 +16,45 @@ func TestMain(m *testing.M) {
 
 func TestInMemoryTaskDB(t *testing.T) {
 	unittest.SmallTest(t)
-	db.TestTaskDB(t, NewInMemoryTaskDB(nil))
+	db.TestTaskDB(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryTaskDBConcurrentUpdate(t *testing.T) {
 	unittest.SmallTest(t)
-	db.TestTaskDBConcurrentUpdate(t, NewInMemoryTaskDB(nil))
+	db.TestTaskDBConcurrentUpdate(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryTaskDBUpdateTasksWithRetries(t *testing.T) {
 	unittest.SmallTest(t)
-	db.TestUpdateTasksWithRetries(t, NewInMemoryTaskDB(nil))
+	db.TestUpdateTasksWithRetries(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryTaskDBGetTasksFromDateRangeByRepo(t *testing.T) {
 	unittest.SmallTest(t)
-	db.TestTaskDBGetTasksFromDateRangeByRepo(t, NewInMemoryTaskDB(nil))
+	db.TestTaskDBGetTasksFromDateRangeByRepo(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryTaskDBGetTasksFromWindow(t *testing.T) {
 	unittest.LargeTest(t)
-	db.TestTaskDBGetTasksFromWindow(t, NewInMemoryTaskDB(nil))
+	db.TestTaskDBGetTasksFromWindow(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryUpdateDBFromSwarmingTask(t *testing.T) {
 	unittest.SmallTest(t)
-	db.TestUpdateDBFromSwarmingTask(t, NewInMemoryTaskDB(nil))
+	db.TestUpdateDBFromSwarmingTask(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryUpdateDBFromSwarmingTaskTryjob(t *testing.T) {
 	unittest.SmallTest(t)
-	db.TestUpdateDBFromSwarmingTaskTryJob(t, NewInMemoryTaskDB(nil))
+	db.TestUpdateDBFromSwarmingTaskTryJob(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryJobDB(t *testing.T) {
 	unittest.SmallTest(t)
-	db.TestJobDB(t, NewInMemoryJobDB(nil))
+	db.TestJobDB(t, NewInMemoryJobDB())
 }
 
 func TestInMemoryJobDBConcurrentUpdate(t *testing.T) {
 	unittest.SmallTest(t)
-	db.TestJobDBConcurrentUpdate(t, NewInMemoryJobDB(nil))
+	db.TestJobDBConcurrentUpdate(t, NewInMemoryJobDB())
 }

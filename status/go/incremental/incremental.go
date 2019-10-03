@@ -75,7 +75,7 @@ func NewIncrementalCache(ctx context.Context, d db.RemoteDB, w *window.Window, r
 		numCommits:       numCommits,
 		swarmingUrl:      swarmingUrl,
 		taskSchedulerUrl: taskSchedulerUrl,
-		tasks:            newTaskCache(d),
+		tasks:            newTaskCache(ctx, d),
 		w:                w,
 	}
 	return c, c.Update(ctx, true)
@@ -169,7 +169,7 @@ func (c *IncrementalCache) GetRange(repo string, from, to time.Time, maxCommits 
 }
 
 // Get returns all newly-obtained data since the given time, trimmed to
-// maxComits.
+// maxCommits.
 func (c *IncrementalCache) Get(repo string, since time.Time, maxCommits int) (*Update, error) {
 	return c.GetRange(repo, since, time.Now().UTC(), maxCommits)
 }

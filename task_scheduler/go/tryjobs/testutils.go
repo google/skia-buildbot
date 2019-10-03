@@ -123,7 +123,7 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
 	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, rm, btProject, btInstance, nil)
 	assert.NoError(t, err)
-	d := memory.NewInMemoryDB(nil)
+	d := memory.NewInMemoryDB()
 	mock := mockhttpclient.NewURLMock()
 	projectRepoMapping := map[string]string{
 		patchProject:  gb.RepoUrl(),
@@ -143,7 +143,7 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 	isolateCache, err := isolate_cache.New(ctx, btProject, btInstance, nil)
 	assert.NoError(t, err)
 	chr := cacher.New(s, taskCfgCache, isolateClient, isolateCache)
-	jCache, err := cache.NewJobCache(d, window, cache.GitRepoGetRevisionTimestamp(rm))
+	jCache, err := cache.NewJobCache(ctx, d, window, cache.GitRepoGetRevisionTimestamp(rm), nil)
 	assert.NoError(t, err)
 	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, jCache, projectRepoMapping, rm, taskCfgCache, chr, g)
 	assert.NoError(t, err)

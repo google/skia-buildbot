@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/gob"
 	"fmt"
 	"io/ioutil"
@@ -18,7 +19,6 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
@@ -27,8 +27,8 @@ import (
 )
 
 // Create a db.JobDB and jobEventDB.
-func setupJobs(t *testing.T, now time.Time) (*jobEventDB, db.JobDB) {
-	jdb := memory.NewInMemoryJobDB(nil)
+func setupJobs(t *testing.T, now time.Time) (*jobEventDB, *memory.InMemoryJobDB) {
+	jdb := memory.NewInMemoryJobDB()
 	edb := &jobEventDB{
 		cached: []*events.Event{},
 		db:     jdb,
@@ -348,8 +348,10 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 
-	d := memory.NewInMemoryDB(nil)
+	d := memory.NewInMemoryDB()
 	ctx, gb, _, _ := tcc_testutils.SetupTestRepo(t)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, wd)
 	assert.NoError(t, err)
 	assert.NoError(t, repos.Update(ctx))
@@ -389,7 +391,12 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	c2age := "55"
 	c3age := "50"
 
+	om, err := newOverdueJobMetrics(ctx, d, repos, tcc)
+	assert.NoError(t, err)
+
 	check := func(buildAge, testAge, perfAge string) {
+		d.Wait()
+		assert.NoError(t, om.updateOverdueJobSpecMetrics(ctx, now))
 		tags := map[string]string{
 			"repo":        gb.RepoUrl(),
 			"job_name":    tcc_testutils.BuildTaskName,
@@ -404,11 +411,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 		assert.Equal(t, perfAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_OVERDUE_JOB_SPECS, tags))
 	}
 
-	om, err := newOverdueJobMetrics(d, repos, tcc)
-	assert.NoError(t, err)
-
 	// No jobs have finished yet.
-	assert.NoError(t, om.updateOverdueJobSpecMetrics(ctx, now))
 	check(c1age, c1age, c2age)
 
 	// Insert jobs.
@@ -454,7 +457,6 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	}
 	assert.NoError(t, d.PutJobs([]*types.Job{j1, j2, j3, j4, j5}))
 	// Jobs have not completed, so same as above.
-	assert.NoError(t, om.updateOverdueJobSpecMetrics(ctx, now))
 	check(c1age, c1age, c2age)
 
 	// One job is complete.
@@ -462,7 +464,6 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	j2.Finished = time.Now()
 	assert.NoError(t, d.PutJob(j2))
 	// Expect Build to be up-to-date.
-	assert.NoError(t, om.updateOverdueJobSpecMetrics(ctx, now))
 	check("0", c1age, c2age)
 
 	// Revert back to c1 (no Perf task) and check that Perf job disappears.
@@ -484,6 +485,5 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 		Created: c3time,
 	}
 	assert.NoError(t, d.PutJob(j6))
-	assert.NoError(t, om.updateOverdueJobSpecMetrics(ctx, now))
 	check(c3age, c1age, fmt.Sprintf("Could not find anything for overdue_job_specs_s{job_name=\"%s\",job_trigger=\"\",repo=\"%s\"}", tcc_testutils.PerfTaskName, gb.RepoUrl()))
 }

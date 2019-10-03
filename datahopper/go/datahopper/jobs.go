@@ -395,7 +395,7 @@ func StartJobMetrics(ctx context.Context, jobDb db.JobReader, instance string, r
 		return err
 	}
 
-	om, err := newOverdueJobMetrics(jobDb, repos, tcc)
+	om, err := newOverdueJobMetrics(ctx, jobDb, repos, tcc)
 	if err != nil {
 		return err
 	}
@@ -439,12 +439,12 @@ type overdueJobMetrics struct {
 
 // Return an overdueJobMetrics instance. The caller is responsible for updating
 // the passed-in repos and TaskCfgCache.
-func newOverdueJobMetrics(jobDb db.JobReader, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache) (*overdueJobMetrics, error) {
+func newOverdueJobMetrics(ctx context.Context, jobDb db.JobReader, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache) (*overdueJobMetrics, error) {
 	w, err := window.New(OVERDUE_JOB_METRICS_PERIOD, OVERDUE_JOB_METRICS_NUM_COMMITS, repos)
 	if err != nil {
 		return nil, err
 	}
-	jCache, err := cache.NewJobCache(jobDb, w, cache.GitRepoGetRevisionTimestamp(repos))
+	jCache, err := cache.NewJobCache(ctx, jobDb, w, cache.GitRepoGetRevisionTimestamp(repos), nil)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"errors"
 	"io"
 	"regexp"
@@ -17,12 +18,6 @@ import (
 )
 
 const (
-	// Maximum number of simultaneous GetModifiedTasks users.
-	MAX_MODIFIED_DATA_USERS = 20
-
-	// Expiration for GetModifiedTasks users.
-	MODIFIED_DATA_TIMEOUT = 30 * time.Minute
-
 	// Retries attempted by UpdateTasksWithRetries.
 	NUM_RETRIES = 5
 )
@@ -55,50 +50,8 @@ func IsUnknownId(e error) bool {
 	return e != nil && e.Error() == ErrUnknownId.Error()
 }
 
-// ModifiedTasksReader tracks which tasks have been modified and returns results
-// to subscribers based on what has changed since the last call to
-// GetModifiedTasks.
-type ModifiedTasksReader interface {
-	// GetModifiedTasks returns all tasks modified since the last time
-	// GetModifiedTasks was run with the given id. The returned tasks are sorted
-	// by Created timestamp. If GetModifiedTasks returns an error, the caller
-	// should call StopTrackingModifiedTasks and StartTrackingModifiedTasks
-	// again, and load all data from scratch to be sure that no tasks were
-	// missed.
-	GetModifiedTasks(string) ([]*types.Task, error)
-
-	// StartTrackingModifiedTasks initiates tracking of modified tasks for
-	// the current caller. Returns a unique ID which can be used by the caller
-	// to retrieve tasks which have been modified since the last query. The ID
-	// expires after a period of inactivity.
-	StartTrackingModifiedTasks() (string, error)
-
-	// StopTrackingModifiedTasks cancels tracking of modified tasks for the
-	// provided ID.
-	StopTrackingModifiedTasks(string)
-}
-
-// ModifiedTasks tracks which tasks have been modified and returns results to
-// subscribers based on what has changed since the last call to
-// GetModifiedTasks.
-type ModifiedTasks interface {
-	ModifiedTasksReader
-
-	// TrackModifiedTask indicates the given Task should be returned from the next
-	// call to GetModifiedTasks from each subscriber.
-	TrackModifiedTask(*types.Task)
-
-	// TrackModifiedTasks is a batch version of TrackModifiedTask. It is
-	// similar to calling TrackModifiedTask for each Task, but it guarantees
-	// that tasks included in the same call TrackModifiedTasks will be
-	// returned in the same call to GetModifiedTasks.
-	TrackModifiedTasks([]*types.Task)
-}
-
 // TaskReader is a read-only view of a TaskDB.
 type TaskReader interface {
-	ModifiedTasksReader
-
 	// GetTaskById returns the task with the given Id field. Returns nil, nil if
 	// task is not found.
 	GetTaskById(string) (*types.Task, error)
@@ -108,6 +61,12 @@ type TaskReader interface {
 	// an optional repository; if provided, only return tasks associated with
 	// that repo.
 	GetTasksFromDateRange(time.Time, time.Time, string) ([]*types.Task, error)
+
+	// ModifiedTasksCh returns a channel which produces Tasks as they are
+	// modified in the DB. The channel is closed when the given Context is
+	// canceled. The channel will immediately produce a slice of Tasks which
+	// may or may not be empty.
+	ModifiedTasksCh(context.Context) <-chan []*types.Task
 }
 
 // TaskDB is used by the task scheduler to store Tasks.
@@ -198,50 +157,8 @@ func UpdateTaskWithRetries(db TaskDB, id string, f func(*types.Task) error) (*ty
 	}
 }
 
-// ModifiedJobsReader tracks which tasks have been modified and returns results
-// to subscribers based on what has changed since the last call to
-// GetModifiedJobs.
-type ModifiedJobsReader interface {
-	// GetModifiedJobs returns all jobs modified since the last time
-	// GetModifiedJobs was run with the given id. The returned jobs are sorted by
-	// Created timestamp. If GetModifiedJobs returns an error, the caller
-	// should call StopTrackingModifiedJobs and StartTrackingModifiedJobs
-	// again, and load all data from scratch to be sure that no jobs were
-	// missed.
-	GetModifiedJobs(string) ([]*types.Job, error)
-
-	// StartTrackingModifiedJobs initiates tracking of modified jobs for
-	// the current caller. Returns a unique ID which can be used by the caller
-	// to retrieve jobs which have been modified since the last query. The ID
-	// expires after a period of inactivity.
-	StartTrackingModifiedJobs() (string, error)
-
-	// StopTrackingModifiedJobs cancels tracking of modified jobs for the
-	// provided ID.
-	StopTrackingModifiedJobs(string)
-}
-
-// ModifiedJobs tracks which tasks have been modified and returns results to
-// subscribers based on what has changed since the last call to
-// GetModifiedJobs.
-type ModifiedJobs interface {
-	ModifiedJobsReader
-
-	// TrackModifiedJob indicates the given Job should be returned from the next
-	// call to GetModifiedJobs from each subscriber.
-	TrackModifiedJob(*types.Job)
-
-	// TrackModifiedJobs is a batch version of TrackModifiedJob. It is
-	// similar to calling TrackModifiedJob for each Job, but it guarantees
-	// that jobs included in the same call TrackModifiedJobs will be
-	// returned in the same call to GetModifiedJobs.
-	TrackModifiedJobs([]*types.Job)
-}
-
 // JobReader is a read-only view of a JobDB.
 type JobReader interface {
-	ModifiedJobsReader
-
 	// GetJobById returns the job with the given Id field. Returns nil, nil if
 	// job is not found.
 	GetJobById(string) (*types.Job, error)
@@ -251,6 +168,12 @@ type JobReader interface {
 	// field is an optional repository; if provided, only return tasks
 	// associated with that repo.
 	GetJobsFromDateRange(time.Time, time.Time, string) ([]*types.Job, error)
+
+	// ModifiedJobsCh returns a channel which produces Jobs as they are
+	// modified in the DB. The channel is closed when the given Context is
+	// canceled. The channel will immediately produce a slice of Jobs which
+	// may or may not be empty.
+	ModifiedJobsCh(context.Context) <-chan []*types.Job
 }
 
 // JobDB is used by the task scheduler to store Jobs.
@@ -274,30 +197,6 @@ type JobDB interface {
 	// transactions. Not appropriate for updates in which consistency is
 	// important.
 	PutJobsInChunks([]*types.Job) error
-}
-
-// ModifiedData combines ModifiedTasks, ModifiedJobs, and ModifiedComments.
-type ModifiedData interface {
-	ModifiedTasks
-	ModifiedJobs
-	ModifiedComments
-}
-
-// modifiedData implements ModifiedData.
-type modifiedData struct {
-	ModifiedTasks
-	ModifiedJobs
-	ModifiedComments
-}
-
-// NewModifiedData returns a ModifiedData which combines the given
-// ModifiedTasks, ModifiedJobs, and ModifiedComments.
-func NewModifiedData(t ModifiedTasks, j ModifiedJobs, c ModifiedComments) ModifiedData {
-	return &modifiedData{
-		ModifiedTasks:    t,
-		ModifiedJobs:     j,
-		ModifiedComments: c,
-	}
 }
 
 // JobSearchParams are parameters on which Jobs may be searched. All fields

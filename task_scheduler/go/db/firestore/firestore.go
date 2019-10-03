@@ -52,32 +52,22 @@ const (
 // firestoreDB is a db.DB which uses Cloud Firestore for storage.
 type firestoreDB struct {
 	client *firestore.Client
-
-	db.ModifiedData
 }
 
 // NewDB returns a db.DB which uses Cloud Firestore for storage, using the given params.
-func NewDBWithParams(ctx context.Context, project, instance string, ts oauth2.TokenSource, mod db.ModifiedData) (db.DBCloser, error) {
+func NewDBWithParams(ctx context.Context, project, instance string, ts oauth2.TokenSource) (db.DBCloser, error) {
 	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, instance, ts)
 	if err != nil {
 		return nil, err
 	}
-	return NewDB(ctx, client, mod)
+	return NewDB(ctx, client)
 }
 
 // NewDB returns a db.DB which uses the given firestore.Client for storage.
-func NewDB(ctx context.Context, client *firestore.Client, mod db.ModifiedData) (db.DBCloser, error) {
-	d := &firestoreDB{
+func NewDB(ctx context.Context, client *firestore.Client) (db.DBCloser, error) {
+	return &firestoreDB{
 		client: client,
-	}
-	if mod == nil {
-		modTasks := NewModifiedTasks(ctx, d)
-		modJobs := NewModifiedJobs(ctx, d)
-		modComments := NewModifiedComments(ctx, d)
-		mod = db.NewModifiedData(modTasks, modJobs, modComments)
-	}
-	d.ModifiedData = mod
-	return d, nil
+	}, nil
 }
 
 // See documentation for db.DBCloser interface.

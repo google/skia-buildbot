@@ -1,14 +1,13 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -76,6 +75,9 @@ type TaskCache interface {
 
 	// Update loads new tasks from the database.
 	Update() error
+
+	// AddTasks adds tasks directly to the TaskCache.
+	AddTasks([]*types.Task)
 }
 
 type taskCache struct {
@@ -83,7 +85,6 @@ type taskCache struct {
 	// map[repo_name][task_spec_name]Task.Created for most recent Task.
 	knownTaskNames map[string]map[string]time.Time
 	mtx            sync.RWMutex
-	queryId        string
 	tasks          map[string]*types.Task
 	// map[repo_name][commit_hash][task_spec_name]*Task
 	tasksByCommit map[string]map[string]map[string]*types.Task
@@ -93,6 +94,11 @@ type taskCache struct {
 	tasksByTime []*types.Task
 	timeWindow  *window.Window
 	unfinished  map[string]*types.Task
+
+	// Stash modified tasks until Update() is called.
+	modified map[string]*types.Task
+	modMtx   sync.Mutex
+	onModFn  func()
 }
 
 // See documentation for TaskCache interface.
@@ -240,7 +246,7 @@ func (c *taskCache) removeFromTasksByCommit(task *types.Task) {
 
 // expireTasks removes data from c whose Created time is before the beginning
 // of the Window. Assumes the caller holds a lock. This is a helper for
-// expireAndUpdate.
+// Update.
 func (c *taskCache) expireTasks() {
 	for repoUrl, nameMap := range c.knownTaskNames {
 		for name, ts := range nameMap {
@@ -287,7 +293,7 @@ func (c *taskCache) expireTasks() {
 
 // insertOrUpdateTask inserts task into the cache if it is a new task, or
 // updates the existing entries if not. Assumes the caller holds a lock. This is
-// a helper for expireAndUpdate.
+// a helper for Update.
 func (c *taskCache) insertOrUpdateTask(task *types.Task) {
 	old, isUpdate := c.tasks[task.Id]
 	if isUpdate && !task.DbModified.After(old.DbModified) {
@@ -374,11 +380,26 @@ func (c *taskCache) insertOrUpdateTask(task *types.Task) {
 	}
 }
 
-// expireAndUpdate removes Tasks outside the window from the cache and inserts
-// new/updated tasks into the cache. Assumes the caller holds a lock. Assumes
-// tasks are sorted by Created timestamp.
-func (c *taskCache) expireAndUpdate(tasks []*types.Task) {
+// See documentation for TaskCache interface.
+func (c *taskCache) Update() error {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	c.modMtx.Lock()
+	defer c.modMtx.Unlock()
 	c.expireTasks()
+	for _, t := range c.modified {
+		if c.timeWindow.TestTime(t.Repo, t.Created) {
+			c.insertOrUpdateTask(t)
+		}
+	}
+	c.modified = map[string]*types.Task{}
+	return nil
+}
+
+// See documentation for TaskCache interface.
+func (c *taskCache) AddTasks(tasks []*types.Task) {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
 	for _, t := range tasks {
 		if c.timeWindow.TestTime(t.Repo, t.Created) {
 			c.insertOrUpdateTask(t.Copy())
@@ -386,57 +407,48 @@ func (c *taskCache) expireAndUpdate(tasks []*types.Task) {
 	}
 }
 
-// reset re-initializes c. Assumes the caller holds a lock.
-func (c *taskCache) reset() error {
-	if c.queryId != "" {
-		c.db.StopTrackingModifiedTasks(c.queryId)
-	}
-	queryId, err := c.db.StartTrackingModifiedTasks()
-	if err != nil {
-		return err
-	}
-	tasks, err := db.GetTasksFromWindow(c.db, c.timeWindow, time.Now())
-	if err != nil {
-		c.db.StopTrackingModifiedTasks(queryId)
-		return err
-	}
-	c.knownTaskNames = map[string]map[string]time.Time{}
-	c.queryId = queryId
-	c.tasks = map[string]*types.Task{}
-	c.tasksByCommit = map[string]map[string]map[string]*types.Task{}
-	c.tasksByKey = map[types.TaskKey]map[string]*types.Task{}
-	c.unfinished = map[string]*types.Task{}
-	c.expireAndUpdate(tasks)
-	return nil
-}
-
-// See documentation for TaskCache interface.
-func (c *taskCache) Update() error {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-	newTasks, err := c.db.GetModifiedTasks(c.queryId)
-	if err != nil {
-		sklog.Warningf("Connection to db lost; re-initializing cache from scratch.")
-		if err := c.reset(); err != nil {
-			return err
-		}
-		return nil
-	}
-	c.expireAndUpdate(newTasks)
-	return nil
-}
-
 // NewTaskCache returns a local cache which provides more convenient views of
-// task data than the database can provide.
-func NewTaskCache(d db.TaskReader, timeWindow *window.Window) (TaskCache, error) {
-	tc := &taskCache{
-		db:         d,
-		timeWindow: timeWindow,
-	}
-	if err := tc.reset(); err != nil {
+// task data than the database can provide. The last parameter is a callback
+// function which is called when modified tasks are received from the DB. This
+// is used for testing.
+func NewTaskCache(ctx context.Context, d db.TaskReader, timeWindow *window.Window, onModifiedTasks func()) (TaskCache, error) {
+	mod := d.ModifiedTasksCh(ctx)
+	tasks, err := db.GetTasksFromWindow(d, timeWindow, time.Now())
+	if err != nil {
 		return nil, err
 	}
-	return tc, nil
+	c := &taskCache{
+		db:             d,
+		knownTaskNames: map[string]map[string]time.Time{},
+		tasks:          map[string]*types.Task{},
+		tasksByCommit:  map[string]map[string]map[string]*types.Task{},
+		tasksByKey:     map[types.TaskKey]map[string]*types.Task{},
+		unfinished:     map[string]*types.Task{},
+		modified:       map[string]*types.Task{},
+		timeWindow:     timeWindow,
+		onModFn:        onModifiedTasks,
+	}
+	for _, t := range tasks {
+		if c.timeWindow.TestTime(t.Repo, t.Created) {
+			c.insertOrUpdateTask(t)
+		}
+	}
+	go func() {
+		for tasks := range mod {
+			c.modMtx.Lock()
+			for _, task := range tasks {
+				if old, ok := c.modified[task.Id]; !ok || task.DbModified.After(old.DbModified) {
+					c.modified[task.Id] = task
+				}
+			}
+			c.modMtx.Unlock()
+			if c.onModFn != nil {
+				c.onModFn()
+			}
+		}
+		sklog.Error("Modified tasks channel closed; is this expected?")
+	}()
+	return c, nil
 }
 
 type JobCache interface {
@@ -469,18 +481,24 @@ type JobCache interface {
 
 	// Update loads new jobs from the database.
 	Update() error
+
+	// AddJobs adds jobs directly to the JobCache.
+	AddJobs([]*types.Job)
 }
 
 type jobCache struct {
 	db                   db.JobReader
 	getRevisionTimestamp db.GetRevisionTimestamp
 	mtx                  sync.RWMutex
-	queryId              string
 	jobs                 map[string]*types.Job
 	jobsByNameAndState   map[types.RepoState]map[string]map[string]*types.Job
 	timeWindow           *window.Window
 	triggeredForCommit   map[string]map[string]bool
 	unfinished           map[string]*types.Job
+
+	modified map[string]*types.Job
+	modMtx   sync.Mutex
+	onModFn  func()
 }
 
 // getJobTimestamp returns the timestamp of a Job for purposes of cache
@@ -575,7 +593,7 @@ func (c *jobCache) UnfinishedJobs() ([]*types.Job, error) {
 
 // expireJobs removes data from c where getJobTimestamp or getRevisionTimestamp
 // is before start. Assumes the caller holds a lock. This is a helper for
-// expireAndUpdate.
+// Update.
 func (c *jobCache) expireJobs() {
 	expiredUnfinishedCount := 0
 	for _, job := range c.jobs {
@@ -605,13 +623,7 @@ func (c *jobCache) expireJobs() {
 		for rev := range revMap {
 			ts, err := c.getRevisionTimestamp(repo, rev)
 			if err != nil {
-				// TODO(borenet): Only warn for skcms, since we
-				// exclude it in datahopper due to DB load times.
-				if repo == common.REPO_SKCMS {
-					sklog.Warning(err)
-				} else {
-					sklog.Error(err)
-				}
+				sklog.Error(err)
 				continue
 			}
 			if !c.timeWindow.TestTime(repo, ts) {
@@ -622,7 +634,7 @@ func (c *jobCache) expireJobs() {
 }
 
 // insertOrUpdateJob inserts the new/updated job into the cache. Assumes the
-// caller holds a lock. This is a helper for expireAndUpdate.
+// caller holds a lock. This is a helper for Update.
 func (c *jobCache) insertOrUpdateJob(job *types.Job) {
 	old, isUpdate := c.jobs[job.Id]
 	if isUpdate && !job.DbModified.After(old.DbModified) {
@@ -661,10 +673,29 @@ func (c *jobCache) insertOrUpdateJob(job *types.Job) {
 	}
 }
 
-// expireAndUpdate removes Jobs before the window and inserts the
-// new/updated jobs into the cache. Assumes the caller holds a lock.
-func (c *jobCache) expireAndUpdate(jobs []*types.Job) {
+// See documentation for JobCache interface.
+func (c *jobCache) Update() error {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	c.modMtx.Lock()
+	defer c.modMtx.Unlock()
 	c.expireJobs()
+	for _, job := range c.modified {
+		ts := c.getJobTimestamp(job)
+		if !c.timeWindow.TestTime(job.Repo, ts) {
+			//sklog.Warningf("Updated job %s after expired. getJobTimestamp returned %s. %#v", job.Id, ts, job)
+		} else {
+			c.insertOrUpdateJob(job)
+		}
+	}
+	c.modified = map[string]*types.Job{}
+	return nil
+}
+
+// See documentation for JobCache interface.
+func (c *jobCache) AddJobs(jobs []*types.Job) {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
 	for _, job := range jobs {
 		ts := c.getJobTimestamp(job)
 		if !c.timeWindow.TestTime(job.Repo, ts) {
@@ -675,59 +706,51 @@ func (c *jobCache) expireAndUpdate(jobs []*types.Job) {
 	}
 }
 
-// reset re-initializes c. Assumes the caller holds a lock.
-func (c *jobCache) reset() error {
-	defer metrics2.FuncTimer().Stop()
-
-	if c.queryId != "" {
-		c.db.StopTrackingModifiedJobs(c.queryId)
-	}
-	queryId, err := c.db.StartTrackingModifiedJobs()
-	if err != nil {
-		return err
-	}
-	jobs, err := db.GetJobsFromWindow(c.db, c.timeWindow, time.Now())
-	if err != nil {
-		c.db.StopTrackingModifiedJobs(queryId)
-		return err
-	}
-	c.queryId = queryId
-	c.jobs = map[string]*types.Job{}
-	c.jobsByNameAndState = map[types.RepoState]map[string]map[string]*types.Job{}
-	c.triggeredForCommit = map[string]map[string]bool{}
-	c.unfinished = map[string]*types.Job{}
-	c.expireAndUpdate(jobs)
-	return nil
-}
-
-// See documentation for JobCache interface.
-func (c *jobCache) Update() error {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-	newJobs, err := c.db.GetModifiedJobs(c.queryId)
-	if err != nil {
-		sklog.Warningf("Connection to db lost; re-initializing cache from scratch.")
-		if err := c.reset(); err != nil {
-			return err
-		}
-		return nil
-	}
-	c.expireAndUpdate(newJobs)
-	return nil
-}
-
 // NewJobCache returns a local cache which provides more convenient views of
-// job data than the database can provide.
-func NewJobCache(d db.JobReader, timeWindow *window.Window, getRevisionTimestamp db.GetRevisionTimestamp) (JobCache, error) {
-	tc := &jobCache{
-		db:                   d,
-		getRevisionTimestamp: getRevisionTimestamp,
-		timeWindow:           timeWindow,
-	}
-	if err := tc.reset(); err != nil {
+// job data than the database can provide. The last parameter is a callback
+// function which is called when modified tasks are received from the DB. This
+// is used for testing.
+func NewJobCache(ctx context.Context, d db.JobReader, timeWindow *window.Window, getRevisionTimestamp db.GetRevisionTimestamp, onModifiedJobs func()) (JobCache, error) {
+	mod := d.ModifiedJobsCh(ctx)
+	jobs, err := db.GetJobsFromWindow(d, timeWindow, time.Now())
+	if err != nil {
 		return nil, err
 	}
-	return tc, nil
+	c := &jobCache{
+		db:                   d,
+		jobs:                 map[string]*types.Job{},
+		jobsByNameAndState:   map[types.RepoState]map[string]map[string]*types.Job{},
+		triggeredForCommit:   map[string]map[string]bool{},
+		unfinished:           map[string]*types.Job{},
+		modified:             map[string]*types.Job{},
+		getRevisionTimestamp: getRevisionTimestamp,
+		timeWindow:           timeWindow,
+		onModFn:              onModifiedJobs,
+	}
+	for _, job := range jobs {
+		ts := c.getJobTimestamp(job)
+		if !c.timeWindow.TestTime(job.Repo, ts) {
+			//sklog.Warningf("Updated job %s after expired. getJobTimestamp returned %s. %#v", job.Id, ts, job)
+		} else {
+			c.insertOrUpdateJob(job)
+		}
+	}
+	go func() {
+		for jobs := range mod {
+			c.modMtx.Lock()
+			for _, job := range jobs {
+				if old, ok := c.modified[job.Id]; !ok || job.DbModified.After(old.DbModified) {
+					c.modified[job.Id] = job
+				}
+			}
+			c.modMtx.Unlock()
+			if c.onModFn != nil {
+				c.onModFn()
+			}
+		}
+		sklog.Error("Modified jobs channel closed; is this expected?")
+	}()
+	return c, nil
 }
 
 // GitRepoGetRevisionTimestamp returns a GetRevisionTimestamp function that gets

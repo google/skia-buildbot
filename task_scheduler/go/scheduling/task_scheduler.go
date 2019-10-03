@@ -167,12 +167,12 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 	}
 
 	// Create caches.
-	tCache, err := cache.NewTaskCache(d, w)
+	tCache, err := cache.NewTaskCache(ctx, d, w, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create TaskCache: %s", err)
 	}
 
-	jCache, err := cache.NewJobCache(d, w, cache.GitRepoGetRevisionTimestamp(repos))
+	jCache, err := cache.NewJobCache(ctx, d, w, cache.GitRepoGetRevisionTimestamp(repos), nil)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create JobCache: %s", err)
 	}
@@ -322,6 +322,53 @@ func (s *TaskScheduler) initCaches(ctx context.Context) error {
 		})
 	}
 	return g.Wait()
+}
+
+// putTask is a wrapper around DB.PutTask which adds the task to the cache.
+func (s *TaskScheduler) putTask(t *types.Task) error {
+	if err := s.db.PutTask(t); err != nil {
+		return err
+	}
+	s.tCache.AddTasks([]*types.Task{t})
+	return nil
+}
+
+// putTasks is a wrapper around DB.PutTasks which adds the tasks to the cache.
+func (s *TaskScheduler) putTasks(t []*types.Task) error {
+	if err := s.db.PutTasks(t); err != nil {
+		return err
+	}
+	s.tCache.AddTasks(t)
+	return nil
+}
+
+// putTasksInChunks is a wrapper around DB.PutTasksInChunks which adds the tasks
+// to the cache.
+func (s *TaskScheduler) putTasksInChunks(t []*types.Task) error {
+	if err := s.db.PutTasksInChunks(t); err != nil {
+		return err
+	}
+	s.tCache.AddTasks(t)
+	return nil
+}
+
+// putJob is a wrapper around DB.PutJob which adds the job to the cache.
+func (s *TaskScheduler) putJob(j *types.Job) error {
+	if err := s.db.PutJob(j); err != nil {
+		return err
+	}
+	s.jCache.AddJobs([]*types.Job{j})
+	return nil
+}
+
+// putJobsInChunks is a wrapper around DB.PutJobsInChunks which adds the jobs
+// to the cache.
+func (s *TaskScheduler) putJobsInChunks(j []*types.Job) error {
+	if err := s.db.PutJobsInChunks(j); err != nil {
+		return err
+	}
+	s.jCache.AddJobs(j)
+	return nil
 }
 
 // TaskSchedulerStatus is a struct which provides status information about the
@@ -487,7 +534,7 @@ func (s *TaskScheduler) MaybeTriggerPeriodicJobs(ctx context.Context, triggerNam
 	}
 
 	// Insert the new jobs into the DB.
-	if err := s.db.PutJobsInChunks(jobsToInsert); err != nil {
+	if err := s.putJobsInChunks(jobsToInsert); err != nil {
 		return fmt.Errorf("Failed to add periodic jobs: %s", err)
 	}
 	sklog.Infof("Created %d periodic jobs for trigger %q", len(jobs), triggerName)
@@ -505,7 +552,7 @@ func (s *TaskScheduler) TriggerJob(ctx context.Context, repo, commit, jobName st
 	}
 	j.Requested = j.Created
 	j.IsForce = true
-	if err := s.db.PutJob(j); err != nil {
+	if err := s.putJob(j); err != nil {
 		return "", err
 	}
 	sklog.Infof("Created manually-triggered Job %q", j.Id)
@@ -524,10 +571,10 @@ func (s *TaskScheduler) CancelJob(id string) (*types.Job, error) {
 	}
 	j.Status = types.JOB_STATUS_CANCELED
 	s.jobFinished(j)
-	if err := s.db.PutJob(j); err != nil {
+	if err := s.putJob(j); err != nil {
 		return nil, err
 	}
-	return j, s.jCache.Update()
+	return j, nil
 }
 
 // ComputeBlamelist computes the blamelist for a new task, specified by name,
@@ -1745,7 +1792,7 @@ func (s *TaskScheduler) HandleRepoUpdate(ctx context.Context, repoUrl string, g 
 		nack()
 		return skerr.Wrapf(err, "gatherNewJobs returned transient error")
 	}
-	if err := s.db.PutJobsInChunks(newJobs); err != nil {
+	if err := s.putJobsInChunks(newJobs); err != nil {
 		// nack the pubsub message so that we'll have
 		// another chance to add these jobs.
 		nack()
@@ -1756,9 +1803,6 @@ func (s *TaskScheduler) HandleRepoUpdate(ctx context.Context, repoUrl string, g 
 	// message without waiting to see if the cache refreshes
 	// below succeed.
 	ack()
-	if err := s.jCache.Update(); err != nil {
-		return skerr.Wrapf(err, "failed to update job cache")
-	}
 	if err := s.window.Update(); err != nil {
 		return skerr.Wrapf(err, "failed to update window")
 	}
@@ -2041,16 +2085,12 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 		for _, t := range modifiedTasks {
 			tasks = append(tasks, t)
 		}
-		if err := s.db.PutTasksInChunks(tasks); err != nil {
-			return err
-		} else if err := s.tCache.Update(); err != nil {
+		if err := s.putTasksInChunks(tasks); err != nil {
 			return err
 		}
 	}
 	if len(modifiedJobs) > 0 {
-		if err := s.db.PutJobsInChunks(modifiedJobs); err != nil {
-			return err
-		} else if err := s.jCache.Update(); err != nil {
+		if err := s.putJobsInChunks(modifiedJobs); err != nil {
 			return err
 		}
 	}
@@ -2166,7 +2206,10 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(ctx context.Context, tasks []*typ
 	for _, task := range updatedTasks {
 		putTasks = append(putTasks, task)
 	}
-	return s.db.PutTasks(putTasks)
+	if err := s.putTasks(putTasks); err != nil {
+		return err
+	}
+	return nil
 }
 
 // addTasks inserts the given tasks into the TaskDB, updating blamelists. The
