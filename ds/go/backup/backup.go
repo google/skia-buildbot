@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/ds"
@@ -59,15 +60,16 @@ func singleRequest(client *http.Client, url string, buf *bytes.Buffer) (*http.Re
 }
 
 // Step runs a single backup of all the entities listed in ds.KindsToBackup
-// for the given project, data is written to the given GCS bucker.
+// for the given project, data is written to the given GCS bucket.
 func Step(client *http.Client, project, bucket string) error {
 	//
 	// Configure what gets backed up here by adding to ds.KindsToBackup.
 	//
+	safeProject := strings.ReplaceAll(project, ":", "_")
 	success := true
 	for ns, kinds := range ds.KindsToBackup {
 		req := Request{
-			OutputUrlPrefix: fmt.Sprintf("gs://%s/%s/", bucket, project) + time.Now().Format("2006/01/02/15/04"),
+			OutputUrlPrefix: fmt.Sprintf("gs://%s/%s/", bucket, safeProject) + time.Now().Format("2006/01/02/15/04"),
 			EntityFilter: EntityFilter{
 				Kinds:        kinds,
 				NamespaceIds: []string{ns},
