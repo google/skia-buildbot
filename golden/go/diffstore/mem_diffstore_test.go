@@ -82,7 +82,7 @@ func TestMemDiffStore(t *testing.T) {
 	mStore, err := bolt_metricsstore.New(baseDir, m)
 	assert.NoError(t, err)
 	// MemDiffStore is built with a nil FailureStore as it is not used by this test.
-	diffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mStore, nil)
+	diffStore, err := NewMemDiffStore(gcsClient, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mStore, nil)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
@@ -216,7 +216,7 @@ func TestFailureHandling(t *testing.T) {
 	m := disk_mapper.New(&diff.DiffMetrics{})
 	mStore, err := bolt_metricsstore.New(baseDir, m)
 	assert.NoError(t, err)
-	diffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mStore, mfs)
+	diffStore, err := NewMemDiffStore(gcsClient, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mStore, mfs)
 	assert.NoError(t, err)
 
 	validDigestSet := types.DigestSet{}
@@ -260,7 +260,7 @@ func TestCodec(t *testing.T) {
 	m := disk_mapper.New(&d_utils.DummyDiffMetrics{})
 	mStore, err := bolt_metricsstore.New(baseDir, m)
 	assert.NoError(t, err)
-	diffStore, err := NewMemDiffStore(gcsClient, baseDir, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mStore, nil)
+	diffStore, err := NewMemDiffStore(gcsClient, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mStore, nil)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
@@ -401,7 +401,7 @@ func TestMemDiffStoreImageHandler(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Build MemDiffStore instance under test.
-	diffStore, err := NewMemDiffStore(mockBucketClient, baseDir, gsImageBaseDir, 10, m, mStore, mockFailureStore)
+	diffStore, err := NewMemDiffStore(mockBucketClient, gsImageBaseDir, 10, m, mStore, mockFailureStore)
 	assert.NoError(t, err)
 
 	// Get the HTTP handler function under test.
