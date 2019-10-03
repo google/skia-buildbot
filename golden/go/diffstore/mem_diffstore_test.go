@@ -392,13 +392,8 @@ func TestMemDiffStoreImageHandler(t *testing.T) {
 	// Dummy mapper.
 	m := disk_mapper.New(&diff.DiffMetrics{})
 
-	// Temporary dir for the Bolt store.
-	baseDir, cleanup := testutils.TempDir(t)
-	defer cleanup()
-
 	// Metrics store.
-	mStore, err := bolt_metricsstore.New(baseDir, m)
-	assert.NoError(t, err)
+	mStore := &mocks.MetricsStore{}
 
 	// Build MemDiffStore instance under test.
 	diffStore, err := NewMemDiffStore(mockBucketClient, gsImageBaseDir, 10, m, mStore, mockFailureStore)
