@@ -22,41 +22,59 @@ type Recent struct {
 	// mutex guards access to recent.
 	mutex sync.Mutex
 
-	// recent is just the last MAX_RECENT requests.
-	recent []*Request
+	// recentGood is just the last MAX_RECENT requests.
+	recentGood []*Request
+
+	// recentBad is just the last MAX_RECENT requests.
+	recentBad []*Request
 }
 
 func New() *Recent {
 	return &Recent{
-		recent: []*Request{},
+		recentGood: []*Request{},
+		recentBad:  []*Request{},
 	}
 }
 
-// Add the JSON body that was POST'd to the server.
-func (r *Recent) Add(b []byte) {
+func (r *Recent) add(recent []*Request, b []byte) []*Request {
 	// Store locally.
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	r.recent = append([]*Request{{
+	recent = append([]*Request{{
 		TS:   time.Now().UTC().String(),
 		JSON: string(b),
-	}}, r.recent...)
+	}}, recent...)
 
 	// Keep track of the last N events.
-	if len(r.recent) > MAX_RECENT {
-		r.recent = r.recent[:MAX_RECENT]
+	if len(recent) > MAX_RECENT {
+		recent = recent[:MAX_RECENT]
 	}
+	return recent
 }
 
-// List returns the last MAX_RECENT Requests, with the most recent
+// AddBad the JSON body that was POST'd to the server.
+func (r *Recent) AddBad(b []byte) {
+	r.recentBad = r.add(r.recentBad, b)
+}
+
+// AddGood the JSON body that was POST'd to the server.
+func (r *Recent) AddGood(b []byte) {
+	r.recentGood = r.add(r.recentGood, b)
+}
+
+// List returns the last MAX_RECENT Good and Bad Requests, with the most recent
 // Requests first.
-func (r *Recent) List() []*Request {
+func (r *Recent) List() ([]*Request, []*Request) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
-	ret := make([]*Request, len(r.recent), len(r.recent))
-	for i, req := range r.recent {
-		ret[i] = req
+	good := make([]*Request, len(r.recentGood), len(r.recentGood))
+	for i, req := range r.recentGood {
+		good[i] = req
 	}
-	return ret
+	bad := make([]*Request, len(r.recentBad), len(r.recentBad))
+	for i, req := range r.recentBad {
+		bad[i] = req
+	}
+	return good, bad
 }

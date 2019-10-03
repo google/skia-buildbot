@@ -10,24 +10,32 @@ import (
 func TestRecent(t *testing.T) {
 	unittest.SmallTest(t)
 	r := New()
-	list := r.List()
-	assert.Len(t, list, 0)
+	good, bad := r.List()
+	assert.Len(t, good, 0)
+	assert.Len(t, bad, 0)
 
-	r.Add([]byte("{}"))
-	list = r.List()
-	assert.Len(t, list, 1)
+	r.AddGood([]byte("{}"))
+	good, bad = r.List()
+	assert.Len(t, good, 1)
+	assert.Len(t, bad, 0)
+
+	r.AddBad([]byte("{"))
+	good, bad = r.List()
+	assert.Len(t, good, 1)
+	assert.Len(t, bad, 1)
 
 	json := "{\"foo\": 2}"
-	r.Add([]byte(json))
-	list = r.List()
-	assert.Len(t, list, 2)
+	r.AddGood([]byte(json))
+	good, bad = r.List()
+	assert.Len(t, good, 2)
+	assert.Len(t, bad, 1)
 	// Confirm that new additions show up at the beginning
 	// of the list.
-	assert.Equal(t, json, list[0].JSON)
+	assert.Equal(t, json, good[0].JSON)
 
 	// Confirm that we never store more than MAX_RECENT entries.
 	for i := 0; i < MAX_RECENT+5; i++ {
-		r.Add([]byte("{}"))
+		r.AddGood([]byte("{}"))
 	}
-	assert.Len(t, r.recent, MAX_RECENT)
+	assert.Len(t, r.recentGood, MAX_RECENT)
 }
