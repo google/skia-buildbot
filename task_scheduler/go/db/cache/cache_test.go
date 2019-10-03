@@ -35,24 +35,34 @@ func testGetTasksForCommits(t *testing.T, c TaskCache, b *types.Task) {
 
 func TestTaskCache(t *testing.T) {
 	unittest.SmallTest(t)
-	d := memory.NewInMemoryTaskDB(nil)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	d := memory.NewInMemoryTaskDB()
 
 	// Pre-load a task into the DB.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
 	t1 := types.MakeTestTask(startTime, []string{"a", "b", "c", "d"})
 	assert.NoError(t, d.PutTask(t1))
+	d.Wait()
 
 	// Create the cache. Ensure that the existing task is present.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewTaskCache(d, w)
+	wait := make(chan struct{})
+	c, err := NewTaskCache(ctx, d, w, func() {
+		wait <- struct{}{}
+	})
 	assert.NoError(t, err)
+	<-wait
 	testGetTasksForCommits(t, c, t1)
 
 	// Bisect the first task.
 	t2 := types.MakeTestTask(startTime.Add(time.Minute), []string{"c", "d"})
 	t1.Commits = []string{"a", "b"}
 	assert.NoError(t, d.PutTasks([]*types.Task{t2, t1}))
+	d.Wait()
+	<-wait
 	assert.NoError(t, c.Update())
 
 	// Ensure that t2 (and not t1) shows up for commits "c" and "d".
@@ -63,6 +73,8 @@ func TestTaskCache(t *testing.T) {
 	t3 := types.MakeTestTask(startTime.Add(2*time.Minute), []string{"a", "b"})
 	t3.Name = "Another-Task"
 	assert.NoError(t, d.PutTask(t3))
+	d.Wait()
+	<-wait
 	assert.NoError(t, c.Update())
 	tasks, err := c.GetTasksForCommits(types.DEFAULT_TEST_REPO, []string{"b"})
 	assert.NoError(t, err)
@@ -78,7 +90,8 @@ func TestTaskCache(t *testing.T) {
 	assert.False(t, util.TimeIsZero(old.DbModified))
 	old.Name = "outdated"
 	old.DbModified = old.DbModified.Add(-time.Hour)
-	c.(*taskCache).expireAndUpdate([]*types.Task{old})
+	c.(*taskCache).modified[old.Id] = old
+	assert.NoError(t, c.Update())
 	got, err := c.GetTask(old.Id)
 	assert.NoError(t, err)
 	deepequal.AssertDeepEqual(t, got, t1)
@@ -86,11 +99,17 @@ func TestTaskCache(t *testing.T) {
 
 func TestTaskCacheKnownTaskName(t *testing.T) {
 	unittest.SmallTest(t)
-	d := memory.NewInMemoryTaskDB(nil)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	d := memory.NewInMemoryTaskDB()
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewTaskCache(d, w)
+	wait := make(chan struct{})
+	c, err := NewTaskCache(ctx, d, w, func() {
+		wait <- struct{}{}
+	})
 	assert.NoError(t, err)
+	<-wait
 
 	// Try jobs don't count toward KnownTaskName.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
@@ -99,6 +118,8 @@ func TestTaskCacheKnownTaskName(t *testing.T) {
 	t1.Issue = "fake-issue"
 	t1.Patchset = "fake-patchset"
 	assert.NoError(t, d.PutTask(t1))
+	d.Wait()
+	<-wait
 	assert.NoError(t, c.Update())
 	assert.False(t, c.KnownTaskName(t1.Repo, t1.Name))
 
@@ -106,36 +127,49 @@ func TestTaskCacheKnownTaskName(t *testing.T) {
 	t2 := types.MakeTestTask(startTime, []string{"a", "b", "c", "d"})
 	t2.ForcedJobId = "job-id"
 	assert.NoError(t, d.PutTask(t2))
+	d.Wait()
+	<-wait
 	assert.NoError(t, c.Update())
 	assert.False(t, c.KnownTaskName(t2.Repo, t2.Name))
 
 	// Normal task.
 	t3 := types.MakeTestTask(startTime, []string{"a", "b", "c", "d"})
 	assert.NoError(t, d.PutTask(t3))
+	d.Wait()
+	<-wait
 	assert.NoError(t, c.Update())
 	assert.True(t, c.KnownTaskName(t3.Repo, t3.Name))
 }
 
 func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 	unittest.SmallTest(t)
-	d := memory.NewInMemoryTaskDB(nil)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	d := memory.NewInMemoryTaskDB()
 
 	// Pre-load a task into the DB.
 	timeStart := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
 	t1 := types.MakeTestTask(timeStart.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
 	assert.NoError(t, d.PutTask(t1))
+	d.Wait()
 
 	// Create the cache.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewTaskCache(d, w)
+	wait := make(chan struct{})
+	c, err := NewTaskCache(ctx, d, w, func() {
+		wait <- struct{}{}
+	})
 	assert.NoError(t, err)
+	<-wait
 
 	// Insert two more tasks. Ensure at least 1 nanosecond between task Created
 	// times so that t1After != t2Before and t2After != t3Before.
 	t2 := types.MakeTestTask(timeStart.Add(2*time.Nanosecond), []string{"e", "f"})
 	t3 := types.MakeTestTask(timeStart.Add(3*time.Nanosecond), []string{"g", "h"})
 	assert.NoError(t, d.PutTasks([]*types.Task{t2, t3}))
+	d.Wait()
+	<-wait
 	assert.NoError(t, c.Update())
 
 	// Ensure that all tasks show up in the correct time ranges, in sorted order.
@@ -205,7 +239,9 @@ func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 
 func TestTaskCacheMultiRepo(t *testing.T) {
 	unittest.SmallTest(t)
-	d := memory.NewInMemoryTaskDB(nil)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	d := memory.NewInMemoryTaskDB()
 
 	// Insert several tasks with different repos.
 	startTime := time.Now().Add(-30 * time.Minute)          // Arbitrary starting point.
@@ -215,11 +251,12 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 	t3 := types.MakeTestTask(startTime, []string{"b", "c"})
 	t3.Repo = "never-for.git"
 	assert.NoError(t, d.PutTasks([]*types.Task{t1, t2, t3}))
+	d.Wait()
 
 	// Create the cache.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewTaskCache(d, w)
+	c, err := NewTaskCache(ctx, d, w, nil)
 	assert.NoError(t, err)
 
 	// Check that there's no conflict among the tasks in different repos.
@@ -266,72 +303,35 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 	}
 }
 
-func TestTaskCacheReset(t *testing.T) {
-	unittest.SmallTest(t)
-	d := memory.NewInMemoryTaskDB(nil)
-
-	// Pre-load a task into the DB.
-	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
-	t1 := types.MakeTestTask(startTime, []string{"a", "b", "c", "d"})
-	assert.NoError(t, d.PutTask(t1))
-
-	// Add a pending task with no swarming ID to test that it won't appear
-	// in UnfinishedTasks.
-	fakeTask := types.MakeTestTask(startTime, []string{"a", "b", "c", "d"})
-	fakeTask.Name = "Fake-Task"
-	fakeTask.SwarmingTaskId = ""
-	assert.True(t, fakeTask.Fake())
-	assert.NoError(t, d.PutTask(fakeTask))
-
-	// Create the cache. Ensure that the existing task is present.
-	w, err := window.New(time.Hour, 0, nil)
-	assert.NoError(t, err)
-	c, err := NewTaskCache(d, w)
-	assert.NoError(t, err)
-	testGetTasksForCommits(t, c, t1)
-	testGetTasksForCommits(t, c, fakeTask)
-
-	// Pretend the DB connection is lost.
-	d.StopTrackingModifiedTasks(c.(*taskCache).queryId)
-
-	// Make an update.
-	t2 := types.MakeTestTask(startTime.Add(time.Minute), []string{"c", "d"})
-	t1.Commits = []string{"a", "b"}
-	assert.NoError(t, d.PutTasks([]*types.Task{t2, t1}))
-
-	// Ensure cache gets reset.
-	assert.NoError(t, c.Update())
-	testGetTasksForCommits(t, c, t1)
-	testGetTasksForCommits(t, c, t2)
-	testGetTasksForCommits(t, c, fakeTask)
-	unfinished, err := c.UnfinishedTasks()
-	assert.NoError(t, err)
-	for _, task := range unfinished {
-		assert.NotEqual(t, fakeTask.Id, task.Id)
-	}
-}
-
 func TestTaskCacheUnfinished(t *testing.T) {
 	unittest.SmallTest(t)
-	d := memory.NewInMemoryTaskDB(nil)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	d := memory.NewInMemoryTaskDB()
 
 	// Insert a task.
 	startTime := time.Now().Add(-30 * time.Minute)
 	t1 := types.MakeTestTask(startTime, []string{"a"})
 	assert.False(t, t1.Done())
 	assert.NoError(t, d.PutTask(t1))
+	d.Wait()
 
 	// Add a pending task with no swarming ID to test that it won't appear
 	// in UnfinishedTasks.
 	fakeTask := types.MakeTestTask(startTime, []string{"b"})
 	fakeTask.SwarmingTaskId = ""
 	assert.NoError(t, d.PutTask(fakeTask))
+	d.Wait()
 
 	// Create the cache. Ensure that the existing task is present.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewTaskCache(d, w)
+	wait := make(chan struct{})
+	c, err := NewTaskCache(ctx, d, w, func() {
+		wait <- struct{}{}
+	})
 	assert.NoError(t, err)
+	<-wait
 	tasks, err := c.UnfinishedTasks()
 	assert.NoError(t, err)
 	deepequal.AssertDeepEqual(t, []*types.Task{t1}, tasks)
@@ -340,6 +340,8 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	t1.Status = types.TASK_STATUS_SUCCESS
 	assert.True(t, t1.Done())
 	assert.NoError(t, d.PutTask(t1))
+	d.Wait()
+	<-wait
 	assert.NoError(t, c.Update())
 	tasks, err = c.UnfinishedTasks()
 	assert.NoError(t, err)
@@ -350,6 +352,8 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	t2.Status = types.TASK_STATUS_MISHAP
 	assert.True(t, t2.Done())
 	assert.NoError(t, d.PutTask(t2))
+	d.Wait()
+	<-wait
 	assert.NoError(t, c.Update())
 	tasks, err = c.UnfinishedTasks()
 	assert.NoError(t, err)
@@ -359,6 +363,8 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	t3 := types.MakeTestTask(time.Now(), []string{"b"})
 	assert.False(t, t3.Done())
 	assert.NoError(t, d.PutTask(t3))
+	d.Wait()
+	<-wait
 	assert.NoError(t, c.Update())
 	tasks, err = c.UnfinishedTasks()
 	assert.NoError(t, err)
@@ -368,6 +374,8 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	t3.Commits = []string{"c", "d", "f"}
 	assert.False(t, t3.Done())
 	assert.NoError(t, d.PutTask(t3))
+	d.Wait()
+	<-wait
 	assert.NoError(t, c.Update())
 	tasks, err = c.UnfinishedTasks()
 	assert.NoError(t, err)
@@ -421,7 +429,9 @@ func assertTasksNotCached(t *testing.T, c TaskCache, tasks []*types.Task) {
 
 func TestTaskCacheExpiration(t *testing.T) {
 	unittest.SmallTest(t)
-	d := memory.NewInMemoryTaskDB(nil)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	d := memory.NewInMemoryTaskDB()
 
 	period := 10 * time.Minute
 	w, err := window.New(period, 0, nil)
@@ -445,10 +455,15 @@ func TestTaskCacheExpiration(t *testing.T) {
 		mk(5, "Build3", []string{"a", "b", "c", "d"}), // 6
 	}
 	assert.NoError(t, d.PutTasks(tasks))
+	d.Wait()
 
 	// Create the cache.
-	c, err := NewTaskCache(d, w)
+	wait := make(chan struct{})
+	c, err := NewTaskCache(ctx, d, w, func() {
+		wait <- struct{}{}
+	})
 	assert.NoError(t, err)
+	<-wait
 
 	{
 		// Check that tasks[0] and tasks[1] are in the cache.
@@ -476,6 +491,8 @@ func TestTaskCacheExpiration(t *testing.T) {
 		mk(4, "Build4", []string{"a", "b", "c", "d"})) // 8
 	// Out of order to test TaskDB.GetModifiedTasks.
 	assert.NoError(t, d.PutTasks([]*types.Task{tasks[6], tasks[8], tasks[1], tasks[7]}))
+	d.Wait()
+	<-wait
 
 	// update, expiring tasks[0] and tasks[1].
 	assert.NoError(t, w.UpdateWithTime(tasks[0].Created.Add(period).Add(time.Nanosecond)))
@@ -525,6 +542,8 @@ func TestTaskCacheExpiration(t *testing.T) {
 		mk(11, "Build3", []string{"e"}),
 	}
 	assert.NoError(t, d.PutTasks(newTasks))
+	d.Wait()
+	<-wait
 	assert.NoError(t, w.UpdateWithTime(newTasks[0].Created.Add(period)))
 	assert.NoError(t, c.Update())
 
@@ -557,18 +576,25 @@ func TestTaskCacheExpiration(t *testing.T) {
 
 func TestJobCache(t *testing.T) {
 	unittest.SmallTest(t)
-	d := memory.NewInMemoryJobDB(nil)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	d := memory.NewInMemoryJobDB()
 
 	// Pre-load a job into the DB.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
 	j1 := types.MakeTestJob(startTime)
 	assert.NoError(t, d.PutJob(j1))
+	d.Wait()
 
 	// Create the cache. Ensure that the existing job is present.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewJobCache(d, w, db.DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)))
+	wait := make(chan struct{})
+	c, err := NewJobCache(ctx, d, w, db.DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)), func() {
+		wait <- struct{}{}
+	})
 	assert.NoError(t, err)
+	<-wait
 	test, err := c.GetJob(j1.Id)
 	assert.NoError(t, err)
 	deepequal.AssertDeepEqual(t, j1, test)
@@ -580,6 +606,8 @@ func TestJobCache(t *testing.T) {
 	// Create another job. Ensure that it gets picked up.
 	j2 := types.MakeTestJob(startTime.Add(time.Nanosecond))
 	assert.NoError(t, d.PutJob(j2))
+	d.Wait()
+	<-wait
 	test, err = c.GetJob(j2.Id)
 	assert.Error(t, err)
 	assert.NoError(t, c.Update())
@@ -596,7 +624,8 @@ func TestJobCache(t *testing.T) {
 	assert.False(t, util.TimeIsZero(old.DbModified))
 	old.Name = "outdated"
 	old.DbModified = old.DbModified.Add(-time.Hour)
-	c.(*jobCache).expireAndUpdate([]*types.Job{old})
+	c.(*jobCache).modified[old.Id] = old
+	assert.NoError(t, c.Update())
 	got, err := c.GetJob(old.Id)
 	assert.NoError(t, err)
 	deepequal.AssertDeepEqual(t, got, j1)
@@ -604,7 +633,9 @@ func TestJobCache(t *testing.T) {
 
 func TestJobCacheTriggeredForCommit(t *testing.T) {
 	unittest.SmallTest(t)
-	d := memory.NewInMemoryJobDB(nil)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	d := memory.NewInMemoryJobDB()
 
 	// Insert several jobs with different repos.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
@@ -617,11 +648,12 @@ func TestJobCacheTriggeredForCommit(t *testing.T) {
 	j3.Repo = "never-for.git"
 	j3.Revision = "c"
 	assert.NoError(t, d.PutJobs([]*types.Job{j1, j2, j3}))
+	d.Wait()
 
 	// Create the cache.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	cache, err := NewJobCache(d, w, db.DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)))
+	cache, err := NewJobCache(ctx, d, w, db.DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)), nil)
 	assert.NoError(t, err)
 	b, err := cache.ScheduledJobsForCommit(j1.Repo, j1.Revision)
 	assert.NoError(t, err)
@@ -645,56 +677,36 @@ func testGetUnfinished(t *testing.T, expect []*types.Job, cache JobCache) {
 	deepequal.AssertDeepEqual(t, expect, jobs)
 }
 
-func TestJobCacheReset(t *testing.T) {
-	unittest.SmallTest(t)
-	d := memory.NewInMemoryJobDB(nil)
-
-	// Pre-load a job into the DB.
-	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
-	j1 := types.MakeTestJob(startTime)
-	assert.NoError(t, d.PutJob(j1))
-
-	// Create the cache. Ensure that the existing job is present.
-	w, err := window.New(time.Hour, 0, nil)
-	assert.NoError(t, err)
-	c, err := NewJobCache(d, w, db.DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)))
-	assert.NoError(t, err)
-	testGetUnfinished(t, []*types.Job{j1}, c)
-
-	// Pretend the DB connection is lost.
-	d.StopTrackingModifiedJobs(c.(*jobCache).queryId)
-
-	// Make an update.
-	j2 := types.MakeTestJob(startTime.Add(time.Minute))
-	j1.Dependencies = map[string][]string{"someTask": {}}
-	assert.NoError(t, d.PutJobs([]*types.Job{j2, j1}))
-
-	// Ensure cache gets reset.
-	assert.NoError(t, c.Update())
-	testGetUnfinished(t, []*types.Job{j1, j2}, c)
-}
-
 func TestJobCacheUnfinished(t *testing.T) {
 	unittest.SmallTest(t)
-	d := memory.NewInMemoryJobDB(nil)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	d := memory.NewInMemoryJobDB()
 
 	// Insert a job.
 	startTime := time.Now().Add(-30 * time.Minute)
 	j1 := types.MakeTestJob(startTime)
 	assert.False(t, j1.Done())
 	assert.NoError(t, d.PutJob(j1))
+	d.Wait()
 
 	// Create the cache. Ensure that the existing job is present.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewJobCache(d, w, db.DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)))
+	wait := make(chan struct{})
+	c, err := NewJobCache(ctx, d, w, db.DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)), func() {
+		wait <- struct{}{}
+	})
 	assert.NoError(t, err)
+	<-wait
 	testGetUnfinished(t, []*types.Job{j1}, c)
 
 	// Finish the job. Insert it, ensure that it's not unfinished.
 	j1.Status = types.JOB_STATUS_SUCCESS
 	assert.True(t, j1.Done())
 	assert.NoError(t, d.PutJob(j1))
+	d.Wait()
+	<-wait
 	assert.NoError(t, c.Update())
 	testGetUnfinished(t, []*types.Job{}, c)
 
@@ -703,6 +715,8 @@ func TestJobCacheUnfinished(t *testing.T) {
 	j2.Status = types.JOB_STATUS_MISHAP
 	assert.True(t, j2.Done())
 	assert.NoError(t, d.PutJob(j2))
+	d.Wait()
+	<-wait
 	assert.NoError(t, c.Update())
 	testGetUnfinished(t, []*types.Job{}, c)
 
@@ -710,6 +724,8 @@ func TestJobCacheUnfinished(t *testing.T) {
 	j3 := types.MakeTestJob(time.Now())
 	assert.False(t, j3.Done())
 	assert.NoError(t, d.PutJob(j3))
+	d.Wait()
+	<-wait
 	assert.NoError(t, c.Update())
 	testGetUnfinished(t, []*types.Job{j3}, c)
 
@@ -717,6 +733,8 @@ func TestJobCacheUnfinished(t *testing.T) {
 	j3.Dependencies = map[string][]string{"a": {}, "b": {}, "c": {}}
 	assert.False(t, j3.Done())
 	assert.NoError(t, d.PutJob(j3))
+	d.Wait()
+	<-wait
 	assert.NoError(t, c.Update())
 	testGetUnfinished(t, []*types.Job{j3}, c)
 }
@@ -821,7 +839,9 @@ func assertJobsNotCached(t *testing.T, c JobCache, jobs []*types.Job) {
 
 func TestJobCacheExpiration(t *testing.T) {
 	unittest.SmallTest(t)
-	d := memory.NewInMemoryJobDB(nil)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	d := memory.NewInMemoryJobDB()
 
 	period := 10 * time.Minute
 	w, err := window.New(period, 0, nil)
@@ -848,7 +868,7 @@ func TestJobCacheExpiration(t *testing.T) {
 	}
 
 	// Make a bunch of jobs with various revisions.
-	make := func(rev string, isForce bool) *types.Job {
+	mk := func(rev string, isForce bool) *types.Job {
 		ts, err := getRevisionTimestamp(types.DEFAULT_TEST_REPO, rev)
 		assert.NoError(t, err)
 		job := types.MakeTestJob(ts)
@@ -858,20 +878,25 @@ func TestJobCacheExpiration(t *testing.T) {
 	}
 
 	jobs := []*types.Job{
-		make("a", false), // 0
-		make("a", false), // 1
-		make("b", false), // 2
-		make("b", true),  // 3
-		make("b", false), // 4
-		make("d", true),  // 5
-		make("d", true),  // 6
-		make("c", false), // 7
+		mk("a", false), // 0
+		mk("a", false), // 1
+		mk("b", false), // 2
+		mk("b", true),  // 3
+		mk("b", false), // 4
+		mk("d", true),  // 5
+		mk("d", true),  // 6
+		mk("c", false), // 7
 	}
 	assert.NoError(t, d.PutJobs(jobs))
+	d.Wait()
 
 	// Create the cache.
-	jobCacheI, err := NewJobCache(d, w, getRevisionTimestamp)
+	wait := make(chan struct{})
+	jobCacheI, err := NewJobCache(ctx, d, w, getRevisionTimestamp, func() {
+		wait <- struct{}{}
+	})
 	assert.NoError(t, err)
+	<-wait
 	c := jobCacheI.(*jobCache) // To access update method.
 
 	// Check that jobs[0] and jobs[1] are in the cache.
@@ -879,8 +904,10 @@ func TestJobCacheExpiration(t *testing.T) {
 
 	// Add and update jobs.
 	jobs[1].Status = types.JOB_STATUS_SUCCESS
-	jobs = append(jobs, make("c", false)) // 8
+	jobs = append(jobs, mk("c", false)) // 8
 	assert.NoError(t, d.PutJobs([]*types.Job{jobs[1], jobs[8]}))
+	d.Wait()
+	<-wait
 
 	// update, expiring jobs[0] and jobs[1].
 	assert.NoError(t, w.UpdateWithTime(timeStart.Add(time.Minute).Add(period).Add(time.Nanosecond)))
@@ -894,9 +921,11 @@ func TestJobCacheExpiration(t *testing.T) {
 
 	// Test entire cache expiration.
 	newJobs := []*types.Job{
-		make("e", false),
+		mk("e", false),
 	}
 	assert.NoError(t, d.PutJobs(newJobs))
+	d.Wait()
+	<-wait
 	assert.NoError(t, w.UpdateWithTime(timeStart.Add(5*time.Minute).Add(period).Add(-time.Nanosecond)))
 	assert.NoError(t, c.Update())
 
@@ -907,7 +936,9 @@ func TestJobCacheExpiration(t *testing.T) {
 
 func TestJobCacheGetRevisionTimestampError(t *testing.T) {
 	unittest.SmallTest(t)
-	d := memory.NewInMemoryJobDB(nil)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	d := memory.NewInMemoryJobDB()
 
 	period := 10 * time.Minute
 	w, err := window.New(period, 0, nil)
@@ -928,7 +959,7 @@ func TestJobCacheGetRevisionTimestampError(t *testing.T) {
 		}
 	}
 
-	make := func(rev string) *types.Job {
+	mk := func(rev string) *types.Job {
 		created, err := getRevisionTimestamp(types.DEFAULT_TEST_REPO, rev)
 		assert.NoError(t, err)
 		job := types.MakeTestJob(created)
@@ -938,17 +969,18 @@ func TestJobCacheGetRevisionTimestampError(t *testing.T) {
 
 	// Make jobs with different Created timestamps.
 	jobs := []*types.Job{
-		make("a"), // 0
-		make("a"), // 1
-		make("b"), // 2
-		make("b"), // 3
+		mk("a"), // 0
+		mk("a"), // 1
+		mk("b"), // 2
+		mk("b"), // 3
 	}
 	assert.NoError(t, d.PutJobs(jobs))
+	d.Wait()
 
 	enableTransientError = true
 
 	// Create the cache.
-	c, err := NewJobCache(d, w, getRevisionTimestamp)
+	c, err := NewJobCache(ctx, d, w, getRevisionTimestamp, nil)
 	assert.NoError(t, err)
 
 	// Check we've scheduled jobs at both commits.
@@ -1032,7 +1064,9 @@ func TestGitRepoGetRevisionTimestamp(t *testing.T) {
 func TestJobCacheGetMatchingJobsFromDateRange(t *testing.T) {
 	unittest.SmallTest(t)
 
-	d := memory.NewInMemoryJobDB(nil)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	d := memory.NewInMemoryJobDB()
 
 	// Pre-load a job into the DB.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
@@ -1040,11 +1074,12 @@ func TestJobCacheGetMatchingJobsFromDateRange(t *testing.T) {
 	j2 := types.MakeTestJob(startTime)
 	j2.Name = "job2"
 	assert.NoError(t, d.PutJobs([]*types.Job{j1, j2}))
+	d.Wait()
 
 	// Create the cache. Ensure that the existing job is present.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := NewJobCache(d, w, db.DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)))
+	c, err := NewJobCache(ctx, d, w, db.DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)), nil)
 	assert.NoError(t, err)
 
 	test := func(names []string, start, end time.Time, expect ...*types.Job) {

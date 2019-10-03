@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -8,40 +9,114 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
-	"go.skia.org/infra/task_scheduler/go/db/modified"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 // CommentBox implements CommentDB with in-memory storage.
-//
-// When created via NewCommentBoxWithPersistence, CommentBox will persist the
-// in-memory representation on every change using the provided writer function.
 type CommentBox struct {
-	db.ModifiedComments
-
 	// mtx protects comments.
 	mtx sync.RWMutex
 	// comments is map[repo_name]*types.RepoComments.
 	comments map[string]*types.RepoComments
 	// writer is called to persist comments after every change.
-	writer func(map[string]*types.RepoComments) error
+	writer          func(map[string]*types.RepoComments) error
+	modTC           chan<- []*types.TaskComment
+	modTCClients    map[chan<- []*types.TaskComment]context.Context
+	modTCClientsMtx sync.Mutex
+	modTCClientsWg  sync.WaitGroup
+	modTSC          chan<- []*types.TaskSpecComment
+	modTSClients    map[chan<- []*types.TaskSpecComment]context.Context
+	modTSClientsMtx sync.Mutex
+	modTSClientsWg  sync.WaitGroup
+	modCC           chan<- []*types.CommitComment
+	modCCClients    map[chan<- []*types.CommitComment]context.Context
+	modCCClientsMtx sync.Mutex
+	modCCClientsWg  sync.WaitGroup
 }
 
-// NewCommentBoxWithPersistence creates a CommentBox that is initialized with
-// init and sends the updated in-memory representation to writer after each
-// change. The value of init and the argument to writer is
-// map[repo_name]*types.RepoComments. init must not be modified by the caller. writer
-// must not call any methods of CommentBox. writer may return an error to
-// prevent a change from taking effect.
-func NewCommentBoxWithPersistence(modComments db.ModifiedComments, init map[string]*types.RepoComments, writer func(map[string]*types.RepoComments) error) *CommentBox {
-	if modComments == nil {
-		modComments = &modified.ModifiedCommentsImpl{}
+// NewCommentBox returns a CommentBox instance with no writer.
+func NewCommentBox() *CommentBox {
+	modTC := make(chan []*types.TaskComment)
+	modTSC := make(chan []*types.TaskSpecComment)
+	modCC := make(chan []*types.CommitComment)
+	rv := &CommentBox{
+		comments:     map[string]*types.RepoComments{},
+		modTC:        modTC,
+		modTCClients: map[chan<- []*types.TaskComment]context.Context{},
+		modTSC:       modTSC,
+		modTSClients: map[chan<- []*types.TaskSpecComment]context.Context{},
+		modCC:        modCC,
+		modCCClients: map[chan<- []*types.CommitComment]context.Context{},
 	}
-	return &CommentBox{
-		ModifiedComments: modComments,
-		comments:         init,
-		writer:           writer,
-	}
+
+	// These goroutines multiplex modified data out to the various clients.
+	go func() {
+		for data := range modTC {
+			rv.modTCClientsMtx.Lock()
+			for ch, ctx := range rv.modTCClients {
+				if ctx.Err() != nil {
+					continue
+				}
+
+				go func(ctx context.Context, ch chan<- []*types.TaskComment, data []*types.TaskComment) {
+					send := make([]*types.TaskComment, 0, len(data))
+					for _, elem := range data {
+						send = append(send, elem.Copy())
+					}
+					select {
+					case ch <- send:
+					case <-ctx.Done():
+					}
+				}(ctx, ch, data)
+			}
+			rv.modTCClientsMtx.Unlock()
+		}
+	}()
+	go func() {
+		for data := range modTSC {
+			rv.modTSClientsMtx.Lock()
+			for ch, ctx := range rv.modTSClients {
+				if ctx.Err() != nil {
+					continue
+				}
+
+				go func(ctx context.Context, ch chan<- []*types.TaskSpecComment, data []*types.TaskSpecComment) {
+					send := make([]*types.TaskSpecComment, 0, len(data))
+					for _, elem := range data {
+						send = append(send, elem.Copy())
+					}
+					select {
+					case ch <- send:
+					case <-ctx.Done():
+					}
+				}(ctx, ch, data)
+			}
+			rv.modTSClientsMtx.Unlock()
+		}
+	}()
+	go func() {
+		for data := range modCC {
+			rv.modCCClientsMtx.Lock()
+			for ch, ctx := range rv.modCCClients {
+				if ctx.Err() != nil {
+					continue
+				}
+
+				go func(ctx context.Context, ch chan<- []*types.CommitComment, data []*types.CommitComment) {
+					send := make([]*types.CommitComment, 0, len(data))
+					for _, elem := range data {
+						send = append(send, elem.Copy())
+					}
+					select {
+					case ch <- send:
+					case <-ctx.Done():
+					}
+				}(ctx, ch, data)
+			}
+			rv.modCCClientsMtx.Unlock()
+		}
+	}()
+	return rv
 }
 
 // See documentation for CommentDB.GetCommentsForRepos.
@@ -169,7 +244,7 @@ func (b *CommentBox) PutTaskComment(c *types.TaskComment) error {
 		}
 		return err
 	}
-	b.TrackModifiedTaskComment(c)
+	b.modTC <- []*types.TaskComment{c.Copy()}
 	return nil
 }
 
@@ -192,9 +267,40 @@ func (b *CommentBox) DeleteTaskComment(c *types.TaskComment) error {
 		deleted := true
 		c.Deleted = &deleted
 		existing.Deleted = &deleted
-		b.TrackModifiedTaskComment(existing)
+		b.modTC <- []*types.TaskComment{existing.Copy()}
 	}
 	return nil
+}
+
+// See docs for CommentDB interface.
+func (b *CommentBox) ModifiedTaskCommentsCh(ctx context.Context) <-chan []*types.TaskComment {
+	b.modTCClientsMtx.Lock()
+	defer b.modTCClientsMtx.Unlock()
+	localCh := make(chan []*types.TaskComment)
+	rv := make(chan []*types.TaskComment)
+	b.modTCClients[localCh] = ctx
+	done := ctx.Done()
+	go func() {
+		// The DB spec states that we should pass an initial value along
+		// the channel.
+		rv <- []*types.TaskComment{}
+		for {
+			select {
+			case mod := <-localCh:
+				rv <- mod
+			case <-done:
+				close(rv)
+				// Remove the local channel. Note that we don't
+				// close it, because other goroutines might be
+				// trying to write to it.
+				b.modTCClientsMtx.Lock()
+				delete(b.modTCClients, localCh)
+				b.modTCClientsMtx.Unlock()
+				return
+			}
+		}
+	}()
+	return rv
 }
 
 // putTaskSpecComment validates c and adds c to b.comments, or returns
@@ -271,7 +377,7 @@ func (b *CommentBox) PutTaskSpecComment(c *types.TaskSpecComment) error {
 		}
 		return err
 	}
-	b.TrackModifiedTaskSpecComment(c)
+	b.modTSC <- []*types.TaskSpecComment{c.Copy()}
 	return nil
 }
 
@@ -294,9 +400,40 @@ func (b *CommentBox) DeleteTaskSpecComment(c *types.TaskSpecComment) error {
 		deleted := true
 		c.Deleted = &deleted
 		existing.Deleted = &deleted
-		b.TrackModifiedTaskSpecComment(existing)
+		b.modTSC <- []*types.TaskSpecComment{existing.Copy()}
 	}
 	return nil
+}
+
+// See docs for CommentDB interface.
+func (b *CommentBox) ModifiedTaskSpecCommentsCh(ctx context.Context) <-chan []*types.TaskSpecComment {
+	b.modTSClientsMtx.Lock()
+	defer b.modTSClientsMtx.Unlock()
+	localCh := make(chan []*types.TaskSpecComment)
+	rv := make(chan []*types.TaskSpecComment)
+	b.modTSClients[localCh] = ctx
+	done := ctx.Done()
+	go func() {
+		// The DB spec states that we should pass an initial value along
+		// the channel.
+		rv <- []*types.TaskSpecComment{}
+		for {
+			select {
+			case mod := <-localCh:
+				rv <- mod
+			case <-done:
+				close(rv)
+				// Remove the local channel. Note that we don't
+				// close it, because other goroutines might be
+				// trying to write to it.
+				b.modTSClientsMtx.Lock()
+				delete(b.modTSClients, localCh)
+				b.modTSClientsMtx.Unlock()
+				return
+			}
+		}
+	}()
+	return rv
 }
 
 // putCommitComment validates c and adds c to b.comments, or returns
@@ -373,7 +510,7 @@ func (b *CommentBox) PutCommitComment(c *types.CommitComment) error {
 		}
 		return err
 	}
-	b.TrackModifiedCommitComment(c)
+	b.modCC <- []*types.CommitComment{c.Copy()}
 	return nil
 }
 
@@ -396,7 +533,45 @@ func (b *CommentBox) DeleteCommitComment(c *types.CommitComment) error {
 		deleted := true
 		c.Deleted = &deleted
 		existing.Deleted = &deleted
-		b.TrackModifiedCommitComment(existing)
+		b.modCC <- []*types.CommitComment{existing.Copy()}
 	}
 	return nil
+}
+
+// See docs for CommentDB interface.
+func (b *CommentBox) ModifiedCommitCommentsCh(ctx context.Context) <-chan []*types.CommitComment {
+	b.modCCClientsMtx.Lock()
+	defer b.modCCClientsMtx.Unlock()
+	localCh := make(chan []*types.CommitComment)
+	rv := make(chan []*types.CommitComment)
+	b.modCCClients[localCh] = ctx
+	done := ctx.Done()
+	go func() {
+		// The DB spec states that we should pass an initial value along
+		// the channel.
+		rv <- []*types.CommitComment{}
+		for {
+			select {
+			case mod := <-localCh:
+				rv <- mod
+			case <-done:
+				close(rv)
+				// Remove the local channel. Note that we don't
+				// close it, because other goroutines might be
+				// trying to write to it.
+				b.modCCClientsMtx.Lock()
+				delete(b.modCCClients, localCh)
+				b.modCCClientsMtx.Unlock()
+				return
+			}
+		}
+	}()
+	return rv
+}
+
+// Wait for all clients to receive modified data.
+func (b *CommentBox) Wait() {
+	b.modTCClientsWg.Wait()
+	b.modTSClientsWg.Wait()
+	b.modCCClientsWg.Wait()
 }

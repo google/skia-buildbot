@@ -195,6 +195,7 @@ func (t *TryJobIntegrator) updateJobs(now time.Time) error {
 	if err := t.db.PutJobsInChunks(insert); err != nil {
 		errs = append(errs, err)
 	}
+	t.jCache.AddJobs(insert)
 
 	wg.Wait()
 	if heartbeatErr != nil {
@@ -305,7 +306,11 @@ func (t *TryJobIntegrator) localCancelJobs(jobs []*types.Job) error {
 		j.Status = types.JOB_STATUS_CANCELED
 		j.Finished = time.Now()
 	}
-	return t.db.PutJobsInChunks(jobs)
+	if err := t.db.PutJobsInChunks(jobs); err != nil {
+		return err
+	}
+	t.jCache.AddJobs(jobs)
+	return nil
 }
 
 func (t *TryJobIntegrator) remoteCancelBuild(id int64, msg string) error {
@@ -428,6 +433,7 @@ func (t *TryJobIntegrator) insertNewJob(ctx context.Context, buildId int64) erro
 	if err := t.db.PutJob(j); err != nil {
 		return t.remoteCancelBuild(buildId, fmt.Sprintf("Failed to insert Job into the DB: %s", err))
 	}
+	t.jCache.AddJobs([]*types.Job{j})
 
 	// Since Jobs may consist of multiple Tasks, we consider them to be
 	// "started" as soon as we've picked them up.

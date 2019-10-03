@@ -276,18 +276,18 @@ func main() {
 	assertDeepEqual([]string{head}, commits)
 
 	ts, err := auth.NewDefaultTokenSource(true, datastore.ScopeDatastore)
-	d, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *fsInstance, ts, nil)
+	d, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *fsInstance, ts)
 	assertNoError(err)
 	w, err := window.New(time.Hour, 0, nil)
 	assertNoError(err)
-	tCache, err := cache.NewTaskCache(d, w)
+	tCache, err := cache.NewTaskCache(ctx, d, w, nil)
 	assertNoError(err)
 	// Use dummy GetRevisionTimestamp function so that nothing ever expires from
 	// the cache.
 	dummyGetRevisionTimestamp := func(string, string) (time.Time, error) {
 		return time.Now(), nil
 	}
-	jCache, err := cache.NewJobCache(d, w, dummyGetRevisionTimestamp)
+	jCache, err := cache.NewJobCache(ctx, d, w, dummyGetRevisionTimestamp, nil)
 	assertNoError(err)
 
 	isolateClient, err := isolate.NewClient(workdir, isolate.ISOLATE_SERVER_URL_FAKE)

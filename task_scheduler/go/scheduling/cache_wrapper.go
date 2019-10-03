@@ -91,3 +91,13 @@ func (c *cacheWrapper) insert(t *types.Task) {
 		c.known = true
 	}
 }
+
+// See documentation for TaskCache interface.
+func (c *cacheWrapper) AddTasks(tasks []*types.Task) {
+	for _, task := range tasks {
+		c.insert(task)
+	}
+}
+
+// See documentation for TaskCache interface.
+func (c *cacheWrapper) OnModifiedTasks(func()) {}

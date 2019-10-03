@@ -1,56 +1,17 @@
 package db
 
 import (
+	"context"
 	"time"
 
 	"go.skia.org/infra/task_scheduler/go/types"
 )
-
-// ModifiedCommentsReader tracks which comments have been added or deleted and
-// returns results to subscribers based on what has changed since the last call
-// to GetModifiedComments.
-type ModifiedComments interface {
-	// GetModifiedComments returns all comments added or deleted since the
-	// last time GetModifiedComments was run with the given id. The returned
-	// comments are sorted by timestamp. If GetModifiedComments returns an
-	// error, the caller should call StopTrackingModifiedComments and
-	// StartTrackingModifiedComments again, and load all data from scratch
-	// to be sure that no comments were missed.
-	GetModifiedComments(string) ([]*types.TaskComment, []*types.TaskSpecComment, []*types.CommitComment, error)
-
-	// StartTrackingModifiedComments initiates tracking of modified comments
-	// for the current caller. Returns a unique ID which can be used by the
-	// caller to retrieve comments which have been added or deleted since
-	// the last query. The ID expires after a period of inactivity.
-	StartTrackingModifiedComments() (string, error)
-
-	// StopTrackingModifiedComments cancels tracking of modified comments
-	// for the provided ID.
-	StopTrackingModifiedComments(string)
-
-	// TrackModifiedTaskComment indicates the given comment should be
-	// returned from the next call to GetModifiedComments from each
-	// subscriber.
-	TrackModifiedTaskComment(*types.TaskComment)
-
-	// TrackModifiedTaskSpecComment indicates the given comment should be
-	// returned from the next call to GetModifiedComments from each
-	// subscriber.
-	TrackModifiedTaskSpecComment(*types.TaskSpecComment)
-
-	// TrackModifiedCommitComment indicates the given comment should be
-	// returned from the next call to GetModifiedComments from each
-	// subscriber.
-	TrackModifiedCommitComment(*types.CommitComment)
-}
 
 // CommentDB stores comments on Tasks, TaskSpecs, and commits.
 //
 // Clients must be tolerant of comments that refer to nonexistent Tasks,
 // TaskSpecs, or commits.
 type CommentDB interface {
-	ModifiedComments
-
 	// GetComments returns all comments for the given repos.
 	//
 	// If from is specified, it is a hint that TaskComments and CommitComments
@@ -80,4 +41,22 @@ type CommentDB interface {
 	// DeleteCommitComment deletes the matching CommitComment from the database.
 	// Non-ID fields of the argument are ignored.
 	DeleteCommitComment(*types.CommitComment) error
+
+	// ModifiedTaskCommentsCh returns a channel which produces TaskComments
+	// as they are modified in the DB. The channel is closed when the given
+	// Context is canceled. At least one (possibly empty) item will be sent
+	// on the returned channel.
+	ModifiedTaskCommentsCh(context.Context) <-chan []*types.TaskComment
+
+	// ModifiedTaskSpecCommentsCh returns a channel which produces
+	// TaskSpecComments as they are modified in the DB. The channel is
+	// closed when the given Context is canceled. At least one (possibly
+	// empty) item will be sent on the returned channel.
+	ModifiedTaskSpecCommentsCh(context.Context) <-chan []*types.TaskSpecComment
+
+	// ModifiedCommitCommentsCh returns a channel which produces
+	// CommitComments as they are modified in the DB. The channel is closed
+	// when the given Context is canceled. At least one (possibly empty)
+	// item will be sent on the returned channel.
+	ModifiedCommitCommentsCh(context.Context) <-chan []*types.CommitComment
 }
