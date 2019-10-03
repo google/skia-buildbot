@@ -4,4 +4,4 @@ USER skia
 
 COPY . /
 
-ENTRYPOINT ["/usr/local/bin/task-scheduler"]
+ENTRYPOINT ["/usr/local/bin/task-scheduler-be"]
