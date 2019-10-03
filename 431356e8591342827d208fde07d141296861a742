@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0e0c9c39_fbbb25b6",
+        "filename": "golden/go/mocks/generate.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-03T20:02:20Z",
+      "side": 1,
+      "message": "Let\u0027s make a diffstore/mocks and put those there.",
+      "range": {
+        "startLine": 11,
+        "startChar": 49,
+        "endLine": 11,
+        "endChar": 71
+      },
+      "revId": "431356e8591342827d208fde07d141296861a742",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
