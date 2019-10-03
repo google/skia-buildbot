@@ -54,10 +54,10 @@ const (
 	// We have two buckets of requests - cheap and expensive. Expensive stuff hits a database
 	// or similar, where as cheap stuff is cached. These limits are shared by *all* endpoints
 	// in a given bucket. See skbug.com/9476 for more.
-	maxAnonQPSExpensive   = rate.Limit(1.0)
-	maxAnonBurstExpensive = 5
+	maxAnonQPSExpensive   = rate.Limit(0.01)
+	maxAnonBurstExpensive = 50
 	maxAnonQPSCheap       = rate.Limit(5.0)
-	maxAnonBurstCheap     = 20
+	maxAnonBurstCheap     = 50
 )
 
 type validateFields int
