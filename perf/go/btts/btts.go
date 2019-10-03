@@ -282,14 +282,19 @@ func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.PerfBigTab
 	return ret, nil
 }
 
-// Given the index return the TileKey of the tile that would contain that column.
+// TileKey returns the TileKey of the tile that would contain that index.
 func (b *BigTableTraceStore) TileKey(index int32) TileKey {
 	return TileKeyFromOffset(index / b.tileSize)
 }
 
-// Returns the offset within a tile for the given index.
+// OffsetFromIndex returns the offset within a tile for the given index.
 func (b *BigTableTraceStore) OffsetFromIndex(index int32) int32 {
 	return index % b.tileSize
+}
+
+// IndexOfTileStart returns the index at the beginning of the given tile.
+func (b *BigTableTraceStore) IndexOfTileStart(index int32) int32 {
+	return b.TileKey(index).Offset() * b.tileSize
 }
 
 // getOps returns the OpsCacheEntry for a given tile.
