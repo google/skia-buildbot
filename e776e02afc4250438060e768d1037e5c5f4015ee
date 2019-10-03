@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b0283b63_55e85a79",
+        "filename": "datahopper/go/datahopper/jobs_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-03T16:30:56Z",
+      "side": 1,
+      "message": "nit: doc extra RVs",
+      "revId": "e776e02afc4250438060e768d1037e5c5f4015ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba6e1336_37da44d6",
+        "filename": "datahopper/go/datahopper/jobs_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-03T16:30:56Z",
+      "side": 1,
+      "message": "nit: t.Logf",
+      "revId": "e776e02afc4250438060e768d1037e5c5f4015ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "267a8cf8_548142bd",
+        "filename": "datahopper/go/datahopper/tasks_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-03T16:30:56Z",
+      "side": 1,
+      "message": "nit: doc new RVs",
+      "revId": "e776e02afc4250438060e768d1037e5c5f4015ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "566343af_edfef5a9",
+        "filename": "task_scheduler/go/db/cache/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 643,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-03T16:30:56Z",
+      "side": 1,
+      "message": "Good idea -- I\u0027ll have to remember this strategy.",
+      "revId": "e776e02afc4250438060e768d1037e5c5f4015ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
