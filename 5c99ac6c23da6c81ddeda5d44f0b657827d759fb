@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2e8489d5_13b052e4",
+        "filename": "ds/go/datastore_backup/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-03T17:41:35Z",
+      "side": 1,
+      "message": "Doesn\u0027t this need to be the project of the source Datastore data? Do we need to run this for each of our projects?",
+      "revId": "5c99ac6c23da6c81ddeda5d44f0b657827d759fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
