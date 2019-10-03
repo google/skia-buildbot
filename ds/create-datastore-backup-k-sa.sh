@@ -20,6 +20,10 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member "serviceAccount:${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com" \
   --role roles/datastore.owner
 
+gcloud projects add-iam-policy-binding "google.com:skia-buildbots" \
+  --member "serviceAccount:${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com" \
+  --role roles/datastore.owner
+
 kubectl create secret generic "${SA_NAME}" --from-file=key.json=${SA_NAME}.json
 
 cd -
