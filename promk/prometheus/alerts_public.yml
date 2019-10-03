@@ -295,28 +295,14 @@ groups:
 # Datahopper
 
   - alert: FirestoreBackupTooOld
-    expr: liveness_last_successful_firestore_backup_s/60/60 > 26
+    expr: liveness_last_successful_firestore_backup_s/60/60/24 > 7
     labels:
       category: infra
       severity: critical
       owner: benjaminwagner@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'The most recent successful Firestore nightly backup was more than 26 hours ago. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#firestore_nightly_backup'
-
-# Swarming
-
-  - alert: WindowsSkoloOSVersion
-    # The device on the rpi-01 rack is likely to be out-of-sync with the bots on
-    # the win-02 and win-03 racks. Therefore, only alert if there are more than
-    # two versions in use.
-    expr: windows_skolo_os_version_count{pool="Skia"} > 2
-    for: 24h
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      description: 'Windows Skolo bots OS version has diverged. https://goto.google.com/skolo-maintenance'
+      description: 'The most recent successful Firestore weekly backup was more than 7 days ago. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#firestore_weekly_backup'
 
 # External RPis.
 
