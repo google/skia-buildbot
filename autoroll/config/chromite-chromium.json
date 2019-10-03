@@ -49,15 +49,6 @@
         "components": ["Infra>Client>Chrome"],
         "labels": ["Hotlist-CrOS-Gardener"]
       }
-    },
-    {
-      "filter": "warning",
-      "email": {
-        "emails": [
-          "achuith@google.com",
-          "bpastene@google.com"
-        ]
-      }
     }
   ]
 }
