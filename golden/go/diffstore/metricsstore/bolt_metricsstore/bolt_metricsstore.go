@@ -87,7 +87,7 @@ func (m *metricsRecFactory) Decode(data []byte) (interface{}, error) {
 }
 
 // New returns a new instance of BoltImpl.
-func New(baseDir string, codec util.LRUCodec) (*BoltImpl, error) {
+func New(baseDir string) (*BoltImpl, error) {
 	db, err := common.OpenBoltDB(baseDir, METRICSDB_NAME+".db")
 	if err != nil {
 		return nil, err
@@ -114,6 +114,8 @@ func New(baseDir string, codec util.LRUCodec) (*BoltImpl, error) {
 		return nil, err
 	}
 
+	codec := util.JSONCodec(diff.DiffMetrics{})
+
 	return &BoltImpl{
 		store:   store,
 		codec:   codec,
@@ -122,7 +124,7 @@ func New(baseDir string, codec util.LRUCodec) (*BoltImpl, error) {
 }
 
 // LoadDiffMetrics loads diff metrics from disk.
-func (m *BoltImpl) LoadDiffMetrics(id string) (interface{}, error) {
+func (m *BoltImpl) LoadDiffMetrics(id string) (*diff.DiffMetrics, error) {
 	recs, err := m.store.Read([]string{id})
 	if err != nil {
 		return nil, err
@@ -146,11 +148,11 @@ func (m *BoltImpl) LoadDiffMetrics(id string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return diffMetrics, nil
+	return diffMetrics.(*diff.DiffMetrics), nil
 }
 
 // SaveDiffMetrics stores diff metrics to disk.
-func (m *BoltImpl) SaveDiffMetrics(id string, diffMetrics interface{}) error {
+func (m *BoltImpl) SaveDiffMetrics(id string, diffMetrics *diff.DiffMetrics) error {
 	// Serialize the diffMetrics.
 	bytes, err := m.codec.Encode(diffMetrics)
 	if err != nil {

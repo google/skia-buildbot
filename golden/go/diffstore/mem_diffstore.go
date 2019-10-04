@@ -399,7 +399,7 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 }
 
 // saveDiffMetricsAsync saves the given diff metrics to disk asynchronously.
-func (d *MemDiffStore) saveDiffMetricsAsync(diffID string, leftDigest, rightDigest types.Digest, diffMetrics interface{}) {
+func (d *MemDiffStore) saveDiffMetricsAsync(diffID string, leftDigest, rightDigest types.Digest, diffMetrics *diff.DiffMetrics) {
 	d.wg.Add(1)
 	d.maxGoRoutinesCh <- true
 	go func() {
