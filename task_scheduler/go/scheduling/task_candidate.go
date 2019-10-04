@@ -171,15 +171,25 @@ func replaceVars(c *taskCandidate, s, taskId string) string {
 	} else {
 		issueShort = c.Issue[len(c.Issue)-types.ISSUE_SHORT_LENGTH:]
 	}
+	issueInt := c.Issue
+	if issueInt == "" {
+		issueInt = "0"
+	}
+	patchsetInt := c.Patchset
+	if patchsetInt == "" {
+		patchsetInt = "0"
+	}
 	replacements := map[string]string{
 		specs.VARIABLE_BUILDBUCKET_BUILD_ID: strconv.FormatInt(c.BuildbucketBuildId, 10),
 		specs.VARIABLE_CODEREVIEW_SERVER:    c.Server,
 		specs.VARIABLE_ISSUE:                c.Issue,
+		specs.VARIABLE_ISSUE_INT:            issueInt,
 		specs.VARIABLE_ISSUE_SHORT:          issueShort,
 		specs.VARIABLE_PATCH_REF:            c.RepoState.GetPatchRef(),
 		specs.VARIABLE_PATCH_REPO:           c.PatchRepo,
 		specs.VARIABLE_PATCH_STORAGE:        getPatchStorage(c.Server),
 		specs.VARIABLE_PATCHSET:             c.Patchset,
+		specs.VARIABLE_PATCHSET_INT:         patchsetInt,
 		specs.VARIABLE_REPO:                 c.Repo,
 		specs.VARIABLE_REVISION:             c.Revision,
 		specs.VARIABLE_TASK_ID:              taskId,
