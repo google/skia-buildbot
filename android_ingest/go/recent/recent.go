@@ -2,6 +2,8 @@
 package recent
 
 import (
+	"bytes"
+	"encoding/json"
 	"sync"
 	"time"
 )
@@ -55,7 +57,18 @@ func (r *Recent) add(recent []*Request, b []byte) []*Request {
 
 // AddBad the JSON body that was POST'd to the server.
 func (r *Recent) AddBad(b []byte) {
-	r.recentBad = r.add(r.recentBad, b)
+	buf := &bytes.Buffer{}
+	var i interface{}
+	if err := json.NewDecoder(buf).Decode(&i); err != nil {
+		r.recentBad = r.add(r.recentBad, b)
+		return
+	}
+	pretty, err := json.MarshalIndent(i, "", "  ")
+	if err != nil {
+		r.recentBad = r.add(r.recentBad, b)
+		return
+	}
+	r.recentBad = r.add(r.recentBad, pretty)
 }
 
 // AddGood the JSON body that was POST'd to the server.
