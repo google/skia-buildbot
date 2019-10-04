@@ -142,7 +142,7 @@ func (c *Converter) Convert(incoming io.Reader) (*ingestcommon.BenchData, error)
 		}
 	}
 	if len(benchData.Results) == 0 {
-		return nil, fmt.Errorf("Failed to extract any data from incoming file: %q", string(b))
+		return nil, fmt.Errorf("Failed to extract any data from incoming file.")
 	}
 
 	return benchData, nil

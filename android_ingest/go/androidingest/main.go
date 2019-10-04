@@ -62,6 +62,7 @@ var (
 	process           *continuous.Process
 	recentRequests    *recent.Recent
 	uploads           metrics2.Counter
+	badFiles          metrics2.Counter
 	txLogWriteFailure metrics2.Counter
 
 	lookupCache *lookup.Cache
@@ -73,6 +74,7 @@ func initialize() {
 
 	txLogWriteFailure = metrics2.GetCounter("tx_log_write_failure", nil)
 	uploads = metrics2.GetCounter("uploads", nil)
+	badFiles = metrics2.GetCounter("bad_files", nil)
 	// Create a new auth'd client for androidbuildinternal.
 	ts, err := auth.NewDefaultTokenSource(*local, androidbuildinternal.AndroidbuildInternalScope, storage.ScopeReadWrite, auth.SCOPE_GERRIT)
 	if err != nil {
@@ -156,7 +158,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		badRequest(w, r, err, "Failed to read body.")
-		recentRequests.AddBad(b)
+		recentRequests.AddBad(b, "Failed to read body")
+		badFiles.Inc(1)
 		return
 	}
 	// Write the data to the transaction log before even attempting to parse.
@@ -174,7 +177,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		err = fmt.Errorf("Failed to find valid incoming JSON in: %q : %s", txLogName, err)
 		badRequest(w, r, err, "Failed to find valid incoming JSON")
-		recentRequests.AddBad(b)
+		recentRequests.AddBad(b, err.Error())
+		badFiles.Inc(1)
 		return
 	}
 

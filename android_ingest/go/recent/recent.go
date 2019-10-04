@@ -15,8 +15,9 @@ const (
 
 // Request is a record of a single POST request.
 type Request struct {
-	TS   string
-	JSON string
+	TS     string
+	JSON   string
+	Reason string
 }
 
 // Recent tracks the last MAX_RECENT Requests.
@@ -39,14 +40,15 @@ func New() *Recent {
 	}
 }
 
-func (r *Recent) add(recent []*Request, b []byte) []*Request {
+func (r *Recent) add(recent []*Request, b []byte, msg string) []*Request {
 	// Store locally.
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
 	recent = append([]*Request{{
-		TS:   time.Now().UTC().String(),
-		JSON: string(b),
+		TS:     time.Now().UTC().String(),
+		JSON:   string(b),
+		Reason: msg,
 	}}, recent...)
 
 	// Keep track of the last N events.
@@ -57,25 +59,25 @@ func (r *Recent) add(recent []*Request, b []byte) []*Request {
 }
 
 // AddBad the JSON body that was POST'd to the server.
-func (r *Recent) AddBad(b []byte) {
+func (r *Recent) AddBad(b []byte, msg string) {
 	// Try to pretty print the JSON is possible, otherwise just use the raw bytes.
 	buf := bytes.NewReader(b)
 	var i interface{}
 	if err := json.NewDecoder(buf).Decode(&i); err != nil {
-		r.recentBad = r.add(r.recentBad, b)
+		r.recentBad = r.add(r.recentBad, b, msg)
 		return
 	}
 	pretty, err := json.MarshalIndent(i, "", "  ")
 	if err != nil {
-		r.recentBad = r.add(r.recentBad, b)
+		r.recentBad = r.add(r.recentBad, b, msg)
 		return
 	}
-	r.recentBad = r.add(r.recentBad, pretty)
+	r.recentBad = r.add(r.recentBad, pretty, msg)
 }
 
 // AddGood the JSON body that was POST'd to the server.
 func (r *Recent) AddGood(b []byte) {
-	r.recentGood = r.add(r.recentGood, b)
+	r.recentGood = r.add(r.recentGood, b, "")
 }
 
 // List returns the last MAX_RECENT Good and Bad Requests, with the most recent
