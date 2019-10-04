@@ -23,19 +23,26 @@ func TestRecent(t *testing.T) {
 	good, bad = r.List()
 	assert.Len(t, good, 1)
 	assert.Len(t, bad, 1)
+	assert.Equal(t, "{", bad[0].JSON)
+
+	r.AddBad([]byte("{\"foo\": 2}"))
+	good, bad = r.List()
+	assert.Len(t, good, 1)
+	assert.Len(t, bad, 2)
+	assert.Equal(t, "{\n  \"foo\": 2\n}", bad[0].JSON)
 
 	json := "{\"foo\": 2}"
 	r.AddGood([]byte(json))
 	good, bad = r.List()
 	assert.Len(t, good, 2)
-	assert.Len(t, bad, 1)
+	assert.Len(t, bad, 2)
 	// Confirm that new additions show up at the beginning
 	// of the list.
 	assert.Equal(t, json, good[0].JSON)
 
 	// Confirm that we never store more than MAX_RECENT entries.
-	for i := 0; i < MAX_RECENT+5; i++ {
+	for i := 0; i < maxRecent+5; i++ {
 		r.AddGood([]byte("{}"))
 	}
-	assert.Len(t, r.recentGood, MAX_RECENT)
+	assert.Len(t, r.recentGood, maxRecent)
 }
