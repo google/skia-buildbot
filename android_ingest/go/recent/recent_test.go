@@ -19,17 +19,18 @@ func TestRecent(t *testing.T) {
 	assert.Len(t, good, 1)
 	assert.Len(t, bad, 0)
 
-	r.AddBad([]byte("{"))
+	r.AddBad([]byte("{"), "malformed")
 	good, bad = r.List()
 	assert.Len(t, good, 1)
 	assert.Len(t, bad, 1)
 	assert.Equal(t, "{", bad[0].JSON)
 
-	r.AddBad([]byte("{\"foo\": 2}"))
+	r.AddBad([]byte("{\"foo\": 2}"), "missing data")
 	good, bad = r.List()
 	assert.Len(t, good, 1)
 	assert.Len(t, bad, 2)
 	assert.Equal(t, "{\n  \"foo\": 2\n}", bad[0].JSON)
+	assert.Equal(t, "missing data", bad[0].Reason)
 
 	json := "{\"foo\": 2}"
 	r.AddGood([]byte(json))
