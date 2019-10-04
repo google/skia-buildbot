@@ -246,6 +246,9 @@ func main() {
 
 	var vcs vcsinfo.VCS
 	if *btInstanceID != "" && *gitBTTableID != "" {
+		if *local {
+			appName = "default"
+		}
 		btConf := &bt_gitstore.BTConfig{
 			ProjectID:  *btProjectID,
 			InstanceID: *btInstanceID,
