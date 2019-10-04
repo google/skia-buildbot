@@ -23,9 +23,6 @@ We'd like to be able to do the following:
   - Undo a previous change.
   - Support Gerrit CLs and GitHub PullRequests (PRs)
 
-Of note, there will only be one writer to the Firestore (the main skiacorrectness server)
-and potentially other readers (e.g. baseline server).
-
 Schema
 ------
 
@@ -85,9 +82,9 @@ expstore_triage_records_v2 | committed: ASC crs_cl_id: ASC ts: DESC
 Usage
 -----
 
-To create the MasterExpectations map (at startup), we simply query all `expectationEntry`
-Documents with CRSAndCLID=="" and assemble them together. The implementation will have an
-Expectations map in RAM that acts as a write-through cache.
+To create the MasterExpectations map we create a QuerySnapshotIterator on `expectationEntry`
+Documents with CRSAndCLID=="" and assemble the initial load together. This is kept in RAM
+for returning to clients.
 
 For performance, we shard fetching the expectations based on digest, since that data
 is essentially random and evenly distributed.
@@ -105,11 +102,6 @@ Storing the data as above yields for trivial triage log fetching:
 To undo, we can query the original change by id (from the `triage_records` Collection)
 and simply apply the opposite of it, if the current state matches the labelBefore
 (otherwise, do nothing, because either it has been changed again or already undone).
-
-As an optimization in the ReadOnly case, we set up several firestore.QuerySnapshotIterators
-on shards of the expectations. That way, we can update the cached Expectations when
-the main database sees the changes, without having to poll it for the entire expectations
-every time.
 
 Growth Opportunities
 -------------------
