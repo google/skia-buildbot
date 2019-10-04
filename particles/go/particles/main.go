@@ -120,7 +120,7 @@ func resourceHandler(resourcesDir string) func(http.ResponseWriter, *http.Reques
 	fileServer := http.FileServer(http.Dir(resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Use a shorter cache live to limit the risk of canvaskit.js (in indexbundle.js)
-		// from drifting away from the version of canvaskit.wasm. Ideally, the skottie
+		// from drifting away from the version of canvaskit.wasm. Ideally, the WASM
 		// will roll at ToT (~35 commits per day), so living for a minute should
 		// reduce the risk of JS/WASM being out of sync.
 		w.Header().Add("Cache-Control", "max-age=60")
