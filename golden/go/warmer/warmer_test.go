@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/golden/go/summary"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // TestPrecomputeDiffsSunnyDay tests a typical call of PrecomputeDiffs in which
@@ -38,10 +39,10 @@ func TestPrecomputeDiffsSunnyDay(t *testing.T) {
 	mdf.On("Precompute").Once()
 
 	// Can return nil because warmer shouldn't care about what is actually the closest.
-	mdf.On("ClosestDigest", data.AlphaTest, data.AlphaUntriaged1Digest, types.POSITIVE).Return(nil).Once()
-	mdf.On("ClosestDigest", data.AlphaTest, data.AlphaUntriaged1Digest, types.NEGATIVE).Return(nil).Once()
-	mdf.On("ClosestDigest", data.BetaTest, data.BetaUntriaged1Digest, types.POSITIVE).Return(nil).Once()
-	mdf.On("ClosestDigest", data.BetaTest, data.BetaUntriaged1Digest, types.NEGATIVE).Return(nil).Once()
+	mdf.On("ClosestDigest", data.AlphaTest, data.AlphaUntriaged1Digest, expectations.Positive).Return(nil).Once()
+	mdf.On("ClosestDigest", data.AlphaTest, data.AlphaUntriaged1Digest, expectations.Negative).Return(nil).Once()
+	mdf.On("ClosestDigest", data.BetaTest, data.BetaUntriaged1Digest, expectations.Positive).Return(nil).Once()
+	mdf.On("ClosestDigest", data.BetaTest, data.BetaUntriaged1Digest, expectations.Negative).Return(nil).Once()
 
 	sm := summary.SummaryMap{
 		data.AlphaTest: &summary.Summary{
@@ -89,8 +90,8 @@ func TestPrecomputeDiffsTestName(t *testing.T) {
 
 	// Can return nil because warmer shouldn't care about what is actually the closest.
 	// Should not call ClosestDigest on AlphaTest because only BetaTest is in testNames.
-	mdf.On("ClosestDigest", data.BetaTest, data.BetaUntriaged1Digest, types.POSITIVE).Return(nil).Once()
-	mdf.On("ClosestDigest", data.BetaTest, data.BetaUntriaged1Digest, types.NEGATIVE).Return(nil).Once()
+	mdf.On("ClosestDigest", data.BetaTest, data.BetaUntriaged1Digest, expectations.Positive).Return(nil).Once()
+	mdf.On("ClosestDigest", data.BetaTest, data.BetaUntriaged1Digest, expectations.Negative).Return(nil).Once()
 
 	sm := summary.SummaryMap{
 		data.AlphaTest: &summary.Summary{

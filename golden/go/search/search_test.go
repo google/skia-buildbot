@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/golden/go/tjstore"
 	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // TODO(kjlubick) refactor a bit to reduce redundancy
@@ -267,9 +268,9 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	defer mtjs.AssertExpectations(t)
 
 	mes.On("ForChangeList", clID, crs).Return(issueStore, nil)
-	issueStore.On("Get").Return(types.Expectations{
+	issueStore.On("Get").Return(expectations.Expectations{
 		data.AlphaTest: {
-			AlphaNowGoodDigest: types.POSITIVE,
+			AlphaNowGoodDigest: expectations.Positive,
 		},
 	}, nil)
 	mes.On("Get").Return(data.MakeTestExpectations(), nil)

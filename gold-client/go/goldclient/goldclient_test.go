@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/gold-client/go/mocks"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/types"
+	expectations2 "go.skia.org/infra/golden/go/types/expectations"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -84,8 +85,8 @@ func TestLoadBaseline(t *testing.T) {
 	assert.Len(t, bl, 1, "only one test")
 	digests := bl["ThisIsTheOnlyTest"]
 	assert.Len(t, digests, 2, "two previously seen images")
-	assert.Equal(t, types.NEGATIVE, digests["badbadbad1325855590527db196112e0"])
-	assert.Equal(t, types.POSITIVE, digests["beef00d3a1527db19619ec12a4e0df68"])
+	assert.Equal(t, expectations2.Negative, digests["badbadbad1325855590527db196112e0"])
+	assert.Equal(t, expectations2.Positive, digests["beef00d3a1527db19619ec12a4e0df68"])
 
 	assert.Equal(t, testIssueID, goldClient.resultState.SharedConfig.ChangeListID)
 
@@ -128,8 +129,8 @@ func TestLoadBaselineMaster(t *testing.T) {
 	assert.Len(t, bl, 1, "only one test")
 	digests := bl["ThisIsTheOnlyTest"]
 	assert.Len(t, digests, 2, "two previously seen images")
-	assert.Equal(t, types.NEGATIVE, digests["badbadbad1325855590527db196112e0"])
-	assert.Equal(t, types.POSITIVE, digests["beef00d3a1527db19619ec12a4e0df68"])
+	assert.Equal(t, expectations2.Negative, digests["badbadbad1325855590527db196112e0"])
+	assert.Equal(t, expectations2.Positive, digests["beef00d3a1527db19619ec12a4e0df68"])
 
 	assert.Equal(t, "", goldClient.resultState.SharedConfig.ChangeListID)
 

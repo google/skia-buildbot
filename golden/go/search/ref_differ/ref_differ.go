@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // RefDiffer is an interface for calculating the ReferenceDiffs for a given test+digest pair.
@@ -54,8 +55,8 @@ func (r *DiffImpl) FillRefDiffs(d *frontend.SRDigest, metric string, match []str
 
 	paramsByDigest := r.idx.GetParamsetSummaryByTest(types.ExcludeIgnoredTraces)[d.Test]
 
-	posDigests := r.getDigestsWithLabel(d, match, paramsByDigest, unavailableDigests, rhsQuery, types.POSITIVE)
-	negDigests := r.getDigestsWithLabel(d, match, paramsByDigest, unavailableDigests, rhsQuery, types.NEGATIVE)
+	posDigests := r.getDigestsWithLabel(d, match, paramsByDigest, unavailableDigests, rhsQuery, expectations.Positive)
+	negDigests := r.getDigestsWithLabel(d, match, paramsByDigest, unavailableDigests, rhsQuery, expectations.Negative)
 
 	ret := make(map[common.RefClosest]*frontend.SRDiffDigest, 3)
 	ret[common.PositiveRef] = r.getClosestDiff(metric, d.Digest, posDigests)
@@ -87,7 +88,7 @@ func (r *DiffImpl) FillRefDiffs(d *frontend.SRDigest, metric string, match []str
 // getDigestsWithLabel return all digests within the given test that
 // have the given label assigned to them and where the parameters
 // listed in 'match' match.
-func (r *DiffImpl) getDigestsWithLabel(s *frontend.SRDigest, match []string, paramsByDigest map[types.Digest]paramtools.ParamSet, unavailable map[types.Digest]*diff.DigestFailure, rhsQuery paramtools.ParamSet, targetLabel types.Label) types.DigestSlice {
+func (r *DiffImpl) getDigestsWithLabel(s *frontend.SRDigest, match []string, paramsByDigest map[types.Digest]paramtools.ParamSet, unavailable map[types.Digest]*diff.DigestFailure, rhsQuery paramtools.ParamSet, targetLabel expectations.Label) types.DigestSlice {
 	ret := types.DigestSlice{}
 	for d, digestParams := range paramsByDigest {
 		// Accept all digests that are: available, in the set of allowed digests

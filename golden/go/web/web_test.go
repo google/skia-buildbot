@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/golden/go/mocks"
+	"go.skia.org/infra/golden/go/types/expectations"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/httputils"
@@ -383,9 +384,9 @@ func TestTriageMaster(t *testing.T) {
 
 	user := "user@example.com"
 
-	mes.On("AddChange", testutils.AnyContext, types.Expectations{
+	mes.On("AddChange", testutils.AnyContext, expectations.Expectations{
 		bug_revert.TestOne: {
-			bug_revert.UntriagedDigestBravo: types.NEGATIVE,
+			bug_revert.UntriagedDigestBravo: expectations.Negative,
 		},
 	}, user).Return(nil)
 
@@ -399,7 +400,7 @@ func TestTriageMaster(t *testing.T) {
 		ChangeListID: "",
 		TestDigestStatus: map[types.TestName]map[types.Digest]string{
 			bug_revert.TestOne: {
-				bug_revert.UntriagedDigestBravo: types.NEGATIVE.String(),
+				bug_revert.UntriagedDigestBravo: expectations.Negative.String(),
 			},
 		},
 	}
@@ -425,9 +426,9 @@ func TestTriageChangeList(t *testing.T) {
 
 	mes.On("ForChangeList", clID, crs).Return(clExp)
 
-	clExp.On("AddChange", testutils.AnyContext, types.Expectations{
+	clExp.On("AddChange", testutils.AnyContext, expectations.Expectations{
 		bug_revert.TestOne: {
-			bug_revert.UntriagedDigestBravo: types.NEGATIVE,
+			bug_revert.UntriagedDigestBravo: expectations.Negative,
 		},
 	}, user).Return(nil)
 
@@ -444,7 +445,7 @@ func TestTriageChangeList(t *testing.T) {
 		ChangeListID: clID,
 		TestDigestStatus: map[types.TestName]map[types.Digest]string{
 			bug_revert.TestOne: {
-				bug_revert.UntriagedDigestBravo: types.NEGATIVE.String(),
+				bug_revert.UntriagedDigestBravo: expectations.Negative.String(),
 			},
 		},
 	}
@@ -463,14 +464,14 @@ func TestBulkTriageMaster(t *testing.T) {
 
 	user := "user@example.com"
 
-	mes.On("AddChange", testutils.AnyContext, types.Expectations{
+	mes.On("AddChange", testutils.AnyContext, expectations.Expectations{
 		bug_revert.TestOne: {
-			bug_revert.GoodDigestAlfa:       types.UNTRIAGED,
-			bug_revert.UntriagedDigestBravo: types.NEGATIVE,
+			bug_revert.GoodDigestAlfa:       expectations.Untriaged,
+			bug_revert.UntriagedDigestBravo: expectations.Negative,
 		},
 		bug_revert.TestTwo: {
-			bug_revert.GoodDigestCharlie:    types.POSITIVE,
-			bug_revert.UntriagedDigestDelta: types.NEGATIVE,
+			bug_revert.GoodDigestCharlie:    expectations.Positive,
+			bug_revert.UntriagedDigestDelta: expectations.Negative,
 		},
 	}, user).Return(nil)
 
@@ -484,12 +485,12 @@ func TestBulkTriageMaster(t *testing.T) {
 		ChangeListID: "",
 		TestDigestStatus: map[types.TestName]map[types.Digest]string{
 			bug_revert.TestOne: {
-				bug_revert.GoodDigestAlfa:       types.UNTRIAGED.String(),
-				bug_revert.UntriagedDigestBravo: types.NEGATIVE.String(),
+				bug_revert.GoodDigestAlfa:       expectations.Untriaged.String(),
+				bug_revert.UntriagedDigestBravo: expectations.Negative.String(),
 			},
 			bug_revert.TestTwo: {
-				bug_revert.GoodDigestCharlie:    types.POSITIVE.String(),
-				bug_revert.UntriagedDigestDelta: types.NEGATIVE.String(),
+				bug_revert.GoodDigestCharlie:    expectations.Positive.String(),
+				bug_revert.UntriagedDigestDelta: expectations.Negative.String(),
 			},
 		},
 	}
@@ -508,9 +509,9 @@ func TestTriageMasterLegacy(t *testing.T) {
 
 	user := "user@example.com"
 
-	mes.On("AddChange", testutils.AnyContext, types.Expectations{
+	mes.On("AddChange", testutils.AnyContext, expectations.Expectations{
 		bug_revert.TestOne: {
-			bug_revert.UntriagedDigestBravo: types.NEGATIVE,
+			bug_revert.UntriagedDigestBravo: expectations.Negative,
 		},
 	}, user).Return(nil)
 
@@ -524,7 +525,7 @@ func TestTriageMasterLegacy(t *testing.T) {
 		ChangeListID: "0",
 		TestDigestStatus: map[types.TestName]map[types.Digest]string{
 			bug_revert.TestOne: {
-				bug_revert.UntriagedDigestBravo: types.NEGATIVE.String(),
+				bug_revert.UntriagedDigestBravo: expectations.Negative.String(),
 			},
 		},
 	}
