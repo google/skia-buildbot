@@ -24,8 +24,8 @@ import (
 	"go.skia.org/infra/golden/go/diffstore/common"
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
 	"go.skia.org/infra/golden/go/diffstore/metricsstore/bolt_metricsstore"
+	diffstore_mocks "go.skia.org/infra/golden/go/diffstore/mocks"
 	d_utils "go.skia.org/infra/golden/go/diffstore/testutils"
-	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/types"
 	"google.golang.org/api/option"
 )
@@ -191,7 +191,7 @@ func TestFailureHandling(t *testing.T) {
 	invalidDigest_2 := types.Digest("invaliddigest2")
 
 	// Set up mock FailureStore.
-	mfs := &mocks.FailureStore{}
+	mfs := &diffstore_mocks.FailureStore{}
 	defer mfs.AssertExpectations(t)
 
 	// FailureStore calls for invalid digest #1.
@@ -344,7 +344,7 @@ func TestMemDiffStoreImageHandler(t *testing.T) {
 	// needed for this test to pass, and nothing more (e.g. field "MD5" in *storage.ObjectAttrs).
 
 	// Build mock FailureStore.
-	mockFailureStore := &mocks.FailureStore{}
+	mockFailureStore := &diffstore_mocks.FailureStore{}
 	defer mockFailureStore.AssertExpectations(t)
 
 	// Failure is stored.
@@ -392,13 +392,8 @@ func TestMemDiffStoreImageHandler(t *testing.T) {
 	// Dummy mapper.
 	m := disk_mapper.New(&diff.DiffMetrics{})
 
-	// Temporary dir for the Bolt store.
-	baseDir, cleanup := testutils.TempDir(t)
-	defer cleanup()
-
 	// Metrics store.
-	mStore, err := bolt_metricsstore.New(baseDir, m)
-	assert.NoError(t, err)
+	mStore := &diffstore_mocks.MetricsStore{}
 
 	// Build MemDiffStore instance under test.
 	diffStore, err := NewMemDiffStore(mockBucketClient, gsImageBaseDir, 10, m, mStore, mockFailureStore)
