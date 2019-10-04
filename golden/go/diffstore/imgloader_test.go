@@ -19,8 +19,8 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
+	diffstore_mocks "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/image/text"
-	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -68,7 +68,7 @@ func TestImageLoaderExpectedMd5HashesAreCorrect(t *testing.T) {
 }
 
 // Sets up the mock GCSClient and temp folder for images, and returns the test ImageLoader instance.
-func setUp(t *testing.T) (*ImageLoader, *test_gcsclient.MockGCSClient, *mocks.FailureStore) {
+func setUp(t *testing.T) (*ImageLoader, *test_gcsclient.MockGCSClient, *diffstore_mocks.FailureStore) {
 	// Build mock GCSClient.
 	mockBucketClient := test_gcsclient.NewMockClient()
 
@@ -76,7 +76,7 @@ func setUp(t *testing.T) (*ImageLoader, *test_gcsclient.MockGCSClient, *mocks.Fa
 	mockBucketClient.On("Bucket").Return("test-bucket").Maybe()
 
 	// Build mock FailureStore.
-	mockFailureStore := &mocks.FailureStore{}
+	mockFailureStore := &diffstore_mocks.FailureStore{}
 
 	// Compute an arbitrary cache size.
 	imgCacheCount, _ := getCacheCounts(10)

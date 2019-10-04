@@ -9,4 +9,3 @@ package mocks
 //go:generate mockery -name GCSClient -dir ../storage -output .
 //go:generate mockery -name TileSource -dir ../tilesource -output .
 //go:generate mockery -name TraceStore -dir ../tracestore -output .
-//go:generate mockery -name FailureStore -dir ../diffstore/failurestore -output .
