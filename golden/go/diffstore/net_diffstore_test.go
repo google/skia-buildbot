@@ -34,7 +34,7 @@ func TestNetDiffStore(t *testing.T) {
 
 	m := disk_mapper.New(&diff.DiffMetrics{})
 	mfs := &diffstore_mocks.FailureStore{}
-	mStore, err := bolt_metricsstore.New(baseDir, m)
+	mStore, err := bolt_metricsstore.New(baseDir)
 	assert.NoError(t, err)
 	memDiffStore, err := NewMemDiffStore(gcsClient, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mStore, mfs)
 	assert.NoError(t, err)
