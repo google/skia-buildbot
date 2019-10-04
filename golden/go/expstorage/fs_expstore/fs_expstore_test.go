@@ -9,7 +9,6 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/eventbus/mocks"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -68,8 +67,7 @@ func TestGetExpectations(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, e)
 
-	// Make sure that if we create a new view, we can read the results
-	// from the table to make the expectations
+	// Make sure that if we create a new view, we can read the results immediately.
 	fr, err := New(ctx, c, nil, ReadOnly)
 	assert.NoError(t, err)
 	e, err = fr.Get()
@@ -132,10 +130,9 @@ func TestGetExpectationsSnapShot(t *testing.T) {
 		},
 	}
 
-	assert.Eventually(t, func() bool {
-		e, err := ro.Get()
-		return err == nil && deepequal.DeepEqual(expected, e)
-	}, 10*time.Second, 100*time.Millisecond)
+	e, err := ro.Get()
+	assert.NoError(t, err)
+	assert.Equal(t, expected, e)
 }
 
 // TestGetExpectationsRace writes a bunch of data from many go routines
@@ -583,55 +580,23 @@ func TestEventBusAddMaster(t *testing.T) {
 		ExpectationDelta: change1,
 		CRSAndCLID:       "",
 	}, /*global=*/ true).Once()
+	// This was two entries, which should be broadcast individually.
 	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
-		ExpectationDelta: change2,
-		CRSAndCLID:       "",
+		ExpectationDelta: types.Expectations{
+			data.AlphaTest: {
+				data.AlphaBad1Digest: types.NEGATIVE,
+			},
+		},
+		CRSAndCLID: "",
 	}, /*global=*/ true).Once()
-
-	assert.NoError(t, f.AddChange(ctx, change1, userOne))
-	assert.NoError(t, f.AddChange(ctx, change2, userTwo))
-}
-
-// TestEventBusAddCL makes sure proper eventbus signals are sent
-// when changes are made to an CLExpectations.
-func TestEventBusAddCL(t *testing.T) {
-	unittest.LargeTest(t)
-
-	meb := &mocks.EventBus{}
-	defer meb.AssertExpectations(t)
-
-	c, cleanup := firestore.NewClientForTesting(t)
-	defer cleanup()
-	ctx := context.Background()
-
-	e, err := New(ctx, c, meb, ReadWrite)
-	assert.NoError(t, err)
-	clID := "117" // arbitrary CL ID.
-	f := e.ForChangeList(clID, "gerrit")
-	assert.NotNil(t, f)
-
-	change1 := types.Expectations{
-		data.AlphaTest: {
-			data.AlphaGood1Digest: types.POSITIVE,
+	meb.On("Publish", expstorage.EV_EXPSTORAGE_CHANGED, &expstorage.EventExpectationChange{
+		ExpectationDelta: types.Expectations{
+			data.BetaTest: {
+				data.BetaGood1Digest: types.POSITIVE,
+			},
 		},
-	}
-	change2 := types.Expectations{
-		data.AlphaTest: {
-			data.AlphaBad1Digest: types.NEGATIVE,
-		},
-		data.BetaTest: {
-			data.BetaGood1Digest: types.POSITIVE,
-		},
-	}
-
-	meb.On("Publish", expstorage.EV_TRYJOB_EXP_CHANGED, &expstorage.EventExpectationChange{
-		ExpectationDelta: change1,
-		CRSAndCLID:       "gerrit_117",
-	}, /*global=*/ false).Once()
-	meb.On("Publish", expstorage.EV_TRYJOB_EXP_CHANGED, &expstorage.EventExpectationChange{
-		ExpectationDelta: change2,
-		CRSAndCLID:       "gerrit_117",
-	}, /*global=*/ false).Once()
+		CRSAndCLID: "",
+	}, /*global=*/ true).Once()
 
 	assert.NoError(t, f.AddChange(ctx, change1, userOne))
 	assert.NoError(t, f.AddChange(ctx, change2, userTwo))
