@@ -766,6 +766,7 @@ The main application element for the Skia Debugger.
           this.$.multi_frame_controls.hidden = true;
         }
         // Request and parse command list for this frame
+        this.jsonCommandListCache = {};
         this._setCommands();
         this._moveToLastFilteredCommand();
         this.$.zoom.allow_draw = true;
