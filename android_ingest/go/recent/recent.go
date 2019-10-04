@@ -2,13 +2,15 @@
 package recent
 
 import (
+	"bytes"
+	"encoding/json"
 	"sync"
 	"time"
 )
 
 const (
-	// MAX_RECENT is the largest number of recent requests that will be displayed.
-	MAX_RECENT = 20
+	// maxRecent is the largest number of recent requests that will be displayed.
+	maxRecent = 20
 )
 
 // Request is a record of a single POST request.
@@ -29,6 +31,7 @@ type Recent struct {
 	recentBad []*Request
 }
 
+// New returns a new Recent instance.
 func New() *Recent {
 	return &Recent{
 		recentGood: []*Request{},
@@ -47,15 +50,27 @@ func (r *Recent) add(recent []*Request, b []byte) []*Request {
 	}}, recent...)
 
 	// Keep track of the last N events.
-	if len(recent) > MAX_RECENT {
-		recent = recent[:MAX_RECENT]
+	if len(recent) > maxRecent {
+		recent = recent[:maxRecent]
 	}
 	return recent
 }
 
 // AddBad the JSON body that was POST'd to the server.
 func (r *Recent) AddBad(b []byte) {
-	r.recentBad = r.add(r.recentBad, b)
+	// Try to pretty print the JSON is possible, otherwise just use the raw bytes.
+	buf := bytes.NewReader(b)
+	var i interface{}
+	if err := json.NewDecoder(buf).Decode(&i); err != nil {
+		r.recentBad = r.add(r.recentBad, b)
+		return
+	}
+	pretty, err := json.MarshalIndent(i, "", "  ")
+	if err != nil {
+		r.recentBad = r.add(r.recentBad, b)
+		return
+	}
+	r.recentBad = r.add(r.recentBad, pretty)
 }
 
 // AddGood the JSON body that was POST'd to the server.
