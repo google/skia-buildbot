@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -17,9 +16,7 @@ type CommentBox struct {
 	// mtx protects comments.
 	mtx sync.RWMutex
 	// comments is map[repo_name]*types.RepoComments.
-	comments map[string]*types.RepoComments
-	// writer is called to persist comments after every change.
-	writer          func(map[string]*types.RepoComments) error
+	comments        map[string]*types.RepoComments
 	modTC           chan<- []*types.TaskComment
 	modTCClients    map[chan<- []*types.TaskComment]context.Context
 	modTCClientsMtx sync.Mutex
@@ -34,7 +31,7 @@ type CommentBox struct {
 	modCCClientsWg  sync.WaitGroup
 }
 
-// NewCommentBox returns a CommentBox instance with no writer.
+// NewCommentBox returns a CommentBox instance.
 func NewCommentBox() *CommentBox {
 	modTC := make(chan []*types.TaskComment)
 	modTSC := make(chan []*types.TaskSpecComment)
@@ -134,14 +131,6 @@ func (b *CommentBox) GetCommentsForRepos(repos []string, from time.Time) ([]*typ
 	return rv, nil
 }
 
-// write calls b.writer with comments if non-null.
-func (b *CommentBox) write() error {
-	if b.writer == nil {
-		return nil
-	}
-	return b.writer(b.comments)
-}
-
 // getRepoComments returns the initialized *types.RepoComments for the given repo.
 func (b *CommentBox) getRepoComments(repo string) *types.RepoComments {
 	if b.comments == nil {
@@ -237,13 +226,6 @@ func (b *CommentBox) PutTaskComment(c *types.TaskComment) error {
 	if err := b.putTaskComment(c); err != nil {
 		return err
 	}
-	if err := b.write(); err != nil {
-		// If write returns an error, we must revert to previous.
-		if _, delErr := b.deleteTaskComment(c); delErr != nil {
-			sklog.Warningf("Unexpected error: %s", delErr)
-		}
-		return err
-	}
 	b.modTC <- []*types.TaskComment{c.Copy()}
 	return nil
 }
@@ -257,13 +239,6 @@ func (b *CommentBox) DeleteTaskComment(c *types.TaskComment) error {
 		return err
 	}
 	if existing != nil {
-		if err := b.write(); err != nil {
-			// If write returns an error, we must revert to previous.
-			if putErr := b.putTaskComment(existing); putErr != nil {
-				sklog.Warningf("Unexpected error: %s", putErr)
-			}
-			return err
-		}
 		deleted := true
 		c.Deleted = &deleted
 		existing.Deleted = &deleted
@@ -370,13 +345,6 @@ func (b *CommentBox) PutTaskSpecComment(c *types.TaskSpecComment) error {
 	if err := b.putTaskSpecComment(c); err != nil {
 		return err
 	}
-	if err := b.write(); err != nil {
-		// If write returns an error, we must revert to previous.
-		if _, delErr := b.deleteTaskSpecComment(c); delErr != nil {
-			sklog.Warningf("Unexpected error: %s", delErr)
-		}
-		return err
-	}
 	b.modTSC <- []*types.TaskSpecComment{c.Copy()}
 	return nil
 }
@@ -390,13 +358,6 @@ func (b *CommentBox) DeleteTaskSpecComment(c *types.TaskSpecComment) error {
 		return err
 	}
 	if existing != nil {
-		if err := b.write(); err != nil {
-			// If write returns an error, we must revert to previous.
-			if putErr := b.putTaskSpecComment(existing); putErr != nil {
-				sklog.Warningf("Unexpected error: %s", putErr)
-			}
-			return err
-		}
 		deleted := true
 		c.Deleted = &deleted
 		existing.Deleted = &deleted
@@ -503,13 +464,6 @@ func (b *CommentBox) PutCommitComment(c *types.CommitComment) error {
 	if err := b.putCommitComment(c); err != nil {
 		return err
 	}
-	if err := b.write(); err != nil {
-		// If write returns an error, we must revert to previous.
-		if _, delErr := b.deleteCommitComment(c); delErr != nil {
-			sklog.Warningf("Unexpected error: %s", delErr)
-		}
-		return err
-	}
 	b.modCC <- []*types.CommitComment{c.Copy()}
 	return nil
 }
@@ -523,13 +477,6 @@ func (b *CommentBox) DeleteCommitComment(c *types.CommitComment) error {
 		return err
 	}
 	if existing != nil {
-		if err := b.write(); err != nil {
-			// If write returns an error, we must revert to previous.
-			if putErr := b.putCommitComment(existing); putErr != nil {
-				sklog.Warningf("Unexpected error: %s", putErr)
-			}
-			return err
-		}
 		deleted := true
 		c.Deleted = &deleted
 		existing.Deleted = &deleted
