@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9b6e821a_cf0980c2",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-05T01:07:36Z",
+      "side": 0,
+      "message": "nit: explain this change in the CL description",
+      "range": {
+        "startLine": 199,
+        "startChar": 0,
+        "endLine": 201,
+        "endChar": 24
+      },
+      "revId": "fb0b1a227d0d8d5a1f04166c8709264803c940b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c22c96e6_756aa156",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 390,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-05T01:07:36Z",
+      "side": 0,
+      "message": "I think removing this will cause unexpected behavior. E.g. I triage something and refresh and it shows up as not triaged.",
+      "range": {
+        "startLine": 375,
+        "startChar": 0,
+        "endLine": 390,
+        "endChar": 0
+      },
+      "revId": "fb0b1a227d0d8d5a1f04166c8709264803c940b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
