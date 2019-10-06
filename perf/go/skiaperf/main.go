@@ -323,6 +323,16 @@ func Init() {
 		sklog.Fatal(err)
 	}
 
+	// TODO(jcgregorio) Remove this once we move to gitsync.
+	// Keep the repo synced.
+	go func() {
+		for range time.Tick(time.Minute) {
+			if err := vcs.Update(context.Background(), true, false); err != nil {
+				sklog.Errorf("Failed to update repo: %s", err)
+			}
+		}
+	}()
+
 	sklog.Info("About to build dataframebuilder.")
 
 	traceStore, err = btts.NewBigTableTraceStoreFromConfig(ctx, btConfig, ts, false)
