@@ -55,14 +55,6 @@ const (
 	tsField        = "ts"
 
 	maxOperationTime = 2 * time.Minute
-	// masterShards was determined empirically on a data set of about 550k expectationEntry
-	// 1 shard -> ???
-	// 10 shards -> 215s
-	// 100 shards -> 21s
-	// 256 shards -> 10s
-	// 512 shards -> 9s
-	// 4096 shards -> 9s
-	masterShards = 512
 
 	// There will not be very many entries on ChangeLists, relative to the masterBranch, so
 	// we can get away with many fewer shards to avoid the overhead of so many
@@ -163,27 +155,15 @@ func New(ctx context.Context, client *ifirestore.Client, eventBus eventbus.Event
 		mode:           mode,
 	}
 
-	if mode == ReadOnly {
-		// Start the snapshots (which will ignore any results)
-		err := f.initQuerySnapshot(ctx)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "could not get initial query snapshot")
-		}
+	err := f.initQuerySnapshot(ctx)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "could not get initial query snapshot")
 	}
 
-	// pre-load the cache. This simplifies the mutex handling in Get().
-	_, err := f.getMasterExpectations()
-	if err != nil {
-		return nil, skerr.Wrapf(err, "could not perform initial get")
-	}
 	sklog.Infof("Loaded master expectations for %d tests", len(f.cache))
 
-	if mode == ReadOnly {
-		// Starts several go routines to listen to the snapshots created earlier.
-		// If there were any new entries added after the snapshots were created, but before
-		// we did a full fetch, we'll see them on the first pass through.
-		f.listenToQuerySnapshots(ctx)
-	}
+	// Starts several go routines to listen to the snapshots created earlier.
+	f.listenToQuerySnapshots(ctx)
 
 	return f, nil
 }
@@ -195,12 +175,10 @@ func (f *Store) ForChangeList(id, crs string) expstorage.ExpectationsStore {
 		return nil
 	}
 	return &Store{
-		client:         f.client,
-		eventBus:       f.eventBus,
-		eventExpChange: expstorage.EV_TRYJOB_EXP_CHANGED,
-		globalEvent:    false,
-		crsAndCLID:     crs + "_" + id,
-		mode:           f.mode,
+		client:     f.client,
+		eventBus:   nil,
+		crsAndCLID: crs + "_" + id,
+		mode:       f.mode,
 	}
 }
 
@@ -210,54 +188,50 @@ func (f *Store) Get() (types.Expectations, error) {
 		defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "true"}).Stop()
 		f.cacheMutex.RLock()
 		defer f.cacheMutex.RUnlock()
-		return f.getMasterExpectations()
+		return f.cache.DeepCopy(), nil
 	}
 	defer metrics2.NewTimer("gold_get_expectations", map[string]string{"master_branch": "false"}).Stop()
 	return f.getExpectationsForCL()
 }
 
-// getMasterExpectations returns an Expectations object which is safe to mutate
-// based on the current state. It is expected the caller has taken care of any mutex grabbing.
-func (f *Store) getMasterExpectations() (types.Expectations, error) {
-	if f.cache == nil {
-		c, err := f.loadExpectationsSharded(masterBranch, masterShards)
-		if err != nil {
-			return nil, skerr.Fmt("could not load master expectations from firestore: %s", err)
-		}
-		f.cache = c
-	}
-	return f.cache.DeepCopy(), nil
-}
-
 // initQuerySnapshot creates many firestore.QuerySnapshotIterator objects based on a shard of
 // all expectations and does the first Next() on them (which will try to return all data
-// in those shards). We ignore that data, as a future call will update the cached expectations.
-// It stores these iterators in f.masterQuerySnapshots. Without sharding them, this times out
-// with many expectations because of the fact that the first call to Next() fetches all data
+// in those shards). This data is loaded into the cache. Without sharding the queries, this times
+//  out with many expectations because of the fact that the first call to Next() fetches all data
 // currently there.
-// TODO(kjlubick): if this works well for the ReadOnly case, could we maybe do something similar
-// for the read-write case? I don't think we'd ever have two writers, but it would open us up
-// to that.
 func (f *Store) initQuerySnapshot(ctx context.Context) error {
 	q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", masterBranch)
 	queries := fs_utils.ShardQueryOnDigest(q, digestField, snapshotShards)
+
 	f.masterQuerySnapshots = make([]*firestore.QuerySnapshotIterator, snapshotShards)
+	es := make([]types.Expectations, snapshotShards)
 	var eg errgroup.Group
 	for shard, q := range queries {
 		func(shard int, q firestore.Query) {
 			eg.Go(func() error {
 				snap := q.Snapshots(ctx)
-				_, err := snap.Next()
+				qs, err := snap.Next()
 				if err != nil {
 					return skerr.Wrapf(err, "getting initial snapshot data")
 				}
+				es[shard] = extractExpectations(qs)
+
 				f.masterQuerySnapshots[shard] = snap
 				return nil
 			})
 		}(shard, q)
 	}
+	err := eg.Wait()
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 
-	return eg.Wait()
+	f.cache = types.Expectations{}
+	for _, ne := range es {
+		f.cache.MergeExpectations(ne)
+	}
+
+	return nil
 }
 
 // listenToQuerySnapshots takes the f.masterQuerySnapshots from earlier and spins up N
@@ -292,28 +266,42 @@ func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 					f.masterQuerySnapshots[shard] = queries[shard].Snapshots(ctx)
 					continue
 				}
-				e := types.Expectations{}
-				for _, dc := range qs.Changes {
-					if dc.Kind == firestore.DocumentRemoved {
-						continue // There will likely never be DocumentRemoved events
-					}
-					entry := expectationEntry{}
-					if err := dc.Doc.DataTo(&entry); err != nil {
-						id := dc.Doc.Ref.ID
-						sklog.Errorf("corrupt data in firestore, could not unmarshal entry with id %s", id)
-						continue
-					}
-					sklog.Debugf("Query Snapshot saw: %s %s %s\n", entry.Grouping, entry.Digest, entry.Label.String())
-					e.AddDigest(entry.Grouping, entry.Digest, entry.Label)
-				}
+				e := extractExpectations(qs)
 				func() {
 					f.cacheMutex.Lock()
 					defer f.cacheMutex.Unlock()
 					f.cache.MergeExpectations(e)
 				}()
+
+				if f.eventBus != nil {
+					f.eventBus.Publish(f.eventExpChange, &expstorage.EventExpectationChange{
+						ExpectationDelta: e,
+						CRSAndCLID:       f.crsAndCLID,
+					}, f.globalEvent)
+				}
 			}
 		}(i)
 	}
+}
+
+// extractExpectations retrieves all Expectations from a given QuerySnapshot, logging any errors
+// (which should be exceedingly rare)
+func extractExpectations(qs *firestore.QuerySnapshot) types.Expectations {
+	e := types.Expectations{}
+	for _, dc := range qs.Changes {
+		if dc.Kind == firestore.DocumentRemoved {
+			sklog.Warningf("Unexpected DocumentRemoved event: %#v", dc)
+			continue // There will likely never be DocumentRemoved events
+		}
+		entry := expectationEntry{}
+		if err := dc.Doc.DataTo(&entry); err != nil {
+			id := dc.Doc.Ref.ID
+			sklog.Errorf("corrupt data in firestore, could not unmarshal expectationEntry with id %s", id)
+			continue
+		}
+		e.AddDigest(entry.Grouping, entry.Digest, entry.Label)
+	}
+	return e
 }
 
 // getExpectationsForCL returns an Expectations object which is safe to mutate
@@ -321,31 +309,22 @@ func (f *Store) listenToQuerySnapshots(ctx context.Context) {
 // It fetches everything from firestore every time, as there could be multiple
 // readers and writers and thus caching isn't safe.
 func (f *Store) getExpectationsForCL() (types.Expectations, error) {
-	expDelta, err := f.loadExpectationsSharded(f.crsAndCLID, clShards)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "loading expectations delta for CL %s from firestore", f.crsAndCLID)
-	}
-	return expDelta, nil
-}
-
-// loadExpectationsSharded returns an Expectations object from the expectationsCollection,
-// with all Expectations belonging to the passed in crsAndCLID (can be masterBranch).
-func (f *Store) loadExpectationsSharded(crsAndCLID string, shards int) (types.Expectations, error) {
 	defer metrics2.FuncTimer().Stop()
-	q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", crsAndCLID)
 
-	es := make([]types.Expectations, shards)
-	queries := fs_utils.ShardQueryOnDigest(q, digestField, shards)
+	q := f.client.Collection(expectationsCollection).Where(crsCLIDField, "==", f.crsAndCLID)
+
+	es := make([]types.Expectations, clShards)
+	queries := fs_utils.ShardQueryOnDigest(q, digestField, clShards)
 
 	maxRetries := 3
-	err := f.client.IterDocsInParallel("loadExpectations", crsAndCLID, queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
+	err := f.client.IterDocsInParallel("loadExpectations", f.crsAndCLID, queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
 		entry := expectationEntry{}
 		if err := doc.DataTo(&entry); err != nil {
 			id := doc.Ref.ID
-			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal entry with id %s", id)
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectationEntry with id %s", id)
 		}
 		if es[i] == nil {
 			es[i] = types.Expectations{}
@@ -355,7 +334,7 @@ func (f *Store) loadExpectationsSharded(crsAndCLID string, shards int) (types.Ex
 	})
 
 	if err != nil {
-		return nil, skerr.Wrapf(err, "fetching expectations for ChangeList %s", crsAndCLID)
+		return nil, skerr.Wrapf(err, "fetching expectations for ChangeList %s", f.crsAndCLID)
 	}
 
 	e := types.Expectations{}
@@ -372,28 +351,8 @@ func (f *Store) AddChange(ctx context.Context, newExp types.Expectations, userID
 		return ReadOnlyErr
 	}
 	// Create the entries that we want to write (using the previous values)
-	now, entries, changes := func() (time.Time, []expectationEntry, []triageChanges) {
-		f.cacheMutex.Lock()
-		defer f.cacheMutex.Unlock()
-		now := time.Now()
-		entries, changes := f.flatten(now, newExp)
-
-		// Write the changes to the locale cache. We do this first so we can free up
-		// the read mutex as soon as possible.
-		if f.cache == nil {
-			f.cache = newExp.DeepCopy()
-		} else {
-			f.cache.MergeExpectations(newExp)
-		}
-		return now, entries, changes
-	}()
-
-	if f.eventBus != nil {
-		f.eventBus.Publish(f.eventExpChange, &expstorage.EventExpectationChange{
-			ExpectationDelta: newExp,
-			CRSAndCLID:       f.crsAndCLID,
-		}, f.globalEvent)
-	}
+	now := time.Now()
+	entries, changes := f.flatten(now, newExp)
 
 	// Nothing to add
 	if len(entries) == 0 {
@@ -513,7 +472,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 		tr := triageRecord{}
 		if err := doc.DataTo(&tr); err != nil {
 			id := doc.Ref.ID
-			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triage record with id %s", id)
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triageRecord with id %s", id)
 		}
 		rv = append(rv, expstorage.TriageLogEntry{
 			ID:          doc.Ref.ID,
@@ -548,7 +507,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 		tc := triageChanges{}
 		if err := doc.DataTo(&tc); err != nil {
 			id := doc.Ref.ID
-			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triage changes with id %s", id)
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triageChanges with id %s", id)
 		}
 		rv[i].Details = append(rv[i].Details, expstorage.TriageDetail{
 			TestName: tc.Grouping,
@@ -586,7 +545,7 @@ func (f *Store) UndoChange(ctx context.Context, changeID, userID string) (types.
 		tc := triageChanges{}
 		if err := doc.DataTo(&tc); err != nil {
 			id := doc.Ref.ID
-			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triage changes with id %s", id)
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triageChanges with id %s", id)
 		}
 		delta.AddDigest(tc.Grouping, tc.Digest, tc.LabelBefore)
 		return nil
