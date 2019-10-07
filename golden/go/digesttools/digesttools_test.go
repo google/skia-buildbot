@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // TestClosestDigest tests the basic interaction between the DiffFinder
@@ -24,14 +25,14 @@ func TestClosestDigest(t *testing.T) {
 	defer mds.AssertExpectations(t)
 	defer mdc.AssertExpectations(t)
 
-	exp := types.Expectations{
-		mockTest: map[types.Digest]types.Label{
-			mockDigestA: types.POSITIVE,
-			mockDigestB: types.NEGATIVE,
-			mockDigestC: types.UNTRIAGED,
-			mockDigestD: types.UNTRIAGED,
-			mockDigestF: types.POSITIVE,
-			mockDigestG: types.POSITIVE,
+	exp := expectations.Expectations{
+		mockTest: map[types.Digest]expectations.Label{
+			mockDigestA: expectations.Positive,
+			mockDigestB: expectations.Negative,
+			mockDigestC: expectations.Untriaged,
+			mockDigestD: expectations.Untriaged,
+			mockDigestF: expectations.Positive,
+			mockDigestG: expectations.Positive,
 		},
 	}
 	digestCounts := map[types.TestName]digest_counter.DigestCount{
@@ -56,7 +57,7 @@ func TestClosestDigest(t *testing.T) {
 	expectedToCompareAgainst := types.DigestSlice{mockDigestA}
 	mds.On("Get", diff.PRIORITY_NOW, mockDigestF, expectedToCompareAgainst).Return(diffEIsClosest(), nil).Once()
 	// First test against a test that has positive digests.
-	c := cdf.ClosestDigest(mockTest, mockDigestF, types.POSITIVE)
+	c := cdf.ClosestDigest(mockTest, mockDigestF, expectations.Positive)
 	assert.InDelta(t, 0.0372, float64(c.Diff), 0.01)
 	assert.Equal(t, mockDigestE, c.Digest)
 	assert.Equal(t, []int{5, 3, 4, 0}, c.MaxRGBA)
@@ -65,7 +66,7 @@ func TestClosestDigest(t *testing.T) {
 	expectedToCompareAgainst = types.DigestSlice{mockDigestB}
 	mds.On("Get", diff.PRIORITY_NOW, mockDigestF, expectedToCompareAgainst).Return(diffBIsClosest(), nil).Once()
 	// Now test against negative digests.
-	c = cdf.ClosestDigest(mockTest, mockDigestF, types.NEGATIVE)
+	c = cdf.ClosestDigest(mockTest, mockDigestF, expectations.Negative)
 	assert.InDelta(t, 0.0558, float64(c.Diff), 0.01)
 	assert.Equal(t, mockDigestB, c.Digest)
 	assert.Equal(t, []int{2, 7, 1, 3}, c.MaxRGBA)
@@ -80,14 +81,14 @@ func TestClosestDigestWithUnavailable(t *testing.T) {
 	defer mds.AssertExpectations(t)
 	defer mdc.AssertExpectations(t)
 
-	exp := types.Expectations{
-		mockTest: map[types.Digest]types.Label{
-			mockDigestA: types.POSITIVE,
-			mockDigestB: types.NEGATIVE,
-			mockDigestC: types.POSITIVE,
-			mockDigestD: types.POSITIVE,
-			mockDigestF: types.POSITIVE,
-			mockDigestG: types.POSITIVE,
+	exp := expectations.Expectations{
+		mockTest: map[types.Digest]expectations.Label{
+			mockDigestA: expectations.Positive,
+			mockDigestB: expectations.Negative,
+			mockDigestC: expectations.Positive,
+			mockDigestD: expectations.Positive,
+			mockDigestF: expectations.Positive,
+			mockDigestG: expectations.Positive,
 		},
 	}
 	digestCounts := map[types.TestName]digest_counter.DigestCount{
@@ -119,20 +120,20 @@ func TestClosestDigestWithUnavailable(t *testing.T) {
 		assert.Equal(t, expectedToCompareAgainst, actual)
 	}).Return(diffEIsClosest(), nil).Once()
 
-	c := cdf.ClosestDigest(mockTest, mockDigestF, types.POSITIVE)
+	c := cdf.ClosestDigest(mockTest, mockDigestF, expectations.Positive)
 	assert.InDelta(t, 0.0372, float64(c.Diff), 0.01)
 	assert.Equal(t, mockDigestE, c.Digest)
 	assert.Equal(t, []int{5, 3, 4, 0}, c.MaxRGBA)
 
 	// There is only one negative digest, and it is in the unavailable list, so it should
 	// return that it couldn't find one.
-	c = cdf.ClosestDigest(mockTest, mockDigestF, types.NEGATIVE)
+	c = cdf.ClosestDigest(mockTest, mockDigestF, expectations.Negative)
 	assert.InDelta(t, math.MaxFloat32, float64(c.Diff), 0.01)
 	assert.Equal(t, digesttools.NoDigestFound, c.Digest)
 	assert.Equal(t, []int{}, c.MaxRGBA)
 
 	// Now test against a test with no digests at all in the latest tile.
-	c = cdf.ClosestDigest(testThatDoesNotExist, mockDigestF, types.POSITIVE)
+	c = cdf.ClosestDigest(testThatDoesNotExist, mockDigestF, expectations.Positive)
 	assert.Equal(t, float32(math.MaxFloat32), c.Diff)
 	assert.Equal(t, digesttools.NoDigestFound, c.Digest)
 	assert.Equal(t, []int{}, c.MaxRGBA)

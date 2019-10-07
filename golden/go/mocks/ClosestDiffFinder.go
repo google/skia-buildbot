@@ -3,8 +3,10 @@
 package mocks
 
 import (
-	mock "github.com/stretchr/testify/mock"
 	digesttools "go.skia.org/infra/golden/go/digesttools"
+	expectations "go.skia.org/infra/golden/go/types/expectations"
+
+	mock "github.com/stretchr/testify/mock"
 
 	types "go.skia.org/infra/golden/go/types"
 )
@@ -15,11 +17,11 @@ type ClosestDiffFinder struct {
 }
 
 // ClosestDigest provides a mock function with given fields: test, digest, label
-func (_m *ClosestDiffFinder) ClosestDigest(test types.TestName, digest types.Digest, label types.Label) *digesttools.Closest {
+func (_m *ClosestDiffFinder) ClosestDigest(test types.TestName, digest types.Digest, label expectations.Label) *digesttools.Closest {
 	ret := _m.Called(test, digest, label)
 
 	var r0 *digesttools.Closest
-	if rf, ok := ret.Get(0).(func(types.TestName, types.Digest, types.Label) *digesttools.Closest); ok {
+	if rf, ok := ret.Get(0).(func(types.TestName, types.Digest, expectations.Label) *digesttools.Closest); ok {
 		r0 = rf(test, digest, label)
 	} else {
 		if ret.Get(0) != nil {
