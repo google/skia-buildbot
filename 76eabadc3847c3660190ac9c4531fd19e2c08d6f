@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "cfe02ec7_0beea3f4",
+        "filename": "golden/go/diffstore/metricsstore/bolt_metricsstore/bolt_metricsstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-07T19:36:08Z",
+      "side": 1,
+      "message": "My goal in this CL is to have a more complete test harness before making any changes in that direction.\n\nThe next CL in this chain includes the change you\u0027re suggesting: https://skia-review.googlesource.com/c/buildbot/+/246598/7/golden/go/diffstore/metricsstore/bolt_metricsstore/bolt_metricsstore_test.go",
+      "parentUuid": "cd41ce87_b0cb4797",
+      "range": {
+        "startLine": 47,
+        "startChar": 42,
+        "endLine": 47,
+        "endChar": 58
+      },
+      "revId": "76eabadc3847c3660190ac9c4531fd19e2c08d6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "567de28c_1215e245",
         "filename": "golden/go/diffstore/metricsstore/bolt_metricsstore/bolt_metricsstore_test.go",
         "patchSetId": 5
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "f1d87aac_bd2e0c0b",
+        "filename": "golden/go/diffstore/metricsstore/bolt_metricsstore/bolt_metricsstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-07T19:36:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "567de28c_1215e245",
+      "range": {
+        "startLine": 51,
+        "startChar": 45,
+        "endLine": 51,
+        "endChar": 57
+      },
+      "revId": "76eabadc3847c3660190ac9c4531fd19e2c08d6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ea423f98_5329027c",
         "filename": "golden/go/diffstore/metricsstore/bolt_metricsstore/bolt_metricsstore_test.go",
         "patchSetId": 5
@@ -68,6 +116,30 @@
       "revId": "76eabadc3847c3660190ac9c4531fd19e2c08d6f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9eccfac2_41525fb2",
+        "filename": "golden/go/diffstore/metricsstore/bolt_metricsstore/bolt_metricsstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-07T19:36:08Z",
+      "side": 1,
+      "message": "Yes.",
+      "parentUuid": "ea423f98_5329027c",
+      "range": {
+        "startLine": 64,
+        "startChar": 4,
+        "endLine": 64,
+        "endChar": 34
+      },
+      "revId": "76eabadc3847c3660190ac9c4531fd19e2c08d6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
