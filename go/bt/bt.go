@@ -11,6 +11,12 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const (
+	// TestingAppProfile is the profile that can be used when running an instance locally
+	// or for integration tests (unit tests should primarily use the BigTable Emulator).
+	TestingAppProfile = "local-testing"
+)
+
 // InitBigtable takes a list of TableConfigs and creates the given tables and
 // column families if they don't exist already.
 func InitBigtable(projectID, instanceID, tableID string, colFamilies []string) error {

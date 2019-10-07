@@ -10,13 +10,9 @@ import (
 
 // Events emitted by this package.
 const (
-	// Event emitted when expectations change.
+	// EV_EXPSTORAGE_CHANGED is the event emitted when expectations change.
 	// Callback argument: []string with the names of changed tests.
 	EV_EXPSTORAGE_CHANGED = "expstorage:changed"
-
-	// EV_TRYJOB_EXP_CHANGED is the event type that is fired when the expectations
-	// for an issue change. It sends an instance of *TryjobExpChange.
-	EV_TRYJOB_EXP_CHANGED = "expstorage:tryjob-exp-change"
 )
 
 func init() {
@@ -24,7 +20,7 @@ func init() {
 	gevent.RegisterCodec(EV_EXPSTORAGE_CHANGED, util.JSONCodec(&EventExpectationChange{}))
 }
 
-// Defines the storage interface for expectations.
+// ExpectationsStore Defines the storage interface for expectations.
 type ExpectationsStore interface {
 	// Get the current classifications for image digests. The keys of the
 	// expectations map are the test names.
@@ -60,7 +56,7 @@ type ExpectationsStore interface {
 	ForChangeList(id, crs string) ExpectationsStore
 }
 
-// TriageDetails represents one changed digest and the label that was
+// TriageDetail represents one changed digest and the label that was
 // assigned as part of the triage operation.
 type TriageDetail struct {
 	TestName types.TestName `json:"test_name"`

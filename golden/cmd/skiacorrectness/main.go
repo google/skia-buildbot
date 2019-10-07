@@ -22,6 +22,7 @@ import (
 	"google.golang.org/grpc"
 
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
@@ -246,6 +247,9 @@ func main() {
 
 	var vcs vcsinfo.VCS
 	if *btInstanceID != "" && *gitBTTableID != "" {
+		if *local {
+			appName = bt.TestingAppProfile
+		}
 		btConf := &bt_gitstore.BTConfig{
 			ProjectID:  *btProjectID,
 			InstanceID: *btInstanceID,

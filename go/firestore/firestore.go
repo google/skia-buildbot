@@ -681,7 +681,7 @@ FIRESTORE_EMULATOR_HOST
 //
 // A couple of notes:
 //
-// 1. QuerySnapshotIterator immediately producess a QuerySnapshot containing all
+// 1. QuerySnapshotIterator immediately produces a QuerySnapshot containing all
 //    of the current results for the query, then blocks until those results
 //    change. QuerySnapshot.Changes contains the changes since the last snapshot
 //    (and will therefore be empty on the first snapshot), while its Documents
