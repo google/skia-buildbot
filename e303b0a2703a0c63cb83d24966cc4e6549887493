@@ -167,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "e139fb92_9ca984ca",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/FIRESTORE.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2019-10-07T22:27:12Z",
+      "side": 1,
+      "message": "Ok, fair enough. I turned these fields into an array of 4 elements.",
+      "parentUuid": "96e4bfab_c888c04d",
+      "range": {
+        "startLine": 18,
+        "startChar": 3,
+        "endLine": 18,
+        "endChar": 11
+      },
+      "revId": "e303b0a2703a0c63cb83d24966cc4e6549887493",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "66bf82dc_d8412b2e",
         "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/FIRESTORE.md",
         "patchSetId": 4
