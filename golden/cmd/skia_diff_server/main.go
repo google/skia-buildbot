@@ -91,7 +91,7 @@ func main() {
 	mapper := disk_mapper.New(&diff.DiffMetrics{})
 
 	// Build metrics store.
-	mStore, err := bolt_metricsstore.New(*imageDir, mapper)
+	mStore, err := bolt_metricsstore.New(*imageDir)
 	if err != nil {
 		sklog.Fatalf("Could not create metrics store: %s.", err)
 	}

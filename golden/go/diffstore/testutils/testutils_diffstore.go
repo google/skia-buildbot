@@ -39,11 +39,6 @@ var (
 	TEST_PATH_IMG_1 = "gold-testdata/filediffstore-testdata/10552995703607727960.png"
 )
 
-type DummyDiffMetrics struct {
-	NumDiffPixels     int
-	PercentDiffPixels float32
-}
-
 func GetSetupAndTile(t assert.TestingT, baseDir string) (*http.Client, *tiling.Tile) {
 	testDataPath := filepath.Join(baseDir, TEST_DATA_FILE_NAME)
 	assert.NoError(t, gcs_testutils.DownloadTestDataFile(t, TEST_DATA_STORAGE_BUCKET, TEST_DATA_STORAGE_PATH, testDataPath))
