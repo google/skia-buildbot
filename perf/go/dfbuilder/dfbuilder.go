@@ -624,37 +624,63 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 
 	} else {
 		// Since the query isn't empty we'll have to run a partial query
-		// to build the ParamSet.
+		// to build the ParamSet. Do so over the two most recent tiles.
+
+		// Record the OPS for the first tile.
+		opsOne, err := b.store.GetOrderedParamSet(ctx, tileKey)
+		if err != nil {
+			return -1, nil, err
+		}
+		// Count the matches and sum the params in the first tile.
 		out, err := b.store.QueryTracesIDOnlyByIndex(ctx, tileKey, q)
 		if err != nil {
 			return -1, nil, fmt.Errorf("Failed to query traces: %s", err)
 		}
+		var tileOneCount int64
 		for p := range out {
+			tileOneCount++
 			ps.AddParams(p)
 		}
-		// We only start counting when we get to the second to last tile, since
-		// the latest tile might not be fully populated.
+
+		// Now move to the previous tile.
 		tileKey = tileKey.PrevTile()
+
+		// Record the OPS for the second tile.
+		opsTwo, err := b.store.GetOrderedParamSet(ctx, tileKey)
+		if err != nil {
+			return -1, nil, err
+		}
+
+		// Count the matches and sum the params in the second tile.
 		out, err = b.store.QueryTracesIDOnlyByIndex(ctx, tileKey, q)
 		if err != nil {
 			return -1, nil, fmt.Errorf("Failed to query traces: %s", err)
 		}
+		var tileTwoCount int64
 		for p := range out {
-			count++
+			tileTwoCount++
 			ps.AddParams(p)
+		}
+
+		// Use the larger of the two counts as our result.
+		if tileOneCount > tileTwoCount {
+			count = tileOneCount
+		} else {
+			count = tileTwoCount
+		}
+
+		// Use the larger of the two OPSs to work with.
+		var ops *paramtools.OrderedParamSet
+		if opsOne.ParamSet.Size() > opsTwo.ParamSet.Size() {
+			ops = opsOne
+		} else {
+			ops = opsTwo
 		}
 
 		// Now we have the ParamSet that corresponds to the query, but for each
 		// key in the query we need to go back and put in all the values that
 		// appear for that key since the user can make more selections in that
 		// key.
-		//
-		// TODO(jcgregorio) We could skip this step if we fill in the values on
-		// the client which already has a copy of the full ParamSet.
-		ops, err := b.store.GetOrderedParamSet(ctx, tileKey)
-		if err != nil {
-			return -1, nil, err
-		}
 		queryPlan, err := q.QueryPlan(ops)
 		if err != nil {
 			return -1, nil, err
