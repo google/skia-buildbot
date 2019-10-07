@@ -56,7 +56,7 @@ func BenchmarkMemDiffStore(b *testing.B) {
 
 	mapper := disk_mapper.New(&diff.DiffMetrics{})
 	mfs := &diffstore_mocks.FailureStore{}
-	mStore, err := bolt_metricsstore.New(baseDir, mapper)
+	mStore, err := bolt_metricsstore.New(baseDir)
 	assert.NoError(b, err)
 	diffStore, err := NewMemDiffStore(gcsClient, d_utils.TEST_GCS_IMAGE_DIR, 10, mapper, mStore, mfs)
 	assert.NoError(b, err)

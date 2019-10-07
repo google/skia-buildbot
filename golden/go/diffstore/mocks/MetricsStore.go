@@ -3,7 +3,10 @@
 package mocks
 
 import (
+	diff "go.skia.org/infra/golden/go/diff"
+
 	mock "github.com/stretchr/testify/mock"
+
 	types "go.skia.org/infra/golden/go/types"
 )
 
@@ -13,15 +16,15 @@ type MetricsStore struct {
 }
 
 // LoadDiffMetrics provides a mock function with given fields: id
-func (_m *MetricsStore) LoadDiffMetrics(id string) (interface{}, error) {
+func (_m *MetricsStore) LoadDiffMetrics(id string) (*diff.DiffMetrics, error) {
 	ret := _m.Called(id)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(string) interface{}); ok {
+	var r0 *diff.DiffMetrics
+	if rf, ok := ret.Get(0).(func(string) *diff.DiffMetrics); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(*diff.DiffMetrics)
 		}
 	}
 
@@ -50,11 +53,11 @@ func (_m *MetricsStore) PurgeDiffMetrics(digests types.DigestSlice) error {
 }
 
 // SaveDiffMetrics provides a mock function with given fields: id, diffMetrics
-func (_m *MetricsStore) SaveDiffMetrics(id string, diffMetrics interface{}) error {
+func (_m *MetricsStore) SaveDiffMetrics(id string, diffMetrics *diff.DiffMetrics) error {
 	ret := _m.Called(id, diffMetrics)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, interface{}) error); ok {
+	if rf, ok := ret.Get(0).(func(string, *diff.DiffMetrics) error); ok {
 		r0 = rf(id, diffMetrics)
 	} else {
 		r0 = ret.Error(0)

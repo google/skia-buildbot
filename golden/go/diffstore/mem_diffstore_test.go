@@ -79,7 +79,7 @@ func TestMemDiffStore(t *testing.T) {
 	gcsClient := gcsclient.New(storageClient, d_utils.TEST_GCS_BUCKET_NAME)
 
 	m := disk_mapper.New(&diff.DiffMetrics{})
-	mStore, err := bolt_metricsstore.New(baseDir, m)
+	mStore, err := bolt_metricsstore.New(baseDir)
 	assert.NoError(t, err)
 	// MemDiffStore is built with a nil FailureStore as it is not used by this test.
 	diffStore, err := NewMemDiffStore(gcsClient, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mStore, nil)
@@ -214,7 +214,7 @@ func TestFailureHandling(t *testing.T) {
 	mfs.On("UnavailableDigests").Return(map[types.Digest]*diff.DigestFailure{})
 
 	m := disk_mapper.New(&diff.DiffMetrics{})
-	mStore, err := bolt_metricsstore.New(baseDir, m)
+	mStore, err := bolt_metricsstore.New(baseDir)
 	assert.NoError(t, err)
 	diffStore, err := NewMemDiffStore(gcsClient, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mStore, mfs)
 	assert.NoError(t, err)
@@ -257,18 +257,19 @@ func TestCodec(t *testing.T) {
 
 	// Instantiate a new MemDiffStore with a codec for the test struct defined above.
 	// MemDiffStore is built with a nil FailureStore as it is not used by this test.
-	m := disk_mapper.New(&d_utils.DummyDiffMetrics{})
-	mStore, err := bolt_metricsstore.New(baseDir, m)
+	m := disk_mapper.New(&diff.DiffMetrics{})
+	mStore, err := bolt_metricsstore.New(baseDir)
 	assert.NoError(t, err)
 	diffStore, err := NewMemDiffStore(gcsClient, d_utils.TEST_GCS_IMAGE_DIR, 10, m, mStore, nil)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
 	diffID := common.DiffID(types.Digest("abc"), types.Digest("def"))
-	diffMetrics := &d_utils.DummyDiffMetrics{
-		NumDiffPixels:     100,
-		PercentDiffPixels: 0.5,
+	diffMetrics := &diff.DiffMetrics{
+		NumDiffPixels:    100,
+		PixelDiffPercent: 0.5,
 	}
+
 	err = memDiffStore.metricsStore.SaveDiffMetrics(diffID, diffMetrics)
 	assert.NoError(t, err)
 

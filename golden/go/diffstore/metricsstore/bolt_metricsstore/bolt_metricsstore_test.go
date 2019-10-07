@@ -6,8 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/util"
-	d_utils "go.skia.org/infra/golden/go/diffstore/testutils"
+	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -17,7 +16,7 @@ func TestAddGet(t *testing.T) {
 	w, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	ms, err := New(w, util.JSONCodec(d_utils.DummyDiffMetrics{}))
+	ms, err := New(w)
 	assert.NoError(t, err)
 
 	id := "abc-def"
@@ -26,11 +25,10 @@ func TestAddGet(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Nil(t, dm)
 
-	expected := &d_utils.DummyDiffMetrics{
-		NumDiffPixels:     3,
-		PercentDiffPixels: 0.3,
+	expected := &diff.DiffMetrics{
+		NumDiffPixels:    3,
+		PixelDiffPercent: 0.3,
 	}
-
 	assert.NoError(t, ms.SaveDiffMetrics(id, expected))
 
 	dm, err = ms.LoadDiffMetrics(id)
@@ -44,7 +42,7 @@ func TestPurge(t *testing.T) {
 	w, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	ms, err := New(w, util.JSONCodec(d_utils.DummyDiffMetrics{}))
+	ms, err := New(w)
 	assert.NoError(t, err)
 
 	// Purge non-existent digest.
@@ -55,9 +53,9 @@ func TestPurge(t *testing.T) {
 	leftId := types.Digest("abc")
 	rightId := types.Digest("def")
 	diffId := string(leftId + "-" + rightId)
-	expected := &d_utils.DummyDiffMetrics{
-		NumDiffPixels:     3,
-		PercentDiffPixels: 0.3,
+	expected := &diff.DiffMetrics{
+		NumDiffPixels:    3,
+		PixelDiffPercent: 0.3,
 	}
 	assert.NoError(t, ms.SaveDiffMetrics(diffId, expected))
 
