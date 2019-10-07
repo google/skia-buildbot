@@ -70,6 +70,30 @@
       "revId": "f9fa4009afa090b9274c6e9e3f5461c370986b49",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5832aa7f_daabc74c",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-07T16:13:45Z",
+      "side": 1,
+      "message": "Oh, sorry. For task drivers, these values are passed as command-line flags, which are inherently strings. IMO, using \"0\" to mean an empty issue or patchset is ugly, confusing, and prevents treating it as a string in the target executable (e.g. here: https://skia.googlesource.com/buildbot/+/1e642a76e2a74d49833fc5959f117ff76fff5089/task_driver/go/lib/checkout/checkout.go#60).",
+      "parentUuid": "f9419abd_74932a9e",
+      "range": {
+        "startLine": 47,
+        "startChar": 15,
+        "endLine": 47,
+        "endChar": 19
+      },
+      "revId": "f9fa4009afa090b9274c6e9e3f5461c370986b49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
