@@ -146,7 +146,7 @@ func (s *StoreImpl) GetTryJobs(ctx context.Context, psID tjstore.CombinedPSID) (
 
 	var xtj []ci.TryJob
 
-	err := s.client.IterDocs("GetTryJobs", psID.Key(), q, maxReadAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+	err := s.client.IterDocs(ctx, "GetTryJobs", psID.Key(), q, maxReadAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
@@ -186,7 +186,7 @@ func (s *StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID) (
 	// We will first add keys to this map, then go fetch the actual params
 	shardParams := make([]util.StringSet, resultShards)
 
-	err := s.client.IterDocsInParallel("GetResults", psID.Key(), queries, maxReadAttempts, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
+	err := s.client.IterDocsInParallel(ctx, "GetResults", psID.Key(), queries, maxReadAttempts, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
@@ -287,7 +287,7 @@ func (s *StoreImpl) PutTryJob(ctx context.Context, psID tjstore.CombinedPSID, tj
 		DisplayName:  tj.DisplayName,
 		Updated:      tj.Updated,
 	}
-	_, err := s.client.Set(cd, record, maxWriteAttempts, maxOperationTime)
+	_, err := s.client.Set(ctx, cd, record, maxWriteAttempts, maxOperationTime)
 	if err != nil {
 		return skerr.Wrapf(err, "could not write TryJob %v to tjstore", tj)
 	}

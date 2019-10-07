@@ -3,6 +3,7 @@
 package fs_ingestionstore
 
 import (
+	context2 "context"
 	"time"
 
 	"go.skia.org/infra/go/metrics2"
@@ -58,7 +59,7 @@ func (s *Store) SetResultFileHash(fileName, md5 string) error {
 	record := ingestedEntry{
 		FileHash: combine(fileName, md5),
 	}
-	_, err := s.client.Set(ir, record, maxAttempts, maxDuration)
+	_, err := s.client.Set(context2.TODO(), ir, record, maxAttempts, maxDuration)
 	if err != nil {
 		return skerr.Wrapf(err, "writing %s:%s to ingestionstore", fileName, md5)
 	}
@@ -71,7 +72,7 @@ func (s *Store) ContainsResultFileHash(fileName, md5 string) (bool, error) {
 	c := combine(fileName, md5)
 	q := s.client.Collection(ingestionCollection).Where(fileHashField, "==", c).Limit(1)
 	found := false
-	err := s.client.IterDocs("contains", c, q, maxAttempts, maxDuration, func(doc *firestore.DocumentSnapshot) error {
+	err := s.client.IterDocs(context2.TODO(), "contains", c, q, maxAttempts, maxDuration, func(doc *firestore.DocumentSnapshot) error {
 		if doc != nil {
 			found = true
 		}
