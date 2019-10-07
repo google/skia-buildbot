@@ -27,7 +27,7 @@
     "HASHES_FILE":             "gold-prod-hashes.txt",
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
     "MAIN_CPU":                "20",
-    "MAIN_MEMORY":             "150Gi",
+    "MAIN_MEMORY":             "80Gi",
     "SKCORR_DEFAULT_CORPUS":   "gm",
     "SKCORR_DIFF_SERVER":      "gold-skia-diffserver",
     "SKCORR_TITLE":            "Public Skia Gold",
