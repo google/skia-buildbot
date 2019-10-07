@@ -351,8 +351,14 @@ func (f *Store) AddChange(ctx context.Context, newExp types.Expectations, userID
 		return ReadOnlyErr
 	}
 	// Create the entries that we want to write (using the previous values)
-	now := time.Now()
-	entries, changes := f.flatten(now, newExp)
+	now, entries, changes := func() (time.Time, []expectationEntry, []triageChanges) {
+		// flatten reads from the cached expectation values, so make sure we have the mutex.
+		f.cacheMutex.RLock()
+		defer f.cacheMutex.RUnlock()
+		now := time.Now()
+		entries, changes := f.flatten(now, newExp)
+		return now, entries, changes
+	}()
 
 	// Nothing to add
 	if len(entries) == 0 {
