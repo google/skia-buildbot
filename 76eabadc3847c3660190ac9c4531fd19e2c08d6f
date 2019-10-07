@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd41ce87_b0cb4797",
+        "filename": "golden/go/diffstore/metricsstore/bolt_metricsstore/bolt_metricsstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T19:06:58Z",
+      "side": 1,
+      "message": "If the idea is to make MetricsStore take a concrete type instead of interface{}, should we start with this test - using the real DiffMetric?",
+      "range": {
+        "startLine": 47,
+        "startChar": 42,
+        "endLine": 47,
+        "endChar": 58
+      },
+      "revId": "76eabadc3847c3660190ac9c4531fd19e2c08d6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "567de28c_1215e245",
+        "filename": "golden/go/diffstore/metricsstore/bolt_metricsstore/bolt_metricsstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T19:06:58Z",
+      "side": 1,
+      "message": "I think go is smart enough to know that an untyped string here is a types.Digest",
+      "range": {
+        "startLine": 51,
+        "startChar": 45,
+        "endLine": 51,
+        "endChar": 57
+      },
+      "revId": "76eabadc3847c3660190ac9c4531fd19e2c08d6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea423f98_5329027c",
+        "filename": "golden/go/diffstore/metricsstore/bolt_metricsstore/bolt_metricsstore_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T19:06:58Z",
+      "side": 1,
+      "message": "(i.e. holding it wrong?)",
+      "range": {
+        "startLine": 64,
+        "startChar": 4,
+        "endLine": 64,
+        "endChar": 34
+      },
+      "revId": "76eabadc3847c3660190ac9c4531fd19e2c08d6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
