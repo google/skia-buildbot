@@ -34,6 +34,24 @@
       "revId": "5c93e3755b328b1f2a79385e520518a3b4291e88",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ab33f950_547a9c39",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-07T20:25:49Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "521b2e7a_99844f7f",
+      "revId": "5c93e3755b328b1f2a79385e520518a3b4291e88",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
