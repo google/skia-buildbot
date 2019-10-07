@@ -88,7 +88,7 @@ def RunSteps(api):
       api.step('go install %s' % target, cmd=['go', 'install', '-v', target])
 
   # More prerequisites.
-  builder = api.properties['buildername']
+  builder = api.properties['sk_buildername']
   with api.context(cwd=infra_dir, env=env):
     if 'Race' not in builder:
       api.step(
@@ -139,44 +139,44 @@ def GenTests(api):
   test_revision = 'abc123'
   yield (
       api.test('Infra-PerCommit') +
-      api.properties(buildername='Infra-PerCommit-Small',
+      api.properties(sk_buildername='Infra-PerCommit-Small',
                      path_config='kitchen') +
       api.step_data('go mod download', retcode=1)
   )
   yield (
       api.test('Infra-PerCommit_initialcheckout') +
-      api.properties(buildername='Infra-PerCommit-Small',
+      api.properties(sk_buildername='Infra-PerCommit-Small',
                      path_config='kitchen')
   )
   yield (
       api.test('Infra-PerCommit_try_gerrit') +
-      api.properties(buildername='Infra-PerCommit-Small',
-                     revision=test_revision,
-                     patch_issue='1234',
-                     patch_ref='refs/changes/34/1234/1',
-                     patch_repo='https://skia.googlesource.com/buildbot.git',
-                     patch_set='1',
-                     patch_storage='gerrit',
+      api.properties(sk_buildername='Infra-PerCommit-Small',
+                     sk_revision=test_revision,
+                     sk_patch_issue='1234',
+                     sk_patch_ref='refs/changes/34/1234/1',
+                     sk_patch_repo='https://skia.googlesource.com/buildbot.git',
+                     sk_patch_set='1',
+                     sk_patch_storage='gerrit',
                      path_config='kitchen',
-                     repository='https://skia.googlesource.com/buildbot.git')
+                     sk_repository='https://skia.googlesource.com/buildbot.git')
   )
   yield (
       api.test('Infra-PerCommit-Build') +
-      api.properties(buildername='Infra-PerCommit-Build',
+      api.properties(sk_buildername='Infra-PerCommit-Build',
                      path_config='kitchen')
   )
   yield (
       api.test('Infra-PerCommit-Large') +
-      api.properties(buildername='Infra-PerCommit-Large',
+      api.properties(sk_buildername='Infra-PerCommit-Large',
                      path_config='kitchen')
   )
   yield (
       api.test('Infra-PerCommit-Medium') +
-      api.properties(buildername='Infra-PerCommit-Medium',
+      api.properties(sk_buildername='Infra-PerCommit-Medium',
                      path_config='kitchen')
   )
   yield (
       api.test('Infra-PerCommit-Race') +
-      api.properties(buildername='Infra-PerCommit-Race',
+      api.properties(sk_buildername='Infra-PerCommit-Race',
                      path_config='kitchen')
   )

@@ -137,15 +137,15 @@ var (
 	// bot_update, but they prevent de-duplication, so they should only be
 	// used where necessary.
 	EXTRA_PROPS = map[string]string{
-		"buildbucket_build_id": specs.PLACEHOLDER_BUILDBUCKET_BUILD_ID,
-		"patch_issue":          specs.PLACEHOLDER_ISSUE,
-		"patch_ref":            specs.PLACEHOLDER_PATCH_REF,
-		"patch_repo":           specs.PLACEHOLDER_PATCH_REPO,
-		"patch_set":            specs.PLACEHOLDER_PATCHSET,
-		"patch_storage":        specs.PLACEHOLDER_PATCH_STORAGE,
-		"repository":           specs.PLACEHOLDER_REPO,
-		"revision":             specs.PLACEHOLDER_REVISION,
-		"task_id":              specs.PLACEHOLDER_TASK_ID,
+		"sk_buildbucket_build_id": specs.PLACEHOLDER_BUILDBUCKET_BUILD_ID,
+		"sk_patch_issue":          specs.PLACEHOLDER_ISSUE,
+		"sk_patch_ref":            specs.PLACEHOLDER_PATCH_REF,
+		"sk_patch_repo":           specs.PLACEHOLDER_PATCH_REPO,
+		"sk_patch_set":            specs.PLACEHOLDER_PATCHSET,
+		"sk_patch_storage":        specs.PLACEHOLDER_PATCH_STORAGE,
+		"sk_repository":           specs.PLACEHOLDER_REPO,
+		"sk_revision":             specs.PLACEHOLDER_REVISION,
+		"sk_task_id":              specs.PLACEHOLDER_TASK_ID,
 	}
 )
 
@@ -269,8 +269,8 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []string, extraProps map[string]string, outputDir string) *specs.TaskSpec {
 	cipd := append([]*specs.CipdPackage{}, CIPD_PKGS_KITCHEN...)
 	properties := map[string]string{
-		"buildername":   name,
-		"swarm_out_dir": specs.PLACEHOLDER_ISOLATED_OUTDIR,
+		"sk_buildername":   name,
+		"sk_swarm_out_dir": specs.PLACEHOLDER_ISOLATED_OUTDIR,
 	}
 	for k, v := range extraProps {
 		properties[k] = v

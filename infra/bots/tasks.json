@@ -199,7 +199,7 @@
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
         "run_presubmit",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildbucket_build_id\":\"<(BUILDBUCKET_BUILD_ID)\",\"buildername\":\"Housekeeper-OnDemand-Presubmit\",\"category\":\"cq\",\"patch_gerrit_url\":\"https://skia-review.googlesource.com\",\"patch_issue\":\"<(ISSUE)\",\"patch_project\":\"buildbot\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"reason\":\"CQ\",\"repo_name\":\"skia_buildbot\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\",\"task_id\":\"<(TASK_ID)\"}",
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"category\":\"cq\",\"patch_gerrit_url\":\"https://skia-review.googlesource.com\",\"patch_project\":\"buildbot\",\"patch_ref\":\"refs/changes/<(ISSUE_SHORT)/<(ISSUE)/<(PATCHSET)\",\"reason\":\"CQ\",\"repo_name\":\"skia_buildbot\",\"sk_buildbucket_build_id\":\"<(BUILDBUCKET_BUILD_ID)\",\"sk_buildername\":\"Housekeeper-OnDemand-Presubmit\",\"sk_patch_issue\":\"<(ISSUE)\",\"sk_patch_ref\":\"<(PATCH_REF)\",\"sk_patch_repo\":\"<(PATCH_REPO)\",\"sk_patch_set\":\"<(PATCHSET)\",\"sk_patch_storage\":\"<(PATCH_STORAGE)\",\"sk_repository\":\"<(REPO)\",\"sk_revision\":\"<(REVISION)\",\"sk_swarm_out_dir\":\"${ISOLATED_OUTDIR}\",\"sk_task_id\":\"<(TASK_ID)\"}",
         "skia"
       ],
       "dimensions": [
@@ -639,7 +639,7 @@
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
         "swarm_infra",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Build\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"sk_buildername\":\"Infra-PerCommit-Build\",\"sk_swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
         "skia"
       ],
       "dependencies": [
@@ -751,7 +751,7 @@
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
         "swarm_infra",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Large\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"sk_buildername\":\"Infra-PerCommit-Large\",\"sk_swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
         "skia"
       ],
       "dependencies": [
@@ -853,7 +853,7 @@
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
         "swarm_infra",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Medium\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"sk_buildername\":\"Infra-PerCommit-Medium\",\"sk_swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
         "skia"
       ],
       "dependencies": [
@@ -960,7 +960,7 @@
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
         "swarm_infra",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Race\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"sk_buildername\":\"Infra-PerCommit-Race\",\"sk_swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
         "skia"
       ],
       "dependencies": [
@@ -1063,7 +1063,7 @@
         "buildbot/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
         "swarm_infra",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Small\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"sk_buildername\":\"Infra-PerCommit-Small\",\"sk_swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
         "skia"
       ],
       "dependencies": [
