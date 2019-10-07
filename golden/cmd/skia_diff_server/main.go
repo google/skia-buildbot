@@ -11,6 +11,7 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skiaversion"
@@ -19,7 +20,7 @@ import (
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/diffstore/failurestore/bolt_failurestore"
 	"go.skia.org/infra/golden/go/diffstore/mapper/disk_mapper"
-	"go.skia.org/infra/golden/go/diffstore/metricsstore/bolt_metricsstore"
+	"go.skia.org/infra/golden/go/diffstore/metricsstore/bolt_and_fs_metricsstore"
 	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
 	"google.golang.org/grpc"
@@ -28,6 +29,8 @@ import (
 // Command line flags.
 var (
 	cacheSize    = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
+	fsNamespace  = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
+	fsProjectID  = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
 	gsBucketName = flag.String("gs_bucket", "", "[required] Name of the Google Storage bucket that holds the uploaded images.")
 	gsBaseDir    = flag.String("gs_basedir", diffstore.DEFAULT_GCS_IMG_DIR_NAME, "String that represents the google storage directory/directories following the GS bucket")
 	imageDir     = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
@@ -90,8 +93,16 @@ func main() {
 	// Get the DiffStore that does the work loading and diffing images.
 	mapper := disk_mapper.New(&diff.DiffMetrics{})
 
+	// Auth note: the underlying firestore.NewClient looks at the GOOGLE_APPLICATION_CREDENTIALS env
+	// variable, so we don't need to supply a token source.
+	fsClient, err := firestore.NewClient(context.Background(), *fsProjectID, "gold", *fsNamespace, nil)
+	if err != nil {
+		sklog.Fatalf("Unable to configure Firestore: %s", err)
+	}
+
 	// Build metrics store.
-	mStore, err := bolt_metricsstore.New(*imageDir)
+	// TODO(lovisolo): Replace with fs_metricsstore once we're confident enough that it works.
+	mStore, err := bolt_and_fs_metricsstore.New(*imageDir, fsClient)
 	if err != nil {
 		sklog.Fatalf("Could not create metrics store: %s.", err)
 	}
