@@ -394,7 +394,7 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 	diffMetrics := d.mapper.DiffFn(leftImg, rightImg)
 
 	// Save the diffMetrics.
-	d.saveDiffMetricsAsync(id, leftDigest, rightDigest, diffMetrics.(*diff.DiffMetrics))
+	d.saveDiffMetricsAsync(id, leftDigest, rightDigest, diffMetrics)
 	return diffMetrics, nil
 }
 
