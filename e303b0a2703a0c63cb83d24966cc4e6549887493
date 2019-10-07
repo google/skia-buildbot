@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "96e4bfab_c888c04d",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/FIRESTORE.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T21:32:36Z",
+      "side": 1,
+      "message": "In golang, arrays have their lengths baked into them (so we could have an array[4] for RGBA) [slices are variable length].\n\nI had a TODO in DiffMetrics to change that slice to an array, actually, so maybe it makes sense to change it here too.\n\nEach field gets indexing, which does add to cost in storage. If we don\u0027t need them indexed, it\u0027s easier to add one exception instead of 4. I\u0027m leaning towards array, but I\u0027ll let you make the final call.",
+      "parentUuid": "6485e711_c019c04c",
+      "range": {
+        "startLine": 18,
+        "startChar": 3,
+        "endLine": 18,
+        "endChar": 11
+      },
+      "revId": "e303b0a2703a0c63cb83d24966cc4e6549887493",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "66bf82dc_d8412b2e",
         "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/FIRESTORE.md",
         "patchSetId": 4
