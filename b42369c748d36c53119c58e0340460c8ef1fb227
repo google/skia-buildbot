@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "40c29e2a_ff5ec9af",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-07T14:32:35Z",
+      "side": 1,
+      "message": "nit: Why not put the mutex lock in flatten?",
+      "revId": "b42369c748d36c53119c58e0340460c8ef1fb227",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c844ed2e_deaa3ad0",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 359,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-07T14:32:35Z",
+      "side": 1,
+      "message": "ISTM that https://skia-review.googlesource.com/c/buildbot/+/246519 introduced a race condition where if two users triage a digest in different ways at about the same time, the LabelBefore will be wrong for one.",
+      "range": {
+        "startLine": 359,
+        "startChar": 11,
+        "endLine": 359,
+        "endChar": 18
+      },
+      "revId": "b42369c748d36c53119c58e0340460c8ef1fb227",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
