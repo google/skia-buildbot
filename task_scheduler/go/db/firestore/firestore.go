@@ -124,5 +124,5 @@ func (d *firestoreDB) dateRangeHelper(name string, baseQuery fs.Query, start, en
 	init(len(queries))
 
 	// Run the queries.
-	return d.client.IterDocsInParallel(name, fmt.Sprintf("%s - %s", start, end), queries, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, elem)
+	return d.client.IterDocsInParallel(context.TODO(), name, fmt.Sprintf("%s - %s", start, end), queries, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, elem)
 }

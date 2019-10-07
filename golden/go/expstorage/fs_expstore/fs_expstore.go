@@ -317,7 +317,7 @@ func (f *Store) getExpectationsForCL() (types.Expectations, error) {
 	queries := fs_utils.ShardQueryOnDigest(q, digestField, clShards)
 
 	maxRetries := 3
-	err := f.client.IterDocsInParallel("loadExpectations", f.crsAndCLID, queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
+	err := f.client.IterDocsInParallel(context.TODO(), "loadExpectations", f.crsAndCLID, queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
@@ -420,7 +420,7 @@ func (f *Store) AddChange(ctx context.Context, newExp types.Expectations, userID
 	update := map[string]interface{}{
 		committedField: true,
 	}
-	_, err = f.client.Set(tr, update, 10, maxOperationTime, firestore.MergeAll)
+	_, err = f.client.Set(ctx, tr, update, 10, maxOperationTime, firestore.MergeAll)
 	return err
 }
 
@@ -467,7 +467,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 	q = q.Where(crsCLIDField, "==", f.crsAndCLID).Where(committedField, "==", true)
 	var rv []expstorage.TriageLogEntry
 	d := fmt.Sprintf("offset: %d, size %d", offset, size)
-	err := f.client.IterDocs("query_log", d, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+	err := f.client.IterDocs(ctx, "query_log", d, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
@@ -502,7 +502,7 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 	}
 
 	// Then fire them all off in parallel.
-	err = f.client.IterDocsInParallel("query_log_details", d, qs, 3, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
+	err = f.client.IterDocsInParallel(ctx, "query_log_details", d, qs, 3, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
@@ -533,14 +533,14 @@ func (f *Store) UndoChange(ctx context.Context, changeID, userID string) (types.
 	}
 	// Verify the original change id exists.
 	dr := f.client.Collection(triageRecordsCollection).Doc(changeID)
-	doc, err := f.client.Get(dr, 3, maxOperationTime)
+	doc, err := f.client.Get(ctx, dr, 3, maxOperationTime)
 	if err != nil || !doc.Exists() {
 		return nil, skerr.Wrapf(err, "could not find change to undo with id %s", changeID)
 	}
 
 	q := f.client.Collection(triageChangesCollection).Where(recordIDField, "==", changeID)
 	delta := types.Expectations{}
-	err = f.client.IterDocs("undo_query", changeID, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+	err = f.client.IterDocs(ctx, "undo_query", changeID, q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}

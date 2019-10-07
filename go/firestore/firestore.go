@@ -351,8 +351,8 @@ func (c *Client) Doc(path string) *firestore.DocumentRef {
 }
 
 // withTimeout runs the given function with the given timeout.
-func withTimeout(timeout time.Duration, fn func(context.Context) error) error {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+func withTimeout(ctx context.Context, timeout time.Duration, fn func(context.Context) error) error {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	return fn(ctx)
 }
@@ -360,10 +360,10 @@ func withTimeout(timeout time.Duration, fn func(context.Context) error) error {
 // withTimeoutAndRetries runs the given function with the given timeout and a
 // maximum of the given number of attempts. The timeout is applied for each
 // attempt.
-func (c *Client) withTimeoutAndRetries(attempts int, timeout time.Duration, fn func(context.Context) error) error {
+func (c *Client) withTimeoutAndRetries(ctx context.Context, attempts int, timeout time.Duration, fn func(context.Context) error) error {
 	var err error
 	for i := 0; i < attempts; i++ {
-		err = withTimeout(timeout, fn)
+		err = withTimeout(ctx, timeout, fn)
 		unwrapped := skerr.Unwrap(err)
 		if err == nil {
 			return nil
@@ -397,10 +397,10 @@ func (c *Client) withTimeoutAndRetries(attempts int, timeout time.Duration, fn f
 // Get retrieves the given document, using the given timeout and maximum number
 // of attempts. Returns (nil, nil) if the document does not exist. Uses the
 // given maximum number of attempts and the given per-attempt timeout.
-func (c *Client) Get(ref *firestore.DocumentRef, attempts int, timeout time.Duration) (*firestore.DocumentSnapshot, error) {
+func (c *Client) Get(ctx context.Context, ref *firestore.DocumentRef, attempts int, timeout time.Duration) (*firestore.DocumentSnapshot, error) {
 	defer c.recordOp("Get", ref.Path)()
 	var doc *firestore.DocumentSnapshot
-	err := c.withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {
+	err := c.withTimeoutAndRetries(ctx, attempts, timeout, func(ctx context.Context) error {
 		c.CountReadQueryAndRows(ref.Path, 1)
 		got, err := ref.Get(ctx)
 		if err == nil {
@@ -412,12 +412,12 @@ func (c *Client) Get(ref *firestore.DocumentRef, attempts int, timeout time.Dura
 }
 
 // iterDocsInner is a helper function used by IterDocs which facilitates testing.
-func (c *Client) iterDocsInner(query firestore.Query, attempts int, timeout time.Duration, callback func(*firestore.DocumentSnapshot) error, ranTooLong func(time.Time) bool) (int, error) {
+func (c *Client) iterDocsInner(ctx context.Context, query firestore.Query, attempts int, timeout time.Duration, callback func(*firestore.DocumentSnapshot) error, ranTooLong func(time.Time) bool) (int, error) {
 	numRestarts := 0
 	var lastSeen *firestore.DocumentSnapshot
 	for {
 		started := time.Now()
-		err := c.withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {
+		err := c.withTimeoutAndRetries(ctx, attempts, timeout, func(ctx context.Context) error {
 			q := query
 			if lastSeen != nil {
 				q = q.StartAfter(lastSeen)
@@ -468,9 +468,9 @@ func (c *Client) iterDocsInner(query firestore.Query, attempts int, timeout time
 // where it left off. This is to avoid server-side timeouts resulting from
 // iterating a large number of results. Note that this behavior may result in
 // individual results coming from inconsistent snapshots.
-func (c *Client) IterDocs(name, detail string, query firestore.Query, attempts int, timeout time.Duration, callback func(*firestore.DocumentSnapshot) error) error {
+func (c *Client) IterDocs(ctx context.Context, name, detail string, query firestore.Query, attempts int, timeout time.Duration, callback func(*firestore.DocumentSnapshot) error) error {
 	defer c.recordOp(name, detail)()
-	_, err := c.iterDocsInner(query, attempts, timeout, callback, func(started time.Time) bool {
+	_, err := c.iterDocsInner(ctx, query, attempts, timeout, callback, func(started time.Time) bool {
 		return time.Now().Sub(started) > MAX_ITER_TIME
 	})
 	return err
@@ -485,14 +485,14 @@ func (c *Client) IterDocs(name, detail string, query firestore.Query, attempts i
 // server-side timeouts resulting from iterating a large number of results. Note
 // that this behavior may result in individual results coming from inconsistent
 // snapshots.
-func (c *Client) IterDocsInParallel(name, detail string, queries []firestore.Query, attempts int, timeout time.Duration, callback func(int, *firestore.DocumentSnapshot) error) error {
+func (c *Client) IterDocsInParallel(ctx context.Context, name, detail string, queries []firestore.Query, attempts int, timeout time.Duration, callback func(int, *firestore.DocumentSnapshot) error) error {
 	var wg sync.WaitGroup
 	errs := make([]error, len(queries))
 	for idx, query := range queries {
 		wg.Add(1)
 		go func(idx int, query firestore.Query) {
 			defer wg.Done()
-			errs[idx] = c.IterDocs(name, fmt.Sprintf("%s (shard %d)", detail, idx), query, attempts, timeout, func(doc *firestore.DocumentSnapshot) error {
+			errs[idx] = c.IterDocs(ctx, name, fmt.Sprintf("%s (shard %d)", detail, idx), query, attempts, timeout, func(doc *firestore.DocumentSnapshot) error {
 				return callback(idx, doc)
 			})
 		}(idx, query)
@@ -508,19 +508,19 @@ func (c *Client) IterDocsInParallel(name, detail string, queries []firestore.Que
 
 // RunTransaction runs the given function in a transaction. Uses the given
 // maximum number of attempts and the given per-attempt timeout.
-func (c *Client) RunTransaction(name, detail string, attempts int, timeout time.Duration, fn func(context.Context, *firestore.Transaction) error) error {
+func (c *Client) RunTransaction(ctx context.Context, name, detail string, attempts int, timeout time.Duration, fn func(context.Context, *firestore.Transaction) error) error {
 	defer c.recordOp(name, detail)()
-	return c.withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {
+	return c.withTimeoutAndRetries(ctx, attempts, timeout, func(ctx context.Context) error {
 		return c.Client.RunTransaction(ctx, fn)
 	})
 }
 
 // See documentation for firestore.DocumentRef.Create(). Uses the given maximum
 // number of attempts and the given per-attempt timeout.
-func (c *Client) Create(ref *firestore.DocumentRef, data interface{}, attempts int, timeout time.Duration) (*firestore.WriteResult, error) {
+func (c *Client) Create(ctx context.Context, ref *firestore.DocumentRef, data interface{}, attempts int, timeout time.Duration) (*firestore.WriteResult, error) {
 	defer c.recordOp("Create", ref.Path)()
 	var wr *firestore.WriteResult
-	err := c.withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {
+	err := c.withTimeoutAndRetries(ctx, attempts, timeout, func(ctx context.Context) error {
 		c.CountWriteQueryAndRows(ref.Path, 1)
 		var err error
 		wr, err = ref.Create(ctx, data)
@@ -531,10 +531,10 @@ func (c *Client) Create(ref *firestore.DocumentRef, data interface{}, attempts i
 
 // See documentation for firestore.DocumentRef.Set(). Uses the given maximum
 // number of attempts and the given per-attempt timeout.
-func (c *Client) Set(ref *firestore.DocumentRef, data interface{}, attempts int, timeout time.Duration, opts ...firestore.SetOption) (*firestore.WriteResult, error) {
+func (c *Client) Set(ctx context.Context, ref *firestore.DocumentRef, data interface{}, attempts int, timeout time.Duration, opts ...firestore.SetOption) (*firestore.WriteResult, error) {
 	defer c.recordOp("Set", ref.Path)()
 	var wr *firestore.WriteResult
-	err := c.withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {
+	err := c.withTimeoutAndRetries(ctx, attempts, timeout, func(ctx context.Context) error {
 		c.CountWriteQueryAndRows(ref.Path, 1)
 		var err error
 		wr, err = ref.Set(ctx, data, opts...)
@@ -545,10 +545,10 @@ func (c *Client) Set(ref *firestore.DocumentRef, data interface{}, attempts int,
 
 // See documentation for firestore.DocumentRef.Update(). Uses the given maximum
 // number of attempts and the given per-attempt timeout.
-func (c *Client) Update(ref *firestore.DocumentRef, attempts int, timeout time.Duration, updates []firestore.Update, preconds ...firestore.Precondition) (*firestore.WriteResult, error) {
+func (c *Client) Update(ctx context.Context, ref *firestore.DocumentRef, attempts int, timeout time.Duration, updates []firestore.Update, preconds ...firestore.Precondition) (*firestore.WriteResult, error) {
 	defer c.recordOp("Update", ref.Path)()
 	var wr *firestore.WriteResult
-	err := c.withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {
+	err := c.withTimeoutAndRetries(ctx, attempts, timeout, func(ctx context.Context) error {
 		c.CountWriteQueryAndRows(ref.Path, 1)
 		var err error
 		wr, err = ref.Update(ctx, updates, preconds...)
@@ -559,10 +559,10 @@ func (c *Client) Update(ref *firestore.DocumentRef, attempts int, timeout time.D
 
 // See documentation for firestore.DocumentRef.Delete(). Uses the given maximum
 // number of attempts and the given per-attempt timeout.
-func (c *Client) Delete(ref *firestore.DocumentRef, attempts int, timeout time.Duration, preconds ...firestore.Precondition) (*firestore.WriteResult, error) {
+func (c *Client) Delete(ctx context.Context, ref *firestore.DocumentRef, attempts int, timeout time.Duration, preconds ...firestore.Precondition) (*firestore.WriteResult, error) {
 	defer c.recordOp("Delete", ref.Path)()
 	var wr *firestore.WriteResult
-	err := c.withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {
+	err := c.withTimeoutAndRetries(ctx, attempts, timeout, func(ctx context.Context) error {
 		c.CountWriteQueryAndRows(ref.Path, 1)
 		var err error
 		wr, err = ref.Delete(ctx, preconds...)
@@ -576,18 +576,18 @@ func (c *Client) Delete(ref *firestore.DocumentRef, attempts int, timeout time.D
 // documents. The func is run for leaf documents before their parents. This
 // function does nothing to account for documents which may be added or modified
 // while it is running.
-func (c *Client) RecurseDocs(name string, ref *firestore.DocumentRef, attempts int, timeout time.Duration, fn func(*firestore.DocumentRef) error) error {
+func (c *Client) RecurseDocs(ctx context.Context, name string, ref *firestore.DocumentRef, attempts int, timeout time.Duration, fn func(*firestore.DocumentRef) error) error {
 	defer c.recordOp(name, ref.Path)()
-	return c.recurseDocs(ref, attempts, timeout, fn)
+	return c.recurseDocs(ctx, ref, attempts, timeout, fn)
 }
 
 // recurseDocs is a recursive helper function used by RecurseDocs.
-func (c *Client) recurseDocs(ref *firestore.DocumentRef, attempts int, timeout time.Duration, fn func(*firestore.DocumentRef) error) error {
+func (c *Client) recurseDocs(ctx context.Context, ref *firestore.DocumentRef, attempts int, timeout time.Duration, fn func(*firestore.DocumentRef) error) error {
 	// The Firestore emulator does not correctly handle subcollection queries.
 	EnsureNotEmulator()
 	// TODO(borenet): Should we pause and resume like we do in IterDocs?
 	colls := map[string]*firestore.CollectionRef{}
-	if err := c.withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {
+	if err := c.withTimeoutAndRetries(ctx, attempts, timeout, func(ctx context.Context) error {
 		c.CountReadQuery(ref.Path)
 		it := ref.Collections(ctx)
 		for {
@@ -605,7 +605,7 @@ func (c *Client) recurseDocs(ref *firestore.DocumentRef, attempts int, timeout t
 		return err
 	}
 	for _, coll := range colls {
-		if err := c.withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {
+		if err := c.withTimeoutAndRetries(ctx, attempts, timeout, func(ctx context.Context) error {
 			c.CountReadQuery(ref.Path)
 			it := coll.DocumentRefs(ctx)
 			for {
@@ -616,7 +616,7 @@ func (c *Client) recurseDocs(ref *firestore.DocumentRef, attempts int, timeout t
 					return err
 				}
 				c.CountReadRows(ref.Path, 1)
-				if err := c.recurseDocs(doc, attempts, timeout, fn); err != nil {
+				if err := c.recurseDocs(ctx, doc, attempts, timeout, fn); err != nil {
 					return err
 				}
 			}
@@ -632,9 +632,9 @@ func (c *Client) recurseDocs(ref *firestore.DocumentRef, attempts int, timeout t
 // descendant of the given Document. This includes missing documents, ie. those
 // which do not exist but have sub-documents. This function does nothing to
 // account for documents which may be added or modified while it is running.
-func (c *Client) GetAllDescendantDocuments(ref *firestore.DocumentRef, attempts int, timeout time.Duration) ([]*firestore.DocumentRef, error) {
+func (c *Client) GetAllDescendantDocuments(ctx context.Context, ref *firestore.DocumentRef, attempts int, timeout time.Duration) ([]*firestore.DocumentRef, error) {
 	rv := []*firestore.DocumentRef{}
-	if err := c.RecurseDocs("GetAllDescendantDocuments", ref, attempts, timeout, func(doc *firestore.DocumentRef) error {
+	if err := c.RecurseDocs(ctx, "GetAllDescendantDocuments", ref, attempts, timeout, func(doc *firestore.DocumentRef) error {
 		// Don't include the passed-in doc.
 		if doc.Path != ref.Path {
 			rv = append(rv, doc)
@@ -652,10 +652,10 @@ func (c *Client) GetAllDescendantDocuments(ref *firestore.DocumentRef, attempts 
 // per-attempt timeout apply for each delete operation, as opposed to the whole
 // series of operations. This function does nothing to account for documents
 // which may be added or modified while it is running.
-func (c *Client) RecursiveDelete(ref *firestore.DocumentRef, attempts int, timeout time.Duration) error {
-	return c.RecurseDocs("RecursiveDelete", ref, attempts, timeout, func(ref *firestore.DocumentRef) error {
+func (c *Client) RecursiveDelete(ctx context.Context, ref *firestore.DocumentRef, attempts int, timeout time.Duration) error {
+	return c.RecurseDocs(ctx, "RecursiveDelete", ref, attempts, timeout, func(ref *firestore.DocumentRef) error {
 		c.CountWriteQueryAndRows(ref.Path, 1)
-		_, err := c.Delete(ref, attempts, timeout)
+		_, err := c.Delete(ctx, ref, attempts, timeout)
 		return err
 	})
 }

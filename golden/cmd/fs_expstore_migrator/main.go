@@ -87,7 +87,7 @@ func (f *v1Impl) loadV1ExpectationsSharded() (types.Expectations, error) {
 	es := make([]types.Expectations, v1Shards)
 	queries := fs_utils.ShardQueryOnDigest(q, digestField, v1Shards)
 
-	err := f.client.IterDocsInParallel("loadExpectations", strconv.FormatInt(issue, 10), queries, v1MaxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
+	err := f.client.IterDocsInParallel(context.Background(), "loadExpectations", strconv.FormatInt(issue, 10), queries, v1MaxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}

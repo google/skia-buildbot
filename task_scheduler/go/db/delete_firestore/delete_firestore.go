@@ -40,7 +40,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 	if keepGoing {
-		if err := c.RecursiveDelete(ref, 3, 60*time.Minute); err != nil {
+		if err := c.RecursiveDelete(context.Background(), ref, 3, 60*time.Minute); err != nil {
 			sklog.Fatal(err)
 		}
 	}
