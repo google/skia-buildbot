@@ -1,29 +1,30 @@
-package types
+package expectations
 
 import (
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/golden/go/types"
 )
 
 func TestExpString(t *testing.T) {
 	unittest.SmallTest(t)
 
 	te := Expectations{
-		"beta": map[Digest]Label{
+		"beta": map[types.Digest]Label{
 			"hash1": POSITIVE,
 			"hash3": NEGATIVE,
 			"hash2": UNTRIAGED,
 		},
-		"alpha": map[Digest]Label{
+		"alpha": map[types.Digest]Label{
 			"hashB": UNTRIAGED,
 			"hashA": NEGATIVE,
 			"hashC": UNTRIAGED,
 		},
 	}
 
-	assert.Equal(t, `alpha:
+	require.Equal(t, `alpha:
 	hashA : negative
 	hashB : untriaged
 	hashC : untriaged
@@ -37,13 +38,13 @@ beta:
 func TestAsBaseline(t *testing.T) {
 	unittest.SmallTest(t)
 	input := Expectations{
-		"beta": map[Digest]Label{
+		"beta": map[types.Digest]Label{
 			"hash1": POSITIVE,
 			"hash3": NEGATIVE,
 			"hash2": UNTRIAGED,
 			"hash4": POSITIVE,
 		},
-		"alpha": map[Digest]Label{
+		"alpha": map[types.Digest]Label{
 			"hashB": UNTRIAGED,
 			"hashA": NEGATIVE,
 			"hashC": UNTRIAGED,
@@ -51,11 +52,11 @@ func TestAsBaseline(t *testing.T) {
 	}
 
 	expectedOutput := Expectations{
-		"beta": map[Digest]Label{
+		"beta": map[types.Digest]Label{
 			"hash1": POSITIVE,
 			"hash4": POSITIVE,
 		},
 	}
 
-	assert.Equal(t, expectedOutput, input.AsBaseline())
+	require.Equal(t, expectedOutput, input.AsBaseline())
 }

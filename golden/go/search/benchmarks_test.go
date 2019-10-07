@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/golden/go/tjstore"
 	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 const (
@@ -77,7 +78,7 @@ func BenchmarkExtractChangeListDigests(b *testing.B) {
 			TraceValues:  map[string][]string{},
 			Unt:          true,
 			ChangeListID: clID,
-		}, mis, common.ExpSlice{types.Expectations{}}, fn)
+		}, mis, common.ExpSlice{expectations.Expectations{}}, fn)
 		assert.NoError(b, err)
 	}
 }
