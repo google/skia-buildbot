@@ -81,6 +81,30 @@
       "revId": "b42369c748d36c53119c58e0340460c8ef1fb227",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "89fed429_51e6c528",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 359,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-10-07T14:46:04Z",
+      "side": 1,
+      "message": "That\u0027s a different race condition. But it\u0027s probably true that due to the first race condition, the second race condition is basically moot.",
+      "parentUuid": "b411dca0_9cd8b72a",
+      "range": {
+        "startLine": 359,
+        "startChar": 11,
+        "endLine": 359,
+        "endChar": 18
+      },
+      "revId": "b42369c748d36c53119c58e0340460c8ef1fb227",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
