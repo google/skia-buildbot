@@ -15,6 +15,7 @@ import (
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
+	"go.skia.org/infra/golden/go/expstorage"
 	mock_indexer "go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/summary"
@@ -553,4 +554,100 @@ func TestNewChecksValues(t *testing.T) {
 	_, err = NewHandlers(hc, FullFrontEnd)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "cannot be nil")
+}
+
+// TestGetTriageLogSunnyDay tests getting the triage log and converting them to the appropriate
+// types.
+func TestGetTriageLogSunnyDay(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mes := &mocks.ExpectationsStore{}
+	defer mes.AssertExpectations(t)
+
+	masterBranch := ""
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			ExpectationsStore: mes,
+		},
+	}
+
+	ts1 := time.Date(2019, time.October, 5, 4, 3, 2, 0, time.UTC)
+	ts2 := time.Date(2019, time.October, 6, 7, 8, 9, 0, time.UTC)
+
+	const offset = 10
+	const size = 20
+
+	mes.On("QueryLog", testutils.AnyContext, offset, size, false).Return([]expstorage.TriageLogEntry{
+		{
+			ID:          "abc",
+			ChangeCount: 1,
+			User:        "user1@example.com",
+			TS:          ts1,
+			Details: []expstorage.Delta{
+				{
+					Label:    expectations.Positive,
+					Digest:   bug_revert.UntriagedDigestDelta,
+					TestName: bug_revert.TestOne,
+				},
+			},
+		},
+		{
+			ID:          "abc",
+			ChangeCount: 2,
+			User:        "user1@example.com",
+			TS:          ts2,
+			Details: []expstorage.Delta{
+				{
+					Label:    expectations.Positive,
+					Digest:   bug_revert.UntriagedDigestBravo,
+					TestName: bug_revert.TestOne,
+				},
+				{
+					Label:    expectations.Negative,
+					Digest:   bug_revert.GoodDigestCharlie,
+					TestName: bug_revert.TestOne,
+				},
+			},
+		},
+	}, offset+2, nil)
+
+	tle, n, err := wh.getTriageLog(context.Background(), masterBranch, offset, size, false)
+	assert.NoError(t, err)
+	assert.Equal(t, offset+2, n)
+	assert.Len(t, tle, 2)
+
+	assert.Equal(t, []frontend.TriageLogEntry{
+		{
+			ID:          "abc",
+			ChangeCount: 1,
+			User:        "user1@example.com",
+			TS:          ts1.Unix() * 1000,
+			Details: []frontend.TriageDelta{
+				{
+					Label:    expectations.Positive.String(),
+					Digest:   bug_revert.UntriagedDigestDelta,
+					TestName: bug_revert.TestOne,
+				},
+			},
+		},
+		{
+			ID:          "abc",
+			ChangeCount: 2,
+			User:        "user1@example.com",
+			TS:          ts2.Unix() * 1000,
+			Details: []frontend.TriageDelta{
+				{
+					Label:    expectations.Positive.String(),
+					Digest:   bug_revert.UntriagedDigestBravo,
+					TestName: bug_revert.TestOne,
+				},
+				{
+					Label:    expectations.Negative.String(),
+					Digest:   bug_revert.GoodDigestCharlie,
+					TestName: bug_revert.TestOne,
+				},
+			},
+		},
+	}, tle)
 }
