@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6f004a1d_ac6b81b0",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T12:33:32Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "9b6e821a_cf0980c2",
+      "range": {
+        "startLine": 199,
+        "startChar": 0,
+        "endLine": 201,
+        "endChar": 24
+      },
+      "revId": "fb0b1a227d0d8d5a1f04166c8709264803c940b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c22c96e6_756aa156",
         "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "fb0b1a227d0d8d5a1f04166c8709264803c940b7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11f94b2f_98e621e2",
+        "filename": "golden/go/expstorage/fs_expstore/fs_expstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 390,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T12:33:32Z",
+      "side": 0,
+      "message": "My testing above shows that the query snapshot fires off almost immediately and updates the cached map. Having this here seems redundant.",
+      "parentUuid": "c22c96e6_756aa156",
+      "range": {
+        "startLine": 375,
+        "startChar": 0,
+        "endLine": 390,
+        "endChar": 0
+      },
+      "revId": "fb0b1a227d0d8d5a1f04166c8709264803c940b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
