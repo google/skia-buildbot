@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -14,10 +13,12 @@ import (
 	"time"
 
 	yaml "gopkg.in/yaml.v2"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/metrics2"
@@ -37,50 +38,33 @@ const (
 var (
 	// Flags.
 	k8sYamlRepo             = flag.String("k8s_yaml_repo", "https://skia.googlesource.com/skia-public-config", "The repository where K8s yaml files are stored (eg: https://skia.googlesource.com/skia-public-config)")
-	kubeConfig              = flag.String("kube_config", "/var/secrets/kube-config/kube_config", "The kube config of the project kubectl will query against.")
 	workdir                 = flag.String("workdir", "/tmp/", "Directory to use for scratch work.")
 	promPort                = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
-	serviceAccountKey       = flag.String("service_account_key", "", "Should be set when running in K8s.")
 	dirtyConfigChecksPeriod = flag.Duration("dirty_config_checks_period", 2*time.Minute, "How often to check for dirty configs/images in K8s.")
+	local                   = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 )
 
-type K8sPodsJson struct {
-	Items []struct {
-		Metadata struct {
-			Labels struct {
-				App string `json:"app"`
-			} `json:"labels"`
-		} `json:"metadata"`
-		Spec struct {
-			Containers []struct {
-				Name  string `json:"name"`
-				Image string `json:"image"`
-			} `json:"containers"`
-		} `json:"spec"`
-	} `json:"items"`
-}
-
 // getLiveAppContainersToImages returns a map of app names to their containers to the images running on them.
-func getLiveAppContainersToImages(ctx context.Context) (map[string]map[string]string, error) {
+func getLiveAppContainersToImages(ctx context.Context, clientset *kubernetes.Clientset) (map[string]map[string]string, error) {
 	// Get JSON output of pods running in K8s.
-	getPodsCommand := fmt.Sprintf("kubectl get pods --kubeconfig=%s -o json --field-selector=status.phase=Running", *kubeConfig)
-	output, err := exec.RunSimple(ctx, getPodsCommand)
+	pods, err := clientset.CoreV1().Pods("default").List(metav1.ListOptions{
+		FieldSelector: "status.phase=Running",
+	})
 	if err != nil {
-		return nil, fmt.Errorf("Error when running \"%s\": %s", getPodsCommand, err)
+		return nil, fmt.Errorf("Error when listing running pods: %s", err)
 	}
-
 	liveAppContainersToImages := map[string]map[string]string{}
-	var podsJson K8sPodsJson
-	if err := json.Unmarshal([]byte(output), &podsJson); err != nil {
-		return nil, fmt.Errorf("Error when unmarshalling JSON: %s", err)
-	}
-	for _, item := range podsJson.Items {
-		app := item.Metadata.Labels.App
-		liveAppContainersToImages[app] = map[string]string{}
-		for _, container := range item.Spec.Containers {
-			liveAppContainersToImages[app][container.Name] = container.Image
+	for _, p := range pods.Items {
+		if app, ok := p.Labels["app"]; ok {
+			liveAppContainersToImages[app] = map[string]string{}
+			for _, container := range p.Spec.Containers {
+				liveAppContainersToImages[app][container.Name] = container.Image
+			}
+		} else {
+			sklog.Infof("No app label found for pod %+v", p)
 		}
 	}
+
 	return liveAppContainersToImages, nil
 }
 
@@ -110,11 +94,11 @@ type K8sConfig struct {
 // change. Eg: liveImage in dirtyConfigMetricTags.
 // It returns a map of newMetrics, which are all the metrics that were used during this
 // invocation of the function.
-func checkForDirtyConfigs(ctx context.Context, oldMetrics map[metrics2.Int64Metric]struct{}) (map[metrics2.Int64Metric]struct{}, error) {
+func checkForDirtyConfigs(ctx context.Context, clientset *kubernetes.Clientset, oldMetrics map[metrics2.Int64Metric]struct{}) (map[metrics2.Int64Metric]struct{}, error) {
 	sklog.Info("\n\n---------- New round of checking k8 dirty configs ----------\n\n")
 
 	// Get mapping from live apps to their containers and images.
-	liveAppContainerToImages, err := getLiveAppContainersToImages(ctx)
+	liveAppContainerToImages, err := getLiveAppContainersToImages(ctx, clientset)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get live pods from kubectl: %s", err)
 	}
@@ -225,12 +209,17 @@ func main() {
 	defer sklog.Flush()
 	ctx := context.Background()
 
-	if *serviceAccountKey != "" {
-		activationCmd := fmt.Sprintf("gcloud auth activate-service-account --key-file %s", *serviceAccountKey)
-		if _, err := exec.RunSimple(ctx, activationCmd); err != nil {
-			sklog.Fatal(err)
-		}
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		sklog.Fatalf("Failed to get in-cluster config: %s", err)
+	}
+	sklog.Infof("Auth username: %s", config.Username)
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		sklog.Fatalf("Failed to get in-cluster clientset: %s", err)
+	}
 
+	if !*local {
 		// Use the gitcookie created by gitauth package.
 		ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
 		if err != nil {
@@ -245,7 +234,7 @@ func main() {
 	liveness := metrics2.NewLiveness(LIVENESS_METRIC)
 	oldMetrics := map[metrics2.Int64Metric]struct{}{}
 	go util.RepeatCtx(*dirtyConfigChecksPeriod, ctx, func(ctx context.Context) {
-		newMetrics, err := checkForDirtyConfigs(ctx, oldMetrics)
+		newMetrics, err := checkForDirtyConfigs(ctx, clientset, oldMetrics)
 		if err != nil {
 			sklog.Errorf("Error when checking for dirty configs: %s", err)
 		} else {
@@ -253,4 +242,6 @@ func main() {
 			oldMetrics = newMetrics
 		}
 	})
+
+	select {}
 }
