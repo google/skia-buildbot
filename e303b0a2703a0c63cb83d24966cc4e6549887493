@@ -1,0 +1,297 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9204eb97_f0c7443e",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/FIRESTORE.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T20:26:40Z",
+      "side": 1,
+      "message": "Explain why this is an array and not just two fields LeftDigest and RightDigest. (simplifies querying, I\u0027m guessing and if there is a performance hit, it\u0027s only for purging, which happens *very* infrequently)",
+      "range": {
+        "startLine": 15,
+        "startChar": 3,
+        "endLine": 15,
+        "endChar": 22
+      },
+      "revId": "e303b0a2703a0c63cb83d24966cc4e6549887493",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7c0b1026_a6154071",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/FIRESTORE.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T20:26:40Z",
+      "side": 1,
+      "message": "In cases when the field is the same, you can probably omit this comment.",
+      "range": {
+        "startLine": 16,
+        "startChar": 33,
+        "endLine": 16,
+        "endChar": 74
+      },
+      "revId": "e303b0a2703a0c63cb83d24966cc4e6549887493",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "399858df_47864a4d",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/FIRESTORE.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T20:26:40Z",
+      "side": 1,
+      "message": "Why split these out into 4 fields?",
+      "range": {
+        "startLine": 18,
+        "startChar": 3,
+        "endLine": 18,
+        "endChar": 11
+      },
+      "revId": "e303b0a2703a0c63cb83d24966cc4e6549887493",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66bf82dc_d8412b2e",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/FIRESTORE.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T20:26:40Z",
+      "side": 1,
+      "message": "Which fields, if any, should we exclude from indexing? (maybe the RGBADiffs if you decide to store that as an []int).",
+      "revId": "e303b0a2703a0c63cb83d24966cc4e6549887493",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5ad4116_f16e9c35",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/FIRESTORE.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T20:26:40Z",
+      "side": 1,
+      "message": "mention they are immutable",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 5
+      },
+      "revId": "e303b0a2703a0c63cb83d24966cc4e6549887493",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ba414bb_0fa9a7c6",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/fs_metricsstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T20:26:40Z",
+      "side": 1,
+      "message": "It\u0027s nice to apply a \"namespace\" to this collection, e.g. \"metricsstore_diffmetrics\", so we don\u0027t accidentally collide w/i the gold universe.",
+      "range": {
+        "startLine": 22,
+        "startChar": 27,
+        "endLine": 22,
+        "endChar": 38
+      },
+      "revId": "e303b0a2703a0c63cb83d24966cc4e6549887493",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3b736f6_ebbe7371",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/fs_metricsstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T20:26:40Z",
+      "side": 1,
+      "message": "context.TODO() is perfect for that",
+      "range": {
+        "startLine": 94,
+        "startChar": 16,
+        "endLine": 94,
+        "endChar": 26
+      },
+      "revId": "e303b0a2703a0c63cb83d24966cc4e6549887493",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45a73c5b_4fdab769",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/fs_metricsstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T20:26:40Z",
+      "side": 1,
+      "message": "make this a constant - see orderField and updatedField in fs_clstore",
+      "range": {
+        "startLine": 99,
+        "startChar": 57,
+        "endLine": 99,
+        "endChar": 81
+      },
+      "revId": "e303b0a2703a0c63cb83d24966cc4e6549887493",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2fc6475_b3e7a5de",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/fs_metricsstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T20:26:40Z",
+      "side": 1,
+      "message": "It feels awkward to keep around the DocumentRef here - since you have the IDs and it\u0027s free/cheap to grab a doc with the ID, why not have the map just be a set (string -\u003e true) and then iterate over that.",
+      "range": {
+        "startLine": 108,
+        "startChar": 32,
+        "endLine": 108,
+        "endChar": 54
+      },
+      "revId": "e303b0a2703a0c63cb83d24966cc4e6549887493",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2289722d_57e4edd6",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/fs_metricsstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T20:26:40Z",
+      "side": 1,
+      "message": "How about https://golang.org/pkg/sync/#Map",
+      "range": {
+        "startLine": 108,
+        "startChar": 21,
+        "endLine": 108,
+        "endChar": 32
+      },
+      "revId": "e303b0a2703a0c63cb83d24966cc4e6549887493",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db0bb4b5_92b8038d",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/fs_metricsstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T20:26:40Z",
+      "side": 1,
+      "message": "I wouldn\u0027t use a Batch like this - firestore limits you to 500 writes per Batch, which this logic doesn\u0027t handle. Given the infrequentness of purging, let\u0027s keep the implementation as simple as possible and just delete them one at a time.",
+      "range": {
+        "startLine": 128,
+        "startChar": 7,
+        "endLine": 128,
+        "endChar": 23
+      },
+      "revId": "e303b0a2703a0c63cb83d24966cc4e6549887493",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cb6ceb8_38889ea7",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/fs_metricsstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T20:26:40Z",
+      "side": 1,
+      "message": "nit: include id",
+      "range": {
+        "startLine": 145,
+        "startChar": 62,
+        "endLine": 145,
+        "endChar": 73
+      },
+      "revId": "e303b0a2703a0c63cb83d24966cc4e6549887493",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7427f73e_711deb9f",
+        "filename": "golden/go/diffstore/metricsstore/fs_metricsstore/fs_metricsstore_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-10-07T20:26:40Z",
+      "side": 1,
+      "message": "It would be nice to have two different test objects to make sure the implementation correctly returns something different for a given ID.",
+      "range": {
+        "startLine": 148,
+        "startChar": 5,
+        "endLine": 148,
+        "endChar": 20
+      },
+      "revId": "e303b0a2703a0c63cb83d24966cc4e6549887493",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
