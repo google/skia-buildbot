@@ -304,36 +304,36 @@ func TestQueryLog(t *testing.T) {
 	entries, n, err := f.QueryLog(ctx, 0, 100, false)
 	assert.NoError(t, err)
 	assert.Equal(t, 4, n) // 4 operations
+	assert.Len(t, entries, 4)
 
 	now := time.Now()
-	nowMS := now.Unix() * 1000
 	normalizeEntries(t, now, entries)
 	assert.Equal(t, []expstorage.TriageLogEntry{
 		{
 			ID:          "was_random_0",
-			Name:        userTwo,
-			TS:          nowMS,
+			User:        userTwo,
+			TS:          now,
 			ChangeCount: 2,
 			Details:     nil,
 		},
 		{
 			ID:          "was_random_1",
-			Name:        userOne,
-			TS:          nowMS,
+			User:        userOne,
+			TS:          now,
 			ChangeCount: 1,
 			Details:     nil,
 		},
 		{
 			ID:          "was_random_2",
-			Name:        userTwo,
-			TS:          nowMS,
+			User:        userTwo,
+			TS:          now,
 			ChangeCount: 1,
 			Details:     nil,
 		},
 		{
 			ID:          "was_random_3",
-			Name:        userOne,
-			TS:          nowMS,
+			User:        userOne,
+			TS:          now,
 			ChangeCount: 1,
 			Details:     nil,
 		},
@@ -341,20 +341,22 @@ func TestQueryLog(t *testing.T) {
 
 	entries, n, err = f.QueryLog(ctx, 1, 2, false)
 	assert.NoError(t, err)
-	assert.Equal(t, 2, n)
+	assert.Equal(t, expstorage.CountMany, n)
+	assert.Len(t, entries, 2)
+
 	normalizeEntries(t, now, entries)
 	assert.Equal(t, []expstorage.TriageLogEntry{
 		{
 			ID:          "was_random_0",
-			Name:        userOne,
-			TS:          nowMS,
+			User:        userOne,
+			TS:          now,
 			ChangeCount: 1,
 			Details:     nil,
 		},
 		{
 			ID:          "was_random_1",
-			Name:        userTwo,
-			TS:          nowMS,
+			User:        userTwo,
+			TS:          now,
 			ChangeCount: 1,
 			Details:     nil,
 		},
@@ -363,8 +365,8 @@ func TestQueryLog(t *testing.T) {
 	// Make sure we can handle an invalid offset
 	entries, n, err = f.QueryLog(ctx, 500, 100, false)
 	assert.NoError(t, err)
-	assert.Equal(t, 0, n)
-	assert.Nil(t, entries)
+	assert.Equal(t, 500, n) // The system guesses that there are 500 or fewer items.
+	assert.Empty(t, entries)
 }
 
 // TestQueryLogDetails checks that the details are filled in when requested.
@@ -382,38 +384,39 @@ func TestQueryLogDetails(t *testing.T) {
 	entries, n, err := f.QueryLog(ctx, 0, 100, true)
 	assert.NoError(t, err)
 	assert.Equal(t, 4, n) // 4 operations
+	assert.Len(t, entries, 4)
 
-	assert.Equal(t, []expstorage.TriageDetail{
+	assert.Equal(t, []expstorage.Delta{
 		{
 			TestName: data.AlphaTest,
 			Digest:   data.AlphaBad1Digest,
-			Label:    expectations.Negative.String(),
+			Label:    expectations.Negative,
 		},
 		{
 			TestName: data.BetaTest,
 			Digest:   data.BetaUntriaged1Digest,
-			Label:    expectations.Untriaged.String(),
+			Label:    expectations.Untriaged,
 		},
 	}, entries[0].Details)
-	assert.Equal(t, []expstorage.TriageDetail{
+	assert.Equal(t, []expstorage.Delta{
 		{
 			TestName: data.BetaTest,
 			Digest:   data.BetaGood1Digest,
-			Label:    expectations.Positive.String(),
+			Label:    expectations.Positive,
 		},
 	}, entries[1].Details)
-	assert.Equal(t, []expstorage.TriageDetail{
+	assert.Equal(t, []expstorage.Delta{
 		{
 			TestName: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
-			Label:    expectations.Positive.String(),
+			Label:    expectations.Positive,
 		},
 	}, entries[2].Details)
-	assert.Equal(t, []expstorage.TriageDetail{
+	assert.Equal(t, []expstorage.Delta{
 		{
 			TestName: data.AlphaTest,
 			Digest:   data.AlphaGood1Digest,
-			Label:    expectations.Negative.String(),
+			Label:    expectations.Negative,
 		},
 	}, entries[3].Details)
 }
@@ -444,36 +447,37 @@ func TestQueryLogDetailsLarge(t *testing.T) {
 	entries, n, err := f.QueryLog(ctx, 0, 2, true)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, n) // 1 big operation
+	assert.Len(t, entries, 1)
 
 	entry := entries[0]
 	assert.Equal(t, numExp, entry.ChangeCount)
 	assert.Len(t, entry.Details, numExp)
 
 	// spot check some details
-	assert.Equal(t, expstorage.TriageDetail{
+	assert.Equal(t, expstorage.Delta{
 		TestName: "test_000",
 		Digest:   "00000000000000000000000000000000",
-		Label:    expectations.Positive.String(),
+		Label:    expectations.Positive,
 	}, entry.Details[0])
-	assert.Equal(t, expstorage.TriageDetail{
+	assert.Equal(t, expstorage.Delta{
 		TestName: "test_200",
 		Digest:   "00000000000000000000000000000200",
-		Label:    expectations.Positive.String(),
+		Label:    expectations.Positive,
 	}, entry.Details[200])
-	assert.Equal(t, expstorage.TriageDetail{
+	assert.Equal(t, expstorage.Delta{
 		TestName: "test_400",
 		Digest:   "00000000000000000000000000000400",
-		Label:    expectations.Positive.String(),
+		Label:    expectations.Positive,
 	}, entry.Details[400])
-	assert.Equal(t, expstorage.TriageDetail{
+	assert.Equal(t, expstorage.Delta{
 		TestName: "test_600",
 		Digest:   "00000000000000000000000000000600",
-		Label:    expectations.Positive.String(),
+		Label:    expectations.Positive,
 	}, entry.Details[600])
-	assert.Equal(t, expstorage.TriageDetail{
+	assert.Equal(t, expstorage.Delta{
 		TestName: "test_799",
 		Digest:   "00000000000000000000000000000799",
-		Label:    expectations.Positive.String(),
+		Label:    expectations.Positive,
 	}, entry.Details[799])
 }
 
@@ -491,7 +495,8 @@ func TestUndoChangeSunnyDay(t *testing.T) {
 
 	entries, n, err := f.QueryLog(ctx, 0, 4, false)
 	assert.NoError(t, err)
-	assert.Equal(t, 4, n)
+	assert.Equal(t, expstorage.CountMany, n)
+	assert.Len(t, entries, 4)
 
 	err = f.UndoChange(ctx, entries[0].ID, userOne)
 	assert.NoError(t, err)
@@ -631,9 +636,9 @@ func TestEventBusUndo(t *testing.T) {
 
 	assert.NoError(t, f.AddChange(ctx, change, userOne))
 
-	entries, n, err := f.QueryLog(ctx, 0, 1, false)
+	entries, _, err := f.QueryLog(ctx, 0, 1, false)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, n)
+	assert.Len(t, entries, 1)
 
 	err = f.UndoChange(ctx, entries[0].ID, userOne)
 	assert.NoError(t, err)
@@ -741,18 +746,17 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 	assert.Equal(t, 1, n)
 
 	now := time.Now()
-	nowMS := now.Unix() * 1000
 	normalizeEntries(t, now, entries)
 	assert.Equal(t, expstorage.TriageLogEntry{
 		ID:          "was_random_0",
-		Name:        userTwo,
-		TS:          nowMS,
+		User:        userTwo,
+		TS:          now,
 		ChangeCount: 1,
-		Details: []expstorage.TriageDetail{
+		Details: []expstorage.Delta{
 			{
 				TestName: data.AlphaTest,
 				Digest:   data.AlphaGood1Digest,
-				Label:    expectations.Positive.String(),
+				Label:    expectations.Positive,
 			},
 		},
 	}, entries[0])
@@ -768,14 +772,14 @@ func TestCLExpectationsQueryLog(t *testing.T) {
 	normalizeEntries(t, now, entries)
 	assert.Equal(t, expstorage.TriageLogEntry{
 		ID:          "was_random_0",
-		Name:        userOne,
-		TS:          nowMS,
+		User:        userOne,
+		TS:          now,
 		ChangeCount: 1,
-		Details: []expstorage.TriageDetail{
+		Details: []expstorage.Delta{
 			{
 				TestName: data.BetaTest,
 				Digest:   data.BetaGood1Digest,
-				Label:    expectations.Positive.String(),
+				Label:    expectations.Positive,
 			},
 		},
 	}, entries[0])
@@ -828,10 +832,10 @@ func normalizeEntries(t *testing.T, now time.Time, entries []expstorage.TriageLo
 	for i, te := range entries {
 		assert.NotEqual(t, "", te.ID)
 		te.ID = "was_random_" + strconv.Itoa(i)
-		ts := time.Unix(te.TS/1000, 0)
+		ts := te.TS
 		assert.False(t, ts.IsZero())
 		assert.True(t, now.After(ts))
-		te.TS = now.Unix() * 1000
+		te.TS = now
 		entries[i] = te
 	}
 }
