@@ -16,6 +16,24 @@
       "revId": "5c93e3755b328b1f2a79385e520518a3b4291e88",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "521b2e7a_99844f7f",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-07T19:57:38Z",
+      "side": 1,
+      "message": "I would strongly recommend against checking out code using git if it can be avoided.  Our gitiles package currently does not have support for listing files, but the API does work and I was in the process of adding it to our package back in December.  I just uploaded the CL here: https://skia-review.googlesource.com/c/buildbot/+/246851.  If you\u0027d like to finish it (and add tests) you\u0027re welcome to.  I\u0027m not sure when I\u0027ll get back to it.",
+      "parentUuid": "3e4ca4c9_c9606e8b",
+      "revId": "5c93e3755b328b1f2a79385e520518a3b4291e88",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
