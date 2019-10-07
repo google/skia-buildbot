@@ -1,5 +1,5 @@
-docserver
-=========
+# docserver
+
 A super simple Markdown (CommonMark) server in Go.
 
 This application serves up processed Markdown files that are
@@ -13,8 +13,7 @@ URL and you can see what the file will render with the changes
 from that CL.
 
 
-Design
-======
+## Design
 
 The docserver presumes the Git repository that contains the Markdown files will
 exists under the /site directory in the repo. Each directory should have an
@@ -49,3 +48,33 @@ HTTP as files. See below for an example directory layout:
 The server will build a navigation menu for the site by walking the directory
 structure in alphabetical order and will use each Markdown documents first line
 as the title of the document in the navigation bar.
+
+## Running locally
+
+Requirements:
+
+  1. [Go](https://golang.org)
+  2. [Node](https://nodejs.org/)
+
+Clone this repo:
+
+    git clone https://skia.googlesource.com/buildbot
+
+Then build the executable:
+
+    cd buildbot/docserverk
+
+    make
+
+Now run docserverk from within the docserverk directory. If $GOPATH/bin is in
+your $PATH then you can run:
+
+    docserverk  --logtostderr --local
+
+otherwise run:
+
+    $GOPATH/bin/docserverk  --logtostderr --local
+
+The server will eventually log "Ready to serve" at which point you can visit
+
+    http://localhost:8000
