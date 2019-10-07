@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/diff"
 )
 
 // Mapper is the interface to define how the diff metric between two images
@@ -14,8 +15,5 @@ type Mapper interface {
 	util.LRUCodec
 
 	// DiffFn computes and returns the diff metrics between two given images.
-	// The type underlying interface{} is the input and output of the LRUCodec
-	// above. It is also what is returned by the Get(...) function of the
-	// DiffStore interface.
-	DiffFn(*image.NRGBA, *image.NRGBA) interface{}
+	DiffFn(*image.NRGBA, *image.NRGBA) *diff.DiffMetrics
 }
