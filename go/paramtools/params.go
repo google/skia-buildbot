@@ -213,6 +213,15 @@ func (p ParamSet) MatchesParams(right Params) bool {
 	return true
 }
 
+// Size returns the total number of values in the ParamSet.
+func (p ParamSet) Size() int {
+	var ret int
+	for _, vals := range p {
+		ret += len(vals)
+	}
+	return ret
+}
+
 // ParamMatcher is a list of Paramsets that can be matched against. The primary
 // purpose is to match against a set of rules, e.g. ignore rules.
 type ParamMatcher []ParamSet
