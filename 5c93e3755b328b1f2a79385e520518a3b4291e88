@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3e4ca4c9_c9606e8b",
+        "filename": "k8s_checker/go/k8s_checker/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-10-07T18:53:55Z",
+      "side": 1,
+      "message": "Also, maybe I should do this next. Is there a way to list the files in a repo using gitiles?\nOr maybe I should use git.NewRepo because I just need a bare clone?",
+      "revId": "5c93e3755b328b1f2a79385e520518a3b4291e88",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
