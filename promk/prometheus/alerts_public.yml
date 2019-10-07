@@ -210,6 +210,15 @@ groups:
     annotations:
       description: 'Error rate for processing buildids is too high. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#process_failures'
 
+  - alert: AndroidIngestBadFilesTooHigh
+    expr: bad_files/uploads > 0.4
+    labels:
+      category: infra
+      severity: critical
+      owner: jcgregorio@google.com
+    annotations:
+      description: 'Error rate for bad_files is too high. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#bad_files'
+
   - alert: AndroidTxLogFailures
     expr: tx_log_write_failure > 0
     labels:
