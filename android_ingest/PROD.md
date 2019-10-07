@@ -1,8 +1,6 @@
-Android Ingest Production Manual
-================================
+# Android Ingest Production Manual
 
-Running locally
----------------
+## Running locally
 
 Do a git checkout of the target repo:
 
@@ -14,19 +12,24 @@ write access to the origin repo. You will probably have to be on a non-master
 branch in the checkout so that the copy androidingest builds can push back to
 it.
 
-Alerts
-======
+# Alerts
 
-process_failures
-----------------
+## process_failures
 
 The process of creating git commits to mirror buildids has too
 high on an error rate.
 
 Check the logs for the exact operation in the process that is failing.
 
-tx_log
-------
+## tx_log
 
 The storing of all uploaded data in the transaction log is failing. Check
 GCS permissions and the logs for the errors generated.
+
+
+## bad_files
+
+Visit [android-master-ingest.skia.org](https://android-master-ingest.skia.org/)
+and look at the "Recent Bad Requests" section and see why they are failing. A
+previous issue has been bad serializing of the data that is POSTed to the server
+where all the data was actually just encoded as one long string.
