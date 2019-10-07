@@ -35,7 +35,7 @@ func (d *firestoreDB) jobs() *fs.CollectionRef {
 
 // See documentation for types.JobReader interface.
 func (d *firestoreDB) GetJobById(id string) (*types.Job, error) {
-	doc, err := d.client.Get(d.jobs().Doc(id), DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT)
+	doc, err := d.client.Get(context.TODO(), d.jobs().Doc(id), DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
 		return nil, nil
 	} else if err != nil {
@@ -203,7 +203,7 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 	}
 
 	// Insert the jobs into the DB.
-	if err := d.client.RunTransaction("PutJobs", fmt.Sprintf("%d jobs", len(jobs)), DEFAULT_ATTEMPTS, PUT_MULTI_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
+	if err := d.client.RunTransaction(context.TODO(), "PutJobs", fmt.Sprintf("%d jobs", len(jobs)), DEFAULT_ATTEMPTS, PUT_MULTI_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
 		return d.putJobs(jobs, isNew, prevModified, tx)
 	}); err != nil {
 		return err

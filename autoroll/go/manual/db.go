@@ -217,7 +217,7 @@ func (d *firestoreDB) Close() error {
 func (d *firestoreDB) GetRecent(rollerName string, limit int) ([]*ManualRollRequest, error) {
 	rv := []*ManualRollRequest{}
 	q := d.coll.Query.Where(KEY_ROLLER_NAME, "==", rollerName).OrderBy(KEY_TIMESTAMP, fs.Desc).Limit(limit)
-	if err := d.client.IterDocs("GetRecent", fmt.Sprintf("%s-%d", rollerName, limit), q, DEFAULT_ATTEMPTS, QUERY_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
+	if err := d.client.IterDocs(context.TODO(), "GetRecent", fmt.Sprintf("%s-%d", rollerName, limit), q, DEFAULT_ATTEMPTS, QUERY_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
 		var req ManualRollRequest
 		if err := doc.DataTo(&req); err != nil {
 			return err
@@ -240,7 +240,7 @@ func (d *firestoreDB) GetIncomplete(rollerName string) ([]*ManualRollRequest, er
 			continue
 		}
 		q := d.coll.Query.Where(KEY_ROLLER_NAME, "==", rollerName).Where(KEY_STATUS, "==", status).OrderBy(KEY_TIMESTAMP, fs.Desc)
-		if err := d.client.IterDocs("GetIncomplete", rollerName, q, DEFAULT_ATTEMPTS, QUERY_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
+		if err := d.client.IterDocs(context.TODO(), "GetIncomplete", rollerName, q, DEFAULT_ATTEMPTS, QUERY_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
 			var req ManualRollRequest
 			if err := doc.DataTo(&req); err != nil {
 				return err
@@ -277,7 +277,7 @@ func (d *firestoreDB) Put(req *ManualRollRequest) (rvErr error) {
 			req.DbModified = oldDbModified
 		}
 	}()
-	return d.client.RunTransaction("Put", req.Id, DEFAULT_ATTEMPTS, INSERT_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
+	return d.client.RunTransaction(context.TODO(), "Put", req.Id, DEFAULT_ATTEMPTS, INSERT_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
 		ref := d.coll.Doc(req.Id)
 		doc, err := tx.Get(ref)
 		if err != nil {

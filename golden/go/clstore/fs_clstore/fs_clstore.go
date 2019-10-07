@@ -110,7 +110,7 @@ func (s *StoreImpl) GetChangeLists(ctx context.Context, startIdx, limit int) ([]
 	var xcl []code_review.ChangeList
 
 	r := fmt.Sprintf("[%d:%d]", startIdx, startIdx+limit)
-	err := s.client.IterDocs("GetChangeLists", r, q, maxReadAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+	err := s.client.IterDocs(ctx, "GetChangeLists", r, q, maxReadAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
@@ -186,7 +186,7 @@ func (s *StoreImpl) GetPatchSetByOrder(ctx context.Context, clID string, psOrder
 	ps := code_review.PatchSet{}
 	found := false
 	msg := fmt.Sprintf("%s:%d", clID, psOrder)
-	err := s.client.IterDocs("GetPatchSetByOrder", msg, q, maxReadAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+	err := s.client.IterDocs(ctx, "GetPatchSetByOrder", msg, q, maxReadAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil || found {
 			return nil
 		}
@@ -223,7 +223,7 @@ func (s *StoreImpl) GetPatchSets(ctx context.Context, clID string) ([]code_revie
 
 	var xps []code_review.PatchSet
 
-	err := s.client.IterDocs("GetPatchSets", clID, q, maxReadAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+	err := s.client.IterDocs(ctx, "GetPatchSets", clID, q, maxReadAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
@@ -260,7 +260,7 @@ func (s *StoreImpl) PutChangeList(ctx context.Context, cl code_review.ChangeList
 		Subject:  cl.Subject,
 		Updated:  cl.Updated,
 	}
-	_, err := s.client.Set(cd, record, maxWriteAttempts, maxOperationTime)
+	_, err := s.client.Set(ctx, cd, record, maxWriteAttempts, maxOperationTime)
 	if err != nil {
 		return skerr.Wrapf(err, "could not write CL %v to clstore", cl)
 	}
@@ -280,7 +280,7 @@ func (s *StoreImpl) PutPatchSet(ctx context.Context, ps code_review.PatchSet) er
 		Order:        ps.Order,
 		GitHash:      ps.GitHash,
 	}
-	_, err := s.client.Set(pd, record, maxWriteAttempts, maxOperationTime)
+	_, err := s.client.Set(ctx, pd, record, maxWriteAttempts, maxOperationTime)
 	if err != nil {
 		return skerr.Wrapf(err, "could not write PS %v to clstore", ps)
 	}
