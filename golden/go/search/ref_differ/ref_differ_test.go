@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // TestGetRefDiffsSunnyDay tests getting the refs
@@ -21,12 +22,12 @@ import (
 func TestGetRefDiffsSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
-	es := common.ExpSlice{types.Expectations{
+	es := common.ExpSlice{expectations.Expectations{
 		TestName: {
-			alphaPositiveDigest: types.POSITIVE,
-			gammaPositiveDigest: types.POSITIVE,
-			betaNegativeDigest:  types.NEGATIVE,
-			// since untriagedDigest is not listed, it defaults to UNTRIAGED
+			alphaPositiveDigest: expectations.Positive,
+			gammaPositiveDigest: expectations.Positive,
+			betaNegativeDigest:  expectations.Negative,
+			// since untriagedDigest is not listed, it defaults to Untriaged
 		},
 	}}
 
@@ -106,11 +107,11 @@ func TestGetRefDiffsSunnyDay(t *testing.T) {
 func TestGetRefDiffsTryJobSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
-	es := common.ExpSlice{types.Expectations{
+	es := common.ExpSlice{expectations.Expectations{
 		TestName: {
-			alphaPositiveDigest: types.POSITIVE,
-			gammaPositiveDigest: types.POSITIVE,
-			betaNegativeDigest:  types.NEGATIVE,
+			alphaPositiveDigest: expectations.Positive,
+			gammaPositiveDigest: expectations.Positive,
+			betaNegativeDigest:  expectations.Negative,
 		},
 	}}
 
@@ -190,7 +191,7 @@ func TestGetRefDiffsAllUntriaged(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// Empty expectations => everything is untriaged.
-	es := common.ExpSlice{types.Expectations{}}
+	es := common.ExpSlice{expectations.Expectations{}}
 
 	mis := &mock_index.IndexSearcher{}
 	mds := &mocks.DiffStore{}
@@ -244,7 +245,7 @@ func TestGetRefDiffsAllUntriaged(t *testing.T) {
 func TestGetRefDiffsNoPrevious(t *testing.T) {
 	unittest.SmallTest(t)
 
-	es := common.ExpSlice{types.Expectations{}}
+	es := common.ExpSlice{expectations.Expectations{}}
 
 	mis := &mock_index.IndexSearcher{}
 	mds := &mocks.DiffStore{}
@@ -280,11 +281,11 @@ func TestGetRefDiffsNoPrevious(t *testing.T) {
 func TestGetRefDiffsMatches(t *testing.T) {
 	unittest.SmallTest(t)
 
-	es := common.ExpSlice{types.Expectations{
+	es := common.ExpSlice{expectations.Expectations{
 		TestName: {
-			alphaPositiveDigest: types.POSITIVE,
-			gammaPositiveDigest: types.POSITIVE,
-			betaNegativeDigest:  types.NEGATIVE,
+			alphaPositiveDigest: expectations.Positive,
+			gammaPositiveDigest: expectations.Positive,
+			betaNegativeDigest:  expectations.Negative,
 		},
 	}}
 
@@ -348,11 +349,11 @@ func TestGetRefDiffsMatches(t *testing.T) {
 func TestGetRefDiffsMatchRHS(t *testing.T) {
 	unittest.SmallTest(t)
 
-	es := common.ExpSlice{types.Expectations{
+	es := common.ExpSlice{expectations.Expectations{
 		TestName: {
-			alphaPositiveDigest: types.POSITIVE,
-			gammaPositiveDigest: types.POSITIVE,
-			betaNegativeDigest:  types.NEGATIVE,
+			alphaPositiveDigest: expectations.Positive,
+			gammaPositiveDigest: expectations.Positive,
+			betaNegativeDigest:  expectations.Negative,
 		},
 	}}
 

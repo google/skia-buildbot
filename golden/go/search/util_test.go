@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/serialize"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 	"go.skia.org/infra/golden/go/warmer"
 )
 
@@ -218,7 +219,7 @@ func loadSample(t assert.TestingT, fileName string, randomize bool) *serialize.S
 	return sample
 }
 
-func randomizeTile(tile *tiling.Tile, testExp types.Expectations) *tiling.Tile {
+func randomizeTile(tile *tiling.Tile, testExp expectations.Expectations) *tiling.Tile {
 	allDigestSet := types.DigestSet{}
 	for _, digests := range testExp {
 		for d := range digests {

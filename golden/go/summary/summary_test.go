@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/golden/go/mocks"
 	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 /**
@@ -457,17 +458,17 @@ func makeTileWithIgnores() *tiling.Tile {
 	}
 }
 
-func makeExpectations() types.Expectations {
-	return types.Expectations{
-		FirstTest: map[types.Digest]types.Label{
-			"aaa": types.POSITIVE,
-			"bbb": types.NEGATIVE,
-			"ccc": types.UNTRIAGED,
-			"ddd": types.UNTRIAGED,
-			"eee": types.POSITIVE,
+func makeExpectations() expectations.Expectations {
+	return expectations.Expectations{
+		FirstTest: map[types.Digest]expectations.Label{
+			"aaa": expectations.Positive,
+			"bbb": expectations.Negative,
+			"ccc": expectations.Untriaged,
+			"ddd": expectations.Untriaged,
+			"eee": expectations.Positive,
 		},
-		SecondTest: map[types.Digest]types.Label{
-			"fff": types.NEGATIVE,
+		SecondTest: map[types.Digest]expectations.Label{
+			"fff": expectations.Negative,
 		},
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // ClosestDiffFinder is able to query a diffstore for digests
@@ -23,7 +24,7 @@ type ClosestDiffFinder interface {
 	// or NoDigestFound if there aren't any positive digests.
 	//
 	// If no digest of type 'label' is found then Closest.Digest is the empty string.
-	ClosestDigest(test types.TestName, digest types.Digest, label types.Label) *Closest
+	ClosestDigest(test types.TestName, digest types.Digest, label expectations.Label) *Closest
 }
 
 // Closest describes one digest that is the closest another digest.
@@ -50,7 +51,7 @@ func newClosest() *Closest {
 
 // Impl implements the ClosestDiffFinder interface
 type Impl struct {
-	expectations types.Expectations
+	expectations expectations.Expectations
 	dCounter     digest_counter.DigestCounter
 	diffStore    diff.DiffStore
 
@@ -58,7 +59,7 @@ type Impl struct {
 }
 
 // NewClosestDiffFinder returns a *Impl loaded with the given data sources.
-func NewClosestDiffFinder(exp types.Expectations, dCounter digest_counter.DigestCounter, diffStore diff.DiffStore) *Impl {
+func NewClosestDiffFinder(exp expectations.Expectations, dCounter digest_counter.DigestCounter, diffStore diff.DiffStore) *Impl {
 	return &Impl{
 		expectations: exp,
 		dCounter:     dCounter,
@@ -72,7 +73,7 @@ func (i *Impl) Precompute() {
 }
 
 // ClosestDigest implements the ClosestDiffFinder interface.
-func (i *Impl) ClosestDigest(test types.TestName, digest types.Digest, label types.Label) *Closest {
+func (i *Impl) ClosestDigest(test types.TestName, digest types.Digest, label expectations.Label) *Closest {
 	ret := newClosest()
 
 	if _, ok := i.cachedUnavailableDigests[digest]; ok {
