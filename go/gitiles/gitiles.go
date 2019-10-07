@@ -1,6 +1,7 @@
 package gitiles
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -132,10 +133,98 @@ func (r *Repo) DownloadFile(ctx context.Context, srcPath, dstPath string) error 
 		return err
 	}
 	defer util.Close(f)
-	if err := r.ReadFile(ctx, srcPath, f); err != nil {
+	return r.ReadFile(ctx, srcPath, f)
+}
+
+// DownloadFileAtRef downloads the given file at the given ref.
+func (r *Repo) DownloadFileAtRef(ctx context.Context, ref, srcPath, dstPath string) error {
+	f, err := os.Create(dstPath)
+	if err != nil {
 		return err
 	}
-	return nil
+	defer util.Close(f)
+	return r.ReadFileAtRef(ctx, srcPath, ref, f)
+}
+
+// ListDirAtRef reads the given directory at the given ref. Returns a slice of
+// file names and a slice of dir names, or any error which occurred.
+func (r *Repo) ListDirAtRef(ctx context.Context, dir, ref string) ([]string, []string, error) {
+	path := strings.TrimSuffix(dir, "/")
+	buf := bytes.Buffer{}
+	if err := r.ReadFileAtRef(ctx, path, ref, &buf); err != nil {
+		return nil, nil, err
+	}
+	files := []string{}
+	dirs := []string{}
+	for _, line := range strings.Split(strings.TrimSpace(buf.String()), "\n") {
+		// Lines are formatted as follows:
+		// mode tree|blob hash name
+		fields := strings.Fields(line)
+		if len(fields) != 4 {
+			return nil, nil, fmt.Errorf("Got invalid response from gitiles: %s", buf.String())
+		}
+		if fields[1] == "tree" {
+			dirs = append(dirs, fields[3])
+		} else if fields[1] == "blob" {
+			files = append(files, fields[3])
+		}
+	}
+	return files, dirs, nil
+}
+
+// ListDir reads the given directory on the master branch. Returns a slice of
+// file names and a slice of dir names, or any error which occurred.
+func (r *Repo) ListDir(ctx context.Context, dir string) ([]string, []string, error) {
+	return r.ListDirAtRef(ctx, dir, "master")
+}
+
+// ResolveRef resolves the given ref to a commit hash.
+func (r *Repo) ResolveRef(ctx context.Context, ref string) (string, error) {
+	commit, err := r.Details(ctx, ref)
+	if err != nil {
+		return "", err
+	}
+	return commit.Hash, nil
+}
+
+// ListFilesRecursiveAtRef returns a list of all file paths under the given dir
+// at the given ref.
+func (r *Repo) ListFilesRecursiveAtRef(ctx context.Context, dir, ref string) ([]string, error) {
+	// First, resolve the given ref to a commit hash to ensure that we
+	// return consistent results even if the ref changes between requests.
+	hash, err := r.ResolveRef(ctx, ref)
+	if err != nil {
+		return nil, err
+	}
+	// List files recursively.
+	rv := []string{}
+	var helper func(string) error
+	helper = func(dir string) error {
+		files, dirs, err := r.ListDirAtRef(ctx, dir, hash)
+		if err != nil {
+			return err
+		}
+		for _, f := range files {
+			rv = append(rv, dir+"/"+f)
+		}
+		for _, d := range dirs {
+			if err := helper(dir + "/" + d); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	if err := helper(dir); err != nil {
+		return nil, err
+	}
+	sort.Strings(rv)
+	return rv, nil
+}
+
+// ListFilesRecursive returns a list of all file paths under the given dir on
+// the master branch.
+func (r *Repo) ListFilesRecursive(ctx context.Context, dir string) ([]string, error) {
+	return r.ListFilesRecursiveAtRef(ctx, dir, "master")
 }
 
 type Author struct {
