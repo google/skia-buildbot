@@ -7,13 +7,13 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // Implements ExpectationsStore in memory for prototyping and testing.
 type MemExpectationsStore struct {
-	expectations types.Expectations
-	readCopy     types.Expectations
+	expectations expectations.Expectations
+	readCopy     expectations.Expectations
 	eventBus     eventbus.EventBus
 
 	// Protects expectations.
@@ -24,8 +24,8 @@ type MemExpectationsStore struct {
 func New(eventBus eventbus.EventBus) *MemExpectationsStore {
 	ret := &MemExpectationsStore{
 		eventBus:     eventBus,
-		expectations: types.Expectations{},
-		readCopy:     types.Expectations{},
+		expectations: expectations.Expectations{},
+		readCopy:     expectations.Expectations{},
 	}
 	return ret
 }
@@ -37,7 +37,7 @@ func (m *MemExpectationsStore) ForChangeList(id, crs string) expstorage.Expectat
 }
 
 // Get fulfills the ExpectationsStore interface.
-func (m *MemExpectationsStore) Get() (types.Expectations, error) {
+func (m *MemExpectationsStore) Get() (expectations.Expectations, error) {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
@@ -45,7 +45,7 @@ func (m *MemExpectationsStore) Get() (types.Expectations, error) {
 }
 
 // AddChange fulfills the ExpectationsStore interface.
-func (m *MemExpectationsStore) AddChange(c context.Context, changedTests types.Expectations, userId string) error {
+func (m *MemExpectationsStore) AddChange(c context.Context, changedTests expectations.Expectations, userId string) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
@@ -62,7 +62,7 @@ func (m *MemExpectationsStore) AddChange(c context.Context, changedTests types.E
 }
 
 // TESTING_ONLY_RemoveChange removes the expectations from the store. For tests only.
-func (m *MemExpectationsStore) TESTING_ONLY_RemoveChange(changedDigests types.Expectations) error {
+func (m *MemExpectationsStore) TESTING_ONLY_RemoveChange(changedDigests expectations.Expectations) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
@@ -96,7 +96,7 @@ func (m *MemExpectationsStore) QueryLog(c context.Context, offset, size int, det
 }
 
 // See ExpectationsStore interface.
-func (m *MemExpectationsStore) UndoChange(c context.Context, changeID, userID string) (types.Expectations, error) {
+func (m *MemExpectationsStore) UndoChange(c context.Context, changeID, userID string) (expectations.Expectations, error) {
 	sklog.Fatal("MemExpectation store does not support undo.")
 	return nil, nil
 }
@@ -105,8 +105,8 @@ func (m *MemExpectationsStore) UndoChange(c context.Context, changeID, userID st
 func (m *MemExpectationsStore) Clear(c context.Context) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	m.expectations = types.Expectations{}
-	m.readCopy = types.Expectations{}
+	m.expectations = expectations.Expectations{}
+	m.readCopy = expectations.Expectations{}
 	return nil
 }
 

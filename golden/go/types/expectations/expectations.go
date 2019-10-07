@@ -1,33 +1,35 @@
-package types
+package expectations
 
 import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"go.skia.org/infra/golden/go/types"
 )
 
 // Expectations is a map[test_name][digest]Label that captures the expectations
-// for a set of tests and digests as labels (POSITIVE/NEGATIVE/UNTRIAGED).
+// for a set of tests and digests as labels (Positive/Negative/Untriaged).
 // Put another way, this data structure keeps track if a digest (image) is
 // drawn correctly, incorrectly, or newly-seen for a given test.
-type Expectations map[TestName]map[Digest]Label
+type Expectations map[types.TestName]map[types.Digest]Label
 
 // AddDigest is a convenience function to set the label for a test_name/digest pair. If the
 // pair already exists it will be over written.
-func (e Expectations) AddDigest(testName TestName, digest Digest, label Label) {
+func (e Expectations) AddDigest(testName types.TestName, digest types.Digest, label Label) {
 	if testEntry, ok := e[testName]; ok {
 		testEntry[digest] = label
 	} else {
-		e[testName] = map[Digest]Label{digest: label}
+		e[testName] = map[types.Digest]Label{digest: label}
 	}
 }
 
 // AddDigests is a convenience function to set the expectations of a set of digests for a
 // given test_name.
-func (e Expectations) AddDigests(testName TestName, digests map[Digest]Label) {
+func (e Expectations) AddDigests(testName types.TestName, digests map[types.Digest]Label) {
 	testEntry, ok := e[testName]
 	if !ok {
-		testEntry = make(map[Digest]Label, len(digests))
+		testEntry = make(map[types.Digest]Label, len(digests))
 	}
 	for digest, label := range digests {
 		testEntry[digest] = label
@@ -51,12 +53,12 @@ func (e Expectations) DeepCopy() Expectations {
 }
 
 // Classification returns the label for the given test/digest pair. By definition,
-// this will return UNTRIAGED if there isn't already a classification set.
-func (e Expectations) Classification(test TestName, digest Digest) Label {
+// this will return Untriaged if there isn't already a classification set.
+func (e Expectations) Classification(test types.TestName, digest types.Digest) Label {
 	if label, ok := e[test][digest]; ok {
 		return label
 	}
-	return UNTRIAGED
+	return Untriaged
 }
 
 // String returns an alphabetically sorted string representation
@@ -69,7 +71,7 @@ func (e Expectations) String() string {
 	sort.Strings(names)
 	s := strings.Builder{}
 	for _, testName := range names {
-		digestMap := e[TestName(testName)]
+		digestMap := e[types.TestName(testName)]
 		digests := make([]string, 0, len(digestMap))
 		for d := range digestMap {
 			digests = append(digests, string(d))
@@ -77,7 +79,7 @@ func (e Expectations) String() string {
 		sort.Strings(digests)
 		_, _ = fmt.Fprintf(&s, "%s:\n", testName)
 		for _, d := range digests {
-			_, _ = fmt.Fprintf(&s, "\t%s : %s\n", d, digestMap[Digest(d)].String())
+			_, _ = fmt.Fprintf(&s, "\t%s : %s\n", d, digestMap[types.Digest(d)].String())
 		}
 	}
 	return s.String()
@@ -88,8 +90,8 @@ func (e Expectations) AsBaseline() Expectations {
 	n := Expectations{}
 	for testName, digests := range e {
 		for d, c := range digests {
-			if c == POSITIVE {
-				n.AddDigest(testName, d, POSITIVE)
+			if c == Positive {
+				n.AddDigest(testName, d, Positive)
 			}
 		}
 	}

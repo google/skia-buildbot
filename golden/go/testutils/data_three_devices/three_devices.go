@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // human-readable variable names for the data (values are arbitrary, but valid)
@@ -163,16 +164,16 @@ func MakeTestTile() *tiling.Tile {
 	}
 }
 
-func MakeTestExpectations() types.Expectations {
-	return types.Expectations{
-		AlphaTest: map[types.Digest]types.Label{
-			AlphaGood1Digest:      types.POSITIVE,
-			AlphaUntriaged1Digest: types.UNTRIAGED,
-			AlphaBad1Digest:       types.NEGATIVE,
+func MakeTestExpectations() expectations.Expectations {
+	return expectations.Expectations{
+		AlphaTest: map[types.Digest]expectations.Label{
+			AlphaGood1Digest:      expectations.Positive,
+			AlphaUntriaged1Digest: expectations.Untriaged,
+			AlphaBad1Digest:       expectations.Negative,
 		},
-		BetaTest: map[types.Digest]types.Label{
-			BetaGood1Digest:      types.POSITIVE,
-			BetaUntriaged1Digest: types.UNTRIAGED,
+		BetaTest: map[types.Digest]expectations.Label{
+			BetaGood1Digest:      expectations.Positive,
+			BetaUntriaged1Digest: expectations.Untriaged,
 		},
 	}
 }

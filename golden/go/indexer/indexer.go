@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 	"go.skia.org/infra/golden/go/warmer"
 )
 
@@ -250,7 +251,7 @@ func (ix *Indexer) start(interval time.Duration) error {
 	// When the master expectations change, update the blamer and its dependents. We choose size
 	// 100 because that is plenty capture an unlikely torrent of changes (they are usually triggered
 	// by a user).
-	expCh := make(chan types.Expectations, 100)
+	expCh := make(chan expectations.Expectations, 100)
 	ix.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
 		// Schedule the list of test names to be recalculated.
 		expCh <- e.(*expstorage.EventExpectationChange).ExpectationDelta
@@ -261,7 +262,7 @@ func (ix *Indexer) start(interval time.Duration) error {
 	go func() {
 		var cpxTile types.ComplexTile
 		for {
-			testChanges := []types.Expectations{}
+			testChanges := []expectations.Expectations{}
 
 			// See if there is a tile or changed tests.
 			cpxTile = nil
@@ -319,7 +320,7 @@ func (ix *Indexer) executePipeline(cpxTile types.ComplexTile) error {
 }
 
 // indexTest creates an updated index by indexing the given list of expectation changes.
-func (ix *Indexer) indexTests(testChanges []types.Expectations) {
+func (ix *Indexer) indexTests(testChanges []expectations.Expectations) {
 	// Get all the test names that had expectations changed.
 	testNames := types.TestNameSet{}
 	for _, testChange := range testChanges {
