@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // DiffWarmer pre-calculates diffs that will be requested by the front-end
@@ -44,8 +45,8 @@ func (w *WarmerImpl) PrecomputeDiffs(summaries summary.SummaryMap, testNames typ
 			if t != nil {
 				// Calculating the closest digest has the side effect of filling
 				// in the diffstore with the diff images.
-				diffFinder.ClosestDigest(test, digest, types.POSITIVE)
-				diffFinder.ClosestDigest(test, digest, types.NEGATIVE)
+				diffFinder.ClosestDigest(test, digest, expectations.Positive)
+				diffFinder.ClosestDigest(test, digest, expectations.Negative)
 			}
 		}
 	}

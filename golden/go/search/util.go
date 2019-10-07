@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/types/expectations"
 )
 
 // AcceptFn is the callback function used by iterTile to determine whether to
@@ -75,7 +76,7 @@ func iterTile(q *query.Search, addFn AddFn, acceptFn AcceptFn, exp common.ExpSli
 
 				// Fix blamer to make this easier.
 				if q.BlameGroupID != "" {
-					if cl == types.UNTRIAGED {
+					if cl == expectations.Untriaged {
 						b := idx.GetBlame(test, digest, selectedTile.Commits)
 						if b.IsEmpty() || q.BlameGroupID != blameGroupID(b, selectedTile.Commits) {
 							continue
