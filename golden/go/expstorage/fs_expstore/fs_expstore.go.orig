@@ -160,7 +160,7 @@ func New(ctx context.Context, client *ifirestore.Client, eventBus eventbus.Event
 		return nil, skerr.Wrapf(err, "could not get initial query snapshot")
 	}
 
-	sklog.Infof("Loaded master expectations for %d tests", f.cache.NumTests())
+	sklog.Infof("Loaded master expectations for %d tests", len(f.cache))
 
 	// Starts several go routines to listen to the snapshots created earlier.
 	f.listenToQuerySnapshots(ctx)
@@ -326,12 +326,15 @@ func (f *Store) getExpectationsForCL() (expectations.Expectations, error) {
 			id := doc.Ref.ID
 			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectationEntry with id %s", id)
 		}
+		if es[i] == nil {
+			es[i] = expectations.Expectations{}
+		}
 		es[i].AddDigest(entry.Grouping, entry.Digest, entry.Label)
 		return nil
 	})
 
 	if err != nil {
-		return expectations.Expectations{}, skerr.Wrapf(err, "fetching expectations for ChangeList %s", f.crsAndCLID)
+		return nil, skerr.Wrapf(err, "fetching expectations for ChangeList %s", f.crsAndCLID)
 	}
 
 	e := expectations.Expectations{}
@@ -342,7 +345,7 @@ func (f *Store) getExpectationsForCL() (expectations.Expectations, error) {
 }
 
 // AddChange implements the ExpectationsStore interface.
-func (f *Store) AddChange(ctx context.Context, delta []ExpectationDelta, userId string) error {
+func (f *Store) AddChange(ctx context.Context, newExp expectations.Expectations, userID string) error {
 	defer metrics2.FuncTimer().Stop()
 	if f.mode == ReadOnly {
 		return ReadOnlyErr
@@ -424,32 +427,35 @@ func (f *Store) AddChange(ctx context.Context, delta []ExpectationDelta, userId 
 // flatten creates the data for the Documents to be written for a given Expectations delta.
 // It requires that the f.cache is safe to read (i.e. the mutex is held), because
 // it needs to determine the previous values.
-func (f *Store) flatten(now time.Time, newExp *expectations.Expectations) ([]expectationEntry, []triageChanges) {
+<<<<<<< HEAD
+func (f *Store) flatten(now time.Time, newExp expectations.Expectations) ([]expectationEntry, []triageChanges) {
+=======
+func (f *Store) flatten(now time.Time, newExp types.Expectations) ([]expectationEntry, []triageChanges) {
 	f.cacheMutex.RLock()
 	defer f.cacheMutex.RUnlock()
+>>>>>>> 4f440cfbbae0d69d8de5474f6f7aa32929fcf389
 	var entries []expectationEntry
 	var changes []triageChanges
 
-	// ForAll can't return an error if we con't return an error
-	_ = newExp.ForAll(func(testName types.TestName, digest types.Digest, label expectations.Label) error {
-		entries = append(entries, expectationEntry{
-			Grouping:   testName,
-			Digest:     digest,
-			Label:      label,
-			Updated:    now,
-			CRSAndCLID: f.crsAndCLID,
-		})
+	for testName, digestMap := range newExp {
+		for digest, label := range digestMap {
+			entries = append(entries, expectationEntry{
+				Grouping:   testName,
+				Digest:     digest,
+				Label:      label,
+				Updated:    now,
+				CRSAndCLID: f.crsAndCLID,
+			})
 
-		changes = append(changes, triageChanges{
-			// RecordID will be filled out later
-			Grouping:    testName,
-			Digest:      digest,
-			LabelBefore: f.cache.Classification(testName, digest),
-			LabelAfter:  label,
-		})
-		return nil
-	})
-
+			changes = append(changes, triageChanges{
+				// RecordID will be filled out later
+				Grouping:    testName,
+				Digest:      digest,
+				LabelBefore: f.cache.Classification(testName, digest),
+				LabelAfter:  label,
+			})
+		}
+	}
 	return entries, changes
 }
 
@@ -524,16 +530,16 @@ func (f *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 }
 
 // UndoChange implements the ExpectationsStore interface.
-func (f *Store) UndoChange(ctx context.Context, changeID, userID string) error {
+func (f *Store) UndoChange(ctx context.Context, changeID, userID string) (expectations.Expectations, error) {
 	defer metrics2.FuncTimer().Stop()
 	if f.mode == ReadOnly {
-		return ReadOnlyErr
+		return nil, ReadOnlyErr
 	}
 	// Verify the original change id exists.
 	dr := f.client.Collection(triageRecordsCollection).Doc(changeID)
 	doc, err := f.client.Get(dr, 3, maxOperationTime)
 	if err != nil || !doc.Exists() {
-		return skerr.Wrapf(err, "could not find change to undo with id %s", changeID)
+		return nil, skerr.Wrapf(err, "could not find change to undo with id %s", changeID)
 	}
 
 	q := f.client.Collection(triageChangesCollection).Where(recordIDField, "==", changeID)
@@ -551,14 +557,14 @@ func (f *Store) UndoChange(ctx context.Context, changeID, userID string) error {
 		return nil
 	})
 	if err != nil {
-		return skerr.Wrapf(err, "could not get delta to undo %s", changeID)
+		return nil, skerr.Wrapf(err, "could not get delta to undo %s", changeID)
 	}
 
-	if err = f.AddChange(ctx, &delta, userID); err != nil {
-		return skerr.Wrapf(err, "could not apply delta to undo %s", changeID)
+	if err = f.AddChange(ctx, delta, userID); err != nil {
+		return nil, skerr.Wrapf(err, "could not apply delta to undo %s", changeID)
 	}
 
-	return nil
+	return delta, nil
 }
 
 // Make sure Store fulfills the ExpectationsStore interface

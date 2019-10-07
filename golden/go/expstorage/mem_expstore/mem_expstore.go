@@ -96,9 +96,9 @@ func (m *MemExpectationsStore) QueryLog(c context.Context, offset, size int, det
 }
 
 // See ExpectationsStore interface.
-func (m *MemExpectationsStore) UndoChange(c context.Context, changeID, userID string) (expectations.Expectations, error) {
+func (m *MemExpectationsStore) UndoChange(ctx context.Context, changeID, userID string) error {
 	sklog.Fatal("MemExpectation store does not support undo.")
-	return nil, nil
+	return nil
 }
 
 // See  ExpectationsStore interface.

@@ -28,12 +28,10 @@ type ExpectationsStore interface {
 	Get() (expectations.Expectations, error)
 
 	// AddChange writes the given classified digests to the database and records the
-	// user that made the change.
-	// TODO(kjlubick): This interface leads to a potential race condition if two
-	// users on the front-end click Positive and Negative for the same testname/digest.
-	//  A less racy interface would take an "old value"/"new value" so that if the
-	// old value didn't match, we could reject the change.
-	AddChange(ctx context.Context, changes expectations.Expectations, userId string) error
+	// user that made the change. If OldLabel does not match what's stored there now, writing
+	// that entry will fail.
+	// TODO(kjlubick): rename to AddChanges
+	AddChange(ctx context.Context, delta []ExpectationDelta, userId string) error
 
 	// QueryLog allows to paginate through the changes in the expectations.
 	// If details is true the result will include a list of triage operations
@@ -43,9 +41,8 @@ type ExpectationsStore interface {
 	// UndoChange reverts a change by setting all testname/digest pairs of the
 	// original change to the label they had before the change was applied.
 	// A new entry is added to the log with a reference to the change that was
-	// undone. The expectations returned are the expectations that were changed,
-	// with the newly reverted values.
-	UndoChange(ctx context.Context, changeID, userID string) (expectations.Expectations, error)
+	// undone.
+	UndoChange(ctx context.Context, changeID, userID string) error
 
 	// ForChangeList returns a new ExpectationStore that will deal with the Expectations for a
 	// ChangeList with the given id (aka a CLExpectations). Any Expectations added to the returned
@@ -55,6 +52,15 @@ type ExpectationsStore interface {
 	// of the CL in that CRS. (This allows us to avoid a collision between two CLs with the same
 	// id in the event that we transition from one CRS to another).
 	ForChangeList(id, crs string) ExpectationsStore
+}
+
+// ExpectationDelta represents the changes made to expectations that need to be stored.
+type ExpectationDelta struct {
+	TestName types.TestName
+	Digest   types.Digest
+
+	NewLabel expectations.Label
+	OldLabel expectations.Label
 }
 
 // TriageDetail represents one changed digest and the label that was
