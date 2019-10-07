@@ -428,6 +428,8 @@ func (f *Store) AddChange(ctx context.Context, newExp types.Expectations, userID
 // It requires that the f.cache is safe to read (i.e. the mutex is held), because
 // it needs to determine the previous values.
 func (f *Store) flatten(now time.Time, newExp types.Expectations) ([]expectationEntry, []triageChanges) {
+	f.cacheMutex.RLock()
+	defer f.cacheMutex.RUnlock()
 	var entries []expectationEntry
 	var changes []triageChanges
 
