@@ -476,3 +476,43 @@ func TestOrderedParamSet(t *testing.T) {
 	_, err = p.DecodeParamsFromString(",-1=0,")
 	assert.Error(t, err, "Should fail since -1 isn't found.")
 }
+
+func TestParamSet_Size(t *testing.T) {
+	tests := []struct {
+		name string
+		p    ParamSet
+		want int
+	}{
+		{
+			name: "nil",
+			p:    nil,
+			want: 0,
+		},
+
+		{
+			name: "empty",
+			p:    ParamSet{},
+			want: 0,
+		},
+		{
+			name: "simple",
+			p:    ParamSet{"foo": []string{"bar", "baz"}},
+			want: 2,
+		},
+		{
+			name: "2 values",
+			p: ParamSet{
+				"foo": []string{"bar", "baz"},
+				"bar": []string{"baz"},
+			},
+			want: 3,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.p.Size(); got != tt.want {
+				t.Errorf("ParamSet.Size() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
