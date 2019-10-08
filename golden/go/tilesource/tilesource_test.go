@@ -123,6 +123,8 @@ func TestUpdateTileHasPreviousPartial(t *testing.T) {
 	mts := &mocks.TraceStore{}
 	mu := &mock_updater.Updater{}
 	mvcs := &mock_vcs.VCS{}
+	// TODO(kjlubick) It's probably best to make a real ComplexTile here and below instead
+	//  of a mock. go/mocks#prefer-testing-state
 	mct := &mocks.ComplexTile{}
 	defer mis.AssertExpectations(t)
 	defer mts.AssertExpectations(t)
