@@ -14,11 +14,12 @@ import (
 
 // taskCache is a struct used for tracking modified tasks.
 type taskCache struct {
-	allTasks        map[string]*types.Task
-	db              db.TaskReader
-	mtx             sync.Mutex
-	nextUpdateTasks map[string]*types.Task
-	shouldReset     bool
+	allTasks         map[string]*types.Task
+	db               db.TaskReader
+	gotTasksCallback func()
+	mtx              sync.Mutex
+	nextUpdateTasks  map[string]*types.Task
+	shouldReset      bool
 }
 
 // newTaskCache returns a taskCache instance.
@@ -39,6 +40,9 @@ func newTaskCache(ctx context.Context, d db.RemoteDB) *taskCache {
 				}
 			}
 			tc.mtx.Unlock()
+			if tc.gotTasksCallback != nil {
+				tc.gotTasksCallback()
+			}
 		}
 	}()
 	return tc
