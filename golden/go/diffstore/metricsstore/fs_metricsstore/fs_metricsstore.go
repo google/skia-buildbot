@@ -8,6 +8,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 	ifirestore "go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
@@ -88,6 +89,7 @@ func New(client *ifirestore.Client) *StoreImpl {
 
 // PurgeDiffMetrics implements the metricsstore.MetricsStore interface.
 func (s *StoreImpl) PurgeDiffMetrics(digests types.DigestSlice) error {
+	defer metrics2.FuncTimer().Stop()
 	ctx := context.TODO() // TODO(lovisolo): Add a ctx argument to the interface method.
 
 	// Find all matching documents by building one query per digest.
@@ -138,6 +140,7 @@ func (s *StoreImpl) PurgeDiffMetrics(digests types.DigestSlice) error {
 
 // SaveDiffMetrics implements the metricsstore.MetricsStore interface.
 func (s *StoreImpl) SaveDiffMetrics(id string, diffMetrics *diff.DiffMetrics) error {
+	defer metrics2.FuncTimer().Stop()
 	ctx := context.TODO() // TODO(lovisolo): Add a ctx argument to the interface method.
 
 	docRef := s.client.Collection(metricsStoreCollection).Doc(id)
@@ -151,6 +154,7 @@ func (s *StoreImpl) SaveDiffMetrics(id string, diffMetrics *diff.DiffMetrics) er
 
 // LoadDiffMetrics implements the metricsstore.MetricsStore interface.
 func (s *StoreImpl) LoadDiffMetrics(id string) (*diff.DiffMetrics, error) {
+	defer metrics2.FuncTimer().Stop()
 	ctx := context.TODO() // TODO(lovisolo): Add a ctx argument to the interface method.
 
 	// Retrieve Firestore document.
