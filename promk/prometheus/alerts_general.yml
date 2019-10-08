@@ -158,7 +158,16 @@ groups:
       description: 'QPS to www.googleapis.com is high. Verify that this is expected.'
 
   - alert: HighFirestoreUsageSustained
-    expr: sum(rate(firestore_ops_count{count="rows"}[24h])) by (app) > 25
+    expr: sum(rate(firestore_ops_count{count="rows", app!~"gold.+"}[24h])) by (app) > 25
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: 'Firestore usage from {{ $labels.app }} over the last 24h is high. Verify that this is expected, and adjust the alert threshold if it is. Dashboard: https://grafana2.skia.org/d/H4cyODhZz/firestore-read-write-rate?orgId=1&from=now-24h&to=now'
+
+  - alert: HighFirestoreUsageSustainedGold
+    expr: sum(rate(firestore_ops_count{count="rows", app=~"gold.+"}[24h])) by (app) > 60
     labels:
       category: infra
       severity: warning
