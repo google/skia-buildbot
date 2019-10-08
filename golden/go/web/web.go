@@ -1101,26 +1101,20 @@ func (wh *Handlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the pagination params.
-	var logEntries []expstorage.TriageLogEntry
-	var total int
-
 	q := r.URL.Query()
 	offset, size, err := httputils.PaginationParams(q, 0, pageSize, maxPageSize)
-	if err == nil {
-		deprecatedIssueStr := q.Get("issue")
-
-		details := q.Get("details") == "true"
-		expStore := wh.ExpectationsStore
-		// TODO(kjlubick) remove this legacy handler
-		if deprecatedIssueStr != "" && deprecatedIssueStr != "0" {
-			expStore = wh.ExpectationsStore.ForChangeList(deprecatedIssueStr, wh.ChangeListStore.System())
-		}
-
-		logEntries, total, err = expStore.QueryLog(r.Context(), offset, size, details)
+	if err != nil {
+		httputils.ReportError(w, err, "Invalid Pagination params", http.StatusBadRequest)
+		return
 	}
 
+	changeList := q.Get("issue")
+
+	details := q.Get("details") == "true"
+	logEntries, total, err := wh.getTriageLog(r.Context(), changeList, offset, size, details)
+
 	if err != nil {
-		httputils.ReportError(w, err, "Unable to retrieve triage log.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Unable to retrieve triage logs", http.StatusInternalServerError)
 		return
 	}
 
@@ -1133,12 +1127,31 @@ func (wh *Handlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponseWithPagination(w, logEntries, pagination)
 }
 
+// getTriageLog does the actual work of the TriageLogHandler, but is easier to test.
+func (wh *Handlers) getTriageLog(ctx context.Context, changeListID string, offset, size int, withDetails bool) ([]frontend.TriageLogEntry, int, error) {
+	expStore := wh.ExpectationsStore
+	// TODO(kjlubick) remove this legacy handler
+	if changeListID != "" && changeListID != "0" {
+		expStore = wh.ExpectationsStore.ForChangeList(changeListID, wh.ChangeListStore.System())
+	}
+	entries, total, err := expStore.QueryLog(ctx, offset, size, withDetails)
+	if err != nil {
+		return nil, -1, skerr.Wrap(err)
+	}
+	logEntries := make([]frontend.TriageLogEntry, 0, len(entries))
+	for _, e := range entries {
+		logEntries = append(logEntries, frontend.ConvertLogEntry(e))
+	}
+	return logEntries, total, nil
+}
+
 // TriageUndoHandler performs an "undo" for a given change id.
 // The change id's are returned in the result of jsonTriageLogHandler.
 // It accepts one query parameter 'id' which is the id if the change
 // that should be reversed.
 // If successful it returns the same result as a call to jsonTriageLogHandler
 // to reflect the changed triagelog.
+// TODO(kjlubick): This does not properly handle undoing of ChangeListExpectations.
 func (wh *Handlers) TriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	// Get the user and make sure they are logged in.

@@ -46,10 +46,12 @@ type Store interface {
 	// that PatchSet if they already existed.
 	PutPatchSet(ctx context.Context, ps code_review.PatchSet) error
 
-	// Returns the underlying system (e.g. "gerrit")
+	// System returns the underlying system (e.g. "gerrit")
 	System() string
 }
 
 var ErrNotFound = errors.New("not found")
 
+// CountMany indicates it is computationally expensive to determine exactly how many
+// items there are.
 var CountMany = math.MaxInt32
