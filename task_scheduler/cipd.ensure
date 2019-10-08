@@ -1,0 +1,21 @@
+# This file specifies the CIPD packages and versions used by Task Scheduler.
+
+# The CIPD server to use.
+$ServiceURL https://chrome-infra-packages.appspot.com/
+
+# This is the cipd client itself
+infra/tools/cipd/${os}-${arch}  latest
+
+@Subdir git
+infra/git/${platform}   version:2.17.1.chromium15
+
+@Subdir python
+infra/python/cpython/${platform}        version:2.7.15.chromium14
+infra/tools/luci/vpython/${platform}    git_revision:b6cdec8586c9f8d3d728b1bc0bd4331330ba66fc
+
+# Swarming and isolate. This version was copied from
+# https://chromium.googlesource.com/chromium/src/+/78c7be3e9d4092d79c092fcf6879ffff4f7da517/DEPS#147
+@Subdir luci-go
+infra/tools/luci/isolate/${platform}    git_revision:7d11fd9e66407c49cb6c8546a2ae45ea993a240c
+infra/tools/luci/isolated/${platform}   git_revision:7d11fd9e66407c49cb6c8546a2ae45ea993a240c
+infra/tools/luci/swarming/${platform}   git_revision:7d11fd9e66407c49cb6c8546a2ae45ea993a240c

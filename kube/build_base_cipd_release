@@ -1,0 +1,33 @@
+#!/bin/bash
+# The base Debian image that includes the skia user and group setup.
+set -x -e
+
+APPNAME=base-cipd
+
+# Keep in sync with the version of Debian we are depending on, i.e.
+# make this match the tag in base-cipd/Dockerfile.
+TAG=testing-slim
+
+# Obtain CIPD via the wrapper in depot_tools, which is pinned in recipes.cfg.
+DEPOT_TOOLS_REV=$(cat ../infra/config/recipes.cfg | python -c "import json; import sys; print json.load(sys.stdin)['deps']['depot_tools']['revision']")
+TMP=$(mktemp -d)
+pushd $TMP
+git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+pushd depot_tools
+git reset --hard "$DEPOT_TOOLS_REV"
+./cipd --version
+chmod a+x .cipd_client
+popd
+popd
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose"
+${INSTALL} --mode=644 -T base-cipd/Dockerfile          ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T $TMP/depot_tools/.cipd_client ${ROOT}/cipd/cipd
+}
+
+source ../bash/docker_build.sh
+
+rm -rf $TMP
