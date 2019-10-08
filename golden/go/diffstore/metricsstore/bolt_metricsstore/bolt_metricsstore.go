@@ -7,6 +7,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	"go.skia.org/infra/go/boltutil"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
@@ -123,6 +124,7 @@ func New(baseDir string) (*BoltImpl, error) {
 
 // LoadDiffMetrics loads diff metrics from disk.
 func (m *BoltImpl) LoadDiffMetrics(id string) (*diff.DiffMetrics, error) {
+	defer metrics2.FuncTimer().Stop()
 	recs, err := m.store.Read([]string{id})
 	if err != nil {
 		return nil, err
@@ -151,6 +153,7 @@ func (m *BoltImpl) LoadDiffMetrics(id string) (*diff.DiffMetrics, error) {
 
 // SaveDiffMetrics stores diff metrics to disk.
 func (m *BoltImpl) SaveDiffMetrics(id string, diffMetrics *diff.DiffMetrics) error {
+	defer metrics2.FuncTimer().Stop()
 	// Serialize the diffMetrics.
 	bytes, err := m.codec.Encode(diffMetrics)
 	if err != nil {
@@ -167,6 +170,7 @@ func (m *BoltImpl) SaveDiffMetrics(id string, diffMetrics *diff.DiffMetrics) err
 
 // PurgeDiffMetrics removes all diff metrics based on specific digests.
 func (m *BoltImpl) PurgeDiffMetrics(digests types.DigestSlice) error {
+	defer metrics2.FuncTimer().Stop()
 	updateFn := func(tx *bolt.Tx) error {
 		metricIDMap, err := m.store.ReadIndexTx(tx, METRICS_DIGEST_INDEX, common.AsStrings(digests))
 		if err != nil {
