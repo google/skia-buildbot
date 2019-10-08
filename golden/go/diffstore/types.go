@@ -23,11 +23,5 @@ func (m MetricMapCodec) Decode(byteData []byte) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// Must make result of deserialization generic in order to propagate
-	ret := make(map[types.Digest]interface{}, len(dm))
-	for k, metric := range dm {
-		ret[k] = metric
-	}
-	return ret, nil
+	return dm, nil
 }
