@@ -11,7 +11,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
-	"go.skia.org/infra/golden/go/diffstore/metricsstore"
 	"go.skia.org/infra/golden/go/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -29,8 +28,8 @@ const (
 	leftAndRightDigests = "left_and_right_digests"
 )
 
-// storeImpl is the Firestore-backed implementation of MetricsStore.
-type storeImpl struct {
+// StoreImpl is the Firestore-backed implementation of MetricsStore.
+type StoreImpl struct {
 	client *ifirestore.Client
 }
 
@@ -79,15 +78,16 @@ func toStoreEntry(dm *diff.DiffMetrics) storeEntry {
 	}
 }
 
-// New returns a Firestore-backed instance of metricsstore.MetricsStore.
-func New(client *ifirestore.Client) metricsstore.MetricsStore {
-	return &storeImpl{
+// New returns a new instance of the Firestore-backed metricsstore.MetricsStore
+// implementation.
+func New(client *ifirestore.Client) *StoreImpl {
+	return &StoreImpl{
 		client: client,
 	}
 }
 
 // PurgeDiffMetrics implements the metricsstore.MetricsStore interface.
-func (s *storeImpl) PurgeDiffMetrics(digests types.DigestSlice) error {
+func (s *StoreImpl) PurgeDiffMetrics(digests types.DigestSlice) error {
 	ctx := context.TODO() // TODO(lovisolo): Add a ctx argument to the interface method.
 
 	// Find all matching documents by building one query per digest.
@@ -137,7 +137,7 @@ func (s *storeImpl) PurgeDiffMetrics(digests types.DigestSlice) error {
 }
 
 // SaveDiffMetrics implements the metricsstore.MetricsStore interface.
-func (s *storeImpl) SaveDiffMetrics(id string, diffMetrics *diff.DiffMetrics) error {
+func (s *StoreImpl) SaveDiffMetrics(id string, diffMetrics *diff.DiffMetrics) error {
 	ctx := context.TODO() // TODO(lovisolo): Add a ctx argument to the interface method.
 
 	docRef := s.client.Collection(metricsStoreCollection).Doc(id)
@@ -150,7 +150,7 @@ func (s *storeImpl) SaveDiffMetrics(id string, diffMetrics *diff.DiffMetrics) er
 }
 
 // LoadDiffMetrics implements the metricsstore.MetricsStore interface.
-func (s *storeImpl) LoadDiffMetrics(id string) (*diff.DiffMetrics, error) {
+func (s *StoreImpl) LoadDiffMetrics(id string) (*diff.DiffMetrics, error) {
 	ctx := context.TODO() // TODO(lovisolo): Add a ctx argument to the interface method.
 
 	// Retrieve Firestore document.
