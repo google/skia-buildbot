@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8482427c_e0cd00c7",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-10-08T18:57:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d345cf56_41f583a7",
+      "range": {
+        "startLine": 149,
+        "startChar": 17,
+        "endLine": 149,
+        "endChar": 24
+      },
+      "revId": "d5de5eefeefde4f52f5f604f6593a988d02aa9f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fb0b49fb_34581e26",
         "filename": "kube/build_base_cipd_release",
         "patchSetId": 1
