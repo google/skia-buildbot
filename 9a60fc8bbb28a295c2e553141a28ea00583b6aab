@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "c65ac5d2_c78ac6ce",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-08T19:27:01Z",
+      "side": 1,
+      "message": "I looked at go/exec and I think that would require major surgery. Instead of modifying go/exec I added td.GetEnv() so that I could pick up the environment variables from task_driver.",
+      "parentUuid": "fd8999f9_1fb16855",
+      "range": {
+        "startLine": 8,
+        "startChar": 5,
+        "endLine": 8,
+        "endChar": 9
+      },
+      "revId": "9a60fc8bbb28a295c2e553141a28ea00583b6aab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2e55622c_5ba76538",
         "filename": "task_driver/go/lib/docker/docker.go",
         "patchSetId": 8
@@ -108,6 +132,30 @@
       "side": 1,
       "message": "Ack",
       "parentUuid": "2e55622c_5ba76538",
+      "range": {
+        "startLine": 24,
+        "startChar": 62,
+        "endLine": 24,
+        "endChar": 74
+      },
+      "revId": "9a60fc8bbb28a295c2e553141a28ea00583b6aab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ebd9a68_a7b4ed98",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-08T19:27:01Z",
+      "side": 1,
+      "message": "Removed with the addition of td.GetEnv().",
+      "parentUuid": "0b79b067_80abab2f",
       "range": {
         "startLine": 24,
         "startChar": 62,
@@ -179,6 +227,30 @@
       "side": 1,
       "message": "Hrm, yeah. I\u0027d rather not modify os.Environ, but maybe we could add functionality to go/exec to search the given PATH for the executable rather than relying on os.Environ.\n\nAnother option for this particular use case is just:\n\ndocker.go:\n\nvar docker \u003d \"docker\"\n\ndocker_test.go:\n\n...\n  docker \u003d \"/path/to/test_bin\"\n...\n\nIf we were worried about conflicts we could do something like:\n\ntype Docker string\n\nvar DefaultDocker \u003d \"docker\"\n\nfunc (d *Docker) Build() ...",
       "parentUuid": "cd933059_6a0a9b45",
+      "range": {
+        "startLine": 20,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 23
+      },
+      "revId": "9a60fc8bbb28a295c2e553141a28ea00583b6aab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32b4ed29_7cf58f1f",
+        "filename": "task_driver/go/lib/docker/docker_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-10-08T19:27:01Z",
+      "side": 1,
+      "message": "I went with dockerCmd \u003d \"docker\".",
+      "parentUuid": "30b4da66_1d3b6d81",
       "range": {
         "startLine": 20,
         "startChar": 1,
